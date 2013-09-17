@@ -1,0 +1,150 @@
+# Copyright (c) 2013 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+module "Geometry";
+
+# ----------------------------------------------------------------------------
+# 3D Space
+# ----------------------------------------------------------------------------
+
+defindex Space = {x, y, z};
+
+declare d_x :: Space!;
+declare d_y :: Space!;
+declare d_z :: Space!;
+
+define d_x = delta(Space@x);
+define d_y = delta(Space@y);
+define d_z = delta(Space@z);
+
+# ----------------------------------------------------------------------------
+# Vector construction
+# ----------------------------------------------------------------------------
+
+declare space_vec :: for_unit a: (a, a, a) -> a*Space!;
+
+define space_vec(a, b, c) = a.d_x + b.d_y + c.d_z;
+
+# ----------------------------------------------------------------------------
+# General Functions
+# ----------------------------------------------------------------------------
+
+declare norm :: for_index P: for_unit a: (a*P!) -> a;
+declare normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
+
+define norm(x) = sqrt(inner(x,x));
+
+define normalized(x) = x / magnitude(norm(x));
+
+# ----------------------------------------------------------------------------
+# Polar Coordinates
+# ----------------------------------------------------------------------------
+
+declare polar2cartesian :: for_unit a: (a, radian, radian) -> a*Space!;
+declare inclination :: for_unit a: (a*Space!) -> radian;
+declare azimuth :: for_unit a: (a*Space!) -> radian;
+
+define polar2cartesian(radius, inclination, azimuth) =
+  scale(radius, space_vec(sin(inclination) * cos(azimuth),
+			  sin(inclination) * sin(azimuth),
+			  cos(inclination)));
+
+define inclination(vec) = acos(inner(vec, d_z) / norm(vec));
+
+define azimuth(vec) = atan2(inner(vec, d_y), inner(vec, d_x));
+
+# ----------------------------------------------------------------------------
+# Cross Product
+# ----------------------------------------------------------------------------
+
+declare cross :: for_unit a: (a*Space!, a*Space!) -> a^2*Space!;
+declare cross_sqrt :: for_unit a: (a*Space!, a*Space!) -> a*Space!;
+
+define cross(v,w) =
+  let
+      vx = inner(v, d_x), vy = inner(v, d_y), vz = inner(v, d_z),
+      wx = inner(w, d_x), wy = inner(w, d_y), wz = inner(w, d_z)
+  in
+      (vy*wz - vz*wy) . d_x + (vz*wx - vx*wz) . d_y + (vx*wy - vy*wx) . d_z
+  end;
+
+define cross_sqrt(v,w) =
+  let
+      vx = inner(v, d_x), vy = inner(v, d_y), vz = inner(v, d_z),
+      wx = inner(w, d_x), wy = inner(w, d_y), wz = inner(w, d_z),
+      sx = vy*wz - vz*wy,
+      sy = vz*wx - vx*wz,
+      sz = vx*wy - vy*wx,
+      sq = sqrt(sx*sx + sy*sy + sz*sz)
+  in
+      (sx.d_x + sy.d_y + sz.d_z) / sqrt(sq)
+  end;
+
+define cross_sqrt_alt(v,w) =
+  let c = cross(v, w) in
+      polar2cartesian(sqrt(norm(c)), inclination(c), azimuth(c))
+  end;
+
+# ----------------------------------------------------------------------------
+# Volumes and Areas
+# ----------------------------------------------------------------------------
+
+declare triangle_area :: for_unit a: (a*Space!, a*Space!, a*Space!) -> a^2;
+declare signed_volume :: for_unit a: (a*Space!, a*Space!, a*Space!) -> a^3;
+declare surface_area :: for_unit a: (List(Tuple(a*Space!, a*Space!, a*Space!))) -> a^2;
+declare surface_volume :: for_unit a: (List(Tuple(a*Space!, a*Space!, a*Space!))) -> a^3;
+
+define triangle_area(x, y, z) =
+  norm(cross(y - x, z - x)) / 2;
+
+define signed_volume(x, y, z) =
+  inner(x, cross(y, z)) / 6;
+
+define surface_area(surface) =
+  sum[apply(triangle_area, x) | x <- surface];
+
+define surface_volume(surface) =
+  abs(sum[apply(signed_volume, x) | x <- surface]);
+
+# ----------------------------------------------------------------------------
+# Rotations
+# ----------------------------------------------------------------------------
+
+declare x_rotation :: (radian) -> Space! per Space!;
+declare y_rotation :: (radian) -> Space! per Space!;
+declare z_rotation :: (radian) -> Space! per Space!;
+declare rotation :: (radian, radian, radian) -> Space! per Space!;
+
+define x_rotation(angle) =
+  (space_vec(1,           0,          0) * d_x^T +
+   space_vec(0,  cos(angle), sin(angle)) * d_y^T +
+   space_vec(0, -sin(angle), cos(angle)) * d_z^T);
+
+define y_rotation(angle) =
+  (space_vec(cos(angle), 0, -sin(angle)) * d_x^T +
+   space_vec(         0, 1,           0) * d_y^T +
+   space_vec(sin(angle), 0,  cos(angle)) * d_z^T);
+
+define z_rotation(angle) =
+  (space_vec( cos(angle), sin(angle), 0) * d_x^T +
+   space_vec(-sin(angle), cos(angle), 0) * d_y^T +
+   space_vec(         0,           0, 1) * d_z^T);
+
+define rotation(x_angle, y_angle, z_angle) =
+  z_rotation(z_angle) * y_rotation(y_angle) * x_rotation(x_angle);

@@ -1,0 +1,53 @@
+module "Fourier_Motzkin";
+
+include "Quad";
+
+# ----------------------------------------------------------------------------
+# This demo of Fourier Motzkin's algorithm to compute the nullifiers
+# of an integer matrix is an adaptation of Martinez and Silva's
+# algorithm from 'A Simple and Fast Algorithm to Obtain all Invariants
+# of a Generalised Petri Net' (1982).
+#
+# In the algorithm a matrix |A I| is constructed. This matrix grows
+# and shrinks in the row dimension when a column from A is
+# eliminated. When it ends with matrix |B C| the rows in C are the
+# nullifiers.
+#   
+# The main data structure in this implementation is a list of
+# quadruples. This version does not create matrix |A I| but creates
+# pairs (v,w) of rows v from A and w from I, and operates on these
+# pairs instead of the matrix. Because the support is often needed
+# these are added to get quadruples (v, w, support(v), support(w)).
+#   
+# Also the rows and columns are switched with respect to Martinez and
+# Silva.
+#	
+# Paul Griffioen 2011-2013
+# ----------------------------------------------------------------------------
+
+declare fourier_motzkin ::
+  for_index P,Q: for_unit a,u: (a*P!u per Q!) -> List(Q!);
+
+define fourier_motzkin(matrix) =
+    let
+        pairs = zip(columns(matrix), columns(right_identity(matrix))),
+        quads = [make_quad(v,w) | (v,w) <- pairs],
+        eliminated = loop_list(quads, eliminate, reverse(row_domain(matrix)))
+    in
+        [quad_right(q) | q <- eliminated]
+    end;
+
+define eliminate(quads, row) =
+    let
+        combined = [canonical(x) |
+                    (q,r) <- combis(quads),
+                    alpha := quad_magnitude(q, row), 
+                    beta := quad_magnitude(r, row),
+                    alpha * beta < 0,
+                    x := combine_quads(abs(beta), q, abs(alpha), r)]
+    in
+        minimize([q | q <- append(combined, quads), quad_magnitude(q, row) = 0])
+    end;
+  
+define minimize(quads) =
+  [q | q <- quads, all[support_sub(r,q) ==> r = q | r <- quads]];

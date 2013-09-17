@@ -1,0 +1,79 @@
+module "Quad";
+
+# ----------------------------------------------------------------------------
+# Data structure for Fourier-Motzkin
+#	
+# Paul Griffioen 2011-2013
+# ----------------------------------------------------------------------------
+
+deftype for_index P,Q: for_unit a,b,u,v:
+  Quad(a*P!u, b*Q!v) = Tuple(a*P!u, b*Q!v, P!, Q!);
+
+
+declare make_quad :: for_index P,Q: for_unit a,b,u,v:
+  (a*P!u, b*Q!v) -> Quad(a*P!u, b*Q!v);
+
+declare quad_left :: for_index P,Q: for_unit a,b,u,v:
+  (Quad(a*P!u, b*Q!v)) -> a*P!u;
+
+declare quad_right :: for_index P,Q: for_unit a,b,u,v:
+  (Quad(a*P!u, b*Q!v)) -> b*Q!v;
+
+declare scale_quad :: for_index P,Q: for_unit a,b,c,u,v:
+  (1, Quad(a*P!u, b*Q!v)) -> Quad(a*P!u, b*Q!v);
+
+declare quad_magnitude :: for_index P,Q: for_unit a,b,u,v:
+  (Quad(a*P!u, b*Q!v), P) -> 1;
+
+declare quad_gcd :: for_index P,Q: for_unit a,b,u,v:
+  (Quad(a*P!u, b*Q!v)) -> 1;
+
+declare combine_quads :: for_index P,Q: for_unit a,b,u,v:
+  (1, Quad(a*P!u, b*Q!v), 1, Quad(a*P!u, b*Q!v)) -> Quad(a*P!u, b*Q!v);
+
+declare support_sub :: for_index P,Q: for_unit a,b,u,v:
+  (Quad(a*P!u, b*Q!v), Quad(a*P!u, b*Q!v)) -> Boole();
+
+declare canonical :: for_index P,Q: for_unit a,b,u,v:
+  (Quad(a*P!u, b*Q!v)) -> Quad(a*P!u, b*Q!v);
+
+
+define make_quad(v,w) = tuple(v, w, support(v), support(w));
+
+define quad_left(q) = let (v, _, _, _) = q in v end;
+
+define quad_right(q) = let (_, w, _, _) = q in w end;
+
+
+define scale_quad(c, quad) =
+  let (v, w, sv, sw) = quad in
+    tuple(c . v, c . w, sv, sw)
+  end;
+
+define quad_magnitude(quad, row) = 
+  let (v, _, _, _) = quad in
+    get_num(v, row, _)
+  end;
+
+define quad_gcd(quad) =
+  let (v, w, _, _) = quad in
+    gcd(gcd[get_num(v,i,_) | i <- row_domain(v)],
+        gcd[get_num(w,i,_) | i <- row_domain(w)])
+  end;
+
+define combine_quads(a, q, b, r) =
+  let (q1, q2, _, _) = q,
+      (r1, r2, _, _) = r
+  in
+      make_quad(a.q1 + b.r1, a.q2 + b.r2)
+  end;
+
+define support_sub(q, r) =
+  let (_, _, q3, q4) = q,
+      (_, _, r3, r4) = r
+  in
+    q3 <= r3 and q4 <= r4
+  end;
+
+define canonical(quad) =
+  scale_quad(1 / quad_gcd(quad), quad);

@@ -1,0 +1,203 @@
+# Copyright (c) 2013 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+module "Standard";
+
+include "Primitives";
+include "Matrix";
+include "List";
+
+# ------------------------------------------------------------------------------
+# Misc
+# ------------------------------------------------------------------------------
+
+define sqr(x) = x .* x;
+
+define cube(x) = x .* x .* x;
+
+define pi = 3.141592653589793;
+
+define not_equal(x, y) = not(equal(x, y));
+
+define make_matrix(x) = matrix_from_tuples(x);
+
+# ------------------------------------------------------------------------------
+# Algebra
+# ------------------------------------------------------------------------------
+
+declare inner :: for_index P: for_unit a,b,u: (a*P!u, b*P!u^-1) -> a*b;
+declare outer :: for_index P,Q: for_unit a,b,u,v: (a*P!u, b*Q!v) -> a*b*P!u per Q!v^-1;
+declare dual :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per a*P!u;
+
+declare left_division :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*P!u per R!w) -> b*Q!v per a*R!w;
+
+declare right_division :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*R!w per Q!v) -> a*P!u per b*R!w;
+
+define inner(x,y) = x^T * y;
+
+define outer(x,y) = x * y^T;
+
+define dual(x) = transpose(reciprocal(x));
+
+define left_division(x,y) = inverse(x) * y;
+
+define right_division(x,y) = x * inverse(y);
+
+# ------------------------------------------------------------------------------
+# Matrix Shape
+# ------------------------------------------------------------------------------
+
+declare rows :: for_index P,Q: for_unit a,v: (a*P! per Q!v) -> List(a per Q!v);
+declare columns :: for_index P,Q: for_unit a,u: (a*P!u per Q!) -> List(a*P!u);
+declare unit :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> a*P!u per Q!v;
+declare total :: for_index P,Q: for_unit a: (a*P! per Q!) -> a;
+declare delta :: for_index P: (P) -> P!;
+declare map_matrix :: for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
+
+define rows(matrix) = 
+  [row(matrix,i) | i <- row_domain(matrix)];
+
+define columns(matrix) =
+  [column(matrix,j) | j <- column_domain(matrix)];
+
+define unit(mat) =
+  unit_factor(mat) . row_units(mat) per column_units(mat);
+
+define total(x) =
+  loop_list(0 . unit_factor(x), sum, [v | r <- rows(x), v <- columns(r)]);
+
+define delta(x) = 
+  matrix_from_tuples([tuple(x, _, 1)]);
+
+define basis(matrix) =
+  [delta(x) | x <- row_domain(matrix)];
+
+define get_num(matrix, row, column) = 
+  get(magnitude(matrix), row, column);
+
+define map_matrix(fun, mat) = 
+  matrix_from_tuples([tuple(i, j, fun(get(mat, i, j))) | i <- row_domain(mat),
+                                                         j <- column_domain(mat)]);
+
+# ------------------------------------------------------------------------------
+# Bit Vectors
+# ------------------------------------------------------------------------------
+
+define log_not(x) = unit(x) - x;
+
+define support(x) = 
+  map_matrix(lambda(x) if x = 0 then 0 else 1 end end, magnitude(x));
+
+define positive_support(x) = 
+  map_matrix(lambda(x) if 0 < x then 1 else 0 end end, magnitude(x));
+
+define negative_support(x) = 
+  map_matrix(lambda(x) if x < 0 then 1 else 0 end end, magnitude(x));
+
+define positives(x) = x .* positive_support(x);
+
+define negatives(x) = x .* negative_support(x);
+
+# ------------------------------------------------------------------------------
+# Diagonal Matrices
+# ------------------------------------------------------------------------------
+
+declare diagonal :: for_index P: for_unit a,u: (a*P!u) -> a*P!u per P!u;
+declare diagonal2 :: for_index P: for_unit a,u: (a*P!u) -> a*P!u per P!;
+declare left_identity :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> P!u per P!u;
+declare right_identity :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per Q!v;
+
+define diagonal(x) =
+  let u = unit(x), units = unit_factor(u).u per u in
+    matrix_from_tuples([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) .* units
+  end;
+
+define diagonal2(x) =
+  let u = unit(x), units = u per (magnitude(u)) in
+    matrix_from_tuples([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) .* units
+  end;
+
+define left_identity(x) = diagonal(row_units(x));
+
+define right_identity(x) = diagonal(column_units(x));
+
+# ------------------------------------------------------------------------------
+# Closures
+# ------------------------------------------------------------------------------
+
+declare right_inverse :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per a*P!u;
+declare left_inverse :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per a*P!u;
+declare inverse :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per a*P!u;
+declare kleene :: for_index P: for_unit u: (P!u per P!u) -> P!u per P!u;
+declare closure :: for_index P: for_unit u: (P!u per P!u) -> P!u per P!u;
+
+define right_inverse(x) = solve(x, left_identity(x));
+
+define left_inverse(x) = right_inverse(x^T)^T;
+
+define inverse(x) = right_inverse(x);
+
+define kleene(x) = inverse(left_identity(x) - x);
+
+define closure(x) = kleene(x) - left_identity(x);
+
+# ------------------------------------------------------------------------------
+# Lists
+# ------------------------------------------------------------------------------
+
+declare map_list :: for_type a,b: ((a) -> b, List(a)) -> List(b);
+declare reverse :: for_type a: (List(a)) -> List(a);
+declare combis :: for_type a: (List(a)) -> List(Tuple(a, a));
+
+define map_list(f, x) = loop_list([], lambda (a, b) append(a, [apply(f, tuple(b))]) end, x);
+
+define reverse(x) = loop_list([], lambda (a,b) append([b],a) end, x);
+
+define combis(list) =
+    let accumulator(accu, x) =
+        let (result, tails) = accu in
+            tuple(append([tuple(x,y) | y <- tail(tails)], result), tail(tails))
+        end
+    in
+        let (result, _) = loop_list(tuple([], list), accumulator, list) in result end
+    end;
+
+# ------------------------------------------------------------------------------
+# Primitives for Operators
+# ------------------------------------------------------------------------------
+
+declare divide :: for_index P,Q: for_unit a,b,u,v,x,y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y;
+declare left_divide :: for_index P,Q: for_unit a,b,u,v,x,y: (a*P!u per Q!v, b*P!x per Q!y) -> b*P!x/P!u per a*Q!y/Q!v;
+declare scale_down :: for_index P,Q: for_unit a,b,u,v: (a*P!u per Q!v, b) -> a*P!u per b*Q!v;
+
+define divide(x,y) = x .* /y;
+define left_divide(x,y) = divide(y, x);
+define minus(x,y) = x + -y;
+define per_op(x, y) = x * dual(y);
+define scale_down(x, c) = scale(/c, x);
+
+# ------------------------------------------------------------------------------
+# Primitives for Comprehensions (todo: implement properly)
+# ------------------------------------------------------------------------------
+
+define list_sum(x) = fold_list(sum, x);
+define list_min(x) = fold_list(min, x);
+define list_max(x) = fold_list(max, x);
+define list_gcd(x) = fold_list(gcd, x);
+define list_all(x) = if x = [] then true else fold_list(lambda (a,b) a and b end, x) end;

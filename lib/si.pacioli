@@ -1,0 +1,169 @@
+# Copyright (c) 2013 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+module "SI";
+
+defunit metre "m";
+defunit gram "g";
+defunit second "s";
+defunit ampere "A";
+defunit kelvin "K";
+defunit mole "mol";
+defunit candela "cd";
+
+defunit radian "rad";
+
+defunit dollar "$";
+
+defunit steradian "sr" = metre^2 / metre^2;
+
+defunit hertz "Hz" = 1/second;
+
+defunit newton "N" = kilogram*metre /second^2;
+
+defunit pascal "Pa" = newton/metre^2;
+
+defunit joule "J" = newton*metre;
+
+defunit watt "W" = joule/second;
+
+defunit coulomb "C" = second*ampere;
+
+defunit volt "V" = watt/ampere;
+
+defunit farad "F" = coulomb/volt;
+
+defunit ohm "Ω" = volt/ampere;
+
+defunit siemens "S" = ampere/volt;
+
+defunit weber "Wb" = volt*second;
+
+defunit tesla "T" = weber/metre^2;
+
+defunit henry "H" = weber/ampere;
+
+defunit degree_celcius "°C" = kelvin;
+
+defunit lumen "lm" = candela/steradian;
+
+defunit lux "lx" = lumen/metre^2;
+
+defunit becquerel "Bq" = 1/second;
+
+defunit gray "Gy" = joule/kilogram;
+
+defunit sievert "Sv" = joule/kilogram;
+
+defunit katal "kat" = mole/second;
+
+# ----------------------------------------------------------------------------
+# Derived quantities whose units names include other unit names
+# ----------------------------------------------------------------------------
+
+defunit minute "min" = 60*second;
+#
+defunit hour "hr" = 60*minute;
+#
+defunit day "d" = 24*hour;
+#
+#defunit degree "°" = / (* (extern pi) radian) 180);
+#
+#defunit angle-minute "′" = / degree 60);
+#
+#defunit angle-second "''" = / angle-minute 60);
+#
+#defunit litre "l" = (deci metre) ^ 3);
+defunit litre "l" = decimetre^3;
+#
+#defunit tonne "t" = * 1000 (kilo gram));
+#
+#;; ----------------------------------------------------------------------------
+#;; Experimental values
+#;; ----------------------------------------------------------------------------
+#
+#defunit electronvolt "eV" = * 1.6021765314 (10 ^ -19) joule);
+#
+#defunit atomic-mass-unit "u" = * 1.6605388628 (10 ^ -27) (kilo gram));
+#
+#defunit astronomical-unit "ua" = * 1.495978706916 (10 ^ 11) metre);
+#
+#defunit natural-unit-of-speed "c0" = * 299792458 (/ metre second));
+#
+#defunit natural-unit-of-action "h" = * 1.0545716818 (10 ^ -34) (/ joule second)#);
+#
+#defunit natural-unit-of-mass "mc" = * 9.109382616 (10 ^ -31) (kilo gram));
+#
+#defunit natural-unit-of-time "h/(mc²)" = * 1.288088667786 (10 ^ -21) second);
+#
+#defunit atomic-unit-of-charge "e" = * 1.6021765314 (10 ^ -19) coulomb);
+#
+#defunit atomic-unit-of-mass "me" = * 9.109382616 (10 ^ -31) (kilo gram));
+#
+#defunit atomic-unit-of-action "h" = * 1.0545716818 (10 ^ -34) (/ joule second))#;
+#
+#defunit atomic-unit-of-length "a0" = * 0.529177210818 (10 ^ -10) metre);
+#
+#defunit atomic-unit-of-energy "Eh" = * 4.3597441775 (10 ^ -18) joule);
+#
+#defunit atomic-unit-of-time "h/Eh" = * 2.41888432650516 (10 ^ -17) second);
+#
+#;; ----------------------------------------------------------------------------
+#;; Other non-SI units
+#;; 
+#;; Note: skipped the neper, bel and decibel because their numerical
+#;; value was not listed. Todo: understand these units
+#;; ----------------------------------------------------------------------------
+#
+#defunit bar "bar" = * 100 (kilo pascal));
+#
+#defunit millimetre-of-mercury "mmHg" = * 133.322 pascal);
+#
+#defunit angstrom "Å" = / metre (10 ^ 10));
+#
+#defunit nautical-mile "M" = * 1852 metre);
+#
+#defunit barn "b" = * 100 ((femto metre) ^ 2));
+#
+#defunit knot "kn" = * 1852/3600 (/ metre second));
+#
+#;; ----------------------------------------------------------------------------
+#;; CGS and CGS-Gaussian unit
+#;; ----------------------------------------------------------------------------
+#
+#defunit energy "erg" = * (10 ^ -7) joule);
+#
+#defunit dyne "dyn" = * (10 ^ -5) newton);
+#
+#defunit poise "P" = / (* dyne second) ((centi metre) ^ 2));
+#
+#defunit stokes "St" = / ((centi metre) ^ 2) second);
+#
+#defunit stilb "sb" = / candela ((centi metre) ^ 2));
+#
+#defunit phot "ph" = / (* candela steradian) ((centi metre) ^ 2));
+#
+#defunit gal "Gal" = / (centi metre) (second ^ 2));
+#
+#defunit maxwell "Mx" = * (10 ^ -8) weber);
+#
+#defunit gauss "G" = * (10 ^ -4) tesla);
+#
+#defunit oersted "Oe" = / (kilo ampere) (* 4 (extern pi) metre));
+
