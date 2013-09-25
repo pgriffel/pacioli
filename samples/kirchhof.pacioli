@@ -43,25 +43,10 @@ defmatrix conductance :: ampere/volt*Edge! = {
 
 define ground = Node@n3;
 
-define mask = |Edge!| per (|Node!| - delta(ground));
-
-define grounded_incidence = incidence .* mask;
-
-define grounded_incidence2 = matrix_from_tuples([tuple(x,y,get(incidence, x, y)) | x <- row_domain(incidence),
-                                                  y <- column_domain(incidence),
-                                                  y != ground]);
-
-grounded_incidence2 = grounded_incidence;
-
-define mask2 = matrix_from_tuples([tuple(x,y,v) | x <- row_domain(incidence),
-                                                  y <- column_domain(incidence),
-                                                  v := if y = ground then 0 else 1 end]);
-
-define mask3 = matrix_from_tuples([tuple(x,y,1) | x <- row_domain(incidence),
-                                                  y <- column_domain(incidence),
-                                                  y != ground]);
-
-mask3;
+define grounded_incidence = 
+  make_matrix([tuple(x,y,get(incidence, x, y)) | x <- row_domain(incidence),
+                                                 y <- column_domain(incidence),
+                                                 y != ground]);
 
 # ----------------------------------------------------------------------------
 # Computing Current and Potential
@@ -70,20 +55,14 @@ mask3;
 declare potential :: (volt*Edge!, ampere*Node!) -> volt*Node!;
 declare current :: (volt*Edge!, ampere*Node!) -> ampere*Edge!;
 
-define M1 = grounded_incidence^T * diagonal(conductance);
-define M2 = M1 * grounded_incidence;
+define M1 = grounded_incidence^T .* diagonal(conductance);
+define M2 = M1 .* grounded_incidence;
 
 define potential(battery, inflow) =
-  M2 \ (M1*battery - inflow);
+  M2 .\ (M1 .* battery - inflow);
 
 define current(battery, inflow) = 
-  conductance .* (battery - grounded_incidence*potential(battery, inflow));
-
-define current2(battery, inflow, potential) = 
-  conductance .* (battery - grounded_incidence*potential);
-
-define potential2(battery, inflow) =
-  M2 \ (M1*battery - inflow);
+  conductance * (battery - grounded_incidence .* potential(battery, inflow));
 
 # ----------------------------------------------------------------------------
 # A case
@@ -120,7 +99,7 @@ declare solve_system ::
 
 define solve_system(battery, inflow) =
   let potential = potential(battery, inflow) in
-    tuple(potential, conductance .* (battery - grounded_incidence*potential))
+    tuple(potential, conductance * (battery - grounded_incidence .* potential))
   end;
 
 solve_system(my_battery, my_inflow);
@@ -138,10 +117,10 @@ define decimal_places(x) = |decs| . -log(abs(magnitude(x)), 10);
 
 define check_kirchhof(potential, current, battery, inflow) =
   let
-    potential_diff = grounded_incidence * potential,
-    net_current = grounded_incidence^T * current,
-    resistor_potential = current ./ conductance,
-    effective_inflow = inflow - delta(ground) .* inflow
+    potential_diff = grounded_incidence .* potential,
+    net_current = grounded_incidence^T .* current,
+    resistor_potential = current / conductance,
+    effective_inflow = inflow - delta(ground) * inflow
   in
     tuple(decimal_places(resistor_potential + potential_diff - battery), 
           decimal_places(net_current - effective_inflow))

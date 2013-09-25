@@ -101,7 +101,7 @@ public class KeyNode extends AbstractExpressionNode {
         } else {
             for (int i = 0; i < size; i++) {
                 if (0 < i) {
-                    out.print(":");
+                    out.print("%");
                 }
                 out.print(indexSets.get(i));
                 out.print('@');

@@ -177,7 +177,7 @@ public class MatrixDefinition extends AbstractDefinition {
 
             List<ExpressionNode> args = new ArrayList<ExpressionNode>();
             args.add(list);
-            body = new ApplicationNode(new IdentifierNode("matrix_from_tuples", getLocation()), args, getLocation());
+            body = new ApplicationNode(new IdentifierNode("make_matrix", getLocation()), args, getLocation());
 
             args = new ArrayList<ExpressionNode>();
             args.add(body);

@@ -152,7 +152,7 @@ public class MatrixTypeNode extends AbstractExpressionNode {
         }
         String columnText = buildMVMOperation("user_Matrix_kronecker", columnKroneckerParts);
 
-        return String.format("application(var(\"user_Matrix_scale\"), %s, application(var(\"user_Standard_per_op\"), %s, %s))",
+        return String.format("application(var(\"user_Matrix_scale\"), %s, application(var(\"user_Standard_dim_div\"), %s, %s))",
                 factorText, rowText, columnText);
     }
 

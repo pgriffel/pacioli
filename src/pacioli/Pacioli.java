@@ -40,7 +40,7 @@ public class Pacioli {
     private static boolean debug = false;
     private static boolean traceAll = false;
     private static List<String> tracedFunctions = new ArrayList<String>();
-    private static boolean atLineStart = true;
+    private static boolean atLineStart = false;
 
     public static void main(String[] args) {
         try {
@@ -283,8 +283,8 @@ public class Pacioli {
 
     private static void infoCommand(List<File> libs) {
 
-        displayHeader();
-
+        logln("Pacioli v0.0.0");
+        
         logln("\nSettings");
         logln("  verbosity=%s", verbosity);
         logln("  warnings=%s", warnings);
@@ -307,11 +307,10 @@ public class Pacioli {
             }
 
         }
+        logln("\nPaul Griffioen 2013");
     }
 
     private static void helpCommand() {
-
-        displayHeader();
 
         logln("\nSyntax: pacioli COMMAND [OPTION]...FILE...  with COMMAND one of:");
         logln("   run           runs a pacioli file");
@@ -341,10 +340,6 @@ public class Pacioli {
     private static void displayError(String text) {
         logln("Invalid command: %s", text);
         logln("\nType 'pacioli help' for help");
-    }
-
-    private static void displayHeader() {
-        logln("Pacioli compiler. Paul Griffioen 2013.");
     }
 
     private static void interpretMVMText(String code) throws MVMException {

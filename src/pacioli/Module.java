@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.definition.ConversionDefinition;
+import pacioli.ast.definition.ProjectionDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.IndexSetDefinition;
@@ -65,6 +66,7 @@ public class Module extends AbstractPrintable {
     private final List<UnitDefinition> unitDefs;
     private final List<ValueDefinition> definitions;
     private final List<ConversionDefinition> conversionDefs;
+    private final List<ProjectionDefinition> projectionDefs;
     private final List<MatrixDefinition> matrixDefs;
     private final List<ExpressionNode> expressions;
     /*
@@ -89,6 +91,7 @@ public class Module extends AbstractPrintable {
         this.declarations = new HashMap<String, TypeNode>();
         this.unitDefs = new ArrayList<UnitDefinition>();
         this.conversionDefs = new ArrayList<ConversionDefinition>();
+        this.projectionDefs = new ArrayList<ProjectionDefinition>();
         this.indexDefs = new ArrayList<IndexSetDefinition>();
         this.unitVectorDefs = new ArrayList<UnitVectorDefinition>();
         this.matrixDefs = new ArrayList<MatrixDefinition>();
@@ -147,6 +150,14 @@ public class Module extends AbstractPrintable {
         }
         conversionDefs.add(new ConversionDefinition(this, id, typeNode));
     }
+    
+    void addProjDef(IdentifierNode id, TypeNode typeNode) throws PacioliException {
+        String localName = id.getName();
+        if (lookupDefinition(localName) != null) {
+            throw new PacioliException(id.getLocation(), "Name '%s' is already defined", localName);
+        }
+        projectionDefs.add(new ProjectionDefinition(this, id, typeNode));
+    }
 
     void addTypeDef(Location location, TypeContext context, TypeApplicationNode lhs, TypeNode rhs) throws PacioliException {
         typeDefs.add(new TypeDefinition(this, location, context, lhs, rhs));
@@ -156,7 +167,7 @@ public class Module extends AbstractPrintable {
         String idName = id.getName();
         Pacioli.logln3("Adding alias %s for %s", idName, unit.toText());
         if (aliasDefs.containsKey(idName)) {
-            throw new PacioliException(id.getLocation(), "Conversion '%s' already exists", idName);
+            throw new PacioliException(id.getLocation(), "Alias '%s' already exists", idName);
         }
         aliasDefs.put(idName, unit);
     }
@@ -183,6 +194,11 @@ public class Module extends AbstractPrintable {
                 return def;
             }
         }
+        for (Definition def : projectionDefs) {
+            if (def.localName().equals(localName)) {
+                return def;
+            }
+        }
         for (Definition def : matrixDefs) {
             if (def.localName().equals(localName)) {
                 return def;
@@ -200,6 +216,9 @@ public class Module extends AbstractPrintable {
         for (ConversionDefinition definition : conversionDefs) {
             all.add(definition.localName());
         }
+        for (ProjectionDefinition definition : projectionDefs) {
+            all.add(definition.localName());
+        }
         for (Definition definition : matrixDefs) {
             all.add(definition.localName());
         }
@@ -213,6 +232,9 @@ public class Module extends AbstractPrintable {
             orderedDefinitionsHelper(definition, discovered, all);
         }
         for (Definition definition : conversionDefs) {
+            orderedDefinitionsHelper(definition, discovered, all);
+        }
+        for (Definition definition : projectionDefs) {
             orderedDefinitionsHelper(definition, discovered, all);
         }
         for (Definition definition : matrixDefs) {
@@ -362,6 +384,9 @@ public class Module extends AbstractPrintable {
         for (ConversionDefinition definition : conversionDefs) {
             newDictionary.putType(definition.localName(), definition.getTypeNode().eval(dictionary, new TypeContext(), false));
         }
+        for (ProjectionDefinition definition : projectionDefs) {
+            newDictionary.putType(definition.localName(), definition.getTypeNode().eval(dictionary, new TypeContext(), false));
+        }
         for (MatrixDefinition definition : matrixDefs) {
             newDictionary.putType(definition.localName(), definition.getTypeNode().eval(dictionary, new TypeContext(), false));
         }
@@ -408,7 +433,10 @@ public class Module extends AbstractPrintable {
             definition.updateDictionary(dictionary, true);
         }
         for (Definition definition : conversionDefs) {
-            definition.updateDictionary(dictionary, true);
+        	definition.updateDictionary(dictionary, true);
+        }
+        for (Definition definition : projectionDefs) {
+        	definition.updateDictionary(dictionary, true);
         }
         for (Definition definition : matrixDefs) {
             definition.updateDictionary(dictionary, true);
@@ -452,6 +480,9 @@ public class Module extends AbstractPrintable {
             definition.resolveNames(dictionary, globals, new HashSet<String>(), new HashSet<String>());
         }
         for (Definition definition : conversionDefs) {
+            definition.resolveNames(dictionary, globals, new HashSet<String>(), new HashSet<String>());
+        }
+        for (Definition definition : projectionDefs) {
             definition.resolveNames(dictionary, globals, new HashSet<String>(), new HashSet<String>());
         }
         for (Definition definition : matrixDefs) {
@@ -612,6 +643,7 @@ public class Module extends AbstractPrintable {
         for (Definition definition : conversionDefs) {
             out.println(definition.compileToJS());
         }
+        // todo: projections
         for (Definition definition : orderedDefinitions()) {
             if (definition.getModule() == this) {
                 out.println(definition.compileToJS());
@@ -647,6 +679,7 @@ public class Module extends AbstractPrintable {
                 out.format("      global %s;\n", fullName);
                 out.format("      retval = %s;\n", fullName);
             }
+            // todo: projections
             for (Definition definition : m.matrixDefs) {
                 String fullName = definition.globalName().toLowerCase();
                 out.format("    case \"%s\"\n", fullName);
@@ -665,6 +698,7 @@ public class Module extends AbstractPrintable {
         for (Definition definition : conversionDefs) {
             out.println(definition.compileToMATLAB());
         }
+        // todo: projections
         for (Definition definition : orderedDefinitions()) {
             if (definition.getModule() == this) {
                 out.println(definition.compileToMATLAB());

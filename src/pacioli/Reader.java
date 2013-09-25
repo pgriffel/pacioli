@@ -122,7 +122,7 @@ public class Reader {
         "<=>", "==>", "<=="
     };
     private static final String[] KEYWORDS = {
-        "module", "define", "include", "declare", "defindex", "defunit", "defmatrix", "defconv", "deftype", "defalias",
+        "module", "define", "include", "declare", "defindex", "defunit", "defmatrix", "defconv", "defproj", "deftype", "defalias",
         "let", "in", "begin", "end", "if", "then", "else", "elseif", "lambda", "while", "return", "do",
         "for_type", "for_index", "for_unit",
         "per", "and", "or", "true", "false",};
@@ -170,36 +170,47 @@ public class Reader {
         }
     }));
     private static final Parser<IdentifierNode> IDENTIFIER =
-            Terminals.Identifier.PARSER.token()
-            .map(new Map<Token, IdentifierNode>() {
-        public IdentifierNode map(Token arg) {
-            String name = (String) arg.value();
-            // use name length because argh.length seems to include whitespace
-            return new IdentifierNode(name, new Location(source, arg.index(), arg.index() + name.length()));
-        }
-    });
+    		Terminals.Identifier.PARSER.token()
+    		.map(new Map<Token, IdentifierNode>() {
+    			public IdentifierNode map(Token arg) {
+    				String name = (String) arg.value();
+    				// use name length because argh.length seems to include whitespace
+    				return new IdentifierNode(name, new Location(source, arg.index(), arg.index() + name.length()));
+    			}
+    		});
     private static Parser<MatrixTypeNode> BANG =
-            Parsers.sequence(
-            TERMS.token("|"),
-            typeParserRec(),
-            TERMS.token("|"),
-            new Map3<Token, TypeNode, Token, MatrixTypeNode>() {
-        public MatrixTypeNode map(Token left, TypeNode typeNode, Token right) {
-            Location location = new Location(source, left.index(), right.index() + right.length());
-            return new MatrixTypeNode(location, typeNode);
-        }
-    });
+    		Parsers.sequence(
+    				TERMS.token("|"),
+    				typeParserRec(),
+    				TERMS.token("|"),
+    				new Map3<Token, TypeNode, Token, MatrixTypeNode>() {
+    					public MatrixTypeNode map(Token left, TypeNode typeNode, Token right) {
+    						Location location = new Location(source, left.index(), right.index() + right.length());
+    						return new MatrixTypeNode(location, typeNode);
+    					}
+    				});
     private static Parser<KeyNode> KEY =
-            Parsers.sequence(
-            IDENTIFIER
-            .followedBy(TERMS.token("@")),
-            IDENTIFIER,
-            new Map2<IdentifierNode, IdentifierNode, KeyNode>() {
-        public KeyNode map(IdentifierNode indexSet, IdentifierNode key) {
-            return new KeyNode(indexSet.getName(), key.getName(), indexSet.getLocation().join(key.getLocation()));
-        }
-    });
+    		Parsers.tuple(
+    				IDENTIFIER
+    				.followedBy(TERMS.token("@")),
+    				IDENTIFIER).sepBy1(TERMS.token("%"))
+    				.map(new Map<List<Pair<IdentifierNode, IdentifierNode>>, KeyNode>() {
+    					public KeyNode map(List<Pair<IdentifierNode, IdentifierNode>> keys) {
 
+    						KeyNode keyNode = null;
+
+    						for (Pair<IdentifierNode, IdentifierNode> pair : keys) {
+    							KeyNode node = new KeyNode(pair.a.getName(), pair.b.getName(), pair.a.getLocation().join(pair.b.getLocation()));
+    							if (keyNode == null) {
+    								keyNode = node;
+    							} else {
+    								keyNode = keyNode.merge(node);
+    							}
+    						}
+
+    						return keyNode;
+    					}
+    				});
     ////////////////////////////////////////////////////////////////////////////////
     // Module
     private static Parser<Module> moduleParser() {
@@ -219,6 +230,7 @@ public class Reader {
                 defunitParser(),
                 defbaseunitParser(),
                 defConversionParser(),
+                defProjectionParser(),
                 defTypeParser(),
                 defAliasParser(),
                 defMatrixParser()).many(),
@@ -523,6 +535,28 @@ public class Reader {
         });
     }
 
+    private static Parser<Callback<Module, Void>> defProjectionParser() {
+        return Parsers.sequence(
+                TERMS.token("defproj")
+                .next(IDENTIFIER),
+                TERMS.token("::")
+                .next(typeParser())
+                .followedBy(TERMS.token(";")),
+                new Map2<IdentifierNode, TypeNode, Callback<Module, Void>>() {
+            public Callback<Module, Void> map(final IdentifierNode id, final TypeNode node) {
+                return new Callback<Module, Void>() {
+                    public Void call(Module module) {
+                        try {
+                            module.addProjDef(id, node);
+                            return null;
+                        } catch (PacioliException ex) {
+                            throw new ParserException(ex, null, null, null);
+                        }
+                    }
+                };
+            }
+        });
+    }
     ////////////////////////////////////////////////////////////////////////////////
     // Units
     private static Parser<Unit> unitParser() {
@@ -1041,11 +1075,16 @@ public class Reader {
 
     private static Parser<ExpressionNode> arithmeticParser(Parser<ExpressionNode> termParser) {
         Parser<ExpressionNode> parser = new OperatorTable<ExpressionNode>()
-                .infixl(TERMS.token("per").next(binaryOperatorParser("per_op")), 60)
+        		.infixl(TERMS.token(".^").next(binaryOperatorParser("power")), 70)
+                .infixl(TERMS.token("^").next(binaryOperatorParser("expt")), 70)
+                .infixl(TERMS.token("per").next(binaryOperatorParser("dim_div")), 60)
                 .infixl(TERMS.token(".").next(binaryOperatorParser("scale")), 50)
                 .infixl(TERMS.token("/.").next(binaryOperatorParser("scale_down")), 50)
-                .infixl(TERMS.token(".*").next(binaryOperatorParser("multiply")), 50)
-                .infixl(TERMS.token("*").next(binaryOperatorParser("join")), 50)
+                .infixl(TERMS.token("*").next(binaryOperatorParser("multiply")), 50)
+                .infixl(TERMS.token("/").next(binaryOperatorParser("divide")), 50)
+                .infixl(TERMS.token(".*").next(binaryOperatorParser("dot")), 50)
+                .infixl(TERMS.token("./").next(binaryOperatorParser("right_division")), 50)
+                .infixl(TERMS.token(".\\").next(binaryOperatorParser("left_division")), 50)
                 .infixl(TERMS.token("+").next(binaryOperatorParser("sum")), 40)
                 .infixl(TERMS.token("-").next(binaryOperatorParser("minus")), 40)
                 .infixl(TERMS.token("<").next(binaryOperatorParser("less")), 30)
@@ -1054,22 +1093,14 @@ public class Reader {
                 .infixl(TERMS.token(">=").next(binaryOperatorParser("greater_eq")), 30)
                 .infixn(TERMS.token("=").next(binaryOperatorParser("equal")), 30)
                 .infixn(TERMS.token("!=").next(binaryOperatorParser("not_equal")), 30)
-                .infixl(TERMS.token("/").next(binaryOperatorParser("right_division")), 50)
-                .infixl(TERMS.token("\\").next(binaryOperatorParser("left_division")), 50)
-                .infixl(TERMS.token("./").next(binaryOperatorParser("divide")), 50)
-                .infixl(TERMS.token(".\\").next(binaryOperatorParser("divide_left")), 50)
-                .infixl(TERMS.token(".^").next(binaryOperatorParser("power")), 70)
-                .infixl(TERMS.token("^").next(binaryOperatorParser("expt")), 70)
                 .infixl(TERMS.token("and").next(binaryOperatorParser("and")), 20)
                 .infixl(TERMS.token("or").next(binaryOperatorParser("or")), 20)
                 .infixl(TERMS.token("<=>").next(binaryOperatorParser("equal")), 10)
                 .infixl(TERMS.token("==>").next(binaryOperatorParser("implies")), 10)
                 .infixl(TERMS.token("<==").next(binaryOperatorParser("follows_from")), 10)
                 .prefix(TERMS.token("-").next(unaryOperatorParser("negative")), 100)
-                .prefix(TERMS.token("per").next(unaryOperatorParser("dual")), 100)
-                .postfix(TERMS.token("^D").next(unaryOperatorParser("dual")), 100)
+                .postfix(TERMS.token("^D").next(unaryOperatorParser("dim_inv")), 100)
                 .postfix(TERMS.token("^T").next(unaryOperatorParser("transpose")), 100)
-                .prefix(TERMS.token("/").next(unaryOperatorParser("reciprocal")), 100)
                 .postfix(TERMS.token("^R").next(unaryOperatorParser("reciprocal")), 100)
                 .build(termParser);
         return parser;

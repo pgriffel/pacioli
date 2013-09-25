@@ -48,14 +48,14 @@ public class Key extends AbstractPacioliValue {
     @Override
     public void printText(PrintWriter out) {
         if (names.isEmpty()) {
-            out.print("zero");
+            out.print("_");
             return;
         }
         String text = "";
         String sep = "";
         for (String name : names) {
             text += sep + name;
-            sep = "/";
+            sep = "%";
         }
         out.print(text);
     }

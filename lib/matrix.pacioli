@@ -31,7 +31,7 @@ declare index_less :: for_index P: (P, P) -> Boole();
 # Matrix Shape
 # ----------------------------------------------------------------------------
 
-declare matrix_from_tuples :: for_index P,Q: for_unit a: (List(Tuple(P, Q, a))) -> a*P! per Q!;
+declare make_matrix :: for_index P,Q: for_unit a: (List(Tuple(P, Q, a))) -> a*P! per Q!;
 
 declare magnitude :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> P! per Q!;
 
@@ -59,11 +59,13 @@ declare sum :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> 
 
 declare multiply :: for_index P,Q: for_unit a,b,u,w,v,z: (a*P!u per Q!v, b*P!w per Q!z) -> a*b*P!u*P!w per Q!v*Q!z;
 
+declare divide :: for_index P,Q: for_unit a,b,u,v,x,y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b/Q!v/Q!y;
+
 declare expt :: for_index P,Q: (P! per Q!, 1) -> P! per Q!;
 
 declare power :: for_index P: for_unit u: (P!u per P!u, 1) -> P!u per P!u;
 
-declare join :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*Q!v per R!w) -> a*b*P!u per R!w;
+declare dot :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*Q!v per R!w) -> a*b*P!u per R!w;
 
 declare scale :: for_index P,Q: for_unit a,b,u,v: (a, b*P!u per Q!v) -> a*b*P!u per Q!v;
 
@@ -100,8 +102,6 @@ declare max :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> 
 declare min :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
 
 declare gcd :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> P! per Q!;
-
-declare div :: for_index P,Q: for_unit a,b,u,v,x,y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b/Q!v/Q!y;
 
 declare mod :: for_index P,Q: for_unit a,b,u,v,x,y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v;
 

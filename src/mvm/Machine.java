@@ -71,7 +71,7 @@ public class Machine {
     private final HashMap<String, IndexSet> indexSets;
     private final HashMap<String, UnitVector> unitVectors;
     private static final LinkedList<String> debugStack = new LinkedList<String>();
-    private static boolean atLineStart = true;
+    private static boolean atLineStart = false;
     
     public Machine() {
         store = new Environment();
@@ -101,6 +101,17 @@ public class Machine {
                 Matrix x = (Matrix) params.get(0);
                 Matrix matrix = new Matrix(x.shape);
                 matrix.createConversion();
+                return matrix;
+            }
+        });
+        
+        store.put("projection", new Primitive("projection") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 1);
+                checkMatrixArg(params, 0);
+                Matrix x = (Matrix) params.get(0);
+                Matrix matrix = new Matrix(x.shape);
+                matrix.createProjection();
                 return matrix;
             }
         });
@@ -470,7 +481,7 @@ public class Machine {
             }
         });
 
-        store.put("user_Matrix_matrix_from_tuples", new Primitive("matrix_from_tuples") {
+        store.put("user_Matrix_make_matrix", new Primitive("make_matrix") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 
                 List<PacioliValue> list = ((PacioliList) params.get(0)).items();
@@ -524,11 +535,11 @@ public class Machine {
             }
         });
 
-        store.put("debug_Matrix_matrix_from_tuples", new Primitive("matrix_from_tuples") {
+        store.put("debug_Matrix_make_matrix", new Primitive("make_matrix") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 checkNrArgs(params, 1);
                 checkListArg(params, 0);
-                Callable fun = (Callable) store.lookup("user_Matrix_matrix_from_tuples");
+                Callable fun = (Callable) store.lookup("user_Matrix_make_matrix");
                 PacioliValue result = fun.apply(params);
                 return result;
             }
@@ -606,7 +617,7 @@ public class Machine {
             }
         });
 
-        store.put("user_Matrix_div", new Primitive("div") {
+        store.put("user_Matrix_divide", new Primitive("divide") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 Matrix y = (Matrix) params.get(1);
@@ -614,12 +625,12 @@ public class Machine {
             }
         });
 
-        store.put("debug_Matrix_div", new Primitive("div") {
+        store.put("debug_Matrix_divide", new Primitive("divide") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 checkNrArgs(params, 2);
                 checkMatrixArg(params, 0);
                 checkMatrixArg(params, 1);
-                Callable fun = (Callable) store.lookup("user_Matrix_div");
+                Callable fun = (Callable) store.lookup("user_Matrix_divide");
                 PacioliValue result = fun.apply(params);
                 return result;
             }
@@ -864,7 +875,7 @@ public class Machine {
             }
         });
 
-        store.put("user_Matrix_join", new Primitive("join") {
+        store.put("user_Matrix_dot", new Primitive("dot") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 Matrix y = (Matrix) params.get(1);
@@ -872,12 +883,12 @@ public class Machine {
             }
         });
 
-        store.put("debug_Matrix_join", new Primitive("join") {
+        store.put("debug_Matrix_dot", new Primitive("dot") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 checkNrArgs(params, 2);
                 checkMatrixArg(params, 0);
                 checkMatrixArg(params, 1);
-                Callable fun = (Callable) store.lookup("user_Matrix_join");
+                Callable fun = (Callable) store.lookup("user_Matrix_dot");
                 PacioliValue result = fun.apply(params);
                 return result;
             }
