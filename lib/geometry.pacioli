@@ -50,7 +50,7 @@ declare normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
 
 define norm(x) = sqrt(inner(x,x));
 
-define normalized(x) = x / magnitude(norm(x));
+define normalized(x) = x /. magnitude(norm(x));
 
 # ----------------------------------------------------------------------------
 # Polar Coordinates
@@ -93,7 +93,7 @@ define cross_sqrt(v,w) =
       sz = vx*wy - vy*wx,
       sq = sqrt(sx*sx + sy*sy + sz*sz)
   in
-      (sx.d_x + sy.d_y + sz.d_z) / sqrt(sq)
+      (sx.d_x + sy.d_y + sz.d_z) /. sqrt(sq)
   end;
 
 define cross_sqrt_alt(v,w) =
@@ -132,19 +132,19 @@ declare z_rotation :: (radian) -> Space! per Space!;
 declare rotation :: (radian, radian, radian) -> Space! per Space!;
 
 define x_rotation(angle) =
-  (space_vec(1,           0,          0) * d_x^T +
-   space_vec(0,  cos(angle), sin(angle)) * d_y^T +
-   space_vec(0, -sin(angle), cos(angle)) * d_z^T);
+  (space_vec(1,           0,          0) .* d_x^T +
+   space_vec(0,  cos(angle), sin(angle)) .* d_y^T +
+   space_vec(0, -sin(angle), cos(angle)) .* d_z^T);
 
 define y_rotation(angle) =
-  (space_vec(cos(angle), 0, -sin(angle)) * d_x^T +
-   space_vec(         0, 1,           0) * d_y^T +
-   space_vec(sin(angle), 0,  cos(angle)) * d_z^T);
+  (space_vec(cos(angle), 0, -sin(angle)) .* d_x^T +
+   space_vec(         0, 1,           0) .* d_y^T +
+   space_vec(sin(angle), 0,  cos(angle)) .* d_z^T);
 
 define z_rotation(angle) =
-  (space_vec( cos(angle), sin(angle), 0) * d_x^T +
-   space_vec(-sin(angle), cos(angle), 0) * d_y^T +
-   space_vec(         0,           0, 1) * d_z^T);
+  (space_vec( cos(angle), sin(angle), 0) .* d_x^T +
+   space_vec(-sin(angle), cos(angle), 0) .* d_y^T +
+   space_vec(         0,           0, 1) .* d_z^T);
 
 define rotation(x_angle, y_angle, z_angle) =
-  z_rotation(z_angle) * y_rotation(y_angle) * x_rotation(x_angle);
+  z_rotation(z_angle) .* y_rotation(y_angle) .* x_rotation(x_angle);

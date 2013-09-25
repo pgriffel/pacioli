@@ -37,9 +37,6 @@ public class Reference extends AbstractPacioliValue {
     }
 
     public PacioliValue getValue() throws MVMException {
-        if (value == null) {
-            throw new MVMException("Accessing uninitialized variable");
-        }
         return value;
     }
 

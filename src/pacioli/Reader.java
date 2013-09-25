@@ -929,11 +929,16 @@ public class Reader {
     private static Parser<ExpressionNode> returnStatementParser(Parser<ExpressionNode> expParser, final String result) {
         return Parsers.sequence(
                 TERMS.token("return"),
-                expParser,
+                expParser.optional(),
                 new Map2<Token, ExpressionNode, ExpressionNode>() {
             public ExpressionNode map(Token start, ExpressionNode value) {
-                Location loc = tokenLocation(start).join(value.getLocation());
-                return new ReturnNode(loc, new IdentifierNode(result, loc), value);
+                if (value == null) {
+                	Location loc = tokenLocation(start);
+                	return new ReturnNode(loc, new IdentifierNode(result, loc), new IdentifierNode("nothing", loc));
+                } else {
+                	Location loc = tokenLocation(start).join(value.getLocation());
+                	return new ReturnNode(loc, new IdentifierNode(result, loc), value);
+                }
             }
         });
     }

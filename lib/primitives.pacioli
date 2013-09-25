@@ -28,6 +28,8 @@ declare print :: for_type a: (a) -> a;
 declare error :: for_type a: (1) -> a;
 declare skip :: () -> Void();
 
+declare display :: for_type a: (a) -> Void();
+declare nothing :: Void();
 declare ref_get :: for_type a: (Ref(a)) -> a;
 declare ref_set :: for_type a: (Ref(a), a) -> Void();
 declare new_ref :: for_type a: () -> Ref(a);

@@ -43,8 +43,8 @@ public class Pacioli {
     private static boolean atLineStart = false;
 
     public static void main(String[] args) {
-        try {
-            handleArgs(args);
+    	try {
+    		handleArgs(args);
         } catch (PacioliException ex) {
             logln("\nPacioli error:\n\n%s\n", ex.getLocatedMessage());
         } catch (MVMException ex) {

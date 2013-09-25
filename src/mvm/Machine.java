@@ -126,6 +126,10 @@ public class Machine {
 
         store.put("debug_Primitives_false", new Boole(false));
 
+        store.put("user_Primitives_nothing", null);
+
+        store.put("debug_Primitives_nothing", null);
+
         store.put("user_Primitives_tuple", new Primitive("tuple") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 return new PacioliTuple(params);
@@ -194,6 +198,7 @@ public class Machine {
         store.put("user_Primitives_print", new Primitive("print") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliValue value = params.get(0);
+                logln(value.toText());
                 return value;
             }
         });
@@ -202,6 +207,23 @@ public class Machine {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 checkNrArgs(params, 1);
                 Callable fun = (Callable) store.lookup("user_Primitives_print");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
+        store.put("user_Primitives_display", new Primitive("display") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+            	PacioliValue value = params.get(0);
+                logln(value.toText());
+                return null;
+            }
+        });
+
+        store.put("debug_Primitives_display", new Primitive("display") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 1);
+                Callable fun = (Callable) store.lookup("user_Primitives_display");
                 PacioliValue result = fun.apply(params);
                 return result;
             }
@@ -353,7 +375,7 @@ public class Machine {
                 Reference place = (Reference) params.get(1);
                 try {
                     body.apply(new ArrayList<PacioliValue>());
-                    throw new MVMException("Statement ended without return");
+                    return null;
                 } catch (ControlTransfer ex) {
                     return place.getValue();
                 }
@@ -1680,7 +1702,10 @@ public class Machine {
                 .map(new org.codehaus.jparsec.functors.Map<Expression, Void>() {
             public Void map(Expression body) {
                 try {
-                    logln("%s", body.eval(store).toText());
+                	PacioliValue result = body.eval(store);
+                	if (result != null) {
+                		logln("%s", result.toText());
+                	}
                 } catch (MVMException ex) {
                     throw new ParserException(ex, null, null, null);
                 }
