@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Unit Inference</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Pacioli</h1>
+        <h2>Java implementation of the Pacioli language</h2>
+        <a href="https://github.com/pgriffel/pacioli" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+
+
+<h3>Unit Notation</h3>
+
+<p>Units of measurement are distinguished from other code by surrounding
+them with pipes. For example <code>|metre|</code> or <code>|gram|</code>. Any unit
+expression can occur between the pipes. This syntax embeds type
+expressions into the language to give access to the units.</p>
+
+<p>Create a file <code>intro.pacioli</code> with the following code:</p>
+
+<pre><code>module "Intro";
+
+include "SI";
+
+10;
+11*|gram|;
+12*|metre|;
+</code></pre>
+
+<p>This creates a module <code>Intro</code> and includes the pre-defined units from
+the <code>SI</code> module.</p>
+
+<p>Run the file as follows:</p>
+
+<pre><code>pacioli run intro.pacioli
+</code></pre>
+
+<p>This should produce output like</p>
+
+<pre><code>Running file 'intro.pacioli'
+10.000000
+11.000000 g
+12.000000 m
+Ready in 59 ms
+</code></pre>
+
+<p>The three expressions are evaluated and the resulting values with the
+proper units are printed.</p>
+
+<p>To infer the types without running the file do:</p>
+
+<pre><code>pacioli types intro.pacioli
+</code></pre>
+
+<p>This should produce output like</p>
+
+<pre><code>Displaying types for file 'intro.pacioli'
+toplevel 1 :: 1
+toplevel 2 :: gram
+toplevel 3 :: metre
+</code></pre>
+
+<p>For each top-level expression the inferred type is displayed.</p>
+
+<h3>Operations on Units</h3>
+
+<p>Units can always be multiplied</p>
+
+<pre><code>|gram| * |gram|;
+|gram| * |metre| * |second| * |ampere| * |kelvin| * |mole| * |candela|;
+</code></pre>
+
+<p>This gives types:</p>
+
+<pre><code>toplevel 1 :: gram^2
+toplevel 2 :: ampere*candela*gram*kelvin*metre*mole*second
+</code></pre>
+
+<p>The following code gives exactly the same type:</p>
+
+<pre><code>|gram^2|;
+|ampere*candela*gram*kelvin*metre*mole*second|;
+</code></pre>
+
+<p>It shows how the pipes embed the type notation in the language and how
+multiplication at the type level coincides with multiplication in the
+language.</p>
+
+<p>Units can not always be summed. </p>
+
+<pre><code>|gram| + |gram|;
+|gram| + |metre|;
+</code></pre>
+
+<p>The compiler output should be something like:</p>
+
+<pre><code>toplevel 1 :: gram
+toplevel 2 :: 
+
+Pacioli error:
+
+During inference at line 6
+
+|gram| + |metre|;
+^^^^^^^^^^^^^^^^
+
+[...]
+
+Cannot unify units metre and gram
+</code></pre>
+
+<p>For the first top-level expression the correct type <code>gram</code> is inferred
+but the second leads to an error. For brevity some of the output has
+been left out.</p>
+
+<p>The type is semantic, the order of multiplication is irrelevant</p>
+
+<pre><code>|gram|*|metre| + |gram * metre|;
+|gram|*|metre| + |metre|*|gram|;
+</code></pre>
+
+<p>The unit of both expressions is the same:</p>
+
+<pre><code>Running file 'intro.pacioli'
+2.000000 g*m
+2.000000 g*m
+Ready in 72 ms
+</code></pre>
+
+<h3>Unit Inference</h3>
+
+<p>The type system infers the most general type. Define a function as
+follows</p>
+
+<pre><code>define f(x) = x*|metre| + |gram|*|metre|;
+</code></pre>
+
+<p>The type system infers that the unit of the function argument must be
+a <code>gram</code>.</p>
+
+<pre><code>f :: (gram) -&gt; gram*metre
+</code></pre>
+
+<p>In this case the unit is uniquely determined, but that isn't the case
+in function <code>g</code>:</p>
+
+<pre><code>define g(x,y) = x*y + |gram|*|metre|;
+</code></pre>
+
+<p>Now the type system infers the following type:</p>
+
+<pre><code>g :: for_unit a: (a, gram*metre/a) -&gt; gram*metre
+</code></pre>
+
+<p>The type denotes an infinite class of functions. The first argument
+can be any unit, as long as the second argument cancels it. Examples
+of valid function types are:</p>
+
+<pre><code>(gram, metre) -&gt; gram*metre
+(metre, gram) -&gt; gram*metre
+(metre^2, gram/metre) -&gt; gram*metre
+(metre*second, gram/second) -&gt; gram*metre
+etc.
+</code></pre>
+
+<p>The first of the following application of function <code>g</code> is okay but the
+second one gives an error</p>
+
+<pre><code>g(|metre|*|second|, |gram|/|second|);
+g(|metre|*|second|, |gram|*|second|);
+</code></pre>
+
+<p>The compiler output is:</p>
+
+<pre><code>toplevel 1 :: gram*metre
+toplevel 2 :: 
+
+Pacioli error:
+
+During inference at line 8
+
+g(|metre|*|second|, |gram|*|second|);
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+the infered type must match known types:
+
+(metre*second, gram*second) -&gt; a = (a, gram*metre/a) -&gt; gram*metre
+
+
+Function domain's types must match:
+
+Tuple(metre*second, gram*second) = Tuple(a, gram*metre/a)
+
+
+Tuple arugment 2 must match:
+
+gram*second = gram/second
+
+
+Cannot unify units gram*second and gram/second
+</code></pre>
+
+<hr>
+
+<p>2013 Paul Griffioen</p>
+
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/pgriffel/pacioli/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/pgriffel/pacioli/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/pgriffel/pacioli"></a> is maintained by <a href="https://github.com/pgriffel">pgriffel</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
