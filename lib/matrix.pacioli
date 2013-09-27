@@ -105,6 +105,8 @@ declare gcd :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> 
 
 declare mod :: for_index P,Q: for_unit a,b,u,v,x,y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v;
 
+declare div :: for_index P,Q: for_unit a,b,u,v,x,y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b/Q!v/Q!y;
+
 declare sin :: for_index P,Q: (radian * P! per Q!) -> P! per Q!;
 
 declare cos :: for_index P,Q: (radian * P! per Q!) -> P! per Q!;

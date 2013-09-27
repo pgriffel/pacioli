@@ -44,9 +44,9 @@ defmatrix conductance :: ampere/volt*Edge! = {
 define ground = Node@n3;
 
 define grounded_incidence = 
-  make_matrix([tuple(x,y,get(incidence, x, y)) | x <- row_domain(incidence),
-                                                 y <- column_domain(incidence),
-                                                 y != ground]);
+  make_matrix([tuple(x, y, get(incidence, x, y)) | x <- row_domain(incidence),
+                                                   y <- column_domain(incidence),
+                                                   y != ground]);
 
 # ----------------------------------------------------------------------------
 # Computing Current and Potential
@@ -70,8 +70,8 @@ define current(battery, inflow) =
 
 defmatrix my_battery :: volt*Edge! = {
   e0 -> 12,
-  e1 -> -12,
-  e2 -> -6,
+  e1 -> 12,
+  e2 -> 6,
   e3 -> 6
 };
 
@@ -85,10 +85,6 @@ defmatrix my_inflow :: ampere*Node! = {
 define my_potential = potential(my_battery, my_inflow);
 
 define my_current = current(my_battery, my_inflow);
-
-my_potential;
-
-my_current;
 
 # ----------------------------------------------------------------------------
 # Tuples
@@ -125,7 +121,6 @@ define check_kirchhof(potential, current, battery, inflow) =
     tuple(decimal_places(resistor_potential + potential_diff - battery), 
           decimal_places(net_current - effective_inflow))
   end;
-
 
 let (potential, current) = solve_system(my_battery, my_inflow) in
   check_kirchhof(potential, current, my_battery, my_inflow)
