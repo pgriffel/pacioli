@@ -399,6 +399,10 @@ public class Matrix extends AbstractPacioliValue {
                         unit.toText(), unit.bases());
             } else {
                 Double num = unit.factor().doubleValue();
+                if (num == 0) {
+                	throw new MVMException("Zero conversion factor for '%s' '%s'  (%s)",
+                			unitAt(i, i).flat().reciprocal().toText(), unit.toText(), unit.bases());
+                }
                 numbers.setEntry(i, i, num);
             }
         }

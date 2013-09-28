@@ -166,7 +166,7 @@ public class PowerProduct implements Unit {
             if (0 < pow) {
                 raised.factor = factor.pow(pow, MathContext.DECIMAL128);
             } else {
-                raised.factor = BigDecimal.ONE.divide(factor.pow(-pow, MathContext.DECIMAL128), RoundingMode.HALF_DOWN);
+                raised.factor = BigDecimal.ONE.divide(factor.pow(-pow, MathContext.DECIMAL128), 25, RoundingMode.HALF_UP);
             }
         } else {
             raised.factor = new BigDecimal(Math.pow(factor.doubleValue(), power.doubleValue()));
