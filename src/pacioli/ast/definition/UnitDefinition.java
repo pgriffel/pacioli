@@ -61,7 +61,15 @@ public class UnitDefinition extends AbstractDefinition {
 
     @Override
     public void updateDictionary(Dictionary dictionary, boolean reduce) throws PacioliException {
-        dictionary.addUnit(id.getName(), unit);
+    	assert (unit instanceof NamedUnit);
+    	Unit def = unit.flat();
+    	if (def == unit) {
+    		dictionary.addUnit(id.getName(), unit);
+    	} else{
+    		Unit translatedDef = dictionary.translateUnit(def);
+    		NamedUnit translatedUnit = new NamedUnit(unit.toText(), translatedDef);
+    		dictionary.addUnit(id.getName(), translatedUnit);
+    	}
     }
 
     @Override

@@ -67,6 +67,8 @@ public class TypeOperationNode extends AbstractTypeNode {
         if (operation.equals("multiply")) {
             if (matrixLeft.singleton()) {
                 return matrixLeft.scale(matrixRight);
+            } else if (matrixRight.singleton()) {
+            	return matrixRight.scale(matrixLeft);
             } else {
                 assert (matrixLeft.multiplyable(matrixRight));
                 return matrixLeft.multiply(matrixRight);
@@ -74,9 +76,15 @@ public class TypeOperationNode extends AbstractTypeNode {
         } else if (operation.equals("divide")) {
             if (matrixLeft.singleton()) {
                 return matrixLeft.scale(matrixRight.reciprocal());
+            } else if (matrixRight.singleton()) { 
+            	return matrixRight.reciprocal().scale(matrixLeft);
             } else {
-                assert (matrixLeft.multiplyable(matrixRight));
-                return matrixLeft.multiply(matrixRight.reciprocal());
+                //assert (matrixLeft.multiplyable(matrixRight));
+                if (matrixLeft.multiplyable(matrixRight)) {
+                	return matrixLeft.multiply(matrixRight.reciprocal());
+                } else {
+                	throw new RuntimeException(String.format("Cannot divide %s by %s", matrixLeft.toText(), matrixRight.toText()));
+                }
             }
         } else if (operation.equals("per")) {
             return matrixLeft.join(matrixRight.transpose().reciprocal());
