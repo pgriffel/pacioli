@@ -13,7 +13,7 @@
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
 
-    <title>Pacioli by pgriffel</title>
+    <title>Matrices Tutorial</title>
   </head>
 
   <body>
@@ -28,20 +28,84 @@
     <div id="content-wrapper">
       <div class="inner clearfix">
         <section id="main-content">
-          <p>The matrix language Pacioli adds type safety and dimensional anaylysis
-to mathematical software. Its parametric type system infers vector and
-matrix types based on dimensioned vector spaces.</p>
-          <p>Pacioli is described in
-          the <a href="manual.html">manual</a>. The <a href="specification.html">specification</a>
-          lists the available functions.</p>
-          <p>A short introduction to units of measurements in Pacioli is in the
-           <a href="unit-inference.html">tutorial on unit
-           inference</a>. The <a href="matrices.html">tutorial on
-           matrices</a> gives some examples of the use of matrices in
-           Pacioli. The <a href="kirchhof.html">Kirchhof case</a> on
-           the equilibrium in an eletrical network explains the use of
-           matrices.</p>
-          <p>Install Pacioli from the GitHub project. You can also view some samples there.</p>
+
+
+<h1>Matrix Tutorial</h1>
+
+<p>An introduction to matrices in Pacioli</p>
+
+<hr>
+
+<h2>The Matrix Type</h2>
+
+<p>A matrix that transforms vectors from the <code>Q!v</code> space to the <code>P!u</code> has
+type <code>P!u per Q!v</code>. Identifiers <code>P!u</code> and <code>Q!v</code> denote dimensioned
+vector spaces. </p>
+
+<p>The most general type is <code>a*P!u per Q!v</code>.</p>
+
+<table>
+  <tr>
+    <th>Type</th>
+    <th>Shorthand</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>1 per 1</td>
+    <td>1</td>
+    <td>dimensionless scalar</td>
+  </tr>
+  <tr>
+    <td>a per 1</td>  
+    <td>a</td>
+    <td>dimensioned scalar</td>
+  </tr>
+  <tr>
+    <td>P! per 1</td>
+    <td>P!</td>
+    <td>dimensionless column vector</td>
+  </tr>
+  <tr>
+    <td>P!u per 1</td>  
+    <td>P!u</td>
+    <td>dimensioned column vector</td>
+  </tr>
+  <tr>
+    <td>a*P! per 1</td>
+    <td>a*P!</td>
+    <td>homogeneous dimensioned column vector</td>
+  </tr>
+  <tr>
+    <td>1 per Q!v</td>
+    <td></td>
+    <td>dimensioned row vector</td>
+  </tr>
+  <tr>
+    <td>P! per Q!</td>
+    <td></td>
+    <td>dimensionless rectangular matrix</td>
+  </tr>
+  <tr>
+    <td>P!u per P!v</td>
+    <td></td>
+    <td>square matrix</td>
+  </tr>
+  <tr>
+    <td>P!u per P!u</td>
+    <td></td>
+    <td>even more square matrix</td>
+  </tr>
+  <tr>
+    <td>...</td>
+    <td></td>
+    <td>...</td>
+  </tr>
+</table> 
+
+<hr>
+
+<p>2013 Paul Griffioen</p>
+
         </section>
 
         <aside id="sidebar">
