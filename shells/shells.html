@@ -1,0 +1,624 @@
+<!DOCTYPE HTML>
+
+<!-- Paul Griffioen 2013 -->
+
+<html lang="en">
+  <head>
+    <title>Shells</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="shells.css">
+  </head>
+
+  <body onload="onLoad();">
+
+
+    <div id="canvasparent">
+      <canvas id="shellcanvas" tabindex="1">
+      </canvas>
+    </div>
+
+    <form id="parameters">
+      <table>
+        <tr>
+          <td class="key"><label for="growth">growth</label></td>
+          <td class="value"><input type="number"
+                                   title="Growth constant of the logistic growth curve"
+                                   name="growth"
+                                   value="1.02"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit"></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="rotation_x">rotation x</label></td>
+          <td class="value"><input type="number"
+                                   title="Rotation around the x-axis per segment"
+                                   name="rotation_x"
+                                   value="0"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="rotation_x_unit" onkeydown="onFormKey(event);">
+              <option value="degree">deg</option>
+              <option value="pi">pi</option>
+              <option value="radian">rad</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="rotation_y">rotation y</label></td>
+          <td class="value"><input type="number"
+                                   title="Rotation around the y-axis per segment"
+                                   name="rotation_y"
+                                   value="0"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="rotation_y_unit" onkeydown="onFormKey(event);">
+              <option value="degree">deg</option>
+              <option value="pi">pi</option>
+              <option value="radian">rad</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="rotation_z">rotation z</label></td>
+          <td class="value"><input type="number"
+                                   title="Rotation around the z-axis per segment"
+                                   name="rotation_z"
+                                   value="10"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="rotation_z_unit" onkeydown="onFormKey(event);">
+              <option value="degree">deg</option>
+              <option value="pi">pi</option>
+              <option value="radian">rad</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td class="key"><label for="upward">upward</label></td>
+          <td class="value"><input type="number"
+                                   title="Upward displacment during the growth of the first segment"
+                                   name="upward"
+                                   value="-0.02"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="upward_unit" onkeydown="onFormKey(event);">
+              <option value="millimetre">mm</option>
+              <option value="metre">m</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="outward">outward</label></td>
+          <td class="value"><input type="number"
+                                   title="Outward displacment during the growth of the first segment"
+                                   name="outward"
+                                   value="-0.05"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="outward_unit" onkeydown="onFormKey(event);">
+              <option value="millimetre">mm</option>
+              <option value="metre">m</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="segments">segments</label></td>
+          <td class="value"><input type="number"
+                                   name="segments"
+                                   title="Number of segments"
+                                   value="200"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit"></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="aperture">aperture</label></td>
+          <td class="value"><input type="text"
+                                   name="aperture"
+                                   title="Alternating list of angles (deg) and distances (mm) that maps out the initial aperture in the x-z plane. Special forms are circle,_,_ and rectangle,_,_. The circle parameters are the number of segments and the length per segment (mm). The rectangle parameters are the width (mm) and the height (mm)."
+                                   value="circle,17,0.2"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit"></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="offset">offset</label></td>
+          <td class="value"><input type="number"
+                                   title="Distance of the initial aperture from the z-axis"
+                                   name="offset"
+                                   value="0"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="offset_unit" onkeydown="onFormKey(event);">
+              <option value="millimetre">mm</option>
+              <option value="metre">m</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="orientation">orientation</label></td>
+          <td class="value"><input type="number"
+                                   name="orientation"
+                                   title="Rotation of the initial aperture around the x-axis"
+                                   value="0"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="orientation_unit" onkeydown="onFormKey(event);">
+              <option value="degree">deg</option>
+              <option value="pi">pi</option>
+              <option value="radian">rad</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="scale">scale</label></td>
+          <td class="value"><input type="number"
+                                   name="scale"
+                                   title="Scale factor for the initial aperture"
+                                   value="1"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit"></td>
+        </tr>
+      </table>
+      <button type="button"
+              title="Increase the number of segements by one and recalculate the shell"
+              id="formincgo"
+              onclick="onIncrease(this);">Grow</button>
+      <button type="button"
+              title="Recalculate the shell"
+              id="formgo"
+              onclick="onForm(this);">Go</button>
+    </form>
+
+    <div id="links">
+      <ul>
+      <li><a id="current" href="shells.html">Current</a></li>
+      <li><a href="shells.html?segments=0">Start</a></li>
+      <li><a href="shells.html?aperture=circle,16,0.15">Circle</a></li>
+      <li><a href="shells.html?aperture=rectangle,0.5,0.5&offset=0.5&upward=-0.01">Rectangle</a></li>
+      <li><a href="shells.html?aperture=20,0.25,20,0.25,-30,0.05,120,0.25,20,0.25,30,0.25,50,0.10,30,0.10,30,0.25">Free Form</a></li>
+      <li><a href="shells.html?growth=1.01">Slow Growing</a></li>
+      <li><a href="shells.html?growth=1.2&segments=20">Fast Growing</a></li>
+      <li><a href="shells.html?upward=-0.005mm&segments=120&aperture=rectangle,1,0.1">Disc</a></li>
+      </ul>
+    </div>
+
+    <div id="graphics">
+
+      <table>
+        <tr>
+          <td class="key"><label for="axes">axes</label></td>
+          <td class="value"><input type="checkbox"
+                                   title="Display coordinate axes"
+                                   id="axes"
+                                   onclick="onAxes(this);"
+                                   unchecked></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="wireframe">wireframe</label></td>
+          <td class="value"><input type="checkbox"
+                                   title="Use wireframe instead of a closed surface"
+                                   id="wireframe"
+                                   onclick="onWireFrame(this);"
+                                   unchecked></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="transparent">transparent</label></td>
+          <td class="value"><input type="checkbox"
+                                   title="Use transparent colors"
+                                   id="transparent"
+                                   onclick="onTransparent(this);"
+                                   unchecked></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="charts">charts</label></td>
+          <td class="value"><input type="checkbox"
+                                   title="Display growth histograms"
+                                   id="charts"
+                                   onclick="onCharts(this);"
+                                   unchecked></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="perspective">perspective</label></td>
+          <td class="value"><input type="checkbox"
+                                   title="Use perspective instead of orthographic rendering"
+                                   id="perspective"
+                                   onclick="onPerspective(this);"
+                                   unchecked></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="webgl">WebGL</label></td>
+          <td class="value"><input type="checkbox"
+                                   title="Use WebGL instead of the canvas"
+                                   id="webgl"
+                                   onclick="onWebGL(this);"
+                                   unchecked></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="material">material</label></td>
+          <td class="value">
+            <select id="material" onchange="onMaterial(this);">
+              <option value="normal">Normal</option>
+              <option value="Lambert">Lambert</option>
+              <option value="Phong">Phong</option>
+              <option value="basic">Basic</option>
+            </select>
+          </td>
+        </tr>
+
+      </table>
+      <button type="button" title="Zoom in" name="zoomin" onclick="onZoomIn();">+</button>
+      <button type="button" title="Zoom out" name="zoomout" onclick="onZoomOut();">-</button>
+      <button type="button"
+              title="Rotate the shell so that its coiling axis is vertical"
+              name="setup"
+              onclick="onSetUp();">Up</button>
+
+    </div>
+
+    <div id="info">
+      <div class="label" id="growth_factor_label"></div>
+      <div class="chart" id="growth_factor"></div>
+      <div class="label" id="aperture_area_label"></div>
+      <div class="chart" id="aperture_area"></div>
+      <div class="label" id="body_area_label"></div>
+      <div class="chart" id="body_area"></div>
+      <div class="label" id="body_area_cumulative_label"></div>
+      <div class="chart" id="body_area_cumulative"></div>
+      <div class="label" id="body_volume_label"></div>
+      <div class="chart" id="body_volume"></div>
+      <div class="label" id="body_volume_cumulative_label"></div>
+      <div class="chart" id="body_volume_cumulative"></div>
+    </div>
+
+    <script>
+
+      function onLoad() {
+          var parameters = document.getElementById("parameters");
+          var graphics = document.getElementById("graphics");
+          var canvas = document.getElementById("shellcanvas");
+          var current = document.getElementById("current");
+          var urlParams = window.location.search.substring(1);
+          var info = document.getElementById("info");
+          var charts = document.getElementById("charts");
+
+          window.addEventListener('resize', onWindowResize, false);
+          updateForm(parameters, urlParams);
+          current.href = currentHRef(parameters);
+          initializeCanvas(canvas, parameters, graphicsParameters());
+          updateShell(parameters, graphicsParameters());
+          canvas.focus();
+          info.style.visibility = charts.checked ? 'visible' : 'hidden';
+          updateInfo();
+          requestAnimationFrame(animate);
+      }
+
+      function onIncrease(event) {
+          increaseSegments();
+      }
+
+      function onForm(event) {
+          var parameters = document.getElementById("parameters");
+          var graphics = document.getElementById("graphics");
+          var canvas = document.getElementById("shellcanvas");
+          var current = document.getElementById("current");
+
+          current.href = currentHRef(parameters);
+          updateShell(parameters, graphicsParameters());
+          updateInfo();
+          canvas.focus();
+          requestAnimationFrame(animate);
+      }
+
+      function onAxes(event) {
+          toggleAxes(event.checked);
+          requestAnimationFrame(animate);
+      }
+
+      function onWireFrame(event) {
+          updateBody(parameters, graphicsParameters());
+          requestAnimationFrame(animate);
+      }
+
+      function onTransparent(event) {
+          updateBody(parameters, graphicsParameters());
+          requestAnimationFrame(animate);
+      }
+
+      function onCharts(event) {
+          var info = document.getElementById("info");
+          info.style.visibility = event.checked ? 'visible' : 'hidden';
+          updateInfo();
+          requestAnimationFrame(animate);
+      }
+
+      function onPerspective(event) {
+          resetGraphics();
+          requestAnimationFrame(animate);
+      }
+
+      function onWebGL(event) {
+          resetGraphics();
+          requestAnimationFrame(animate);
+      }
+
+      function onMaterial(event) {
+          updateBody(parameters, graphicsParameters());
+          requestAnimationFrame(animate);
+      }
+
+      function onFormKey(event) {
+          if (event.keyCode == 13) {
+              onForm(event);
+          }
+      }
+
+      function onZoomIn() {
+          zoomIn();
+      }
+
+      function onZoomOut() {
+          zoomOut();
+      }
+
+      function onSetUp() {
+          orientUp();
+          document.getElementById("shellcanvas").focus();
+      }
+
+      function onWindowResize(){
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          requestAnimationFrame(animate);
+      }
+
+      function graphicsParameters() {
+          return {
+              axes: document.getElementById("axes").checked,
+              wireframe: document.getElementById("wireframe").checked,
+              webgl: document.getElementById("webgl").checked,
+              perspective: document.getElementById("perspective").checked,
+              material: document.getElementById("material").value,
+              transparent: document.getElementById("transparent").checked
+          }
+      }
+
+      function resetGraphics() {
+          var parameters = document.getElementById("parameters");
+          var graphics = document.getElementById("graphics");
+          var canvas = document.getElementById("shellcanvas");
+          var parent = canvas.parentNode;
+          var newCanvas = document.createElement('canvas');
+
+          newCanvas.id = canvas.id;
+          newCanvas.tabIndex = 1;
+          newCanvas.width = canvas.width;
+          newCanvas.height = canvas.height;
+          parent.removeChild(canvas);
+          parent.appendChild(newCanvas);
+          initializeCanvas(newCanvas, parameters, graphicsParameters());
+          updateBody(parameters, graphicsParameters());
+          toggleAxes(document.getElementById("axes").checked);
+          newCanvas.focus();
+          requestAnimationFrame(animate);
+      }
+
+      function updateForm(form, urlParams) {
+          for (var i = 0; i < form.elements.length; i++) {
+              var element = form.elements[i];
+              if (element.tagName == "INPUT") {
+                  var param = getParameter(element.name, urlParams);
+                  if (param != undefined) {
+                      var matches = param.match(/([^a-zA-Z_]+)([a-zA-Z_]+)/);
+                      if (matches) {
+                          element.value = matches[1];
+                          var unitElement = form.elements[element.name + "_unit"];
+                          if (unitElement) {
+                              var options = unitElement.options;
+                              for (var k = 0; k < options.length; k++) {
+                                  if (options[k].text == matches[2]) {;
+                                      unitElement.value = options[k].value;
+                                  }
+                              }
+                          }
+                      } else {
+                          element.value = param;
+                      }
+                  }
+              } else if (element.tagName == "TEXTAREA") {
+                  var param = getParameter(element.name, urlParams);
+                  if (param != undefined) {
+                      element.value = param;
+                  }
+              }
+          }
+      }
+
+      function currentHRef(form) {
+          var table = [["offset", "offset_unit", 0],
+                       ["growth", ""],
+                       ["upward", "upward_unit"],
+                       ["outward", "outward_unit"],
+                       ["scale", "", 1],
+                       ["orientation", "orientation_unit", 0],
+                       ["rotation_x", "rotation_x_unit", 0],
+                       ["rotation_y", "rotation_y_unit", 0],
+                       ["rotation_z", "rotation_z_unit"],
+                       ["segments", ""],
+                       ["aperture", ""]];
+          var href = "shells.html";
+          var sep = "?";
+          for (var i = 0; i < table.length; i++) {
+              var name = table[i][0];
+              var unit = table[i][1];
+              var def = table[i][2];
+              var value = form.elements[name].value;
+              if (def == undefined || value != def) {
+                  href += sep + name + "=" + value;
+                  if (unit != "") {
+                      var unitElt = form.elements[unit];
+                      href += unitElt.options[unitElt.selectedIndex].text;
+                  }
+                  sep = "&";
+              }
+          }
+          return href;
+      }
+
+      function updateInfo() {
+
+          function last(x) { return x[x.length - 1]; }
+
+          function addNewChart(id, data) {
+
+              // Source: http://bl.ocks.org/2579619
+
+              // Define dimensions of graph
+              var m = [4, 20, 14, 20]; // margins
+              var w = 300 - m[1] - m[3]; // width
+              var h = 50 - m[0] - m[2]; // height
+
+              // Add an SVG element with the desired dimensions and margin.
+              var graph = d3.select("#" + id).append("svg:svg")
+                            .attr("id", id + "_chart")
+                            .attr("class", "chart")
+                            .append("svg:g")
+                            .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
+
+              // Determine data ranges
+              var xRange = d3.scale.linear().domain([0, data.length]).range([0, w]);
+              var yRange = d3.scale.linear().domain([0, d3.max(data)]).range([h, 0]);
+
+              // Create a line function that converts the data into x and y points
+              var line = d3.svg.line()
+                           .x(function(d,i) { return xRange(i); })
+                           .y(function(d) { return yRange(d); })
+
+              // Create the x axis
+              var xAxis = d3.svg.axis().scale(xRange).tickSize(-h).tickSubdivide(true).ticks(5);
+              graph.append("svg:g")
+                   .attr("class", "x axis")
+                   .attr("transform", "translate(0," + h + ")")
+                   .call(xAxis);
+
+              // create left yAxis
+//              var yAxisLeft = d3.svg.axis().scale(yRange).ticks(2).orient("left");
+//              graph.append("svg:g")
+//                   .attr("class", "y axis axisLeft")
+//                   .attr("transform", "translate(-15,0)")
+//                   .call(yAxisLeft);
+
+              // Add lines AFTER the axes above so that the line is above the tick-lines
+              graph.append("svg:path").attr("d", line(data)).attr("class", "data");
+          }
+
+          var charts = document.getElementById("charts");
+
+          if (charts.checked) {
+
+              var parameters = document.getElementById("parameters");
+
+              info = shellInfo(shell, parameters);
+
+              d3.select('#growth_factor_chart').remove();
+              d3.select('#aperture_area_chart').remove();
+              d3.select('#body_area_chart').remove();
+              d3.select('#body_area_cumulative_chart').remove();
+              d3.select('#body_volume_chart').remove();
+              d3.select('#body_volume_cumulative_chart').remove();
+
+              addNewChart('growth_factor', info.growth_factor);
+              addNewChart('aperture_area', info.aperture_area);
+              addNewChart('body_area', info.body_area);
+              addNewChart('body_area_cumulative', info.body_area_cumulative);
+              addNewChart('body_volume', info.body_volume);
+              addNewChart('body_volume_cumulative', info.body_volume_cumulative);
+
+              document.getElementById('growth_factor_label').innerHTML = "Growth Factor = " + last(info.growth_factor);
+              document.getElementById('aperture_area_label').innerHTML = "Aperture area = " + last(info.aperture_area) + " mm²";
+              document.getElementById('body_area_label').innerHTML = "Area growth = " + last(info.body_area) + " mm²";
+              document.getElementById('body_area_cumulative_label').innerHTML = "Area = " + last(info.body_area_cumulative) + " mm²";
+              document.getElementById('body_volume_label').innerHTML = "Volume growth = " + last(info.body_volume) + " mm³";
+              document.getElementById('body_volume_cumulative_label').innerHTML = "Volume = " + last(info.body_volume_cumulative) + " mm³";
+          }
+      }
+
+      function increaseSegments() {
+          var parameters = document.getElementById("parameters");
+          var graphics = document.getElementById("graphics");
+          var current = document.getElementById("current");
+
+          parameters.segments.value = Number(parameters.segments.value)+1;
+          current.href = currentHRef(parameters);
+          updateShell(parameters, graphicsParameters());
+          updateInfo();
+          requestAnimationFrame(animate);
+      }
+
+      function getParameter(paramName, urlParams) {
+          var result;
+          var params = urlParams.split("&");
+          for (var i = 0; i < params.length; i++) {
+              var val = params[i].split("=");
+              if (val[0] == paramName) {
+                  result = unescape(val[1]);
+              }
+          }
+          return result;
+      }
+
+      function getCSS(element, property) {
+          var elem = document.getElementById(element);
+          var css = null;
+
+          if(elem.currentStyle) {
+            css = elem.currentStyle[property];
+          } else if(window.getComputedStyle) {
+             css = document.defaultView.getComputedStyle(elem, null).
+                   getPropertyValue(property);
+          }
+          return css;
+      }
+
+    </script>
+
+    <script type="text/javascript" src="three.min.js"></script>
+    <script type="text/javascript" src="detector.js"></script>
+    <script type="text/javascript" src="d3.v2.js"></script>
+    <script type="text/javascript" src="pacioli.js"></script>
+    <script type="text/javascript" src="standard.js"></script>
+    <script type="text/javascript" src="render.js"></script>
+    <script type="text/javascript" src="geometry-lib.js"></script>
+    <script type="text/javascript" src="shells.js"></script>
+
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-5527808-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+
+  </body>
+
+</hmtl>
