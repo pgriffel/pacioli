@@ -283,7 +283,7 @@ public class Pacioli {
 
     private static void infoCommand(List<File> libs) {
 
-        logln("Pacioli v0.0.0");
+        logln("Pacioli v0.1.0");
         
         logln("\nSettings");
         logln("  verbosity=%s", verbosity);
