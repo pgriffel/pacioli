@@ -17,7 +17,7 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-module "SI";
+module SI;
 
 defunit metre "m";
 defunit gram "g";
@@ -27,7 +27,7 @@ defunit kelvin "K";
 defunit mole "mol";
 defunit candela "cd";
 
-defunit radian "rad";
+#defunit radian "rad";   already defined in matrix
 
 defunit dollar "$";
 
@@ -35,7 +35,7 @@ defunit steradian "sr" = metre^2 / metre^2;
 
 defunit hertz "Hz" = 1/second;
 
-defunit newton "N" = kilogram*metre /second^2;
+defunit newton "N" = kilo:gram*metre /second^2;
 
 defunit pascal "Pa" = newton/metre^2;
 
@@ -67,9 +67,9 @@ defunit lux "lx" = lumen/metre^2;
 
 defunit becquerel "Bq" = 1/second;
 
-defunit gray "Gy" = joule/kilogram;
+defunit gray "Gy" = joule/kilo:gram;
 
-defunit sievert "Sv" = joule/kilogram;
+defunit sievert "Sv" = joule/kilo:gram;
 
 defunit katal "kat" = mole/second;
 
@@ -90,7 +90,7 @@ defunit day "d" = 24*hour;
 #defunit angle-second "''" = / angle-minute 60);
 #
 #defunit litre "l" = (deci metre) ^ 3);
-defunit litre "l" = decimetre^3;
+defunit litre "l" = deci:metre^3;
 #
 #defunit tonne "t" = * 1000 (kilo gram));
 #

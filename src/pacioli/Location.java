@@ -32,8 +32,20 @@ public class Location {
         this.from = Math.min(from, to);
         this.to = Math.max(from, to);
     }
+    
+    public Location() {
+        this.source = "";
+        this.from = -1;
+        this.to = -1;
+    }
 
     public Location join(Location other) {
+    	if (from < 0 || to < 0) {
+    		return other;
+    	}
+    	if (other.from < 0 || other.to < 0) {
+    		return this;
+    	}
         if (source != other.source) {
             throw new RuntimeException("Cannot join locations from different sources");
         } else {
@@ -42,7 +54,11 @@ public class Location {
     }
 
     public String description2() {
-        return source.substring(from, to);
+    	if (from < 0 || to < 0) {
+    		return "No source location available";	
+    	} else{
+    		return source.substring(from, to);
+    	}
     }
 
     public String description() {

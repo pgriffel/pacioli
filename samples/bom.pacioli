@@ -1,6 +1,6 @@
-module "BoM";
+module BoM;
 
-include "SI";
+include SI;
 
 # ----------------------------------------------------------------------------
 # Setup
@@ -12,18 +12,18 @@ defindex Product =
 defunit Product!unit = {
   Butter: gram,
   Flour: gram, 
-  Pastry: kilogram, 
+  Pastry: kilo:gram, 
   Apples: gram,
   Sugar: gram
 };
 
 defunit Product!trade_unit = {
-  Butter: kilogram,
-  Flour: kilogram, 
-  Pastry: kilogram, 
-  Apples: kilogram,
+  Butter: kilo:gram,
+  Flour: kilo:gram, 
+  Pastry: kilo:gram, 
+  Apples: kilo:gram,
   CrateOfApples: 1,
-  Sugar: kilogram
+  Sugar: kilo:gram
 };
 
 defconv conv :: Product!unit per Product!trade_unit;
@@ -56,7 +56,7 @@ defmatrix bom :: Product!unit per Product!unit = {
 # ----------------------------------------------------------------------------
 # Computations
 # ----------------------------------------------------------------------------
-
+conv;
 define trade_bom = conv^D .* bom .* conv;
 
 bom;

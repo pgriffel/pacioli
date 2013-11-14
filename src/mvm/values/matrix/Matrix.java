@@ -681,6 +681,12 @@ public class Matrix extends AbstractPacioliValue {
         return matrix;
     }
     
+    public PacioliValue power(Matrix y) {
+        Matrix matrix = new Matrix(shape);
+        matrix.numbers = numbers.power((int) y.numbers.getEntry(0, 0));
+        return matrix;
+    }
+    
     public PacioliValue log(Matrix y) {
         Matrix matrix = new Matrix(shape);
         for (int i = 0; i < nrRows(); i++) {

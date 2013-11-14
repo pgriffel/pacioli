@@ -1,4 +1,4 @@
-module "Quad";
+module Quad;
 
 # ----------------------------------------------------------------------------
 # Data structure for Fourier-Motzkin

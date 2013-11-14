@@ -1,4 +1,4 @@
-module "Commodity";
+module Commodity;
 
 # The commodities case demonstrates how multi-dimensional data can be
 # sliced with projections.

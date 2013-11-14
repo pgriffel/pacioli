@@ -1,6 +1,7 @@
-module "Kirchhof";
+module PRG/Kirchhof;
 
-include "SI";
+include si
+  meter = metre;
 
 # ----------------------------------------------------------------------------
 # Electricity Network

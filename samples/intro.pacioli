@@ -1,6 +1,6 @@
-module "Intro";
+module Intro;
 
-include "SI";
+include SI;
 
 # Base units are pre-defined
 define v0 = |gram|;
@@ -30,3 +30,5 @@ define v9 = g(|metre|, |gram|);
 # Multiplying left and right is not allowed. Value v10 gives an error. A multiplication and division cancel
 #define v10 = g(|metre|*|second|, |gram|*|second|);
 define v11 = g(|metre|*|second|, |gram|/|second|);
+
+v0; v1; v2; v3; v4; v6; v7; v8; v9; v11;

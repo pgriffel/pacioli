@@ -80,9 +80,9 @@ public class Module extends AbstractPrintable {
      * Config 
      */
     private static final List<String> defaultIncludes =
-            new ArrayList<String>(Arrays.asList("Primitives", "List", "Matrix", "Standard"));
+            new ArrayList<String>(Arrays.asList("primitives", "list", "matrix", "standard"));
     public static final List<String> debugablePrimitives  =
-            new ArrayList<String>(Arrays.asList("Primitives", "List", "Matrix"));
+            new ArrayList<String>(Arrays.asList("primitives", "list", "matrix"));
 
     public Module(String name) {
         this.name = name;

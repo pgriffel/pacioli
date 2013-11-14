@@ -1,6 +1,6 @@
-module "Fourier_Motzkin";
+module Fourier_Motzkin;
 
-include "Quad";
+include quad;
 
 # ----------------------------------------------------------------------------
 # This demo of Fourier Motzkin's algorithm to compute the nullifiers

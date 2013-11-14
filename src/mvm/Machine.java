@@ -1250,6 +1250,25 @@ public class Machine {
                 return result;
             }
         });
+        
+        store.put("user_Matrix_power", new Primitive("power") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                Matrix y = (Matrix) params.get(1);
+                return x.power(y);
+            }
+        });
+
+        store.put("debug_Matrix_power", new Primitive("power") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 2);
+                checkMatrixArg(params, 0);
+                checkMatrixArg(params, 1);
+                Callable fun = (Callable) store.lookup("user_Matrix_power");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
 
         store.put("user_Matrix_log", new Primitive("log") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {

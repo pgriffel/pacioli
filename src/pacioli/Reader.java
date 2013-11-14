@@ -51,6 +51,8 @@ import pacioli.types.ast.TypeNode;
 import pacioli.types.ast.TypeOperationNode;
 import pacioli.types.ast.TypePowerNode;
 import pacioli.types.matrix.StringBase;
+import mvm.ast.Identifier;
+
 import org.codehaus.jparsec.OperatorTable;
 import org.codehaus.jparsec.Parser;
 import org.codehaus.jparsec.Parsers;
@@ -65,6 +67,9 @@ import org.codehaus.jparsec.functors.Map3;
 import org.codehaus.jparsec.functors.Map4;
 import org.codehaus.jparsec.functors.Map5;
 import org.codehaus.jparsec.functors.Pair;
+
+import com.sun.org.apache.bcel.internal.generic.ARRAYLENGTH;
+
 import uom.Fraction;
 import uom.NamedUnit;
 import uom.Unit;
@@ -178,6 +183,29 @@ public class Reader {
     				return new IdentifierNode(name, new Location(source, arg.index(), arg.index() + name.length()));
     			}
     		});
+    private static final Parser<IdentifierNode> NAME =
+    		Parsers.or(IDENTIFIER,
+    		Terminals.StringLiteral.PARSER.token()
+    		.map(new Map<Token, IdentifierNode>() {
+    			public IdentifierNode map(Token arg) {
+    				String name = (String) arg.value();
+    				// use name length because argh.length seems to include whitespace
+    				return new IdentifierNode(name, new Location(source, arg.index(), arg.index() + name.length()));
+    			}
+    		}));
+    private static final Parser<IdentifierNode> PATH =
+    		IDENTIFIER.sepBy1(TERMS.token("/"))
+    		.map(new Map<List<IdentifierNode>, IdentifierNode>() {
+    			public IdentifierNode map(List<IdentifierNode> arg) {
+    				List<String> names = new ArrayList<String>();
+    				Location loc = new Location(); 
+    				for (IdentifierNode id : arg) {
+    					names.add(id.getName());
+    					loc = loc.join(id.getLocation());
+					}
+    				return new IdentifierNode(Utils.intercalate("/", names), loc);
+    			}
+    		});
     private static Parser<MatrixTypeNode> BANG =
     		Parsers.sequence(
     				TERMS.token("|"),
@@ -215,10 +243,10 @@ public class Reader {
     // Module
     private static Parser<Module> moduleParser() {
         return Parsers.sequence(
-                Parsers.sequence(TERMS.token("module"), Terminals.StringLiteral.PARSER)
+                Parsers.sequence(TERMS.token("module"), PATH)
                 .followedBy(TERMS.token(";")),
                 TERMS.token("include")
-                .next(Terminals.StringLiteral.PARSER)
+                .next(PATH)
                 .followedBy(TERMS.token(";")).many(),
                 Parsers.or(
                 declarationParser(),
@@ -234,11 +262,11 @@ public class Reader {
                 defTypeParser(),
                 defAliasParser(),
                 defMatrixParser()).many(),
-                new Map3<String, List<String>, List<Callback<Module, Void>>, Module>() {
-            public Module map(String name, List<String> includes, List<Callback<Module, Void>> actions) {
-                Module module = new Module(name);
-                for (String include : includes) {
-                    module.include(include);
+                new Map3<IdentifierNode, List<IdentifierNode>, List<Callback<Module, Void>>, Module>() {
+            public Module map(IdentifierNode name, List<IdentifierNode> includes, List<Callback<Module, Void>> actions) {
+                Module module = new Module(name.getName());
+                for (IdentifierNode include : includes) {
+                    module.include(include.getName());
                 }
                 for (Callback action : actions) {
                     action.call(module);
@@ -392,14 +420,18 @@ public class Reader {
                 TERMS.token("defindex")
                 .next(IDENTIFIER),
                 TERMS.token("=")
-                .next(Parsers.between(TERMS.token("{"), Terminals.Identifier.PARSER.sepBy(TERMS.token(",")), TERMS.token("}")))
+                .next(Parsers.between(TERMS.token("{"), NAME.sepBy(TERMS.token(",")), TERMS.token("}")))
                 .followedBy(TERMS.token(";")),
-                new Map2<IdentifierNode, List<String>, Callback<Module, Void>>() {
-            public Callback<Module, Void> map(final IdentifierNode id, final List<String> items) {
+                new Map2<IdentifierNode, List<IdentifierNode>, Callback<Module, Void>>() {
+            public Callback<Module, Void> map(final IdentifierNode id, final List<IdentifierNode> items) {
                 return new Callback<Module, Void>() {
                     public Void call(Module module) {
+                    	List<String> names = new ArrayList<String>();
+                    	for (IdentifierNode id: items) {
+                    		names.add(id.getName());
+                    	}
                         try {
-                            module.addIndexDef(id, items);
+                            module.addIndexDef(id, names);
                             return null;
                         } catch (PacioliException ex) {
                             throw new ParserException(ex, null, null, null);
@@ -493,15 +525,25 @@ public class Reader {
                 TERMS.token("=")
                 .next(Parsers.between(
                 TERMS.token("{"),
-                Parsers.tuple(Terminals.Identifier.PARSER.sepBy1(TERMS.token(",")).followedBy(TERMS.token("->")), NUMBER).sepBy(TERMS.token(",")),
+                Parsers.tuple(NAME.sepBy1(TERMS.token(",")).followedBy(TERMS.token("->")), NUMBER).sepBy(TERMS.token(",")),
                 TERMS.token("}")))
                 .followedBy(TERMS.token(";")),
-                new Map3<IdentifierNode, TypeNode, List<Pair<List<String>, ConstNode>>, Callback<Module, Void>>() {
-            public Callback<Module, Void> map(final IdentifierNode id, final TypeNode typeNode, final List<Pair<List<String>, ConstNode>> pairs) {
+                new Map3<IdentifierNode, TypeNode, List<Pair<List<IdentifierNode>, ConstNode>>, Callback<Module, Void>>() {
+            public Callback<Module, Void> map(final IdentifierNode id, final TypeNode typeNode, final List<Pair<List<IdentifierNode>, ConstNode>> pairs) {
                 return new Callback<Module, Void>() {
-                    public Void call(Module module) {
+                	public Void call(Module module) {
+                		List<Pair<List<String>, ConstNode>> stringPairs = new ArrayList<Pair<List<String>,ConstNode>>();
+                    	
+                    	for (Pair<List<IdentifierNode>, ConstNode> pair: pairs) {
+                    		List<String> names = new ArrayList<String>();
+                    		for (IdentifierNode id: pair.a) {
+                    			names.add(id.getName());
+                    		}
+                    		stringPairs.add(new Pair<List<String>, ConstNode>(names, pair.b));
+                    	}
+                        	
                         try {
-                            module.addMatrixDef(id.getLocation().join(typeNode.getLocation()), id, typeNode, pairs);
+                            module.addMatrixDef(id.getLocation().join(typeNode.getLocation()), id, typeNode, stringPairs);
                             return null;
                         } catch (PacioliException ex) {
                             throw new ParserException(ex, null, null, null);
