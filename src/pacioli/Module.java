@@ -382,13 +382,13 @@ public class Module extends AbstractPrintable {
             newDictionary.putKnownType(definition.localName());
         }
         for (ConversionDefinition definition : conversionDefs) {
-            newDictionary.putType(definition.localName(), definition.getTypeNode().eval(dictionary, new TypeContext(), false));
+            newDictionary.putType(definition.localName(), dictionary.getType(definition.localName()));
         }
         for (ProjectionDefinition definition : projectionDefs) {
-            newDictionary.putType(definition.localName(), definition.getTypeNode().eval(dictionary, new TypeContext(), false));
+            newDictionary.putType(definition.localName(), dictionary.getType(definition.localName()));
         }
         for (MatrixDefinition definition : matrixDefs) {
-            newDictionary.putType(definition.localName(), definition.getTypeNode().eval(dictionary, new TypeContext(), false));
+            newDictionary.putType(definition.localName(), dictionary.getType(definition.localName()));
         }
         for (ValueDefinition definition : definitions) {
             newDictionary.putType(definition.localName(), dictionary.getType(definition.localName()));
@@ -453,7 +453,7 @@ public class Module extends AbstractPrintable {
         Map<String, Module> globals = new HashMap<String, Module>();
         Set<Module> modules = new HashSet<Module>();
 
-        // Collect all accesable modules
+        // Collect all accessible modules
         for (String i : defaultIncludes) {
             assert (loadedModules.containsKey(i));
             modules.add(loadedModules.get(i));
@@ -594,7 +594,7 @@ public class Module extends AbstractPrintable {
             Pacioli.logln2("Generating code for module '%s'", i);
             Module m = loadedModules.get(i);
             if (kind.equals("mvm")) {
-                m.writeMVMCode(out, settings);
+            	m.writeMVMCode(out, settings);
             } else if (kind.equals("javascript")) {
                 m.writeJSCode(out);
             } else if (kind.equals("matlab")) {

@@ -70,8 +70,8 @@ public class UnitSystem {
 
     public boolean congtainsUnit(String name) {
         for (String prefix : prefixNames()) {
-            if (name.startsWith(prefix)) {
-                return unitDictionary.containsKey(name.substring(prefix.length()));
+            if (name.startsWith(prefix + ":")) {
+                return unitDictionary.containsKey(name.substring(prefix.length() + 1));
             }
         }
         return unitDictionary.containsKey(name);
@@ -79,8 +79,8 @@ public class UnitSystem {
 
     public Unit lookupUnit(String name) {
         for (String prefix : prefixNames()) {
-            if (name.startsWith(prefix)) {
-                String suffix = name.substring(prefix.length());
+            if (name.startsWith(prefix + ":")) {
+                String suffix = name.substring(prefix.length() + 1);
                 if (unitDictionary.containsKey(suffix)) {
                     return new ScaledUnit(lookupPrefix(prefix), unitDictionary.get(suffix));
                 } else {

@@ -21,37 +21,43 @@
 
 package pacioli.ast.definition;
 
-import pacioli.ast.expression.MatrixTypeNode;
-import pacioli.ast.expression.KeyNode;
-import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.expression.ConstNode;
-import pacioli.ast.expression.ApplicationNode;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import mvm.values.matrix.MatrixDimension;
+
+import org.codehaus.jparsec.functors.Pair;
+
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
+import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.DimensionType;
 import pacioli.types.matrix.MatrixType;
-import org.codehaus.jparsec.functors.Pair;
 
 public class MatrixDefinition extends AbstractDefinition {
 
     private final IdentifierNode id;
     private final TypeNode typeNode;
     private final List<Pair<List<String>, ConstNode>> pairs;
-    private PacioliType type;
-    private ExpressionNode body;
+    private MatrixType type;
+    private ExpressionNode bangBody;
+	private List<Integer> rowIndices;
+	private List<Integer> columnIndices;
+	private List<String> values;
 
     public MatrixDefinition(Module module, IdentifierNode id, TypeNode typeNode, List<Pair<List<String>, ConstNode>> pairs, Location location) {
         super(module, location);
@@ -59,21 +65,17 @@ public class MatrixDefinition extends AbstractDefinition {
         this.typeNode = typeNode;
         this.pairs = pairs;
         this.type = null;
-        this.body = null;
+        this.bangBody = null;
+        this.rowIndices = new ArrayList<Integer>();
+        this.columnIndices = new ArrayList<Integer>();
+        this.values = new ArrayList<String>();
     }
 
-    // todo: remove at least one of the following two methods
-    public TypeNode getTypeNode() {
-        return typeNode;
-    }
-
-    private PacioliType type(Dictionary dictionary, TypeContext context, boolean reduce) throws PacioliException {
-        if (type == null) {
-            type = typeNode.eval(dictionary, context, reduce);
-        }
-        return type;
-    }
-
+	public PacioliType getType() {
+		assert (type != null);
+		return type;
+	}
+	
     @Override
     public String localName() {
         return id.getName();
@@ -81,18 +83,64 @@ public class MatrixDefinition extends AbstractDefinition {
 
     @Override
     public void updateDictionary(Dictionary dictionary, boolean reduce) throws PacioliException {
-        body = body(dictionary, new TypeContext());
-        dictionary.putType(localName(), type(dictionary, new TypeContext(), true));
+    	
+    	// Determine the node's type
+    	PacioliType evaluatedType = typeNode.eval(dictionary, new TypeContext(), reduce);
+    	assert(evaluatedType instanceof MatrixType);
+    	type = (MatrixType) evaluatedType;
+    	
+    	// Use the data from the dictionary to create the right data for compilation.
+    	// The bang body is a left over from an earlier construction that is needed to
+    	// get the type to runtime. It reuses the construction on a MatrixTypeNode (todo: 
+    	// remove this construction that at runtime first creates a bang and scales it 
+    	// with 0 to get an empty matrix!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!).
+    	// The string indices are translated to integers.
+    	bangBody  = new MatrixTypeNode(getLocation(), typeNode);
+    	setCompileTimeIndices(dictionary);
+    	
+        // Update the dictionary
+        dictionary.putType(localName(), evaluatedType);
     }
 
-    @Override
+    private void setCompileTimeIndices(Dictionary dictionary) throws PacioliException {
+    	
+    	// Determine the matrix type. This should be a closed type using 
+    	// index sets that are known at compile time.
+    	if 	(!(type.rowDimension instanceof DimensionType)) {
+    		throw new PacioliException(getLocation(), "Expected a closed matrix type but found %s", type.description());
+    	}
+    	if (!(type.columnDimension instanceof DimensionType)) {
+    		throw new PacioliException(getLocation(), "Expected a closed matrix type but found %s", type.description());
+    	}
+    	DimensionType rowDimType = (DimensionType) type.rowDimension;
+    	DimensionType columnDimType = (DimensionType) type.columnDimension;
+
+    	// Find the compile time matrix dimensions containing the literal indices
+    	MatrixDimension rowDim = rowDimType.compileTimeMatrixDimension(dictionary);
+    	MatrixDimension columnDim = columnDimType.compileTimeMatrixDimension(dictionary);
+    	
+    	// Translate the matrix data from string indexed to integer indexed.
+    	int rowWidth = rowDim.width();
+    	int width = rowWidth + columnDim.width();
+    	for (Pair<List<String>, ConstNode> pair : pairs) {
+
+    		int rowPos = rowDim.ElementPos(pair.a.subList(0, rowWidth));
+    		int columnPos = columnDim.ElementPos(pair.a.subList(rowWidth, width));
+    		
+    		rowIndices.add(rowPos);
+    		columnIndices.add(columnPos);
+    		values.add(pair.b.valueString());
+    	}
+	}
+
+	@Override
     public void printText(PrintWriter out) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public void resolveNames(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
-        body = body.resolved(dictionary, globals, context, mutableContext);
+        bangBody = bangBody.resolved(dictionary, globals, context, mutableContext);
     }
 
     @Override
@@ -102,90 +150,36 @@ public class MatrixDefinition extends AbstractDefinition {
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        assert (body != null);
-        return String.format("\nstore \"%s\" %s;\n", globalName(), body.compileToMVM(settings));
+        
+    	assert (type != null);
+    	assert (bangBody != null);
+        
+        StringWriter outputStream = new StringWriter();
+        PrintWriter writer = new PrintWriter(outputStream);
+        
+        for (int i=0; i < values.size(); i++) {
+        	writer.print(rowIndices.get(i));
+        	writer.print(" ");
+        	writer.print(columnIndices.get(i));
+        	writer.print(" \"");
+        	writer.print(values.get(i));
+        	writer.print("\", ");
+        }
+        
+        return String.format("\nstorelit \"%s\" %s %s;\n", globalName(), bangBody.compileToMVM(settings), outputStream.toString());
     }
 
     @Override
     public String compileToJS() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public String compileToMATLAB() {
-        return String.format("\nglobal %s = %s;\n",
-                    globalName().toLowerCase(),
-                    body.compileToMATLAB());
-    }
-
-    private ExpressionNode body(Dictionary dictionary, TypeContext context) throws PacioliException {
-
-        PacioliType bodyType = type(dictionary, context, true);
-
-        if (!(bodyType instanceof MatrixType)) {
-            throw new PacioliException(getLocation(), "Expected a matrix type but found %s", bodyType.description());
-        }
-        MatrixType matrixType = (MatrixType) bodyType;
-
-        MatrixTypeNode bang = new MatrixTypeNode(getLocation(), typeNode);
-
-        if (!(matrixType.rowDimension instanceof DimensionType)) {
-            throw new PacioliException(getLocation(), "Expected a closed matrix type but found %s", matrixType.description());
-        }
-        if (!(matrixType.columnDimension instanceof DimensionType)) {
-            throw new PacioliException(getLocation(), "Expected a closed matrix type but found %s", matrixType.description());
-        }
-        DimensionType rowDim = (DimensionType) matrixType.rowDimension;
-        DimensionType columnDim = (DimensionType) matrixType.columnDimension;
-
-
-        List<String> rowIndexSets = rowDim.getIndexSets();
-        List<String> columnIndexSets = columnDim.getIndexSets();
-
-        ExpressionNode body;
-
-        if (pairs.isEmpty()) {
-            List<ExpressionNode> args = new ArrayList<ExpressionNode>();
-            args.add(new ConstNode("0", getLocation()));
-            args.add(bang);
-            body = new ApplicationNode(new IdentifierNode("scale", getLocation()), args, getLocation());
-        } else {
-            ExpressionNode list = new ApplicationNode(new IdentifierNode("empty_list", getLocation()), new ArrayList<ExpressionNode>(), getLocation());
-            for (Pair<List<String>, ConstNode> pair : pairs) {
-
-                KeyNode rowKey = new KeyNode(getLocation());
-                for (int i = 0; i < rowIndexSets.size(); i++) {
-                    rowKey = rowKey.merge(new KeyNode(rowIndexSets.get(i), pair.a.get(i), getLocation()));
-                }
-
-                KeyNode columnKey = new KeyNode(getLocation());
-                int offset = rowIndexSets.size();
-                for (int i = 0; i < columnIndexSets.size(); i++) {
-                    columnKey = columnKey.merge(new KeyNode(columnIndexSets.get(i), pair.a.get(offset + i), getLocation()));
-                }
-
-                List<ExpressionNode> args = new ArrayList<ExpressionNode>();
-                args.add(rowKey);
-                args.add(columnKey);
-                args.add(pair.b);
-
-                List<ExpressionNode> tup = new ArrayList<ExpressionNode>();
-                tup.add(list);
-                tup.add(new ApplicationNode(new IdentifierNode("tuple", getLocation()), args, getLocation()));
-                list = new ApplicationNode(new IdentifierNode("add_mut", getLocation()), tup, getLocation());
-            }
-
-            List<ExpressionNode> args = new ArrayList<ExpressionNode>();
-            args.add(list);
-            body = new ApplicationNode(new IdentifierNode("make_matrix", getLocation()), args, getLocation());
-
-            args = new ArrayList<ExpressionNode>();
-            args.add(body);
-            args.add(bang);
-            body = new ApplicationNode(new IdentifierNode("multiply", getLocation()), args, getLocation());
-
-        }
-
-        return body;
+    	// todo: fix using the literal data now available
+//        return String.format("\nglobal %s = %s;\n",
+//                    globalName().toLowerCase(),
+//                    body.compileToMATLAB());
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

@@ -243,6 +243,8 @@ public class MatrixType extends AbstractType {
         return all;
     }
 
+    // These hacks are for MatrixTypeNode and for printing below 
+    
     public List<Unit> rowBangUnitList() {
         return dimensionBangUnitList(rowDimension, rowUnit);
     }

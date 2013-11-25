@@ -27,13 +27,20 @@ import uom.Unit;
 
 public class StringBase extends BaseUnit {
 
+	private String prefix;
     private String text;
 
     public StringBase(String text) {
+    	this.prefix = null;
         this.text = text;
     }
 
-    @Override
+    public StringBase(String prefix, String name) {
+    	this.prefix = prefix;
+		this.text = name;
+	}
+
+	@Override
     public int hashCode() {
         return text.hashCode();
     }
@@ -54,16 +61,29 @@ public class StringBase extends BaseUnit {
             return false;
         }
         StringBase otherUnit = (StringBase) real;
-        return text.equals(otherUnit.text);
+        if (!text.equals(otherUnit.text)) {
+        	return false;
+        }
+        if (prefix == null) {
+        	return otherUnit.prefix == null;
+        }
+        if (otherUnit.prefix == null) {
+        	return false;
+        }
+        return prefix.equals(otherUnit.prefix);
     }
 
+    private String prefixText () {
+    	return (prefix == null) ? "" : prefix + ":";
+    }
+    
     @Override
     public String toString() {
-        return super.toString() + "{" + text + "}";
+        return super.toString() + "{" + prefixText() + text + "}";
     }
     
     @Override
     public String toText() {
-        return text;
+        return prefixText() + text;
     }
 }

@@ -285,6 +285,12 @@ public class Matrix extends AbstractPacioliValue {
         matrix.numbers.setEntry(0, 0, numbers.getEntry(rowDimension().ElementPos(row.names), columnDimension().ElementPos(column.names)));
         return matrix;
     }
+    
+    public PacioliValue get_num(Key row, Key column) {
+        Matrix matrix = new Matrix(1);
+        matrix.numbers.setEntry(0, 0, numbers.getEntry(rowDimension().ElementPos(row.names), columnDimension().ElementPos(column.names)));
+        return matrix;
+    }
 
     public PacioliValue magnitude() {
         Matrix matrix = new Matrix(shape.dimensionless());
@@ -907,4 +913,8 @@ public class Matrix extends AbstractPacioliValue {
 
         return new PacioliTuple(items);
     }
+
+	public void set(Integer i, Integer j, Double value) {
+		numbers.setEntry(i, j, value);		
+	}
 }

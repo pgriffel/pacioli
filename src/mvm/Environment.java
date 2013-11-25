@@ -25,26 +25,32 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import mvm.ast.Expression;
 import mvm.values.PacioliValue;
 
 public class Environment {
 
     private final HashMap<String, PacioliValue> store;
+    private final HashMap<String, Expression> code;
     private Environment next;
 
     public Environment() {
         store = new HashMap<String, PacioliValue>();
+        code = new HashMap<String, Expression>();
         next = null;
     }
 
     public Environment(String key, PacioliValue value) {
         store = new HashMap<String, PacioliValue>();
+        code = new HashMap<String, Expression>();
         store.put(key, value);
         next = null;
     }
 
     public Environment(List<String> arguments, Environment env) {
         store = new HashMap<String, PacioliValue>();
+        code = new HashMap<String, Expression>();
         for (String key: arguments) {
             store.put(key, env.store.get(key));
         }
@@ -53,6 +59,7 @@ public class Environment {
 
     public Environment(List<String> arguments, List<PacioliValue> params) {
         store = new HashMap<String, PacioliValue>();
+        code = new HashMap<String, Expression>();
         for (int i = 0; i < arguments.size(); i++) {
             store.put(arguments.get(i), params.get(i));
         }
@@ -62,15 +69,16 @@ public class Environment {
     public PacioliValue lookup(String name) throws MVMException {
         if (store.containsKey(name)) {
             return store.get(name);
+        } else if (code.containsKey(name)) {
+        	store.put(name, code.get(name).eval(this));
+        	return store.get(name);
+        } else if (next == null) {	
+        	throw new MVMException("variable '%s' unknown", name);
         } else {
-            if (next == null) {
-                throw new MVMException("variable '%s' unknown", name);
-            } else {
-                return next.lookup(name);
-            }
+        	return next.lookup(name);
         }
+    }		
 
-    }
 
     public Environment pushUnto(Environment environment) {
         if (next == null) {
@@ -85,12 +93,16 @@ public class Environment {
         if (store.containsKey(name)) {
             return true;
         }
+        if (code.containsKey(name)) {
+            return true;
+        }
         if (next != null) {
             return next.containsKey(name);
         }
         return false;
     }
 
+    // This ignores the code table. Only wrong for dumping the state in the machine
     public Set<Map.Entry<String, PacioliValue>> entrySet() {
         Set<Map.Entry<String, PacioliValue>> keys = store.entrySet();
         if (next != null) {
@@ -102,9 +114,14 @@ public class Environment {
     public void put(String name, PacioliValue value) {
         store.put(name, value);
     }
+    
+    public void putCode(String name, Expression exp) {
+        code.put(name, exp);
+    }
 
     public Set<String> keySet() {
         Set<String> keys = store.keySet();
+        keys.addAll(code.keySet());
         if (next != null) {
             keys.addAll(next.keySet());
         }

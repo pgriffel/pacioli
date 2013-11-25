@@ -123,8 +123,7 @@ public class KeyNode extends AbstractExpressionNode {
             if (!dictionary.containsIndexSetDefinition(setName)) {
                 throw new PacioliException(getLocation(), "Index set '%s' unknown", setName);
             } else {
-                // todo :: checken. wsa eerst indexOf van indexSets defintion!!!!!!!!!!!!!!!!!!!!!!!!
-                int pos = dictionary.getIndexSetDefinition(setName).getIndexSet().ElementPosition(key);
+                int pos = dictionary.getCompileTimeIndexSet(setName).ElementPosition(key);
                 if (pos < 0) {
                     throw new PacioliException(getLocation(), "Key '%s' not in index set '%s'", key, setName);
                 } else {

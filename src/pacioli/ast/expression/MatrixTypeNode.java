@@ -28,6 +28,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import mvm.values.matrix.MatrixDimension;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
@@ -84,31 +86,18 @@ public class MatrixTypeNode extends AbstractExpressionNode {
             
             MatrixType matrixType = (MatrixType) foundType;
 
+            // The matrix type must be closed with known dimensions at compile time.
             assert (matrixType.rowDimension instanceof DimensionType);
             assert (matrixType.columnDimension instanceof DimensionType);
+            DimensionType rowDimType = (DimensionType) matrixType.rowDimension;
+            DimensionType columnDimType = (DimensionType) matrixType.columnDimension;
             
-            DimensionType rowDim = (DimensionType) matrixType.rowDimension;
-            DimensionType columnDim = (DimensionType) matrixType.columnDimension;
-            
-            int rows = 1;
-            for (String set : rowDim.getIndexSets()) {
-                if (dictionary.containsIndexSetDefinition(set)) {
-                    rows *= dictionary.getIndexSetDefinition(set).getIndexSet().size();
-                } else {
-                    throw new PacioliException(getLocation(), "Index set '%s' unknown", set);
-                }
-            }
-            
-            int columns = 1;
-            for (String set : columnDim.getIndexSets()) {
-                if (dictionary.containsIndexSetDefinition(set)) {
-                    columns *= dictionary.getIndexSetDefinition(set).getIndexSet().size();
-                } else {
-                    throw new PacioliException(getLocation(), "Index set '%s' unknown", set);
-                }
-            }
-
-            return new MatrixTypeNode(getLocation(), typeNode, matrixType, rows, columns);
+            // Find the compile time matrix dimensions to determine the matrix size.
+        	MatrixDimension rowDim = rowDimType.compileTimeMatrixDimension(dictionary);
+        	MatrixDimension columnDim = columnDimType.compileTimeMatrixDimension(dictionary);
+        	
+        	// Create a resolved clone
+            return new MatrixTypeNode(getLocation(), typeNode, matrixType, rowDim.size(), columnDim.size());
             
         } else {
             throw new PacioliException(getLocation(), "A matrix literal expects a matrix type but got %s", foundType.toText());
@@ -130,6 +119,9 @@ public class MatrixTypeNode extends AbstractExpressionNode {
     @Override
     public String compileToMVM(CompilationSettings settings) {
         assert (type != null);
+        
+        // this is reused in MatrixDefinition. todo: reconsider how types 
+        // are communicated to the MVM.
         return matrixTypeMVMCode(type);
     }
 
@@ -152,7 +144,7 @@ public class MatrixTypeNode extends AbstractExpressionNode {
         }
         String columnText = buildMVMOperation("user_Matrix_kronecker", columnKroneckerParts);
 
-        return String.format("application(var(\"user_Matrix_scale\"), %s, application(var(\"user_Standard_dim_div\"), %s, %s))",
+        return String.format("application(var(\"user_Matrix_scale\"), %s, application(var(\"user_Matrix_dim_div\"), %s, %s))",
                 factorText, rowText, columnText);
     }
 

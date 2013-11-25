@@ -1,7 +1,6 @@
 module PRG/Kirchhof;
 
-include si
-  meter = metre;
+include si;
 
 # ----------------------------------------------------------------------------
 # Electricity Network
@@ -105,12 +104,12 @@ solve_system(my_battery, my_inflow);
 # Kirchhofs Law
 # ----------------------------------------------------------------------------
 
-defunit decs "decimals";
+defunit decimals "decimals";
 
 declare check_kirchhof :: 
-  (volt*Node!, ampere*Edge!, volt*Edge!, ampere*Node!) -> Tuple(decs*Edge!, decs*Node!);
+  (volt*Node!, ampere*Edge!, volt*Edge!, ampere*Node!) -> Tuple(decimals*Edge!, decimals*Node!);
 
-define decimal_places(x) = |decs| . -log(abs(magnitude(x)), 10);
+define decimal_places(x) = |decimals| . -log(abs(magnitude(x)), 10);
 
 define check_kirchhof(potential, current, battery, inflow) =
   let

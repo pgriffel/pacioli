@@ -23,6 +23,7 @@ package mvm.values;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import mvm.AbstractPrintable;
 import mvm.MVMException;
@@ -118,4 +119,10 @@ public class PacioliList extends AbstractPacioliValue {
             return items.get(0);
         }
     }
+
+	public PacioliValue reverse() {
+		ArrayList<PacioliValue> accu = new ArrayList<PacioliValue>(items);
+		Collections.reverse(accu);
+        return new PacioliList(accu);
+	}
 }

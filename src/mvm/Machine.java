@@ -24,6 +24,7 @@ package mvm;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -57,7 +58,10 @@ import org.codehaus.jparsec.Terminals;
 import org.codehaus.jparsec.Token;
 import org.codehaus.jparsec.error.ParseErrorDetails;
 import org.codehaus.jparsec.error.ParserException;
+import org.codehaus.jparsec.functors.Map2;
 import org.codehaus.jparsec.functors.Pair;
+
+import pacioli.types.matrix.StringBase;
 import uom.Fraction;
 import uom.NamedUnit;
 import uom.Prefix;
@@ -173,6 +177,21 @@ public class Machine {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 checkNrArgs(params, 2);
                 Callable fun = (Callable) store.lookup("user_Primitives_equal");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
+        store.put("user_Primitives_not_equal", new Primitive("not_equal") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return new Boole(!params.get(0).equals(params.get(1)));
+            }
+        });
+
+        store.put("debug_Primitives_not_equal", new Primitive("not_equal") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 2);
+                Callable fun = (Callable) store.lookup("user_Primitives_not_equal");
                 PacioliValue result = fun.apply(params);
                 return result;
             }
@@ -621,6 +640,25 @@ public class Machine {
                 return result;
             }
         });
+        
+        store.put("user_Matrix_minus", new Primitive("minus") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                Matrix y = (Matrix) params.get(1);
+                return x.sum(y.negative());
+            }
+        });
+
+        store.put("debug_Matrix_minus", new Primitive("minus") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 2);
+                checkMatrixArg(params, 0);
+                checkMatrixArg(params, 1);
+                Callable fun = (Callable) store.lookup("user_Matrix_minus");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
 
         store.put("user_Matrix_magnitude", new Primitive("magnitude") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
@@ -733,6 +771,23 @@ public class Machine {
                 return result;
             }
         });
+        
+        store.put("user_Matrix_is_zero", new Primitive("is_zero") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return new Boole(x.isZero());
+            }
+        });
+
+        store.put("debug_Matrix_is_zero", new Primitive("is_zero") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 1);
+                checkMatrixArg(params, 0);
+                Callable fun = (Callable) store.lookup("user_Matrix_is_zero");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
 
         store.put("user_Matrix_get", new Primitive("get") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
@@ -750,6 +805,27 @@ public class Machine {
                 checkKeyArg(params, 1);
                 checkKeyArg(params, 2);
                 Callable fun = (Callable) store.lookup("user_Matrix_get");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
+        store.put("user_Matrix_get_num", new Primitive("get_num") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                Key row = (Key) params.get(1);
+                Key column = (Key) params.get(2);
+                return x.get_num(row, column);
+            }
+        });
+
+        store.put("debug_Matrix_get_num", new Primitive("get_num") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 3);
+                checkMatrixArg(params, 0);
+                checkKeyArg(params, 1);
+                checkKeyArg(params, 2);
+                Callable fun = (Callable) store.lookup("user_Matrix_get_num");
                 PacioliValue result = fun.apply(params);
                 return result;
             }
@@ -972,6 +1048,25 @@ public class Machine {
                 return result;
             }
         });
+        
+        store.put("user_Matrix_scale_down", new Primitive("scale_down") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                Matrix y = (Matrix) params.get(1);
+                return y.reciprocal().scale(x);
+            }
+        });
+
+        store.put("debug_Matrix_scale_down", new Primitive("scale_down") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 2);
+                checkMatrixArg(params, 0);
+                checkMatrixArg(params, 1);
+                Callable fun = (Callable) store.lookup("user_Matrix_scale_down");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
 
         store.put("user_Matrix_total", new Primitive("total") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
@@ -990,6 +1085,40 @@ public class Machine {
             }
         });
 
+        store.put("user_Matrix_left_identity", new Primitive("left_identity") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.leftIdentity();
+            }
+        });
+
+        store.put("debug_Matrix_left_identity", new Primitive("left_identity") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 1);
+                checkMatrixArg(params, 0);
+                Callable fun = (Callable) store.lookup("user_Matrix_left_identity");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
+        store.put("user_Matrix_right_identity", new Primitive("right_identity") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.rightIdentity();
+            }
+        });
+
+        store.put("debug_Matrix_right_identity", new Primitive("right_identity") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 1);
+                checkMatrixArg(params, 0);
+                Callable fun = (Callable) store.lookup("user_Matrix_right_identity");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
         store.put("user_Matrix_transpose", new Primitive("transpose") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
@@ -1023,7 +1152,43 @@ public class Machine {
                 return result;
             }
         });
+        
+        store.put("user_Matrix_dim_inv", new Primitive("dim_inv") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.reciprocal().transpose();
+            }
+        });
 
+        store.put("debug_Matrix_dim_inv", new Primitive("dim_inv") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 1);
+                checkMatrixArg(params, 0);
+                Callable fun = (Callable) store.lookup("user_Matrix_dim_inv");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
+        store.put("user_Matrix_dim_div", new Primitive("dim_div") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                Matrix y = (Matrix) params.get(1);
+                return x.join(y.transpose().reciprocal());
+            }
+        });
+
+        store.put("debug_Matrix_dim_div", new Primitive("dim_div") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 2);
+                checkMatrixArg(params, 0);
+                checkMatrixArg(params, 1);
+                Callable fun = (Callable) store.lookup("user_Matrix_dim_div");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
         store.put("user_Matrix_negative", new Primitive("negative") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
@@ -1315,6 +1480,32 @@ public class Machine {
                 return result;
             }
         });
+        
+        store.put("user_List_map_list", new Primitive("map_list") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Callable fun= (Callable) params.get(0);
+                List<PacioliValue> list = ((PacioliList) params.get(1)).items();
+                PacioliList newList = new PacioliList();
+                ArrayList<PacioliValue> arg = new ArrayList<PacioliValue>();
+                arg.add(null);
+                for (PacioliValue value : list) {
+                	arg.set(0, value);
+                	newList.addMut(fun.apply(arg));
+                }
+                return newList;
+            }
+        });
+
+        store.put("debug_List_map_list", new Primitive("map_list") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 2);
+                checkCallableArg(params, 0);
+                checkListArg(params, 1);
+                Callable fun = (Callable) store.lookup("user_List_map_list");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
 
         store.put("user_List_fold_list", new Primitive("fold_list") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
@@ -1459,6 +1650,23 @@ public class Machine {
                 checkListArg(params, 0);
                 checkListArg(params, 1);
                 Callable fun = (Callable) store.lookup("user_List_append");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
+        store.put("user_List_reverse", new Primitive("reverse") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliList x = (PacioliList) params.get(0);
+                return x.reverse();
+            }
+        });
+
+        store.put("debug_List_reverse", new Primitive("reverse") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 1);
+                checkListArg(params, 0);
+                Callable fun = (Callable) store.lookup("user_List_reverse");
                 PacioliValue result = fun.apply(params);
                 return result;
             }
@@ -1613,6 +1821,7 @@ public class Machine {
                 unitCommand(unitParser),
                 indexsetCommand(),
                 storeCommand(exprParser),
+                storeLitCommand(exprParser),
                 printCommand(exprParser),
                 unitVectorCommand(unitParser))
                 .endBy(TERMS.token(";"))
@@ -1622,9 +1831,9 @@ public class Machine {
     /* 
      * Tokens
      */
-    private static final String[] OPERATORS = {";", ",", "(", ")", "-", "^", "*", "/"};
+    private static final String[] OPERATORS = {";", ",", "(", ")", "-", "^", "*", "/", ":"};
     private static final String[] KEYWORDS = {
-        "baseunit", "unit", "indexset", "unitvector", "load", "store", "print",
+        "baseunit", "unit", "indexset", "unitvector", "load", "store", "storelit", "print",
         "application", "lambda", "var", "const", "if", "bang", "key", "application_debug",
         "path", "list", "matrix", "index",
         "multiply", "power", "scaled"
@@ -1724,9 +1933,34 @@ public class Machine {
                 exprParser,
                 new org.codehaus.jparsec.functors.Map2<String, Expression, Void>() {
             public Void map(String name, Expression body) {
-                //logln("Computing '%s'", name);
+            	store.putCode(name, body);
+//                try {
+//                    store.put(name, body.eval(store));
+//                } catch (MVMException ex) {
+//                    throw new ParserException(ex, null, null, null);
+//                }
+                return null;
+            }
+        });
+    }
+    
+    private Parser<Void> storeLitCommand(Parser<Expression> exprParser) {
+        return Parsers.sequence(
+                TERMS.token("storelit").next(Terminals.StringLiteral.PARSER),
+                exprParser,
+                Parsers.tuple(Terminals.DecimalLiteral.PARSER, Terminals.DecimalLiteral.PARSER, Terminals.StringLiteral.PARSER).followedBy(TERMS.token(",")).many(),
+                new org.codehaus.jparsec.functors.Map3<String, Expression, List<org.codehaus.jparsec.functors.Tuple3<String, String, String>>, Void>() {
+            public Void map(String name, Expression body, List<org.codehaus.jparsec.functors.Tuple3<String, String, String>> data) {
                 try {
-                    store.put(name, body.eval(store));
+                	Matrix matrix = (Matrix) body.eval(store);
+                	matrix = (Matrix) new Matrix(0).scale(matrix);
+                	for (org.codehaus.jparsec.functors.Tuple3<String, String, String> triple : data) {
+                		Integer i = Integer.parseInt(triple.a);
+                		Integer j = Integer.parseInt(triple.b);
+                		Double value = Double.parseDouble(triple.c);
+                		matrix.set(i, j, value);
+                	}
+                    store.put(name, matrix);
                 } catch (MVMException ex) {
                     throw new ParserException(ex, null, null, null);
                 }
@@ -1919,6 +2153,7 @@ public class Machine {
         return Parsers.or(
                 UNITNUMBER,
                 unitPower(),
+                unitScaled(),
                 unitNamed())
                 .sepBy1(TERMS.token("*"))
                 .sepBy1(TERMS.token("/"))
@@ -1972,6 +2207,7 @@ public class Machine {
         return Parsers.sequence(
                 Parsers.or(
                 UNITNUMBER,
+                unitScaled(),
                 unitNamed()),
                 TERMS.token("^")
                 .next(signedInteger()),
@@ -1988,6 +2224,21 @@ public class Machine {
             public Unit map(String name) {
                 if (unitSystem.congtainsUnit(name)) {
                     return unitSystem.lookupUnit(name);
+                } else {
+                    throw createException("unit '%s' unknown", name);
+                }
+            }
+        });
+    }
+    // todo: remove concatenation and do the prefix handling in lookup and containsUnit here
+    private Parser<Unit> unitScaled() {
+        return Parsers.sequence(
+        		Terminals.Identifier.PARSER.followedBy(TERMS.token(":")),
+        		Terminals.Identifier.PARSER,
+                new Map2<String, String, Unit>() {
+            public Unit map(final String prefix, final String name) {
+            	if (unitSystem.congtainsUnit(prefix + ":" + name)) {
+                    return unitSystem.lookupUnit(prefix + ":" + name);
                 } else {
                     throw createException("unit '%s' unknown", name);
                 }

@@ -51,6 +51,7 @@ import uom.UnitSystem;
 public class Dictionary extends AbstractPrintable {
 
     private final Map<String, IndexSetDefinition> indexSetDefinitions;
+    private final Map<String, IndexSet> compileTimeIndexSets;
     private final Map<String, UnitVector> unitVectors;
     private final UnitSystem unitSystem;
     private final Map<String, TypeDefinition> typeDefinitions;
@@ -60,6 +61,7 @@ public class Dictionary extends AbstractPrintable {
 
     public Dictionary() {
         indexSetDefinitions = new HashMap<String, IndexSetDefinition>();
+        compileTimeIndexSets = new HashMap<String, IndexSet>();
         unitVectors = new HashMap<String, UnitVector>();
         unitSystem = Machine.makeSI();
         typeDefinitions = new HashMap<String, TypeDefinition>();
@@ -98,6 +100,7 @@ public class Dictionary extends AbstractPrintable {
 
     public void include(Dictionary other) {
         indexSetDefinitions.putAll(other.indexSetDefinitions);
+        compileTimeIndexSets.putAll(other.compileTimeIndexSets);
         unitVectors.putAll(other.unitVectors);
         unitSystem.importSystem(other.unitSystem);
         typeDefinitions.putAll(other.typeDefinitions);
@@ -106,8 +109,10 @@ public class Dictionary extends AbstractPrintable {
         types.putAll(other.types);
     }
 
-    public void putIndexSetDefinition(String key, IndexSetDefinition indexSet) {
-        indexSetDefinitions.put(key, indexSet);
+    public void putIndexSetDefinition(String key, IndexSetDefinition definition) {
+        indexSetDefinitions.put(key, definition);
+        // currently all index sets put in the dictionary via this call are known at compile time
+        compileTimeIndexSets.put(key, definition.getIndexSet());
     }
 
     public boolean containsIndexSetDefinition(String name) {
@@ -116,6 +121,14 @@ public class Dictionary extends AbstractPrintable {
 
     public IndexSetDefinition getIndexSetDefinition(String name) {
         return indexSetDefinitions.get(name);
+    }
+    
+    public IndexSet getCompileTimeIndexSet(String name) throws PacioliException {
+    	if (compileTimeIndexSets.containsKey(name)) {
+    		return compileTimeIndexSets.get(name);
+    	} else {
+    		throw new PacioliException("Index set '%s''s contents not known at compile time", name);
+    	}
     }
 
     public void putAlias(String name, Unit unit) {
@@ -189,6 +202,7 @@ public class Dictionary extends AbstractPrintable {
         knownTypes.add(name);
     }
 
+    // used for unit vector definitions
     public Unit translateUnit(Unit unit) {
         return unit.map(new UnitMap() {
             public Unit map(Base base) {
@@ -213,6 +227,7 @@ public class Dictionary extends AbstractPrintable {
         });
     }
 
+    // used for conversions and projections. Reconsider and use compileTimeMatrixDimension
     public Matrix instantiateMatrixType(MatrixType type) throws PacioliException {
         assert (type.rowDimension instanceof DimensionType);
         assert (type.columnDimension instanceof DimensionType);
@@ -222,7 +237,7 @@ public class Dictionary extends AbstractPrintable {
         List<IndexSet> rowSets = new ArrayList<IndexSet>();
         for (String set : rowDimType.getIndexSets()) {
             if (containsIndexSetDefinition(set)) {
-                rowSets.add(getIndexSetDefinition(set).getIndexSet());
+                rowSets.add(getCompileTimeIndexSet(set));
             } else {
                 throw new PacioliException("Index set '%s' unknown when creating conversion", set);
             }

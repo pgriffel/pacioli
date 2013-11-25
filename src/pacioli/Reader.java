@@ -51,8 +51,6 @@ import pacioli.types.ast.TypeNode;
 import pacioli.types.ast.TypeOperationNode;
 import pacioli.types.ast.TypePowerNode;
 import pacioli.types.matrix.StringBase;
-import mvm.ast.Identifier;
-
 import org.codehaus.jparsec.OperatorTable;
 import org.codehaus.jparsec.Parser;
 import org.codehaus.jparsec.Parsers;
@@ -67,8 +65,6 @@ import org.codehaus.jparsec.functors.Map3;
 import org.codehaus.jparsec.functors.Map4;
 import org.codehaus.jparsec.functors.Map5;
 import org.codehaus.jparsec.functors.Pair;
-
-import com.sun.org.apache.bcel.internal.generic.ARRAYLENGTH;
 
 import uom.Fraction;
 import uom.NamedUnit;
@@ -605,6 +601,7 @@ public class Reader {
         return Parsers.or(
                 UNITNUMBER,
                 unitPower(),
+                unitScaled(),
                 unitNamed())
                 .sepBy1(TERMS.token("*"))
                 .sepBy1(TERMS.token("/"))
@@ -658,6 +655,7 @@ public class Reader {
         return Parsers.sequence(
                 Parsers.or(
                 UNITNUMBER,
+                unitScaled(),
                 unitNamed()),
                 TERMS.token("^")
                 .next(signedInteger()),
@@ -676,7 +674,20 @@ public class Reader {
             }
         });
     }
+    
+    private static Parser<Unit> unitScaled() {
+        return Parsers.sequence(
+        		Terminals.Identifier.PARSER.followedBy(TERMS.token(":")),
+        		Terminals.Identifier.PARSER,
+                new Map2<String, String, Unit>() {
+            public Unit map(final String prefix, final String name) {
+                // todo: better location info
+            	return new StringBase(prefix, name);
+            }
+        });
+    }
 
+    
     ////////////////////////////////////////////////////////////////////////////////
     // Types
     private static Parser<TypeNode> typeParser() {

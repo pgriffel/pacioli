@@ -23,6 +23,7 @@ declare tuple :: for_type a: a -> a;
 declare apply :: for_type a,b: (a -> b, a) -> b;
 declare identity :: for_type a: (a) -> a;
 declare equal :: for_type a: (a, a) -> Boole();
+declare not_equal :: for_type a: (a, a) -> Boole();
 declare not :: (Boole()) -> Boole();
 declare print :: for_type a: (a) -> a;
 declare error :: for_type a: (1) -> a;

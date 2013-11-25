@@ -26,7 +26,11 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import mvm.values.matrix.IndexSet;
+import mvm.values.matrix.MatrixDimension;
 import pacioli.ConstraintSet;
+import pacioli.Dictionary;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.Utils;
@@ -79,6 +83,14 @@ public class DimensionType extends AbstractType {
 
     public List<String> getIndexSets() {
         return indexSets;
+    }
+    
+    public MatrixDimension compileTimeMatrixDimension(Dictionary dictionary) throws PacioliException {
+    	List<IndexSet> sets = new ArrayList<IndexSet>();
+    	for (String name : indexSets) {
+    		sets.add(dictionary.getCompileTimeIndexSet(name));
+    	}
+        return new MatrixDimension(sets);
     }
 
     public int width() {

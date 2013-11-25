@@ -53,11 +53,19 @@ declare column :: for_index P,Q: for_unit a,v: (a*P!v per Q!, Q) -> a*P!v;
 
 declare get :: for_index P,Q: for_unit a: (a*P! per Q!, P, Q) -> a;
 
+declare get_num :: for_index D,E: for_unit a,b,c: (a*D!b per E!c, D, E) -> 1;
+
+declare left_identity :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> P!u per P!u;
+
+declare right_identity :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per Q!v;
+
 # ----------------------------------------------------------------------------
 # Linear Algebra Operators
 # ----------------------------------------------------------------------------
 
 declare sum :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare minus :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
 
 declare multiply :: for_index P,Q: for_unit a,b,u,w,v,z: (a*P!u per Q!v, b*P!w per Q!z) -> a*b*P!u*P!w per Q!v*Q!z;
 
@@ -71,11 +79,19 @@ declare dot :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*Q!v per R!
 
 declare scale :: for_index P,Q: for_unit a,b,u,v: (a, b*P!u per Q!v) -> a*b*P!u per Q!v;
 
+declare scale_down :: for_index P,Q: for_unit a,b,u,v: (a*P!u per Q!v, b) -> a*P!u per b*Q!v;
+
 declare negative :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> a*P!u per Q!v;
 
 declare reciprocal :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> a^-1*P!u^-1 per Q!v^-1;
 
 declare transpose :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> a*Q!v^-1 per P!u^-1;
+
+declare dim_inv :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per a*P!u;
+
+declare dim_div :: for_index D,E,H: for_unit a,b,c,f,g: (a*D!b per E!c, f*H!g per E!c) -> a*D!b per f*H!g;
+
+declare total :: for_index P,Q: for_unit a: (a*P! per Q!) -> a;
 
 # ----------------------------------------------------------------------------
 # Predicates
@@ -84,6 +100,8 @@ declare transpose :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> a*Q!v^-1 
 declare less :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole();
 
 declare less_eq :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole();
+
+declare is_zero :: for_index D,E: for_unit a,b,c: (a*D!b per E!c) -> Boole();
 
 # ----------------------------------------------------------------------------
 # Other Operations

@@ -24,16 +24,10 @@ include matrix;
 include list;
 
 # ------------------------------------------------------------------------------
-# Misc
+# Constants
 # ------------------------------------------------------------------------------
 
-define sqr(x) = x * x;
-
-define cube(x) = x * x * x;
-
 define pi = 3.141592653589793;
-
-define not_equal(x, y) = not(equal(x, y));
 
 # ------------------------------------------------------------------------------
 # Algebra
@@ -41,19 +35,16 @@ define not_equal(x, y) = not(equal(x, y));
 
 declare inner :: for_index P: for_unit a,b,u: (a*P!u, b*P!u^-1) -> a*b;
 declare outer :: for_index P,Q: for_unit a,b,u,v: (a*P!u, b*Q!v) -> a*b*P!u per Q!v^-1;
-declare dim_inv :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per a*P!u;
-declare left_division :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*P!u per R!w) -> b*Q!v per a*R!w;
-declare right_division :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*R!w per Q!v) -> a*P!u per b*R!w;
+declare sqr :: for_index D,E: for_unit a,b,c: (a*D!b per E!c) -> a^2*D!b^2 per E!c^2;
+declare cube :: for_index D,E: for_unit a,b,c: (a*D!b per E!c) -> a^3*D!b^3 per E!c^3;
+
+define sqr(x) = x * x;
+
+define cube(x) = x * x * x;
 
 define inner(x,y) = x^T .* y;
 
 define outer(x,y) = x .* y^T;
-
-define dim_inv(x) = transpose(reciprocal(x));
-
-define left_division(x,y) = inverse(x) .* y;
-
-define right_division(x,y) = x .* inverse(y);
 
 # ------------------------------------------------------------------------------
 # Matrix Shape
@@ -62,9 +53,10 @@ define right_division(x,y) = x .* inverse(y);
 declare rows :: for_index P,Q: for_unit a,v: (a*P! per Q!v) -> List(a per Q!v);
 declare columns :: for_index P,Q: for_unit a,u: (a*P!u per Q!) -> List(a*P!u);
 declare unit :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> a*P!u per Q!v;
-declare total :: for_index P,Q: for_unit a: (a*P! per Q!) -> a;
 declare delta :: for_index P: (P) -> P!;
 declare map_matrix :: for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
+declare is_zero_row :: for_index D,E: for_unit a,b,c: (a*D!b per E!c, D) -> Boole();
+declare is_zero_column :: for_index D,E: for_unit a,b,c: (a*D!b per E!c, E) -> Boole();
 
 define rows(matrix) = 
   [row(matrix,i) | i <- row_domain(matrix)];
@@ -75,21 +67,19 @@ define columns(matrix) =
 define unit(mat) =
   unit_factor(mat) . row_units(mat) per column_units(mat);
 
-define total(x) =
-  loop_list(0 . unit_factor(x), sum, [v | r <- rows(x), v <- columns(r)]);
-
 define delta(x) = 
   make_matrix([tuple(x, _, 1)]);
 
 define basis(matrix) =
   [delta(x) | x <- row_domain(matrix)];
 
-define get_num(matrix, row, column) = 
-  get(magnitude(matrix), row, column);
-
 define map_matrix(fun, mat) = 
   make_matrix([tuple(i, j, fun(get(mat, i, j))) | i <- row_domain(mat),
                                                   j <- column_domain(mat)]);
+
+define is_zero_row(x, i) = is_zero(row(magnitude(x), i));
+
+define is_zero_column(x, j) = is_zero(column(magnitude(x), j));
 
 # ------------------------------------------------------------------------------
 # Bit Vectors
@@ -116,8 +106,6 @@ define negatives(x) = x * negative_support(x);
 
 declare diagonal :: for_index P: for_unit a,u: (a*P!u) -> a*P!u per P!u;
 declare diagonal2 :: for_index P: for_unit a,u: (a*P!u) -> a*P!u per P!;
-declare left_identity :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> P!u per P!u;
-declare right_identity :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per Q!v;
 
 define diagonal(x) =
   let u = unit(x), units = unit_factor(u).u per u in
@@ -128,10 +116,6 @@ define diagonal2(x) =
   let u = unit(x), units = u per (magnitude(u)) in
     make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
   end;
-
-define left_identity(x) = diagonal(row_units(x));
-
-define right_identity(x) = diagonal(column_units(x));
 
 # ------------------------------------------------------------------------------
 # Closures
@@ -153,17 +137,18 @@ define kleene(x) = inverse(left_identity(x) - x);
 
 define closure(x) = kleene(x) - left_identity(x);
 
+declare left_division :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*P!u per R!w) -> b*Q!v per a*R!w;
+declare right_division :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*R!w per Q!v) -> a*P!u per b*R!w;
+
+define left_division(x,y) = inverse(x) .* y;
+
+define right_division(x,y) = x .* inverse(y);
+
 # ------------------------------------------------------------------------------
 # Lists
 # ------------------------------------------------------------------------------
 
-declare map_list :: for_type a,b: ((a) -> b, List(a)) -> List(b);
-declare reverse :: for_type a: (List(a)) -> List(a);
 declare combis :: for_type a: (List(a)) -> List(Tuple(a, a));
-
-define map_list(f, x) = loop_list([], lambda (a, b) append(a, [apply(f, tuple(b))]) end, x);
-
-define reverse(x) = loop_list([], lambda (a,b) append([b],a) end, x);
 
 define combis(list) =
     let accumulator(accu, x) =
@@ -173,18 +158,6 @@ define combis(list) =
     in
         let (result, _) = loop_list(tuple([], list), accumulator, list) in result end
     end;
-
-# ------------------------------------------------------------------------------
-# Primitives for Operators
-# ------------------------------------------------------------------------------
-
-declare scale_down :: for_index P,Q: for_unit a,b,u,v: (a*P!u per Q!v, b) -> a*P!u per b*Q!v;
-
-define scale_down(x, c) = scale(c^R, x);
-
-define minus(x,y) = x + -y;
-
-define dim_div(x, y) = x .* dim_inv(y);
 
 # ------------------------------------------------------------------------------
 # Primitives for Comprehensions (todo: implement properly)

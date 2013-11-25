@@ -71,7 +71,7 @@ public class UnitVectorDefinition extends AbstractDefinition {
         Map<String, Unit> def = items;
 
         if (dictionary.containsIndexSetDefinition(indexSetName)) {
-            IndexSet set = dictionary.getIndexSetDefinition(indexSetName).getIndexSet();
+            IndexSet set = dictionary.getCompileTimeIndexSet(indexSetName);
 
             unitArray = new Unit[set.size()];
             for (int i = 0; i < set.size(); i++) {

@@ -119,7 +119,7 @@ public class MatrixShape extends AbstractPrintable {
     }
 
     public MatrixShape columnUnits() {
-        return new MatrixShape(Unit.ONE, new MatrixDimension(), Unit.ONE, columnDimension(), columnUnit);
+        return new MatrixShape(Unit.ONE, columnDimension(), columnUnit, new MatrixDimension(), Unit.ONE);
     }
     
     public List<IndexSet> rowIndexSets() {

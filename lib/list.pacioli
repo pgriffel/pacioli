@@ -32,3 +32,5 @@ declare loop_list :: for_type a,b: (a, (a, b) -> a, List(b)) -> a;
 declare fold_list :: for_type a: ((a, a) -> a, List(a)) -> a;
 declare zip :: for_type a,b: (List(a), List(b)) -> List(Tuple(a, b));
 declare naturals :: (1) -> List(1);
+declare map_list :: for_type a,b: ((a) -> b, List(a)) -> List(b);
+declare reverse :: for_type a: (List(a)) -> List(a);
