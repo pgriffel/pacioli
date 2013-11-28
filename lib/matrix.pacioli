@@ -59,7 +59,13 @@ declare left_identity :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> P!u p
 
 declare right_identity :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per Q!v;
 
+declare signum :: for_index D,E: for_unit a,b,c: (a*D!b per E!c) -> D! per E!;
+
 declare support :: for_index D,E: for_unit a,b,c: (a*D!b per E!c) -> D! per E!;
+
+declare positive_support :: for_index D,E: for_unit a,b,c: (a*D!b per E!c) -> D! per E!;
+
+declare negative_support :: for_index D,E: for_unit a,b,c: (a*D!b per E!c) -> D! per E!;
 
 # ----------------------------------------------------------------------------
 # Linear Algebra Operators
@@ -144,6 +150,8 @@ declare atan :: for_index P,Q: (P! per Q!) -> radian * P! per Q!;
 declare atan2 :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> radian * P! per Q!;
 
 declare top :: for_index P,Q: for_unit a,u,v: (1, a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare bottom :: for_index P,Q: for_unit a,u,v: (1, a*P!u per Q!v) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
 # Factorizations

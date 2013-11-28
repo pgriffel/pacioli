@@ -348,11 +348,23 @@ public class Matrix extends AbstractPacioliValue {
         return matrix;
     }
 
-    public PacioliValue support() {
+    public Matrix posSupport() {
         Matrix matrix = new Matrix(shape.dimensionless());
         for (int i = 0; i < nrRows(); i++) {
             for (int j = 0; j < nrColumns(); j++) {
-                if (numbers.getEntry(i, j) != 0) {
+                if (0 < numbers.getEntry(i, j)) {
+                    matrix.numbers.setEntry(i, j, 1);
+                }
+            }
+        }
+        return matrix;
+    }
+    
+    public Matrix negSupport() {
+        Matrix matrix = new Matrix(shape.dimensionless());
+        for (int i = 0; i < nrRows(); i++) {
+            for (int j = 0; j < nrColumns(); j++) {
+                if (numbers.getEntry(i, j) < 0) {
                     matrix.numbers.setEntry(i, j, 1);
                 }
             }
@@ -360,7 +372,7 @@ public class Matrix extends AbstractPacioliValue {
         return matrix;
     }
 
-    private class Triple implements Comparable {
+    private class Triple implements Comparable<Object> {
     	int i;
     	int j;
     	Double value;
@@ -381,31 +393,70 @@ public class Matrix extends AbstractPacioliValue {
     	}
     }
     
-	public PacioliValue top(int n) {
-		
-		PriorityQueue<Triple> queue = new PriorityQueue<Triple>(n);
-		int count = 0;
-		for (int i = 0; i < nrRows(); i++) {
-            for (int j = 0; j < nrColumns(); j++) {
-            	Double value = numbers.getEntry(i, j);
-                if (count < n) {
-                	queue.add(new Triple(i,j, value));
-                	count++;
-                } else {
-                	if (queue.peek().value < value) {
-                		queue.poll();
-                		queue.add(new Triple(i,j, value));
-                	}
-                }
-            }
-        }
-		
+	public Matrix top(int n) {
 		
         Matrix matrix = new Matrix(shape);
-        while(!queue.isEmpty()) {
-            Triple triple = queue.poll();
-            matrix.numbers.setEntry(triple.i, triple.j, triple.value);
-        }
+        
+		if (0 < n) {
+			PriorityQueue<Triple> queue = new PriorityQueue<Triple>(n);
+			int count = 0;
+			
+			for (int i = 0; i < nrRows(); i++) {
+				for (int j = 0; j < nrColumns(); j++) {
+					Double value = numbers.getEntry(i, j);
+					if (value != 0.0) {
+						if (count < n) {
+							queue.add(new Triple(i,j, value));
+							count++;
+						} else {
+							if (queue.peek().value < value) {
+								queue.poll();
+								queue.add(new Triple(i,j, value));
+							}
+						}
+					}
+				}
+			}
+			while(!queue.isEmpty()) {
+	            Triple triple = queue.poll();
+	            matrix.numbers.setEntry(triple.i, triple.j, triple.value);
+	        }
+		}
+		
+        return matrix;
+	}
+	
+	public Matrix bottom(int n) {
+		
+		Matrix matrix = new Matrix(shape);
+		
+		if (0 < n) {
+			
+			PriorityQueue<Triple> queue = new PriorityQueue<Triple>(n);
+			int count = 0;
+			
+			for (int i = 0; i < nrRows(); i++) {
+				for (int j = 0; j < nrColumns(); j++) {
+					Double value = -numbers.getEntry(i, j);
+					if (value != 0.0) {
+						if (count < n) {
+							queue.add(new Triple(i,j, value));
+							count++;
+						} else {
+							if (queue.peek().value < value) {
+								queue.poll();
+								queue.add(new Triple(i,j, value));
+							}
+						}
+					}
+				}
+			}
+			while(!queue.isEmpty()) {
+	            Triple triple = queue.poll();
+	            matrix.numbers.setEntry(triple.i, triple.j, -triple.value);
+	        }	
+		}
+        
         return matrix;
 	}
 	

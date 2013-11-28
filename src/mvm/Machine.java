@@ -1105,7 +1105,7 @@ public class Machine {
         store.put("user_Matrix_support", new Primitive("support") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
-                return x.support();
+                return x.posSupport().sum(x.negSupport());
             }
         });
 
@@ -1114,6 +1114,57 @@ public class Machine {
                 checkNrArgs(params, 1);
                 checkMatrixArg(params, 0);
                 Callable fun = (Callable) store.lookup("user_Matrix_support");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
+        store.put("user_Matrix_positive_support", new Primitive("positive_support") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.posSupport();
+            }
+        });
+
+        store.put("debug_Matrix_positive_support", new Primitive("positive_support") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 1);
+                checkMatrixArg(params, 0);
+                Callable fun = (Callable) store.lookup("user_Matrix_positive_support");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
+        store.put("user_Matrix_negative_support", new Primitive("negative_support") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.negSupport();
+            }
+        });
+
+        store.put("debug_Matrix_negative_support", new Primitive("negative_support") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 1);
+                checkMatrixArg(params, 0);
+                Callable fun = (Callable) store.lookup("user_Matrix_negative_support");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
+        store.put("user_Matrix_signum", new Primitive("signum") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.posSupport().sum(x.negSupport().negative());
+            }
+        });
+
+        store.put("debug_Matrix_signum", new Primitive("signum") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 1);
+                checkMatrixArg(params, 0);
+                Callable fun = (Callable) store.lookup("user_Matrix_signum");
                 PacioliValue result = fun.apply(params);
                 return result;
             }
@@ -1133,6 +1184,25 @@ public class Machine {
                 checkMatrixArg(params, 0);
                 checkMatrixArg(params, 1);
                 Callable fun = (Callable) store.lookup("user_Matrix_top");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
+        store.put("user_Matrix_bottom", new Primitive("bottom") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+            	Matrix n = (Matrix) params.get(0);
+                Matrix x = (Matrix) params.get(1);
+                return x.bottom((int) n.SingletonNumber());
+            }
+        });
+
+        store.put("debug_Matrix_bottom", new Primitive("bottom") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 2);
+                checkMatrixArg(params, 0);
+                checkMatrixArg(params, 1);
+                Callable fun = (Callable) store.lookup("user_Matrix_bottom");
                 PacioliValue result = fun.apply(params);
                 return result;
             }
@@ -2294,8 +2364,10 @@ public static void log(String string, Object... args) {
 
         if (System.console() == null) {
             System.out.print(text);
+            System.out.flush();
         } else {
             System.console().format("%s", text);
+            System.console().flush();
         }
     }
 
