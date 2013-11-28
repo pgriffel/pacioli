@@ -139,4 +139,12 @@ public class MatrixDimension extends AbstractPrintable {
         out.print(AbstractPrintable.intercalateText(",", indexSets));
         out.print(")");
     }
+    
+    public String indexText() {
+    	List<String> names = new ArrayList<String>();
+    	for (IndexSet set: indexSets) {
+    		names.add(set.name);
+    	}
+        return AbstractPrintable.intercalate(",", names);
+    }
 }

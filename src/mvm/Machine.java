@@ -1102,6 +1102,42 @@ public class Machine {
             }
         });
         
+        store.put("user_Matrix_support", new Primitive("support") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.support();
+            }
+        });
+
+        store.put("debug_Matrix_support", new Primitive("support") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 1);
+                checkMatrixArg(params, 0);
+                Callable fun = (Callable) store.lookup("user_Matrix_support");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
+        store.put("user_Matrix_top", new Primitive("top") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+            	Matrix n = (Matrix) params.get(0);
+                Matrix x = (Matrix) params.get(1);
+                return x.top((int) n.SingletonNumber());
+            }
+        });
+
+        store.put("debug_Matrix_top", new Primitive("top") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 2);
+                checkMatrixArg(params, 0);
+                checkMatrixArg(params, 1);
+                Callable fun = (Callable) store.lookup("user_Matrix_top");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
         store.put("user_Matrix_right_identity", new Primitive("right_identity") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);

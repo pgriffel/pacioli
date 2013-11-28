@@ -87,8 +87,10 @@ define is_zero_column(x, j) = is_zero(column(magnitude(x), j));
 
 define log_not(x) = unit(x) - x;
 
-define support(x) = 
-  map_matrix(lambda(x) if x = 0 then 0 else 1 end end, magnitude(x));
+#declare support :: for_index D,E: for_unit a,b,c: (a*D!b per E!c) -> D! per E!;
+
+#define support(x) = 
+#  map_matrix(lambda(x) if x = 0 then 0 else 1 end end, magnitude(x));
 
 define positive_support(x) = 
   map_matrix(lambda(x) if 0 < x then 1 else 0 end end, magnitude(x));

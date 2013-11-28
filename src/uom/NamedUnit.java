@@ -23,7 +23,7 @@ package uom;
 
 public class NamedUnit extends BaseUnit {
 
-    private String symbolic;
+    private final String symbolic;
     protected Unit definition;
 
     public void setDefinition(Unit definition) {

@@ -59,6 +59,8 @@ declare left_identity :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> P!u p
 
 declare right_identity :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per Q!v;
 
+declare support :: for_index D,E: for_unit a,b,c: (a*D!b per E!c) -> D! per E!;
+
 # ----------------------------------------------------------------------------
 # Linear Algebra Operators
 # ----------------------------------------------------------------------------
@@ -69,7 +71,7 @@ declare minus :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -
 
 declare multiply :: for_index P,Q: for_unit a,b,u,w,v,z: (a*P!u per Q!v, b*P!w per Q!z) -> a*b*P!u*P!w per Q!v*Q!z;
 
-declare divide :: for_index P,Q: for_unit a,b,u,v,x,y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b/Q!v/Q!y;
+declare divide :: for_index P,Q: for_unit a,b,u,v,x,y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y;
 
 declare expt :: for_index P,Q: (P! per Q!, 1) -> P! per Q!;
 
@@ -140,6 +142,8 @@ declare acos :: for_index P,Q: (P! per Q!) -> radian * P! per Q!;
 declare atan :: for_index P,Q: (P! per Q!) -> radian * P! per Q!;
 
 declare atan2 :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> radian * P! per Q!;
+
+declare top :: for_index P,Q: for_unit a,u,v: (1, a*P!u per Q!v) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
 # Factorizations

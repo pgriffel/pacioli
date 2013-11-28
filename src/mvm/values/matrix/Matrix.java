@@ -26,6 +26,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.PriorityQueue;
+
 import mvm.MVMException;
 import mvm.values.AbstractPacioliValue;
 import mvm.values.PacioliList;
@@ -85,12 +87,16 @@ public class Matrix extends AbstractPacioliValue {
             }
         }
 
+        String sep = rowDimension().width() == 0 || columnDimension().width() == 0 ? "" : ", ";
+        String indexText = rowDimension().indexText() + sep + columnDimension().indexText();
+        int len = indexText.length();
+        
         List<String> idxList = new ArrayList<String>();
         List<String> numList = new ArrayList<String>();
         List<String> unitList = new ArrayList<String>();
 
-        int idxWidth = 10;
-        int numWidth = 10;
+        int idxWidth = len + 2;
+        int numWidth = len + 2;
         int unitWidth = 0;
 
 
@@ -105,14 +111,14 @@ public class Matrix extends AbstractPacioliValue {
                     numWidth = Math.max(numWidth, numString.length());
 
                     String idxString = "";
-                    String sep = "";
+                    String seper = "";
                     for (String idx : rowDimension().ElementAt(i)) {
-                        idxString += sep + idx;
-                        sep = ", ";
+                        idxString += seper + idx;
+                        seper = ", ";
                     }
                     for (String idx : columnDimension().ElementAt(j)) {
-                        idxString += sep + idx;
-                        sep = ", ";
+                        idxString += seper + idx;
+                        seper = ", ";
                     }
                     idxWidth = Math.max(idxWidth, idxString.length());
                     idxList.add(idxString);
@@ -125,8 +131,9 @@ public class Matrix extends AbstractPacioliValue {
             }
         }
 
-        out.print("\nIndex");
-        for (int i = 0; i < idxWidth - 4; i++) {
+        out.print("\n");
+        out.print(indexText);
+        for (int i = 0; i < idxWidth - len + 1; i++) {
             out.print(" ");
         }
         out.print(" ");
@@ -342,7 +349,7 @@ public class Matrix extends AbstractPacioliValue {
     }
 
     public PacioliValue support() {
-        Matrix matrix = new Matrix(shape.multiply(shape.reciprocal()));
+        Matrix matrix = new Matrix(shape.dimensionless());
         for (int i = 0; i < nrRows(); i++) {
             for (int j = 0; j < nrColumns(); j++) {
                 if (numbers.getEntry(i, j) != 0) {
@@ -353,6 +360,55 @@ public class Matrix extends AbstractPacioliValue {
         return matrix;
     }
 
+    private class Triple implements Comparable {
+    	int i;
+    	int j;
+    	Double value;
+    	
+    	Triple(int i, int j, Double value) {
+    		this.i = i;
+    		this.j = j;
+    		this.value = value;
+    	}
+    	
+    	public int compareTo(Object other) {
+    		Triple otherTriple = (Triple) other;
+    		return Double.compare(this.value, otherTriple.value);
+    	}
+
+    	public boolean equals(Object other) {
+    		return compareTo(other) == 0;
+    	}
+    }
+    
+	public PacioliValue top(int n) {
+		
+		PriorityQueue<Triple> queue = new PriorityQueue<Triple>(n);
+		int count = 0;
+		for (int i = 0; i < nrRows(); i++) {
+            for (int j = 0; j < nrColumns(); j++) {
+            	Double value = numbers.getEntry(i, j);
+                if (count < n) {
+                	queue.add(new Triple(i,j, value));
+                	count++;
+                } else {
+                	if (queue.peek().value < value) {
+                		queue.poll();
+                		queue.add(new Triple(i,j, value));
+                	}
+                }
+            }
+        }
+		
+		
+        Matrix matrix = new Matrix(shape);
+        while(!queue.isEmpty()) {
+            Triple triple = queue.poll();
+            matrix.numbers.setEntry(triple.i, triple.j, triple.value);
+        }
+        return matrix;
+	}
+	
     ////////////////////////////////////////////////////////////////////////////
     // Projections and Conversions
     public void createProjection() throws MVMException {
@@ -917,4 +973,5 @@ public class Matrix extends AbstractPacioliValue {
 	public void set(Integer i, Integer j, Double value) {
 		numbers.setEntry(i, j, value);		
 	}
+
 }
