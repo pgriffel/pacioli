@@ -33,7 +33,7 @@ import pacioli.types.matrix.StringBase;
 
 public class TypeIdentifierNode extends AbstractTypeNode {
 
-    public String name;
+    public final String name;
 
     public TypeIdentifierNode(Location location, String name) {
         super(location);

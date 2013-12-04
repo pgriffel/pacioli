@@ -202,7 +202,7 @@ public class Reader {
     				return new IdentifierNode(Utils.intercalate("/", names), loc);
     			}
     		});
-    private static Parser<MatrixTypeNode> BANG =
+    private static final Parser<MatrixTypeNode> BANG =
     		Parsers.sequence(
     				TERMS.token("|"),
     				typeParserRec(),
@@ -213,7 +213,7 @@ public class Reader {
     						return new MatrixTypeNode(location, typeNode);
     					}
     				});
-    private static Parser<KeyNode> KEY =
+    private static final Parser<KeyNode> KEY =
     		Parsers.tuple(
     				IDENTIFIER
     				.followedBy(TERMS.token("@")),

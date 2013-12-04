@@ -26,8 +26,8 @@ import java.util.Set;
 
 public class UnitSystem {
 
-    private HashMap<String, Prefix> prefixDictionary;
-    private HashMap<String, NamedUnit> unitDictionary;
+    private final HashMap<String, Prefix> prefixDictionary;
+    private final HashMap<String, NamedUnit> unitDictionary;
 
     public UnitSystem() {
         unitDictionary = new HashMap<String, NamedUnit>();

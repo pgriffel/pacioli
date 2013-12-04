@@ -30,7 +30,7 @@ import mvm.values.matrix.Matrix;
 
 public abstract class Primitive extends AbstractPacioliValue implements Callable {
 
-    private String name;
+    private final String name;
 
     public Primitive(String name) {
         this.name = name;

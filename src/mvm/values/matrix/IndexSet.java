@@ -28,9 +28,9 @@ import mvm.AbstractPrintable;
 
 public class IndexSet extends AbstractPrintable {
 
-    public String name;
-    private HashMap<String, Integer> positions;
-    private String[] elements;
+    public final String name;
+    private final HashMap<String, Integer> positions;
+    private final String[] elements;
 
     public IndexSet(String name, List<String> elements) {
 

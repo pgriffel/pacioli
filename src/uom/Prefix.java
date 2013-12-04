@@ -25,8 +25,8 @@ import java.math.BigDecimal;
 
 public class Prefix {
 	
-	private String symbols;
-	private BigDecimal factor;
+	private final String symbols;
+	private final BigDecimal factor;
 	
 	public Prefix(String symbols, BigDecimal factor){
 		this.symbols = symbols;

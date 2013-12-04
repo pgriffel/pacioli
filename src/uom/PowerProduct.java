@@ -34,8 +34,8 @@ import java.util.Set;
 
 public class PowerProduct implements Unit {
 
-    private HashMap<Base, Fraction> powers;
-    private BigDecimal factor;
+    private final HashMap<Base, Fraction> powers;
+    private final BigDecimal factor;
 
     public PowerProduct() {
         powers = new HashMap<Base, Fraction>();
@@ -48,9 +48,9 @@ public class PowerProduct implements Unit {
         factor = BigDecimal.ONE;
     }
 
-    private PowerProduct(HashMap<Base, Fraction> map) {
+    private PowerProduct(HashMap<Base, Fraction> map, BigDecimal factor) {
         powers = map;
-        factor = BigDecimal.ONE;
+        this.factor = factor;
     }
 
     public Set<Base> bases() {
@@ -133,9 +133,7 @@ public class PowerProduct implements Unit {
         for (Base base : bases()) {
             hash.put(base, power(base));
         }
-        PowerProduct scaled = new PowerProduct(hash);
-        scaled.factor = this.factor.multiply(factor);
-        return scaled;
+        return new PowerProduct(hash, this.factor.multiply(factor));
     }
 
     @Override
@@ -148,9 +146,7 @@ public class PowerProduct implements Unit {
         for (Base base : other.bases()) {
             hash.put(base, other.power(base).add(power(base)));
         }
-        PowerProduct multiplied = new PowerProduct(hash);
-        multiplied.factor = other.factor().multiply(factor);
-        return multiplied;
+        return new PowerProduct(hash, other.factor().multiply(factor));
     }
 
     @Override
@@ -160,18 +156,19 @@ public class PowerProduct implements Unit {
         for (Base base : bases()) {
             hash.put(base, power(base).mult(power));
         }
-        PowerProduct raised = new PowerProduct(hash);
+        
+        BigDecimal raisedFactor;
         if (power.isInt()) {
             int pow = power.intValue();
             if (0 < pow) {
-                raised.factor = factor.pow(pow, MathContext.DECIMAL128);
+                raisedFactor = factor.pow(pow, MathContext.DECIMAL128);
             } else {
-                raised.factor = BigDecimal.ONE.divide(factor.pow(-pow, MathContext.DECIMAL128), 25, RoundingMode.HALF_UP);
+                raisedFactor = BigDecimal.ONE.divide(factor.pow(-pow, MathContext.DECIMAL128), 25, RoundingMode.HALF_UP);
             }
         } else {
-            raised.factor = new BigDecimal(Math.pow(factor.doubleValue(), power.doubleValue()));
+            raisedFactor = new BigDecimal(Math.pow(factor.doubleValue(), power.doubleValue()));
         }
-        return raised;
+        return new PowerProduct(hash, raisedFactor);
     }
 
     @Override

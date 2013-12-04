@@ -29,9 +29,9 @@ import uom.UnitMap;
 
 public class BangBase extends BaseUnit {
 
-    public String indexSetName;
-    public String unitName;
-    public int position;
+    public final String indexSetName;
+    public final String unitName;
+    public final int position;
 
     public BangBase(String indexSetName, String unitName, int position) {
         this.indexSetName = indexSetName;

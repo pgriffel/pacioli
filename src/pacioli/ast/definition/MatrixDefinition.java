@@ -55,9 +55,9 @@ public class MatrixDefinition extends AbstractDefinition {
     private final List<Pair<List<String>, ConstNode>> pairs;
     private MatrixType type;
     private ExpressionNode bangBody;
-	private List<Integer> rowIndices;
-	private List<Integer> columnIndices;
-	private List<String> values;
+	private final List<Integer> rowIndices;
+	private final List<Integer> columnIndices;
+	private final List<String> values;
 
     public MatrixDefinition(Module module, IdentifierNode id, TypeNode typeNode, List<Pair<List<String>, ConstNode>> pairs, Location location) {
         super(module, location);

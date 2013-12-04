@@ -35,8 +35,8 @@ import uom.Unit;
 
 public class BangTypeNode extends AbstractTypeNode {
 
-    public String indexSetName;
-    public String unitName;
+    public final String indexSetName;
+    public final String unitName;
 
     public BangTypeNode(Location location, String indexSetName) {
         super(location);

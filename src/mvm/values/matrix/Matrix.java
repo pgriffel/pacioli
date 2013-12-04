@@ -44,7 +44,7 @@ import uom.UnitMap;
 
 public class Matrix extends AbstractPacioliValue {
 
-    public MatrixShape shape;
+    public final MatrixShape shape;
     private RealMatrix numbers;
 
     ////////////////////////////////////////////////////////////////////////////
@@ -373,9 +373,9 @@ public class Matrix extends AbstractPacioliValue {
     }
 
     private class Triple implements Comparable<Object> {
-    	int i;
-    	int j;
-    	Double value;
+    	final int i;
+    	final int j;
+    	final Double value;
     	
     	Triple(int i, int j, Double value) {
     		this.i = i;

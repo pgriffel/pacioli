@@ -27,8 +27,8 @@ import uom.Unit;
 
 public class StringBase extends BaseUnit {
 
-	private String prefix;
-    private String text;
+	private final String prefix;
+    private final String text;
 
     public StringBase(String text) {
     	this.prefix = null;

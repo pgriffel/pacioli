@@ -23,8 +23,8 @@ package uom;
 
 public class ScaledUnit extends BaseUnit {
 
-    private NamedUnit unit;
-    private Prefix prefix;
+    private final NamedUnit unit;
+    private final Prefix prefix;
 
     public ScaledUnit(Prefix scale, NamedUnit scaled) {
         prefix = scale;

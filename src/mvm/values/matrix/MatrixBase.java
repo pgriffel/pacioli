@@ -29,8 +29,8 @@ import uom.UnitMap;
 
 public class MatrixBase extends BaseUnit {
 
-    private UnitVector vector;
-    public int position;
+    private final UnitVector vector;
+    public final int position;
 
     public MatrixBase(UnitVector index, int position) {
         this.vector = index;

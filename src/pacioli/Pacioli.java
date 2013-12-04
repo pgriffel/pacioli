@@ -39,7 +39,7 @@ public class Pacioli {
     private static boolean warnings = false;
     private static boolean debug = false;
     private static boolean traceAll = false;
-    private static List<String> tracedFunctions = new ArrayList<String>();
+    private static final List<String> tracedFunctions = new ArrayList<String>();
     private static boolean atLineStart = false;
 
     public static void main(String[] args) {

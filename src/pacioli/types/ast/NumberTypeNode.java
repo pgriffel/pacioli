@@ -33,7 +33,7 @@ import uom.Unit;
 
 public class NumberTypeNode extends AbstractTypeNode {
 
-    private String number;
+    private final String number;
 
     public NumberTypeNode(String number, Location location) {
         super(location);
