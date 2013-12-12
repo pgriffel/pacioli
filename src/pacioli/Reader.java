@@ -933,11 +933,11 @@ public class Reader {
         return Parsers.or(
                 assignmentStatementParser(expParser),
                 tupleAssignmentParser(expParser),
-                ifStatementParser(statementParser, expParser, result),
+                ifStatementParser(statementParser, expParser),
                 whileStatementParser(statementParser, expParser),
                 returnStatementParser(expParser, result),
                 applicationParser(expParser))
-                .endBy1(TERMS.token(";"))
+                .many()
                 .map(new Map<List<ExpressionNode>, ExpressionNode>() {
             public ExpressionNode map(List<ExpressionNode> body) {
                 assert (0 < body.size());
@@ -955,7 +955,7 @@ public class Reader {
     private static Parser<ExpressionNode> assignmentStatementParser(Parser<ExpressionNode> expParser) {
         return Parsers.sequence(
                 IDENTIFIER,
-                TERMS.token(":=").next(expParser),
+                TERMS.token(":=").next(expParser).followedBy(TERMS.token(";")),
                 new Map2<IdentifierNode, ExpressionNode, ExpressionNode>() {
             public ExpressionNode map(IdentifierNode id, ExpressionNode value) {
                 Location loc = id.getLocation().join(value.getLocation());
@@ -970,7 +970,7 @@ public class Reader {
                 IDENTIFIER.sepBy(TERMS.token(","))
                 .followedBy(TERMS.token(")"))
                 .followedBy(TERMS.token(":=")),
-                expParser,
+                expParser.followedBy(TERMS.token(";")),
                 new Map3<Token, List<IdentifierNode>, ExpressionNode, ExpressionNode>() {
             public ExpressionNode map(final Token paren, List<IdentifierNode> vars, final ExpressionNode value) {
                 Location loc = tokenLocation(paren).join(value.getLocation());
@@ -982,7 +982,7 @@ public class Reader {
     private static Parser<ExpressionNode> returnStatementParser(Parser<ExpressionNode> expParser, final String result) {
         return Parsers.sequence(
                 TERMS.token("return"),
-                expParser.optional(),
+                expParser.optional().followedBy(TERMS.token(";")),
                 new Map2<Token, ExpressionNode, ExpressionNode>() {
             public ExpressionNode map(Token start, ExpressionNode value) {
                 if (value == null) {
@@ -1009,39 +1009,92 @@ public class Reader {
             }
         });
     }
-
-    private static Parser<ExpressionNode> ifStatementParser(Parser<ExpressionNode> statementParser, Parser<ExpressionNode> expParser, final String result) {
-        return Parsers.sequence(
-                TERMS.token("if"),
-                Parsers.tuple(expParser,
-                TERMS.token("then").next(statementParser)),
-                Parsers.tuple(
-                TERMS.token("elseif").next(expParser),
-                TERMS.token("then").next(statementParser)).many(),
-                TERMS.token("else").next(statementParser).optional(),
-                TERMS.token("end"),
-                new Map5<Token, Pair<ExpressionNode, ExpressionNode>, List<Pair<ExpressionNode, ExpressionNode>>, ExpressionNode, Token, ExpressionNode>() {
-            public ExpressionNode map(
-                    Token start,
-                    Pair<ExpressionNode, ExpressionNode> mainClause,
-                    List<Pair<ExpressionNode, ExpressionNode>> restClauses,
-                    ExpressionNode elseStatement,
-                    Token end) {
-                Location loc = tokenLocation(start).join(tokenLocation(end));
-
-                ExpressionNode statement;
-                if (elseStatement == null) {
-                    statement = new ApplicationNode(new IdentifierNode("skip", loc), new ArrayList<ExpressionNode>(), loc);
-                } else {
-                    statement = elseStatement;
+    
+    private static Parser<ExpressionNode> ifStatementParser(
+    		Parser<ExpressionNode> statementParser, 
+    		Parser<ExpressionNode> expParser) {
+    	return Parsers.sequence(
+                TERMS.token("if").next(expParser),
+                TERMS.token("then").next(statementParser),
+                ifRestParser(statementParser, expParser),
+                new Map3<ExpressionNode, ExpressionNode, List<Pair<ExpressionNode, ExpressionNode>>, ExpressionNode>() {
+            public ExpressionNode map(ExpressionNode test, ExpressionNode body, List<Pair<ExpressionNode, ExpressionNode>> rest) {
+            	ExpressionNode statement;
+            	statement = new ApplicationNode(new IdentifierNode("skip", test.getLocation()), new ArrayList<ExpressionNode>(), test.getLocation());
+            	for (int i = rest.size() - 1; 0 <= i; i--) {
+                    Pair<ExpressionNode, ExpressionNode> pair = rest.get(i);
+                    statement = new IfStatementNode(pair.a.getLocation().join(pair.b.getLocation()), pair.a, pair.b, statement);
                 }
-                for (int i = restClauses.size() - 1; 0 <= i; i--) {
-                    Pair<ExpressionNode, ExpressionNode> pair = restClauses.get(i);
-                    statement = new IfStatementNode(loc, pair.a, pair.b, statement);
-                }
-                return new IfStatementNode(loc, mainClause.a, mainClause.b, statement);
+                return new IfStatementNode(test.getLocation().join(body.getLocation()), test, body, statement);
             }
         });
+    }
+    
+    
+    private static Parser<List<Pair<ExpressionNode, ExpressionNode>>> ifRestParser(
+    		Parser<ExpressionNode> statementParser, 
+    		Parser<ExpressionNode> expParser) {
+    	
+    	Parser.Reference<List<Pair<ExpressionNode, ExpressionNode>>> reference = Parser.newReference();
+        
+        Parser<List<Pair<ExpressionNode, ExpressionNode>>> parser = Parsers.or(
+        		ifRestEndParser(statementParser, expParser),
+        		ifRestRestParser(statementParser, expParser, reference.lazy()));
+        
+        reference.set(parser);
+        
+        return parser;
+    }
+    
+    private static Parser<List<Pair<ExpressionNode, ExpressionNode>>> ifRestEndParser(
+    		Parser<ExpressionNode> statementParser, 
+    		Parser<ExpressionNode> expParser) {
+    	List<Pair<ExpressionNode, ExpressionNode>> empty = new ArrayList<Pair<ExpressionNode, ExpressionNode>>(); 
+        	return TERMS.token("end").retn(empty);
+    }
+    
+    private static Parser<List<Pair<ExpressionNode, ExpressionNode>>> ifRestRestParser(
+    		Parser<ExpressionNode> statementParser, 
+    		Parser<ExpressionNode> expParser,
+    		Parser<List<Pair<ExpressionNode, ExpressionNode>>> restParser) {
+        return TERMS.token("else").next(elseRestParser(statementParser, expParser, restParser));
+    }
+    
+    private static Parser<List<Pair<ExpressionNode, ExpressionNode>>> elseRestParser(
+    		Parser<ExpressionNode> statementParser, 
+    		Parser<ExpressionNode> expParser,
+    		Parser<List<Pair<ExpressionNode, ExpressionNode>>> restParser) {
+    	return Parsers.or(
+    			elseRestIfParser(statementParser, expParser, restParser),
+    			elseRestIflessParser(statementParser, expParser, restParser));
+    }
+    
+    private static Parser<List<Pair<ExpressionNode, ExpressionNode>>> elseRestIfParser(
+    		Parser<ExpressionNode> statementParser, 
+    		Parser<ExpressionNode> expParser,
+    		Parser<List<Pair<ExpressionNode, ExpressionNode>>> restParser) {
+    	return Parsers.sequence(
+                TERMS.token("if").next(expParser),
+                TERMS.token("then").next(statementParser),
+                restParser,
+                new Map3<ExpressionNode, ExpressionNode, List<Pair<ExpressionNode, ExpressionNode>>, List<Pair<ExpressionNode, ExpressionNode>>>() {
+            public List<Pair<ExpressionNode, ExpressionNode>> map(ExpressionNode test, ExpressionNode body, List<Pair<ExpressionNode, ExpressionNode>> rest) {
+            	List<Pair<ExpressionNode, ExpressionNode>> list = new ArrayList<Pair<ExpressionNode,ExpressionNode>>(rest); 
+            	list.add(new Pair<ExpressionNode, ExpressionNode>(test, body));
+            	return list;
+            }
+        });
+    }
+    
+    private static Parser<List<Pair<ExpressionNode, ExpressionNode>>> elseRestIflessParser(
+    		Parser<ExpressionNode> statementParser, 
+    		Parser<ExpressionNode> expParser,
+    		Parser<List<Pair<ExpressionNode, ExpressionNode>>> restParser) {
+    	return statementParser.followedBy(TERMS.token("end")).map(new Map<ExpressionNode, List<Pair<ExpressionNode, ExpressionNode>>>() {
+			public List<Pair<ExpressionNode, ExpressionNode>> map(ExpressionNode body) {
+				return Arrays.asList(new Pair<ExpressionNode, ExpressionNode>(new ConstNode("true", body.getLocation()), body)); 
+			}
+		});
     }
 
     ////////////////////////////////////////////////////////////////////////////////
