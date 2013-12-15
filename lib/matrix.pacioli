@@ -79,6 +79,8 @@ declare multiply :: for_index P,Q: for_unit a,b,u,w,v,z: (a*P!u per Q!v, b*P!w p
 
 declare divide :: for_index P,Q: for_unit a,b,u,v,x,y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y;
 
+declare left_divide :: for_index P,Q: for_unit a,b,u,v,x,y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!x/P!u per b*Q!y/Q!v;
+
 declare expt :: for_index P,Q: (P! per Q!, 1) -> P! per Q!;
 
 declare power :: for_index P: for_unit u: (P!u per P!u, 1) -> P!u per P!u;

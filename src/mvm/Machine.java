@@ -696,6 +696,25 @@ public class Machine {
             }
         });
         
+        store.put("user_Matrix_left_divide", new Primitive("left_divide") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                Matrix y = (Matrix) params.get(1);
+                return x.reciprocal().multiply(y);
+            }
+        });
+
+        store.put("debug_Matrix_left_divide", new Primitive("left_divide") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 2);
+                checkMatrixArg(params, 0);
+                checkMatrixArg(params, 1);
+                Callable fun = (Callable) store.lookup("user_Matrix_left_divide");
+                PacioliValue result = fun.apply(params);
+                return result;
+            }
+        });
+        
         store.put("user_Matrix_div", new Primitive("div") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
