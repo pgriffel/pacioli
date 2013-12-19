@@ -894,9 +894,34 @@ public class Reader {
     }
 
     private static Parser<TypeNode> matrixTermIdentifier() {
+    	return Parsers.or(matrixTermScaled(), matrixTermNonScaled());
+    }
+    
+    private static Parser<TypeNode> matrixTermNonScaled() {
         return IDENTIFIER.map(new Map<IdentifierNode, TypeNode>() {
             public TypeNode map(final IdentifierNode id) {
                 return new TypeIdentifierNode(id.getLocation(), id.getName());
+            }
+        });
+    }
+    
+    private static Parser<TypeNode> matrixTermScaled() {
+//        return IDENTIFIER.map(new Map<IdentifierNode, TypeNode>() {
+//            public TypeNode map(final IdentifierNode id) {
+//                return new TypeIdentifierNode(id.getLocation(), id.getName());
+//                return new TypeOperationNode(location, name, left, right);
+//            }
+//        });
+        
+        
+        return Parsers.sequence(
+        		IDENTIFIER.followedBy(TERMS.token(":")),
+        		IDENTIFIER,
+                new Map2<IdentifierNode, IdentifierNode, TypeNode>() {
+            public TypeNode map(final IdentifierNode prefix, final IdentifierNode name) {
+            	TypeNode left = new TypeIdentifierNode(prefix.getLocation(), prefix.getName());
+            	TypeNode right = new TypeIdentifierNode(name.getLocation(), name.getName());
+            	return new TypeOperationNode(prefix.getLocation().join(name.getLocation()), "scale", left, right);
             }
         });
     }
@@ -937,7 +962,7 @@ public class Reader {
                 whileStatementParser(statementParser, expParser),
                 returnStatementParser(expParser, result),
                 applicationParser(expParser))
-                .many()
+                .many1()
                 .map(new Map<List<ExpressionNode>, ExpressionNode>() {
             public ExpressionNode map(List<ExpressionNode> body) {
                 assert (0 < body.size());

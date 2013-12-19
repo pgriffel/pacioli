@@ -28,6 +28,7 @@ import pacioli.PacioliException;
 import pacioli.TypeContext;
 import pacioli.types.PacioliType;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.matrix.StringBase;
 
 public class TypeOperationNode extends AbstractTypeNode {
 
@@ -88,6 +89,11 @@ public class TypeOperationNode extends AbstractTypeNode {
             }
         } else if (operation.equals("per")) {
             return matrixLeft.join(matrixRight.transpose().reciprocal());
+        } else if (operation.equals("scale")) {
+        	TypeIdentifierNode leftId = (TypeIdentifierNode) left; 
+        	TypeIdentifierNode rightId = (TypeIdentifierNode) right;
+            return new MatrixType(new StringBase(leftId.name, rightId.name));
+            
         } else if (operation.equals("kronecker")) {
             return matrixLeft.kronecker(matrixRight);
         } else {
