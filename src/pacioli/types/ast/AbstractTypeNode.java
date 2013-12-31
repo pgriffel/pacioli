@@ -48,4 +48,9 @@ public abstract class AbstractTypeNode extends AbstractPrintable implements Type
             return location.description();
         }
     }
+
+	@Override
+	public String compileToJS() {
+		throw new RuntimeException("Not implemented for this type node. Only matrix type nodes can be compiled to JS");
+	}
 }

@@ -1,0 +1,34 @@
+package pacioli.ast.unit;
+
+import java.io.PrintWriter;
+import java.math.BigDecimal;
+
+import pacioli.Location;
+
+import uom.Unit;
+
+public class NumberUnitNode extends AbstractUnitNode {
+    
+	private final String number;
+
+    public NumberUnitNode(String number, Location location) {
+        super(location);
+        this.number = number;
+    }
+    
+	@Override
+	public String compileToJS() {
+		return "new PowerProduct(" + number + ")";
+	}
+
+	@Override
+	public Unit eval() {
+		return Unit.ONE.multiply(new BigDecimal(number));
+	}
+
+	@Override
+	public void printText(PrintWriter out) {
+		out.print(number);
+	}
+
+}

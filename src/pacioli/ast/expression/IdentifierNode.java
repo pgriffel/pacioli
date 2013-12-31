@@ -95,7 +95,7 @@ public class IdentifierNode extends AbstractExpressionNode {
 
     public String fullName() {
         assert (home != null); // names must have been resolved
-        return home.isEmpty() ? name : "user_" + home + "_" + name;
+        return home.isEmpty() ? name : "global_" + home + "_" + name;
     }
 
     @Override
@@ -189,7 +189,7 @@ public class IdentifierNode extends AbstractExpressionNode {
             throw new RuntimeException(String.format("Id '%s' unresolved at %s", name, getLocation().description()));
         }
         assert (home != null); // names must have been resolved
-        String prefix = settings.debug() && Module.debugablePrimitives.contains(home) ? "debug_" : "user_";
+        String prefix = settings.debug() && Module.debugablePrimitives.contains(home) ? "debug_" : "global_";
         String full = home.isEmpty() ? name : prefix + home + "_" + name;
         return "var(\"" + full + "\")";
 

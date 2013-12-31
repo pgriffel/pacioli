@@ -41,6 +41,10 @@ import pacioli.ast.expression.ReturnNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
+import pacioli.ast.unit.NumberUnitNode;
+import pacioli.ast.unit.UnitIdentifierNode;
+import pacioli.ast.unit.UnitNode;
+import pacioli.ast.unit.UnitOperationNode;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
@@ -337,8 +341,8 @@ public class Reader {
         return Parsers.sequence(
                 TERMS.token("defalias").next(IDENTIFIER),
                 TERMS.token("=").next(unitParser()).followedBy(TERMS.token(";")),
-                new Map2<IdentifierNode, Unit, Callback<Module, Void>>() {
-            public Callback<Module, Void> map(final IdentifierNode id, final Unit unit) {
+                new Map2<IdentifierNode, UnitNode, Callback<Module, Void>>() {
+            public Callback<Module, Void> map(final IdentifierNode id, final UnitNode unit) {
                 return new Callback<Module, Void>() {
                     public Void call(Module module) {
                         try {
@@ -450,13 +454,13 @@ public class Reader {
                 Parsers.tuple(Terminals.Identifier.PARSER.followedBy(TERMS.token(":")), unitParser()).sepBy(TERMS.token(",")),
                 TERMS.token("}")))
                 .followedBy(TERMS.token(";")),
-                new Map3<IdentifierNode, IdentifierNode, List<Pair<String, Unit>>, Callback<Module, Void>>() {
-            public Callback<Module, Void> map(final IdentifierNode indexId, final IdentifierNode id, final List<Pair<String, Unit>> items) {
+                new Map3<IdentifierNode, IdentifierNode, List<Pair<String, UnitNode>>, Callback<Module, Void>>() {
+            public Callback<Module, Void> map(final IdentifierNode indexId, final IdentifierNode id, final List<Pair<String, UnitNode>> items) {
                 return new Callback<Module, Void>() {
                     public Void call(Module module) {
                         try {
-                            java.util.Map<String, Unit> unitVector = new HashMap<String, Unit>();
-                            for (Pair<String, Unit> pair : items) {
+                            java.util.Map<String, UnitNode> unitVector = new HashMap<String, UnitNode>();
+                            for (Pair<String, UnitNode> pair : items) {
                                 unitVector.put(pair.a, pair.b);
                             }
                             module.addUnitVectorDef(indexId, id, unitVector);
@@ -480,7 +484,7 @@ public class Reader {
                 return new Callback<Module, Void>() {
                     public Void call(Module module) {
                         try {
-                            module.addUnit(id, new NamedUnit(symbol));
+                            module.addUnit(id, symbol, null);
                             return null;
                         } catch (PacioliException ex) {
                             throw new ParserException(ex, null, null, null);
@@ -496,12 +500,12 @@ public class Reader {
                 TERMS.token("defunit").next(IDENTIFIER),
                 Terminals.StringLiteral.PARSER,
                 TERMS.token("=").next(unitParser()).followedBy(TERMS.token(";")),
-                new Map3<IdentifierNode, String, Unit, Callback<Module, Void>>() {
-            public Callback<Module, Void> map(final IdentifierNode id, final String symbol, final Unit unit) {
+                new Map3<IdentifierNode, String, UnitNode, Callback<Module, Void>>() {
+            public Callback<Module, Void> map(final IdentifierNode id, final String symbol, final UnitNode unit) {
                 return new Callback<Module, Void>() {
                     public Void call(Module module) {
                         try {
-                            module.addUnit(id, new NamedUnit(symbol, unit));
+                            module.addUnit(id, symbol, unit);
                             return null;
                         } catch (PacioliException ex) {
                             throw new ParserException(ex, null, null, null);
@@ -597,7 +601,8 @@ public class Reader {
     }
     ////////////////////////////////////////////////////////////////////////////////
     // Units
-    private static Parser<Unit> unitParser() {
+    private static Parser<UnitNode> unitParser() {
+    	// todo: refactor this further
         return Parsers.or(
                 UNITNUMBER,
                 unitPower(),
@@ -605,53 +610,55 @@ public class Reader {
                 unitNamed())
                 .sepBy1(TERMS.token("*"))
                 .sepBy1(TERMS.token("/"))
-                .map(new org.codehaus.jparsec.functors.Map<List<List<Unit>>, Unit>() {
-            public Unit map(List<List<Unit>> termss) {
-                Unit unit = Unit.ONE;
+                .map(new org.codehaus.jparsec.functors.Map<List<List<UnitNode>>, UnitNode>() {
+            public UnitNode map(List<List<UnitNode>> termss) {
+            	UnitNode unit = null;
                 boolean first = true;
-                for (List<Unit> terms : termss) {
-                    Unit tmp = Unit.ONE;
-                    for (Unit term : terms) {
-                        tmp = tmp.multiply(term);
+                for (List<UnitNode> terms : termss) {
+                	UnitNode tmp = null;
+                    for (UnitNode term : terms) {
+                        tmp = (tmp == null) ? term : new UnitOperationNode("*", tmp, term);
                     }
                     if (first) {
-                        unit = unit.multiply(tmp);
+                        unit = tmp;
+                        first = false;
                     } else {
-                        unit = unit.multiply(tmp.reciprocal());
+                        unit = new UnitOperationNode("/", unit, tmp);
                     }
-                    first = false;
                 }
                 return unit;
             }
         });
     }
-    private static final Parser<Unit> UNITNUMBER =
-            Terminals.DecimalLiteral.PARSER
-            .map(new org.codehaus.jparsec.functors.Map<String, Unit>() {
-        public Unit map(String num) {
-            return Unit.ONE.multiply(new BigDecimal(num));
+    private static final Parser<UnitNode> UNITNUMBER =
+    		Terminals.DecimalLiteral.PARSER.token()
+            .map(new org.codehaus.jparsec.functors.Map<Token, UnitNode>() {
+        public UnitNode map(Token num) {
+            return new NumberUnitNode((String) num.value(), tokenLocation(num));
         }
     });
 
-    public static Parser<Integer> signedInteger() {
+    public static Parser<UnitNode> signedInteger() {
         return Parsers.or(
-                Terminals.DecimalLiteral.PARSER
-                .map(new org.codehaus.jparsec.functors.Map<String, Integer>() {
-            public Integer map(String power) {
-                return Integer.parseInt(power);
+                Terminals.DecimalLiteral.PARSER.token()
+                .map(new org.codehaus.jparsec.functors.Map<Token, UnitNode>() {
+            public UnitNode map(Token power) {
+                //return Integer.parseInt(power);
+                return new NumberUnitNode((String) power.value(), tokenLocation(power));
             }
         }),
                 TERMS.token("-")
-                .next(Terminals.DecimalLiteral.PARSER)
-                .map(new org.codehaus.jparsec.functors.Map<String, Integer>() {
-            public Integer map(String power) {
-                Integer i = Integer.parseInt(power);
-                return -i;
+                .next(Terminals.DecimalLiteral.PARSER.token())
+                .map(new org.codehaus.jparsec.functors.Map<Token, UnitNode>() {
+            public UnitNode map(Token power) {
+//                Integer i = Integer.parseInt(power);
+//                return -i;
+                return new NumberUnitNode("-" + (String) power.value(), tokenLocation(power));
             }
         }));
     }
 
-    private static Parser<Unit> unitPower() {
+    private static Parser<UnitNode> unitPower() {
         return Parsers.sequence(
                 Parsers.or(
                 UNITNUMBER,
@@ -659,30 +666,33 @@ public class Reader {
                 unitNamed()),
                 TERMS.token("^")
                 .next(signedInteger()),
-                new org.codehaus.jparsec.functors.Map2<Unit, Integer, Unit>() {
-            public Unit map(Unit unit, Integer power) {
-                return unit.raise(new Fraction(power));
+                new org.codehaus.jparsec.functors.Map2<UnitNode, UnitNode, UnitNode>() {
+            public UnitNode map(UnitNode unit, UnitNode power) {
+                //return unit.raise(new Fraction(power));
+                return new UnitOperationNode("^", unit, power);
             }
         });
     }
 
-    private static Parser<Unit> unitNamed() {
+    private static Parser<UnitNode> unitNamed() {
         return Terminals.Identifier.PARSER
-                .map(new org.codehaus.jparsec.functors.Map<String, Unit>() {
-            public Unit map(String name) {
-                return new StringBase(name);
+                .map(new org.codehaus.jparsec.functors.Map<String, UnitNode>() {
+            public UnitNode map(String name) {
+                //return new StringBase(name);
+                return new UnitIdentifierNode(name);
             }
         });
     }
     
-    private static Parser<Unit> unitScaled() {
+    private static Parser<UnitNode> unitScaled() {
         return Parsers.sequence(
         		Terminals.Identifier.PARSER.followedBy(TERMS.token(":")),
         		Terminals.Identifier.PARSER,
-                new Map2<String, String, Unit>() {
-            public Unit map(final String prefix, final String name) {
+                new Map2<String, String, UnitNode>() {
+            public UnitNode map(final String prefix, final String name) {
                 // todo: better location info
-            	return new StringBase(prefix, name);
+            	//return new StringBase(prefix, name);
+            	return new UnitIdentifierNode(prefix, name);
             }
         });
     }
@@ -861,8 +871,8 @@ public class Reader {
         return Parsers.sequence(
                 trueTermParser(),
                 TERMS.token("^").next(signedInteger()),
-                new Map2<TypeNode, Integer, TypeNode>() {
-            public TypeNode map(final TypeNode term, final Integer power) {
+                new Map2<TypeNode, UnitNode, TypeNode>() {
+            public TypeNode map(final TypeNode term, final UnitNode power) {
                 return new TypePowerNode(term.getLocation(), term, power);
             }
         });

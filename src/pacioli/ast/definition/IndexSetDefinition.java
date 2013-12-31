@@ -88,7 +88,14 @@ public class IndexSetDefinition extends AbstractDefinition {
 
     @Override
     public String compileToJS() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String output = String.format("\nfunction compute_%s () {return makeIndexSet('%s', [", localName(), localName());
+        List<String> quotedItems = new ArrayList<String>();
+        for (String item : items) {
+            quotedItems.add(String.format("\"%s\"", item));
+        }
+        output += Utils.intercalate(",", quotedItems);
+        output += "])}\n";
+        return output;
     }
 
     @Override

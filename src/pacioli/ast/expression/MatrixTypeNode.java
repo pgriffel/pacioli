@@ -136,15 +136,15 @@ public class MatrixTypeNode extends AbstractExpressionNode {
         for (Unit unit : type.rowBangUnitList()) {
             rowKroneckerParts.add(unitMVMForm(unit));
         }
-        String rowText = buildMVMOperation("user_Matrix_kronecker", rowKroneckerParts);
+        String rowText = buildMVMOperation("global_Matrix_kronecker", rowKroneckerParts);
 
         List<String> columnKroneckerParts = new ArrayList<String>();
         for (Unit unit : type.columnBangUnitList()) {
             columnKroneckerParts.add(unitMVMForm(unit));
         }
-        String columnText = buildMVMOperation("user_Matrix_kronecker", columnKroneckerParts);
+        String columnText = buildMVMOperation("global_Matrix_kronecker", columnKroneckerParts);
 
-        return String.format("application(var(\"user_Matrix_scale\"), %s, application(var(\"user_Matrix_dim_div\"), %s, %s))",
+        return String.format("application(var(\"global_Matrix_scale\"), %s, application(var(\"global_Matrix_dim_div\"), %s, %s))",
                 factorText, rowText, columnText);
     }
 
@@ -156,13 +156,13 @@ public class MatrixTypeNode extends AbstractExpressionNode {
             if (base instanceof BangBase) {
                 BangBase bangBase = (BangBase) base;
                 if (power < 0) {
-                    text = String.format("application(var(\"user_Matrix_reciprocal\"), bang(\"%s\", \"%s\"))", bangBase.indexSetName, bangBase.unitName);
+                    text = String.format("application(var(\"global_Matrix_reciprocal\"), bang(\"%s\", \"%s\"))", bangBase.indexSetName, bangBase.unitName);
                 } else {
                     text = String.format("bang(\"%s\", \"%s\")", bangBase.indexSetName, bangBase.unitName);
                 }
             } else if (base instanceof StringBase) {
                 if (power < 0) {
-                    text = String.format("application(var(\"user_Matrix_reciprocal\"), unit(\"%s\"))", base.toText());
+                    text = String.format("application(var(\"global_Matrix_reciprocal\"), unit(\"%s\"))", base.toText());
                 } else {
                     text = String.format("unit(\"%s\")", base.toText());
                 }
@@ -173,7 +173,7 @@ public class MatrixTypeNode extends AbstractExpressionNode {
                 parts.add(text);
             }
         }
-        return buildMVMOperation("user_Matrix_multiply", parts);
+        return buildMVMOperation("global_Matrix_multiply", parts);
     }
 
     private static String buildMVMOperation(String operator, List<String> parts) {
@@ -192,7 +192,7 @@ public class MatrixTypeNode extends AbstractExpressionNode {
 
     @Override
     public String compileToJS() {
-
+    	/*
         String row = "[1";
         for (int i = 0; i < nrColumns - 1; i++) {
             row += ",1";
@@ -206,7 +206,8 @@ public class MatrixTypeNode extends AbstractExpressionNode {
         }
         matrix += "]";
 
-        return matrix;
+        return matrix;*/
+    	return "oneMatrix(" + typeNode.compileToJS() + ")";
     }
 
     @Override

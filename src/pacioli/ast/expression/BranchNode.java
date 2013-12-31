@@ -99,7 +99,7 @@ public class BranchNode extends AbstractExpressionNode {
 
     @Override
     public String compileToJS() {
-        return String.format("%s ? %s : %s", test.compileToJS(), positive.compileToJS(), negative.compileToJS());
+        return String.format("(%s ? %s : %s)", test.compileToJS(), positive.compileToJS(), negative.compileToJS());
     }
 
     @Override

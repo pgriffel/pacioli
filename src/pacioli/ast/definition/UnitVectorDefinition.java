@@ -22,6 +22,7 @@
 package pacioli.ast.definition;
 
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Utils;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.unit.UnitNode;
 import mvm.values.matrix.IndexSet;
 import mvm.values.matrix.UnitVector;
 import uom.Unit;
@@ -41,11 +43,11 @@ public class UnitVectorDefinition extends AbstractDefinition {
 
     private final IdentifierNode indexId;
     private final IdentifierNode id;
-    private final Map<String, Unit> items;
+    private final Map<String, UnitNode> items;
     private Unit[] unitArray;
     private UnitVector vector;
 
-    public UnitVectorDefinition(Module module, Location location, IdentifierNode indexId, IdentifierNode id, Map<String, Unit> items) {
+    public UnitVectorDefinition(Module module, Location location, IdentifierNode indexId, IdentifierNode id, Map<String, UnitNode> items) {
         super(module, location);
         this.indexId = indexId;
         this.id = id;
@@ -68,7 +70,7 @@ public class UnitVectorDefinition extends AbstractDefinition {
     public void updateDictionary(Dictionary dictionary, boolean reduce) throws PacioliException {
         String indexSetName = indexId.getName();
         String name = id.getName();
-        Map<String, Unit> def = items;
+        Map<String, UnitNode> def = items;
 
         if (dictionary.containsIndexSetDefinition(indexSetName)) {
             IndexSet set = dictionary.getCompileTimeIndexSet(indexSetName);
@@ -77,7 +79,7 @@ public class UnitVectorDefinition extends AbstractDefinition {
             for (int i = 0; i < set.size(); i++) {
                 String item = set.ElementAt(i);
                 if (def.containsKey(item)) {
-                    unitArray[i] = def.get(item);
+                    unitArray[i] = def.get(item).eval();
                 } else {
                     unitArray[i] = Unit.ONE;
                 }
@@ -120,7 +122,20 @@ public class UnitVectorDefinition extends AbstractDefinition {
 
     @Override
     public String compileToJS() {
-        throw new UnsupportedOperationException("Javascript has no units.");
+    	StringBuilder builder = new StringBuilder();
+    	builder.append("function compute_").append(id.getName()).append(" () {");
+    	builder.append("return {units:{");
+    	boolean sep = false;
+    	for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
+    		if (sep) {builder.append(",");} else {sep = true;}
+    		builder.append(entry.getKey());
+    		builder.append(":");
+    		builder.append(entry.getValue().compileToJS());
+    		builder.append("");
+    	}
+    	builder.append("}}}");
+        		
+        return builder.toString();
     }
 
     @Override

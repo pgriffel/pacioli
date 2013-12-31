@@ -61,4 +61,9 @@ public class TypeIdentifierNode extends AbstractTypeNode {
             }
         }
     }
+
+	@Override
+	public String compileToJS() {
+		return "scalarShape('" + name + "')";
+	}
 }

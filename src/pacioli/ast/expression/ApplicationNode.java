@@ -189,10 +189,12 @@ public class ApplicationNode extends AbstractExpressionNode {
         }
         String args = Utils.intercalate(", ", compiled);
 
+        //return String.format("%s(%s)", function.compileToJS(), args);
+        
         if (function instanceof IdentifierNode) {
             return String.format("%s(%s)", ((IdentifierNode) function).fullName(), args);
         } else {
-            return String.format("%s.apply(this, user_Primitives_tuple(%s))", function.compileToJS(), args);
+            return String.format("%s.apply(this, global_Primitives_tuple(%s))", function.compileToJS(), args);
         }
     }
 

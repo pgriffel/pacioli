@@ -114,8 +114,9 @@ public class ConversionDefinition extends AbstractDefinition {
 
     @Override
     public String compileToJS() {
-        assert (jsConverted != null);
-        return String.format("\nfunction g_%s() {\n  return %s;\n}\n", globalName(), jsConverted);
+        //assert (jsConverted != null);
+        //return String.format("\nfunction compute_%s() {\n  return %s;\n}\n", globalName(), jsConverted);
+        return String.format("\nfunction compute_%s() {\n  return conversionMatrix(%s);\n}\n", globalName(), typeNode.compileToJS());
     }
 
     @Override

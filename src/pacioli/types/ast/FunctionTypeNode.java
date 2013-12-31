@@ -49,4 +49,5 @@ public class FunctionTypeNode extends AbstractTypeNode {
     public PacioliType eval(Dictionary dictionary, TypeContext context, boolean reduce) throws PacioliException {
         return new FunctionType(domain.eval(dictionary, context, reduce), range.eval(dictionary, context, reduce));
     }
+
 }

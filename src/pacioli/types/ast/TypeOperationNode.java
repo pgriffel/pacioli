@@ -32,20 +32,20 @@ import pacioli.types.matrix.StringBase;
 
 public class TypeOperationNode extends AbstractTypeNode {
 
-    private final String operation;
+    private final String operator;
     private final TypeNode left;
     private final TypeNode right;
 
     public TypeOperationNode(Location location, String operation, TypeNode left, TypeNode right) {
         super(location);
-        this.operation = operation;
+        this.operator = operation;
         this.left = left;
         this.right = right;
     }
 
     @Override
     public void printText(PrintWriter out) {
-        out.format("%s%s%s", left, operation, right);
+        out.format("%s%s%s", left, operator, right);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class TypeOperationNode extends AbstractTypeNode {
         MatrixType matrixLeft = (MatrixType) leftType;
         MatrixType matrixRight = (MatrixType) rightType;
 
-        if (operation.equals("multiply")) {
+        if (operator.equals("multiply")) {
             if (matrixLeft.singleton()) {
                 return matrixLeft.scale(matrixRight);
             } else if (matrixRight.singleton()) {
@@ -74,7 +74,7 @@ public class TypeOperationNode extends AbstractTypeNode {
                 assert (matrixLeft.multiplyable(matrixRight));
                 return matrixLeft.multiply(matrixRight);
             }
-        } else if (operation.equals("divide")) {
+        } else if (operator.equals("divide")) {
             if (matrixLeft.singleton()) {
                 return matrixLeft.scale(matrixRight.reciprocal());
             } else if (matrixRight.singleton()) { 
@@ -87,17 +87,34 @@ public class TypeOperationNode extends AbstractTypeNode {
                 	throw new RuntimeException(String.format("Cannot divide %s by %s", matrixLeft.toText(), matrixRight.toText()));
                 }
             }
-        } else if (operation.equals("per")) {
+        } else if (operator.equals("per")) {
             return matrixLeft.join(matrixRight.transpose().reciprocal());
-        } else if (operation.equals("scale")) {
+        } else if (operator.equals("scale")) {
         	TypeIdentifierNode leftId = (TypeIdentifierNode) left; 
         	TypeIdentifierNode rightId = (TypeIdentifierNode) right;
             return new MatrixType(new StringBase(leftId.name, rightId.name));
             
-        } else if (operation.equals("kronecker")) {
+        } else if (operator.equals("kronecker")) {
             return matrixLeft.kronecker(matrixRight);
         } else {
-            throw new RuntimeException(String.format("Type operator %s unknown", operation));
+            throw new RuntimeException(String.format("Type operator %s unknown", operator));
         }
     }
+
+	@Override
+	public String compileToJS() {
+		String leftJS = left.compileToJS();
+		String rightJS = right.compileToJS();
+		if (operator == "multiply") {
+			return leftJS + ".mult(" + rightJS + ")";
+		} else if (operator == "/") {
+			return leftJS + ".div(" + rightJS + ")";
+		} else if (operator == "^") {
+			return leftJS + ".expt(" + rightJS + ")";
+		} else if (operator == "scale") {
+			return "scalarShape'(" + left + "$" + right + "')";
+		} else {
+			throw new RuntimeException("Type operator '" + operator + "' unknown");
+		}
+	}
 }

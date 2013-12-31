@@ -49,4 +49,9 @@ public class NumberTypeNode extends AbstractTypeNode {
     public PacioliType eval(Dictionary dictionary, TypeContext context, boolean reduce) throws PacioliException {
         return new MatrixType(Unit.ONE.multiply(new BigDecimal(number)));
     }
+
+	@Override
+	public String compileToJS() {
+		return "new Shape(" + number + ")";
+	}
 }

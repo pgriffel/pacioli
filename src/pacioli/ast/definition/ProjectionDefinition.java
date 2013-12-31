@@ -117,7 +117,7 @@ public class ProjectionDefinition extends AbstractDefinition {
     public String compileToJS() {
     	// todo
         assert (jsConverted != null);
-        return String.format("\nfunction g_%s() {\n  return %s;\n}\n", globalName(), jsConverted);
+        return String.format("\nfunction compute_%s() {\n  return %s;\n}\n", globalName(), jsConverted);
     }
 
     @Override

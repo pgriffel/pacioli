@@ -36,7 +36,7 @@ public abstract class AbstractDefinition extends AbstractASTNode implements Defi
     
     @Override
     public String globalName() {
-        return String.format("user_%s_%s", getModule().name, localName());
+        return String.format("global_%s_%s", getModule().name, localName());
     }
 
     @Override

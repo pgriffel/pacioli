@@ -22,6 +22,9 @@
 package pacioli.ast.definition;
 
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.unit.UnitNode;
+import pacioli.types.ast.TypeNode;
+
 import java.io.PrintWriter;
 import java.util.Map;
 import java.util.Set;
@@ -36,38 +39,48 @@ import uom.Unit;
 public class UnitDefinition extends AbstractDefinition {
 
     private final IdentifierNode id;
-    private final NamedUnit unit;
+    private final String symbol;
+    private final UnitNode definition;
 
-    public UnitDefinition(Module module, Location location, IdentifierNode id, NamedUnit unit) {
+    public UnitDefinition(Module module, Location location, IdentifierNode id, String symbol, UnitNode definition) {
         super(module, location);
         this.id = id;
-        this.unit = unit;
+        this.symbol = symbol;
+        this.definition = definition;
     }
 
     // todo: remove
     public NamedUnit getUnit() {
-        return unit;
+    	if (definition == null) {
+    		return new NamedUnit(symbol);
+    	} else {
+    		return new NamedUnit(symbol, definition.eval());
+    	}
     }
 
     @Override
     public void printText(PrintWriter out) {
-        out.format("unit definition %s = %s", id.toText(), unit.toText());
+        out.format("unit definition %s = %s", id.toText(), definition.toText());
     }
 
     @Override
     public String localName() {
         return id.getName();
     }
-
+    
+    @Override
+    public String globalName() {
+        return String.format("unit_%s", localName());
+    }
+    
     @Override
     public void updateDictionary(Dictionary dictionary, boolean reduce) throws PacioliException {
-    	assert (unit instanceof NamedUnit);
-    	Unit def = unit.flat();
-    	if (def == unit) {
-    		dictionary.addUnit(id.getName(), unit);
-    	} else{
-    		Unit translatedDef = dictionary.translateUnit(def);
-    		NamedUnit translatedUnit = new NamedUnit(unit.toText(), translatedDef);
+    	if (definition == null) {
+    		dictionary.addUnit(id.getName(), new NamedUnit(symbol));
+    	} else {
+    		Unit unit = new NamedUnit(symbol, definition.eval());
+    		Unit translatedDef = dictionary.translateUnit(unit.flat());
+    		NamedUnit translatedUnit = new NamedUnit(symbol, translatedDef);
     		dictionary.addUnit(id.getName(), translatedUnit);
     	}
     }
@@ -84,17 +97,22 @@ public class UnitDefinition extends AbstractDefinition {
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        Unit def = unit.flat();
-        if (unit == def) {
-            return String.format("baseunit \"%s\" \"%s\"; # %s\n", id.getName(), unit.toText(), def.toText());
+        if (definition == null) {
+            return String.format("baseunit \"%s\" \"%s\";\n", id.getName(), symbol);
         } else {
-            return String.format("unit \"%s\" \"%s\" %s;\n", id.getName(), unit.toText(), unit.flat().toText());
+            return String.format("unit \"%s\" \"%s\" %s;\n", id.getName(), symbol, definition.eval().flat().toText());
         }
     }
 
     @Override
     public String compileToJS() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    	if (definition == null) {
+    		return String.format("function compute_%s () {return {symbol: '%s'}}", 
+    				globalName(), symbol);
+    	} else {
+    		return String.format("function compute_%s () {return {definition: %s, symbol: '%s'}}", 
+    				globalName(), definition.compileToJS(), symbol);
+    	}
     }
 
     @Override

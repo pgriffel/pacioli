@@ -40,4 +40,14 @@ public interface TypeNode extends Printable {
      * @throws PacioliException
      */
     public PacioliType eval(Dictionary dictionary, TypeContext context, boolean reduce) throws PacioliException;
+
+	/**
+	 * Only defined for matrix type nodes. Returns a javascript expression that computes 
+	 * at runtime a Shape object defined by the matrix type. See the javascript runtime
+	 * functions for information on the Shape.      
+	 * 
+	 * @return
+	 */
+	public String compileToJS();
+    
 }

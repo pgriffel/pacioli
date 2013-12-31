@@ -26,6 +26,8 @@ import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
+import pacioli.ast.unit.NumberUnitNode;
+import pacioli.ast.unit.UnitNode;
 import pacioli.types.PacioliType;
 import pacioli.types.matrix.MatrixType;
 import uom.Fraction;
@@ -35,10 +37,11 @@ public class TypePowerNode extends AbstractTypeNode {
     private final TypeNode base;
     private final Integer power;
 
-    public TypePowerNode(Location location, TypeNode base, Integer power) {
+    public TypePowerNode(Location location, TypeNode base, UnitNode power) {
         super(location);
         this.base = base;
-        this.power = power;
+        // todo: refactor this further. Make it an operation and remove this node
+        this.power = Integer.parseInt(((NumberUnitNode) power).toText());
     }
 
     @Override
@@ -57,4 +60,9 @@ public class TypePowerNode extends AbstractTypeNode {
         MatrixType matrix = (MatrixType) baseType;
         return matrix.raise(new Fraction(power));
     }
+
+	@Override
+	public String compileToJS() {
+		return base.compileToJS() + ".expt(" + power + ")";
+	}
 }

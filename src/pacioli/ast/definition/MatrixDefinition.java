@@ -171,7 +171,28 @@ public class MatrixDefinition extends AbstractDefinition {
 
     @Override
     public String compileToJS() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    	assert (type != null);
+    	assert (bangBody != null);
+        
+        StringWriter outputStream = new StringWriter();
+        PrintWriter writer = new PrintWriter(outputStream);
+        String sep = "";
+        for (int i=0; i < values.size(); i++) {
+        	writer.print(sep);
+        	writer.print("[");
+        	writer.print(rowIndices.get(i));
+        	writer.print(",");
+        	writer.print(columnIndices.get(i));
+        	writer.print(",");
+        	writer.print(values.get(i));
+        	writer.print("]");
+        	sep = ",";
+        }
+        
+        return String.format("\nfunction compute_%s () {return initialMatrix(%s, [%s])}\n", 
+        		globalName(),
+        		"bangBody.compileToJS()",
+        		outputStream.toString());
     }
 
     @Override

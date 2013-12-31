@@ -88,4 +88,9 @@ public class BangTypeNode extends AbstractTypeNode {
             }
         }
     }
+
+	@Override
+	public String compileToJS() {
+		return String.format("bangShape(%s, %s, %s, %s)", "todo", "todo", "todo", "todo");
+	}
 }

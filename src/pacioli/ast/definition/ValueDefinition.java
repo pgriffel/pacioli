@@ -111,7 +111,7 @@ public class ValueDefinition extends AbstractDefinition {
                     code.argsString(),
                     code.expression.compileToJS());
         } else {
-            return String.format("\nfunction g_%s() {\n  return %s;\n}",
+            return String.format("\nfunction compute_%s() {\n  return %s;\n}",
                     globalName(),
                     transformedBody.compileToJS());
         }
