@@ -1,262 +1,241 @@
-/*
- * Copyright (c) 2013 Paul Griffioen
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
 package pacioli;
 
-import mvm.Machine;
-import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+
+import mvm.values.matrix.IndexSet;
+import mvm.values.matrix.MatrixDimension;
+import pacioli.ast.definition.AliasDefinition;
+import pacioli.ast.definition.Declaration;
+import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.TypeDefinition;
+import pacioli.ast.definition.UnitDefinition;
+import pacioli.ast.definition.UnitVectorDefinition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
-import pacioli.types.matrix.BangBase;
+import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.DimensionType;
 import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.StringBase;
-import mvm.values.matrix.IndexSet;
-import mvm.values.matrix.Matrix;
-import mvm.values.matrix.MatrixBase;
-import mvm.values.matrix.MatrixDimension;
-import mvm.values.matrix.MatrixShape;
-import mvm.values.matrix.UnitVector;
-import uom.Base;
-import uom.NamedUnit;
-import uom.Unit;
-import uom.UnitMap;
-import uom.UnitSystem;
 
-public class Dictionary extends AbstractPrintable {
-
-    private final Map<String, IndexSetDefinition> indexSetDefinitions;
-    private final Map<String, IndexSet> compileTimeIndexSets;
-    private final Map<String, UnitVector> unitVectors;
-    private final UnitSystem unitSystem;
-    private final Map<String, TypeDefinition> typeDefinitions;
-    private final Set<String> knownTypes;
-    private final Map<String, Unit> aliases;
-    private final Map<String, PacioliType> types;
-
-    public Dictionary() {
-        indexSetDefinitions = new HashMap<String, IndexSetDefinition>();
-        compileTimeIndexSets = new HashMap<String, IndexSet>();
-        unitVectors = new HashMap<String, UnitVector>();
-        unitSystem = Machine.makeSI();
-        typeDefinitions = new HashMap<String, TypeDefinition>();
-        knownTypes = new HashSet<String>();
-        aliases = new HashMap<String, Unit>();
-        types = new HashMap<String, PacioliType>();
-        knownTypes.add("Boole");
-        knownTypes.add("Tuple");
-        knownTypes.add("List");
-        knownTypes.add("Set");
-        knownTypes.add("Ref");
-        knownTypes.add("Void");
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        for (String name : indexSetDefinitions.keySet()) {
-            out.format("\nindex = %s", indexSetDefinitions.get(name).toText());
-        }
-        for (String name : typeDefinitions.keySet()) {
-            out.format("\ntypedef = %s", typeDefinitions.get(name).toText());
-        }
-        for (String name : knownTypes) {
-            out.format("\nknown = %s", name);
-        }
-        for (String name : unitVectors.keySet()) {
-            out.format("\nunitvector = %s", name);
-        }
-        for (String name : aliases.keySet()) {
-            out.format("\nalias = %s", name);
-        }
-        for (String name : types.keySet()) {
-            out.format("\ntype = %s :: %s", name, types.get(name).unfresh().toText());
-        }
-    }
-
-    public void include(Dictionary other) {
-        indexSetDefinitions.putAll(other.indexSetDefinitions);
-        compileTimeIndexSets.putAll(other.compileTimeIndexSets);
-        unitVectors.putAll(other.unitVectors);
-        unitSystem.importSystem(other.unitSystem);
-        typeDefinitions.putAll(other.typeDefinitions);
-        knownTypes.addAll(other.knownTypes);
-        aliases.putAll(other.aliases);
-        types.putAll(other.types);
-    }
-
-    public void putIndexSetDefinition(String key, IndexSetDefinition definition) {
-        indexSetDefinitions.put(key, definition);
-        // currently all index sets put in the dictionary via this call are known at compile time
-        compileTimeIndexSets.put(key, definition.getIndexSet());
-    }
-
-    public boolean containsIndexSetDefinition(String name) {
-        return indexSetDefinitions.containsKey(name);
-    }
-
-    public IndexSetDefinition getIndexSetDefinition(String name) {
-        return indexSetDefinitions.get(name);
+public class Dictionary {
+	private final Map<String, UnitDefinition> unitDefinitions = new HashMap<String, UnitDefinition>();
+	private final Map<String, IndexSetDefinition> indexSetDefinitions = new HashMap<String, IndexSetDefinition>();;
+	private final Map<String, UnitVectorDefinition> unitVectorDefinitions = new HashMap<String, UnitVectorDefinition>();
+	private final Map<String, TypeDefinition> typeDefinitions = new HashMap<String, TypeDefinition>();
+	private final Map<String, AliasDefinition> aliasDefinitions = new HashMap<String, AliasDefinition>();
+	private final Map<String, Declaration> declarations = new HashMap<String, Declaration>();
+	private final Map<String, ValueDefinition> valueDefinitions = new HashMap<String, ValueDefinition>();
+	
+	public void putValueDefinition(String name, ValueDefinition definition) {
+    	valueDefinitions.put(name, definition);
     }
     
-    public IndexSet getCompileTimeIndexSet(String name) throws PacioliException {
-    	if (compileTimeIndexSets.containsKey(name)) {
-    		return compileTimeIndexSets.get(name);
+    public void putUnitDefinition(String name, UnitDefinition definition) {
+    	unitDefinitions.put(name, definition);
+    }
+
+	public void putAliasDefinition(String name, AliasDefinition definition) {
+		aliasDefinitions.put(name, definition);
+	}
+
+	public void putDeclaration(String name, Declaration declaration) {
+		declarations.put(name, declaration);
+	}
+
+	public void putIndexSetDefinition(String name, IndexSetDefinition definition) {
+		indexSetDefinitions.put(name, definition);
+	}
+
+	public void putTypeDefinition(String name, TypeDefinition definition) {
+		typeDefinitions.put(name, definition);
+	}
+
+	public void putUnitVectorDefinition(String name, UnitVectorDefinition definition) {
+		unitVectorDefinitions.put(name, definition);
+	}
+	
+	public boolean containsValueDefinition(String name) {
+		return valueDefinitions.containsKey(name);
+	}
+
+	public ValueDefinition getValueDefinition(String name) {
+		return valueDefinitions.get(name);
+	}
+
+	public boolean containsIndexSetDefinition(String name) {
+		return indexSetDefinitions.containsKey(name);
+	}
+
+	public IndexSetDefinition getIndexSetDefinition(String name) {
+		return indexSetDefinitions.get(name);
+	}
+
+	public boolean containsUnitDefinition(String name) {
+		return unitDefinitions.containsKey(name);
+	}
+
+	public boolean containsUnitVectorDefinition(String name) {
+		return unitVectorDefinitions.containsKey(name);
+	}
+
+	public boolean containsAliasDefinition(String name) {
+		return aliasDefinitions.containsKey(name);
+	}
+	
+	public AliasDefinition getAliasDefinition(String name) {
+		return aliasDefinitions.get(name);
+	}
+	
+	public boolean containsTypeDefinition(String name) {
+		return typeDefinitions.containsKey(name);
+	}
+
+	public TypeDefinition getTypeDefinition(String name) {
+		return typeDefinitions.get(name);
+	}
+	
+	public UnitDefinition getUnitDefinition(String name) {
+		return unitDefinitions.get(name);
+	}
+	
+	public UnitVectorDefinition getUnitVectorDefinition(String name) {
+		return unitVectorDefinitions.get(name);
+	}
+
+	public boolean containsDeclaration(String name) {
+		return declarations.containsKey(name);
+	}
+
+	public Declaration getDeclaration(String name) {
+		return declarations.get(name);
+	}
+
+	public void addAll(Dictionary other) throws PacioliException {
+		for (Entry<String, UnitDefinition> entry: other.unitDefinitions.entrySet()) {
+			if (unitDefinitions.containsKey(entry.getKey())) {
+				throw new PacioliException("\nName clash for %s", entry.getKey());
+			}
+			unitDefinitions.put(entry.getKey(), entry.getValue());
+		}
+		for (Entry<String, IndexSetDefinition> entry: other.indexSetDefinitions.entrySet()) {
+			if (indexSetDefinitions.containsKey(entry.getKey())) {
+				throw new PacioliException("\nName clash for %s", entry.getKey());
+			}
+			indexSetDefinitions.put(entry.getKey(), entry.getValue());
+		}
+		for (Entry<String, UnitVectorDefinition> entry: other.unitVectorDefinitions.entrySet()) {
+			if (unitVectorDefinitions.containsKey(entry.getKey())) {
+				throw new PacioliException("\nName clash for %s", entry.getKey());
+			}
+			unitVectorDefinitions.put(entry.getKey(), entry.getValue());
+		}
+		for (Entry<String, TypeDefinition> entry: other.typeDefinitions.entrySet()) {
+			if (typeDefinitions.containsKey(entry.getKey())) {
+				throw new PacioliException("\nName clash for %s", entry.getKey());
+			}
+			typeDefinitions.put(entry.getKey(), entry.getValue());
+		}
+		for (Entry<String, AliasDefinition> entry: other.aliasDefinitions.entrySet()) {
+			if (aliasDefinitions.containsKey(entry.getKey())) {
+				throw new PacioliException("\nName clash for %s", entry.getKey());
+			}
+			aliasDefinitions.put(entry.getKey(), entry.getValue());
+		}
+		for (Entry<String, Declaration> entry: other.declarations.entrySet()) {
+			if (declarations.containsKey(entry.getKey())) {
+				throw new PacioliException("\nName clash for %s", entry.getKey());
+			}
+			putDeclaration(entry.getKey(), entry.getValue());
+		}
+		for (Entry<String, ValueDefinition> entry: other.valueDefinitions.entrySet()) {
+			if (valueDefinitions.containsKey(entry.getKey())) {
+				throw new PacioliException("\nName clash for %s", entry.getKey());
+			}
+			valueDefinitions.put(entry.getKey(), entry.getValue());
+		}
+	}
+
+	public MatrixDimension compileTimeRowDimension(TypeNode typeNode) throws PacioliException {
+    	PacioliType type = typeNode.eval(false);
+    	if (type instanceof MatrixType) {
+    		MatrixType matrixType = (MatrixType) type;
+    		if 	(matrixType.rowDimension instanceof DimensionType) {
+    			return compileTimeMatrixDimension((DimensionType) matrixType.rowDimension);
+    		} else {
+    			throw new PacioliException(typeNode.getLocation(), "Expected a closed matrix type but found %s", matrixType.description());
+    		}
     	} else {
-    		throw new PacioliException("Index set '%s''s contents not known at compile time", name);
+    		throw new PacioliException(typeNode.getLocation(), "Expected a matrix type but found %s", MatrixType.class);
     	}
     }
-
-    public void putAlias(String name, Unit unit) {
-        aliases.put(name, unit);
+	
+    public MatrixDimension compileTimeColumnDimension(TypeNode typeNode) throws PacioliException {
+    	PacioliType type = typeNode.eval(false);
+    	if (type instanceof MatrixType) {
+    		MatrixType matrixType = (MatrixType) type;
+    		if 	(matrixType.columnDimension instanceof DimensionType) {
+    			return compileTimeMatrixDimension((DimensionType) matrixType.columnDimension);
+    		} else {
+    			throw new PacioliException(typeNode.getLocation(), "Expected a closed matrix type but found %s", matrixType.description());
+    		}
+    	} else {
+    		throw new PacioliException(typeNode.getLocation(), "Expected a matrix type but found %s", MatrixType.class);
+    	}
+    }
+    	    
+    private MatrixDimension compileTimeMatrixDimension(DimensionType dimType) throws PacioliException {
+    	List<IndexSet> sets = new ArrayList<IndexSet>();
+    	for (String name : dimType.getIndexSets()) {
+    		sets.add(getIndexSetDefinition(name).getIndexSet());
+    	}
+        return new MatrixDimension(sets);
     }
 
-    public boolean containsAlias(String name) {
-        return aliases.containsKey(name);
-    }
+	public Collection<UnitDefinition> unitDefinitions() {
+		return unitDefinitions.values();
+	}
 
-    public Unit getAlias(String name) {
-        return aliases.get(name);
-    }
+	public Collection<UnitVectorDefinition> unitVectorDefinitions() {
+		return unitVectorDefinitions.values();
+	}
 
-    public void addTypeDefinition(TypeDefinition typeDef) {
-        typeDefinitions.put(typeDef.localName(), typeDef);
-    }
+	public Collection<ValueDefinition> valueDefinitions() {
+		return valueDefinitions.values();
+	}
 
-    public TypeDefinition getTypeDefinition(String name) {
-        return typeDefinitions.get(name);
-    }
+	public Collection<AliasDefinition> aliasDefinitions() {
+		return aliasDefinitions.values();
+	}
 
-    public boolean containsTypeDefinition(String name) {
-        return typeDefinitions.containsKey(name);
-    }
+	public Collection<Declaration> declarations() {
+		return declarations.values();
+	}
 
-    public void putType(String name, PacioliType type) {
-        types.put(name, type);
-    }
+	public Collection<TypeDefinition> typeDefinitions() {
+		return typeDefinitions.values();
+	}
 
-    public PacioliType getType(String name) {
-        return types.get(name);
-    }
+	public Collection<IndexSetDefinition> indexSetDefinitions() {
+		return indexSetDefinitions.values();
+	}
+	
+	public Collection<Definition> allDefinitions() {
+		Set<Definition> definitions = new HashSet<Definition>();
+		definitions.addAll(unitDefinitions());
+		definitions.addAll(indexSetDefinitions());
+		definitions.addAll(unitVectorDefinitions());
+		definitions.addAll(aliasDefinitions());
+		definitions.addAll(typeDefinitions());
+		definitions.addAll(declarations());
+		definitions.addAll(valueDefinitions());
+		return definitions;
+	}
 
-    public boolean containsType(String name) {
-        return types.containsKey(name);
-    }
-
-    public void writeMVMPrelude(PrintWriter out) {
-    }
-
-    public void addUnit(String name, NamedUnit unit) {
-        unitSystem.addUnit(name, unit);
-    }
-
-    public boolean congtainsUnit(String name) {
-        return unitSystem.congtainsUnit(name);
-    }
-
-    public Unit getUnit(String name) {
-        return unitSystem.lookupUnit(name);
-    }
-
-    public void putUnitVector(String name, UnitVector vector) {
-        unitVectors.put(name, vector);
-    }
-
-    public boolean containsUnitVector(String name) {
-        return unitVectors.containsKey(name);
-    }
-
-    public UnitVector getUnitVector(String name) {
-        return unitVectors.get(name);
-    }
-
-    public boolean containsKnownType(String name) {
-        return knownTypes.contains(name);
-    }
-
-    public void putKnownType(String name) {
-        knownTypes.add(name);
-    }
-
-    // used for unit vector definitions
-    public Unit translateUnit(Unit unit) {
-        return unit.map(new UnitMap() {
-            public Unit map(Base base) {
-                if (base instanceof StringBase) {
-                    if (congtainsUnit(base.toText())) {
-                        return getUnit(base.toText());
-                    } else {
-                        throw new RuntimeException(String.format("Unit '%s' unknown", base.toText()));
-                    }
-                } else if (base instanceof BangBase) {
-                    BangBase bangBase = (BangBase) base;
-                    String bangName = bangBase.toText();
-                    if (containsUnitVector(bangName)) {
-                        return new MatrixBase(getUnitVector(bangName), bangBase.position);
-                    } else {
-                        throw new RuntimeException(String.format("Unit vector '%s' unknown", bangName));
-                    }
-                } else {
-                    throw new RuntimeException(String.format("unknown base type: %s", base.getClass()));
-                }
-            }
-        });
-    }
-
-    // used for conversions and projections. Reconsider and use compileTimeMatrixDimension
-    public Matrix instantiateMatrixType(MatrixType type) throws PacioliException {
-        assert (type.rowDimension instanceof DimensionType);
-        assert (type.columnDimension instanceof DimensionType);
-        DimensionType rowDimType = (DimensionType) type.rowDimension;
-        DimensionType columnDimType = (DimensionType) type.columnDimension;
-
-        List<IndexSet> rowSets = new ArrayList<IndexSet>();
-        for (String set : rowDimType.getIndexSets()) {
-            if (containsIndexSetDefinition(set)) {
-                rowSets.add(getCompileTimeIndexSet(set));
-            } else {
-                throw new PacioliException("Index set '%s' unknown when creating conversion", set);
-            }
-        }
-        List<IndexSet> columnSets = new ArrayList<IndexSet>();
-        for (String set : columnDimType.getIndexSets()) {
-            if (containsIndexSetDefinition(set)) {
-                columnSets.add(getIndexSetDefinition(set).getIndexSet());
-            } else {
-                throw new PacioliException("Index set '%s' unknown when creating conversion", set);
-            }
-        }
-
-        MatrixDimension rowDim = new MatrixDimension(rowSets);
-        MatrixDimension columnDim = new MatrixDimension(columnSets);
-        MatrixShape shape = new MatrixShape(
-                translateUnit(type.factor),
-                rowDim, translateUnit(type.rowUnit),
-                columnDim, translateUnit(type.columnUnit));
-        return new Matrix(shape);
-    }
 }

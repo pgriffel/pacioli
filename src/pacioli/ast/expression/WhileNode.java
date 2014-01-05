@@ -26,20 +26,18 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
+import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 
-/**
- *
- * @author Administrator
- */
+
 public class WhileNode extends AbstractExpressionNode {
 
     private final ExpressionNode test;
@@ -61,11 +59,11 @@ public class WhileNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode resolved(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
+    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
         return new WhileNode(
                 getLocation(),
-                test.resolved(dictionary, globals, context, mutableContext),
-                body.resolved(dictionary, globals, context, mutableContext));
+                test.resolved(dictionary, context),
+                body.resolved(dictionary, context));
     }
 
     @Override
@@ -77,10 +75,10 @@ public class WhileNode extends AbstractExpressionNode {
     }
 
     @Override
-    public Typing inferTyping(Dictionary dictionary, Map<String, PacioliType> context) throws PacioliException {
+    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
 
-        Typing testTyping = test.inferTyping(dictionary, context);
-        Typing bodyTyping = body.inferTyping(dictionary, context);
+        Typing testTyping = test.inferTyping(context);
+        Typing bodyTyping = body.inferTyping(context);
 
         Typing typing = new Typing(new ParametricType("Void", new ArrayList<PacioliType>()));
         typing.addConstraints(testTyping);

@@ -22,40 +22,49 @@
 package pacioli.ast.definition;
 
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+
+import mvm.values.matrix.UnitVector;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.Module;
 import pacioli.PacioliException;
+import pacioli.Program;
+import pacioli.TypeContext;
 import pacioli.Utils;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
-import mvm.values.matrix.IndexSet;
-import mvm.values.matrix.UnitVector;
+import pacioli.types.ast.TypeIdentifierNode;
 import uom.Unit;
 
 public class UnitVectorDefinition extends AbstractDefinition {
 
-    private final IdentifierNode indexId;
-    private final IdentifierNode id;
+    private final TypeIdentifierNode indexSetNode;
+    private final TypeIdentifierNode unitNode;
     private final Map<String, UnitNode> items;
-    private Unit[] unitArray;
-    private UnitVector vector;
+    private TypeIdentifierNode resolvedIndexSet;
+    private Map<String, UnitNode> resolvedItems;
 
-    public UnitVectorDefinition(Module module, Location location, IdentifierNode indexId, IdentifierNode id, Map<String, UnitNode> items) {
-        super(module, location);
-        this.indexId = indexId;
-        this.id = id;
+    public UnitVectorDefinition(Location location, TypeIdentifierNode indexSet, TypeIdentifierNode unit, Map<String, UnitNode> items) {
+        super(location);
+        this.indexSetNode = indexSet;
+        this.unitNode = unit;
         this.items = items;
-        unitArray = null;
-        vector = null;
     }
 
+	@Override
+	public void addToProgram(Program program, Module module) {
+		setModule(module);
+		program.addUnitVectorDefinition(this, module);
+	}
+	
     @Override
     public void printText(PrintWriter out) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -63,67 +72,46 @@ public class UnitVectorDefinition extends AbstractDefinition {
 
     @Override
     public String localName() {
-        return indexId.getName() + "!" + id.getName();
+        return indexSetNode.getName() + "!" + unitNode.getName();
     }
 
     @Override
-    public void updateDictionary(Dictionary dictionary, boolean reduce) throws PacioliException {
-        String indexSetName = indexId.getName();
-        String name = id.getName();
-        Map<String, UnitNode> def = items;
-
-        if (dictionary.containsIndexSetDefinition(indexSetName)) {
-            IndexSet set = dictionary.getCompileTimeIndexSet(indexSetName);
-
-            unitArray = new Unit[set.size()];
-            for (int i = 0; i < set.size(); i++) {
-                String item = set.ElementAt(i);
-                if (def.containsKey(item)) {
-                    unitArray[i] = def.get(item).eval();
-                } else {
-                    unitArray[i] = Unit.ONE;
-                }
-            }
-
-            Unit[] translatedArray = new Unit[unitArray.length];
-            for (int i = 0; i < unitArray.length; i++) {
-                translatedArray[i] = dictionary.translateUnit(unitArray[i]);
-            }
-            vector = new UnitVector(set, name, translatedArray);
-        } else {
-            throw new PacioliException("Index set '%s' unknown", indexSetName);
-        }
-
-        assert (vector != null);
-        dictionary.putUnitVector(localName(), vector);
-    }
-
-    @Override
-    public void resolveNames(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
+    public void resolve(Dictionary dictionary) throws PacioliException {
+    	resolvedIndexSet = (TypeIdentifierNode) indexSetNode.resolved(dictionary, new TypeContext());
+    	resolvedItems = new HashMap<String, UnitNode>();
+    	for (Entry<String, UnitNode> entry: items.entrySet()) {
+    		resolvedItems.put(entry.getKey(), entry.getValue().resolved(dictionary));
+    	}
     }
 
     @Override
     public Set<Definition> uses() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    	assert resolvedItems != null;
+        Set<Definition> set = new HashSet<Definition>();
+        for (UnitNode unitNode: resolvedItems.values()) {
+    		set.addAll(unitNode.uses());
+    	}
+        return set;
     }
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        assert (unitArray != null);
+        /*assert (unitArray != null);
         List<String> unitTexts = new ArrayList<String>();
         for (int i = 0; i < unitArray.length; i++) {
             unitTexts.add(unitArray[i].toText());
         }
         return String.format("\nunitvector \"%s\" \"%s\" list(%s);",
-                indexId.getName(),
-                id.getName(),
-                Utils.intercalate(", ", unitTexts));
+                indexSetNode.getName(),
+                unitNode.getName(),
+                Utils.intercalate(", ", unitTexts));*/
+    	return "fixme";
     }
 
     @Override
     public String compileToJS() {
     	StringBuilder builder = new StringBuilder();
-    	builder.append("function compute_").append(id.getName()).append(" () {");
+    	builder.append("function compute_").append(unitNode.getName()).append(" () {");
     	builder.append("return {units:{");
     	boolean sep = false;
     	for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
@@ -142,4 +130,5 @@ public class UnitVectorDefinition extends AbstractDefinition {
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("MATLAB and Octave have no units.");
     }
+
 }

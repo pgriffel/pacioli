@@ -172,13 +172,13 @@ public class Pacioli {
             try {
 
                 Pacioli.logln2("Loading module '%s'", file.getPath());
-                Module module = Reader.loadModule(file.getPath());
+                Module module = Reader.loadModule(null, file);
 
                 StringWriter outputStream = new StringWriter();
                 try {
 
                     Pacioli.logln2("Compiling module '%s'", file.getPath());
-                    module.compile(new PrintWriter(outputStream), "mvm", libDirs, settings);
+                    //module.compile(new PrintWriter(outputStream), "mvm", libDirs, settings);
 
                     Pacioli.logln2("Interpreting module '%s'", file.getPath());
                     interpretMVMText(outputStream.toString());
@@ -213,6 +213,8 @@ public class Pacioli {
                 extension = ".js";
             } else if (target.equals("matlab")) {
                 extension = ".m";
+            } else if (target.equals("html")) {
+                extension = ".html";
             } else {
                 extension = ".mvm";
             }
@@ -220,17 +222,36 @@ public class Pacioli {
 
             try {
 
-                Pacioli.logln2("Loading module '%s'", file.getPath());
-                Module module = Reader.loadModule(file.getPath());
-
-                BufferedWriter outputStream;
-                outputStream = new BufferedWriter(new FileWriter(dstName));
-
-                try {
-                    module.compile(new PrintWriter(outputStream), target, libDirs, settings);
+            	Program program = new Program(libDirs);
+            	program.load(file);
+            	BufferedWriter outputStream;
+            	outputStream = new BufferedWriter(new FileWriter(dstName));
+            	try {
+            		if (target.equals("javascript")) {
+            			program.compileJS(new PrintWriter(outputStream), settings);
+                    } else if (target.equals("matlab")) {
+                    	program.compileMatlab(new PrintWriter(outputStream), settings);
+                    } else if (target.equals("htm")) {
+                    	program.compileHtml(new PrintWriter(outputStream), settings);
+                    } else {
+                    	program.compileMVM(new PrintWriter(outputStream), settings);
+                    }
+                    
                 } finally {
                     outputStream.close();
                 }
+            	/*
+                Pacioli.logln2("Loading module '%s'", file.getPath());
+                Module module = Reader.loadModule(null, file);
+
+                
+                outputStream = new BufferedWriter(new FileWriter(dstName));
+
+                try {
+                   // module.compile(new PrintWriter(outputStream), target, libDirs, settings);
+                } finally {
+                    outputStream.close();
+                }*/
                 Pacioli.logln("Written file '%s'", dstName);
 
             } catch (IOException e) {
@@ -249,7 +270,7 @@ public class Pacioli {
 
             Pacioli.logln1("Interpreting file '%s'", fileName);
             try {
-                interpretMVMText(Utils.readFile(fileName));
+                interpretMVMText(Utils.readFile(new File(fileName)));
             } catch (IOException e) {
                 Pacioli.logln("\nError: cannot interpret file '%s':\n\n%s", fileName, e);
             }
@@ -271,9 +292,9 @@ public class Pacioli {
                 List<File> libDirs = libraryDirectories(file, libs);
                 
                 Pacioli.logln2("Loading module '%s'", file.getPath());
-                Module module = Reader.loadModule(file.getPath());
+                Module module = Reader.loadModule(null, file);
 
-                module.checkTypes(libDirs);
+               // module.checkTypes(libDirs);
 
             } catch (IOException e) {
                 Pacioli.logln("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
@@ -388,7 +409,7 @@ public class Pacioli {
                 Pacioli.warn("Skipping non existing library directory '%s'", lib);
             }
         }
-
+/*
         if (file != null) {
             File dir = file.getAbsoluteFile().getParentFile();
             if (dir.isDirectory()) {
@@ -397,7 +418,7 @@ public class Pacioli {
                 Pacioli.warn("Skipping non existing library directory '%s'", dir);
             }
         }
-
+*/
         return libDirs;
     }
 

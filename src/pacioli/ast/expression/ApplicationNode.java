@@ -29,13 +29,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.Utils;
+import pacioli.ValueContext;
 import pacioli.ast.ASTNode;
 import pacioli.ast.definition.Definition;
 import pacioli.types.FunctionType;
@@ -81,12 +82,12 @@ public class ApplicationNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode resolved(final Dictionary dictionary, final Map<String, Module> globals, final Set<String> context, final Set<String> mutableContext) throws PacioliException {
-        ExpressionNode resolvedFunction = function.resolved(dictionary, globals, context, mutableContext);
+    public ExpressionNode resolved(final Dictionary dictionary, final ValueContext context) throws PacioliException {
+        ExpressionNode resolvedFunction = function.resolved(dictionary, context);
         List<ExpressionNode> resolvedArguments = mapArguments(new ArgumentsMap() {
             @Override
             public ExpressionNode map(ExpressionNode argument) throws PacioliException {
-                return argument.resolved(dictionary, globals, context, mutableContext);
+                return argument.resolved(dictionary, context);
             }
         });
         return new ApplicationNode(resolvedFunction, resolvedArguments, getLocation());
@@ -103,19 +104,19 @@ public class ApplicationNode extends AbstractExpressionNode {
     }
 
     @Override
-    public Typing inferTyping(Dictionary dictionary, Map<String, PacioliType> context) throws PacioliException {
+    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
 
         PacioliType resultType = new TypeVar("for_type");
         Typing typing = new Typing(resultType);
 
         List<PacioliType> argTypes = new ArrayList<PacioliType>();
         for (ExpressionNode arg : arguments) {
-            Typing argTyping = arg.inferTyping(dictionary, context);
+            Typing argTyping = arg.inferTyping(context);
             argTypes.add(argTyping.getType());
             typing.addConstraints(argTyping);
         }
 
-        Typing funTyping = function.inferTyping(dictionary, context);
+        Typing funTyping = function.inferTyping(context);
         typing.addConstraints(funTyping);
 
         PacioliType funType = new FunctionType(new ParametricType("Tuple", argTypes), resultType);
@@ -194,7 +195,8 @@ public class ApplicationNode extends AbstractExpressionNode {
         if (function instanceof IdentifierNode) {
             return String.format("%s(%s)", ((IdentifierNode) function).fullName(), args);
         } else {
-            return String.format("%s.apply(this, global_Primitives_tuple(%s))", function.compileToJS(), args);
+        	return String.format("%s(%s)", function.compileToJS(), args);
+            //return String.format("%s.apply(this, global_Primitives_tuple(%s))", function.compileToJS(), args);
         }
     }
 

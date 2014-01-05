@@ -26,20 +26,22 @@ import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.TypeContext;
+import pacioli.ast.ASTNode;
 import pacioli.types.PacioliType;
 
-public interface TypeNode extends Printable {
+public interface TypeNode extends ASTNode {
 
     public Location getLocation();
 
+    public TypeNode resolved(Dictionary dictionary, TypeContext context) throws PacioliException;
+    
     /**
      * Turns a type AST node into a type.
      *
-     * @param context
      * @return
-     * @throws PacioliException
+     * @throws PacioliException TODO
      */
-    public PacioliType eval(Dictionary dictionary, TypeContext context, boolean reduce) throws PacioliException;
+    public PacioliType eval(boolean reduce) throws PacioliException;
 
 	/**
 	 * Only defined for matrix type nodes. Returns a javascript expression that computes 

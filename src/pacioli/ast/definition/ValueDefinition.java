@@ -21,20 +21,24 @@
 
 package pacioli.ast.definition;
 
-import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.expression.LambdaNode;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
-import pacioli.Pacioli;
+import pacioli.Location;
 import pacioli.Module;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
+import pacioli.Program;
 import pacioli.Typing;
+import pacioli.ValueContext;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.types.PacioliType;
 
@@ -44,16 +48,22 @@ public class ValueDefinition extends AbstractDefinition {
     private final ExpressionNode body;
     private ExpressionNode resolvedBody;
     private PacioliType type;
+	private Declaration declaration;
 
-    public ValueDefinition(Module module, IdentifierNode id, ExpressionNode body) {
-        super(module, id.getLocation().join(body.getLocation()));
+    public ValueDefinition(Location location, IdentifierNode id, ExpressionNode body) {
+        super(location);
         this.id = id;
         this.body = body;
     }
     
+    public void addToProgram(Program program, Module module) {
+    	setModule(module);
+    	program.addValueDefinition(this, module);
+    }
+    
     // hack voor seq
-    public ValueDefinition(Module module, IdentifierNode id, ExpressionNode body, ExpressionNode resolvedBody) {
-        super(module, id.getLocation().join(body.getLocation()));
+    public ValueDefinition(IdentifierNode id, ExpressionNode body, ExpressionNode resolvedBody) {
+        super(id.getLocation().join(body.getLocation()));
         this.id = id;
         this.body = body;
         this.resolvedBody = resolvedBody;
@@ -63,10 +73,23 @@ public class ValueDefinition extends AbstractDefinition {
         return (body instanceof LambdaNode);
     }
 
-    public PacioliType inferType(Dictionary dictionary, Map<String, PacioliType> context) throws PacioliException {
-        Typing typing = resolvedBody.inferTyping(dictionary, context);
+	public PacioliType getType() {
+		if (declaration != null) {
+			return declaration.getType();
+		}
+		if (type == null) {
+			throw new RuntimeException("Type of '" +  globalName() + "' has not been resolved yet");
+		}
+		assert(type != null);
+		
+		return type;
+	}
+	
+    public PacioliType inferType(Map<String, PacioliType> context) throws PacioliException {
+        Typing typing = resolvedBody.inferTyping(context);
         Pacioli.log3("\n%s", typing.toText());
-        return typing.solve().simplify();
+        type = typing.solve().simplify().generalize();
+        return type;
     }
 
     @Override
@@ -83,18 +106,23 @@ public class ValueDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void updateDictionary(Dictionary dictionary, boolean reduce) throws PacioliException {
-    }
-
-    @Override
-    public void resolveNames(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
-        resolvedBody = body.resolved(dictionary, globals, context, mutableContext);
+    public void resolve(Dictionary dictionary) throws PacioliException {
+        resolvedBody = body.resolved(dictionary, new ValueContext());
+        assert (resolvedBody != null);
+        if (dictionary.containsDeclaration(globalName())) {
+        	declaration = dictionary.getDeclaration(globalName());
+        }
     }
 
     @Override
     public Set<Definition> uses() {
+    	assert resolvedBody != null;
         return resolvedBody.uses();
     }
+
+    public void desugar() {
+		//throw new RuntimeException("todo");	
+	}
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
@@ -124,7 +152,7 @@ public class ValueDefinition extends AbstractDefinition {
         SequenceNode seq = (SequenceNode) lambda.expression;
 
         return String.format("\nfunction %s = %s (%s)\n %s\nendfunction;\n",
-                seq.getResultPlace().toText(),
+                "result", //seq.getResultPlace().toText(),
                 globalName().toLowerCase(),
                 lambda.argsString(),
                 seq.compileToMATLAB());
@@ -152,4 +180,5 @@ public class ValueDefinition extends AbstractDefinition {
                     transformed.compileToMATLAB());
         }
     }
+
 }

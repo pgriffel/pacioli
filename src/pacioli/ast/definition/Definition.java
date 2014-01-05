@@ -21,11 +21,10 @@
 
 package pacioli.ast.definition;
 
-import java.util.Map;
-import java.util.Set;
 import pacioli.Dictionary;
 import pacioli.Module;
 import pacioli.PacioliException;
+import pacioli.Program;
 import pacioli.ast.ASTNode;
 
 public interface Definition extends ASTNode {
@@ -34,9 +33,12 @@ public interface Definition extends ASTNode {
 
     public String globalName();
 
+    public void setModule(Module module);
+    
     public Module getModule();
 
-    public void updateDictionary(Dictionary dictionary, boolean reduce) throws PacioliException;
+    public void addToProgram(Program program, Module module);
 
-    public void resolveNames(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException;
+    public void resolve(Dictionary dictionary) throws PacioliException;
+	
 }

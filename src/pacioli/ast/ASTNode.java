@@ -21,15 +21,16 @@
 
 package pacioli.ast;
 
-import pacioli.ast.definition.Definition;
 import java.util.Set;
+
 import pacioli.CompilationSettings;
 import pacioli.Location;
 import pacioli.Printable;
+import pacioli.ast.definition.Definition;
 
 public interface ASTNode extends Printable {
 
-    public Location getLocation();
+	public Location getLocation();
     
     public Set<Definition> uses();
 

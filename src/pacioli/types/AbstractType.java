@@ -147,7 +147,8 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
 
     @Override
     public PacioliType instantiate() {
-        return this;
+    	//throw new RuntimeException("Can only instantiate a schema");
+    	return this;
     }
 
     @Override

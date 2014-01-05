@@ -154,7 +154,7 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable {
 
     @Override
     public Schema generalize() {
-        return new Schema(typeVars(), this);
+    	throw new RuntimeException("Cannot generalize a schema");
     }
 
     @Override

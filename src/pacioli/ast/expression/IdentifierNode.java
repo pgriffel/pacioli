@@ -26,21 +26,26 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Pacioli;
 import pacioli.Module;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Typing;
+import pacioli.ValueContext;
+import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
 
 public class IdentifierNode extends AbstractExpressionNode {
 
     private final String name;
     private final String home;
-    private final Definition definition;
+    private final ValueDefinition definition;
+    private final Declaration declaration;
     private final Boolean isMutableVar;
 
     public IdentifierNode(String name, Location location) {
@@ -49,27 +54,47 @@ public class IdentifierNode extends AbstractExpressionNode {
         this.home = null;
         this.isMutableVar = null;
         this.definition = null;
+        this.declaration = null;
+    }
+    
+    private IdentifierNode(String home, boolean mutable, String name, Location location) {
+        super(location);
+        this.name = name;
+        this.home = home;
+        this.isMutableVar = mutable;
+        this.definition = null;
+        this.declaration = null;
     }
 
     public static IdentifierNode newValueIdentifier(String module, String name, Location location) {
         // Waarom hier de def niet vereisen?
-        return new IdentifierNode(module, false, name, location, null);
+        return new IdentifierNode(module, false, name, location);
     }
 
     public static IdentifierNode newLocalVar(String name, Location location) {
-        return new IdentifierNode("", false, name, location, null);
+        return new IdentifierNode("", false, name, location);
     }
 
     public static IdentifierNode newLocalMutableVar(String name, Location location) {
-        return new IdentifierNode("", true, name, location, null);
+        return new IdentifierNode("", true, name, location);
     }
 
-    private IdentifierNode(String home, boolean mutable, String name, Location location, Definition definition) {
+    private IdentifierNode(String home, boolean mutable, String name, Location location, ValueDefinition definition) {
         super(location);
         this.home = home;
         this.name = name;
         this.isMutableVar = mutable;
         this.definition = definition;
+        this.declaration = null;
+    }
+    
+    private IdentifierNode(String home, boolean mutable, String name, Location location, Declaration declaration) {
+        super(location);
+        this.home = home;
+        this.name = name;
+        this.isMutableVar = mutable;
+        this.definition = null;
+        this.declaration = declaration;
     }
 
     @Override
@@ -107,45 +132,54 @@ public class IdentifierNode extends AbstractExpressionNode {
         assert (isMutableVar != null); // names must have been resolved
         return isMutableVar;
     }
-
+    
     @Override
-    public ExpressionNode resolved(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
+    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
 
         if (home != null) {
             throw new RuntimeException(String.format("name %s already resolved", name));
         }
 
-        if (mutableContext.contains(name)) {
-            if (globals.containsKey(name)) {
-                Pacioli.warn("local '%s' shadows global from module '%s'", name, globals.get(name).name);
+        if (context.isRefVar(name)) {
+            if (dictionary.containsValueDefinition(name)) {
+                Pacioli.warn("local '%s' shadows global from module '%s'", name, dictionary.getValueDefinition(name).getModule().name);
             }
-            return new IdentifierNode("", true, name, getLocation(), null);
-        } else if (context.contains(name)) {
-            if (globals.containsKey(name)) {
-                Pacioli.warn("local '%s' shadows global from module '%s'", name, globals.get(name).name);
+            return new IdentifierNode("", true, name, getLocation());
+        } else if (context.containsVar(name)) {
+            if (dictionary.containsValueDefinition(name)) {
+                Pacioli.warn("local '%s' shadows global from module '%s'", name, dictionary.getValueDefinition(name).getModule().name);
             }
-            return new IdentifierNode("", false, name, getLocation(), null);
+            return new IdentifierNode("", false, name, getLocation());
         } else {
-            if (globals.containsKey(name)) {
-                return new IdentifierNode(globals.get(name).name, false, name, getLocation(), globals.get(name).lookupDefinition(name));
+            if (dictionary.containsValueDefinition(name)) {
+            	ValueDefinition definition = dictionary.getValueDefinition(name);
+            	return new IdentifierNode(definition.getModule().name, false, name, getLocation(), definition);
+            } else if (dictionary.containsDeclaration(name)) {
+            	Declaration definition = dictionary.getDeclaration(name);
+            	return new IdentifierNode(definition.getModule().name, false, name, getLocation(), definition);
             } else {
-                throw new PacioliException(getLocation(), "Name '%s' unknown", name);
+            	throw new PacioliException(getLocation(), "Name '%s' unknown", name);
             }
         }
     }
 
     @Override
-    public Typing inferTyping(Dictionary dictionary, Map<String, PacioliType> context) throws PacioliException {
+    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
         if (home.isEmpty()) {
             assert (context.containsKey(name));
             return new Typing(context.get(name));
-        } else {
-            if (!dictionary.containsType(name)) {
-                throw new PacioliException(getLocation(), "Type '%s' unknown", name);
-            };
-            PacioliType type = dictionary.getType(name).instantiate();
-            Pacioli.logln3("Using %s :: %s", name, type.toText());
+        } else if (definition != null) {
+        	Pacioli.logln3("Using %s :: ", name);
+        	PacioliType type = definition.getType().instantiate();
+            Pacioli.logln3("%s", type.toText());
             return new Typing(type);
+        } else if (declaration!= null) {
+        	Pacioli.logln3("Using %s ::", name);
+            PacioliType type = declaration.getType().instantiate();
+            Pacioli.logln3("%s", type.toText());
+            return new Typing(type);
+        } else {
+        	throw new RuntimeException("Expected a definition or a declaration");
         }
     }
 

@@ -23,12 +23,17 @@ package pacioli.types.ast;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
 import pacioli.Utils;
+import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.TypeDefinition;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 import pacioli.types.TypeVar;
@@ -37,32 +42,64 @@ import pacioli.types.matrix.MatrixType;
 
 public class TypeApplicationNode extends AbstractTypeNode {
 
-    public final String name;
-    public final List<TypeNode> args;
+    private final TypeIdentifierNode op;
+    private final List<TypeNode> args;
 
-    public TypeApplicationNode(Location location, String name, List<TypeNode> args) {
+    public TypeApplicationNode(Location location, TypeIdentifierNode name, List<TypeNode> args) {
         super(location);
-        this.name = name;
+        this.op = name;
         this.args = args;
     }
 
     @Override
     public void printText(PrintWriter out) {
-        out.print(name);
+        out.print(op);
         out.print("(");
         out.print(Utils.intercalateText(", ", args));
         out.print(")");
     }
 
+    public TypeIdentifierNode getOperator() {
+    	return op;
+    }
+    
+    public String getName() {
+    	return op.getName();
+    }
+    
+    public List<TypeNode> getArgs() {
+    	return args;
+    }
+
+	@Override
+	public Set<Definition> uses() {
+		Set<Definition> set = new HashSet<Definition>();
+        set.addAll(op.uses());
+        for (TypeNode arg : args) {
+        	set.addAll(arg.uses());
+        }
+        return set;
+	}
+
+	@Override
+	public TypeNode resolved(Dictionary dictionary, TypeContext context)
+			throws PacioliException {
+		List<TypeNode> resolvedArgs = new ArrayList<TypeNode>();
+		for (TypeNode arg : args) {
+        	resolvedArgs.add(arg.resolved(dictionary, context));
+        }
+		TypeIdentifierNode resolvedOp = op.resolveAsType(dictionary, context);
+		return new TypeApplicationNode(getLocation(), resolvedOp, resolvedArgs);
+	}    
     @Override
-    public PacioliType eval(Dictionary dictionary, TypeContext context, boolean reduce) throws PacioliException {
+    public PacioliType eval(boolean reduce) throws PacioliException {
 
         List<PacioliType> types = new ArrayList<PacioliType>();
         for (TypeNode arg : args) {
-            types.add(arg.eval(dictionary, context, reduce));
+            types.add(arg.eval(reduce));
         }
 
-        if (name.equals("Index")) {
+        if (op.getName().equals("Index")) {
             if (types.size() == 1 && types.get(0) instanceof TypeVar) {
                 return types.get(0);
             } else {
@@ -73,25 +110,23 @@ public class TypeApplicationNode extends AbstractTypeNode {
                     if (type instanceof MatrixType) {
                         assert (args.get(i) instanceof TypeIdentifierNode);
                         String name = ((TypeIdentifierNode) args.get(i)).toText();
-                        if (dictionary.containsIndexSetDefinition(name)) {
-                            names.add(name);
-                        } else {
-                            throw new PacioliException(getLocation(), "Index set '%s' unknown", type.toText());
-                        }
+                        names.add(name);
                     } else {
-                        throw new PacioliException(getLocation(), "Index set expected but found '%s'", type.toText());
+                        throw new RuntimeException(String.format("Index set expected but found '%s'", type.toText()));
                     }
                 }
                 return new DimensionType(names);
             }
         } else {
-            if (reduce && dictionary.containsTypeDefinition(name)) {
-                return dictionary.getTypeDefinition(name).constaint(true).reduce(new ParametricType(name, types));
-            } else if (dictionary.containsTypeDefinition(name) || dictionary.containsKnownType(name)) {
-                return new ParametricType(name, types);
+        	//if (reduce && op.getDefinition() != null) {
+        	if (op.getDefinition() != null) {
+        		assert(op.getDefinition() instanceof TypeDefinition);
+            	TypeDefinition typeDefinition = (TypeDefinition) op.getDefinition();
+                return typeDefinition.constaint(true).reduce(new ParametricType(op.getName(), types));
             } else {
-                throw new PacioliException(getLocation(), "Type '%s' unknown", name);
+            	return new ParametricType(op.getName(), types);
             }
         }
     }
+
 }

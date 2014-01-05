@@ -27,12 +27,13 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
+import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
@@ -62,20 +63,20 @@ public class BranchNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode resolved(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
+    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
         return new BranchNode(
-                test.resolved(dictionary, globals, context, mutableContext),
-                positive.resolved(dictionary, globals, context, mutableContext),
-                negative.resolved(dictionary, globals, context, mutableContext),
+                test.resolved(dictionary, context),
+                positive.resolved(dictionary, context),
+                negative.resolved(dictionary, context),
                 getLocation());
     }
 
     @Override
-    public Typing inferTyping(Dictionary dictionary, Map<String, PacioliType> context) throws PacioliException {
+    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
 
-        Typing testTyping = test.inferTyping(dictionary, context);
-        Typing posTyping = positive.inferTyping(dictionary, context);
-        Typing negTyping = negative.inferTyping(dictionary, context);
+        Typing testTyping = test.inferTyping(context);
+        Typing posTyping = positive.inferTyping(context);
+        Typing negTyping = negative.inferTyping(context);
 
         Typing typing = new Typing(posTyping.getType());
 

@@ -22,10 +22,14 @@
 package pacioli.types.ast;
 
 import java.io.PrintWriter;
+import java.util.HashSet;
+import java.util.Set;
+
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
+import pacioli.ast.definition.Definition;
 import pacioli.types.FunctionType;
 import pacioli.types.PacioliType;
 
@@ -42,12 +46,29 @@ public class FunctionTypeNode extends AbstractTypeNode {
 
     @Override
     public void printText(PrintWriter out) {
-        out.format("%s -> %s", domain, range);
+    	domain.printText(out);
+    	out.format(" -> ");
+    	range.printText(out);
     }
 
     @Override
-    public PacioliType eval(Dictionary dictionary, TypeContext context, boolean reduce) throws PacioliException {
-        return new FunctionType(domain.eval(dictionary, context, reduce), range.eval(dictionary, context, reduce));
+    public PacioliType eval(boolean reduce) throws PacioliException {
+        return new FunctionType(domain.eval(reduce), range.eval(reduce));
     }
 
+	@Override
+	public Set<Definition> uses() {
+		Set<Definition> set = new HashSet<Definition>();
+        set.addAll(domain.uses());
+        set.addAll(range.uses());
+        return set;
+	}
+
+	@Override
+	public TypeNode resolved(Dictionary dictionary, TypeContext context) throws PacioliException {
+		return new FunctionTypeNode(
+				getLocation(), 
+				domain.resolved(dictionary, context), 
+				range.resolved(dictionary, context));
+	}
 }

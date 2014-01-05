@@ -21,46 +21,59 @@
 
 package pacioli.ast.definition;
 
-import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.unit.UnitNode;
-import pacioli.types.ast.TypeNode;
-
 import java.io.PrintWriter;
-import java.util.Map;
 import java.util.Set;
+
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.Module;
 import pacioli.PacioliException;
+import pacioli.Program;
+import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.unit.UnitNode;
 import uom.NamedUnit;
-import uom.Unit;
 
 public class UnitDefinition extends AbstractDefinition {
 
     private final IdentifierNode id;
     private final String symbol;
-    private final UnitNode definition;
+    private final UnitNode body;
+    private UnitNode resolvedBody;
 
-    public UnitDefinition(Module module, Location location, IdentifierNode id, String symbol, UnitNode definition) {
-        super(module, location);
+    public UnitDefinition(Location location, IdentifierNode id, String symbol) {
+        super(location);
         this.id = id;
         this.symbol = symbol;
-        this.definition = definition;
+        this.body = null;
+    }
+    
+    public UnitDefinition(Location location, IdentifierNode id, String symbol, UnitNode body) {
+        super(location);
+        this.id = id;
+        this.symbol = symbol;
+        this.body = body;
     }
 
+	@Override
+	public void addToProgram(Program program, Module module) {
+		setModule(module);
+		program.addUnitDefinition(this, module);
+	}
+	
     // todo: remove
-    public NamedUnit getUnit() {
-    	if (definition == null) {
-    		return new NamedUnit(symbol);
-    	} else {
-    		return new NamedUnit(symbol, definition.eval());
-    	}
-    }
+//    public NamedUnit getUnit() {
+//    	if (body == null) {
+//    		return new NamedUnit(symbol);
+//    	} else {
+//    		assert resolvedBody != null;
+//    		return new NamedUnit(symbol, resolvedBody.eval());
+//    	}
+//    }
 
     @Override
     public void printText(PrintWriter out) {
-        out.format("unit definition %s = %s", id.toText(), definition.toText());
+        out.format("unit definition %s = %s", id.toText(), body.toText());
     }
 
     @Override
@@ -74,44 +87,34 @@ public class UnitDefinition extends AbstractDefinition {
     }
     
     @Override
-    public void updateDictionary(Dictionary dictionary, boolean reduce) throws PacioliException {
-    	if (definition == null) {
-    		dictionary.addUnit(id.getName(), new NamedUnit(symbol));
-    	} else {
-    		Unit unit = new NamedUnit(symbol, definition.eval());
-    		Unit translatedDef = dictionary.translateUnit(unit.flat());
-    		NamedUnit translatedUnit = new NamedUnit(symbol, translatedDef);
-    		dictionary.addUnit(id.getName(), translatedUnit);
+    public void resolve(Dictionary dictionary) throws PacioliException {
+    	if (body != null) {
+    		resolvedBody = body.resolved(dictionary);
     	}
     }
 
     @Override
-    public void resolveNames(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     public Set<Definition> uses() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return resolvedBody.uses();
     }
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        if (definition == null) {
+        if (body == null) {
             return String.format("baseunit \"%s\" \"%s\";\n", id.getName(), symbol);
         } else {
-            return String.format("unit \"%s\" \"%s\" %s;\n", id.getName(), symbol, definition.eval().flat().toText());
+            return String.format("unit \"%s\" \"%s\" %s;\n", id.getName(), symbol, body.eval().flat().toText());
         }
     }
 
     @Override
     public String compileToJS() {
-    	if (definition == null) {
+    	if (body == null) {
     		return String.format("function compute_%s () {return {symbol: '%s'}}", 
     				globalName(), symbol);
     	} else {
     		return String.format("function compute_%s () {return {definition: %s, symbol: '%s'}}", 
-    				globalName(), definition.compileToJS(), symbol);
+    				globalName(), body.compileToJS(), symbol);
     	}
     }
 
@@ -119,4 +122,5 @@ public class UnitDefinition extends AbstractDefinition {
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
 }

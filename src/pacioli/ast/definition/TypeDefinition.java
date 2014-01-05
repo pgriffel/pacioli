@@ -25,18 +25,21 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.Module;
 import pacioli.PacioliException;
+import pacioli.Program;
 import pacioli.TypeConstraint;
 import pacioli.TypeContext;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
+import pacioli.types.TypeVar;
 import pacioli.types.ast.TypeApplicationNode;
+import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeNode;
 
 public class TypeDefinition extends AbstractDefinition {
@@ -44,60 +47,33 @@ public class TypeDefinition extends AbstractDefinition {
     private final TypeContext context;
     private final TypeNode lhs;
     private final TypeNode rhs;
+	private TypeApplicationNode resolvedLhs;
+    private TypeNode resolvedRhs;
     private TypeConstraint constraint;
 
-    public TypeDefinition(Module module, Location location, TypeContext context, TypeNode lhs, TypeNode rhs) {
-        super(module, location);
+    public TypeDefinition(Location location, TypeContext context, TypeNode lhs, TypeNode rhs) {
+        super(location);
         this.context = context;
         this.lhs = lhs;
         this.rhs = rhs;
-        constraint = null;
     }
 
     public TypeConstraint constaint(boolean reduce) throws PacioliException {
-        assert (constraint != null);
-        if (!reduce) {
-            throw new RuntimeException("todo: contraint when reduce is false");
-        }
-        return constraint;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public String localName() {
-        assert (lhs instanceof TypeApplicationNode);
-        return ((TypeApplicationNode) lhs).name;
-    }
-
-    @Override
-    public void updateDictionary(Dictionary dictionary, boolean reduce) throws PacioliException {
 
         TypeContext totalContext = new TypeContext();
-        //totalContext.addAll(context);
         totalContext.addAll(this.context);
 
         if (lhs instanceof TypeApplicationNode) {
-            TypeApplicationNode app = (TypeApplicationNode) lhs;
-
-            if (dictionary.containsTypeDefinition(app.name) || dictionary.containsKnownType(app.name)) {
-                throw new PacioliException(getLocation(), "Type '%s' already defined", app.name);
-            }
+            TypeApplicationNode app = resolvedLhs;
 
             List<PacioliType> types = new ArrayList<PacioliType>();
-            for (TypeNode arg : app.args) {
-                types.add(arg.eval(dictionary, totalContext, reduce));
+            for (TypeNode arg : app.getArgs()) {
+                types.add(arg.eval(false));
             }
 
-            PacioliType lhsType = new ParametricType(app.name, types);
+            PacioliType lhsType = new ParametricType(app.getName(), types);
 
-            //PacioliType lhsType = lhs.eval(dictionary, totalContext, reduce);
-
-
-            PacioliType rhsType = rhs.eval(dictionary, totalContext, reduce);
+            PacioliType rhsType = resolvedRhs.eval(true);
             if (lhsType instanceof ParametricType) {
                 ParametricType parametricLhs = (ParametricType) lhsType;
                 constraint = new TypeConstraint(parametricLhs, rhsType);
@@ -107,16 +83,49 @@ public class TypeDefinition extends AbstractDefinition {
         } else {
             throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s", lhs.toText());
         }
-        dictionary.addTypeDefinition(this);
+        
+        assert (constraint != null);
+        if (!reduce) {
+            throw new RuntimeException("todo: contraint when reduce is false");
+        }
+        return constraint;
+    }
+
+	@Override
+	public void addToProgram(Program program, Module module) {
+		setModule(module);
+		program.addTypeDefinition(this, module);
+	}
+	
+    @Override
+    public void printText(PrintWriter out) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void resolveNames(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
+    public String localName() {
+        assert (lhs instanceof TypeApplicationNode);
+        return ((TypeApplicationNode) lhs).getName();
+    }
+
+    @Override
+    public void resolve(Dictionary dictionary) throws PacioliException {
+    	resolvedRhs = rhs.resolved(dictionary, this.context);
+    	if (lhs instanceof TypeApplicationNode) {
+    		TypeApplicationNode app = (TypeApplicationNode) lhs;
+    		List<TypeNode> types = new ArrayList<TypeNode>();
+    		for (TypeNode arg : app.getArgs()) {
+    			types.add(arg.resolved(dictionary, this.context));
+    		}
+    		resolvedLhs = new TypeApplicationNode(getLocation(), app.getOperator(), types);
+    	} else {
+            throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s", lhs.toText());
+        }
     }
 
     @Override
     public Set<Definition> uses() {
-        return new HashSet<Definition>();
+        return resolvedRhs.uses();
     }
 
     @Override
@@ -133,4 +142,5 @@ public class TypeDefinition extends AbstractDefinition {
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
 }

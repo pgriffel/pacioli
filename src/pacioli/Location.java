@@ -26,15 +26,18 @@ public class Location {
     private final int from;
     private final int to;
     private final String source;
+    private final String file;
 
-    public Location(String source, int from, int to) {
+    public Location(String file, String source, int from, int to) {
         this.source = source;
+        this.file = file;
         this.from = Math.min(from, to);
         this.to = Math.max(from, to);
     }
     
-    public Location() {
-        this.source = "";
+    public Location(String file, String source) {
+        this.source = source;
+        this.file = file;
         this.from = -1;
         this.to = -1;
     }
@@ -46,10 +49,10 @@ public class Location {
     	if (other.from < 0 || other.to < 0) {
     		return this;
     	}
-        if (source != other.source) {
+        if (source != other.source || file != other.file) {
             throw new RuntimeException("Cannot join locations from different sources");
         } else {
-            return new Location(source, Math.min(from, other.from), Math.max(to, other.to));
+            return new Location(file, source, Math.min(from, other.from), Math.max(to, other.to));
         }
     }
 
@@ -120,8 +123,8 @@ public class Location {
                     }
                 }
 
-                return String.format("at line %s\n\n%s\n%s",
-                        fromLine + 1, sub, underline);
+                return String.format("file %s at line %s\n\n%s\n%s",
+                        file, fromLine + 1, sub, underline);
             } else {
                 String subSource = source.substring(start, end);
                 String sub = "> ";
@@ -132,8 +135,8 @@ public class Location {
                     }
                 }
 
-                return String.format("at line %s\n\n%s\n",
-                        fromLine + 1, sub);
+                return String.format("file %s at line %s\n\n%s\n",
+                        file, fromLine + 1, sub);
             }
         } else {
             return "No source location available";

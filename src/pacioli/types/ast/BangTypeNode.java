@@ -22,10 +22,16 @@
 package pacioli.types.ast;
 
 import java.io.PrintWriter;
+import java.util.HashSet;
+import java.util.Set;
+
+import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
+import pacioli.ast.definition.Definition;
+import pacioli.ast.expression.IdentifierNode;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeVar;
 import pacioli.types.matrix.BangBase;
@@ -35,62 +41,85 @@ import uom.Unit;
 
 public class BangTypeNode extends AbstractTypeNode {
 
-    public final String indexSetName;
-    public final String unitName;
+    private final TypeIdentifierNode indexSet;
+    private final TypeIdentifierNode unit;
 
-    public BangTypeNode(Location location, String indexSetName) {
+    public BangTypeNode(Location location, TypeIdentifierNode indexSet) {
         super(location);
-        this.indexSetName = indexSetName;
-        unitName = "";
-
+        this.indexSet = indexSet;
+        this.unit = null;
     }
 
-    public BangTypeNode(Location location, String indexSetName, String unitName) {
+    public BangTypeNode(Location location, TypeIdentifierNode indexSet, TypeIdentifierNode unit) {
         super(location);
-        this.indexSetName = indexSetName;
-        this.unitName = unitName;
-
+        this.indexSet = indexSet;
+        this.unit = unit;
     }
 
     @Override
     public void printText(PrintWriter out) {
-        out.format("%s!%s", indexSetName, unitName);
+        out.format("%s!%s", indexSet.getName(), unit == null ? "" : unit.getName());
     }
 
     @Override
-    public PacioliType eval(Dictionary dictionary, TypeContext context, boolean reduce) throws PacioliException {
-        if (unitName.isEmpty()) {
-            if (context.containsIndexVar(indexSetName)) {
+    public PacioliType eval(boolean reduce) throws PacioliException {
+    	assert(indexSet.isResolved());
+    	if (unit != null) {
+    		assert(unit.isResolved());
+    	}
+    	String indexSetName = indexSet.getName();
+        if (unit == null) {
+            if (indexSet.isVariable()) {
                 return new MatrixType(new TypeVar("for_index", indexSetName), Unit.ONE);
-            } else if (dictionary.containsIndexSetDefinition(indexSetName)) {
+            } else  {
                 return new MatrixType(new DimensionType(indexSetName), Unit.ONE);
-            } else {
-                throw new PacioliException(getLocation(), "Index set '%s' unknown", indexSetName);
             }
         } else {
-            Unit un;
-            if (context.containsUnitVar(unitName)) {
-                un = new TypeVar("for_unit", unitName);
+        	String unitName = unit.getName();
+        	assert (!unitName.isEmpty());
+            Unit rowUnit;
+            if (unit.isVariable()) {
+                rowUnit = new TypeVar("for_unit", unitName);
             } else {
-                // todo: check voor unitName aan TypeContext toevoegen
-                un = new BangBase(indexSetName, unitName, 0);
+                rowUnit = new BangBase(indexSetName, unitName, 0);
             }
-            assert (!unitName.isEmpty());
-            if (context.containsIndexVar(indexSetName) && !unitName.isEmpty() && !context.containsUnitVar(unitName)) {
-                throw new PacioliException(getLocation(), "Index set '%s' is variable while unit vector '%s' is not", indexSetName, unitName);
-            }
-            if (context.containsIndexVar(indexSetName)) {
-                return new MatrixType(new TypeVar("for_index", indexSetName), un);
-            } else if (dictionary.containsIndexSetDefinition(indexSetName)) {
-                return new MatrixType(new DimensionType(indexSetName), un);
+            if (indexSet.isVariable()) {
+            	if (unit.isVariable()) {
+            		return new MatrixType(new TypeVar("for_index", indexSetName), rowUnit);
+            	} else {
+                    throw new RuntimeException(String.format("Index set '%s' is variable while unit vector '%s' is not", indexSetName, unitName));
+                } 
             } else {
-                throw new PacioliException(getLocation(), "Index set '%s' unknown", indexSetName);
+                return new MatrixType(new DimensionType(indexSetName), rowUnit);
             }
         }
     }
 
 	@Override
 	public String compileToJS() {
-		return String.format("bangShape(%s, %s, %s, %s)", "todo", "todo", "todo", "todo");
+		return String.format("bangShape('%s', '%s', '%s', '%s')", 
+				indexSet.getDefinition().getModule().name, 
+				indexSet.getName(), 
+				unit == null ? "" : unit.getDefinition().getModule().name,
+				unit == null ? "" : unit.getName());
+	}
+
+	@Override
+	public Set<Definition> uses() {
+		Set<Definition> set = new HashSet<Definition>();
+        set.addAll(indexSet.uses());
+        if (unit != null) {
+        	set.addAll(unit.uses());
+        }
+        return set;
+	}
+
+	@Override
+	public TypeNode resolved(Dictionary dictionary, TypeContext context)
+			throws PacioliException {
+		return new BangTypeNode(
+				getLocation(), 
+				indexSet.resolveAsIndex(dictionary, context),
+				unit == null ? null : unit.resolveAsUnitVector(indexSet.getName(), dictionary, context));
 	}
 }

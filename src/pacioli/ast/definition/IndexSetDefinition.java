@@ -24,35 +24,46 @@ package pacioli.ast.definition;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+
+import mvm.values.matrix.IndexSet;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.Module;
 import pacioli.PacioliException;
+import pacioli.Program;
 import pacioli.Utils;
 import pacioli.ast.expression.IdentifierNode;
-import mvm.values.matrix.IndexSet;
 
 public class IndexSetDefinition extends AbstractDefinition {
 
     private final IdentifierNode id;
     private final List<String> items;
 
-    public IndexSetDefinition(Module module, Location location, IdentifierNode id, List<String> items) {
-        super(module, location);
+    public IndexSetDefinition(Location location, IdentifierNode id, List<String> items) {
+        super(location);
         this.id = id;
         this.items = items;
     }
 
+	@Override
+	public void addToProgram(Program program, Module module) {
+		setModule(module);
+		program.addIndexSetDefinition(this, module);
+		
+	}
+	public String globalName() {
+        return String.format("index_%s_%s", getModule().name, localName());
+    }
+	
     public IndexSet getIndexSet() {
         return new IndexSet(localName(), items);
     }
 
     @Override
     public void printText(PrintWriter out) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -61,12 +72,7 @@ public class IndexSetDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void updateDictionary(Dictionary dictionary, boolean reduce) throws PacioliException {
-        dictionary.putIndexSetDefinition(localName(), this);
-    }
-
-    @Override
-    public void resolveNames(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
+    public void resolve(Dictionary dictionary) throws PacioliException {
     }
 
     @Override
@@ -88,7 +94,8 @@ public class IndexSetDefinition extends AbstractDefinition {
 
     @Override
     public String compileToJS() {
-        String output = String.format("\nfunction compute_%s () {return makeIndexSet('%s', [", localName(), localName());
+        String output = String.format("\nfunction compute_%s () {return makeIndexSet('%s', [", 
+        		globalName(), localName());
         List<String> quotedItems = new ArrayList<String>();
         for (String item : items) {
             quotedItems.add(String.format("\"%s\"", item));
@@ -102,4 +109,5 @@ public class IndexSetDefinition extends AbstractDefinition {
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
 }

@@ -27,29 +27,32 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
+import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 
-/**
- *
- * @author Administrator
- */
 public class ReturnNode extends AbstractExpressionNode {
 
     private final ExpressionNode value;
     private final IdentifierNode resultPlace;
 
-    public ReturnNode(Location location, IdentifierNode resultPlace, ExpressionNode value) {
+    public ReturnNode(Location location, ExpressionNode value) {
         super(location);
-        this.resultPlace = resultPlace;
         this.value = value;
+        this.resultPlace = null;
+    }
+    
+    public ReturnNode(Location location, ExpressionNode value, IdentifierNode resultPlace) {
+        super(location);
+        this.value = value;
+        this.resultPlace = resultPlace;
     }
 
     @Override
@@ -59,13 +62,13 @@ public class ReturnNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode resolved(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
-        Set<String> varContext = new HashSet<String>();
-        varContext.add(resultPlace.getName());
-        ExpressionNode resolvedResultPlace = resultPlace.resolved(dictionary, globals, context, varContext);
-        ExpressionNode resolvedValue = value.resolved(dictionary, globals, context, mutableContext);
-        assert (resolvedResultPlace instanceof IdentifierNode);
-        return new ReturnNode(getLocation(), (IdentifierNode) resolvedResultPlace, resolvedValue);
+    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
+    	if (context.getStatementResult() == null) {
+    		throw new RuntimeException("No result place for return");
+    	} else {
+    		IdentifierNode result = IdentifierNode.newLocalMutableVar(context.getStatementResult(), getLocation());
+    		return new ReturnNode(getLocation(), value.resolved(dictionary, context), result);
+    	}
     }
 
     @Override
@@ -95,11 +98,11 @@ public class ReturnNode extends AbstractExpressionNode {
     }
 
     @Override
-    public Typing inferTyping(Dictionary dictionary, Map<String, PacioliType> context) throws PacioliException {
+    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
         String result = resultPlace.getName();
         assert (context.containsKey(result));
         PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
-        Typing valueTyping = value.inferTyping(dictionary, context);
+        Typing valueTyping = value.inferTyping(context);
         Typing typing = new Typing(voidType);
         typing.addConstraints(valueTyping);
         typing.addConstraint(context.get(result), valueTyping.getType(), "the types of returned values must agree");
@@ -108,12 +111,12 @@ public class ReturnNode extends AbstractExpressionNode {
 
     @Override
     public ExpressionNode transformCalls(CallMap map) {
-        return new ReturnNode(getLocation(), resultPlace, value.transformCalls(map));
+        return new ReturnNode(getLocation(), value.transformCalls(map), resultPlace);
     }
 
     @Override
     public ExpressionNode transformIds(IdMap map) {
-        return new ReturnNode(getLocation(), resultPlace, value.transformIds(map));
+        return new ReturnNode(getLocation(), value.transformIds(map), resultPlace);
     }
 
     @Override
@@ -123,6 +126,6 @@ public class ReturnNode extends AbstractExpressionNode {
 
     @Override
     public ExpressionNode transformSequences(SequenceMap map) {
-        return new ReturnNode(getLocation(), resultPlace, value.transformSequences(map));
+        return new ReturnNode(getLocation(), value.transformSequences(map), resultPlace);
     }
 }

@@ -27,11 +27,10 @@ import pacioli.ast.AbstractASTNode;
 
 public abstract class AbstractDefinition extends AbstractASTNode implements Definition {
 
-    protected final Module module;
+    protected Module module;
     
-    public AbstractDefinition(Module module, Location location) {
+    public AbstractDefinition(Location location) {
         super(location);
-        this.module = module;
     }
     
     @Override
@@ -39,6 +38,11 @@ public abstract class AbstractDefinition extends AbstractASTNode implements Defi
         return String.format("global_%s_%s", getModule().name, localName());
     }
 
+    @Override
+    public void setModule(Module module) {
+        this.module = module;
+    }
+    
     @Override
     public Module getModule() {
         return module;

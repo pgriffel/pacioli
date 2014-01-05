@@ -7,10 +7,6 @@ public abstract class AbstractUnitNode extends AbstractPrintable implements Unit
     
 	private final Location location;
 
-    public AbstractUnitNode() {
-        this.location = null;
-    }
-
     public AbstractUnitNode(Location location) {
         this.location = location;
     }

@@ -33,10 +33,10 @@ import mvm.values.matrix.MatrixDimension;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
 import pacioli.Typing;
+import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
 import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
@@ -50,24 +50,23 @@ import uom.Unit;
 public class MatrixTypeNode extends AbstractExpressionNode {
 
     private final TypeNode typeNode;
-    private final MatrixType type;
-    private final Integer nrRows;
-    private final Integer nrColumns;
-
+    
+    private final MatrixDimension rowDim;
+    private final MatrixDimension columnDim;
+    
     public MatrixTypeNode(Location location, TypeNode typeNode) {
         super(location);
         this.typeNode = typeNode;
-        this.type = null;
-        this.nrRows = null;
-        this.nrColumns = null;
+        this.rowDim = null;
+        this.columnDim = null;
     }
 
-    private MatrixTypeNode(Location location, TypeNode typeNode, MatrixType type, int nrRows, int nrColumns) {
+    private MatrixTypeNode(Location location, TypeNode typeNode, 
+    		MatrixDimension rowDim, MatrixDimension columnDim) {
         super(location);
         this.typeNode = typeNode;
-        this.type = type;
-        this.nrColumns = nrColumns;
-        this.nrRows = nrRows;
+        this.rowDim = rowDim;
+        this.columnDim = columnDim;
     }
 
     @Override
@@ -78,51 +77,37 @@ public class MatrixTypeNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode resolved(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
-
-        PacioliType foundType = typeNode.eval(dictionary, new TypeContext(), true);
-
-        if (foundType instanceof MatrixType) {
-            
-            MatrixType matrixType = (MatrixType) foundType;
-
-            // The matrix type must be closed with known dimensions at compile time.
-            assert (matrixType.rowDimension instanceof DimensionType);
-            assert (matrixType.columnDimension instanceof DimensionType);
-            DimensionType rowDimType = (DimensionType) matrixType.rowDimension;
-            DimensionType columnDimType = (DimensionType) matrixType.columnDimension;
-            
-            // Find the compile time matrix dimensions to determine the matrix size.
-        	MatrixDimension rowDim = rowDimType.compileTimeMatrixDimension(dictionary);
-        	MatrixDimension columnDim = columnDimType.compileTimeMatrixDimension(dictionary);
-        	
-        	// Create a resolved clone
-            return new MatrixTypeNode(getLocation(), typeNode, matrixType, rowDim.size(), columnDim.size());
-            
-        } else {
-            throw new PacioliException(getLocation(), "A matrix literal expects a matrix type but got %s", foundType.toText());
-        }
-
+    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
+    	TypeNode resolvedType = typeNode.resolved(dictionary, new TypeContext());
+    	MatrixDimension rowDim = dictionary.compileTimeRowDimension(resolvedType);
+    	MatrixDimension columnDim = dictionary.compileTimeRowDimension(resolvedType);
+        return new MatrixTypeNode(getLocation(), resolvedType, rowDim, columnDim);
     }
 
     @Override
-    public Typing inferTyping(Dictionary dictionary, Map<String, PacioliType> context) throws PacioliException {
-        assert (type != null);
-        return new Typing(type);
+    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
+        assert (typeNode != null);
+        return new Typing(typeNode.eval(false));
     }
 
     @Override
     public Set<Definition> uses() {
-        return new HashSet<Definition>();
+        return typeNode.uses();
     }
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        assert (type != null);
+        
         
         // this is reused in MatrixDefinition. todo: reconsider how types 
         // are communicated to the MVM.
-        return matrixTypeMVMCode(type);
+        try {
+			return matrixTypeMVMCode((MatrixType) typeNode.eval(false));
+		} catch (PacioliException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return "Cannot happen!?";
+		}
     }
 
     private static String matrixTypeMVMCode(MatrixType type) {
@@ -212,7 +197,7 @@ public class MatrixTypeNode extends AbstractExpressionNode {
 
     @Override
     public String compileToMATLAB() {
-        return String.format("ones(%s, %s)", nrRows, nrColumns);
+        return String.format("ones(%s, %s)", rowDim.size(), columnDim.size());
     }
 
     @Override

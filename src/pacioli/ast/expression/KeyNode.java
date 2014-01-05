@@ -29,13 +29,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
+import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.types.PacioliType;
 import pacioli.types.matrix.DimensionType;
 
@@ -43,54 +45,47 @@ public class KeyNode extends AbstractExpressionNode {
 
     private final List<String> indexSets;
     private final List<String> keys;
-    private final List<Integer> positions;
-    private final List<Integer> sizes;
+    private final List<IndexSetDefinition> indexSetDefinitions;
 
     public KeyNode(Location location) {
         super(location);
         indexSets = new ArrayList<String>();
         keys = new ArrayList<String>();
-        positions = null;
-        sizes = null;
+        indexSetDefinitions = null;
     }
 
     public KeyNode(String indexSet, String key, Location location) {
         super(location);
         indexSets = Arrays.asList(indexSet);
         keys = Arrays.asList(key);
-        positions = null;
-        sizes = null;
+        indexSetDefinitions = null;
     }
 
-    private KeyNode(Location location, List<String> indexSets, List<String> keys, List<Integer> positions, List<Integer> sizes) {
+
+    private KeyNode(Location location, List<String> indexSets, List<String> keys, List<IndexSetDefinition> indexSetDefinitions) {
         super(location);
         this.indexSets = new ArrayList<String>(indexSets);
         this.keys = new ArrayList<String>(keys);
-        this.positions = positions == null ? null : new ArrayList<Integer>(positions);
-        this.sizes = sizes == null ? null : new ArrayList<Integer>(sizes);
+        this.indexSetDefinitions = indexSetDefinitions == null ? null : new ArrayList<IndexSetDefinition>(indexSetDefinitions);
     }
-
+    
     public KeyNode merge(KeyNode other) {
 
-        List<String> mergedIndexSets = new ArrayList<String>(indexSets);
-        List<String> mergedKeys = new ArrayList<String>(keys);
-        List<Integer> mergedPositions = null;
-        List<Integer> mergedSizes = null;
+    	List<String> mergedIndexSets = new ArrayList<String>(indexSets);
+    	List<String> mergedKeys = new ArrayList<String>(keys);
+    	List<IndexSetDefinition> mergedDefinitions = null;
 
-        Location mergedLocation = getLocation().join(other.getLocation());
+    	Location mergedLocation = getLocation().join(other.getLocation());
 
-        mergedIndexSets.addAll(other.indexSets);
-        mergedKeys.addAll(other.keys);
+    	mergedIndexSets.addAll(other.indexSets);
+    	mergedKeys.addAll(other.keys);
 
-        if (positions != null && other.positions != null) {
-            mergedPositions = new ArrayList<Integer>(positions);
-            mergedSizes = new ArrayList<Integer>(sizes);
+    	if (indexSetDefinitions != null && other.indexSetDefinitions != null) {
+    		mergedDefinitions = new ArrayList<IndexSetDefinition>(indexSetDefinitions);
+    		mergedDefinitions.addAll(other.indexSetDefinitions);
+    	}
 
-            mergedPositions.addAll(other.positions);
-            mergedSizes.addAll(other.sizes);
-        }
-
-        return new KeyNode(mergedLocation, mergedIndexSets, mergedKeys, mergedPositions, mergedSizes);
+    	return new KeyNode(mergedLocation, mergedIndexSets, mergedKeys, mergedDefinitions);
     }
 
     @Override
@@ -111,33 +106,20 @@ public class KeyNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode resolved(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
-
-        List<Integer> positionList = new ArrayList<Integer>();
-        List<Integer> sizeList = new ArrayList<Integer>();
-
-        int size = indexSets.size();
-        for (int i = 0; i < size; i++) {
-            String setName = indexSets.get(i);
-            String key = keys.get(i);
-            if (!dictionary.containsIndexSetDefinition(setName)) {
-                throw new PacioliException(getLocation(), "Index set '%s' unknown", setName);
+    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
+    	List<IndexSetDefinition> definitions = new ArrayList<IndexSetDefinition>();
+    	for (String name: indexSets) {
+    		if (dictionary.containsIndexSetDefinition(name)) {
+    			definitions.add(dictionary.getIndexSetDefinition(name));
             } else {
-                int pos = dictionary.getCompileTimeIndexSet(setName).ElementPosition(key);
-                if (pos < 0) {
-                    throw new PacioliException(getLocation(), "Key '%s' not in index set '%s'", key, setName);
-                } else {
-                    positionList.add(pos);
-                    sizeList.add(dictionary.getIndexSetDefinition(setName).getIndexSet().size());
-                }
+            	throw new PacioliException(getLocation(), "Index set '%s' unknown", name);
             }
-        }
-
-        return new KeyNode(getLocation(), indexSets, keys, positionList, sizeList);
+    	}
+        return new KeyNode(getLocation(), indexSets, keys, definitions);
     }
 
     @Override
-    public Typing inferTyping(Dictionary dictionary, Map<String, PacioliType> context) throws PacioliException {
+    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
         return new Typing(new DimensionType(indexSets));
     }
 
@@ -196,7 +178,7 @@ public class KeyNode extends AbstractExpressionNode {
             builder.append("['");
             builder.append(keys.get(i));
             builder.append("','");
-            builder.append(indexSets.get(i));
+            builder.append(indexSetDefinitions.get(i).globalName());
             builder.append("']");
         }
     	builder.append("])");
@@ -217,8 +199,8 @@ public class KeyNode extends AbstractExpressionNode {
         int index = 0;
         int size = indexSets.size();
         for (int i = 0; i < size; i++) {
-            index += positions.get(i) * totalSize;
-            totalSize *= sizes.get(i);
+//            index += positions.get(i) * totalSize;
+//            totalSize *= sizes.get(i);
         }
         return String.format("{%s,%s}", index, totalSize);
     }

@@ -24,10 +24,12 @@ package pacioli.ast.expression;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.Dictionary;
 import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
+import pacioli.ValueContext;
 import pacioli.ast.ASTNode;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
@@ -55,9 +57,9 @@ public interface ExpressionNode extends ASTNode {
 
     public ExpressionNode transformSequences(SequenceMap map);
 
-    public ExpressionNode resolved(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException;
+    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException;
 
-    public Typing inferTyping(Dictionary dictionary, Map<String, PacioliType> context) throws PacioliException;
+    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException;
 
     public Set<IdentifierNode> locallyAssignedVariables();
 

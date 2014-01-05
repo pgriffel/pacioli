@@ -24,18 +24,18 @@ package pacioli.ast.expression;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.Utils;
+import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
 import pacioli.types.FunctionType;
 import pacioli.types.PacioliType;
@@ -63,10 +63,13 @@ public class LambdaNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode resolved(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
-        Set<String> extended = new HashSet<String>(context);
-        extended.addAll(arguments);
-        ExpressionNode resolvedExpression = expression.resolved(dictionary, globals, extended, mutableContext);
+    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
+        //Set<String> extended = new HashSet<String>(context);
+        ValueContext extended = new ValueContext();
+        //extended.addAll(arguments);
+        extended.addAll(context);
+        extended.addVars(arguments);
+        ExpressionNode resolvedExpression = expression.resolved(dictionary, extended);
         return new LambdaNode(arguments, resolvedExpression, getLocation());
     }
 
@@ -81,7 +84,7 @@ public class LambdaNode extends AbstractExpressionNode {
     }
 
     @Override
-    public Typing inferTyping(Dictionary dictionary, Map<String, PacioliType> context) throws PacioliException {
+    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
 
         HashMap<String, PacioliType> extended = new HashMap<String, PacioliType>();
         List<PacioliType> argTypes = new ArrayList<PacioliType>();
@@ -93,7 +96,7 @@ public class LambdaNode extends AbstractExpressionNode {
             argTypes.add(freshType);
         }
 
-        Typing bodyTyping = expression.inferTyping(dictionary, extended);
+        Typing bodyTyping = expression.inferTyping(extended);
         Typing typing = new Typing(new FunctionType(new ParametricType("Tuple", argTypes), bodyTyping.getType()));
         typing.addConstraints(bodyTyping);
 
@@ -143,4 +146,5 @@ public class LambdaNode extends AbstractExpressionNode {
     public String compileToMATLAB() {
         return String.format("(@(%s) %s)", Utils.intercalate(", ", arguments), expression.compileToMATLAB());
     }
+
 }

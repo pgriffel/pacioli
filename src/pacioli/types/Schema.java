@@ -69,6 +69,11 @@ public class Schema extends AbstractType {
     }
 
     @Override
+    public Schema generalize() {
+    	throw new RuntimeException("Cannot generalize a schema");
+    }
+
+    @Override
     public PacioliType applySubstitution(Substitution subs) {
         Substitution reduced = new Substitution(subs);
         reduced.removeAll(variables);

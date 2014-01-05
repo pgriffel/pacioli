@@ -27,13 +27,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.Utils;
+import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
@@ -58,13 +59,13 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode resolved(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
+    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
         List<IdentifierNode> resolvedVars = new ArrayList<IdentifierNode>();
         for (IdentifierNode var : vars) {
             IdentifierNode resolved = IdentifierNode.newLocalMutableVar(var.getName(), var.getLocation());
             resolvedVars.add(resolved);
         }
-        ExpressionNode resolvedTuple = tuple.resolved(dictionary, globals, context, mutableContext);
+        ExpressionNode resolvedTuple = tuple.resolved(dictionary, context);
         return new TupleAssignmentNode(getLocation(), resolvedVars, resolvedTuple);
     }
 
@@ -103,9 +104,9 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
     }
 
     @Override
-    public Typing inferTyping(Dictionary dictionary, Map<String, PacioliType> context) throws PacioliException {
+    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
 
-        Typing tupleTyping = tuple.inferTyping(dictionary, context);
+        Typing tupleTyping = tuple.inferTyping(context);
 
         List<PacioliType> varTypes = new ArrayList<PacioliType>();
         for (IdentifierNode var : vars) {

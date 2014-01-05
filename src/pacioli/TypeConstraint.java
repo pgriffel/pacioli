@@ -44,8 +44,9 @@ public class TypeConstraint extends AbstractPrintable {
             throw new PacioliException("Type function %s expects %s arguments but found %s", type.name, lhs.args.size(), type.args.size());
         }
         FunctionType map = (FunctionType) new FunctionType(lhs, rhs).fresh();
-        Substitution s = map.domain.unify(type.freeze());
-        return map.range.applySubstitution(s).unfreeze();
+        Substitution s;
+        s = map.domain.unify(type.freeze());
+		return map.range.applySubstitution(s).unfreeze();
     }
 
     @Override

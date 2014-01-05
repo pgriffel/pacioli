@@ -27,12 +27,13 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
+import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
@@ -56,15 +57,15 @@ public class AssignmentNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode resolved(Dictionary dictionary, Map<String, Module> globals, Set<String> context, Set<String> mutableContext) throws PacioliException {
+    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
         Set<String> varContext = new HashSet<String>();
         varContext.add(var.getName());
-        ExpressionNode resolvedVar = var.resolved(dictionary, globals, new HashSet<String>(), varContext);
+        ExpressionNode resolvedVar = var.resolved(dictionary, context);
         assert(resolvedVar instanceof IdentifierNode);
         return new AssignmentNode(
                 getLocation(),
                 (IdentifierNode) resolvedVar,
-                value.resolved(dictionary, globals, context, mutableContext));
+                value.resolved(dictionary, context));
     }
 
     @Override
@@ -93,13 +94,13 @@ public class AssignmentNode extends AbstractExpressionNode {
     }
 
     @Override
-    public Typing inferTyping(Dictionary dictionary, Map<String, PacioliType> context) throws PacioliException {
+    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
         if (!context.containsKey(var.getName())) {
             throw new RuntimeException(String.format("assigned var %s does not exists in context!!!", var.getName()));
         }
         assert (context.containsKey(var.getName()));
         PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
-        Typing valueTyping = value.inferTyping(dictionary, context);
+        Typing valueTyping = value.inferTyping(context);
         Typing typing = new Typing(voidType);
         typing.addConstraints(valueTyping);
         typing.addConstraint(context.get(var.getName()), valueTyping.getType(), "assigned variable must have proper type");

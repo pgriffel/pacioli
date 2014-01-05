@@ -23,10 +23,14 @@ package pacioli.types.ast;
 
 import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
+
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
+import pacioli.ast.definition.Definition;
 import pacioli.types.PacioliType;
 import pacioli.types.matrix.MatrixType;
 import uom.Unit;
@@ -46,12 +50,23 @@ public class NumberTypeNode extends AbstractTypeNode {
     }
 
     @Override
-    public PacioliType eval(Dictionary dictionary, TypeContext context, boolean reduce) throws PacioliException {
+    public PacioliType eval(boolean reduce) throws PacioliException {
         return new MatrixType(Unit.ONE.multiply(new BigDecimal(number)));
     }
 
 	@Override
 	public String compileToJS() {
 		return "new Shape(" + number + ")";
+	}
+
+	@Override
+	public Set<Definition> uses() {
+		return new HashSet<Definition>();
+	}
+
+	@Override
+	public TypeNode resolved(Dictionary dictionary, TypeContext context)
+			throws PacioliException {
+		return this;
 	}
 }

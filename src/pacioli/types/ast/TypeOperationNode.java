@@ -22,10 +22,14 @@
 package pacioli.types.ast;
 
 import java.io.PrintWriter;
+import java.util.HashSet;
+import java.util.Set;
+
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
+import pacioli.ast.definition.Definition;
 import pacioli.types.PacioliType;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.StringBase;
@@ -49,10 +53,10 @@ public class TypeOperationNode extends AbstractTypeNode {
     }
 
     @Override
-    public PacioliType eval(Dictionary dictionary, TypeContext context, boolean reduce) throws PacioliException {
+    public PacioliType eval(boolean reduce) throws PacioliException {
 
-        PacioliType leftType = left.eval(dictionary, context, reduce);
-        PacioliType rightType = right.eval(dictionary, context, reduce);
+        PacioliType leftType = left.eval(reduce);
+        PacioliType rightType = right.eval(reduce);
 
         if (!(leftType instanceof MatrixType)) {
             throw new PacioliException(getLocation(), "Matrix type left operand is not a matrix but a %s", leftType.description());
@@ -92,7 +96,7 @@ public class TypeOperationNode extends AbstractTypeNode {
         } else if (operator.equals("scale")) {
         	TypeIdentifierNode leftId = (TypeIdentifierNode) left; 
         	TypeIdentifierNode rightId = (TypeIdentifierNode) right;
-            return new MatrixType(new StringBase(leftId.name, rightId.name));
+            return new MatrixType(new StringBase(leftId.getName(), rightId.getName()));
             
         } else if (operator.equals("kronecker")) {
             return matrixLeft.kronecker(matrixRight);
@@ -107,14 +111,36 @@ public class TypeOperationNode extends AbstractTypeNode {
 		String rightJS = right.compileToJS();
 		if (operator == "multiply") {
 			return leftJS + ".mult(" + rightJS + ")";
-		} else if (operator == "/") {
+		} else if (operator == "divide") {
 			return leftJS + ".div(" + rightJS + ")";
 		} else if (operator == "^") {
 			return leftJS + ".expt(" + rightJS + ")";
+		} else if (operator == "per") {
+			return leftJS + ".per(" + rightJS + ")";
+		} else if (operator == "kronecker") {
+			return leftJS + ".kron(" + rightJS + ")";
 		} else if (operator == "scale") {
 			return "scalarShape'(" + left + "$" + right + "')";
 		} else {
 			throw new RuntimeException("Type operator '" + operator + "' unknown");
 		}
+	}
+
+	@Override
+	public Set<Definition> uses() {
+		Set<Definition> set = new HashSet<Definition>();
+        set.addAll(left.uses());
+        set.addAll(right.uses());
+        return set;
+	}
+
+	@Override
+	public TypeNode resolved(Dictionary dictionary, TypeContext context)
+			throws PacioliException {
+		return new TypeOperationNode(
+				getLocation(),
+				operator,
+				left.resolved(dictionary, context),
+				right.resolved(dictionary, context));
 	}
 }

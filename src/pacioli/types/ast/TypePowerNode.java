@@ -22,10 +22,13 @@
 package pacioli.types.ast;
 
 import java.io.PrintWriter;
+import java.util.Set;
+
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
+import pacioli.ast.definition.Definition;
 import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.types.PacioliType;
@@ -44,14 +47,21 @@ public class TypePowerNode extends AbstractTypeNode {
         this.power = Integer.parseInt(((NumberUnitNode) power).toText());
     }
 
+    public TypePowerNode(Location location, TypeNode base, Integer power) {
+        super(location);
+        this.base = base;
+        // todo: refactor this further. Make it an operation and remove this node
+        this.power = power;
+    }
+
     @Override
     public void printText(PrintWriter out) {
         out.format("%s^%s", base, power);
     }
 
     @Override
-    public PacioliType eval(Dictionary dictionary, TypeContext context, boolean reduce) throws PacioliException {
-        PacioliType baseType = base.eval(dictionary, context, reduce);
+    public PacioliType eval(boolean reduce) throws PacioliException {
+        PacioliType baseType = base.eval(reduce);
         
         if (!(baseType instanceof MatrixType)) {
             throw new PacioliException(getLocation(), "Matrix type expected for power but got a %s", baseType.description());
@@ -64,5 +74,19 @@ public class TypePowerNode extends AbstractTypeNode {
 	@Override
 	public String compileToJS() {
 		return base.compileToJS() + ".expt(" + power + ")";
+	}
+
+	@Override
+	public Set<Definition> uses() {
+		return base.uses();
+	}
+
+	@Override
+	public TypeNode resolved(Dictionary dictionary, TypeContext context)
+			throws PacioliException {
+		return new TypePowerNode(
+				getLocation(),
+				base.resolved(dictionary, context),
+				power);
 	}
 }

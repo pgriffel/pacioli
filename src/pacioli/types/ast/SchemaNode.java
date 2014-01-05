@@ -22,10 +22,13 @@
 package pacioli.types.ast;
 
 import java.io.PrintWriter;
+import java.util.Set;
+
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
+import pacioli.ast.definition.Definition;
 import pacioli.types.PacioliType;
 import pacioli.types.Schema;
 
@@ -47,10 +50,24 @@ public class SchemaNode extends AbstractTypeNode {
     }
 
     @Override
-    public PacioliType eval(Dictionary dictionary, TypeContext context, boolean reduce) throws PacioliException {
+    public PacioliType eval(boolean reduce) throws PacioliException {
         TypeContext newContext = new TypeContext();
         newContext.addAll(context);
         newContext.addAll(this.context);
-        return new Schema(this.context.typeVars(), type.eval(dictionary, newContext, reduce));
+        return new Schema(this.context.typeVars(), type.eval(reduce));
     }
+
+	@Override
+	public Set<Definition> uses() {
+		return type.uses();
+	}
+
+	@Override
+	public TypeNode resolved(Dictionary dictionary, TypeContext context)
+			throws PacioliException {
+		TypeContext combinedContext = new TypeContext();
+		combinedContext.addAll(context);
+		combinedContext.addAll(this.context);
+		return new SchemaNode(getLocation(), this.context, type.resolved(dictionary, combinedContext));
+	}
 }
