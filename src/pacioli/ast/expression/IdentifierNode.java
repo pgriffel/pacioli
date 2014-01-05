@@ -142,21 +142,21 @@ public class IdentifierNode extends AbstractExpressionNode {
 
         if (context.isRefVar(name)) {
             if (dictionary.containsValueDefinition(name)) {
-                Pacioli.warn("local '%s' shadows global from module '%s'", name, dictionary.getValueDefinition(name).getModule().name);
+                Pacioli.warn("local '%s' shadows global from module '%s'", name, dictionary.getValueDefinition(name).getModule().getName());
             }
             return new IdentifierNode("", true, name, getLocation());
         } else if (context.containsVar(name)) {
             if (dictionary.containsValueDefinition(name)) {
-                Pacioli.warn("local '%s' shadows global from module '%s'", name, dictionary.getValueDefinition(name).getModule().name);
+                Pacioli.warn("local '%s' shadows global from module '%s'", name, dictionary.getValueDefinition(name).getModule().getName());
             }
             return new IdentifierNode("", false, name, getLocation());
         } else {
             if (dictionary.containsValueDefinition(name)) {
             	ValueDefinition definition = dictionary.getValueDefinition(name);
-            	return new IdentifierNode(definition.getModule().name, false, name, getLocation(), definition);
+            	return new IdentifierNode(definition.getModule().getName(), false, name, getLocation(), definition);
             } else if (dictionary.containsDeclaration(name)) {
             	Declaration definition = dictionary.getDeclaration(name);
-            	return new IdentifierNode(definition.getModule().name, false, name, getLocation(), definition);
+            	return new IdentifierNode(definition.getModule().getName(), false, name, getLocation(), definition);
             } else {
             	throw new PacioliException(getLocation(), "Name '%s' unknown", name);
             }

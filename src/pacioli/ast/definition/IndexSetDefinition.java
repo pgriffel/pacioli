@@ -54,7 +54,7 @@ public class IndexSetDefinition extends AbstractDefinition {
 		
 	}
 	public String globalName() {
-        return String.format("index_%s_%s", getModule().name, localName());
+        return String.format("index_%s_%s", getModule().getName(), localName());
     }
 	
     public IndexSet getIndexSet() {

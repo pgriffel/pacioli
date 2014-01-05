@@ -231,7 +231,7 @@ public class Pacioli {
             			program.compileJS(new PrintWriter(outputStream), settings);
                     } else if (target.equals("matlab")) {
                     	program.compileMatlab(new PrintWriter(outputStream), settings);
-                    } else if (target.equals("htm")) {
+                    } else if (target.equals("html")) {
                     	program.compileHtml(new PrintWriter(outputStream), settings);
                     } else {
                     	program.compileMVM(new PrintWriter(outputStream), settings);

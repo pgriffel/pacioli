@@ -64,7 +64,7 @@ public class UnitVectorDefinition extends AbstractDefinition {
 		setModule(module);
 		program.addUnitVectorDefinition(this, module);
 	}
-	
+    
     @Override
     public void printText(PrintWriter out) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -73,6 +73,11 @@ public class UnitVectorDefinition extends AbstractDefinition {
     @Override
     public String localName() {
         return indexSetNode.getName() + "!" + unitNode.getName();
+    }
+
+    @Override
+    public String globalName() {
+        return String.format("unitvec_%s_%s_%s", getModule().getName(), indexSetNode.getName(), unitNode.getName());
     }
 
     @Override
@@ -111,7 +116,7 @@ public class UnitVectorDefinition extends AbstractDefinition {
     @Override
     public String compileToJS() {
     	StringBuilder builder = new StringBuilder();
-    	builder.append("function compute_").append(unitNode.getName()).append(" () {");
+    	builder.append("function compute_").append(globalName()).append(" () {");
     	builder.append("return {units:{");
     	boolean sep = false;
     	for (Map.Entry<String, UnitNode> entry: items.entrySet()) {

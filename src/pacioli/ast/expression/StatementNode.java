@@ -128,7 +128,7 @@ public class StatementNode extends AbstractExpressionNode {
 
         // Define a helper function for the lifted statement and replace the sequence 
         // by a call to that function
-        IdentifierNode fresh = IdentifierNode.newValueIdentifier(module.name, Utils.freshName(), getLocation());
+        IdentifierNode fresh = IdentifierNode.newValueIdentifier(module.getName(), Utils.freshName(), getLocation());
         LambdaNode lambda = new LambdaNode(contextVars, seq, getLocation());
         ValueDefinition vd = new ValueDefinition(fresh, lambda, lambda);
         vd.setModule(module);

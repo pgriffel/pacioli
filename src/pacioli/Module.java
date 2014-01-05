@@ -46,7 +46,7 @@ import pacioli.types.ast.TypeNode;
 
 public class Module extends AbstractPrintable {
 
-    public final String name;
+    private final String name;
     private final List<String> includes;
     private File file = null;
     
@@ -60,6 +60,10 @@ public class Module extends AbstractPrintable {
         this.includes = new ArrayList<String>();
     }
 
+	public String getName() {
+		return name;
+	}
+	
 	public List<String> getIncludes() {
 		return includes;
 	}

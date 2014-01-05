@@ -79,7 +79,7 @@ public class Toplevel extends AbstractDefinition {
 
 	@Override
 	public String compileToJS() {
-		throw new RuntimeException("todo");
+		return resolvedBody.compileToJS();
 	}
 
 	@Override

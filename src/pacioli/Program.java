@@ -185,9 +185,43 @@ public class Program {
 	public void compileHtml(PrintWriter out,
 			CompilationSettings settings) {
 		// TODO Auto-generated method stub
-		out.println("//begin");
+		out.println("<!DOCTYPE HTML>\n" + 
+				"\n" + 
+				"<!-- HTML and Javascript code generated from Pacioli module " + main.getName() + " -->\n" + 
+				"\n" + 
+				"<html lang=\"en\">\n" + 
+				"  <head>\n" + 
+				"    <title>" + main.getName() + "</title>\n" + 
+				"    <meta charset=\"utf-8\">\n" + 
+				"    <link rel=\"stylesheet\" type=\"text/css\" href=\"pacioli.css\">\n" + 
+				"  </head>\n" + 
+				"\n" + 
+				"  <body onload=\"onLoad();\">\n" + 
+				"\n" + 
+				"    <div id=\"main\">\n" + 
+				"    </div>\n" + 
+				"\n" + 
+				"    <script type=\"text/javascript\" src=\"numeric-1.2.6.js\"></script>\n" + 
+				"    <script type=\"text/javascript\" src=\"pacioli-primitives.js\"></script>\n" + 
+				"\n" + 
+				"    <script type=\"text/javascript\">\n" + 
+				"\n");
 		compileJS(out, settings);
-		out.println("//end");
+		out.println("function onLoad() {");
+		for (Toplevel definition: toplevelExpressions) {
+			out.print("global_Primitives_print(");
+			out.print(definition.compileToJS());
+			out.print(")");
+			out.println("");
+		}
+		out.println("}");
+		out.println("\n" + 
+				"\n" + 
+				"    </script>\n" + 
+				"\n" + 
+				"  </body>\n" + 
+				"\n" + 
+				"</hmtl>\n");
 	}
 
 	public void compileMVM(PrintWriter printWriter, CompilationSettings settings) {
