@@ -133,8 +133,9 @@ public class UnitVectorDefinition extends AbstractDefinition {
     	boolean sep = false;
     	for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
     		if (sep) {builder.append(",");} else {sep = true;}
+    		builder.append("'");
     		builder.append(entry.getKey());
-    		builder.append(":");
+    		builder.append("':");
     		builder.append(entry.getValue().compileToJS());
     		builder.append("");
     	}

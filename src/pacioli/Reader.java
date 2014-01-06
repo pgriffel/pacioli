@@ -232,7 +232,7 @@ public class Reader {
 			});
 
 	private static final Parser<KeyNode> KEY = Parsers
-			.tuple(IDENTIFIER.followedBy(TERMS.token("@")), IDENTIFIER)
+			.tuple(NAME.followedBy(TERMS.token("@")), NAME)
 			.sepBy1(TERMS.token("%"))
 			.map(new Map<List<Pair<IdentifierNode, IdentifierNode>>, KeyNode>() {
 				public KeyNode map(
@@ -412,21 +412,21 @@ public class Reader {
 								.next(Parsers.between(
 										TERMS.token("{"),
 										Parsers.tuple(
-												Terminals.Identifier.PARSER
+												NAME
 														.followedBy(TERMS
 																.token(":")),
 												unitParser()).sepBy(
 												TERMS.token(",")), TERMS
 												.token("}")))
 								.followedBy(TERMS.token(";")),
-						new Map3<TypeIdentifierNode, TypeIdentifierNode, List<Pair<String, UnitNode>>, Definition>() {
+						new Map3<TypeIdentifierNode, TypeIdentifierNode, List<Pair<IdentifierNode, UnitNode>>, Definition>() {
 							public Definition map(
 									final TypeIdentifierNode indexId,
 									final TypeIdentifierNode id,
-									final List<Pair<String, UnitNode>> items) {
+									final List<Pair<IdentifierNode, UnitNode>> items) {
 								java.util.Map<String, UnitNode> unitVector = new HashMap<String, UnitNode>();
-								for (Pair<String, UnitNode> pair : items) {
-									unitVector.put(pair.a, pair.b);
+								for (Pair<IdentifierNode, UnitNode> pair : items) {
+									unitVector.put(pair.a.getName(), pair.b);
 								}
 								return new UnitVectorDefinition(indexId
 										.getLocation().join(id.getLocation()),
