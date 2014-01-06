@@ -74,7 +74,7 @@ public class Toplevel extends AbstractDefinition {
 
 	@Override
 	public String compileToMVM(CompilationSettings settings) {
-		throw new RuntimeException("todo");
+		return resolvedBody.compileToMVM(settings);
 	}
 
 	@Override

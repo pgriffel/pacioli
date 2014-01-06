@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Set;
 
+import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
@@ -72,6 +73,21 @@ public class UnitOperationNode extends AbstractUnitNode {
 		set.addAll(left.uses());
 		set.addAll(right.uses());
 		return set;
+	}
+
+	@Override
+	public String compileToMVM(CompilationSettings settings) {
+		String leftMVM = left.compileToMVM(settings);
+		String rightMVM = right.compileToMVM(settings);
+		if (operator == "*") {
+			return "unit_mult(" + leftMVM + "," + rightMVM + ")";
+		} else if (operator == "/") {
+			return "unit_div(" + leftMVM + "," + rightMVM + ")";
+		} else if (operator == "^") {
+			return "unit_expt(" + leftMVM + "," + rightMVM + ")";
+		} else {
+			throw new RuntimeException("Unit operator unknown");
+		}
 	}
 
 }

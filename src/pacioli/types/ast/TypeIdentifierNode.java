@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
@@ -105,6 +106,11 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 	@Override
 	public String compileToJS() {
 		return "scalarShape('" + name + "')";
+	}
+	
+	@Override
+	public String compileToMVM(CompilationSettings settings) {
+		return "scalar_shape(unit(\"" + name + "\"))";
 	}
 
 	@Override

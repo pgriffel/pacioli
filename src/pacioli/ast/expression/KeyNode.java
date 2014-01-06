@@ -161,7 +161,7 @@ public class KeyNode extends AbstractExpressionNode {
             if (0 < i) {
                 code += ", ";
             }
-            code += "\"" + indexSets.get(i) + "\"";
+            code += "\"" + indexSetDefinitions.get(i).globalName() + "\"";
             code += ", ";
             code += "\"" + keys.get(i) + "\"";
         }

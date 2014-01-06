@@ -162,35 +162,34 @@ public class Pacioli {
         File file = new File(fileName);
 
         if (!file.exists()) {
-            logln("Error: file '%s' does not exist.", fileName);
-        } else {
-
-            Pacioli.logln1("Running file '%s'", fileName);
-
-            List<File> libDirs = libraryDirectories(file, libs);
-
-            try {
-
-                Pacioli.logln2("Loading module '%s'", file.getPath());
-                Module module = Reader.loadModule(null, file);
-
-                StringWriter outputStream = new StringWriter();
-                try {
-
-                    Pacioli.logln2("Compiling module '%s'", file.getPath());
-                    //module.compile(new PrintWriter(outputStream), "mvm", libDirs, settings);
-
-                    Pacioli.logln2("Interpreting module '%s'", file.getPath());
-                    interpretMVMText(outputStream.toString());
-
-                } finally {
-                    outputStream.close();
-                }
-
-            } catch (IOException e) {
-                Pacioli.logln("\nError: cannot run module '%s':\n\n%s", file.getPath(), e);
-            }
+            throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
+        
+        Pacioli.logln1("Running file '%s'", fileName);
+        Program program = new Program(libraryDirectories(libs));
+        
+        try {
+
+        	Pacioli.logln2("Loading module '%s'", file.getPath());
+        	program.load(file);
+
+        	StringWriter outputStream = new StringWriter();
+        	try {
+
+        		Pacioli.logln2("Compiling module '%s'", file.getPath());
+        		program.compileMVM(new PrintWriter(outputStream), settings);
+
+        		Pacioli.logln2("Interpreting module '%s'", file.getPath());
+        		interpretMVMText(outputStream.toString());
+
+        	} finally {
+        		outputStream.close();
+        	}
+
+        } catch (IOException e) {
+        	throw new PacioliException("cannot run module '%s':\n\n%s", file.getPath(), e);
+        }
+
     }
 
     private static void compileCommand(String fileName, String target, List<File> libs, CompilationSettings settings) throws PacioliException {
@@ -198,66 +197,54 @@ public class Pacioli {
         File file = new File(fileName);
 
         if (!file.exists()) {
-            logln("Error: file '%s' does not exist.", fileName);
-        } else {
-
-            Pacioli.logln1("Compiling file '%s'", fileName);
-
-            List<File> libDirs = libraryDirectories(file, libs);
-
-            int idx = file.getName().lastIndexOf('.');
-            String baseName = (idx > 0) ? file.getName().substring(0, idx) : file.getName();
-
-            String extension;
-            if (target.equals("javascript")) {
-                extension = ".js";
-            } else if (target.equals("matlab")) {
-                extension = ".m";
-            } else if (target.equals("html")) {
-                extension = ".html";
-            } else {
-                extension = ".mvm";
-            }
-            File dstName = new File(file.getParent(), baseName + extension).getAbsoluteFile();
-
-            try {
-
-            	Program program = new Program(libDirs);
-            	program.load(file);
-            	BufferedWriter outputStream;
-            	outputStream = new BufferedWriter(new FileWriter(dstName));
-            	try {
-            		if (target.equals("javascript")) {
-            			program.compileJS(new PrintWriter(outputStream), settings);
-                    } else if (target.equals("matlab")) {
-                    	program.compileMatlab(new PrintWriter(outputStream), settings);
-                    } else if (target.equals("html")) {
-                    	program.compileHtml(new PrintWriter(outputStream), settings);
-                    } else {
-                    	program.compileMVM(new PrintWriter(outputStream), settings);
-                    }
-                    
-                } finally {
-                    outputStream.close();
-                }
-            	/*
-                Pacioli.logln2("Loading module '%s'", file.getPath());
-                Module module = Reader.loadModule(null, file);
-
-                
-                outputStream = new BufferedWriter(new FileWriter(dstName));
-
-                try {
-                   // module.compile(new PrintWriter(outputStream), target, libDirs, settings);
-                } finally {
-                    outputStream.close();
-                }*/
-                Pacioli.logln("Written file '%s'", dstName);
-
-            } catch (IOException e) {
-                Pacioli.logln("\nError: cannot compile file '%s':\n\n%s", fileName, e);
-            }
+        	throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
+        
+        Pacioli.logln1("Compiling file '%s'", fileName);
+
+        Program program = new Program(libraryDirectories(libs));
+
+        int idx = file.getName().lastIndexOf('.');
+        String baseName = (idx > 0) ? file.getName().substring(0, idx) : file.getName();
+
+        String extension;
+        if (target.equals("javascript")) {
+        	extension = ".js";
+        } else if (target.equals("matlab")) {
+        	extension = ".m";
+        } else if (target.equals("html")) {
+        	extension = ".html";
+        } else {
+        	extension = ".mvm";
+        }
+        File dstName = new File(file.getParent(), baseName + extension).getAbsoluteFile();
+
+        try {
+
+        	program.load(file);
+        	BufferedWriter outputStream;
+        	outputStream = new BufferedWriter(new FileWriter(dstName));
+        	try {
+        		if (target.equals("javascript")) {
+        			program.compileJS(new PrintWriter(outputStream), settings);
+        		} else if (target.equals("matlab")) {
+        			program.compileMatlab(new PrintWriter(outputStream), settings);
+        		} else if (target.equals("html")) {
+        			program.compileHtml(new PrintWriter(outputStream), settings);
+        		} else {
+        			program.compileMVM(new PrintWriter(outputStream), settings);
+        		}
+
+        	} finally {
+        		outputStream.close();
+        	}
+
+        	Pacioli.logln("Written file '%s'", dstName);
+
+        } catch (IOException e) {
+        	throw new PacioliException("cannot compile file '%s':\n\n%s", fileName, e);
+        }
+
     }
 
     private static void interpretCommand(String fileName) throws MVMException {
@@ -265,16 +252,17 @@ public class Pacioli {
         File file = new File(fileName);
 
         if (!file.exists()) {
-            logln("Error: file '%s' does not exist.", fileName);
-        } else {
+            throw new MVMException("Error: file '%s' does not exist.", fileName);
+        } 
 
-            Pacioli.logln1("Interpreting file '%s'", fileName);
-            try {
-                interpretMVMText(Utils.readFile(new File(fileName)));
-            } catch (IOException e) {
-                Pacioli.logln("\nError: cannot interpret file '%s':\n\n%s", fileName, e);
-            }
+        Pacioli.logln1("Interpreting file '%s'", fileName);
+        
+        try {
+        	interpretMVMText(Utils.readFile(new File(fileName)));
+        } catch (IOException e) {
+        	throw new MVMException("\nError: cannot interpret file '%s':\n\n%s", fileName, e);
         }
+
     }
 
     private static void typesCommand(String fileName, List<File> libs) throws PacioliException {
@@ -282,24 +270,23 @@ public class Pacioli {
         File file = locatePacioliFile(fileName, libs);
 
         if (file == null) {
-            logln("Error: file '%s' does not exist.", fileName);
-        } else {
+            throw new PacioliException("Error: file '%s' does not exist.", fileName);
+        } 
 
-            Pacioli.logln1("Displaying types for file '%s'", fileName);
+        Pacioli.logln1("Displaying types for file '%s'", fileName);
+        Program program = new Program(libraryDirectories(libs));
+        
+        try {
 
-            try {
+        	Pacioli.logln2("Loading module '%s'", file.getPath());
+        	program.load(file);
+        	Pacioli.logln2("Displaying types in module '%s'", file.getPath());
+        	program.checkTypes();
 
-                List<File> libDirs = libraryDirectories(file, libs);
-                
-                Pacioli.logln2("Loading module '%s'", file.getPath());
-                Module module = Reader.loadModule(null, file);
-
-               // module.checkTypes(libDirs);
-
-            } catch (IOException e) {
-                Pacioli.logln("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
-            }
+        } catch (IOException e) {
+        	Pacioli.logln("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
         }
+
     }
 
     private static void infoCommand(List<File> libs) {
@@ -315,7 +302,7 @@ public class Pacioli {
         }
         logln("  traceall=%s", traceAll);
         logln("\nLibrary paths", warnings);
-        for (File file : libraryDirectories(null, libs)) {
+        for (File file : libraryDirectories(libs)) {
             logln("  %s", file);
             File[] files = file.listFiles(new FilenameFilter() {
                 @Override
@@ -398,10 +385,8 @@ public class Pacioli {
         return null;
     }
 
-    private static List<File> libraryDirectories(File file, List<File> libs) {
-
+    private static List<File> libraryDirectories(List<File> libs) {
         LinkedList<File> libDirs = new LinkedList<File>();
-
         for (File lib : libs) {
             if (lib.isDirectory()) {
                 libDirs.addFirst(lib);
@@ -409,16 +394,6 @@ public class Pacioli {
                 Pacioli.warn("Skipping non existing library directory '%s'", lib);
             }
         }
-/*
-        if (file != null) {
-            File dir = file.getAbsoluteFile().getParentFile();
-            if (dir.isDirectory()) {
-                libDirs.addFirst(file.getAbsoluteFile().getParentFile());
-            } else {
-                Pacioli.warn("Skipping non existing library directory '%s'", dir);
-            }
-        }
-*/
         return libDirs;
     }
 

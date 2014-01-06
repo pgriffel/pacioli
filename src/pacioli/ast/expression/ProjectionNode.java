@@ -1,6 +1,7 @@
 package pacioli.ast.expression;
 
 import java.io.PrintWriter;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -8,6 +9,7 @@ import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
+import pacioli.TypeContext;
 import pacioli.Typing;
 import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
@@ -25,63 +27,53 @@ public class ProjectionNode extends AbstractExpressionNode {
 
 	@Override
 	public ExpressionNode transformCalls(CallMap map) {
-		// TODO Auto-generated method stub
-		return null;
+		return this;
 	}
 
 	@Override
 	public ExpressionNode transformIds(IdMap map) {
-		// TODO Auto-generated method stub
-		return null;
+		return this;
 	}
 
 	@Override
 	public ExpressionNode transformSequences(SequenceMap map) {
-		// TODO Auto-generated method stub
-		return null;
+		return this;
 	}
 
 	@Override
 	public ExpressionNode resolved(Dictionary dictionary,
 			ValueContext context) throws PacioliException {
-		// TODO Auto-generated method stub
-		return null;
+		return new ProjectionNode(getLocation(), typeNode.resolved(dictionary, new TypeContext()));
 	}
 
 	@Override
 	public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
-		// TODO Auto-generated method stub
-		return null;
+        return new Typing(typeNode.eval(false));
 	}
 
 	@Override
 	public Set<IdentifierNode> locallyAssignedVariables() {
-		// TODO Auto-generated method stub
-		return null;
+		return new LinkedHashSet<IdentifierNode>();
 	}
 
 	@Override
 	public ExpressionNode equivalentFunctionalCode() {
-		// TODO Auto-generated method stub
-		return null;
+		throw new RuntimeException("Not implemented");
 	}
 
 	@Override
 	public Set<Definition> uses() {
-		// TODO Auto-generated method stub
 		return typeNode.uses();
 	}
 
 	@Override
 	public String compileToMVM(CompilationSettings settings) {
-		// TODO Auto-generated method stub
-		return null;
+		return String.format("matrix_constructor(\"projection\", %s)", typeNode.compileToMVM(settings));
 	}
 
 	@Override
 	public String compileToJS() {
-		// TODO Auto-generated method stub
-		return null;
+		return String.format("projectionMatrix(%s)", typeNode.compileToJS());
 	}
 
 	@Override

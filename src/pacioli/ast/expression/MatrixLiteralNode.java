@@ -85,7 +85,24 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 
 	@Override
 	public String compileToMVM(CompilationSettings settings) {
-		throw new RuntimeException("todo");	
+
+		StringBuilder builder = new StringBuilder();
+		for (int i=0; i < values.size(); i++) {
+			builder.append(rowIndices.get(i));
+			builder.append(" ");
+			builder.append(columnIndices.get(i));
+			builder.append(" \"");
+			builder.append(values.get(i));
+			builder.append("\", ");
+		}
+		return String.format("literal_matrix(%s, %s)",
+				typeNode.compileToMVM(settings),
+				builder.toString());
+//		
+//		return String.format("initialMatrix(%s, [%s])", 
+//				typeNode.compileToJS(),
+//				builder.toString());
+//        return String.format("\nstorelit \"%s\" %s %s;\n", globalName(), bangBody.compileToMVM(settings), outputStream.toString());
 	}
 
 	private void setIndices(Dictionary dictionary) throws PacioliException {

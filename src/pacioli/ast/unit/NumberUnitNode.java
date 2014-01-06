@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
+import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.ast.definition.Definition;
@@ -28,6 +29,12 @@ public class NumberUnitNode extends AbstractUnitNode {
 	public UnitNode resolved(Dictionary dictionary) {
 		return this;
 	}
+
+	@Override
+	public Set<Definition> uses() {
+		return new HashSet<Definition>();
+	}
+
 	@Override
 	public Unit eval() {
 		return Unit.ONE.multiply(new BigDecimal(number));
@@ -39,7 +46,7 @@ public class NumberUnitNode extends AbstractUnitNode {
 	}
 
 	@Override
-	public Set<Definition> uses() {
-		return new HashSet<Definition>();
+	public String compileToMVM(CompilationSettings settings) {
+		return number;
 	}
 }

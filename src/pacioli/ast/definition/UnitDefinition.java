@@ -22,6 +22,7 @@
 package pacioli.ast.definition;
 
 import java.io.PrintWriter;
+import java.util.HashSet;
 import java.util.Set;
 
 import pacioli.CompilationSettings;
@@ -95,7 +96,11 @@ public class UnitDefinition extends AbstractDefinition {
 
     @Override
     public Set<Definition> uses() {
-        return resolvedBody.uses();
+    	if (body != null) {
+    		return resolvedBody.uses();
+    	} else {
+    		return new HashSet<Definition>();
+    	}
     }
 
     @Override
@@ -103,7 +108,8 @@ public class UnitDefinition extends AbstractDefinition {
         if (body == null) {
             return String.format("baseunit \"%s\" \"%s\";\n", id.getName(), symbol);
         } else {
-            return String.format("unit \"%s\" \"%s\" %s;\n", id.getName(), symbol, body.eval().flat().toText());
+            //return String.format("unit \"%s\" \"%s\" %s;\n", id.getName(), symbol, body.eval().flat().toText());
+        	return String.format("unit \"%s\" \"%s\" %s;\n", id.getName(), symbol, resolvedBody.compileToMVM(settings));
         }
     }
 

@@ -99,15 +99,18 @@ public class MatrixTypeNode extends AbstractExpressionNode {
     public String compileToMVM(CompilationSettings settings) {
         
         
+    	return String.format("matrix_constructor(\"ones\", %s)", typeNode.compileToMVM(settings));
+    	/*
         // this is reused in MatrixDefinition. todo: reconsider how types 
         // are communicated to the MVM.
         try {
-			return matrixTypeMVMCode((MatrixType) typeNode.eval(false));
+			//return matrixTypeMVMCode((MatrixType) typeNode.eval(false));
+        	return String.format("matrix_constructor(\"one\", %s)", typeNode.compileToMVM(settings));
 		} catch (PacioliException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return "Cannot happen!?";
-		}
+		}*/
     }
 
     private static String matrixTypeMVMCode(MatrixType type) {

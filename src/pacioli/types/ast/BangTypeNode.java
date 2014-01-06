@@ -103,6 +103,13 @@ public class BangTypeNode extends AbstractTypeNode {
 				unit == null ? "" : unit.getDefinition().getModule().getName(),
 				unit == null ? "" : unit.getName());
 	}
+	
+	@Override
+	public String compileToMVM(CompilationSettings settings) {
+		return String.format("bang_shape(\"%s\", \"%s\")", 
+				indexSet.getDefinition().globalName(),
+				unit == null ? "" : unit.getDefinition().localName());
+	}
 
 	@Override
 	public Set<Definition> uses() {

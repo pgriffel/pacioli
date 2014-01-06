@@ -81,14 +81,15 @@ public class ConversionNode extends AbstractExpressionNode {
 
 	@Override
 	public Set<Definition> uses() {
-		return new HashSet<Definition>();
+		return typeNode.uses();
 	}
 
 	@Override
 	public String compileToMVM(CompilationSettings settings) {
-		assert (bang != null);
-        ExpressionNode body = ApplicationNode.newCall(bang.getLocation(), "", "conversion", bang);
-        return body.compileToMVM(settings);
+//		assert (bang != null);
+//        ExpressionNode body = ApplicationNode.newCall(bang.getLocation(), "", "conversion", bang);
+//        return body.compileToMVM(settings);
+        return String.format("matrix_constructor(\"conversion\", %s)", typeNode.compileToMVM(settings));
 	}
 
 	@Override

@@ -32,6 +32,6 @@ public class MVMException extends Exception {
     }
     
     public MVMException(Throwable cause) {
-        super(cause.getLocalizedMessage());
+        super(cause);
     }
 }

@@ -110,7 +110,19 @@ public class UnitVectorDefinition extends AbstractDefinition {
                 indexSetNode.getName(),
                 unitNode.getName(),
                 Utils.intercalate(", ", unitTexts));*/
-    	return "fixme";
+//        assert (unitArray != null);
+        List<String> unitTexts = new ArrayList<String>();
+//        for (int i = 0; i < unitArray.length; i++) {
+//            unitTexts.add(unitArray[i].toText());
+//        }
+        for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
+        	unitTexts.add("\"" + entry.getKey() + "\": " + entry.getValue().compileToMVM(settings));
+        }
+        return String.format("\nunitvector \"%s\" \"%s\" list(%s);",
+                //indexSetNode.getName(),
+                resolvedIndexSet.getDefinition().globalName(),
+                indexSetNode.getName()+"!"+unitNode.getName(),
+                Utils.intercalate(", ", unitTexts));
     }
 
     @Override

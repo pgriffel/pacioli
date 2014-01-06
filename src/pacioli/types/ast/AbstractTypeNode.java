@@ -52,16 +52,16 @@ public abstract class AbstractTypeNode extends AbstractPrintable implements Type
 
 	@Override
 	public String compileToJS() {
-		throw new RuntimeException("Not implemented for this type node. Only matrix type nodes can be compiled.");
+		throw new RuntimeException("Not implemented for this type of node (" + this.getClass() + "). Only matrix type nodes can be compiled.");
 	}
 	
 	@Override
 	public String compileToMVM(CompilationSettings settings) {
-		throw new RuntimeException("Not implemented for this type node. Only matrix type nodes can be compiled.");
+		throw new RuntimeException("Not implemented for this type of node (" + this.getClass() + "). Only matrix type nodes can be compiled.");
 	}
 
 	@Override
 	public String compileToMATLAB() {
-		throw new RuntimeException("Not implemented for this type node. Only matrix type nodes can be compiled.");
+		throw new RuntimeException("Not implemented for this type of node (" + this.getClass() + "). Only matrix type nodes can be compiled.");
 	}
 }

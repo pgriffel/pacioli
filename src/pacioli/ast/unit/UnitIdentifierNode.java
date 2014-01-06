@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Set;
 
+import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
@@ -82,6 +83,15 @@ public class UnitIdentifierNode extends AbstractUnitNode {
         Set<Definition> set = new HashSet<Definition>();
         set.add(definition);
         return set;
+	}
+
+	@Override
+	public String compileToMVM(CompilationSettings settings) {
+		if (prefix == null) {
+			return "unit(\"" + name + "\")"; 
+		} else {
+			return "scaled_unit(\"" + prefix + "\", \"" + name + "\")";
+		}
 	}
 
 }

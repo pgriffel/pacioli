@@ -63,6 +63,7 @@ import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
+import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
@@ -520,7 +521,7 @@ public class Reader {
 					public Definition map(final IdentifierNode id,
 							final TypeNode node) {
 						return new ValueDefinition(id.getLocation().join(
-								node.getLocation()), id, new ConversionNode(id
+								node.getLocation()), id, new ProjectionNode(id
 								.getLocation().join(node.getLocation()), node));
 					}
 				});

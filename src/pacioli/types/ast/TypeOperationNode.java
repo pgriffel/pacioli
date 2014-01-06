@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Set;
 
+import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
@@ -126,6 +127,26 @@ public class TypeOperationNode extends AbstractTypeNode {
 		}
 	}
 
+	public String compileToMVM(CompilationSettings settings) {
+		String leftMVM = left.compileToMVM(settings);
+		String rightMVM = right.compileToMVM(settings);
+		if (operator == "multiply") {
+			return "shape_binop(\"multiply\", " + leftMVM + ", " + rightMVM + ")";
+		} else if (operator == "divide") {
+			return "shape_binop(\"divide\", " + leftMVM + ", " + rightMVM + ")";
+		} else if (operator == "^") {
+			return "shape_binop(\"expt\", " + leftMVM + ", " + rightMVM + ")";
+		} else if (operator == "per") {
+			return "shape_binop(\"per\", " + leftMVM + ", " + rightMVM + ")";
+		} else if (operator == "kronecker") {
+			return "shape_binop(\"kronecker\", " + leftMVM + ", " + rightMVM + ")";
+		} else if (operator == "scale") {
+			return "scalar_shape(scaled_unit(\"" + left + "\", \"" + right + "\"))";
+		} else {
+			throw new RuntimeException("Type operator '" + operator + "' unknown");
+		}
+	}
+	
 	@Override
 	public Set<Definition> uses() {
 		Set<Definition> set = new HashSet<Definition>();
