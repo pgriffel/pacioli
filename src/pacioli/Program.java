@@ -46,8 +46,6 @@ public class Program {
 	 * included files, etc, are loaded in the maps in this program. The keys for
 	 * the maps are the definitions' unique global names.
 	 * 
-	 * Each included module
-	 * 
 	 * Each definition has a module field and each module has a program field.
 	 */
 	public void addValueDefinition(ValueDefinition definition, Module module) {
@@ -85,55 +83,8 @@ public class Program {
 	}
 
 	/*
-	 * Loading
+	 * Topological Order of Definitions
 	 */
-	public void load(File file) throws PacioliException, IOException {
-
-		main = Reader.loadModule(this, file);
-		loadIncludes(main);
-		desugar();
-		resolveNames();
-		infertTypes();
-	}
-
-	private void desugar() {
-		Pacioli.logln3("Desugaring");
-		for (ValueDefinition definition : dictionary.valueDefinitions()) {
-			// Pacioli.logln3("- %s", definition.globalName());
-			if (definition.getModule() == main) {
-				definition.desugar();
-			} else {
-				definition.desugar();
-			}
-		}
-		for (Declaration definition : dictionary.declarations()) {
-			definition.desugar();
-		}
-	}
-
-	public void checkTypes() throws PacioliException {
-		Set<String> printed= new HashSet<String>();
-		for (Declaration definition : dictionary.declarations()) {
-			if (definition.getModule() == main) {
-				Pacioli.logln("%s :: %s", definition.localName(), definition
-						.getType().toText());
-				printed.add(definition.localName());
-			}
-		}
-		for (ValueDefinition definition : dictionary.valueDefinitions()) {
-			if (definition.getModule() == main && !printed.contains(definition.localName())) {
-				Pacioli.logln("%s :: %s", definition.localName(), definition
-						.getType().toText());
-			}
-		}
-		int i = 0;
-		for (Toplevel toplevel : toplevelExpressions) {
-			if (toplevel.getModule() == main) {
-				Pacioli.logln("toplevel%s :: %s", i++, toplevel.getType().toText());
-			}
-		}
-	}
-
 	List<Definition> orderedDefinitions(
 			Collection<? extends Definition> definitions) throws PacioliException {
 
@@ -152,7 +103,7 @@ public class Program {
 
 		if (!finished.contains(definition)) {
 			if (discovered.contains(definitions)) {
-				throw new PacioliException(definition.getLocation(), "Cycle in unit " + definition.localName());	
+				throw new PacioliException(definition.getLocation(), "Cycle in definition " + definition.localName());	
 			}
 			discovered.add(definition);
 			for (Definition other : definition.uses()) {
@@ -163,135 +114,17 @@ public class Program {
 		}
 	}
 
-	public void compileJS(PrintWriter out, CompilationSettings settings) throws PacioliException {
-		for (Definition definition : dictionary.indexSetDefinitions()) {
-			out.println(definition.compileToJS());
-		}
-		for (Definition definition : orderedDefinitions(dictionary
-				.unitDefinitions())) {
-			out.println(definition.compileToJS());
-		}
-		for (Definition definition : dictionary.unitVectorDefinitions()) {
-			out.println(definition.compileToJS());
-		}
-		for (Definition definition : dictionary.valueDefinitions()) {
-			if (definition.getModule() == main) {
-				out.println(definition.compileToJS());
-			} else {
-				out.println(definition.compileToJS());
-			}
-		}
+	/*
+	 * Loading
+	 */
+	public void load(File file) throws PacioliException, IOException {
+
+		main = Reader.loadModule(this, file);
+		loadIncludes(main);
+		desugar();
+		resolveNames();
+		infertTypes();
 	}
-
-	public void compileMatlab(PrintWriter printWriter,
-			CompilationSettings settings) {
-		// TODO Auto-generated method stub
-
-	}
-
-	public void compileHtml(PrintWriter out, CompilationSettings settings) throws PacioliException {
-		// TODO Auto-generated method stub
-		out.println("<!DOCTYPE HTML>\n"
-				+ "\n"
-				+ "<!-- HTML and Javascript code generated from Pacioli module "
-				+ main.getName()
-				+ " -->\n"
-				+ "\n"
-				+ "<html lang=\"en\">\n"
-				+ "  <head>\n"
-				+ "    <title>"
-				+ main.getName()
-				+ "</title>\n"
-				+ "    <meta charset=\"utf-8\">\n"
-				+ "    <link rel=\"stylesheet\" type=\"text/css\" href=\"pacioli.css\">\n"
-				+ "  </head>\n"
-				+ "\n"
-				+ "  <body onload=\"onLoad();\">\n"
-				+ "\n"
-				+ "    <div id=\"main\">\n"
-				+ "    </div>\n"
-				+ "\n"
-				+ "    <script type=\"text/javascript\" src=\"numeric-1.2.6.js\"></script>\n"
-				+ "    <script type=\"text/javascript\" src=\"pacioli-primitives.js\"></script>\n"
-				+ "\n" + "    <script type=\"text/javascript\">\n" + "\n");
-		compileJS(out, settings);
-		out.println("function onLoad() {");
-		for (Toplevel definition : toplevelExpressions) {
-			out.print("global_Primitives_print(");
-			out.print(definition.compileToJS());
-			out.print(")");
-			out.println("");
-		}
-		out.println("}");
-		out.println("\n" + "\n" + "    </script>\n" + "\n" + "  </body>\n"
-				+ "\n" + "</hmtl>\n");
-	}
-
-	public void compileMVM(PrintWriter out, CompilationSettings settings) throws PacioliException {
-		for (Definition definition : dictionary.indexSetDefinitions()) {
-			out.println(definition.compileToMVM(settings));
-		}
-		for (Definition definition : orderedDefinitions(dictionary.unitDefinitions())) {
-			out.println(definition.compileToMVM(settings));
-		}
-		for (Definition definition : dictionary.unitVectorDefinitions()) {
-			out.println(definition.compileToMVM(settings));
-		}
-		for (Definition definition : dictionary.valueDefinitions()) {
-			if (definition.getModule() == main) {
-				out.println(definition.compileToMVM(settings));
-			} else {
-				out.println(definition.compileToMVM(settings));
-			}
-		}
-		for (Toplevel definition : toplevelExpressions) {
-			// out.format("\nprint %s;",
-			// definition.transformMutableVarRefs().compileToMVM(settings));
-			out.format("\nprint %s;", definition.compileToMVM(settings));
-		}
-	}
-
-	private void infertTypes() throws PacioliException {
-
-		Set<Definition> discovered = new HashSet<Definition>();
-		Set<Definition> finished = new HashSet<Definition>();
-
-		for (ValueDefinition definition : dictionary.valueDefinitions()) {
-			// Pacioli.logln("%s :: ", definition.globalName());
-			inferValueDefinitionType(definition, discovered, finished);
-			// PacioliType infered = definition.inferType(null, new
-			// HashMap<String, PacioliType>()).generalize();
-		}
-		for (Toplevel toplevel : toplevelExpressions) {
-			// generalize moet niets opleveren!? voor closures misschien? En
-			// dan?
-			toplevel.inferType(null, new HashMap<String, PacioliType>())
-					.generalize();
-		}
-	}
-
-	private void inferValueDefinitionType(ValueDefinition definition,
-			Set<Definition> discovered, Set<Definition> finished)
-			throws PacioliException {
-
-		if (!finished.contains(definition)) {
-			if (discovered.contains(definition)) {
-				Pacioli.warn("Cycle in definition of %s",
-						definition.localName());
-			} else {
-				discovered.add(definition);
-				for (Definition pre : definition.uses()) {
-					if (pre instanceof ValueDefinition) {
-						inferValueDefinitionType((ValueDefinition) pre,
-								discovered, finished);
-					}
-				}
-				definition.inferType();
-				finished.add(definition);
-			}
-		}
-	}
-
 	Set<String> moduleIncludePaths(Module module) {
 		Set<String> paths = new HashSet<String>();
 		paths.addAll(Module.defaultIncludes);
@@ -412,7 +245,6 @@ public class Program {
 
 	private void resolveNames() throws PacioliException {
 		for (Module module: modules.values()) {
-			Pacioli.log("Resolving %s", module.getName());
 			resolveModuleNames(module);
 		}
 		resolveModuleNames(main);
@@ -431,7 +263,6 @@ public class Program {
 		// Resolve the bodies of this module's definitions. Units and index sets
 		// are resolved first, so that they can be used during resolving of
 		// other definitions. For example during evaluation of types.
-		//Module module = main;
 
 		for (Definition definition : dictionary.unitDefinitions()) {
 			if (definition.getModule() == module) {
@@ -475,5 +306,170 @@ public class Program {
 			}
 		}
 	}
+
+	/*
+	 * Desugaring
+	 */
+	private void desugar() {
+		for (ValueDefinition definition : dictionary.valueDefinitions()) {
+			definition.desugar();
+		}
+		for (Declaration definition : dictionary.declarations()) {
+			definition.desugar();
+		}
+	}
+
+	/*
+	 * Type Inference
+	 */
+	public void checkTypes() throws PacioliException {
+		Set<String> printed= new HashSet<String>();
+		for (Declaration definition : dictionary.declarations()) {
+			if (definition.getModule() == main) {
+				Pacioli.logln("%s :: %s", definition.localName(), definition
+						.getType().toText());
+				printed.add(definition.localName());
+			}
+		}
+		for (ValueDefinition definition : dictionary.valueDefinitions()) {
+			if (definition.getModule() == main && !printed.contains(definition.localName())) {
+				Pacioli.logln("%s :: %s", definition.localName(), definition
+						.getType().toText());
+			}
+		}
+		int i = 0;
+		for (Toplevel toplevel : toplevelExpressions) {
+			if (toplevel.getModule() == main) {
+				Pacioli.logln("toplevel%s :: %s", i++, toplevel.getType().toText());
+			}
+		}
+	}
+
+	private void infertTypes() throws PacioliException {
+
+		Set<Definition> discovered = new HashSet<Definition>();
+		Set<Definition> finished = new HashSet<Definition>();
+
+		for (ValueDefinition definition : dictionary.valueDefinitions()) {
+			inferValueDefinitionType(definition, discovered, finished);
+		}
+		for (Toplevel toplevel : toplevelExpressions) {
+			toplevel.inferType(null, new HashMap<String, PacioliType>());
+		}
+	}
+
+	private void inferValueDefinitionType(ValueDefinition definition,
+			Set<Definition> discovered, Set<Definition> finished)
+			throws PacioliException {
+
+		if (!finished.contains(definition)) {
+			if (discovered.contains(definition)) {
+				Pacioli.warn("Cycle in definition of %s",
+						definition.localName());
+			} else {
+				discovered.add(definition);
+				for (Definition pre : definition.uses()) {
+					if (pre instanceof ValueDefinition) {
+						inferValueDefinitionType((ValueDefinition) pre,
+								discovered, finished);
+					}
+				}
+				definition.inferType();
+				finished.add(definition);
+			}
+		}
+	}
+
+
+	/* 
+	 * Compilation
+	 */
+
+	public void compileMVM(PrintWriter out, CompilationSettings settings) throws PacioliException {
+		for (Definition definition : dictionary.indexSetDefinitions()) {
+			out.println(definition.compileToMVM(settings));
+		}
+		for (Definition definition : orderedDefinitions(dictionary.unitDefinitions())) {
+			out.println(definition.compileToMVM(settings));
+		}
+		for (Definition definition : dictionary.unitVectorDefinitions()) {
+			out.println(definition.compileToMVM(settings));
+		}
+		for (Definition definition : dictionary.valueDefinitions()) {
+			if (definition.getModule() == main) {
+				out.println(definition.compileToMVM(settings));
+			} else {
+				out.println(definition.compileToMVM(settings));
+			}
+		}
+		for (Toplevel definition : toplevelExpressions) {
+			out.format("\nprint %s;", definition.compileToMVM(settings));
+		}
+	}
+	
+	public void compileJS(PrintWriter out, CompilationSettings settings) throws PacioliException {
+		for (Definition definition : dictionary.indexSetDefinitions()) {
+			out.println(definition.compileToJS());
+		}
+		for (Definition definition : orderedDefinitions(dictionary
+				.unitDefinitions())) {
+			out.println(definition.compileToJS());
+		}
+		for (Definition definition : dictionary.unitVectorDefinitions()) {
+			out.println(definition.compileToJS());
+		}
+		for (Definition definition : dictionary.valueDefinitions()) {
+			if (definition.getModule() == main) {
+				out.println(definition.compileToJS());
+			} else {
+				out.println(definition.compileToJS());
+			}
+		}
+	}
+
+	public void compileMatlab(PrintWriter printWriter,
+			CompilationSettings settings) {
+		// TODO Auto-generated method stub
+
+	}
+
+	public void compileHtml(PrintWriter out, CompilationSettings settings) throws PacioliException {
+		out.println("<!DOCTYPE HTML>\n"
+				+ "\n"
+				+ "<!-- HTML and Javascript code generated from Pacioli module "
+				+ main.getName()
+				+ " -->\n"
+				+ "\n"
+				+ "<html lang=\"en\">\n"
+				+ "  <head>\n"
+				+ "    <title>"
+				+ main.getName()
+				+ "</title>\n"
+				+ "    <meta charset=\"utf-8\">\n"
+				+ "    <link rel=\"stylesheet\" type=\"text/css\" href=\"pacioli.css\">\n"
+				+ "  </head>\n"
+				+ "\n"
+				+ "  <body onload=\"onLoad();\">\n"
+				+ "\n"
+				+ "    <div id=\"main\">\n"
+				+ "    </div>\n"
+				+ "\n"
+				+ "    <script type=\"text/javascript\" src=\"numeric-1.2.6.js\"></script>\n"
+				+ "    <script type=\"text/javascript\" src=\"pacioli-primitives.js\"></script>\n"
+				+ "\n" + "    <script type=\"text/javascript\">\n" + "\n");
+		compileJS(out, settings);
+		out.println("function onLoad() {");
+		for (Toplevel definition : toplevelExpressions) {
+			out.print("global_Primitives_print(");
+			out.print(definition.compileToJS());
+			out.print(")");
+			out.println("");
+		}
+		out.println("}");
+		out.println("\n" + "\n" + "    </script>\n" + "\n" + "  </body>\n"
+				+ "\n" + "</hmtl>\n");
+	}
+
+
 }
 
