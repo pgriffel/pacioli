@@ -90,7 +90,7 @@ public class Program {
 	public void load(File file) throws PacioliException, IOException {
 
 		main = Reader.loadModule(this, file);
-		loadIncludes(main, libDirs);
+		loadIncludes(main);
 		desugar();
 		resolveNames();
 		infertTypes();
@@ -112,9 +112,6 @@ public class Program {
 	}
 
 	public void checkTypes() throws PacioliException {
-//		desugar();
-//		resolveNames();
-//		infertTypes();
 		Set<String> printed= new HashSet<String>();
 		for (Declaration definition : dictionary.declarations()) {
 			if (definition.getModule() == main) {
@@ -312,7 +309,7 @@ public class Program {
 		return modules;
 	}
 
-	private void loadIncludes(Module module, List<File> libDirs)
+	private void loadIncludes(Module module)
 			throws PacioliException, IOException {
 		for (String include : moduleIncludePaths(module)) {
 			File includeFile = findIncludeFile(include, module.directory());
@@ -326,7 +323,7 @@ public class Program {
 						includeFile);
 				Module includeModule = Reader.loadModule(this, includeFile);
 				modules.put(includeKey, includeModule);
-				loadIncludes(includeModule, libDirs);
+				loadIncludes(includeModule);
 			}
 		}
 	}
@@ -413,83 +410,70 @@ public class Program {
 		return dict;
 	}
 
-	// MOET PER MODULE!
 	private void resolveNames() throws PacioliException {
-
-		// Map<String, Module> globals = new HashMap<String, Module>();
-		// Set<Module> modules = new HashSet<Module>();
-		//
-		// // Collect all accessible modules
-		// for (String i : defaultIncludes) {
-		// assert (loadedModules.containsKey(i));
-		// modules.add(loadedModules.get(i));
-		// }
-		// for (String i : getIncludes()) {
-		// assert (loadedModules.containsKey(i));
-		// modules.add(loadedModules.get(i));
-		// }
-		// modules.add(this);
-
-		// Dictionary dict = new Dictionary();
-		Dictionary dict = localDictionary(main);
-
-		for (Module mod : accessibleModules(main)) {
-			dict.addAll(localDictionary(mod));
+		for (Module module: modules.values()) {
+			Pacioli.log("Resolving %s", module.getName());
+			resolveModuleNames(module);
 		}
+		resolveModuleNames(main);
+	}
+	
+	private void resolveModuleNames(Module module) throws PacioliException {
 
-		// Collect all accesable definition names
-		// for (Module mod : accessibleModules(main)) {
-		// for (ValueDefinition definition:
-		// dictionary.valueDefinitions.values()) {
-		// if (definition.getModule() == mod) {
-		// if (dict.valueDefinitions.containsKey(definition.localName())) {
-		// throw new
-		// PacioliException("\nName clash for %s between module %s and %s\n",
-		// definition.localName(), mod.name, main.name);
-		// }
-		// dict.putValueDefinition(definition.localName(), definition);
-		// }
-		// }
-		// for (Declaration definition: dictionary.declarations.values()) {
-		// if (definition.getModule() == mod) {
-		// if (dict.declarations.containsKey(definition.localName())) {
-		// throw new
-		// PacioliException("\nName clash for %s between module %s and %s\n",
-		// definition.localName(), mod.name, main.name);
-		// }
-		// dict.putDeclaration(definition.localName(), definition);
-		// }
-		// }
-		// }
+		Dictionary dict = localDictionary(module);
+
+		for (Module mod : accessibleModules(module)) {
+			if (mod != module) {
+				dict.addAll(localDictionary(mod));
+			}
+		}
 
 		// Resolve the bodies of this module's definitions. Units and index sets
 		// are resolved first, so that they can be used during resolving of
 		// other definitions. For example during evaluation of types.
+		//Module module = main;
+
 		for (Definition definition : dictionary.unitDefinitions()) {
-			definition.resolve(dict);
+			if (definition.getModule() == module) {
+				definition.resolve(dict);
+			}
 		}
 		for (IndexSetDefinition definition : dictionary.indexSetDefinitions()) {
-			definition.resolve(dict);
+			if (definition.getModule() == module) {
+				definition.resolve(dict);
+			}
 		}
 		for (UnitVectorDefinition definition : dictionary
 				.unitVectorDefinitions()) {
-			definition.resolve(dict);
+			if (definition.getModule() == module) {
+				definition.resolve(dict);
+			}
 		}
 		for (TypeDefinition definition : dictionary.typeDefinitions()) {
-			definition.resolve(dict);
+			if (definition.getModule() == module) {
+				definition.resolve(dict);
+			}
 		}
 		for (AliasDefinition definition : dictionary.aliasDefinitions()) {
-			definition.resolve(dict);
+			if (definition.getModule() == module) {
+				definition.resolve(dict);
+			}
 		}
 		for (Declaration definition : dictionary.declarations()) {
-			definition.resolve(dict);
+			if (definition.getModule() == module) {
+				definition.resolve(dict);
+			}
 		}
 		for (ValueDefinition definition : dictionary.valueDefinitions()) {
-			definition.resolve(dict);
+			if (definition.getModule() == module) {
+				definition.resolve(dict);
+			}
 		}
 		for (Toplevel toplevel : toplevelExpressions) {
-			toplevel.resolve(dict);
+			if (toplevel.getModule() == module) {
+				toplevel.resolve(dict);
+			}
 		}
 	}
-
 }
+
