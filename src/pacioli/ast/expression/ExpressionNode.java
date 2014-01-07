@@ -36,27 +36,6 @@ import pacioli.types.PacioliType;
 
 public interface ExpressionNode extends ASTNode {
 
-    public interface CallMap {
-
-        public ExpressionNode transform(ApplicationNode node);
-    }
-
-    public interface IdMap {
-
-        public ExpressionNode transform(IdentifierNode node);
-    }
-
-    public interface SequenceMap {
-
-        public ExpressionNode transform(SequenceNode node);
-    }
-
-    public ExpressionNode transformCalls(CallMap map);
-
-    public ExpressionNode transformIds(IdMap map);
-
-    public ExpressionNode transformSequences(SequenceMap map);
-
     public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException;
 
     public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException;
@@ -66,6 +45,4 @@ public interface ExpressionNode extends ASTNode {
     public ExpressionNode desugar();
     
     public ExpressionNode liftStatements(Module module, List<ValueDefinition> blocks);
-    
-    public ExpressionNode transformMutableVarRefs();
 }

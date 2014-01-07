@@ -33,11 +33,13 @@ import java.util.Set;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
+import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
 import pacioli.types.matrix.DimensionType;
 
@@ -129,21 +131,6 @@ public class KeyNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode transformCalls(CallMap map) {
-        return this;
-    }
-
-    @Override
-    public ExpressionNode transformIds(IdMap map) {
-        return this;
-    }
-
-    @Override
-    public ExpressionNode transformSequences(SequenceMap map) {
-        return this;
-    }
-
-    @Override
     public Set<IdentifierNode> locallyAssignedVariables() {
         return new LinkedHashSet<IdentifierNode>();
     }
@@ -204,4 +191,11 @@ public class KeyNode extends AbstractExpressionNode {
         }
         return String.format("{%s,%s}", index, totalSize);
     }
+
+	@Override
+	public ExpressionNode liftStatements(Module module,
+			List<ValueDefinition> blocks) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

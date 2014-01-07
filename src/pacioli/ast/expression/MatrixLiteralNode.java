@@ -13,11 +13,13 @@ import org.codehaus.jparsec.functors.Pair;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
+import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
 import pacioli.Typing;
 import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
 
@@ -35,21 +37,6 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 		super(location);
 		this.typeNode = typeNode;
 		this.pairs = pairs;
-	}
-
-	@Override
-	public ExpressionNode transformCalls(CallMap map) {
-		return this;
-	}
-
-	@Override
-	public ExpressionNode transformIds(IdMap map) {
-		return this;
-	}
-
-	@Override
-	public ExpressionNode transformSequences(SequenceMap map) {
-		return this;
 	}
 
 	@Override
@@ -156,6 +143,13 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 	@Override
 	public void printText(PrintWriter out) {
 		throw new RuntimeException("todo");	
+	}
+
+	@Override
+	public ExpressionNode liftStatements(Module module,
+			List<ValueDefinition> blocks) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

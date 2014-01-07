@@ -25,16 +25,19 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
+import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 
@@ -121,33 +124,6 @@ public class BranchNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode transformCalls(CallMap map) {
-        return new BranchNode(
-                test.transformCalls(map),
-                positive.transformCalls(map),
-                negative.transformCalls(map),
-                getLocation());
-    }
-
-    @Override
-    public ExpressionNode transformIds(IdMap map) {
-        return new BranchNode(
-                test.transformIds(map),
-                positive.transformIds(map),
-                negative.transformIds(map),
-                getLocation());
-    }
-
-    @Override
-    public ExpressionNode transformSequences(SequenceMap map) {
-        return new BranchNode(
-                test.transformSequences(map),
-                positive.transformSequences(map),
-                negative.transformSequences(map),
-                getLocation());
-    }
-
-    @Override
     public Set<IdentifierNode> locallyAssignedVariables() {
         return new LinkedHashSet<IdentifierNode>();
     }
@@ -160,4 +136,11 @@ public class BranchNode extends AbstractExpressionNode {
                 negative.desugar(),
                 getLocation());
     }
+
+	@Override
+	public ExpressionNode liftStatements(Module module,
+			List<ValueDefinition> blocks) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

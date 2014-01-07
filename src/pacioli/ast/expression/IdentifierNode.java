@@ -24,6 +24,7 @@ package pacioli.ast.expression;
 import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -193,21 +194,6 @@ public class IdentifierNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode transformCalls(CallMap map) {
-        return this;
-    }
-
-    @Override
-    public ExpressionNode transformIds(IdMap map) {
-        return map.transform(this);
-    }
-
-    @Override
-    public ExpressionNode transformSequences(SequenceMap map) {
-        return this;
-    }
-
-    @Override
     public Set<IdentifierNode> locallyAssignedVariables() {
         return new LinkedHashSet<IdentifierNode>();
     }
@@ -244,4 +230,11 @@ public class IdentifierNode extends AbstractExpressionNode {
         assert (home != null); // names must have been resolved
         return home.isEmpty() ? name.toLowerCase() : "fetch_global(\"" + home.toLowerCase() + "\", \"" + name.toLowerCase() + "\")";
     }
+
+	@Override
+	public ExpressionNode liftStatements(Module module,
+			List<ValueDefinition> blocks) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

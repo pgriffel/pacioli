@@ -25,16 +25,19 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
+import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 
@@ -109,22 +112,14 @@ public class ReturnNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode transformCalls(CallMap map) {
-        return new ReturnNode(getLocation(), value.transformCalls(map), resultPlace);
-    }
-
-    @Override
-    public ExpressionNode transformIds(IdMap map) {
-        return new ReturnNode(getLocation(), value.transformIds(map), resultPlace);
-    }
-
-    @Override
     public Set<IdentifierNode> locallyAssignedVariables() {
         return new LinkedHashSet<IdentifierNode>();
     }
 
-    @Override
-    public ExpressionNode transformSequences(SequenceMap map) {
-        return new ReturnNode(getLocation(), value.transformSequences(map), resultPlace);
-    }
+	@Override
+	public ExpressionNode liftStatements(Module module,
+			List<ValueDefinition> blocks) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

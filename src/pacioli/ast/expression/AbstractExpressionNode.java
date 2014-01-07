@@ -21,11 +21,8 @@
 
 package pacioli.ast.expression;
 
-import java.util.List;
 import pacioli.Location;
-import pacioli.Module;
 import pacioli.ast.AbstractASTNode;
-import pacioli.ast.definition.ValueDefinition;
 
 public abstract class AbstractExpressionNode extends AbstractASTNode implements ExpressionNode {
 
@@ -33,28 +30,4 @@ public abstract class AbstractExpressionNode extends AbstractASTNode implements 
         super(location);
     }
 
-    @Override
-    public ExpressionNode liftStatements(final Module module, final List<ValueDefinition> blocks) {
-        ExpressionNode transformed = transformSequences(new ExpressionNode.SequenceMap() {
-            @Override
-            public ExpressionNode transform(SequenceNode node) {
-                return node.liftStatements(module, blocks);
-            }
-        });
-        return transformed;
-    }
-    
-    @Override
-    public ExpressionNode transformMutableVarRefs() {
-        return transformIds(new ExpressionNode.IdMap() {
-            @Override
-            public ExpressionNode transform(IdentifierNode node) {
-                if (node.isMutableVar()) {
-                    return ApplicationNode.newCall(node.getLocation(), "Primitives", "ref_get", node);
-                } else {
-                    return node;
-                }
-            }
-        });
-    }
 }

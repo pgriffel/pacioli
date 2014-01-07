@@ -228,7 +228,7 @@ public class Reader {
 			});
 
 	private static final Parser<KeyNode> KEY = Parsers
-			.tuple(NAME.followedBy(token("@")), NAME)
+			.tuple(EXPIDENTIFIER.followedBy(token("@")), NAME)
 			.sepBy1(token("%"))
 			.map(new Map<List<Pair<IdentifierNode, IdentifierNode>>, KeyNode>() {
 				public KeyNode map(

@@ -3,6 +3,7 @@ package pacioli.ast.expression;
 import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -10,11 +11,13 @@ import mvm.values.matrix.Matrix;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
+import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
 import pacioli.Typing;
 import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
 
@@ -31,21 +34,6 @@ public class ConversionNode extends AbstractExpressionNode {
 	public ConversionNode(Location location, TypeNode typeNode) {
 		super(location);
 		this.typeNode = typeNode;
-	}
-
-	@Override
-	public ExpressionNode transformCalls(CallMap map) {
-		return this;
-	}
-
-	@Override
-	public ExpressionNode transformIds(IdMap map) {
-		return this;
-	}
-
-	@Override
-	public ExpressionNode transformSequences(SequenceMap map) {
-		return this;
 	}
 
 	@Override
@@ -107,5 +95,12 @@ public class ConversionNode extends AbstractExpressionNode {
 		out.print("<conversion of type ");
 		typeNode.printText(out);
 		out.print(">");
+	}
+
+	@Override
+	public ExpressionNode liftStatements(Module module,
+			List<ValueDefinition> blocks) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

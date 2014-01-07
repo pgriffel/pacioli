@@ -42,21 +42,6 @@ public class StatementNode extends AbstractExpressionNode {
 	}
 
 	@Override
-	public ExpressionNode transformCalls(CallMap map) {
-        return new StatementNode(getLocation(), (SequenceNode) body.transformCalls(map), context);
-	}
-
-	@Override
-	public ExpressionNode transformIds(IdMap map) {
-		return new StatementNode(getLocation(), (SequenceNode) body.transformIds(map), context);
-	}
-
-	@Override
-	public ExpressionNode transformSequences(SequenceMap map) {
-		return new StatementNode(getLocation(), (SequenceNode) body.transformSequences(map), context);
-	}
-
-	@Override
 	public ExpressionNode resolved(Dictionary dictionary, ValueContext context)
 			throws PacioliException {
 

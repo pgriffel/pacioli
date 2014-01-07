@@ -88,35 +88,12 @@ public class SequenceNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode transformCalls(CallMap map) {
-        List<ExpressionNode> itemNodes = new ArrayList<ExpressionNode>();
-        for (ExpressionNode item : items) {
-            itemNodes.add(item.transformCalls(map));
-        }
-        return new SequenceNode(getLocation(), itemNodes);
-    }
-
-    @Override
-    public ExpressionNode transformIds(IdMap map) {
-        List<ExpressionNode> itemNodes = new ArrayList<ExpressionNode>();
-        for (ExpressionNode item : items) {
-            itemNodes.add(item.transformIds(map));
-        }
-        return new SequenceNode(getLocation(), itemNodes);
-    }
-
-    @Override
     public Set<IdentifierNode> locallyAssignedVariables() {
         Set<IdentifierNode> vars = new LinkedHashSet<IdentifierNode>();
         for (ExpressionNode item : items) {
             vars.addAll(item.locallyAssignedVariables());
         }
         return vars;
-    }
-
-    @Override
-    public ExpressionNode transformSequences(SequenceMap map) {
-        return map.transform(this);
     }
 
     @Override

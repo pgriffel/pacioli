@@ -32,11 +32,13 @@ import java.util.Set;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
+import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.Utils;
 import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.FunctionType;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
@@ -109,21 +111,6 @@ public class LambdaNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode transformCalls(CallMap map) {
-        return new LambdaNode(arguments, expression.transformCalls(map), getLocation());
-    }
-
-    @Override
-    public ExpressionNode transformIds(IdMap map) {
-        return new LambdaNode(arguments, expression.transformIds(map), getLocation());
-    }
-
-    @Override
-    public ExpressionNode transformSequences(SequenceMap map) {
-        return new LambdaNode(arguments, expression.transformSequences(map), getLocation());
-    }
-
-    @Override
     public Set<IdentifierNode> locallyAssignedVariables() {
         return new LinkedHashSet<IdentifierNode>();
     }
@@ -146,5 +133,12 @@ public class LambdaNode extends AbstractExpressionNode {
     public String compileToMATLAB() {
         return String.format("(@(%s) %s)", Utils.intercalate(", ", arguments), expression.compileToMATLAB());
     }
+
+	@Override
+	public ExpressionNode liftStatements(Module module,
+			List<ValueDefinition> blocks) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

@@ -24,16 +24,19 @@ package pacioli.ast.expression;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
+import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.ValueContext;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 
@@ -89,21 +92,6 @@ public class WhileNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode transformCalls(CallMap map) {
-        return new WhileNode(getLocation(), test.transformCalls(map), body.transformCalls(map));
-    }
-
-    @Override
-    public ExpressionNode transformIds(IdMap map) {
-        return new WhileNode(getLocation(), test.transformIds(map), body.transformIds(map));
-    }
-
-    @Override
-    public ExpressionNode transformSequences(SequenceMap map) {
-        return new WhileNode(getLocation(), test.transformSequences(map), body.transformSequences(map));
-    }
-
-    @Override
     public Set<IdentifierNode> locallyAssignedVariables() {
         return body.locallyAssignedVariables();
     }
@@ -129,4 +117,11 @@ public class WhileNode extends AbstractExpressionNode {
     public String compileToMATLAB() {
         return "while (" + test.compileToMATLAB() + ")" + body.compileToMATLAB() + "endwhile";
     }
+
+	@Override
+	public ExpressionNode liftStatements(Module module,
+			List<ValueDefinition> blocks) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

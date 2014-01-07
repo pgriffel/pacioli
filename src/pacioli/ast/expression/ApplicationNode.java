@@ -33,12 +33,14 @@ import java.util.Set;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
+import pacioli.Module;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.Utils;
 import pacioli.ValueContext;
 import pacioli.ast.ASTNode;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.FunctionType;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
@@ -126,29 +128,6 @@ public class ApplicationNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode transformCalls(CallMap map) {
-        return map.transform(this);
-    }
-
-    @Override
-    public ExpressionNode transformIds(final IdMap map) {
-        List<ExpressionNode> mapped = new ArrayList<ExpressionNode>();
-        for (ExpressionNode arg : arguments) {
-            mapped.add(arg.transformIds(map));
-        }
-        return new ApplicationNode(function.transformIds(map), mapped, getLocation());
-    }
-
-    @Override
-    public ExpressionNode transformSequences(SequenceMap map) {
-        List<ExpressionNode> mapped = new ArrayList<ExpressionNode>();
-        for (ExpressionNode arg : arguments) {
-            mapped.add(arg.transformSequences(map));
-        }
-        return new ApplicationNode(function.transformSequences(map), mapped, getLocation());
-    }
-
-    @Override
     public Set<IdentifierNode> locallyAssignedVariables() {
         return new LinkedHashSet<IdentifierNode>();
     }
@@ -214,4 +193,11 @@ public class ApplicationNode extends AbstractExpressionNode {
             return function.compileToMATLAB() + argsText;
         }
     }
+
+	@Override
+	public ExpressionNode liftStatements(Module module,
+			List<ValueDefinition> blocks) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
