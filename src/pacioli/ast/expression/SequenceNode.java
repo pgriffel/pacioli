@@ -129,16 +129,16 @@ public class SequenceNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode equivalentFunctionalCode() {
+    public ExpressionNode desugar() {
     	if (items.isEmpty()) {
     		// todo
     		return ApplicationNode.newCall(getLocation(), "Primitives", "nothing");
     	} else {
-    		ExpressionNode node = items.get(0).equivalentFunctionalCode();
+    		ExpressionNode node = items.get(0).desugar();
     		Location loc = node.getLocation();
     		for (int i = 1; i < items.size(); i++) {
     			loc = loc.join(items.get(i).getLocation());
-    			node = ApplicationNode.newCall(loc, "Primitives", "seq", node, items.get(i).equivalentFunctionalCode());
+    			node = ApplicationNode.newCall(loc, "Primitives", "seq", node, items.get(i).desugar());
     		}
     		return node;
     	}
@@ -146,12 +146,12 @@ public class SequenceNode extends AbstractExpressionNode {
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        return equivalentFunctionalCode().compileToMVM(settings);
+        return desugar().compileToMVM(settings);
     }
 
     @Override
     public String compileToJS() {
-        return equivalentFunctionalCode().compileToJS();
+        return desugar().compileToJS();
     }
 
     @Override

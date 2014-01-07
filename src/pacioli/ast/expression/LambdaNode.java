@@ -129,8 +129,8 @@ public class LambdaNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode equivalentFunctionalCode() {
-        return new LambdaNode(arguments, expression.equivalentFunctionalCode(), getLocation());
+    public ExpressionNode desugar() {
+        return new LambdaNode(arguments, expression.desugar(), getLocation());
     }
 
     @Override

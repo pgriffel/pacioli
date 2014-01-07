@@ -74,7 +74,7 @@ public class Toplevel extends AbstractDefinition {
 
 	@Override
 	public String compileToMVM(CompilationSettings settings) {
-		return resolvedBody.compileToMVM(settings);
+		return resolvedBody.desugar().compileToMVM(settings);
 	}
 
 	@Override

@@ -154,12 +154,12 @@ public class ApplicationNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode equivalentFunctionalCode() {
+    public ExpressionNode desugar() {
         List<ExpressionNode> mapped = new ArrayList<ExpressionNode>();
         for (ExpressionNode arg : arguments) {
-            mapped.add(arg.equivalentFunctionalCode());
+            mapped.add(arg.desugar());
         }
-        return new ApplicationNode(function.equivalentFunctionalCode(), mapped, getLocation());
+        return new ApplicationNode(function.desugar(), mapped, getLocation());
     }
 
     @Override

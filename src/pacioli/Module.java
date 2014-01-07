@@ -63,13 +63,17 @@ public class Module extends AbstractPrintable {
 	public String getName() {
 		return name;
 	}
-	
+		
 	public List<String> getIncludes() {
 		return includes;
 	}
 
 	public void setFile(File file) {
 		this.file = file;
+	}
+	
+	public File getFile() {
+		return file;
 	}
 	
 	public File directory() {

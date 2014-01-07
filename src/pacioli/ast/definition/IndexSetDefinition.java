@@ -82,7 +82,7 @@ public class IndexSetDefinition extends AbstractDefinition {
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        String output = String.format("\nindexset \"%s\" list(", globalName());
+        String output = String.format("\nindexset \"%s\" \"%s\" list(", globalName(), localName());
         List<String> quotedItems = new ArrayList<String>();
         for (String item : items) {
             quotedItems.add(String.format("\"%s\"", item));

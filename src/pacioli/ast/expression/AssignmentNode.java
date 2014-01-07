@@ -74,13 +74,13 @@ public class AssignmentNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode equivalentFunctionalCode() {
-        return ApplicationNode.newCall(getLocation(), "Primitives", "ref_set", var, value);
+    public ExpressionNode desugar() {
+        return ApplicationNode.newCall(getLocation(), "Primitives", "ref_set", var, value.desugar());
     }
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        return equivalentFunctionalCode().compileToMVM(settings);
+        return desugar().compileToMVM(settings);
     }
 
     @Override

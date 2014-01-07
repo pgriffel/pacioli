@@ -110,7 +110,7 @@ public class ConstNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode equivalentFunctionalCode() {
+    public ExpressionNode desugar() {
         return this;
     }
 

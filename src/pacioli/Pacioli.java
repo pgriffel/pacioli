@@ -273,7 +273,7 @@ public class Pacioli {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         } 
 
-        Pacioli.logln1("Displaying types for file '%s'", fileName);
+        Pacioli.logln1("Displaying types for file '%s'", file);
         Program program = new Program(libraryDirectories(libs));
         
         try {

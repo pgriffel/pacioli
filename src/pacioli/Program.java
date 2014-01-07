@@ -31,10 +31,10 @@ import uom.UnitSystem;
 
 public class Program {
 
-	private Dictionary dictionary = new Dictionary();
-	private Module main;
-	private Map<String, Module> modules = new HashMap<String, Module>();
 	private final List<File> libDirs;
+	private Module main;
+	private final Map<String, Module> modules = new HashMap<String, Module>();
+	private final Dictionary dictionary = new Dictionary();
 	private final List<Toplevel> toplevelExpressions = new ArrayList<Toplevel>();
 
 	public Program(List<File> libDirs) {
@@ -90,30 +90,7 @@ public class Program {
 	public void load(File file) throws PacioliException, IOException {
 
 		main = Reader.loadModule(this, file);
-		main.setFile(file.getAbsoluteFile());
 		loadIncludes(main, libDirs);
-
-		// Pacioli.logln3("Modules:");
-		// for (String key: modules.keySet()) {
-		// Pacioli.logln3("- %s", key);
-		// }
-		// Pacioli.logln3("Units:");
-		// for (UnitDefinition definition: dictionary.unitDefinitions()) {
-		// Pacioli.logln3("- %s", definition.localName());
-		// }
-		// Pacioli.logln3("Unit vectors:");
-		// for (UnitVectorDefinition unit: dictionary.unitVectorDefinitions()) {
-		// Pacioli.logln3("- %s", unit.localName());
-		// }
-		// Pacioli.logln3("Definitions:");
-		// for (ValueDefinition value: dictionary.valueDefinitions()) {
-		// Pacioli.logln3("- %s", value.localName());
-		// }
-		// Pacioli.logln3("Aliases:");
-		// for (AliasDefinition value: dictionary.aliasDefinitions()) {
-		// Pacioli.logln3("- %s", value.localName());
-		// }
-
 		desugar();
 		resolveNames();
 		infertTypes();
@@ -135,15 +112,28 @@ public class Program {
 	}
 
 	public void checkTypes() throws PacioliException {
-		desugar();
-		resolveNames();
-		infertTypes();
-		for (ValueDefinition definition : dictionary.valueDefinitions()) {
-			Pacioli.logln3("- %s :: %s", definition.localName(), definition
-					.getType().toText());
+//		desugar();
+//		resolveNames();
+//		infertTypes();
+		Set<String> printed= new HashSet<String>();
+		for (Declaration definition : dictionary.declarations()) {
+			if (definition.getModule() == main) {
+				Pacioli.logln("%s :: %s", definition.localName(), definition
+						.getType().toText());
+				printed.add(definition.localName());
+			}
 		}
+		for (ValueDefinition definition : dictionary.valueDefinitions()) {
+			if (definition.getModule() == main && !printed.contains(definition.localName())) {
+				Pacioli.logln("%s :: %s", definition.localName(), definition
+						.getType().toText());
+			}
+		}
+		int i = 0;
 		for (Toplevel toplevel : toplevelExpressions) {
-			Pacioli.logln3("- toplevel :: %s", toplevel.getType().toText());
+			if (toplevel.getModule() == main) {
+				Pacioli.logln("toplevel%s :: %s", i++, toplevel.getType().toText());
+			}
 		}
 	}
 
@@ -289,8 +279,6 @@ public class Program {
 
 		if (!finished.contains(definition)) {
 			if (discovered.contains(definition)) {
-				// throw new PacioliException("Cycle in definitions %s",
-				// definition);
 				Pacioli.warn("Cycle in definition of %s",
 						definition.localName());
 			} else {
@@ -301,10 +289,7 @@ public class Program {
 								discovered, finished);
 					}
 				}
-				// Pacioli.logln("%s :: ", definition.globalName());
-				PacioliType infered = definition
-						.inferType(new HashMap<String, PacioliType>());
-				// Pacioli.log("%s", infered.toText());
+				definition.inferType();
 				finished.add(definition);
 			}
 		}
@@ -336,12 +321,10 @@ public class Program {
 						"No file found for include '%s'", include));
 			}
 			String includeKey = includeFile.getPath();
-			if (!modules.containsKey(includeKey)) {
+			if (!modules.containsKey(includeKey) && !main.getFile().getPath().equals(includeKey)) {
 				Pacioli.logln3("Loading include '%s' from file '%s'", include,
 						includeFile);
 				Module includeModule = Reader.loadModule(this, includeFile);
-				includeModule.setFile(includeFile.getAbsoluteFile()); // dangerous to forget this.
-													// Move to loadModule
 				modules.put(includeKey, includeModule);
 				loadIncludes(includeModule, libDirs);
 			}
@@ -382,19 +365,13 @@ public class Program {
 						include, dir);
 			}
 		}
-
-		// if (libFile == null) {
-		// throw new
-		// FileNotFoundException(String.format("No file found for include '%s'",
-		// include));
-		// } else {
-		// return libFile;
-		// }
 		return libFile;
 	}
 
-	// //////////////////////////////////////////////////////////////////////////////
-	// Name Resolving
+	/*
+	 * Name Resolving
+	 */
+
 	private Dictionary localDictionary(Module module) throws PacioliException {
 		Dictionary dict = new Dictionary();
 		for (UnitDefinition definition : dictionary.unitDefinitions()) {

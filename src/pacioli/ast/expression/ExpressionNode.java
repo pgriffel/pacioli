@@ -63,7 +63,7 @@ public interface ExpressionNode extends ASTNode {
 
     public Set<IdentifierNode> locallyAssignedVariables();
 
-    public ExpressionNode equivalentFunctionalCode();
+    public ExpressionNode desugar();
     
     public ExpressionNode liftStatements(Module module, List<ValueDefinition> blocks);
     

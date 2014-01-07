@@ -92,10 +92,12 @@ public class Reader {
 			throws PacioliException, IOException {
 		file = fileName.getPath();
 		source = Utils.readFile(fileName);
-		return parseModule(program, source);
+		Module module = parseModule(program, source); 
+		module.setFile(fileName.getAbsoluteFile());
+		return module;
 
 	}
-	
+
 	/*
 	 * Tokens
 	 */
@@ -121,107 +123,101 @@ public class Reader {
 	private static final Parser<Void> IGNORED = Parsers.or(
 			Scanners.lineComment("#"), Scanners.WHITESPACES);
 
+	private static Parser<Token> token(String text) {
+		return TERMS.token(text);
+	}
+
+	private static final Parser<String> STRING = Terminals.StringLiteral.PARSER;
+
+	private static final Parser<String> IDENTIFIER = Terminals.Identifier.PARSER;
+
+	private static final Parser<String> DECIMAL = Terminals.DecimalLiteral.PARSER;
+
 	/*
 	 * Terminals
 	 */
-	private static final Parser<ConstNode> NUMBER = Parsers.or(
-			Terminals.DecimalLiteral.PARSER.token().map(
-					new Map<Token, ConstNode>() {
-						public ConstNode map(Token arg) {
-							String name = (String) arg.value();
-							// use name length because argh.length seems to
-							// include whitespace
-							return new ConstNode(name, new Location(file,
-									source, arg.index(), arg.index()
-											+ name.length()));
-						}
-					}),
-			TERMS.token("-").next(Terminals.DecimalLiteral.PARSER.token())
-					.map(new Map<Token, ConstNode>() {
-						public ConstNode map(Token arg) {
-							String name = (String) arg.value();
-							// use name length because argh.length seems to
-							// include whitespace
-							return new ConstNode("-" + name, new Location(file,
-									source, arg.index(), arg.index()
-											+ name.length()));
-						}
-					}));
 
-	private static final Parser<ConstNode> TRUE = TERMS.token("true").map(
+	private static final Parser<ConstNode> POSNUMBER = DECIMAL.token().map(
 			new Map<Token, ConstNode>() {
 				public ConstNode map(Token arg) {
-					return new ConstNode("true", new Location(file, source, arg
-							.index(), arg.index() + arg.length()));
+					return new ConstNode((String) arg.value(),
+							tokenLocation(arg));
 				}
 			});
 
-	private static final Parser<ConstNode> FALSE = TERMS.token("false").map(
+	private static final Parser<ConstNode> NEGNUMBER = token("-").next(
+			DECIMAL.token()).map(new Map<Token, ConstNode>() {
+		public ConstNode map(Token arg) {
+			return new ConstNode("-" + (String) arg.value(), tokenLocation(arg));
+		}
+	});
+
+	private static final Parser<ConstNode> NUMBER = Parsers.or(POSNUMBER,
+			NEGNUMBER);
+	
+	private static final Parser<UnitNode> UNITNUMBER = DECIMAL.token().map(
+			new Map<Token, UnitNode>() {
+				public UnitNode map(Token num) {
+					return new NumberUnitNode((String) num.value(),
+							tokenLocation(num));
+				}
+			});
+	
+	private static final Parser<ConstNode> TRUE = token("true").map(
 			new Map<Token, ConstNode>() {
 				public ConstNode map(Token arg) {
-					return new ConstNode("false", new Location(file, source,
-							arg.index(), arg.index() + arg.length()));
+					return new ConstNode("true", tokenLocation(arg));
+				}
+			});
+
+	private static final Parser<ConstNode> FALSE = token("false").map(
+			new Map<Token, ConstNode>() {
+				public ConstNode map(Token arg) {
+					return new ConstNode("false", tokenLocation(arg));
 				}
 			});
 
 	private static final Parser<ConstNode> BOOLEAN = Parsers.or(TRUE, FALSE);
 
-	private static final Parser<TypeIdentifierNode> TYPEIDENTIFIER = Terminals.Identifier.PARSER
+	private static final Parser<TypeIdentifierNode> TYPEIDENTIFIER = IDENTIFIER
 			.token().map(new Map<Token, TypeIdentifierNode>() {
 				public TypeIdentifierNode map(Token arg) {
-					String name = (String) arg.value();
-					// use name length because argh.length seems to include
-					// whitespace
-					TypeIdentifierNode node = new TypeIdentifierNode(
-							new Location(file, source, arg.index(), arg.index()
-									+ name.length()), name);
-					assert (node != null);
-					return node;
+					return new TypeIdentifierNode(tokenLocation(arg),
+							(String) arg.value());
 				}
 			});
 
-	private static final Parser<IdentifierNode> IDENTIFIER = Terminals.Identifier.PARSER
+	private static final Parser<IdentifierNode> EXPIDENTIFIER = IDENTIFIER
 			.token().map(new Map<Token, IdentifierNode>() {
 				public IdentifierNode map(Token arg) {
-					String name = (String) arg.value();
-					// use name length because argh.length seems to include
-					// whitespace
-					return new IdentifierNode(name, new Location(file, source,
-							arg.index(), arg.index() + name.length()));
+					return new IdentifierNode((String) arg.value(),
+							tokenLocation(arg));
 				}
 			});
 
 	private static final Parser<IdentifierNode> NAME = Parsers.or(
-			IDENTIFIER,
-			Terminals.StringLiteral.PARSER.token().map(
-					new Map<Token, IdentifierNode>() {
-						public IdentifierNode map(Token arg) {
-							String name = (String) arg.value();
-							// use name length because argh.length seems to
-							// include whitespace
-							return new IdentifierNode(name, new Location(file,
-									source, arg.index(), arg.index()
-											+ name.length()));
-						}
-					}));
-
-	private static final Parser<IdentifierNode> PATH = IDENTIFIER.sepBy1(
-			TERMS.token("/")).map(
-			new Map<List<IdentifierNode>, IdentifierNode>() {
-				public IdentifierNode map(List<IdentifierNode> arg) {
-					List<String> names = new ArrayList<String>();
-					Location loc = new Location(file, source);
-					for (IdentifierNode id : arg) {
-						names.add(id.getName());
-						loc = loc.join(id.getLocation());
-					}
-					return new IdentifierNode(Utils.intercalate("/", names),
-							loc);
+			EXPIDENTIFIER, STRING.token().map(new Map<Token, IdentifierNode>() {
+				public IdentifierNode map(Token arg) {
+					return new IdentifierNode((String) arg.value(),
+							tokenLocation(arg));
 				}
-			});
+			}));
+
+	private static final Parser<IdentifierNode> PATH = EXPIDENTIFIER.sepBy1(
+			token("/")).map(new Map<List<IdentifierNode>, IdentifierNode>() {
+		public IdentifierNode map(List<IdentifierNode> arg) {
+			List<String> names = new ArrayList<String>();
+			Location loc = new Location(file, source);
+			for (IdentifierNode id : arg) {
+				names.add(id.getName());
+				loc = loc.join(id.getLocation());
+			}
+			return new IdentifierNode(Utils.intercalate("/", names), loc);
+		}
+	});
 
 	private static final Parser<MatrixTypeNode> BANG = Parsers.sequence(
-			TERMS.token("|"), typeParserRec(), TERMS.token("|"),
+			token("|"), typeParserRec(), token("|"),
 			new Map3<Token, TypeNode, Token, MatrixTypeNode>() {
 				public MatrixTypeNode map(Token left, TypeNode typeNode,
 						Token right) {
@@ -232,8 +228,8 @@ public class Reader {
 			});
 
 	private static final Parser<KeyNode> KEY = Parsers
-			.tuple(NAME.followedBy(TERMS.token("@")), NAME)
-			.sepBy1(TERMS.token("%"))
+			.tuple(NAME.followedBy(token("@")), NAME)
+			.sepBy1(token("%"))
 			.map(new Map<List<Pair<IdentifierNode, IdentifierNode>>, KeyNode>() {
 				public KeyNode map(
 						List<Pair<IdentifierNode, IdentifierNode>> keys) {
@@ -261,10 +257,10 @@ public class Reader {
 	private static Module parseModule(final Program program, String source) {
 		return Parsers
 				.sequence(
-						Parsers.sequence(TERMS.token("module"), PATH)
-								.followedBy(TERMS.token(";")),
-						TERMS.token("include").next(PATH)
-								.followedBy(TERMS.token(";")).many(),
+						Parsers.sequence(token("module"), PATH).followedBy(
+								token(";")),
+						token("include").next(PATH).followedBy(token(";"))
+								.many(),
 						Parsers.or(declarationParser(), definitionParser(),
 								functionDefinitionParser(), toplevelParser(),
 								defIndexParser(), defunitVectorParser(),
@@ -289,10 +285,8 @@ public class Reader {
 	}
 
 	private static Parser<Definition> definitionParser() {
-		return Parsers.sequence(
-				TERMS.token("define").next(IDENTIFIER),
-				TERMS.token("=").next(expressionParser())
-						.followedBy(TERMS.token(";")),
+		return Parsers.sequence(token("define").next(EXPIDENTIFIER), token("=")
+				.next(expressionParser()).followedBy(token(";")),
 				new Map2<IdentifierNode, ExpressionNode, Definition>() {
 					public ValueDefinition map(final IdentifierNode id,
 							final ExpressionNode body) {
@@ -303,7 +297,7 @@ public class Reader {
 	}
 
 	private static Parser<Definition> toplevelParser() {
-		return expressionParser().followedBy(TERMS.token(";")).map(
+		return expressionParser().followedBy(token(";")).map(
 				new Map<ExpressionNode, Definition>() {
 					public Definition map(final ExpressionNode body) {
 						return new Toplevel(body.getLocation(), body);
@@ -312,8 +306,8 @@ public class Reader {
 	}
 
 	private static Parser<Definition> declarationParser() {
-		return Parsers.sequence(TERMS.token("declare").next(IDENTIFIER), TERMS
-				.token("::").next(typeParser()).followedBy(TERMS.token(";")),
+		return Parsers.sequence(token("declare").next(EXPIDENTIFIER),
+				token("::").next(typeParser()).followedBy(token(";")),
 				new Map2<IdentifierNode, TypeNode, Definition>() {
 					public Definition map(final IdentifierNode id,
 							final TypeNode node) {
@@ -324,8 +318,8 @@ public class Reader {
 	}
 
 	private static Parser<Definition> defAliasParser() {
-		return Parsers.sequence(TERMS.token("defalias").next(IDENTIFIER), TERMS
-				.token("=").next(unitParser()).followedBy(TERMS.token(";")),
+		return Parsers.sequence(token("defalias").next(EXPIDENTIFIER),
+				token("=").next(unitParser()).followedBy(token(";")),
 				new Map2<IdentifierNode, UnitNode, Definition>() {
 					public Definition map(final IdentifierNode id,
 							final UnitNode unit) {
@@ -338,9 +332,8 @@ public class Reader {
 
 	private static Parser<Definition> defTypeParser() {
 		Parser<TypeNode> typeParser = typeParserRec();
-		return Parsers.sequence(TERMS.token("deftype").next(contextParser()),
-				typeParser,
-				TERMS.token("=").next(typeParser).followedBy(TERMS.token(";")),
+		return Parsers.sequence(token("deftype").next(contextParser()),
+				typeParser, token("=").next(typeParser).followedBy(token(";")),
 				new Map3<TypeContext, TypeNode, TypeNode, Definition>() {
 					public Definition map(final TypeContext context,
 							final TypeNode lhs, final TypeNode rhs) {
@@ -353,13 +346,12 @@ public class Reader {
 	private static Parser<Definition> functionDefinitionParser() {
 		return Parsers
 				.sequence(
-						TERMS.token("define"),
-						IDENTIFIER,
-						TERMS.token("(")
-								.next(IDENTIFIER.sepBy(TERMS.token(",")))
-								.followedBy(TERMS.token(")")),
-						TERMS.token("=").next(expressionParser())
-								.followedBy(TERMS.token(";")),
+						token("define"),
+						EXPIDENTIFIER,
+						token("(").next(EXPIDENTIFIER.sepBy(token(",")))
+								.followedBy(token(")")),
+						token("=").next(expressionParser()).followedBy(
+								token(";")),
 						new Map4<Token, IdentifierNode, List<IdentifierNode>, ExpressionNode, Definition>() {
 							public Definition map(final Token define,
 									final IdentifierNode id,
@@ -382,43 +374,36 @@ public class Reader {
 	}
 
 	private static Parser<Definition> defIndexParser() {
-		return Parsers
-				.sequence(
-						TERMS.token("defindex").next(IDENTIFIER),
-						TERMS.token("=")
-								.next(Parsers.between(TERMS.token("{"),
-										NAME.sepBy(TERMS.token(",")),
-										TERMS.token("}")))
-								.followedBy(TERMS.token(";")),
-						new Map2<IdentifierNode, List<IdentifierNode>, Definition>() {
-							public Definition map(final IdentifierNode id,
-									final List<IdentifierNode> items) {
-								List<String> names = new ArrayList<String>();
-								for (IdentifierNode item : items) {
-									names.add(item.getName());
-								}
-								return new IndexSetDefinition(id.getLocation(),
-										id, names);
-							}
-						});
+		return Parsers.sequence(
+				token("defindex").next(EXPIDENTIFIER),
+				token("=").next(
+						Parsers.between(token("{"), NAME.sepBy(token(",")),
+								token("}"))).followedBy(token(";")),
+				new Map2<IdentifierNode, List<IdentifierNode>, Definition>() {
+					public Definition map(final IdentifierNode id,
+							final List<IdentifierNode> items) {
+						List<String> names = new ArrayList<String>();
+						for (IdentifierNode item : items) {
+							names.add(item.getName());
+						}
+						return new IndexSetDefinition(id.getLocation(), id,
+								names);
+					}
+				});
 	}
 
 	private static Parser<Definition> defunitVectorParser() {
 		return Parsers
 				.sequence(
-						TERMS.token("defunit").next(TYPEIDENTIFIER),
-						TERMS.token("!").next(TYPEIDENTIFIER),
-						TERMS.token("=")
+						token("defunit").next(TYPEIDENTIFIER),
+						token("!").next(TYPEIDENTIFIER),
+						token("=")
 								.next(Parsers.between(
-										TERMS.token("{"),
+										token("{"),
 										Parsers.tuple(
-												NAME
-														.followedBy(TERMS
-																.token(":")),
-												unitParser()).sepBy(
-												TERMS.token(",")), TERMS
-												.token("}")))
-								.followedBy(TERMS.token(";")),
+												NAME.followedBy(token(":")),
+												unitParser()).sepBy(token(",")),
+										token("}"))).followedBy(token(";")),
 						new Map3<TypeIdentifierNode, TypeIdentifierNode, List<Pair<IdentifierNode, UnitNode>>, Definition>() {
 							public Definition map(
 									final TypeIdentifierNode indexId,
@@ -436,8 +421,8 @@ public class Reader {
 	}
 
 	private static Parser<Definition> defbaseunitParser() {
-		return Parsers.sequence(TERMS.token("defunit").next(IDENTIFIER),
-				Terminals.StringLiteral.PARSER.followedBy(TERMS.token(";")),
+		return Parsers.sequence(token("defunit").next(EXPIDENTIFIER),
+				Terminals.StringLiteral.PARSER.followedBy(token(";")),
 				new Map2<IdentifierNode, String, Definition>() {
 					public Definition map(final IdentifierNode id,
 							final String symbol) {
@@ -447,10 +432,9 @@ public class Reader {
 	}
 
 	private static Parser<Definition> defunitParser() {
-		return Parsers.sequence(TERMS.token("defunit").next(IDENTIFIER),
-				Terminals.StringLiteral.PARSER,
-				TERMS.token("=").next(unitParser())
-						.followedBy(TERMS.token(";")),
+		return Parsers.sequence(token("defunit").next(EXPIDENTIFIER),
+				Terminals.StringLiteral.PARSER, token("=").next(unitParser())
+						.followedBy(token(";")),
 				new Map3<IdentifierNode, String, UnitNode, Definition>() {
 					public Definition map(final IdentifierNode id,
 							final String symbol, final UnitNode unit) {
@@ -463,24 +447,25 @@ public class Reader {
 	private static Parser<Definition> defMatrixParser() {
 		return Parsers
 				.sequence(
-						TERMS.token("defmatrix").next(IDENTIFIER),
-						TERMS.token("::").next(typeParser()),
-						TERMS.token("=")
-								.next(Parsers.between(
-										TERMS.token("{"),
-										Parsers.tuple(
-												NAME.sepBy1(TERMS.token(","))
-														.followedBy(
-																TERMS.token("->")),
-												NUMBER).sepBy(TERMS.token(",")),
-										TERMS.token("}")))
-								.followedBy(TERMS.token(";")),
+						token("defmatrix").next(EXPIDENTIFIER),
+						token("::").next(typeParser()),
+						token("=")
+								.next(Parsers
+										.between(
+												token("{"),
+												Parsers.tuple(
+														NAME.sepBy1(token(","))
+																.followedBy(
+																		token("->")),
+														NUMBER).sepBy(
+														token(",")), token("}")))
+								.followedBy(token(";")),
 						new Map3<IdentifierNode, TypeNode, List<Pair<List<IdentifierNode>, ConstNode>>, Definition>() {
 							public Definition map(
 									final IdentifierNode id,
 									final TypeNode typeNode,
 									final List<Pair<List<IdentifierNode>, ConstNode>> pairs) {
-													List<Pair<List<String>, ConstNode>> stringPairs = new ArrayList<Pair<List<String>, ConstNode>>();
+								List<Pair<List<String>, ConstNode>> stringPairs = new ArrayList<Pair<List<String>, ConstNode>>();
 
 								for (Pair<List<IdentifierNode>, ConstNode> pair : pairs) {
 									List<String> names = new ArrayList<String>();
@@ -502,8 +487,8 @@ public class Reader {
 	}
 
 	private static Parser<Definition> defConversionParser() {
-		return Parsers.sequence(TERMS.token("defconv").next(IDENTIFIER), TERMS
-				.token("::").next(typeParser()).followedBy(TERMS.token(";")),
+		return Parsers.sequence(token("defconv").next(EXPIDENTIFIER),
+				token("::").next(typeParser()).followedBy(token(";")),
 				new Map2<IdentifierNode, TypeNode, Definition>() {
 					public Definition map(final IdentifierNode id,
 							final TypeNode node) {
@@ -515,8 +500,8 @@ public class Reader {
 	}
 
 	private static Parser<Definition> defProjectionParser() {
-		return Parsers.sequence(TERMS.token("defproj").next(IDENTIFIER), TERMS
-				.token("::").next(typeParser()).followedBy(TERMS.token(";")),
+		return Parsers.sequence(token("defproj").next(EXPIDENTIFIER),
+				token("::").next(typeParser()).followedBy(token(";")),
 				new Map2<IdentifierNode, TypeNode, Definition>() {
 					public Definition map(final IdentifierNode id,
 							final TypeNode node) {
@@ -533,8 +518,8 @@ public class Reader {
 		// todo: refactor this further
 		return Parsers
 				.or(UNITNUMBER, unitPower(), unitScaled(), unitNamed())
-				.sepBy1(TERMS.token("*"))
-				.sepBy1(TERMS.token("/"))
+				.sepBy1(token("*"))
+				.sepBy1(token("/"))
 				.map(new org.codehaus.jparsec.functors.Map<List<List<UnitNode>>, UnitNode>() {
 					public UnitNode map(List<List<UnitNode>> termss) {
 						UnitNode unit = null;
@@ -565,14 +550,7 @@ public class Reader {
 				});
 	}
 
-	private static final Parser<UnitNode> UNITNUMBER = Terminals.DecimalLiteral.PARSER
-			.token().map(
-					new org.codehaus.jparsec.functors.Map<Token, UnitNode>() {
-						public UnitNode map(Token num) {
-							return new NumberUnitNode((String) num.value(),
-									tokenLocation(num));
-						}
-					});
+	
 
 	public static Parser<UnitNode> signedInteger() {
 		return Parsers
@@ -584,7 +562,7 @@ public class Reader {
 										.value(), tokenLocation(power));
 							}
 						}),
-						TERMS.token("-")
+						token("-")
 								.next(Terminals.DecimalLiteral.PARSER.token())
 								.map(new org.codehaus.jparsec.functors.Map<Token, UnitNode>() {
 									public UnitNode map(Token power) {
@@ -599,7 +577,7 @@ public class Reader {
 		return Parsers
 				.sequence(
 						Parsers.or(UNITNUMBER, unitScaled(), unitNamed()),
-						TERMS.token("^").next(signedInteger()),
+						token("^").next(signedInteger()),
 						new org.codehaus.jparsec.functors.Map2<UnitNode, UnitNode, UnitNode>() {
 							public UnitNode map(UnitNode unit, UnitNode power) {
 								return new UnitOperationNode(unit.getLocation()
@@ -610,7 +588,7 @@ public class Reader {
 	}
 
 	private static Parser<UnitNode> unitNamed() {
-		return IDENTIFIER
+		return EXPIDENTIFIER
 				.map(new org.codehaus.jparsec.functors.Map<IdentifierNode, UnitNode>() {
 					public UnitNode map(IdentifierNode id) {
 						return new UnitIdentifierNode(id.getLocation(), id
@@ -620,8 +598,8 @@ public class Reader {
 	}
 
 	private static Parser<UnitNode> unitScaled() {
-		return Parsers.sequence(IDENTIFIER.followedBy(TERMS.token(":")),
-				IDENTIFIER,
+		return Parsers.sequence(EXPIDENTIFIER.followedBy(token(":")),
+				EXPIDENTIFIER,
 				new Map2<IdentifierNode, IdentifierNode, UnitNode>() {
 					public UnitNode map(final IdentifierNode prefix,
 							final IdentifierNode name) {
@@ -655,7 +633,7 @@ public class Reader {
 
 	private static Parser<TypeContext> contextParser() {
 		return Parsers.or(forTypeParser(), forIndexParser(), forUnitParser())
-				.endBy1(TERMS.token(":"))
+				.endBy1(token(":"))
 				.map(new Map<List<TypeContext>, TypeContext>() {
 					public TypeContext map(List<TypeContext> contexts) {
 						TypeContext total = new TypeContext();
@@ -668,9 +646,8 @@ public class Reader {
 	}
 
 	private static Parser<TypeContext> forTypeParser() {
-		return TERMS.token("for_type")
-				.next(TYPEIDENTIFIER.sepBy(TERMS.token(",")))
-				.map(new Map<List<TypeIdentifierNode>, TypeContext>() {
+		return token("for_type").next(TYPEIDENTIFIER.sepBy(token(","))).map(
+				new Map<List<TypeIdentifierNode>, TypeContext>() {
 					public TypeContext map(List<TypeIdentifierNode> ids) {
 						TypeContext context = new TypeContext();
 						for (TypeIdentifierNode id : ids) {
@@ -682,9 +659,8 @@ public class Reader {
 	}
 
 	private static Parser<TypeContext> forIndexParser() {
-		return TERMS.token("for_index")
-				.next(TYPEIDENTIFIER.sepBy(TERMS.token(",")))
-				.map(new Map<List<TypeIdentifierNode>, TypeContext>() {
+		return token("for_index").next(TYPEIDENTIFIER.sepBy(token(","))).map(
+				new Map<List<TypeIdentifierNode>, TypeContext>() {
 					public TypeContext map(List<TypeIdentifierNode> ids) {
 						TypeContext context = new TypeContext();
 						for (TypeIdentifierNode id : ids) {
@@ -696,9 +672,8 @@ public class Reader {
 	}
 
 	private static Parser<TypeContext> forUnitParser() {
-		return TERMS.token("for_unit")
-				.next(TYPEIDENTIFIER.sepBy(TERMS.token(",")))
-				.map(new Map<List<TypeIdentifierNode>, TypeContext>() {
+		return token("for_unit").next(TYPEIDENTIFIER.sepBy(token(","))).map(
+				new Map<List<TypeIdentifierNode>, TypeContext>() {
 					public TypeContext map(List<TypeIdentifierNode> ids) {
 						TypeContext context = new TypeContext();
 						for (TypeIdentifierNode id : ids) {
@@ -722,29 +697,26 @@ public class Reader {
 
 	private static Parser<TypeNode> functionTypeParser(
 			Parser<TypeNode> typeParser) {
-		return Parsers
-				.sequence(TERMS.token("("), typeParser.sepBy(TERMS.token(","))
-						.followedBy(TERMS.token(")")),
-						TERMS.token("->").next(typeParser),
-						new Map3<Token, List<TypeNode>, TypeNode, TypeNode>() {
-							public TypeNode map(final Token paren,
-									final List<TypeNode> functionArgs,
-									final TypeNode type) {
-								// todo: better location info
-								TypeNode domain = new TypeApplicationNode(
-										tokenLocation(paren),
-										new TypeIdentifierNode(
-												tokenLocation(paren), "Tuple"),
-										functionArgs);
-								return new FunctionTypeNode(
-										tokenLocation(paren), domain, type);
-							}
-						});
+		return Parsers.sequence(token("("), typeParser.sepBy(token(","))
+				.followedBy(token(")")), token("->").next(typeParser),
+				new Map3<Token, List<TypeNode>, TypeNode, TypeNode>() {
+					public TypeNode map(final Token paren,
+							final List<TypeNode> functionArgs,
+							final TypeNode type) {
+						// todo: better location info
+						TypeNode domain = new TypeApplicationNode(
+								tokenLocation(paren), new TypeIdentifierNode(
+										tokenLocation(paren), "Tuple"),
+								functionArgs);
+						return new FunctionTypeNode(tokenLocation(paren),
+								domain, type);
+					}
+				});
 	}
 
 	private static Parser<TypeNode> simpleFunctionTypeParser(
 			Parser<TypeNode> typeParser) {
-		return Parsers.sequence(IDENTIFIER, TERMS.token("->").next(typeParser),
+		return Parsers.sequence(EXPIDENTIFIER, token("->").next(typeParser),
 				new Map2<IdentifierNode, TypeNode, TypeNode>() {
 					public TypeNode map(final IdentifierNode id,
 							final TypeNode type) {
@@ -762,9 +734,8 @@ public class Reader {
 		return Parsers
 				.sequence(
 						TYPEIDENTIFIER,
-						TERMS.token("(").next(
-								typeParser.sepBy(TERMS.token(","))),
-						TERMS.token(")"),
+						token("(").next(typeParser.sepBy(token(","))),
+						token(")"),
 						new Map3<TypeIdentifierNode, List<TypeNode>, Token, TypeNode>() {
 							public TypeNode map(final TypeIdentifierNode id,
 									final List<TypeNode> args, Token paren) {
@@ -783,7 +754,7 @@ public class Reader {
 			Parser<TypeNode> typeParser) {
 		Parser<TypeNode> termParser = typeParser;
 		return Parsers.or(Parsers.sequence(matrixDimensionParser(termParser),
-				TERMS.token("per").next(matrixDimensionParser(termParser)),
+				token("per").next(matrixDimensionParser(termParser)),
 				new Map2<TypeNode, TypeNode, TypeNode>() {
 					public TypeNode map(final TypeNode row,
 							final TypeNode column) {
@@ -798,12 +769,9 @@ public class Reader {
 	private static Parser<TypeNode> matrixDimensionParser(
 			Parser<TypeNode> termParser) {
 		Parser<TypeNode> parser = new OperatorTable<TypeNode>()
-				.infixl(TERMS.token("*").next(matrixOperatorParser("multiply")),
-						20)
-				.infixl(TERMS.token("/").next(matrixOperatorParser("divide")),
-						20)
-				.infixl(TERMS.token("%")
-						.next(matrixOperatorParser("kronecker")), 10)
+				.infixl(token("*").next(matrixOperatorParser("multiply")), 20)
+				.infixl(token("/").next(matrixOperatorParser("divide")), 20)
+				.infixl(token("%").next(matrixOperatorParser("kronecker")), 10)
 				.build(termParser);
 		return parser;
 	}
@@ -827,7 +795,7 @@ public class Reader {
 
 	private static Parser<TypeNode> powerTermParser() {
 		return Parsers.sequence(trueTermParser(),
-				TERMS.token("^").next(signedInteger()),
+				token("^").next(signedInteger()),
 				new Map2<TypeNode, UnitNode, TypeNode>() {
 					public TypeNode map(final TypeNode term,
 							final UnitNode power) {
@@ -847,7 +815,7 @@ public class Reader {
 	}
 
 	private static Parser<TypeNode> matrixTermUnitBang() {
-		return Parsers.sequence(TYPEIDENTIFIER.followedBy(TERMS.token("!")),
+		return Parsers.sequence(TYPEIDENTIFIER.followedBy(token("!")),
 				TYPEIDENTIFIER,
 				new Map2<TypeIdentifierNode, TypeIdentifierNode, TypeNode>() {
 					public TypeNode map(TypeIdentifierNode indexSet,
@@ -861,7 +829,7 @@ public class Reader {
 	}
 
 	private static Parser<TypeNode> matrixTermDimensionlessBang() {
-		return Parsers.sequence(TYPEIDENTIFIER, TERMS.token("!"),
+		return Parsers.sequence(TYPEIDENTIFIER, token("!"),
 				new Map2<TypeIdentifierNode, Token, TypeNode>() {
 					public TypeNode map(TypeIdentifierNode indexSet, Token mark) {
 						assert (indexSet != null);
@@ -876,7 +844,7 @@ public class Reader {
 	}
 
 	private static Parser<TypeNode> matrixTermNonScaled() {
-		return IDENTIFIER.map(new Map<IdentifierNode, TypeNode>() {
+		return EXPIDENTIFIER.map(new Map<IdentifierNode, TypeNode>() {
 			public TypeNode map(final IdentifierNode id) {
 				return new TypeIdentifierNode(id.getLocation(), id.getName());
 			}
@@ -884,8 +852,8 @@ public class Reader {
 	}
 
 	private static Parser<TypeNode> matrixTermScaled() {
-		return Parsers.sequence(IDENTIFIER.followedBy(TERMS.token(":")),
-				IDENTIFIER,
+		return Parsers.sequence(EXPIDENTIFIER.followedBy(token(":")),
+				EXPIDENTIFIER,
 				new Map2<IdentifierNode, IdentifierNode, TypeNode>() {
 					public TypeNode map(final IdentifierNode prefix,
 							final IdentifierNode name) {
@@ -915,9 +883,8 @@ public class Reader {
 		Parser<ExpressionNode> lazyExpr = reference.lazy();
 		Parser<ExpressionNode> nestedParser = statementSequenceParser(lazyExpr,
 				expParser);
-		Parser<ExpressionNode> parser = Parsers.sequence(TERMS.token("begin"),
-				statementSequenceParser(lazyExpr, expParser),
-				TERMS.token("end"),
+		Parser<ExpressionNode> parser = Parsers.sequence(token("begin"),
+				statementSequenceParser(lazyExpr, expParser), token("end"),
 				new Map3<Token, ExpressionNode, Token, ExpressionNode>() {
 					public ExpressionNode map(Token begin, ExpressionNode body,
 							Token end) {
@@ -951,8 +918,8 @@ public class Reader {
 
 	private static Parser<ExpressionNode> assignmentStatementParser(
 			Parser<ExpressionNode> expParser) {
-		return Parsers.sequence(IDENTIFIER, TERMS.token(":=").next(expParser)
-				.followedBy(TERMS.token(";")),
+		return Parsers.sequence(EXPIDENTIFIER, token(":=").next(expParser)
+				.followedBy(token(";")),
 				new Map2<IdentifierNode, ExpressionNode, ExpressionNode>() {
 					public ExpressionNode map(IdentifierNode id,
 							ExpressionNode value) {
@@ -967,11 +934,10 @@ public class Reader {
 			Parser<ExpressionNode> expParser) {
 		return Parsers
 				.sequence(
-						TERMS.token("("),
-						IDENTIFIER.sepBy(TERMS.token(","))
-								.followedBy(TERMS.token(")"))
-								.followedBy(TERMS.token(":=")),
-						expParser.followedBy(TERMS.token(";")),
+						token("("),
+						EXPIDENTIFIER.sepBy(token(",")).followedBy(token(")"))
+								.followedBy(token(":=")),
+						expParser.followedBy(token(";")),
 						new Map3<Token, List<IdentifierNode>, ExpressionNode, ExpressionNode>() {
 							public ExpressionNode map(final Token paren,
 									List<IdentifierNode> vars,
@@ -985,8 +951,8 @@ public class Reader {
 
 	private static Parser<ExpressionNode> returnStatementParser(
 			Parser<ExpressionNode> expParser) {
-		return Parsers.sequence(TERMS.token("return"), expParser.optional()
-				.followedBy(TERMS.token(";")),
+		return Parsers.sequence(token("return"), expParser.optional()
+				.followedBy(token(";")),
 				new Map2<Token, ExpressionNode, ExpressionNode>() {
 					public ExpressionNode map(Token start, ExpressionNode value) {
 						if (value == null) {
@@ -1007,10 +973,10 @@ public class Reader {
 			Parser<ExpressionNode> expParser) {
 		return Parsers
 				.sequence(
-						TERMS.token("while"),
+						token("while"),
 						expParser,
-						TERMS.token("do").next(statementParser),
-						TERMS.token("end"),
+						token("do").next(statementParser),
+						token("end"),
 						new Map4<Token, ExpressionNode, ExpressionNode, Token, ExpressionNode>() {
 							public ExpressionNode map(Token start,
 									ExpressionNode test, ExpressionNode body,
@@ -1027,8 +993,8 @@ public class Reader {
 			Parser<ExpressionNode> expParser) {
 		return Parsers
 				.sequence(
-						TERMS.token("if").next(expParser),
-						TERMS.token("then").next(statementParser),
+						token("if").next(expParser),
+						token("then").next(statementParser),
 						ifRestParser(statementParser, expParser),
 						new Map3<ExpressionNode, ExpressionNode, List<Pair<ExpressionNode, ExpressionNode>>, ExpressionNode>() {
 							public ExpressionNode map(
@@ -1076,14 +1042,14 @@ public class Reader {
 			Parser<ExpressionNode> statementParser,
 			Parser<ExpressionNode> expParser) {
 		List<Pair<ExpressionNode, ExpressionNode>> empty = new ArrayList<Pair<ExpressionNode, ExpressionNode>>();
-		return TERMS.token("end").retn(empty);
+		return token("end").retn(empty);
 	}
 
 	private static Parser<List<Pair<ExpressionNode, ExpressionNode>>> ifRestRestParser(
 			Parser<ExpressionNode> statementParser,
 			Parser<ExpressionNode> expParser,
 			Parser<List<Pair<ExpressionNode, ExpressionNode>>> restParser) {
-		return TERMS.token("else").next(
+		return token("else").next(
 				elseRestParser(statementParser, expParser, restParser));
 	}
 
@@ -1102,8 +1068,8 @@ public class Reader {
 			Parser<List<Pair<ExpressionNode, ExpressionNode>>> restParser) {
 		return Parsers
 				.sequence(
-						TERMS.token("if").next(expParser),
-						TERMS.token("then").next(statementParser),
+						token("if").next(expParser),
+						token("then").next(statementParser),
 						restParser,
 						new Map3<ExpressionNode, ExpressionNode, List<Pair<ExpressionNode, ExpressionNode>>, List<Pair<ExpressionNode, ExpressionNode>>>() {
 							public List<Pair<ExpressionNode, ExpressionNode>> map(
@@ -1124,7 +1090,7 @@ public class Reader {
 			Parser<ExpressionNode> expParser,
 			Parser<List<Pair<ExpressionNode, ExpressionNode>>> restParser) {
 		return statementParser
-				.followedBy(TERMS.token("end"))
+				.followedBy(token("end"))
 				.map(new Map<ExpressionNode, List<Pair<ExpressionNode, ExpressionNode>>>() {
 					public List<Pair<ExpressionNode, ExpressionNode>> map(
 							ExpressionNode body) {
@@ -1150,8 +1116,8 @@ public class Reader {
 
 	private static Parser<ExpressionNode> parenthesisParser(
 			Parser<ExpressionNode> expParser) {
-		return Parsers.between(TERMS.token("("), expParser, TERMS.token(")"))
-				.map(new Map<ExpressionNode, ExpressionNode>() {
+		return Parsers.between(token("("), expParser, token(")")).map(
+				new Map<ExpressionNode, ExpressionNode>() {
 					public ExpressionNode map(ExpressionNode val) {
 						return val;
 					}
@@ -1162,10 +1128,10 @@ public class Reader {
 			Parser<ExpressionNode> expParser) {
 		return Parsers
 				.sequence(
-						IDENTIFIER,
-						TERMS.token("("),
-						expParser.sepBy(TERMS.token(",")),
-						TERMS.token(")"),
+						EXPIDENTIFIER,
+						token("("),
+						expParser.sepBy(token(",")),
+						token(")"),
 						new Map4<ExpressionNode, Token, List<ExpressionNode>, Token, ExpressionNode>() {
 							public ExpressionNode map(ExpressionNode fun,
 									Token left, List<ExpressionNode> args,
@@ -1181,12 +1147,11 @@ public class Reader {
 			Parser<ExpressionNode> expParser) {
 		return Parsers
 				.sequence(
-						TERMS.token("lambda"),
-						Parsers.between(TERMS.token("("),
-								IDENTIFIER.sepBy(TERMS.token(",")),
-								TERMS.token(")")),
+						token("lambda"),
+						Parsers.between(token("("),
+								EXPIDENTIFIER.sepBy(token(",")), token(")")),
 						expParser,
-						TERMS.token("end"),
+						token("end"),
 						new Map4<Token, List<IdentifierNode>, ExpressionNode, Token, ExpressionNode>() {
 							public ExpressionNode map(Token lambda,
 									List<IdentifierNode> vars,
@@ -1206,11 +1171,11 @@ public class Reader {
 			Parser<ExpressionNode> expParser) {
 		return Parsers
 				.sequence(
-						TERMS.token("if"),
-						expParser.followedBy(TERMS.token("then")),
-						expParser.followedBy(TERMS.token("else")),
+						token("if"),
+						expParser.followedBy(token("then")),
+						expParser.followedBy(token("else")),
 						expParser,
-						TERMS.token("end"),
+						token("end"),
 						new Map5<Token, ExpressionNode, ExpressionNode, ExpressionNode, Token, ExpressionNode>() {
 							public ExpressionNode map(Token begin,
 									ExpressionNode test, ExpressionNode pos,
@@ -1229,69 +1194,49 @@ public class Reader {
 				statementParser(expParser), letParser(expParser),
 				ifParser(expParser), lambdaParser(expParser), BANG, KEY,
 				parenthesisParser(expParser), comprehensionParser(expParser),
-				foldComprehensionParser(expParser), NUMBER, IDENTIFIER);
+				foldComprehensionParser(expParser), NUMBER, EXPIDENTIFIER);
 		return parser;
 	}
 
 	private static Parser<ExpressionNode> arithmeticParser(
 			Parser<ExpressionNode> termParser) {
 		Parser<ExpressionNode> parser = new OperatorTable<ExpressionNode>()
-				.infixl(TERMS.token(".^").next(binaryOperatorParser("power")),
-						100)
-				.infixl(TERMS.token("^").next(binaryOperatorParser("expt")),
-						100)
-				.infixl(TERMS.token("per")
-						.next(binaryOperatorParser("dim_div")), 60)
-				.infixl(TERMS.token(".").next(binaryOperatorParser("scale")),
+				.infixl(token(".^").next(binaryOperatorParser("power")), 100)
+				.infixl(token("^").next(binaryOperatorParser("expt")), 100)
+				.infixl(token("per").next(binaryOperatorParser("dim_div")), 60)
+				.infixl(token(".").next(binaryOperatorParser("scale")), 50)
+				.infixl(token("/.").next(binaryOperatorParser("scale_down")),
 						50)
-				.infixl(TERMS.token("/.").next(
-						binaryOperatorParser("scale_down")), 50)
-				.infixl(TERMS.token("*").next(binaryOperatorParser("multiply")),
+				.infixl(token("*").next(binaryOperatorParser("multiply")), 50)
+				.infixl(token("/").next(binaryOperatorParser("divide")), 50)
+				.infixl(token("\\").next(binaryOperatorParser("left_divide")),
 						50)
-				.infixl(TERMS.token("/").next(binaryOperatorParser("divide")),
-						50)
-				.infixl(TERMS.token("\\").next(
-						binaryOperatorParser("left_divide")), 50)
-				.infixl(TERMS.token(".*").next(binaryOperatorParser("dot")), 50)
-				.infixl(TERMS.token("./").next(
-						binaryOperatorParser("right_division")), 50)
-				.infixl(TERMS.token(".\\").next(
-						binaryOperatorParser("left_division")), 50)
-				.infixl(TERMS.token("+").next(binaryOperatorParser("sum")), 40)
-				.infixl(TERMS.token("-").next(binaryOperatorParser("minus")),
-						40)
-				.infixl(TERMS.token("<").next(binaryOperatorParser("less")), 30)
-				.infixl(TERMS.token("<=").next(binaryOperatorParser("less_eq")),
+				.infixl(token(".*").next(binaryOperatorParser("dot")), 50)
+				.infixl(token("./")
+						.next(binaryOperatorParser("right_division")), 50)
+				.infixl(token(".\\")
+						.next(binaryOperatorParser("left_division")), 50)
+				.infixl(token("+").next(binaryOperatorParser("sum")), 40)
+				.infixl(token("-").next(binaryOperatorParser("minus")), 40)
+				.infixl(token("<").next(binaryOperatorParser("less")), 30)
+				.infixl(token("<=").next(binaryOperatorParser("less_eq")), 30)
+				.infixl(token(">").next(binaryOperatorParser("greater")), 30)
+				.infixl(token(">=").next(binaryOperatorParser("greater_eq")),
 						30)
-				.infixl(TERMS.token(">").next(binaryOperatorParser("greater")),
-						30)
-				.infixl(TERMS.token(">=").next(
-						binaryOperatorParser("greater_eq")), 30)
-				.infixn(TERMS.token("=").next(binaryOperatorParser("equal")),
-						30)
-				.infixn(TERMS.token("!=").next(
-						binaryOperatorParser("not_equal")), 30)
-				.infixl(TERMS.token("and").next(binaryOperatorParser("and")),
-						20)
-				.infixl(TERMS.token("or").next(binaryOperatorParser("or")), 20)
-				.infixl(TERMS.token("<=>").next(binaryOperatorParser("equal")),
+				.infixn(token("=").next(binaryOperatorParser("equal")), 30)
+				.infixn(token("!=").next(binaryOperatorParser("not_equal")), 30)
+				.infixl(token("and").next(binaryOperatorParser("and")), 20)
+				.infixl(token("or").next(binaryOperatorParser("or")), 20)
+				.infixl(token("<=>").next(binaryOperatorParser("equal")), 10)
+				.infixl(token("==>").next(binaryOperatorParser("implies")), 10)
+				.infixl(token("<==").next(binaryOperatorParser("follows_from")),
 						10)
-				.infixl(TERMS.token("==>")
-						.next(binaryOperatorParser("implies")), 10)
-				.infixl(TERMS.token("<==").next(
-						binaryOperatorParser("follows_from")), 10)
-				.prefix(TERMS.token("-").next(unaryOperatorParser("negative")),
-						90)
-				.postfix(
-						TERMS.token("^D").next(unaryOperatorParser("dim_inv")),
+				.prefix(token("-").next(unaryOperatorParser("negative")), 90)
+				.postfix(token("^D").next(unaryOperatorParser("dim_inv")), 100)
+				.postfix(token("^T").next(unaryOperatorParser("transpose")),
 						100)
-				.postfix(
-						TERMS.token("^T")
-								.next(unaryOperatorParser("transpose")), 100)
-				.postfix(
-						TERMS.token("^R").next(
-								unaryOperatorParser("reciprocal")), 100)
-				.build(termParser);
+				.postfix(token("^R").next(unaryOperatorParser("reciprocal")),
+						100).build(termParser);
 		return parser;
 	}
 
@@ -1340,8 +1285,8 @@ public class Reader {
 
 	private static Parser<ExpressionNode> listParser(
 			Parser<ExpressionNode> expParser) {
-		return Parsers.sequence(TERMS.token("["),
-				expParser.sepBy(TERMS.token(",")), TERMS.token("]"),
+		return Parsers.sequence(token("["), expParser.sepBy(token(",")),
+				token("]"),
 				new Map3<Token, List<ExpressionNode>, Token, ExpressionNode>() {
 					public ExpressionNode map(Token left,
 							List<ExpressionNode> arg, Token right) {
@@ -1368,14 +1313,14 @@ public class Reader {
 		final String accuName = "accu";
 		return Parsers
 				.sequence(
-						TERMS.token("["),
-						expParser.followedBy(TERMS.token("|")),
+						token("["),
+						expParser.followedBy(token("|")),
 						Parsers.or(generatorParser(expParser, "accu"),
 								assignmentParser(expParser, "accu"),
 								tupleGeneratorParser(expParser, "accu"),
 								filterParser(expParser, "list", accuName))
-								.sepBy1(TERMS.token(",")),
-						TERMS.token("]"),
+								.sepBy1(token(",")),
+						token("]"),
 						new Map4<Token, ExpressionNode, List<Map<ExpressionNode, ExpressionNode>>, Token, ExpressionNode>() {
 							public ExpressionNode map(
 									Token left,
@@ -1412,7 +1357,7 @@ public class Reader {
 
 	private static Parser<ExpressionNode> foldComprehensionParser(
 			Parser<ExpressionNode> expParser) {
-		return Parsers.sequence(IDENTIFIER, comprehensionParser(expParser),
+		return Parsers.sequence(EXPIDENTIFIER, comprehensionParser(expParser),
 				new Map2<IdentifierNode, ExpressionNode, ExpressionNode>() {
 					public ExpressionNode map(IdentifierNode op,
 							ExpressionNode body) {
@@ -1455,8 +1400,8 @@ public class Reader {
 			Parser<ExpressionNode> expParser, final String accu) {
 		return Parsers
 				.sequence(
-						IDENTIFIER,
-						TERMS.token("<-").next(expParser),
+						EXPIDENTIFIER,
+						token("<-").next(expParser),
 						new Map2<IdentifierNode, ExpressionNode, Map<ExpressionNode, ExpressionNode>>() {
 							public Map<ExpressionNode, ExpressionNode> map(
 									final IdentifierNode var,
@@ -1488,8 +1433,8 @@ public class Reader {
 			Parser<ExpressionNode> expParser, String accu) {
 		return Parsers
 				.sequence(
-						IDENTIFIER,
-						TERMS.token(":=").next(expParser),
+						EXPIDENTIFIER,
+						token(":=").next(expParser),
 						new Map2<IdentifierNode, ExpressionNode, Map<ExpressionNode, ExpressionNode>>() {
 							public Map<ExpressionNode, ExpressionNode> map(
 									final IdentifierNode var,
@@ -1533,10 +1478,9 @@ public class Reader {
 			Parser<ExpressionNode> expParser, final String accu) {
 		return Parsers
 				.sequence(
-						TERMS.token("("),
-						IDENTIFIER.sepBy(TERMS.token(",")).followedBy(
-								TERMS.token(")")),
-						TERMS.token("<-").next(expParser),
+						token("("),
+						EXPIDENTIFIER.sepBy(token(",")).followedBy(token(")")),
+						token("<-").next(expParser),
 						new Map3<Token, List<IdentifierNode>, ExpressionNode, Map<ExpressionNode, ExpressionNode>>() {
 							public Map<ExpressionNode, ExpressionNode> map(
 									final Token paren,
@@ -1586,10 +1530,9 @@ public class Reader {
 			Parser<ExpressionNode> expParser) {
 		return Parsers
 				.sequence(
-						TERMS.token("let"),
-						letBindingParser(expParser).sepBy(TERMS.token(",")),
-						TERMS.token("in").next(expParser)
-								.followedBy(TERMS.token("end")),
+						token("let"),
+						letBindingParser(expParser).sepBy(token(",")),
+						token("in").next(expParser).followedBy(token("end")),
 						new Map3<Token, List<Callback<ExpressionNode, ExpressionNode>>, ExpressionNode, ExpressionNode>() {
 							public ExpressionNode map(
 									Token let,
@@ -1614,7 +1557,7 @@ public class Reader {
 			Parser<ExpressionNode> expParser) {
 		return Parsers
 				.sequence(
-						IDENTIFIER.followedBy(TERMS.token("=")),
+						EXPIDENTIFIER.followedBy(token("=")),
 						expParser,
 						new Map2<IdentifierNode, ExpressionNode, Callback<ExpressionNode, ExpressionNode>>() {
 							public Callback<ExpressionNode, ExpressionNode> map(
@@ -1643,10 +1586,9 @@ public class Reader {
 			Parser<ExpressionNode> expParser) {
 		return Parsers
 				.sequence(
-						TERMS.token("("),
-						IDENTIFIER.sepBy(TERMS.token(","))
-								.followedBy(TERMS.token(")"))
-								.followedBy(TERMS.token("=")),
+						token("("),
+						EXPIDENTIFIER.sepBy(token(",")).followedBy(token(")"))
+								.followedBy(token("=")),
 						expParser,
 						new Map3<Token, List<IdentifierNode>, ExpressionNode, Callback<ExpressionNode, ExpressionNode>>() {
 							public Callback<ExpressionNode, ExpressionNode> map(
@@ -1699,10 +1641,10 @@ public class Reader {
 			Parser<ExpressionNode> expParser) {
 		return Parsers
 				.sequence(
-						IDENTIFIER,
-						Parsers.between(TERMS.token("("),
-								IDENTIFIER.sepBy(TERMS.token(",")),
-								TERMS.token(")")).followedBy(TERMS.token("=")),
+						EXPIDENTIFIER,
+						Parsers.between(token("("),
+								EXPIDENTIFIER.sepBy(token(",")), token(")"))
+								.followedBy(token("=")),
 						expParser,
 						new Map3<IdentifierNode, List<IdentifierNode>, ExpressionNode, Callback<ExpressionNode, ExpressionNode>>() {
 							public Callback<ExpressionNode, ExpressionNode> map(

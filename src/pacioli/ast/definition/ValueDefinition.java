@@ -23,6 +23,7 @@ package pacioli.ast.definition;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -85,8 +86,8 @@ public class ValueDefinition extends AbstractDefinition {
 		return type;
 	}
 	
-    public PacioliType inferType(Map<String, PacioliType> context) throws PacioliException {
-        Typing typing = resolvedBody.inferTyping(context);
+    public PacioliType inferType() throws PacioliException {
+        Typing typing = resolvedBody.inferTyping(new HashMap<String, PacioliType>());
         Pacioli.log3("\n%s", typing.toText());
         type = typing.solve().simplify().generalize();
         return type;
@@ -126,12 +127,14 @@ public class ValueDefinition extends AbstractDefinition {
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        return String.format("\nstore \"%s\" %s;", globalName(), resolvedBody.transformMutableVarRefs().compileToMVM(settings));
+        //return String.format("\nstore \"%s\" %s;", globalName(), resolvedBody.transformMutableVarRefs().desugar().compileToMVM(settings));
+    	return String.format("\nstore \"%s\" %s;", globalName(), resolvedBody.desugar().compileToMVM(settings));
     }
 
     @Override
     public String compileToJS() {
-        ExpressionNode transformedBody = resolvedBody.transformMutableVarRefs();
+        //ExpressionNode transformedBody = resolvedBody.transformMutableVarRefs();
+    	ExpressionNode transformedBody = resolvedBody.desugar();
         if (transformedBody instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformedBody;
             return String.format("\nfunction %s (%s) {\n  return %s;\n}",

@@ -74,8 +74,8 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 	}
 
 	@Override
-	public ExpressionNode equivalentFunctionalCode() {
-		throw new RuntimeException("todo");	
+	public ExpressionNode desugar() {
+		return this;
 	}
 
 	@Override

@@ -213,8 +213,12 @@ public class IdentifierNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode equivalentFunctionalCode() {
-        return this;
+    public ExpressionNode desugar() {
+        if (isMutableVar()) {
+            return ApplicationNode.newCall(getLocation(), "Primitives", "ref_get", this);
+        } else {
+            return this;
+        }
     }
 
     @Override

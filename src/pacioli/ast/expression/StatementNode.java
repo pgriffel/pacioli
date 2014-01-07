@@ -71,7 +71,11 @@ public class StatementNode extends AbstractExpressionNode {
 
         for (String name : context.vars()) {
             if (!assignedNames.contains(name)) {
-                altContext.addVar(name);
+            	if (context.isRefVar(name)) {
+            		altContext.addRefVar(name);
+            	} else {
+            		altContext.addVar(name);
+            	}
             }
         }
         
@@ -142,13 +146,13 @@ public class StatementNode extends AbstractExpressionNode {
 	}
 
     @Override
-    public ExpressionNode equivalentFunctionalCode() {
+    public ExpressionNode desugar() {
 
         assert (context != null);
 
         // Build equivalent functional code for possibly nested block in the 
         // expressions of each statement in this block
-        ExpressionNode node = body.equivalentFunctionalCode();
+        ExpressionNode node = body.desugar();
         String resultPlace = "result";
         IdentifierNode result = IdentifierNode.newLocalMutableVar(resultPlace, getLocation());
         
@@ -188,12 +192,12 @@ public class StatementNode extends AbstractExpressionNode {
 
 	@Override
 	public String compileToMVM(CompilationSettings settings) {
-		return equivalentFunctionalCode().compileToMVM(settings);
+		return desugar().compileToMVM(settings);
 	}
 
 	@Override
 	public String compileToJS() {
-		return equivalentFunctionalCode().compileToJS();
+		return desugar().compileToJS();
 	}
 
 	@Override

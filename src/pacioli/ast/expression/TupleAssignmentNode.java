@@ -75,7 +75,7 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode equivalentFunctionalCode() {
+    public ExpressionNode desugar() {
         //todo: skip underscores
 
         final List<String> names = new ArrayList<String>();
@@ -99,7 +99,7 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
         }
 
         LambdaNode lambda = new LambdaNode(freshNames, code, getLocation());
-        ExpressionNode tupleCode = tuple.equivalentFunctionalCode();
+        ExpressionNode tupleCode = tuple.desugar();
         return ApplicationNode.newCall(getLocation(), "Primitives", "apply", lambda, tupleCode);
     }
 
@@ -144,12 +144,12 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        return equivalentFunctionalCode().compileToMVM(settings);
+        return desugar().compileToMVM(settings);
     }
 
     @Override
     public String compileToJS() {
-        return equivalentFunctionalCode().compileToJS();
+        return desugar().compileToJS();
     }
 
     @Override

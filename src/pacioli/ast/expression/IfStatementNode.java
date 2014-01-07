@@ -139,11 +139,11 @@ public class IfStatementNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode equivalentFunctionalCode() {
+    public ExpressionNode desugar() {
         return new BranchNode(
-                test.equivalentFunctionalCode(),
-                positive.equivalentFunctionalCode(),
-                negative.equivalentFunctionalCode(),
+                test.desugar(),
+                positive.desugar(),
+                negative.desugar(),
                 getLocation());
     }
 

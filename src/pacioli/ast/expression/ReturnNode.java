@@ -78,13 +78,12 @@ public class ReturnNode extends AbstractExpressionNode {
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        return equivalentFunctionalCode().compileToMVM(settings);
+        return desugar().compileToMVM(settings);
     }
 
     @Override
-    public ExpressionNode equivalentFunctionalCode() {
-        ExpressionNode valueCode = value.equivalentFunctionalCode();
-        return ApplicationNode.newCall(getLocation(), "Primitives", "throw_result", resultPlace, valueCode);
+    public ExpressionNode desugar() {
+        return ApplicationNode.newCall(getLocation(), "Primitives", "throw_result", resultPlace, value.desugar());
     }
 
     @Override

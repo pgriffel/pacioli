@@ -109,15 +109,15 @@ public class WhileNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode equivalentFunctionalCode() {
-        ExpressionNode testCode = new LambdaNode(new ArrayList<String>(), test.equivalentFunctionalCode(), test.getLocation());
-        ExpressionNode bodyCode = new LambdaNode(new ArrayList<String>(), body.equivalentFunctionalCode(), body.getLocation());
+    public ExpressionNode desugar() {
+        ExpressionNode testCode = new LambdaNode(new ArrayList<String>(), test.desugar(), test.getLocation());
+        ExpressionNode bodyCode = new LambdaNode(new ArrayList<String>(), body.desugar(), body.getLocation());
         return ApplicationNode.newCall(getLocation(), "Primitives", "while_function", testCode, bodyCode);
     }
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        return equivalentFunctionalCode().compileToMVM(settings);
+        return desugar().compileToMVM(settings);
     }
 
     @Override

@@ -57,8 +57,8 @@ public class ProjectionNode extends AbstractExpressionNode {
 	}
 
 	@Override
-	public ExpressionNode equivalentFunctionalCode() {
-		throw new RuntimeException("Not implemented");
+	public ExpressionNode desugar() {
+		return this;
 	}
 
 	@Override
