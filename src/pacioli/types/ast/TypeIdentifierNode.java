@@ -105,12 +105,22 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 
 	@Override
 	public String compileToJS() {
-		return "scalarShape('" + name + "')";
+		
+		if (definition instanceof AliasDefinition) {
+			return "scalarUnitShape(" + ((AliasDefinition) definition).getBody().compileToJS() + ")";
+		} else {
+			return "scalarShape('" + name + "')";
+		}
 	}
 	
 	@Override
 	public String compileToMVM(CompilationSettings settings) {
-		return "scalar_shape(unit(\"" + name + "\"))";
+		if (definition instanceof AliasDefinition) {
+			return "scalar_shape(" + ((AliasDefinition) definition).getBody().compileToMVM(settings) + ")";
+		} else {
+			return "scalar_shape(unit(\"" + name + "\"))";
+		}
+		
 	}
 
 	@Override
