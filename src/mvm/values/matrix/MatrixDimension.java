@@ -31,22 +31,18 @@ import mvm.AbstractPrintable;
 public class MatrixDimension extends AbstractPrintable {
 
     private final List<IndexSet> indexSets;
-    private final Map<List<String>, Integer> positions; // Gebruik de hashmap op Entity en verwijder deze
 
     public MatrixDimension(List<IndexSet> sets) {
         this.indexSets = sets;
-        this.positions = positionsMap();
     }
 
     public MatrixDimension(IndexSet set) {
         indexSets = new ArrayList<IndexSet>();
         indexSets.add(set);
-        this.positions = positionsMap();
     }
 
     public MatrixDimension() {
         this.indexSets = new ArrayList<IndexSet>();
-        this.positions = positionsMap();
     }
 
     @Override
@@ -105,8 +101,14 @@ public class MatrixDimension extends AbstractPrintable {
     }
 
     public int ElementPos(List<String> index) {
-        if (positions.containsKey(index)) {
-            return positions.get(index);
+    	int pos = 0;
+    	for (int i = 0; i < width(); i++) {
+            IndexSet set = indexSets.get(i);
+            String indexName = index.get(i);
+            pos = pos * set.size() + set.ElementPosition(indexName);
+    	}
+        if (0 <= pos) {
+            return pos;
         } else {
             throw new RuntimeException(String.format("Element '%s' unknown", index));
         }
