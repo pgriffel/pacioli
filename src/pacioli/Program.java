@@ -460,7 +460,7 @@ public class Program {
 		compileJS(out, settings);
 		out.println("function onLoad() {");
 		for (Toplevel definition : toplevelExpressions) {
-			out.print("global_Primitives_print(");
+			out.print("Pacioli.print(");
 			out.print(definition.compileToJS());
 			out.print(")");
 			out.println("");

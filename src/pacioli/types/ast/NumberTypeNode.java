@@ -56,7 +56,7 @@ public class NumberTypeNode extends AbstractTypeNode {
 
 	@Override
 	public String compileToJS() {
-		return "new Shape(" + number + ")";
+		return "scalarShape(" + number + ")";
 	}
 
 	@Override

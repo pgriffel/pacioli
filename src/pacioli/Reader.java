@@ -63,6 +63,7 @@ import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
+import pacioli.ast.expression.ProjNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
 import pacioli.ast.expression.SequenceNode;
@@ -109,7 +110,7 @@ public class Reader {
 	private static final String[] KEYWORDS = { "module", "define", "include",
 			"declare", "defindex", "defunit", "defmatrix", "defconv",
 			"defproj", "deftype", "defalias", "let", "in", "begin", "end",
-			"if", "then", "else", "elseif", "lambda", "while", "return", "do",
+			"if", "then", "else", "elseif", "lambda", "while", "return", "do", "project", "from",
 			"for_type", "for_index", "for_unit", "per", "and", "or", "true",
 			"false" };
 
@@ -1166,6 +1167,25 @@ public class Reader {
 							}
 						});
 	}
+	
+	private static Parser<ExpressionNode> projectionParser(
+			Parser<ExpressionNode> expParser) {
+		return Parsers
+				.sequence(
+						token("project"),
+						POSNUMBER.sepBy(token(",")),
+						token("from").next(expParser),
+						token("end"),
+						new Map4<Token, List<ConstNode>, ExpressionNode, Token, ExpressionNode>() {
+							public ExpressionNode map(Token project,
+									List<ConstNode> columns,
+									ExpressionNode body, Token end) {
+								return new ProjNode(columns,
+										body, tokenLocation(project).join(
+												tokenLocation(end)));
+							}
+						});
+	}
 
 	private static Parser<ExpressionNode> ifParser(
 			Parser<ExpressionNode> expParser) {
@@ -1192,7 +1212,7 @@ public class Reader {
 		Parser<ExpressionNode> parser = Parsers.or(BOOLEAN,
 				applicationParser(expParser), listParser(expParser),
 				statementParser(expParser), letParser(expParser),
-				ifParser(expParser), lambdaParser(expParser), BANG, KEY,
+				ifParser(expParser), lambdaParser(expParser), projectionParser(expParser), BANG, KEY,
 				parenthesisParser(expParser), comprehensionParser(expParser),
 				foldComprehensionParser(expParser), NUMBER, EXPIDENTIFIER);
 		return parser;

@@ -71,9 +71,9 @@ public class UnitIdentifierNode extends AbstractUnitNode {
 	@Override
 	public String compileToJS() {
 		if (prefix == null) {
-			return "new PowerProduct('" + name + "')"; 
+			return "Pacioli.unit('" + name + "')"; 
 		} else {
-			return "new PowerProduct('" + prefix + "$" + name + "')";
+			return "Pacioli.unit('" + prefix + "', '" + name + "')";
 		}
 	}
 

@@ -59,4 +59,5 @@ public interface PacioliType extends Printable {
     public PacioliType freeze();
 
     public PacioliType unfreeze();
+
 }

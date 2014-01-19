@@ -81,6 +81,10 @@ public class BangBase extends BaseUnit {
         return new BangBase(indexSetName, unitName, position + offset);
     }
     
+    public BangBase move(int offset) {
+        return new BangBase(indexSetName, unitName, offset);
+    }
+    
     public static Unit kroneckerNth(Unit unit, final int index) {
         return unit.map(new UnitMap() {
             public Unit map(Base base) {

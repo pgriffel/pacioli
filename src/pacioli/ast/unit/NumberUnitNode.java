@@ -42,7 +42,7 @@ public class NumberUnitNode extends AbstractUnitNode {
     
 	@Override
 	public String compileToJS() {
-		return "new PowerProduct(" + number + ")";
+		return "Pacioli.unit(" + number + ")";
 	}
 
 	@Override

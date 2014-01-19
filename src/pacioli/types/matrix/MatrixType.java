@@ -30,6 +30,7 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.Utils;
+import pacioli.ast.expression.ConstNode;
 import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeVar;
@@ -187,6 +188,39 @@ public class MatrixType extends AbstractType {
         }
     }
 
+	public MatrixType project(final List<Integer> columns) throws PacioliException {
+		if (rowDimension instanceof DimensionType) {
+
+            assert (((DimensionType) columnDimension).width() == 0);
+            
+            DimensionType rowType = (DimensionType) rowDimension;
+            
+            Unit unit = Unit.ONE;
+            for (int i = 0; i < columns.size(); i++) {
+            	final int tmp = i;
+            	unit = unit.map(new UnitMap() {
+					public Unit map(Base base) {
+						assert(base instanceof BangBase);
+						BangBase bangBase = (BangBase) base;
+						return (bangBase.position == columns.get(tmp)) ? bangBase.move(tmp) : Unit.ONE;
+					}
+				});
+            }
+            
+            // THE REMAINING UNITS MUST MULTIPLY TO 1 because they are summed at runtime!!!!!
+            
+    		return new MatrixType(
+                    factor,
+                    rowType.project(columns),
+                    unit,
+                    new DimensionType(),
+                    Unit.ONE);
+
+        } else {
+            throw new PacioliException("Projection is not allowed for open type: %s", toText());
+        }
+	}
+	
     public boolean singleton() {
         if (rowDimension instanceof TypeVar || columnDimension instanceof TypeVar) {
             return false;
@@ -402,4 +436,5 @@ public class MatrixType extends AbstractType {
                 subs.apply(columnUnit));
 
     }
+
 }

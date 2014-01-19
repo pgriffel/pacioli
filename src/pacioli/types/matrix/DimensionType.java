@@ -146,4 +146,12 @@ public class DimensionType extends AbstractType {
         sets.addAll(other.indexSets);
         return new DimensionType(sets);
     }
+
+	public PacioliType project(List<Integer> columns) {
+		List<String> sets = new ArrayList<String>();
+        for (Integer column: columns) {
+        	sets.add(indexSets.get(column.intValue()));
+        }
+        return new DimensionType(sets);
+	}
 }
