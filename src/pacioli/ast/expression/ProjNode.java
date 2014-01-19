@@ -10,7 +10,7 @@ import java.util.Set;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
+import pacioli.PacioliFile;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.Utils;
@@ -104,7 +104,7 @@ public class ProjNode extends AbstractExpressionNode {
     }
 
 	@Override
-	public ExpressionNode liftStatements(Module module,
+	public ExpressionNode liftStatements(PacioliFile module,
 			List<ValueDefinition> blocks) {
 		// TODO Auto-generated method stub
 		return null;

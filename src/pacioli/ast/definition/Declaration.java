@@ -6,7 +6,7 @@ import java.util.Set;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
+import pacioli.PacioliFile;
 import pacioli.PacioliException;
 import pacioli.Program;
 import pacioli.TypeContext;
@@ -28,7 +28,7 @@ public class Declaration extends AbstractDefinition {
 	}
 
 	@Override
-	public void addToProgram(Program program, Module module) {
+	public void addToProgram(Program program, PacioliFile module) {
 		setModule(module);
 		program.addDeclaration(this, module);
 	}

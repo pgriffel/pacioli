@@ -12,7 +12,7 @@ import java.util.Set;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
+import pacioli.PacioliFile;
 import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Utils;
@@ -97,7 +97,7 @@ public class StatementNode extends AbstractExpressionNode {
     }
 	
     @Override
-    public ExpressionNode liftStatements(Module module, List<ValueDefinition> blocks) {
+    public ExpressionNode liftStatements(PacioliFile module, List<ValueDefinition> blocks) {
 
         // Lift the body
         ExpressionNode liftedBody = body.liftStatements(module, blocks);

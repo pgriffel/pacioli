@@ -89,11 +89,11 @@ public class Reader {
 	private static String source;
 	private static String file;
 
-	public static Module loadModule(Program program, File fileName)
+	public static PacioliFile loadPacioliFile(Program program, File fileName)
 			throws PacioliException, IOException {
 		file = fileName.getPath();
 		source = Utils.readFile(fileName);
-		Module module = parseModule(program, source); 
+		PacioliFile module = parseModule(program, source); 
 		module.setFile(fileName.getAbsoluteFile());
 		return module;
 
@@ -255,7 +255,7 @@ public class Reader {
 	/*
 	 * Module Parser
 	 */
-	private static Module parseModule(final Program program, String source) {
+	private static PacioliFile parseModule(final Program program, String source) {
 		return Parsers
 				.sequence(
 						Parsers.sequence(token("module"), PATH).followedBy(
@@ -269,11 +269,11 @@ public class Reader {
 								defConversionParser(), defProjectionParser(),
 								defTypeParser(), defAliasParser(),
 								defMatrixParser()).many(),
-						new Map3<IdentifierNode, List<IdentifierNode>, List<Definition>, Module>() {
-							public Module map(IdentifierNode name,
+						new Map3<IdentifierNode, List<IdentifierNode>, List<Definition>, PacioliFile>() {
+							public PacioliFile map(IdentifierNode name,
 									List<IdentifierNode> includes,
 									List<Definition> definitions) {
-								Module module = new Module(name.getName());
+								PacioliFile module = new PacioliFile(name.getName());
 								for (IdentifierNode include : includes) {
 									module.include(include.getName());
 								}

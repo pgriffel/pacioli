@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import pacioli.Dictionary;
-import pacioli.Module;
+import pacioli.PacioliFile;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.ValueContext;
@@ -44,5 +44,5 @@ public interface ExpressionNode extends ASTNode {
 
     public ExpressionNode desugar();
     
-    public ExpressionNode liftStatements(Module module, List<ValueDefinition> blocks);
+    public ExpressionNode liftStatements(PacioliFile module, List<ValueDefinition> blocks);
 }

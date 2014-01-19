@@ -31,7 +31,7 @@ import java.util.Set;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
+import pacioli.PacioliFile;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.ValueContext;
@@ -97,7 +97,7 @@ public class SequenceNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode liftStatements(Module module, List<ValueDefinition> blocks) {
+    public ExpressionNode liftStatements(PacioliFile module, List<ValueDefinition> blocks) {
         List<ExpressionNode> liftedItems = new ArrayList<ExpressionNode>();
         for (ExpressionNode item : items) {
             liftedItems.add(item.liftStatements(module, blocks));

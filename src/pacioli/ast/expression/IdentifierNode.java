@@ -31,7 +31,7 @@ import java.util.Set;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
+import pacioli.PacioliFile;
 import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Typing;
@@ -213,7 +213,7 @@ public class IdentifierNode extends AbstractExpressionNode {
             throw new RuntimeException(String.format("Id '%s' unresolved at %s", name, getLocation().description()));
         }
         assert (home != null); // names must have been resolved
-        String prefix = settings.debug() && Module.debugablePrimitives.contains(home) ? "debug_" : "global_";
+        String prefix = settings.debug() && PacioliFile.debugablePrimitives.contains(home) ? "debug_" : "global_";
         String full = home.isEmpty() ? name : prefix + home + "_" + name;
         return "var(\"" + full + "\")";
 
@@ -232,7 +232,7 @@ public class IdentifierNode extends AbstractExpressionNode {
     }
 
 	@Override
-	public ExpressionNode liftStatements(Module module,
+	public ExpressionNode liftStatements(PacioliFile module,
 			List<ValueDefinition> blocks) {
 		// TODO Auto-generated method stub
 		return null;

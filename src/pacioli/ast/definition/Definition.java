@@ -22,7 +22,7 @@
 package pacioli.ast.definition;
 
 import pacioli.Dictionary;
-import pacioli.Module;
+import pacioli.PacioliFile;
 import pacioli.PacioliException;
 import pacioli.Program;
 import pacioli.ast.ASTNode;
@@ -33,11 +33,11 @@ public interface Definition extends ASTNode {
 
     public String globalName();
 
-    public void setModule(Module module);
+    public void setModule(PacioliFile module);
     
-    public Module getModule();
+    public PacioliFile getModule();
 
-    public void addToProgram(Program program, Module module);
+    public void addToProgram(Program program, PacioliFile module);
 
     public void resolve(Dictionary dictionary) throws PacioliException;
 	

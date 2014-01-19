@@ -44,22 +44,31 @@ import pacioli.ast.unit.UnitNode;
 import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
 
-public class Module extends AbstractPrintable {
+public class PacioliFile extends AbstractPrintable {
 
     private final String name;
     private final List<String> includes;
     private File file = null;
+    private boolean isDefault = false;
     
     public static final List<String> defaultIncludes =
             new ArrayList<String>(Arrays.asList("primitives", "list", "matrix", "standard"));
     public static final List<String> debugablePrimitives  =
             new ArrayList<String>(Arrays.asList("primitives", "list", "matrix"));
 
-    public Module(String name) {
+    public PacioliFile(String name) {
         this.name = name;
         this.includes = new ArrayList<String>();
     }
-
+	
+    public boolean isDefault() {
+		return isDefault;
+	}
+    
+    public void setDefault() {
+		isDefault = true;
+	}
+    
 	public String getName() {
 		return name;
 	}

@@ -11,7 +11,7 @@ import mvm.values.matrix.Matrix;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Module;
+import pacioli.PacioliFile;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
 import pacioli.Typing;
@@ -98,7 +98,7 @@ public class ConversionNode extends AbstractExpressionNode {
 	}
 
 	@Override
-	public ExpressionNode liftStatements(Module module,
+	public ExpressionNode liftStatements(PacioliFile module,
 			List<ValueDefinition> blocks) {
 		// TODO Auto-generated method stub
 		return null;

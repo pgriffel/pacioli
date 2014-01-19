@@ -22,12 +22,12 @@
 package pacioli.ast.definition;
 
 import pacioli.Location;
-import pacioli.Module;
+import pacioli.PacioliFile;
 import pacioli.ast.AbstractASTNode;
 
 public abstract class AbstractDefinition extends AbstractASTNode implements Definition {
 
-    protected Module module;
+    protected PacioliFile module;
     
     public AbstractDefinition(Location location) {
         super(location);
@@ -39,12 +39,12 @@ public abstract class AbstractDefinition extends AbstractASTNode implements Defi
     }
 
     @Override
-    public void setModule(Module module) {
+    public void setModule(PacioliFile module) {
         this.module = module;
     }
     
     @Override
-    public Module getModule() {
+    public PacioliFile getModule() {
         return module;
     }
 }
