@@ -22,10 +22,15 @@
 package mvm.values.matrix;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
+
+import pacioli.Pacioli;
 import mvm.AbstractPrintable;
+import uom.Base;
 import uom.Fraction;
 import uom.Unit;
+import uom.UnitMap;
 
 public class MatrixShape extends AbstractPrintable {
 
@@ -193,7 +198,22 @@ public class MatrixShape extends AbstractPrintable {
                 columnDimension.kronecker(other.columnDimension),
                 columnUnit.multiply(MatrixBase.shiftUnit(other.columnUnit, columnDimension.width())));        
     }
-    
+
+	public MatrixShape project(List<Integer> cols) {
+		List<IndexSet> sets = new ArrayList<IndexSet>(); 
+		Unit newUnit = Unit.ONE;
+		for(int i = 0; i < cols.size(); i++) {
+			newUnit = newUnit.multiply(MatrixBase.shiftUnit(MatrixBase.kroneckerNth(rowUnit, cols.get(i)), i - cols.get(i)));
+			sets.add(rowDimension.getIndexSets().get(cols.get(i)));
+		}
+        return new MatrixShape(
+                factor, 
+                new MatrixDimension(sets), 
+                newUnit, 
+                new MatrixDimension(),
+                Unit.ONE);
+	}
+
     public boolean singleton() {
         return rowOrder() == 0 && columnOrder() == 0;
     }

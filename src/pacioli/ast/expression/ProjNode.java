@@ -2,6 +2,7 @@ package pacioli.ast.expression;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -49,11 +50,6 @@ public class ProjNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToMVM(CompilationSettings settings) {
-        return String.format("Proj (%s) %s", numString(), body.compileToMVM(settings));
-    }
-
-    @Override
     public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
         Typing bodyTyping = body.inferTyping(context);
         PacioliType type = bodyTyping.getType();
@@ -85,6 +81,15 @@ public class ProjNode extends AbstractExpressionNode {
         return new ProjNode(columns, body.desugar(), getLocation());
     }
 
+    @Override
+    public String compileToMVM(CompilationSettings settings) {
+    	String cols = "application(var(\"global_List_empty_list\"))";
+    	for (int i = this.columns.size()-1; i >= 0; i--) {
+            cols = "application(var(\"global_List_cons\"), " + this.columns.get(i).compileToMVM(settings) + ", " + cols + ")";
+        }        
+        return String.format("application(var(\"global_Matrix_project\"), %s, %s)", cols, body.compileToMVM(settings));
+    }
+    
     @Override
     public String compileToJS() {
         return String.format("(%s).project([%s])", body.compileToJS(), numString());

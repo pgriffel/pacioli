@@ -72,14 +72,6 @@ public class MatrixDimension extends AbstractPrintable {
         return new MatrixDimension(sets);
     }
     
-    private Map<List<String>, Integer> positionsMap() {
-        Map<List<String>, Integer> map = new HashMap<List<String>, Integer>();
-        for (int i = 0; i < size(); i++) {
-            map.put(ElementAt(i), i);
-        }
-        return map;
-    }
-
     public List<IndexSet> getIndexSets() {
         return indexSets;
     }
@@ -103,21 +95,24 @@ public class MatrixDimension extends AbstractPrintable {
     public int ElementPos(List<String> index) {
     	int pos = 0;
     	for (int i = 0; i < width(); i++) {
+    	//for (int i = width()-1; i >= 0; i--) {
             IndexSet set = indexSets.get(i);
             String indexName = index.get(i);
-            pos = pos * set.size() + set.ElementPosition(indexName);
+            int at = set.ElementPosition(indexName);
+            if (0 <= at) {
+            	pos = pos * set.size() + at;
+            } else {
+                throw new RuntimeException(String.format("Element '%s' unknown %s", indexName, i));
+            }
     	}
-        if (0 <= pos) {
-            return pos;
-        } else {
-            throw new RuntimeException(String.format("Element '%s' unknown", index));
-        }
+    	return pos;
     }
 
     public int[] individualPositions(int position) {
         int[] positionArray = new int[width()];
         int p = position;
-        for (int i = 0; i < width(); i++) {
+        //for (int i = 0; i < width(); i++) {
+        for (int i = width() - 1; i >= 0; i--) {
             IndexSet set = indexSets.get(i);
             positionArray[i] = p % set.size();
             p = p / set.size();
@@ -127,9 +122,14 @@ public class MatrixDimension extends AbstractPrintable {
 
     public List<String> ElementAt(int index) {
         ArrayList<String> list = new ArrayList<String>();
+        for (int i = 0; i < width(); i++) {
+            list.add(null);
+        }
         int a = index;
-        for (IndexSet set : indexSets) {
-            list.add(set.ElementAt(a % set.size()));
+        //for (int i = 0; i < width(); i++) {
+        for (int i = width() - 1; i >= 0; i--) {        	
+            IndexSet set = indexSets.get(i);
+            list.set(i, set.ElementAt(a % set.size()));
             a = a / set.size();
         }
         return list;

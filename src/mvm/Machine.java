@@ -1098,6 +1098,33 @@ public class Machine {
 			}
 		});
 
+		store.put("global_Matrix_project", new Primitive("project") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				PacioliList columns = (PacioliList) params.get(0);
+				Matrix matrix = (Matrix) params.get(1);
+				List<Integer> cols = new ArrayList<Integer>();
+				for (PacioliValue column: columns.items()) {
+					assert (column instanceof Matrix);
+					Matrix col = (Matrix) column;
+					cols.add((int) col.SingletonNumber());
+				}
+				return matrix.project(cols);
+			}
+		});
+
+		store.put("debug_Matrix_project", new Primitive("project") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 2);
+				checkListArg(params, 0);
+				checkMatrixArg(params, 1);
+				Callable fun = (Callable) store.lookup("global_Matrix_project");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+		
 		store.put("global_Matrix_row", new Primitive("row") {
 			public PacioliValue apply(List<PacioliValue> params)
 					throws MVMException {

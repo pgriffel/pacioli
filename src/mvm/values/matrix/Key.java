@@ -42,9 +42,21 @@ public class Key extends AbstractPacioliValue {
     }
 
     public MatrixDimension dimension() {
-        return (MatrixDimension) dimension;
+        return dimension;
     }
-
+    
+    public int position() {
+        return dimension.ElementPos(names);
+    }
+    
+    public List<String> projectNames(List<Integer> columns) {
+    	List<String> projected = new ArrayList<String>();
+    	for (int column: columns) {
+    		projected.add(names.get(column));
+    	}
+        return projected;
+    }
+    
     @Override
     public void printText(PrintWriter out) {
         if (names.isEmpty()) {

@@ -38,6 +38,8 @@ import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
+
+import pacioli.Pacioli;
 import uom.Base;
 import uom.Unit;
 import uom.UnitMap;
@@ -1023,6 +1025,19 @@ public class Matrix extends AbstractPacioliValue {
 
 	public void set(Integer i, Integer j, Double value) {
 		numbers.setEntry(i, j, value);		
+	}
+
+	public PacioliValue project(List<Integer> cols) {
+		Matrix matrix = new Matrix(shape.project(cols));
+		List<Key> keys = rowKeys();
+		for (int i = 0; i < keys.size(); i++) {
+			double value = numbers.getEntry(i, 0);
+			if (value != 0) {
+				int pos = matrix.rowDimension().ElementPos(keys.get(i).projectNames(cols));
+				matrix.numbers.setEntry(pos, 0, matrix.numbers.getEntry(pos, 0) + value);
+			}
+		}
+		return matrix;
 	}
 
 }
