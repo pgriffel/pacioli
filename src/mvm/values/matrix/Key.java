@@ -28,17 +28,26 @@ import mvm.values.AbstractPacioliValue;
 
 public class Key extends AbstractPacioliValue {
 
-    public final List<String> names;
+	private final List<String> names;
+	private final int position;
     private final MatrixDimension dimension;
 
     public Key() {
         this.names = new ArrayList<String>();
         this.dimension = new MatrixDimension();
+        this.position = dimension.ElementPos(names);
     }
 
     public Key(List<String> names, MatrixDimension dimension) {
         this.names = names;
         this.dimension = dimension;
+        this.position = dimension.ElementPos(names);
+    }
+    
+    public Key(int position, MatrixDimension dimension) {
+        this.names = dimension.ElementAt(position);
+        this.dimension = dimension;
+        this.position = position;
     }
 
     public MatrixDimension dimension() {
@@ -46,7 +55,7 @@ public class Key extends AbstractPacioliValue {
     }
     
     public int position() {
-        return dimension.ElementPos(names);
+        return position;
     }
     
     public List<String> projectNames(List<Integer> columns) {
@@ -86,6 +95,6 @@ public class Key extends AbstractPacioliValue {
             return false;
         }
         Key otherKey = (Key) other;
-        return this.names.equals(otherKey.names);
+        return this.position == otherKey.position && this.dimension.equals(otherKey.dimension);
     }
 }

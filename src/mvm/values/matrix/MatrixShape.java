@@ -127,14 +127,6 @@ public class MatrixShape extends AbstractPrintable {
         return new MatrixShape(Unit.ONE, columnDimension(), columnUnit, new MatrixDimension(), Unit.ONE);
     }
     
-    public List<IndexSet> rowIndexSets() {
-        return rowDimension().getIndexSets();
-    }
-
-    public List<IndexSet> columnIndexSets() {
-        return columnDimension().getIndexSets();
-    }
-
     public IndexSet nthRowIndexSet(int n) {
         return rowDimension().nthIndexSet(n);
     }
@@ -200,18 +192,16 @@ public class MatrixShape extends AbstractPrintable {
     }
 
 	public MatrixShape project(List<Integer> cols) {
-		List<IndexSet> sets = new ArrayList<IndexSet>(); 
-		Unit newUnit = Unit.ONE;
+		Unit projectedUnit = Unit.ONE;
 		for(int i = 0; i < cols.size(); i++) {
-			newUnit = newUnit.multiply(MatrixBase.shiftUnit(MatrixBase.kroneckerNth(rowUnit, cols.get(i)), i - cols.get(i)));
-			sets.add(rowDimension.getIndexSets().get(cols.get(i)));
+			projectedUnit = projectedUnit.multiply(MatrixBase.shiftUnit(MatrixBase.kroneckerNth(rowUnit, cols.get(i)), i - cols.get(i)));
 		}
         return new MatrixShape(
                 factor, 
-                new MatrixDimension(sets), 
-                newUnit, 
-                new MatrixDimension(),
-                Unit.ONE);
+                rowDimension.project(cols),
+                projectedUnit, 
+                columnDimension,
+                columnUnit);
 	}
 
     public boolean singleton() {

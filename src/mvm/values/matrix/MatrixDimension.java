@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import uom.Unit;
 import mvm.AbstractPrintable;
 
 public class MatrixDimension extends AbstractPrintable {
@@ -71,10 +73,6 @@ public class MatrixDimension extends AbstractPrintable {
         sets.addAll(other.indexSets);
         return new MatrixDimension(sets);
     }
-    
-    public List<IndexSet> getIndexSets() {
-        return indexSets;
-    }
 
     public int width() {
         return indexSets.size();
@@ -95,7 +93,6 @@ public class MatrixDimension extends AbstractPrintable {
     public int ElementPos(List<String> index) {
     	int pos = 0;
     	for (int i = 0; i < width(); i++) {
-    	//for (int i = width()-1; i >= 0; i--) {
             IndexSet set = indexSets.get(i);
             String indexName = index.get(i);
             int at = set.ElementPosition(indexName);
@@ -111,7 +108,6 @@ public class MatrixDimension extends AbstractPrintable {
     public int[] individualPositions(int position) {
         int[] positionArray = new int[width()];
         int p = position;
-        //for (int i = 0; i < width(); i++) {
         for (int i = width() - 1; i >= 0; i--) {
             IndexSet set = indexSets.get(i);
             positionArray[i] = p % set.size();
@@ -126,7 +122,6 @@ public class MatrixDimension extends AbstractPrintable {
             list.add(null);
         }
         int a = index;
-        //for (int i = 0; i < width(); i++) {
         for (int i = width() - 1; i >= 0; i--) {        	
             IndexSet set = indexSets.get(i);
             list.set(i, set.ElementAt(a % set.size()));
@@ -149,4 +144,12 @@ public class MatrixDimension extends AbstractPrintable {
     	}
         return AbstractPrintable.intercalate(",", names);
     }
+
+	public MatrixDimension project(List<Integer> cols) {
+		List<IndexSet> sets = new ArrayList<IndexSet>();
+		for(int i = 0; i < cols.size(); i++) {
+			sets.add(indexSets.get(cols.get(i)));
+		}
+		return new MatrixDimension(sets);
+	}
 }

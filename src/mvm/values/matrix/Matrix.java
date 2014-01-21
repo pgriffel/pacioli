@@ -184,7 +184,7 @@ public class Matrix extends AbstractPacioliValue {
     public List<Key> rowKeys() {
         List<Key> keys = new ArrayList<Key>();
         for (int i = 0; i < rowDimension().size(); i++) {
-            keys.add(new Key(rowDimension().ElementAt(i), shape.rowDimension()));
+            keys.add(new Key(i, shape.rowDimension()));
         }
         return keys;
     }
@@ -192,7 +192,7 @@ public class Matrix extends AbstractPacioliValue {
     public List<Key> columnKeys() {
         List<Key> keys = new ArrayList<Key>();
         for (int i = 0; i < columnDimension().size(); i++) {
-            keys.add(new Key(columnDimension().ElementAt(i), shape.columnDimension()));
+            keys.add(new Key(i, shape.columnDimension()));
         }
         return keys;
     }
@@ -225,9 +225,7 @@ public class Matrix extends AbstractPacioliValue {
     }
 
     public PacioliValue setMut(Key row, Key column, Matrix value) {
-        int i = row.dimension().ElementPos(row.names);
-        int j = column.dimension().ElementPos(column.names);
-        numbers.setEntry(i, j, value.numbers.getEntry(0, 0));
+        numbers.setEntry(row.position(), column.position(), value.numbers.getEntry(0, 0));
         return this;
     }
 
@@ -291,13 +289,13 @@ public class Matrix extends AbstractPacioliValue {
 
     public PacioliValue get(Key row, Key column) {
         Matrix matrix = new Matrix(shape.extractRow().extractColumn());
-        matrix.numbers.setEntry(0, 0, numbers.getEntry(rowDimension().ElementPos(row.names), columnDimension().ElementPos(column.names)));
+        matrix.numbers.setEntry(0, 0, numbers.getEntry(row.position(), column.position()));
         return matrix;
     }
     
     public PacioliValue get_num(Key row, Key column) {
         Matrix matrix = new Matrix(1);
-        matrix.numbers.setEntry(0, 0, numbers.getEntry(rowDimension().ElementPos(row.names), columnDimension().ElementPos(column.names)));
+        matrix.numbers.setEntry(0, 0, numbers.getEntry(row.position(), column.position()));
         return matrix;
     }
 
@@ -312,8 +310,8 @@ public class Matrix extends AbstractPacioliValue {
     }
 
     public PacioliValue put(Key row, Key column, Matrix value) {
-        int i = row.dimension().ElementPos(row.names);
-        int j = column.dimension().ElementPos(column.names);
+        int i = row.position();
+        int j = column.position();
         Matrix matrix = new Matrix(shape);
         matrix.numbers = numbers.copy();
         matrix.numbers.setEntry(i, j, value.numbers.getEntry(0, 0));
@@ -321,8 +319,8 @@ public class Matrix extends AbstractPacioliValue {
     }
 
     public PacioliValue isolate(Key row, Key column) {
-        int i = row.dimension().ElementPos(row.names);
-        int j = column.dimension().ElementPos(column.names);
+        int i = row.position();
+        int j = column.position();
         Matrix matrix = new Matrix(shape);
         matrix.numbers.setEntry(i, j, numbers.getEntry(i, j));
         return matrix;
@@ -330,13 +328,13 @@ public class Matrix extends AbstractPacioliValue {
 
     public PacioliValue column(Key key) {
         Matrix matrix = new Matrix(shape.extractColumn());
-        matrix.numbers = numbers.getColumnMatrix(columnDimension().ElementPos(key.names));
+        matrix.numbers = numbers.getColumnMatrix(key.position());
         return matrix;
     }
 
     public PacioliValue row(Key key) {
         Matrix matrix = new Matrix(shape.extractRow());
-        matrix.numbers = numbers.getRowMatrix(rowDimension().ElementPos(key.names));
+        matrix.numbers = numbers.getRowMatrix(key.position());
         return matrix;
     }
 

@@ -1583,8 +1583,7 @@ public class Machine {
 					throws MVMException {
 				Key row = (Key) params.get(0);
 				Key column = (Key) params.get(1);
-				return new Boole(row.dimension().ElementPos(row.names) < column
-						.dimension().ElementPos(column.names));
+				return new Boole(row.position() < column.position());
 			}
 		});
 
