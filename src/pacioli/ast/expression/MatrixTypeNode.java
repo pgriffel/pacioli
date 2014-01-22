@@ -197,7 +197,7 @@ public class MatrixTypeNode extends AbstractExpressionNode {
         matrix += "]";
 
         return matrix;*/
-    	return "oneMatrix(" + typeNode.compileToJS() + ")";
+    	return "Pacioli.oneMatrix(" + typeNode.compileToJS() + ")";
     }
 
     @Override

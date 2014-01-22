@@ -56,7 +56,7 @@ public class NumberTypeNode extends AbstractTypeNode {
 
 	@Override
 	public String compileToJS() {
-		return "scalarShape(" + number + ")";
+		return "Pacioli.scalarShape(Pacioli.unit(" + number + "))";
 	}
 
 	@Override

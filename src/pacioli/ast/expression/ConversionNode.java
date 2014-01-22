@@ -82,7 +82,7 @@ public class ConversionNode extends AbstractExpressionNode {
 
 	@Override
 	public String compileToJS() {
-		return String.format("conversionMatrix(%s)", typeNode.compileToJS());
+		return String.format("Pacioli.conversionMatrix(%s)", typeNode.compileToJS());
 	}
 
 	@Override

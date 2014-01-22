@@ -129,7 +129,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 			sep = ",";
 		}
 
-		return String.format("initialMatrix(%s, [%s])", 
+		return String.format("Pacioli.initialMatrix(%s, [%s])", 
 				typeNode.compileToJS(),
 				builder.toString());
 

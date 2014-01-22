@@ -83,7 +83,7 @@ public class ConstNode extends AbstractExpressionNode {
         if (value.equals("true") || value.equals("false")) {
             return String.format("%s", value);
         } else {
-            return String.format("scalarMatrix(%s)", value);
+            return String.format("Pacioli.num(%s)", value);
         }
     }
 

@@ -222,13 +222,13 @@ public class IdentifierNode extends AbstractExpressionNode {
     @Override
     public String compileToJS() {
         assert (home != null); // names must have been resolved
-        return home.isEmpty() ? name : "fetch_global('" + home + "', '" + name + "')";
+        return home.isEmpty() ? name : "Pacioli.value('" + home + "', '" + name + "')";
     }
 
     @Override
     public String compileToMATLAB() {
         assert (home != null); // names must have been resolved
-        return home.isEmpty() ? name.toLowerCase() : "fetch_global(\"" + home.toLowerCase() + "\", \"" + name.toLowerCase() + "\")";
+        return home.isEmpty() ? name.toLowerCase() : "Pacioli.value(\"" + home.toLowerCase() + "\", \"" + name.toLowerCase() + "\")";
     }
 
 	@Override

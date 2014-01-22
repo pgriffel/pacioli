@@ -159,7 +159,7 @@ public class KeyNode extends AbstractExpressionNode {
     @Override
     public String compileToJS() {
     	StringBuilder builder = new StringBuilder();
-    	builder.append("create_coordinates([");
+    	builder.append("Pacioli.createCoordinates([");
     	for (int i = 0; i < keys.size(); i++) {
             if (0 < i) builder.append(",");
             builder.append("['");

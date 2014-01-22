@@ -107,9 +107,9 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 	public String compileToJS() {
 		
 		if (definition instanceof AliasDefinition) {
-			return "scalarUnitShape(" + ((AliasDefinition) definition).getBody().compileToJS() + ")";
+			return "Pacioli.scalarShape(" + ((AliasDefinition) definition).getBody().compileToJS() + ")";
 		} else {
-			return "scalarShape('" + name + "')";
+			return "Pacioli.scalarShape(Pacioli.unit('" + name + "'))";
 		}
 	}
 	

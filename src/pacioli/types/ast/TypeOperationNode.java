@@ -121,7 +121,7 @@ public class TypeOperationNode extends AbstractTypeNode {
 		} else if (operator == "kronecker") {
 			return leftJS + ".kron(" + rightJS + ")";
 		} else if (operator == "scale") {
-			return "scalarShape'(" + left + "$" + right + "')";
+			return "Pacioli.scalarShape(Pacioli.unit('" + left + "', '" + right + "'))";
 		} else {
 			throw new RuntimeException("Type operator '" + operator + "' unknown");
 		}
