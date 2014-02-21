@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -36,6 +36,7 @@ import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
+import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
 import pacioli.types.matrix.DimensionType;
 import pacioli.types.matrix.MatrixType;
@@ -103,14 +104,14 @@ public class TypeApplicationNode extends AbstractTypeNode {
             if (types.size() == 1 && types.get(0) instanceof TypeVar) {
                 return types.get(0);
             } else {
-                List<String> names = new ArrayList<String>();
+                List<TypeIdentifier> names = new ArrayList<TypeIdentifier>();
                 for (int i = 0; i < types.size(); i++) {
                     PacioliType type = types.get(i);
                     assert (type instanceof TypeVar || type instanceof MatrixType);
                     if (type instanceof MatrixType) {
                         assert (args.get(i) instanceof TypeIdentifierNode);
-                        String name = ((TypeIdentifierNode) args.get(i)).toText();
-                        names.add(name);
+                        TypeIdentifier id = ((TypeIdentifierNode) args.get(i)).typeIdentifier();
+                        names.add(id);
                     } else {
                         throw new RuntimeException(String.format("Index set expected but found '%s'", type.toText()));
                     }

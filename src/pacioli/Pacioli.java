@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -291,7 +291,7 @@ public class Pacioli {
 
     private static void infoCommand(List<File> libs) {
 
-        logln("Pacioli v0.1.0");
+        logln("Pacioli v0.2.0");
         
         logln("\nSettings");
         logln("  verbosity=%s", verbosity);
@@ -315,7 +315,7 @@ public class Pacioli {
             }
 
         }
-        logln("\nPaul Griffioen 2013");
+        logln("\nPaul Griffioen 2013 - 2014");
     }
 
     private static void helpCommand() {

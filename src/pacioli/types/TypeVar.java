@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,8 +23,10 @@ package pacioli.types;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
@@ -33,7 +35,7 @@ import pacioli.Substitution;
 import uom.BaseUnit;
 import uom.Unit;
 
-public class TypeVar extends BaseUnit implements PacioliType, Printable {
+public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBase {
 
     private static int counter = 0;
     private final String name;
@@ -184,4 +186,13 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable {
     public PacioliType unfreeze() {
         return changeActivation(true);
     }
+
+	@Override
+	public String compileToJS() {
+		if (quantifier.equals("for_unit")) {
+			return "new Pacioli.PowerProduct('_" + this.toText() + "_')";
+		} else {
+			return "'_" + this.toText() + "_'";
+		}
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -41,6 +41,7 @@ import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
+import pacioli.types.TypeIdentifier;
 import pacioli.types.matrix.DimensionType;
 
 public class KeyNode extends AbstractExpressionNode {
@@ -122,7 +123,12 @@ public class KeyNode extends AbstractExpressionNode {
 
     @Override
     public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
-        return new Typing(new DimensionType(indexSets));
+    	List<TypeIdentifier> typeIds = new ArrayList<TypeIdentifier>();
+    	for (IndexSetDefinition definition: indexSetDefinitions) {
+    		typeIds.add(definition.typeIdentifier());
+    	}
+    	return new Typing(new DimensionType(typeIds));
+        //return new Typing(new DimensionType(indexSets));
     }
 
     @Override
@@ -179,7 +185,7 @@ public class KeyNode extends AbstractExpressionNode {
         }
         return String.format("[%s,%s]", index, totalSize);*/
     }
-
+    
     @Override
     public String compileToMATLAB() {
         int totalSize = 1;

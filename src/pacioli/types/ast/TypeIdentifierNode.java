@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -36,6 +36,7 @@ import pacioli.TypeContext;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
 import pacioli.types.PacioliType;
+import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.StringBase;
@@ -69,6 +70,11 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 
     public String getName () {
     	return name;
+    }
+    
+    public TypeIdentifier typeIdentifier () {
+    	assert(isResolved());
+    	return new TypeIdentifier(definition == null ? "" : definition.getModule().getName(), name);
     }
     
     public boolean isResolved() {

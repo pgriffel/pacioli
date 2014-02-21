@@ -21,7 +21,7 @@ public class Toplevel extends AbstractDefinition {
 	
 	private final ExpressionNode body;
 	private ExpressionNode resolvedBody;
-    private PacioliType type;
+    public PacioliType type;
 
 	public Toplevel(Location location, ExpressionNode body) {
 		super(location);

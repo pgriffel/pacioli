@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -33,6 +33,7 @@ import pacioli.TypeContext;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.types.PacioliType;
+import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
 import pacioli.types.matrix.BangBase;
 import pacioli.types.matrix.DimensionType;
@@ -68,11 +69,12 @@ public class BangTypeNode extends AbstractTypeNode {
     		assert(unit.isResolved());
     	}
     	String indexSetName = indexSet.getName();
+    	TypeIdentifier indexSetId = indexSet.typeIdentifier();
         if (unit == null) {
             if (indexSet.isVariable()) {
                 return new MatrixType(new TypeVar("for_index", indexSetName), Unit.ONE);
             } else  {
-                return new MatrixType(new DimensionType(indexSetName), Unit.ONE);
+                return new MatrixType(new DimensionType(indexSetId), Unit.ONE);
             }
         } else {
         	String unitName = unit.getName();
@@ -81,7 +83,7 @@ public class BangTypeNode extends AbstractTypeNode {
             if (unit.isVariable()) {
                 rowUnit = new TypeVar("for_unit", unitName);
             } else {
-                rowUnit = new BangBase(indexSetName, unitName, 0);
+                rowUnit = new BangBase(indexSet.typeIdentifier(), unit.typeIdentifier(), 0);
             }
             if (indexSet.isVariable()) {
             	if (unit.isVariable()) {
@@ -90,7 +92,7 @@ public class BangTypeNode extends AbstractTypeNode {
                     throw new RuntimeException(String.format("Index set '%s' is variable while unit vector '%s' is not", indexSetName, unitName));
                 } 
             } else {
-                return new MatrixType(new DimensionType(indexSetName), rowUnit);
+                return new MatrixType(new DimensionType(indexSetId), rowUnit);
             }
         }
     }

@@ -27,9 +27,6 @@ public class ConversionNode extends AbstractExpressionNode {
 
 	private MatrixTypeNode bang;
     private PacioliType type;
-    private Matrix matrix;
-    private String jsConverted;
-    private String matlabConverted;
     
 	public ConversionNode(Location location, TypeNode typeNode) {
 		super(location);
@@ -82,7 +79,7 @@ public class ConversionNode extends AbstractExpressionNode {
 
 	@Override
 	public String compileToJS() {
-		return String.format("Pacioli.conversionMatrix(%s)", typeNode.compileToJS());
+		return String.format("Pacioli.conversionNumbers(%s)", typeNode.compileToJS());
 	}
 
 	@Override

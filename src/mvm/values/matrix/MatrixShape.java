@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.Pacioli;
+import pacioli.types.matrix.MatrixType;
 import mvm.AbstractPrintable;
 import uom.Base;
 import uom.Fraction;
@@ -226,6 +227,10 @@ public class MatrixShape extends AbstractPrintable {
 
     public MatrixShape rightIdentity() {
         return new MatrixShape(Unit.ONE, columnDimension(), columnUnit, columnDimension(), columnUnit);
+    }
+
+    public MatrixShape raise(Fraction power) {
+        return new MatrixShape(factor.raise(power), rowDimension, rowUnit.raise(power), columnDimension, columnUnit.raise(power));
     }
 
     @Override

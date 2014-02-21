@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -82,7 +82,7 @@ public class MatrixTypeNode extends AbstractExpressionNode {
     public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
     	TypeNode resolvedType = typeNode.resolved(dictionary, new TypeContext());
     	MatrixDimension rowDim = dictionary.compileTimeRowDimension(resolvedType);
-    	MatrixDimension columnDim = dictionary.compileTimeRowDimension(resolvedType);
+    	MatrixDimension columnDim = dictionary.compileTimeColumnDimension(resolvedType);
         return new MatrixTypeNode(getLocation(), resolvedType, rowDim, columnDim);
     }
 
@@ -197,9 +197,11 @@ public class MatrixTypeNode extends AbstractExpressionNode {
         matrix += "]";
 
         return matrix;*/
-    	return "Pacioli.oneMatrix(" + typeNode.compileToJS() + ")";
+    	//return "Pacioli.oneMatrix(" + typeNode.compileToJS() + ")";
+    	return "Pacioli.oneNumbers(" + rowDim.size() + ", " + columnDim.size() + ")";
+    	
     }
-
+    
     @Override
     public String compileToMATLAB() {
         return String.format("ones(%s, %s)", rowDim.size(), columnDim.size());

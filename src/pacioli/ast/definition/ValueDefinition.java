@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -41,7 +41,9 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.SequenceNode;
+import pacioli.types.FunctionType;
 import pacioli.types.PacioliType;
+import pacioli.types.Schema;
 
 public class ValueDefinition extends AbstractDefinition {
 
@@ -137,12 +139,45 @@ public class ValueDefinition extends AbstractDefinition {
     	ExpressionNode transformedBody = resolvedBody.desugar();
         if (transformedBody instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformedBody;
-            return String.format("\nfunction %s (%s) {\n  return %s;\n}",
+//            Schema schema = (Schema) type;
+//            FunctionType funType = (FunctionType) schema. type;
+//            PacioliType dom = funType.domain;
+//            PacioliType ran = funType.range;
+            return String.format("\n" 
+            		+ "// %s\n"
+            		+ "\n"
+            		+ "u_%s = function () {\n"
+            		+ "    var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));\n"
+            		+ "    var type = %s;\n"
+            		+ "    return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));\n"
+            		+ "}\n"
+            		+ "\n"
+//            		+ "function uOLD_%s (%s) {\n"
+//            		+ "    return %s;\n"
+//            		+ "}\n"
+            		+ "\n"
+            		+ "function %s (%s) {\n"
+            		+ "    return %s;\n" 
+            		+ "}\n",
+                    type.toText(),
+                    globalName(),
+                    //code.argsString(),
+                    type.compileToJS(),
+//                    globalName(),
+//                    code.argsString(),
+//                    code.expression.compileToJSShape(),
                     globalName(),
                     code.argsString(),
                     code.expression.compileToJS());
         } else {
-            return String.format("\nfunction compute_%s() {\n  return %s;\n}",
+            return String.format("\n"
+            		+ "function compute_u_%s() {\n"
+            		+ "    return %s;\n"
+            		+ "}\n"
+            		+ "\n"
+            		+ "function compute_%s() {\n  return %s;\n}",
+            		globalName(),
+            		type.compileToJS(), //transformedBody.compileToJSShape(),
                     globalName(),
                     transformedBody.compileToJS());
         }

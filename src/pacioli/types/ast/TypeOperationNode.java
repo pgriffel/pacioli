@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -98,7 +98,6 @@ public class TypeOperationNode extends AbstractTypeNode {
         	TypeIdentifierNode leftId = (TypeIdentifierNode) left; 
         	TypeIdentifierNode rightId = (TypeIdentifierNode) right;
             return new MatrixType(new StringBase(leftId.getName(), rightId.getName()));
-            
         } else if (operator.equals("kronecker")) {
             return matrixLeft.kronecker(matrixRight);
         } else {
@@ -114,8 +113,6 @@ public class TypeOperationNode extends AbstractTypeNode {
 			return leftJS + ".mult(" + rightJS + ")";
 		} else if (operator == "divide") {
 			return leftJS + ".div(" + rightJS + ")";
-		} else if (operator == "^") {
-			return leftJS + ".expt(" + rightJS + ")";
 		} else if (operator == "per") {
 			return leftJS + ".per(" + rightJS + ")";
 		} else if (operator == "kronecker") {
@@ -134,8 +131,6 @@ public class TypeOperationNode extends AbstractTypeNode {
 			return "shape_binop(\"multiply\", " + leftMVM + ", " + rightMVM + ")";
 		} else if (operator == "divide") {
 			return "shape_binop(\"divide\", " + leftMVM + ", " + rightMVM + ")";
-		} else if (operator == "^") {
-			return "shape_binop(\"expt\", " + leftMVM + ", " + rightMVM + ")";
 		} else if (operator == "per") {
 			return "shape_binop(\"per\", " + leftMVM + ", " + rightMVM + ")";
 		} else if (operator == "kronecker") {

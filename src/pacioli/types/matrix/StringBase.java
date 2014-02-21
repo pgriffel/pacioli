@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,11 +21,13 @@
 
 package pacioli.types.matrix;
 
+
+import pacioli.types.TypeBase;
 import uom.BaseUnit;
 import uom.PowerProduct;
 import uom.Unit;
 
-public class StringBase extends BaseUnit {
+public class StringBase extends BaseUnit implements TypeBase {
 
 	private final String prefix;
     private final String text;
@@ -86,4 +88,11 @@ public class StringBase extends BaseUnit {
     public String toText() {
         return prefixText() + text;
     }
+
+	@Override
+	public String compileToJS() {
+		return (prefix == null)
+				? String.format("Pacioli.unit('%s')", text)
+				: String.format("Pacioli.unit('%s', '%s')", prefix, text);
+	}
 }

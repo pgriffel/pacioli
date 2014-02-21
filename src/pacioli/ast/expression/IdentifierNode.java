@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -40,6 +40,7 @@ import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
+import pacioli.types.TypeIdentifier;
 
 public class IdentifierNode extends AbstractExpressionNode {
 
@@ -118,10 +119,20 @@ public class IdentifierNode extends AbstractExpressionNode {
     public String getName() {
         return name;
     }
+    
+    public TypeIdentifier typeIdentifier() {
+    	assert (home != null); // names must have been resolved
+        return new TypeIdentifier(home, name);
+    }
 
     public String fullName() {
         assert (home != null); // names must have been resolved
         return home.isEmpty() ? name : "global_" + home + "_" + name;
+    }
+    
+    public boolean isLocal() {
+        assert (home != null); // names must have been resolved
+        return home.isEmpty();
     }
 
     @Override
@@ -222,9 +233,9 @@ public class IdentifierNode extends AbstractExpressionNode {
     @Override
     public String compileToJS() {
         assert (home != null); // names must have been resolved
-        return home.isEmpty() ? name : "Pacioli.value('" + home + "', '" + name + "')";
+        return home.isEmpty() ? name : "Pacioli.fetchValue('" + home + "', '" + name + "')";
     }
-
+    
     @Override
     public String compileToMATLAB() {
         assert (home != null); // names must have been resolved

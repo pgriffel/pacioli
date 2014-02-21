@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -35,6 +35,7 @@ import pacioli.PacioliException;
 import pacioli.Program;
 import pacioli.Utils;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.types.TypeIdentifier;
 
 public class IndexSetDefinition extends AbstractDefinition {
 
@@ -71,6 +72,10 @@ public class IndexSetDefinition extends AbstractDefinition {
         return id.getName();
     }
 
+    public TypeIdentifier typeIdentifier() {
+        return new TypeIdentifier(getModule().getName(), id.getName());
+    }
+    
     @Override
     public void resolve(Dictionary dictionary) throws PacioliException {
     }

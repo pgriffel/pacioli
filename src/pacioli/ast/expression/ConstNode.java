@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -83,10 +83,10 @@ public class ConstNode extends AbstractExpressionNode {
         if (value.equals("true") || value.equals("false")) {
             return String.format("%s", value);
         } else {
-            return String.format("Pacioli.num(%s)", value);
+            return String.format("Pacioli.initialNumbers(1, 1, [[0, 0, %s]])", value);
         }
     }
-
+    
     @Override
     public String compileToMATLAB() {
         return value;

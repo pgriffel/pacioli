@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -54,7 +54,7 @@ public class PacioliException extends Exception {
         if (location == null) {
             return getLocalizedMessage();
         } else {
-            return String.format("%s\n\n%s", location.description(), getLocalizedMessage());
+            return String.format("In %s\n\n%s", location.description(), getLocalizedMessage());
         }
     }    
 }

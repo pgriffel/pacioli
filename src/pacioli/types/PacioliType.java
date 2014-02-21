@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,6 +22,7 @@
 package pacioli.types;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
@@ -60,4 +61,6 @@ public interface PacioliType extends Printable {
 
     public PacioliType unfreeze();
 
+    public String compileToJS();
+    
 }

@@ -467,10 +467,24 @@ public class Program {
 		for (Definition definition : dictionary.unitVectorDefinitions()) {
 			out.println(definition.compileToJS());
 		}
+		
+		
+		
+		
+		
+		
+		
+		
 		for (Definition definition : dictionary.valueDefinitions()) {
 			if (definition.getModule() == main) {
 				out.println(definition.compileToJS());
 			} else {
+				out.println(definition.compileToJS());
+			}
+		}
+		
+		for (Declaration definition : dictionary.declarations()) {
+			if (definition.getModule() != main) {
 				out.println(definition.compileToJS());
 			}
 		}
@@ -505,14 +519,17 @@ public class Program {
 				+ "    </div>\n"
 				+ "\n"
 				+ "    <script type=\"text/javascript\" src=\"numeric-1.2.6.js\"></script>\n"
-				+ "    <script type=\"text/javascript\" src=\"pacioli-primitives.js\"></script>\n"
+				+ "    <script type=\"text/javascript\" src=\"pacioli-0.2.0.min.js\"></script>\n"
 				+ "\n" + "    <script type=\"text/javascript\">\n" + "\n");
 		compileJS(out, settings);
 		out.println("function onLoad() {");
 		for (Toplevel definition : toplevelExpressions) {
-			out.print("Pacioli.print(");
+			out.print("Pacioli.print(new Pacioli.Box(");
+			//out.print(definition.compileToJSShape());
+			out.print(definition.type.compileToJS());
+			out.print(", ");
 			out.print(definition.compileToJS());
-			out.print(")");
+			out.print("))");
 			out.println("");
 		}
 		out.println("}");

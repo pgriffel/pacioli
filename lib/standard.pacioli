@@ -159,3 +159,19 @@ define list_min(x) = fold_list(min, x);
 define list_max(x) = fold_list(max, x);
 define list_gcd(x) = fold_list(gcd, x);
 define list_all(x) = if x = [] then true else fold_list(lambda (a,b) a and b end, x) end;
+
+# ------------------------------------------------------------------------------
+# Percentages and Fractions
+# ------------------------------------------------------------------------------
+
+defunit percent "%" = 0.01;
+
+defconv percent_conv :: percent;
+
+declare to_percentage :: for_index D,E: (D! per E!) -> percent*D! per E!;
+declare from_percentage :: for_index D,E: (percent*D! per E!) -> D! per E!;
+
+define to_percentage(x) = percent_conv . x;
+define from_percentage(x) = x /. percent_conv;
+
+define fraction(x, y) = to_percentage(x / y);

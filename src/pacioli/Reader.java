@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import org.codehaus.jparsec.OperatorTable;
@@ -34,6 +35,7 @@ import org.codehaus.jparsec.Parsers;
 import org.codehaus.jparsec.Scanners;
 import org.codehaus.jparsec.Terminals;
 import org.codehaus.jparsec.Token;
+import org.codehaus.jparsec.error.ParseErrorDetails;
 import org.codehaus.jparsec.error.ParserException;
 import org.codehaus.jparsec.functors.Map;
 import org.codehaus.jparsec.functors.Map2;
@@ -63,7 +65,6 @@ import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
-import pacioli.ast.expression.ProjNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
 import pacioli.ast.expression.SequenceNode;
@@ -91,11 +92,48 @@ public class Reader {
 
 	public static PacioliFile loadPacioliFile(Program program, File fileName)
 			throws PacioliException, IOException {
+		
 		file = fileName.getPath();
 		source = Utils.readFile(fileName);
-		PacioliFile module = parseModule(program, source); 
-		module.setFile(fileName.getAbsoluteFile());
-		return module;
+		
+		try {
+			
+			PacioliFile module = parseModule(program, source); 
+			module.setFile(fileName.getAbsoluteFile());
+			return module;
+			
+		} catch (ParserException ex) {
+
+			if (ex.getCause() != null) {
+				
+				// It is a chained exception. The reader uses this to throw Pacioli 
+				// exceptions, because the map on Parsers does not allow checked 
+				// exceptions. The runtime ParserException carries the Pacioli 
+				// exception that is thrown here.
+				
+				if (ex.getCause() instanceof PacioliException) {
+					throw (PacioliException) ex.getCause();
+				} else {
+					throw new PacioliException(ex);
+				}
+				
+			} else {
+
+				// A parser error should contain details. If not we throw
+				// a PacioliException.
+				
+				ParseErrorDetails details = ex.getErrorDetails();
+				if (details == null) {
+					throw new PacioliException(ex);
+				} else {
+					throw new PacioliException(
+							new Location(file, source, details.getIndex()), 
+							"Expected on of %s but found %s.", 
+							new HashSet<String>(details.getExpected()), 
+							details.getEncountered());
+				}
+			}
+		}
 
 	}
 
@@ -109,7 +147,7 @@ public class Reader {
 
 	private static final String[] KEYWORDS = { "module", "define", "include",
 			"declare", "defindex", "defunit", "defmatrix", "defconv",
-			"defproj", "deftype", "defalias", "let", "in", "begin", "end",
+			"deftype", "defalias", "let", "in", "begin", "end",
 			"if", "then", "else", "elseif", "lambda", "while", "return", "do", "project", "from",
 			"for_type", "for_index", "for_unit", "per", "and", "or", "true",
 			"false" };
@@ -266,7 +304,7 @@ public class Reader {
 								functionDefinitionParser(), toplevelParser(),
 								defIndexParser(), defunitVectorParser(),
 								defunitParser(), defbaseunitParser(),
-								defConversionParser(), defProjectionParser(),
+								defConversionParser(), 
 								defTypeParser(), defAliasParser(),
 								defMatrixParser()).many(),
 						new Map3<IdentifierNode, List<IdentifierNode>, List<Definition>, PacioliFile>() {
@@ -499,20 +537,7 @@ public class Reader {
 					}
 				});
 	}
-
-	private static Parser<Definition> defProjectionParser() {
-		return Parsers.sequence(token("defproj").next(EXPIDENTIFIER),
-				token("::").next(typeParser()).followedBy(token(";")),
-				new Map2<IdentifierNode, TypeNode, Definition>() {
-					public Definition map(final IdentifierNode id,
-							final TypeNode node) {
-						return new ValueDefinition(id.getLocation().join(
-								node.getLocation()), id, new ProjectionNode(id
-								.getLocation().join(node.getLocation()), node));
-					}
-				});
-	}
-
+	
 	// //////////////////////////////////////////////////////////////////////////////
 	// Units
 	private static Parser<UnitNode> unitParser() {
@@ -553,20 +578,20 @@ public class Reader {
 
 	
 
-	public static Parser<UnitNode> signedInteger() {
+	public static Parser<NumberUnitNode> signedInteger() {
 		return Parsers
 				.or(Terminals.DecimalLiteral.PARSER
 						.token()
-						.map(new org.codehaus.jparsec.functors.Map<Token, UnitNode>() {
-							public UnitNode map(Token power) {
+						.map(new org.codehaus.jparsec.functors.Map<Token, NumberUnitNode>() {
+							public NumberUnitNode map(Token power) {
 								return new NumberUnitNode((String) power
 										.value(), tokenLocation(power));
 							}
 						}),
 						token("-")
 								.next(Terminals.DecimalLiteral.PARSER.token())
-								.map(new org.codehaus.jparsec.functors.Map<Token, UnitNode>() {
-									public UnitNode map(Token power) {
+								.map(new org.codehaus.jparsec.functors.Map<Token, NumberUnitNode>() {
+									public NumberUnitNode map(Token power) {
 										return new NumberUnitNode("-"
 												+ (String) power.value(),
 												tokenLocation(power));
@@ -797,11 +822,11 @@ public class Reader {
 	private static Parser<TypeNode> powerTermParser() {
 		return Parsers.sequence(trueTermParser(),
 				token("^").next(signedInteger()),
-				new Map2<TypeNode, UnitNode, TypeNode>() {
+				new Map2<TypeNode, NumberUnitNode, TypeNode>() {
 					public TypeNode map(final TypeNode term,
-							final UnitNode power) {
-						return new TypePowerNode(term.getLocation(), term,
-								power);
+							final NumberUnitNode power) {
+						// NumberTypeNode is hack om signed integer te krijgen. Een signed integer term parser maken!
+						return new TypePowerNode(term.getLocation(), term, power);
 					}
 				});
 	}
@@ -1180,7 +1205,7 @@ public class Reader {
 							public ExpressionNode map(Token project,
 									List<ConstNode> columns,
 									ExpressionNode body, Token end) {
-								return new ProjNode(columns,
+								return new ProjectionNode(columns,
 										body, tokenLocation(project).join(
 												tokenLocation(end)));
 							}

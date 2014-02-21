@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,8 +23,11 @@ package pacioli.types;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
@@ -86,4 +89,15 @@ public class FunctionType extends AbstractType {
     public PacioliType applySubstitution(Substitution subs) {
         return new FunctionType(domain.applySubstitution(subs), range.applySubstitution(subs));
     }
+
+	@Override
+	public String compileToJS() {
+		StringBuilder out = new StringBuilder();
+		out.append("new Pacioli.Type('function', [");
+		out.append(domain.compileToJS());
+		out.append(", ");
+		out.append(range.compileToJS());
+		out.append("])");
+		return out.toString();
+	}
 }

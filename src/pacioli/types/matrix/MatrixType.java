@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,8 +23,10 @@ package pacioli.types.matrix;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
@@ -33,6 +35,7 @@ import pacioli.Utils;
 import pacioli.ast.expression.ConstNode;
 import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
+import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
 import uom.Base;
 import uom.Fraction;
@@ -311,12 +314,12 @@ public class MatrixType extends AbstractType {
                         if (base instanceof BangBase) {
                             return base;
                         } else {
-                            return new BangBase(dimType.nthIndexSet(0), base.toText(), 0);
+                            return new BangBase(dimType.nthIndexSet(0).name, base.toText(), 0);
                         }
                     }
                 });
                 if (candidate.equals(Unit.ONE)) {
-                    units.add(new BangBase(dimType.nthIndexSet(0), "", 0));
+                    units.add(new BangBase(dimType.nthIndexSet(0).name, "", 0));
                 } else {
                     units.add(candidate);
                 }
@@ -333,12 +336,12 @@ public class MatrixType extends AbstractType {
                                     return Unit.ONE;
                                 }
                             } else {
-                                return new BangBase(dimType.nthIndexSet(index), String.format("%s(%s)", base.toText(), index), index);
+                                return new BangBase(dimType.nthIndexSet(index).name, String.format("%s(%s)", base.toText(), index), index);
                             }
                         }
                     });
                     if (candidate.equals(Unit.ONE)) {
-                        units.add(new BangBase(dimType.nthIndexSet(index), "", i));
+                        units.add(new BangBase(dimType.nthIndexSet(index).name, "", i));
                     } else {
                         units.add(candidate);
                     }
@@ -436,5 +439,51 @@ public class MatrixType extends AbstractType {
                 subs.apply(columnUnit));
 
     }
+	
+	@Override
+	public String compileToJS() {
+		
+		StringBuilder out = new StringBuilder();
+		
+		out.append("Pacioli.createMatrixType(");
+        out.append(compileTypeUnitToJS(factor));
+        out.append(", ");
+        out.append(rowDimension.compileToJS());
+    	if (!(rowDimension instanceof TypeVar)) out.append(".param");
+        out.append(", ");
+        if (rowDimension instanceof TypeVar || ((DimensionType) rowDimension).width() > 0) {
+        	out.append(compileTypeUnitToJS(rowUnit)); 
+        } else {
+        	out.append("new Pacioli.PowerProduct(1)");
+        }
+        out.append(", ");
+        out.append(columnDimension.compileToJS());
+    	if (!(columnDimension instanceof TypeVar)) out.append(".param");
+        out.append(", ");
+        if (columnDimension instanceof TypeVar || ((DimensionType) columnDimension).width() > 0) {
+        	out.append(compileTypeUnitToJS(columnUnit));
+        } else {
+        	out.append("new Pacioli.PowerProduct(1)");
+        }
+        out.append(")");
+        
+        return out.toString();
+	}
+	
+	private String compileTypeUnitToJS(Unit unit) {
+		String product = "";
+		int n = 0;
+		for (Base base: unit.bases()) {
+			TypeBase typeBase = (TypeBase) base;
+			String baseText = typeBase.compileToJS() + ".expt(" + unit.power(base) + ")";
+			product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
+			n++;
+		}
+		if (n == 0) {
+			return "Pacioli.unit(1)";
+		} else {
+			return product;
+		}
 
+	}
 }

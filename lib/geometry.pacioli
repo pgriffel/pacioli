@@ -78,16 +78,26 @@ declare cross_sqrt :: for_unit a: (a*Space!, a*Space!) -> a*Space!;
 
 define cross(v,w) =
   let
-      vx = inner(v, d_x), vy = inner(v, d_y), vz = inner(v, d_z),
-      wx = inner(w, d_x), wy = inner(w, d_y), wz = inner(w, d_z)
+      vx = get(v, Space@x, _), vy = get(v, Space@y, _), vz = get(v, Space@z, _),
+      wx = get(w, Space@x, _), wy = get(w, Space@y, _), wz = get(w, Space@z, _)
   in
       (vy*wz - vz*wy) . d_x + (vz*wx - vx*wz) . d_y + (vx*wy - vy*wx) . d_z
   end;
 
+#define cross(v,w) =
+#  let
+#      vx = inner(v, d_x), vy = inner(v, d_y), vz = inner(v, d_z),
+#      wx = inner(w, d_x), wy = inner(w, d_y), wz = inner(w, d_z)
+#  in
+#      (vy*wz - vz*wy) . d_x + (vz*wx - vx*wz) . d_y + (vx*wy - vy*wx) . d_z
+#  end;
+
 define cross_sqrt(v,w) =
   let
-      vx = inner(v, d_x), vy = inner(v, d_y), vz = inner(v, d_z),
-      wx = inner(w, d_x), wy = inner(w, d_y), wz = inner(w, d_z),
+      #vx = inner(v, d_x), vy = inner(v, d_y), vz = inner(v, d_z),
+      #wx = inner(w, d_x), wy = inner(w, d_y), wz = inner(w, d_z),
+      vx = get(v, Space@x, _), vy = get(v, Space@y, _), vz = get(v, Space@z, _),
+      wx = get(w, Space@x, _), wy = get(w, Space@y, _), wz = get(w, Space@z, _),
       sx = vy*wz - vz*wy,
       sy = vz*wx - vx*wz,
       sz = vx*wy - vy*wx,

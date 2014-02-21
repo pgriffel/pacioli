@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,23 +21,34 @@
 
 package pacioli.types.matrix;
 
+
+import pacioli.types.TypeBase;
+import pacioli.types.TypeIdentifier;
 import uom.Base;
 import uom.BaseUnit;
 import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitMap;
 
-public class BangBase extends BaseUnit {
+public class BangBase extends BaseUnit implements TypeBase {
 
-    public final String indexSetName;
-    public final String unitName;
+    public final TypeIdentifier indexSetName;
+    public final TypeIdentifier unitName;
     public final int position;
 
-    public BangBase(String indexSetName, String unitName, int position) {
+    public BangBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position) {
         this.indexSetName = indexSetName;
         this.unitName = unitName;
         this.position = position;
     }
+    
+    // hack for matrix type 
+    public BangBase(String indexSetName, String unitName, int position) {
+        this.indexSetName = new TypeIdentifier("", indexSetName);
+        this.unitName = new TypeIdentifier("", unitName);
+        this.position = position;
+    }
+    
     
     @Override
     public int hashCode() {
@@ -74,7 +85,7 @@ public class BangBase extends BaseUnit {
     
     @Override
     public String toText() {
-        return indexSetName + "!" + unitName;
+        return indexSetName.name + "!" + unitName.name;
     }
     
     public BangBase shift(int offset) {
@@ -112,5 +123,12 @@ public class BangBase extends BaseUnit {
             }
         });
     }
+
+	@Override
+	public String compileToJS() {
+		// todo: reconsider the .rowUnit trick
+		return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit", 
+				indexSetName.home, indexSetName.name, unitName.home, unitName.name);
+	}
 
 }

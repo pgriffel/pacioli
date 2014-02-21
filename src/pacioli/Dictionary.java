@@ -20,6 +20,7 @@ import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
+import pacioli.types.TypeIdentifier;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.DimensionType;
 import pacioli.types.matrix.MatrixType;
@@ -192,8 +193,9 @@ public class Dictionary {
     	    
     private MatrixDimension compileTimeMatrixDimension(DimensionType dimType) throws PacioliException {
     	List<IndexSet> sets = new ArrayList<IndexSet>();
-    	for (String name : dimType.getIndexSets()) {
-    		sets.add(getIndexSetDefinition(name).getIndexSet());
+    	for (TypeIdentifier id : dimType.getIndexSets()) {
+    		// todo: also include home to identify an index set
+    		sets.add(getIndexSetDefinition(id.name).getIndexSet());
     	}
         return new MatrixDimension(sets);
     }

@@ -1,6 +1,7 @@
 package pacioli.ast.definition;
 
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.Set;
 
 import pacioli.CompilationSettings;
@@ -65,7 +66,25 @@ public class Declaration extends AbstractDefinition {
 
 	@Override
 	public String compileToJS() {
-		throw new RuntimeException("todo");
+		
+		// Test for type code
+		
+		return String.format("\n" 
+        		+ "// via decl %s\n"
+        		+ "\n"
+      //  		+ "// u_%s = %s;\n"
+        		+ "\n"
+        		+ "u_%s = function () {\n"
+        		+ "    var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));\n"
+        		+ "    var type = %s;\n"
+        		+ "    return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));\n"
+        		+ "}\n"
+        		+ "\n"
+        		+ "\n",
+        		type.toText(),
+        		globalName(),
+        		//type.compileToJS(new HashSet<TypeVar>()),
+                type.compileToJS());	
 	}
 
 	@Override

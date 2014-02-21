@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013 - 2014 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -2257,7 +2257,7 @@ public class Machine {
 			"var", "const", "if", "bang", "key", "application_debug", "path",
 			"list", "matrix", "index", "scaled_unit", "bang_shape",
 			"unit_expt", "unit_mult", "unit_div", "scalar_shape", "shape_unop",
-			"shape_binop", "matrix_constructor", "literal_matrix" };
+			"shape_binop", "shape_expt", "matrix_constructor", "literal_matrix" };
 
 	private static final Terminals TERMS = Terminals.caseInsensitive(OPERATORS,
 			KEYWORDS);
@@ -2410,6 +2410,7 @@ public class Machine {
 		Parser.Reference<MatrixShape> reference = Parser.newReference();
 		Parser<MatrixShape> lazyExpr = reference.lazy();
 		Parser<MatrixShape> parser = Parsers.or(shapeBinOpParser(lazyExpr),
+				powerShapeParser(lazyExpr),
 				shapeUnOpParser(lazyExpr), bangShapeParser(),
 				scalarShapeParser());
 		reference.set(parser);
@@ -2454,6 +2455,17 @@ public class Machine {
 				.followedBy(token(")")).map(new Map<Unit, MatrixShape>() {
 					public MatrixShape map(Unit value) {
 						return new MatrixShape(value);
+					}
+				});
+	}
+
+	private Parser<MatrixShape> powerShapeParser(Parser<MatrixShape> shapeParser) {
+		return Parsers.sequence(
+				token("shape_expt").next(token("(")).next(shapeParser),
+				token(",").next(signedInteger()).followedBy(token(")")),
+				new Map2<MatrixShape, Integer, MatrixShape>() {
+					public MatrixShape map(MatrixShape left,Integer right) {
+						return left.raise(new Fraction(right));
 					}
 				});
 	}

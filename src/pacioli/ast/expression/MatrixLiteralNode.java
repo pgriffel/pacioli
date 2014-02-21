@@ -27,6 +27,9 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 
 	private final TypeNode typeNode;
 	private final List<Pair<List<String>, ConstNode>> pairs;
+	
+	private MatrixDimension rowDim;
+	private MatrixDimension columnDim;
 
 	private final List<Integer> rowIndices = new ArrayList<Integer>();
 	private final List<Integer> columnIndices = new ArrayList<Integer>();
@@ -37,6 +40,8 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 		super(location);
 		this.typeNode = typeNode;
 		this.pairs = pairs;
+		this.rowDim = null;
+        this.columnDim = null;
 	}
 
 	@Override
@@ -94,8 +99,8 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 
 	private void setIndices(Dictionary dictionary) throws PacioliException {
 
-		MatrixDimension rowDim = dictionary.compileTimeRowDimension(typeNode);
-		MatrixDimension columnDim = dictionary.compileTimeColumnDimension(typeNode);
+		rowDim = dictionary.compileTimeRowDimension(typeNode);
+		columnDim = dictionary.compileTimeColumnDimension(typeNode);
 
 		// Translate the matrix data from string indexed to integer indexed.
 		int rowWidth = rowDim.width();
@@ -128,10 +133,15 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 			builder.append("]");
 			sep = ",";
 		}
-
-		return String.format("Pacioli.initialMatrix(%s, [%s])", 
-				typeNode.compileToJS(),
+		
+		return String.format("Pacioli.initialNumbers(%s, %s, [%s])", 
+				rowDim.size(),
+				columnDim.size(),
 				builder.toString());
+		
+//		return String.format("Pacioli.initialMatrix(%s, [%s])", 
+//				typeNode.compileToJS(),
+//				builder.toString());
 
 	}
 
