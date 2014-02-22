@@ -1,10 +1,8 @@
-/* Paul Griffioen 2013 */
+/* Paul Griffioen 2013-2014 */
 
-#shellcanvas {
+#canvasparent .space {
     z-index:-1;
     position: fixed;
-    top: 0
-    left: 0;
     outline: 0;
 }
 
@@ -75,7 +73,7 @@
 }
 
 #info div.chart {
-    height: 60px;
+    height: 80px;
 /*  border:1px solid green;*/
 }
 

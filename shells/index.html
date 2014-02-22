@@ -13,8 +13,6 @@
 
 
     <div id="canvasparent">
-      <canvas id="shellcanvas" tabindex="1">
-      </canvas>
     </div>
 
     <form id="parameters">
@@ -168,19 +166,22 @@
         </tr>
       </table>
       <button type="button"
-              title="Increase the number of segements by one and recalculate the shell"
+              title="Create an initial shell from the parameters"
+              id="formcreate"
+              onclick="onForm(this);">Create</button>
+    </form>
+      <button type="button"
+              title="Grow the shell's number of segements by one"
               id="formincgo"
               onclick="onIncrease(this);">Grow</button>
       <button type="button"
-              title="Recalculate the shell"
+              title="Grow all the shell's segments"
               id="formgo"
-              onclick="onForm(this);">Go</button>
-    </form>
+              onclick="onGrowAll(this);">Go</button>
 
     <div id="links">
       <ul>
       <li><a id="current" href="shells.html">Current</a></li>
-      <li><a href="shells.html?segments=0">Start</a></li>
       <li><a href="shells.html?aperture=circle,16,0.15">Circle</a></li>
       <li><a href="shells.html?aperture=rectangle,0.5,0.5&offset=0.5&upward=-0.01">Rectangle</a></li>
       <li><a href="shells.html?aperture=20,0.25,20,0.25,-30,0.05,120,0.25,20,0.25,30,0.25,50,0.10,30,0.10,30,0.25">Free Form</a></li>
@@ -223,7 +224,7 @@
         <tr>
           <td class="key"><label for="charts">charts</label></td>
           <td class="value"><input type="checkbox"
-                                   title="Display growth histograms"
+                                   title="Display growth chart"
                                    id="charts"
                                    onclick="onCharts(this);"
                                    unchecked></td>
@@ -270,94 +271,64 @@
     </div>
 
     <div id="info">
-      <div class="label" id="growth_factor_label"></div>
       <div class="chart" id="growth_factor"></div>
-      <div class="label" id="aperture_area_label"></div>
       <div class="chart" id="aperture_area"></div>
-      <div class="label" id="body_area_label"></div>
       <div class="chart" id="body_area"></div>
-      <div class="label" id="body_area_cumulative_label"></div>
       <div class="chart" id="body_area_cumulative"></div>
-      <div class="label" id="body_volume_label"></div>
       <div class="chart" id="body_volume"></div>
-      <div class="label" id="body_volume_cumulative_label"></div>
       <div class="chart" id="body_volume_cumulative"></div>
     </div>
 
     <script>
 
+      var shell            // The shell model computed by the shell.js Pacioli script
+    var growthFactors
+      var space            // A Pacioli 3D geometric space for the shell
+      var shellUnit        // The unit of measurement of the shell. Must correspond with alias in scipt.
+
+      /*
+       *  Event Handlers
+       */
+
       function onLoad() {
+
+          shellUnit = Pacioli.unit("milli", "metre")   // Can we get this from the script?
+
           var parameters = document.getElementById("parameters");
-          var graphics = document.getElementById("graphics");
-          var canvas = document.getElementById("shellcanvas");
           var current = document.getElementById("current");
           var urlParams = window.location.search.substring(1);
-          var info = document.getElementById("info");
           var charts = document.getElementById("charts");
+          var graphics = graphicsParameters()
 
+          // Create the Pacioli Space element
+          space = new Pacioli.Space(document.getElementById("canvasparent"), graphics)
+          space.setOptions({unit: Pacioli.unit('milli$metre')})
+          space.move(0, 150)
+          space.zoomIn()
+          space.zoomIn()
+          space.zoomIn()
+          space.zoomIn()
+          space.zoomIn()
+
+          // Set resize handler to adjust the canvas size to the window size
           window.addEventListener('resize', onWindowResize, false);
-          updateForm(parameters, urlParams);
+
+          // Update the parameters to the url
+          fillFormFromUrl(parameters, urlParams);
           current.href = currentHRef(parameters);
-          initializeCanvas(canvas, parameters, graphicsParameters());
-          updateShell(parameters, graphicsParameters());
-          canvas.focus();
-          info.style.visibility = charts.checked ? 'visible' : 'hidden';
-          updateInfo();
-          requestAnimationFrame(animate);
+
+          // Start computing the initial shell
+          shell = makeShell(parameters)
+          resetSpace(space, shell, graphics)
+          startAnimation(parameters.segments.value)
       }
 
       function onIncrease(event) {
-          increaseSegments();
+          startAnimation(Pacioli.fun("Shells", "shell_current_size").call(shell).number() + 1)
       }
 
-      function onForm(event) {
-          var parameters = document.getElementById("parameters");
-          var graphics = document.getElementById("graphics");
-          var canvas = document.getElementById("shellcanvas");
-          var current = document.getElementById("current");
-
-          current.href = currentHRef(parameters);
-          updateShell(parameters, graphicsParameters());
-          updateInfo();
-          canvas.focus();
-          requestAnimationFrame(animate);
-      }
-
-      function onAxes(event) {
-          toggleAxes(event.checked);
-          requestAnimationFrame(animate);
-      }
-
-      function onWireFrame(event) {
-          updateBody(parameters, graphicsParameters());
-          requestAnimationFrame(animate);
-      }
-
-      function onTransparent(event) {
-          updateBody(parameters, graphicsParameters());
-          requestAnimationFrame(animate);
-      }
-
-      function onCharts(event) {
-          var info = document.getElementById("info");
-          info.style.visibility = event.checked ? 'visible' : 'hidden';
-          updateInfo();
-          requestAnimationFrame(animate);
-      }
-
-      function onPerspective(event) {
-          resetGraphics();
-          requestAnimationFrame(animate);
-      }
-
-      function onWebGL(event) {
-          resetGraphics();
-          requestAnimationFrame(animate);
-      }
-
-      function onMaterial(event) {
-          updateBody(parameters, graphicsParameters());
-          requestAnimationFrame(animate);
+      function onGrowAll(event) {
+          startAnimation(parameters.segments.value)
       }
 
       function onFormKey(event) {
@@ -366,29 +337,151 @@
           }
       }
 
+      function onForm(event) {
+          var parameters = document.getElementById("parameters");
+          var graphics = document.getElementById("graphics");
+          var current = document.getElementById("current");
+
+          current.href = currentHRef(parameters);
+          shell = makeShell(parameters)
+          resetSpaceBody(space, shell, graphics)
+          target = 0
+          updateInfo();
+      }
+
+      function onAxes(event) {
+          if (event.checked) {
+              space.showAxes()
+          } else { 
+              space.hideAxes()
+          }
+      }
+
+      function onWireFrame(event) {
+          resetSpaceBody(space, shell, graphicsParameters());
+      }
+
+      function onTransparent(event) {
+          resetSpaceBody(space, shell, graphicsParameters());
+      }
+
+      function onCharts(event) {
+          updateInfo()
+          startAnimation(target)
+      }
+
+      function onPerspective(event) {
+          resetSpace(space, shell, graphicsParameters());
+      }
+
+      function onWebGL(event) {
+          resetSpace(space, shell, graphicsParameters());
+      }
+
+      function onMaterial(event) {
+          resetSpaceBody(space, shell, graphicsParameters());  // Todo: the scene needs a light to view the various materials
+      }
+
       function onZoomIn() {
-          zoomIn();
+          space.zoomIn()
       }
 
       function onZoomOut() {
-          zoomOut();
+          space.zoomOut();
       }
 
       function onSetUp() {
-          orientUp();
-          document.getElementById("shellcanvas").focus();
+          orientUp(shell, space);
+          space.draw()
       }
 
       function onWindowResize(){
-          camera.aspect = window.innerWidth / window.innerHeight;
-          camera.updateProjectionMatrix();
-          renderer.setSize(window.innerWidth, window.innerHeight);
-          requestAnimationFrame(animate);
+          space.resize(window.innerWidth - 50, window.innerHeight - 50)
+      }
+
+      function startAnimation(targetSize, stepSize) {
+          target = targetSize
+          requestAnimationEvent(stepSize || 10)
+      }
+
+      function requestAnimationEvent(n) {
+          var timeoutID = window.setTimeout(function () {onAnimate(n)}, 0);
+      }
+
+      function onAnimate(n) { 
+          var shellLength = Pacioli.fun("Shells", "shell_current_size").call(shell).number()
+          var infoLength = shell.info.value[0].length
+          var missingInfo = shellLength + 1 - infoLength
+          var missingSegments = target - shellLength
+          if (charts.checked && 0 < missingInfo) { 
+              var r = Math.min(missingInfo, n)
+              shell.info = Pacioli.fun("Shells", "extend_shell_info").call(shell, shell.info, Pacioli.num(r))
+              updateInfo();
+              requestAnimationEvent(n)
+          } else if (0 < missingSegments) { 
+              var r = Math.min(missingSegments, n)
+              var info = shell.info
+              shell = Pacioli.fun("Shells", "grow").call(shell, Pacioli.num(r))
+              shell.info = info
+              updateSpaceBody(space, shell, graphicsParameters(), r)
+              requestAnimationEvent(n)
+          } else {
+              space.drawfast()
+          }
+
+      }
+
+      /*
+       *  Logic
+       */
+                                 
+      function resetSpace(space, shell, graphics) {
+          space.setOptions(graphics)
+          resetSpaceBody(space, shell, graphics);
+          onWindowResize()
+      }
+      
+      function resetSpaceBody(space, shell, graphics) { 
+
+          // Remove the old segments and curves from the space
+          space.clear()
+
+          // Add the shell's segments
+          var meshes = Pacioli.fun("Shells", "get_meshes").call(shell).unlist()
+          for (var i = 0; i < meshes.length; i++) {
+              space.addMesh(meshes[i], graphics);
+          }
+
+          // Add the shell's initial and final curve
+          space.addCurve(Pacioli.fun("Shells", "shell_initial_curve").call(shell))
+
+          // Ensure the changes are seen
+          space.draw()
+      }
+      
+      function updateSpaceBody(space, shell, graphics, n) { 
+
+          // Add the requested meshes
+          var meshes = Pacioli.fun("Shells", "get_meshes").call(shell).unlist()
+          for (var i = 0; i < n; i++) {
+              space.addMesh(meshes[meshes.length - i - 1], graphics);
+          }
+                              
+          // Update the screen
+          space.drawfast()
+      }
+
+      function updateInfo() { 
+          var info = document.getElementById("info");
+          info.style.visibility = charts.checked ? 'visible' : 'hidden';
+          if (charts.checked) {
+              appendOrReplaceCharts(shell, document.getElementById("parameters"))
+          }
       }
 
       function graphicsParameters() {
           return {
-              axes: document.getElementById("axes").checked,
+              axisSize: 100,
               wireframe: document.getElementById("wireframe").checked,
               webgl: document.getElementById("webgl").checked,
               perspective: document.getElementById("perspective").checked,
@@ -397,27 +490,78 @@
           }
       }
 
-      function resetGraphics() {
-          var parameters = document.getElementById("parameters");
-          var graphics = document.getElementById("graphics");
-          var canvas = document.getElementById("shellcanvas");
-          var parent = canvas.parentNode;
-          var newCanvas = document.createElement('canvas');
+      function makeShell(params) {
 
-          newCanvas.id = canvas.id;
-          newCanvas.tabIndex = 1;
-          newCanvas.width = canvas.width;
-          newCanvas.height = canvas.height;
-          parent.removeChild(canvas);
-          parent.appendChild(newCanvas);
-          initializeCanvas(newCanvas, parameters, graphicsParameters());
-          updateBody(parameters, graphicsParameters());
-          toggleAxes(document.getElementById("axes").checked);
-          newCanvas.focus();
-          requestAnimationFrame(animate);
+          function readDimensionedParam(name, unit) {
+              return Pacioli.num(params[name].value, Pacioli.unit(params[name + '_unit'].value)).convert(unit)
+          }
+
+          // Read the user's parameter settings
+          var growth = Pacioli.num(params.growth.value);
+          var scale = Pacioli.num(params.scale.value);
+          var ticks = Pacioli.num(params.segments.value);
+          var offset = readDimensionedParam('offset', shellUnit)
+          var upward = readDimensionedParam('upward', shellUnit)
+          var outward = readDimensionedParam('outward', shellUnit)
+          var orientation = readDimensionedParam('orientation', Pacioli.RADIAN)
+          var rotation_x = readDimensionedParam('rotation_x', Pacioli.RADIAN)
+          var rotation_y = readDimensionedParam('rotation_y', Pacioli.RADIAN)
+          var rotation_z = readDimensionedParam('rotation_z', Pacioli.RADIAN)
+
+          // Read the aperture
+          var pairs = params.aperture.value.split(',');
+          var aperture_angle_unit = Pacioli.unit('degree');
+          var aperture_distance_unit = Pacioli.unit('milli', 'metre');
+          if (pairs[0] == "circle") {
+                var initial_aperture = Pacioli.fun("Shells", "circle_path").call(
+                                           Pacioli.num(pairs[1]),
+                                           Pacioli.num(pairs[2], aperture_distance_unit).convert(shellUnit));
+            } else if (pairs[0] == "rectangle") {
+                var initial_aperture = Pacioli.fun("Shells", "rectangle_path").call(
+                                           Pacioli.num(pairs[1], aperture_distance_unit).convert(shellUnit),
+                                           Pacioli.num(pairs[2], aperture_distance_unit).convert(shellUnit));
+            } else {
+                var tuples = new Array();
+                for (var i=0; i < pairs.length; i += 2) {
+                    var tup = [Pacioli.num(pairs[i], aperture_angle_unit).convert(Pacioli.RADIAN),
+                               Pacioli.num(pairs[i+1], aperture_distance_unit).convert(shellUnit)]
+                    tuples.push(Pacioli.tuple(tup));
+                }
+                initial_aperture = Pacioli.list(tuples)
+          }
+
+          // Create the initial shell
+          var shell = Pacioli.fun("Shells", "make_shell").call(
+              initial_aperture,
+              Pacioli.fun("Geometry", "space_vec").call(offset, Pacioli.num(0.0, shellUnit), Pacioli.num(0.0, shellUnit)),
+              Pacioli.fun("Geometry", "space_vec").call(outward, Pacioli.num(0.0, shellUnit), upward),
+              scale, orientation,
+              growth,
+              rotation_x, rotation_y, rotation_z,
+              ticks,
+              Pacioli.num(scaleFudge));
+
+          growthFactors = Pacioli.fun("Shells", "growth_factor_histogram").call(Pacioli.num(params.growth.value), Pacioli.num(params.segments.value))
+          shell.info = Pacioli.fun("Shells", "empty_shell_info").call()
+
+          return shell
       }
 
-      function updateForm(form, urlParams) {
+      function orientUp(shell, space) {
+
+          // Find a point on the coiling axis and on the negative vertical axis 
+          var vec = Pacioli.vec2THREE(Pacioli.fun("Shells", "axis_point").call(shell), shellUnit)
+          var direction = new THREE.Vector3(0, -1, 0);
+      
+          // Find rotation axis and angle from the point to the required direction
+          var axis = new THREE.Vector3().cross(vec, direction);
+          var angle = Math.atan2(axis.length(), direction.dot(vec));
+      
+          // Rotate the shell
+          space.rotateBody(axis, angle)                          
+      }
+
+      function fillFormFromUrl(form, urlParams) {
           for (var i = 0; i < form.elements.length; i++) {
               var element = form.elements[i];
               if (element.tagName == "INPUT") {
@@ -478,96 +622,64 @@
           }
           return href;
       }
+      
+      function appendOrReplaceCharts(shell, params) {    // params wegwerken!!!
 
-      function updateInfo() {
+          var chartIds =  ['growth_factor',
+                           'aperture_area',
+                           'body_area',
+                           'body_area_cumulative',
+                           'body_volume',
+                           'body_volume_cumulative']
 
-          function last(x) { return x[x.length - 1]; }
+           var chartNames =  ['growth factor',
+                             'aperture area',
+                             'body area growth',
+                             'body area',
+                             'body volume growth',
+                             'body volume']
 
-          function addNewChart(id, data) {
+          var i2 = shell.info.untuple()
+          var chartData = [growthFactors,
+                           i2[0],
+                           i2[1],
+                           i2[2],
+                           i2[3],
+                           i2[4]]
+          var latest = Pacioli.fun("Shells", "latest_shell_info").call(shell.info).untuple()
 
-              // Source: http://bl.ocks.org/2579619
+          for (var i = 0; i < chartIds.length; i++) {
 
-              // Define dimensions of graph
-              var m = [4, 20, 14, 20]; // margins
-              var w = 300 - m[1] - m[3]; // width
-              var h = 50 - m[0] - m[2]; // height
+              var data = chartData[i]
+              var chart = new Pacioli.LineChart(document.getElementById(chartIds[i]), data)
+              var label = document.createElement("div")
 
-              // Add an SVG element with the desired dimensions and margin.
-              var graph = d3.select("#" + id).append("svg:svg")
-                            .attr("id", id + "_chart")
-                            .attr("class", "chart")
-                            .append("svg:g")
-                            .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
+              label.className = "label"
+              label.appendChild(document.createTextNode(chartNames[i] + " = "));
 
-              // Determine data ranges
-              var xRange = d3.scale.linear().domain([0, data.length]).range([0, w]);
-              var yRange = d3.scale.linear().domain([0, d3.max(data)]).range([h, 0]);
+              if (0 < i) {
+                  // Experiment where the volume's unit is dynamically scaled when it exceeds 1000
+                  var num = latest[i-1]
+                  if (i !== 5) {
+                      label.appendChild(Pacioli.DOM(num));
+                  } else {
+                      var val = num
+                      if (1000 < val.number()) {
+                          val = val.convert(Pacioli.unit("centi", "metre").expt(3))
+                      }
+                      label.appendChild(Pacioli.DOM(val));
+                  }
+              }
 
-              // Create a line function that converts the data into x and y points
-              var line = d3.svg.line()
-                           .x(function(d,i) { return xRange(i); })
-                           .y(function(d) { return yRange(d); })
-
-              // Create the x axis
-              var xAxis = d3.svg.axis().scale(xRange).tickSize(-h).tickSubdivide(true).ticks(5);
-              graph.append("svg:g")
-                   .attr("class", "x axis")
-                   .attr("transform", "translate(0," + h + ")")
-                   .call(xAxis);
-
-              // create left yAxis
-//              var yAxisLeft = d3.svg.axis().scale(yRange).ticks(2).orient("left");
-//              graph.append("svg:g")
-//                   .attr("class", "y axis axisLeft")
-//                   .attr("transform", "translate(-15,0)")
-//                   .call(yAxisLeft);
-
-              // Add lines AFTER the axes above so that the line is above the tick-lines
-              graph.append("svg:path").attr("d", line(data)).attr("class", "data");
+              chart.options.label = label
+              chart.draw()
           }
 
-          var charts = document.getElementById("charts");
-
-          if (charts.checked) {
-
-              var parameters = document.getElementById("parameters");
-
-              info = shellInfo(shell, parameters);
-
-              d3.select('#growth_factor_chart').remove();
-              d3.select('#aperture_area_chart').remove();
-              d3.select('#body_area_chart').remove();
-              d3.select('#body_area_cumulative_chart').remove();
-              d3.select('#body_volume_chart').remove();
-              d3.select('#body_volume_cumulative_chart').remove();
-
-              addNewChart('growth_factor', info.growth_factor);
-              addNewChart('aperture_area', info.aperture_area);
-              addNewChart('body_area', info.body_area);
-              addNewChart('body_area_cumulative', info.body_area_cumulative);
-              addNewChart('body_volume', info.body_volume);
-              addNewChart('body_volume_cumulative', info.body_volume_cumulative);
-
-              document.getElementById('growth_factor_label').innerHTML = "Growth Factor = " + last(info.growth_factor);
-              document.getElementById('aperture_area_label').innerHTML = "Aperture area = " + last(info.aperture_area) + " mm²";
-              document.getElementById('body_area_label').innerHTML = "Area growth = " + last(info.body_area) + " mm²";
-              document.getElementById('body_area_cumulative_label').innerHTML = "Area = " + last(info.body_area_cumulative) + " mm²";
-              document.getElementById('body_volume_label').innerHTML = "Volume growth = " + last(info.body_volume) + " mm³";
-              document.getElementById('body_volume_cumulative_label').innerHTML = "Volume = " + last(info.body_volume_cumulative) + " mm³";
-          }
       }
 
-      function increaseSegments() {
-          var parameters = document.getElementById("parameters");
-          var graphics = document.getElementById("graphics");
-          var current = document.getElementById("current");
-
-          parameters.segments.value = Number(parameters.segments.value)+1;
-          current.href = currentHRef(parameters);
-          updateShell(parameters, graphicsParameters());
-          updateInfo();
-          requestAnimationFrame(animate);
-      }
+      /*
+       *  Utilities
+       */
 
       function getParameter(paramName, urlParams) {
           var result;
@@ -599,10 +711,8 @@
     <script type="text/javascript" src="three.min.js"></script>
     <script type="text/javascript" src="detector.js"></script>
     <script type="text/javascript" src="d3.v2.js"></script>
-    <script type="text/javascript" src="pacioli.js"></script>
-    <script type="text/javascript" src="standard.js"></script>
-    <script type="text/javascript" src="render.js"></script>
-    <script type="text/javascript" src="geometry-lib.js"></script>
+    <script type="text/javascript" src="numeric-1.2.6.js"></script>
+    <script type="text/javascript" src="pacioli-0.2.0.min.js"></script>
     <script type="text/javascript" src="shells.js"></script>
 
     <script type="text/javascript">
