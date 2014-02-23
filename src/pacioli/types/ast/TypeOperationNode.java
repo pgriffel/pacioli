@@ -56,6 +56,13 @@ public class TypeOperationNode extends AbstractTypeNode {
     @Override
     public PacioliType eval(boolean reduce) throws PacioliException {
 
+    	// todo: handle prefixes properly
+    	if (operator.equals("scale")) {
+        	TypeIdentifierNode leftId = (TypeIdentifierNode) left; 
+        	TypeIdentifierNode rightId = (TypeIdentifierNode) right;
+            return new MatrixType(new StringBase(leftId.getName(), rightId.getName()));
+    	}
+    	
         PacioliType leftType = left.eval(reduce);
         PacioliType rightType = right.eval(reduce);
 
@@ -136,7 +143,9 @@ public class TypeOperationNode extends AbstractTypeNode {
 		} else if (operator == "kronecker") {
 			return "shape_binop(\"kronecker\", " + leftMVM + ", " + rightMVM + ")";
 		} else if (operator == "scale") {
-			return "scalar_shape(scaled_unit(\"" + left + "\", \"" + right + "\"))";
+			TypeIdentifierNode leftId = (TypeIdentifierNode) left; 
+        	TypeIdentifierNode rightId = (TypeIdentifierNode) right;
+			return "scalar_shape(scaled_unit(\"" + leftId.getName() + "\", \"" + rightId.getName() + "\"))";
 		} else {
 			throw new RuntimeException("Type operator '" + operator + "' unknown");
 		}
@@ -156,7 +165,8 @@ public class TypeOperationNode extends AbstractTypeNode {
 		return new TypeOperationNode(
 				getLocation(),
 				operator,
-				left.resolved(dictionary, context),
+				// todo: check the prefixes
+				operator.equals("scale") ? left  : left.resolved(dictionary, context),
 				right.resolved(dictionary, context));
 	}
 }
