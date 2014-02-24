@@ -19,16 +19,16 @@ expressions into the language to give access to the units.
 
 Create a file `intro.pacioli` with the following code:
 
-    module "Intro";
+    module Intro;
 
-    include "SI";
+    include si;
 
     10;
     11*|gram|;
     12*|metre|;
 
 This creates a module `Intro` and includes the pre-defined units from
-the `SI` module.
+the `si` module.
 
 Run the file as follows:
 

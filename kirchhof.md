@@ -36,9 +36,9 @@ Modelling the network
 
 Create a file `kirchhof.pacioli` containing 
 
-    module "Kirchhof";
+    module Kirchhof;
 
-    include "SI";
+    include si;
 
     defindex Node = {n0, n1, n2, n3};
 
@@ -187,8 +187,10 @@ back-substitution gives the current.
 
 The inferred types are
 
-    potential :: for_index C: for_unit a,b: (a*Edge! per C!b, a*ampere*Node! per volt*C!b) -> a*Node! per C!b
-    current :: for_unit a: (a*Edge!, a*ampere*Node!/volt) -> a*ampere*Edge!/volt
+    potential :: for_index C: for_unit a,b:
+                   (a*Edge! per C!b, a*ampere*Node! per volt*C!b) -> a*Node! per C!b
+    current :: for_unit a:
+                 (a*Edge!, a*ampere*Node!/volt) -> a*ampere*Edge!/volt
 
 These types are correct but too general. The following type
 declarations strengthen them to the desired case.

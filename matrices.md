@@ -28,7 +28,7 @@ dimensionless vector space for index set `P`.
 
 Create a module "Curiosity" and define two index sets
 
-    module "Curiosity";
+    module Curiosity;
 
     defindex Action = {picture, sample, travel, laser};
 

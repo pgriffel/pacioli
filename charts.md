@@ -5,11 +5,12 @@ special_command: onload="onLoad();"
 ---
 
 
-General
----------
+Setup
+-----
 
-To add a chart to a webpage you need a HTML parent element and a
-Pacioli vector or list of scalars. 
+A Pacioli vector or list of scalars can be displayed in a chart on a
+webpage. Values are converted to the right units of measurement and
+labels are added automatically.
 
 Create Pacioli file `series.pacioli` and add the following code
 
@@ -29,9 +30,13 @@ Create Pacioli file `series.pacioli` and add the following code
       Oceania -> 38304000
     };
 
-    define serie1 = [x*|person| | x <- naturals(10)];
+    define wave =
+      let n = 1000 in
+          [sin(i/n*6*pi*|radian|) | i <- naturals(n)]
+      end;
 
-    define serie2 = naturals(25);
+    define random_numbers = [random() | x <- naturals(1000)];
+
 
 Compile it to JavaScript with command
 
@@ -47,6 +52,12 @@ required libraries into a HTML page as follows:
 <script type="text/javascript" src="series.js"></script>
 {% endhighlight %}
 
+Include the pacioli style sheet:
+
+{% highlight html %}
+<link rel="stylesheet" type="text/css" href="pacioli.css" media="screen" />
+{% endhighlight %}
+
 Finally add the following divs to the body of the page:
 
 {% highlight html %}
@@ -55,7 +66,6 @@ Finally add the following divs to the body of the page:
 <div id="chart3"></div>
 <div id="chart4"></div>
 {% endhighlight %}
-
 
 
 Bar Chart
@@ -85,7 +95,7 @@ var parent = document.getElementById("chart2")
 var population = Pacioli.value("Series", "population")
 var chart = new Pacioli.PieChart(parent, population, {
     width: 500, height: 500,
-    label: "World Population",
+    label: "World Population (p=person)",
     labelOffset: 1.2,
     unit: Pacioli.unit("giga", "person")
 })
@@ -96,13 +106,41 @@ This should set the second chart to
 
 <div id="chart2"></div>
 
+
+Histogram
+---------
+
+{% highlight javascript %}
+var parent = document.getElementById("chart3")
+var chart = new Pacioli.Histogram(parent, random_numbers, {
+    label: "Random Numbers",
+    bins: 25, 
+    width: 500, height: 300
+})
+chart.draw()
+{% endhighlight %}
+
+<div id="chart3"></div>
+
+
+Line Chart
+----------
+
+{% highlight javascript %}
+var parent = document.getElementById("chart4")
+new Pacioli.LineChart(parent, wave, {width: 500, height: 300}).draw()
+{% endhighlight %}
+
+<div id="chart4"></div>
+
+
 <script>
 
 function onLoad() {
 
     var population = Pacioli.value("Series", "population")
-    var serie1 = Pacioli.value("Series", "serie1")
-    var serie2 = Pacioli.value("Series", "serie2")
+    var wave = Pacioli.value("Series", "wave")
+    var random_numbers = Pacioli.value("Series", "random_numbers")
 
     var parent = document.getElementById("chart1")
     var chart = new Pacioli.BarChart(parent, population)
@@ -113,11 +151,23 @@ function onLoad() {
     var parent = document.getElementById("chart2")
     var chart = new Pacioli.PieChart(parent, population, {
         width: 500, height: 500,
-        label: "World Population",
+        label: "World Population (p=person)",
         labelOffset: 1.2,
         unit: Pacioli.unit("giga", "person")
     })
     chart.draw()
+
+    var parent = document.getElementById("chart3")
+    var chart = new Pacioli.Histogram(parent, random_numbers, {
+        label: "Random Numbers",
+        bins: 25, 
+        width: 500, height: 300
+    })
+    chart.draw()
+
+    var parent = document.getElementById("chart4")
+    new Pacioli.LineChart(parent, wave, {width: 500, height: 300}).draw()
+
 }
 
 </script>

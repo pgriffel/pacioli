@@ -2,7 +2,7 @@
 function compute_index_Series_Continent () {return Pacioli.makeIndexSet('Continent', ["Asia","Africa","Americas","Europe","Oceania"])}
 
 function compute_unit_radian () {return {definition: Pacioli.unit(1), symbol: 'rad'}}
-function compute_unit_person () {return {symbol: 'person'}}
+function compute_unit_person () {return {symbol: 'p'}}
 function compute_unit_percent () {return {definition: Pacioli.unit(0.01), symbol: '%'}}
 
 // (List(Boole())) -> Boole()
@@ -18,6 +18,14 @@ function global_Standard_list_all (x) {
     return (global_Primitives_equal(x, global_List_empty_list()) ? true : global_List_fold_list(function (a,b) { return (a ? b : false); }, x));
 }
 
+
+function compute_u_global_Series_random_numbers() {
+    return new Pacioli.Type("list", Pacioli.createMatrixType(Pacioli.unit(1), new Pacioli.Type('coordinates', []).param, new Pacioli.PowerProduct(1), new Pacioli.Type('coordinates', []).param, new Pacioli.PowerProduct(1)));
+}
+
+function compute_global_Series_random_numbers() {
+  return function (accu) { return global_List_loop_list(accu, function (accu,x) { return global_List_add_mut(accu, global_Matrix_random()); }, global_List_naturals(Pacioli.initialNumbers(1, 1, [[0, 0, 1000]]))); }(global_List_empty_list());
+}
 
 // for_index D,E: for_unit a,b,c: (a*D!b per E!c) -> List(D!)
 
@@ -335,6 +343,14 @@ function global_Standard_list_min (x) {
 }
 
 
+function compute_u_global_Series_wave() {
+    return new Pacioli.Type("list", Pacioli.createMatrixType(Pacioli.unit(1), new Pacioli.Type('coordinates', []).param, new Pacioli.PowerProduct(1), new Pacioli.Type('coordinates', []).param, new Pacioli.PowerProduct(1)));
+}
+
+function compute_global_Series_wave() {
+  return function (n) { return function (accu) { return global_List_loop_list(accu, function (accu,i) { return global_List_add_mut(accu, global_Matrix_sin(global_Matrix_multiply(global_Matrix_multiply(global_Matrix_multiply(global_Matrix_divide(i, n), Pacioli.initialNumbers(1, 1, [[0, 0, 6]])), Pacioli.fetchValue('Standard', 'pi')), Pacioli.oneNumbers(1, 1)))); }, global_List_naturals(n)); }(global_List_empty_list()); }(Pacioli.initialNumbers(1, 1, [[0, 0, 1000]]));
+}
+
 // for_index A: (A) -> A!
 
 u_global_Standard_delta = function () {
@@ -376,22 +392,6 @@ function global_Standard_kleene (x) {
     return global_Standard_inverse(global_Matrix_minus(global_Matrix_left_identity(x), x));
 }
 
-
-function compute_u_global_Series_serie1() {
-    return new Pacioli.Type("list", Pacioli.createMatrixType(Pacioli.unit('person').expt(1), new Pacioli.Type('coordinates', []).param, new Pacioli.PowerProduct(1), new Pacioli.Type('coordinates', []).param, new Pacioli.PowerProduct(1)));
-}
-
-function compute_global_Series_serie1() {
-  return function (accu) { return global_List_loop_list(accu, function (accu,x) { return global_List_add_mut(accu, global_Matrix_multiply(x, Pacioli.oneNumbers(1, 1))); }, global_List_naturals(Pacioli.initialNumbers(1, 1, [[0, 0, 10]]))); }(global_List_empty_list());
-}
-
-function compute_u_global_Series_serie2() {
-    return new Pacioli.Type("list", Pacioli.createMatrixType(Pacioli.unit(1), new Pacioli.Type('coordinates', []).param, new Pacioli.PowerProduct(1), new Pacioli.Type('coordinates', []).param, new Pacioli.PowerProduct(1)));
-}
-
-function compute_global_Series_serie2() {
-  return global_List_naturals(Pacioli.initialNumbers(1, 1, [[0, 0, 25]]));
-}
 
 // for_index C: for_unit a,b: (a*C!b) -> a*C!b per C!b
 
@@ -885,6 +885,18 @@ u_global_Primitives_seq = function () {
 u_global_Matrix_sum = function () {
     var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));
     var type = new Pacioli.Type('function', [new Pacioli.Type("tuple", [Pacioli.createMatrixType(new Pacioli.PowerProduct('_a_').expt(1), '_P_', new Pacioli.PowerProduct('_u_').expt(1), '_Q_', new Pacioli.PowerProduct('_v_').expt(1)), Pacioli.createMatrixType(new Pacioli.PowerProduct('_a_').expt(1), '_P_', new Pacioli.PowerProduct('_u_').expt(1), '_Q_', new Pacioli.PowerProduct('_v_').expt(1))]), Pacioli.createMatrixType(new Pacioli.PowerProduct('_a_').expt(1), '_P_', new Pacioli.PowerProduct('_u_').expt(1), '_Q_', new Pacioli.PowerProduct('_v_').expt(1))]);
+    return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));
+}
+
+
+
+
+// via decl () -> 1
+
+
+u_global_Matrix_random = function () {
+    var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));
+    var type = new Pacioli.Type('function', [new Pacioli.Type("tuple", []), Pacioli.createMatrixType(Pacioli.unit(1), new Pacioli.Type('coordinates', []).param, new Pacioli.PowerProduct(1), new Pacioli.Type('coordinates', []).param, new Pacioli.PowerProduct(1))]);
     return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));
 }
 
