@@ -1394,6 +1394,24 @@ public class Machine {
 				return result;
 			}
 		});
+		
+		store.put("global_Matrix_random", new Primitive("random") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				return new Matrix(Math.random());
+			}
+		});
+
+		store.put("debug_Matrix_random", new Primitive("random") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 1);
+				checkMatrixArg(params, 0);
+				Callable fun = (Callable) store.lookup("global_Matrix_random");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
 
 		store.put("global_Matrix_top", new Primitive("top") {
 			public PacioliValue apply(List<PacioliValue> params)

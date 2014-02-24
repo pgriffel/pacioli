@@ -155,6 +155,8 @@ declare top :: for_index P,Q: for_unit a,u,v: (1, a*P!u per Q!v) -> a*P!u per Q!
 
 declare bottom :: for_index P,Q: for_unit a,u,v: (1, a*P!u per Q!v) -> a*P!u per Q!v;
 
+declare random :: () -> 1;
+
 # ----------------------------------------------------------------------------
 # Factorizations
 # ----------------------------------------------------------------------------
