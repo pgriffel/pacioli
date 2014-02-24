@@ -1,16 +1,13 @@
 module Commodity;
 
-# The commodities case demonstrates how multi-dimensional data can be
-# sliced with projections.
-
-# Setup
-
 defunit dollar "$";
 defunit barrel "bbl";
 defunit ounce "oz";
 
 defindex Commodity = {oil, gold};
+
 defindex Year = {y1990, y1991};
+
 defindex Region = {north, east, south, west};
 
 defunit Commodity!unit = {
@@ -18,8 +15,7 @@ defunit Commodity!unit = {
   gold: ounce
 };
 
-
-# Data
+Commodity@oil%Year@y1990;
 
 defmatrix sales :: dollar * Commodity! % Year! % Region! = {
   oil, y1990, north ->    5000.00,
@@ -30,6 +26,8 @@ defmatrix sales :: dollar * Commodity! % Year! % Region! = {
   gold, y1991, south ->   7000.00
 };
 
+get(sales, Commodity@gold%Year@y1990%Region@west, _);
+
 defmatrix amount :: Commodity!unit % Year! % Region! = {
   oil, y1990, north ->    155.00,
   oil, y1990, south ->    400.00,
@@ -39,26 +37,13 @@ defmatrix amount :: Commodity!unit % Year! % Region! = {
   gold, y1991, south ->    16.00
 };
 
-
-# Projections
-
-defproj projection1 :: Commodity! per Commodity! % Year! % Region!;
-
-defproj projection2 :: Year! % Commodity!unit per Commodity!unit % Year! % Region!;
-
-
-# Some output
-
-Commodity@oil%Year@y1990;
-
-get(sales, Commodity@gold%Year@y1990%Region@west, _);
-
 sales;
 
 amount;
 
-projection1;
+define p0 = project 0 from sales end;
+define p1 = project 1,0 from amount end;
 
-projection1 .* sales;
+p0;
 
-projection2 .* amount;
+p1;

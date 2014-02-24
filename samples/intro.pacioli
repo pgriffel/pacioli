@@ -1,6 +1,6 @@
 module Intro;
 
-include SI;
+include si;
 
 # Base units are pre-defined
 define v0 = |gram|;
