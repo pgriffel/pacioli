@@ -52,8 +52,8 @@ See the tutorials in the documentation section below for more examples.
 
 [shells]: shells
 [three]: http://threejs.org/
-[prog]: shells/shells.pacioli
-[proglib]: shells/curve.pacioli
+[prog]: shells.pacioli
+[proglib]: curve.pacioli
 
 
 Tutorials
