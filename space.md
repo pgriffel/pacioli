@@ -1,5 +1,5 @@
 ---
-title: Pacioli 
+title: Pacioli 3D
 layout: default
 special_command: onload="onLoad();"
 ---
@@ -17,19 +17,27 @@ Example
 Pacioli Code
 ------------
 
-    module Test;
+Create a file `blocks.pacioli` with the following code.
+
+    module Blocks;
     
     include geometry;
     
     defunit metre "m";
     
     define mesh1 =
-      cube_mesh(0.3*|metre|);
+      cube_mesh(3*|metre|);
 
     define mesh2 =
       let d = -15*|milli:metre| in
           mesh_move(cube_mesh(30*|milli:metre|), space_vec(d, d, d))
       end;
+
+Compile it to JavaScript with command
+
+    pacioli compile -target javascript blocks.pacioli
+
+This produces the file `blocks.js` to be included later.
 
 HTML
 ----
@@ -38,11 +46,10 @@ The required HTML are two divs will hold the 3D spaces. Create an HTML
 page with the following includes:
 
 {% highlight html %}
-<script type="text/javascript" src="javascripts/three.min.js"></script>
-<script type="text/javascript" src="javascripts/detector.js"></script>
-<script type="text/javascript" src="javascripts/numeric-1.2.6.js"></script>
-<script type="text/javascript" src="javascripts/pacioli-0.2.0.min.js"></script>
-<script type="text/javascript" src="javascripts/test.js"></script>
+<script type="text/javascript" src="three.min.js"></script>
+<script type="text/javascript" src="numeric-1.2.6.js"></script>
+<script type="text/javascript" src="pacioli-0.2.0.min.js"></script>
+<script type="text/javascript" src="blocks.js"></script>
 {% endhighlight %}
 
 Add two divs with id `space1` and `space2`. Something like the
@@ -93,18 +100,16 @@ function. In a dynamic setting this would typically be done in an
 event handler.
 
 {% highlight javascript %}
-var mesh1 = Pacioli.value("Test", "mesh1")
-var mesh2 = Pacioli.value("Test", "mesh2")
+var mesh1 = Pacioli.value("Blocks", "mesh1")
+var mesh2 = Pacioli.value("Blocks", "mesh2")
 
-space1.addMesh(mesh1, {wireframe: true});
-space2.addMesh(mesh1, {wireframe: true});
-space2.addMesh(mesh2, {transparent: true});
+space1.addMesh(mesh2, {wireframe: true});
+space2.addMesh(mesh1, {transparent: true});
+space2.addMesh(mesh2, {wireframe: true});
 
 space1.draw()
 space2.draw()
 {% endhighlight %}
-
-
 
 
 <script>
@@ -130,13 +135,13 @@ space2.draw()
           space1.showAxes()
           space2.showAxes()
 
-          var mesh1 = Pacioli.value("Test", "mesh1")
-          space1.addMesh(mesh1, {wireframe: true});
+          var mesh1 = Pacioli.value("Blocks", "mesh1")
+          var mesh2 = Pacioli.value("Blocks", "mesh2")
 
-          var mesh2 = Pacioli.value("Test", "mesh2")
-          space2.addMesh(mesh2, {transparent: true});
-          space2.addMesh(mesh1, {wireframe: true});
-
+          space1.addMesh(mesh2, {wireframe: true});
+          space2.addMesh(mesh1, {transparent: true});
+          space2.addMesh(mesh2, {wireframe: true});
+ 
           space1.draw()
           space2.draw()
 
@@ -145,8 +150,6 @@ space2.draw()
 </script>
 
 <script type="text/javascript" src="javascripts/three.min.js"></script>
-<script type="text/javascript" src="javascripts/detector.js"></script>
-<script type="text/javascript" src="javascripts/d3.v2.js"></script>
 <script type="text/javascript" src="javascripts/numeric-1.2.6.js"></script>
 <script type="text/javascript" src="javascripts/pacioli-0.2.0.min.js"></script>
-<script type="text/javascript" src="javascripts/test.js"></script>
+<script type="text/javascript" src="javascripts/blocks.js"></script>

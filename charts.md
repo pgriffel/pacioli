@@ -1,84 +1,128 @@
 ---
-title: Pacioli 
+title: Pacioli Charts
 layout: default
 special_command: onload="onLoad();"
 ---
 
 
-Example
--------------
+General
+---------
 
-<div style="width: 100%; overflow: auto">
-  <div id="space1" style="float:left; width: 40%; height: 250px"></div>
-  <div id="space2" style="float:left; width: 40%; height: 250px"></div>
-</div>
+To add a chart to a webpage you need a HTML parent element and a
+Pacioli vector or list of scalars. 
 
-{% highlight javascript %}
-var mesh1 = Pacioli.value("Test", "mesh1")
-var mesh2 = Pacioli.value("Test", "mesh2")
+Create Pacioli file `series.pacioli` and add the following code
 
-space1.addMesh(mesh1, {wireframe: true});
-space2.addMesh(mesh2, {transparent: true});
-space2.addMesh(mesh1, {wireframe: true});
+    module Series;
+    
+    defunit person "p";
+
+    defindex Continent = {Asia, Africa, Americas, Europe, Oceania};
+
+    # source: http://en.wikipedia.org/wiki/List_of_continents_by_population
+
+    defmatrix population :: person*Continent! = {
+      Asia -> 4298723000,
+      Africa -> 1110635000,
+      Americas -> 972005000,
+      Europe -> 742452000,
+      Oceania -> 38304000
+    };
+
+    define serie1 = [x*|person| | x <- naturals(10)];
+
+    define serie2 = naturals(25);
+
+Compile it to JavaScript with command
+
+    pacioli compile -target javascript series.pacioli
+
+This produces the file `series.js` that can be included with the
+required libraries into a HTML page as follows:
+
+{% highlight html %}
+<script type="text/javascript" src="d3.v2.js"></script>
+<script type="text/javascript" src="numeric-1.2.6.js"></script>
+<script type="text/javascript" src="pacioli-0.2.0.min.js"></script>
+<script type="text/javascript" src="series.js"></script>
 {% endhighlight %}
 
-<div id="chart2" style="">
-</div>
-<div id="chart" style="width: 400px;height: 225px; margin: 10px">
-</div>
+Finally add the following divs to the body of the page:
+
+{% highlight html %}
+<div id="chart1"></div>
+<div id="chart2"></div>
+<div id="chart3"></div>
+<div id="chart4"></div>
+{% endhighlight %}
+
+
+
+Bar Chart
+---------
+
+Add the following code to create a bar chart for the population:
+
+{% highlight javascript %}
+var parent = document.getElementById("chart1")
+var population = Pacioli.value("Series", "population")
+var chart = new Pacioli.BarChart(parent, population)
+chart.options.label = "World Population"
+chart.options.unit = Pacioli.unit("giga", "person")
+chart.draw()
+{% endhighlight %}
+
+<div id="chart1"></div>
+
+
+Pie Chart
+---------
+
+Add the following code to create a pie chart for the population:
+
+{% highlight javascript %}
+var parent = document.getElementById("chart2")
+var population = Pacioli.value("Series", "population")
+var chart = new Pacioli.PieChart(parent, population, {
+    width: 500, height: 500,
+    label: "World Population",
+    labelOffset: 1.2,
+    unit: Pacioli.unit("giga", "person")
+})
+chart.draw()
+{% endhighlight %}
+
+This should set the second chart to 
+
+<div id="chart2"></div>
 
 <script>
 
-      function onLoad() {
+function onLoad() {
 
-          var spaceElement1 = document.getElementById("space1")
-          var spaceElement2 = document.getElementById("space2")
+    var population = Pacioli.value("Series", "population")
+    var serie1 = Pacioli.value("Series", "serie1")
+    var serie2 = Pacioli.value("Series", "serie2")
 
-          var space1 = new Pacioli.Space(spaceElement1, {
-              webgl: false,
-              width: spaceElement2.offsetWidth,
-              height: spaceElement2.offsetHeight,
-              unit: Pacioli.unit("centi", "metre"),
-              axisSize: 30
-          })
-          var space2 = new Pacioli.Space(spaceElement2, {
-              webgl: false,
-              perspective: true,
-              width: spaceElement2.offsetWidth,
-              height: spaceElement2.offsetHeight,
-              unit: Pacioli.unit("metre"),
-              axisSize: 15
-          })
-      
-          space1.showAxes()
-          space2.showAxes()
+    var parent = document.getElementById("chart1")
+    var chart = new Pacioli.BarChart(parent, population)
+    chart.options.label = "World Population"
+    chart.options.unit = Pacioli.unit("giga", "person")
+    chart.draw()
 
-          var mesh1 = Pacioli.value("Test", "mesh1")
-          space1.addMesh(mesh1, {wireframe: true});
-
-          var mesh2 = Pacioli.value("Test", "mesh2")
-          space2.addMesh(mesh2, {transparent: true});
-          space2.addMesh(mesh1, {wireframe: true});
-
-          space1.draw()
-          space2.draw()
-
-
-          var chart = new Pacioli.BarChart(document.getElementById("chart"), Pacioli.value("Test", "vec"))
-          chart.options.label = "Test vec"
-          chart.options.unit = Pacioli.unit("metre")
-          chart.draw()
-
-          var chart2 = new Pacioli.PieChart(document.getElementById("chart2"), Pacioli.value("Test", "vec2"), {width: 500, height: 200})
-          chart2.options.label = "Test vec2"
-          chart2.draw()
-      }
+    var parent = document.getElementById("chart2")
+    var chart = new Pacioli.PieChart(parent, population, {
+        width: 500, height: 500,
+        label: "World Population",
+        labelOffset: 1.2,
+        unit: Pacioli.unit("giga", "person")
+    })
+    chart.draw()
+}
 
 </script>
 
-<script type="text/javascript" src="javascripts/three.min.js"></script>
-<script type="text/javascript" src="javascripts/detector.js"></script>
 <script type="text/javascript" src="javascripts/d3.v2.js"></script>
 <script type="text/javascript" src="javascripts/numeric-1.2.6.js"></script>
 <script type="text/javascript" src="javascripts/pacioli-0.2.0.min.js"></script>
-<script type="text/javascript" src="javascripts/test.js"></script>
+<script type="text/javascript" src="javascripts/series.js"></script>

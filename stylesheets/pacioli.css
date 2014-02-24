@@ -1,0 +1,166 @@
+/* Paul Griffioen 2013-2014 */
+
+#canvasparent .space {
+    z-index:-1;
+    position: fixed;
+    outline: 0;
+}
+
+
+#parameters {
+   float: left;
+}
+
+#parameters td {
+}
+
+#parameters td.key {
+    text-align: right;
+}
+
+#parameters td.value {
+}
+
+#parameters td.value input {
+    width: 80px;
+}
+
+#parameters td.unit {
+}
+
+
+#parameters button {
+    width: 60px;
+    height: 30px;
+}
+
+#graphics {
+    position: fixed;
+    top: 65%;
+}
+
+
+#graphics td {
+}
+
+#graphics td.key {
+    text-align: right;
+}
+
+#graphics td.value {
+}
+
+#graphics button {
+    width: 60px;
+    height: 30px;
+}
+
+
+#links {
+    float:right;
+}
+
+
+#info div {
+    float:right;
+    clear:right;
+    width: 300px;
+}
+
+#info div.label {
+    font-size: small;    
+    text-align: center;
+}
+
+#info div.chart {
+    height: 80px;
+/*  border:1px solid green;*/
+}
+
+#info div svg.chart {
+    height: 50px;
+/*    border:1px solid green; */
+}
+
+path {
+    stroke-width: 1;
+    fill: none;
+}
+
+.data {
+    stroke: steelblue;
+}
+			
+.axis {
+    shape-rendering: crispEdges;
+}
+
+.x.axis line { 
+    stroke: lightgrey;
+}
+
+.x.axis .minor {
+    stroke-opacity: .5;
+}
+
+.x.axis path {
+    /*display: none;*/
+}
+			
+.x.axis text {
+    font-size: 10px;
+}
+
+.y.axis line, .y.axis path {
+    stroke: lightgrey;
+    stroke-opacity: .5;
+    fill: none;
+    /*stroke: #000;*/
+}
+
+.y.axis text {
+    font-size: 10px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    .bar {
+      fill: steelblue;
+    }
+    
+    .bar:hover {
+      fill: brown;
+    }
+    
+    .axis {
+      font: 10px sans-serif;
+    }
+    
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+    
+    .x.axis path {
+      display: none;
+    }
