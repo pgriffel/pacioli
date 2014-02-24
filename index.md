@@ -33,8 +33,9 @@ The [shells example][shells] illustrates many aspectes of the
 language. It demonstrates vectors and matrices, units of measurement,
 deployment via the web, charts and other features.
 
-The shell is computed in [Pacioli code][prog] and displayed on the
-page with [three.js][three].
+The shell is computed in [Pacioli code][prog] and a small library for
+[curves][proglib]. It is displayed on the page with library
+[three.js][three].
 
 All computations are guaranteed unit correct and derived by the
 compiler. For example
@@ -52,6 +53,7 @@ See the tutorials in the documentation section below for more examples.
 [shells]: shells
 [three]: http://threejs.org/
 [prog]: shells/shells.pacioli
+[proglib]: shells/curve.pacioli
 
 
 Tutorials

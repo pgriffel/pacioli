@@ -541,7 +541,7 @@
               ticks,
               Pacioli.num(scaleFudge));
 
-          growthFactors = Pacioli.fun("Shells", "growth_factor_histogram").call(Pacioli.num(params.growth.value), Pacioli.num(params.segments.value))
+          growthFactors = Pacioli.fun("Shells", "growth_factors").call(Pacioli.num(params.growth.value), Pacioli.num(params.segments.value))
           shell.info = Pacioli.fun("Shells", "empty_shell_info").call()
 
           return shell
@@ -646,7 +646,7 @@
                            i2[2],
                            i2[3],
                            i2[4]]
-          var latest = Pacioli.fun("Shells", "latest_shell_info").call(shell.info).untuple()
+          var latest = Pacioli.fun("Shells", "last_segment_info").call(shell.info).untuple()
 
           for (var i = 0; i < chartIds.length; i++) {
 
