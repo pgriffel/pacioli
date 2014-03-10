@@ -452,7 +452,7 @@ Pacioli.Histogram.prototype.draw = function () {
            .attr("x", 1)
            .attr("width", x(lower+layout[0].dx) - 1)
            .attr("height", function(d) { return height - y(d.y); })
-           .on("click", function (d, i) {this.onClick(d.x, d.x + d.dx)}.bind(this));
+           .on("click", function (d, i) {this.onClick(d.x, d.x + d.dx, data.max)}.bind(this));
 
     } catch (err) {
         Pacioli.displayChartError(this.parent, "While drawing histogram '" + this.options.label + "':", err)
@@ -462,7 +462,7 @@ Pacioli.Histogram.prototype.draw = function () {
 
 };
 
-Pacioli.Histogram.prototype.onClick = function (lower, upper) {
+Pacioli.Histogram.prototype.onClick = function (lower, upper, max) {
 
     var result
     var unit = this.options.unit || Pacioli.dataUnit(this.data)
@@ -477,7 +477,7 @@ Pacioli.Histogram.prototype.onClick = function (lower, upper) {
         var filtered = Pacioli.zeroNumbers(vector.nrRows, vector.nrColumns)
         for (var i = 0; i < vector.nrRows; i++) {
             var num = Pacioli.getNumber(vector, i, 0) * shape.unitAt(i, 0).conversionFactor(unit)
-            if (lower <= num && num < upper) {
+            if (lower <= num && (num < upper || (num === max && upper === max))) {
                  Pacioli.set(filtered, i, 0, Pacioli.getNumber(vector, i, 0))
             }
         }
@@ -491,7 +491,7 @@ Pacioli.Histogram.prototype.onClick = function (lower, upper) {
         var filtered = []
         for (var i = 0; i < this.data.value.length; i++) {
             var num = Pacioli.getNumber(this.data.value[i], 0, 0) * factor
-            if (lower <= num && num < upper) {
+            if (lower <= num && (num < upper || (num === max && upper === max))) {
                  filtered.push(this.data.value[i])
             }
         }
@@ -572,10 +572,12 @@ Pacioli.transformData = function (data, unit) {
         var factor = data.type.param.param.multiplier.conversionFactor(unit)
         for (var i = 0; i < data.value.length; i++) {
             var value = Pacioli.getNumber(data.value[i], 0, 0) * factor
-            values.push(value)
-            labels.push(i)
-            if (max === undefined || max < value) max = value
-            if (min === undefined || value < min) min = value
+            if (value !== 0) {
+                values.push(value)
+                labels.push(i)
+                if (max === undefined || max < value) max = value
+                if (min === undefined || value < min) min = value
+            }
         }
         break;
     case "matrix":
@@ -584,10 +586,12 @@ Pacioli.transformData = function (data, unit) {
         for (var i = 0; i < numbers.nrRows; i++) {
             var factor = shape.unitAt(i, 0).conversionFactor(unit)
             var value = Pacioli.getNumber(numbers, i, 0) * factor
-            values.push(value)
-            labels.push(shape.rowCoordinates(i).shortText())
-            if (max === undefined || max < value) max = value
-            if (min === undefined || value < min) min = value
+            if (value !== 0) {
+                values.push(value)
+                labels.push(shape.rowCoordinates(i).shortText())
+                if (max === undefined || max < value) max = value
+                if (min === undefined || value < min) min = value
+            }
         }
         break;
     default:
