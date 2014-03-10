@@ -89,7 +89,7 @@ public class MatrixTypeNode extends AbstractExpressionNode {
     @Override
     public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
         assert (typeNode != null);
-        return new Typing(typeNode.eval(false));
+        return new Typing(typeNode.eval(true));
     }
 
     @Override

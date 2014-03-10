@@ -29,6 +29,7 @@ import java.util.Set;
 
 import pacioli.Dictionary;
 import pacioli.Location;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
 import pacioli.Utils;
@@ -119,13 +120,24 @@ public class TypeApplicationNode extends AbstractTypeNode {
                 return new DimensionType(names);
             }
         } else {
-        	//if (reduce && op.getDefinition() != null) {
-        	if (op.getDefinition() != null) {
-        		assert(op.getDefinition() instanceof TypeDefinition);
-            	TypeDefinition typeDefinition = (TypeDefinition) op.getDefinition();
-                return typeDefinition.constaint(true).reduce(new ParametricType(op.getName(), types));
+        	
+        	// Experiment with type definitions.
+        	// Open the type if it is from the local module.
+        	// See also reduction on types.
+        	
+        	Definition definition = op.getDefinition();
+        	
+        	if (definition == null) {
+        		return new ParametricType(op.getName(), types);
+        	}
+        	
+        	assert(definition instanceof TypeDefinition);
+        	TypeDefinition typeDefinition = (TypeDefinition) definition;
+        	
+        	if (reduce && definition.getModule() == op.home()) {
+            	return typeDefinition.constaint(true).reduce(new ParametricType(typeDefinition, types));
             } else {
-            	return new ParametricType(op.getName(), types);
+            	return new ParametricType(typeDefinition, types);
             }
         }
     }

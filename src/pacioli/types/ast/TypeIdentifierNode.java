@@ -32,6 +32,7 @@ import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
+import pacioli.PacioliFile;
 import pacioli.TypeContext;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
@@ -46,6 +47,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
     private final String name;
     private final Kind kind;
     private final Definition definition;
+	private final PacioliFile home;
 
     private enum Kind {TYPE, UNIT, INDEX}
     
@@ -54,13 +56,15 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         this.name = name;
         this.kind = null;
         this.definition = null;
+        this.home = null;
     }
     
-    private TypeIdentifierNode(Location location, String name, Kind kind, Definition definition) {
+    private TypeIdentifierNode(Location location, String name, Kind kind, Definition definition, PacioliFile home) {
         super(location);
         this.name = name;
         this.kind = kind;
         this.definition = definition;
+        this.home = home;
     }
 
     @Override
@@ -71,7 +75,12 @@ public class TypeIdentifierNode extends AbstractTypeNode {
     public String getName () {
     	return name;
     }
-    
+
+	public PacioliFile home() {
+		assert(isResolved());
+		return home;
+	}
+	
     public TypeIdentifier typeIdentifier () {
     	assert(isResolved());
     	return new TypeIdentifier(definition == null ? "" : definition.getModule().getName(), name);
@@ -150,7 +159,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 				throw new PacioliException(getLocation(), "Type '" + name + "' unknown");
 			}
 		}
-		return new TypeIdentifierNode(getLocation(), name, Kind.TYPE, definition);
+		return new TypeIdentifierNode(getLocation(), name, Kind.TYPE, definition, dictionary.home());
 	}
 	public TypeIdentifierNode resolveAsUnit(Dictionary dictionary, TypeContext context) throws PacioliException {
 		Definition definition = null;
@@ -161,7 +170,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 				throw new PacioliException(getLocation(), "Unit '" + name + "' unknown");
 			}
 		}
-		return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, definition);
+		return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, definition, dictionary.home());
 	}
 	
 	public TypeIdentifierNode resolveAsUnitVector(String indexSet, Dictionary dictionary, TypeContext context) throws PacioliException {
@@ -174,7 +183,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 				throw new PacioliException(getLocation(), "Unit vector '" + fullName + "' unknown");
 			}
 		}
-		return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, definition);
+		return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, definition, dictionary.home());
 	}
 	
 	public TypeIdentifierNode resolveAsIndex(Dictionary dictionary, TypeContext context) throws PacioliException {
@@ -186,7 +195,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 				throw new PacioliException(getLocation(), "Index set '" + name + "' unknown");
 			}
 		}
-		return new TypeIdentifierNode(getLocation(), name, Kind.INDEX, definition);
+		return new TypeIdentifierNode(getLocation(), name, Kind.INDEX, definition, dictionary.home());
 	}
 	
 	@Override
@@ -203,14 +212,14 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 			if (isIndexVar) {
 				throw new PacioliException(getLocation(), "Type variable '" + name + "' refers to a type and to an index set");
 			}
-            return new TypeIdentifierNode(getLocation(), name, Kind.TYPE, null);
+            return new TypeIdentifierNode(getLocation(), name, Kind.TYPE, null, dictionary.home());
         } else if (isUnitVar) {
         	if (isIndexVar) {
 				throw new PacioliException(getLocation(), "Type variable '" + name + "' refers to a unit and to an index set");
 			}
-            return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, null);
+            return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, null, dictionary.home());
         } else if (isIndexVar) {
-        	return new TypeIdentifierNode(getLocation(), name, Kind.INDEX, null);
+        	return new TypeIdentifierNode(getLocation(), name, Kind.INDEX, null, dictionary.home());
         } else {
         	
         	boolean isType = dictionary.containsTypeDefinition(name);
@@ -228,7 +237,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
     			if (isAlias) {
     				throw new PacioliException(getLocation(), "Type '" + name + "' refers to a type and to an alias");
     			}
-                return new TypeIdentifierNode(getLocation(), name, Kind.TYPE, dictionary.getTypeDefinition(name));
+                return new TypeIdentifierNode(getLocation(), name, Kind.TYPE, dictionary.getTypeDefinition(name), dictionary.home());
             } else if(isUnit) {
             	if (isIndex) {
     				throw new PacioliException(getLocation(), "Type '" + name + "' refers to a unit and to an index set");
@@ -236,17 +245,18 @@ public class TypeIdentifierNode extends AbstractTypeNode {
             	if (isAlias) {
     				throw new PacioliException(getLocation(), "Type '" + name + "' refers to a unit and to an alias");
     			}
-                return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, dictionary.getUnitDefinition(name));
+                return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, dictionary.getUnitDefinition(name), dictionary.home());
             } else if (isIndex) {
             	if (isAlias) {
     				throw new PacioliException(getLocation(), "Type '" + name + "' refers to a index set and to an alias");
     			}
-            	return new TypeIdentifierNode(getLocation(), name, Kind.INDEX, dictionary.getIndexSetDefinition(name));
+            	return new TypeIdentifierNode(getLocation(), name, Kind.INDEX, dictionary.getIndexSetDefinition(name), dictionary.home());
             } else if (isAlias) {
-            	return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, dictionary.getAliasDefinition(name));
+            	return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, dictionary.getAliasDefinition(name), dictionary.home());
             } else {
             	throw new PacioliException(getLocation(), "Type identifier '" + name + "' unknown");
             }
         }
 	}
+
 }

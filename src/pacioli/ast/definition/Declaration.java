@@ -21,6 +21,7 @@ public class Declaration extends AbstractDefinition {
 	private final TypeNode typeNode;
 	private TypeNode resolvedTypeNode;
 	private PacioliType type;
+	private PacioliType publicType;
 
 	public Declaration(Location location, IdentifierNode id, TypeNode typeNode) {
 		super(location);
@@ -44,10 +45,16 @@ public class Declaration extends AbstractDefinition {
 		return type;
 	}
 	
+	public PacioliType getPublicType() {
+		assert publicType != null;
+		return publicType;
+	}
+	
 	@Override
 	public void resolve(Dictionary dictionary) throws PacioliException {
 		resolvedTypeNode = typeNode.resolved(dictionary, new TypeContext());
-		type = resolvedTypeNode.eval(false);
+		type = resolvedTypeNode.eval(true);
+		publicType = resolvedTypeNode.eval(false);
 	}
 
 	@Override

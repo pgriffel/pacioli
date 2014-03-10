@@ -23,11 +23,14 @@ package pacioli.types;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import pacioli.AbstractPrintable;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import uom.Base;
@@ -58,19 +61,28 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
     public PacioliType simplify() {
         Substitution mgu = new Substitution();
         List<Unit> parts = simplificationParts();
-        for (int i = parts.size() - 1; 0 <= i; i--) {
-            mgu = unitSimplify(mgu.apply(parts.get(i))).compose(mgu);
+        Set<TypeVar> ignore = new HashSet<TypeVar>();
+        for (int i = 0; i < parts.size(); i++) {
+        	Unit part = mgu.apply(parts.get(i));
+        	Substitution simplified = unitSimplify(part, ignore);
+        	for (Base base: simplified.apply(part).bases()) {
+        		if (base instanceof TypeVar) {
+        			ignore.add((TypeVar) base);
+        		}
+        	}
+            mgu = simplified.compose(mgu);
         }
-        return mgu.apply(this);
+        PacioliType result = mgu.apply(this);
+        return result;
     }
 
-    private static Substitution unitSimplify(Unit unit) {
+    private static Substitution unitSimplify(Unit unit, Set<TypeVar> ignore) {
 
         List<Base> varBases = new ArrayList<Base>();
         List<Base> fixedBases = new ArrayList<Base>();
 
         for (Base base : unit.bases()) {
-            if (base instanceof TypeVar && ((TypeVar) base).active) {
+            if (base instanceof TypeVar && ((TypeVar) base).active && !ignore.contains((TypeVar) base)) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);
@@ -93,7 +105,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
 
         if (minPower.signum() < 0) {
             Substitution tmp = new Substitution(minVar, minVar.reciprocal());
-            return unitSimplify(tmp.apply(unit)).compose(tmp);
+            return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
         }
 
         if (varBases.size() == 1) {
@@ -119,9 +131,9 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
                 rest = rest.multiply(var.raise(unit.power(var).div(minPower).floor().negate()));
             }
         }
-
-        Substitution tmp = new Substitution(minVar, minVar.multiply(rest));
-        return unitSimplify(tmp.apply(unit)).compose(tmp);
+        
+        Substitution tmp = new Substitution(minVar, minVar.multiply(rest));        
+        return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
     }
 
     @Override

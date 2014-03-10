@@ -100,4 +100,9 @@ public class FunctionType extends AbstractType {
 		out.append("])");
 		return out.toString();
 	}
+
+	@Override
+	public PacioliType reduce() {
+		return new FunctionType(domain.reduce(), range.reduce());
+	}
 }

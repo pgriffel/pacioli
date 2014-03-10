@@ -175,4 +175,9 @@ public class DimensionType extends AbstractType {
 		 
 		 return out.toString();
 	}
+
+	@Override
+	public PacioliType reduce() {
+		return this;
+	}
 }

@@ -95,4 +95,9 @@ public class Schema extends AbstractType {
 	public String compileToJS() {
 		return type.compileToJS();
 	}
+
+	@Override
+	public PacioliType reduce() {
+		return new Schema(variables, type.reduce());
+	}
 }

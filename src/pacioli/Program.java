@@ -43,7 +43,7 @@ public class Program {
 
 	/*
 	 * All definitions in the loaded file and the included files, including its
-	 * included files, etc, are loaded in the maps in this program. The keys for
+	 * included files, etc, are loaded in this program's dictionary. The keys for
 	 * the maps are the definitions' unique global names.
 	 * 
 	 * Each definition has a module field and each module has a program field.
@@ -126,6 +126,7 @@ public class Program {
 	public void load(File file) throws PacioliException, IOException {
 
 		main = Reader.loadPacioliFile(this, file);
+		dictionary.setHome(main);
 		for (String include : PacioliFile.defaultIncludes) {
 			File includeFile = findIncludeFile(include, null);
 			String key = includeFile.getPath();
@@ -249,6 +250,8 @@ public class Program {
 	private Dictionary localDictionary(PacioliFile module)
 			throws PacioliException {
 		Dictionary dict = new Dictionary();
+		dict.setHome(module);
+		
 		for (UnitDefinition definition : dictionary.unitDefinitions()) {
 			if (definition.getModule() == module) {
 				dict.putUnitDefinition(definition.localName(), definition);
@@ -370,9 +373,24 @@ public class Program {
 	public void checkTypes() throws PacioliException {
 		Set<String> printed = new HashSet<String>();
 		for (Declaration definition : dictionary.declarations()) {
+			
+			ValueDefinition valueDefinition = dictionary.getValueDefinition(definition.globalName());
+			
+			if (valueDefinition != null) {
+                
+				PacioliType sub = definition.getType().instantiate();
+                PacioliType sup = valueDefinition.getType().instantiate();
+              
+                if (!sub.isInstanceOf(sup)) {
+                	throw new PacioliException(definition.getLocation(), "declared type\n %s\ndoes not specialize type\n %s \n",
+                			sub.unfresh().toText(),
+                			sup.unfresh().toText());
+                }
+			}
+			
 			if (definition.getModule() == main) {
 				Pacioli.logln("%s :: %s", definition.localName(), definition
-						.getType().toText());
+						.getPublicType().toText());
 				printed.add(definition.localName());
 			}
 		}

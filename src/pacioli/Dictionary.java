@@ -26,6 +26,9 @@ import pacioli.types.matrix.DimensionType;
 import pacioli.types.matrix.MatrixType;
 
 public class Dictionary {
+	
+	private PacioliFile home = null;
+	
 	private final Map<String, UnitDefinition> unitDefinitions = new HashMap<String, UnitDefinition>();
 	private final Map<String, IndexSetDefinition> indexSetDefinitions = new HashMap<String, IndexSetDefinition>();;
 	private final Map<String, UnitVectorDefinition> unitVectorDefinitions = new HashMap<String, UnitVectorDefinition>();
@@ -33,6 +36,14 @@ public class Dictionary {
 	private final Map<String, AliasDefinition> aliasDefinitions = new HashMap<String, AliasDefinition>();
 	private final Map<String, Declaration> declarations = new HashMap<String, Declaration>();
 	private final Map<String, ValueDefinition> valueDefinitions = new HashMap<String, ValueDefinition>();
+	
+	public void setHome(PacioliFile home) {
+		this.home = home;
+	}
+
+	public PacioliFile home() {
+		return home;
+	}
 	
 	public void putValueDefinition(String name, ValueDefinition definition) {
     	valueDefinitions.put(name, definition);

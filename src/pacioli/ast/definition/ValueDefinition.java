@@ -89,9 +89,10 @@ public class ValueDefinition extends AbstractDefinition {
 	}
 	
     public PacioliType inferType() throws PacioliException {
-        Typing typing = resolvedBody.inferTyping(new HashMap<String, PacioliType>());
-        Pacioli.log3("\n%s", typing.toText());
-        type = typing.solve().simplify().generalize();
+    	Pacioli.log3("\n\nInferring type of %s", globalName());
+    	Typing typing = resolvedBody.inferTyping(new HashMap<String, PacioliType>());
+        PacioliType solved =  typing.solve();
+        type = solved.simplify().generalize();
         return type;
     }
 
@@ -139,33 +140,17 @@ public class ValueDefinition extends AbstractDefinition {
     	ExpressionNode transformedBody = resolvedBody.desugar();
         if (transformedBody instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformedBody;
-//            Schema schema = (Schema) type;
-//            FunctionType funType = (FunctionType) schema. type;
-//            PacioliType dom = funType.domain;
-//            PacioliType ran = funType.range;
             return String.format("\n" 
-            		+ "// %s\n"
-            		+ "\n"
             		+ "u_%s = function () {\n"
             		+ "    var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));\n"
             		+ "    var type = %s;\n"
             		+ "    return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));\n"
             		+ "}\n"
-            		+ "\n"
-//            		+ "function uOLD_%s (%s) {\n"
-//            		+ "    return %s;\n"
-//            		+ "}\n"
-            		+ "\n"
             		+ "function %s (%s) {\n"
             		+ "    return %s;\n" 
             		+ "}\n",
-                    type.toText(),
                     globalName(),
-                    //code.argsString(),
-                    type.compileToJS(),
-//                    globalName(),
-//                    code.argsString(),
-//                    code.expression.compileToJSShape(),
+                    type.reduce().compileToJS(),
                     globalName(),
                     code.argsString(),
                     code.expression.compileToJS());
@@ -174,10 +159,9 @@ public class ValueDefinition extends AbstractDefinition {
             		+ "function compute_u_%s() {\n"
             		+ "    return %s;\n"
             		+ "}\n"
-            		+ "\n"
-            		+ "function compute_%s() {\n  return %s;\n}",
+            		+ "function compute_%s() {\n  return %s;\n}\n",
             		globalName(),
-            		type.compileToJS(), //transformedBody.compileToJSShape(),
+            		type.reduce().compileToJS(), //transformedBody.compileToJSShape(),
                     globalName(),
                     transformedBody.compileToJS());
         }

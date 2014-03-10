@@ -38,6 +38,7 @@ public class TypeConstraint extends AbstractPrintable {
 
     public PacioliType reduce(ParametricType type) throws PacioliException {
         if (!(type.isInstanceOf(lhs))) {
+        	boolean a = (type.isInstanceOf(lhs));
             throw new PacioliException("Type function %s lhs \n%s\n  not generalization of \n%s", type.name, lhs.toText(), type.unfresh().toText());
         }
         if (lhs.args.size() != type.args.size()) {

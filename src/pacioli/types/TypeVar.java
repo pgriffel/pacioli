@@ -195,4 +195,9 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
 			return "'_" + this.toText() + "_'";
 		}
 	}
+
+	@Override
+	public PacioliType reduce() {
+		return this;
+	}
 }

@@ -35,23 +35,40 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.Utils;
+import pacioli.ast.definition.TypeDefinition;
 import uom.Unit;
 
 public class ParametricType extends AbstractType {
 
     public final String name;
     public final List<PacioliType> args;
+    public final TypeDefinition definition;
 
     public ParametricType(String name, List<PacioliType> args) {
         this.name = name;
         this.args = args;
+        this.definition = null;
     }
 
     public ParametricType(String name) {
         this.name = name;
         this.args = new ArrayList<PacioliType>();
+        this.definition = null;
     }
 
+    
+    public ParametricType(TypeDefinition definition, List<PacioliType> args) {
+        this.name = definition.localName();
+        this.args = args;
+        this.definition = definition;
+    }
+    
+    private ParametricType(String name, TypeDefinition definition, List<PacioliType> args) {
+        this.name = name;
+        this.args = args;
+        this.definition = definition;
+    }
+    
     public String pprintArgs() {
         return "(" + Utils.intercalateText(", ", args) + ")";
     }
@@ -107,7 +124,7 @@ public class ParametricType extends AbstractType {
         for (PacioliType type : args) {
             items.add(type.applySubstitution(subs));
         }
-        return new ParametricType(name, items);
+        return new ParametricType(name, definition, items);
     }
 
 	@Override
@@ -164,5 +181,23 @@ public class ParametricType extends AbstractType {
 			throw new RuntimeException("Parametric Type " + name + " unknown");
 		}
 		return builder.toString();
+	}
+
+	@Override
+	public PacioliType reduce() {
+		List<PacioliType> items = new ArrayList<PacioliType>();
+        for (PacioliType type : args) {
+            items.add(type.reduce());
+        }
+		try {
+			if (definition == null) { 
+				//return this;
+				return new ParametricType(name, definition, items);
+			} else {			
+				return definition.constaint(true).reduce(new ParametricType(name, definition, items));
+			}
+		} catch (PacioliException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

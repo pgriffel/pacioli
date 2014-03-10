@@ -42,6 +42,8 @@ public interface PacioliType extends Printable {
 
     public Substitution unify(PacioliType other) throws PacioliException;
 
+    public PacioliType reduce();
+    
     public List<Unit> simplificationParts();
 
     public PacioliType simplify();

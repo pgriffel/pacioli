@@ -68,9 +68,10 @@ public class TypeDefinition extends AbstractDefinition {
 
             List<PacioliType> types = new ArrayList<PacioliType>();
             for (TypeNode arg : app.getArgs()) {
-                types.add(arg.eval(false));
+                types.add(arg.eval(reduce));
             }
 
+            //PacioliType lhsType = new ParametricType(app.getName(), types);
             PacioliType lhsType = new ParametricType(app.getName(), types);
 
             PacioliType rhsType = resolvedRhs.eval(true);

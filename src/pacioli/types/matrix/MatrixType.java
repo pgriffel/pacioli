@@ -424,8 +424,12 @@ public class MatrixType extends AbstractType {
     public List<Unit> simplificationParts() {
         List<Unit> parts = new ArrayList<Unit>();
         parts.add(factor);
-        parts.add(rowUnit);
-        parts.add(columnUnit);
+        if (rowDimension instanceof TypeVar || ((DimensionType) rowDimension).width() > 0) {
+        	parts.add(rowUnit);
+        }
+        if (columnDimension instanceof TypeVar || ((DimensionType) columnDimension).width() > 0) {
+        	parts.add(columnUnit);
+        }
         return parts;
     }
 
@@ -485,5 +489,10 @@ public class MatrixType extends AbstractType {
 			return product;
 		}
 
+	}
+
+	@Override
+	public PacioliType reduce() {
+		return this;
 	}
 }
