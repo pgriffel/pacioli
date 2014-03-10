@@ -324,7 +324,7 @@
       }
 
       function onIncrease(event) {
-          startAnimation(Pacioli.fun("Shells", "shell_current_size").call(shell).number() + 1)
+          startAnimation(Pacioli.fun("Model", "shell_current_size").call(shell).number() + 1)
       }
 
       function onGrowAll(event) {
@@ -409,19 +409,19 @@
       }
 
       function onAnimate(n) { 
-          var shellLength = Pacioli.fun("Shells", "shell_current_size").call(shell).number()
+          var shellLength = Pacioli.fun("Model", "shell_current_size").call(shell).number()
           var infoLength = shell.info.value[0].length
           var missingInfo = shellLength + 1 - infoLength
           var missingSegments = target - shellLength
           if (charts.checked && 0 < missingInfo) { 
               var r = Math.min(missingInfo, n)
-              shell.info = Pacioli.fun("Shells", "extend_shell_info").call(shell, shell.info, Pacioli.num(r))
+              shell.info = Pacioli.fun("Model", "extend_shell_info").call(shell, shell.info, Pacioli.num(r))
               updateInfo();
               requestAnimationEvent(n)
           } else if (0 < missingSegments) { 
               var r = Math.min(missingSegments, n)
               var info = shell.info
-              shell = Pacioli.fun("Shells", "grow").call(shell, Pacioli.num(r))
+              shell = Pacioli.fun("Model", "grow").call(shell, Pacioli.num(r))
               shell.info = info
               updateSpaceBody(space, shell, graphicsParameters(), r)
               requestAnimationEvent(n)
@@ -447,13 +447,13 @@
           space.clear()
 
           // Add the shell's segments
-          var meshes = Pacioli.fun("Shells", "get_meshes").call(shell).unlist()
+          var meshes = Pacioli.fun("Model", "get_meshes").call(shell).unlist()
           for (var i = 0; i < meshes.length; i++) {
               space.addMesh(meshes[i], graphics);
           }
 
           // Add the shell's initial and final curve
-          space.addCurve(Pacioli.fun("Shells", "shell_initial_curve").call(shell))
+          space.addCurve(Pacioli.fun("Model", "shell_initial_curve").call(shell))
 
           // Ensure the changes are seen
           space.draw()
@@ -462,7 +462,7 @@
       function updateSpaceBody(space, shell, graphics, n) { 
 
           // Add the requested meshes
-          var meshes = Pacioli.fun("Shells", "get_meshes").call(shell).unlist()
+          var meshes = Pacioli.fun("Model", "get_meshes").call(shell).unlist()
           for (var i = 0; i < n; i++) {
               space.addMesh(meshes[meshes.length - i - 1], graphics);
           }
@@ -541,8 +541,8 @@
               ticks,
               Pacioli.num(scaleFudge));
 
-          growthFactors = Pacioli.fun("Shells", "growth_factors").call(Pacioli.num(params.growth.value), Pacioli.num(params.segments.value))
-          shell.info = Pacioli.fun("Shells", "empty_shell_info").call()
+          growthFactors = Pacioli.fun("Model", "growth_factors").call(Pacioli.num(params.growth.value), Pacioli.num(params.segments.value))
+          shell.info = Pacioli.fun("Model", "empty_shell_info").call(shell)
 
           return shell
       }
@@ -550,7 +550,7 @@
       function orientUp(shell, space) {
 
           // Find a point on the coiling axis and on the negative vertical axis 
-          var vec = Pacioli.vec2THREE(Pacioli.fun("Shells", "axis_point").call(shell), shellUnit)
+          var vec = Pacioli.vec2THREE(Pacioli.fun("Model", "axis_point").call(shell), shellUnit)
           var direction = new THREE.Vector3(0, -1, 0);
       
           // Find rotation axis and angle from the point to the required direction
@@ -646,7 +646,7 @@
                            i2[2],
                            i2[3],
                            i2[4]]
-          var latest = Pacioli.fun("Shells", "last_segment_info").call(shell.info).untuple()
+          var latest = Pacioli.fun("Model", "last_segment_info").call(shell.info).untuple()
 
           for (var i = 0; i < chartIds.length; i++) {
 
