@@ -59,14 +59,14 @@ To get the latest sources:
 Or download a zip file from the [GitHub repository][gh].
 
 Runtime support for deployment via the web requires
-[pacioli-0.2.0.js][pacioli_js]. An [uglified][uglify] version is available as
-[pacioli-0.2.0.min.js][pacioli_min_js].
+[pacioli-0.2.1.js][pacioli_js]. An [uglified][uglify] version is available as
+[pacioli-0.2.1.min.js][pacioli_min_js].
 
 Finally you might want to download the [Pacioli style sheet][pacioli_css].
 
 [gh]: https://github.com/pgriffel/pacioli
-[pacioli_js]: http://pgriffel.github.io/pacioli/javascripts/pacioli-0.2.0.js
-[pacioli_min_js]: http://pgriffel.github.io/pacioli/javascripts/pacioli-0.2.0.min.js
+[pacioli_js]: http://pgriffel.github.io/pacioli/javascripts/pacioli-0.2.1.js
+[pacioli_min_js]: http://pgriffel.github.io/pacioli/javascripts/pacioli-0.2.1.min.js
 [pacioli_css]: http://pgriffel.github.io/pacioli/stylesheets/pacioli.css
 [uglify]: https://github.com/mishoo/UglifyJS
 

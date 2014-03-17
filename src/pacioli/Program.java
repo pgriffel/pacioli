@@ -537,7 +537,7 @@ public class Program {
 				+ "    </div>\n"
 				+ "\n"
 				+ "    <script type=\"text/javascript\" src=\"numeric-1.2.6.js\"></script>\n"
-				+ "    <script type=\"text/javascript\" src=\"pacioli-0.2.0.min.js\"></script>\n"
+				+ "    <script type=\"text/javascript\" src=\"pacioli-0.2.1.min.js\"></script>\n"
 				+ "\n" + "    <script type=\"text/javascript\">\n" + "\n");
 		compileJS(out, settings);
 		out.println("function onLoad() {");
