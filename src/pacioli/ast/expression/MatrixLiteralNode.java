@@ -2,6 +2,8 @@ package pacioli.ast.expression;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,6 +15,7 @@ import org.codehaus.jparsec.functors.Pair;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
+import pacioli.Pacioli;
 import pacioli.PacioliFile;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
@@ -26,7 +29,7 @@ import pacioli.types.ast.TypeNode;
 public class MatrixLiteralNode extends AbstractExpressionNode {
 
 	private final TypeNode typeNode;
-	private final List<Pair<List<String>, ConstNode>> pairs;
+	private final List<Pair<List<String>, String>> pairs;
 	
 	private MatrixDimension rowDim;
 	private MatrixDimension columnDim;
@@ -36,7 +39,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 	private final List<String> values = new ArrayList<String>();
 
 	public MatrixLiteralNode(Location location, TypeNode typeNode,
-			List<Pair<List<String>, ConstNode>> pairs) {
+			List<Pair<List<String>, String>> pairs) {
 		super(location);
 		this.typeNode = typeNode;
 		this.pairs = pairs;
@@ -79,8 +82,8 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 	public String compileToMVM(CompilationSettings settings) {
 
 		StringBuilder builder = new StringBuilder();
-		for (int i=0; i < values.size(); i++) {
-			builder.append(rowIndices.get(i));
+                for (int i=0; i < values.size(); i++) {
+                	builder.append(rowIndices.get(i));
 			builder.append(" ");
 			builder.append(columnIndices.get(i));
 			builder.append(" \"");
@@ -102,17 +105,38 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 		rowDim = dictionary.compileTimeRowDimension(typeNode);
 		columnDim = dictionary.compileTimeColumnDimension(typeNode);
 
+                //Set<List<Integer>> check = new HashSet<List<Integer>>();
+		Map<Integer, Set<Integer>> check = new HashMap<Integer, Set<Integer>>();
+                
 		// Translate the matrix data from string indexed to integer indexed.
 		int rowWidth = rowDim.width();
 		int width = rowWidth + columnDim.width();
-		for (Pair<List<String>, ConstNode> pair : pairs) {
+                boolean locationReported = false;
+		for (Pair<List<String>, String> pair : pairs) {
 
 			int rowPos = rowDim.ElementPos(pair.a.subList(0, rowWidth));
 			int columnPos = columnDim.ElementPos(pair.a.subList(rowWidth, width));
 
+                        if (check.containsKey(rowPos)) {
+                            if (check.get(rowPos).contains(columnPos)) {
+                                if (!locationReported) {
+                                    Pacioli.warn("In %s", getLocation().description());
+                                    locationReported = true;
+                                }
+                                Pacioli.warn("Duplicate: %s %s", rowDim.ElementAt(rowPos), columnDim.ElementAt(columnPos));
+                            } else {
+                                check.get(rowPos).add(columnPos);
+                            }
+                        } else {
+                            Set<Integer> set = new HashSet<Integer>();
+                            set.add(columnPos);
+                            check.put(rowPos, set);
+                        }
+		
+                        
 			rowIndices.add(rowPos);
 			columnIndices.add(columnPos);
-			values.add(pair.b.valueString());
+			values.add(pair.b);
 		}
 
 	}
@@ -152,7 +176,8 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 
 	@Override
 	public void printText(PrintWriter out) {
-		throw new RuntimeException("todo");	
+		//throw new RuntimeException("todo");	
+                out.print("todo: matrix literal");
 	}
 
 	@Override

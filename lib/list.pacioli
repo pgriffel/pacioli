@@ -34,3 +34,5 @@ declare zip :: for_type a,b: (List(a), List(b)) -> List(Tuple(a, b));
 declare naturals :: (1) -> List(1);
 declare map_list :: for_type a,b: ((a) -> b, List(a)) -> List(b);
 declare reverse :: for_type a: (List(a)) -> List(a);
+declare sort_list :: for_type a: (List(a), (a, a) -> Boole()) -> List(a);
+declare contains :: for_type a: (List(a), a) -> Boole();

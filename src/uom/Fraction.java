@@ -95,8 +95,8 @@ public class Fraction extends Number implements Comparable<Fraction> {
 
     public Fraction floor() {
         int div = numerator / denominator;
-        int mod = numerator % denominator;
-        return new Fraction((mod < 0) ? div - 1 : div);
+        int rem = numerator % denominator;
+        return new Fraction((div < 0 && rem != 0) ? div - 1 : div);
     }
 
     public boolean isInt() {

@@ -39,7 +39,7 @@ define d_z = delta(Space@z);
 
 declare space_vec :: for_unit a: (a, a, a) -> a*Space!;
 
-define space_vec(a, b, c) = a.d_x + b.d_y + c.d_z;
+define space_vec(a, b, c) = a c* d_x + b c* d_y + c c* d_z;
 
 # ----------------------------------------------------------------------------
 # General Functions
@@ -50,7 +50,7 @@ declare normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
 
 define norm(x) = sqrt(inner(x,x));
 
-define normalized(x) = x /. magnitude(norm(x));
+define normalized(x) = x /c magnitude(norm(x));
 
 # ----------------------------------------------------------------------------
 # Polar Coordinates
@@ -81,7 +81,7 @@ define cross(v,w) =
       vx = get(v, Space@x, _), vy = get(v, Space@y, _), vz = get(v, Space@z, _),
       wx = get(w, Space@x, _), wy = get(w, Space@y, _), wz = get(w, Space@z, _)
   in
-      (vy*wz - vz*wy) . d_x + (vz*wx - vx*wz) . d_y + (vx*wy - vy*wx) . d_z
+      (vy*wz - vz*wy) c* d_x + (vz*wx - vx*wz) c* d_y + (vx*wy - vy*wx) c* d_z
   end;
 
 #define cross(v,w) =
@@ -89,7 +89,7 @@ define cross(v,w) =
 #      vx = inner(v, d_x), vy = inner(v, d_y), vz = inner(v, d_z),
 #      wx = inner(w, d_x), wy = inner(w, d_y), wz = inner(w, d_z)
 #  in
-#      (vy*wz - vz*wy) . d_x + (vz*wx - vx*wz) . d_y + (vx*wy - vy*wx) . d_z
+#      (vy*wz - vz*wy) c* d_x + (vz*wx - vx*wz) c* d_y + (vx*wy - vy*wx) c* d_z
 #  end;
 
 define cross_sqrt(v,w) =
@@ -103,7 +103,7 @@ define cross_sqrt(v,w) =
       sz = vx*wy - vy*wx,
       sq = sqrt(sx*sx + sy*sy + sz*sz)
   in
-      (sx.d_x + sy.d_y + sz.d_z) /. sqrt(sq)
+      (sx c* d_x + sy c* d_y + sz c* d_z) /c sqrt(sq)
   end;
 
 define cross_sqrt_alt(v,w) =

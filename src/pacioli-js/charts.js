@@ -367,6 +367,7 @@ Pacioli.Histogram.prototype.draw = function () {
         var unit = this.options.unit || Pacioli.dataUnit(this.data)
         var data = Pacioli.transformData(this.data, unit)
 
+
 /*
         var shape = this.data.type.param
         var numbers = this.data.value
@@ -518,6 +519,183 @@ Pacioli.Histogram.prototype.onClick = function (lower, upper, max) {
     div.style.overflow = "auto"
 }
 
+
+// -----------------------------------------------------------------------------
+// ScatterPlot
+// -----------------------------------------------------------------------------
+
+Pacioli.ScatterPlot = function (parent, dataX, dataY, options) {
+
+    this.parent = parent
+    this.dataX = dataX 
+    this.dataY = dataY 
+
+    var defaultOptions = {
+        width: 640,
+        height: 360,
+        margin: {left: 40, top: 20, right: 20, bottom: 50},
+        unit: null,
+        label: "",
+        radius: 2.0,
+        trendline: false
+    }
+
+    this.options = Pacioli.copyOptions(options, defaultOptions)
+}
+
+Pacioli.ScatterPlot.prototype.draw = function () {
+
+    try {
+
+        var unit = this.options.unit || Pacioli.dataUnit(this.dataX) // what about Pacioli.dataUnit(this.dataY)?
+        var dataX = Pacioli.transformData(this.dataX, unit)
+        var dataY = Pacioli.transformData(this.dataY, unit)
+
+        var data = []
+        for (var i = 0; i < dataX.values.length; i++) {
+            data[i] = {x: dataX.values[i], y: dataY.values[i]}
+        }
+
+
+        // Create an array with the bin tresholds and generate a scatterplot layout from it for the data
+        var lowerX = this.options.lowerX || dataX.min //d3.min(data)
+        var upperX = this.options.upperX || dataX.max //d3.max(data)
+        var lowerY = this.options.lowerY || dataY.min //d3.min(data)
+        var upperY = this.options.upperY || dataY.max //d3.max(data)
+
+        // Determine the drawing dimensions
+        var margin = this.options.margin
+        var width = this.options.width - margin.left - margin.right
+        var height = this.options.height - margin.top - margin.bottom
+
+        // Create x and y scales mapping the scatterplot layout to the drawing dimensions
+        var x = d3.scale.linear().domain([lowerX, upperX]).range([0, width]);
+        var y = d3.scale.linear()
+                  .domain([lowerY, upperY])
+                  .range([height, 0]);
+        
+        // Create the axes
+        var xAxis = d3.svg.axis().scale(x).orient("bottom");
+        var yAxis = d3.svg.axis().scale(y).orient("left")
+        
+        // Make the parent node empty
+        while (parent.firstChild) {
+            parent.removeChild(parent.firstChild)
+        }
+
+        // Create an svg element under the parent        
+        var svg = d3.select(this.parent).append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    
+        // Add the x axis
+        var label = this.options.label || vector.rowName() //vector.shape.rowSets.map(function (x) {return x.name})
+        svg.append("g")
+           .attr("class", "x axis")
+           .attr("transform", "translate(0," + height + ")")
+           .call(xAxis)
+           .append("text")
+           .attr("x", width)
+           .attr("y", 26)
+           .attr("dy", ".71em")
+           .style("text-anchor", "end")
+           .text(label + "(" + data.length + ") (" + unit.symbolized().toText() + ")");
+
+        // Add the y axis
+        svg.append("g")
+           .attr("class", "y axis")
+           .call(yAxis)
+//           .append("text")
+//           .attr("x", 20)
+//           .attr("dy", "-.71em")
+//           .style("text-anchor", "end")
+//           .text("Frequency");
+
+        var color = d3.scale.category20();     //builtin range of colors
+
+        // Add dots for the data
+        svg.selectAll(".dot")
+           .data(data)
+           .enter().append("circle")
+           .attr("class", "dot")
+           .attr("r", this.options.radius)
+           .attr("cx", function(d) { return x(d.x); })
+           .attr("cy", function(d) { return y(d.y); })
+           .style("fill", function(d) { return color(d.species); });
+
+//  var legend = svg.selectAll(".legend")
+//      .data(color.domain())
+//    .enter().append("g")
+//      .attr("class", "legend")
+//      .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+//  legend.append("rect")
+//      .attr("x", width - 18)
+//      .attr("width", 18)
+//      .attr("height", 18)
+//      .style("fill", color);
+//
+//  legend.append("text")
+//      .attr("x", width - 24)
+//      .attr("y", 9)
+//      .attr("dy", ".35em")
+//      .style("text-anchor", "end")
+//      .text(function(d) { return d; });
+
+        if (this.options.trendline) {
+
+            var lr = Pacioli.linearRegression(dataY.values,dataX.values)
+
+            var x1 = dataX.min
+            var y1 = x1*lr.slope + lr.intercept
+            var x2 = dataX.max
+            var y2 = x2*lr.slope + lr.intercept
+
+            svg.append("line")
+               .attr("x1",x(x1))
+               .attr("y1",y(y1))
+               .attr("x2",x(x2))
+               .attr("y2",y(y2))
+               .attr("stroke", "#ccc")
+	       .attr("stroke-width", 1);
+        }
+
+    } catch (err) {
+        Pacioli.displayChartError(this.parent, "While drawing scatterplot '" + this.options.label + "':", err)
+    }
+
+    return this
+
+    };
+
+// from http://trentrichardson.com/2010/04/06/compute-linear-regressions-in-javascript/
+Pacioli.linearRegression = function (y,x){
+		var lr = {};
+		var n = y.length;
+		var sum_x = 0;
+		var sum_y = 0;
+		var sum_xy = 0;
+		var sum_xx = 0;
+		var sum_yy = 0;
+		
+		for (var i = 0; i < y.length; i++) {
+			
+			sum_x += x[i];
+			sum_y += y[i];
+			sum_xy += (x[i]*y[i]);
+			sum_xx += (x[i]*x[i]);
+			sum_yy += (y[i]*y[i]);
+		} 
+		
+		lr['slope'] = (n * sum_xy - sum_x * sum_y) / (n*sum_xx - sum_x * sum_x);
+		lr['intercept'] = (sum_y - lr.slope * sum_x)/n;
+		lr['r2'] = Math.pow((n*sum_xy - sum_x*sum_y)/Math.sqrt((n*sum_xx-sum_x*sum_x)*(n*sum_yy-sum_y*sum_y)),2);
+		
+		return lr;
+}
 // -----------------------------------------------------------------------------
 // Utilities
 // -----------------------------------------------------------------------------
@@ -583,16 +761,30 @@ Pacioli.transformData = function (data, unit) {
     case "matrix":
         var numbers = data.value
         var shape = data.type.param
-        for (var i = 0; i < numbers.nrRows; i++) {
-            var factor = shape.unitAt(i, 0).conversionFactor(unit)
-            var value = Pacioli.getNumber(numbers, i, 0) * factor
-            if (value !== 0) {
-                values.push(value)
-                labels.push(shape.rowCoordinates(i).shortText())
-                if (max === undefined || max < value) max = value
-                if (min === undefined || value < min) min = value
-            }
-        }
+
+    var nums = Pacioli.getCOONumbers(numbers)
+    var rows = nums[0]
+    var columns = nums[1]
+    var vals = nums[2]
+    for (var i = 0; i < rows.length; i++) {
+            var factor = shape.unitAt(rows[i], 0).conversionFactor(unit)
+            var value = vals[i]
+            values.push(value)
+            labels.push(shape.rowCoordinates(rows[i]).shortText())
+            if (max === undefined || max < value) max = value
+            if (min === undefined || value < min) min = value
+    }
+
+//        for (var i = 0; i < numbers.nrRows; i++) {
+//            var factor = shape.unitAt(i, 0).conversionFactor(unit)
+//            var value = Pacioli.getNumber(numbers, i, 0) * factor
+//            if (value !== 0) { 
+//                values.push(value)
+//                labels.push(shape.rowCoordinates(i).shortText())
+//                if (max === undefined || max < value) max = value
+//                if (min === undefined || value < min) min = value
+//            }
+//        }
         break;
     default:
         throw "exptected a vector or a list of numbers but got a " + data.type.kind

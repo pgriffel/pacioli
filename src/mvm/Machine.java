@@ -24,10 +24,14 @@ package mvm;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 //import java.util.Map;
 
 import mvm.ast.Application;
@@ -234,12 +238,36 @@ public class Machine {
 			}
 		});
 
+		store.put("global_Primitives_printed", new Primitive("printed") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				PacioliValue value = params.get(0);
+				if (value != null) { // void value of statements
+					logln(value.toText());
+				}
+				return value;
+			}
+		});
+
+		store.put("debug_Primitives_printed", new Primitive("printed") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 1);
+				Callable fun = (Callable) store
+						.lookup("global_Primitives_printed");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+
 		store.put("global_Primitives_print", new Primitive("print") {
 			public PacioliValue apply(List<PacioliValue> params)
 					throws MVMException {
 				PacioliValue value = params.get(0);
-				logln(value.toText());
-				return value;
+				if (value != null) { // void value of statements
+					logln(value.toText());
+				}
+				return null;
 			}
 		});
 
@@ -249,26 +277,6 @@ public class Machine {
 				checkNrArgs(params, 1);
 				Callable fun = (Callable) store
 						.lookup("global_Primitives_print");
-				PacioliValue result = fun.apply(params);
-				return result;
-			}
-		});
-
-		store.put("global_Primitives_display", new Primitive("display") {
-			public PacioliValue apply(List<PacioliValue> params)
-					throws MVMException {
-				PacioliValue value = params.get(0);
-				logln(value.toText());
-				return null;
-			}
-		});
-
-		store.put("debug_Primitives_display", new Primitive("display") {
-			public PacioliValue apply(List<PacioliValue> params)
-					throws MVMException {
-				checkNrArgs(params, 1);
-				Callable fun = (Callable) store
-						.lookup("global_Primitives_display");
 				PacioliValue result = fun.apply(params);
 				return result;
 			}
@@ -705,6 +713,48 @@ public class Machine {
 			}
 		});
 
+		store.put("global_Matrix_min", new Primitive("min") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				Matrix x = (Matrix) params.get(0);
+				Matrix y = (Matrix) params.get(1);
+				return x.min(y);
+			}
+		});
+
+		store.put("debug_Matrix_min", new Primitive("min") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 2);
+				checkMatrixArg(params, 0);
+				checkMatrixArg(params, 1);
+				Callable fun = (Callable) store.lookup("global_Matrix_min");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+		
+		store.put("global_Matrix_max", new Primitive("max") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				Matrix x = (Matrix) params.get(0);
+				Matrix y = (Matrix) params.get(1);
+				return x.max(y);
+			}
+		});
+
+		store.put("debug_Matrix_max", new Primitive("max") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 2);
+				checkMatrixArg(params, 0);
+				checkMatrixArg(params, 1);
+				Callable fun = (Callable) store.lookup("global_Matrix_max");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+		
 		store.put("global_Matrix_sqrt", new Primitive("sqrt") {
 			public PacioliValue apply(List<PacioliValue> params)
 					throws MVMException {
@@ -1910,6 +1960,61 @@ public class Machine {
 				return result;
 			}
 		});
+                
+                store.put("global_List_sort_list", new Primitive("sort_list") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				List<PacioliValue> items = ((PacioliList) params.get(0)).items();
+				final Callable fun = (Callable) params.get(1);
+                                
+                                // Clumsy way to make a final array of two elements to be used in the compare
+                                ArrayList<PacioliValue> dummyArgs = new ArrayList<PacioliValue>();
+				dummyArgs.add(null);
+                                dummyArgs.add(null);
+                                final ArrayList<PacioliValue> args = new ArrayList<PacioliValue>(dummyArgs);
+				
+				List<PacioliValue> newItems = new ArrayList<PacioliValue>(items);
+                                Collections.sort(newItems, new Comparator<PacioliValue>() {
+
+                                    @Override
+                                    public int compare(PacioliValue o1, PacioliValue o2) {
+                                        try {
+                                            args.set(0, o1);
+                                            args.set(1, o2);
+                                            Boole result1 = (Boole) fun.apply(args);
+                                            args.set(0, o2);
+                                            args.set(1, o1);
+                                            Boole result2 = (Boole) fun.apply(args);
+                                            if (!result1.positive() && result2.positive()) {
+                                                return 1;
+                                            } else if (result1.positive() && !result2.positive()) {
+                                                return -1;
+                                            } else {
+                                                return 0;
+                                            }
+                                            
+                                        } catch (MVMException ex) {
+                                            throw new RuntimeException(ex);
+                                        }
+                                    }
+                                            
+                               });
+                                
+                                return new PacioliList(newItems);
+			}
+		});
+
+		store.put("debug_List_sort_list", new Primitive("sort_list") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 2);
+				checkListArg(params, 0);
+				checkCallableArg(params, 1);
+				Callable fun = (Callable) store.lookup("global_List_sort_list");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
 
 		store.put("global_List_fold_list", new Primitive("fold_list") {
 			public PacioliValue apply(List<PacioliValue> params)
@@ -2205,6 +2310,28 @@ public class Machine {
 				return result;
 			}
 		});
+                
+		store.put("global_List_contains", new Primitive("contains") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				PacioliList list = (PacioliList) params.get(0);
+                                PacioliValue item = params.get(1);
+				return new Boole(list.items().contains(item));
+			}
+		});
+
+		store.put("debug_List_contains", new Primitive("contains") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 2);
+				checkListArg(params, 0);
+				Callable fun = (Callable) store.lookup("global_List_contains");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+                
+                
 
 	}
 

@@ -35,14 +35,14 @@ public class Utils {
     private static int counter;
 
     public static String intercalate(String seperator, List<String> strings) {
-        String sep = "";
-        String output = "";
+    	StringBuilder builder = new StringBuilder();
+    	String sep = "";
         for (String string : strings) {
-            output += sep;
-            output += string;
+        	builder.append(sep);
+        	builder.append(string);
             sep = seperator;
         }
-        return output;
+        return builder.toString();
     }
 
     public static String intercalateText(String seperator, List<? extends Printable> printables) {

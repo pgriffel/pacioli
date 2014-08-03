@@ -166,31 +166,18 @@ function global_Matrix_magnitude(x) {
 }
 
 function global_Matrix_row(x, coord) {
-
     var row = coord.position
-    var rowUnit = Pacioli.scalarShape(x.shape.findRowUnit(row))
-    var matrix = new Pacioli.Matrix(x.shape.column().scale(x.shape.factor()).scale(rowUnit))
-
-    if (x.storage === 0) {
-        for (var j = 0; j < x.nrColumns(); j++) {
-            matrix.set(0, j, x.getNumber(row, j))
-        }
-    } else {
-        var numbers = x.getCOONumbers()
-        var rows = []
-        var columns = []
-        var values = []
-        for (var i = 0; i < numbers[0].length; i++) {
-            if (numbers[0][i] === row) {
-                rows.push(i)
-                columns.push(numbers[1][i])
-                values.push(numbers[2][i])
+    var matrix = Pacioli.zeroNumbers(x.nrColumns, 1)
+    var numbers = Pacioli.getCOONumbers(x)
+    var rows = numbers[0]
+    var columns = numbers[1]
+    var values = numbers[2]
+    for (var i = 0; i < rows.length; i++) {
+            if (rows[i] === row) {
+                Pacioli.set(matrix, row, columns[i], values[i])
             }
-        }
-        matrix.numbers = [rows, columns, values]
-        matrix.storage = 2
     }
-    return matrix;
+    return matrix
 }
 
 function global_Matrix_row_units(x) {
@@ -207,13 +194,8 @@ function global_Matrix_row_domain(matrix) {
 }
 
 function global_Matrix_column(x, coord) {
-    var columnUnit = Pacioli.scalarShape(x.shape.findColumnUnit(coord.position))
-    var matrix = new Pacioli.Matrix(x.shape.row().scale(x.shape.factor()))
-    var j = coord.position
-    for (var i = 0; i < x.nrRows(); i++) {
-        matrix.set(i, 0, x.getNumber(i, j))
-    }
-    return matrix;
+    // todo: reconsider this and the global_Matrix_row implementation 
+    return global_Matrix_row(global_Matrix_transpose(x), coord)
 }
 
 function global_Matrix_column_domain(matrix) {
@@ -249,6 +231,14 @@ function global_Matrix_make_matrix(tuples) {
 
 function global_Matrix_support(x) {
     return Pacioli.unaryNumbers(x, function (val) { return 1})
+}
+
+function global_Matrix_positive_support(x) {
+    return Pacioli.unaryNumbers(x, function (val) { return 0 < val ? 1 : 0})
+}
+
+function global_Matrix_negative_support(x) {
+    return Pacioli.unaryNumbers(x, function (val) { return val < 0 ? 1 : 0})
 }
 
 function global_Matrix_top(cnt, x) {
@@ -414,6 +404,20 @@ function global_Matrix_divide(x,y) {
     return Pacioli.elementWiseNumbers(x, y, function(a, b) { return b !== 0 ? a/b : 0})
 }
 
+function global_Matrix_gcd(x,y) {
+    return Pacioli.elementWiseNumbers(x, y, function(a, b) { 
+    if (a < 0) a = -a;
+    if (b < 0) b = -b;
+    if (b > a) {var temp = a; a = b; b = temp;}
+    while (true) {
+        a %= b;
+        if (a == 0) return b;
+        b %= a;
+        if (b == 0) return a;
+    }
+    })
+}
+
 function global_Matrix_sum(x,y) {
     if (x.storage === 13) {
         return Pacioli.tagNumbers(numeric.ccsadd(Pacioli.getCCSNumbers(x), Pacioli.getCCSNumbers(y)), x.nrRows, y.nrColumns, 3);
@@ -551,6 +555,43 @@ function global_Matrix_random() {
     return Pacioli.tagNumbers([[Math.random()]], 1, 1, 0);
 }
 
+function global_Matrix_ranking(x) { 
+    var result = Pacioli.zeroNumbers(x.nrRows, x.nrColumns)
+    var numbers = Pacioli.getCOONumbers(x)
+    var rows = numbers[0]
+    var columns = numbers[1]
+    var values = numbers[2]
+
+    var tmp = [];
+    for (var i = 0; i < rows.length; i++) {
+        tmp[i] = [rows[i], columns[i], values[i]]
+    }
+    tmp.sort(function (a, b) {
+       if (a[2] > b[2])
+          return 1;
+       if (a[2] < b[2])
+          return -1;
+       return 0;
+    })
+    for (var i = 0; i < tmp.length; i++) {
+        Pacioli.set(result, tmp[i][0], tmp[i][1], i+1)
+    }
+    return result
+}
+
+function global_Matrix_mapnz(fun, x) { 
+    var result = Pacioli.zeroNumbers(x.nrRows, x.nrColumns)
+    var numbers = Pacioli.getCOONumbers(x)
+    var rows = numbers[0]
+    var columns = numbers[1]
+    var values = numbers[2]
+
+    for (var i = 0; i < rows.length; i++) {
+        Pacioli.set(result, rows[i], columns[i], Pacioli.getNumber(fun.call(this, Pacioli.tagNumbers([[values[i]]], 1, 1, 0)), 0, 0))
+    }
+    return result
+}
+
 function global_List_zip(x,y) {
     var list = new Array(Math.min(x.length, y.length));
     for (var i = 0; i < list.length; i++) {
@@ -621,6 +662,18 @@ function global_List_fold_list(fun, list) {
     return accu;
 }
 
+function global_List_sort_list(list, fun) {
+    return list;
+    return Pacioli.tagKind(list.slice(0).sort(function (a, b) {
+            if (global_Primitives_apply(fun, [a, b]))
+                return 1;
+            if (global_Primitives_apply(fun, [b, a]))
+                return -1;
+            return 0;
+        }),
+        "list");
+}
+
 function global_List_cons(item,list) {
     return global_List_append(global_List_singleton_list(item), list);
 }
@@ -629,3 +682,29 @@ function global_List_empty_list() {
    return Pacioli.tagKind([], "list");
 }
 
+
+function global_Shells_csg_polygon(vectors) {
+    var vertices = vectors.map(function (x) {
+        var v = Pacioli.getFullNumbers(x)
+        return new CSG.Vertex(v, [0,1,0])
+    })
+    console.log(vertices)
+    return Pacioli.tagKind(new CSG.Polygon(vertices), "csg");
+}
+
+function global_Shells_csg_mesh(polygons) {
+    console.log(polygons)
+   return Pacioli.tagKind(CSG.fromPolygons(polygons), "csg");
+}
+
+function global_Shells_csg_sphere(radius, slices, stacks) {
+   return Pacioli.tagKind(CSG.sphere({ radius: Pacioli.getNumber(radius, 0, 0) , slices: Pacioli.getNumber(slices, 0, 0), stacks: Pacioli.getNumber(stacks, 0, 0)}), "csg");
+}
+
+function global_Shells_csg_cube(radius) { 
+   return Pacioli.tagKind(CSG.cube({ radius: Pacioli.getNumber(radius, 0, 0) }), "csg");
+}
+
+function global_Shells_csg_subtract(x, y) {
+   return Pacioli.tagKind(x.subtract(y), "csg");
+}

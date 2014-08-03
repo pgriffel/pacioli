@@ -157,6 +157,8 @@ declare bottom :: for_index P,Q: for_unit a,u,v: (1, a*P!u per Q!v) -> a*P!u per
 
 declare random :: () -> 1;
 
+declare ranking :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> P! per Q!;
+
 # ----------------------------------------------------------------------------
 # Factorizations
 # ----------------------------------------------------------------------------
@@ -166,3 +168,5 @@ declare plu :: for_index P: for_unit a,u: (a*P!u per P!u) -> Tuple(P!u per P!u, 
 declare svd :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Tuple(P!u per P!u, a*P!u per Q!v, Q!v^-1 per Q!v^-1);
 
 declare solve :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*P!u per R!w) -> a^-1*b*Q!v per R!w;
+
+declare mapnz :: for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;

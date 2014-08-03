@@ -176,6 +176,7 @@ Pacioli.DOK2COO = function (numbers) {
     var rows = []
     var columns = []
     var values = []
+    var tmp = []
     for (x in numbers) {
         if (numbers.hasOwnProperty(x)) {
             var parsedX = parseInt(x)
@@ -189,9 +190,7 @@ Pacioli.DOK2COO = function (numbers) {
                         if (isFinite(parsedY) && !isNaN(parsedY)) {
                             var value = row[parsedY]
                             if (value !== 0) {
-                                rows.push(parsedX)
-                                columns.push(parsedY)
-                                values.push(value)
+                                tmp.push([parsedX, parsedY, value])
                             }
                         }
                     }
@@ -199,6 +198,23 @@ Pacioli.DOK2COO = function (numbers) {
             }
         }
     }
+    tmp.sort(function (a, b) {
+       if (a[0] > b[0])
+          return 1;
+       if (a[0] < b[0])
+          return -1;
+       if (a[1] > b[1])
+          return 1;
+       if (a[1] < b[1])
+          return -1;
+       return 0;
+    })
+    for (var i = 0; i < tmp.length; i++) {
+        rows.push(tmp[i][0])
+        columns.push(tmp[i][1])
+        values.push(tmp[i][2])
+    }
+
     return Pacioli.tagNumbers([rows, columns, values], numbers.nrRows, numbers.nrColumns, 2)
 }
 

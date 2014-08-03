@@ -90,16 +90,16 @@ Pacioli.DOM = function(x) {
 Pacioli.ValueDOM = function(x) {
     switch (x.kind) {
     case "matrix":
-        return valuesOnly === true ? Pacioli.ValueDOMmatrixTable(x) :  Pacioli.DOMmatrixTable(x);
+        return true ? Pacioli.ValueDOMmatrixTable(x) :  Pacioli.DOMmatrixTable(x);
     case "coordinates":
-        return document.createTextNode(x.toText())
+        return document.createTextNode(x.position + "/" + x.size)
     case "ref":
         return Pacioli.DOM(x[0])
     case "list":
         var list = document.createElement("ul")
         for (var i = 0; i < x.length; i++) {
             var item = document.createElement("li")
-            item.appendChild(Pacioli.DOM(x[i], valuesOnly))
+            item.appendChild(Pacioli.DOM(x[i]))
             list.appendChild(item)
         } 
         return list
@@ -107,7 +107,7 @@ Pacioli.ValueDOM = function(x) {
         var list = document.createElement("ol")
         for (var i = 0; i < x.length; i++) {
             var item = document.createElement("li")
-            item.appendChild(Pacioli.DOM(x[i], valuesOnly))
+            item.appendChild(Pacioli.DOM(x[i]))
             list.appendChild(item)
         } 
         return list

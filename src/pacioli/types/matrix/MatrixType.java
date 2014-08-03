@@ -55,6 +55,10 @@ public class MatrixType extends AbstractType {
             Unit rowUnit,
             PacioliType columnDimension,
             Unit columnUnit) {
+        if (!((rowDimension instanceof DimensionType) || (rowDimension instanceof TypeVar))) {
+            throw new RuntimeException("oeps:" + rowDimension.getClass());
+        }
+        
         this.factor = factor;
         this.rowDimension = rowDimension;
         this.rowUnit = rowUnit;
@@ -186,8 +190,8 @@ public class MatrixType extends AbstractType {
                     new DimensionType(),
                     Unit.ONE);
         } else {
-            throw new PacioliException("Kronecker product is not allowed for index variables: %s % %s",
-                    toText(), other.toText());
+            throw new PacioliException("Kronecker product is not allowed for index variables: %s %% %s (%s)",
+                    toText(), other.toText(), rowDimension.getClass());
         }
     }
 

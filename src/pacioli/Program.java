@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Declaration;
@@ -150,7 +152,7 @@ public class Program {
 		return paths;
 	}
 
-	Set<PacioliFile> accessibleModules(PacioliFile module) {
+	Set<PacioliFile> accessibleModules(PacioliFile module) throws FileNotFoundException {
 		Set<PacioliFile> modules = new HashSet<PacioliFile>();
 		for (String include : moduleIncludePaths(module)) {
 			File includeFile = findIncludeFile(include, module.directory());
@@ -168,10 +170,10 @@ public class Program {
 	private void loadDefaultIncludes() throws PacioliException, IOException {
 		for (String include : PacioliFile.defaultIncludes) {
 			File includeFile = findIncludeFile(include, null);
-			if (includeFile == null) {
-				throw new FileNotFoundException(String.format(
-						"No file found for default include '%s'", include));
-			}
+//			if (includeFile == null) {
+//				throw new FileNotFoundException(String.format(
+//						"No file found for default include '%s'", include));
+//			}
 			String key = includeFile.getPath();
 			if (!files.containsKey(key)
 					&& !main.getFile().getPath().equals(key)) {
@@ -189,10 +191,10 @@ public class Program {
 			IOException {
 		for (String include : moduleIncludePaths(module)) {
 			File includeFile = findIncludeFile(include, module.directory());
-			if (includeFile == null) {
-				throw new FileNotFoundException(String.format(
-						"No file found for include '%s'", include));
-			}
+//			if (includeFile == null) {
+//				throw new FileNotFoundException(String.format(
+//						"No file found for include '%s'", include));
+//			}
 			String includeKey = includeFile.getPath();
 			if (!files.containsKey(includeKey)
 					&& !main.getFile().getPath().equals(includeKey)) {
@@ -206,7 +208,7 @@ public class Program {
 		}
 	}
 
-	private File findIncludeFile(String include, File directory) {
+	private File findIncludeFile(String include, File directory) throws FileNotFoundException {
 
 		File libFile = null;
 		String includeName = include.toLowerCase() + ".pacioli";
@@ -240,7 +242,11 @@ public class Program {
 						include, dir);
 			}
 		}
-		return libFile;
+                if (libFile == null) {
+				throw new FileNotFoundException(String.format(
+						"No file found for default include '%s'", includeName));
+			}
+                return libFile;
 	}
 
 	/*
@@ -301,12 +307,15 @@ public class Program {
 	private void resolveModuleNames(PacioliFile module) throws PacioliException {
 
 		Dictionary dict = localDictionary(module);
-
-		for (PacioliFile mod : accessibleModules(module)) {
-			if (mod != module) {
-				dict.addAll(localDictionary(mod));
-			}
-		}
+            try {
+                for (PacioliFile mod : accessibleModules(module)) {
+                        if (mod != module) {
+                                dict.addAll(localDictionary(mod));
+                        }
+                }
+            } catch (FileNotFoundException ex) {
+                throw new PacioliException(ex);
+            }
 
 		// Resolve the bodies of this module's definitions. Units and index sets
 		// are resolved first, so that they can be used during resolving of
@@ -314,42 +323,51 @@ public class Program {
 
 		for (Definition definition : dictionary.unitDefinitions()) {
 			if (definition.getModule() == module) {
+                            Pacioli.logln3("resolving %s", definition.globalName());
 				definition.resolve(dict);
 			}
 		}
 		for (IndexSetDefinition definition : dictionary.indexSetDefinitions()) {
 			if (definition.getModule() == module) {
+                            Pacioli.logln3("resolving %s", definition.globalName());
 				definition.resolve(dict);
 			}
 		}
 		for (UnitVectorDefinition definition : dictionary
 				.unitVectorDefinitions()) {
 			if (definition.getModule() == module) {
+                            Pacioli.logln3("resolving %s", definition.globalName());
 				definition.resolve(dict);
 			}
 		}
 		for (TypeDefinition definition : dictionary.typeDefinitions()) {
 			if (definition.getModule() == module) {
+                            Pacioli.logln3("resolving %s", definition.globalName());
 				definition.resolve(dict);
 			}
 		}
 		for (AliasDefinition definition : dictionary.aliasDefinitions()) {
 			if (definition.getModule() == module) {
+                            Pacioli.logln3("resolving %s", definition.globalName());
 				definition.resolve(dict);
 			}
 		}
 		for (Declaration definition : dictionary.declarations()) {
 			if (definition.getModule() == module) {
+                            Pacioli.logln3("resolving %s", definition.globalName());
 				definition.resolve(dict);
 			}
 		}
 		for (ValueDefinition definition : dictionary.valueDefinitions()) {
 			if (definition.getModule() == module) {
+                            Pacioli.logln3("resolving %s", definition.globalName());
 				definition.resolve(dict);
 			}
 		}
+                int i=0;
 		for (Toplevel toplevel : toplevelExpressions) {
 			if (toplevel.getModule() == module) {
+                            Pacioli.logln3("resolving toplevel %s", i++);
 				toplevel.resolve(dict);
 			}
 		}
@@ -451,16 +469,21 @@ public class Program {
 
 	public void compileMVM(PrintWriter out, CompilationSettings settings)
 			throws PacioliException {
+		//Pacioli.logln3("Compiling module '%s'", file.getPath());
+		Pacioli.logln3("Compiling index sets");
 		for (Definition definition : dictionary.indexSetDefinitions()) {
 			out.println(definition.compileToMVM(settings));
 		}
+		Pacioli.logln3("Compiling units");
 		for (Definition definition : orderedDefinitions(dictionary
 				.unitDefinitions())) {
 			out.println(definition.compileToMVM(settings));
 		}
+		Pacioli.logln3("Compiling unit vectors");
 		for (Definition definition : dictionary.unitVectorDefinitions()) {
 			out.println(definition.compileToMVM(settings));
 		}
+		Pacioli.logln3("Compiling definitions");
 		for (Definition definition : dictionary.valueDefinitions()) {
 			if (definition.getModule() == main) {
 				out.println(definition.compileToMVM(settings));
@@ -468,6 +491,7 @@ public class Program {
 				out.println(definition.compileToMVM(settings));
 			}
 		}
+		Pacioli.logln3("Compiling toplevels");
 		for (Toplevel definition : toplevelExpressions) {
 			out.format("\nprint %s;", definition.compileToMVM(settings));
 		}
@@ -513,6 +537,19 @@ public class Program {
 		// TODO Auto-generated method stub
 
 	}
+        
+        public void write(PrintWriter out) {
+            out.println("");
+            out.println("hoi");
+            for (Definition definition : dictionary.valueDefinitions()) {
+                out.println("hoidef");
+			if (definition.getModule() == main) {
+				out.println(definition.toText());
+			} else {
+				out.println(definition.toText());
+			}
+		}
+	}
 
 	public void compileHtml(PrintWriter out, CompilationSettings settings)
 			throws PacioliException {
@@ -537,7 +574,7 @@ public class Program {
 				+ "    </div>\n"
 				+ "\n"
 				+ "    <script type=\"text/javascript\" src=\"numeric-1.2.6.js\"></script>\n"
-				+ "    <script type=\"text/javascript\" src=\"pacioli-0.2.1.min.js\"></script>\n"
+				+ "    <script type=\"text/javascript\" src=\"pacioli-0.2.2.min.js\"></script>\n"
 				+ "\n" + "    <script type=\"text/javascript\">\n" + "\n");
 		compileJS(out, settings);
 		out.println("function onLoad() {");

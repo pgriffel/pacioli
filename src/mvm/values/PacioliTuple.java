@@ -23,6 +23,7 @@ package mvm.values;
 
 import java.io.PrintWriter;
 import java.util.List;
+
 import mvm.AbstractPrintable;
 
 public class PacioliTuple extends AbstractPacioliValue {
@@ -43,5 +44,22 @@ public class PacioliTuple extends AbstractPacioliValue {
 
     public List<PacioliValue> items() {
         return items;
+    }
+    
+    @Override
+    public int hashCode() {
+        return items.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (!(other instanceof PacioliTuple)) {
+            return false;
+        }
+        PacioliTuple otherList = (PacioliTuple) other;
+        return items.equals(otherList.items);
     }
 }
