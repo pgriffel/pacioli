@@ -544,7 +544,7 @@ public class Machine {
 			public PacioliValue apply(List<PacioliValue> params)
 					throws MVMException {
 				Matrix x = (Matrix) params.get(0);
-				return x.svd();
+				return x.svdNonZero();
 			}
 		});
 
@@ -554,6 +554,25 @@ public class Machine {
 				checkNrArgs(params, 1);
 				checkMatrixArg(params, 0);
 				Callable fun = (Callable) store.lookup("global_Matrix_svd");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+		
+		store.put("global_Matrix_qr", new Primitive("qr") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				Matrix x = (Matrix) params.get(0);
+				return x.qrZeroSub();
+			}
+		});
+
+		store.put("debug_Matrix_qr", new Primitive("qr") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 1);
+				checkMatrixArg(params, 0);
+				Callable fun = (Callable) store.lookup("global_Matrix_qr");
 				PacioliValue result = fun.apply(params);
 				return result;
 			}
@@ -962,6 +981,48 @@ public class Machine {
 				return result;
 			}
 		});
+		
+		store.put("global_Matrix_greater", new Primitive("greater") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				Matrix x = (Matrix) params.get(0);
+				Matrix y = (Matrix) params.get(1);
+				return new Boole(y.less(x));
+			}
+		});
+
+		store.put("debug_Matrix_greater", new Primitive("greater") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 2);
+				checkMatrixArg(params, 0);
+				checkMatrixArg(params, 1);
+				Callable fun = (Callable) store.lookup("global_Matrix_greater");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+
+		store.put("global_Matrix_greater_eq", new Primitive("greater_eq") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				Matrix x = (Matrix) params.get(0);
+				Matrix y = (Matrix) params.get(1);
+				return new Boole(y.lessEq(x));
+			}
+		});
+
+		store.put("debug_Matrix_greater_eq", new Primitive("greater_eq") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 2);
+				checkMatrixArg(params, 0);
+				checkMatrixArg(params, 1);
+				Callable fun = (Callable) store.lookup("global_Matrix_greater_eq");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
 
 		store.put("global_Matrix_is_zero", new Primitive("is_zero") {
 			public PacioliValue apply(List<PacioliValue> params)
@@ -1300,6 +1361,27 @@ public class Machine {
 				return result;
 			}
 		});
+		
+		store.put("global_Matrix_rscale", new Primitive("rscale") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				Matrix x = (Matrix) params.get(0);
+				Matrix y = (Matrix) params.get(1);
+				return y.scale(x);
+			}
+		});
+
+		store.put("debug_Matrix_rscale", new Primitive("rscale") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 2);
+				checkMatrixArg(params, 0);
+				checkMatrixArg(params, 1);
+				Callable fun = (Callable) store.lookup("global_Matrix_rscale");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
 
 		store.put("global_Matrix_scale_down", new Primitive("scale_down") {
 			public PacioliValue apply(List<PacioliValue> params)
@@ -1316,8 +1398,28 @@ public class Machine {
 				checkNrArgs(params, 2);
 				checkMatrixArg(params, 0);
 				checkMatrixArg(params, 1);
-				Callable fun = (Callable) store
-						.lookup("global_Matrix_scale_down");
+				Callable fun = (Callable) store.lookup("global_Matrix_scale_down");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+		
+		store.put("global_Matrix_lscale_down", new Primitive("lscale_down") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				Matrix x = (Matrix) params.get(0);
+				Matrix y = (Matrix) params.get(1);
+				return x.reciprocal().scale(y);
+			}
+		});
+
+		store.put("debug_Matrix_lscale_down", new Primitive("lscale_down") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 2);
+				checkMatrixArg(params, 0);
+				checkMatrixArg(params, 1);
+				Callable fun = (Callable) store.lookup("global_Matrix_lscale_down");
 				PacioliValue result = fun.apply(params);
 				return result;
 			}

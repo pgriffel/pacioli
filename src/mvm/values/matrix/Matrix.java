@@ -25,16 +25,22 @@ import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import mvm.MVMException;
 import mvm.values.AbstractPacioliValue;
 import mvm.values.PacioliList;
 import mvm.values.PacioliTuple;
 import mvm.values.PacioliValue;
+
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.LUDecomposition;
+import org.apache.commons.math3.linear.QRDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
@@ -976,42 +982,89 @@ public class Matrix extends AbstractPacioliValue {
 
     public Matrix solve(Matrix other) throws MVMException {
         Matrix matrix = new Matrix(shape.reciprocal().transpose().join(other.shape));
-        try {
-            SingularValueDecomposition decomposition = new SingularValueDecomposition(numbers);
-            matrix.numbers = decomposition.getSolver().solve(other.numbers);
-        } catch (SingularMatrixException e) {
-            throw new MVMException("cannot solve \n\n%s * x = %s\n\n: %s",
-                    this.toText(),
-                    other.toText(),
-                    e.getLocalizedMessage());
-        }
+        SingularValueDecomposition decomposition = new SingularValueDecomposition(numbers);
+        matrix.numbers = decomposition.getSolver().solve(other.numbers);
         return matrix;
     }
 
-    public PacioliTuple svd() throws MVMException {
-        try {
-            Matrix matrixU = new Matrix(shape.leftIdentity());
-            Matrix matrixS = new Matrix(shape);
-            Matrix matrixV = new Matrix(shape.rightIdentity().transpose());
+    public PacioliList svdNonZero() throws MVMException {
 
-            SingularValueDecomposition decomposition = new SingularValueDecomposition(numbers);
+    	NonZeroSubMatrix sub = new NonZeroSubMatrix(numbers);
 
-            matrixU.numbers = decomposition.getU();
-            matrixS.numbers = decomposition.getS();
-            matrixV.numbers = decomposition.getV();
+    	int m = sub.numbers.getRowDimension();
+    	int n = sub.numbers.getColumnDimension();
+    	int p = Math.min(m, n);
 
-            List<PacioliValue> items = new ArrayList<PacioliValue>();
-            items.add(matrixU);
-            items.add(matrixS);
-            items.add(matrixV);
+    	SingularValueDecomposition decomposition = new SingularValueDecomposition(sub.numbers);
 
-            return new PacioliTuple(items);
+    	RealMatrix numbersU = decomposition.getU();
+    	RealMatrix numbersS = decomposition.getS();
+    	RealMatrix numbersV = decomposition.getV();
 
-        } catch (SingularMatrixException e) {
-            throw new MVMException("No singular value decomposition for \n\n%s\n\n %s",
-                    toText(),
-                    e.getLocalizedMessage());
-        }
+    	List<PacioliValue> svs = new ArrayList<PacioliValue>();
+    	for (int i = 0; i < p; i++) {
+
+    		List<PacioliValue> items = new ArrayList<PacioliValue>();
+
+    		Matrix matrixS = new Matrix(shape.getFactor());
+    		Matrix matrixU = new Matrix(shape.rowUnits());
+    		Matrix matrixV = new Matrix(shape.columnUnits());
+
+    		matrixS.numbers.setEntry(0, 0, numbersS.getEntry(i, i));
+    		for (int j = 0; j < m; j++) {
+    			matrixU.numbers.setEntry(sub.originalRow(j), 0, numbersU.getEntry(j, i));
+    		}
+    		for (int j = 0; j < n; j++) {
+    			matrixV.numbers.setEntry(sub.originalColumn(j), 0, numbersV.getEntry(j, i));
+    		}
+
+    		items.add(matrixS);
+    		items.add(matrixU);
+    		items.add(matrixV);
+
+    		svs.add(new PacioliTuple(items));
+    	}
+    	
+    	return new PacioliList(svs);
+    }
+    
+    public PacioliList svd() throws MVMException {
+
+    	int m = shape.rowDimension().size();
+    	int n = shape.columnDimension().size();
+    	int p = Math.min(m, n);
+
+    	SingularValueDecomposition decomposition = new SingularValueDecomposition(numbers);
+
+    	RealMatrix numbersU = decomposition.getU();
+    	RealMatrix numbersS = decomposition.getS();
+    	RealMatrix numbersV = decomposition.getV();
+
+    	List<PacioliValue> svs = new ArrayList<PacioliValue>();
+    	for (int i = 0; i < p; i++) {
+
+    		List<PacioliValue> items = new ArrayList<PacioliValue>();
+
+    		Matrix matrixS = new Matrix(shape.getFactor());
+    		Matrix matrixU = new Matrix(shape.rowUnits());
+    		Matrix matrixV = new Matrix(shape.columnUnits());
+
+    		matrixS.numbers.setEntry(0, 0, numbersS.getEntry(i, i));
+    		for (int j = 0; j < m; j++) {
+    			matrixU.numbers.setEntry(j, 0, numbersU.getEntry(j, i));
+    		}
+    		for (int j = 0; j < n; j++) {
+    			matrixV.numbers.setEntry(j, 0, numbersV.getEntry(j, i));
+    		}
+
+    		items.add(matrixS);
+    		items.add(matrixU);
+    		items.add(matrixV);
+
+    		svs.add(new PacioliTuple(items));
+    	}
+    	
+    	return new PacioliList(svs);
     }
 
     public PacioliTuple plu() throws MVMException {
@@ -1040,6 +1093,60 @@ public class Matrix extends AbstractPacioliValue {
 
         return new PacioliTuple(items);
     }
+    
+    
+    
+    public PacioliTuple qrZeroSub() throws MVMException {
+   
+    	// Collect the non-zero numbers
+        NonZeroSubMatrix sub = new NonZeroSubMatrix(numbers);
+        
+        // Do the QR decomposition on the non-zero numbers.
+        QRDecomposition decomposition = new QRDecomposition(sub.numbers);
+        RealMatrix numbersQ = decomposition.getQ();
+        RealMatrix numbersR = decomposition.getR();
+        
+        Pacioli.logln("mat=%s", sub.numbers.toString());
+        
+        // Create the full result matrices
+        Matrix matrixQ = new Matrix(shape.leftIdentity());
+        Matrix matrixR = new Matrix(shape);
+        
+        // Fill the result matrices from the decomposition result
+        for (int i = 0; i < sub.numbers.getRowDimension(); i++) {
+            for (int j = 0; j < sub.numbers.getRowDimension(); j++) {
+            	matrixQ.numbers.setEntry(sub.originalRow(i), sub.originalRow(j), numbersQ.getEntry(i, j));
+            }
+        }
+        for (int i = 0; i < sub.numbers.getRowDimension(); i++) {
+            for (int j = 0; j < sub.numbers.getColumnDimension(); j++) {
+            	matrixR.numbers.setEntry(sub.originalRow(i), sub.originalColumn(j), numbersR.getEntry(i, j));
+            }
+        }
+        
+        // Return a tuple with the result matrices
+        List<PacioliValue> items = new ArrayList<PacioliValue>();
+        items.add(matrixQ);
+        items.add(matrixR);
+        return new PacioliTuple(items);
+    }
+    
+    public PacioliTuple qr() throws MVMException {
+
+        Matrix matrixQ = new Matrix(shape.leftIdentity());
+        Matrix matrixR = new Matrix(shape);
+
+        QRDecomposition decomposition = new QRDecomposition(numbers);
+
+        matrixQ.numbers = decomposition.getQ();
+        matrixR.numbers = decomposition.getR();
+
+        List<PacioliValue> items = new ArrayList<PacioliValue>();
+        items.add(matrixQ);
+        items.add(matrixR);
+
+        return new PacioliTuple(items);
+    }
 
 	public void set(Integer i, Integer j, Double value) {
 		numbers.setEntry(i, j, value);		
@@ -1057,5 +1164,64 @@ public class Matrix extends AbstractPacioliValue {
 		}
 		return matrix;
 	}
+	private class NonZeroSubMatrix {
 
+		public RealMatrix numbers;
+		
+		private List<Integer> rowMap = new ArrayList<Integer>();
+        private List<Integer> columnMap = new ArrayList<Integer>();
+        
+		public NonZeroSubMatrix(RealMatrix matrix) {
+			
+			// Temporary data structure for the non-zero entries
+	        List<Integer> rowCoordinates = new ArrayList<Integer>();
+	        List<Integer> columnCoordinates = new ArrayList<Integer>();
+	        List<Double> values = new ArrayList<Double>();
+
+	        // The dimensions of the non-zero submatrix
+	        int m = 0;
+	        int n = 0;
+	        
+	        Map<Integer, Integer> revRowMap = new HashMap<Integer, Integer>();
+	        Map<Integer, Integer> revColumnMap = new HashMap<Integer, Integer>();
+	        
+	        for (int i = 0; i < nrRows(); i++) {
+	            for (int j = 0; j < nrColumns(); j++) {
+	            	Double value = matrix.getEntry(i, j);
+	            	if (value != 0) {
+	            		
+	            		if (!revRowMap.containsKey(i)) {
+	            			revRowMap.put(i, m++);
+	            			rowMap.add(i);
+	            		}
+	            		if (!revColumnMap.containsKey(j)) {
+	            			revColumnMap.put(j, n++);
+	            			columnMap.add(j);
+	            		}
+	          
+	            		// Remember the value for submatrix coordinates 
+		            	rowCoordinates.add(revRowMap.get(i));
+		            	columnCoordinates.add(revColumnMap.get(j));
+		            	values.add(value);
+	            	}
+	            }
+	        }
+	        
+	        // Create a submatrix for just the non-zero items
+	        numbers = matrix.createMatrix(m, n);
+	        //RealMatrix subMatrix = numbers.createMatrix(rowMap.size(), columnMap.size());
+	        for (int k = 0; k < values.size(); k++) {
+	        	numbers.setEntry(rowCoordinates.get(k), columnCoordinates.get(k), values.get(k));
+	        }
+		}
+    	
+		public int originalRow(int row) {
+			return rowMap.get(row);
+		}
+		
+		public int originalColumn(int column) {
+			return columnMap.get(column);
+		}
+		
+    }
 }

@@ -111,6 +111,10 @@ declare less :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) ->
 
 declare less_eq :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole();
 
+declare greater :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole();
+
+declare greater_eq :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole();
+
 declare is_zero :: for_index D,E: for_unit a,b,c: (a*D!b per E!c) -> Boole();
 
 # ----------------------------------------------------------------------------
@@ -165,7 +169,9 @@ declare ranking :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> P! per Q!;
 
 declare plu :: for_index P: for_unit a,u: (a*P!u per P!u) -> Tuple(P!u per P!u, P!u per P!u, a*P!u per P!u);
 
-declare svd :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Tuple(P!u per P!u, a*P!u per Q!v, Q!v^-1 per Q!v^-1);
+declare svd :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> List(Tuple(a, P!u, Q!v^-1));
+
+declare qr :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Tuple(P!u per P!u, a*P!u per Q!v);
 
 declare solve :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*P!u per R!w) -> a^-1*b*Q!v per R!w;
 
