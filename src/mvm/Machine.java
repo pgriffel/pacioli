@@ -34,6 +34,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 //import java.util.Map;
 
+
+
+
+
+
 import mvm.ast.Application;
 import mvm.ast.ApplicationDebug;
 import mvm.ast.Branch;
@@ -44,6 +49,7 @@ import mvm.ast.Lambda;
 import mvm.values.Boole;
 import mvm.values.Callable;
 import mvm.values.PacioliList;
+import mvm.values.PacioliString;
 import mvm.values.PacioliTuple;
 import mvm.values.PacioliValue;
 import mvm.values.Primitive;
@@ -56,6 +62,7 @@ import mvm.values.matrix.MatrixDimension;
 import mvm.values.matrix.MatrixShape;
 import mvm.values.matrix.UnitVector;
 
+import org.apache.poi.ss.formula.functions.Rows;
 import org.codehaus.jparsec.Parser;
 import org.codehaus.jparsec.Parsers;
 import org.codehaus.jparsec.Scanners;
@@ -71,6 +78,7 @@ import org.codehaus.jparsec.functors.Map5;
 import org.codehaus.jparsec.functors.Pair;
 import org.codehaus.jparsec.functors.Tuple3;
 
+import pacioli.ExcelReader;
 import uom.Fraction;
 import uom.NamedUnit;
 import uom.Prefix;
@@ -2417,7 +2425,7 @@ public class Machine {
 			public PacioliValue apply(List<PacioliValue> params)
 					throws MVMException {
 				PacioliList list = (PacioliList) params.get(0);
-                                PacioliValue item = params.get(1);
+                PacioliValue item = params.get(1);
 				return new Boole(list.items().contains(item));
 			}
 		});
@@ -2432,9 +2440,264 @@ public class Machine {
 				return result;
 			}
 		});
-                
-                
+		
+//        
+//		store.put("global_List_read_columns", new Primitive("read_columns") {
+//			public PacioliValue apply(List<PacioliValue> params)
+//					throws MVMException {
+//				PacioliList list = (PacioliList) params.get(0);
+//				
+//				List<PacioliValue> items = list.items();
+//				String fileName = list.nth(0).toText();
+//				String sheetName = list.nth(1).toText();
+//				List<String> columns = new ArrayList<String>();
+//				List<String> kinds = new ArrayList<String>();
+//				
+//				for (int i = 2; i < items.size() - 1; i += 2) {
+//					columns.add(items.get(i).toText());
+//					kinds.add(items.get(i+1).toText());
+//				}
+//				
+//				logln("file=%s", fileName);
+//				logln("sheet=%s", sheetName);
+//				logln("columns=%s", columns);
+//				logln("kinds=%s", kinds);
+//				
+//				
+//				List<PacioliValue> tuples = new ArrayList<PacioliValue>();
+//				
+//				try {
+//					ExcelReader reader = new ExcelReader(fileName);
+//					List<List<String>> rows = reader.readColumns(sheetName, columns, 2);
+//					logln("size=%s", rows.size());
+//						
+//					for (List<String> row: rows) {
+//						List<PacioliValue> elements = new ArrayList<PacioliValue>();
+//						
+//						for (int i = 0; i < columns.size(); i++) {
+//							String kind = kinds.get(i);
+//							String entry = row.get(i);
+//							if ("string".equals(kind)) {
+//								elements.add(new PacioliString(entry));
+//							} else if ("number".equals(kind)) {
+//								elements.add(new Matrix(entry.isEmpty() ? 0.0 : Double.parseDouble(entry)));
+//							} else {
+//								throw new MVMException("Column type '%s' unknown, must be 'number', or 'string'", kinds.get(i));
+//							}
+//						}
+//						tuples.add(new PacioliTuple(elements));
+//					//logln("data[0]=%s", elements);
+//					}
+//					
+//				} catch (Exception e) {
+//					throw new MVMException(e);
+//				}
+//				
+//                return new PacioliList(tuples);
+//			}
+//		});
+//
+//		store.put("debug_List_read_columns", new Primitive("read_columns") {
+//			public PacioliValue apply(List<PacioliValue> params)
+//					throws MVMException {
+//				checkNrArgs(params, 1);
+//				checkListArg(params, 0);
+//				Callable fun = (Callable) store.lookup("global_List_read_columns");
+//				PacioliValue result = fun.apply(params);
+//				return result;
+//			}
+//		});
+		
+		store.put("global_List_read_columns", new Primitive("read_columns") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				
+				// Redundant with debug check, but copied here because it is not
+				// statically checked.
+				checkTupleArg(params, 2);
+				checkTupleArg(params, 3);
+				
+				// Get the arguments.
+				String fileName = params.get(0).toText();
+				String sheetName = params.get(1).toText();
+				List<PacioliValue> defaults = ((PacioliTuple) params.get(2)).items();
+				List<PacioliValue> items = ((PacioliTuple) params.get(3)).items();
 
+				// Determine the number of columns and check it
+				int nrColumns = defaults.size();
+				if (items.size() != nrColumns) {
+					throw new MVMException("Found %s elements but, %s columns while reading columns from sheet %s in excel book %s", nrColumns, items.size(), sheetName, fileName);
+				}
+
+				// Get the columns
+				List<String> columns = new ArrayList<String>();			
+				for (PacioliValue item: items) {
+					columns.add(item.toText());
+				}
+				
+//				logln("file=%s", fileName);
+//				logln("sheet=%s", sheetName);
+//				logln("columns=%s", columns);
+//				logln("defaults=%s", defaults);
+				
+				
+				List<PacioliValue> tuples = new ArrayList<PacioliValue>();
+				
+				try {
+					ExcelReader reader = new ExcelReader(fileName);
+					List<List<String>> rows = reader.readColumns(sheetName, columns, 2);
+					//logln("size=%s", rows.size());
+						
+					for (List<String> row: rows) {
+						List<PacioliValue> elements = new ArrayList<PacioliValue>();
+						
+						for (int i = 0; i < columns.size(); i++) {
+							PacioliValue kind = defaults.get(i);
+							String entry = row.get(i);
+							if (kind instanceof PacioliString) {
+								String prefix = ((PacioliString) kind).toText();
+								elements.add(new PacioliString(prefix + entry));
+							} else if (kind instanceof Matrix) {
+								Matrix mat = new Matrix(entry.isEmpty() ? 0.0 : Double.parseDouble(entry));
+								elements.add(mat.multiply((Matrix) kind));
+							} else {
+								throw new MVMException("Column type '%s' unknown, must be 'number', or 'string'", kind.getClass());
+							}
+						}
+						tuples.add(new PacioliTuple(elements));
+					//logln("data[0]=%s", elements);
+					}
+					
+				} catch (Exception e) {
+					throw new MVMException(e);
+				}
+				
+                return new PacioliList(tuples);
+			}
+		});
+
+		store.put("debug_List_read_columns", new Primitive("read_columns") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 4);
+				checkStringArg(params, 0);
+				checkStringArg(params, 1);
+				checkTupleArg(params, 2);
+				checkTupleArg(params, 3);
+				Callable fun = (Callable) store.lookup("global_List_read_columns");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+                
+//                
+//		store.put("global_List_read_columns_default", new Primitive("read_columns_default") {
+//			public PacioliValue apply(List<PacioliValue> params)
+//					throws MVMException {
+//				
+//				// Redundant with debug check, but copied here because it is not
+//				// statically checked.
+//				checkTupleArg(params, 0);
+//				checkListArg(params, 1);
+//				
+//				// Get the defaults values from the first arg and the filename, sheetname 
+//				// and the columns from the second arg.
+//				List<PacioliValue> defaults = ((PacioliTuple) params.get(0)).items();
+//				List<PacioliValue> items = ((PacioliList) params.get(1)).items();
+//
+//				// Get the excel file and sheet name
+//				String fileName = items.get(0).toText();
+//				String sheetName = items.get(1).toText();
+//
+//				// Determine the number of columns and check it
+//				int n = defaults.size();
+//				if (items.size() != n + 2) {
+//					throw new MVMException("Found %s elements but, %s columns while reading columns from sheet %s in excel book %s", n, items.size() - 2, sheetName, fileName);
+//				}
+//
+//				// Get the columns
+//				List<String> columns = new ArrayList<String>();
+//				//List<String> kinds = new ArrayList<String>();
+//				
+//				for (int i = 2; i < items.size(); i++) {
+//					columns.add(items.get(i).toText());
+//					//kinds.add(items.get(i+1).toText());
+//				}
+//				
+//				logln("file=%s", fileName);
+//				logln("sheet=%s", sheetName);
+//				logln("columns=%s", columns);
+//				//logln("kinds=%s", kinds);
+//				logln("defaults=%s", defaults);
+//				
+//				
+//				List<PacioliValue> tuples = new ArrayList<PacioliValue>();
+//				
+//				try {
+//					ExcelReader reader = new ExcelReader(fileName);
+//					List<List<String>> rows = reader.readColumns(sheetName, columns, 2);
+//					logln("size=%s", rows.size());
+//						
+//					for (List<String> row: rows) {
+//						List<PacioliValue> elements = new ArrayList<PacioliValue>();
+//						
+//						for (int i = 0; i < columns.size(); i++) {
+//							PacioliValue kind = defaults.get(i);
+//							String entry = row.get(i);
+//							if (kind instanceof PacioliString) {
+//								String prefix = ((PacioliString) kind).toText();
+//								elements.add(new PacioliString(prefix + entry));
+//							} else if (kind instanceof Matrix) {
+//								Matrix mat = new Matrix(entry.isEmpty() ? 0.0 : Double.parseDouble(entry));
+//								elements.add(mat.multiply((Matrix) kind));
+//							} else {
+//								throw new MVMException("Column type '%s' unknown, must be 'number', or 'string'", kind.getClass());
+//							}
+//						}
+//						tuples.add(new PacioliTuple(elements));
+//					//logln("data[0]=%s", elements);
+//					}
+//					
+//				} catch (Exception e) {
+//					throw new MVMException(e);
+//				}
+//				
+//                return new PacioliList(tuples);
+//			}
+//		});
+//
+//		store.put("debug_List_read_columns_default", new Primitive("read_columns_default") {
+//			public PacioliValue apply(List<PacioliValue> params)
+//					throws MVMException {
+//				checkNrArgs(params, 2);
+//				checkTupleArg(params, 0);
+//				checkListArg(params, 1);
+//				Callable fun = (Callable) store.lookup("global_List_read_columns_default");
+//				PacioliValue result = fun.apply(params);
+//				return result;
+//			}
+//		});
+                
+		store.put("global_String_string_compare", new Primitive("string_compare") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				PacioliString string1 = (PacioliString) params.get(0);
+				PacioliString string2 = (PacioliString) params.get(1);
+				return new Matrix(string1.toText().compareTo(string2.toText()));
+			}
+		});
+
+		store.put("debug_String_string_compare", new Primitive("string_compare") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 2);
+				checkStringArg(params, 0);
+				checkStringArg(params, 1);
+				Callable fun = (Callable) store.lookup("global_String_string_compare");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
 	}
 
 	public void run(String code, PrintStream out) throws MVMException {
@@ -2501,7 +2764,7 @@ public class Machine {
 
 	private static final String[] KEYWORDS = { "baseunit", "unit", "indexset",
 			"unitvector", "load", "store", "print", "application", "lambda",
-			"var", "const", "if", "bang", "key", "application_debug", "path",
+			"var", "const", "string", "if", "bang", "key", "application_debug", "path",
 			"list", "matrix", "index", "scaled_unit", "bang_shape",
 			"unit_expt", "unit_mult", "unit_div", "scalar_shape", "shape_unop",
 			"shape_binop", "shape_expt", "matrix_constructor", "literal_matrix" };
@@ -2781,7 +3044,7 @@ public class Machine {
 		Parser<Expression> lazyExpr = reference.lazy();
 		Parser<Expression> parser = Parsers.or(applicationParser(lazyExpr),
 				applicationDebugParser(lazyExpr), ifParser(lazyExpr),
-				lambdaParser(lazyExpr), constParser(), literalMatrix(),
+				lambdaParser(lazyExpr), constParser(), stringParser(), literalMatrix(),
 				matrixConstructorParser(), keyParser(), VARIABLE);
 		reference.set(parser);
 		return parser;
@@ -2866,6 +3129,14 @@ public class Machine {
 							return new Const(new Matrix(Double
 									.parseDouble(value)));
 						}
+					}
+				});
+	}
+	private static Parser<Expression> stringParser() {
+		return token("string").next(token("(")).next(STRING)
+				.followedBy(token(")")).map(new Map<String, Expression>() {
+					public Expression map(String value) {
+						return new Const(new PacioliString(value));
 					}
 				});
 	}

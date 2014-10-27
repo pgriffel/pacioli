@@ -148,7 +148,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 	}
 
 	public static final List<String> builtinTypes =
-            new ArrayList<String>(Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref"));
+            new ArrayList<String>(Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String"));
 	
 	public TypeIdentifierNode resolveAsType(Dictionary dictionary, TypeContext context) throws PacioliException {
 		Definition definition = null;

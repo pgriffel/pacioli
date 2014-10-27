@@ -64,6 +64,12 @@ public abstract class Primitive extends AbstractPacioliValue implements Callable
             throw new MVMException("Argument %s to function '%s' must be a tuple", i + 1, name);
         }
     }
+
+    public void checkStringArg(List<PacioliValue> args, int i) throws MVMException {
+        if (!(args.get(i) instanceof PacioliString)) {
+            throw new MVMException("Argument %s to function '%s' must be a string", i + 1, name);
+        }
+    }
     
     public void checkCallableArg(List<PacioliValue> args, int i) throws MVMException {
         if (!(args.get(i) instanceof Callable)) {

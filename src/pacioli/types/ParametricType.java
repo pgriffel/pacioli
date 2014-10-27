@@ -133,6 +133,8 @@ public class ParametricType extends AbstractType {
 		
 		if (name.equals("Boole")) {
 			builder.append("new Pacioli.Type('boole')");
+		} else if (name.equals("String")) {
+			builder.append("new Pacioli.Type('string')");
 		} else if (name.equals("Void")) {
 			builder.append("null");
 		} else if (name.equals("Index")) {

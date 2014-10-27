@@ -52,9 +52,9 @@ public class PacioliFile extends AbstractPrintable {
     private boolean isDefault = false;
     
     public static final List<String> defaultIncludes =
-            new ArrayList<String>(Arrays.asList("primitives", "list", "matrix", "standard"));
+            new ArrayList<String>(Arrays.asList("primitives", "list", "matrix", "string", "standard"));
     public static final List<String> debugablePrimitives  =
-            new ArrayList<String>(Arrays.asList("primitives", "list", "matrix"));
+            new ArrayList<String>(Arrays.asList("primitives", "list", "matrix", "string"));
 
     public PacioliFile(String name) {
         this.name = name;

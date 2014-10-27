@@ -528,6 +528,8 @@ public class Program {
 		for (Declaration definition : dictionary.declarations()) {
 			if (definition.getModule() != main) {
 				out.println(definition.compileToJS());
+			} else {
+				out.println(definition.compileToJS());
 			}
 		}
 	}

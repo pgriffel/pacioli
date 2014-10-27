@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Printable;
@@ -156,7 +157,8 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
 
     @Override
     public Schema generalize() {
-    	throw new RuntimeException("Cannot generalize a schema");
+    	PacioliType unfresh = unfresh();
+        return new Schema(unfresh.typeVars(), unfresh);
     }
 
     @Override
