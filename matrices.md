@@ -346,7 +346,7 @@ vector has type `Resource!plan_unit/sol`. The capacity needs to be
 scaled by a number of sols to get to total plan units. The following
 definition computes the remaining capacity:
 
-    define remaining_capacity = |sol| . capacity - conv_usage;
+    define remaining_capacity = capacity - conv_usage *c |sol|;
 
 The value is
 

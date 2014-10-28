@@ -383,10 +383,13 @@ Operators grouped by precedence
 
     per             dim_div
 
-    .               scale
-    /.              scale_down
+    c*              scale
+    *c              rscale
+    /c              scale_down
+    c/              lscale_down
     *               multiply
     /               divide
+    \               left_divide
     .*              dot
     ./              right_division
     .\              left_division
@@ -428,22 +431,27 @@ lambda (x, y, ... ) [expression](#expressions) end
           
 ### If <a id="if"/></a>
 
-An if is of the form 
-
-<code>
-if [expression](#expressions) then [expression](#expressions) else [expression](#expressions) end
-</code>
+An if is of the form
+<pre><code>if [expression](#expression) then
+  [expression](#expression)
+else if [expression](#expression) then
+  [expression](#expression)
+...
+else
+  [expression](#expression)
+end
+</code></pre>
 
 
 ### Let <a id="let"/></a>
 
 A let is of the form 
 <pre><code>let 
-    foo = [expression](#expressions),
-    bar = [expression](#expressions),
+    foo = [expression](#expression),
+    bar = [expression](#expression),
     ...
 in
-    [expression](#expressions) 
+    [expression](#expression)
 end
 </code></pre>
 
@@ -485,14 +493,13 @@ Statements <a id="statements"/></a>
 -------------------------------
 
 A statement is of the form 
-
-<code>
+<pre><code>
 begin
-  [statement](#statements);
-  [statement](#statements);
+  [statement](#statements)
+  [statement](#statements)
   ...
 end
-</code>
+</code></pre>
 
 A [return](#return) leaves the block prematurely.
 
@@ -502,7 +509,7 @@ A [return](#return) leaves the block prematurely.
 An assignment is of the form 
 
 <code>
-var := [expression](#expressions)
+var := [expression](#expressions);
 </code>
 
 The value stored by variable `var` is changed to the value of the
@@ -515,7 +522,7 @@ parenthesis to destructure a tuple.
 A return statement is of the form
 
 <code>
-return [expression](#expressions)
+return [expression](#expressions);
 </code>
 
 Execution of the surrounding `begin` `end` block is halted and the
@@ -527,7 +534,7 @@ optional.
   
 A while statement is of the form
 <pre><code>while [expression](#expressions) do
-  [statement](#statements)
+  [statements](#statements)
 end
 </code></pre>
 
@@ -538,12 +545,12 @@ The body of the while loop is executed as long the expression is true.
   
 An if statement is of the form
 <pre><code>if [expression](#expressions) then
-  [statement](#statements)
+  [statements](#statements)
 else if [expression](#expressions) then
-  [statement](#statements)
+  [statements](#statements)
 ...
 else
-  [statement](#statements)
+  [statements](#statements)
 end
 </code></pre>
 
