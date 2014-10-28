@@ -141,6 +141,11 @@ public class ApplicationNode extends AbstractExpressionNode {
         return new ApplicationNode(function.desugar(), mapped, getLocation());
     }
 
+    private String escapeString(String in) {
+    	// Quick fix for the debug option for string literals
+    	return in.replaceAll("\"", "\\\\\"");
+    }
+    
     @Override
     public String compileToMVM(CompilationSettings settings) {
         String args = "";
@@ -154,7 +159,8 @@ public class ApplicationNode extends AbstractExpressionNode {
             String code = function.compileToMVM(settings);
             //boolean traceOn = settings.trace(id.fullName());
             boolean traceOn = settings.trace(id.getName());
-            return String.format("application_debug(\"%s\", \"%s\", \"%s\", %s%s)", stackText, fullText, traceOn, code, args);
+            return String.format("application_debug(\"%s\", \"%s\", \"%s\", %s%s)", 
+            		 escapeString(stackText), escapeString(fullText), traceOn, code, args);
         } else {
             return String.format("application(%s%s)", function.compileToMVM(settings), args);
         }

@@ -251,7 +251,7 @@ public class Machine {
 					throws MVMException {
 				PacioliValue value = params.get(0);
 				if (value != null) { // void value of statements
-					logln(value.toText());
+					logln("%s", value.toText());
 				}
 				return value;
 			}
@@ -273,7 +273,7 @@ public class Machine {
 					throws MVMException {
 				PacioliValue value = params.get(0);
 				if (value != null) { // void value of statements
-					logln(value.toText());
+					logln("%s", value.toText());
 				}
 				return null;
 			}
@@ -1417,7 +1417,7 @@ public class Machine {
 					throws MVMException {
 				Matrix x = (Matrix) params.get(0);
 				Matrix y = (Matrix) params.get(1);
-				return x.reciprocal().scale(y);
+				return x.scale(y.reciprocal());
 			}
 		});
 

@@ -89,7 +89,11 @@ declare dot :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*Q!v per R!
 
 declare scale :: for_index P,Q: for_unit a,b,u,v: (a, b*P!u per Q!v) -> a*b*P!u per Q!v;
 
+declare rscale :: for_index P,Q: for_unit a,b,u,v: (a*P!u per Q!v, b) -> a*b*P!u per Q!v;
+
 declare scale_down :: for_index P,Q: for_unit a,b,u,v: (a*P!u per Q!v, b) -> a*P!u per b*Q!v;
+
+declare lscale_down :: for_index P,Q: for_unit a,b,u,v: (a, b*P!u per Q!v) -> a*P!u per b*Q!v;
 
 declare negative :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> a*P!u per Q!v;
 
