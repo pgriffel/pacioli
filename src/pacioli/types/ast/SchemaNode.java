@@ -66,7 +66,7 @@ public class SchemaNode extends AbstractTypeNode {
 	public TypeNode resolved(Dictionary dictionary, TypeContext context)
 			throws PacioliException {
 		TypeContext combinedContext = new TypeContext();
-		combinedContext.addAll(context);
+		//combinedContext.addAll(context);
 		combinedContext.addAll(this.context);
 		return new SchemaNode(getLocation(), this.context, type.resolved(dictionary, combinedContext));
 	}

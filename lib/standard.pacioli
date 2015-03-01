@@ -33,10 +33,17 @@ define pi = 3.141592653589793;
 # Algebra
 # ------------------------------------------------------------------------------
 
-declare inner :: for_index P: for_unit a,b,u: (a*P!u, b*P!u^-1) -> a*b;
-declare outer :: for_index P,Q: for_unit a,b,u,v: (a*P!u, b*Q!v) -> a*b*P!u per Q!v^-1;
-declare sqr :: for_index D,E: for_unit a,b,c: (a*D!b per E!c) -> a^2*D!b^2 per E!c^2;
-declare cube :: for_index D,E: for_unit a,b,c: (a*D!b per E!c) -> a^3*D!b^3 per E!c^3;
+declare inner ::
+  for_index P: for_unit a, b, P!u: (a*P!u, b*P!u^-1) -> a*b;
+  
+declare outer ::
+  for_index P, Q: for_unit a, b, P!u, Q!v: (a*P!u, b*Q!v) -> a*b*P!u per Q!v^-1;
+  
+declare sqr ::
+  for_index D, E: for_unit a, D!b, E!c: (a * D!b per E!c) -> a^2 * D!b^2 per E!c^2;
+
+declare cube ::
+  for_index D, E: for_unit a, D!b, E!c: (a * D!b per E!c) -> a^3 * D!b^3 per E!c^3;
 
 define sqr(x) = x * x;
 
@@ -50,13 +57,26 @@ define outer(x,y) = x .* y^T;
 # Matrix Shape
 # ------------------------------------------------------------------------------
 
-declare rows :: for_index P,Q: for_unit a,v: (a*P! per Q!v) -> List(a per Q!v);
-declare columns :: for_index P,Q: for_unit a,u: (a*P!u per Q!) -> List(a*P!u);
-declare unit :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> a*P!u per Q!v;
-declare delta :: for_index P: (P) -> P!;
-declare map_matrix :: for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
-declare is_zero_row :: for_index D,E: for_unit a,b,c: (a*D!b per E!c, D) -> Boole();
-declare is_zero_column :: for_index D,E: for_unit a,b,c: (a*D!b per E!c, E) -> Boole();
+declare rows ::
+  for_index P,Q: for_unit a,Q!v: (a*P! per Q!v) -> List(a per Q!v);
+
+declare columns ::
+  for_index P,Q: for_unit a,P!u: (a*P!u per Q!) -> List(a*P!u);
+
+declare unit ::
+  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare delta ::
+  for_index P: (P) -> P!;
+
+declare map_matrix ::
+  for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
+
+declare is_zero_row ::
+  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c, D) -> Boole();
+
+declare is_zero_column ::
+  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c, E) -> Boole();
 
 define rows(matrix) = 
   [row(matrix,i) | i <- row_domain(matrix)];
@@ -95,8 +115,8 @@ define negatives(x) = x * negative_support(x);
 # Diagonal Matrices
 # ------------------------------------------------------------------------------
 
-declare diagonal :: for_index P: for_unit a,u: (a*P!u) -> a*P!u per P!u;
-declare diagonal2 :: for_index P: for_unit a,u: (a*P!u) -> a*P!u per P!;
+declare diagonal :: for_index P: for_unit a,P!u: (a*P!u) -> a*P!u per P!u;
+declare diagonal2 :: for_index P: for_unit a,P!u: (a*P!u) -> a*P!u per P!;
 
 define diagonal(x) =
   let u = unit(x), units = unit_factor(u) c* u per u in
@@ -112,11 +132,14 @@ define diagonal2(x) =
 # Closures
 # ------------------------------------------------------------------------------
 
-declare right_inverse :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per a*P!u;
-declare left_inverse :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per a*P!u;
-declare inverse :: for_index P,Q: for_unit a,u,v: (a*P!u per Q!v) -> Q!v per a*P!u;
-declare kleene :: for_index P: for_unit u: (P!u per P!u) -> P!u per P!u;
-declare closure :: for_index P: for_unit u: (P!u per P!u) -> P!u per P!u;
+declare inverse, right_inverse ::
+  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
+
+declare left_inverse ::
+  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
+
+declare kleene, closure ::
+  for_index P: for_unit P!u: (P!u per P!u) -> P!u per P!u;
 
 define right_inverse(x) = solve(x, left_identity(x));
 
@@ -128,8 +151,8 @@ define kleene(x) = inverse(left_identity(x) - x);
 
 define closure(x) = kleene(x) - left_identity(x);
 
-declare left_division :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*P!u per R!w) -> b*Q!v per a*R!w;
-declare right_division :: for_index P,Q,R: for_unit a,b,u,v,w: (a*P!u per Q!v, b*R!w per Q!v) -> a*P!u per b*R!w;
+declare left_division :: for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*P!u per R!w) -> b*Q!v per a*R!w;
+declare right_division :: for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*R!w per Q!v) -> a*P!u per b*R!w;
 
 define left_division(x,y) = inverse(x) .* y;
 

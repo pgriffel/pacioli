@@ -10,6 +10,7 @@ public class TypeIdentifier {
 		assert(name != null);
 		this.home = home;
 		this.name = name;
+		//assert (!name.contains("!"));
 	}
 
 	@Override

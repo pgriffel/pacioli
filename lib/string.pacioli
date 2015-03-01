@@ -20,3 +20,5 @@
 module String;
 
 declare string_compare :: (String(), String()) -> 1;
+declare concatenate :: (String(), String()) -> String();
+declare num2string :: for_unit a: (a, 1) -> String();

@@ -72,7 +72,8 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         	}
             mgu = simplified.compose(mgu);
         }
-        PacioliType result = mgu.apply(this);
+        //PacioliType result = mgu.apply(this);
+        PacioliType result = applySubstitution(mgu);
         return result;
     }
 
@@ -179,7 +180,8 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         for (TypeVar var : typeVars()) {
             map = map.compose(new Substitution(var, var.fresh()));
         }
-        return map.apply(this);
+        //return map.apply(this);
+        return applySubstitution(map);
     }
 
     @Override
@@ -189,7 +191,8 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         for (TypeVar var : typeVars()) {
             map = map.compose(new Substitution(var, var.rename(String.format("%s", (char) counter++))));
         }
-        return map.apply(this);
+        //return map.apply(this);
+        return applySubstitution(map);
 
     }
 
@@ -199,7 +202,8 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         for (TypeVar var : typeVars()) {
             map = map.compose(new Substitution(var, var.changeActivation(false)));
         }
-        return map.apply(this);
+        //return map.apply(this);
+        return applySubstitution(map);
     }
 
     @Override
@@ -208,6 +212,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         for (TypeVar var : typeVars()) {
             map = map.compose(new Substitution(var, var.changeActivation(true)));
         }
-        return map.apply(this);
+        //return map.apply(this);
+        return applySubstitution(map);
     }
 }

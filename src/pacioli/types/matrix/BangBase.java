@@ -37,6 +37,7 @@ public class BangBase extends BaseUnit implements TypeBase {
     public final int position;
 
     public BangBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position) {
+    	assert (!unitName.name.contains("!"));
         this.indexSetName = indexSetName;
         this.unitName = unitName;
         this.position = position;
@@ -49,6 +50,13 @@ public class BangBase extends BaseUnit implements TypeBase {
         this.position = position;
     }
     
+    public String indexSetName() {
+        return indexSetName.name;
+    }
+    
+    public String unitName() {
+        return unitName.name;
+    }
     
     @Override
     public int hashCode() {
@@ -86,6 +94,9 @@ public class BangBase extends BaseUnit implements TypeBase {
     @Override
     public String toText() {
         return indexSetName.name + "!" + unitName.name;
+        //return unitName.name;
+        //return toString();
+    	//return String.format("('%s', '%s', '%s')", indexSetName(), unitName(), position);
     }
     
     public BangBase shift(int offset) {
@@ -127,6 +138,7 @@ public class BangBase extends BaseUnit implements TypeBase {
 	@Override
 	public String compileToJS() {
 		// todo: reconsider the .rowUnit trick
+		// DIT NEEMT AAN DAT position 0 is!?!?!?!?!?!?!?!
 		return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit", 
 				indexSetName.home, indexSetName.name, unitName.home, unitName.name);
 	}

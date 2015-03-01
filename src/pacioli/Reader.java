@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import mvm.values.matrix.MatrixBase;
+
 import org.codehaus.jparsec.OperatorTable;
 import org.codehaus.jparsec.Parser;
 import org.codehaus.jparsec.Parsers;
@@ -790,6 +792,23 @@ public class Reader {
     }
 
     private static Parser<TypeContext> forUnitParser() {
+        return token("for_unit").next(Parsers.or(matrixTermBang(), TYPEIDENTIFIER).sepBy(token(","))).map(
+                new Map<List<TypeNode>, TypeContext>() {
+            public TypeContext map(List<TypeNode> nodes) {
+                TypeContext context = new TypeContext();
+                for (TypeNode node : nodes) {
+                	if (node instanceof TypeIdentifierNode) {
+                		context.addUnitVar(((TypeIdentifierNode) node).getName());
+                	} else {
+                		context.addUnitVar(((BangTypeNode) node).toText());
+                	}
+                }
+                return context;
+            }
+        });
+    }
+    
+    private static Parser<TypeContext> forUnitParserOLD() {
         return token("for_unit").next(TYPEIDENTIFIER.sepBy(token(","))).map(
                 new Map<List<TypeIdentifierNode>, TypeContext>() {
             public TypeContext map(List<TypeIdentifierNode> ids) {

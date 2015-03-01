@@ -39,6 +39,7 @@ import pacioli.ast.definition.Definition;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
+import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.StringBase;
 
@@ -57,6 +58,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         this.kind = null;
         this.definition = null;
         this.home = null;
+        assert (!name.contains("!"));
     }
     
     private TypeIdentifierNode(Location location, String name, Kind kind, Definition definition, PacioliFile home) {
@@ -65,6 +67,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         this.kind = kind;
         this.definition = definition;
         this.home = home;
+        assert (!name.contains("!"));
     }
 
     @Override
@@ -106,7 +109,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
     		switch (kind) {
     		case TYPE: return new TypeVar("for_type", name);
     		case UNIT: return new MatrixType(new TypeVar("for_unit", name));
-    		case INDEX: return new TypeVar("for_index", name);
+    		case INDEX: return new IndexType(new TypeVar("for_index", name));
     		default: throw new RuntimeException("Unknown kind");
     		}
     	} else {
@@ -175,14 +178,15 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 	
 	public TypeIdentifierNode resolveAsUnitVector(String indexSet, Dictionary dictionary, TypeContext context) throws PacioliException {
 		Definition definition = null;
-		if (!context.containsUnitVar(name)) {
-			String fullName = indexSet + "!" + name;
+		String fullName = indexSet + "!" + name;
+		if (!context.containsUnitVar(fullName)) {
 			if (dictionary.containsUnitVectorDefinition(fullName)) {
 				definition = dictionary.getUnitVectorDefinition(fullName);
 			} else {
-				throw new PacioliException(getLocation(), "Unit vector '" + fullName + "' unknown");
+				throw new PacioliException(getLocation(), "Unit vector '" + fullName + "' unknown" + context.toText());
 			}
 		}
+		//return new TypeIdentifierNode(getLocation(), fullName, Kind.UNIT, definition, dictionary.home());
 		return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, definition, dictionary.home());
 	}
 	

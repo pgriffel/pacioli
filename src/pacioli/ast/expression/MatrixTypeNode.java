@@ -43,7 +43,7 @@ import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.BangBase;
-import pacioli.types.matrix.DimensionType;
+import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.StringBase;
 import uom.Base;
@@ -117,8 +117,8 @@ public class MatrixTypeNode extends AbstractExpressionNode {
 
     private static String matrixTypeMVMCode(MatrixType type) {
 
-        assert (type.rowDimension instanceof DimensionType);
-        assert (type.columnDimension instanceof DimensionType);
+        assert (!type.rowDimension.isVar());
+        assert (!type.columnDimension.isVar());
 
         String factorText = unitMVMForm(type.factor);
 

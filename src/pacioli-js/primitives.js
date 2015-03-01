@@ -104,7 +104,11 @@ function global_Primitives_catch_result(code, ref) {
     try {
         code();
     } catch(err) {
-        return ref[0];
+        if (err == "jump") {
+            return ref[0];
+        } else {
+            throw err
+        }
     }
 }
 
@@ -131,7 +135,7 @@ function global_Primitives_equal(x,y) {
      alert('duh')
         return x.equals(y)
     } else if (x.kind === "matrix") { //(x instanceof Pacioli.Matrix && y instanceof Pacioli.Matrix) {
-        return Pacioli.findNonZero(x, y, function (a, b) {return a !== b}) === null
+        return !Pacioli.findNonZero(x, y, function (a, b) {return a !== b}, false) // === null
         //return x.equals(y)
     } else if (x instanceof Array && y instanceof Array) { 
         var n = x.length
@@ -153,6 +157,14 @@ function global_Primitives_print(x) {
     return Pacioli.printValue(x)
 }
 
+function global_Matrix_is_zero(x) {
+    var values = Pacioli.getCOONumbers(x)[2]
+    for (var i = 0; i < values.length; i++) {
+        if (values[i] != 0) return false;
+    }
+    return true;
+}
+
 function compute_global_Matrix__() {
     return Pacioli.createCoordinates([], []);
 }
@@ -167,14 +179,14 @@ function global_Matrix_magnitude(x) {
 
 function global_Matrix_row(x, coord) {
     var row = coord.position
-    var matrix = Pacioli.zeroNumbers(x.nrColumns, 1)
+    var matrix = Pacioli.zeroNumbers(1, x.nrColumns)
     var numbers = Pacioli.getCOONumbers(x)
     var rows = numbers[0]
     var columns = numbers[1]
     var values = numbers[2]
     for (var i = 0; i < rows.length; i++) {
             if (rows[i] === row) {
-                Pacioli.set(matrix, row, columns[i], values[i])
+                Pacioli.set(matrix, 0, columns[i], values[i])
             }
     }
     return matrix
@@ -195,7 +207,7 @@ function global_Matrix_row_domain(matrix) {
 
 function global_Matrix_column(x, coord) {
     // todo: reconsider this and the global_Matrix_row implementation 
-    return global_Matrix_row(global_Matrix_transpose(x), coord)
+    return global_Matrix_transpose(global_Matrix_row(global_Matrix_transpose(x), coord))
 }
 
 function global_Matrix_column_domain(matrix) {
@@ -204,7 +216,7 @@ function global_Matrix_column_domain(matrix) {
     for (var i = 0; i < n; i++) {
         domain[i] = {kind: "coordinates", position: i, size: n}
     }
-    return domain;
+    return Pacioli.tagKind(domain, "list");
 }
 
 function global_Matrix_column_units(x) {
@@ -409,6 +421,8 @@ function global_Matrix_gcd(x,y) {
     if (a < 0) a = -a;
     if (b < 0) b = -b;
     if (b > a) {var temp = a; a = b; b = temp;}
+    if (a == 0) return b;
+    if (b == 0) return a;
     while (true) {
         a %= b;
         if (a == 0) return b;
@@ -540,7 +554,19 @@ function global_Matrix_ln(x) {
 }
 
 function global_Matrix_less(x,y) { 
-    return Pacioli.findNonZero(x, y, function (a, b) {return a >= b}) === null
+    return !Pacioli.findNonZero(x, y, function (a, b) {return a >= b}, true) //=== null
+}
+
+function global_Matrix_less_eq(x,y) { 
+    return !Pacioli.findNonZero(x, y, function (a, b) {return a > b}, false) //=== null
+}
+
+function global_Matrix_greater(x,y) { 
+    return !Pacioli.findNonZero(x, y, function (a, b) {return a <= b}, true) //=== null
+}
+
+function global_Matrix_greater_eq(x,y) { 
+    return !Pacioli.findNonZero(x, y, function (a, b) {return a < b}, false) //=== null
 }
 
 function global_Matrix_sqrt(x) { 
@@ -655,6 +681,9 @@ function global_List_head(x) {
 }
 
 function global_List_fold_list(fun, list) {
+    if (list.length == 0) {
+        throw new Error("Cannot fold an empty list")
+    }
     var accu = list[0];
     for (var i = 1; i < list.length; i++) {
         accu = global_Primitives_apply(fun, [accu, list[i]]);

@@ -36,7 +36,8 @@ import pacioli.types.PacioliType;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
 import pacioli.types.matrix.BangBase;
-import pacioli.types.matrix.DimensionType;
+import pacioli.types.matrix.IndexList;
+import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 import uom.Unit;
 
@@ -55,6 +56,7 @@ public class BangTypeNode extends AbstractTypeNode {
         super(location);
         this.indexSet = indexSet;
         this.unit = unit;
+        assert (unit == null || !unit.getName().contains("!"));
     }
 
     @Override
@@ -72,27 +74,28 @@ public class BangTypeNode extends AbstractTypeNode {
     	TypeIdentifier indexSetId = indexSet.typeIdentifier();
         if (unit == null) {
             if (indexSet.isVariable()) {
-                return new MatrixType(new TypeVar("for_index", indexSetName), Unit.ONE);
+                return new MatrixType(new IndexType(new TypeVar("for_index", indexSetName)), Unit.ONE);
             } else  {
-                return new MatrixType(new DimensionType(indexSetId), Unit.ONE);
+                return new MatrixType(new IndexType(indexSetId), Unit.ONE);
             }
         } else {
         	String unitName = unit.getName();
         	assert (!unitName.isEmpty());
             Unit rowUnit;
             if (unit.isVariable()) {
-                rowUnit = new TypeVar("for_unit", unitName);
+                //rowUnit = new TypeVar("for_unit", unitName);
+            	rowUnit = new TypeVar("for_unit", indexSet.getName() + "!" + unitName);
             } else {
                 rowUnit = new BangBase(indexSet.typeIdentifier(), unit.typeIdentifier(), 0);
             }
             if (indexSet.isVariable()) {
             	if (unit.isVariable()) {
-            		return new MatrixType(new TypeVar("for_index", indexSetName), rowUnit);
+            		return new MatrixType(new IndexType(new TypeVar("for_index", indexSetName)), rowUnit);
             	} else {
                     throw new RuntimeException(String.format("Index set '%s' is variable while unit vector '%s' is not", indexSetName, unitName));
                 } 
             } else {
-                return new MatrixType(new DimensionType(indexSetId), rowUnit);
+                return new MatrixType(new IndexType(indexSetId), rowUnit);
             }
         }
     }

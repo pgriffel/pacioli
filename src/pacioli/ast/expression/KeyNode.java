@@ -42,7 +42,7 @@ import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeIdentifier;
-import pacioli.types.matrix.DimensionType;
+import pacioli.types.matrix.IndexList;
 
 public class KeyNode extends AbstractExpressionNode {
 
@@ -127,7 +127,7 @@ public class KeyNode extends AbstractExpressionNode {
     	for (IndexSetDefinition definition: indexSetDefinitions) {
     		typeIds.add(definition.typeIdentifier());
     	}
-    	return new Typing(new DimensionType(typeIds));
+    	return new Typing(new IndexList(typeIds));
         //return new Typing(new DimensionType(indexSets));
     }
 

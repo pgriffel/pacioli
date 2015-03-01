@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
@@ -37,6 +38,7 @@ import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
+import pacioli.types.ast.BangTypeNode;
 import uom.Base;
 import uom.Fraction;
 import uom.Unit;
@@ -45,20 +47,23 @@ import uom.UnitMap;
 public class MatrixType extends AbstractType {
 
     public final Unit factor;
-    public final PacioliType rowDimension;
-    public final PacioliType columnDimension;
+    //public final PacioliType rowDimension;
+    //public final PacioliType columnDimension;
+    public final IndexType rowDimension;
+    public final IndexType columnDimension;
     public final Unit rowUnit;
     public final Unit columnUnit;
 
     private MatrixType(Unit factor,
-            PacioliType rowDimension,
+            //PacioliType rowDimension,
+    		IndexType rowDimension,
             Unit rowUnit,
-            PacioliType columnDimension,
+            //PacioliType columnDimension,
+            IndexType columnDimension,
             Unit columnUnit) {
-        if (!((rowDimension instanceof DimensionType) || (rowDimension instanceof TypeVar))) {
+        /*if (!((rowDimension instanceof DimensionType) || (rowDimension instanceof TypeVar))) {
             throw new RuntimeException("oeps:" + rowDimension.getClass());
-        }
-        
+        }*/
         this.factor = factor;
         this.rowDimension = rowDimension;
         this.rowUnit = rowUnit;
@@ -68,33 +73,25 @@ public class MatrixType extends AbstractType {
 
     public MatrixType(Unit factor) {
         this.factor = factor;
-        this.rowDimension = new DimensionType();
+        this.rowDimension = new IndexType();
         this.rowUnit = Unit.ONE;
-        this.columnDimension = new DimensionType();
+        this.columnDimension = new IndexType();
         this.columnUnit = Unit.ONE;
     }
 
     public MatrixType() {
         this.factor = Unit.ONE;
-        this.rowDimension = new DimensionType();
+        this.rowDimension = new IndexType();
         this.rowUnit = Unit.ONE;
-        this.columnDimension = new DimensionType();
+        this.columnDimension = new IndexType();
         this.columnUnit = Unit.ONE;
     }
 
-    public MatrixType(DimensionType rowDimension, Unit rowUnit) {
+    public MatrixType(IndexType rowDimension, Unit rowUnit) {
         this.factor = Unit.ONE;
         this.rowDimension = rowDimension;
         this.rowUnit = rowUnit;
-        this.columnDimension = new DimensionType();
-        this.columnUnit = Unit.ONE;
-    }
-
-    public MatrixType(TypeVar rowDimension, Unit rowUnit) {
-        this.factor = Unit.ONE;
-        this.rowDimension = rowDimension;
-        this.rowUnit = rowUnit;
-        this.columnDimension = new DimensionType();
+        this.columnDimension = new IndexType();
         this.columnUnit = Unit.ONE;
     }
 
@@ -172,22 +169,22 @@ public class MatrixType extends AbstractType {
     }
 
     public MatrixType kronecker(MatrixType other) throws PacioliException {
-        if (rowDimension instanceof DimensionType
-                && columnDimension instanceof DimensionType
-                && other.rowDimension instanceof DimensionType
-                && other.columnDimension instanceof DimensionType) {
+        if (rowDimension instanceof IndexType
+                && columnDimension instanceof IndexType
+                && other.rowDimension instanceof IndexType
+                && other.columnDimension instanceof IndexType) {
 
-            assert (((DimensionType) columnDimension).width() == 0);
-            assert (((DimensionType) other.columnDimension).width() == 0);
+            assert (((IndexType) columnDimension).width() == 0);
+            assert (((IndexType) other.columnDimension).width() == 0);
 
-            DimensionType rowType = (DimensionType) rowDimension;
+            IndexType rowType = (IndexType) rowDimension;
             int offset = rowType.width();
 
             return new MatrixType(
                     factor.multiply(other.factor),
-                    rowType.kronecker((DimensionType) other.rowDimension),
+                    rowType.kronecker(other.rowDimension),
                     rowUnit.multiply(BangBase.shiftUnit(other.rowUnit, offset)),
-                    new DimensionType(),
+                    new IndexType(),
                     Unit.ONE);
         } else {
             throw new PacioliException("Kronecker product is not allowed for index variables: %s %% %s (%s)",
@@ -196,11 +193,11 @@ public class MatrixType extends AbstractType {
     }
 
 	public MatrixType project(final List<Integer> columns) throws PacioliException {
-		if (rowDimension instanceof DimensionType) {
+		if (rowDimension instanceof IndexType) {
 
-            assert (((DimensionType) columnDimension).width() == 0);
+            assert (((IndexType) columnDimension).width() == 0);
             
-            DimensionType rowType = (DimensionType) rowDimension;
+            IndexType rowType = (IndexType) rowDimension;
             
             Unit unit = Unit.ONE;
             for (int i = 0; i < columns.size(); i++) {
@@ -220,7 +217,7 @@ public class MatrixType extends AbstractType {
                     factor,
                     rowType.project(columns),
                     unit,
-                    new DimensionType(),
+                    new IndexType(),
                     Unit.ONE);
 
         } else {
@@ -229,10 +226,10 @@ public class MatrixType extends AbstractType {
 	}
 	
     public boolean singleton() {
-        if (rowDimension instanceof TypeVar || columnDimension instanceof TypeVar) {
+        if (rowDimension.isVar() || columnDimension.isVar()) {
             return false;
         }
-        return ((DimensionType) rowDimension).width() == 0 && ((DimensionType) columnDimension).width() == 0;
+        return rowDimension.width() == 0 && columnDimension.width() == 0;
     }
 
     public MatrixType scale(MatrixType other) {
@@ -240,11 +237,11 @@ public class MatrixType extends AbstractType {
     }
 
     public MatrixType extractColumn() {
-        return new MatrixType(factor, rowDimension, rowUnit, new DimensionType(), Unit.ONE);
+        return new MatrixType(factor, rowDimension, rowUnit, new IndexType(), Unit.ONE);
     }
 
     public MatrixType extractRow() {
-        return new MatrixType(factor, new DimensionType(), Unit.ONE, columnDimension, columnUnit);
+        return new MatrixType(factor, new IndexType(), Unit.ONE, columnDimension, columnUnit);
     }
 
     public MatrixType leftIdentity() {
@@ -263,10 +260,10 @@ public class MatrixType extends AbstractType {
     public Set<TypeVar> typeVars() {
         Set<TypeVar> all = new LinkedHashSet<TypeVar>();
         all.addAll(unitVars(factor));
-        if (rowDimension instanceof TypeVar || !((DimensionType) rowDimension).getIndexSets().isEmpty()) {
+        if (rowDimension.isVar() || rowDimension.width() > 0) {
             all.addAll(unitVars(rowUnit));
         }
-        if (columnDimension instanceof TypeVar || !((DimensionType) columnDimension).getIndexSets().isEmpty()) {
+        if (columnDimension.isVar() || columnDimension.width() > 0) {
             all.addAll(unitVars(columnUnit));
         }
         all.addAll(rowDimension.typeVars());
@@ -294,36 +291,49 @@ public class MatrixType extends AbstractType {
         return dimensionBangUnitList(columnDimension, columnUnit);
     }
 
-    private List<Unit> dimensionBangUnitList(final PacioliType dimension, Unit unit) {
+    private List<Unit> dimensionBangUnitList(final IndexType dimension, Unit unit) {
         List<Unit> units = new ArrayList<Unit>();
-        if (dimension instanceof TypeVar) {
+        if (dimension.isVar()) {
             Unit candidate = unit.map(new UnitMap() {
                 public Unit map(Base base) {
                     assert (base instanceof TypeVar);
-                    return new BangBase(dimension.toText(), base.toText(), 0);
+                    //return new BangBase(dimension.toText(), base.toText(), 0);
+                    //return new StringBase(dimension.varName() + "!" + base.toText());
+                    return new BangBase(dimension.varName(), base.toText(), 0);
                 }
             });
             if (candidate.equals(Unit.ONE)) {
-                units.add(new BangBase(dimension.toText(), "", 0));
+                //units.add(new BangBase(dimension.toText(), "", 0));
+            	//units.add(new StringBase(dimension.varName()));
+            	units.add(new BangBase(dimension.varName(), "", 0));
             } else {
                 units.add(candidate);
             }
         } else {
-            final DimensionType dimType = (DimensionType) dimension;
+            final IndexType dimType = (IndexType) dimension;
 
             if (dimType.width() == 1) {
+            	final String dimName = dimType.nthIndexSet(0).name;
                 Unit candidate = unit.map(new UnitMap() {
                     public Unit map(Base base) {
                         assert ((base instanceof TypeVar) || (base instanceof BangBase));
                         if (base instanceof BangBase) {
-                            return base;
+                            //return base;
+                        	BangBase bangBase = (BangBase) base;
+                        	assert(dimName.equals(bangBase.indexSetName()));
+                            //return new StringBase(bangBase.indexSetName() + "!" + bangBase.unitName());
+                        	return new BangBase(bangBase.indexSetName(), bangBase.unitName(), 0);
                         } else {
-                            return new BangBase(dimType.nthIndexSet(0).name, base.toText(), 0);
+                            //return new BangBase(dimType.nthIndexSet(0).name, base.toText(), 0);
+                            //return new StringBase(dimName + "!" + base.toText());
+                            return new BangBase(dimName, base.toText(), 0);
                         }
                     }
                 });
                 if (candidate.equals(Unit.ONE)) {
-                    units.add(new BangBase(dimType.nthIndexSet(0).name, "", 0));
+                    //units.add(new BangBase(dimType.nthIndexSet(0).name, "", 0));
+                	//units.add(new StringBase(dimName + "!"));
+                	units.add(new BangBase(dimName, "", 0));
                 } else {
                     units.add(candidate);
                 }
@@ -345,7 +355,9 @@ public class MatrixType extends AbstractType {
                         }
                     });
                     if (candidate.equals(Unit.ONE)) {
-                        units.add(new BangBase(dimType.nthIndexSet(index).name, "", i));
+                        //units.add(new BangBase(dimType.nthIndexSet(index).name, "", i));
+                    	//units.add(new StringBase(dimType.nthIndexSet(index).name));
+                    	units.add(new BangBase(dimType.nthIndexSet(index).name, "", i));
                     } else {
                         units.add(candidate);
                     }
@@ -397,14 +409,27 @@ public class MatrixType extends AbstractType {
             }
             columnStringList.add(jthUnit.toText());
         }
-
-        if (columnWidth == 0) {
-            out.format("%s", Utils.intercalate(" % ", rowStringList));
+        if (false) {
+        	out.print("<");
+        	out.print(factor.toText());
+        	out.print(", ");
+        	out.print(rowDimension.toText());
+        	out.print(", ");
+        	out.print(rowUnit.toText());
+        	out.print(", ");
+        	out.print(columnDimension.toText());
+        	out.print(", ");
+        	out.print(columnUnit.toText());
+	        out.print(">");
         } else {
-            out.format("%s per %s",
-                    Utils.intercalate(" % ", rowStringList),
-                    Utils.intercalate(" % ", columnStringList));
-        }
+	        if (columnWidth == 0) {
+	            out.format("%s", Utils.intercalate(" % ", rowStringList));
+	        } else {
+	            out.format("%s per %s",
+	                    Utils.intercalate(" % ", rowStringList),
+	                    Utils.intercalate(" % ", columnStringList));
+	        }
+    	}
     }
 
     @Override
@@ -428,10 +453,10 @@ public class MatrixType extends AbstractType {
     public List<Unit> simplificationParts() {
         List<Unit> parts = new ArrayList<Unit>();
         parts.add(factor);
-        if (rowDimension instanceof TypeVar || ((DimensionType) rowDimension).width() > 0) {
+        if (rowDimension.isVar() || rowDimension.width() > 0) {
         	parts.add(rowUnit);
         }
-        if (columnDimension instanceof TypeVar || ((DimensionType) columnDimension).width() > 0) {
+        if (columnDimension.isVar() || columnDimension.width() > 0) {
         	parts.add(columnUnit);
         }
         return parts;
@@ -441,9 +466,9 @@ public class MatrixType extends AbstractType {
     public PacioliType applySubstitution(Substitution subs) {
         return new MatrixType(
                 subs.apply(factor),
-                rowDimension.applySubstitution(subs),
+                (IndexType) rowDimension.applySubstitution(subs),
                 subs.apply(rowUnit),
-                columnDimension.applySubstitution(subs),
+                (IndexType) columnDimension.applySubstitution(subs),
                 subs.apply(columnUnit));
 
     }
@@ -457,18 +482,18 @@ public class MatrixType extends AbstractType {
         out.append(compileTypeUnitToJS(factor));
         out.append(", ");
         out.append(rowDimension.compileToJS());
-    	if (!(rowDimension instanceof TypeVar)) out.append(".param");
+    	if (!rowDimension.isVar()) out.append(".param");
         out.append(", ");
-        if (rowDimension instanceof TypeVar || ((DimensionType) rowDimension).width() > 0) {
+        if (rowDimension.isVar() || rowDimension.width() > 0) {
         	out.append(compileTypeUnitToJS(rowUnit)); 
         } else {
         	out.append("new Pacioli.PowerProduct(1)");
         }
         out.append(", ");
         out.append(columnDimension.compileToJS());
-    	if (!(columnDimension instanceof TypeVar)) out.append(".param");
+    	if (!columnDimension.isVar()) out.append(".param");
         out.append(", ");
-        if (columnDimension instanceof TypeVar || ((DimensionType) columnDimension).width() > 0) {
+        if (columnDimension.isVar() || columnDimension.width() > 0) {
         	out.append(compileTypeUnitToJS(columnUnit));
         } else {
         	out.append("new Pacioli.PowerProduct(1)");

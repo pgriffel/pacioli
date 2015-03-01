@@ -47,7 +47,7 @@ define quad_right(q) = let (_, w, _, _) = q in w end;
 
 define scale_quad(c, quad) =
   let (v, w, sv, sw) = quad in
-    tuple(c . v, c . w, sv, sw)
+    tuple(c c* v, c c* w, sv, sw)
   end;
 
 define quad_magnitude(quad, row) = 
@@ -65,7 +65,7 @@ define combine_quads(a, q, b, r) =
   let (q1, q2, _, _) = q,
       (r1, r2, _, _) = r
   in
-      make_quad(a.q1 + b.r1, a.q2 + b.r2)
+      make_quad(a c* q1 + b c* r1, a c* q2 + b c* r2)
   end;
 
 define support_sub(q, r) =

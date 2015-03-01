@@ -89,6 +89,7 @@ public class ConstraintSet extends AbstractPrintable {
             PacioliType left = mgu.apply(lhss.get(i));
             PacioliType right = mgu.apply(rhss.get(i));
             try {
+            	//Pacioli.logln3("Unifying %s and %s", left.toText(), right.toText());
                 mgu = left.unify(right).compose(mgu);
             } catch (PacioliException ex) {
                 throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s",

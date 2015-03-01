@@ -84,7 +84,13 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
 
     @Override
     public void printText(PrintWriter out) {
-        out.print(name);
+        out.print(toText());
+        /*if (!name.isEmpty() && quantifier.equals("for_index")) {
+            String first = name.substring(0, 1);
+            out.print(first.toUpperCase() + name.substring(1));
+        } else {
+        	out.print(name);
+        }*/
     }
 
     @Override
@@ -132,8 +138,13 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
             return new Substitution();
         } else {
             // To ensure we do not lose the information that a variable is an index variable.
-            if (other instanceof TypeVar && ((TypeVar) other).quantifier.equals("for_type")) {
-                return new Substitution((TypeVar) other, this);
+            if (false && other instanceof TypeVar && ((TypeVar) other).quantifier.equals("for_type")) {
+            	if (this instanceof TypeVar && this.quantifier.equals("for_index")) {
+            		throw new RuntimeException("tada");
+            		//return new Substitution((TypeVar) other, this);
+            	} else {
+            		return new Substitution((TypeVar) other, this);
+            	}
             } else {
                 return new Substitution(this, other);
             }

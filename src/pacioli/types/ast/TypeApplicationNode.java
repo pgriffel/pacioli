@@ -39,7 +39,8 @@ import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
-import pacioli.types.matrix.DimensionType;
+import pacioli.types.matrix.IndexList;
+import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 
 public class TypeApplicationNode extends AbstractTypeNode {
@@ -117,7 +118,7 @@ public class TypeApplicationNode extends AbstractTypeNode {
                         throw new RuntimeException(String.format("Index set expected but found '%s'", type.toText()));
                     }
                 }
-                return new DimensionType(names);
+                return new IndexType(names);
             }
         } else {
         	

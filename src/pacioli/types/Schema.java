@@ -66,7 +66,8 @@ public class Schema extends AbstractType {
         for (TypeVar var : variables) {
             map = map.compose(new Substitution(var, var.fresh()));
         }
-        return map.apply(type);
+        //return map.apply(type);
+        return type.applySubstitution(map);
     }
 
     @Override

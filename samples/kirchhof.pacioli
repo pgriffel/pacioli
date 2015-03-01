@@ -109,7 +109,7 @@ defunit decimals "decimals";
 declare check_kirchhof :: 
   (volt*Node!, ampere*Edge!, volt*Edge!, ampere*Node!) -> Tuple(decimals*Edge!, decimals*Node!);
 
-define decimals(x) = |decimals| . -log(abs(magnitude(x)), 10);
+define decimals(x) = |decimals| c* -log(abs(magnitude(x)), 10);
 
 define check_kirchhof(potential, current, battery, inflow) =
   let

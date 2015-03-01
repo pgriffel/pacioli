@@ -22,7 +22,7 @@ import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.ast.TypeNode;
-import pacioli.types.matrix.DimensionType;
+import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 
 public class Dictionary {
@@ -178,10 +178,10 @@ public class Dictionary {
     	PacioliType type = typeNode.eval(false);
     	if (type instanceof MatrixType) {
     		MatrixType matrixType = (MatrixType) type;
-    		if 	(matrixType.rowDimension instanceof DimensionType) {
-    			return compileTimeMatrixDimension((DimensionType) matrixType.rowDimension);
-    		} else {
+    		if (matrixType.rowDimension.isVar()) {
     			throw new PacioliException(typeNode.getLocation(), "Expected a closed matrix type but found %s", matrixType.description());
+    		} else {
+    			return compileTimeMatrixDimension(matrixType.rowDimension);
     		}
     	} else {
     		throw new PacioliException(typeNode.getLocation(), "Expected a matrix type but found %s", MatrixType.class);
@@ -192,17 +192,17 @@ public class Dictionary {
     	PacioliType type = typeNode.eval(false);
     	if (type instanceof MatrixType) {
     		MatrixType matrixType = (MatrixType) type;
-    		if 	(matrixType.columnDimension instanceof DimensionType) {
-    			return compileTimeMatrixDimension((DimensionType) matrixType.columnDimension);
-    		} else {
+    		if (matrixType.columnDimension.isVar()) {
     			throw new PacioliException(typeNode.getLocation(), "Expected a closed matrix type but found %s", matrixType.description());
+    		} else {
+    			return compileTimeMatrixDimension(matrixType.columnDimension);
     		}
     	} else {
     		throw new PacioliException(typeNode.getLocation(), "Expected a matrix type but found %s", MatrixType.class);
     	}
     }
     	    
-    private MatrixDimension compileTimeMatrixDimension(DimensionType dimType) throws PacioliException {
+    private MatrixDimension compileTimeMatrixDimension(IndexType dimType) throws PacioliException {
     	List<IndexSet> sets = new ArrayList<IndexSet>();
     	for (TypeIdentifier id : dimType.getIndexSets()) {
     		// todo: also include home to identify an index set

@@ -259,6 +259,9 @@ Pacioli.set = function (numbers, row, column, value) {
 }
 
 Pacioli.getNumber = function (numbers, row, column) {
+  if (numbers == undefined) {
+    alert('oeps')
+  }
     switch (numbers.storage) {
     case 0:
         return numbers[row][column]
@@ -372,7 +375,7 @@ Pacioli.elementWiseNumbers = function (xNumbers, yNumbers, fun) {
 }
 
 
-Pacioli.findNonZero = function (xNumbers, yNumbers, fun) {
+Pacioli.findNonZero = function (xNumbers, yNumbers, fun, zero_zero_case) {
     var px = 0
     var py = 0
     var xCOO = Pacioli.getCOONumbers(xNumbers)
@@ -385,6 +388,7 @@ Pacioli.findNonZero = function (xNumbers, yNumbers, fun) {
     var yValues = yCOO[2]
     var xLen = xRows.length
     var yLen = yRows.length
+    var count = 0
 
     var rows = []
     var columns = []
@@ -396,41 +400,48 @@ Pacioli.findNonZero = function (xNumbers, yNumbers, fun) {
         var cx = xColumns[px]
         var cy = yColumns[py]
         if (rx > ry) {
-            if (fun(0, yValues[py])) return [ry, cy]
+            if (fun(0, yValues[py])) return true //[ry, cy]
             py++
         } else if (rx < ry) {
-            if (fun(xValues[px], 0)) return [rx, cx]
+            if (fun(xValues[px], 0)) return true //[rx, cx]
             px++
         } else {
             if (cx < cy) {
-                if (fun(xValues[px], 0)) return [rx, cx]
+                if (fun(xValues[px], 0)) return true //[rx, cx]
                 px++
             } else if (cx > cy) {
-                if (fun(0, yValues[py])) return [ry, cy]
+                if (fun(0, yValues[py])) return true //[ry, cy]
                 py++
             } else {
-                if (fun(xValues[px], yValues[py])) return [rx, cy]
+                if (fun(xValues[px], yValues[py])) return true //[rx, cy]
                 px++
                 py++
             }
         }
+        count++
     }
 
     while (px < xLen) {
         var rx = xRows[px]
         var cx = xColumns[px]
-        if (fun(xValues[px], 0)) return [rx, cx]
+        if (fun(xValues[px], 0)) return true //[rx, cx]
         px++
+        count++
     }
 
     while (py < yLen) {
         var ry = yRows[py]
         var cy = yColumns[py]
-        if (fun(0, yValues[py])) return [ry, cy]
+        if (fun(0, yValues[py])) return true //[ry, cy]
         py++
+        count++
     }
 
-    return null
+    if (count == xNumbers.nrRows * xNumbers.nrColumns) {
+        return false
+    } else {
+        return zero_zero_case
+    }
 }
 
 Pacioli.projectNumbers = function (numbers, shape, cols) {

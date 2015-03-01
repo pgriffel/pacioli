@@ -22,7 +22,9 @@
 package mvm;
 
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -33,6 +35,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 //import java.util.Map;
+
+
 
 
 
@@ -285,6 +289,28 @@ public class Machine {
 				checkNrArgs(params, 1);
 				Callable fun = (Callable) store
 						.lookup("global_Primitives_print");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+		
+		store.put("global_Primitives_write", new Primitive("write") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				PacioliValue value = params.get(0);
+				if (value != null) { // void value of statements
+					log(">%s<", value.toText());
+				}
+				return null;
+			}
+		});
+
+		store.put("debug_Primitives_write", new Primitive("write") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 1);
+				Callable fun = (Callable) store
+						.lookup("global_Primitives_write");
 				PacioliValue result = fun.apply(params);
 				return result;
 			}
@@ -2694,6 +2720,54 @@ public class Machine {
 				checkStringArg(params, 0);
 				checkStringArg(params, 1);
 				Callable fun = (Callable) store.lookup("global_String_string_compare");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+		
+		store.put("global_String_concatenate", new Primitive("concatenate") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				PacioliString string1 = (PacioliString) params.get(0);
+				PacioliString string2 = (PacioliString) params.get(1);
+				return new PacioliString(string1.toText().concat(string2.toText()));
+			}
+		});
+
+		store.put("debug_String_concatenate", new Primitive("concatenate") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 2);
+				checkStringArg(params, 0);
+				checkStringArg(params, 1);
+				Callable fun = (Callable) store.lookup("global_String_concatenate");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+		
+		store.put("global_String_num2string", new Primitive("num2string") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				Matrix num = (Matrix) params.get(0);
+				Matrix n = (Matrix) params.get(1);
+				int d = (int) n.SingletonNumber();
+				DecimalFormat format = new DecimalFormat();
+			    format.setMinimumIntegerDigits(1);
+			    format.setMaximumFractionDigits(d);
+			    format.setMinimumFractionDigits(d);
+			    format.setGroupingUsed(false);
+			    return new PacioliString(format.format(num.SingletonNumber()));
+			}
+		});
+
+		store.put("debug_String_num2string", new Primitive("num2string") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 2);
+				checkMatrixArg(params, 0);
+				checkMatrixArg(params, 1);
+				Callable fun = (Callable) store.lookup("global_String_num2string");
 				PacioliValue result = fun.apply(params);
 				return result;
 			}

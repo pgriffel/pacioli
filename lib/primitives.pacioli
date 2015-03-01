@@ -30,6 +30,7 @@ declare error :: for_type a: (1) -> a;
 declare skip :: () -> Void();
 
 declare print :: for_type a: (a) -> Void();
+declare write :: for_type a: (a) -> Void();
 #declare nothing :: Void();
 declare ref_get :: for_type a: (Ref(a)) -> a;
 declare ref_set :: for_type a: (Ref(a), a) -> Void();
