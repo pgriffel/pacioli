@@ -540,11 +540,9 @@ public class Program {
 
 	}
         
-        public void write(PrintWriter out) {
-            out.println("");
-            out.println("hoi");
-            for (Definition definition : dictionary.valueDefinitions()) {
-                out.println("hoidef");
+    public void write(PrintWriter out) {
+        out.println("");
+        for (Definition definition : dictionary.valueDefinitions()) {
 			if (definition.getModule() == main) {
 				out.println(definition.toText());
 			} else {

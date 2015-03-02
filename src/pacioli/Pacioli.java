@@ -174,8 +174,6 @@ public class Pacioli {
             Pacioli.logln2("Loading module '%s'", file.getPath());
             program.load(file);
         
-            PrintWriter out = new PrintWriter(System.out);
-            program.write(out);
             StringWriter outputStream = new StringWriter();
             try {
 

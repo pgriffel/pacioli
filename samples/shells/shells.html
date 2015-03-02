@@ -1,0 +1,748 @@
+<!DOCTYPE HTML>
+
+<!-- Paul Griffioen 2013 -->
+
+<html lang="en">
+  <head>
+    <title>Shells</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="shells.css">
+  </head>
+
+  <body onload="onLoad();">
+
+
+    <div id="canvasparent">
+    </div>
+
+    <form id="parameters">
+      <table>
+        <tr>
+          <td class="key"><label for="growth">growth</label></td>
+          <td class="value"><input type="number"
+                                   title="Growth constant of the logistic growth curve"
+                                   name="growth"
+                                   value="1.02"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit"></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="rotation_x">rotation x</label></td>
+          <td class="value"><input type="number"
+                                   title="Rotation around the x-axis per segment"
+                                   name="rotation_x"
+                                   value="0"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="rotation_x_unit" onkeydown="onFormKey(event);">
+              <option value="degree">deg</option>
+              <option value="pi">pi</option>
+              <option value="radian">rad</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="rotation_y">rotation y</label></td>
+          <td class="value"><input type="number"
+                                   title="Rotation around the y-axis per segment"
+                                   name="rotation_y"
+                                   value="0"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="rotation_y_unit" onkeydown="onFormKey(event);">
+              <option value="degree">deg</option>
+              <option value="pi">pi</option>
+              <option value="radian">rad</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="rotation_z">rotation z</label></td>
+          <td class="value"><input type="number"
+                                   title="Rotation around the z-axis per segment"
+                                   name="rotation_z"
+                                   value="10"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="rotation_z_unit" onkeydown="onFormKey(event);">
+              <option value="degree">deg</option>
+              <option value="pi">pi</option>
+              <option value="radian">rad</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td class="key"><label for="upward">upward</label></td>
+          <td class="value"><input type="number"
+                                   title="Upward displacment during the growth of the first segment"
+                                   name="upward"
+                                   value="-0.02"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="upward_unit" onkeydown="onFormKey(event);">
+              <option value="millimetre">mm</option>
+              <option value="metre">m</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="outward">outward</label></td>
+          <td class="value"><input type="number"
+                                   title="Outward displacment during the growth of the first segment"
+                                   name="outward"
+                                   value="-0.05"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="outward_unit" onkeydown="onFormKey(event);">
+              <option value="millimetre">mm</option>
+              <option value="metre">m</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="segments">segments</label></td>
+          <td class="value"><input type="number"
+                                   name="segments"
+                                   title="Number of segments"
+                                   value="200"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit"></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="aperture">aperture</label></td>
+          <td class="value"><input type="text"
+                                   name="aperture"
+                                   title="Alternating list of angles (deg) and distances (mm) that maps out the initial aperture in the x-z plane. Special forms are circle,_,_ and rectangle,_,_. The circle parameters are the number of segments and the length per segment (mm). The rectangle parameters are the width (mm) and the height (mm)."
+                                   value="circle,17,0.2"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit"></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="offset">offset</label></td>
+          <td class="value"><input type="number"
+                                   title="Distance of the initial aperture from the z-axis"
+                                   name="offset"
+                                   value="0"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="offset_unit" onkeydown="onFormKey(event);">
+              <option value="millimetre">mm</option>
+              <option value="metre">m</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="orientation">orientation</label></td>
+          <td class="value"><input type="number"
+                                   name="orientation"
+                                   title="Rotation of the initial aperture around the x-axis"
+                                   value="0"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit">
+            <select name="orientation_unit" onkeydown="onFormKey(event);">
+              <option value="degree">deg</option>
+              <option value="pi">pi</option>
+              <option value="radian">rad</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="scale">scale</label></td>
+          <td class="value"><input type="number"
+                                   name="scale"
+                                   title="Scale factor for the initial aperture"
+                                   value="1"
+                                   onkeydown="onFormKey(event);"></td>
+          <td class="unit"></td>
+        </tr>
+      </table>
+      <button type="button"
+              title="Create an initial shell from the parameters"
+              id="formcreate"
+              onclick="onForm(this);">Create</button>
+    </form>
+      <button type="button"
+              title="Grow the shell's number of segements by one"
+              id="formincgo"
+              onclick="onIncrease(this);">Grow</button>
+      <button type="button"
+              title="Grow all the shell's segments"
+              id="formgo"
+              onclick="onGrowAll(this);">Go</button>
+
+    <div id="links">
+      <ul>
+      <li><a id="current" href="shells.html">Current</a></li>
+      <li><a href="shells.html?aperture=circle,16,0.15">Circle</a></li>
+      <li><a href="shells.html?aperture=rectangle,0.5,0.5&offset=0.5&upward=-0.01">Rectangle</a></li>
+      <li><a href="shells.html?aperture=20,0.25,20,0.25,-30,0.05,120,0.25,20,0.25,30,0.25,50,0.10,30,0.10,30,0.25">Free Form</a></li>
+      <li><a href="shells.html?growth=1.01">Slow Growing</a></li>
+      <li><a href="shells.html?growth=1.2&segments=20">Fast Growing</a></li>
+      <li><a href="shells.html?upward=-0.005mm&segments=120&aperture=rectangle,1,0.1">Disc</a></li>
+      </ul>
+    </div>
+
+    <div id="graphics">
+
+      <table>
+        <tr>
+          <td class="key"><label for="axes">axes</label></td>
+          <td class="value"><input type="checkbox"
+                                   title="Display coordinate axes"
+                                   id="axes"
+                                   onclick="onAxes(this);"
+                                   unchecked></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="wireframe">wireframe</label></td>
+          <td class="value"><input type="checkbox"
+                                   title="Use wireframe instead of a closed surface"
+                                   id="wireframe"
+                                   onclick="onWireFrame(this);"
+                                   unchecked></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="transparent">transparent</label></td>
+          <td class="value"><input type="checkbox"
+                                   title="Use transparent colors"
+                                   id="transparent"
+                                   onclick="onTransparent(this);"
+                                   unchecked></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="charts">charts</label></td>
+          <td class="value"><input type="checkbox"
+                                   title="Display growth chart"
+                                   id="charts"
+                                   onclick="onCharts(this);"
+                                   unchecked></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="perspective">perspective</label></td>
+          <td class="value"><input type="checkbox"
+                                   title="Use perspective instead of orthographic rendering"
+                                   id="perspective"
+                                   onclick="onPerspective(this);"
+                                   unchecked></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="webgl">WebGL</label></td>
+          <td class="value"><input type="checkbox"
+                                   title="Use WebGL instead of the canvas"
+                                   id="webgl"
+                                   onclick="onWebGL(this);"
+                                   unchecked></td>
+        </tr>
+
+        <tr>
+          <td class="key"><label for="material">material</label></td>
+          <td class="value">
+            <select id="material" onchange="onMaterial(this);">
+              <option value="normal">Normal</option>
+              <option value="Lambert">Lambert</option>
+              <option value="Phong">Phong</option>
+              <option value="basic">Basic</option>
+            </select>
+          </td>
+        </tr>
+
+      </table>
+      <button type="button" title="Zoom in" name="zoomin" onclick="onZoomIn();">+</button>
+      <button type="button" title="Zoom out" name="zoomout" onclick="onZoomOut();">-</button>
+      <button type="button"
+              title="Rotate the shell so that its coiling axis is vertical"
+              name="setup"
+              onclick="onSetUp();">Up</button>
+
+    </div>
+
+    <div id="info">
+      <div class="chart" id="growth_factor"></div>
+      <div class="chart" id="aperture_area"></div>
+      <div class="chart" id="body_area"></div>
+      <div class="chart" id="body_area_cumulative"></div>
+      <div class="chart" id="body_volume"></div>
+      <div class="chart" id="body_volume_cumulative"></div>
+    </div>
+
+    <script>
+
+      var shell            // The shell model computed by the shell.js Pacioli script
+    var growthFactors
+      var space            // A Pacioli 3D geometric space for the shell
+      var shellUnit        // The unit of measurement of the shell. Must correspond with alias in scipt.
+
+      /*
+       *  Event Handlers
+       */
+
+      function onLoad() {
+
+//          var a = CSG.cube();
+//          var sphere = CSG.sphere({ radius: 1.5 , slices: 32, stacks: 16});
+////      console.log(a)
+////      var b = a.subtract(sphere)
+//      var b = sphere.subtract(a)
+////      b=sphere
+//   b = Pacioli.fun("Shells", "my_sphere2").call().value
+//   b = Pacioli.fun("Shells", "my_curve").call().value
+//      console.log(b)
+//          addViewer(new Viewer(b, 250, 250, 5));
+//  //    console.log(Pacioli.fun("Shells", "my_sphere2").call().value);
+//return 
+
+          shellUnit = Pacioli.unit("milli", "metre")   // Can we get this from the script?
+
+          var parameters = document.getElementById("parameters");
+          var current = document.getElementById("current");
+          var urlParams = window.location.search.substring(1);
+          var charts = document.getElementById("charts");
+          var graphics = graphicsParameters()
+
+          // Create the Pacioli Space element
+          space = new Pacioli.Space(document.getElementById("canvasparent"), graphics)
+          space.setOptions({unit: Pacioli.unit('milli$metre')})
+          space.move(0, 150)
+          space.zoomIn()
+          space.zoomIn()
+          space.zoomIn()
+          space.zoomIn()
+          space.zoomIn()
+
+          // Set resize handler to adjust the canvas size to the window size
+          window.addEventListener('resize', onWindowResize, false);
+
+          // Update the parameters to the url
+          fillFormFromUrl(parameters, urlParams);
+          current.href = currentHRef(parameters);
+
+          // Start computing the initial shell
+          shell = makeShell(parameters)
+          resetSpace(space, shell, graphics)
+          startAnimation(parameters.segments.value)
+      }
+
+      function onIncrease(event) {
+          startAnimation(Pacioli.fun("Model", "shell_current_size").call(shell).number() + 1)
+      }
+
+      function onGrowAll(event) {
+          startAnimation(parameters.segments.value)
+      }
+
+      function onFormKey(event) {
+          if (event.keyCode == 13) {
+              onForm(event);
+          }
+      }
+
+      function onForm(event) {
+          var parameters = document.getElementById("parameters");
+          var graphics = document.getElementById("graphics");
+          var current = document.getElementById("current");
+
+          current.href = currentHRef(parameters);
+          shell = makeShell(parameters)
+          resetSpaceBody(space, shell, graphics)
+          target = 0
+          updateInfo();
+      }
+
+      function onAxes(event) {
+          if (event.checked) {
+              space.showAxes()
+          } else { 
+              space.hideAxes()
+          }
+      }
+
+      function onWireFrame(event) {
+          resetSpaceBody(space, shell, graphicsParameters());
+      }
+
+      function onTransparent(event) {
+          resetSpaceBody(space, shell, graphicsParameters());
+      }
+
+      function onCharts(event) {
+          updateInfo()
+          startAnimation(target)
+      }
+
+      function onPerspective(event) {
+          resetSpace(space, shell, graphicsParameters());
+      }
+
+      function onWebGL(event) {
+          resetSpace(space, shell, graphicsParameters());
+      }
+
+      function onMaterial(event) {
+          resetSpaceBody(space, shell, graphicsParameters());  // Todo: the scene needs a light to view the various materials
+      }
+
+      function onZoomIn() {
+          space.zoomIn()
+      }
+
+      function onZoomOut() {
+          space.zoomOut();
+      }
+
+      function onSetUp() {
+          orientUp(shell, space);
+          space.draw()
+      }
+
+      function onWindowResize(){
+          space.resize(window.innerWidth - 50, window.innerHeight - 50)
+      }
+
+      function startAnimation(targetSize, stepSize) {
+          target = targetSize
+          requestAnimationEvent(stepSize || 10)
+      }
+
+      function requestAnimationEvent(n) {
+          var timeoutID = window.setTimeout(function () {onAnimate(n)}, 0);
+      }
+
+      function onAnimate(n) { 
+          var shellLength = Pacioli.fun("Model", "shell_current_size").call(shell).number()
+          var infoLength = shell.info.value[0].length
+          var missingInfo = shellLength + 1 - infoLength
+          var missingSegments = target - shellLength
+          if (charts.checked && 0 < missingInfo) { 
+              var r = Math.min(missingInfo, n)
+              shell.info = Pacioli.fun("Model", "extend_shell_info").call(shell, shell.info, Pacioli.num(r))
+              updateInfo();
+              requestAnimationEvent(n)
+          } else if (0 < missingSegments) { 
+              var r = Math.min(missingSegments, n)
+              var info = shell.info
+              shell = Pacioli.fun("Model", "grow").call(shell, Pacioli.num(r))
+              shell.info = info
+              updateSpaceBody(space, shell, graphicsParameters(), r)
+              requestAnimationEvent(n)
+          } else {
+              space.drawfast()
+          }
+
+      }
+
+      /*
+       *  Logic
+       */
+                                 
+      function resetSpace(space, shell, graphics) {
+          space.setOptions(graphics)
+          resetSpaceBody(space, shell, graphics);
+          onWindowResize()
+      }
+      
+      function resetSpaceBody(space, shell, graphics) { 
+
+          // Remove the old segments and curves from the space
+          space.clear()
+
+          // Add the shell's segments
+          var meshes = Pacioli.fun("Model", "get_meshes").call(shell).unlist()
+          for (var i = 0; i < meshes.length; i++) {
+              space.addMesh(meshes[i], graphics);
+          }
+
+          // Add the shell's initial and final curve
+          space.addCurve(Pacioli.fun("Model", "shell_initial_curve").call(shell))
+
+          // Ensure the changes are seen
+          space.draw()
+      }
+      
+      function updateSpaceBody(space, shell, graphics, n) { 
+
+          // Add the requested meshes
+          var meshes = Pacioli.fun("Model", "get_meshes").call(shell).unlist()
+          for (var i = 0; i < n; i++) {
+              space.addMesh(meshes[meshes.length - i - 1], graphics);
+          }
+                              
+          // Update the screen
+          space.drawfast()
+      }
+
+      function updateInfo() { 
+          var info = document.getElementById("info");
+          info.style.visibility = charts.checked ? 'visible' : 'hidden';
+          if (charts.checked) {
+              appendOrReplaceCharts(shell, document.getElementById("parameters"))
+          }
+      }
+
+      function graphicsParameters() {
+          return {
+              axisSize: 100,
+              wireframe: document.getElementById("wireframe").checked,
+              webgl: document.getElementById("webgl").checked,
+              perspective: document.getElementById("perspective").checked,
+              material: document.getElementById("material").value,
+              transparent: document.getElementById("transparent").checked
+          }
+      }
+
+      function makeShell(params) {
+
+          function readDimensionedParam(name, unit) {
+              return Pacioli.num(params[name].value, Pacioli.unit(params[name + '_unit'].value)).convert(unit)
+          }
+
+          // Read the user's parameter settings
+          var growth = Pacioli.num(params.growth.value);
+          var scale = Pacioli.num(params.scale.value);
+          var ticks = Pacioli.num(params.segments.value);
+          var offset = readDimensionedParam('offset', shellUnit)
+          var upward = readDimensionedParam('upward', shellUnit)
+          var outward = readDimensionedParam('outward', shellUnit)
+          var orientation = readDimensionedParam('orientation', Pacioli.RADIAN)
+          var rotation_x = readDimensionedParam('rotation_x', Pacioli.RADIAN)
+          var rotation_y = readDimensionedParam('rotation_y', Pacioli.RADIAN)
+          var rotation_z = readDimensionedParam('rotation_z', Pacioli.RADIAN)
+
+          // Read the aperture
+          var pairs = params.aperture.value.split(',');
+          var aperture_angle_unit = Pacioli.unit('degree');
+          var aperture_distance_unit = Pacioli.unit('milli', 'metre');
+          if (pairs[0] == "circle") {
+                var initial_aperture = Pacioli.fun("Shells", "circle_path").call(
+                                           Pacioli.num(pairs[1]),
+                                           Pacioli.num(pairs[2], aperture_distance_unit).convert(shellUnit));
+            } else if (pairs[0] == "rectangle") {
+                var initial_aperture = Pacioli.fun("Shells", "rectangle_path").call(
+                                           Pacioli.num(pairs[1], aperture_distance_unit).convert(shellUnit),
+                                           Pacioli.num(pairs[2], aperture_distance_unit).convert(shellUnit));
+            } else {
+                var tuples = new Array();
+                for (var i=0; i < pairs.length; i += 2) {
+                    var tup = [Pacioli.num(pairs[i], aperture_angle_unit).convert(Pacioli.RADIAN),
+                               Pacioli.num(pairs[i+1], aperture_distance_unit).convert(shellUnit)]
+                    tuples.push(Pacioli.tuple(tup));
+                }
+                initial_aperture = Pacioli.list(tuples)
+          }
+
+          // Create the initial shell
+          var shell = Pacioli.fun("Shells", "make_shell").call(
+              initial_aperture,
+              Pacioli.fun("Geometry", "space_vec").call(offset, Pacioli.num(0.0, shellUnit), Pacioli.num(0.0, shellUnit)),
+              Pacioli.fun("Geometry", "space_vec").call(outward, Pacioli.num(0.0, shellUnit), upward),
+              scale, orientation,
+              growth,
+              rotation_x, rotation_y, rotation_z,
+              ticks,
+              Pacioli.num(scaleFudge));
+
+          growthFactors = Pacioli.fun("Model", "growth_factors").call(Pacioli.num(params.growth.value), Pacioli.num(params.segments.value))
+          shell.info = Pacioli.fun("Model", "empty_shell_info").call(shell)
+
+          return shell
+      }
+
+      function orientUp(shell, space) {
+
+          // Find a point on the coiling axis and on the negative vertical axis 
+          var vec = Pacioli.vec2THREE(Pacioli.fun("Model", "axis_point").call(shell), shellUnit)
+          var direction = new THREE.Vector3(0, -1, 0);
+      
+          // Find rotation axis and angle from the point to the required direction
+          var axis = new THREE.Vector3().cross(vec, direction);
+          var angle = Math.atan2(axis.length(), direction.dot(vec));
+      
+          // Rotate the shell
+          space.rotateBody(axis, angle)                          
+      }
+
+      function fillFormFromUrl(form, urlParams) {
+          for (var i = 0; i < form.elements.length; i++) {
+              var element = form.elements[i];
+              if (element.tagName == "INPUT") {
+                  var param = getParameter(element.name, urlParams);
+                  if (param != undefined) {
+                      var matches = param.match(/([^a-zA-Z_]+)([a-zA-Z_]+)/);
+                      if (matches) {
+                          element.value = matches[1];
+                          var unitElement = form.elements[element.name + "_unit"];
+                          if (unitElement) {
+                              var options = unitElement.options;
+                              for (var k = 0; k < options.length; k++) {
+                                  if (options[k].text == matches[2]) {;
+                                      unitElement.value = options[k].value;
+                                  }
+                              }
+                          }
+                      } else {
+                          element.value = param;
+                      }
+                  }
+              } else if (element.tagName == "TEXTAREA") {
+                  var param = getParameter(element.name, urlParams);
+                  if (param != undefined) {
+                      element.value = param;
+                  }
+              }
+          }
+      }
+
+      function currentHRef(form) {
+          var table = [["offset", "offset_unit", 0],
+                       ["growth", ""],
+                       ["upward", "upward_unit"],
+                       ["outward", "outward_unit"],
+                       ["scale", "", 1],
+                       ["orientation", "orientation_unit", 0],
+                       ["rotation_x", "rotation_x_unit", 0],
+                       ["rotation_y", "rotation_y_unit", 0],
+                       ["rotation_z", "rotation_z_unit"],
+                       ["segments", ""],
+                       ["aperture", ""]];
+          var href = "shells.html";
+          var sep = "?";
+          for (var i = 0; i < table.length; i++) {
+              var name = table[i][0];
+              var unit = table[i][1];
+              var def = table[i][2];
+              var value = form.elements[name].value;
+              if (def == undefined || value != def) {
+                  href += sep + name + "=" + value;
+                  if (unit != "") {
+                      var unitElt = form.elements[unit];
+                      href += unitElt.options[unitElt.selectedIndex].text;
+                  }
+                  sep = "&";
+              }
+          }
+          return href;
+      }
+      
+      function appendOrReplaceCharts(shell, params) {    // params wegwerken!!!
+
+          var chartIds =  ['growth_factor',
+                           'aperture_area',
+                           'body_area',
+                           'body_area_cumulative',
+                           'body_volume',
+                           'body_volume_cumulative']
+
+           var chartNames =  ['growth factor',
+                             'aperture area',
+                             'body area growth',
+                             'body area',
+                             'body volume growth',
+                             'body volume']
+
+          var i2 = shell.info.untuple()
+          var chartData = [growthFactors,
+                           i2[0],
+                           i2[1],
+                           i2[2],
+                           i2[3],
+                           i2[4]]
+          var latest = Pacioli.fun("Model", "last_segment_info").call(shell.info).untuple()
+
+          for (var i = 0; i < chartIds.length; i++) {
+
+              var data = chartData[i]
+              var chart = new Pacioli.LineChart(document.getElementById(chartIds[i]), data)
+              var label = document.createElement("div")
+
+              label.className = "label"
+              label.appendChild(document.createTextNode(chartNames[i] + " = "));
+
+              if (0 < i) {
+                  // Experiment where the volume's unit is dynamically scaled when it exceeds 1000
+                  var num = latest[i-1]
+                  if (i !== 5) {
+                      label.appendChild(Pacioli.DOM(num));
+                  } else {
+                      var val = num
+                      if (1000 < val.number()) {
+                          val = val.convert(Pacioli.unit("centi", "metre").expt(3))
+                      }
+                      label.appendChild(Pacioli.DOM(val));
+                  }
+              }
+
+              chart.options.label = label
+              chart.draw()
+          }
+
+      }
+
+      /*
+       *  Utilities
+       */
+
+      function getParameter(paramName, urlParams) {
+          var result;
+          var params = urlParams.split("&");
+          for (var i = 0; i < params.length; i++) {
+              var val = params[i].split("=");
+              if (val[0] == paramName) {
+                  result = unescape(val[1]);
+              }
+          }
+          return result;
+      }
+
+      function getCSS(element, property) {
+          var elem = document.getElementById(element);
+          var css = null;
+
+          if(elem.currentStyle) {
+            css = elem.currentStyle[property];
+          } else if(window.getComputedStyle) {
+             css = document.defaultView.getComputedStyle(elem, null).
+                   getPropertyValue(property);
+          }
+          return css;
+      }
+
+    </script>
+
+    <script type="text/javascript" src="three.min.js"></script>
+    <script type="text/javascript" src="detector.js"></script>
+    <script type="text/javascript" src="d3.v2.js"></script>
+    <script type="text/javascript" src="numeric-1.2.6.js"></script>
+    <script type="text/javascript" src="pacioli-0.2.2.min.js"></script>
+    <script type="text/javascript" src="shells.js"></script>
+    <script type="text/javascript" src="csg.js"></script>
+
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-5527808-1']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+
+  </body>
+
+</hmtl>

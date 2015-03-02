@@ -1,0 +1,127 @@
+# ----------------------------------------------------------------------------
+# Shell Allometries
+#
+# An experiment on typed linear algebra for geometry based on:
+#
+# Urdy S, Goudemand N, Bucher H, Chirat R. 2010. Allometries and the
+# morphogenesis of the molluscan shell: a quantitative and theoretical
+# model. J. Exp. Zool.  (Mol. Dev. Evol.) 314B:280–302.
+#
+# The shell model is in file 'model.pacioli'. This file is mostly a small
+# wrapper around the model functions.
+#
+# Paul Griffioen 2012-2014
+# ----------------------------------------------------------------------------
+
+module Shells;
+
+include geometry;
+include si;
+include model;
+
+# ----------------------------------------------------------------------------
+# Unit Definitions
+# ----------------------------------------------------------------------------
+
+defunit millimetre "mm" = milli:metre;
+defunit pi "pi" = 3.141592653589793;
+defunit degree "deg" = pi/180;
+
+defalias shell_unit = milli:metre;
+
+# ----------------------------------------------------------------------------
+# Interface
+#
+# Function make_shell is called from shells.html. Is is a wrapper around
+# initial_shell that handles the initial aperture. Unfortunately it currently
+# fixes the unit here instead of in shells.html.
+#
+# Function shell_body is only used in the test below.
+# ----------------------------------------------------------------------------
+
+define make_shell(aperture, offset, displacement, roz, mu,
+                       growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
+  let coords = path_coords(aperture, |shell_unit|) in
+      initial_shell(coords, offset, displacement, roz, mu, growth_constant, theta_x, theta_y, theta_z, segments, fudge)
+  end;
+
+define shell_body(aperture, offset, displacement, roz, mu,
+                       growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
+  grow(make_shell(aperture, offset, displacement, roz, mu,
+                       growth_constant, theta_x, theta_y, theta_z, segments, fudge), segments);
+
+# ----------------------------------------------------------------------------
+# Apertures
+#
+# This interface provides convenience functions to create circular and
+# rectangular apertures. The Shell interface expects a list of
+# (angle, distance) pairs as initial aperture. Such pairs outline a
+# path in the x-z plane. The functions in this section create such
+# paths.
+#
+# Application circle_path(n, d) creates a circle of n line segments
+# each of lenght d. Call rectangle_path(w, h) creates a rectangle of
+# width w and height h.
+# ----------------------------------------------------------------------------
+
+declare circle_path :: for_unit a: (1, a) -> List(Tuple(radian, a));
+declare rectangle_path :: for_unit a: (a, a) -> List(Tuple(radian, a));
+declare path_coords :: for_unit a: (List(Tuple(radian, a)), a) -> List(Tuple(a, a));
+
+define circle_path(n, d) =
+  let angle = 2*pi*|radian|/n in
+    [tuple(a, d) | i <- naturals(n-1), a := if i = 0 then angle/2 else angle end]
+  end;
+
+define rectangle_path(w, h) =
+  let turn = pi*|radian|/2 in
+    [tuple(0*|radian|, h/2), tuple(turn, w), tuple(turn, h), tuple(turn, w)]
+  end;
+
+define path_coords(path, unit) =
+  begin
+      x := 0*unit;
+      y := 0*unit;
+      direction := 0*|radian|;
+      coords := [tuple(x,y)];
+      while path != [] do
+          (angle, distance) := head(path);
+          direction := direction + angle;
+          x := x + distance * sin(direction);
+          y := y + distance * cos(direction);
+          coords := cons(tuple(x, y), coords);
+          path := tail(path);
+      end
+      return coords;
+  end;
+
+# ----------------------------------------------------------------------------
+# A test
+# ----------------------------------------------------------------------------
+
+define my_path_a() = circle_path(17, 0.2*|shell_unit|);
+
+define my_path_b() = [tuple( 0.3*|radian|, 0.25*|shell_unit|),
+                      tuple( 0.6*|radian|, 0.25*|shell_unit|),
+                      tuple(-0.3*|radian|, 0.25*|shell_unit|),
+                      tuple( 0.6*|radian|, 1.25*|shell_unit|),
+                      tuple(-0.6*|radian|, 0.25*|shell_unit|),
+                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
+                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
+                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
+                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
+                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
+                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
+                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
+                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
+                      tuple( 0.3*|radian|, 0.25*|shell_unit|)];
+
+define my_path_c() = rectangle_path(0.5*|shell_unit|, 0.5*|shell_unit|);
+
+let 
+    deg = 2*pi*|radian|/360,
+    shell_vec(x, y, z) = space_vec(x*|shell_unit|, y*|shell_unit|, z*|shell_unit|)
+in
+    shell_body(my_path_a(), shell_vec(0, 0, 0), shell_vec(-0.05, 0, -0.02),
+                   1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, 2, 1)
+end;
