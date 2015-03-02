@@ -128,7 +128,7 @@ public class TypeContext extends AbstractPrintable {
 
     private static String quantified(String quantifier, List<String> names) {
         if (!names.isEmpty()) {
-            return quantifier + " " + Utils.intercalate(",", names) + ": ";
+            return quantifier + " " + Utils.intercalate(", ", names) + ": ";
         } else {
             return "";
         }

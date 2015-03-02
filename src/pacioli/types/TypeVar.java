@@ -54,6 +54,11 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
         active = true;
         this.quantifier = quantifier;
     }
+    
+    @Override
+    public Set<String> unitVecVarCompoundNames() {
+    	return new LinkedHashSet<String>();
+    }
 
     private TypeVar(String quantifier, String name, boolean active) {
         this.name = name;

@@ -26,7 +26,7 @@ include quad;
 # ----------------------------------------------------------------------------
 
 declare fourier_motzkin ::
-  for_index P,Q: for_unit a,u: (a*P!u per Q!) -> List(Q!);
+  for_index P,Q: for_unit a,P!u: (a*P!u per Q!) -> List(Q!);
 
 define fourier_motzkin(matrix) =
     let

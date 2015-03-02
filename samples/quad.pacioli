@@ -6,48 +6,64 @@ module Quad;
 # Paul Griffioen 2011-2013
 # ----------------------------------------------------------------------------
 
-deftype for_index P,Q: for_unit a,b,u,v:
-  Quad(a*P!u, b*Q!v) = Tuple(a*P!u, b*Q!v, P!, Q!);
+deftype for_index P,Q: for_unit a,b,P!u,Q!v:
+  Quad(a, P!u, b, Q!v) = Tuple(a*P!u, b*Q!v, P!, Q!);
 
 
-declare make_quad :: for_index P,Q: for_unit a,b,u,v:
-  (a*P!u, b*Q!v) -> Quad(a*P!u, b*Q!v);
+declare make_quad :: for_index P,Q: for_unit a,b,P!u,Q!v:
+  (a*P!u, b*Q!v) -> Quad(a, P!u, b, Q!v);
 
-declare quad_left :: for_index P,Q: for_unit a,b,u,v:
-  (Quad(a*P!u, b*Q!v)) -> a*P!u;
+declare quad_left :: for_index P,Q: for_unit a,b,P!u,Q!v:
+  (Quad(a, P!u, b, Q!v)) -> a*P!u;
 
-declare quad_right :: for_index P,Q: for_unit a,b,u,v:
-  (Quad(a*P!u, b*Q!v)) -> b*Q!v;
+declare quad_right :: for_index P,Q: for_unit a,b,P!u,Q!v:
+  (Quad(a, P!u, b, Q!v)) -> b*Q!v;
 
-declare scale_quad :: for_index P,Q: for_unit a,b,c,u,v:
-  (1, Quad(a*P!u, b*Q!v)) -> Quad(a*P!u, b*Q!v);
+declare scale_quad :: for_index P,Q: for_unit a,b,c,P!u,Q!v:
+  (1, Quad(a, P!u, b, Q!v)) -> Quad(a, P!u, b, Q!v);
 
-declare quad_magnitude :: for_index P,Q: for_unit a,b,u,v:
-  (Quad(a*P!u, b*Q!v), P) -> 1;
+declare quad_magnitude :: for_index P,Q: for_unit a,b,P!u,Q!v:
+  (Quad(a, P!u, b, Q!v), P) -> 1;
 
-declare quad_gcd :: for_index P,Q: for_unit a,b,u,v:
-  (Quad(a*P!u, b*Q!v)) -> 1;
+declare quad_gcd :: for_index P,Q: for_unit a,b,P!u,Q!v:
+  (Quad(a, P!u, b, Q!v)) -> 1;
 
-declare combine_quads :: for_index P,Q: for_unit a,b,u,v:
-  (1, Quad(a*P!u, b*Q!v), 1, Quad(a*P!u, b*Q!v)) -> Quad(a*P!u, b*Q!v);
+declare combine_quads :: for_index P,Q: for_unit a,b,P!u,Q!v:
+  (1, Quad(a, P!u, b, Q!v), 1, Quad(a, P!u, b, Q!v)) -> Quad(a, P!u, b, Q!v);
 
-declare support_sub :: for_index P,Q: for_unit a,b,u,v:
-  (Quad(a*P!u, b*Q!v), Quad(a*P!u, b*Q!v)) -> Boole();
+declare support_sub :: for_index P,Q: for_unit a,b,P!u,Q!v:
+  (Quad(a, P!u, b, Q!v), Quad(a, P!u, b, Q!v)) -> Boole();
 
-declare canonical :: for_index P,Q: for_unit a,b,u,v:
-  (Quad(a*P!u, b*Q!v)) -> Quad(a*P!u, b*Q!v);
+declare canonical :: for_index P,Q: for_unit a,b,P!u,Q!v:
+  (Quad(a, P!u, b, Q!v)) -> Quad(a, P!u, b, Q!v);
 
+declare quad_pos_count :: for_index P,Q: for_unit a,b,P!u,Q!v:
+  (Quad(a, P!u, b, Q!v)) -> P!;
 
-define make_quad(v,w) = tuple(v, w, support(v), support(w));
+declare quad_neg_count :: for_index P,Q: for_unit a,b,P!u,Q!v:
+  (Quad(a, P!u, b, Q!v)) -> P!;
 
-define quad_left(q) = let (v, _, _, _) = q in v end;
+# ----------------------------------------------------------------------------
+# Implementation
+# ----------------------------------------------------------------------------
 
-define quad_right(q) = let (_, w, _, _) = q in w end;
+define make_quad(v,w) =
+  tuple(v, w, support(v), support(w));
 
+define quad_left(q) =
+  let (v, _, _, _) = q in v end;
+
+define quad_right(q) =
+  let (_, w, _, _) = q in w end;
 
 define scale_quad(c, quad) =
   let (v, w, sv, sw) = quad in
     tuple(c c* v, c c* w, sv, sw)
+  end;
+
+define scale_quad_down(quad, c) =
+  let (v, w, sv, sw) = quad in
+    tuple(v /c c, w /c c, sv, sw)
   end;
 
 define quad_magnitude(quad, row) = 
@@ -61,6 +77,16 @@ define quad_gcd(quad) =
         gcd[get_num(w,i,_) | i <- row_domain(w)])
   end;
 
+define quad_pos_count(quad) =
+  let (v, _, _, _) = quad in
+    positive_support(v)
+  end;
+
+define quad_neg_count(quad) =
+  let (v, _, _, _) = quad in
+    negative_support(v)
+  end;
+
 define combine_quads(a, q, b, r) =
   let (q1, q2, _, _) = q,
       (r1, r2, _, _) = r
@@ -69,11 +95,11 @@ define combine_quads(a, q, b, r) =
   end;
 
 define support_sub(q, r) =
-  let (_, _, q3, q4) = q,
-      (_, _, r3, r4) = r
+  let (_, _, _, q4) = q,
+      (_, _, _, r4) = r
   in
-    q3 <= r3 and q4 <= r4
+    q4 <= r4
   end;
 
 define canonical(quad) =
-  scale_quad(1 / quad_gcd(quad), quad);
+  scale_quad_down(quad, quad_gcd(quad));

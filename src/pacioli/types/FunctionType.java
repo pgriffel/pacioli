@@ -64,6 +64,14 @@ public class FunctionType extends AbstractType {
     }
 
     @Override
+    public Set<String> unitVecVarCompoundNames() {
+        Set<String> all = new LinkedHashSet<String>();
+        all.addAll(domain.unitVecVarCompoundNames());
+        all.addAll(range.unitVecVarCompoundNames());
+        return all;
+    }
+    
+    @Override
     public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
         FunctionType otherType = (FunctionType) other;
         ConstraintSet constraints = new ConstraintSet();

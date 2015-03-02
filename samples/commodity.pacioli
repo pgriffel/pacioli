@@ -41,8 +41,8 @@ sales;
 
 amount;
 
-define p0 = project 0 from sales end;
-define p1 = project 1,0 from amount end;
+define p0 = project 0 from dollar * Commodity! % Year! % Region! in sales end;
+define p1 = project 1,0 from Commodity!unit % Year! % Region! in amount end;
 
 p0;
 

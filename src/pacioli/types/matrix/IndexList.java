@@ -86,7 +86,12 @@ public class IndexList extends AbstractType {
 		Set<TypeVar> vars = new LinkedHashSet<TypeVar>();
 		return vars;
 	}
-
+	
+    @Override
+    public Set<String> unitVecVarCompoundNames() {
+        return new LinkedHashSet<String>();
+    }
+    
 	@Override
 	public ConstraintSet unificationConstraints(PacioliType other)
 			throws PacioliException {

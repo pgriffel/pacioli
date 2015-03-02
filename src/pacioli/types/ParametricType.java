@@ -87,6 +87,15 @@ public class ParametricType extends AbstractType {
         }
         return all;
     }
+    
+    @Override
+    public Set<String> unitVecVarCompoundNames() {
+        Set<String> all = new LinkedHashSet<String>();
+        for (PacioliType type : args) {
+            all.addAll(type.unitVecVarCompoundNames());
+        }
+        return all;
+    }
 
     @Override
     public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {

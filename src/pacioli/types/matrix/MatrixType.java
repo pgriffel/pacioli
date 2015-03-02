@@ -24,6 +24,7 @@ package pacioli.types.matrix;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -270,7 +271,7 @@ public class MatrixType extends AbstractType {
         all.addAll(columnDimension.typeVars());
         return all;
     }
-
+    
     public static Set<TypeVar> unitVars(Unit unit) {
         Set<TypeVar> all = new LinkedHashSet<TypeVar>();
         for (Base base : unit.bases()) {
@@ -281,6 +282,25 @@ public class MatrixType extends AbstractType {
         return all;
     }
 
+    @Override
+    public Set<String> unitVecVarCompoundNames() {
+    	Set<String> names = new LinkedHashSet<String>();
+        names.addAll(dimensionUnitVecVarCompoundNames(rowDimension, rowUnit));
+        names.addAll(dimensionUnitVecVarCompoundNames(columnDimension, columnUnit));
+        return names;
+    }
+    
+    public Set<String> dimensionUnitVecVarCompoundNames(IndexType dimension, Unit unit) {
+    	Set<String> names = new HashSet<String>();
+        if (dimension.isVar()) {
+        	for (Base base: unit.bases()) {
+        		assert (base instanceof TypeVar);
+                names.add(dimension.varName() + "!" + base.toText());
+        	}
+        }
+        return names;
+    }
+    
     // These hacks are for MatrixTypeNode and for printing below 
     
     public List<Unit> rowBangUnitList() {
@@ -291,6 +311,7 @@ public class MatrixType extends AbstractType {
         return dimensionBangUnitList(columnDimension, columnUnit);
     }
 
+    
     private List<Unit> dimensionBangUnitList(final IndexType dimension, Unit unit) {
         List<Unit> units = new ArrayList<Unit>();
         if (dimension.isVar()) {
@@ -299,7 +320,8 @@ public class MatrixType extends AbstractType {
                     assert (base instanceof TypeVar);
                     //return new BangBase(dimension.toText(), base.toText(), 0);
                     //return new StringBase(dimension.varName() + "!" + base.toText());
-                    return new BangBase(dimension.varName(), base.toText(), 0);
+                    //return new BangBase(dimension.varName(), base.toText(), 0);
+                    return base;
                 }
             });
             if (candidate.equals(Unit.ONE)) {

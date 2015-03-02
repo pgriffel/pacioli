@@ -117,9 +117,17 @@ public class IndexType extends AbstractType {
 	@Override
 	public Set<TypeVar> typeVars() {
 		Set<TypeVar> vars = new LinkedHashSet<TypeVar>();
+		if (isVar()) {
+			vars.add((TypeVar) indexSet);
+		}
 		return vars;
 	}
 
+    @Override
+    public Set<String> unitVecVarCompoundNames() {
+        return new LinkedHashSet<String>();
+    }
+    
 	@Override
 	public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
 		IndexType otherType = (IndexType) other;

@@ -186,6 +186,32 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
 
     @Override
     public PacioliType unfresh() {
+    	    	
+    	// Replace all type variables by type variables named a, b, c, d, ...
+        Substitution map = new Substitution();
+        int character = 97; // character a
+        for (TypeVar var : typeVars()) {
+            map = map.compose(new Substitution(var, var.rename(String.format("%s", (char) character++))));
+        }
+        PacioliType unfreshType = applySubstitution(map);
+        
+        // Replace all unit vector variables by its name prefixed by the index set name.
+        map = new Substitution();
+        for (String name: unfreshType.unitVecVarCompoundNames()) {
+        	String[] parts = name.split("!");
+        	// FIXME
+        	// The assert fails for a type schema, because the variables are not refreshed and might
+        	// already contain !
+        	// assert(parts.length == 2);
+        	if (parts.length == 2) {
+        		map = map.compose(new Substitution(new TypeVar("for_unit", parts[1]), new TypeVar("for_unit", name)));
+        	}
+        }
+        return unfreshType.applySubstitution(map);
+
+    }
+    
+    public PacioliType unfreshOLD() {
         Substitution map = new Substitution();
         int counter = 97;
         for (TypeVar var : typeVars()) {

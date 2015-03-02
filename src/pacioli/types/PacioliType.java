@@ -64,5 +64,7 @@ public interface PacioliType extends Printable {
     public PacioliType unfreeze();
 
     public String compileToJS();
-    
+
+    // Hack to print unit vector properly compound in schema's 
+    public Set<String> unitVecVarCompoundNames();
 }

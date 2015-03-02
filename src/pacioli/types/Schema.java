@@ -26,6 +26,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
@@ -46,6 +47,7 @@ public class Schema extends AbstractType {
     public void printText(PrintWriter out) {
         new TypeContext(variables).printText(out);
         type.printText(out);
+        
     }
 
     @Override
@@ -60,6 +62,11 @@ public class Schema extends AbstractType {
         return freeVars;
     }
 
+    @Override
+    public Set<String> unitVecVarCompoundNames() {
+        return type.unitVecVarCompoundNames();
+    }
+    
     @Override
     public PacioliType instantiate() {
         Substitution map = new Substitution();

@@ -174,9 +174,12 @@ public class Pacioli {
             Pacioli.logln2("Loading module '%s'", file.getPath());
             program.load(file);
         
+            PrintWriter out = new PrintWriter(System.out);
+            program.write(out);
             StringWriter outputStream = new StringWriter();
             try {
 
+            	
                 Pacioli.logln2("Compiling module '%s'", file.getPath());
                 program.compileMVM(new PrintWriter(outputStream), settings);
 
@@ -292,7 +295,7 @@ public class Pacioli {
 
     private static void infoCommand(List<File> libs) {
 
-        logln("Pacioli v0.2.2");
+        logln("Pacioli v0.3.0");
 
         logln("\nSettings");
         logln("  verbosity=%s", verbosity);
@@ -316,7 +319,7 @@ public class Pacioli {
             }
 
         }
-        logln("\nPaul Griffioen 2013 - 2014");
+        logln("\nPaul Griffioen 2013 - 2015");
     }
 
     private static void helpCommand() {

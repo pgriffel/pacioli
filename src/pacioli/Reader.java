@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1353,7 +1355,9 @@ public class Reader {
             public ExpressionNode map(List<Pair<ExpressionNode, ExpressionNode>> rec,
                     ExpressionNode neg, Token end) {
                 ExpressionNode result = neg;
-                for (Pair<ExpressionNode, ExpressionNode> pair: rec) {
+                List<Pair<ExpressionNode, ExpressionNode>> rev = new ArrayList<Pair<ExpressionNode,ExpressionNode>>(rec);
+                Collections.reverse(rev);
+                for (Pair<ExpressionNode, ExpressionNode> pair: rev) {
                     result = new BranchNode(pair.a, pair.b, result,
                         pair.a.getLocation().join(
                         tokenLocation(end)));

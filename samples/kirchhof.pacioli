@@ -109,7 +109,7 @@ defunit decimals "decimals";
 declare check_kirchhof :: 
   (volt*Node!, ampere*Edge!, volt*Edge!, ampere*Node!) -> Tuple(decimals*Edge!, decimals*Node!);
 
-define decimals(x) = |decimals| c* -log(abs(magnitude(x)), 10);
+define decimal_places(x) = |decimals| c* -log(abs(magnitude(x)), 10);
 
 define check_kirchhof(potential, current, battery, inflow) =
   let
@@ -118,8 +118,8 @@ define check_kirchhof(potential, current, battery, inflow) =
     resistor_potential = current / conductance,
     effective_inflow = inflow - delta(ground) * inflow
   in
-    tuple(decimals(resistor_potential + potential_diff - battery), 
-          decimals(net_current - effective_inflow))
+    tuple(decimal_places(resistor_potential + potential_diff - battery), 
+          decimal_places(net_current - effective_inflow))
   end;
 
 let (potential, current) = solve_system(my_battery, my_inflow) in
