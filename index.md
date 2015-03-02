@@ -52,8 +52,8 @@ See the tutorials in the documentation section below for more examples.
 
 [shells]: shells
 [three]: http://threejs.org/
-[prog]: shells.pacioli
-[proglib]: model.pacioli
+[prog]: https://raw.githubusercontent.com/pgriffel/pacioli/master/samples/shells/shells.pacioli
+[proglib]: https://raw.githubusercontent.com/pgriffel/pacioli/master/samples/shells/model.pacioli
 
 
 Tutorials
