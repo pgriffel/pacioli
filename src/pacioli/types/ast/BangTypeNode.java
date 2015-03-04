@@ -59,6 +59,14 @@ public class BangTypeNode extends AbstractTypeNode {
         assert (unit == null || !unit.getName().contains("!"));
     }
 
+    public String indexSetName() {
+    	return indexSet.getName();
+    }
+    
+    public String unitVecName() {
+    	return unit == null ? "" :unit.getName();
+    }
+    
     @Override
     public void printText(PrintWriter out) {
         out.format("%s!%s", indexSet.getName(), unit == null ? "" : unit.getName());

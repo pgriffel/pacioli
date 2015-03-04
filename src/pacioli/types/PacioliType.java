@@ -58,13 +58,8 @@ public interface PacioliType extends Printable {
 
     public PacioliType unfresh();
 
-    // Hack to get one-sided unification for Parametric reduction
-    public PacioliType freeze();
-
-    public PacioliType unfreeze();
-
     public String compileToJS();
 
-    // Hack to print unit vector properly compound in schema's 
+    // Hack to print proper compound unit vector in schema's 
     public Set<String> unitVecVarCompoundNames();
 }

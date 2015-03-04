@@ -41,17 +41,14 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
     private static int counter = 0;
     private final String name;
     public final String quantifier;
-    public final boolean active;
 
     public TypeVar(String quantifier) {
         name = freshName();
-        active = true;
         this.quantifier = quantifier;
     }
 
     public TypeVar(String quantifier, String name) {
         this.name = name;
-        active = true;
         this.quantifier = quantifier;
     }
     
@@ -62,7 +59,6 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
 
     private TypeVar(String quantifier, String name, boolean active) {
         this.name = name;
-        this.active = active;
         this.quantifier = quantifier;
     }
 
@@ -90,12 +86,6 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
     @Override
     public void printText(PrintWriter out) {
         out.print(toText());
-        /*if (!name.isEmpty() && quantifier.equals("for_index")) {
-            String first = name.substring(0, 1);
-            out.print(first.toUpperCase() + name.substring(1));
-        } else {
-        	out.print(name);
-        }*/
     }
 
     @Override
@@ -142,17 +132,7 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
         if (equals(other)) {
             return new Substitution();
         } else {
-            // To ensure we do not lose the information that a variable is an index variable.
-            if (false && other instanceof TypeVar && ((TypeVar) other).quantifier.equals("for_type")) {
-            	if (this instanceof TypeVar && this.quantifier.equals("for_index")) {
-            		throw new RuntimeException("tada");
-            		//return new Substitution((TypeVar) other, this);
-            	} else {
-            		return new Substitution((TypeVar) other, this);
-            	}
-            } else {
-                return new Substitution(this, other);
-            }
+        	return new Substitution(this, other);
         }
     }
 
@@ -193,16 +173,6 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
     @Override
     public PacioliType unfresh() {
         return new TypeVar(quantifier, "a");
-    }
-
-    @Override
-    public PacioliType freeze() {
-        return changeActivation(false);
-    }
-
-    @Override
-    public PacioliType unfreeze() {
-        return changeActivation(true);
     }
 
 	@Override

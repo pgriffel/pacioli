@@ -63,7 +63,7 @@ public class Substitution extends AbstractPrintable {
         map = new HashMap<TypeVar, Object>(other.map);
     }
 
-    private Substitution(Map<TypeVar, Object> map) {
+    Substitution(Map<TypeVar, Object> map) {
         this.map = map;
     }
 
@@ -85,13 +85,8 @@ public class Substitution extends AbstractPrintable {
         if (type instanceof TypeVar) {
             if (map.containsKey((TypeVar) type)) {
                 Object obj = map.get((TypeVar) type);
-                //assert(obj instanceof PacioliType || obj instanceof Unit);
                 assert (obj instanceof PacioliType);
-                if (obj instanceof PacioliType) {
-                    return (PacioliType) obj;
-                } else {
-                    return null; //new UnitType((Unit) obj);
-                }
+                return (PacioliType) obj;
             } else {
                 return type;
             }

@@ -38,6 +38,7 @@ import pacioli.TypeContext;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 import pacioli.types.TypeVar;
+import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeNode;
@@ -68,16 +69,20 @@ public class TypeDefinition extends AbstractDefinition {
 
             List<PacioliType> types = new ArrayList<PacioliType>();
             for (TypeNode arg : app.getArgs()) {
-                types.add(arg.eval(reduce));
+            	if (arg instanceof TypeIdentifierNode) {
+            		types.add(arg.eval(reduce));	
+            	} else if (arg instanceof BangTypeNode) {
+            		types.add(arg.eval(reduce));	
+            	} else {
+            		throw new PacioliException(arg.getLocation(), "Type definition's lhs must be a unit variable or vector %s", arg.getClass());
+            	}
             }
 
-            //PacioliType lhsType = new ParametricType(app.getName(), types);
             PacioliType lhsType = new ParametricType(app.getName(), types);
 
             PacioliType rhsType = resolvedRhs.eval(true);
             if (lhsType instanceof ParametricType) {
-                ParametricType parametricLhs = (ParametricType) lhsType;
-                constraint = new TypeConstraint(parametricLhs, rhsType);
+                constraint = new TypeConstraint(app, rhsType);
             } else {
                 throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s", lhsType.toText());
             }

@@ -36,6 +36,3 @@ declare map_list :: for_type a,b: ((a) -> b, List(a)) -> List(b);
 declare reverse :: for_type a: (List(a)) -> List(a);
 declare sort_list :: for_type a: (List(a), (a, a) -> Boole()) -> List(a);
 declare contains :: for_type a: (List(a), a) -> Boole();
-#declare read_columns :: for_type a: (List(String())) -> a;
-declare read_columns :: for_type a, b: (String(), String(), a, b) -> List(a);
-declare read_columns_default :: for_type a: (a, List(String())) -> List(a);

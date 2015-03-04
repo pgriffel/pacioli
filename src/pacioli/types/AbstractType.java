@@ -45,8 +45,8 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         if (equals(other)) {
             return new Substitution();
         }
-
-        if (other instanceof TypeVar && ((TypeVar) other).active) {
+        
+        if (other instanceof TypeVar) {
             return new Substitution((TypeVar) other, this);
         }
 
@@ -72,7 +72,6 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         	}
             mgu = simplified.compose(mgu);
         }
-        //PacioliType result = mgu.apply(this);
         PacioliType result = applySubstitution(mgu);
         return result;
     }
@@ -83,7 +82,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         List<Base> fixedBases = new ArrayList<Base>();
 
         for (Base base : unit.bases()) {
-            if (base instanceof TypeVar && ((TypeVar) base).active && !ignore.contains((TypeVar) base)) {
+            if (base instanceof TypeVar && !ignore.contains((TypeVar) base)) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);
@@ -180,7 +179,6 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         for (TypeVar var : typeVars()) {
             map = map.compose(new Substitution(var, var.fresh()));
         }
-        //return map.apply(this);
         return applySubstitution(map);
     }
 
@@ -209,36 +207,5 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         }
         return unfreshType.applySubstitution(map);
 
-    }
-    
-    public PacioliType unfreshOLD() {
-        Substitution map = new Substitution();
-        int counter = 97;
-        for (TypeVar var : typeVars()) {
-            map = map.compose(new Substitution(var, var.rename(String.format("%s", (char) counter++))));
-        }
-        //return map.apply(this);
-        return applySubstitution(map);
-
-    }
-
-    @Override
-    public PacioliType freeze() {
-        Substitution map = new Substitution();
-        for (TypeVar var : typeVars()) {
-            map = map.compose(new Substitution(var, var.changeActivation(false)));
-        }
-        //return map.apply(this);
-        return applySubstitution(map);
-    }
-
-    @Override
-    public PacioliType unfreeze() {
-        Substitution map = new Substitution();
-        for (TypeVar var : typeVars()) {
-            map = map.compose(new Substitution(var, var.changeActivation(true)));
-        }
-        //return map.apply(this);
-        return applySubstitution(map);
     }
 }

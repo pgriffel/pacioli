@@ -45,6 +45,10 @@ public class IndexType extends AbstractType {
 		indexSet = type;
 	}
 
+	public PacioliType getIndexSet() {
+		return indexSet;
+	}
+	
 	public boolean isVar() {
 		return indexSet instanceof TypeVar;
 	}
@@ -176,5 +180,4 @@ public class IndexType extends AbstractType {
 	public List<Unit> simplificationParts() {
 		return indexSet.simplificationParts();
 	}
-
 }

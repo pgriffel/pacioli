@@ -128,7 +128,7 @@ public class ConstraintSet extends AbstractPrintable {
         List<Base> fixedBases = new ArrayList<Base>();
 
         for (Base base : unit.bases()) {
-            if (base instanceof TypeVar && ((TypeVar) base).active) {
+            if (base instanceof TypeVar) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);

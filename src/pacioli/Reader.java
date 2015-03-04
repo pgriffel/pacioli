@@ -295,13 +295,11 @@ public class Reader {
                 .many(),
                 Parsers.or(multiDeclarationParser(), definitionParser(),
                 functionDefinitionParser(), toplevelParser(),
-                defIndexParser(), 
-                defIndexExcelParser(), 
+                defIndexParser(),  
                 defunitVectorParser(),
                 defunitParser(), defbaseunitParser(),
                 defConversionParser(),
                 defTypeParser(), defAliasParser(),
-                defMatrixExcelParser(),
                 defMatrixParser()).many(),
                 new Map3<IdentifierNode, List<IdentifierNode>, List<Definition>, PacioliFile>() {
             public PacioliFile map(IdentifierNode name,
@@ -438,44 +436,6 @@ public class Reader {
         });
     }
 
-    private static Parser<Definition> defIndexExcelParser() {
-        return Parsers.sequence(
-                token("defindexExcel").next(EXPIDENTIFIER),
-                indexSetExcelParser(),
-                new Map2<IdentifierNode, List<String>, Definition>() {
-            public Definition map(final IdentifierNode id,
-                    final List<String> names) {
-                return new IndexSetDefinition(id.getLocation(), id,
-                        names);
-            }
-        }).followedBy(token(";"));
-    }
-
-    private static Parser<List<String>> indexSetExcelParser() {
-        return Parsers.sequence(
-                STRING.token(), STRING, IDENTIFIER, NUMBER,
-                new Map4<Token, String, String, ConstNode, List<String>>() {
-            public List<String> map(Token fileName,
-                    final String sheetName, final String column, final ConstNode rowNode) {
-
-                Integer row = Integer.parseInt(rowNode.valueString());
-
-                Pacioli.logln3("reading index set");
-                Pacioli.logln3("  file=%s", fileName);
-                Pacioli.logln3("  sheetName=%s", sheetName);
-                Pacioli.logln3("  row=%s", row);
-                Pacioli.logln3("  column=%s", column);
-
-                try {
-                    ExcelReader reader = new ExcelReader(fileName.toString());
-                    return reader.readIndexSet(sheetName, column, row);
-                } catch (Exception ex) {
-                    throw createException(tokenLocation(fileName).join(rowNode.getLocation()), ex.getLocalizedMessage());
-                }
-            }
-        });
-    }
-
     private static Parser<Definition> defunitVectorParser() {
         return Parsers
                 .sequence(
@@ -566,60 +526,6 @@ public class Reader {
                         typeNode, stringPairs);
                 return new ValueDefinition(id.getLocation()
                         .join(typeNode.getLocation()), id, body);
-            }
-        });
-    }
-
-    private static Parser<Definition> defMatrixExcelParser() {
-        return Parsers
-                .sequence(
-                token("defmatrixExcel").next(EXPIDENTIFIER),
-                token("::").next(typeParser()),
-                token("=")
-                .next(matrixExcelParser())
-                .followedBy(token(";")),
-                new Map3<IdentifierNode, TypeNode, List<Pair<List<String>, String>>, Definition>() {
-            public Definition map(
-                    final IdentifierNode id,
-                    final TypeNode typeNode,
-                    final List<Pair<List<String>, String>> stringPairs) {
-
-                ExpressionNode body = new MatrixLiteralNode(id
-                        .getLocation().join(
-                        typeNode.getLocation()),
-                        typeNode, stringPairs);
-
-                return new ValueDefinition(id.getLocation()
-                        .join(typeNode.getLocation()), id, body);
-            }
-        });
-    }
-
-    private static Parser<List<Pair<List<String>, String>>> matrixExcelParser() {
-        return Parsers.sequence(
-                STRING.token(), STRING, IDENTIFIER.many1(), NUMBER,
-                new Map4<Token, String, List<String>, ConstNode, List<Pair<List<String>, String>>>() {
-            public List<Pair<List<String>, String>> map(Token fileName,
-                    final String sheet, final List<String> columns, final ConstNode rowNode) {
-
-                Integer row = Integer.parseInt(rowNode.valueString());
-
-                Pacioli.logln3("reading matrix");
-                Pacioli.logln3("  file=%s", fileName);
-                Pacioli.logln3("  sheet=%s", sheet);
-                Pacioli.logln3("  row=%s", row);
-                Pacioli.logln3("  columns=%s", columns);
-
-                if (columns.size() < 2) {
-                    throw createException(rowNode.getLocation(), "Found %s column(s), but expteced at least two", columns.size());
-                }
-
-                try {
-                    ExcelReader reader = new ExcelReader(fileName.toString());
-                    return reader.readMatrix(sheet, columns, row);
-                } catch (Exception ex) {
-                    throw createException(tokenLocation(fileName).join(rowNode.getLocation()), ex.getLocalizedMessage());
-                }
             }
         });
     }
