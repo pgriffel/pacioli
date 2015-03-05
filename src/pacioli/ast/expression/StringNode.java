@@ -1,6 +1,7 @@
 package pacioli.ast.expression;
 
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -56,7 +57,15 @@ public class StringNode extends AbstractExpressionNode {
 
     @Override
     public String compileToJS() {
-        return toText();
+    	StringWriter writer = new StringWriter();
+    	writer.write("'");
+    	String[] lines = value.split("\n");
+    	for (String line: lines) {
+    		writer.write(line);
+    		writer.write("\\\n");
+    	}
+    	writer.write("'");
+    	return writer.toString();
     }
     
     @Override
