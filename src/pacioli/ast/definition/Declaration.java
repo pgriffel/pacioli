@@ -72,7 +72,7 @@ public class Declaration extends AbstractDefinition {
 	}
 
 	@Override
-	public String compileToJS() {
+	public String compileToJS(boolean boxed) {
 		
 		// Test for type code
 		

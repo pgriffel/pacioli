@@ -458,3 +458,50 @@ Pacioli.projectNumbers = function (numbers, shape, cols) {
     }
     return result
 }
+
+Pacioli.projectNumbersAlt = function (numbers, shape, cols) {
+
+    // Determine the projected shape
+    var projectedShape = shape.project(cols);
+    var m = projectedShape.nrRows();
+    var n = projectedShape.nrColumns();
+
+    // Determine which columns are not projected
+    var colsComp = [];
+    for (var i = 0; i < shape.rowOrder(); i++) {
+        if (cols.indexOf(i) == -1) {
+            colsComp.push(i);
+        }
+    }
+
+    // Determine the size of the complement coordinates index set.
+    var nrRows = shape.project(colsComp).nrRows();
+
+    // Create a map from the complement coordinates to the projected matrices.
+    // Matrix map(x) is the sum of all rows where the compound index contains x.
+    var map = new Map();
+    var coo = Pacioli.getCOONumbers(numbers)
+    var rows = coo[0]
+    var values = coo[2]
+    for (var i = 0; i < rows.length; i++) {
+        var coords = shape.rowCoordinates(rows[i])
+        var coordsComp = coords.project(colsComp).position();
+        var pos = coords.project(cols).position()
+        if (!map.has(coordsComp)) {
+            map.set(coordsComp, Pacioli.zeroNumbers(m, n))
+        }
+        var mat = map.get(coordsComp);
+        var sum = Pacioli.getNumber(mat, pos, 0)
+        Pacioli.set(mat, pos, 0, sum === undefined ? values[i] : sum + values[i])
+    }
+
+    // Turn the map into the desired list
+    var result = [];
+    map.forEach(function (value, key) {
+        var pair = Pacioli.tagKind([{kind: "coordinates", position: key, size: nrRows}, value], "tuple");
+        result.push(pair)
+    });
+
+    // Return the list
+    return Pacioli.tagKind(result, "list");
+}

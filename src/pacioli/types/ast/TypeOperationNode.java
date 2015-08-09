@@ -113,9 +113,9 @@ public class TypeOperationNode extends AbstractTypeNode {
     }
 
 	@Override
-	public String compileToJS() {
-		String leftJS = left.compileToJS();
-		String rightJS = right.compileToJS();
+	public String compileToJS(boolean boxed) {
+		String leftJS = left.compileToJS(false);
+		String rightJS = right.compileToJS(false);
 		if (operator == "multiply") {
 			return leftJS + ".mult(" + rightJS + ")";
 		} else if (operator == "divide") {

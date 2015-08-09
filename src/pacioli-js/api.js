@@ -33,6 +33,13 @@ Pacioli.value = function (module, name) {
                            Pacioli.lookupItem("global_" + module + "_" + name))
 }
 
+Pacioli.bvalue = function (module, name) {
+    alert('obsolete');
+    return new Pacioli.Box(Pacioli.lookupItem("u_global_" + module + "_" + name),
+                           Pacioli.lookupItem("b_global_" + module + "_" + name))
+//    return Pacioli.lookupItem("b_global_" + module + "_" + name);
+}
+
 Pacioli.fun = function (module, name) {
     return new Pacioli.Box(Pacioli.lookupItem("u_global_" + module + "_" + name),
                            Pacioli.lookupItem("global_" + module + "_" + name))
@@ -94,7 +101,8 @@ Pacioli.createCoordinates = function (pairs) {
         indexSets[i] = Pacioli.lookupItem(pairs[i][1])
     }
     var coords = new Pacioli.Coordinates(names, indexSets);
-    return {kind: "coordinates", position: coords.position(), size: coords.size()}
+    // added coords for b_Matrix_make_matrix
+    return {kind: "coordinates", position: coords.position(), size: coords.size(), coords: coords}
 }
 
 Pacioli.createCoordinatesType = function (pairs) {
@@ -133,6 +141,11 @@ Pacioli.oneNumbers = function (m, n) {
         }
     }
     return numbers;
+}
+
+Pacioli.oneMatrix = function (shape) {
+    return new Pacioli.Box(new Pacioli.Type("matrix", shape),
+                           Pacioli.oneNumbers(shape.nrRows(), shape.nrColumns()))
 }
 
 Pacioli.initialNumbers = function (m, n, data) {
@@ -197,27 +210,64 @@ Pacioli.fetchValue = function (home, name) {
     return Pacioli.lookupItem("global_" + home + "_" + name);
 }
 
+Pacioli.bfetchValue = function (home, name) {
+    return Pacioli.lookupItem("b_global_" + home + "_" + name);
+}
+
 Pacioli.fetchType = function (home, name) {
     return Pacioli.lookupType("global_" + home + "_" + name);
 }
 
+Pacioli.cache = {};
+
 Pacioli.lookupItem = function (full) {
-    if (window[full] == undefined) {
-        if (window["compute_" + full] == undefined) {
+    //var full = 'Pacioli.' + full;
+    if (Pacioli.cache[full] == undefined) {
+        //console.log(global['u_global_Shells_test']);
+        //console.log(global);
+        var nodeJs = typeof global !== 'undefined';
+        //if (nodeJs) { Pacioli.cache['u_global_Model_shell_unit'] = global['u_global_Model_shell_unit']; console.log('u_global_Model_shell_unit()') }
+        if (window[full]) {
+            Pacioli.cache[full] = window[full];
+        } else if (Pacioli[full]) {
+            Pacioli.cache[full] = Pacioli[full];
+        } else if (Pacioli["compute_" + full]) {
+            Pacioli.cache[full] = Pacioli["compute_" + full]();
+        } else if (nodeJs && global[full]) {
+            Pacioli.cache[full] = global[full];
+        } else if (window["compute_" + full]) {
+            Pacioli.cache[full] = window["compute_" + full]();
+        } else if (nodeJs && global["compute_" + full]) {
+            Pacioli.cache[full] = global["compute_" + full]();
+        } else {
             throw new Error("no function found to compute Pacioli item '" + full + "'");
         }
-        window[full] = window["compute_" + full]();
     }
-    return window[full];
+    return Pacioli.cache[full];
 }
 
 
 Pacioli.lookupType = function (full) {
-    if (window["u_" + full] == undefined) {
-        if (window["compute_" + "u_" + full] == undefined) {
-            throw new Error("no function found to compute Pacioli type '" + "u_" + full + "'");
-        }
-        window["u_"+ full] = window["compute_" + "u_" + full]();
-    }
-    return window["u_" + full];
+    return Pacioli.lookupItem("u_" + full);
 }
+
+//Pacioli.lookupItem = function (full) {
+//    if (window[full] == undefined) {
+//        if (window["compute_" + full] == undefined) {
+//            throw new Error("no function found to compute Pacioli item '" + full + "'");
+//        }
+//        window[full] = window["compute_" + full]();
+//    }
+//    return window[full];
+//}
+//
+//
+//Pacioli.lookupType = function (full) {
+//    if (window["u_" + full] == undefined) {
+//        if (window["compute_" + "u_" + full] == undefined) {
+//            throw new Error("no function found to compute Pacioli type '" + "u_" + full + "'");
+//        }
+//        window["u_"+ full] = window["compute_" + "u_" + full]();
+//    }
+//    return window["u_" + full];
+//}

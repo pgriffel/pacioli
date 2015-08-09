@@ -51,7 +51,7 @@ public abstract class AbstractTypeNode extends AbstractPrintable implements Type
     }
 
 	@Override
-	public String compileToJS() {
+	public String compileToJS(boolean boxed) {
 		throw new RuntimeException("Not implemented for this type of node (" + this.getClass() + "). Only matrix type nodes can be compiled.");
 	}
 	

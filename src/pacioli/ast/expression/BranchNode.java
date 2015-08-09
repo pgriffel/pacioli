@@ -102,8 +102,8 @@ public class BranchNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS() {
-        return String.format("(%s ? %s : %s)", test.compileToJS(), positive.compileToJS(), negative.compileToJS());
+    public String compileToJS(boolean boxed) {
+        return String.format("(%s ? %s : %s)", test.compileToJS(boxed), positive.compileToJS(boxed), negative.compileToJS(boxed));
     }
     
     @Override

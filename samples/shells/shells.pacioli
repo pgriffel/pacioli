@@ -118,10 +118,23 @@ define my_path_b() = [tuple( 0.3*|radian|, 0.25*|shell_unit|),
 
 define my_path_c() = rectangle_path(0.5*|shell_unit|, 0.5*|shell_unit|);
 
-let 
+define testShellsOnly(n) = 
+  let 
     deg = 2*pi*|radian|/360,
     shell_vec(x, y, z) = space_vec(x*|shell_unit|, y*|shell_unit|, z*|shell_unit|)
-in
+  in
     shell_body(my_path_a(), shell_vec(0, 0, 0), shell_vec(-0.05, 0, -0.02),
-                   1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, 2, 1)
-end;
+                   1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, n, 1)
+  end;
+
+define test(n) = 
+  let 
+    deg = 2*pi*|radian|/360,
+    shell_vec(x, y, z) = space_vec(x*|shell_unit|, y*|shell_unit|, z*|shell_unit|),
+    shell = shell_body(my_path_a(), shell_vec(0, 0, 0), shell_vec(-0.05, 0, -0.02),
+                         1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, n, 1)
+  in
+    extend_shell_info(shell, empty_shell_info(shell), n)
+  end;
+
+test(200);

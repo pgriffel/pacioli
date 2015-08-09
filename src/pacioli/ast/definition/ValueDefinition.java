@@ -135,35 +135,44 @@ public class ValueDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String compileToJS() {
+    public String compileToJS(boolean boxed) {
         //ExpressionNode transformedBody = resolvedBody.transformMutableVarRefs();
     	ExpressionNode transformedBody = resolvedBody.desugar();
         if (transformedBody instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformedBody;
             return String.format("\n" 
-            		+ "u_%s = function () {\n"
+            		+ "Pacioli.u_%s = function () {\n"
             		+ "    var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));\n"
             		+ "    var type = %s;\n"
             		+ "    return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));\n"
             		+ "}\n"
-            		+ "function %s (%s) {\n"
+            		+ "Pacioli.b_%s = function i(%s) {\n"
+            		+ "    return %s;\n" 
+            		+ "}\n"
+                        + "Pacioli.%s = function (%s) {\n"
             		+ "    return %s;\n" 
             		+ "}\n",
                     globalName(),
                     type.reduce().compileToJS(),
                     globalName(),
                     code.argsString(),
-                    code.expression.compileToJS());
+                    code.expression.compileToJS(true),
+                    globalName(),
+                    code.argsString(),
+                    code.expression.compileToJS(false));
         } else {
             return String.format("\n"
-            		+ "function compute_u_%s() {\n"
+            		+ "Pacioli.compute_u_%s = function () {\n"
             		+ "    return %s;\n"
             		+ "}\n"
-            		+ "function compute_%s() {\n  return %s;\n}\n",
+                        + "Pacioli.compute_%s = function () {\n  return %s;\n}\n"
+            		+ "Pacioli.compute_b_%s = function () {\n  return %s;\n}\n",
             		globalName(),
             		type.reduce().compileToJS(), //transformedBody.compileToJSShape(),
                     globalName(),
-                    transformedBody.compileToJS());
+                    transformedBody.compileToJS(false),
+                    globalName(),
+                    transformedBody.compileToJS(true));
         }
     }
 

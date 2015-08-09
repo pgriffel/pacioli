@@ -164,7 +164,7 @@ public class KeyNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS() {
+    public String compileToJS(boolean boxed) {
     	StringBuilder builder = new StringBuilder();
     	builder.append("Pacioli.createCoordinates([");
     	for (int i = 0; i < keys.size(); i++) {

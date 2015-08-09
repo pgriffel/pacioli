@@ -500,14 +500,14 @@ public class Program {
 	public void compileJS(PrintWriter out, CompilationSettings settings)
 			throws PacioliException {
 		for (Definition definition : dictionary.indexSetDefinitions()) {
-			out.println(definition.compileToJS());
+			out.println(definition.compileToJS(false));
 		}
 		for (Definition definition : orderedDefinitions(dictionary
 				.unitDefinitions())) {
-			out.println(definition.compileToJS());
+			out.println(definition.compileToJS(false));
 		}
 		for (Definition definition : dictionary.unitVectorDefinitions()) {
-			out.println(definition.compileToJS());
+			out.println(definition.compileToJS(false));
 		}
 		
 		
@@ -519,17 +519,17 @@ public class Program {
 		
 		for (Definition definition : dictionary.valueDefinitions()) {
 			if (definition.getModule() == main) {
-				out.println(definition.compileToJS());
+				out.println(definition.compileToJS(false));
 			} else {
-				out.println(definition.compileToJS());
+				out.println(definition.compileToJS(false));
 			}
 		}
 		
 		for (Declaration definition : dictionary.declarations()) {
 			if (definition.getModule() != main) {
-				out.println(definition.compileToJS());
+				out.println(definition.compileToJS(false));
 			} else {
-				out.println(definition.compileToJS());
+				out.println(definition.compileToJS(false));
 			}
 		}
 	}
@@ -582,7 +582,7 @@ public class Program {
 			out.print("Pacioli.print(new Pacioli.Box(");
 			out.print(definition.type.compileToJS());
 			out.print(", ");
-			out.print(definition.compileToJS());
+			out.print(definition.compileToJS(false));
 			out.print("))");
 			out.println("");
 		}

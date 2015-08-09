@@ -56,7 +56,7 @@ public class StringNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS() {
+    public String compileToJS(boolean boxed) {
     	StringWriter writer = new StringWriter();
     	writer.write("'");
     	String[] lines = value.split("\n");

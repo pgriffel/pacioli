@@ -90,7 +90,7 @@ public class ReturnNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS() {
+    public String compileToJS(boolean boxed) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     

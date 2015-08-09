@@ -33,11 +33,8 @@ var Pacioli = Pacioli || {};
 // -----------------------------------------------------------------------------
 
 Pacioli.PowerProduct = function (x) {
-    this.powers = {}
-    if (typeof x === 'number') {
-        this.factor = x
-    } else {
-        this.factor = 1;
+    this.powers = {};
+    if (x !== undefined) {
         this.powers[x] = 1;
     }
 }
@@ -46,8 +43,11 @@ Pacioli.PowerProduct.prototype.power = function (x) {
     return this.powers[x] || 0;
 }
 
-Pacioli.PowerProduct.prototype.equals = function (arg) {
-    var other = arg instanceof Pacioli.PowerProduct ? arg : new Pacioli.PowerProduct(arg)
+Pacioli.PowerProduct.prototype.equals = function (other) { //arg
+//    if (!(arg instanceof Pacioli.PowerProduct)) {
+//      alert('yo');
+//    }
+//    var other = arg instanceof Pacioli.PowerProduct ? arg : new Pacioli.PowerProduct(arg)
     for (var x in this.powers) {
         if (this.power(x) !== other.power(x)) {
             return false
@@ -71,7 +71,7 @@ Pacioli.PowerProduct.prototype.isDimensionless = function () {
 }
 
 Pacioli.PowerProduct.prototype.flat = function () {
-
+ alert('oeps');
     flatUnit = function (name) {
         var unit = Pacioli.fetchUnit(name)
         if (unit.definition === undefined) {
@@ -114,16 +114,15 @@ Pacioli.PowerProduct.prototype.toText = function () {
             text += '/' + base + '^' + -n;
         }
     }
-    if (this.factor === 1 && text[0] === '*') {
-        return text.substr(1)
-    } else if (this.factor === 1 && text === "") {
-        return ""
+    if (text === "") { //(text[0] === '*') {
+        return '1'; //text.substr(1)
     } else {
-        return this.factor + text;
+        return text;
     }
 }
 
 Pacioli.PowerProduct.prototype.toDOM = function () {
+  alert('oeps');
     var fragment = document.createDocumentFragment()
     fragment.appendChild(document.createTextNode(this.factor))
     var text = "";
@@ -159,6 +158,7 @@ Pacioli.PowerProduct.prototype.toDOM = function () {
             fragment.appendChild(sup)
         }
     }
+  alert('oeps');
     if (this.factor == 1 && 0 < firstPower) {
         fragment.removeChild(fragment.firstChild)
         fragment.removeChild(fragment.firstChild)
@@ -168,7 +168,7 @@ Pacioli.PowerProduct.prototype.toDOM = function () {
 }
 
 Pacioli.PowerProduct.prototype.mult = function (other) {
-    var result = new Pacioli.PowerProduct(this.factor*other.factor);
+    var result = new Pacioli.PowerProduct();
     for (var x in this.powers) {
         result.powers[x] = this.powers[x];
     }
@@ -179,7 +179,7 @@ Pacioli.PowerProduct.prototype.mult = function (other) {
 }
 
 Pacioli.PowerProduct.prototype.div = function (other) {
-    var result = new Pacioli.PowerProduct(this.factor/other.factor);
+    var result = new Pacioli.PowerProduct();
     for (var x in this.powers) {
         result.powers[x] = this.powers[x];
     }
@@ -190,7 +190,7 @@ Pacioli.PowerProduct.prototype.div = function (other) {
 }
 
 Pacioli.PowerProduct.prototype.reciprocal = function () {
-    var result = new Pacioli.PowerProduct(this.factor === 0 ? 0 : 1/this.factor);
+    var result = new Pacioli.PowerProduct();
     for (var x in this.powers) {
         result.powers[x] = -this.powers[x];
     }
@@ -198,7 +198,7 @@ Pacioli.PowerProduct.prototype.reciprocal = function () {
 }
 
 Pacioli.PowerProduct.prototype.expt = function (power) {
-    var result = new Pacioli.PowerProduct(Math.pow(this.factor, power));
+    var result = new Pacioli.PowerProduct();
     for (var x in this.powers) {
         result.powers[x] = this.powers[x] * power;
     } 
@@ -206,7 +206,7 @@ Pacioli.PowerProduct.prototype.expt = function (power) {
 }
 
 Pacioli.PowerProduct.prototype.map = function (fun) {
-    var result = new Pacioli.PowerProduct(this.factor);
+    var result = new Pacioli.PowerProduct();
     for (var x in this.powers) {
         var base = fun(x)
         var powerBase = base instanceof Pacioli.PowerProduct ? base : new Pacioli.PowerProduct(base)
@@ -233,6 +233,7 @@ Pacioli.PowerProduct.prototype.symbolized = function () {
 
 Pacioli.PowerProduct.prototype.conversionFactor = function (to) {
     var flat = this.div(to).flat()
+  alert('oeps');
     if (flat.isDimensionless()) {
         return flat.factor
     } else {

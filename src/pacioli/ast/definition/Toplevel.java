@@ -78,8 +78,8 @@ public class Toplevel extends AbstractDefinition {
 	}
 
 	@Override
-	public String compileToJS() {
-		return resolvedBody.compileToJS();
+	public String compileToJS(boolean boxed) {
+		return resolvedBody.compileToJS(false);
 	}
 
 	@Override

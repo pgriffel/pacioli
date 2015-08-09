@@ -121,8 +121,13 @@ public class LambdaNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS() {
-        return String.format("function (%s) { return %s; }", argsString(), expression.compileToJS());
+    public String compileToJS(boolean boxed) {
+        if (false && boxed) {
+            return String.format("new Pacioli.Box(null, function (%s) { return %s; })", 
+                    argsString(), expression.compileToJS(boxed));
+        } else {
+            return String.format("function (%s) { return %s; }", argsString(), expression.compileToJS(boxed));
+        }
     }
 
     public String argsString() {

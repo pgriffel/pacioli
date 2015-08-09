@@ -50,6 +50,6 @@ public interface TypeNode extends ASTNode {
 	 * 
 	 * @return
 	 */
-	public String compileToJS();
+	public String compileToJS(boolean boxed);
     
 }

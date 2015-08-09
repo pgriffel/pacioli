@@ -122,7 +122,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
     }
 
 	@Override
-	public String compileToJS() {
+	public String compileToJS(boolean boxed) {
 		
 		if (definition instanceof AliasDefinition) {
 			return "Pacioli.scalarShape(" + ((AliasDefinition) definition).getBody().compileToJS() + ")";

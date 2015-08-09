@@ -142,7 +142,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 	}
 
 	@Override
-	public String compileToJS() {
+	public String compileToJS(boolean boxed) {
 
 		StringBuilder builder = new StringBuilder();
 		String sep = "";
@@ -157,12 +157,14 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 			builder.append("]");
 			sep = ",";
 		}
-		
+		if (boxed) {
+                    throw new RuntimeException("matrix literal node ");
+                }		
 		return String.format("Pacioli.initialNumbers(%s, %s, [%s])", 
 				rowDim.size(),
 				columnDim.size(),
 				builder.toString());
-		
+        
 //		return String.format("Pacioli.initialMatrix(%s, [%s])", 
 //				typeNode.compileToJS(),
 //				builder.toString());

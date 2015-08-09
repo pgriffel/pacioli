@@ -149,9 +149,9 @@ public class ProjectionNode extends AbstractExpressionNode {
     }
     
     @Override
-    public String compileToJS() {
+    public String compileToJS(boolean boxed) {
     	assert(type != null);
-        return String.format("Pacioli.projectNumbers(%s, %s.param, [%s])", body.compileToJS(), type.compileToJS(), numString());
+        return String.format("Pacioli.projectNumbers(%s, %s.param, [%s])", body.compileToJS(boxed), type.compileToJS(), numString());
     }
     
     public String numString() {

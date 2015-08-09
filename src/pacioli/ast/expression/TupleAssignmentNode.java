@@ -135,8 +135,8 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS() {
-        return desugar().compileToJS();
+    public String compileToJS(boolean boxed) {
+        return desugar().compileToJS(boxed);
     }
 
     @Override

@@ -30,11 +30,11 @@ var Pacioli = Pacioli || {};
 // -----------------------------------------------------------------------------
 
 Pacioli.Shape = function (multiplier, rowSets, rowUnit, columnSets, columnUnit) {
-    this.multiplier = multiplier || Pacioli.unit(1)
+    this.multiplier = multiplier || Pacioli.unit()
     this.rowSets = rowSets || []
     this.columnSets = columnSets || []
-    this.rowUnit = rowUnit || Pacioli.unit(1)
-    this.columnUnit = columnUnit || Pacioli.unit(1)
+    this.rowUnit = rowUnit || Pacioli.unit()
+    this.columnUnit = columnUnit || Pacioli.unit()
 }
 
 Pacioli.Shape.prototype.toString = function () {
@@ -59,8 +59,20 @@ Pacioli.Shape.prototype.toText = function () {
     return text;
 }
 
+Pacioli.indexEqual = function (a, b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; ++i) {
+        if (a[i] !== b[i]) return false;
+    }
+    return true;
+}
+
 Pacioli.Shape.prototype.equals = function (other) {
-    return this.toText() === other.toText()
+    return this.multiplier.equals(other.multiplier) &&
+           Pacioli.indexEqual(this.rowSets, other.rowSets) &&
+           Pacioli.indexEqual(this.columnSets, other.columnSets) &&
+           this.rowUnit.equals(other.rowUnit) &&
+           this.columnUnit.equals(other.columnUnit);
 }
 
 Pacioli.Shape.prototype.isScalar = function () {
@@ -86,6 +98,12 @@ Pacioli.Shape.prototype.mult = function (other) {
 }
 
 Pacioli.Shape.prototype.dot = function (other) {
+    if (!Pacioli.indexEqual(this.columnSets, other.rowSets) && this.columnUnit.equals(other.rowUnit)) {
+        throw 'Shape ' + this.toText() + ' not compatible for dot product with shape ' + other.toText();
+    } 
+/*    if (!this.column().dim_inv().equals(other.row())) {
+        throw 'Shape ' + this.toText() + ' not compatible for dot product with shape ' + other.toText();
+    } */
     var result = new Pacioli.Shape();
     result.multiplier = this.multiplier.mult(other.multiplier)
     result.rowSets = this.rowSets

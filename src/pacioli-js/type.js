@@ -223,3 +223,65 @@ Pacioli.Type.prototype.dom = function () {
 Pacioli.Type.prototype.ran = function () {
     return this.param[1]
 }
+
+// Used in b_ primitives for performance experiment:
+
+Pacioli.Type.prototype.div = function (other) {
+    return new Pacioli.Type(this.kind, this.param.div(other.param));
+}
+
+Pacioli.Type.prototype.mult = function (other) {
+    return new Pacioli.Type(this.kind, this.param.mult(other.param));
+}
+
+Pacioli.Type.prototype.scale = function (other) {
+    return new Pacioli.Type(this.kind, this.param.scale(other.param));
+}
+
+Pacioli.Type.prototype.per = function (other) {
+    return new Pacioli.Type(this.kind, this.param.per(other.param));
+}
+
+Pacioli.Type.prototype.dot = function (other) {
+    return new Pacioli.Type(this.kind, this.param.dot(other.param));
+}
+
+Pacioli.Type.prototype.transpose = function () {
+    return new Pacioli.Type(this.kind, this.param.transpose());
+}
+
+Pacioli.Type.prototype.reciprocal = function () {
+    return new Pacioli.Type(this.kind, this.param.reciprocal());
+}
+
+Pacioli.Type.prototype.dim_inv = function () {
+    return new Pacioli.Type(this.kind, this.param.dim_inv());
+}
+
+Pacioli.Type.prototype.dimensionless = function () {
+    return new Pacioli.Type(this.kind, this.param.dimensionless());
+}
+
+Pacioli.Type.prototype.expt = function (n) {
+    return new Pacioli.Type(this.kind, this.param.expt(n));
+}
+
+Pacioli.Type.prototype.factor = function () {
+    return new Pacioli.Type(this.kind, this.param.factor());
+}
+
+Pacioli.Type.prototype.row = function () {
+    return new Pacioli.Type(this.kind, this.param.row());
+}
+
+Pacioli.Type.prototype.column = function () {
+    return new Pacioli.Type(this.kind, this.param.column());
+}
+
+Pacioli.Type.prototype.equals = function (other) {
+    return this.kind == other.kind && this.param.equals(other.param);
+}
+
+Pacioli.Type.prototype.leftIdentity = function () {
+    return new Pacioli.Type(this.kind, this.param.leftIdentity());
+}

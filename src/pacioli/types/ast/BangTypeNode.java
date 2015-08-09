@@ -109,7 +109,7 @@ public class BangTypeNode extends AbstractTypeNode {
     }
 
 	@Override
-	public String compileToJS() {
+	public String compileToJS(boolean boxed) {
 		return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s')", 
 				indexSet.getDefinition().getModule().getName(), 
 				indexSet.getName(), 

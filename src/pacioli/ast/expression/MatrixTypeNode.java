@@ -181,7 +181,7 @@ public class MatrixTypeNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS() {
+    public String compileToJS(boolean boxed) {
     	/*
         String row = "[1";
         for (int i = 0; i < nrColumns - 1; i++) {
@@ -198,7 +198,12 @@ public class MatrixTypeNode extends AbstractExpressionNode {
 
         return matrix;*/
     	//return "Pacioli.oneMatrix(" + typeNode.compileToJS() + ")";
-    	return "Pacioli.oneNumbers(" + rowDim.size() + ", " + columnDim.size() + ")";
+        if (boxed) {
+            //throw new RuntimeException("matrix type node ");
+            return "Pacioli.oneMatrix(" + typeNode.compileToJS(boxed) + ")";
+        } else {
+            return "Pacioli.oneNumbers(" + rowDim.size() + ", " + columnDim.size() + ")";
+        }
     	
     }
     

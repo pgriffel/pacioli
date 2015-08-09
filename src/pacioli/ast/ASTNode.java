@@ -36,7 +36,7 @@ public interface ASTNode extends Printable {
 
     public String compileToMVM(CompilationSettings settings);
 
-    public String compileToJS();
+    public String compileToJS(boolean boxed);
 
     public String compileToMATLAB();
 }

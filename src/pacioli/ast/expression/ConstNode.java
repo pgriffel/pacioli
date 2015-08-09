@@ -79,11 +79,15 @@ public class ConstNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS() {
+    public String compileToJS(boolean boxed) {
         if (value.equals("true") || value.equals("false")) {
             return String.format("%s", value);
         } else {
-            return String.format("Pacioli.initialNumbers(1, 1, [[0, 0, %s]])", value);
+            if (boxed) {
+                return String.format("Pacioli.num(%s)", value);
+            } else {
+                return String.format("Pacioli.initialNumbers(1, 1, [[0, 0, %s]])", value);
+            }
         }
     }
     

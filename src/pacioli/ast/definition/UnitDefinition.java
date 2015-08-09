@@ -114,7 +114,7 @@ public class UnitDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String compileToJS() {
+    public String compileToJS(boolean boxed) {
     	if (body == null) {
     		return String.format("function compute_%s () {return {symbol: '%s'}}", 
     				globalName(), symbol);

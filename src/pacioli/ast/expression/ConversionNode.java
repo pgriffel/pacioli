@@ -78,8 +78,8 @@ public class ConversionNode extends AbstractExpressionNode {
 	}
 
 	@Override
-	public String compileToJS() {
-		return String.format("Pacioli.conversionNumbers(%s)", typeNode.compileToJS());
+	public String compileToJS(boolean boxed) {
+		return String.format("Pacioli.conversionNumbers(%s)", typeNode.compileToJS(boxed));
 	}
 
 	@Override

@@ -318,7 +318,7 @@ Pacioli.BarChart.prototype.draw = function () {
            .attr("y", 6)
            .attr("dy", ".71em")
            .style("text-anchor", "end")
-           .text(this.options.label + " (" + unit.symbolized().toText() + ")");
+           .text(this.options.label + " [" + unit.symbolized().toText() + "]");
     
         svg.selectAll(".bar")
            .data(data)
@@ -431,7 +431,7 @@ Pacioli.Histogram.prototype.draw = function () {
            .attr("y", 26)
            .attr("dy", ".71em")
            .style("text-anchor", "end")
-           .text(label + " (" + unit.symbolized().toText() + ")");
+           .text(label + " [" + unit.symbolized().toText() + "]");
 
         // Add the y axis
         svg.append("g")
@@ -498,8 +498,8 @@ Pacioli.Histogram.prototype.onClick = function (lower, upper, max) {
         }
         filtered.kind = this.data.value.kind
         result = new Pacioli.Box(this.data.type, filtered)
-        console.log(this.data)
-        console.log(result)
+        //console.log(this.data)
+        //console.log(result)
     }
 
     // Show the filtered vector in a popup window    
@@ -534,8 +534,10 @@ Pacioli.ScatterPlot = function (parent, dataX, dataY, options) {
         width: 640,
         height: 360,
         margin: {left: 40, top: 20, right: 20, bottom: 50},
-        unit: null,
-        label: "",
+        xunit: null,
+        yunit: null,
+        labelX: "",
+        labelY: "",
         radius: 2.0,
         trendline: false
     }
@@ -547,21 +549,35 @@ Pacioli.ScatterPlot.prototype.draw = function () {
 
     try {
 
-        var unit = this.options.unit || Pacioli.dataUnit(this.dataX) // what about Pacioli.dataUnit(this.dataY)?
-        var dataX = Pacioli.transformData(this.dataX, unit)
-        var dataY = Pacioli.transformData(this.dataY, unit)
+        var unitX = this.options.xunit || Pacioli.dataUnit(this.dataX)
+        var unitY = this.options.yunit || Pacioli.dataUnit(this.dataY)
+//        var dataX = Pacioli.transformData(this.dataX, unitX)
+//        var dataY = Pacioli.transformData(this.dataY, unitY)
 
-        var data = []
-        for (var i = 0; i < dataX.values.length; i++) {
-            data[i] = {x: dataX.values[i], y: dataY.values[i]}
-        }
+//        var data = []
+//        for (var i = 0; i < dataX.values.length; i++) {
+//            data[i] = {x: dataX.values[i], y: dataY.values[i]}
+//        }
+        var data = Pacioli.mergeData(this.dataX, unitX, this.dataY, unitY)
+        var values = data.values
+        //console.log('options')
+                //console.log(this.options)
+        //console.log('values')
+    //console.log(data)
+    //for (var i = 0; i < values.length; i++) {
+      //  if (values[i].y < 0) console.log(values[i])
+    //}
 
 
         // Create an array with the bin tresholds and generate a scatterplot layout from it for the data
-        var lowerX = this.options.lowerX || dataX.min //d3.min(data)
-        var upperX = this.options.upperX || dataX.max //d3.max(data)
-        var lowerY = this.options.lowerY || dataY.min //d3.min(data)
-        var upperY = this.options.upperY || dataY.max //d3.max(data)
+        var lowerX = this.options.lowerX || data.minX // dataX.min //d3.min(data)
+        var upperX = this.options.upperX || data.maxX // dataX.max //d3.max(data)
+        var lowerY = this.options.lowerY || data.minY // dataY.min //d3.min(data)
+        var upperY = this.options.upperY || data.maxY // dataY.max //d3.max(data)
+
+        //console.log('maxmin')
+                //console.log(lowerY)
+                //console.log(upperY)
 
         // Determine the drawing dimensions
         var margin = this.options.margin
@@ -592,7 +608,7 @@ Pacioli.ScatterPlot.prototype.draw = function () {
 
     
         // Add the x axis
-        var label = this.options.label || vector.rowName() //vector.shape.rowSets.map(function (x) {return x.name})
+        var labelX = this.options.labelX || this.dataX.type.param.rowName()
         svg.append("g")
            .attr("class", "x axis")
            .attr("transform", "translate(0," + height + ")")
@@ -602,29 +618,37 @@ Pacioli.ScatterPlot.prototype.draw = function () {
            .attr("y", 26)
            .attr("dy", ".71em")
            .style("text-anchor", "end")
-           .text(label + "(" + data.length + ") (" + unit.symbolized().toText() + ")");
+           .text(labelX + " [" + unitX.symbolized().toText() + "] (n=" + values.length + ")");
 
         // Add the y axis
+        var labelY = this.options.labelY || this.dataY.type.param.rowName()
         svg.append("g")
            .attr("class", "y axis")
            .call(yAxis)
-//           .append("text")
-//           .attr("x", 20)
-//           .attr("dy", "-.71em")
-//           .style("text-anchor", "end")
-//           .text("Frequency");
+           .append("text")
+           .attr("x", 2)
+           .attr("dy", "-.71em")
+           //.style("text-anchor", "centers")
+           .text(labelY + " [" + unitY.symbolized().toText() + "]");
+           //.text("Frequency");
 
         var color = d3.scale.category20();     //builtin range of colors
 
         // Add dots for the data
         svg.selectAll(".dot")
-           .data(data)
+           .data(values)
            .enter().append("circle")
            .attr("class", "dot")
            .attr("r", this.options.radius)
            .attr("cx", function(d) { return x(d.x); })
            .attr("cy", function(d) { return y(d.y); })
-           .style("fill", function(d) { return color(d.species); });
+           //.attr("cy", function(d) { console.log( d.x + ' - ' + d.y); return d.y; })
+           //.attr("cy", function(d) { console.log( d.x + ' - ' + d.y); return y(d.y); })
+           //.attr("cy", function(d) { console.log( x(d.x) + '-' + y(d.y)); return y(d.y); })
+           //.attr("cy", function(d) { return y(d.y); })
+           .style("fill", function(d) { return color(d.species); })
+           .on("click", function (d, i) { alert(data.values[i].label) }.bind(this));
+//           .on("click", function (d, i) {this.onClick(d.x, d.x + d.dx, data.max)}.bind(this));
 
 //  var legend = svg.selectAll(".legend")
 //      .data(color.domain())
@@ -647,11 +671,23 @@ Pacioli.ScatterPlot.prototype.draw = function () {
 
         if (this.options.trendline) {
 
-            var lr = Pacioli.linearRegression(dataY.values,dataX.values)
+            var xs = []
+            var ys = []
+            var max, min
+            for (var i = 0; i < values.length; i++) {
+                var xi = values[i].x
+                var yi = values[i].y
+                xs.push(xi)
+                ys.push(yi)
+                if (max === undefined || max < xi) max = xi
+                if (min === undefined || xi < min) min = xi
 
-            var x1 = dataX.min
+            }
+            var lr = Pacioli.linearRegression(xs, ys)
+
+            var x1 = min
             var y1 = x1*lr.slope + lr.intercept
-            var x2 = dataX.max
+            var x2 = max
             var y2 = x2*lr.slope + lr.intercept
 
             svg.append("line")
@@ -664,7 +700,7 @@ Pacioli.ScatterPlot.prototype.draw = function () {
         }
 
     } catch (err) {
-        Pacioli.displayChartError(this.parent, "While drawing scatterplot '" + this.options.label + "':", err)
+        Pacioli.displayChartError(this.parent, "While drawing scatterplot '" + this.options.labelX + "':", err)
     }
 
     return this
@@ -672,7 +708,7 @@ Pacioli.ScatterPlot.prototype.draw = function () {
     };
 
 // from http://trentrichardson.com/2010/04/06/compute-linear-regressions-in-javascript/
-Pacioli.linearRegression = function (y,x){
+Pacioli.linearRegression = function (x,y){
 		var lr = {};
 		var n = y.length;
 		var sum_x = 0;
@@ -768,7 +804,7 @@ Pacioli.transformData = function (data, unit) {
     var vals = nums[2]
     for (var i = 0; i < rows.length; i++) {
             var factor = shape.unitAt(rows[i], 0).conversionFactor(unit)
-            var value = vals[i]
+            var value = vals[i] * factor
             values.push(value)
             labels.push(shape.rowCoordinates(rows[i]).shortText())
             if (max === undefined || max < value) max = value
@@ -795,5 +831,110 @@ Pacioli.transformData = function (data, unit) {
         labels: labels,
         max: max,
         min: min
+    }
+}
+
+
+Pacioli.mergeData = function (dataX, unitX, dataY, unitY) {
+
+    var values = []
+    var labels = [] // todo X and Y
+    var minX, maxX, minY, maxY
+
+    switch (dataX.type.kind) {
+    case "list":
+        throw "todo"
+        break;
+    case "matrix":
+        var numbersX = dataX.value
+        var numbersY = dataY.value
+        var shapeX = dataX.type.param
+        var shapeY = dataY.type.param
+
+        var numsX = Pacioli.getCOONumbers(numbersX)
+        var rowsX = numsX[0]
+        var columnsX = numsX[1]
+        var valsX = numsX[2]
+    
+        var numsY = Pacioli.getCOONumbers(numbersY)
+        var rowsY = numsY[0]
+        var columnsY = numsY[1]
+        var valsY = numsY[2]
+
+        var m = rowsX.length
+        var n = rowsY.length
+        var ptrX = 0
+        var ptrY = 0
+
+        while (ptrX < m && ptrY < n) {
+            rowX = rowsX[ptrX]
+            rowY = rowsY[ptrY]
+            if (rowX < rowY) {
+                //var factor = shapeX.unitAt(rowX, 0).conversionFactor(unitX)
+                var valueX = valsX[ptrX] * shapeX.unitAt(rowX, 0).conversionFactor(unitX)
+                if (valueX !== 0) {
+                values.push({x: valueX, y: 0, label: shapeX.rowCoordinates(rowX).shortText()})
+                if (minX === undefined || valueX < minX) minX = valueX
+                if (maxX === undefined || valueX > maxX) maxX = valueX
+                }
+                ptrX++
+            } else if (rowX > rowY) {
+                //var factor = shapeY.unitAt(rowY, 0).conversionFactor(unitY)
+                var valueY = valsY[ptrY] * shapeY.unitAt(rowY, 0).conversionFactor(unitY)
+                if (valueY !== 0) {
+                values.push({x: 0, y: valueY, label: shapeY.rowCoordinates(rowY).shortText()})
+                if (minY === undefined || valueY < minY) minY = valueY
+                if (maxY === undefined || valueY > maxY) maxY = valueY
+                }
+                ptrY++
+            } else {
+                //var factorX = shapeX.unitAt(rowX, 0).conversionFactor(unitX)
+                //var factorY = shapeY.unitAt(rowY, 0).conversionFactor(unitY)
+                var valueX = valsX[ptrX] * shapeX.unitAt(rowX, 0).conversionFactor(unitX)
+                var valueY = valsY[ptrY] * shapeY.unitAt(rowY, 0).conversionFactor(unitY)
+                if (valueX !== 0 && valueY !== 0) {
+                values.push({x: valueX, y: valueY, label: shapeX.rowCoordinates(rowX).shortText()})
+                if (minX === undefined || valueX < minX) minX = valueX
+                if (maxX === undefined || valueX > maxX) maxX = valueX
+                if (minY === undefined || valueY < minY) minY = valueY
+                if (maxY === undefined || valueY > maxY) maxY = valueY
+                }
+                ptrX++
+                ptrY++
+            }
+        }
+        while (ptrX < m) {
+            rowX = rowsX[ptrX]
+            //var factor = shapeX.unitAt(rowX, 0).conversionFactor(unitX)
+            var valueX = valsX[ptrX] * shapeX.unitAt(rowX, 0).conversionFactor(unitX)
+            if (valueX !== 0) {
+            values.push({x: valueX, y: 0, label: shapeX.rowCoordinates(rowX).shortText()})
+            if (minX === undefined || valueX < minX) minX = valueX
+            if (maxX === undefined || valueX > maxX) maxX = valueX
+            }
+            ptrX++
+        }
+        while (ptrY < n) {
+            rowY = rowsY[ptrY]
+            //var factor = shapeY.unitAt(rowY, 0).conversionFactor(unitY)
+            var valueY = valsY[ptrY] * shapeY.unitAt(rowY, 0).conversionFactor(unitY)
+            if (valueY !== 0) {
+            values.push({x: 0, y: valueY, label: shapeY.rowCoordinates(rowY).shortText()})
+            if (minY === undefined || valueY < minY) minY = valueY
+            if (maxY === undefined || valueY > maxY) maxY = valueY
+            }
+            ptrY++
+        }
+        break;
+    default:
+        throw "exptected a vector or a list of numbers but got a " + data.type.kind
+    }
+    return {
+        values: values,
+        labels: labels,
+        maxX: maxX,
+        minX: minX,
+        maxY: maxY,
+        minY: minY
     }
 }

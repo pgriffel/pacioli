@@ -78,8 +78,8 @@ public class TypePowerNode extends AbstractTypeNode {
 	}
 	
 	@Override
-	public String compileToJS() {
-		return base.compileToJS() + ".expt(" + power + ")";
+	public String compileToJS(boolean boxed) {
+		return base.compileToJS(false) + ".expt(" + power + ")";
 	}
 
 	@Override

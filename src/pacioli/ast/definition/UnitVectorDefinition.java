@@ -126,7 +126,7 @@ public class UnitVectorDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String compileToJS() {
+    public String compileToJS(boolean boxed) {
     	StringBuilder builder = new StringBuilder();
     	builder.append("function compute_").append(globalName()).append(" () {");
     	builder.append("return {units:{");

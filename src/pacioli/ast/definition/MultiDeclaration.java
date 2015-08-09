@@ -42,7 +42,7 @@ public class MultiDeclaration implements Definition {
 	}
 
 	@Override
-	public String compileToJS() {
+	public String compileToJS(boolean boxed) {
 		throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
 	}
 

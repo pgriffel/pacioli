@@ -98,8 +98,8 @@ public class IndexSetDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String compileToJS() {
-        String output = String.format("\nfunction compute_%s () {return Pacioli.makeIndexSet('%s', [", 
+    public String compileToJS(boolean boxed) {
+        String output = String.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', [", 
         		globalName(), localName());
         List<String> quotedItems = new ArrayList<String>();
         for (String item : items) {

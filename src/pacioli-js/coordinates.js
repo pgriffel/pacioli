@@ -99,11 +99,11 @@ Pacioli.Coordinates.prototype.equals = function (other) {
 
 Pacioli.Coordinates.prototype.shape = function () {
     var shape = new Pacioli.Shape();
-    shape.multiplier = Pacioli.unit(1)
+    shape.multiplier = Pacioli.unit()
     shape.rowSets = this.indexSets
     shape.columnSets = []
-    shape.rowUnit = Pacioli.unit(1)
-    shape.columnUnit = Pacioli.unit(1)
+    shape.rowUnit = Pacioli.unit()
+    shape.columnUnit = Pacioli.unit()
     return shape
 }
 
@@ -138,13 +138,13 @@ Pacioli.Coordinates.prototype.findIndividualUnit = function (unit) {
         if (parts[1] == order) {
             var vec = Pacioli.lookupItem('unitvec_' + parts[0]) 
             var pos = names[order]
-            return vec.units[pos] || Pacioli.unit(1)
+            return vec.units[pos] || Pacioli.unit()
         } else {
-            return Pacioli.unit(1)
+            return Pacioli.unit()
         }
     }
 
-    var newUnit = Pacioli.unit(1)
+    var newUnit = Pacioli.unit()
     for (var i = 0; i < this.order() ; i++) {
         newUnit = newUnit.mult(unit.map(function (base) {return vecBaseItem(base, i) }))
     }

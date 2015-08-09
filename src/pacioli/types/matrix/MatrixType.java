@@ -509,7 +509,7 @@ public class MatrixType extends AbstractType {
         if (rowDimension.isVar() || rowDimension.width() > 0) {
         	out.append(compileTypeUnitToJS(rowUnit)); 
         } else {
-        	out.append("new Pacioli.PowerProduct(1)");
+        	out.append("new Pacioli.PowerProduct()");
         }
         out.append(", ");
         out.append(columnDimension.compileToJS());
@@ -518,7 +518,7 @@ public class MatrixType extends AbstractType {
         if (columnDimension.isVar() || columnDimension.width() > 0) {
         	out.append(compileTypeUnitToJS(columnUnit));
         } else {
-        	out.append("new Pacioli.PowerProduct(1)");
+        	out.append("new Pacioli.PowerProduct()");
         }
         out.append(")");
         
@@ -535,7 +535,7 @@ public class MatrixType extends AbstractType {
 			n++;
 		}
 		if (n == 0) {
-			return "Pacioli.unit(1)";
+			return "Pacioli.unit()";
 		} else {
 			return product;
 		}

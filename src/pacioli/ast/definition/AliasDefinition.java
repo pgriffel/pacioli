@@ -62,7 +62,7 @@ public class AliasDefinition extends AbstractDefinition {
 	}
 
 	@Override
-	public String compileToJS() {
+	public String compileToJS(boolean boxed) {
 		throw new RuntimeException("todo");	
 	}
 
