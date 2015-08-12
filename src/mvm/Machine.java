@@ -22,7 +22,6 @@
 package mvm;
 
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -32,8 +31,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import mvm.ast.Application;
 import mvm.ast.ApplicationDebug;
@@ -58,7 +55,6 @@ import mvm.values.matrix.MatrixDimension;
 import mvm.values.matrix.MatrixShape;
 import mvm.values.matrix.UnitVector;
 
-import org.apache.poi.ss.formula.functions.Rows;
 import org.codehaus.jparsec.Parser;
 import org.codehaus.jparsec.Parsers;
 import org.codehaus.jparsec.Scanners;
@@ -73,6 +69,7 @@ import org.codehaus.jparsec.functors.Map4;
 import org.codehaus.jparsec.functors.Map5;
 import org.codehaus.jparsec.functors.Pair;
 import org.codehaus.jparsec.functors.Tuple3;
+import uom.DimensionedNumber;
 
 import uom.Fraction;
 import uom.NamedUnit;
@@ -2631,17 +2628,18 @@ public class Machine {
 	/*
 	 * Commands
 	 */
-	private Parser<Void> unitCommand(Parser<Unit> unitParser) {
-		return Parsers.sequence(token("unit"), STRING, STRING, unitParser,
-				new Map4<Token, String, String, Unit, Void>() {
-					public Void map(Token id, String name, String symbol,
+        
+        private Parser<Void> unitCommand(Parser<Unit> unitParser) {
+            return Parsers.sequence(token("unit"), STRING, STRING, DECIMAL, unitParser,
+				new Map5<Token, String, String, String, Unit, Void>() {
+					public Void map(Token id, String name, String symbol, String factor,
 							Unit body) {
-						unitSystem.addUnit(name, new NamedUnit(symbol, body));
+						unitSystem.addUnit(name, new NamedUnit(symbol, new DimensionedNumber(new BigDecimal(factor), body)));
 						return null;
 					}
 				});
 	}
-
+        
 	private Parser<Void> baseunitCommand() {
 		return Parsers.sequence(token("baseunit"), STRING, STRING,
 				new Map3<Token, String, String, Void>() {
@@ -3064,17 +3062,10 @@ public class Machine {
 		Parser<Unit> lazyExpr = reference.lazy();
 		Parser<Unit> parser = Parsers.or(unitPower(lazyExpr),
 				unitMult(lazyExpr), unitDiv(lazyExpr), unitScaled(),
-				unitNamed(), UNITNUMBER);
+				unitNamed());
 		reference.set(parser);
 		return parser;
 	}
-
-	private static final Parser<Unit> UNITNUMBER = DECIMAL
-			.map(new Map<String, Unit>() {
-				public Unit map(String num) {
-					return Unit.ONE.multiply(new BigDecimal(num));
-				}
-			});
 
 	public static Parser<Integer> signedInteger() {
 		return Parsers.or(DECIMAL.map(new Map<String, Integer>() {
@@ -3129,7 +3120,9 @@ public class Machine {
 		return token("unit").next(token("(")).next(STRING)
 				.followedBy(token(")")).map(new Map<String, Unit>() {
 					public Unit map(String name) {
-						if (unitSystem.congtainsUnit(name)) {
+						if (name.isEmpty()) {
+							return Unit.ONE;
+						} else if (unitSystem.congtainsUnit(name)) {
 							return unitSystem.lookupUnit(name);
 						} else {
 							throw createException("unit '%s' unknown", name);

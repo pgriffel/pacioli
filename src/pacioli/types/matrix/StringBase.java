@@ -89,10 +89,19 @@ public class StringBase extends BaseUnit implements TypeBase {
         return prefixText() + text;
     }
 
-	@Override
-	public String compileToJS() {
-		return (prefix == null)
-				? String.format("Pacioli.unit('%s')", text)
-				: String.format("Pacioli.unit('%s', '%s')", prefix, text);
-	}
+    @Override
+    public String compileToJS() {
+        return (prefix == null)
+            ? String.format("Pacioli.unit('%s')", text)
+            : String.format("Pacioli.unit('%s', '%s')", prefix, text);
+    }
+
+    @Override
+    public String compileToMVM() {
+        if (prefix == null) {
+            return "unit(\"" + text + "\")"; 
+        } else {
+            return "scaled_unit(\"" + prefix + "\", \"" + text + "\")";
+        }
+    }
 }

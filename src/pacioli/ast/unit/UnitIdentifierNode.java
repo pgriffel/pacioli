@@ -4,13 +4,12 @@ import java.io.PrintWriter;
 import java.util.HashSet;
 import java.util.Set;
 
-import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.ast.definition.Definition;
 import pacioli.types.matrix.StringBase;
-import uom.Unit;
+import uom.DimensionedNumber;
 
 public class UnitIdentifierNode extends AbstractUnitNode {
 
@@ -60,20 +59,11 @@ public class UnitIdentifierNode extends AbstractUnitNode {
 	}
 	
 	@Override
-	public Unit eval() {
+	public DimensionedNumber eval() {
 		if (prefix == null) {
-			return new StringBase(name);
+			return new DimensionedNumber(new StringBase(name));
 		} else {
-			return new StringBase(prefix, name);
-		}
-	}
-
-	@Override
-	public String compileToJS() {
-		if (prefix == null) {
-			return "Pacioli.unit('" + name + "')"; 
-		} else {
-			return "Pacioli.unit('" + prefix + "', '" + name + "')";
+			return new DimensionedNumber(new StringBase(prefix, name));
 		}
 	}
 
@@ -84,14 +74,4 @@ public class UnitIdentifierNode extends AbstractUnitNode {
         set.add(definition);
         return set;
 	}
-
-	@Override
-	public String compileToMVM(CompilationSettings settings) {
-		if (prefix == null) {
-			return "unit(\"" + name + "\")"; 
-		} else {
-			return "scaled_unit(\"" + prefix + "\", \"" + name + "\")";
-		}
-	}
-
 }

@@ -29,6 +29,9 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import pacioli.types.TypeBase;
+import uom.Base;
+import uom.Unit;
 
 public class Utils {
 
@@ -76,5 +79,41 @@ public class Utils {
         } finally {
             stream.close();
         }
+    }
+    
+    // Got to find a good place for the following two functions
+    
+    public static String compileUnitToJS(Unit unit) {
+            String product = "";
+            int n = 0;
+            for (Base base: unit.bases()) {
+                    TypeBase typeBase = (TypeBase) base;
+                    String baseText = typeBase.compileToJS() + ".expt(" + unit.power(base) + ")";
+                    product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
+                    n++;
+            }
+            if (n == 0) {
+                    return "Pacioli.unit()";
+            } else {
+                    return product;
+            }
+
+    }
+    
+    public static String compileUnitToMVM(Unit unit) {
+            String product = "";
+            int n = 0;
+            for (Base base: unit.bases()) {
+                    TypeBase typeBase = (TypeBase) base;
+                    String baseText = "unit_expt(" + typeBase.compileToMVM() + ", " + unit.power(base) + ")";
+                    product = n == 0 ? baseText : "unit_mult(" + baseText + ", " + product + ")";
+                    n++;
+            }
+            if (n == 0) {
+                    return "unit(\"\")";
+            } else {
+                    return product;
+            }
+
     }
 }

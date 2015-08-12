@@ -259,9 +259,6 @@ Pacioli.set = function (numbers, row, column, value) {
 }
 
 Pacioli.getNumber = function (numbers, row, column) {
-  if (numbers == undefined) {
-    alert('oeps')
-  }
     switch (numbers.storage) {
     case 0:
         return numbers[row][column]

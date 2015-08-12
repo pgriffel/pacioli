@@ -742,8 +742,6 @@ Pacioli.global_Matrix_solve = function (x, ignored) {
 }
 
 Pacioli.b_global_Matrix_solve = function (x, ignored) {
-    //var shape = x.type.param;
-    //var type = new Pacioli.Type(x.type.kind, shape.column().transpose().scale(shape.factor()));
     var type = x.type.column().dim_inv().per(ignored.type.column().dim_inv()).scale(x.type.factor()).scale(ignored.type.factor().reciprocal());
     return new Pacioli.Box(type, Pacioli.global_Matrix_solve(x.value, ignored));
 }

@@ -94,9 +94,6 @@ public class BangBase extends BaseUnit implements TypeBase {
     @Override
     public String toText() {
         return indexSetName.name + "!" + unitName.name;
-        //return unitName.name;
-        //return toString();
-    	//return String.format("('%s', '%s', '%s')", indexSetName(), unitName(), position);
     }
     
     public BangBase shift(int offset) {
@@ -135,12 +132,17 @@ public class BangBase extends BaseUnit implements TypeBase {
         });
     }
 
-	@Override
-	public String compileToJS() {
-		// todo: reconsider the .rowUnit trick
-		// DIT NEEMT AAN DAT position 0 is!?!?!?!?!?!?!?!
-		return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit", 
-				indexSetName.home, indexSetName.name, unitName.home, unitName.name);
-	}
+    @Override
+    public String compileToJS() {
+            // todo: reconsider the .rowUnit trick
+            // DIT NEEMT AAN DAT position 0 is!?!?!?!?!?!?!?!
+            return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit", 
+                            indexSetName.home, indexSetName.name, unitName.home, unitName.name);
+    }
+
+    @Override
+    public String compileToMVM() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
 }

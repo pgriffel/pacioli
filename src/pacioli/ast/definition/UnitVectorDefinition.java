@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import mvm.values.matrix.UnitVector;
 import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
@@ -39,10 +38,9 @@ import pacioli.PacioliException;
 import pacioli.Program;
 import pacioli.TypeContext;
 import pacioli.Utils;
-import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.types.ast.TypeIdentifierNode;
-import uom.Unit;
+import uom.DimensionedNumber;
 
 public class UnitVectorDefinition extends AbstractDefinition {
 
@@ -59,11 +57,11 @@ public class UnitVectorDefinition extends AbstractDefinition {
         this.items = items;
     }
 
-	@Override
-	public void addToProgram(Program program, PacioliFile module) {
-		setModule(module);
-		program.addUnitVectorDefinition(this, module);
-	}
+    @Override
+    public void addToProgram(Program program, PacioliFile module) {
+            setModule(module);
+            program.addUnitVectorDefinition(this, module);
+    }
     
     @Override
     public void printText(PrintWriter out) {
@@ -101,25 +99,12 @@ public class UnitVectorDefinition extends AbstractDefinition {
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        /*assert (unitArray != null);
         List<String> unitTexts = new ArrayList<String>();
-        for (int i = 0; i < unitArray.length; i++) {
-            unitTexts.add(unitArray[i].toText());
-        }
-        return String.format("\nunitvector \"%s\" \"%s\" list(%s);",
-                indexSetNode.getName(),
-                unitNode.getName(),
-                Utils.intercalate(", ", unitTexts));*/
-//        assert (unitArray != null);
-        List<String> unitTexts = new ArrayList<String>();
-//        for (int i = 0; i < unitArray.length; i++) {
-//            unitTexts.add(unitArray[i].toText());
-//        }
         for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
-        	unitTexts.add("\"" + entry.getKey() + "\": " + entry.getValue().compileToMVM(settings));
+            DimensionedNumber number = entry.getValue().eval();
+            unitTexts.add("\"" + entry.getKey() + "\": " + Utils.compileUnitToMVM(number.unit()));
         }
         return String.format("\nunitvector \"%s\" \"%s\" list(%s);",
-                //indexSetNode.getName(),
                 resolvedIndexSet.getDefinition().globalName(),
                 indexSetNode.getName()+"!"+unitNode.getName(),
                 Utils.intercalate(", ", unitTexts));
@@ -136,7 +121,7 @@ public class UnitVectorDefinition extends AbstractDefinition {
     		builder.append("'");
     		builder.append(entry.getKey());
     		builder.append("':");
-    		builder.append(entry.getValue().compileToJS());
+                builder.append(Utils.compileUnitToJS(entry.getValue().eval().unit()));
     		builder.append("");
     	}
     	builder.append("}}}");

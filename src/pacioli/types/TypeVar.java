@@ -23,10 +23,8 @@ package pacioli.types;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import pacioli.ConstraintSet;
@@ -188,4 +186,9 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
 	public PacioliType reduce() {
 		return this;
 	}
+
+    @Override
+    public String compileToMVM() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

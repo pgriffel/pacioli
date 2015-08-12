@@ -2,13 +2,12 @@ package pacioli.ast.unit;
 
 import java.util.Set;
 
-import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.ast.definition.Definition;
-import uom.Unit;
+import uom.DimensionedNumber;
 
 public interface UnitNode extends Printable {
 	
@@ -18,9 +17,5 @@ public interface UnitNode extends Printable {
 	
 	public Set<Definition> uses();
 	
-	public Unit eval();
-	
-	public String compileToJS();
-
-	public String compileToMVM(CompilationSettings settings);
+	public DimensionedNumber eval();
 }

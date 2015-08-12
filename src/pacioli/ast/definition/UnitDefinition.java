@@ -31,9 +31,10 @@ import pacioli.Location;
 import pacioli.PacioliFile;
 import pacioli.PacioliException;
 import pacioli.Program;
+import pacioli.Utils;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
-import uom.NamedUnit;
+import uom.DimensionedNumber;
 
 public class UnitDefinition extends AbstractDefinition {
 
@@ -56,22 +57,12 @@ public class UnitDefinition extends AbstractDefinition {
         this.body = body;
     }
 
-	@Override
-	public void addToProgram(Program program, PacioliFile module) {
-		setModule(module);
-		program.addUnitDefinition(this, module);
-	}
+    @Override
+    public void addToProgram(Program program, PacioliFile module) {
+            setModule(module);
+            program.addUnitDefinition(this, module);
+    }
 	
-    // todo: remove
-//    public NamedUnit getUnit() {
-//    	if (body == null) {
-//    		return new NamedUnit(symbol);
-//    	} else {
-//    		assert resolvedBody != null;
-//    		return new NamedUnit(symbol, resolvedBody.eval());
-//    	}
-//    }
-
     @Override
     public void printText(PrintWriter out) {
         out.format("unit definition %s = %s", id.toText(), body.toText());
@@ -108,22 +99,23 @@ public class UnitDefinition extends AbstractDefinition {
         if (body == null) {
             return String.format("baseunit \"%s\" \"%s\";\n", id.getName(), symbol);
         } else {
-            //return String.format("unit \"%s\" \"%s\" %s;\n", id.getName(), symbol, body.eval().flat().toText());
-        	return String.format("unit \"%s\" \"%s\" %s;\n", id.getName(), symbol, resolvedBody.compileToMVM(settings));
+            DimensionedNumber number = body.eval().flat();
+            return String.format("unit \"%s\" \"%s\" %s %s;\n", id.getName(), symbol, number.factor(), Utils.compileUnitToMVM(number.unit()));
         }
     }
 
     @Override
     public String compileToJS(boolean boxed) {
     	if (body == null) {
-    		return String.format("function compute_%s () {return {symbol: '%s'}}", 
+    		return String.format("Pacioli.compute_%s = function () {return {symbol: '%s'}}", 
     				globalName(), symbol);
     	} else {
-    		return String.format("function compute_%s () {return {definition: %s, symbol: '%s'}}", 
-    				globalName(), body.compileToJS(), symbol);
+            DimensionedNumber number = body.eval().flat();
+            return String.format("Pacioli.compute_%s = function () {return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}}", 
+    				globalName(), number.factor(), Utils.compileUnitToJS(number.unit()), symbol);
     	}
     }
-
+    
     @Override
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

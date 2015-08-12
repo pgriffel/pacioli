@@ -47,6 +47,7 @@ import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.StringBase;
 import uom.Base;
+import uom.DimensionedNumber;
 import uom.Unit;
 
 public class MatrixTypeNode extends AbstractExpressionNode {

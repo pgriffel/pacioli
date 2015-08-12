@@ -71,7 +71,7 @@ Pacioli.Space.prototype.copyOptions = function (options) {
         axisSize: options.axisSize || this.options.axisSize || 10,
         width: options.width || this.options.width || 640,
         height: options.height || this.options.height || 360,
-        unit: options.unit || this.options.unit || Pacioli.unit(1)
+        unit: options.unit || this.options.unit || Pacioli.unit()
     }
 }
 
@@ -212,7 +212,7 @@ Pacioli.Space.prototype.resize = function (width, height) {
 
 Pacioli.Space.prototype.showAxes = function () {
     if (this.axes === null) {
-        this.axes = newAxes(this.options.axisSize, this.options.unit.equals(1) ? "  " : " (" + this.options.unit.symbolized().toText() + ")");
+        this.axes = newAxes(this.options.axisSize, this.options.unit.isDimensionless() ? "  " : " (" + this.options.unit.symbolized().toText() + ")");
         this.scene.add(this.axes.object);
         this.draw()
     }

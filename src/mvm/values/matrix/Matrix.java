@@ -47,6 +47,7 @@ import org.apache.commons.math3.linear.SingularValueDecomposition;
 
 import pacioli.Pacioli;
 import uom.Base;
+import uom.DimensionedNumber;
 import uom.Unit;
 import uom.UnitMap;
 
@@ -476,7 +477,7 @@ public class Matrix extends AbstractPacioliValue {
         List<String> dst;
         Unit srcUnit;
         Unit dstUnit;
-        Unit unit;
+        DimensionedNumber number;
 
         for (int i = 0; i < nrRows; i++) {
 
@@ -489,9 +490,14 @@ public class Matrix extends AbstractPacioliValue {
 
                     srcUnit = getUnit(rowDimension(), shape.rowUnit, i);
                     dstUnit = getUnit(columnDimension(), shape.columnUnit, j);
-                    unit = (dstUnit.multiply(srcUnit.reciprocal())).flat();
+                    number = (dstUnit.multiply(srcUnit.reciprocal())).flat();
 
-                    if (!unit.bases().isEmpty()) {
+                    if (!number.unit().bases().isEmpty()) {
+                        throw new MVMException("Cannot project '%s' to '%s'",
+                                srcUnit.toText(), dstUnit.toText());
+                    }
+                    
+                    if (!number.factor().equals(BigDecimal.ONE)) {
                         throw new MVMException("Cannot project '%s' to '%s'",
                                 srcUnit.toText(), dstUnit.toText());
                     }
@@ -512,15 +518,15 @@ public class Matrix extends AbstractPacioliValue {
         }
 
         for (int i = 0; i < nrRows; i++) {
-            Unit unit = unitAt(i, i).reciprocal().flat();
-            if (!unit.bases().isEmpty()) {
+            DimensionedNumber number = unitAt(i, i).reciprocal().flat();
+            if (!number.unit().bases().isEmpty()) {
                 throw new MVMException("Cannot convert '%s'  (%s)",
-                        unit.toText(), unit.bases());
+                        number.toText(), number.unit().bases());
             } else {
-                Double num = unit.factor().doubleValue();
+                Double num = number.factor().doubleValue();
                 if (num == 0) {
                 	throw new MVMException("Zero conversion factor for '%s' '%s'  (%s)",
-                			unitAt(i, i).flat().reciprocal().toText(), unit.toText(), unit.bases());
+                			unitAt(i, i).flat().reciprocal().toText(), number.toText(), number.unit().bases());
                 }
                 numbers.setEntry(i, i, num);
             }
@@ -549,14 +555,14 @@ public class Matrix extends AbstractPacioliValue {
                 String num = "0";
 
                 if (i == j) {
-                    Unit unit = unitAt(i, j).reciprocal().flat();
-                    if (!unit.bases().isEmpty()) {
+                    DimensionedNumber number = unitAt(i, j).reciprocal().flat();
+                    if (!number.unit().bases().isEmpty()) {
                         throw new MVMException("Cannot convert '%s'  (%s)",
-                                unit.toText(), unit.bases());
+                                number.toText(), number.unit().bases());
                     } else {
 //                        Double num = unit.factor().doubleValue();
 //                        numbers.setEntry(i, i, num);
-                        num = unit.factor().toPlainString();
+                        num = number.factor().toPlainString();
                     }
 
 
@@ -595,14 +601,14 @@ public class Matrix extends AbstractPacioliValue {
                 String num = "0";
 
                 if (i == j) {
-                    Unit unit = unitAt(i, j).reciprocal().flat();
-                    if (!unit.bases().isEmpty()) {
+                    DimensionedNumber number = unitAt(i, j).reciprocal().flat();
+                    if (!number.unit().bases().isEmpty()) {
                         throw new MVMException("Cannot convert '%s'  (%s)",
-                                unit.toText(), unit.bases());
+                                number.toText(), number.unit().bases());
                     } else {
 //                        Double num = unit.factor().doubleValue();
 //                        numbers.setEntry(i, i, num);
-                        num = unit.factor().toPlainString();
+                        num = number.factor().toPlainString();
                     }
 
 

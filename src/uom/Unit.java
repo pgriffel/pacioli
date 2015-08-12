@@ -30,17 +30,15 @@ public interface Unit {
 
     public Fraction power(Base base);
 
-    public BigDecimal factor();
-
     public Unit multiply(Unit other);
 
-    public Unit multiply(BigDecimal factor);
+    public DimensionedNumber multiply(BigDecimal factor);
 
     public Unit raise(Fraction power);
 
     public Unit reciprocal();
     
-    public Unit flat();
+    public DimensionedNumber flat();
 
     /**
      * A textual representation suitable for users.

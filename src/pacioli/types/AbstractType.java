@@ -22,15 +22,11 @@
 package pacioli.types;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import pacioli.AbstractPrintable;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import uom.Base;
@@ -113,7 +109,8 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
             TypeVar var = (TypeVar) varBases.get(0);
             assert (unit.power(var).isInt());
             int power = unit.power(var).intValue();
-            Unit residu = Unit.ONE.multiply(unit.factor());
+            //Unit residu = Unit.ONE.multiply(unit.factor());
+            Unit residu = Unit.ONE;
 
             for (Base fixed : fixedBases) {
                 assert (unit.power(fixed).isInt());
@@ -124,7 +121,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
             return new Substitution(var, var.multiply(residu));
         }
 
-        Unit rest = Unit.ONE.multiply(unit.factor());
+        Unit rest = Unit.ONE;
         for (Base var : unit.bases()) {
             if (!var.equals(minVar)) {
                 assert (unit.power(var).isInt());

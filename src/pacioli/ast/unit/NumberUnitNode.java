@@ -5,10 +5,10 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
-import pacioli.CompilationSettings;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.ast.definition.Definition;
+import uom.DimensionedNumber;
 import uom.Unit;
 
 public class NumberUnitNode extends AbstractUnitNode {
@@ -36,17 +36,7 @@ public class NumberUnitNode extends AbstractUnitNode {
 	}
 
 	@Override
-	public Unit eval() {
+	public DimensionedNumber eval() {
 		return Unit.ONE.multiply(new BigDecimal(number));
-	}
-    
-	@Override
-	public String compileToJS() {
-		return "Pacioli.unit(" + number + ")";
-	}
-
-	@Override
-	public String compileToMVM(CompilationSettings settings) {
-		return number;
 	}
 }

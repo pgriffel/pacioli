@@ -43,11 +43,7 @@ Pacioli.PowerProduct.prototype.power = function (x) {
     return this.powers[x] || 0;
 }
 
-Pacioli.PowerProduct.prototype.equals = function (other) { //arg
-//    if (!(arg instanceof Pacioli.PowerProduct)) {
-//      alert('yo');
-//    }
-//    var other = arg instanceof Pacioli.PowerProduct ? arg : new Pacioli.PowerProduct(arg)
+Pacioli.PowerProduct.prototype.equals = function (other) {
     for (var x in this.powers) {
         if (this.power(x) !== other.power(x)) {
             return false
@@ -71,29 +67,31 @@ Pacioli.PowerProduct.prototype.isDimensionless = function () {
 }
 
 Pacioli.PowerProduct.prototype.flat = function () {
- alert('oeps');
+
     flatUnit = function (name) {
         var unit = Pacioli.fetchUnit(name)
         if (unit.definition === undefined) {
-            return new Pacioli.PowerProduct(name)
+            return new Pacioli.DimensionedNumber(1, new Pacioli.PowerProduct(name));
         } else {
-            return unit.definition.flat()
+            return unit.definition.flat();
         }
     }
 
-    return this.map(function (base) {
+    var num = new Pacioli.DimensionedNumber();
+    for (var base in this.powers) {
         var names = base.split('$')
         if (names.length === 1) {
-            return flatUnit(base)
+            num = num.mult(flatUnit(base).expt(this.power(base)));
         } else {
             var prefix = Pacioli.prefix[names[0]]
             if (prefix === undefined) {
                 throw new Error("prefix '" + names[0] + "' unknown")
             } else {
-                return new Pacioli.PowerProduct(prefix.factor).mult(flatUnit(names[1]))
+                num = num.mult(new Pacioli.DimensionedNumber(prefix.factor).mult(flatUnit(names[1])).expt(this.power(base)));
             }
         }
-    })
+    }
+    return num;
 }
 
 Pacioli.PowerProduct.prototype.toText = function () {
@@ -114,15 +112,17 @@ Pacioli.PowerProduct.prototype.toText = function () {
             text += '/' + base + '^' + -n;
         }
     }
-    if (text === "") { //(text[0] === '*') {
-        return '1'; //text.substr(1)
+    if (text === "") {
+        return '1';
+    } else if (text[0] === '*') {
+        return text.substr(1);
     } else {
         return text;
     }
 }
 
 Pacioli.PowerProduct.prototype.toDOM = function () {
-  alert('oeps');
+
     var fragment = document.createDocumentFragment()
     fragment.appendChild(document.createTextNode(this.factor))
     var text = "";
@@ -158,8 +158,8 @@ Pacioli.PowerProduct.prototype.toDOM = function () {
             fragment.appendChild(sup)
         }
     }
-  alert('oeps');
-    if (this.factor == 1 && 0 < firstPower) {
+
+    if (0 < firstPower) {
         fragment.removeChild(fragment.firstChild)
         fragment.removeChild(fragment.firstChild)
     } 
@@ -233,10 +233,9 @@ Pacioli.PowerProduct.prototype.symbolized = function () {
 
 Pacioli.PowerProduct.prototype.conversionFactor = function (to) {
     var flat = this.div(to).flat()
-  alert('oeps');
     if (flat.isDimensionless()) {
         return flat.factor
     } else {
-        throw new Error("cannot convert unit '" + this.toText() + "' to unit '" + to.toText() + "'")
+        throw new Error("cannot convert unit '" + this.toText() + "' to unit '" + to.toText() + "'" + flat.toText())
     }
 }

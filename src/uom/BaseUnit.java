@@ -44,18 +44,13 @@ public abstract class BaseUnit implements Base {
     }
 
     @Override
-    public BigDecimal factor() {
-        return BigDecimal.ONE;
-    }
-
-    @Override
     public Unit multiply(Unit other) {
         PowerProduct me = new PowerProduct(this);
         return me.multiply(other);
     }
 
     @Override
-    public Unit multiply(BigDecimal other) {
+    public DimensionedNumber multiply(BigDecimal other) {
         PowerProduct me = new PowerProduct(this);
         return me.multiply(other);
     }
@@ -72,8 +67,8 @@ public abstract class BaseUnit implements Base {
     }
 
     @Override
-    public Unit flat() {
-        return this;
+    public DimensionedNumber flat() {
+        return new DimensionedNumber(this);
     }
 
     @Override

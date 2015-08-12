@@ -233,7 +233,7 @@ Pacioli.DOMmatrixTable = function(matrix) {
         var fragment = document.createDocumentFragment()
         var unit = shape.unitAt(0, 0)
         fragment.appendChild(document.createTextNode(matrix.getNumber(0, 0).toFixed(2)))
-        if (!unit.equals(1)) {
+        if (!unit.isDimensionless()) {
             fragment.appendChild(document.createTextNode(" "))
             fragment.appendChild(unit.symbolized().toDOM())
         }

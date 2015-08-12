@@ -23,23 +23,18 @@ package pacioli.types.matrix;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.Utils;
-import pacioli.ast.expression.ConstNode;
 import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
-import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
-import pacioli.types.ast.BangTypeNode;
 import uom.Base;
 import uom.Fraction;
 import uom.Unit;
@@ -48,23 +43,16 @@ import uom.UnitMap;
 public class MatrixType extends AbstractType {
 
     public final Unit factor;
-    //public final PacioliType rowDimension;
-    //public final PacioliType columnDimension;
     public final IndexType rowDimension;
     public final IndexType columnDimension;
     public final Unit rowUnit;
     public final Unit columnUnit;
 
     private MatrixType(Unit factor,
-            //PacioliType rowDimension,
-    		IndexType rowDimension,
+            IndexType rowDimension,
             Unit rowUnit,
-            //PacioliType columnDimension,
             IndexType columnDimension,
             Unit columnUnit) {
-        /*if (!((rowDimension instanceof DimensionType) || (rowDimension instanceof TypeVar))) {
-            throw new RuntimeException("oeps:" + rowDimension.getClass());
-        }*/
         this.factor = factor;
         this.rowDimension = rowDimension;
         this.rowUnit = rowUnit;
@@ -495,55 +483,38 @@ public class MatrixType extends AbstractType {
 
     }
 	
-	@Override
-	public String compileToJS() {
-		
-		StringBuilder out = new StringBuilder();
-		
-		out.append("Pacioli.createMatrixType(");
-        out.append(compileTypeUnitToJS(factor));
+    @Override
+    public String compileToJS() {
+
+        StringBuilder out = new StringBuilder();
+
+        out.append("Pacioli.createMatrixType(");
+        out.append(Utils.compileUnitToJS(factor));
         out.append(", ");
         out.append(rowDimension.compileToJS());
-    	if (!rowDimension.isVar()) out.append(".param");
+        if (!rowDimension.isVar()) out.append(".param");
         out.append(", ");
         if (rowDimension.isVar() || rowDimension.width() > 0) {
-        	out.append(compileTypeUnitToJS(rowUnit)); 
+                out.append(Utils.compileUnitToJS(rowUnit)); 
         } else {
-        	out.append("new Pacioli.PowerProduct()");
+                out.append("new Pacioli.PowerProduct()");
         }
         out.append(", ");
         out.append(columnDimension.compileToJS());
-    	if (!columnDimension.isVar()) out.append(".param");
+        if (!columnDimension.isVar()) out.append(".param");
         out.append(", ");
         if (columnDimension.isVar() || columnDimension.width() > 0) {
-        	out.append(compileTypeUnitToJS(columnUnit));
+                out.append(Utils.compileUnitToJS(columnUnit));
         } else {
-        	out.append("new Pacioli.PowerProduct()");
+                out.append("new Pacioli.PowerProduct()");
         }
         out.append(")");
-        
+
         return out.toString();
-	}
+    }
 	
-	private String compileTypeUnitToJS(Unit unit) {
-		String product = "";
-		int n = 0;
-		for (Base base: unit.bases()) {
-			TypeBase typeBase = (TypeBase) base;
-			String baseText = typeBase.compileToJS() + ".expt(" + unit.power(base) + ")";
-			product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
-			n++;
-		}
-		if (n == 0) {
-			return "Pacioli.unit()";
-		} else {
-			return product;
-		}
-
-	}
-
-	@Override
-	public PacioliType reduce() {
-		return this;
-	}
+    @Override
+    public PacioliType reduce() {
+            return this;
+    }
 }

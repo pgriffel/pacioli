@@ -1,6 +1,7 @@
 package pacioli.ast.definition;
 
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.util.Set;
 
 import pacioli.CompilationSettings;
@@ -11,6 +12,8 @@ import pacioli.PacioliException;
 import pacioli.Program;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
+import uom.DimensionedNumber;
+import uom.Unit;
 
 public class AliasDefinition extends AbstractDefinition {
 
@@ -69,6 +72,14 @@ public class AliasDefinition extends AbstractDefinition {
 	@Override
 	public String compileToMATLAB() {
 		throw new RuntimeException("todo");	
+	}
+
+        public Unit evalBody() {
+            DimensionedNumber number = getBody().eval();
+            if (!number.factor().equals(BigDecimal.ONE)) {
+                throw new RuntimeException("Unexpected number in unit alias");
+            }
+            return number.unit();
 	}
 
 }

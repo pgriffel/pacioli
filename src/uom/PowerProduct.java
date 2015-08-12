@@ -22,8 +22,6 @@
 package uom;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -35,22 +33,18 @@ import java.util.Set;
 public class PowerProduct implements Unit {
 
     private final HashMap<Base, Fraction> powers;
-    private final BigDecimal factor;
 
     public PowerProduct() {
         powers = new HashMap<Base, Fraction>();
-        factor = BigDecimal.ONE;
     }
 
     public PowerProduct(Base base) {
         powers = new HashMap<Base, Fraction>();
         powers.put(base, Fraction.ONE);
-        factor = BigDecimal.ONE;
     }
 
-    private PowerProduct(HashMap<Base, Fraction> map, BigDecimal factor) {
+    private PowerProduct(HashMap<Base, Fraction> map) {
         powers = map;
-        this.factor = factor;
     }
 
     public Set<Base> bases() {
@@ -69,14 +63,9 @@ public class PowerProduct implements Unit {
         return (value == null ? Fraction.ZERO : value);
     }
 
-    @Override
-    public BigDecimal factor() {
-        return factor;
-    }
-
     public static Unit normal(Unit unit) {
         Set<Base> bases = unit.bases();
-        if (unit.factor().compareTo(BigDecimal.ONE) == 0 && bases.size() == 1) {
+        if (bases.size() == 1) {
             Base base = (Base) bases.toArray()[0];
             if (unit.power(base).compareTo(Fraction.ONE) == 0) {
                 return base;
@@ -102,9 +91,6 @@ public class PowerProduct implements Unit {
             return false;
         }
         Unit otherUnit = (Unit) other;
-        if (factor.compareTo(otherUnit.factor()) != 0) {
-            return false;
-        }
         for (Base base : bases()) {
             if (power(base).compareTo(otherUnit.power(base)) != 0) {
                 return false;
@@ -120,7 +106,7 @@ public class PowerProduct implements Unit {
 
     @Override
     public String toString() {
-        String output = factor.toString();
+        String output = "";
         for (Base base : bases()) {
             output += String.format("*%s^%s", base, power(base));
         }
@@ -128,12 +114,8 @@ public class PowerProduct implements Unit {
     }
 
     @Override
-    public Unit multiply(BigDecimal factor) {
-        HashMap<Base, Fraction> hash = new HashMap<Base, Fraction>();
-        for (Base base : bases()) {
-            hash.put(base, power(base));
-        }
-        return new PowerProduct(hash, this.factor.multiply(factor));
+    public DimensionedNumber multiply(BigDecimal factor) {
+        return new DimensionedNumber(factor, this);
     }
 
     @Override
@@ -146,29 +128,16 @@ public class PowerProduct implements Unit {
         for (Base base : other.bases()) {
             hash.put(base, other.power(base).add(power(base)));
         }
-        return new PowerProduct(hash, other.factor().multiply(factor));
+        return new PowerProduct(hash);
     }
 
     @Override
     public Unit raise(Fraction power) {
-
         HashMap<Base, Fraction> hash = new HashMap<Base, Fraction>();
         for (Base base : bases()) {
             hash.put(base, power(base).mult(power));
         }
-        
-        BigDecimal raisedFactor;
-        if (power.isInt()) {
-            int pow = power.intValue();
-            if (0 < pow) {
-                raisedFactor = factor.pow(pow, MathContext.DECIMAL128);
-            } else {
-                raisedFactor = BigDecimal.ONE.divide(factor.pow(-pow, MathContext.DECIMAL128), 25, RoundingMode.HALF_UP);
-            }
-        } else {
-            raisedFactor = new BigDecimal(Math.pow(factor.doubleValue(), power.doubleValue()));
-        }
-        return new PowerProduct(hash, raisedFactor);
+        return new PowerProduct(hash);
     }
 
     @Override
@@ -177,18 +146,18 @@ public class PowerProduct implements Unit {
     }
 
     @Override
-    public Unit flat() {
-        Unit newUnit = new PowerProduct().multiply(factor());
+    public DimensionedNumber flat() {
+        DimensionedNumber number = new DimensionedNumber();
         for (Base base : bases()) {
-            Unit flattened = base.flat().raise(power(base));
-            newUnit = newUnit.multiply(flattened);
+            DimensionedNumber flattened = base.flat().raise(power(base));
+            number = number.multiply(flattened);
         }
-        return newUnit;
+        return number;
     }
 
     @Override
     public Unit map(UnitMap map) {
-        Unit newUnit = new PowerProduct().multiply(factor());
+        Unit newUnit = new PowerProduct();
         for (Base base : bases()) {
             Unit mapped = map.map(base).raise(power(base));
             newUnit = newUnit.multiply(mapped);
@@ -199,14 +168,9 @@ public class PowerProduct implements Unit {
     @Override
     public String toText() {
 
-        // Geen schoonheidsprijs :)
-        String symbolic = factor().toString();
-        //String sep = "·";
-        String sep = "*";
-        if (factor().compareTo(BigDecimal.ONE) == 0) {
-            symbolic = "";
-            sep = "";
-        }
+        String symbolic = "";
+        String sep = "";
+        
         List<Base> bases = new ArrayList<Base>(bases());
         Collections.sort(bases, new BaseComparator());
         for (Base base : bases) {

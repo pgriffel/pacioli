@@ -915,7 +915,13 @@ public class Reader {
     private static Parser<TypeNode> matrixTermNumber() {
         return NUMBER.map(new Map<ConstNode, TypeNode>() {
             public TypeNode map(final ConstNode num) {
-                return new NumberTypeNode(num.valueString(), num.getLocation());
+                if (num.valueString().equals("1")) {
+                    return new NumberTypeNode(num.getLocation());
+                } else {
+                    throw createException(num.getLocation(),
+                            "Number '%s' unexpected. Only number 1 allowed.",
+                            num);
+                }
             }
         });
     }

@@ -121,7 +121,9 @@ Pacioli.unitMatch = function (unit) {
     }
 
     if (varBases.length === 0) {
-        if (fixedBases.length !== 0) throw "Contradiction in unit match: 1 = " + unit.toText()
+        if (fixedBases.length !== 0) {
+            throw "Contradiction in unit match: 1 = " + unit.toText()
+        }
         return {}
     }
 
@@ -130,7 +132,7 @@ Pacioli.unitMatch = function (unit) {
     
     if (varBases.length === 1) {
 
-        var rest = new Pacioli.PowerProduct(1)
+        var rest = new Pacioli.PowerProduct()
         for (var i=0; i < fixedBases.length; i++) {
             var fixedPower = unit.powers[fixedBases[i]]
             if (fixedPower % power !== 0) throw "unit error in unit " + unit.toText()
@@ -147,7 +149,7 @@ Pacioli.unitMatch = function (unit) {
         }
     }
 
-    var rest = new Pacioli.PowerProduct(1)
+    var rest = new Pacioli.PowerProduct()
     var minPower = unit.powers[minVar]
     for (x in unit.powers) {
         if (x != minVar) {

@@ -24,18 +24,18 @@ package uom;
 public class NamedUnit extends BaseUnit {
 
     private final String symbolic;
-    protected Unit definition;
+    protected DimensionedNumber definition;
 
-    public void setDefinition(Unit definition) {
+    public void setDefinition(DimensionedNumber definition) {
         this.definition = definition.flat();
     }
 
     public NamedUnit(String symbolic) {
         this.symbolic = symbolic;
-        this.definition = this;
+        this.definition = new DimensionedNumber(this);
     }
 
-    public NamedUnit(String symbolic, Unit definition) {
+    public NamedUnit(String symbolic, DimensionedNumber definition) {
         this.symbolic = symbolic;
         setDefinition(definition);
     }
@@ -73,7 +73,7 @@ public class NamedUnit extends BaseUnit {
     }
 
     @Override
-    public Unit flat() {
-        return (this == definition) ? this : definition.flat();
+    public DimensionedNumber flat() {
+        return definition;
     }
 }

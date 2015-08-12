@@ -62,7 +62,7 @@ public class ScaledUnit extends BaseUnit {
     }
 
     @Override
-    public Unit flat() {
+    public DimensionedNumber flat() {
         return unit.flat().multiply(prefix.prefixFactor());
     }
 

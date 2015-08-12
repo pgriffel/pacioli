@@ -101,9 +101,6 @@ Pacioli.Shape.prototype.dot = function (other) {
     if (!Pacioli.indexEqual(this.columnSets, other.rowSets) && this.columnUnit.equals(other.rowUnit)) {
         throw 'Shape ' + this.toText() + ' not compatible for dot product with shape ' + other.toText();
     } 
-/*    if (!this.column().dim_inv().equals(other.row())) {
-        throw 'Shape ' + this.toText() + ' not compatible for dot product with shape ' + other.toText();
-    } */
     var result = new Pacioli.Shape();
     result.multiplier = this.multiplier.mult(other.multiplier)
     result.rowSets = this.rowSets

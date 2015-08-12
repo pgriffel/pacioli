@@ -39,9 +39,9 @@ public class NumberTypeNode extends AbstractTypeNode {
 
     private final String number;
 
-    public NumberTypeNode(String number, Location location) {
+    public NumberTypeNode(Location location) {
         super(location);
-        this.number = number;
+        this.number = "1";
     }
 
     @Override
@@ -51,7 +51,10 @@ public class NumberTypeNode extends AbstractTypeNode {
 
     @Override
     public PacioliType eval(boolean reduce) throws PacioliException {
-        return new MatrixType(Unit.ONE.multiply(new BigDecimal(number)));
+        if (!new BigDecimal(number).equals(BigDecimal.ONE)) {
+            throw new RuntimeException("Didn't expect number");
+        }
+        return new MatrixType(Unit.ONE);
     }
 
 	@Override
