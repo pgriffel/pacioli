@@ -48,7 +48,13 @@ Pacioli.DimensionedNumber.prototype.flat = function () {
 }
 
 Pacioli.DimensionedNumber.prototype.toText = function () {
-    return this.factor + " " + this.unit.toText();
+    var unitText = this.unit.equals(Pacioli.unit()) ? "" : " " + this.unit.symbolized().toText();
+    return this.factor + unitText;
+}
+
+Pacioli.DimensionedNumber.prototype.toFixed = function (n) {
+    var unitText = this.unit.equals(Pacioli.unit()) ? "" : " " + this.unit.symbolized().toText();
+    return this.factor.toFixed(n) + unitText;
 }
 
 Pacioli.DimensionedNumber.prototype.toDOM = function () {

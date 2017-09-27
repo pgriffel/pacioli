@@ -24,6 +24,8 @@ var Pacioli = Pacioli || {};
 
 // -----------------------------------------------------------------------------
 // 1. DOM interface
+//
+// Pacioli.DOM(x) gives a DOM representation of boxed value x.
 // -----------------------------------------------------------------------------
 
 Pacioli.DOM = function(x) {
@@ -58,34 +60,110 @@ Pacioli.DOM = function(x) {
     default:
         return document.createTextNode(x.value)
     }
-    if (x instanceof Pacioli.Matrix) {
-        return Pacioli.DOMmatrixTable(x);
-    } else if (x instanceof Pacioli.Coordinates) {
-        return document.createTextNode(x.toText())
-    } else if (x instanceof Array) {
-        if (x.kind === undefined) {
-            var list = document.createElement("ul")
-            for (var i = 0; i < x.length; i++) {
-                var item = document.createElement("li")
-                item.appendChild(Pacioli.DOM(x[i]))
-                list.appendChild(item)
-            } 
-            return list
-        } else {
-            var list = document.createElement("ol")
-            for (var i = 0; i < x.length; i++) {
-                var item = document.createElement("li")
-                item.appendChild(Pacioli.DOM(x[i]))
-                list.appendChild(item)
-            } 
-            return list
-        }
-    } else if (x instanceof Pacioli.Shape) {
-        return document.createTextNode(x.toText())
-    } else {
-        return document.createTextNode(x)
-    }
 }
+
+Pacioli.DOMmatrixTable = function(matrix) {
+
+    var shape = matrix.type.param
+    var numbers = matrix.value
+
+    var rowOrder = shape.rowOrder()
+    var columnOrder = shape.columnOrder()
+
+    if (rowOrder === 0 && columnOrder === 0) {
+        var fragment = document.createDocumentFragment()
+        var unit = shape.unitAt(0, 0)
+        fragment.appendChild(document.createTextNode(matrix.getNumber(0, 0).toFixed(2)))
+        if (!unit.isDimensionless()) {
+            fragment.appendChild(document.createTextNode(" "))
+            fragment.appendChild(unit.symbolized().toDOM())
+        }
+        //fragment.normalize()
+        return fragment
+    }
+
+    var table = document.createElement("table")
+    table.className = "matrix table"
+//    table.style = "width: auto"
+
+    var thead = document.createElement("thead");
+    var tbody = document.createElement("tbody");
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    
+    var row = document.createElement("tr")
+
+    if (0 < rowOrder) {
+        var header = document.createElement("th")
+        header.className = "key"
+        header.innerHTML = shape.rowName()
+        row.appendChild(header)
+    }
+    if (0 < columnOrder) {
+        var header = document.createElement("th")
+        header.className = "key"
+        header.innerHTML = shape.columnName()
+        row.appendChild(header)
+
+    }
+
+    var header = document.createElement("th")
+    header.className = "value"
+    row.appendChild(header)
+
+    header = document.createElement("th")
+    header.className = "unit"
+    row.appendChild(header)
+
+    thead.appendChild(row)
+
+    var numbers = Pacioli.getCOONumbers(numbers)
+    var rows = numbers[0]
+    var columns = numbers[1]
+    var values = numbers[2]
+    if (rows.length === 0) {
+        return document.createTextNode("0")
+    } else {
+        for (var i = 0; i < rows.length; i++) {
+            var row = document.createElement("tr")
+                if (0 < rowOrder) {
+                    var cell = document.createElement("td")
+                    cell.className = "key"
+                    cell.innerHTML = shape.rowCoordinates(rows[i]).names 
+                    row.appendChild(cell)
+                }
+                if (0 < columnOrder) {
+                    var cell = document.createElement("td")
+                    cell.className = "key"
+                    cell.innerHTML = shape.columnCoordinates(columns[i]).names
+                    row.appendChild(cell)
+                }
+
+                var cell = document.createElement("td")
+                cell.className = "value"
+                cell.innerHTML = values[i].toFixed(2);
+                row.appendChild(cell)
+
+                var cell = document.createElement("td")
+                cell.className = "unit"
+                var un = shape.unitAt(rows[i], columns[i])
+                if (un.toText() === '1') {
+                    cell.innerHTML = ''
+                } else {
+                    cell.appendChild(un.symbolized().toDOM())
+                }
+                row.appendChild(cell)
+
+                tbody.appendChild(row)
+        }
+    }
+    return table
+}
+
+// -----------------------------------------------------------------------------
+// Variant for unboxed values. Used by printing.
+// -----------------------------------------------------------------------------
 
 Pacioli.ValueDOM = function(x) {
     switch (x.kind) {
@@ -112,33 +190,6 @@ Pacioli.ValueDOM = function(x) {
         } 
         return list
     default:
-        return document.createTextNode(x)
-    }
-    if (x instanceof Pacioli.Matrix) {
-        return Pacioli.DOMmatrixTable(x);
-    } else if (x instanceof Pacioli.Coordinates) {
-        return document.createTextNode(x.toText())
-    } else if (x instanceof Array) {
-        if (x.kind === undefined) {
-            var list = document.createElement("ul")
-            for (var i = 0; i < x.length; i++) {
-                var item = document.createElement("li")
-                item.appendChild(Pacioli.DOM(x[i]))
-                list.appendChild(item)
-            } 
-            return list
-        } else {
-            var list = document.createElement("ol")
-            for (var i = 0; i < x.length; i++) {
-                var item = document.createElement("li")
-                item.appendChild(Pacioli.DOM(x[i]))
-                list.appendChild(item)
-            } 
-            return list
-        }
-    } else if (x instanceof Pacioli.Shape) {
-        return document.createTextNode(x.toText())
-    } else {
         return document.createTextNode(x)
     }
 }
@@ -220,120 +271,9 @@ Pacioli.ValueDOMmatrixTable = function(matrix) {
     return table
 }
 
-
-Pacioli.DOMmatrixTable = function(matrix) {
-
-    var shape = matrix.type.param
-    var numbers = matrix.value
-
-    var rowOrder = shape.rowOrder()
-    var columnOrder = shape.columnOrder()
-
-    if (rowOrder === 0 && columnOrder === 0) {
-        var fragment = document.createDocumentFragment()
-        var unit = shape.unitAt(0, 0)
-        fragment.appendChild(document.createTextNode(matrix.getNumber(0, 0).toFixed(2)))
-        if (!unit.isDimensionless()) {
-            fragment.appendChild(document.createTextNode(" "))
-            fragment.appendChild(unit.symbolized().toDOM())
-        }
-        //fragment.normalize()
-        return fragment
-    }
-
-    var table = document.createElement("table")
-    table.className = "matrix"
-
-    var row = document.createElement("tr")
-
-    if (0 < rowOrder) {
-        var header = document.createElement("th")
-        header.className = "key"
-        header.innerHTML = shape.rowName()
-        row.appendChild(header)
-    }
-    if (0 < columnOrder) {
-        var header = document.createElement("th")
-        header.className = "key"
-        header.innerHTML = shape.columnName()
-        row.appendChild(header)
-
-    }
-
-    var header = document.createElement("th")
-    header.className = "value"
-    row.appendChild(header)
-
-    header = document.createElement("th")
-    header.className = "unit"
-    row.appendChild(header)
-
-    table.appendChild(row)
-
-    var numbers = Pacioli.getCOONumbers(numbers)
-    var rows = numbers[0]
-    var columns = numbers[1]
-    var values = numbers[2]
-    if (rows.length === 0) {
-        return document.createTextNode("0")
-    } else {
-        for (var i = 0; i < rows.length; i++) {
-            var row = document.createElement("tr")
-                if (0 < rowOrder) {
-                    var cell = document.createElement("td")
-                    cell.className = "key"
-                    cell.innerHTML = shape.rowCoordinates(rows[i]).names 
-                    row.appendChild(cell)
-                }
-                if (0 < columnOrder) {
-                    var cell = document.createElement("td")
-                    cell.className = "key"
-                    cell.innerHTML = shape.columnCoordinates(columns[i]).names
-                    row.appendChild(cell)
-                }
-
-                var cell = document.createElement("td")
-                cell.className = "value"
-                cell.innerHTML = values[i].toFixed(2);
-                row.appendChild(cell)
-
-                var cell = document.createElement("td")
-                cell.className = "unit"
-                var un = shape.unitAt(rows[i], columns[i])
-                if (un.toText() === '1') {
-                    cell.innerHTML = ''
-                } else {
-                    cell.appendChild(un.symbolized().toDOM())
-                }
-                row.appendChild(cell)
-
-                table.appendChild(row)
-        }
-    }
-    return table
-}
-
-// fixme
-Pacioli.DOMmatrix = function(matrix) {
-            var theader = "<div><table border='0'>";
-            var tbody = '';
-            for (var i = 0; i < matrix.nrRows(); i++) {
-                tbody += '<tr>';
-                for (j = 0; j < matrix.nrColumns(); j++) {
-                        tbody += "<td align='right', width='100px'>";
-                        tbody += matrix.getNumber(i, j) === 0 ? '-' : matrix.getNumber(i, j) //.toFixed(2);
-                        //tbody += ' ' + matrix.unitAt(i, j).toText()
-                        tbody += "</td>";
-                        tbody += "<td align='left'>";
-                        tbody += matrix.getNumber(i, j) === 0 || matrix.unitAt(i, j).toText() === '1' ? '' : matrix.unitAt(i, j).toText()
-                        //tbody += ' ' + matrix.unitAt(i, j).toText()
-                        tbody += "</td>";
-                }
-                tbody += "</tr>";
-            }
-            var tfooter = "</table></div>";
-            return theader + tbody + tfooter;
-}
+// -----------------------------------------------------------------------------
+// Are these functions used?
+// -----------------------------------------------------------------------------
 
 Pacioli.DOMtop = function(n, matrix) {
     return Pacioli.DOM(Pacioli.fun("Matrix", "top").call(Pacioli.num(n), matrix))

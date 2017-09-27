@@ -158,7 +158,8 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 			sep = ",";
 		}
 		if (boxed) {
-                    throw new RuntimeException("matrix literal node ");
+                    return "Pacioli.initialMatrix(" + typeNode.compileToJS(boxed) + "," + builder.toString() +")";
+                    //throw new RuntimeException("matrix literal node ");
                 }		
 		return String.format("Pacioli.initialNumbers(%s, %s, [%s])", 
 				rowDim.size(),

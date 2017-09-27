@@ -31,7 +31,6 @@ import pacioli.PacioliException;
 import pacioli.TypeContext;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.unit.NumberUnitNode;
-import pacioli.ast.unit.UnitNode;
 import pacioli.types.PacioliType;
 import pacioli.types.matrix.MatrixType;
 import uom.Fraction;

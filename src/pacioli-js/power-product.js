@@ -105,6 +105,10 @@ Pacioli.PowerProduct.prototype.toText = function () {
         if (1 < n) {
             text += '*' + base + '^' + n;
         }
+    }
+    for (var x in this.powers) {
+        var n = this.powers[x]
+        var base = x //x.replace('$', ':')
         if (n === -1) {
             text += '/' + base;
         }
@@ -116,43 +120,57 @@ Pacioli.PowerProduct.prototype.toText = function () {
         return '1';
     } else if (text[0] === '*') {
         return text.substr(1);
+    } else if (text[0] === '/') {
+        return "1" + text;
     } else {
         return text;
     }
 }
 
+Pacioli.PowerProduct.prototype.toDOMsimple = function () {
+    var fragment = document.createDocumentFragment()
+    fragment.appendChild(document.createTextNode(this.toText()))
+    return fragment;
+}
+
 Pacioli.PowerProduct.prototype.toDOM = function () {
 
     var fragment = document.createDocumentFragment()
-    fragment.appendChild(document.createTextNode(this.factor))
+
     var text = "";
     var firstPower = null;
     for (var x in this.powers) {
         var n = this.powers[x]
-        if (firstPower === null && n !==0) {
+        if (firstPower === null && 0 < n) {
             firstPower = n
         }
         var base = x //x.replace('$', ':')
         if (n === 1) {
-            text += '*' + base;
             fragment.appendChild(document.createTextNode("*"))
             fragment.appendChild(document.createTextNode(base))
         }
         if (1 < n) {
-            text += '*' + base + '<sup>' + n + '</sup>';
             fragment.appendChild(document.createTextNode("*"))
             fragment.appendChild(document.createTextNode(base))
             var sup = document.createElement("sup")
             sup.appendChild(document.createTextNode(n))
             fragment.appendChild(sup)
         }
+    }
+
+    for (var x in this.powers) {
+        var n = this.powers[x]
+        if (firstPower === null && n < 0) {
+            firstPower = n
+        }
+        var base = x //x.replace('$', ':')
         if (n === -1) {
-            text += '/' + base;
-            fragment.appendChild(document.createTextNode("/" + base))
+            fragment.appendChild(document.createTextNode("/"))
+            fragment.appendChild(document.createTextNode(base))
         }
         if (n < -1) {
-            text += '/' + base + '<sup>' + -n + '</sup>';
-            fragment.appendChild(document.createTextNode("/" + base))
+            fragment.appendChild(document.createTextNode("/"))
+            fragment.appendChild(document.createTextNode(base))
             var sup = document.createElement("sup")
             sup.appendChild(document.createTextNode(-n))
             fragment.appendChild(sup)
@@ -160,7 +178,6 @@ Pacioli.PowerProduct.prototype.toDOM = function () {
     }
 
     if (0 < firstPower) {
-        fragment.removeChild(fragment.firstChild)
         fragment.removeChild(fragment.firstChild)
     } 
     //fragment.normalize()

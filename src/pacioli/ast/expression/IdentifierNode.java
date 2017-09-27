@@ -189,7 +189,8 @@ public class IdentifierNode extends AbstractExpressionNode {
 			return new Typing(context.get(name));
 		} else if (declaration != null) {
 			Pacioli.logln3("Using %s ::", name);
-			PacioliType type = home.equals(myHome) ? declaration.getType() : declaration.getPublicType();
+			//PacioliType type = home.equals(myHome) ? declaration.getType() : declaration.getPublicType();
+                        PacioliType type = declaration.getType();
 			PacioliType inst = type.instantiate();
 			Pacioli.logln3("%s", inst.toText());
 			return new Typing(inst);

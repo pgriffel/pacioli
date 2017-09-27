@@ -34,9 +34,17 @@ Pacioli.LineChart = function (parent, data, options) {
     var defaultOptions = {
         width: 640,
         height: 360,
-        margin: {left: 10, top: 10, right: 10, bottom: 10},
+        margin: {left: 60, top: 20, right: 10, bottom: 30},
         unit: null,
-        label: ""
+        label: "",
+        xlabel: "",
+        norm: null,
+        ymin: null,
+        ymax: null,
+        xticks: 8,
+        yticks: 5,
+        rotate: false,
+        smooth: false
     }
 
     this.options = Pacioli.copyOptions(options, defaultOptions)
@@ -46,72 +54,111 @@ Pacioli.LineChart.prototype.draw = function () {
 
     try {
 
-        var shape = this.data.type.param.param
-        var matlist = this.data.value
-        var parent = this.parent
+        // Transform the data to a usable format
+        var unit = this.options.unit || Pacioli.dataUnit(this.data);
+        var data = Pacioli.transformData(this.data, unit);
 
         // Make the parent node empty
+        var parent = this.parent
         while (parent.firstChild) {
-            parent.removeChild(parent.firstChild)
+            parent.removeChild(parent.firstChild);
         }
-
-        // Determine the unit of measurement
-        var unit = this.options.unit || shape.multiplier
-        var factor = shape.multiplier.conversionFactor(unit)
-    
-        // Convert the Pacioli values to an array of numbers
-        var data = matlist.map(function (x) {
-            return Pacioli.getNumber(x, 0, 0) * factor
-        })
-    
-        // Add the label if defined
-        if (this.options.label !== undefined) {
-            var label = this.options.label
-            parent.appendChild(typeof label == "string" ? document.createTextNode(label) : label)
-        }
-    
-        // Source: http://bl.ocks.org/2579619
     
         // Define dimensions of graph
-        var m = [4, 20, 14, 20]; // margins
-        var w = 300 - m[1] - m[3]; // width
-        var h = 50 - m[0] - m[2]; // height
+        var m = this.options.margin;
+        var w = this.options.width - m.left - m.right;
+        var h = this.options.height - m.top - m.bottom;
     
         // Add an SVG element with the desired dimensions and margin.
-        var graph = d3.select(this.parent).append("svg:svg")
-                      //.attr("id", id + "_chart")
+        var graph = d3.select(this.parent)
+                      .append("svg:svg")
+                      .attr("width", w + m.left + m.right)
+                      .attr("height", h + m.top + m.bottom)
                       .attr("class", "chart")
                       .append("svg:g")
-                      .attr("transform", "translate(" + m[3] + "," + m[0] + ")");
+                      .attr("width", w)
+                      .attr("height", h)
+                      .attr("transform", "translate(" + m.left + "," + m.top + ")");
     
         // Determine data ranges
-        var xRange = d3.scale.linear().domain([0, data.length]).range([0, w]);
-        var yRange = d3.scale.linear().domain([0, d3.max(data)]).range([h, 0]);
+        //var xScale = d3.scale.linear().domain([0, data.values.length]).range([0, w]);
+        var xScale = d3.scale.ordinal()
+                             //.rangeRoundBands([0, w], .1)
+                             .rangePoints([0, w], .1)
+                             .domain(data.labels);
+        var yMin = this.options.ymin ? this.options.ymin : d3.min(data.values);
+        var yMax = this.options.ymax ? this.options.ymax : d3.max(data.values);
+        var yScale = d3.scale.linear()
+                             .domain([yMin, yMax])
+                             .range([h, 0]);
     
         // Create a line function that converts the data into x and y points
         var line = d3.svg.line()
-                     .x(function(d,i) { return xRange(i); })
-                     .y(function(d) { return yRange(d); })
+                     .x(function(d,i) { return xScale(i); })
+                     .y(function(d) { return yScale(d); });
+        if (this.options.smooth) {
+            line.interpolate("basis");
+        }
     
         // Create the x axis
-        var xAxis = d3.svg.axis().scale(xRange).tickSize(-h).tickSubdivide(true).ticks(5);
-        graph.append("svg:g")
+        var mod = this.options.xticks ? Math.ceil(data.values.length / this.options.xticks) : 1
+        var xAxis = d3.svg.axis().scale(xScale)
+                                 .orient("bottom")
+                                 .tickSize(-h)
+                                 .tickValues(xScale.domain().filter(function(d, i) { return !(i % mod); }))
+        var xElt = graph.append("svg:g")
              .attr("class", "x axis")
              .attr("transform", "translate(0," + h + ")")
-             .call(xAxis);
-    
+             .call(xAxis)
+        if (this.options.rotate) {
+             xElt.selectAll("text")	
+            .style("text-anchor", "end")
+            .attr("transform","rotate(-45)")
+        } else {
+            xElt.selectAll("text")	
+                .attr("transform","translate(0, 5)")
+        }
+
+        xElt.append("text")
+            .attr("x", w)
+            .attr("y", 20)
+            .attr("dy", "0.71em")
+            .style("text-anchor", "end")
+            .text(this.options.xlabel);
+
         // create left yAxis
-    //    var yAxisLeft = d3.svg.axis().scale(yRange).ticks(2).orient("left");
-    //    graph.append("svg:g")
-    //         .attr("class", "y axis axisLeft")
-    //         .attr("transform", "translate(-15,0)")
-    //         .call(yAxisLeft);
+        var yAxisLeft = d3.svg.axis()
+                              .scale(yScale)
+                              .ticks(this.options.yticks)
+                              .orient("left");
+        graph.append("svg:g")
+             .attr("class", "y axis axisLeft")
+             .attr("transform", "translate(0,0)")
+             .call(yAxisLeft)
+             .append("text")
+             .attr("x", -30)
+             .attr("y", -10)
+             .style("text-anchor", "begin")
+             .text(this.options.label + " [" + unit.symbolized().toText() + "]");
     
+        // Add a norm line if requested
+        var norm = this.options.norm;
+        if (norm) {
+            var normline = d3.svg.line().x(function(d,i) { return xScale(i); })
+                                        .y(function(d) { return yScale(norm); });
+            graph.append("svg:path")
+                 .attr("d", normline(data.values))
+                 .attr("class", "")
+                 .attr("stroke", "green");
+        }
+
         // Add lines AFTER the axes above so that the line is above the tick-lines
-        graph.append("svg:path").attr("d", line(data)).attr("class", "data");
+        graph.append("svg:path")
+             .attr("d", line(data.values))
+             .attr("class", "data");
     
     } catch (err) {
-        Pacioli.displayChartError(this.parent, "While drawing bar chart '" + this.options.label + "':", err)
+        Pacioli.displayChartError(this.parent, "While drawing bar chart '" + this.options.label + "':", err);
     }
 
     return this
@@ -131,10 +178,14 @@ Pacioli.PieChart = function (parent, data, options) {
     var defaultOptions = {
         width: 640,
         height: 360,
-        margin: {left: 10, top: 10, right: 10, bottom: 10},
+        left: 10,
+        top: 10,
+        right: 10,
+        bottom: 10,
         unit: null,
         label: "",
-        labelOffset: 0.5
+        labelOffset: 0.5,
+        decimals: 2
     }
 
     this.options = Pacioli.copyOptions(options, defaultOptions)
@@ -156,6 +207,7 @@ Pacioli.PieChart.prototype.draw = function () {
         // Convert the Pacioli vector to an array with the right info
         var data = []
         var unit = this.options.unit || shape.unitAt(0, 0)
+        var decimals = this.options.decimals;
         for (var i = 0; i < numbers.nrRows; i++) {
             var factor = shape.unitAt(i, 0).conversionFactor(unit)
             data.push({
@@ -163,11 +215,9 @@ Pacioli.PieChart.prototype.draw = function () {
                 label: shape.rowCoordinates(i).shortText()
             })
         }
-    
-        
-        var margin = this.options.margin
-        var width = this.options.width - margin.left - margin.right
-        var height = this.options.height - margin.top - margin.bottom
+            
+        var width = this.options.width - this.options.left - this.options.right
+        var height = this.options.height - this.options.top - this.options.bottom
         var radius = Math.min(width, height) / 2
     
         var arc = d3.svg.arc()
@@ -183,8 +233,8 @@ Pacioli.PieChart.prototype.draw = function () {
                     .value(function(d) { return d.number; });
     
         var svg = d3.select(this.parent).append("svg")
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
+                    .attr("width", width + this.options.left + this.options.right)
+                    .attr("height", height + this.options.top + this.options.bottom)
                     .append("g")
                     .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
@@ -216,7 +266,15 @@ Pacioli.PieChart.prototype.draw = function () {
          })
          .attr("dy", ".35em")
          .style("text-anchor", "middle")
-         .text(function(d) { return 0 < d.data.number ? d.data.label + ' = ' + d.data.number.toFixed(2) + ' ' + unit.symbolized().toText() : "" });    
+         .text(function(d) {
+             if (0 < d.data.number) {
+                 uom = unit.symbolized().toText();
+                 return d.data.label + ' = ' + d.data.number.toFixed(decimals) + (uom === "1" ? '' : ' ' + uom);
+             } else {
+                 return "";
+             }
+             //return 0 < d.data.number ? d.data.label + ' = ' + d.data.number.toFixed(this.options.decimals) + ' ' + unit.symbolized().toText() : ""
+         });    
     } catch (err) {
         Pacioli.displayChartError(this.parent, "While drawing bar chart '" + this.options.label + "':", err)
     }
@@ -238,6 +296,8 @@ Pacioli.BarChart = function (parent, data, options) {
         height: 360,
         margin: {left: 10, top: 10, right: 10, bottom: 10},
         unit: null,
+        ymin: null,
+        ymax: null,
         label: ""
     }
 
@@ -289,7 +349,7 @@ Pacioli.BarChart.prototype.draw = function () {
         var yAxis = d3.svg.axis()
                        .scale(y)
                        .orient("left")
-                       .ticks(10, "%");
+                       .ticks(5, "%");
         
         var svg = d3.select(this.parent).append("svg")
                     .attr("width", width + margin.left + margin.right)
@@ -298,7 +358,9 @@ Pacioli.BarChart.prototype.draw = function () {
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     
         x.domain(data.map(function(d) { return d.label; }));
-        y.domain([0, d3.max(data, function(d) { return d.number; })]);
+        var yMin = this.options.ymin ? this.options.ymin : 0;
+        var yMax = this.options.ymax ? this.options.ymax : d3.max(data, function(d) { return d.number; });
+        y.domain([yMin, yMax]);
     
         svg.append("g")
            .attr("class", "x axis")
@@ -354,7 +416,23 @@ Pacioli.Histogram = function (parent, data, options) {
         label: "",
         bins: 10,
         lower: null,
-        upper: null
+        upper: null,
+        onclick: function (data) {
+            var div = document.createElement("div")
+            var close = document.createElement("button")
+            close.innerHTML = "close"
+            close.onclick = function () {document.body.removeChild(div)}
+            div.style.backgroundColor = "#EEE" 
+            div.style.position = "fixed"
+            div.style.left = "100px"
+            div.style.top = 100 + "px"
+            div.style.height = "300px" 
+            div.style.width = "500px" 
+            document.body.appendChild(div)
+            div.appendChild(close)
+            div.appendChild(Pacioli.DOM(data.value))
+            div.style.overflow = "auto"
+        }
     }
 
     this.options = Pacioli.copyOptions(options, defaultOptions)
@@ -367,25 +445,6 @@ Pacioli.Histogram.prototype.draw = function () {
         var unit = this.options.unit || Pacioli.dataUnit(this.data)
         var data = Pacioli.transformData(this.data, unit)
 
-
-/*
-        var shape = this.data.type.param
-        var numbers = this.data.value
-        var parent = this.parent
-
-        // Convert the Pacioli vector to an array with the non-zero
-        // numbers converted to the chart's unit
-        var data = []
-        var unit = this.options.unit || shape.unitAt(0, 0)
-
-        for (var i = 0; i < numbers.nrRows; i++) {
-            var num = Pacioli.getNumber(numbers, i, 0)
-            if (num !== 0) {
-                var factor = shape.unitAt(i, 0).conversionFactor(unit)
-                data.push(num * factor)
-            }
-        }
-*/
         // Create an array with the bin tresholds and generate a histogram layout from it for the data
         var lower = this.options.lower || data.min //d3.min(data)
         var upper = this.options.upper || data.max //d3.max(data)
@@ -421,7 +480,7 @@ Pacioli.Histogram.prototype.draw = function () {
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     
         // Add the x axis
-        var label = this.options.label || vector.rowName() //vector.shape.rowSets.map(function (x) {return x.name})
+        var label = this.options.label || this.data.type.param.rowName() //vector.shape.rowSets.map(function (x) {return x.name})
         svg.append("g")
            .attr("class", "x axis")
            .attr("transform", "translate(0," + height + ")")
@@ -453,7 +512,7 @@ Pacioli.Histogram.prototype.draw = function () {
            .attr("x", 1)
            .attr("width", x(lower+layout[0].dx) - 1)
            .attr("height", function(d) { return height - y(d.y); })
-           .on("click", function (d, i) {this.onClick(d.x, d.x + d.dx, data.max)}.bind(this));
+           .on("click", function (d, i) {this.onClick(d.x, d.x + d.dx, data.max, d.y)}.bind(this));
 
     } catch (err) {
         Pacioli.displayChartError(this.parent, "While drawing histogram '" + this.options.label + "':", err)
@@ -463,10 +522,11 @@ Pacioli.Histogram.prototype.draw = function () {
 
 };
 
-Pacioli.Histogram.prototype.onClick = function (lower, upper, max) {
+Pacioli.Histogram.prototype.onClick = function (lower, upper, max, frequency) {
 
     var result
     var unit = this.options.unit || Pacioli.dataUnit(this.data)
+    var unitShape = new Pacioli.Shape(unit);
 
     if (this.data.type.kind === "matrix") {
 
@@ -479,15 +539,19 @@ Pacioli.Histogram.prototype.onClick = function (lower, upper, max) {
         for (var i = 0; i < vector.nrRows; i++) {
             var num = Pacioli.getNumber(vector, i, 0) * shape.unitAt(i, 0).conversionFactor(unit)
             if (lower <= num && (num < upper || (num === max && upper === max))) {
-                 Pacioli.set(filtered, i, 0, Pacioli.getNumber(vector, i, 0))
+                 //Pacioli.set(filtered, i, 0, Pacioli.getNumber(vector, i, 0))
+                 Pacioli.set(filtered, i, 0, num)
             }
         }
 
         // Create a copy of the original object
-        result = new Pacioli.Box(this.data.type, filtered)
+        //result = new Pacioli.Box(this.data.type, filtered)
+        result = new Pacioli.Box(new Pacioli.Type("matrix", shape.dimensionless().scale(unitShape)), filtered)
+        
 
     } else if (this.data.type.kind === "list") {
 
+        // Todo: convert to chart unit of measurement. See vector case above.
         var factor = this.data.type.param.param.multiplier.conversionFactor(unit)
         var filtered = []
         for (var i = 0; i < this.data.value.length; i++) {
@@ -502,21 +566,14 @@ Pacioli.Histogram.prototype.onClick = function (lower, upper, max) {
         //console.log(result)
     }
 
-    // Show the filtered vector in a popup window    
-    var div = document.createElement("div")
-    var close = document.createElement("button")
-    close.innerHTML = "close"
-    close.onclick = function () {document.body.removeChild(div)}
-    div.style.backgroundColor = "#EEE" 
-    div.style.position = "fixed"
-    div.style.left = "100px"
-    div.style.top = 100 + "px"
-    div.style.height = "300px" 
-    div.style.width = "500px" 
-    document.body.appendChild(div)
-    div.appendChild(close)
-    div.appendChild(Pacioli.DOM(result))
-    div.style.overflow = "auto"
+    // Show the filtered vector in a popup window
+    this.options.onclick({
+        value: result,
+        frequency: new Pacioli.DimensionedNumber(frequency),
+        lower: new Pacioli.DimensionedNumber(lower, unit),
+        upper: new Pacioli.DimensionedNumber(upper, unit)
+    });
+
 }
 
 
@@ -538,8 +595,14 @@ Pacioli.ScatterPlot = function (parent, dataX, dataY, options) {
         yunit: null,
         labelX: "",
         labelY: "",
-        radius: 2.0,
-        trendline: false
+        radius: 2.5,
+        trendline: false,
+        onclick: function (data) {
+                     alert("Values at coordinates " + data.coordinates.names + " of index sets (" +
+                           data.coordinates.indexSets.map(function (x) {return x.name}) + ") are \n\n" +
+                           data.xlabel + " = " + data.xnumber.toFixed(2) + "\n" +
+                           data.ylabel + " = " + data.ynumber.toFixed(2));
+                 }
     }
 
     this.options = Pacioli.copyOptions(options, defaultOptions)
@@ -551,33 +614,15 @@ Pacioli.ScatterPlot.prototype.draw = function () {
 
         var unitX = this.options.xunit || Pacioli.dataUnit(this.dataX)
         var unitY = this.options.yunit || Pacioli.dataUnit(this.dataY)
-//        var dataX = Pacioli.transformData(this.dataX, unitX)
-//        var dataY = Pacioli.transformData(this.dataY, unitY)
 
-//        var data = []
-//        for (var i = 0; i < dataX.values.length; i++) {
-//            data[i] = {x: dataX.values[i], y: dataY.values[i]}
-//        }
         var data = Pacioli.mergeData(this.dataX, unitX, this.dataY, unitY)
         var values = data.values
-        //console.log('options')
-                //console.log(this.options)
-        //console.log('values')
-    //console.log(data)
-    //for (var i = 0; i < values.length; i++) {
-      //  if (values[i].y < 0) console.log(values[i])
-    //}
-
 
         // Create an array with the bin tresholds and generate a scatterplot layout from it for the data
         var lowerX = this.options.lowerX || data.minX // dataX.min //d3.min(data)
         var upperX = this.options.upperX || data.maxX // dataX.max //d3.max(data)
         var lowerY = this.options.lowerY || data.minY // dataY.min //d3.min(data)
         var upperY = this.options.upperY || data.maxY // dataY.max //d3.max(data)
-
-        //console.log('maxmin')
-                //console.log(lowerY)
-                //console.log(upperY)
 
         // Determine the drawing dimensions
         var margin = this.options.margin
@@ -647,8 +692,16 @@ Pacioli.ScatterPlot.prototype.draw = function () {
            //.attr("cy", function(d) { console.log( x(d.x) + '-' + y(d.y)); return y(d.y); })
            //.attr("cy", function(d) { return y(d.y); })
            .style("fill", function(d) { return color(d.species); })
-           .on("click", function (d, i) { alert(data.values[i].label) }.bind(this));
-//           .on("click", function (d, i) {this.onClick(d.x, d.x + d.dx, data.max)}.bind(this));
+           .on("click", function (d, i) {
+                            var dat = {
+                                coordinates: data.values[i].coordinates,
+                                xnumber: new Pacioli.DimensionedNumber(data.values[i].x, unitX),
+                                ynumber: new Pacioli.DimensionedNumber(data.values[i].y, unitY),
+                                xlabel: labelX,
+                                ylabel: labelY
+                            };
+                            this.options.onclick(dat);
+                        }.bind(this));
 
 //  var legend = svg.selectAll(".legend")
 //      .data(color.domain())
@@ -870,30 +923,26 @@ Pacioli.mergeData = function (dataX, unitX, dataY, unitY) {
             rowX = rowsX[ptrX]
             rowY = rowsY[ptrY]
             if (rowX < rowY) {
-                //var factor = shapeX.unitAt(rowX, 0).conversionFactor(unitX)
                 var valueX = valsX[ptrX] * shapeX.unitAt(rowX, 0).conversionFactor(unitX)
                 if (valueX !== 0) {
-                values.push({x: valueX, y: 0, label: shapeX.rowCoordinates(rowX).shortText()})
+                values.push({x: valueX, y: 0, coordinates: shapeX.rowCoordinates(rowX)})
                 if (minX === undefined || valueX < minX) minX = valueX
                 if (maxX === undefined || valueX > maxX) maxX = valueX
                 }
                 ptrX++
             } else if (rowX > rowY) {
-                //var factor = shapeY.unitAt(rowY, 0).conversionFactor(unitY)
                 var valueY = valsY[ptrY] * shapeY.unitAt(rowY, 0).conversionFactor(unitY)
                 if (valueY !== 0) {
-                values.push({x: 0, y: valueY, label: shapeY.rowCoordinates(rowY).shortText()})
+                values.push({x: 0, y: valueY, coordinates: shapeY.rowCoordinates(rowY)})
                 if (minY === undefined || valueY < minY) minY = valueY
                 if (maxY === undefined || valueY > maxY) maxY = valueY
                 }
                 ptrY++
             } else {
-                //var factorX = shapeX.unitAt(rowX, 0).conversionFactor(unitX)
-                //var factorY = shapeY.unitAt(rowY, 0).conversionFactor(unitY)
                 var valueX = valsX[ptrX] * shapeX.unitAt(rowX, 0).conversionFactor(unitX)
                 var valueY = valsY[ptrY] * shapeY.unitAt(rowY, 0).conversionFactor(unitY)
                 if (valueX !== 0 && valueY !== 0) {
-                values.push({x: valueX, y: valueY, label: shapeX.rowCoordinates(rowX).shortText()})
+                values.push({x: valueX, y: valueY, coordinates: shapeX.rowCoordinates(rowX)})
                 if (minX === undefined || valueX < minX) minX = valueX
                 if (maxX === undefined || valueX > maxX) maxX = valueX
                 if (minY === undefined || valueY < minY) minY = valueY
@@ -905,10 +954,9 @@ Pacioli.mergeData = function (dataX, unitX, dataY, unitY) {
         }
         while (ptrX < m) {
             rowX = rowsX[ptrX]
-            //var factor = shapeX.unitAt(rowX, 0).conversionFactor(unitX)
             var valueX = valsX[ptrX] * shapeX.unitAt(rowX, 0).conversionFactor(unitX)
             if (valueX !== 0) {
-            values.push({x: valueX, y: 0, label: shapeX.rowCoordinates(rowX).shortText()})
+            values.push({x: valueX, y: 0, coordinates: shapeX.rowCoordinates(rowX)})
             if (minX === undefined || valueX < minX) minX = valueX
             if (maxX === undefined || valueX > maxX) maxX = valueX
             }
@@ -916,10 +964,9 @@ Pacioli.mergeData = function (dataX, unitX, dataY, unitY) {
         }
         while (ptrY < n) {
             rowY = rowsY[ptrY]
-            //var factor = shapeY.unitAt(rowY, 0).conversionFactor(unitY)
             var valueY = valsY[ptrY] * shapeY.unitAt(rowY, 0).conversionFactor(unitY)
             if (valueY !== 0) {
-            values.push({x: 0, y: valueY, label: shapeY.rowCoordinates(rowY).shortText()})
+            values.push({x: 0, y: valueY, coordinates: shapeY.rowCoordinates(rowY)})
             if (minY === undefined || valueY < minY) minY = valueY
             if (maxY === undefined || valueY > maxY) maxY = valueY
             }

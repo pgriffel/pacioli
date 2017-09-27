@@ -400,7 +400,9 @@ public class Program {
                 PacioliType sup = valueDefinition.getType().instantiate();
               
                 if (!sub.isInstanceOf(sup)) {
-                	throw new PacioliException(definition.getLocation(), "declared type\n %s\ndoes not specialize type\n %s \n",
+                	throw new PacioliException(definition.getLocation(), "\n%s \n%s\n declared type\n %s\ndoes not specialize type\n %s \n",
+                                definition.getType().unfresh().toText(),
+                                valueDefinition.getType().unfresh().toText(),
                 			sub.unfresh().toText(),
                 			sup.unfresh().toText());
                 }

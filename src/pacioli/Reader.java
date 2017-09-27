@@ -147,7 +147,7 @@ public class Reader {
      * Tokens
      */
     private static final String[] OPERATORS = {"+", "-", "*", "/", "%", "^T",
-        "^R", "^D", "^", ".*", ".^", "./", "\\", ".\\", /*"/.",*/ ">", "<", "c*", "c/", "*c", "/c",
+        "^R", "^D", "^", ".*", ".^", "./", "\\", ".\\", /*"/.",*/ ">", "<", "_*", "_/", "*_", "/_", "++",
         "=", ">=", "<=", "!=", /*".",*/ ",", ":", "::", "->", "(", ")", "[",
         "]", "{", "}", ";", "|", "<-", ":=", "!", "@", "<=>", "==>", "<=="};
     private static final String[] KEYWORDS = {"module", "define", "include",
@@ -339,10 +339,10 @@ public class Reader {
     }
 
     private static Parser<Definition> multiDeclarationParser() {
-        return Parsers.sequence(token("declare"), EXPIDENTIFIER.sepBy1(token(",")),
+        return Parsers.sequence(token("declare"), token("public").optional(), EXPIDENTIFIER.sepBy1(token(",")),
                 token("::").next(typeParser()).followedBy(token(";")),
-                new Map3<Token, List<IdentifierNode>, TypeNode, Definition>() {
-            public Definition map(Token decl, final List<IdentifierNode> ids,
+                new Map4<Token, Token, List<IdentifierNode>, TypeNode, Definition>() {
+            public Definition map(Token decl, Token pub, final List<IdentifierNode> ids,
                     final TypeNode node) {
                 return new MultiDeclaration(tokenLocation(decl).join(node.getLocation()), ids, node);
             }
@@ -419,16 +419,22 @@ public class Reader {
 
     private static Parser<Definition> defIndexParser() {
         return Parsers.sequence(
-                token("defindex").next(EXPIDENTIFIER),
+                token("defindex"),
+                token("public").optional(),
+                EXPIDENTIFIER,
                 token("=").next(
                 Parsers.between(token("{"), NAME.sepBy(token(",")),
-                token("}"))).followedBy(token(";")),
-                new Map2<IdentifierNode, List<IdentifierNode>, Definition>() {
-            public Definition map(final IdentifierNode id,
+                token("}"))).optional().followedBy(token(";")),
+                new Map4<Token, Token, IdentifierNode, List<IdentifierNode>, Definition>() {
+            public Definition map(Token key, Token pub, final IdentifierNode id,  
                     final List<IdentifierNode> items) {
                 List<String> names = new ArrayList<String>();
-                for (IdentifierNode item : items) {
-                    names.add(item.getName());
+                if (items != null) {
+	                for (IdentifierNode item : items) {
+	                    names.add(item.getName());
+	                }
+                } else {
+                	//throw createException(id.getLocation(), "todo: empty defindex");
                 }
                 return new IndexSetDefinition(id.getLocation(), id,
                         names);
@@ -447,15 +453,19 @@ public class Reader {
                 Parsers.tuple(
                 NAME.followedBy(token(":")),
                 unitParser()).sepBy(token(",")),
-                token("}"))).followedBy(token(";")),
+                token("}"))).optional().followedBy(token(";")),
                 new Map3<TypeIdentifierNode, TypeIdentifierNode, List<Pair<IdentifierNode, UnitNode>>, Definition>() {
             public Definition map(
                     final TypeIdentifierNode indexId,
                     final TypeIdentifierNode id,
                     final List<Pair<IdentifierNode, UnitNode>> items) {
                 java.util.Map<String, UnitNode> unitVector = new HashMap<String, UnitNode>();
+                if (items != null) {
                 for (Pair<IdentifierNode, UnitNode> pair : items) {
                     unitVector.put(pair.a.getName(), pair.b);
+                }
+                } else {
+                	//throw createException(id.getLocation(), "todo: empty defunit");
                 }
                 return new UnitVectorDefinition(indexId
                         .getLocation().join(id.getLocation()),
@@ -1309,14 +1319,15 @@ public class Reader {
     private static Parser<ExpressionNode> arithmeticParser(
             Parser<ExpressionNode> termParser) {
         Parser<ExpressionNode> parser = new OperatorTable<ExpressionNode>()
+        		.infixl(token("++").next(binaryOperatorParser("concatenate")), 100)
                 .infixl(token(".^").next(binaryOperatorParser("power")), 100)
                 .infixl(token("^").next(binaryOperatorParser("expt")), 100)
                 .infixl(token("per").next(binaryOperatorParser("dim_div")), 60)
-                .infixl(token("c*").next(binaryOperatorParser("scale")), 50)
-                .infixl(token("*c").next(binaryOperatorParser("rscale")), 50)
+                .infixl(token("_*").next(binaryOperatorParser("scale")), 50)
+                .infixl(token("*_").next(binaryOperatorParser("rscale")), 50)
                 //.infixl(token(".").next(binaryOperatorParser("scale")), 50)
-                .infixl(token("/c").next(binaryOperatorParser("scale_down")), 50)
-                .infixl(token("c/").next(binaryOperatorParser("lscale_down")), 50)
+                .infixl(token("/_").next(binaryOperatorParser("scale_down")), 50)
+                .infixl(token("_/").next(binaryOperatorParser("lscale_down")), 50)
                 //.infixl(token("/.").next(binaryOperatorParser("scale_down")), 50)
                 .infixl(token("*").next(binaryOperatorParser("multiply")), 50)
                 .infixl(token("/").next(binaryOperatorParser("divide")), 50)

@@ -93,7 +93,7 @@ public class Utils {
                     n++;
             }
             if (n == 0) {
-                    return "Pacioli.unit()";
+                    return "Pacioli.ONE";
             } else {
                     return product;
             }

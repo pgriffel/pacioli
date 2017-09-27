@@ -65,11 +65,6 @@ Pacioli.list = function (array) {
     return new Pacioli.Box(new Pacioli.Type('list', uList), vList)
 }
 
-Pacioli.print = function (x) {
-    document.body.appendChild(Pacioli.DOM(x))      
-    return x;
-}
-
 // -----------------------------------------------------------------------------
 // 0. Functions used by generated code 
 // -----------------------------------------------------------------------------
@@ -128,6 +123,11 @@ Pacioli.oneNumbers = function (m, n) {
 Pacioli.oneMatrix = function (shape) {
     return new Pacioli.Box(new Pacioli.Type("matrix", shape),
                            Pacioli.oneNumbers(shape.nrRows(), shape.nrColumns()))
+}
+
+Pacioli.initialMatrix = function (shape, data) {
+    return new Pacioli.Box(new Pacioli.Type("matrix", shape),
+                           Pacioli.initialNumbers(shape.nrRows(), shape.nrColumns(), data))
 }
 
 Pacioli.initialNumbers = function (m, n, data) {

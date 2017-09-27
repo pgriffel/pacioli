@@ -25,9 +25,9 @@ module Geometry;
 
 defindex Space = {x, y, z};
 
-declare d_x :: Space!;
-declare d_y :: Space!;
-declare d_z :: Space!;
+declare public d_x :: Space!;
+declare public d_y :: Space!;
+declare public d_z :: Space!;
 
 define d_x = delta(Space@x);
 define d_y = delta(Space@y);
@@ -37,28 +37,28 @@ define d_z = delta(Space@z);
 # Vector construction
 # ----------------------------------------------------------------------------
 
-declare space_vec :: for_unit a: (a, a, a) -> a*Space!;
+declare public space_vec :: for_unit a: (a, a, a) -> a*Space!;
 
-define space_vec(a, b, c) = a c* d_x + b c* d_y + c c* d_z;
+define space_vec(a, b, c) = a _* d_x + b _* d_y + c _* d_z;
 
 # ----------------------------------------------------------------------------
 # General Functions
 # ----------------------------------------------------------------------------
 
-declare norm :: for_index P: for_unit a: (a*P!) -> a;
-declare normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
+declare public norm :: for_index P: for_unit a: (a*P!) -> a;
+declare public normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
 
 define norm(x) = sqrt(inner(x,x));
 
-define normalized(x) = x /c magnitude(norm(x));
+define normalized(x) = x /_ magnitude(norm(x));
 
 # ----------------------------------------------------------------------------
 # Polar Coordinates
 # ----------------------------------------------------------------------------
 
-declare polar2cartesian :: for_unit a: (a, radian, radian) -> a*Space!;
-declare inclination :: for_unit a: (a*Space!) -> radian;
-declare azimuth :: for_unit a: (a*Space!) -> radian;
+declare public polar2cartesian :: for_unit a: (a, radian, radian) -> a*Space!;
+declare public inclination :: for_unit a: (a*Space!) -> radian;
+declare public azimuth :: for_unit a: (a*Space!) -> radian;
 
 define polar2cartesian(radius, inclination, azimuth) =
   scale(radius, space_vec(sin(inclination) * cos(azimuth),
@@ -73,15 +73,15 @@ define azimuth(vec) = atan2(inner(vec, d_y), inner(vec, d_x));
 # Cross Product
 # ----------------------------------------------------------------------------
 
-declare cross :: for_unit a: (a*Space!, a*Space!) -> a^2*Space!;
-declare cross_sqrt :: for_unit a: (a*Space!, a*Space!) -> a*Space!;
+declare public cross :: for_unit a: (a*Space!, a*Space!) -> a^2*Space!;
+declare public cross_sqrt :: for_unit a: (a*Space!, a*Space!) -> a*Space!;
 
 define cross(v,w) =
   let
       vx = get(v, Space@x, _), vy = get(v, Space@y, _), vz = get(v, Space@z, _),
       wx = get(w, Space@x, _), wy = get(w, Space@y, _), wz = get(w, Space@z, _)
   in
-      (vy*wz - vz*wy) c* d_x + (vz*wx - vx*wz) c* d_y + (vx*wy - vy*wx) c* d_z
+      (vy*wz - vz*wy) _* d_x + (vz*wx - vx*wz) _* d_y + (vx*wy - vy*wx) _* d_z
   end;
 
 #define cross(v,w) =
@@ -89,7 +89,7 @@ define cross(v,w) =
 #      vx = inner(v, d_x), vy = inner(v, d_y), vz = inner(v, d_z),
 #      wx = inner(w, d_x), wy = inner(w, d_y), wz = inner(w, d_z)
 #  in
-#      (vy*wz - vz*wy) c* d_x + (vz*wx - vx*wz) c* d_y + (vx*wy - vy*wx) c* d_z
+#      (vy*wz - vz*wy) _* d_x + (vz*wx - vx*wz) _* d_y + (vx*wy - vy*wx) _* d_z
 #  end;
 
 define cross_sqrt(v,w) =
@@ -103,7 +103,7 @@ define cross_sqrt(v,w) =
       sz = vx*wy - vy*wx,
       sq = sqrt(sx*sx + sy*sy + sz*sz)
   in
-      (sx c* d_x + sy c* d_y + sz c* d_z) /c sqrt(sq)
+      (sx _* d_x + sy _* d_y + sz _* d_z) /_ sqrt(sq)
   end;
 
 define cross_sqrt_alt(v,w) =
@@ -115,10 +115,10 @@ define cross_sqrt_alt(v,w) =
 # Volumes and Areas
 # ----------------------------------------------------------------------------
 
-declare triangle_area :: for_unit a: (a*Space!, a*Space!, a*Space!) -> a^2;
-declare signed_volume :: for_unit a: (a*Space!, a*Space!, a*Space!) -> a^3;
-declare surface_area :: for_unit a: (List(Tuple(a*Space!, a*Space!, a*Space!))) -> a^2;
-declare surface_volume :: for_unit a: (List(Tuple(a*Space!, a*Space!, a*Space!))) -> a^3;
+declare public triangle_area :: for_unit a: (a*Space!, a*Space!, a*Space!) -> a^2;
+declare public signed_volume :: for_unit a: (a*Space!, a*Space!, a*Space!) -> a^3;
+declare public surface_area :: for_unit a: (List(Tuple(a*Space!, a*Space!, a*Space!))) -> a^2;
+declare public surface_volume :: for_unit a: (List(Tuple(a*Space!, a*Space!, a*Space!))) -> a^3;
 
 define triangle_area(x, y, z) =
   norm(cross(y - x, z - x)) / 2;
@@ -136,10 +136,10 @@ define surface_volume(surface) =
 # Rotations
 # ----------------------------------------------------------------------------
 
-declare x_rotation :: (radian) -> Space! per Space!;
-declare y_rotation :: (radian) -> Space! per Space!;
-declare z_rotation :: (radian) -> Space! per Space!;
-declare rotation :: (radian, radian, radian) -> Space! per Space!;
+declare public x_rotation :: (radian) -> Space! per Space!;
+declare public y_rotation :: (radian) -> Space! per Space!;
+declare public z_rotation :: (radian) -> Space! per Space!;
+declare public rotation :: (radian, radian, radian) -> Space! per Space!;
 
 define x_rotation(angle) =
   (space_vec(1,           0,          0) .* d_x^T +

@@ -620,7 +620,7 @@ public class Machine {
 			}
 		});
 
-		store.put("global_Matrix_row_units", new Primitive("row_units") {
+		store.put("global_Matrix_row_unit", new Primitive("row_unit") {
 			public PacioliValue apply(List<PacioliValue> params)
 					throws MVMException {
 				Matrix matrix = (Matrix) params.get(0);
@@ -628,19 +628,19 @@ public class Machine {
 			}
 		});
 
-		store.put("debug_Matrix_row_units", new Primitive("row_units") {
+		store.put("debug_Matrix_row_unit", new Primitive("row_unit") {
 			public PacioliValue apply(List<PacioliValue> params)
 					throws MVMException {
 				checkNrArgs(params, 1);
 				checkMatrixArg(params, 0);
 				Callable fun = (Callable) store
-						.lookup("global_Matrix_row_units");
+						.lookup("global_Matrix_row_unit");
 				PacioliValue result = fun.apply(params);
 				return result;
 			}
 		});
 
-		store.put("global_Matrix_column_units", new Primitive("column_units") {
+		store.put("global_Matrix_column_unit", new Primitive("column_unit") {
 			public PacioliValue apply(List<PacioliValue> params)
 					throws MVMException {
 				Matrix matrix = (Matrix) params.get(0);
@@ -648,13 +648,13 @@ public class Machine {
 			}
 		});
 
-		store.put("debug_Matrix_column_units", new Primitive("column_units") {
+		store.put("debug_Matrix_column_unit", new Primitive("column_unit") {
 			public PacioliValue apply(List<PacioliValue> params)
 					throws MVMException {
 				checkNrArgs(params, 1);
 				checkMatrixArg(params, 0);
 				Callable fun = (Callable) store
-						.lookup("global_Matrix_column_units");
+						.lookup("global_Matrix_column_unit");
 				PacioliValue result = fun.apply(params);
 				return result;
 			}
@@ -2471,6 +2471,51 @@ public class Machine {
 				checkStringArg(params, 0);
 				checkStringArg(params, 1);
 				Callable fun = (Callable) store.lookup("global_String_string_compare");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+		
+		store.put("global_String_text", new Primitive("text") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				PacioliValue value = params.get(0);
+				if (value == null) {
+					return new PacioliString("VOID!");
+				} else{
+					return new PacioliString(value.toText());
+				}
+			}
+		});
+
+		store.put("debug_String_text", new Primitive("text") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 1);
+				Callable fun = (Callable) store.lookup("global_String_text");
+				PacioliValue result = fun.apply(params);
+				return result;
+			}
+		});
+		
+		store.put("global_String_get_unit_text", new Primitive("get_unit_text") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				Matrix x = (Matrix) params.get(0);
+				Key row = (Key) params.get(1);
+				Key column = (Key) params.get(2);
+			    return new PacioliString(x.get_unit(row, column).toText());
+			}
+		});
+
+		store.put("debug_String_get_unit_text", new Primitive("get_unit_text") {
+			public PacioliValue apply(List<PacioliValue> params)
+					throws MVMException {
+				checkNrArgs(params, 3);
+				checkMatrixArg(params, 0);
+				checkKeyArg(params, 1);
+				checkKeyArg(params, 2);
+				Callable fun = (Callable) store.lookup("global_String_get_unit_text");
 				PacioliValue result = fun.apply(params);
 				return result;
 			}

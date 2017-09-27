@@ -29,7 +29,6 @@ import java.util.Set;
 
 import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.TypeContext;
 import pacioli.Utils;
@@ -39,7 +38,6 @@ import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
-import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 

@@ -26,6 +26,7 @@ var Pacioli = Pacioli || {};
 // 1. Primitive Units Unit Prefixes
 // -----------------------------------------------------------------------------
 
+Pacioli.ONE = Pacioli.unit()
 Pacioli.RADIAN = Pacioli.unit('radian')      // From primitive module 'Matrix'
 Pacioli.PERCENT = Pacioli.unit('percent')    // From primitive module 'Standard'
 
@@ -878,7 +879,7 @@ Pacioli.global_List_fold_list = function (fun, list) {
 }
 
 Pacioli.global_List_sort_list = function (list, fun) {
-    return list;
+    //return list;
     return Pacioli.tagKind(list.slice(0).sort(function (a, b) {
             if (Pacioli.global_Primitives_apply(fun, [a, b]))
                 return 1;

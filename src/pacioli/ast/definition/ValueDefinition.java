@@ -146,7 +146,7 @@ public class ValueDefinition extends AbstractDefinition {
             		+ "    var type = %s;\n"
             		+ "    return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));\n"
             		+ "}\n"
-            		+ "Pacioli.b_%s = function i(%s) {\n"
+            		+ "Pacioli.b_%s = function (%s) {\n"
             		+ "    return %s;\n" 
             		+ "}\n"
                         + "Pacioli.%s = function (%s) {\n"

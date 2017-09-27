@@ -305,6 +305,10 @@ public class Matrix extends AbstractPacioliValue {
         matrix.numbers.setEntry(0, 0, numbers.getEntry(row.position(), column.position()));
         return matrix;
     }
+    
+    public Unit get_unit(Key row, Key column) {
+    	return unitAt(row.position(), column.position());
+    }
 
     public PacioliValue magnitude() {
         Matrix matrix = new Matrix(shape.dimensionless());

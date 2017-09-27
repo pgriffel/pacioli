@@ -191,9 +191,9 @@ define step(curve, gvm, growth_factor, landmarks) =
 define axis_point(shell) =
   let body = get_body(shell) in
       if body = [] then
-          0 * shell_unit(shell) c* |Space!|
+          0 * shell_unit(shell) _* |Space!|
       else
-          sum[ curve_nth(0, x) | x <- body] /c list_size(body)
+          sum[ curve_nth(0, x) | x <- body] /_ list_size(body)
       end
   end;
 
@@ -307,7 +307,7 @@ define sum_curves(x, y) =
   [ a+b | (a,b) <- zip(x,y)];
 
 define scale_curve(curve, factor) =
-  [ factor c* x | x <- curve];
+  [ factor _* x | x <- curve];
 
 define curve_surface(curve) =
   let n = list_size(curve) - 1 in

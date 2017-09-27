@@ -24,7 +24,6 @@ package pacioli.types.ast;
 import pacioli.Dictionary;
 import pacioli.Location;
 import pacioli.PacioliException;
-import pacioli.Printable;
 import pacioli.TypeContext;
 import pacioli.ast.ASTNode;
 import pacioli.types.PacioliType;
@@ -41,15 +40,5 @@ public interface TypeNode extends ASTNode {
      * @return
      * @throws PacioliException TODO
      */
-    public PacioliType eval(boolean reduce) throws PacioliException;
-
-	/**
-	 * Only defined for matrix type nodes. Returns a javascript expression that computes 
-	 * at runtime a Shape object defined by the matrix type. See the javascript runtime
-	 * functions for information on the Shape.      
-	 * 
-	 * @return
-	 */
-	public String compileToJS(boolean boxed);
-    
+    public PacioliType eval(boolean reduce) throws PacioliException;    
 }

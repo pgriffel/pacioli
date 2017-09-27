@@ -26,10 +26,6 @@ public class NamedUnit extends BaseUnit {
     private final String symbolic;
     protected DimensionedNumber definition;
 
-    public void setDefinition(DimensionedNumber definition) {
-        this.definition = definition.flat();
-    }
-
     public NamedUnit(String symbolic) {
         this.symbolic = symbolic;
         this.definition = new DimensionedNumber(this);
@@ -37,7 +33,11 @@ public class NamedUnit extends BaseUnit {
 
     public NamedUnit(String symbolic, DimensionedNumber definition) {
         this.symbolic = symbolic;
-        setDefinition(definition);
+        this.definition = definition.flat();
+    }
+
+    public void setDefinition(DimensionedNumber definition) {
+        this.definition = definition.flat();
     }
 
     @Override

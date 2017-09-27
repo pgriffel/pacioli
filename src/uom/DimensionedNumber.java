@@ -31,7 +31,7 @@ public class DimensionedNumber {
     private final BigDecimal factor;
 
     public DimensionedNumber() {
-        unit = new PowerProduct();
+        unit = Unit.ONE;
         factor = BigDecimal.ONE;
     }
 
@@ -41,7 +41,7 @@ public class DimensionedNumber {
     }
 
     public DimensionedNumber(BigDecimal factor) {
-        unit = new PowerProduct();
+        unit = Unit.ONE;
         this.factor = factor;
     }
         

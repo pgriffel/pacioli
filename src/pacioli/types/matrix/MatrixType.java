@@ -495,21 +495,21 @@ public class MatrixType extends AbstractType {
         if (!rowDimension.isVar()) out.append(".param");
         out.append(", ");
         if (rowDimension.isVar() || rowDimension.width() > 0) {
-                out.append(Utils.compileUnitToJS(rowUnit)); 
+            out.append(Utils.compileUnitToJS(rowUnit)); 
         } else {
-                out.append("new Pacioli.PowerProduct()");
+            out.append("Pacioli.ONE");
         }
         out.append(", ");
         out.append(columnDimension.compileToJS());
         if (!columnDimension.isVar()) out.append(".param");
         out.append(", ");
         if (columnDimension.isVar() || columnDimension.width() > 0) {
-                out.append(Utils.compileUnitToJS(columnUnit));
+            out.append(Utils.compileUnitToJS(columnUnit));
         } else {
-                out.append("new Pacioli.PowerProduct()");
+            out.append("Pacioli.ONE");
         }
         out.append(")");
-
+ 
         return out.toString();
     }
 	

@@ -19,20 +19,20 @@
 
 module List;
 
-declare empty_list :: for_type a: () ->  List(a);
-declare singleton_list :: for_type a: (a) -> List(a);
-declare head :: for_type a: (List(a)) -> a;
-declare nth :: for_type a: (1, List(a)) -> a;
-declare tail :: for_type a: (List(a)) -> List(a);
-declare list_size :: for_type a: (List(a)) -> 1;
-declare add_mut :: for_type a: (List(a), a) -> List(a);
-declare cons :: for_type a: (a, List(a)) -> List(a);
-declare append :: for_type a: (List(a), List(a)) -> List(a);
-declare loop_list :: for_type a,b: (a, (a, b) -> a, List(b)) -> a;
-declare fold_list :: for_type a: ((a, a) -> a, List(a)) -> a;
-declare zip :: for_type a,b: (List(a), List(b)) -> List(Tuple(a, b));
-declare naturals :: (1) -> List(1);
-declare map_list :: for_type a,b: ((a) -> b, List(a)) -> List(b);
-declare reverse :: for_type a: (List(a)) -> List(a);
-declare sort_list :: for_type a: (List(a), (a, a) -> Boole()) -> List(a);
-declare contains :: for_type a: (List(a), a) -> Boole();
+declare public empty_list :: for_type a: () ->  List(a);
+declare public singleton_list :: for_type a: (a) -> List(a);
+declare public head :: for_type a: (List(a)) -> a;
+declare public nth :: for_type a: (1, List(a)) -> a;
+declare public tail :: for_type a: (List(a)) -> List(a);
+declare public list_size :: for_type a: (List(a)) -> 1;
+declare public add_mut :: for_type a: (List(a), a) -> List(a);
+declare public cons :: for_type a: (a, List(a)) -> List(a);
+declare public append :: for_type a: (List(a), List(a)) -> List(a);
+declare public loop_list :: for_type a,b: (a, (a, b) -> a, List(b)) -> a;
+declare public fold_list :: for_type a: ((a, a) -> a, List(a)) -> a;
+declare public zip :: for_type a,b: (List(a), List(b)) -> List(Tuple(a, b));
+declare public naturals :: (1) -> List(1);
+declare public map_list :: for_type a,b: ((a) -> b, List(a)) -> List(b);
+declare public reverse :: for_type a: (List(a)) -> List(a);
+declare public sort_list :: for_type a: (List(a), (a, a) -> Boole()) -> List(a);
+declare public contains :: for_type a: (List(a), a) -> Boole();
