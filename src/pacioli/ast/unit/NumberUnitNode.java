@@ -1,19 +1,12 @@
 package pacioli.ast.unit;
 
 import java.io.PrintWriter;
-import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
-
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.ast.definition.Definition;
-import uom.DimensionedNumber;
-import uom.Unit;
+import pacioli.ast.Visitor;
 
 public class NumberUnitNode extends AbstractUnitNode {
     
-	private final String number;
+	public final String number;
 
     public NumberUnitNode(String number, Location location) {
         super(location);
@@ -26,17 +19,19 @@ public class NumberUnitNode extends AbstractUnitNode {
 	}
 
 	@Override
-	public UnitNode resolved(Dictionary dictionary) {
-		return this;
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 
 	@Override
-	public Set<Definition> uses() {
-		return new HashSet<Definition>();
+	public String compileToJS(boolean boxed) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
-	public DimensionedNumber eval() {
-		return Unit.ONE.multiply(new BigDecimal(number));
+	public String compileToMATLAB() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

@@ -40,8 +40,8 @@ public class Identifier extends AbstractPrintable implements Expression {
     }
 
     @Override
-    public PacioliValue eval(Environment env) throws MVMException {
-        return env.lookup(name);
+    public PacioliValue eval(Environment environment) throws MVMException {
+        return environment.lookup(name);
     }
 
     @Override

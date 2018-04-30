@@ -22,25 +22,26 @@
 package pacioli.types.ast;
 
 import java.io.PrintWriter;
-import java.util.Set;
-
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.TypeContext;
-import pacioli.ast.definition.Definition;
-import pacioli.types.PacioliType;
-import pacioli.types.Schema;
+import pacioli.ast.Visitor;
+import pacioli.symboltable.SymbolInfo;
+import pacioli.symboltable.SymbolTable;
 
 public class SchemaNode extends AbstractTypeNode {
 
-    private final TypeContext context;
-    private final TypeNode type;
+    public final TypeContext context;
+    public final TypeNode type;
+	public SymbolTable<SymbolInfo> table;
 
     public SchemaNode(Location location, TypeContext context, TypeNode type) {
         super(location);
         this.context = context;
         this.type = type;
+    }
+    
+    public SchemaNode transform(TypeNode type) {
+    	return new SchemaNode(getLocation(), context, type);
     }
 
     @Override
@@ -49,25 +50,8 @@ public class SchemaNode extends AbstractTypeNode {
         type.printText(out);
     }
 
-    @Override
-    public PacioliType eval(boolean reduce) throws PacioliException {
-        TypeContext newContext = new TypeContext();
-        newContext.addAll(context);
-        newContext.addAll(this.context);
-        return new Schema(this.context.typeVars(), type.eval(reduce));
-    }
-
 	@Override
-	public Set<Definition> uses() {
-		return type.uses();
-	}
-
-	@Override
-	public TypeNode resolved(Dictionary dictionary, TypeContext context)
-			throws PacioliException {
-		TypeContext combinedContext = new TypeContext();
-		//combinedContext.addAll(context);
-		combinedContext.addAll(this.context);
-		return new SchemaNode(getLocation(), this.context, type.resolved(dictionary, combinedContext));
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 }

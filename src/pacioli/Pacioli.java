@@ -20,43 +20,58 @@
  */
 package pacioli;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import mvm.MVMException;
 import mvm.Machine;
+import pacioli.symboltable.SymbolInfo;
+import pacioli.symboltable.SymbolTable;
 
 public class Pacioli {
 
-    private static int verbosity = 1;
+    public static int verbosity = 1;
     private static boolean warnings = false;
     private static boolean debug = false;
     private static boolean traceAll = false;
     private static final List<String> tracedFunctions = new ArrayList<String>();
     private static boolean atLineStart = false;
 
-    public static void main(String[] args) {
-        try {
+    public static void main(String[] args) throws Exception {
+    	try {
             handleArgs(args);
         } catch (PacioliException ex) {
             logln("\nPacioli error:\n\n%s\n", ex.getLocatedMessage());
+        } catch (RuntimeException ex) {
+        	if (ex.getCause() == null) {
+        		logln("\nUnexpected error:\n\n");
+        		ex.printStackTrace();
+        	} else {
+        		Throwable cause = ex.getCause();
+        		if (cause instanceof PacioliException) {
+        			logln("\nPacioli error:\n\n%s\n", ((PacioliException) cause).getLocatedMessage());
+        		} else if (cause instanceof MVMException) {
+        			logln("\nMVM error:\n\n%s\n", cause.getMessage());
+        		} else {
+        			logln("\nUnexpected error:\n\n");
+        			cause.printStackTrace();
+        		}
+        	}
         } catch (MVMException ex) {
-            logln("\nRuntime error:\n\n%s\n", ex.getLocalizedMessage());
+            logln("\nMVM error:\n\n%s\n", ex.getMessage());
         } catch (Exception ex) {
-            logln("\nUnexpected error:\n\n%s\n\n", ex);
+            logln("\nUnexpected error:\n\n");
             ex.printStackTrace();
         }
     }
 
-    private static void handleArgs(String[] args) throws PacioliException, MVMException {
+    private static void handleArgs(String[] args) throws Exception {
 
         if (args.length == 0) {
             displayError("expected a command");
@@ -127,7 +142,7 @@ public class Pacioli {
                     displayError("No files to interpret.");
                 }
                 for (String file : files) {
-                    interpretCommand(file);
+                    interpretCommand(file, libs);
                 }
             } else if (command.equals("compile")) {
                 if (files.isEmpty()) {
@@ -145,6 +160,8 @@ public class Pacioli {
                 }
             } else if (command.equals("help")) {
                 helpCommand();
+            } else if (command.equals("test")) {
+                testCommand(libs, settings);
             } else if (command.equals("info")) {
                 infoCommand(libs);
             } else {
@@ -158,31 +175,37 @@ public class Pacioli {
     /*
      *  Commands
      */
-    private static void runCommand(String fileName, List<File> libs, CompilationSettings settings) throws PacioliException, MVMException {
+    private static void runCommand(String fileName, List<File> libs, CompilationSettings settings) throws Exception {
 
-        File file = new File(fileName);
-
+        //File file = new File(fileName);
+        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
+        
         if (!file.exists()) {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
 
         Pacioli.logln1("Running file '%s'", fileName);
-        Program program = new Program(libraryDirectories(libs));
+        Progam program = new Progam(file, libraryDirectories(libs));
 
         try {
 
             Pacioli.logln2("Loading module '%s'", file.getPath());
-            program.load(file);
+            program.load();
         
             StringWriter outputStream = new StringWriter();
             try {
-
+            	
+            	Boolean force = false; // forced removal of MVM files
             	
                 Pacioli.logln2("Compiling module '%s'", file.getPath());
-                program.compileMVM(new PrintWriter(outputStream), settings);
-
+                cleanStandardIncludes(libs, force);
+            	program.cleanMVMFiles(force);
+            	compileStandardIncludes(libs, settings);
+            	program.compileMVMRec(settings);
+            	
                 Pacioli.logln2("Interpreting module '%s'", file.getPath());
-                interpretMVMText(outputStream.toString());
+                String mvmFile = program.baseName() + ".mvm";
+            	interpretMVMText(new File(mvmFile), libs);
 
             } finally {
                 outputStream.close();
@@ -194,9 +217,10 @@ public class Pacioli {
 
     }
 
-    private static void compileCommand(String fileName, String target, List<File> libs, CompilationSettings settings) throws PacioliException {
+    private static void compileCommand(String fileName, String target, List<File> libs, CompilationSettings settings) throws Exception {
 
-        File file = new File(fileName);
+        //File file = new File(fileName);
+        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
 
         if (!file.exists()) {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
@@ -204,10 +228,7 @@ public class Pacioli {
 
         Pacioli.logln1("Compiling file '%s'", fileName);
 
-        Program program = new Program(libraryDirectories(libs));
-
-        int idx = file.getName().lastIndexOf('.');
-        String baseName = (idx > 0) ? file.getName().substring(0, idx) : file.getName();
+        Progam program = new Progam(file, libraryDirectories(libs));
 
         String extension;
         if (target.equals("javascript")) {
@@ -219,69 +240,62 @@ public class Pacioli {
         } else {
             extension = ".mvm";
         }
-        File dstName = new File(file.getParent(), baseName + extension).getAbsoluteFile();
+        File dstName = new File(program.baseName() + extension).getAbsoluteFile();
 
-        try {
+    	program.load();
 
-            program.load(file);
-            BufferedWriter outputStream;
-            outputStream = new BufferedWriter(new FileWriter(dstName));
-            try {
-                if (target.equals("javascript")) {
-                    program.compileJS(new PrintWriter(outputStream), settings);
-                } else if (target.equals("matlab")) {
-                    program.compileMatlab(new PrintWriter(outputStream), settings);
-                } else if (target.equals("html")) {
-                    program.compileHtml(new PrintWriter(outputStream), settings);
-                } else {
-                    program.compileMVM(new PrintWriter(outputStream), settings);
-                }
+        if (target.equals("javascript")) {
+        	throw new RuntimeException("Todo: fix js compilation");
+            //program.compileJS(new PrintWriter(outputStream), settings);
+        } else if (target.equals("matlab")) {
+        	throw new RuntimeException("Todo: fix matlab compilation");
+            //program.compileMatlab(new PrintWriter(outputStream), settings);
+        } else if (target.equals("html")) {
+        	throw new RuntimeException("Todo: fix html compilation");
+            //program.compileHtml(new PrintWriter(outputStream), settings);
+        } else {
 
-            } finally {
-                outputStream.close();
-            }
-
-            Pacioli.logln("Written file '%s'", dstName);
-
-        } catch (IOException e) {
-            throw new PacioliException("cannot compile file '%s':\n\n%s", fileName, e);
+            Boolean force = false;
+       	
+        	cleanStandardIncludes(libs, force);
+        	program.cleanMVMFiles(force);
+        	compileStandardIncludes(libs, settings);
+        	program.compileMVMRec(settings);
         }
+
+        Pacioli.logln("Compiled file '%s'", dstName);
 
     }
 
-    private static void interpretCommand(String fileName) throws MVMException {
+    private static void interpretCommand(String fileName, List<File> libs) throws Exception {
 
-        File file = new File(fileName);
-
+        File file = new File(fileName).getAbsoluteFile();
+        
         if (!file.exists()) {
             throw new MVMException("Error: file '%s' does not exist.", fileName);
         }
 
         Pacioli.logln1("Interpreting file '%s'", fileName);
 
-        try {
-            interpretMVMText(Utils.readFile(new File(fileName)));
-        } catch (IOException e) {
-            throw new MVMException("\nError: cannot interpret file '%s':\n\n%s", fileName, e);
-        }
-
+        interpretMVMText(new File(fileName), libs);
     }
 
-    private static void typesCommand(String fileName, List<File> libs) throws PacioliException {
+    private static void typesCommand(String fileName, List<File> libs) throws Exception {
 
-        File file = locatePacioliFile(fileName, libs);
+        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
 
         if (file == null) {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
 
         Pacioli.logln1("Displaying types for file '%s'", file);
-        Program program = new Program(libraryDirectories(libs));
+        Progam program = new Progam(file, libraryDirectories(libs));
 
         try {
-
+        	
             Pacioli.logln2("Loading module '%s'", file.getPath());
-            program.load(file);
+            program.load();
+            
             Pacioli.logln2("Displaying types in module '%s'", file.getPath());
             program.checkTypes();
 
@@ -344,7 +358,123 @@ public class Pacioli {
         logln("   -warnings     toggles compiler warnings on or off");
     }
 
-    /*
+    private static void testCommand(List<File> libs, CompilationSettings settings) throws Exception {
+    	
+    	String dir = "E:/code/private/pacioli/samples/";
+    	
+    	//compileFileCUP(dir + "net" + ".pacioli", libs, settings);
+    	
+    	//if (true) return;
+    	
+    	List<String> samples = Arrays.asList(
+    			"minijava",
+    			"abstract-resource",
+    			"adt",
+    			"adt-use",
+    			//"alias", // bugged, also in old version
+    			"apply_mag",
+    			//"biglist", // okay but slow
+    			//"blas", // bugged, also in old version
+    			"blocks",
+    			"bom",
+    			"commodity", 
+    			"dice",
+    			"do",          // werkt niet meer met oude schema syntax  
+    			"envelope",
+    			"fourier-motzkin", 
+    			"gcd",
+    			"gcd-test",
+    			//"geom",  // bugged, also in old version
+    			"good",
+    			"grass",
+    			"hello-world", // bug introduced  STATEMENTS
+    			//"huh",   // strange old bug
+    			"indexing", // bug introduced  STATEMENTS
+    			"intro",
+    			"kirchhof",
+    			"klein",
+    			"krylov",  // bug introduced  STATEMENTS
+//    			"loop",  // bug introduced  STATEMENTS
+    			"magic", 
+    			"math",
+//    			"net",  // bug introduced  MULTI LEVEL INCLUDES
+    			"power",
+    			"precedence",
+    			"quad",
+    			"queue",
+    			"random",
+    			"resource",
+    			"runtime-types", // bug introduced  STATEMENTS
+    			"series",
+    			"convolution",
+    			"service",
+    			//"solver",  // svd has changed
+    			//"statement",  // bugged, also in old version
+    			"test");
+    	
+    	for (String sample: samples) {
+    		//typesCommand(dir + sample + ".pacioli", libs);
+    		//interpretCommand(dir + sample + ".mvm", libs);
+    		//runCommand(dir + sample + ".pacioli", libs, settings);
+    		//compileCommand(dir + sample + ".pacioli", dir + sample + ".mvm", libs, settings);
+    		compileFileCUP(dir + sample + ".pacioli", libs, settings);
+    		logln("--------------------------------------------------------------------------------");
+    	}
+    }
+
+    private static void compileFileCUP(String fileName, List<File> libs, CompilationSettings settings) throws Exception {
+    	
+    	Boolean force = true;
+    	
+    	Progam prog = new Progam(fileName, libs);
+    	prog.load();
+    	
+    	cleanStandardIncludes(libs, force);
+    	prog.cleanMVMFiles(force);
+
+    	compileStandardIncludes(libs, settings);
+
+    	prog.compileMVMRec(settings);
+    	
+    	String file = prog.baseName() + ".mvm";
+
+    	interpretMVMText(new File(file), libs);
+    	
+    }
+    
+    private static void cleanStandardIncludes(List<File> libs, Boolean force) throws Exception {
+    	for (String include: PacioliFile.defaultsToCompile) {
+    		File file = PacioliFile.findIncludeFile(include, libs);
+    		Progam prog = new Progam(file, libs);
+        	prog.load();
+        	prog.cleanMVMFiles(force);
+    	}
+    }
+    
+    private static void compileStandardIncludes(List<File> libs, CompilationSettings settings) throws Exception {
+    	for (String include: PacioliFile.defaultsToCompile) {
+    		File file = PacioliFile.findIncludeFile(include, libs);
+    		Progam prog = new Progam(file, libs);
+        	prog.load();
+    		prog.compileMVMRec(settings);
+    	}
+    }
+    
+    static void printSymbolTable(SymbolTable<? extends SymbolInfo> table, String header) {
+    	Pacioli.logln("Begin %s table", header);
+		for (String name: table.allNames()) {
+			SymbolInfo info = table.lookup(name);
+			Pacioli.logln("  %-25s %-15s %s %-50s %s", 
+					name,
+					info.generic().module,
+					info.generic().local ? "local" : "     ", 
+					info.generic().file,
+					info.getDefinition());
+		}
+		Pacioli.logln("End table");
+    }
+  
+	/*
      * Utilities
      */
     private static void displayError(String text) {
@@ -352,11 +482,11 @@ public class Pacioli {
         logln("\nType 'pacioli help' for help");
     }
 
-    private static void interpretMVMText(String code) throws MVMException {
+    private static void interpretMVMText(File file, List<File> libs) throws Exception {
         Machine vm = new Machine();
         try {
             vm.init();
-            vm.run(code, System.out);
+            vm.run(file, System.out, libs);
         } catch (MVMException ex) {
             if (2 < verbosity || debug) {
                 logln("\nState when error occured:");

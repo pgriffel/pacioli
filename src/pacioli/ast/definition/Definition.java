@@ -21,13 +21,12 @@
 
 package pacioli.ast.definition;
 
-import pacioli.Dictionary;
 import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.Program;
-import pacioli.ast.ASTNode;
+import pacioli.Progam;
+import pacioli.ast.Node;
+import pacioli.symboltable.GenericInfo;
 
-public interface Definition extends ASTNode {
+public interface Definition extends Node {
 
     public String localName();
 
@@ -36,9 +35,6 @@ public interface Definition extends ASTNode {
     public void setModule(PacioliFile module);
     
     public PacioliFile getModule();
-
-    public void addToProgram(Program program, PacioliFile module);
-
-    public void resolve(Dictionary dictionary) throws PacioliException;
-	
+    
+    public void addToProgr(Progam program, GenericInfo info);	
 }

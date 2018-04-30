@@ -23,9 +23,9 @@ package pacioli.ast.definition;
 
 import pacioli.Location;
 import pacioli.PacioliFile;
-import pacioli.ast.AbstractASTNode;
+import pacioli.ast.AbstractNode;
 
-public abstract class AbstractDefinition extends AbstractASTNode implements Definition {
+public abstract class AbstractDefinition extends AbstractNode implements Definition {
 
     protected PacioliFile module;
     

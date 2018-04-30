@@ -1,80 +1,38 @@
 package pacioli.ast.expression;
 
 import java.io.PrintWriter;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import mvm.values.matrix.Matrix;
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.TypeContext;
-import pacioli.Typing;
-import pacioli.ValueContext;
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.ValueDefinition;
+import pacioli.ast.Node;
+import pacioli.ast.Visitor;
 import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
 
 public class ConversionNode extends AbstractExpressionNode {
 
-	private final TypeNode typeNode;
+	public final TypeNode typeNode;
 
 	private MatrixTypeNode bang;
-    private PacioliType type;
+    public PacioliType type;
     
 	public ConversionNode(Location location, TypeNode typeNode) {
 		super(location);
 		this.typeNode = typeNode;
 	}
-
-	@Override
-	public ExpressionNode resolved(Dictionary dictionary,
-			ValueContext context) throws PacioliException {
-		TypeNode resolvedTypeNode = typeNode.resolved(dictionary, new TypeContext());
-		bang = new MatrixTypeNode(resolvedTypeNode.getLocation(), typeNode);
-		type = resolvedTypeNode.eval(true);
-		ExpressionNode resolved = bang.resolved(dictionary, new ValueContext());
-		assert (resolved instanceof MatrixTypeNode); 
-        ConversionNode node = new ConversionNode(getLocation(), resolvedTypeNode);
-        node.bang = (MatrixTypeNode) resolved;
-        node.type = type;
-        return node;
-        
+	
+	public ConversionNode(ConversionNode old) {
+		super(old.getLocation());
+		this.typeNode = old.typeNode;
 	}
 
-	@Override
-	public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
-		assert (type != null);
-        return new Typing(type);
+	private ConversionNode(Location location, TypeNode typeNode, MatrixTypeNode bang, PacioliType type) {
+		super(location);
+		this.typeNode = typeNode;
+		this.bang = bang;
+		this.type = type;
 	}
 
-	@Override
-	public Set<IdentifierNode> locallyAssignedVariables() {
-		return new LinkedHashSet<IdentifierNode>();
-	}
-
-	@Override
-	public ExpressionNode desugar() {
-		return this;
-	}
-
-	@Override
-	public Set<Definition> uses() {
-		return typeNode.uses();
-	}
-
-	@Override
-	public String compileToMVM(CompilationSettings settings) {
-//		assert (bang != null);
-//        ExpressionNode body = ApplicationNode.newCall(bang.getLocation(), "", "conversion", bang);
-//        return body.compileToMVM(settings);
-        return String.format("matrix_constructor(\"conversion\", %s)", typeNode.compileToMVM(settings));
+	public Node transform(TypeNode typeNode) {
+		return new ConversionNode(getLocation(), typeNode, bang, type);
 	}
 
 	@Override
@@ -95,9 +53,7 @@ public class ConversionNode extends AbstractExpressionNode {
 	}
 
 	@Override
-	public ExpressionNode liftStatements(PacioliFile module,
-			List<ValueDefinition> blocks) {
-		// TODO Auto-generated method stub
-		return null;
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 }

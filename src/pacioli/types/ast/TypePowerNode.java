@@ -22,59 +22,44 @@
 package pacioli.types.ast;
 
 import java.io.PrintWriter;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.TypeContext;
-import pacioli.ast.definition.Definition;
+import pacioli.ast.Node;
+import pacioli.ast.Visitor;
 import pacioli.ast.unit.NumberUnitNode;
-import pacioli.types.PacioliType;
-import pacioli.types.matrix.MatrixType;
-import uom.Fraction;
 
 public class TypePowerNode extends AbstractTypeNode {
 
-    private final TypeNode base;
-    private final Integer power;
+    public final TypeNode base;
+    //public final Integer power;
+    public final NumberTypeNode power;
+
+    public TypePowerNode(Location location, TypeNode base, NumberTypeNode power) {
+        super(location);
+        this.base = base;
+        //this.power = Integer.parseInt(power.toText());
+        this.power = power;
+    }
 
     public TypePowerNode(Location location, TypeNode base, NumberUnitNode power) {
         super(location);
         this.base = base;
-        this.power = Integer.parseInt(power.toText());
+        this.power = new NumberTypeNode(power.getLocation(), power.toText());
     }
-
-    private TypePowerNode(Location location, TypeNode base, Integer power) {
+    
+    /*private TypePowerNode(Location location, TypeNode base, Integer power) {
         super(location);
         this.base = base;
         this.power = power;
-    }
+    }*/
 
-    @Override
-    public void printText(PrintWriter out) {
-        out.format("%s^%s", base, power);
-    }
-
-    @Override
-    public PacioliType eval(boolean reduce) throws PacioliException {
-        PacioliType baseType = base.eval(reduce);
-        
-        if (!(baseType instanceof MatrixType)) {
-            throw new PacioliException(getLocation(), "Matrix type expected for power but got a %s", baseType.description());
-        }
-        
-        MatrixType matrix = (MatrixType) baseType;
-        return matrix.raise(new Fraction(power));
-    }
-
-    @Override
-	public String compileToMVM(CompilationSettings settings) {
-		String leftMVM = base.compileToMVM(settings);
-		return "shape_expt(" + leftMVM + ", " + power + ")";
-
+    public Node transform(TypeNode base) {
+		return new TypePowerNode(getLocation(), base, power);
 	}
+
+	@Override
+    public void printText(PrintWriter out) {
+        out.format("%s^%s", base.toText(), power.toText());
+    }
 	
 	@Override
 	public String compileToJS(boolean boxed) {
@@ -82,16 +67,7 @@ public class TypePowerNode extends AbstractTypeNode {
 	}
 
 	@Override
-	public Set<Definition> uses() {
-		return base.uses();
-	}
-
-	@Override
-	public TypeNode resolved(Dictionary dictionary, TypeContext context)
-			throws PacioliException {
-		return new TypePowerNode(
-				getLocation(),
-				base.resolved(dictionary, context),
-				power);
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 }

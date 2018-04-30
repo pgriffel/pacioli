@@ -23,11 +23,8 @@ package pacioli.types;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;

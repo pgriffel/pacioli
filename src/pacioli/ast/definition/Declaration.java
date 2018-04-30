@@ -1,27 +1,19 @@
 package pacioli.ast.definition;
 
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.Program;
-import pacioli.TypeContext;
+import pacioli.Progam;
+import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.types.PacioliType;
+import pacioli.symboltable.GenericInfo;
+import pacioli.symboltable.ValueInfo;
 import pacioli.types.ast.TypeNode;
 
 public class Declaration extends AbstractDefinition {
 
-	private final IdentifierNode id;
-	private final TypeNode typeNode;
-	private TypeNode resolvedTypeNode;
-	private PacioliType type;
-	private PacioliType publicType;
+	public final IdentifierNode id;
+	public final TypeNode typeNode;
+	
 
 	public Declaration(Location location, IdentifierNode id, TypeNode typeNode) {
 		super(location);
@@ -29,46 +21,13 @@ public class Declaration extends AbstractDefinition {
 		this.typeNode = typeNode;
 	}
 
-	@Override
-	public void addToProgram(Program program, PacioliFile module) {
-		setModule(module);
-		program.addDeclaration(this, module);
+	public Declaration transform(TypeNode node) {
+		return new Declaration(getLocation(), id, node);
 	}
-
+		
 	@Override
 	public String localName() {
 		return id.getName();
-	}
-
-	public PacioliType getType() {
-		assert type != null;
-		return type;
-	}
-	
-	public PacioliType getPublicType() {
-		assert publicType != null;
-		return publicType;
-	}
-	
-	@Override
-	public void resolve(Dictionary dictionary) throws PacioliException {
-		resolvedTypeNode = typeNode.resolved(dictionary, new TypeContext());
-		type = resolvedTypeNode.eval(true);
-		publicType = resolvedTypeNode.eval(false);
-	}
-
-	@Override
-	public Set<Definition> uses() {
-		return resolvedTypeNode.uses();
-	}
-
-	public void desugar() {
-		//throw new RuntimeException("todo");
-	}
-
-	@Override
-	public String compileToMVM(CompilationSettings settings) {
-		throw new RuntimeException("todo");
 	}
 
 	@Override
@@ -88,10 +47,10 @@ public class Declaration extends AbstractDefinition {
         		+ "}\n"
         		+ "\n"
         		+ "\n",
-        		type.toText(),
+        		"fixme:type.toText()",
         		globalName(),
         		//type.compileToJS(new HashSet<TypeVar>()),
-                type.compileToJS());	
+                "fixmed:type.compileToJS()");	
 	}
 
 	@Override
@@ -102,6 +61,18 @@ public class Declaration extends AbstractDefinition {
 	@Override
 	public void printText(PrintWriter out) {
 		throw new RuntimeException("todo");
+	}
+
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+	}
+
+	@Override
+	public void addToProgr(Progam program, GenericInfo generic) {
+		ValueInfo info = program.ensureValueRecord(id.getName());
+		info.generic = generic;
+		info.declaredType = typeNode;
 	}
 
 }

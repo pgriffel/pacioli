@@ -24,38 +24,31 @@ package pacioli.ast.expression;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.Typing;
-import pacioli.ValueContext;
-import pacioli.ast.definition.Definition;
+import pacioli.ast.Visitor;
 import pacioli.ast.definition.IndexSetDefinition;
-import pacioli.ast.definition.ValueDefinition;
-import pacioli.types.PacioliType;
-import pacioli.types.TypeIdentifier;
-import pacioli.types.matrix.IndexList;
-import pacioli.types.matrix.IndexType;
+import pacioli.symboltable.IndexSetInfo;
 
 public class KeyNode extends AbstractExpressionNode {
 
-    private final List<String> indexSets;
-    private final List<String> keys;
-    private final List<IndexSetDefinition> indexSetDefinitions;
+    public final List<String> indexSets;
+    public final List<String> keys;
+    public final List<IndexSetDefinition> indexSetDefinitions;
+	public List<IndexSetInfo> info;
 
     public KeyNode(Location location) {
         super(location);
         indexSets = new ArrayList<String>();
         keys = new ArrayList<String>();
         indexSetDefinitions = null;
+    }
+    
+    public KeyNode(KeyNode old) {
+        super(old.getLocation());
+        indexSets = old.indexSets;
+        keys = old.keys;
+        indexSetDefinitions = old.indexSetDefinitions;
     }
 
     public KeyNode(String indexSet, String key, Location location) {
@@ -66,7 +59,7 @@ public class KeyNode extends AbstractExpressionNode {
     }
 
 
-    private KeyNode(Location location, List<String> indexSets, List<String> keys, List<IndexSetDefinition> indexSetDefinitions) {
+    public KeyNode(Location location, List<String> indexSets, List<String> keys, List<IndexSetDefinition> indexSetDefinitions) {
         super(location);
         this.indexSets = new ArrayList<String>(indexSets);
         this.keys = new ArrayList<String>(keys);
@@ -110,60 +103,6 @@ public class KeyNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
-    	List<IndexSetDefinition> definitions = new ArrayList<IndexSetDefinition>();
-    	for (String name: indexSets) {
-    		if (dictionary.containsIndexSetDefinition(name)) {
-    			definitions.add(dictionary.getIndexSetDefinition(name));
-            } else {
-            	throw new PacioliException(getLocation(), "Index set '%s' unknown", name);
-            }
-    	}
-        return new KeyNode(getLocation(), indexSets, keys, definitions);
-    }
-
-    @Override
-    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
-    	List<TypeIdentifier> typeIds = new ArrayList<TypeIdentifier>();
-    	for (IndexSetDefinition definition: indexSetDefinitions) {
-    		typeIds.add(definition.typeIdentifier());
-    	}
-    	return new Typing(new IndexType(typeIds));
-        //return new Typing(new DimensionType(indexSets));
-    }
-
-    @Override
-    public Set<Definition> uses() {
-        return new HashSet<Definition>();
-    }
-
-    @Override
-    public Set<IdentifierNode> locallyAssignedVariables() {
-        return new LinkedHashSet<IdentifierNode>();
-    }
-
-    @Override
-    public ExpressionNode desugar() {
-        return this;
-    }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        String code = "key(";
-        int size = indexSets.size();
-        for (int i = 0; i < size; i++) {
-            if (0 < i) {
-                code += ", ";
-            }
-            code += "\"" + indexSetDefinitions.get(i).globalName() + "\"";
-            code += ", ";
-            code += "\"" + keys.get(i) + "\"";
-        }
-        code += ")";
-        return code;
-    }
-
-    @Override
     public String compileToJS(boolean boxed) {
     	StringBuilder builder = new StringBuilder();
     	builder.append("Pacioli.createCoordinates([");
@@ -200,9 +139,7 @@ public class KeyNode extends AbstractExpressionNode {
     }
 
 	@Override
-	public ExpressionNode liftStatements(PacioliFile module,
-			List<ValueDefinition> blocks) {
-		// TODO Auto-generated method stub
-		return null;
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 }

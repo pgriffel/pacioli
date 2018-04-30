@@ -1,21 +1,10 @@
 package pacioli.ast.unit;
 
-import java.util.Set;
-
-import pacioli.Dictionary;
-import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Printable;
-import pacioli.ast.definition.Definition;
+import pacioli.ast.Node;
 import uom.DimensionedNumber;
 
-public interface UnitNode extends Printable {
+public interface UnitNode extends Node {
 	
-	public Location getLocation();
-
-	public UnitNode resolved(Dictionary dictionary) throws PacioliException ;
+	public DimensionedNumber evalUnit();
 	
-	public Set<Definition> uses();
-	
-	public DimensionedNumber eval();
 }

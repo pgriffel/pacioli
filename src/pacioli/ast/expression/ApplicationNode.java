@@ -24,35 +24,25 @@ package pacioli.ast.expression;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.Typing;
 import pacioli.Utils;
-import pacioli.ValueContext;
-import pacioli.ast.ASTNode;
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.ValueDefinition;
-import pacioli.types.FunctionType;
-import pacioli.types.PacioliType;
-import pacioli.types.ParametricType;
-import pacioli.types.TypeVar;
+import pacioli.ast.Node;
+import pacioli.ast.Visitor;
 
 public class ApplicationNode extends AbstractExpressionNode {
 
-    private final ExpressionNode function;
-    private final List<ExpressionNode> arguments;
+    public final ExpressionNode function;
+    public final List<ExpressionNode> arguments;
 
     public ApplicationNode(ExpressionNode fun, List<ExpressionNode> args, Location location) {
         super(location);
+        function = fun;
+        arguments = args;
+    }
+    
+    public ApplicationNode(ApplicationNode old, ExpressionNode fun, List<ExpressionNode> args) {
+        super(old.getLocation());
         function = fun;
         arguments = args;
     }
@@ -60,19 +50,6 @@ public class ApplicationNode extends AbstractExpressionNode {
     public static ApplicationNode newCall(Location location, String module, String function, ExpressionNode... args) {
         IdentifierNode id = IdentifierNode.newValueIdentifier(module, function, location);
         return new ApplicationNode(id, Arrays.asList(args), location);
-    }
-
-    private interface ArgumentsMap {
-
-        public ExpressionNode map(ExpressionNode argument) throws PacioliException;
-    }
-
-    private List<ExpressionNode> mapArguments(ArgumentsMap map) throws PacioliException {
-        List<ExpressionNode> mapped = new ArrayList<ExpressionNode>();
-        for (ExpressionNode argument : arguments) {
-            mapped.add(map.map(argument));
-        }
-        return mapped;
     }
 
     @Override
@@ -84,93 +61,10 @@ public class ApplicationNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode resolved(final Dictionary dictionary, final ValueContext context) throws PacioliException {
-        ExpressionNode resolvedFunction = function.resolved(dictionary, context);
-        List<ExpressionNode> resolvedArguments = mapArguments(new ArgumentsMap() {
-            @Override
-            public ExpressionNode map(ExpressionNode argument) throws PacioliException {
-                return argument.resolved(dictionary, context);
-            }
-        });
-        return new ApplicationNode(resolvedFunction, resolvedArguments, getLocation());
-    }
-
-    @Override
-    public Set<Definition> uses() {
-        Set<Definition> set = new HashSet<Definition>();
-        set.addAll(function.uses());
-        for (ASTNode node : arguments) {
-            set.addAll(node.uses());
-        }
-        return set;
-    }
-
-    @Override
-    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
-
-        PacioliType resultType = new TypeVar("for_type");
-        Typing typing = new Typing(resultType);
-
-        List<PacioliType> argTypes = new ArrayList<PacioliType>();
-        for (ExpressionNode arg : arguments) {
-            Typing argTyping = arg.inferTyping(context);
-            argTypes.add(argTyping.getType());
-            typing.addConstraints(argTyping);
-        }
-
-        Typing funTyping = function.inferTyping(context);
-        typing.addConstraints(funTyping);
-
-        PacioliType funType = new FunctionType(new ParametricType("Tuple", argTypes), resultType);
-        typing.addConstraint(funType, funTyping.getType(), String.format("During inference %s\nthe infered type must match known types", sourceDescription()));
-
-        return typing;
-    }
-
-    @Override
-    public Set<IdentifierNode> locallyAssignedVariables() {
-        return new LinkedHashSet<IdentifierNode>();
-    }
-
-    @Override
-    public ExpressionNode desugar() {
-        List<ExpressionNode> mapped = new ArrayList<ExpressionNode>();
-        for (ExpressionNode arg : arguments) {
-            mapped.add(arg.desugar());
-        }
-        return new ApplicationNode(function.desugar(), mapped, getLocation());
-    }
-
-    private String escapeString(String in) {
-    	// Quick fix for the debug option for string literals
-    	return in.replaceAll("\"", "\\\\\"");
-    }
-    
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        String args = "";
-        for (ASTNode arg : arguments) {
-            args += ", " + arg.compileToMVM(settings);
-        }
-        if (settings.debug() && function instanceof IdentifierNode) {
-            IdentifierNode id = (IdentifierNode) function;
-            String stackText = id.getName();
-            String fullText = getLocation().description();
-            String code = function.compileToMVM(settings);
-            //boolean traceOn = settings.trace(id.fullName());
-            boolean traceOn = settings.trace(id.getName());
-            return String.format("application_debug(\"%s\", \"%s\", \"%s\", %s%s)", 
-            		 escapeString(stackText), escapeString(fullText), traceOn, code, args);
-        } else {
-            return String.format("application(%s%s)", function.compileToMVM(settings), args);
-        }
-    }
-
-    @Override
     public String compileToJS(boolean boxed) {
 
         List<String> compiled = new ArrayList<String>();
-        for (ASTNode arg : arguments) {
+        for (Node arg : arguments) {
             compiled.add(arg.compileToJS(boxed));
         }
         String args = Utils.intercalate(", ", compiled);
@@ -221,7 +115,7 @@ public class ApplicationNode extends AbstractExpressionNode {
     @Override
     public String compileToMATLAB() {
         List<String> compiled = new ArrayList<String>();
-        for (ASTNode arg : arguments) {
+        for (Node arg : arguments) {
             compiled.add(arg.compileToMATLAB());
         }
         String argsText = "(" + Utils.intercalate(", ", compiled) + ")";
@@ -234,9 +128,7 @@ public class ApplicationNode extends AbstractExpressionNode {
     }
 
 	@Override
-	public ExpressionNode liftStatements(PacioliFile module,
-			List<ValueDefinition> blocks) {
-		// TODO Auto-generated method stub
-		return null;
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 }

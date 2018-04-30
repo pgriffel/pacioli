@@ -31,20 +31,20 @@ public class PacioliException extends Exception {
         location = null;
     }
     
-    public PacioliException(Throwable cause) {
+  /*  public PacioliException(Throwable cause) {
         super(cause.getLocalizedMessage());
         location = null;
-    }
+    }*/
     
     public PacioliException(Location location, String format, Object ... args) {
         super(String.format(format, args));
         this.location = location;
     }
     
-    public PacioliException(Location location, Throwable cause) {
+    /*public PacioliException(Location location, Throwable cause) {
         super(cause.getLocalizedMessage());
         this.location = location;
-    }
+    }*/
     
     public Location getLocation() {
         return location;

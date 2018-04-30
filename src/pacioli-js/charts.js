@@ -593,6 +593,11 @@ Pacioli.ScatterPlot = function (parent, dataX, dataY, options) {
         margin: {left: 40, top: 20, right: 20, bottom: 50},
         xunit: null,
         yunit: null,
+        lowerX: null,
+        lowerXa: null,
+        upperX: null,
+        lowerY: null,
+        upperY: null,
         labelX: "",
         labelY: "",
         radius: 2.5,
@@ -619,10 +624,14 @@ Pacioli.ScatterPlot.prototype.draw = function () {
         var values = data.values
 
         // Create an array with the bin tresholds and generate a scatterplot layout from it for the data
-        var lowerX = this.options.lowerX || data.minX // dataX.min //d3.min(data)
-        var upperX = this.options.upperX || data.maxX // dataX.max //d3.max(data)
-        var lowerY = this.options.lowerY || data.minY // dataY.min //d3.min(data)
-        var upperY = this.options.upperY || data.maxY // dataY.max //d3.max(data)
+        var lowerX = this.options.lowerX === null ? data.minX : this.options.lowerX
+        var upperX = this.options.upperX === null ? data.maxX : this.options.upperX
+        var lowerY = this.options.lowerY === null ? data.minY : this.options.lowerY
+        var upperY = this.options.upperY === null ? data.maxY : this.options.upperY
+//        var upperX = this.options.upperX || data.maxX // dataX.max //d3.max(data)
+//        var lowerY = this.options.lowerY || data.minY // dataY.min //d3.min(data)
+//        var upperY = this.options.upperY || data.maxY // dataY.max //d3.max(data)
+// alert(this.options.lowerXa === null);
 
         // Determine the drawing dimensions
         var margin = this.options.margin

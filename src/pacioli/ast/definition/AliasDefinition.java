@@ -1,66 +1,37 @@
 package pacioli.ast.definition;
 
 import java.io.PrintWriter;
-import java.math.BigDecimal;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.Program;
+import pacioli.Pacioli;
+import pacioli.Progam;
+import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
-import uom.DimensionedNumber;
-import uom.Unit;
+import pacioli.symboltable.GenericInfo;
 
 public class AliasDefinition extends AbstractDefinition {
 
-	private final IdentifierNode id;
-	private final UnitNode unit;
-	private UnitNode resolvedUnit;
+	public final IdentifierNode id;
+	public final UnitNode unit;
 
 	public AliasDefinition(Location location, IdentifierNode id, UnitNode unit) {
 		super(location);
 		this.id = id;
 		this.unit = unit;
 	}
-
-	@Override
-	public void addToProgram(Program program, PacioliFile module) {
-		setModule(module);
-		program.addAliasDefinition(this, module);
-	}
 	
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+	}
+
 	@Override
 	public String localName() {
 		return id.getName();
 	}
 
-	public UnitNode getBody() {
-		assert(resolvedUnit != null);
-		return resolvedUnit;
-	}
-
 	@Override
 	public void printText(PrintWriter out) {
-		throw new RuntimeException("todo");
-	}
-
-	@Override
-	public void resolve(Dictionary dictionary) throws PacioliException {
-		resolvedUnit = unit.resolved(dictionary);
-	}
-
-	@Override
-	public Set<Definition> uses() {
-		assert resolvedUnit != null;
-		return resolvedUnit.uses();
-	}
-
-	@Override
-	public String compileToMVM(CompilationSettings settings) {
 		throw new RuntimeException("todo");
 	}
 
@@ -74,12 +45,17 @@ public class AliasDefinition extends AbstractDefinition {
 		throw new RuntimeException("todo");	
 	}
 
-        public Unit evalBody() {
-            DimensionedNumber number = getBody().eval();
-            if (!number.factor().equals(BigDecimal.ONE)) {
-                throw new RuntimeException("Unexpected number in unit alias");
-            }
-            return number.unit();
+   /* public Unit evalBody() {
+        DimensionedNumber number = getBody().evalUnit();
+        if (!number.factor().equals(BigDecimal.ONE)) {
+            throw new RuntimeException("Unexpected number in unit alias");
+        }
+        return number.unit();
+	}*/
+
+	@Override
+	public void addToProgr(Progam program, GenericInfo info) {
+		Pacioli.logln("IGNORING ALIAS");
 	}
 
 }

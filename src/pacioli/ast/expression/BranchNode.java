@@ -22,33 +22,24 @@
 package pacioli.ast.expression;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.Typing;
-import pacioli.ValueContext;
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.ValueDefinition;
-import pacioli.types.PacioliType;
-import pacioli.types.ParametricType;
+import pacioli.ast.Visitor;
 
 public class BranchNode extends AbstractExpressionNode {
 
-    private final ExpressionNode test;
-    private final ExpressionNode positive;
-    private final ExpressionNode negative;
+    public final ExpressionNode test;
+    public final ExpressionNode positive;
+    public final ExpressionNode negative;
 
     public BranchNode(ExpressionNode test, ExpressionNode pos, ExpressionNode neg, Location location) {
         super(location);
+        this.test = test;
+        this.positive = pos;
+        this.negative = neg;
+    }
+    
+    public BranchNode(BranchNode old, ExpressionNode test, ExpressionNode pos, ExpressionNode neg) {
+        super(old.getLocation());
         this.test = test;
         this.positive = pos;
         this.negative = neg;
@@ -66,42 +57,6 @@ public class BranchNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
-        return new BranchNode(
-                test.resolved(dictionary, context),
-                positive.resolved(dictionary, context),
-                negative.resolved(dictionary, context),
-                getLocation());
-    }
-
-    @Override
-    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
-
-        Typing testTyping = test.inferTyping(context);
-        Typing posTyping = positive.inferTyping(context);
-        Typing negTyping = negative.inferTyping(context);
-
-        Typing typing = new Typing(posTyping.getType());
-
-        typing.addConstraints(testTyping);
-        typing.addConstraints(posTyping);
-        typing.addConstraints(negTyping);
-
-        typing.addConstraint(testTyping.getType(), new ParametricType("Boole", new ArrayList<PacioliType>()), String.format("While infering the type of\n%s\nthe test of an if must be Boolean", sourceDescription()));
-        typing.addConstraint(posTyping.getType(), negTyping.getType(), String.format("While infering the type of\n%s\nthe branches of an if must have the same type", sourceDescription()));
-
-        return typing;
-    }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        return String.format("if(%s,%s,%s)", 
-                test.compileToMVM(settings), 
-                positive.compileToMVM(settings),
-                negative.compileToMVM(settings));
-    }
-
-    @Override
     public String compileToJS(boolean boxed) {
         return String.format("(%s ? %s : %s)", test.compileToJS(boxed), positive.compileToJS(boxed), negative.compileToJS(boxed));
     }
@@ -114,33 +69,8 @@ public class BranchNode extends AbstractExpressionNode {
                 negative.compileToMATLAB());
     }
 
-    @Override
-    public Set<Definition> uses() {
-        Set<Definition> set = new HashSet<Definition>();
-        set.addAll(test.uses());
-        set.addAll(positive.uses());
-        set.addAll(negative.uses());
-        return set;
-    }
-
-    @Override
-    public Set<IdentifierNode> locallyAssignedVariables() {
-        return new LinkedHashSet<IdentifierNode>();
-    }
-
-    @Override
-    public ExpressionNode desugar() {
-        return new BranchNode(
-                test.desugar(),
-                positive.desugar(),
-                negative.desugar(),
-                getLocation());
-    }
-
 	@Override
-	public ExpressionNode liftStatements(PacioliFile module,
-			List<ValueDefinition> blocks) {
-		// TODO Auto-generated method stub
-		return null;
+	public void accept(Visitor visitor) {
+		visitor.visit(this);	
 	}
 }

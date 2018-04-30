@@ -21,13 +21,30 @@
 
 package pacioli.ast.expression;
 
-import pacioli.Location;
-import pacioli.ast.AbstractASTNode;
+import java.util.Set;
 
-public abstract class AbstractExpressionNode extends AbstractASTNode implements ExpressionNode {
+import pacioli.Location;
+import pacioli.Progam;
+import pacioli.Typing;
+import pacioli.ast.AbstractNode;
+import pacioli.visitors.AssignedVariablesVisitor;
+import pacioli.visitors.TypeInference;
+
+public abstract class AbstractExpressionNode extends AbstractNode implements ExpressionNode {
 
     public AbstractExpressionNode(Location location) {
         super(location);
     }
-
+    
+    @Override
+    public Typing inferTyping2(Progam prog) {
+    	TypeInference visitor = new TypeInference();
+    	return visitor.typingAccept(this);
+    }
+    
+    @Override
+    public Set<IdentifierNode> locallyAssignedVariables() {
+    	AssignedVariablesVisitor visitor = new AssignedVariablesVisitor();
+    	return visitor.idsAccept(this);
+    }
 }

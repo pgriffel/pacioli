@@ -1,44 +1,26 @@
 package pacioli.ast.definition;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-
 import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.Pacioli;
-import pacioli.PacioliException;
 import pacioli.PacioliFile;
-import pacioli.Program;
+import pacioli.Progam;
+import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.symboltable.GenericInfo;
 import pacioli.types.ast.TypeNode;
 
-public class MultiDeclaration implements Definition {
+public class MultiDeclaration extends AbstractDefinition {
 
-	private Location location;
-	private List<IdentifierNode> ids;
-	private TypeNode node;
+	public List<IdentifierNode> ids;
+	public TypeNode node;
 
 	public MultiDeclaration(Location location, List<IdentifierNode> ids, TypeNode node) {
-		this.location = location;
+		super(location);
 		this.ids = ids;
 		this.node = node;
-	}
-
-	@Override
-	public Location getLocation() {
-		return location;
-	}
-
-	@Override
-	public Set<Definition> uses() {
-		throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
-	}
-
-	@Override
-	public String compileToMVM(CompilationSettings settings) {
-		throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
 	}
 
 	@Override
@@ -52,13 +34,13 @@ public class MultiDeclaration implements Definition {
 	}
 
 	@Override
-	public String toText() {
-		throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
-	}
-
-	@Override
 	public void printText(PrintWriter out) {
-		throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
+		List<String> names = new ArrayList<String>();
+		for (IdentifierNode id: ids) {
+			names.add(id.getName());
+		}
+		out.format("declare %s :: %s;\n", pacioli.Utils.intercalate(",", names), node.toText());
+		//throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
 	}
 
 	@Override
@@ -82,17 +64,23 @@ public class MultiDeclaration implements Definition {
 	}
 
 	@Override
-	public void addToProgram(Program program, PacioliFile module) {
-		for (IdentifierNode id: ids) {
-			Declaration declaration = new Declaration(location, id, node);
-			declaration.addToProgram(program, module);
-		}
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+	}
 
+
+	@Override
+	public String compileToMVM(CompilationSettings settings) {
+		throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
 	}
 
 	@Override
-	public void resolve(Dictionary dictionary) throws PacioliException {
-		throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
+	public void addToProgr(Progam program, GenericInfo generic) {
+		// obsolete?!
+		for (IdentifierNode id: ids) {
+			Declaration declaration = new Declaration(getLocation(), id, node);
+			declaration.addToProgr(program, generic);
+		}
 	}
 
 }

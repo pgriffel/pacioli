@@ -30,9 +30,9 @@ import pacioli.types.TypeVar;
 
 public class TypeContext extends AbstractPrintable {
 
-    private final List<String> typeVars;
-    private final List<String> unitVars;
-    private final List<String> indexVars;
+    public final List<String> typeVars;
+    public final List<String> unitVars;
+    public final List<String> indexVars;
 
     public TypeContext() {
         typeVars = new ArrayList<String>();

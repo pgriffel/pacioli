@@ -2,23 +2,8 @@ package pacioli.ast.expression;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.PacioliFile;
-import pacioli.Typing;
-import pacioli.ValueContext;
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.ValueDefinition;
-import pacioli.types.PacioliType;
-import pacioli.types.ParametricType;
+import pacioli.ast.Visitor;
 
 public class StringNode extends AbstractExpressionNode {
 
@@ -41,21 +26,6 @@ public class StringNode extends AbstractExpressionNode {
     }
 
     @Override
-    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) {
-        return this;
-    }
-
-    @Override
-    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
-    	return new Typing(new ParametricType("String"));
-    }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        return String.format("string(%s)", toText());
-    }
-
-    @Override
     public String compileToJS(boolean boxed) {
     	StringWriter writer = new StringWriter();
     	writer.write("'");
@@ -73,26 +43,9 @@ public class StringNode extends AbstractExpressionNode {
     	return toText();
     }
 
-    @Override
-    public Set<Definition> uses() {
-        return new HashSet<Definition>();
-    }
-
-    @Override
-    public Set<IdentifierNode> locallyAssignedVariables() {
-        return new LinkedHashSet<IdentifierNode>();
-    }
-
-    @Override
-    public ExpressionNode desugar() {
-        return this;
-    }
-
 	@Override
-	public ExpressionNode liftStatements(PacioliFile module,
-			List<ValueDefinition> blocks) {
-		// TODO Auto-generated method stub
-		return null;
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 
 }

@@ -23,10 +23,6 @@ package pacioli;
 
 import java.util.List;
 
-/**
- *
- * @author P.R. Griffioen
- */
 public class CompilationSettings {
 
     private final boolean debug;

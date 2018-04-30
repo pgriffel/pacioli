@@ -1,21 +1,15 @@
 package pacioli.ast.unit;
 
 import java.io.PrintWriter;
-import java.util.HashSet;
-import java.util.Set;
-
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.ast.definition.Definition;
-import uom.DimensionedNumber;
-import uom.Fraction;
+import pacioli.ast.Node;
+import pacioli.ast.Visitor;
 
 public class UnitOperationNode extends AbstractUnitNode {
 
-	private final String operator;
-	private final UnitNode left;
-	private final UnitNode right;
+	public final String operator;
+	public final UnitNode left;
+	public final UnitNode right;
 
 	public UnitOperationNode(Location location, String operator, UnitNode left, UnitNode right) {
 		super(location);
@@ -24,6 +18,10 @@ public class UnitOperationNode extends AbstractUnitNode {
 		this.right = right;
 	}
 
+	public Node transform(UnitNode left, UnitNode right) {
+		return new UnitOperationNode(getLocation(), operator, left, right);
+	}
+	
 	@Override
 	public void printText(PrintWriter out) {
 		left.printText(out);
@@ -32,30 +30,19 @@ public class UnitOperationNode extends AbstractUnitNode {
 	}
 
 	@Override
-	public UnitNode resolved(Dictionary dictionary) throws PacioliException {
-		return new UnitOperationNode(getLocation(), operator, left.resolved(dictionary), right.resolved(dictionary));
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 
 	@Override
-	public DimensionedNumber eval() {
-		DimensionedNumber leftUnit = left.eval();
-		DimensionedNumber rightUnit = right.eval();
-		if ("*".equals(operator)) {
-                    return leftUnit.multiply(rightUnit);
-		} else if ("/".equals(operator)) {
-                    return leftUnit.multiply(rightUnit.reciprocal());
-		} else if ("^".equals(operator)) {
-                    return leftUnit.raise(new Fraction(Integer.parseInt(((NumberUnitNode) right).toText())));
-		} else {
-                    throw new RuntimeException("Unit operator unknown");
-		}
+	public String compileToJS(boolean boxed) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
-	public Set<Definition> uses() {
-		Set<Definition> set = new HashSet<Definition>();
-		set.addAll(left.uses());
-		set.addAll(right.uses());
-		return set;
+	public String compileToMATLAB() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

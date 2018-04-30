@@ -21,28 +21,16 @@
 
 package pacioli.ast.expression;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import pacioli.Dictionary;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
+import pacioli.Progam;
 import pacioli.Typing;
-import pacioli.ValueContext;
-import pacioli.ast.ASTNode;
-import pacioli.ast.definition.ValueDefinition;
-import pacioli.types.PacioliType;
+import pacioli.ast.Node;
 
-public interface ExpressionNode extends ASTNode {
-
-    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException;
-
-    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException;
+public interface ExpressionNode extends Node {
+    
+    public Typing inferTyping2(Progam prog);
 
     public Set<IdentifierNode> locallyAssignedVariables();
-
-    public ExpressionNode desugar();
     
-    public ExpressionNode liftStatements(PacioliFile module, List<ValueDefinition> blocks);
 }

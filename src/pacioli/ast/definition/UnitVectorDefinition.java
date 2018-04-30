@@ -23,49 +23,55 @@ package pacioli.ast.definition;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.Program;
-import pacioli.TypeContext;
+import pacioli.Progam;
 import pacioli.Utils;
+import pacioli.ast.Visitor;
+import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
+import pacioli.symboltable.GenericInfo;
+import pacioli.symboltable.UnitInfo;
 import pacioli.types.ast.TypeIdentifierNode;
-import uom.DimensionedNumber;
 
 public class UnitVectorDefinition extends AbstractDefinition {
 
-    private final TypeIdentifierNode indexSetNode;
-    private final TypeIdentifierNode unitNode;
-    private final Map<String, UnitNode> items;
-    private TypeIdentifierNode resolvedIndexSet;
-    private Map<String, UnitNode> resolvedItems;
+    public final TypeIdentifierNode indexSetNode;
+    public final TypeIdentifierNode unitNode;
+    public final List<UnitDecl> items;
 
-    public UnitVectorDefinition(Location location, TypeIdentifierNode indexSet, TypeIdentifierNode unit, Map<String, UnitNode> items) {
+    public static class UnitDecl {
+    	
+    	public IdentifierNode key;
+    	public UnitNode value;
+    	
+    	public UnitDecl(IdentifierNode key, UnitNode value) {
+    		this.key = key;
+    		this.value = value;
+    	}
+    }
+    
+    public UnitVectorDefinition(Location location, TypeIdentifierNode indexSet, TypeIdentifierNode unit, List<UnitDecl> items) {
         super(location);
         this.indexSetNode = indexSet;
         this.unitNode = unit;
         this.items = items;
     }
-
-    @Override
-    public void addToProgram(Program program, PacioliFile module) {
-            setModule(module);
-            program.addUnitVectorDefinition(this, module);
-    }
     
     @Override
     public void printText(PrintWriter out) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    	out.print("defunit ");
+    	out.print(localName());
+    	out.print(" = ");
+    	String sep = "{";
+    	for (UnitDecl entry: items) {
+    		out.printf("%s%s:", sep, entry.key);
+    		entry.value.printText(out);
+    		sep = ", ";
+    	}
+    	out.print("};");
     }
 
     @Override
@@ -79,49 +85,17 @@ public class UnitVectorDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void resolve(Dictionary dictionary) throws PacioliException {
-    	resolvedIndexSet = (TypeIdentifierNode) indexSetNode.resolved(dictionary, new TypeContext());
-    	resolvedItems = new HashMap<String, UnitNode>();
-    	for (Entry<String, UnitNode> entry: items.entrySet()) {
-    		resolvedItems.put(entry.getKey(), entry.getValue().resolved(dictionary));
-    	}
-    }
-
-    @Override
-    public Set<Definition> uses() {
-    	assert resolvedItems != null;
-        Set<Definition> set = new HashSet<Definition>();
-        for (UnitNode unitNode: resolvedItems.values()) {
-    		set.addAll(unitNode.uses());
-    	}
-        return set;
-    }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        List<String> unitTexts = new ArrayList<String>();
-        for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
-            DimensionedNumber number = entry.getValue().eval();
-            unitTexts.add("\"" + entry.getKey() + "\": " + Utils.compileUnitToMVM(number.unit()));
-        }
-        return String.format("\nunitvector \"%s\" \"%s\" list(%s);",
-                resolvedIndexSet.getDefinition().globalName(),
-                indexSetNode.getName()+"!"+unitNode.getName(),
-                Utils.intercalate(", ", unitTexts));
-    }
-
-    @Override
     public String compileToJS(boolean boxed) {
     	StringBuilder builder = new StringBuilder();
     	builder.append("function compute_").append(globalName()).append(" () {");
     	builder.append("return {units:{");
     	boolean sep = false;
-    	for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
+    	for (UnitDecl entry: items) {
     		if (sep) {builder.append(",");} else {sep = true;}
     		builder.append("'");
-    		builder.append(entry.getKey());
+    		builder.append(entry.key);
     		builder.append("':");
-                builder.append(Utils.compileUnitToJS(entry.getValue().eval().unit()));
+                builder.append(Utils.compileUnitToJS(entry.value.evalUnit().unit()));
     		builder.append("");
     	}
     	builder.append("}}}");
@@ -133,5 +107,19 @@ public class UnitVectorDefinition extends AbstractDefinition {
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("MATLAB and Octave have no units.");
     }
+
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);		
+	}
+
+	@Override
+	public void addToProgr(Progam program, GenericInfo generic) {
+		UnitInfo info = program.ensureUnitRecord(localName());
+		info.isVector = true;
+		info.generic = generic;
+		info.definition = this;
+		info.items = items;		
+	}
 
 }

@@ -19,10 +19,10 @@
 
 module Standard;
 
-include primitives;
-include matrix;
-include list;
-include string;
+#include primitives;
+#include matrix;
+#include list;
+#include string;
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -113,7 +113,12 @@ define is_zero_column(x, j) = is_zero(column(magnitude(x), j));
 # Bit Vectors
 # ------------------------------------------------------------------------------
 
-define log_not(x) = unit(x) - x;
+declare log_not, complement ::
+  for_index P, Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
+
+define log_not(x) = unit(x) - x; # deprecated
+
+define complement(x) = unit(x) - x;
 
 define positives(x) = x * positive_support(x);
 
@@ -184,6 +189,14 @@ define combis(list) =
 # ------------------------------------------------------------------------------
 # Primitives for Comprehensions (todo: implement properly)
 # ------------------------------------------------------------------------------
+
+declare public list_sum, list_min, list_max :: 
+  for_index P, Q: for_unit a, P!u, Q!v: (List(a*P!u per Q!v)) -> a*P!u per Q!v;
+
+declare public list_gcd :: 
+  for_index P, Q: for_unit a, P!u, Q!v: (List(P! per Q!)) -> P! per Q!;
+
+declare public list_all :: (List(Boole())) -> Boole();
 
 define list_sum(x) = fold_list(sum, x);
 define list_min(x) = fold_list(min, x);

@@ -23,25 +23,16 @@ package pacioli.types.ast;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
 import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.PacioliFile;
-import pacioli.TypeContext;
 import pacioli.Utils;
+import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
-import pacioli.types.PacioliType;
+import pacioli.symboltable.SymbolInfo;
 import pacioli.types.TypeIdentifier;
-import pacioli.types.TypeVar;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.StringBase;
 
 public class TypeIdentifierNode extends AbstractTypeNode {
 
@@ -49,11 +40,16 @@ public class TypeIdentifierNode extends AbstractTypeNode {
     private final Kind kind;
     private final Definition definition;
     private final PacioliFile home;
+	public SymbolInfo info;
 
-    private enum Kind {
+    public enum Kind {
 
         TYPE, UNIT, INDEX
     }
+
+    // Duplicate
+    public static final List<String> builtinTypes =
+            new ArrayList<String>(Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier"));
 
     public TypeIdentifierNode(Location location, String name) {
         super(location);
@@ -64,7 +60,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         assert (!name.contains("!"));
     }
 
-    private TypeIdentifierNode(Location location, String name, Kind kind, Definition definition, PacioliFile home) {
+    public TypeIdentifierNode(Location location, String name, Kind kind, Definition definition, PacioliFile home) {
         super(location);
         this.name = name;
         this.kind = kind;
@@ -107,56 +103,25 @@ public class TypeIdentifierNode extends AbstractTypeNode {
     }
 
     @Override
-    public PacioliType eval(boolean reduce) throws PacioliException {
-        if (isVariable()) {
-            switch (kind) {
-                case TYPE:
-                    return new TypeVar("for_type", name);
-                case UNIT:
-                    return new MatrixType(new TypeVar("for_unit", name));
-                case INDEX:
-                    return new IndexType(new TypeVar("for_index", name));
-                default:
-                    throw new RuntimeException("Unknown kind");
-            }
-        } else {
-            if (definition instanceof AliasDefinition) {
-                return new MatrixType(((AliasDefinition) definition).evalBody());
-            } else {
-                return new MatrixType(new StringBase(name));
-            }
-        }
-    }
-
-    @Override
     public String compileToJS(boolean boxed) {
         if (definition instanceof AliasDefinition) {
-            return "Pacioli.scalarShape(" + Utils.compileUnitToJS(((AliasDefinition) definition).evalBody()) + ")";
+            // return "Pacioli.scalarShape(" + Utils.compileUnitToJS(((AliasDefinition) definition).evalBody()) + ")";
+        	throw new RuntimeException("fixme");
         } else {
             return "Pacioli.scalarShape(Pacioli.unit('" + name + "'))";
         }
     }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
+    	
+    public String MVMCode(CompilationSettings settings) {    	
         if (definition instanceof AliasDefinition) {
-            return "scalar_shape(" + Utils.compileUnitToMVM(((AliasDefinition) definition).evalBody()) + ")";
+            //return "scalar_shape(" + Utils.compileUnitToMVM(((AliasDefinition) definition).evalBody()) + ")";
+        	throw new RuntimeException("fixme");
         } else {
             return "scalar_shape(unit(\"" + name + "\"))";
         }
     }
 
-    @Override
-    public Set<Definition> uses() {
-        Set<Definition> set = new HashSet<Definition>();
-        if (definition != null) {
-            set.add(definition);
-        }
-        return set;
-    }
-    public static final List<String> builtinTypes =
-            new ArrayList<String>(Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier"));
-
+/*
     public TypeIdentifierNode resolveAsType(Dictionary dictionary, TypeContext context) throws PacioliException {
         Definition definition = null;
         if (!context.containsTypeVar(name) && !builtinTypes.contains(name)) {
@@ -204,66 +169,10 @@ public class TypeIdentifierNode extends AbstractTypeNode {
             }
         }
         return new TypeIdentifierNode(getLocation(), name, Kind.INDEX, definition, dictionary.home());
-    }
+    }*/
 
-    @Override
-    public TypeNode resolved(Dictionary dictionary, TypeContext context) throws PacioliException {
-
-        boolean isTypeVar = context.containsTypeVar(name);
-        boolean isUnitVar = context.containsUnitVar(name);
-        boolean isIndexVar = context.containsIndexVar(name);
-
-        if (isTypeVar) {
-            if (isUnitVar) {
-                throw new PacioliException(getLocation(), "Type variable '" + name + "' refers to a type and to a unit");
-            }
-            if (isIndexVar) {
-                throw new PacioliException(getLocation(), "Type variable '" + name + "' refers to a type and to an index set");
-            }
-            return new TypeIdentifierNode(getLocation(), name, Kind.TYPE, null, dictionary.home());
-        } else if (isUnitVar) {
-            if (isIndexVar) {
-                throw new PacioliException(getLocation(), "Type variable '" + name + "' refers to a unit and to an index set");
-            }
-            return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, null, dictionary.home());
-        } else if (isIndexVar) {
-            return new TypeIdentifierNode(getLocation(), name, Kind.INDEX, null, dictionary.home());
-        } else {
-
-            boolean isType = dictionary.containsTypeDefinition(name);
-            boolean isUnit = dictionary.containsUnitDefinition(name);
-            boolean isIndex = dictionary.containsIndexSetDefinition(name);
-            boolean isAlias = dictionary.containsAliasDefinition(name);
-
-            if (isType) {
-                if (isUnit) {
-                    throw new PacioliException(getLocation(), "Type '" + name + "' refers to a type and to a unit");
-                }
-                if (isIndex) {
-                    throw new PacioliException(getLocation(), "Type '" + name + "' refers to a type and to an index set");
-                }
-                if (isAlias) {
-                    throw new PacioliException(getLocation(), "Type '" + name + "' refers to a type and to an alias");
-                }
-                return new TypeIdentifierNode(getLocation(), name, Kind.TYPE, dictionary.getTypeDefinition(name), dictionary.home());
-            } else if (isUnit) {
-                if (isIndex) {
-                    throw new PacioliException(getLocation(), "Type '" + name + "' refers to a unit and to an index set");
-                }
-                if (isAlias) {
-                    throw new PacioliException(getLocation(), "Type '" + name + "' refers to a unit and to an alias");
-                }
-                return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, dictionary.getUnitDefinition(name), dictionary.home());
-            } else if (isIndex) {
-                if (isAlias) {
-                    throw new PacioliException(getLocation(), "Type '" + name + "' refers to a index set and to an alias");
-                }
-                return new TypeIdentifierNode(getLocation(), name, Kind.INDEX, dictionary.getIndexSetDefinition(name), dictionary.home());
-            } else if (isAlias) {
-                return new TypeIdentifierNode(getLocation(), name, Kind.UNIT, dictionary.getAliasDefinition(name), dictionary.home());
-            } else {
-                throw new PacioliException(getLocation(), "Type identifier '" + name + "' unknown");
-            }
-        }
-    }
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+	}
 }

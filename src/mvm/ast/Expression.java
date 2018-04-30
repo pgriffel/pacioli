@@ -28,5 +28,5 @@ import mvm.values.PacioliValue;
 
 public interface Expression extends Printable {
 
-    public PacioliValue eval(Environment env) throws MVMException;
+    public PacioliValue eval(Environment environment) throws MVMException;
 }

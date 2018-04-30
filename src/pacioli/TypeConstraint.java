@@ -55,7 +55,7 @@ public class TypeConstraint extends AbstractPrintable {
         	TypeNode var =  lhs.getArgs().get(i);
         	PacioliType arg =  type.args.get(i);
         	if (var instanceof TypeIdentifierNode) {
-        		PacioliType varType = var.eval(true);
+        		PacioliType varType = var.evalType(true);
         		if (varType instanceof TypeVar) {
         			map.put((TypeVar) varType, arg);
         		} else if (varType instanceof IndexType) {

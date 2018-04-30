@@ -22,29 +22,15 @@
 package pacioli.ast.expression;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.Typing;
 import pacioli.Utils;
-import pacioli.ValueContext;
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.ValueDefinition;
-import pacioli.types.PacioliType;
-import pacioli.types.ParametricType;
+import pacioli.ast.Visitor;
 
 public class TupleAssignmentNode extends AbstractExpressionNode {
 
-    private final List<IdentifierNode> vars;
-    private final ExpressionNode tuple;
+    public final List<IdentifierNode> vars;
+    public final ExpressionNode tuple;
 
     public TupleAssignmentNode(Location location, List<IdentifierNode> vars, ExpressionNode tuple) {
         super(location);
@@ -58,80 +44,7 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
         out.print(Utils.intercalateText(", ", vars));
         out.print(") :=");
         tuple.printText(out);
-    }
-
-    @Override
-    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
-        List<IdentifierNode> resolvedVars = new ArrayList<IdentifierNode>();
-        for (IdentifierNode var : vars) {
-            IdentifierNode resolved = IdentifierNode.newLocalMutableVar(var.getName(), var.getLocation());
-            resolvedVars.add(resolved);
-        }
-        ExpressionNode resolvedTuple = tuple.resolved(dictionary, context);
-        return new TupleAssignmentNode(getLocation(), resolvedVars, resolvedTuple);
-    }
-
-    @Override
-    public Set<Definition> uses() {
-        return tuple.uses();
-    }
-
-    @Override
-    public ExpressionNode desugar() {
-        //todo: skip underscores
-
-        final List<String> names = new ArrayList<String>();
-        for (IdentifierNode id : vars) {
-            names.add(id.getName());
-        }
-        final List<String> freshNames = Utils.freshNames(names);
-        final List<ExpressionNode> fresh = new ArrayList<ExpressionNode>();
-        for (String name : freshNames) {
-            IdentifierNode id = IdentifierNode.newLocalVar(name, getLocation());
-            fresh.add(id);
-        }
-
-        assert (0 < vars.size());
-
-        ExpressionNode code = ApplicationNode.newCall(getLocation(), "Primitives", "ref_set", vars.get(0), fresh.get(0));
-        for (int i = 1; i < vars.size(); i++) {
-            ExpressionNode setter = ApplicationNode.newCall(getLocation(), "Primitives", "ref_set", vars.get(i), fresh.get(i));
-            Location loc = getLocation().join(vars.get(i).getLocation());
-            code = ApplicationNode.newCall(loc, "Primitives", "seq", code, setter);
-        }
-
-        LambdaNode lambda = new LambdaNode(freshNames, code, getLocation());
-        ExpressionNode tupleCode = tuple.desugar();
-        return ApplicationNode.newCall(getLocation(), "Primitives", "apply", lambda, tupleCode);
-    }
-
-    @Override
-    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
-
-        Typing tupleTyping = tuple.inferTyping(context);
-
-        List<PacioliType> varTypes = new ArrayList<PacioliType>();
-        for (IdentifierNode var : vars) {
-            assert (context.containsKey(var.getName()));
-            varTypes.add(context.get(var.getName()));
-        }
-
-        Typing typing = new Typing(new ParametricType("Void", new ArrayList<PacioliType>()));
-        typing.addConstraints(tupleTyping);
-        typing.addConstraint(new ParametricType("Tuple", varTypes), tupleTyping.getType(), "assigned variables must have proper type");
-        return typing;
-    }
-
-    @Override
-    public Set<IdentifierNode> locallyAssignedVariables() {
-        Set<IdentifierNode> assigned = new LinkedHashSet<IdentifierNode>();
-        assigned.addAll(vars);
-        return assigned;
-    }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        return desugar().compileToMVM(settings);
+        out.print(";");
     }
 
     @Override
@@ -151,9 +64,7 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
     }
 
 	@Override
-	public ExpressionNode liftStatements(PacioliFile module,
-			List<ValueDefinition> blocks) {
-		// TODO Auto-generated method stub
-		return null;
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 }

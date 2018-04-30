@@ -26,16 +26,25 @@ import java.util.Set;
 import pacioli.CompilationSettings;
 import pacioli.Location;
 import pacioli.Printable;
-import pacioli.ast.definition.Definition;
+import pacioli.Progam;
+import pacioli.symboltable.SymbolInfo;
 
-public interface ASTNode extends Printable {
+public interface Node extends Printable {
 
 	public Location getLocation();
     
-    public Set<Definition> uses();
+    public void accept(Visitor visitor);
+    
+    public Set<SymbolInfo> uses();
+    
+    public Node desugar();
 
+    public Node desugarStatements(Progam prog);
+    
+    public void resolve(Progam prog);
+    
     public String compileToMVM(CompilationSettings settings);
-
+    
     public String compileToJS(boolean boxed);
 
     public String compileToMATLAB();

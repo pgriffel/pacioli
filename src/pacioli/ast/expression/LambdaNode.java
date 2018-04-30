@@ -22,37 +22,32 @@
 package pacioli.ast.expression;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.Typing;
 import pacioli.Utils;
-import pacioli.ValueContext;
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.ValueDefinition;
-import pacioli.types.FunctionType;
-import pacioli.types.PacioliType;
-import pacioli.types.ParametricType;
-import pacioli.types.TypeVar;
+import pacioli.ast.Visitor;
+import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.ValueInfo;
 
 public class LambdaNode extends AbstractExpressionNode {
 
     public final List<String> arguments;
     public final ExpressionNode expression;
+    
+    public SymbolTable<ValueInfo> table;
 
     public LambdaNode(List<String> args, ExpressionNode body, Location location) {
         super(location);
         arguments = args;
         expression = body;
+        table = null;
+    }
+    
+    public LambdaNode(LambdaNode old, ExpressionNode body) {
+        super(old.getLocation());
+        arguments = old.arguments;
+        expression = body;
+        table = old.table;
     }
 
     @Override
@@ -62,62 +57,6 @@ public class LambdaNode extends AbstractExpressionNode {
         out.print(") ");
         expression.printText(out);
         out.print(" end");
-    }
-
-    @Override
-    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
-        //Set<String> extended = new HashSet<String>(context);
-        ValueContext extended = new ValueContext();
-        //extended.addAll(arguments);
-        extended.addAll(context);
-        extended.addVars(arguments);
-        ExpressionNode resolvedExpression = expression.resolved(dictionary, extended);
-        return new LambdaNode(arguments, resolvedExpression, getLocation());
-    }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        List<String> quoted = new ArrayList<String>();
-        for (String arg : arguments) {
-            quoted.add("\"" + arg + "\"");
-        }
-        String args = Utils.intercalate(",", quoted);
-        return String.format("lambda (%s) %s", args, expression.compileToMVM(settings));
-    }
-
-    @Override
-    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
-
-        HashMap<String, PacioliType> extended = new HashMap<String, PacioliType>();
-        List<PacioliType> argTypes = new ArrayList<PacioliType>();
-
-        extended.putAll(context);
-        for (String arg : arguments) {
-            PacioliType freshType = new TypeVar("for_type");
-            extended.put(arg, freshType);
-            argTypes.add(freshType);
-        }
-
-        Typing bodyTyping = expression.inferTyping(extended);
-        Typing typing = new Typing(new FunctionType(new ParametricType("Tuple", argTypes), bodyTyping.getType()));
-        typing.addConstraints(bodyTyping);
-
-        return typing;
-    }
-
-    @Override
-    public Set<Definition> uses() {
-        return expression.uses();
-    }
-
-    @Override
-    public Set<IdentifierNode> locallyAssignedVariables() {
-        return new LinkedHashSet<IdentifierNode>();
-    }
-
-    @Override
-    public ExpressionNode desugar() {
-        return new LambdaNode(arguments, expression.desugar(), getLocation());
     }
 
     @Override
@@ -140,10 +79,8 @@ public class LambdaNode extends AbstractExpressionNode {
     }
 
 	@Override
-	public ExpressionNode liftStatements(PacioliFile module,
-			List<ValueDefinition> blocks) {
-		// TODO Auto-generated method stub
-		return null;
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 
 }

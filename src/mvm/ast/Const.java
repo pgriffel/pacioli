@@ -36,7 +36,7 @@ public class Const extends AbstractPrintable implements Expression {
     }
 
     @Override
-    public PacioliValue eval(Environment env) throws MVMException {
+    public PacioliValue eval(Environment environment) throws MVMException {
         return value;
     }
 

@@ -1,18 +1,19 @@
 package pacioli.ast.unit;
 
-import pacioli.AbstractPrintable;
 import pacioli.Location;
+import pacioli.ast.AbstractNode;
+import pacioli.visitors.UnitEvaluator;
+import uom.DimensionedNumber;
 
-public abstract class AbstractUnitNode extends AbstractPrintable implements UnitNode {
+public abstract class AbstractUnitNode extends AbstractNode implements UnitNode {
     
-	private final Location location;
-
     public AbstractUnitNode(Location location) {
-        this.location = location;
+    	super(location);
     }
     
     @Override
-    public Location getLocation() {
-        return location;
+    public DimensionedNumber evalUnit() {
+    	UnitEvaluator visitor = new UnitEvaluator();
+		return visitor.unitAccept(this);
     }
 }

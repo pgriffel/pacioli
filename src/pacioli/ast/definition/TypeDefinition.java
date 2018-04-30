@@ -23,21 +23,17 @@ package pacioli.ast.definition;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
+import pacioli.Progam;
 import pacioli.PacioliException;
-import pacioli.Program;
 import pacioli.TypeConstraint;
 import pacioli.TypeContext;
+import pacioli.ast.Visitor;
+import pacioli.symboltable.GenericInfo;
+import pacioli.symboltable.TypeInfo;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
-import pacioli.types.TypeVar;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeIdentifierNode;
@@ -70,9 +66,9 @@ public class TypeDefinition extends AbstractDefinition {
             List<PacioliType> types = new ArrayList<PacioliType>();
             for (TypeNode arg : app.getArgs()) {
             	if (arg instanceof TypeIdentifierNode) {
-            		types.add(arg.eval(reduce));	
+            		types.add(arg.evalType(reduce));	
             	} else if (arg instanceof BangTypeNode) {
-            		types.add(arg.eval(reduce));	
+            		types.add(arg.evalType(reduce));	
             	} else {
             		throw new PacioliException(arg.getLocation(), "Type definition's lhs must be a unit variable or vector %s", arg.getClass());
             	}
@@ -80,7 +76,7 @@ public class TypeDefinition extends AbstractDefinition {
 
             PacioliType lhsType = new ParametricType(app.getName(), types);
 
-            PacioliType rhsType = resolvedRhs.eval(true);
+            PacioliType rhsType = resolvedRhs.evalType(true);
             if (lhsType instanceof ParametricType) {
                 constraint = new TypeConstraint(app, rhsType);
             } else {
@@ -96,16 +92,10 @@ public class TypeDefinition extends AbstractDefinition {
         }
         return constraint;
     }
-
-	@Override
-	public void addToProgram(Program program, PacioliFile module) {
-		setModule(module);
-		program.addTypeDefinition(this, module);
-	}
 	
     @Override
     public void printText(PrintWriter out) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    	out.print("todo: print type definition;\n");
     }
 
     @Override
@@ -113,32 +103,7 @@ public class TypeDefinition extends AbstractDefinition {
         assert (lhs instanceof TypeApplicationNode);
         return ((TypeApplicationNode) lhs).getName();
     }
-
-    @Override
-    public void resolve(Dictionary dictionary) throws PacioliException {
-    	resolvedRhs = rhs.resolved(dictionary, this.context);
-    	if (lhs instanceof TypeApplicationNode) {
-    		TypeApplicationNode app = (TypeApplicationNode) lhs;
-    		List<TypeNode> types = new ArrayList<TypeNode>();
-    		for (TypeNode arg : app.getArgs()) {
-    			types.add(arg.resolved(dictionary, this.context));
-    		}
-    		resolvedLhs = new TypeApplicationNode(getLocation(), app.getOperator(), types);
-    	} else {
-            throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s", lhs.toText());
-        }
-    }
-
-    @Override
-    public Set<Definition> uses() {
-        return resolvedRhs.uses();
-    }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
+    
     @Override
     public String compileToJS(boolean boxed) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -148,5 +113,18 @@ public class TypeDefinition extends AbstractDefinition {
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);		
+	}
+
+	@Override
+	public void addToProgr(Progam program, GenericInfo generic) {
+		TypeInfo info = program.ensureTypeRecord(localName());
+		info.generic = generic;
+		info.typeAST = rhs;
+		info.definition = this;
+	}
 
 }

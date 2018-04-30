@@ -22,29 +22,24 @@
 package pacioli.ast.definition;
 
 import java.io.PrintWriter;
-import java.util.HashSet;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.Program;
+import pacioli.Progam;
 import pacioli.Utils;
+import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
+import pacioli.symboltable.GenericInfo;
+import pacioli.symboltable.UnitInfo;
 import uom.DimensionedNumber;
 
 public class UnitDefinition extends AbstractDefinition {
 
     private final IdentifierNode id;
     private final String symbol;
-    private final UnitNode body;
-    private UnitNode resolvedBody;
+    public final UnitNode body; 
 
     public UnitDefinition(Location location, IdentifierNode id, String symbol) {
-        super(location);
+    	super(location);
         this.id = id;
         this.symbol = symbol;
         this.body = null;
@@ -56,18 +51,28 @@ public class UnitDefinition extends AbstractDefinition {
         this.symbol = symbol;
         this.body = body;
     }
+	
+    public String getName() {
+		return id.getName();
+	}
 
-    @Override
-    public void addToProgram(Program program, PacioliFile module) {
-            setModule(module);
-            program.addUnitDefinition(this, module);
+    public String getSymbol() {
+		return symbol;
+	}
+
+    public DimensionedNumber evalBody() {
+		return (body == null) ? null : body.evalUnit();
+	}
+    
+	@Override
+    public void printText(PrintWriter out) {
+		if (body == null) {
+			out.format("unit definition %s", id.toText());
+		} else {
+			out.format("unit definition %s = %s", id.toText(), body.toText());
+		}
     }
 	
-    @Override
-    public void printText(PrintWriter out) {
-        out.format("unit definition %s = %s", id.toText(), body.toText());
-    }
-
     @Override
     public String localName() {
         return id.getName();
@@ -77,32 +82,6 @@ public class UnitDefinition extends AbstractDefinition {
     public String globalName() {
         return String.format("unit_%s", localName());
     }
-    
-    @Override
-    public void resolve(Dictionary dictionary) throws PacioliException {
-    	if (body != null) {
-    		resolvedBody = body.resolved(dictionary);
-    	}
-    }
-
-    @Override
-    public Set<Definition> uses() {
-    	if (body != null) {
-    		return resolvedBody.uses();
-    	} else {
-    		return new HashSet<Definition>();
-    	}
-    }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        if (body == null) {
-            return String.format("baseunit \"%s\" \"%s\";\n", id.getName(), symbol);
-        } else {
-            DimensionedNumber number = body.eval().flat();
-            return String.format("unit \"%s\" \"%s\" %s %s;\n", id.getName(), symbol, number.factor(), Utils.compileUnitToMVM(number.unit()));
-        }
-    }
 
     @Override
     public String compileToJS(boolean boxed) {
@@ -110,7 +89,7 @@ public class UnitDefinition extends AbstractDefinition {
     		return String.format("Pacioli.compute_%s = function () {return {symbol: '%s'}}", 
     				globalName(), symbol);
     	} else {
-            DimensionedNumber number = body.eval().flat();
+            DimensionedNumber number = body.evalUnit().flat();
             return String.format("Pacioli.compute_%s = function () {return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}}", 
     				globalName(), number.factor(), Utils.compileUnitToJS(number.unit()), symbol);
     	}
@@ -120,5 +99,19 @@ public class UnitDefinition extends AbstractDefinition {
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);		
+	}
+
+	@Override
+	public void addToProgr(Progam program, GenericInfo generic) {
+		UnitInfo info = program.ensureUnitRecord(id.getName());
+		info.generic = generic;
+		info.definition = this;
+		info.symbol = symbol;		
+		info.baseDefinition = body;
+	}
 
 }

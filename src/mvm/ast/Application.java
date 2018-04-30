@@ -41,11 +41,11 @@ public class Application extends AbstractPrintable implements Expression {
     }
 
     @Override
-    public PacioliValue eval(Environment env) throws MVMException {
-        Callable fun = (Callable) function.eval(env);
+    public PacioliValue eval(Environment environment) throws MVMException {
+        Callable fun = (Callable) function.eval(environment);
         List<PacioliValue> params = new ArrayList<PacioliValue>();
         for (Expression exp : arguments) {
-            params.add(exp.eval(env));
+            params.add(exp.eval(environment));
         }
         return fun.apply(params);
     }

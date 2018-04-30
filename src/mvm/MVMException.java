@@ -22,7 +22,7 @@
 package mvm;
 
 public class MVMException extends Exception {
-
+	  
     public MVMException(String message) {
         super(message);
     }

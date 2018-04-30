@@ -21,6 +21,7 @@
 
 package mvm;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -32,13 +33,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import mvm.ast.Application;
-import mvm.ast.ApplicationDebug;
-import mvm.ast.Branch;
-import mvm.ast.Const;
 import mvm.ast.Expression;
-import mvm.ast.Identifier;
-import mvm.ast.Lambda;
+import mvm.ast.Instruction;
 import mvm.values.Boole;
 import mvm.values.Callable;
 import mvm.values.PacioliList;
@@ -50,47 +46,31 @@ import mvm.values.Reference;
 import mvm.values.matrix.IndexSet;
 import mvm.values.matrix.Key;
 import mvm.values.matrix.Matrix;
-import mvm.values.matrix.MatrixBase;
-import mvm.values.matrix.MatrixDimension;
 import mvm.values.matrix.MatrixShape;
 import mvm.values.matrix.UnitVector;
+import pacioli.Pacioli;
+import pacioli.PacioliFile;
 
-import org.codehaus.jparsec.Parser;
-import org.codehaus.jparsec.Parsers;
-import org.codehaus.jparsec.Scanners;
-import org.codehaus.jparsec.Terminals;
-import org.codehaus.jparsec.Token;
-import org.codehaus.jparsec.error.ParseErrorDetails;
-import org.codehaus.jparsec.error.ParserException;
-import org.codehaus.jparsec.functors.Map;
-import org.codehaus.jparsec.functors.Map2;
-import org.codehaus.jparsec.functors.Map3;
-import org.codehaus.jparsec.functors.Map4;
-import org.codehaus.jparsec.functors.Map5;
-import org.codehaus.jparsec.functors.Pair;
-import org.codehaus.jparsec.functors.Tuple3;
-import uom.DimensionedNumber;
-
-import uom.Fraction;
 import uom.NamedUnit;
 import uom.Prefix;
-import uom.Unit;
 import uom.UnitSystem;
 
 public class Machine {
 
-	private final Environment store;
-	private final UnitSystem unitSystem;
-	private final HashMap<String, IndexSet> indexSets;
-	private final HashMap<String, UnitVector> unitVectors;
+	public final Environment store;
+	public final UnitSystem unitSystem;
+	public final HashMap<String, IndexSet> indexSets;
+	public final HashMap<String, UnitVector> unitVectors;
 	private static final LinkedList<String> debugStack = new LinkedList<String>();
 	private static boolean atLineStart = false;
+	private final List<File> loadedFiles;
 
 	public Machine() {
-		store = new Environment();
+		store = new Environment(this);
 		unitSystem = makeSI();
 		indexSets = new HashMap<String, IndexSet>();
 		unitVectors = new HashMap<String, UnitVector>();
+		loadedFiles = new ArrayList<File>();
 	}
 
 	public static void pushFrame(String frame) {
@@ -101,6 +81,18 @@ public class Machine {
 		debugStack.pop();
 	}
 
+	public void storeCode(String name, Expression code) {
+		store.putCode(name, code);
+	}
+	
+	public void storeValue(String name, PacioliValue value) {
+		store.put(name, value);
+	}
+	
+	public void storeUnit(String name, NamedUnit unit) {
+		unitSystem.addUnit(name, unit);
+	}
+	
 	public void init() throws MVMException {
 
 		// //////////////////////////////////////////////////////////////////////////////
@@ -2570,629 +2562,7 @@ public class Machine {
 		});
 	}
 
-	public void run(String code, PrintStream out) throws MVMException {
-		long before = System.currentTimeMillis();
-		try {
-			runFile(code);
-		} catch (ParserException ex) {
-
-			// Copied from Reader:
-
-			// See if this is a chained exception. The reader uses this to
-			// throw Pacioli exceptions, because the map on Parsers does not
-			// allow checked exceptions. The runtime ParserException carries
-			// the Pacioli exception that is thrown here.
-			if (ex.getCause() != null) {
-				if (ex.getCause() instanceof MVMException) {
-					throw (MVMException) ex.getCause();
-				} else {
-					throw new MVMException(ex);
-				}
-			}
-
-			// A parser error should contain details. If not we throw
-			// a PacioliException.
-			ParseErrorDetails details = ex.getErrorDetails();
-			if (details == null) {
-				throw new MVMException(ex);
-			} else {
-				int pos = details.getIndex();
-				String message = String.format(
-						"At %s Expected on of %s but found %s.", pos,
-						details.getExpected(), details.getEncountered());
-				if (details.getUnexpected() != null) {
-					message += String.format(" Dit not expect %s.",
-							details.getUnexpected());
-				}
-				if (details.getFailureMessage() != null) {
-					message += String.format(" (%s)",
-							details.getFailureMessage());
-				}
-				throw new MVMException(message);
-			}
-
-		}
-		long after = System.currentTimeMillis();
-		logln("Ready in %d ms", after - before);
-	}
-
-	private void runFile(String code) throws MVMException {
-		Parser<Unit> unitParser = unitParser();
-		Parser<Expression> exprParser = expressionParser();
-		Parsers.or(baseunitCommand(), unitCommand(unitParser),
-				indexsetCommand(), storeCommand(exprParser),
-				printCommand(exprParser), unitVectorCommand(unitParser))
-				.endBy(TERMS.token(";")).from(TOKENIZER, IGNORED.skipMany())
-				.parse(code);
-	}
-
-	/*
-	 * Tokens
-	 */
-	private static final String[] OPERATORS = { ";", ",", "(", ")", "-", "^",
-			"*", "/", ":" };
-
-	private static final String[] KEYWORDS = { "baseunit", "unit", "indexset",
-			"unitvector", "load", "store", "print", "application", "lambda",
-			"var", "const", "string", "if", "bang", "key", "application_debug", "path",
-			"list", "matrix", "index", "scaled_unit", "bang_shape",
-			"unit_expt", "unit_mult", "unit_div", "scalar_shape", "shape_unop",
-			"shape_binop", "shape_expt", "matrix_constructor", "literal_matrix" };
-
-	private static final Terminals TERMS = Terminals.caseInsensitive(OPERATORS,
-			KEYWORDS);
-
-	private static final Parser<?> TOKENIZER = Parsers.or(TERMS.tokenizer(),
-			Terminals.Identifier.TOKENIZER, Terminals.DecimalLiteral.TOKENIZER,
-			Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER);
-
-	private static final Parser<Void> IGNORED = Parsers.or(
-			Scanners.lineComment("#"), Scanners.WHITESPACES);
-
-	/*
-	 * Convenient Parsers for Terminals, Keywords and other Tokens
-	 */
-	private static Parser<Token> token(String text) {
-		return TERMS.token(text);
-	}
-
-	private static final Parser<String> STRING = Terminals.StringLiteral.PARSER;
-
-	private static final Parser<String> IDENTIFIER = Terminals.Identifier.PARSER;
-
-	private static final Parser<String> DECIMAL = Terminals.DecimalLiteral.PARSER;
-
-	private static final Parser<Expression> VARIABLE = TERMS.token("var")
-			.next(Parsers.between(token("("), STRING, TERMS.token(")")))
-			.map(new Map<String, Expression>() {
-				public Expression map(String arg) {
-					return new Identifier(arg);
-				}
-			});
-
-	/*
-	 * Commands
-	 */
-        
-        private Parser<Void> unitCommand(Parser<Unit> unitParser) {
-            return Parsers.sequence(token("unit"), STRING, STRING, DECIMAL, unitParser,
-				new Map5<Token, String, String, String, Unit, Void>() {
-					public Void map(Token id, String name, String symbol, String factor,
-							Unit body) {
-						unitSystem.addUnit(name, new NamedUnit(symbol, new DimensionedNumber(new BigDecimal(factor), body)));
-						return null;
-					}
-				});
-	}
-        
-	private Parser<Void> baseunitCommand() {
-		return Parsers.sequence(token("baseunit"), STRING, STRING,
-				new Map3<Token, String, String, Void>() {
-					public Void map(Token id, String name, String symbol) {
-						unitSystem.addUnit(name, new NamedUnit(symbol));
-						return null;
-					}
-				});
-	}
-
-	private Parser<Void> indexsetCommand() {
-		return Parsers.sequence(token("indexset"), STRING, STRING,
-				token("list").next(token("(")).next(STRING.sepBy(token(",")))
-						.followedBy(token(")")),
-				new Map4<Token, String, String, List<String>, Void>() {
-					public Void map(Token id, String full, String name,
-							List<String> set) {
-						if (indexSets.containsKey(full)) {
-							throw createException("Redefining index set '%s'",
-									name);
-						}
-						indexSets.put(full, new IndexSet(name, set));
-						return null;
-					}
-				});
-	}
-
-	private Parser<Void> unitVectorCommand(Parser<Unit> unitParser) {
-		return Parsers.sequence(
-				token("unitvector").next(STRING),
-				STRING,
-				token("list")
-						.next(token("("))
-						.next(Parsers.tuple(STRING.followedBy(token(":")),
-								unitParser).sepBy(token(",")))
-						.followedBy(token(")")),
-				new Map3<String, String, List<Pair<String, Unit>>, Void>() {
-					public Void map(String entityName, String name,
-							List<Pair<String, Unit>> units) {
-
-						// String symbol = entityName + "!" + name;
-						String symbol = name;
-						IndexSet entity;
-						if (indexSets.containsKey(entityName)) {
-							entity = indexSets.get(entityName);
-						} else {
-							throw createException("Index set '%s' unnown",
-									entityName);
-						}
-
-						int n = entity.size();
-						Unit[] unitArray = new Unit[n];
-						for (int i = 0; i < n; i++) {
-							unitArray[i] = Unit.ONE;
-						}
-
-						for (Pair<String, Unit> pair : units) {
-							int row = entity.ElementPosition(pair.a);
-							if (row < 0) {
-								throw createException("Element " + pair.a
-										+ " unknown");
-							}
-							unitArray[row] = pair.b;
-						}
-
-						unitVectors.put(symbol, new UnitVector(entity, name,
-								unitArray));
-
-						return null;
-					}
-				});
-	}
-
-	private Parser<Void> storeCommand(Parser<Expression> exprParser) {
-		return Parsers.sequence(token("store").next(STRING), exprParser,
-				new Map2<String, Expression, Void>() {
-					public Void map(String name, Expression body) {
-						store.putCode(name, body);
-						return null;
-					}
-				});
-	}
-
-	private Parser<Void> printCommand(Parser<Expression> exprParser) {
-		return token("print").next(exprParser).map(new Map<Expression, Void>() {
-			public Void map(Expression body) {
-				try {
-					PacioliValue result = body.eval(store);
-					if (result != null) {
-						logln("%s", result.toText());
-					}
-				} catch (Exception ex) {
-					throw new ParserException(ex, null, null, null);
-				}
-				return null;
-			}
-		});
-	}
-
-	/*
-	 * Shapes
-	 */
-	private Parser<MatrixShape> shapeParser() {
-		Parser.Reference<MatrixShape> reference = Parser.newReference();
-		Parser<MatrixShape> lazyExpr = reference.lazy();
-		Parser<MatrixShape> parser = Parsers.or(shapeBinOpParser(lazyExpr),
-				powerShapeParser(lazyExpr),
-				shapeUnOpParser(lazyExpr), bangShapeParser(),
-				scalarShapeParser());
-		reference.set(parser);
-		return parser;
-	}
-
-	private Parser<MatrixShape> bangShapeParser() {
-		return Parsers.sequence(
-				token("bang_shape").next(token("(")).next(STRING), token(",")
-						.next(STRING).followedBy(token(")")),
-				new Map2<String, String, MatrixShape>() {
-					public MatrixShape map(String entityName, String unitName) {
-						MatrixShape shape;
-						if (unitName.isEmpty()) {
-							if (!indexSets.containsKey(entityName)) {
-								throw createException("Index set '%s' unnown",
-										entityName);
-							}
-							shape = new MatrixShape(Unit.ONE,
-									new MatrixDimension(indexSets
-											.get(entityName)), Unit.ONE,
-									new MatrixDimension(), Unit.ONE);
-						} else {
-							String name = unitName;
-							if (!unitVectors.containsKey(name)) {
-								throw createException(
-										"Unit vector '%s' unnown", name);
-							}
-							UnitVector vector = unitVectors.get(name);
-							shape = new MatrixShape(Unit.ONE,
-									new MatrixDimension(vector.indexSet),
-									new MatrixBase(vector, 0),
-									new MatrixDimension(), Unit.ONE);
-						}
-						return shape;
-					}
-				});
-	}
-
-	private Parser<MatrixShape> scalarShapeParser() {
-		return token("scalar_shape").next(token("(")).next(unitParser())
-				.followedBy(token(")")).map(new Map<Unit, MatrixShape>() {
-					public MatrixShape map(Unit value) {
-						return new MatrixShape(value);
-					}
-				});
-	}
-
-	private Parser<MatrixShape> powerShapeParser(Parser<MatrixShape> shapeParser) {
-		return Parsers.sequence(
-				token("shape_expt").next(token("(")).next(shapeParser),
-				token(",").next(signedInteger()).followedBy(token(")")),
-				new Map2<MatrixShape, Integer, MatrixShape>() {
-					public MatrixShape map(MatrixShape left,Integer right) {
-						return left.raise(new Fraction(right));
-					}
-				});
-	}
-
-	private Parser<MatrixShape> shapeBinOpParser(Parser<MatrixShape> shapeParser) {
-		return Parsers.sequence(
-				token("shape_binop").next(token("(")).next(STRING)
-						.followedBy(token(",")), shapeParser,
-				token(",").next(shapeParser).followedBy(token(")")),
-				new Map3<String, MatrixShape, MatrixShape, MatrixShape>() {
-					public MatrixShape map(String op, MatrixShape left,
-							MatrixShape right) {
-						if (op.equals("dot")) {
-							return left.join(right);
-						} else if (op.equals("per")) {
-							return left.join(right.transpose().reciprocal());
-						} else if (op.equals("multiply")) {
-							if (left.singleton()) {
-								return left.scale(right);
-							}
-							if (right.singleton()) {
-								return right.scale(left);
-							}
-							return left.multiply(right);
-						} else if (op.equals("divide")) {
-							if (left.singleton()) {
-								return left.scale(right.reciprocal());
-							}
-							if (right.singleton()) {
-								return right.reciprocal().scale(left);
-							}
-							return left.multiply(right.reciprocal());
-						} else if (op.equals("kronecker")) {
-							return left.kronecker(right);
-						} else {
-							throw new RuntimeException(
-									"Binary shape operator '" + op
-											+ "' unknown");
-						}
-					}
-				});
-	}
-
-	private Parser<MatrixShape> shapeUnOpParser(Parser<MatrixShape> shapeParser) {
-		return Parsers.sequence(
-				token("shape_unop").next(token("(")).next(STRING),
-				shapeParser.followedBy(token(")")),
-				new Map2<String, MatrixShape, MatrixShape>() {
-					public MatrixShape map(String op, MatrixShape arg) {
-						if (op.equals("transpose")) {
-							return arg.transpose();
-						} else {
-							throw new RuntimeException("Unary shape operator '"
-									+ op + "' unknown");
-						}
-					}
-				});
-	}
-
-	/*
-	 * Expressions
-	 */
-
-	private Parser<Expression> expressionParser() {
-		Parser.Reference<Expression> reference = Parser.newReference();
-		Parser<Expression> lazyExpr = reference.lazy();
-		Parser<Expression> parser = Parsers.or(applicationParser(lazyExpr),
-				applicationDebugParser(lazyExpr), ifParser(lazyExpr),
-				lambdaParser(lazyExpr), constParser(), stringParser(), literalMatrix(),
-				matrixConstructorParser(), keyParser(), VARIABLE);
-		reference.set(parser);
-		return parser;
-	}
-
-	private Parser<Expression> matrixConstructorParser() {
-		// zero , "one_matrix", "initial_matrix", "conversion_matrix",
-		// "projection_matrix", "scalar_matrix"
-		return Parsers.sequence(token("matrix_constructor").next(token("("))
-				.next(STRING).followedBy(token(",")),
-				shapeParser().followedBy(token(")")),
-				new Map2<String, MatrixShape, Expression>() {
-					public Expression map(String op, MatrixShape shape) {
-						Matrix matrix = new Matrix(shape);
-						if (op.equals("ones")) {
-							return new Const(matrix.ones());
-						} else if (op.equals("conversion")) {
-							try {
-								matrix.createConversion();
-							} catch (MVMException ex) {
-								throw new ParserException(ex, null, null, null);
-							}
-							return new Const(matrix);
-						} else if (op.equals("projection")) {
-							try {
-								matrix.createProjection();
-							} catch (MVMException ex) {
-								throw new ParserException(ex, null, null, null);
-							}
-							return new Const(matrix);
-						} else {
-							throw new RuntimeException("Matrix constructor '"
-									+ op + "' unknown");
-						}
-					}
-				});
-
-	}
-
-	private Parser<Expression> literalMatrix() {
-		return Parsers
-				.sequence(
-						token("literal_matrix").followedBy(token("("))
-								.next(shapeParser()).followedBy(token(",")),
-						Parsers.tuple(DECIMAL, DECIMAL, STRING)
-								.followedBy(token(",")).many()
-								.followedBy(token(")")),
-						new Map2<MatrixShape, List<Tuple3<String, String, String>>, Expression>() {
-							public Expression map(MatrixShape shape,
-									List<Tuple3<String, String, String>> data) {
-
-								try {
-									Matrix matrix = new Matrix(shape);
-									for (Tuple3<String, String, String> triple : data) {
-										Integer i = Integer.parseInt(triple.a);
-										Integer j = Integer.parseInt(triple.b);
-										Double value = Double
-												.parseDouble(triple.c);
-										matrix.set(i, j, value);
-									}
-									return new Const(matrix);
-
-								} catch (Exception ex) {
-									log(ex.getClass().toString());
-									throw new ParserException(ex, null, null,
-											null);
-								}
-
-							}
-						});
-	}
-
-	private static Parser<Expression> constParser() {
-		return token("const").next(token("(")).next(STRING)
-				.followedBy(token(")")).map(new Map<String, Expression>() {
-					public Expression map(String value) {
-						if (value.equals("true")) {
-							return new Const(new Boole(true));
-						} else if (value.equals("false")) {
-							return new Const(new Boole(false));
-						} else {
-							return new Const(new Matrix(Double
-									.parseDouble(value)));
-						}
-					}
-				});
-	}
-	private static Parser<Expression> stringParser() {
-		return token("string").next(token("(")).next(STRING)
-				.followedBy(token(")")).map(new Map<String, Expression>() {
-					public Expression map(String value) {
-						return new Const(new PacioliString(value));
-					}
-				});
-	}
-
-	private Parser<Expression> keyParser() {
-		return token("key")
-				.next(token("("))
-				.next(Parsers.tuple(STRING, token(",").next(STRING)).sepBy(
-						token(","))).followedBy(token(")"))
-				.map(new Map<List<Pair<String, String>>, Expression>() {
-					public Expression map(List<Pair<String, String>> pairs) {
-						if (pairs.isEmpty()) {
-							return new Const(new Key());
-						} else {
-							List<IndexSet> sets = new ArrayList<IndexSet>();
-							List<String> items = new ArrayList<String>();
-							for (Pair<String, String> pair : pairs) {
-								items.add(pair.b);
-								String entityName = pair.a;
-								if (indexSets.containsKey(entityName)) {
-									sets.add(indexSets.get(entityName));
-								} else {
-									throw createException(
-											"Index set '%s' unnown", entityName);
-								}
-							}
-							return new Const(new Key(items,
-									new MatrixDimension(sets)));
-						}
-					}
-				});
-	}
-
-	private static Parser<Expression> applicationParser(
-			Parser<Expression> expParser) {
-		return Parsers.sequence(
-				token("application").next(token("(")).next(expParser),
-				token(",").next(expParser).many().followedBy(token(")")),
-				new Map2<Expression, List<Expression>, Expression>() {
-					public Expression map(Expression fun, List<Expression> args) {
-						return new Application(fun, args);
-					}
-				});
-	}
-
-	private static Parser<Expression> applicationDebugParser(
-			Parser<Expression> expParser) {
-		return Parsers
-				.sequence(
-						token("application_debug").next(token("("))
-								.next(STRING),
-						token(",").next(STRING),
-						token(",").next(STRING),
-						token(",").next(expParser),
-						token(",").next(expParser).many()
-								.followedBy(token(")")),
-						new Map5<String, String, String, Expression, List<Expression>, Expression>() {
-							public Expression map(String text, String fullText,
-									String trace, Expression fun,
-									List<Expression> args) {
-								return new ApplicationDebug(text, fullText,
-										trace.equals("true"), fun, args);
-							}
-						});
-	}
-
-	private static Parser<Expression> ifParser(Parser<Expression> expParser) {
-		return Parsers.sequence(token("if").next(token("(")).next(expParser),
-				token(",").next(expParser), token(",").next(expParser)
-						.followedBy(token(")")),
-				new Map3<Expression, Expression, Expression, Expression>() {
-					public Expression map(Expression test, Expression pos,
-							Expression neg) {
-						return new Branch(test, pos, neg);
-					}
-				});
-	}
-
-	private static Parser<Expression> lambdaParser(Parser<Expression> expParser) {
-		return Parsers.sequence(
-				token("lambda").next(
-						Parsers.between(token("("), STRING.sepBy(token(",")),
-								token(")"))), expParser,
-				new Map2<List<String>, Expression, Expression>() {
-					public Expression map(List<String> args, Expression body) {
-						return new Lambda(args, body);
-					}
-				});
-	}
-
-	/*
-	 * Units
-	 */
-
-	private Parser<Unit> unitParser() {
-		Parser.Reference<Unit> reference = Parser.newReference();
-		Parser<Unit> lazyExpr = reference.lazy();
-		Parser<Unit> parser = Parsers.or(unitPower(lazyExpr),
-				unitMult(lazyExpr), unitDiv(lazyExpr), unitScaled(),
-				unitNamed());
-		reference.set(parser);
-		return parser;
-	}
-
-	public static Parser<Integer> signedInteger() {
-		return Parsers.or(DECIMAL.map(new Map<String, Integer>() {
-			public Integer map(String power) {
-				return Integer.parseInt(power);
-			}
-		}), token("-").next(DECIMAL).map(new Map<String, Integer>() {
-			public Integer map(String power) {
-				Integer i = Integer.parseInt(power);
-				return -i;
-			}
-		}));
-	}
-
-	private Parser<Unit> unitPower(Parser<Unit> unitParser) {
-		return Parsers.sequence(
-				token("unit_expt").next(token("(")).next(unitParser)
-						.followedBy(token(",")),
-				signedInteger().followedBy(token(")")),
-				new Map2<Unit, Integer, Unit>() {
-					public Unit map(Unit unit, Integer power) {
-						return unit.raise(new Fraction(power));
-					}
-				});
-	}
-
-	private Parser<Unit> unitMult(Parser<Unit> unitParser) {
-		return Parsers.sequence(
-				token("unit_mult").next(token("(")).next(unitParser)
-						.followedBy(token(",")),
-				unitParser.followedBy(token(")")),
-				new Map2<Unit, Unit, Unit>() {
-					public Unit map(Unit left, Unit right) {
-						return left.multiply(right);
-					}
-				});
-	}
-
-	private Parser<Unit> unitDiv(Parser<Unit> unitParser) {
-		return Parsers.sequence(
-				token("unit_div").next(token("(")).next(unitParser)
-						.followedBy(token(",")),
-				unitParser.followedBy(token(")")),
-				new Map2<Unit, Unit, Unit>() {
-					public Unit map(Unit left, Unit right) {
-						return left.multiply(right.reciprocal());
-					}
-				});
-	}
-
-	private Parser<Unit> unitNamed() {
-		return token("unit").next(token("(")).next(STRING)
-				.followedBy(token(")")).map(new Map<String, Unit>() {
-					public Unit map(String name) {
-						if (name.isEmpty()) {
-							return Unit.ONE;
-						} else if (unitSystem.congtainsUnit(name)) {
-							return unitSystem.lookupUnit(name);
-						} else {
-							throw createException("unit '%s' unknown", name);
-						}
-					}
-				});
-	}
-
-	// todo: remove concatenation and do the prefix handling in lookup and
-	// containsUnit here
-	private Parser<Unit> unitScaled() {
-		return Parsers.sequence(
-				token("scaled_unit").next(token("(")).next(STRING)
-						.followedBy(token(",")), STRING.followedBy(token(")")),
-				new Map2<String, String, Unit>() {
-					public Unit map(final String prefix, final String name) {
-						if (unitSystem.congtainsUnit(prefix + ":" + name)) {
-							return unitSystem.lookupUnit(prefix + ":" + name);
-						} else {
-							throw createException("unit '%s' unknown", name);
-						}
-					}
-				});
-	}
-
+	
 	/*
 	 * Utilities
 	 */
@@ -3222,11 +2592,6 @@ public class Machine {
 		}
 
 		log(string, args);
-	}
-
-	public static ParserException createException(String form, Object... args) {
-		MVMException ex = new MVMException(String.format(form, args));
-		return new ParserException(ex, null, null, null);
 	}
 
 	public void dumpTypes() {
@@ -3264,8 +2629,39 @@ public class Machine {
 		si.addPrefix("deci", new Prefix("d", new BigDecimal("0.1")));
 		si.addPrefix("centi", new Prefix("c", new BigDecimal("0.01")));
 		si.addPrefix("milli", new Prefix("m", new BigDecimal("0.001")));
-		si.addPrefix("micro", new Prefix("Âµ", new BigDecimal("0.000001")));
+		si.addPrefix("micro", new Prefix("µ", new BigDecimal("0.000001")));
 		si.addPrefix("nano", new Prefix("n", new BigDecimal("0.000000001")));
 		return si;
+	}
+
+	public void run(File file, PrintStream out, List<File> libs) throws Exception {
+		for (String include: PacioliFile.defaultIncludes) {	
+			runRec(PacioliFile.findFile(include + ".mvm", libs, file.getParentFile()), out, libs);
+		}
+		runRec(file, out, libs);
+	}
+	
+	public void runRec(File file, PrintStream out, List<File> libs) throws Exception {
+		
+		// Check if the file was already loaded
+		if (!loadedFiles.contains(file)) {
+
+			// Make sure the file is not loaded more than once
+			loadedFiles.add(file);
+			
+			// Load the file
+			mvm.ast.Program code = mvm.parser.Parser.parseFile(file.getAbsolutePath());
+			
+			// Run the requires
+			for (String require: code.requires) {
+				runRec(PacioliFile.findFile(require + ".mvm", libs, file.getParentFile()), out, libs);
+			};
+			
+			// Run the file itself
+			Pacioli.logln2("Running MVM file %s", file);
+			for (Instruction instruction: code.instructions) {
+				instruction.eval(this);
+			}
+		}
 	}
 }

@@ -23,77 +23,35 @@ package pacioli.ast.definition;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.Pacioli;
-import pacioli.PacioliException;
-import pacioli.Program;
-import pacioli.Typing;
-import pacioli.ValueContext;
+import pacioli.Progam;
+import pacioli.ast.Node;
+import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.SequenceNode;
-import pacioli.types.FunctionType;
-import pacioli.types.PacioliType;
-import pacioli.types.Schema;
+import pacioli.symboltable.GenericInfo;
+import pacioli.symboltable.ValueInfo;
 
 public class ValueDefinition extends AbstractDefinition {
 
-    private final IdentifierNode id;
-    private final ExpressionNode body;
-    private ExpressionNode resolvedBody;
-    private PacioliType type;
-	private Declaration declaration;
-
+    public final IdentifierNode id;
+    public ExpressionNode body;  
+    
     public ValueDefinition(Location location, IdentifierNode id, ExpressionNode body) {
         super(location);
         this.id = id;
         this.body = body;
     }
-    
-    public void addToProgram(Program program, PacioliFile module) {
-    	setModule(module);
-    	program.addValueDefinition(this, module);
-    }
-    
-    // hack voor seq
-    public ValueDefinition(IdentifierNode id, ExpressionNode body, ExpressionNode resolvedBody) {
-        super(id.getLocation().join(body.getLocation()));
-        this.id = id;
-        this.body = body;
-        this.resolvedBody = resolvedBody;
-    }
-
-    public boolean isFunction() {
-        return (body instanceof LambdaNode);
-    }
-
-	public PacioliType getType() {
-		if (declaration != null) {
-			return declaration.getType();
-		}
-		if (type == null) {
-			throw new RuntimeException("Type of '" +  globalName() + "' has not been resolved yet");
-		}
-		assert(type != null);
-		
-		return type;
+        
+	public Node transform(ExpressionNode body) {
+		return new ValueDefinition(getLocation(), id, body);
 	}
-	
-    public PacioliType inferType() throws PacioliException {
-    	Pacioli.log3("\n\nInferring type of %s", globalName());
-    	Typing typing = resolvedBody.inferTyping(new HashMap<String, PacioliType>());
-        PacioliType solved =  typing.solve();
-        type = solved.simplify().generalize();
-        return type;
+
+	public boolean isFunction() {
+        return (body instanceof LambdaNode);
     }
 
     @Override
@@ -103,41 +61,13 @@ public class ValueDefinition extends AbstractDefinition {
 
     @Override
     public void printText(PrintWriter out) {
-        if (type != null) {
-            out.format("\n%s :: %s;\n", localName(), type.unfresh().toText());
-        }
         out.format("define %s = %s;\n", localName(), body.toText());
-    }
-
-    @Override
-    public void resolve(Dictionary dictionary) throws PacioliException {
-        resolvedBody = body.resolved(dictionary, new ValueContext());
-        assert (resolvedBody != null);
-        if (dictionary.containsDeclaration(globalName())) {
-        	declaration = dictionary.getDeclaration(globalName());
-        }
-    }
-
-    @Override
-    public Set<Definition> uses() {
-    	assert resolvedBody != null;
-        return resolvedBody.uses();
-    }
-
-    public void desugar() {
-		//throw new RuntimeException("todo");	
-	}
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        //return String.format("\nstore \"%s\" %s;", globalName(), resolvedBody.transformMutableVarRefs().desugar().compileToMVM(settings));
-    	return String.format("\nstore \"%s\" %s;", globalName(), resolvedBody.desugar().compileToMVM(settings));
     }
 
     @Override
     public String compileToJS(boolean boxed) {
         //ExpressionNode transformedBody = resolvedBody.transformMutableVarRefs();
-    	ExpressionNode transformedBody = resolvedBody.desugar();
+    	ExpressionNode transformedBody = null; //resolvedBody.desugar();
         if (transformedBody instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformedBody;
             return String.format("\n" 
@@ -153,7 +83,7 @@ public class ValueDefinition extends AbstractDefinition {
             		+ "    return %s;\n" 
             		+ "}\n",
                     globalName(),
-                    type.reduce().compileToJS(),
+                    "fixme:: type.reduce().compileToJS()",
                     globalName(),
                     code.argsString(),
                     code.expression.compileToJS(true),
@@ -168,7 +98,7 @@ public class ValueDefinition extends AbstractDefinition {
                         + "Pacioli.compute_%s = function () {\n  return %s;\n}\n"
             		+ "Pacioli.compute_b_%s = function () {\n  return %s;\n}\n",
             		globalName(),
-            		type.reduce().compileToJS(), //transformedBody.compileToJSShape(),
+            		"fixme:  type.reduce().compileToJS()", //transformedBody.compileToJSShape(),
                     globalName(),
                     transformedBody.compileToJS(false),
                     globalName(),
@@ -177,6 +107,7 @@ public class ValueDefinition extends AbstractDefinition {
     }
 
     public String compileStatementToMATLAB() {
+    	Object resolvedBody = null; // fixme
         assert (resolvedBody instanceof LambdaNode);
         LambdaNode lambda = (LambdaNode) resolvedBody;
         assert (lambda.expression instanceof SequenceNode);
@@ -194,7 +125,7 @@ public class ValueDefinition extends AbstractDefinition {
 
         final List<ValueDefinition> blocks = new ArrayList<ValueDefinition>();
         String blocksCode = "";
-        ExpressionNode transformed = resolvedBody.liftStatements(module, blocks);
+        ExpressionNode transformed = null; //resolvedBody.liftStatements(module, blocks);
         for (ValueDefinition def : blocks) {
             blocksCode += def.compileStatementToMATLAB();
         }
@@ -211,5 +142,19 @@ public class ValueDefinition extends AbstractDefinition {
                     transformed.compileToMATLAB());
         }
     }
+
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+	}
+
+	@Override
+	public void addToProgr(Progam program, GenericInfo generic) {
+		ValueInfo info = program.ensureValueRecord(id.getName());
+		info.generic = generic;
+		if (info.generic.local) {
+			info.definition = this;	
+		}
+	}
 
 }

@@ -22,29 +22,15 @@
 package pacioli.types.ast;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.TypeContext;
 import pacioli.Utils;
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.TypeDefinition;
-import pacioli.types.PacioliType;
-import pacioli.types.ParametricType;
-import pacioli.types.TypeIdentifier;
-import pacioli.types.TypeVar;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
+import pacioli.ast.Visitor;
 
 public class TypeApplicationNode extends AbstractTypeNode {
 
-    private final TypeIdentifierNode op;
-    private final List<TypeNode> args;
+    public final TypeIdentifierNode op;
+    public final List<TypeNode> args;
 
     public TypeApplicationNode(Location location, TypeIdentifierNode name, List<TypeNode> args) {
         super(location);
@@ -52,9 +38,13 @@ public class TypeApplicationNode extends AbstractTypeNode {
         this.args = args;
     }
 
-    @Override
+    public TypeNode transform(TypeIdentifierNode name, List<TypeNode> args) {
+		return new TypeApplicationNode(getLocation(), name, args);
+	}
+
+	@Override
     public void printText(PrintWriter out) {
-        out.print(op);
+		op.printText(out);
         out.print("(");
         out.print(Utils.intercalateText(", ", args));
         out.print(")");
@@ -73,72 +63,8 @@ public class TypeApplicationNode extends AbstractTypeNode {
     }
 
 	@Override
-	public Set<Definition> uses() {
-		Set<Definition> set = new HashSet<Definition>();
-        set.addAll(op.uses());
-        for (TypeNode arg : args) {
-        	set.addAll(arg.uses());
-        }
-        return set;
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
-
-	@Override
-	public TypeNode resolved(Dictionary dictionary, TypeContext context)
-			throws PacioliException {
-		List<TypeNode> resolvedArgs = new ArrayList<TypeNode>();
-		for (TypeNode arg : args) {
-        	resolvedArgs.add(arg.resolved(dictionary, context));
-        }
-		TypeIdentifierNode resolvedOp = op.resolveAsType(dictionary, context);
-		return new TypeApplicationNode(getLocation(), resolvedOp, resolvedArgs);
-	}    
-    @Override
-    public PacioliType eval(boolean reduce) throws PacioliException {
-
-        List<PacioliType> types = new ArrayList<PacioliType>();
-        for (TypeNode arg : args) {
-            types.add(arg.eval(reduce));
-        }
-
-        if (op.getName().equals("Index")) {
-            if (types.size() == 1 && types.get(0) instanceof TypeVar) {
-                return types.get(0);
-            } else {
-                List<TypeIdentifier> names = new ArrayList<TypeIdentifier>();
-                for (int i = 0; i < types.size(); i++) {
-                    PacioliType type = types.get(i);
-                    assert (type instanceof TypeVar || type instanceof MatrixType);
-                    if (type instanceof MatrixType) {
-                        assert (args.get(i) instanceof TypeIdentifierNode);
-                        TypeIdentifier id = ((TypeIdentifierNode) args.get(i)).typeIdentifier();
-                        names.add(id);
-                    } else {
-                        throw new RuntimeException(String.format("Index set expected but found '%s'", type.toText()));
-                    }
-                }
-                return new IndexType(names);
-            }
-        } else {
-        	
-        	// Experiment with type definitions.
-        	// Open the type if it is from the local module.
-        	// See also reduction on types.
-        	
-        	Definition definition = op.getDefinition();
-        	
-        	if (definition == null) {
-        		return new ParametricType(op.getName(), types);
-        	}
-        	
-        	assert(definition instanceof TypeDefinition);
-        	TypeDefinition typeDefinition = (TypeDefinition) definition;
-        	
-        	if (reduce && definition.getModule() == op.home()) {
-            	return typeDefinition.constaint(true).reduce(new ParametricType(typeDefinition, types));
-            } else {
-            	return new ParametricType(typeDefinition, types);
-            }
-        }
-    }
 
 }

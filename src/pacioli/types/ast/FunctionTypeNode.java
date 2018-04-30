@@ -22,26 +22,22 @@
 package pacioli.types.ast;
 
 import java.io.PrintWriter;
-import java.util.HashSet;
-import java.util.Set;
-
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.TypeContext;
-import pacioli.ast.definition.Definition;
-import pacioli.types.FunctionType;
-import pacioli.types.PacioliType;
+import pacioli.ast.Visitor;
 
 public class FunctionTypeNode extends AbstractTypeNode {
     
-    private final TypeNode domain;
-    private final TypeNode range;
+    public final TypeNode domain;
+    public final TypeNode range;
 
     public FunctionTypeNode(Location location, TypeNode domain, TypeNode range) {
         super(location);
         this.domain = domain;
         this.range = range;
+    }
+
+    public FunctionTypeNode transform(TypeNode domain, TypeNode range) {
+    	return new FunctionTypeNode(getLocation(), domain, range);
     }
 
     @Override
@@ -50,25 +46,9 @@ public class FunctionTypeNode extends AbstractTypeNode {
     	out.format(" -> ");
     	range.printText(out);
     }
-
-    @Override
-    public PacioliType eval(boolean reduce) throws PacioliException {
-        return new FunctionType(domain.eval(reduce), range.eval(reduce));
-    }
-
+    
 	@Override
-	public Set<Definition> uses() {
-		Set<Definition> set = new HashSet<Definition>();
-        set.addAll(domain.uses());
-        set.addAll(range.uses());
-        return set;
-	}
-
-	@Override
-	public TypeNode resolved(Dictionary dictionary, TypeContext context) throws PacioliException {
-		return new FunctionTypeNode(
-				getLocation(), 
-				domain.resolved(dictionary, context), 
-				range.resolved(dictionary, context));
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 }

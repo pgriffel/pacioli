@@ -39,8 +39,8 @@ public class Lambda extends AbstractPrintable implements Expression {
     }
 
     @Override
-    public PacioliValue eval(Environment env) {
-        return new Closure(arguments, expression, env);
+    public PacioliValue eval(Environment environment) {
+        return new Closure(arguments, expression, environment);
     }
 
     @Override

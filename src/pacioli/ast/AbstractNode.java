@@ -21,14 +21,26 @@
 
 package pacioli.ast;
 
-import pacioli.AbstractPrintable;
-import pacioli.Location;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Set;
 
-public abstract class AbstractASTNode extends AbstractPrintable implements ASTNode {
+import pacioli.AbstractPrintable;
+import pacioli.CompilationSettings;
+import pacioli.Location;
+import pacioli.Progam;
+import pacioli.symboltable.SymbolInfo;
+import pacioli.visitors.DesugarStatements;
+import pacioli.visitors.DesugarVisitor;
+import pacioli.visitors.MVMGenerator;
+import pacioli.visitors.ResolveVisitor;
+import pacioli.visitors.UsesVisitor;
+
+public abstract class AbstractNode extends AbstractPrintable implements Node {
 
     private final Location location;
 
-    public AbstractASTNode(Location location) {
+    public AbstractNode(Location location) {
         this.location = location;
     }
 
@@ -43,5 +55,39 @@ public abstract class AbstractASTNode extends AbstractPrintable implements ASTNo
         } else {
             return location.description();
         }
+    }
+    
+    @Override
+    public Node desugar() {
+    	DesugarVisitor visitor = new DesugarVisitor();
+    	return visitor.nodeAccept(this);
+    }
+    
+    @Override
+    public Node desugarStatements(Progam prog) {
+    	DesugarStatements visitor = new DesugarStatements(prog);
+    	return visitor.nodeAccept(this);
+    }
+    
+    @Override
+    public String compileToMVM(CompilationSettings settings) {
+    	StringWriter outputStream = new StringWriter();
+		MVMGenerator gen = new MVMGenerator(new PrintWriter(outputStream), settings);
+		this.accept(gen);
+		return outputStream.toString();
+    }
+    
+
+    @Override
+    public void resolve(Progam prog) {
+    	ResolveVisitor visitor = new ResolveVisitor(prog);
+    	accept(visitor);
+    }
+    
+    @Override
+    public Set<SymbolInfo> uses() {
+    	UsesVisitor visitor = new UsesVisitor();
+    	Set<SymbolInfo> ids = visitor.idsAccept(this);
+    	return ids;
     }
 }

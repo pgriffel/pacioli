@@ -47,7 +47,12 @@ public class Utils {
         }
         return builder.toString();
     }
-
+    
+    private String escapeString(String in) {
+    	// Quick fix for the debug option for string literals
+    	return in.replaceAll("\"", "\\\\\"");
+    }
+    
     public static String intercalateText(String seperator, List<? extends Printable> printables) {
         List<String> strings = new ArrayList<String>();
         for (Printable printable : printables) {

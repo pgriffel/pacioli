@@ -22,108 +22,29 @@
 package pacioli.ast.expression;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.Typing;
-import pacioli.ValueContext;
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.ValueDefinition;
-import pacioli.types.PacioliType;
-import pacioli.types.ParametricType;
+import pacioli.ast.Visitor;
 
 public class SequenceNode extends AbstractExpressionNode {
 
-    private final List<ExpressionNode> items;
+    public final List<ExpressionNode> items;
 
     public SequenceNode(Location location, List<ExpressionNode> items) {
         super(location);
         this.items = items;
     }
 
+    public SequenceNode transform(List<ExpressionNode> items) {
+    	return new SequenceNode(getLocation(), items);
+    }
+    
     @Override
     public void printText(PrintWriter out) {
         for (ExpressionNode item : items) {
             item.printText(out);
             out.print(" ");
         }
-    }
-
-    @Override
-    public ExpressionNode resolved(final Dictionary dictionary, final ValueContext context) throws PacioliException {
-    	List<ExpressionNode> resolved = new ArrayList<ExpressionNode>();
-        for (ExpressionNode item : items) {
-        	resolved.add(item.resolved(dictionary, context));
-        }
-        return new SequenceNode(getLocation(), resolved);
-    }
-
-    @Override
-    public Set<Definition> uses() {
-        Set<Definition> cumulative = new LinkedHashSet<Definition>();
-        for (ExpressionNode item : items) {
-            cumulative.addAll(item.uses());
-        }
-        return cumulative;
-    }
-
-    @Override
-    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
-        PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
-        Typing typing = new Typing(voidType);
-        for (ExpressionNode item : items) {
-            Typing itemTyping = item.inferTyping(context);
-            typing.addConstraint(voidType, itemTyping.getType(), "A statement must have type Void()");
-            typing.addConstraints(itemTyping);
-        }
-        return typing;
-    }
-
-    @Override
-    public Set<IdentifierNode> locallyAssignedVariables() {
-        Set<IdentifierNode> vars = new LinkedHashSet<IdentifierNode>();
-        for (ExpressionNode item : items) {
-            vars.addAll(item.locallyAssignedVariables());
-        }
-        return vars;
-    }
-
-    @Override
-    public ExpressionNode liftStatements(PacioliFile module, List<ValueDefinition> blocks) {
-        List<ExpressionNode> liftedItems = new ArrayList<ExpressionNode>();
-        for (ExpressionNode item : items) {
-            liftedItems.add(item.liftStatements(module, blocks));
-        }
-        return new SequenceNode(getLocation(), liftedItems);
-    }
-
-    @Override
-    public ExpressionNode desugar() {
-    	if (items.isEmpty()) {
-    		// todo
-    		return ApplicationNode.newCall(getLocation(), "Primitives", "nothing");
-    	} else {
-    		ExpressionNode node = items.get(0).desugar();
-    		Location loc = node.getLocation();
-    		for (int i = 1; i < items.size(); i++) {
-    			loc = loc.join(items.get(i).getLocation());
-    			node = ApplicationNode.newCall(loc, "Primitives", "seq", node, items.get(i).desugar());
-    		}
-    		return node;
-    	}
-    }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        return desugar().compileToMVM(settings);
     }
 
     @Override
@@ -139,4 +60,9 @@ public class SequenceNode extends AbstractExpressionNode {
         }
         return code;
     }
+
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+	}
 }

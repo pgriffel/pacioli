@@ -22,31 +22,15 @@
 package pacioli.ast.expression;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.Typing;
-import pacioli.ValueContext;
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.ValueDefinition;
-import pacioli.types.PacioliType;
-import pacioli.types.ParametricType;
+import pacioli.ast.Visitor;
 
 
 public class IfStatementNode extends AbstractExpressionNode {
 
-    private final ExpressionNode test;
-    private final ExpressionNode positive;
-    private final ExpressionNode negative;
+    public final ExpressionNode test;
+    public final ExpressionNode positive;
+    public final ExpressionNode negative;
 
     public IfStatementNode(Location loc, ExpressionNode test, ExpressionNode positive, ExpressionNode negative) {
         super(loc);
@@ -55,7 +39,14 @@ public class IfStatementNode extends AbstractExpressionNode {
         this.negative = negative;
     }
 
-    @Override
+    public IfStatementNode(IfStatementNode old, ExpressionNode test, ExpressionNode pos, ExpressionNode neg) {
+        super(old.getLocation());
+        this.test = test;
+        this.positive = pos;
+        this.negative = neg;    	
+	}
+
+	@Override
     public void printText(PrintWriter out) {
         out.print("if ");
         test.printText(out);
@@ -64,68 +55,6 @@ public class IfStatementNode extends AbstractExpressionNode {
         out.print(" else ");
         negative.printText(out);
         out.print(" end");
-    }
-
-    @Override
-    public Set<Definition> uses() {
-        Set<Definition> set = new HashSet<Definition>();
-        set.addAll(test.uses());
-        set.addAll(positive.uses());
-        set.addAll(negative.uses());
-        return set;
-
-    }
-
-    @Override
-    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
-        return new IfStatementNode(
-                getLocation(),
-                test.resolved(dictionary, context),
-                positive.resolved(dictionary, context),
-                negative.resolved(dictionary, context));
-    }
-
-    @Override
-    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
-        Typing testTyping = test.inferTyping(context);
-        Typing posTyping = positive.inferTyping(context);
-        Typing negTyping = negative.inferTyping(context);
-
-        Typing typing = new Typing(posTyping.getType());
-
-        typing.addConstraints(testTyping);
-        typing.addConstraints(posTyping);
-        typing.addConstraints(negTyping);
-
-        PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
-        
-        typing.addConstraint(testTyping.getType(), new ParametricType("Boole", new ArrayList<PacioliType>()), String.format("While infering the type of\n%s\nthe test of an if must be Boolean", sourceDescription()));
-        typing.addConstraint(posTyping.getType(), voidType, String.format("While infering the type of\n%s\nthe then branche of an if must be a statement", sourceDescription()));
-        typing.addConstraint(negTyping.getType(), voidType, String.format("While infering the type of\n%s\nthe else branche of an if must be a statement", sourceDescription()));
-
-        return typing;
-    }
-
-    @Override
-    public Set<IdentifierNode> locallyAssignedVariables() {
-        Set<IdentifierNode> vars = new LinkedHashSet<IdentifierNode>();
-        vars.addAll(positive.locallyAssignedVariables());
-        vars.addAll(negative.locallyAssignedVariables());
-        return vars;
-    }
-
-    @Override
-    public ExpressionNode desugar() {
-        return new BranchNode(
-                test.desugar(),
-                positive.desugar(),
-                negative.desugar(),
-                getLocation());
-    }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
@@ -146,9 +75,7 @@ public class IfStatementNode extends AbstractExpressionNode {
     }
 
 	@Override
-	public ExpressionNode liftStatements(PacioliFile module,
-			List<ValueDefinition> blocks) {
-		// TODO Auto-generated method stub
-		return null;
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 }

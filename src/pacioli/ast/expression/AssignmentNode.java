@@ -22,68 +22,32 @@
 package pacioli.ast.expression;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
-import pacioli.PacioliException;
-import pacioli.Typing;
-import pacioli.ValueContext;
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.ValueDefinition;
-import pacioli.types.PacioliType;
-import pacioli.types.ParametricType;
+import pacioli.ast.Visitor;
 
 public class AssignmentNode extends AbstractExpressionNode {
 
-    private final IdentifierNode var;
-    private final ExpressionNode value;
+    public final IdentifierNode var;
+    public final ExpressionNode value;
 
     public AssignmentNode(Location location, IdentifierNode var, ExpressionNode value) {
         super(location);
         this.var = var;
         this.value = value;
     }
+    
+    public AssignmentNode(AssignmentNode old, ExpressionNode value) {
+        super(old.getLocation());
+        this.var = old.var;
+        this.value = value;
+    }    
 
     @Override
     public void printText(PrintWriter out) {
         var.printText(out);
         out.print(" := ");
         value.printText(out);
-    }
-
-    @Override
-    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
-        Set<String> varContext = new HashSet<String>();
-        varContext.add(var.getName());
-        ExpressionNode resolvedVar = var.resolved(dictionary, context);
-        assert(resolvedVar instanceof IdentifierNode);
-        return new AssignmentNode(
-                getLocation(),
-                (IdentifierNode) resolvedVar,
-                value.resolved(dictionary, context));
-    }
-
-    @Override
-    public Set<Definition> uses() {
-        return value.uses();
-    }
-
-    @Override
-    public ExpressionNode desugar() {
-        return ApplicationNode.newCall(getLocation(), "Primitives", "ref_set", var, value.desugar());
-    }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        return desugar().compileToMVM(settings);
+        out.print(";");
     }
 
     @Override
@@ -96,32 +60,9 @@ public class AssignmentNode extends AbstractExpressionNode {
         return var.getName() + " = " + value.compileToMATLAB();
     }
 
-    @Override
-    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
-        if (!context.containsKey(var.getName())) {
-            throw new RuntimeException(String.format("assigned var %s does not exists in context!!!", var.getName()));
-        }
-        assert (context.containsKey(var.getName()));
-        PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
-        Typing valueTyping = value.inferTyping(context);
-        Typing typing = new Typing(voidType);
-        typing.addConstraints(valueTyping);
-        typing.addConstraint(context.get(var.getName()), valueTyping.getType(), "assigned variable must have proper type");
-        return typing;
-    }
-
-    @Override
-    public Set<IdentifierNode> locallyAssignedVariables() {
-        Set<IdentifierNode> vars = new LinkedHashSet<IdentifierNode>();
-        vars.add(var);
-        return vars;
-    }
-
 	@Override
-	public ExpressionNode liftStatements(PacioliFile module,
-			List<ValueDefinition> blocks) {
-		// TODO Auto-generated method stub
-		return null;
+	public void accept(Visitor visitor) {
+		visitor.visit(this);		
 	}
 
 }

@@ -22,39 +22,21 @@
 package pacioli.types.ast;
 
 import java.io.PrintWriter;
-import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
-
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.TypeContext;
-import pacioli.ast.definition.Definition;
-import pacioli.types.PacioliType;
-import pacioli.types.matrix.MatrixType;
-import uom.Unit;
+import pacioli.ast.Visitor;
 
 public class NumberTypeNode extends AbstractTypeNode {
 
-    private final String number;
+    public final String number;
 
-    public NumberTypeNode(Location location) {
+    public NumberTypeNode(Location location, String number) {
         super(location);
-        this.number = "1";
+        this.number = number;
     }
 
     @Override
     public void printText(PrintWriter out) {
         out.print(number);
-    }
-
-    @Override
-    public PacioliType eval(boolean reduce) throws PacioliException {
-        if (!new BigDecimal(number).equals(BigDecimal.ONE)) {
-            throw new RuntimeException("Didn't expect number");
-        }
-        return new MatrixType(Unit.ONE);
     }
 
 	@Override
@@ -63,13 +45,7 @@ public class NumberTypeNode extends AbstractTypeNode {
 	}
 
 	@Override
-	public Set<Definition> uses() {
-		return new HashSet<Definition>();
-	}
-
-	@Override
-	public TypeNode resolved(Dictionary dictionary, TypeContext context)
-			throws PacioliException {
-		return this;
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 }

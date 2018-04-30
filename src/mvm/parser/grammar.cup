@@ -1,0 +1,318 @@
+/* Pacioli Grammar */
+package mvm.parser;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.List;
+import java.util.HashMap;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java_cup.runtime.ComplexSymbolFactory;
+import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
+import java_cup.runtime.Symbol;
+import mvm.ast.Program;
+import mvm.ast.Identifier;
+import mvm.ast.Expression;
+import mvm.ast.*;
+import mvm.ast.shape.*;
+import mvm.ast.unit.*;
+import pacioli.PacioliException;
+import uom.Unit;
+import mvm.values.matrix.MatrixShape;
+import mvm.values.matrix.Matrix;
+import mvm.values.PacioliString;
+import mvm.values.Boole;
+import uom.Fraction;
+
+parser code {:
+
+    /* The file being parsed. Only needed for location info. */
+    String file;                   
+
+    /* Buffer to get syntax error ino from message and location info
+       from CUP's syntax_error to CUP's report_fatal_error
+       function. */
+    String errorMessage;
+    pacioli.Location errorLocation;
+
+    /* Obsolete */
+    String source;
+
+   /* Public interface */
+    public Parser(Lexer lex, ComplexSymbolFactory sf, String file, String source) {
+        super(lex,sf);
+        this.file = file;
+        this.source = source;
+    }
+
+    public static Program parseFile(String file) throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        ComplexSymbolFactory csf = new ComplexSymbolFactory();
+        Lexer lexer = new Lexer(reader, csf, file, null);
+        Parser parser = new Parser(lexer, csf, file, null);
+        return (Program ) parser.parse().value;
+    }
+
+   /* CUP overrides to get error handling with location info */
+    public void report_error(String message, Object info) {
+    }
+
+    public void report_fatal_error(String message, Object info) throws java.lang.Exception {
+        done_parsing();      
+        throw new PacioliException(errorLocation, errorMessage);
+    }
+
+    public void syntax_error(Symbol cur_token) {
+        assert(cur_token instanceof ComplexSymbol);
+        List<Integer> ids = expected_token_ids();
+        LinkedList<String> list = new LinkedList<String>();
+        for (Integer expected : ids){
+            list.add(symbl_name_from_id(expected));
+        }
+        ComplexSymbol token = (ComplexSymbol) cur_token;
+        errorLocation = makeLoc(token.getLeft(), token.getRight());
+        errorMessage = "Expected one of " + list;
+    }
+
+   /* Utility functions for the grammar rules */
+    private pacioli.Location makeLoc(Location from, Location to) {
+      return new pacioli.Location(file, source, from.getOffset(), to.getOffset());
+    }
+
+    private class UnitDecl {
+
+        String name;
+        UnitNode unit;
+
+        public UnitDecl(String name, UnitNode unit) {
+            this.name = name;
+            this.unit = unit;
+        }
+    };
+
+    private class ValueDecl {
+
+        String row;
+        String column;
+        String value;
+
+        public ValueDecl(String row, String column, String value) {
+            this.row = row;
+            this.column = column;
+            this.value = value;
+        }
+    };
+
+:};
+
+terminal REQUIRE, SEMICOLON, COLON, COMMA, LPAR, RPAR, HAT, NEG, MULT, DIV;
+terminal BASEUNIT;
+terminal UNIT, INDEXSET, UNITVECTOR;
+terminal LOAD, STORE, PRINT;
+terminal APPLICATION, LAMBDA, VAR, CONST, IF, BANG, KEY, STRING;
+terminal APPLICATION_DEBUG;
+terminal PATH;
+terminal LIST;
+terminal MATRIX;
+terminal INDEX;
+terminal SCALED_UNIT;
+terminal BANG_SHAPE;
+terminal UNIT_EXPT, UNIT_MULT, UNIT_DIV;
+terminal SCALAR_SHAPE, SHAPE_UNOP, SHAPE_BINOP, SHAPE_EXPT;
+terminal MATRIX_CONSTRUCTOR, LITERAL_MATRIX;
+terminal String IDENT, STR, DECIMAL, NATURAL;
+
+
+non terminal Program                 program;
+non terminal List<Identifier>        requires;
+non terminal List<Expression>        exprs, exprlist, args;
+non terminal List<Instruction>       commands;
+non terminal Instruction             command;
+non terminal Identifier              path;
+non terminal UnitNode                unit;
+non terminal Expression              expr;
+non terminal List<String>            string_list, strings;
+non terminal String                  unsigned, number;
+non terminal List<UnitDecl>          unit_list, unit_parts;
+non terminal List<ValueDecl>         listlit, parts;
+non terminal ValueDecl               part;
+non terminal ShapeNode               shape;
+
+//------------------------------------------------------------------------------
+// Program
+//------------------------------------------------------------------------------
+
+program ::=  
+   requires:r commands:c                              {: Program prog = new Program(); 
+                                                         for(Identifier req: r) {
+                                                             prog.addRequire(req.getName());
+                                                         };
+                                                         for(Instruction inst: c) {
+                                                             prog.addInstruction(inst);
+                                                         };
+                                                         RESULT = prog; :}
+ ; 
+
+requires ::=  
+   requires:is REQUIRE path:p SEMICOLON               {: is.add(p); RESULT = is; :}
+ | /* empty */                                        {: RESULT = new LinkedList<Identifier>(); :}
+ ;
+
+commands ::=  
+   commands:cs command:c SEMICOLON                    {: cs.add(c); RESULT = cs; :}
+ | /* empty */                                        {: RESULT = new LinkedList<Instruction>(); :}
+ ;
+
+command ::= 
+   BASEUNIT STR:b STR:u                         {: RESULT = new StoreUnit(b, u); :}
+ | UNIT STR:b STR:n unsigned:d unit:un          {: RESULT = new StoreUnit(b, n, d, un); :}
+ | INDEXSET STR:f STR:n LIST string_list:s      {: RESULT = new StoreIndexSet(f, n, s); :}
+ | STORE STR:n expr:e                              {: RESULT = new StoreValue(n, e); :}
+ | PRINT expr:e                                       {: RESULT = new Print(e); :}
+ | UNITVECTOR STR:e STR:u LIST unit_list:l      {: List<String> names = new ArrayList<String>();
+                                                         List<UnitNode> units = new ArrayList<UnitNode>();
+                                                         for (UnitDecl d: l) {
+                                                           names.add(d.name);
+                                                           units.add(d.unit);
+                                                         }
+                                                         RESULT = new StoreUnitVector(e, u, names, units); :}
+ ;
+
+//------------------------------------------------------------------------------
+// Require path
+//------------------------------------------------------------------------------
+
+path ::= 
+    IDENT:id                                           {: RESULT = new Identifier(id); :}
+ |  path:p DIV IDENT:i                                 {: RESULT = new Identifier(p.getName() + "/" + i); :}
+ ;
+
+//------------------------------------------------------------------------------
+// Matrix and unit vector literals
+//------------------------------------------------------------------------------
+
+strings ::= 
+    STR:s                                           {: RESULT = new LinkedList<String>(Arrays.asList(s)); :}
+  | strings:ss COMMA STR:s                          {: ss.add(s); RESULT = ss; :}
+  ;
+
+string_list ::= 
+   LPAR RPAR                                           {: RESULT = new LinkedList<String>(); :}
+ | LPAR strings:ss RPAR                                {: RESULT = ss; :}
+ ;
+
+unit_list ::= 
+   LPAR RPAR                                           {: RESULT = new LinkedList<UnitDecl>(); :}
+ | LPAR unit_parts:ps RPAR                             {: RESULT = ps; :}
+ ;
+
+unit_parts ::= 
+   STR:n COLON unit:u                               {: RESULT = new LinkedList<UnitDecl>(Arrays.asList(new UnitDecl(n, u))); :}
+ | unit_parts:ps COMMA STR:n COLON unit:u           {: ps.add(new UnitDecl(n, u)); RESULT = ps; :}
+ ;
+
+//------------------------------------------------------------------------------
+// Numbers
+//------------------------------------------------------------------------------
+
+unsigned ::= 
+   DECIMAL:d                                       {: RESULT = d; :}
+ | NATURAL:n                                       {: RESULT = n; :}
+ ;
+
+number ::= 
+   unsigned:u                                       {: RESULT = u; :}
+ | NEG unsigned:u                                   {: RESULT = "-" + u; :}
+ ;
+
+//------------------------------------------------------------------------------
+// Expressions
+//------------------------------------------------------------------------------
+
+exprs ::= 
+    expr:e                                          {: RESULT = new LinkedList<Expression>(Arrays.asList(e)); :}
+  | exprs:es COMMA expr:e                           {: es.add(e); RESULT = es; :}
+  ;
+
+exprlist ::= 
+    LPAR RPAR                                       {: RESULT = new LinkedList<Expression>(); :}
+  | LPAR exprs:exprs RPAR                           {: RESULT = exprs; :}
+  ;
+
+args ::= 
+                                                   {: RESULT = new LinkedList<Expression>(); :}
+  | args:es COMMA expr:e                           {: es.add(e); RESULT = es; :}
+  ;
+
+expr ::= 
+   APPLICATION LPAR expr:f args:a RPAR                   {: RESULT = new Application(f, a); :}
+// | APPLICATION_DEBUG LPAR STR:fun STR:a STR:b exprs:args RPAR          //{: RESULT = new ApplicationNode(fun, args, makeLoc(funxleft, argsxright)); :}
+ | LAMBDA string_list:ids expr:b                         {: RESULT = new Lambda(ids, b); :}
+ | IF LPAR expr:t COMMA expr:p COMMA expr:n RPAR         {: RESULT = new Branch(t, p, n); :}
+ | VAR LPAR STR:id RPAR                               {: RESULT = new Identifier(id); :}
+ | CONST LPAR STR:value RPAR                          {: if (value.equals("true")) {
+                                                                RESULT = new Const(new Boole(true));
+                                                          } else if (value.equals("false")) {
+                                                                RESULT = new Const(new Boole(false));
+  						          } else {
+  							        RESULT = new Const(new Matrix(Double .parseDouble(value)));
+  						          }; :}
+ | LITERAL_MATRIX LPAR shape:s COMMA listlit:l RPAR     {: int size = l.size();
+                                                           List<String> rows = new ArrayList<String>();
+                                                           List<String> columns = new ArrayList<String>();
+                                                           List<String> values = new ArrayList<String>();
+                                                           for (ValueDecl dec: l) {
+                                                               rows.add(dec.row);
+                                                               columns.add(dec.column);
+                                                               values.add(dec.value);
+                                                           }
+                                                           RESULT = new LitMat(s, rows, columns, values); :}
+ | MATRIX_CONSTRUCTOR LPAR STR:n COMMA shape:s RPAR  {: RESULT = new MatrixConstructor(n, s); :}
+ | KEY string_list:ids                                  {: int size = ids.size();
+                                                           List<String> sets = new ArrayList<String>();
+                                                           List<String> items = new ArrayList<String>();
+                                                           for (int i = 0; i < size; i+=2) {
+                                                               sets.add(ids.get(i));
+                                                               items.add(ids.get(i + 1));
+                                                           }
+                                                           RESULT = new LitKey(sets, items); :}
+ | STRING LPAR STR:s RPAR                               {: RESULT = new Const(new PacioliString(s)); :}
+ ;
+
+//------------------------------------------------------------------------------
+// Lists
+//------------------------------------------------------------------------------
+
+listlit ::= 
+    /* empty */                                           {: RESULT = new LinkedList<ValueDecl>(); :}
+  | listlit:ps part:p                                       {: ps.add(p); RESULT = ps; :}
+  ;
+
+part ::= 
+   NATURAL:i NATURAL:j STR:v COMMA                     {: RESULT = new ValueDecl(i, j, v); :}
+ ;
+
+//------------------------------------------------------------------------------
+// Types and schemas
+//------------------------------------------------------------------------------
+
+shape ::=
+    SHAPE_BINOP LPAR STR:op COMMA shape:l COMMA shape:r RPAR   {: RESULT = new ShapeBinop(op, l, r); :}
+  | SHAPE_UNOP LPAR STR:op COMMA shape:r RPAR                  {: RESULT = new ShapeUnop(op, r); :}
+  | SHAPE_EXPT LPAR shape:l COMMA number:n RPAR                   {: RESULT = new ShapeExpt(l, new Fraction(Integer.parseInt(n))); :}
+  | BANG_SHAPE LPAR STR:l COMMA STR:r RPAR                  {: RESULT = new BangShape(l, r); :}
+  | SCALAR_SHAPE LPAR unit:u RPAR                                 {: RESULT = new ScalarShape(u); :}
+  ;
+
+//------------------------------------------------------------------------------
+// Units and dimensioned numbers
+//------------------------------------------------------------------------------
+
+unit ::= 
+   UNIT LPAR STR:x RPAR                             {: RESULT = new UnitNamed(x); :}
+ | SCALED_UNIT LPAR STR:x COMMA STR:y RPAR       {: RESULT = new UnitNamed(x + ":" + y); :} // is SCALED_UNIT obsolete?!. do the concat in the compiler
+ | UNIT_MULT LPAR unit:x COMMA unit:y RPAR             {: RESULT = new UnitMult(x, y); :}
+ | UNIT_DIV LPAR unit:x COMMA unit:y RPAR              {: RESULT = new UnitDiv(x, y); :}
+ | UNIT_EXPT LPAR unit:x COMMA number:n RPAR           {: RESULT = new UnitExpt(x, new Fraction(Integer.parseInt(n))); :}
+ ;

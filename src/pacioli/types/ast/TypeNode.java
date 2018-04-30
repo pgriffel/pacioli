@@ -21,24 +21,10 @@
 
 package pacioli.types.ast;
 
-import pacioli.Dictionary;
-import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.TypeContext;
-import pacioli.ast.ASTNode;
+import pacioli.ast.Node;
 import pacioli.types.PacioliType;
 
-public interface TypeNode extends ASTNode {
-
-    public Location getLocation();
-
-    public TypeNode resolved(Dictionary dictionary, TypeContext context) throws PacioliException;
-    
-    /**
-     * Turns a type AST node into a type.
-     *
-     * @return
-     * @throws PacioliException TODO
-     */
-    public PacioliType eval(boolean reduce) throws PacioliException;    
+public interface TypeNode extends Node {
+	
+	public PacioliType evalType(Boolean reduce);
 }

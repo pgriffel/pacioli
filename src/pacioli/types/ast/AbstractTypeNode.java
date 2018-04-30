@@ -21,42 +21,29 @@
 
 package pacioli.types.ast;
 
-import pacioli.AbstractPrintable;
-import pacioli.CompilationSettings;
 import pacioli.Location;
+import pacioli.ast.AbstractNode;
+import pacioli.types.PacioliType;
+import pacioli.visitors.TypeEvaluator;
 
-public abstract class AbstractTypeNode extends AbstractPrintable implements TypeNode {
-
-    private final Location location;
+public abstract class AbstractTypeNode extends AbstractNode implements TypeNode {
 
     public AbstractTypeNode() {
-        this.location = null;
+    	super(null);
     }
 
     public AbstractTypeNode(Location location) {
-        this.location = location;
+    	super(location);
     }
-
+    
     @Override
-    public Location getLocation() {
-        return location;
+    public PacioliType evalType(Boolean reduce) {
+    	TypeEvaluator visitor = new TypeEvaluator(reduce);
+    	return visitor.typeAccept(this);
     }
-
-    public String sourceDescription() {
-        if (location == null) {
-            return "No source location available";
-        } else {
-            return location.description();
-        }
-    }
-
-	@Override
-	public String compileToJS(boolean boxed) {
-		throw new RuntimeException("Not implemented for this type of node (" + this.getClass() + "). Only matrix type nodes can be compiled.");
-	}
 	
 	@Override
-	public String compileToMVM(CompilationSettings settings) {
+	public String compileToJS(boolean boxed) {
 		throw new RuntimeException("Not implemented for this type of node (" + this.getClass() + "). Only matrix type nodes can be compiled.");
 	}
 

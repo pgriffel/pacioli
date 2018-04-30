@@ -34,11 +34,13 @@ public class Environment {
     private final HashMap<String, PacioliValue> store;
     private final HashMap<String, Expression> code;
     private Environment next;
+    private Machine machine;
 
-    public Environment() {
+    public Environment(Machine machine) {
         store = new HashMap<String, PacioliValue>();
         code = new HashMap<String, Expression>();
         next = null;
+        this.machine = machine;
     }
 
     public Environment(String key, PacioliValue value) {
@@ -48,14 +50,14 @@ public class Environment {
         next = null;
     }
 
-    public Environment(List<String> arguments, Environment env) {
+/*    public Environment(List<String> arguments, Environment env) {
         store = new HashMap<String, PacioliValue>();
         code = new HashMap<String, Expression>();
         for (String key: arguments) {
             store.put(key, env.store.get(key));
         }
         next = null;
-    }
+    }*/
 
     public Environment(List<String> arguments, List<PacioliValue> params) {
         store = new HashMap<String, PacioliValue>();
@@ -83,6 +85,9 @@ public class Environment {
     public Environment pushUnto(Environment environment) {
         if (next == null) {
             next = environment;
+            if (environment.machine != null) {
+            	machine = environment.machine; 
+            }
             return this;
         } else {
             throw new RuntimeException("huh");
@@ -117,6 +122,11 @@ public class Environment {
     
     public void putCode(String name, Expression exp) {
         code.put(name, exp);
+       	/*try {
+			store.put(name, exp.eval(this));
+		} catch (MVMException e) {
+			throw new RuntimeException(e);
+		}*/
     }
 
     public Set<String> keySet() {
@@ -127,4 +137,11 @@ public class Environment {
         }
         return keys;
     }
+
+	public Machine getMachine() {
+		if (machine == null) {
+			throw new RuntimeException("zou niet mogen gebeuren");
+		}
+		return machine;
+	}
 }

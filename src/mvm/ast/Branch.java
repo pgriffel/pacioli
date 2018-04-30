@@ -41,12 +41,12 @@ public class Branch extends AbstractPrintable implements Expression {
     }
 
     @Override
-    public PacioliValue eval(Environment env) throws MVMException {
-        Boole outcome = (Boole) test.eval(env);
+    public PacioliValue eval(Environment environment) throws MVMException {
+        Boole outcome = (Boole) test.eval(environment);
         if (outcome.positive()) {
-            return positive.eval(env);
+            return positive.eval(environment);
         } else {
-            return negative.eval(env);
+            return negative.eval(environment);
         }
     }
 

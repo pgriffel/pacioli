@@ -23,26 +23,10 @@ package pacioli;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.IndexSetDefinition;
-import pacioli.ast.definition.TypeDefinition;
-import pacioli.ast.definition.UnitDefinition;
-import pacioli.ast.definition.UnitVectorDefinition;
-import pacioli.ast.definition.ValueDefinition;
-import pacioli.ast.expression.ExpressionNode;
-import pacioli.ast.unit.UnitNode;
-import pacioli.types.PacioliType;
-import pacioli.types.ast.TypeNode;
 
 public class PacioliFile extends AbstractPrintable {
 
@@ -53,9 +37,55 @@ public class PacioliFile extends AbstractPrintable {
     
     public static final List<String> defaultIncludes =
             new ArrayList<String>(Arrays.asList("primitives", "list", "matrix", "string", "standard"));
+    public static final List<String> defaultsToCompile =
+            new ArrayList<String>(Arrays.asList("primitives", "list", "matrix", "string", "standard"));
     public static final List<String> debugablePrimitives  =
             new ArrayList<String>(Arrays.asList("primitives", "list", "matrix", "string"));
 
+    public static File findIncludeFile(String include, List<File> libs) throws FileNotFoundException {
+    	return findIncludeFile(include, libs, null);
+    }
+    
+    
+    public static File findIncludeFile(String include, List<File> libs, File directory) throws FileNotFoundException {
+    	return findFile(include + ".pacioli", libs, directory);
+    }
+    
+    public static File findFile(String file, List<File> libs, File directory) throws FileNotFoundException {
+
+		File theFile = null;
+		String includeName = file.toLowerCase();
+
+		// Generate a list of candidates
+		List<File> candidates = new ArrayList<File>();
+		if (directory != null) {
+			candidates.add(new File(directory, includeName));
+		}
+		for (File dir : libs) {
+			candidates.add(new File(dir, includeName));
+		}
+
+		// See if a candidate exists
+		for (File candidate: candidates) {
+			if (candidate.exists()) {
+				Pacioli.logln3("Include '%s' found in library file '%s'", file, candidate);
+				if (theFile == null) {
+					theFile = candidate;
+				} else {
+					Pacioli.warn("Shadowed include file '%s' is ignored", candidate);
+				}
+			} else {
+				Pacioli.logln3("Include '%s' not found", candidate);
+			}
+		}
+		
+        if (theFile == null) {
+			throw new FileNotFoundException(String.format("No file found for include '%s'", includeName));
+		}
+        
+        return theFile;
+	}
+    
     public PacioliFile(String name) {
         this.name = name;
         this.includes = new ArrayList<String>();

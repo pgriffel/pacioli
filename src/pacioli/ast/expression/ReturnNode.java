@@ -22,34 +22,31 @@
 package pacioli.ast.expression;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
-import pacioli.Dictionary;
 import pacioli.Location;
-import pacioli.PacioliFile;
 import pacioli.PacioliException;
-import pacioli.Typing;
-import pacioli.ValueContext;
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.ValueDefinition;
-import pacioli.types.PacioliType;
-import pacioli.types.ParametricType;
+import pacioli.ast.Visitor;
+import pacioli.symboltable.ValueInfo;
 
 public class ReturnNode extends AbstractExpressionNode {
 
-    private final ExpressionNode value;
+    public final ExpressionNode value;
+    
     private final IdentifierNode resultPlace;
+
+	public ValueInfo info;
 
     public ReturnNode(Location location, ExpressionNode value) {
         super(location);
         this.value = value;
         this.resultPlace = null;
+    }
+    
+    public ExpressionNode transform(ExpressionNode value) {
+    	return new ReturnNode(getLocation(), value, resultPlace);
+    }
+    
+    public ExpressionNode resolve(ExpressionNode value, IdentifierNode resultPlace) throws PacioliException {
+   		return new ReturnNode(getLocation(), value, resultPlace);
     }
     
     public ReturnNode(Location location, ExpressionNode value, IdentifierNode resultPlace) {
@@ -62,31 +59,7 @@ public class ReturnNode extends AbstractExpressionNode {
     public void printText(PrintWriter out) {
         out.print("return ");
         value.printText(out);
-    }
-
-    @Override
-    public ExpressionNode resolved(Dictionary dictionary, ValueContext context) throws PacioliException {
-    	if (context.getStatementResult() == null) {
-    		throw new RuntimeException("No result place for return");
-    	} else {
-    		IdentifierNode result = IdentifierNode.newLocalMutableVar(context.getStatementResult(), getLocation());
-    		return new ReturnNode(getLocation(), value.resolved(dictionary, context), result);
-    	}
-    }
-
-    @Override
-    public Set<Definition> uses() {
-        return value.uses();
-    }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        return desugar().compileToMVM(settings);
-    }
-
-    @Override
-    public ExpressionNode desugar() {
-        return ApplicationNode.newCall(getLocation(), "Primitives", "throw_result", resultPlace, value.desugar());
+        out.print(";");
     }
 
     @Override
@@ -99,27 +72,8 @@ public class ReturnNode extends AbstractExpressionNode {
         return resultPlace.toText() + " = " + value.compileToMATLAB() + ";\nreturn";
     }
 
-    @Override
-    public Typing inferTyping(Map<String, PacioliType> context) throws PacioliException {
-        String result = resultPlace.getName();
-        assert (context.containsKey(result));
-        PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
-        Typing valueTyping = value.inferTyping(context);
-        Typing typing = new Typing(voidType);
-        typing.addConstraints(valueTyping);
-        typing.addConstraint(context.get(result), valueTyping.getType(), "the types of returned values must agree");
-        return typing;
-    }
-
-    @Override
-    public Set<IdentifierNode> locallyAssignedVariables() {
-        return new LinkedHashSet<IdentifierNode>();
-    }
-
 	@Override
-	public ExpressionNode liftStatements(PacioliFile module,
-			List<ValueDefinition> blocks) {
-		// TODO Auto-generated method stub
-		return null;
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 }

@@ -21,8 +21,16 @@
 
 package pacioli;
 
+import java.io.File;
+import java.io.IOException;
+
 public class Location {
 
+    private final int fromLine;
+    private final int fromColumn;
+    private final int toLine;
+    private final int toColumn;
+    
     private final int from;
     private final int to;
     private final String source;
@@ -33,6 +41,21 @@ public class Location {
         this.file = file;
         this.from = Math.min(at, at);
         this.to = Math.max(at, at);
+        this.fromLine = 0;
+        this.fromColumn = 0;
+        this.toLine = 0;
+        this.toColumn = 0;
+    }
+    
+    public Location(String file, int fromLine, int fromColumn, int toLine, int toColumn) {
+        this.source = null;
+        this.file = file;
+        this.fromLine = fromLine;
+        this.fromColumn = fromColumn;
+        this.toLine = toLine;
+        this.toColumn = toColumn;
+        this.to = 0;
+        this.from = 0;
     }
     
     public Location(String file, String source, int from, int to) {
@@ -40,6 +63,10 @@ public class Location {
         this.file = file;
         this.from = Math.min(from, to);
         this.to = Math.max(from, to);
+        this.fromLine = 0;
+        this.fromColumn = 0;
+        this.toLine = 0;
+        this.toColumn = 0;        
     }
     
     public Location(String file, String source) {
@@ -47,6 +74,10 @@ public class Location {
         this.file = file;
         this.from = -1;
         this.to = -1;
+        this.fromLine = 0;
+        this.fromColumn = 0;
+        this.toLine = 0;
+        this.toColumn = 0;        
     }
 
     public Location join(Location other) {
@@ -56,14 +87,20 @@ public class Location {
     	if (other.from < 0 || other.to < 0) {
     		return this;
     	}
-        if (source != other.source || file != other.file) {
-            throw new RuntimeException("Cannot join locations from different sources");
-        } else {
+  //      if (source != other.source || file != other.file) {
+  //          throw new RuntimeException("Cannot join locations from different sources");
+  //      } else {
             return new Location(file, source, Math.min(from, other.from), Math.max(to, other.to));
-        }
+  //      }
     }
 
     public String description2() {
+    	String source;
+    	try {
+    		source = Utils.readFile(new File(file));
+		} catch (IOException e) {
+			return "No source for file" + file;
+		}
     	if (from < 0 || to < 0) {
     		return "No source location available";	
     	} else{
@@ -72,7 +109,13 @@ public class Location {
     }
 
     public String description() {
-
+    	String source;
+    	try {
+    		source = Utils.readFile(new File(file));
+		} catch (IOException e) {
+			return "No source for file" + file;
+		}
+    	
         assert (to <= source.length());
 
         if (0 <= from && from <= to) {
