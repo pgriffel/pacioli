@@ -46,7 +46,7 @@ public class Schema extends AbstractType {
     public void printText(PrintWriter out) {
         new TypeContext(variables).printText(out);
         type.printText(out);
-        
+
     }
 
     @Override
@@ -65,20 +65,20 @@ public class Schema extends AbstractType {
     public Set<String> unitVecVarCompoundNames() {
         return type.unitVecVarCompoundNames();
     }
-    
+
     @Override
     public PacioliType instantiate() {
         Substitution map = new Substitution();
         for (TypeVar var : variables) {
             map = map.compose(new Substitution(var, var.fresh()));
         }
-        //return map.apply(type);
+        // return map.apply(type);
         return type.applySubstitution(map);
     }
 
     @Override
     public Schema generalize() {
-    	throw new RuntimeException("Cannot generalize a schema");
+        throw new RuntimeException("Cannot generalize a schema");
     }
 
     @Override
@@ -90,21 +90,23 @@ public class Schema extends AbstractType {
 
     @Override
     public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
     @Override
     public List<Unit> simplificationParts() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
-	@Override
-	public String compileToJS() {
-		return type.compileToJS();
-	}
+    @Override
+    public String compileToJS() {
+        return type.compileToJS();
+    }
 
-	@Override
-	public PacioliType reduce() {
-		return new Schema(variables, type.reduce());
-	}
+    @Override
+    public PacioliType reduce() {
+        return new Schema(variables, type.reduce());
+    }
 }

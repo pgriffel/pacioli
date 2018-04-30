@@ -46,49 +46,91 @@ import pacioli.types.ast.TypePowerNode;
 
 public interface Visitor {
 
-	// A visit method for each node
-	void visit(ProgramNode program);
-	void visit(AliasDefinition aliasDefinition);
-	void visit(Declaration declaration);
-	void visit(IndexSetDefinition indexSetDefinition);
-	void visit(MultiDeclaration multiDeclaration);
-	void visit(Toplevel toplevel);
-	void visit(TypeDefinition typeDefinition);
-	void visit(UnitDefinition unitDefinition);
-	void visit(UnitVectorDefinition unitVectorDefinition);
-	void visit(ValueDefinition valueDefinition);
-	void visit(ApplicationNode node);
-	void visit(AssignmentNode assignmentNode);
-	void visit(BranchNode branchNode);
-	void visit(ConstNode constNode);
-	void visit(ConversionNode conversionNode);
-	void visit(IdentifierNode identifierNode);
-	void visit(IfStatementNode ifStatementNode);
-	void visit(KeyNode keyNode);
-	void visit(LambdaNode lambdaNode);
-	void visit(MatrixLiteralNode matrixLiteralNode);
-	void visit(MatrixTypeNode matrixTypeNode);
-	void visit(ProjectionNode projectionNode);
-	void visit(ReturnNode returnNode);
-	void visit(SequenceNode sequenceNode);
-	void visit(StatementNode statementNode);
-	void visit(StringNode stringNode);
-	void visit(TupleAssignmentNode tupleAssignmentNode);
-	void visit(WhileNode whileNode);
-	void visit(BangTypeNode bangTypeNode);
-	void visit(FunctionTypeNode functionTypeNode);
-	void visit(NumberTypeNode numberTypeNode);
-	void visit(SchemaNode schemaNode);
-	void visit(TypeApplicationNode typeApplicationNode);
-	void visit(TypeIdentifierNode typeIdentifierNode);
-	void visit(TypePowerNode typePowerNode);
-	void visit(PrefixUnitTypeNode prefixUnitTypeNode);
-	void visit(TypeMultiplyNode typeMultiplyNode);
-	void visit(TypeDivideNode typeDivideNode);
-	void visit(TypeKroneckerNode typeKroneckerNode);
-	void visit(TypePerNode typePerNode);
-	void visit(NumberUnitNode numberUnitNode);
-	void visit(UnitIdentifierNode unitIdentifierNode);
-	void visit(UnitOperationNode unitOperationNode);
-	void visit(UnitPowerNode unitOperationNode);
+    void visit(ProgramNode program);
+
+    void visit(AliasDefinition aliasDefinition);
+
+    void visit(Declaration declaration);
+
+    void visit(IndexSetDefinition indexSetDefinition);
+
+    void visit(MultiDeclaration multiDeclaration);
+
+    void visit(Toplevel toplevel);
+
+    void visit(TypeDefinition typeDefinition);
+
+    void visit(UnitDefinition unitDefinition);
+
+    void visit(UnitVectorDefinition unitVectorDefinition);
+
+    void visit(ValueDefinition valueDefinition);
+
+    void visit(ApplicationNode node);
+
+    void visit(AssignmentNode assignmentNode);
+
+    void visit(BranchNode branchNode);
+
+    void visit(ConstNode constNode);
+
+    void visit(ConversionNode conversionNode);
+
+    void visit(IdentifierNode identifierNode);
+
+    void visit(IfStatementNode ifStatementNode);
+
+    void visit(KeyNode keyNode);
+
+    void visit(LambdaNode lambdaNode);
+
+    void visit(MatrixLiteralNode matrixLiteralNode);
+
+    void visit(MatrixTypeNode matrixTypeNode);
+
+    void visit(ProjectionNode projectionNode);
+
+    void visit(ReturnNode returnNode);
+
+    void visit(SequenceNode sequenceNode);
+
+    void visit(StatementNode statementNode);
+
+    void visit(StringNode stringNode);
+
+    void visit(TupleAssignmentNode tupleAssignmentNode);
+
+    void visit(WhileNode whileNode);
+
+    void visit(BangTypeNode bangTypeNode);
+
+    void visit(FunctionTypeNode functionTypeNode);
+
+    void visit(NumberTypeNode numberTypeNode);
+
+    void visit(SchemaNode schemaNode);
+
+    void visit(TypeApplicationNode typeApplicationNode);
+
+    void visit(TypeIdentifierNode typeIdentifierNode);
+
+    void visit(TypePowerNode typePowerNode);
+
+    void visit(PrefixUnitTypeNode prefixUnitTypeNode);
+
+    void visit(TypeMultiplyNode typeMultiplyNode);
+
+    void visit(TypeDivideNode typeDivideNode);
+
+    void visit(TypeKroneckerNode typeKroneckerNode);
+
+    void visit(TypePerNode typePerNode);
+
+    void visit(NumberUnitNode numberUnitNode);
+
+    void visit(UnitIdentifierNode unitIdentifierNode);
+
+    void visit(UnitOperationNode unitOperationNode);
+
+    void visit(UnitPowerNode unitOperationNode);
 }

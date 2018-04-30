@@ -5,26 +5,26 @@ import pacioli.ast.definition.IndexSetDefinition;
 
 public class IndexSetInfo implements SymbolInfo {
 
-	public IndexSetDefinition definition;
-	public GenericInfo generic;
-	
-	@Override
-	public GenericInfo generic() {
-		return generic;
-	}
+    public IndexSetDefinition definition;
+    public GenericInfo generic;
 
-	@Override
-	public Definition getDefinition() {
-		return definition;
-	}
+    @Override
+    public GenericInfo generic() {
+        return generic;
+    }
 
-	@Override
-	public String name() {
-		return generic.name;
-	}
+    @Override
+    public Definition getDefinition() {
+        return definition;
+    }
 
-	@Override
-	public String globalName() {
-		return String.format("index_%s_%s", generic.module, generic.name);
-	}
+    @Override
+    public String name() {
+        return generic.name;
+    }
+
+    @Override
+    public String globalName() {
+        return String.format("index_%s_%s", generic.module, generic.name);
+    }
 }

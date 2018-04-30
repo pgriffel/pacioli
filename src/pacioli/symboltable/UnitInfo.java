@@ -8,35 +8,35 @@ import pacioli.ast.unit.UnitNode;
 
 public class UnitInfo implements SymbolInfo {
 
-	public Definition definition;
-	
-	public String symbol;
-	public UnitNode baseDefinition;
-	
-	public List<UnitDecl> items;
-	
-	public GenericInfo generic;
+    public Definition definition;
 
-	public boolean isVector = false;
+    public String symbol;
+    public UnitNode baseDefinition;
 
-	@Override
-	public GenericInfo generic() {
-		return generic;
-	}
-	
-	@Override
-	public String name() {
-		return generic.name;
-	}
+    public List<UnitDecl> items;
 
-	@Override
-	public String globalName() {
-		return String.format("unit_%s", generic.name);
-	}
-	
-	@Override
-	public Definition getDefinition() {
-		return definition;
-	}
+    public GenericInfo generic;
+
+    public boolean isVector = false;
+
+    @Override
+    public GenericInfo generic() {
+        return generic;
+    }
+
+    @Override
+    public String name() {
+        return generic.name;
+    }
+
+    @Override
+    public String globalName() {
+        return String.format("unit_%s", generic.name);
+    }
+
+    @Override
+    public Definition getDefinition() {
+        return definition;
+    }
 
 }

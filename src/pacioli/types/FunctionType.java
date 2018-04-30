@@ -67,7 +67,7 @@ public class FunctionType extends AbstractType {
         all.addAll(range.unitVecVarCompoundNames());
         return all;
     }
-    
+
     @Override
     public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
         FunctionType otherType = (FunctionType) other;
@@ -95,19 +95,19 @@ public class FunctionType extends AbstractType {
         return new FunctionType(domain.applySubstitution(subs), range.applySubstitution(subs));
     }
 
-	@Override
-	public String compileToJS() {
-		StringBuilder out = new StringBuilder();
-		out.append("new Pacioli.Type('function', [");
-		out.append(domain.compileToJS());
-		out.append(", ");
-		out.append(range.compileToJS());
-		out.append("])");
-		return out.toString();
-	}
+    @Override
+    public String compileToJS() {
+        StringBuilder out = new StringBuilder();
+        out.append("new Pacioli.Type('function', [");
+        out.append(domain.compileToJS());
+        out.append(", ");
+        out.append(range.compileToJS());
+        out.append("])");
+        return out.toString();
+    }
 
-	@Override
-	public PacioliType reduce() {
-		return new FunctionType(domain.reduce(), range.reduce());
-	}
+    @Override
+    public PacioliType reduce() {
+        return new FunctionType(domain.reduce(), range.reduce());
+    }
 }

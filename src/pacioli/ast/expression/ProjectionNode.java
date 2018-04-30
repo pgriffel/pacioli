@@ -22,15 +22,16 @@ public class ProjectionNode extends AbstractExpressionNode {
         this.body = body;
         this.hardType = hardType;
     }
-    
-    private ProjectionNode(List<ConstNode> columns, TypeNode hardType, ExpressionNode body, MatrixType type, Location location) {
+
+    private ProjectionNode(List<ConstNode> columns, TypeNode hardType, ExpressionNode body, MatrixType type,
+            Location location) {
         super(location);
         this.columns = columns;
         this.body = body;
         this.hardType = hardType;
         this.type = type;
     }
-    
+
     @Override
     public void printText(PrintWriter out) {
         out.print("project ");
@@ -42,10 +43,11 @@ public class ProjectionNode extends AbstractExpressionNode {
 
     @Override
     public String compileToJS(boolean boxed) {
-    	assert(type != null);
-        return String.format("Pacioli.projectNumbers(%s, %s.param, [%s])", body.compileToJS(boxed), type.compileToJS(), numString());
+        assert (type != null);
+        return String.format("Pacioli.projectNumbers(%s, %s.param, [%s])", body.compileToJS(boxed), type.compileToJS(),
+                numString());
     }
-    
+
     public String numString() {
         List<String> columns = new ArrayList<String>();
         for (ConstNode node : this.columns) {
@@ -59,10 +61,9 @@ public class ProjectionNode extends AbstractExpressionNode {
         return String.format("(@(%s) %s)", numString(), body.compileToMATLAB());
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
 }
-

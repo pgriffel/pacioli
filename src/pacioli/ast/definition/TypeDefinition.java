@@ -44,7 +44,7 @@ public class TypeDefinition extends AbstractDefinition {
     private final TypeContext context;
     private final TypeNode lhs;
     private final TypeNode rhs;
-	private TypeApplicationNode resolvedLhs;
+    private TypeApplicationNode resolvedLhs;
     private TypeNode resolvedRhs;
     private TypeConstraint constraint;
 
@@ -65,13 +65,14 @@ public class TypeDefinition extends AbstractDefinition {
 
             List<PacioliType> types = new ArrayList<PacioliType>();
             for (TypeNode arg : app.getArgs()) {
-            	if (arg instanceof TypeIdentifierNode) {
-            		types.add(arg.evalType(reduce));	
-            	} else if (arg instanceof BangTypeNode) {
-            		types.add(arg.evalType(reduce));	
-            	} else {
-            		throw new PacioliException(arg.getLocation(), "Type definition's lhs must be a unit variable or vector %s", arg.getClass());
-            	}
+                if (arg instanceof TypeIdentifierNode) {
+                    types.add(arg.evalType(reduce));
+                } else if (arg instanceof BangTypeNode) {
+                    types.add(arg.evalType(reduce));
+                } else {
+                    throw new PacioliException(arg.getLocation(),
+                            "Type definition's lhs must be a unit variable or vector %s", arg.getClass());
+                }
             }
 
             PacioliType lhsType = new ParametricType(app.getName(), types);
@@ -80,22 +81,23 @@ public class TypeDefinition extends AbstractDefinition {
             if (lhsType instanceof ParametricType) {
                 constraint = new TypeConstraint(app, rhsType);
             } else {
-                throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s", lhsType.toText());
+                throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s",
+                        lhsType.toText());
             }
         } else {
             throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s", lhs.toText());
         }
-        
+
         assert (constraint != null);
         if (!reduce) {
             throw new RuntimeException("todo: contraint when reduce is false");
         }
         return constraint;
     }
-	
+
     @Override
     public void printText(PrintWriter out) {
-    	out.print("todo: print type definition;\n");
+        out.print("todo: print type definition;\n");
     }
 
     @Override
@@ -103,28 +105,30 @@ public class TypeDefinition extends AbstractDefinition {
         assert (lhs instanceof TypeApplicationNode);
         return ((TypeApplicationNode) lhs).getName();
     }
-    
+
     @Override
     public String compileToJS(boolean boxed) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
     @Override
     public String compileToMATLAB() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);		
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
-	@Override
-	public void addToProgr(Progam program, GenericInfo generic) {
-		TypeInfo info = program.ensureTypeRecord(localName());
-		info.generic = generic;
-		info.typeAST = rhs;
-		info.definition = this;
-	}
+    @Override
+    public void addToProgr(Progam program, GenericInfo generic) {
+        TypeInfo info = program.ensureTypeRecord(localName());
+        info.generic = generic;
+        info.typeAST = rhs;
+        info.definition = this;
+    }
 
 }

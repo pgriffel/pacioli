@@ -24,40 +24,40 @@ package uom;
 import java.math.BigDecimal;
 
 public class Prefix {
-	
-	private final String symbols;
-	private final BigDecimal factor;
-	
-	public Prefix(String symbols, BigDecimal factor){
-		this.symbols = symbols;
-		this.factor = factor;
-	}
 
-        @Override
-	public int hashCode() {
-		return symbols.hashCode();
-	}
-	
-        @Override
-	public boolean equals(Object other) {
-		if (other == this) {
-			return true;
-		}
-		if (! (other instanceof Prefix)) {
-			return false;
-		}
-		Prefix otherPrefix = (Prefix) other;
-		if (! symbols.equals(otherPrefix.symbols)) {
-			return false;
-		}
-		return true;
-	}
+    private final String symbols;
+    private final BigDecimal factor;
 
-	public String prefixName(){
-		return symbols;
-	}
-	
-	public BigDecimal prefixFactor(){
-		return factor;
-	}
+    public Prefix(String symbols, BigDecimal factor) {
+        this.symbols = symbols;
+        this.factor = factor;
+    }
+
+    @Override
+    public int hashCode() {
+        return symbols.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (!(other instanceof Prefix)) {
+            return false;
+        }
+        Prefix otherPrefix = (Prefix) other;
+        if (!symbols.equals(otherPrefix.symbols)) {
+            return false;
+        }
+        return true;
+    }
+
+    public String prefixName() {
+        return symbols;
+    }
+
+    public BigDecimal prefixFactor() {
+        return factor;
+    }
 }

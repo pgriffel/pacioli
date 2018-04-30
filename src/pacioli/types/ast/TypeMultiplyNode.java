@@ -17,23 +17,23 @@ public class TypeMultiplyNode extends AbstractTypeNode {
     }
 
     public Node transform(TypeNode left, TypeNode right) {
-		return new TypeMultiplyNode(getLocation(), left, right);
-	}
+        return new TypeMultiplyNode(getLocation(), left, right);
+    }
 
-	@Override
+    @Override
     public void printText(PrintWriter out) {
         out.format("%s*%s", left.toText(), right.toText());
     }
 
-	@Override
-	public String compileToJS(boolean boxed) {
-		String leftJS = left.compileToJS(false);
-		String rightJS = right.compileToJS(false);
-		return leftJS + ".mult(" + rightJS + ")";
-	}
+    @Override
+    public String compileToJS(boolean boxed) {
+        String leftJS = left.compileToJS(false);
+        String rightJS = right.compileToJS(false);
+        return leftJS + ".mult(" + rightJS + ")";
+    }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

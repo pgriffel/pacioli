@@ -37,15 +37,12 @@ public interface Unit {
     public Unit raise(Fraction power);
 
     public Unit reciprocal();
-    
+
     public DimensionedNumber flat();
 
-    /**
-     * A textual representation suitable for users.
-     * @return A String readable for a user
-     */
     public String toText();
 
     public Unit map(UnitMap map);
+
     public static final Unit ONE = new PowerProduct();
 }

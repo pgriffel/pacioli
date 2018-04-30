@@ -33,8 +33,8 @@ public interface Definition extends Node {
     public String globalName();
 
     public void setModule(PacioliFile module);
-    
+
     public PacioliFile getModule();
-    
-    public void addToProgr(Progam program, GenericInfo info);	
+
+    public void addToProgr(Progam program, GenericInfo info);
 }

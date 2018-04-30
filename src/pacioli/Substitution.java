@@ -58,7 +58,7 @@ public class Substitution extends AbstractPrintable {
         map = new HashMap<TypeVar, Object>();
         this.map.put(var, other);
     }
-    
+
     public Substitution(Substitution other) {
         map = new HashMap<TypeVar, Object>(other.map);
     }

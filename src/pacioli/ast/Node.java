@@ -31,20 +31,20 @@ import pacioli.symboltable.SymbolInfo;
 
 public interface Node extends Printable {
 
-	public Location getLocation();
-    
+    public Location getLocation();
+
     public void accept(Visitor visitor);
-    
+
     public Set<SymbolInfo> uses();
-    
+
     public Node desugar();
 
     public Node desugarStatements(Progam prog);
-    
+
     public void resolve(Progam prog);
-    
+
     public String compileToMVM(CompilationSettings settings);
-    
+
     public String compileToJS(boolean boxed);
 
     public String compileToMATLAB();

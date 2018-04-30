@@ -25,7 +25,6 @@ import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Visitor;
 
-
 public class IfStatementNode extends AbstractExpressionNode {
 
     public final ExpressionNode test;
@@ -43,10 +42,10 @@ public class IfStatementNode extends AbstractExpressionNode {
         super(old.getLocation());
         this.test = test;
         this.positive = pos;
-        this.negative = neg;    	
-	}
+        this.negative = neg;
+    }
 
-	@Override
+    @Override
     public void printText(PrintWriter out) {
         out.print("if ");
         test.printText(out);
@@ -59,9 +58,10 @@ public class IfStatementNode extends AbstractExpressionNode {
 
     @Override
     public String compileToJS(boolean boxed) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
-    
+
     @Override
     public String compileToMATLAB() {
         String code = "if (";
@@ -74,8 +74,8 @@ public class IfStatementNode extends AbstractExpressionNode {
         return code;
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

@@ -38,19 +38,19 @@ import pacioli.symboltable.ValueInfo;
 public class ValueDefinition extends AbstractDefinition {
 
     public final IdentifierNode id;
-    public ExpressionNode body;  
-    
+    public ExpressionNode body;
+
     public ValueDefinition(Location location, IdentifierNode id, ExpressionNode body) {
         super(location);
         this.id = id;
         this.body = body;
     }
-        
-	public Node transform(ExpressionNode body) {
-		return new ValueDefinition(getLocation(), id, body);
-	}
 
-	public boolean isFunction() {
+    public Node transform(ExpressionNode body) {
+        return new ValueDefinition(getLocation(), id, body);
+    }
+
+    public boolean isFunction() {
         return (body instanceof LambdaNode);
     }
 
@@ -66,58 +66,37 @@ public class ValueDefinition extends AbstractDefinition {
 
     @Override
     public String compileToJS(boolean boxed) {
-        //ExpressionNode transformedBody = resolvedBody.transformMutableVarRefs();
-    	ExpressionNode transformedBody = null; //resolvedBody.desugar();
+        // ExpressionNode transformedBody = resolvedBody.transformMutableVarRefs();
+        ExpressionNode transformedBody = null; // resolvedBody.desugar();
         if (transformedBody instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformedBody;
-            return String.format("\n" 
-            		+ "Pacioli.u_%s = function () {\n"
-            		+ "    var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));\n"
-            		+ "    var type = %s;\n"
-            		+ "    return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));\n"
-            		+ "}\n"
-            		+ "Pacioli.b_%s = function (%s) {\n"
-            		+ "    return %s;\n" 
-            		+ "}\n"
-                        + "Pacioli.%s = function (%s) {\n"
-            		+ "    return %s;\n" 
-            		+ "}\n",
-                    globalName(),
-                    "fixme:: type.reduce().compileToJS()",
-                    globalName(),
-                    code.argsString(),
-                    code.expression.compileToJS(true),
-                    globalName(),
-                    code.argsString(),
+            return String.format("\n" + "Pacioli.u_%s = function () {\n"
+                    + "    var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));\n"
+                    + "    var type = %s;\n" + "    return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));\n"
+                    + "}\n" + "Pacioli.b_%s = function (%s) {\n" + "    return %s;\n" + "}\n"
+                    + "Pacioli.%s = function (%s) {\n" + "    return %s;\n" + "}\n", globalName(),
+                    "fixme:: type.reduce().compileToJS()", globalName(), code.argsString(),
+                    code.expression.compileToJS(true), globalName(), code.argsString(),
                     code.expression.compileToJS(false));
         } else {
-            return String.format("\n"
-            		+ "Pacioli.compute_u_%s = function () {\n"
-            		+ "    return %s;\n"
-            		+ "}\n"
-                        + "Pacioli.compute_%s = function () {\n  return %s;\n}\n"
-            		+ "Pacioli.compute_b_%s = function () {\n  return %s;\n}\n",
-            		globalName(),
-            		"fixme:  type.reduce().compileToJS()", //transformedBody.compileToJSShape(),
-                    globalName(),
-                    transformedBody.compileToJS(false),
-                    globalName(),
-                    transformedBody.compileToJS(true));
+            return String.format(
+                    "\n" + "Pacioli.compute_u_%s = function () {\n" + "    return %s;\n" + "}\n"
+                            + "Pacioli.compute_%s = function () {\n  return %s;\n}\n"
+                            + "Pacioli.compute_b_%s = function () {\n  return %s;\n}\n",
+                    globalName(), "fixme:  type.reduce().compileToJS()", // transformedBody.compileToJSShape(),
+                    globalName(), transformedBody.compileToJS(false), globalName(), transformedBody.compileToJS(true));
         }
     }
 
     public String compileStatementToMATLAB() {
-    	Object resolvedBody = null; // fixme
+        Object resolvedBody = null; // fixme
         assert (resolvedBody instanceof LambdaNode);
         LambdaNode lambda = (LambdaNode) resolvedBody;
         assert (lambda.expression instanceof SequenceNode);
         SequenceNode seq = (SequenceNode) lambda.expression;
 
-        return String.format("\nfunction %s = %s (%s)\n %s\nendfunction;\n",
-                "result", //seq.getResultPlace().toText(),
-                globalName().toLowerCase(),
-                lambda.argsString(),
-                seq.compileToMATLAB());
+        return String.format("\nfunction %s = %s (%s)\n %s\nendfunction;\n", "result", // seq.getResultPlace().toText(),
+                globalName().toLowerCase(), lambda.argsString(), seq.compileToMATLAB());
     }
 
     @Override
@@ -125,7 +104,7 @@ public class ValueDefinition extends AbstractDefinition {
 
         final List<ValueDefinition> blocks = new ArrayList<ValueDefinition>();
         String blocksCode = "";
-        ExpressionNode transformed = null; //resolvedBody.liftStatements(module, blocks);
+        ExpressionNode transformed = null; // resolvedBody.liftStatements(module, blocks);
         for (ValueDefinition def : blocks) {
             blocksCode += def.compileStatementToMATLAB();
         }
@@ -133,28 +112,25 @@ public class ValueDefinition extends AbstractDefinition {
         if (transformed instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformed;
             return blocksCode + String.format("\nfunction retval = %s (%s)\n retval = %s;\nendfunction;\n",
-                    globalName().toLowerCase(),
-                    code.argsString(),
-                    code.expression.compileToMATLAB());
+                    globalName().toLowerCase(), code.argsString(), code.expression.compileToMATLAB());
         } else {
-            return blocksCode + String.format("\nglobal %s = %s;\n",
-                    globalName().toLowerCase(),
-                    transformed.compileToMATLAB());
+            return blocksCode
+                    + String.format("\nglobal %s = %s;\n", globalName().toLowerCase(), transformed.compileToMATLAB());
         }
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
-	@Override
-	public void addToProgr(Progam program, GenericInfo generic) {
-		ValueInfo info = program.ensureValueRecord(id.getName());
-		info.generic = generic;
-		if (info.generic.local) {
-			info.definition = this;	
-		}
-	}
+    @Override
+    public void addToProgr(Progam program, GenericInfo generic) {
+        ValueInfo info = program.ensureValueRecord(id.getName());
+        info.generic = generic;
+        if (info.generic.local) {
+            info.definition = this;
+        }
+    }
 
 }

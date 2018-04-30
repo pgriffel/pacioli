@@ -32,129 +32,126 @@ import pacioli.symboltable.ValueInfo;
 
 public class IdentifierNode extends AbstractExpressionNode {
 
-	public final String name;
+    public final String name;
 
-	// Set during resolving
-	public ValueInfo info;
-	
-	// Is this used?
-	private final String home;
-	private final Boolean isMutableVar;
+    // Set during resolving
+    public ValueInfo info;
 
-	public IdentifierNode(String name, Location location) {
-		super(location);
-		this.name = name;
-		this.home = null;
-		this.isMutableVar = null;
-	}
-	
-	public static IdentifierNode newValueIdentifier(String module, String name, Location location) {
-		assert(module != null);
-		return new IdentifierNode(module, false, name, location);
-	}
+    // Is this used?
+    private final String home;
+    private final Boolean isMutableVar;
 
-	public static IdentifierNode newLocalVar(String name, Location location) {
-		return new IdentifierNode("", false, name, location);
-	}
+    public IdentifierNode(String name, Location location) {
+        super(location);
+        this.name = name;
+        this.home = null;
+        this.isMutableVar = null;
+    }
 
-	public static IdentifierNode newLocalMutableVar(String name,
-			Location location) {
-		return new IdentifierNode("", true, name, location);
-	}
+    public static IdentifierNode newValueIdentifier(String module, String name, Location location) {
+        assert (module != null);
+        return new IdentifierNode(module, false, name, location);
+    }
 
-	public IdentifierNode(String home, boolean mutable, String name,
-			Location location) {
-		super(location);
-		assert(home != null);
-		this.name = name;
-		this.home = home;
-		this.isMutableVar = mutable;
-	}
+    public static IdentifierNode newLocalVar(String name, Location location) {
+        return new IdentifierNode("", false, name, location);
+    }
 
-	public IdentifierNode resolve(ValueDefinition def, Declaration decl, Boolean mutable) {
-		Definition homeDef = def == null ? decl : def;
-		String home = homeDef == null ? "" : homeDef.getModule().getName();
-		return new IdentifierNode("", home, mutable, name, getLocation(), def, decl, true);
-	};
-	
-	private IdentifierNode(String myHome, String home, boolean mutable, String name,
-			Location location, ValueDefinition definition, Declaration declaration, Boolean isResolved) {
-		super(location);
-		this.home = home;
-		this.name = name;
-		this.isMutableVar = mutable;
-	}
+    public static IdentifierNode newLocalMutableVar(String name, Location location) {
+        return new IdentifierNode("", true, name, location);
+    }
 
-	@Override
-	public int hashCode() {
-		return name.hashCode();
-	}
+    public IdentifierNode(String home, boolean mutable, String name, Location location) {
+        super(location);
+        assert (home != null);
+        this.name = name;
+        this.home = home;
+        this.isMutableVar = mutable;
+    }
 
-	@Override
-	public boolean equals(Object other) {
-		if (other == this) {
-			return true;
-		}
-		if (!(other instanceof IdentifierNode)) {
-			return false;
-		}
-		IdentifierNode otherNode = (IdentifierNode) other;
-		return name.equals(otherNode.name);
-	}
+    public IdentifierNode resolve(ValueDefinition def, Declaration decl, Boolean mutable) {
+        Definition homeDef = def == null ? decl : def;
+        String home = homeDef == null ? "" : homeDef.getModule().getName();
+        return new IdentifierNode("", home, mutable, name, getLocation(), def, decl, true);
+    };
 
-	public String getName() {
-		return name;
-	}
+    private IdentifierNode(String myHome, String home, boolean mutable, String name, Location location,
+            ValueDefinition definition, Declaration declaration, Boolean isResolved) {
+        super(location);
+        this.home = home;
+        this.name = name;
+        this.isMutableVar = mutable;
+    }
 
-	public String fullName() {
-		assert (home != null); // names must have been resolved
-		return home.isEmpty() ? name : "global_" + home + "_" + name;
-	}
-	
-	public String compiledName(String prefix) {
-		return prefix + home + "_" + name;
-	}
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
 
-	public boolean isLocal() {
-		assert (home != null); // names must have been resolved
-		return home.isEmpty();
-	}
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (!(other instanceof IdentifierNode)) {
+            return false;
+        }
+        IdentifierNode otherNode = (IdentifierNode) other;
+        return name.equals(otherNode.name);
+    }
 
-	@Override
-	public void printText(PrintWriter out) {
-		out.print(name);
-	}
+    public String getName() {
+        return name;
+    }
 
-	public boolean isMutableVar() {
-		assert (isMutableVar != null); // names must have been resolved
-		return isMutableVar;
-	}
+    public String fullName() {
+        assert (home != null); // names must have been resolved
+        return home.isEmpty() ? name : "global_" + home + "_" + name;
+    }
 
-	// what is this????
-	public Boolean debugable() {
-		return PacioliFile.debugablePrimitives.contains(home);
-	}
+    public String compiledName(String prefix) {
+        return prefix + home + "_" + name;
+    }
 
-	@Override
-	public String compileToJS(boolean boxed) {
-		assert (home != null); // names must have been resolved
-                if (boxed) {
-                    return home.isEmpty() ? name : "Pacioli.bfetchValue('" + home + "', '" + name + "')";
-                } else {
-                    return home.isEmpty() ? name : "Pacioli.fetchValue('" + home + "', '"
-				+ name + "')";
-                }
-	}
+    public boolean isLocal() {
+        assert (home != null); // names must have been resolved
+        return home.isEmpty();
+    }
 
-	@Override
-	public String compileToMATLAB() {
-		assert (home != null); // names must have been resolved
-		return home.isEmpty() ? name.toLowerCase() : "Pacioli.value(\""
-				+ home.toLowerCase() + "\", \"" + name.toLowerCase() + "\")";
-	}
+    @Override
+    public void printText(PrintWriter out) {
+        out.print(name);
+    }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    public boolean isMutableVar() {
+        assert (isMutableVar != null); // names must have been resolved
+        return isMutableVar;
+    }
+
+    // what is this????
+    public Boolean debugable() {
+        return PacioliFile.debugablePrimitives.contains(home);
+    }
+
+    @Override
+    public String compileToJS(boolean boxed) {
+        assert (home != null); // names must have been resolved
+        if (boxed) {
+            return home.isEmpty() ? name : "Pacioli.bfetchValue('" + home + "', '" + name + "')";
+        } else {
+            return home.isEmpty() ? name : "Pacioli.fetchValue('" + home + "', '" + name + "')";
+        }
+    }
+
+    @Override
+    public String compileToMATLAB() {
+        assert (home != null); // names must have been resolved
+        return home.isEmpty() ? name.toLowerCase()
+                : "Pacioli.value(\"" + home.toLowerCase() + "\", \"" + name.toLowerCase() + "\")";
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

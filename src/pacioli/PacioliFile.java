@@ -34,91 +34,90 @@ public class PacioliFile extends AbstractPrintable {
     private final List<String> includes;
     private File file = null;
     private boolean isDefault = false;
-    
-    public static final List<String> defaultIncludes =
-            new ArrayList<String>(Arrays.asList("primitives", "list", "matrix", "string", "standard"));
-    public static final List<String> defaultsToCompile =
-            new ArrayList<String>(Arrays.asList("primitives", "list", "matrix", "string", "standard"));
-    public static final List<String> debugablePrimitives  =
-            new ArrayList<String>(Arrays.asList("primitives", "list", "matrix", "string"));
+
+    public static final List<String> defaultIncludes = new ArrayList<String>(
+            Arrays.asList("primitives", "list", "matrix", "string", "standard"));
+    public static final List<String> defaultsToCompile = new ArrayList<String>(
+            Arrays.asList("primitives", "list", "matrix", "string", "standard"));
+    public static final List<String> debugablePrimitives = new ArrayList<String>(
+            Arrays.asList("primitives", "list", "matrix", "string"));
 
     public static File findIncludeFile(String include, List<File> libs) throws FileNotFoundException {
-    	return findIncludeFile(include, libs, null);
+        return findIncludeFile(include, libs, null);
     }
-    
-    
+
     public static File findIncludeFile(String include, List<File> libs, File directory) throws FileNotFoundException {
-    	return findFile(include + ".pacioli", libs, directory);
+        return findFile(include + ".pacioli", libs, directory);
     }
-    
+
     public static File findFile(String file, List<File> libs, File directory) throws FileNotFoundException {
 
-		File theFile = null;
-		String includeName = file.toLowerCase();
+        File theFile = null;
+        String includeName = file.toLowerCase();
 
-		// Generate a list of candidates
-		List<File> candidates = new ArrayList<File>();
-		if (directory != null) {
-			candidates.add(new File(directory, includeName));
-		}
-		for (File dir : libs) {
-			candidates.add(new File(dir, includeName));
-		}
+        // Generate a list of candidates
+        List<File> candidates = new ArrayList<File>();
+        if (directory != null) {
+            candidates.add(new File(directory, includeName));
+        }
+        for (File dir : libs) {
+            candidates.add(new File(dir, includeName));
+        }
 
-		// See if a candidate exists
-		for (File candidate: candidates) {
-			if (candidate.exists()) {
-				Pacioli.logln3("Include '%s' found in library file '%s'", file, candidate);
-				if (theFile == null) {
-					theFile = candidate;
-				} else {
-					Pacioli.warn("Shadowed include file '%s' is ignored", candidate);
-				}
-			} else {
-				Pacioli.logln3("Include '%s' not found", candidate);
-			}
-		}
-		
+        // See if a candidate exists
+        for (File candidate : candidates) {
+            if (candidate.exists()) {
+                Pacioli.logln3("Include '%s' found in library file '%s'", file, candidate);
+                if (theFile == null) {
+                    theFile = candidate;
+                } else {
+                    Pacioli.warn("Shadowed include file '%s' is ignored", candidate);
+                }
+            } else {
+                Pacioli.logln3("Include '%s' not found", candidate);
+            }
+        }
+
         if (theFile == null) {
-			throw new FileNotFoundException(String.format("No file found for include '%s'", includeName));
-		}
-        
+            throw new FileNotFoundException(String.format("No file found for include '%s'", includeName));
+        }
+
         return theFile;
-	}
-    
+    }
+
     public PacioliFile(String name) {
         this.name = name;
         this.includes = new ArrayList<String>();
     }
-	
-    public boolean isDefault() {
-		return isDefault;
-	}
-    
-    public void setDefault() {
-		isDefault = true;
-	}
-    
-	public String getName() {
-		return name;
-	}
-		
-	public List<String> getIncludes() {
-		return includes;
-	}
 
-	public void setFile(File file) {
-		this.file = file;
-	}
-	
-	public File getFile() {
-		return file;
-	}
-	
-	public File directory() {
-		return file.getParentFile();
-	}
-	
+    public boolean isDefault() {
+        return isDefault;
+    }
+
+    public void setDefault() {
+        isDefault = true;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public List<String> getIncludes() {
+        return includes;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public File directory() {
+        return file.getParentFile();
+    }
+
     public void include(String name) {
         if (getIncludes().contains(name)) {
             Pacioli.warn("Module '%s' is already included", name);

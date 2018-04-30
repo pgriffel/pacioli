@@ -30,10 +30,10 @@ import pacioli.types.ast.TypeNode;
 public class MatrixTypeNode extends AbstractExpressionNode {
 
     public final TypeNode typeNode;
-    
+
     private final MatrixDimension rowDim;
     private final MatrixDimension columnDim;
-    
+
     public MatrixTypeNode(Location location, TypeNode typeNode) {
         super(location);
         this.typeNode = typeNode;
@@ -41,8 +41,7 @@ public class MatrixTypeNode extends AbstractExpressionNode {
         this.columnDim = null;
     }
 
-    public MatrixTypeNode(Location location, TypeNode typeNode, 
-    		MatrixDimension rowDim, MatrixDimension columnDim) {
+    public MatrixTypeNode(Location location, TypeNode typeNode, MatrixDimension rowDim, MatrixDimension columnDim) {
         super(location);
         this.typeNode = typeNode;
         this.rowDim = rowDim;
@@ -55,41 +54,35 @@ public class MatrixTypeNode extends AbstractExpressionNode {
         typeNode.printText(out);
         out.print("|");
     }
-    
+
     @Override
     public String compileToJS(boolean boxed) {
-    	/*
-        String row = "[1";
-        for (int i = 0; i < nrColumns - 1; i++) {
-            row += ",1";
-        }
-        row += "]";
-
-        String matrix = "[";
-        matrix += row;
-        for (int i = 0; i < nrRows - 1; i++) {
-            matrix += "," + row;
-        }
-        matrix += "]";
-
-        return matrix;*/
-    	//return "Pacioli.oneMatrix(" + typeNode.compileToJS() + ")";
+        /*
+         * String row = "[1"; for (int i = 0; i < nrColumns - 1; i++) { row += ",1"; }
+         * row += "]";
+         * 
+         * String matrix = "["; matrix += row; for (int i = 0; i < nrRows - 1; i++) {
+         * matrix += "," + row; } matrix += "]";
+         * 
+         * return matrix;
+         */
+        // return "Pacioli.oneMatrix(" + typeNode.compileToJS() + ")";
         if (boxed) {
-            //throw new RuntimeException("matrix type node ");
+            // throw new RuntimeException("matrix type node ");
             return "Pacioli.oneMatrix(" + typeNode.compileToJS(boxed) + ")";
         } else {
             return "Pacioli.oneNumbers(" + rowDim.size() + ", " + columnDim.size() + ")";
         }
-    	
+
     }
-    
+
     @Override
     public String compileToMATLAB() {
         return String.format("ones(%s, %s)", rowDim.size(), columnDim.size());
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

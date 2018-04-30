@@ -17,167 +17,167 @@ import uom.Unit;
 
 public class IndexType extends AbstractType {
 
-	private final PacioliType indexSet;
+    private final PacioliType indexSet;
 
-	public IndexType(List<TypeIdentifier> indexSets) {
-		this.indexSet = new IndexList(indexSets);
-	}
+    public IndexType(List<TypeIdentifier> indexSets) {
+        this.indexSet = new IndexList(indexSets);
+    }
 
-	public IndexType(IndexList indexSet) {
-		this.indexSet = indexSet;
-	}
-	
-	public IndexType(TypeIdentifier indexSet) {
-		List<TypeIdentifier> indexList = new ArrayList<TypeIdentifier>();
-		indexList.add(indexSet);
-		this.indexSet = new IndexList(indexList);
-	}
+    public IndexType(IndexList indexSet) {
+        this.indexSet = indexSet;
+    }
 
-	public IndexType() {
-		this.indexSet = new IndexList(new ArrayList<TypeIdentifier>());
-	}
+    public IndexType(TypeIdentifier indexSet) {
+        List<TypeIdentifier> indexList = new ArrayList<TypeIdentifier>();
+        indexList.add(indexSet);
+        this.indexSet = new IndexList(indexList);
+    }
 
-	public IndexType(TypeVar typeVar) {
-		indexSet = typeVar;
-	}
-	
-	private IndexType(PacioliType type) {
-		indexSet = type;
-	}
+    public IndexType() {
+        this.indexSet = new IndexList(new ArrayList<TypeIdentifier>());
+    }
 
-	public PacioliType getIndexSet() {
-		return indexSet;
-	}
-	
-	public boolean isVar() {
-		return indexSet instanceof TypeVar;
-	}
-	
-	public String varName() {
-		return ((TypeVar) indexSet).toText();
-	}
+    public IndexType(TypeVar typeVar) {
+        indexSet = typeVar;
+    }
 
-	public IndexList indexList() {
-		if (isVar()) {
-			throw new RuntimeException("Index list not available for an index variable");
-		} else {
-			return (IndexList) indexSet;
-		}
-	}
+    private IndexType(PacioliType type) {
+        indexSet = type;
+    }
 
-	@Override
-	public int hashCode() {
-		return indexSet.hashCode();
-	}
+    public PacioliType getIndexSet() {
+        return indexSet;
+    }
 
-	@Override
-	public boolean equals(Object other) {
-		if (other == this) {
-			return true;
-		}
-		if (!(other instanceof IndexType)) {
-			return false;
-		}
-		IndexType otherType = (IndexType) other;
-		return indexSet.equals(otherType.indexSet);
-	}
+    public boolean isVar() {
+        return indexSet instanceof TypeVar;
+    }
 
-	@Override
-	public String toString() {
-		return String.format("%s%s", super.toString(), indexSet);
-	}
+    public String varName() {
+        return ((TypeVar) indexSet).toText();
+    }
 
-	public List<TypeIdentifier> getIndexSets() {
-		if (isVar()) {
-			throw new RuntimeException("Method not available for an index variable");
-		} else {
-			return indexList().getIndexSets();
-		}
-	}
+    public IndexList indexList() {
+        if (isVar()) {
+            throw new RuntimeException("Index list not available for an index variable");
+        } else {
+            return (IndexList) indexSet;
+        }
+    }
 
-	public int width() {
-		if (isVar()) {
-			throw new RuntimeException("Method not available for an index variable");
-		} else {
-			return indexList().width();
-		}
-	}
+    @Override
+    public int hashCode() {
+        return indexSet.hashCode();
+    }
 
-	public TypeIdentifier nthIndexSet(int n) {
-		if (isVar()) {
-			throw new RuntimeException("Method not available for an index variable");
-		} else {
-			return indexList().nthIndexSet(n);
-		}
-	}
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (!(other instanceof IndexType)) {
+            return false;
+        }
+        IndexType otherType = (IndexType) other;
+        return indexSet.equals(otherType.indexSet);
+    }
 
-	@Override
-	public void printText(PrintWriter out) {
-		out.print("Index(");
-		indexSet.printText(out);
-		out.print(")");
-	}
+    @Override
+    public String toString() {
+        return String.format("%s%s", super.toString(), indexSet);
+    }
 
-	@Override
-	public Set<TypeVar> typeVars() {
-		Set<TypeVar> vars = new LinkedHashSet<TypeVar>();
-		if (isVar()) {
-			vars.add((TypeVar) indexSet);
-		}
-		return vars;
-	}
+    public List<TypeIdentifier> getIndexSets() {
+        if (isVar()) {
+            throw new RuntimeException("Method not available for an index variable");
+        } else {
+            return indexList().getIndexSets();
+        }
+    }
+
+    public int width() {
+        if (isVar()) {
+            throw new RuntimeException("Method not available for an index variable");
+        } else {
+            return indexList().width();
+        }
+    }
+
+    public TypeIdentifier nthIndexSet(int n) {
+        if (isVar()) {
+            throw new RuntimeException("Method not available for an index variable");
+        } else {
+            return indexList().nthIndexSet(n);
+        }
+    }
+
+    @Override
+    public void printText(PrintWriter out) {
+        out.print("Index(");
+        indexSet.printText(out);
+        out.print(")");
+    }
+
+    @Override
+    public Set<TypeVar> typeVars() {
+        Set<TypeVar> vars = new LinkedHashSet<TypeVar>();
+        if (isVar()) {
+            vars.add((TypeVar) indexSet);
+        }
+        return vars;
+    }
 
     @Override
     public Set<String> unitVecVarCompoundNames() {
         return new LinkedHashSet<String>();
     }
-    
-	@Override
-	public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
-		IndexType otherType = (IndexType) other;
-		ConstraintSet constraints = new ConstraintSet();
+
+    @Override
+    public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
+        IndexType otherType = (IndexType) other;
+        ConstraintSet constraints = new ConstraintSet();
         constraints.addConstraint(indexSet, otherType.indexSet, "Index Set must be equal");
         return constraints;
-	}
+    }
 
-	@Override
-	public PacioliType applySubstitution(Substitution subs) {
-		return new IndexType(indexSet.applySubstitution(subs));
-	}
+    @Override
+    public PacioliType applySubstitution(Substitution subs) {
+        return new IndexType(indexSet.applySubstitution(subs));
+    }
 
-	IndexType kronecker(IndexType other) {
-		if (isVar()) {
-			throw new RuntimeException("Method not available for an index variable");
-		} else {
-			return new IndexType(indexList().kronecker(other));
-		}
-	}
+    IndexType kronecker(IndexType other) {
+        if (isVar()) {
+            throw new RuntimeException("Method not available for an index variable");
+        } else {
+            return new IndexType(indexList().kronecker(other));
+        }
+    }
 
-	public IndexType project(List<Integer> columns) {
-		if (isVar()) {
-			throw new RuntimeException("Method not available for an index variable");
-		} else {
-			return new IndexType(indexList().project(columns));
-		}
-	}
+    public IndexType project(List<Integer> columns) {
+        if (isVar()) {
+            throw new RuntimeException("Method not available for an index variable");
+        } else {
+            return new IndexType(indexList().project(columns));
+        }
+    }
 
-	@Override
-	public String compileToJS() {
-		return indexSet.compileToJS();
-	}
+    @Override
+    public String compileToJS() {
+        return indexSet.compileToJS();
+    }
 
-	@Override
-	public String description() {
-		return "index type";
-	}
+    @Override
+    public String description() {
+        return "index type";
+    }
 
-	@Override
-	public PacioliType reduce() {
-		return indexSet.reduce();
-	}
+    @Override
+    public PacioliType reduce() {
+        return indexSet.reduce();
+    }
 
-	@Override
-	public List<Unit> simplificationParts() {
-		return indexSet.simplificationParts();
-	}
+    @Override
+    public List<Unit> simplificationParts() {
+        return indexSet.simplificationParts();
+    }
 }

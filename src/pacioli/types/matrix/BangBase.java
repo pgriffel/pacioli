@@ -21,7 +21,6 @@
 
 package pacioli.types.matrix;
 
-
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
 import uom.Base;
@@ -37,27 +36,27 @@ public class BangBase extends BaseUnit implements TypeBase {
     public final int position;
 
     public BangBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position) {
-    	assert (!unitName.name.contains("!"));
+        assert (!unitName.name.contains("!"));
         this.indexSetName = indexSetName;
         this.unitName = unitName;
         this.position = position;
     }
-    
-    // hack for matrix type 
+
+    // hack for matrix type
     public BangBase(String indexSetName, String unitName, int position) {
         this.indexSetName = new TypeIdentifier("", indexSetName);
         this.unitName = new TypeIdentifier("", unitName);
         this.position = position;
     }
-    
+
     public String indexSetName() {
         return indexSetName.name;
     }
-    
+
     public String unitName() {
         return unitName.name;
     }
-    
+
     @Override
     public int hashCode() {
         return unitName.hashCode();
@@ -79,31 +78,28 @@ public class BangBase extends BaseUnit implements TypeBase {
             return false;
         }
         BangBase otherBase = (BangBase) real;
-        return indexSetName.equals(otherBase.indexSetName)
-                && unitName.equals(otherBase.unitName)
+        return indexSetName.equals(otherBase.indexSetName) && unitName.equals(otherBase.unitName)
                 && position == otherBase.position;
     }
 
     @Override
     public String toString() {
-        return String.format("%s{%s, %s, %s}", 
-                super.toString(),
-                indexSetName, unitName, position);
+        return String.format("%s{%s, %s, %s}", super.toString(), indexSetName, unitName, position);
     }
-    
+
     @Override
     public String toText() {
         return indexSetName.name + "!" + unitName.name;
     }
-    
+
     public BangBase shift(int offset) {
         return new BangBase(indexSetName, unitName, position + offset);
     }
-    
+
     public BangBase move(int offset) {
         return new BangBase(indexSetName, unitName, offset);
     }
-    
+
     public static Unit kroneckerNth(Unit unit, final int index) {
         return unit.map(new UnitMap() {
             public Unit map(Base base) {
@@ -134,15 +130,16 @@ public class BangBase extends BaseUnit implements TypeBase {
 
     @Override
     public String compileToJS() {
-            // todo: reconsider the .rowUnit trick
-            // DIT NEEMT AAN DAT position 0 is!?!?!?!?!?!?!?!
-            return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit", 
-                            indexSetName.home, indexSetName.name, unitName.home, unitName.name);
+        // todo: reconsider the .rowUnit trick
+        // DIT NEEMT AAN DAT position 0 is!?!?!?!?!?!?!?!
+        return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit", indexSetName.home, indexSetName.name,
+                unitName.home, unitName.name);
     }
 
     @Override
     public String compileToMVM() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
 }

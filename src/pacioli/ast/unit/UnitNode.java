@@ -4,7 +4,7 @@ import pacioli.ast.Node;
 import uom.DimensionedNumber;
 
 public interface UnitNode extends Node {
-	
-	public DimensionedNumber evalUnit();
-	
+
+    public DimensionedNumber evalUnit();
+
 }

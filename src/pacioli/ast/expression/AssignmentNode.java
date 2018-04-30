@@ -35,12 +35,12 @@ public class AssignmentNode extends AbstractExpressionNode {
         this.var = var;
         this.value = value;
     }
-    
+
     public AssignmentNode(AssignmentNode old, ExpressionNode value) {
         super(old.getLocation());
         this.var = old.var;
         this.value = value;
-    }    
+    }
 
     @Override
     public void printText(PrintWriter out) {
@@ -52,17 +52,18 @@ public class AssignmentNode extends AbstractExpressionNode {
 
     @Override
     public String compileToJS(boolean boxed) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
-    
+
     @Override
     public String compileToMATLAB() {
         return var.getName() + " = " + value.compileToMATLAB();
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);		
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
 }

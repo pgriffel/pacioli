@@ -21,7 +21,6 @@
 
 package uom;
 
-
 public interface UnitMap {
 
     public Unit map(Base base);

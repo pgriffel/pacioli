@@ -9,26 +9,26 @@ import uom.Unit;
 
 public class UnitDiv extends AbstractPrintable implements UnitNode {
 
-	private UnitNode left;
-	private UnitNode right;
+    private UnitNode left;
+    private UnitNode right;
 
-	public UnitDiv(UnitNode x, UnitNode y) {
-		this.left = x;
-		this.right = y;
-	}
+    public UnitDiv(UnitNode x, UnitNode y) {
+        this.left = x;
+        this.right = y;
+    }
 
-	@Override
-	public void printText(PrintWriter out) {
-	    out.print("unit_div(");
+    @Override
+    public void printText(PrintWriter out) {
+        out.print("unit_div(");
         left.printText(out);
         out.print(", ");
         right.printText(out);
         out.print(")");
-	}
+    }
 
-	@Override
-	public Unit eval(Machine machine) throws MVMException {
-		return left.eval(machine).multiply(right.eval(machine).reciprocal());
-	}
+    @Override
+    public Unit eval(Machine machine) throws MVMException {
+        return left.eval(machine).multiply(right.eval(machine).reciprocal());
+    }
 
 }

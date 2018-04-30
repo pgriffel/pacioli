@@ -20,32 +20,32 @@ public class StringNode extends AbstractExpressionNode {
 
     @Override
     public void printText(PrintWriter out) {
-    	out.print("\"");
+        out.print("\"");
         out.print(value);
         out.print("\"");
     }
 
     @Override
     public String compileToJS(boolean boxed) {
-    	StringWriter writer = new StringWriter();
-    	writer.write("'");
-    	String[] lines = value.split("\n");
-    	for (String line: lines) {
-    		writer.write(line);
-    		writer.write("\\\n");
-    	}
-    	writer.write("'");
-    	return writer.toString();
-    }
-    
-    @Override
-    public String compileToMATLAB() {
-    	return toText();
+        StringWriter writer = new StringWriter();
+        writer.write("'");
+        String[] lines = value.split("\n");
+        for (String line : lines) {
+            writer.write(line);
+            writer.write("\\\n");
+        }
+        writer.write("'");
+        return writer.toString();
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public String compileToMATLAB() {
+        return toText();
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
 }

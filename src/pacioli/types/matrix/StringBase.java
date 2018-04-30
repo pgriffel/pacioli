@@ -21,7 +21,6 @@
 
 package pacioli.types.matrix;
 
-
 import pacioli.types.TypeBase;
 import uom.BaseUnit;
 import uom.PowerProduct;
@@ -29,20 +28,20 @@ import uom.Unit;
 
 public class StringBase extends BaseUnit implements TypeBase {
 
-	private final String prefix;
+    private final String prefix;
     private final String text;
 
     public StringBase(String text) {
-    	this.prefix = null;
+        this.prefix = null;
         this.text = text;
     }
 
     public StringBase(String prefix, String name) {
-    	this.prefix = prefix;
-		this.text = name;
-	}
+        this.prefix = prefix;
+        this.text = name;
+    }
 
-	@Override
+    @Override
     public int hashCode() {
         return text.hashCode();
     }
@@ -64,26 +63,26 @@ public class StringBase extends BaseUnit implements TypeBase {
         }
         StringBase otherUnit = (StringBase) real;
         if (!text.equals(otherUnit.text)) {
-        	return false;
+            return false;
         }
         if (prefix == null) {
-        	return otherUnit.prefix == null;
+            return otherUnit.prefix == null;
         }
         if (otherUnit.prefix == null) {
-        	return false;
+            return false;
         }
         return prefix.equals(otherUnit.prefix);
     }
 
-    private String prefixText () {
-    	return (prefix == null) ? "" : prefix + ":";
+    private String prefixText() {
+        return (prefix == null) ? "" : prefix + ":";
     }
-    
+
     @Override
     public String toString() {
         return super.toString() + "{" + prefixText() + text + "}";
     }
-    
+
     @Override
     public String toText() {
         return prefixText() + text;
@@ -91,15 +90,14 @@ public class StringBase extends BaseUnit implements TypeBase {
 
     @Override
     public String compileToJS() {
-        return (prefix == null)
-            ? String.format("Pacioli.unit('%s')", text)
-            : String.format("Pacioli.unit('%s', '%s')", prefix, text);
+        return (prefix == null) ? String.format("Pacioli.unit('%s')", text)
+                : String.format("Pacioli.unit('%s', '%s')", prefix, text);
     }
 
     @Override
     public String compileToMVM() {
         if (prefix == null) {
-            return "unit(\"" + text + "\")"; 
+            return "unit(\"" + text + "\")";
         } else {
             return "scaled_unit(\"" + prefix + "\", \"" + text + "\")";
         }

@@ -39,32 +39,32 @@ public class TypeApplicationNode extends AbstractTypeNode {
     }
 
     public TypeNode transform(TypeIdentifierNode name, List<TypeNode> args) {
-		return new TypeApplicationNode(getLocation(), name, args);
-	}
+        return new TypeApplicationNode(getLocation(), name, args);
+    }
 
-	@Override
+    @Override
     public void printText(PrintWriter out) {
-		op.printText(out);
+        op.printText(out);
         out.print("(");
         out.print(Utils.intercalateText(", ", args));
         out.print(")");
     }
 
     public TypeIdentifierNode getOperator() {
-    	return op;
-    }
-    
-    public String getName() {
-    	return op.getName();
-    }
-    
-    public List<TypeNode> getArgs() {
-    	return args;
+        return op;
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    public String getName() {
+        return op.getName();
+    }
+
+    public List<TypeNode> getArgs() {
+        return args;
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
 }

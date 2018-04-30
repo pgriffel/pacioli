@@ -49,10 +49,10 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
         this.name = name;
         this.quantifier = quantifier;
     }
-    
+
     @Override
     public Set<String> unitVecVarCompoundNames() {
-    	return new LinkedHashSet<String>();
+        return new LinkedHashSet<String>();
     }
 
     private TypeVar(String quantifier, String name, boolean active) {
@@ -130,7 +130,7 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
         if (equals(other)) {
             return new Substitution();
         } else {
-        	return new Substitution(this, other);
+            return new Substitution(this, other);
         }
     }
 
@@ -151,7 +151,7 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
 
     @Override
     public Schema generalize() {
-    	PacioliType unfresh = unfresh();
+        PacioliType unfresh = unfresh();
         return new Schema(unfresh.typeVars(), unfresh);
     }
 
@@ -173,22 +173,23 @@ public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBas
         return new TypeVar(quantifier, "a");
     }
 
-	@Override
-	public String compileToJS() {
-		if (quantifier.equals("for_unit")) {
-			return "new Pacioli.PowerProduct('_" + this.toText() + "_')";
-		} else {
-			return "'_" + this.toText() + "_'";
-		}
-	}
+    @Override
+    public String compileToJS() {
+        if (quantifier.equals("for_unit")) {
+            return "new Pacioli.PowerProduct('_" + this.toText() + "_')";
+        } else {
+            return "'_" + this.toText() + "_'";
+        }
+    }
 
-	@Override
-	public PacioliType reduce() {
-		return this;
-	}
+    @Override
+    public PacioliType reduce() {
+        return this;
+    }
 
     @Override
     public String compileToMVM() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 }

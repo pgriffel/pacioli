@@ -48,45 +48,52 @@ public class TypeConstraint extends AbstractPrintable {
 
     public PacioliType reduce(ParametricType type) throws PacioliException {
         if (lhs.getArgs().size() != type.args.size()) {
-            throw new PacioliException("Type function %s expects %s arguments but found %s", type.name, lhs.getArgs().size(), type.args.size());
+            throw new PacioliException("Type function %s expects %s arguments but found %s", type.name,
+                    lhs.getArgs().size(), type.args.size());
         }
         Map<TypeVar, Object> map = new HashMap<TypeVar, Object>();
         for (int i = 0; i < lhs.getArgs().size(); i++) {
-        	TypeNode var =  lhs.getArgs().get(i);
-        	PacioliType arg =  type.args.get(i);
-        	if (var instanceof TypeIdentifierNode) {
-        		PacioliType varType = var.evalType(true);
-        		if (varType instanceof TypeVar) {
-        			map.put((TypeVar) varType, arg);
-        		} else if (varType instanceof IndexType) {
-        			if (arg instanceof IndexType) {
-        				map.put((TypeVar) ((IndexType) varType).getIndexSet(), ((IndexType) arg).getIndexSet());
-        			} else {
-        				throw new PacioliException(var.getLocation(), "Type definitions's parameter is quantified as index, but is given '%s'", arg.toText());
-        			}
-        		} else if (varType instanceof MatrixType) {
-        			if (arg instanceof MatrixType) {
-        				map.put((TypeVar) ((MatrixType) varType).getFactor(), ((MatrixType) arg).getFactor());
-        			} else {
-        				throw new PacioliException(var.getLocation(), "Type definitions's parameter is quantified as unit, but is given '%s'", arg.toText());
-        			}	
-        		} else {
-        			throw new PacioliException(var.getLocation(), "Type definitions's parameter should type, index or unit");
-        		}
-        	} else if (var instanceof BangTypeNode) {
-        		if (arg instanceof MatrixType) {
-        			BangTypeNode bang = (BangTypeNode) var;  
-            		MatrixType argMat = (MatrixType) arg;
-            		map.put(new TypeVar(bang.indexSetName()), argMat.rowDimension.getIndexSet());
-          			map.put(new TypeVar("for_unit", bang.indexSetName() + "!" + bang.unitVecName()), argMat.rowUnit);
-    			} else {
-    				throw new PacioliException(var.getLocation(), "Type definitions's parameter is quantified as unit vector, but is given '%s'", arg.toText());
-    			}
-        	} else {
-        		throw new PacioliException(var.getLocation(), "Type definitions's parameter should be a variable or a unitvec %s");
-        	} 
+            TypeNode var = lhs.getArgs().get(i);
+            PacioliType arg = type.args.get(i);
+            if (var instanceof TypeIdentifierNode) {
+                PacioliType varType = var.evalType(true);
+                if (varType instanceof TypeVar) {
+                    map.put((TypeVar) varType, arg);
+                } else if (varType instanceof IndexType) {
+                    if (arg instanceof IndexType) {
+                        map.put((TypeVar) ((IndexType) varType).getIndexSet(), ((IndexType) arg).getIndexSet());
+                    } else {
+                        throw new PacioliException(var.getLocation(),
+                                "Type definitions's parameter is quantified as index, but is given '%s'", arg.toText());
+                    }
+                } else if (varType instanceof MatrixType) {
+                    if (arg instanceof MatrixType) {
+                        map.put((TypeVar) ((MatrixType) varType).getFactor(), ((MatrixType) arg).getFactor());
+                    } else {
+                        throw new PacioliException(var.getLocation(),
+                                "Type definitions's parameter is quantified as unit, but is given '%s'", arg.toText());
+                    }
+                } else {
+                    throw new PacioliException(var.getLocation(),
+                            "Type definitions's parameter should type, index or unit");
+                }
+            } else if (var instanceof BangTypeNode) {
+                if (arg instanceof MatrixType) {
+                    BangTypeNode bang = (BangTypeNode) var;
+                    MatrixType argMat = (MatrixType) arg;
+                    map.put(new TypeVar(bang.indexSetName()), argMat.rowDimension.getIndexSet());
+                    map.put(new TypeVar("for_unit", bang.indexSetName() + "!" + bang.unitVecName()), argMat.rowUnit);
+                } else {
+                    throw new PacioliException(var.getLocation(),
+                            "Type definitions's parameter is quantified as unit vector, but is given '%s'",
+                            arg.toText());
+                }
+            } else {
+                throw new PacioliException(var.getLocation(),
+                        "Type definitions's parameter should be a variable or a unitvec %s");
+            }
         }
-		return rhs.applySubstitution(new Substitution(map)).reduce();
+        return rhs.applySubstitution(new Substitution(map)).reduce();
     }
 
     @Override

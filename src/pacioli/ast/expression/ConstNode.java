@@ -35,11 +35,11 @@ public class ConstNode extends AbstractExpressionNode {
     }
 
     public ConstNode(ConstNode old) {
-    	super(old.getLocation());
+        super(old.getLocation());
         this.value = old.value;
-	}
+    }
 
-	public String valueString() {
+    public String valueString() {
         return value;
     }
 
@@ -60,15 +60,15 @@ public class ConstNode extends AbstractExpressionNode {
             }
         }
     }
-    
+
     @Override
     public String compileToMATLAB() {
         return value;
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
 }

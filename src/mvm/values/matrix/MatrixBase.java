@@ -62,8 +62,7 @@ public class MatrixBase extends BaseUnit {
             return false;
         }
         MatrixBase otherUnit = (MatrixBase) real;
-        return vector.equals(otherUnit.vector)
-                && position == otherUnit.position;
+        return vector.equals(otherUnit.vector) && position == otherUnit.position;
     }
 
     @Override
@@ -74,8 +73,7 @@ public class MatrixBase extends BaseUnit {
     public MatrixBase shift(int offset) {
         return new MatrixBase(vector, position + offset);
     }
-    
-    
+
     public static Unit kroneckerNth(Unit unit, final int index) {
         return unit.map(new UnitMap() {
             public Unit map(Base base) {

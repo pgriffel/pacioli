@@ -29,26 +29,28 @@ import pacioli.visitors.TypeEvaluator;
 public abstract class AbstractTypeNode extends AbstractNode implements TypeNode {
 
     public AbstractTypeNode() {
-    	super(null);
+        super(null);
     }
 
     public AbstractTypeNode(Location location) {
-    	super(location);
+        super(location);
     }
-    
+
     @Override
     public PacioliType evalType(Boolean reduce) {
-    	TypeEvaluator visitor = new TypeEvaluator(reduce);
-    	return visitor.typeAccept(this);
+        TypeEvaluator visitor = new TypeEvaluator(reduce);
+        return visitor.typeAccept(this);
     }
-	
-	@Override
-	public String compileToJS(boolean boxed) {
-		throw new RuntimeException("Not implemented for this type of node (" + this.getClass() + "). Only matrix type nodes can be compiled.");
-	}
 
-	@Override
-	public String compileToMATLAB() {
-		throw new RuntimeException("Not implemented for this type of node (" + this.getClass() + "). Only matrix type nodes can be compiled.");
-	}
+    @Override
+    public String compileToJS(boolean boxed) {
+        throw new RuntimeException("Not implemented for this type of node (" + this.getClass()
+                + "). Only matrix type nodes can be compiled.");
+    }
+
+    @Override
+    public String compileToMATLAB() {
+        throw new RuntimeException("Not implemented for this type of node (" + this.getClass()
+                + "). Only matrix type nodes can be compiled.");
+    }
 }

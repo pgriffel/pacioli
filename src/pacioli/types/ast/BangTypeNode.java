@@ -31,8 +31,8 @@ public class BangTypeNode extends AbstractTypeNode {
 
     public final TypeIdentifierNode indexSet;
     public final TypeIdentifierNode unit;
-	public IndexSetInfo indexSetInfo;
-	public UnitInfo unitInfo;
+    public IndexSetInfo indexSetInfo;
+    public UnitInfo unitInfo;
 
     public BangTypeNode(Location location, TypeIdentifierNode indexSet) {
         super(location);
@@ -48,29 +48,27 @@ public class BangTypeNode extends AbstractTypeNode {
     }
 
     public String indexSetName() {
-    	return indexSet.getName();
+        return indexSet.getName();
     }
-    
+
     public String unitVecName() {
-    	return unit == null ? "" :unit.getName();
+        return unit == null ? "" : unit.getName();
     }
-    
+
     @Override
     public void printText(PrintWriter out) {
         out.format("%s!%s", indexSet.getName(), unit == null ? "" : unit.getName());
     }
 
-	@Override
-	public String compileToJS(boolean boxed) {
-		return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s')", 
-				indexSet.getDefinition().getModule().getName(), 
-				indexSet.getName(), 
-				unit == null ? "" : unit.getDefinition().getModule().getName(),
-				unit == null ? "" : unit.getName());
-	}
+    @Override
+    public String compileToJS(boolean boxed) {
+        return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s')",
+                indexSet.getDefinition().getModule().getName(), indexSet.getName(),
+                unit == null ? "" : unit.getDefinition().getModule().getName(), unit == null ? "" : unit.getName());
+    }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

@@ -30,7 +30,7 @@ public class Location {
     private final int fromColumn;
     private final int toLine;
     private final int toColumn;
-    
+
     private final int from;
     private final int to;
     private final String source;
@@ -46,7 +46,7 @@ public class Location {
         this.toLine = 0;
         this.toColumn = 0;
     }
-    
+
     public Location(String file, int fromLine, int fromColumn, int toLine, int toColumn) {
         this.source = null;
         this.file = file;
@@ -57,7 +57,7 @@ public class Location {
         this.to = 0;
         this.from = 0;
     }
-    
+
     public Location(String file, String source, int from, int to) {
         this.source = source;
         this.file = file;
@@ -66,9 +66,9 @@ public class Location {
         this.fromLine = 0;
         this.fromColumn = 0;
         this.toLine = 0;
-        this.toColumn = 0;        
+        this.toColumn = 0;
     }
-    
+
     public Location(String file, String source) {
         this.source = source;
         this.file = file;
@@ -77,45 +77,45 @@ public class Location {
         this.fromLine = 0;
         this.fromColumn = 0;
         this.toLine = 0;
-        this.toColumn = 0;        
+        this.toColumn = 0;
     }
 
     public Location join(Location other) {
-    	if (from < 0 || to < 0) {
-    		return other;
-    	}
-    	if (other.from < 0 || other.to < 0) {
-    		return this;
-    	}
-  //      if (source != other.source || file != other.file) {
-  //          throw new RuntimeException("Cannot join locations from different sources");
-  //      } else {
-            return new Location(file, source, Math.min(from, other.from), Math.max(to, other.to));
-  //      }
+        if (from < 0 || to < 0) {
+            return other;
+        }
+        if (other.from < 0 || other.to < 0) {
+            return this;
+        }
+        // if (source != other.source || file != other.file) {
+        // throw new RuntimeException("Cannot join locations from different sources");
+        // } else {
+        return new Location(file, source, Math.min(from, other.from), Math.max(to, other.to));
+        // }
     }
 
     public String description2() {
-    	String source;
-    	try {
-    		source = Utils.readFile(new File(file));
-		} catch (IOException e) {
-			return "No source for file" + file;
-		}
-    	if (from < 0 || to < 0) {
-    		return "No source location available";	
-    	} else{
-    		return source.substring(from, to);
-    	}
+        String source;
+        try {
+            source = Utils.readFile(new File(file));
+        } catch (IOException e) {
+            return "No source for file" + file;
+        }
+        if (from < 0 || to < 0) {
+            return "No source location available";
+        } else {
+            return source.substring(from, to);
+        }
     }
 
     public String description() {
-    	String source;
-    	try {
-    		source = Utils.readFile(new File(file));
-		} catch (IOException e) {
-			return "No source for file" + file;
-		}
-    	
+        String source;
+        try {
+            source = Utils.readFile(new File(file));
+        } catch (IOException e) {
+            return "No source for file" + file;
+        }
+
         assert (to <= source.length());
 
         if (0 <= from && from <= to) {
@@ -173,8 +173,7 @@ public class Location {
                     }
                 }
 
-                return String.format("file %s at line %s\n\n%s\n%s",
-                        file, fromLine + 1, sub, underline);
+                return String.format("file %s at line %s\n\n%s\n%s", file, fromLine + 1, sub, underline);
             } else {
                 String subSource = source.substring(start, end);
                 String sub = "> ";
@@ -185,8 +184,7 @@ public class Location {
                     }
                 }
 
-                return String.format("file %s at line %s\n\n%s\n",
-                        file, fromLine + 1, sub);
+                return String.format("file %s at line %s\n\n%s\n", file, fromLine + 1, sub);
             }
         } else {
             return "No source location available";

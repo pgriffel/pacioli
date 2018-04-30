@@ -32,16 +32,16 @@ public class SchemaNode extends AbstractTypeNode {
 
     public final TypeContext context;
     public final TypeNode type;
-	public SymbolTable<SymbolInfo> table;
+    public SymbolTable<SymbolInfo> table;
 
     public SchemaNode(Location location, TypeContext context, TypeNode type) {
         super(location);
         this.context = context;
         this.type = type;
     }
-    
+
     public SchemaNode transform(TypeNode type) {
-    	return new SchemaNode(getLocation(), context, type);
+        return new SchemaNode(getLocation(), context, type);
     }
 
     @Override
@@ -50,8 +50,8 @@ public class SchemaNode extends AbstractTypeNode {
         type.printText(out);
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

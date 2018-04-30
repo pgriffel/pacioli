@@ -25,7 +25,6 @@ import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Visitor;
 
-
 public class WhileNode extends AbstractExpressionNode {
 
     public final ExpressionNode test;
@@ -38,9 +37,9 @@ public class WhileNode extends AbstractExpressionNode {
     }
 
     public WhileNode transform(ExpressionNode test, ExpressionNode body) {
-        return new WhileNode( getLocation(), test, body);
+        return new WhileNode(getLocation(), test, body);
     }
-    
+
     @Override
     public void printText(PrintWriter out) {
         out.print("while ");
@@ -52,7 +51,8 @@ public class WhileNode extends AbstractExpressionNode {
 
     @Override
     public String compileToJS(boolean boxed) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
     @Override
@@ -60,8 +60,8 @@ public class WhileNode extends AbstractExpressionNode {
         return "while (" + test.compileToMATLAB() + ")" + body.compileToMATLAB() + "endwhile";
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

@@ -45,7 +45,7 @@ public class PacioliTuple extends AbstractPacioliValue {
     public List<PacioliValue> items() {
         return items;
     }
-    
+
     @Override
     public int hashCode() {
         return items.hashCode();

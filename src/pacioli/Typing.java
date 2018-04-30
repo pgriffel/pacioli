@@ -28,10 +28,10 @@ public class Typing extends AbstractPrintable {
 
     private final PacioliType type;
     private final ConstraintSet constraints;
-    
+
     public Typing(PacioliType type) {
         this.type = type;
-        this.constraints = new  ConstraintSet();
+        this.constraints = new ConstraintSet();
     }
 
     public void addConstraint(PacioliType lhs, PacioliType rhs, String text) {
@@ -45,7 +45,7 @@ public class Typing extends AbstractPrintable {
     public PacioliType getType() {
         return type;
     }
-    
+
     @Override
     public void printText(PrintWriter out) {
         type.printText(out);

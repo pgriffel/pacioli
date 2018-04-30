@@ -42,7 +42,7 @@ public interface PacioliType extends Printable {
     public Substitution unify(PacioliType other) throws PacioliException;
 
     public PacioliType reduce();
-    
+
     public List<Unit> simplificationParts();
 
     public PacioliType simplify();
@@ -50,15 +50,15 @@ public interface PacioliType extends Printable {
     public boolean isInstanceOf(PacioliType other);
 
     public PacioliType instantiate();
-    
+
     public Schema generalize();
-    
+
     public PacioliType fresh();
 
     public PacioliType unfresh();
 
     public String compileToJS();
 
-    // Hack to print proper compound unit vector in schema's 
+    // Hack to print proper compound unit vector in schema's
     public Set<String> unitVecVarCompoundNames();
 }

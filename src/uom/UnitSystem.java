@@ -33,9 +33,9 @@ public class UnitSystem {
         unitDictionary = new HashMap<String, NamedUnit>();
         prefixDictionary = new HashMap<String, Prefix>();
     }
-    
+
     public void importSystem(UnitSystem other) {
-        for (String name: other.names()) {
+        for (String name : other.names()) {
             addUnit(name, (NamedUnit) other.lookupUnit(name));
         }
     }
@@ -43,7 +43,7 @@ public class UnitSystem {
     public Set<String> names() {
         return unitDictionary.keySet();
     }
-    
+
     public void addPrefix(String name, Prefix prefix) {
         prefixDictionary.put(name, prefix);
     }

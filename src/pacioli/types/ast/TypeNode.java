@@ -25,6 +25,6 @@ import pacioli.ast.Node;
 import pacioli.types.PacioliType;
 
 public interface TypeNode extends Node {
-	
-	public PacioliType evalType(Boolean reduce);
+
+    public PacioliType evalType(Boolean reduce);
 }

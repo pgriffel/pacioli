@@ -170,31 +170,31 @@ public class PowerProduct implements Unit {
 
         String symbolic = "";
         String sep = "";
-        
+
         List<Base> bases = new ArrayList<Base>(bases());
         Collections.sort(bases, new BaseComparator());
         for (Base base : bases) {
             Fraction power = power(base);
             if (0 < power.signum()) {
                 symbolic = symbolic.concat(sep);
-                //sep = "Â·";
+                // sep = "·";
                 sep = "*";
                 symbolic = symbolic.concat(base.toText());
 
-//                if (power.compareTo(Fraction.MINTHREE) == 0) {
-//                    symbolic = symbolic.concat("â»Â³");
-//                } else if (power.compareTo(Fraction.MINTWO) == 0) {
-//                    symbolic = symbolic.concat("â»Â²");
-//                } else if (power.compareTo(Fraction.MINONE) == 0) {
-//                    symbolic = symbolic.concat("â»Â¹");
-//                } else if (power.compareTo(Fraction.TWO) == 0) {
-//                    symbolic = symbolic.concat("Â²");                    
-//                } else if (power.compareTo(Fraction.THREE) == 0) {
-//                    symbolic = symbolic.concat("Â³");                    
-//                } else if (power.compareTo(Fraction.ONE) != 0) {
-//                    symbolic = symbolic.concat("^");
-//                    symbolic = symbolic.concat(power.toString());
-//                }                    
+                // if (power.compareTo(Fraction.MINTHREE) == 0) {
+                // symbolic = symbolic.concat("³");
+                // } else if (power.compareTo(Fraction.MINTWO) == 0) {
+                // symbolic = symbolic.concat("²");
+                // } else if (power.compareTo(Fraction.MINONE) == 0) {
+                // symbolic = symbolic.concat("¹");
+                // } else if (power.compareTo(Fraction.TWO) == 0) {
+                // symbolic = symbolic.concat("²");
+                // } else if (power.compareTo(Fraction.THREE) == 0) {
+                // symbolic = symbolic.concat("³");
+                // } else if (power.compareTo(Fraction.ONE) != 0) {
+                // symbolic = symbolic.concat("^");
+                // symbolic = symbolic.concat(power.toString());
+                // }
                 if (power.compareTo(Fraction.ONE) != 0) {
                     symbolic = symbolic.concat("^");
                     symbolic = symbolic.concat(power.toString());
@@ -205,13 +205,13 @@ public class PowerProduct implements Unit {
             symbolic = "1";
         }
         sep = "/";
-//        sep = "Â·";
+        // sep = "·";
         for (Base base : bases) {
             Fraction power = power(base);
             if (power.signum() < 0) {
-                //power = power.negate();
+                // power = power.negate();
                 symbolic = symbolic.concat(sep);
-                //sep = "Â·";
+                // sep = "·";
                 sep = "/";
                 symbolic = symbolic.concat(base.toText());
 

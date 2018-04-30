@@ -13,9 +13,9 @@ import mvm.values.matrix.Matrix;
 public class LitMat extends AbstractPrintable implements Expression {
 
     private ShapeNode shape;
-	private List<String> rows;
-	private List<String> columns;
-	private List<String> values;
+    private List<String> rows;
+    private List<String> columns;
+    private List<String> values;
 
     public LitMat(ShapeNode shape, List<String> rows, List<String> columns, List<String> values) {
         this.shape = shape;
@@ -26,18 +26,18 @@ public class LitMat extends AbstractPrintable implements Expression {
 
     @Override
     public PacioliValue eval(Environment environment) throws MVMException {
-		Matrix matrix = new Matrix(shape.eval(environment.getMachine()));
-		for (int i = 0; i < values.size(); i++) {
-			Integer r = Integer.parseInt(rows.get(i));
-			Integer c = Integer.parseInt(columns.get(i));
-			Double value = Double.parseDouble(values.get(i));
-			matrix.set(r, c, value);
-		}
-		return matrix;
+        Matrix matrix = new Matrix(shape.eval(environment.getMachine()));
+        for (int i = 0; i < values.size(); i++) {
+            Integer r = Integer.parseInt(rows.get(i));
+            Integer c = Integer.parseInt(columns.get(i));
+            Double value = Double.parseDouble(values.get(i));
+            matrix.set(r, c, value);
+        }
+        return matrix;
     }
 
     @Override
     public void printText(PrintWriter out) {
-        
+
     }
 }

@@ -9,51 +9,51 @@ import pacioli.types.ast.TypeNode;
 
 public class ConversionNode extends AbstractExpressionNode {
 
-	public final TypeNode typeNode;
+    public final TypeNode typeNode;
 
-	private MatrixTypeNode bang;
+    private MatrixTypeNode bang;
     public PacioliType type;
-    
-	public ConversionNode(Location location, TypeNode typeNode) {
-		super(location);
-		this.typeNode = typeNode;
-	}
-	
-	public ConversionNode(ConversionNode old) {
-		super(old.getLocation());
-		this.typeNode = old.typeNode;
-	}
 
-	private ConversionNode(Location location, TypeNode typeNode, MatrixTypeNode bang, PacioliType type) {
-		super(location);
-		this.typeNode = typeNode;
-		this.bang = bang;
-		this.type = type;
-	}
+    public ConversionNode(Location location, TypeNode typeNode) {
+        super(location);
+        this.typeNode = typeNode;
+    }
 
-	public Node transform(TypeNode typeNode) {
-		return new ConversionNode(getLocation(), typeNode, bang, type);
-	}
+    public ConversionNode(ConversionNode old) {
+        super(old.getLocation());
+        this.typeNode = old.typeNode;
+    }
 
-	@Override
-	public String compileToJS(boolean boxed) {
-		return String.format("Pacioli.conversionNumbers(%s)", typeNode.compileToJS(boxed));
-	}
+    private ConversionNode(Location location, TypeNode typeNode, MatrixTypeNode bang, PacioliType type) {
+        super(location);
+        this.typeNode = typeNode;
+        this.bang = bang;
+        this.type = type;
+    }
 
-	@Override
-	public String compileToMATLAB() {
-		throw new RuntimeException("Not implemented");
-	}
+    public Node transform(TypeNode typeNode) {
+        return new ConversionNode(getLocation(), typeNode, bang, type);
+    }
 
-	@Override
-	public void printText(PrintWriter out) {
-		out.print("<conversion of type ");
-		typeNode.printText(out);
-		out.print(">");
-	}
+    @Override
+    public String compileToJS(boolean boxed) {
+        return String.format("Pacioli.conversionNumbers(%s)", typeNode.compileToJS(boxed));
+    }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public String compileToMATLAB() {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void printText(PrintWriter out) {
+        out.print("<conversion of type ");
+        typeNode.printText(out);
+        out.print(">");
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

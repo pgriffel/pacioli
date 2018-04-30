@@ -102,6 +102,7 @@ public class Fraction extends Number implements Comparable<Fraction> {
     public boolean isInt() {
         return denominator == 1;
     }
+
     public static final Fraction MINTHREE = new Fraction(-3);
     public static final Fraction MINTWO = new Fraction(-2);
     public static final Fraction MINONE = new Fraction(-1);
@@ -109,7 +110,6 @@ public class Fraction extends Number implements Comparable<Fraction> {
     public static final Fraction ONE = new Fraction(1);
     public static final Fraction TWO = new Fraction(2);
     public static final Fraction THREE = new Fraction(3);
-    
 
     public int compareTo(Fraction other) {
         int left = numerator * other.denominator;

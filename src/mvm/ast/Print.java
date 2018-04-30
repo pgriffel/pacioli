@@ -14,23 +14,23 @@ import uom.NamedUnit;
 
 public class Print extends AbstractPrintable implements Instruction {
 
-	private Expression body;
+    private Expression body;
 
-	public Print(Expression exp) {
-		this.body = exp;
-	}
-	
-	@Override
-	public void printText(PrintWriter out) {
-		out.format("todo: print print");
-	}
+    public Print(Expression exp) {
+        this.body = exp;
+    }
 
-	@Override
-	public void eval(Machine machine) throws MVMException {
-		PacioliValue result = body.eval(machine.store);
-		if (result != null) {
-			Pacioli.logln("%s", result.toText());
-		}
-	}
+    @Override
+    public void printText(PrintWriter out) {
+        out.format("todo: print print");
+    }
+
+    @Override
+    public void eval(Machine machine) throws MVMException {
+        PacioliValue result = body.eval(machine.store);
+        if (result != null) {
+            Pacioli.logln("%s", result.toText());
+        }
+    }
 
 }

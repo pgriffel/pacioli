@@ -21,40 +21,29 @@
 
 package pacioli;
 
-
 public class PacioliException extends Exception {
 
     private final Location location;
 
-    public PacioliException(String format, Object ... args) {
+    public PacioliException(String format, Object... args) {
         super(String.format(format, args));
         location = null;
     }
-    
-  /*  public PacioliException(Throwable cause) {
-        super(cause.getLocalizedMessage());
-        location = null;
-    }*/
-    
-    public PacioliException(Location location, String format, Object ... args) {
+
+    public PacioliException(Location location, String format, Object... args) {
         super(String.format(format, args));
         this.location = location;
     }
-    
-    /*public PacioliException(Location location, Throwable cause) {
-        super(cause.getLocalizedMessage());
-        this.location = location;
-    }*/
-    
+
     public Location getLocation() {
         return location;
     }
-    
+
     public String getLocatedMessage() {
         if (location == null) {
             return getLocalizedMessage();
         } else {
             return String.format("In %s\n\n%s", location.description(), getLocalizedMessage());
         }
-    }    
+    }
 }

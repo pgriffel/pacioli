@@ -38,7 +38,7 @@ public class CompilationSettings {
     public boolean debug() {
         return debug;
     }
-    
+
     public boolean trace(String name) {
         return traceAll || toTrace.contains(name);
     }

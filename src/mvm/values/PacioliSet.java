@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Set;
 import mvm.AbstractPrintable;
 
-
 public class PacioliSet extends AbstractPacioliValue {
 
     private final Set<PacioliValue> items;
@@ -78,9 +77,9 @@ public class PacioliSet extends AbstractPacioliValue {
     }
 
     public PacioliValue adjoinMut(PacioliValue y) {
-//		if (!items.contains(y)) {
-//			items.add(y);
-//		}
+        // if (!items.contains(y)) {
+        // items.add(y);
+        // }
         items.add(y);
         return this;
     }

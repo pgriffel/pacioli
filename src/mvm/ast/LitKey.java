@@ -16,7 +16,7 @@ import mvm.values.matrix.MatrixDimension;
 public class LitKey extends AbstractPrintable implements Expression {
 
     private List<String> entities;
-	private List<String> items;
+    private List<String> items;
 
     public LitKey(List<String> entities, List<String> items) {
         this.entities = entities;
@@ -25,20 +25,20 @@ public class LitKey extends AbstractPrintable implements Expression {
 
     @Override
     public PacioliValue eval(Environment environment) throws MVMException {
-    	List<IndexSet> sets = new ArrayList<IndexSet>();
-    	HashMap<String, IndexSet> indexSets = environment.getMachine().indexSets;
-		for (String entity: entities) {
-			if (indexSets.containsKey(entity)) {
-				sets.add(indexSets.get(entity));
-			} else {
-				throw new MVMException("Index set '%s' unnown", entity);
-			}
-		}
-    	return new Key(items, new MatrixDimension(sets));
+        List<IndexSet> sets = new ArrayList<IndexSet>();
+        HashMap<String, IndexSet> indexSets = environment.getMachine().indexSets;
+        for (String entity : entities) {
+            if (indexSets.containsKey(entity)) {
+                sets.add(indexSets.get(entity));
+            } else {
+                throw new MVMException("Index set '%s' unnown", entity);
+            }
+        }
+        return new Key(items, new MatrixDimension(sets));
     }
 
     @Override
     public void printText(PrintWriter out) {
-        
+
     }
 }

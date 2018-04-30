@@ -43,35 +43,36 @@ public class UnitVectorDefinition extends AbstractDefinition {
     public final List<UnitDecl> items;
 
     public static class UnitDecl {
-    	
-    	public IdentifierNode key;
-    	public UnitNode value;
-    	
-    	public UnitDecl(IdentifierNode key, UnitNode value) {
-    		this.key = key;
-    		this.value = value;
-    	}
+
+        public IdentifierNode key;
+        public UnitNode value;
+
+        public UnitDecl(IdentifierNode key, UnitNode value) {
+            this.key = key;
+            this.value = value;
+        }
     }
-    
-    public UnitVectorDefinition(Location location, TypeIdentifierNode indexSet, TypeIdentifierNode unit, List<UnitDecl> items) {
+
+    public UnitVectorDefinition(Location location, TypeIdentifierNode indexSet, TypeIdentifierNode unit,
+            List<UnitDecl> items) {
         super(location);
         this.indexSetNode = indexSet;
         this.unitNode = unit;
         this.items = items;
     }
-    
+
     @Override
     public void printText(PrintWriter out) {
-    	out.print("defunit ");
-    	out.print(localName());
-    	out.print(" = ");
-    	String sep = "{";
-    	for (UnitDecl entry: items) {
-    		out.printf("%s%s:", sep, entry.key);
-    		entry.value.printText(out);
-    		sep = ", ";
-    	}
-    	out.print("};");
+        out.print("defunit ");
+        out.print(localName());
+        out.print(" = ");
+        String sep = "{";
+        for (UnitDecl entry : items) {
+            out.printf("%s%s:", sep, entry.key);
+            entry.value.printText(out);
+            sep = ", ";
+        }
+        out.print("};");
     }
 
     @Override
@@ -86,20 +87,24 @@ public class UnitVectorDefinition extends AbstractDefinition {
 
     @Override
     public String compileToJS(boolean boxed) {
-    	StringBuilder builder = new StringBuilder();
-    	builder.append("function compute_").append(globalName()).append(" () {");
-    	builder.append("return {units:{");
-    	boolean sep = false;
-    	for (UnitDecl entry: items) {
-    		if (sep) {builder.append(",");} else {sep = true;}
-    		builder.append("'");
-    		builder.append(entry.key);
-    		builder.append("':");
-                builder.append(Utils.compileUnitToJS(entry.value.evalUnit().unit()));
-    		builder.append("");
-    	}
-    	builder.append("}}}");
-        		
+        StringBuilder builder = new StringBuilder();
+        builder.append("function compute_").append(globalName()).append(" () {");
+        builder.append("return {units:{");
+        boolean sep = false;
+        for (UnitDecl entry : items) {
+            if (sep) {
+                builder.append(",");
+            } else {
+                sep = true;
+            }
+            builder.append("'");
+            builder.append(entry.key);
+            builder.append("':");
+            builder.append(Utils.compileUnitToJS(entry.value.evalUnit().unit()));
+            builder.append("");
+        }
+        builder.append("}}}");
+
         return builder.toString();
     }
 
@@ -108,18 +113,18 @@ public class UnitVectorDefinition extends AbstractDefinition {
         throw new UnsupportedOperationException("MATLAB and Octave have no units.");
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);		
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
-	@Override
-	public void addToProgr(Progam program, GenericInfo generic) {
-		UnitInfo info = program.ensureUnitRecord(localName());
-		info.isVector = true;
-		info.generic = generic;
-		info.definition = this;
-		info.items = items;		
-	}
+    @Override
+    public void addToProgr(Progam program, GenericInfo generic) {
+        UnitInfo info = program.ensureUnitRecord(localName());
+        info.isVector = true;
+        info.generic = generic;
+        info.definition = this;
+        info.items = items;
+    }
 
 }

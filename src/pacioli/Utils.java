@@ -38,21 +38,21 @@ public class Utils {
     private static int counter;
 
     public static String intercalate(String seperator, List<String> strings) {
-    	StringBuilder builder = new StringBuilder();
-    	String sep = "";
+        StringBuilder builder = new StringBuilder();
+        String sep = "";
         for (String string : strings) {
-        	builder.append(sep);
-        	builder.append(string);
+            builder.append(sep);
+            builder.append(string);
             sep = seperator;
         }
         return builder.toString();
     }
-    
+
     private String escapeString(String in) {
-    	// Quick fix for the debug option for string literals
-    	return in.replaceAll("\"", "\\\\\"");
+        // Quick fix for the debug option for string literals
+        return in.replaceAll("\"", "\\\\\"");
     }
-    
+
     public static String intercalateText(String seperator, List<? extends Printable> printables) {
         List<String> strings = new ArrayList<String>();
         for (Printable printable : printables) {
@@ -85,40 +85,40 @@ public class Utils {
             stream.close();
         }
     }
-    
+
     // Got to find a good place for the following two functions
-    
+
     public static String compileUnitToJS(Unit unit) {
-            String product = "";
-            int n = 0;
-            for (Base base: unit.bases()) {
-                    TypeBase typeBase = (TypeBase) base;
-                    String baseText = typeBase.compileToJS() + ".expt(" + unit.power(base) + ")";
-                    product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
-                    n++;
-            }
-            if (n == 0) {
-                    return "Pacioli.ONE";
-            } else {
-                    return product;
-            }
+        String product = "";
+        int n = 0;
+        for (Base base : unit.bases()) {
+            TypeBase typeBase = (TypeBase) base;
+            String baseText = typeBase.compileToJS() + ".expt(" + unit.power(base) + ")";
+            product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
+            n++;
+        }
+        if (n == 0) {
+            return "Pacioli.ONE";
+        } else {
+            return product;
+        }
 
     }
-    
+
     public static String compileUnitToMVM(Unit unit) {
-            String product = "";
-            int n = 0;
-            for (Base base: unit.bases()) {
-                    TypeBase typeBase = (TypeBase) base;
-                    String baseText = "unit_expt(" + typeBase.compileToMVM() + ", " + unit.power(base) + ")";
-                    product = n == 0 ? baseText : "unit_mult(" + baseText + ", " + product + ")";
-                    n++;
-            }
-            if (n == 0) {
-                    return "unit(\"\")";
-            } else {
-                    return product;
-            }
+        String product = "";
+        int n = 0;
+        for (Base base : unit.bases()) {
+            TypeBase typeBase = (TypeBase) base;
+            String baseText = "unit_expt(" + typeBase.compileToMVM() + ", " + unit.power(base) + ")";
+            product = n == 0 ? baseText : "unit_mult(" + baseText + ", " + product + ")";
+            n++;
+        }
+        if (n == 0) {
+            return "unit(\"\")";
+        } else {
+            return product;
+        }
 
     }
 }

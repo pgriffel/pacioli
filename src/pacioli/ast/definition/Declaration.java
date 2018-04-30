@@ -11,68 +11,59 @@ import pacioli.types.ast.TypeNode;
 
 public class Declaration extends AbstractDefinition {
 
-	public final IdentifierNode id;
-	public final TypeNode typeNode;
-	
+    public final IdentifierNode id;
+    public final TypeNode typeNode;
 
-	public Declaration(Location location, IdentifierNode id, TypeNode typeNode) {
-		super(location);
-		this.id = id;
-		this.typeNode = typeNode;
-	}
+    public Declaration(Location location, IdentifierNode id, TypeNode typeNode) {
+        super(location);
+        this.id = id;
+        this.typeNode = typeNode;
+    }
 
-	public Declaration transform(TypeNode node) {
-		return new Declaration(getLocation(), id, node);
-	}
-		
-	@Override
-	public String localName() {
-		return id.getName();
-	}
+    public Declaration transform(TypeNode node) {
+        return new Declaration(getLocation(), id, node);
+    }
 
-	@Override
-	public String compileToJS(boolean boxed) {
-		
-		// Test for type code
-		
-		return String.format("\n" 
-        		+ "// via decl %s\n"
-        		+ "\n"
-      //  		+ "// u_%s = %s;\n"
-        		+ "\n"
-        		+ "u_%s = function () {\n"
-        		+ "    var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));\n"
-        		+ "    var type = %s;\n"
-        		+ "    return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));\n"
-        		+ "}\n"
-        		+ "\n"
-        		+ "\n",
-        		"fixme:type.toText()",
-        		globalName(),
-        		//type.compileToJS(new HashSet<TypeVar>()),
-                "fixmed:type.compileToJS()");	
-	}
+    @Override
+    public String localName() {
+        return id.getName();
+    }
 
-	@Override
-	public String compileToMATLAB() {
-		throw new RuntimeException("todo");
-	}
+    @Override
+    public String compileToJS(boolean boxed) {
 
-	@Override
-	public void printText(PrintWriter out) {
-		throw new RuntimeException("todo");
-	}
+        // Test for type code
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+        return String.format("\n" + "// via decl %s\n" + "\n"
+        // + "// u_%s = %s;\n"
+                + "\n" + "u_%s = function () {\n"
+                + "    var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));\n"
+                + "    var type = %s;\n" + "    return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));\n"
+                + "}\n" + "\n" + "\n", "fixme:type.toText()", globalName(),
+                // type.compileToJS(new HashSet<TypeVar>()),
+                "fixmed:type.compileToJS()");
+    }
 
-	@Override
-	public void addToProgr(Progam program, GenericInfo generic) {
-		ValueInfo info = program.ensureValueRecord(id.getName());
-		info.generic = generic;
-		info.declaredType = typeNode;
-	}
+    @Override
+    public String compileToMATLAB() {
+        throw new RuntimeException("todo");
+    }
+
+    @Override
+    public void printText(PrintWriter out) {
+        throw new RuntimeException("todo");
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
+    public void addToProgr(Progam program, GenericInfo generic) {
+        ValueInfo info = program.ensureValueRecord(id.getName());
+        info.generic = generic;
+        info.declaredType = typeNode;
+    }
 
 }

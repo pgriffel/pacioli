@@ -52,19 +52,18 @@ public class ParametricType extends AbstractType {
         this.definition = null;
     }
 
-    
     public ParametricType(TypeDefinition definition, List<PacioliType> args) {
         this.name = definition.localName();
         this.args = args;
         this.definition = definition;
     }
-    
+
     private ParametricType(String name, TypeDefinition definition, List<PacioliType> args) {
         this.name = name;
         this.args = args;
         this.definition = definition;
     }
-    
+
     public String pprintArgs() {
         return "(" + Utils.intercalateText(", ", args) + ")";
     }
@@ -83,7 +82,7 @@ public class ParametricType extends AbstractType {
         }
         return all;
     }
-    
+
     @Override
     public Set<String> unitVecVarCompoundNames() {
         Set<String> all = new LinkedHashSet<String>();
@@ -100,11 +99,13 @@ public class ParametricType extends AbstractType {
             throw new PacioliException("Types '%s and '%s' differ", name, otherType.name);
         }
         if (args.size() != otherType.args.size()) {
-            throw new PacioliException("Number of arguments for '%s and '%s' differ", this.toText(), otherType.toText());
+            throw new PacioliException("Number of arguments for '%s and '%s' differ", this.toText(),
+                    otherType.toText());
         }
         ConstraintSet constraints = new ConstraintSet();
         for (int i = 0; i < args.size(); i++) {
-            constraints.addConstraint(args.get(i), otherType.args.get(i), String.format("%s arugment %s must match", name, i + 1));
+            constraints.addConstraint(args.get(i), otherType.args.get(i),
+                    String.format("%s arugment %s must match", name, i + 1));
         }
         return constraints;
     }
@@ -132,81 +133,81 @@ public class ParametricType extends AbstractType {
         return new ParametricType(name, definition, items);
     }
 
-	@Override
-	public String compileToJS() {
-		StringBuilder builder = new StringBuilder();
-		
-		if (name.equals("Boole")) {
-			builder.append("new Pacioli.Type('boole')");
-		} else if (name.equals("String")) {
-			builder.append("new Pacioli.Type('string')");
-		} else if (name.equals("Report")) {
-			builder.append("new Pacioli.Type('report')");
-		} else if (name.equals("Void")) {
-			builder.append("null");
-		} else if (name.equals("Index")) {
-			builder.append("new Pacioli.Type('coordinate', ");
-			builder.append("new Pacioli.Coordinates(null, [");
-			String sep = "";
-			for (PacioliType arg : args) {
-				builder.append(sep);
-				builder.append(arg.compileToJS());
-				sep = ", ";
-			}		
-			builder.append("]))");
-		} else if (name.equals("List")) {
-			
-			builder.append("new Pacioli.Type(");
-			builder.append("\"list\", ");
-			String sep = "";
-			for (PacioliType arg : args) {
-				builder.append(sep);
-				builder.append(arg.compileToJS());
-				sep = ", ";
-			}		
-			builder.append(")");
-		} else if (name.equals("Ref")) {
-			
-			builder.append("new Pacioli.Type(");
-			builder.append("\"reference\", ");
-			String sep = "";
-			for (PacioliType arg : args) {
-				builder.append(sep);
-				builder.append(arg.compileToJS());
-				sep = ", ";
-			}		
-			builder.append(")");
-		} else if (name.equals("Tuple")) {
-			builder.append("new Pacioli.Type(");
-			builder.append("\"tuple\", [");
-			String sep = "";
-			for (PacioliType arg : args) {
-				builder.append(sep);
-				builder.append(arg.compileToJS());
-				sep = ", ";
-			}		
-			builder.append("])");
-		} else {
-			throw new RuntimeException("Parametric Type " + name + " unknown");
-		}
-		return builder.toString();
-	}
+    @Override
+    public String compileToJS() {
+        StringBuilder builder = new StringBuilder();
 
-	@Override
-	public PacioliType reduce() {
-		List<PacioliType> items = new ArrayList<PacioliType>();
+        if (name.equals("Boole")) {
+            builder.append("new Pacioli.Type('boole')");
+        } else if (name.equals("String")) {
+            builder.append("new Pacioli.Type('string')");
+        } else if (name.equals("Report")) {
+            builder.append("new Pacioli.Type('report')");
+        } else if (name.equals("Void")) {
+            builder.append("null");
+        } else if (name.equals("Index")) {
+            builder.append("new Pacioli.Type('coordinate', ");
+            builder.append("new Pacioli.Coordinates(null, [");
+            String sep = "";
+            for (PacioliType arg : args) {
+                builder.append(sep);
+                builder.append(arg.compileToJS());
+                sep = ", ";
+            }
+            builder.append("]))");
+        } else if (name.equals("List")) {
+
+            builder.append("new Pacioli.Type(");
+            builder.append("\"list\", ");
+            String sep = "";
+            for (PacioliType arg : args) {
+                builder.append(sep);
+                builder.append(arg.compileToJS());
+                sep = ", ";
+            }
+            builder.append(")");
+        } else if (name.equals("Ref")) {
+
+            builder.append("new Pacioli.Type(");
+            builder.append("\"reference\", ");
+            String sep = "";
+            for (PacioliType arg : args) {
+                builder.append(sep);
+                builder.append(arg.compileToJS());
+                sep = ", ";
+            }
+            builder.append(")");
+        } else if (name.equals("Tuple")) {
+            builder.append("new Pacioli.Type(");
+            builder.append("\"tuple\", [");
+            String sep = "";
+            for (PacioliType arg : args) {
+                builder.append(sep);
+                builder.append(arg.compileToJS());
+                sep = ", ";
+            }
+            builder.append("])");
+        } else {
+            throw new RuntimeException("Parametric Type " + name + " unknown");
+        }
+        return builder.toString();
+    }
+
+    @Override
+    public PacioliType reduce() {
+        List<PacioliType> items = new ArrayList<PacioliType>();
         for (PacioliType type : args) {
             items.add(type.reduce());
         }
-		try {
-			if (definition == null) { 
-				//return this;
-				return new ParametricType(name, definition, items);
-			} else {			
-				return definition.constaint(true).reduce(new ParametricType(name, definition, items));
-			}
-		} catch (PacioliException e) {
-			throw new RuntimeException(e);
-		}
-	}
+        try {
+            if (definition == null) {
+                // return this;
+                return new ParametricType(name, definition, items);
+            } else {
+                return definition.constaint(true).reduce(new ParametricType(name, definition, items));
+            }
+        } catch (PacioliException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

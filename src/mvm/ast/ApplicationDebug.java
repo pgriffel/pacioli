@@ -32,10 +32,6 @@ import mvm.MVMException;
 import mvm.values.Callable;
 import mvm.values.PacioliValue;
 
-/**
- *
- * @author Administrator
- */
 public class ApplicationDebug extends AbstractPrintable implements Expression {
 
     private final Expression function;
@@ -57,14 +53,15 @@ public class ApplicationDebug extends AbstractPrintable implements Expression {
 
         Callable fun = (Callable) function.eval(null);
         Machine.pushFrame(fullText);
-        
+
         try {
             List<PacioliValue> params = new ArrayList<PacioliValue>();
             for (Expression exp : arguments) {
                 params.add(exp.eval(null));
             }
             if (trace) {
-                Machine.logln("\nCalling %s with arguments (%s)", stackText, AbstractPrintable.intercalateText(", ", params));
+                Machine.logln("\nCalling %s with arguments (%s)", stackText,
+                        AbstractPrintable.intercalateText(", ", params));
             }
             PacioliValue result = fun.apply(params);
             if (trace) {

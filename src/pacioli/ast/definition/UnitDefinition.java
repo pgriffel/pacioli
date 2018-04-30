@@ -36,48 +36,48 @@ public class UnitDefinition extends AbstractDefinition {
 
     private final IdentifierNode id;
     private final String symbol;
-    public final UnitNode body; 
+    public final UnitNode body;
 
     public UnitDefinition(Location location, IdentifierNode id, String symbol) {
-    	super(location);
+        super(location);
         this.id = id;
         this.symbol = symbol;
         this.body = null;
     }
-    
+
     public UnitDefinition(Location location, IdentifierNode id, String symbol, UnitNode body) {
         super(location);
         this.id = id;
         this.symbol = symbol;
         this.body = body;
     }
-	
+
     public String getName() {
-		return id.getName();
-	}
+        return id.getName();
+    }
 
     public String getSymbol() {
-		return symbol;
-	}
+        return symbol;
+    }
 
     public DimensionedNumber evalBody() {
-		return (body == null) ? null : body.evalUnit();
-	}
-    
-	@Override
-    public void printText(PrintWriter out) {
-		if (body == null) {
-			out.format("unit definition %s", id.toText());
-		} else {
-			out.format("unit definition %s = %s", id.toText(), body.toText());
-		}
+        return (body == null) ? null : body.evalUnit();
     }
-	
+
+    @Override
+    public void printText(PrintWriter out) {
+        if (body == null) {
+            out.format("unit definition %s", id.toText());
+        } else {
+            out.format("unit definition %s = %s", id.toText(), body.toText());
+        }
+    }
+
     @Override
     public String localName() {
         return id.getName();
     }
-    
+
     @Override
     public String globalName() {
         return String.format("unit_%s", localName());
@@ -85,33 +85,34 @@ public class UnitDefinition extends AbstractDefinition {
 
     @Override
     public String compileToJS(boolean boxed) {
-    	if (body == null) {
-    		return String.format("Pacioli.compute_%s = function () {return {symbol: '%s'}}", 
-    				globalName(), symbol);
-    	} else {
+        if (body == null) {
+            return String.format("Pacioli.compute_%s = function () {return {symbol: '%s'}}", globalName(), symbol);
+        } else {
             DimensionedNumber number = body.evalUnit().flat();
-            return String.format("Pacioli.compute_%s = function () {return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}}", 
-    				globalName(), number.factor(), Utils.compileUnitToJS(number.unit()), symbol);
-    	}
+            return String.format(
+                    "Pacioli.compute_%s = function () {return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}}",
+                    globalName(), number.factor(), Utils.compileUnitToJS(number.unit()), symbol);
+        }
     }
-    
+
     @Override
     public String compileToMATLAB() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);		
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
-	@Override
-	public void addToProgr(Progam program, GenericInfo generic) {
-		UnitInfo info = program.ensureUnitRecord(id.getName());
-		info.generic = generic;
-		info.definition = this;
-		info.symbol = symbol;		
-		info.baseDefinition = body;
-	}
+    @Override
+    public void addToProgr(Progam program, GenericInfo generic) {
+        UnitInfo info = program.ensureUnitRecord(id.getName());
+        info.generic = generic;
+        info.definition = this;
+        info.symbol = symbol;
+        info.baseDefinition = body;
+    }
 
 }

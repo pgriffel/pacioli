@@ -17,23 +17,23 @@ public class TypeDivideNode extends AbstractTypeNode {
     }
 
     public Node transform(TypeNode left, TypeNode right) {
-		return new TypeDivideNode(getLocation(), left, right);
-	}
-    
+        return new TypeDivideNode(getLocation(), left, right);
+    }
+
     @Override
     public void printText(PrintWriter out) {
         out.format("%s/%s", left.toText(), right.toText());
     }
 
-	@Override
-	public String compileToJS(boolean boxed) {
-		String leftJS = left.compileToJS(false);
-		String rightJS = right.compileToJS(false);
-		return leftJS + ".div(" + rightJS + ")";
-	}
+    @Override
+    public String compileToJS(boolean boxed) {
+        String leftJS = left.compileToJS(false);
+        String rightJS = right.compileToJS(false);
+        return leftJS + ".div(" + rightJS + ")";
+    }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

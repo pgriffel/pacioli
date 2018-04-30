@@ -37,7 +37,7 @@ public class BranchNode extends AbstractExpressionNode {
         this.positive = pos;
         this.negative = neg;
     }
-    
+
     public BranchNode(BranchNode old, ExpressionNode test, ExpressionNode pos, ExpressionNode neg) {
         super(old.getLocation());
         this.test = test;
@@ -58,19 +58,18 @@ public class BranchNode extends AbstractExpressionNode {
 
     @Override
     public String compileToJS(boolean boxed) {
-        return String.format("(%s ? %s : %s)", test.compileToJS(boxed), positive.compileToJS(boxed), negative.compileToJS(boxed));
+        return String.format("(%s ? %s : %s)", test.compileToJS(boxed), positive.compileToJS(boxed),
+                negative.compileToJS(boxed));
     }
-    
+
     @Override
     public String compileToMATLAB() {
-        return String.format("_if(%s, @() %s, @() %s)",
-                test.compileToMATLAB(),
-                positive.compileToMATLAB(),
+        return String.format("_if(%s, @() %s, @() %s)", test.compileToMATLAB(), positive.compileToMATLAB(),
                 negative.compileToMATLAB());
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);	
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

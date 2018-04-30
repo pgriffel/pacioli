@@ -41,10 +41,7 @@ public class MatrixShape extends AbstractPrintable {
     public final Unit rowUnit;
     public final Unit columnUnit;
 
-    public MatrixShape(Unit factor,
-            MatrixDimension rowDimension,
-            Unit rowUnit,
-            MatrixDimension columnDimension,
+    public MatrixShape(Unit factor, MatrixDimension rowDimension, Unit rowUnit, MatrixDimension columnDimension,
             Unit columnUnit) {
         this.factor = factor;
         this.rowDimension = rowDimension;
@@ -53,9 +50,7 @@ public class MatrixShape extends AbstractPrintable {
         this.columnUnit = columnUnit;
     }
 
-    public MatrixShape(Unit factor,
-            MatrixDimension rowDimension,
-            MatrixDimension columnDimension) {
+    public MatrixShape(Unit factor, MatrixDimension rowDimension, MatrixDimension columnDimension) {
         this.factor = factor;
         this.rowDimension = rowDimension;
         this.rowUnit = Unit.ONE;
@@ -105,10 +100,8 @@ public class MatrixShape extends AbstractPrintable {
             return false;
         }
         MatrixShape otherType = (MatrixShape) other;
-        return factor.equals(otherType.factor)
-                && rowDimension.equals(otherType.rowDimension)
-                && rowUnit.equals(otherType.rowUnit)
-                && columnDimension.equals(otherType.columnDimension)
+        return factor.equals(otherType.factor) && rowDimension.equals(otherType.rowDimension)
+                && rowUnit.equals(otherType.rowUnit) && columnDimension.equals(otherType.columnDimension)
                 && columnUnit.equals(otherType.columnUnit);
     }
 
@@ -127,7 +120,7 @@ public class MatrixShape extends AbstractPrintable {
     public MatrixShape columnUnits() {
         return new MatrixShape(Unit.ONE, columnDimension(), columnUnit, new MatrixDimension(), Unit.ONE);
     }
-    
+
     public IndexSet nthRowIndexSet(int n) {
         return rowDimension().nthIndexSet(n);
     }
@@ -155,7 +148,8 @@ public class MatrixShape extends AbstractPrintable {
     }
 
     public MatrixShape transpose() {
-        return new MatrixShape(factor, columnDimension(), columnUnit.reciprocal(), rowDimension(), rowUnit.reciprocal());
+        return new MatrixShape(factor, columnDimension(), columnUnit.reciprocal(), rowDimension(),
+                rowUnit.reciprocal());
     }
 
     public boolean multiplyable(MatrixShape other) {
@@ -163,16 +157,19 @@ public class MatrixShape extends AbstractPrintable {
     }
 
     public MatrixShape multiply(MatrixShape other) {
-        return new MatrixShape(factor.multiply(other.factor), rowDimension(), rowUnit.multiply(other.rowUnit), columnDimension(), columnUnit.multiply(other.columnUnit));
+        return new MatrixShape(factor.multiply(other.factor), rowDimension(), rowUnit.multiply(other.rowUnit),
+                columnDimension(), columnUnit.multiply(other.columnUnit));
     }
 
     public MatrixShape reciprocal() {
-        return new MatrixShape(factor.reciprocal(), rowDimension(), rowUnit.reciprocal(), columnDimension(), columnUnit.reciprocal());
+        return new MatrixShape(factor.reciprocal(), rowDimension(), rowUnit.reciprocal(), columnDimension(),
+                columnUnit.reciprocal());
     }
 
     public MatrixShape sqrt() {
         Fraction half = new Fraction(1, 2);
-        return new MatrixShape(factor.raise(half), rowDimension(), rowUnit.raise(half), columnDimension(), columnUnit.raise(half));
+        return new MatrixShape(factor.raise(half), rowDimension(), rowUnit.raise(half), columnDimension(),
+                columnUnit.raise(half));
     }
 
     public boolean joinable(MatrixShape other) {
@@ -180,37 +177,33 @@ public class MatrixShape extends AbstractPrintable {
     }
 
     public MatrixShape join(MatrixShape other) {
-        return new MatrixShape(factor.multiply(other.factor), rowDimension(), rowUnit, other.columnDimension(), other.columnUnit);
-    }
-    
-    public MatrixShape kronecker(MatrixShape other) {
-        return new MatrixShape(
-                factor.multiply(other.factor), 
-                rowDimension.kronecker(other.rowDimension), 
-                rowUnit.multiply(MatrixBase.shiftUnit(other.rowUnit, rowDimension.width())), 
-                columnDimension.kronecker(other.columnDimension),
-                columnUnit.multiply(MatrixBase.shiftUnit(other.columnUnit, columnDimension.width())));        
+        return new MatrixShape(factor.multiply(other.factor), rowDimension(), rowUnit, other.columnDimension(),
+                other.columnUnit);
     }
 
-	public MatrixShape project(List<Integer> cols) {
-		Unit projectedUnit = Unit.ONE;
-		for(int i = 0; i < cols.size(); i++) {
-			projectedUnit = projectedUnit.multiply(MatrixBase.shiftUnit(MatrixBase.kroneckerNth(rowUnit, cols.get(i)), i - cols.get(i)));
-		}
-        return new MatrixShape(
-                factor, 
-                rowDimension.project(cols),
-                projectedUnit, 
-                columnDimension,
-                columnUnit);
-	}
+    public MatrixShape kronecker(MatrixShape other) {
+        return new MatrixShape(factor.multiply(other.factor), rowDimension.kronecker(other.rowDimension),
+                rowUnit.multiply(MatrixBase.shiftUnit(other.rowUnit, rowDimension.width())),
+                columnDimension.kronecker(other.columnDimension),
+                columnUnit.multiply(MatrixBase.shiftUnit(other.columnUnit, columnDimension.width())));
+    }
+
+    public MatrixShape project(List<Integer> cols) {
+        Unit projectedUnit = Unit.ONE;
+        for (int i = 0; i < cols.size(); i++) {
+            projectedUnit = projectedUnit
+                    .multiply(MatrixBase.shiftUnit(MatrixBase.kroneckerNth(rowUnit, cols.get(i)), i - cols.get(i)));
+        }
+        return new MatrixShape(factor, rowDimension.project(cols), projectedUnit, columnDimension, columnUnit);
+    }
 
     public boolean singleton() {
         return rowOrder() == 0 && columnOrder() == 0;
     }
 
     public MatrixShape scale(MatrixShape other) {
-        return new MatrixShape(factor.multiply(other.factor), other.rowDimension(), other.rowUnit, other.columnDimension(), other.columnUnit);
+        return new MatrixShape(factor.multiply(other.factor), other.rowDimension(), other.rowUnit,
+                other.columnDimension(), other.columnUnit);
     }
 
     public MatrixShape extractColumn() {
@@ -230,7 +223,8 @@ public class MatrixShape extends AbstractPrintable {
     }
 
     public MatrixShape raise(Fraction power) {
-        return new MatrixShape(factor.raise(power), rowDimension, rowUnit.raise(power), columnDimension, columnUnit.raise(power));
+        return new MatrixShape(factor.raise(power), rowDimension, rowUnit.raise(power), columnDimension,
+                columnUnit.raise(power));
     }
 
     @Override
@@ -247,6 +241,5 @@ public class MatrixShape extends AbstractPrintable {
         out.print(columnUnit.toText());
         out.print(")");
     }
-
 
 }

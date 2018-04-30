@@ -13,32 +13,32 @@ import pacioli.ast.expression.StatementNode;
 
 public class AssignedVariablesVisitor extends IdentityVisitor implements Visitor {
 
-	private Stack<Set<IdentifierNode>> typeStack = new Stack<Set<IdentifierNode>>();
-		
-	// -------------------------------------------------------------------------
-	// Accept and return methods
-	// -------------------------------------------------------------------------
-		
-	public Set<IdentifierNode> idsAccept(ExpressionNode child) {
-		typeStack.push(new HashSet<IdentifierNode>());
-		child.accept(this);
-		return typeStack.pop();
-	}
-	
-	// -------------------------------------------------------------------------
-	// Visitors
-	// -------------------------------------------------------------------------
-	
-	@Override
-	public void visit(StatementNode node) {
-		// Discard nested statements
-		typeStack.push(new HashSet<IdentifierNode>());
-		node.body.accept(this);
+    private Stack<Set<IdentifierNode>> typeStack = new Stack<Set<IdentifierNode>>();
+
+    // -------------------------------------------------------------------------
+    // Accept and return methods
+    // -------------------------------------------------------------------------
+
+    public Set<IdentifierNode> idsAccept(ExpressionNode child) {
+        typeStack.push(new HashSet<IdentifierNode>());
+        child.accept(this);
+        return typeStack.pop();
+    }
+
+    // -------------------------------------------------------------------------
+    // Visitors
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void visit(StatementNode node) {
+        // Discard nested statements
+        typeStack.push(new HashSet<IdentifierNode>());
+        node.body.accept(this);
         typeStack.pop();
-	}
-	
-	@Override
-	public void visit(AssignmentNode node) {
-		typeStack.peek().add(node.var);
-	}
+    }
+
+    @Override
+    public void visit(AssignmentNode node) {
+        typeStack.peek().add(node.var);
+    }
 }

@@ -52,249 +52,248 @@ import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 
 public class IdentityVisitor implements Visitor {
-	
-	protected void visitorThrow (Location location, String format, Object ... args) {
-		throw new RuntimeException(new PacioliException(location, format, args));
-	}
-	
-	@Override
-	public void visit(ProgramNode node) {
-		for (Definition def: node.definitions) {
-			def.accept(this);
-	    }	
-	}
 
-	@Override
-	public void visit(AliasDefinition aliasDefinition) {
-		Pacioli.log("Alias");
-	}
+    protected void visitorThrow(Location location, String format, Object... args) {
+        throw new RuntimeException(new PacioliException(location, format, args));
+    }
 
-	@Override
-	public void visit(Declaration declaration) {
-		Pacioli.log("Decl");
-	}
-
-	@Override
-	public void visit(IndexSetDefinition indexSetDefinition) {
-	}
-
-	@Override
-	public void visit(MultiDeclaration multiDeclaration) {
-		Pacioli.log("Multidc");
-	}
-
-	@Override
-	public void visit(Toplevel node) {
-		node.body.accept(this);
-	}
-
-	@Override
-	public void visit(TypeDefinition typeDefinition) {
-		Pacioli.log("TYpeD");
-	}
-
-	@Override
-	public void visit(UnitDefinition node) {
-		//Pacioli.log("Unitdef");
-		if (node.body != null) { 
-			node.body.accept(this);
-		}
-	}
-
-	@Override
-	public void visit(UnitVectorDefinition node) {
-		//Pacioli.log("Unitfecog");
-		for (UnitDecl decl: node.items) {
-			decl.value.accept(this);
-		}
-	}
-
-	@Override
-	public void visit(ValueDefinition node) {	
-		node.body.accept(this);
-	}
-
-	@Override
-	public void visit(ApplicationNode node) {
-		node.function.accept(this);
-		for (ExpressionNode argument: node.arguments) {
-			argument.accept(this);
-	    }	
-	}
-
-	@Override
-	public void visit(AssignmentNode node) {
-		node.value.accept(this);
-	}
-
-	@Override
-	public void visit(BranchNode node) {
-		node.test.accept(this);
-		node.positive.accept(this);
-		node.negative.accept(this);
-	}
-
-	@Override
-	public void visit(ConstNode constNode) {
-	}
-
-	@Override
-	public void visit(ConversionNode node) {
-		node.typeNode.accept(this);
-	}
-
-	@Override
-	public void visit(IdentifierNode identifierNode) {
-		//Pacioli.log("dient");
-	}
-
-	@Override
-	public void visit(IfStatementNode node) {
-		node.test.accept(this);
-		node.positive.accept(this);
-		node.negative.accept(this);
-	}
-
-	@Override
-	public void visit(KeyNode keyNode) {
-	}
-
-	@Override
-	public void visit(LambdaNode node) {
-		node.expression.accept(this);
-	}
-
-	@Override
-	public void visit(MatrixLiteralNode matrixLiteralNode) {
-		Pacioli.log("matrix");
-	}
-
-	@Override
-	public void visit(MatrixTypeNode node) {
-		//Pacioli.log("mattype");
-		node.typeNode.accept(this);
-	}
-
-	@Override
-	public void visit(ProjectionNode projectionNode) {
-		Pacioli.log("projd");
-	}
-
-	@Override
-	public void visit(ReturnNode node) {
-		node.value.accept(this);
-	}
-
-	@Override
-	public void visit(SequenceNode node) {
-		for (ExpressionNode argument: node.items) {
-			argument.accept(this);
-	    }	
-	}
-
-	@Override
-	public void visit(StatementNode node) {
-		node.body.accept(this);
-	}
-
-	@Override
-	public void visit(StringNode stringNode) {
-	}
-
-	@Override
-	public void visit(TupleAssignmentNode tupleAssignmentNode) {
-		Pacioli.log("tup");
-	}
-
-	@Override
-	public void visit(WhileNode node) {
-		node.test.accept(this);
-		node.body.accept(this);
-	}
-
-	@Override
-	public void visit(BangTypeNode bangTypeNode) {
-		Pacioli.log("bang");
-	}
-
-	@Override
-	public void visit(FunctionTypeNode node) {
-		node.domain.accept(this);
-		node.range.accept(this);
-	}
-
-	@Override
-	public void visit(NumberTypeNode numberTypeNode) {
-	}
-
-	@Override
-	public void visit(SchemaNode schemaNode) {
-		Pacioli.log("sschema");
-	}
-
-	@Override
-	public void visit(TypeApplicationNode node) {	
-		node.op.accept(this);
-		for (TypeNode arg: node.args) {
-        	arg.accept(this);
+    @Override
+    public void visit(ProgramNode node) {
+        for (Definition def : node.definitions) {
+            def.accept(this);
         }
-	}
+    }
 
-	@Override
-	public void visit(TypeIdentifierNode node) {
-	}
+    @Override
+    public void visit(AliasDefinition aliasDefinition) {
+        Pacioli.log("Alias");
+    }
 
-	@Override
-	public void visit(TypePowerNode node) {		
-		node.base.accept(this);
-	}
+    @Override
+    public void visit(Declaration declaration) {
+        Pacioli.log("Decl");
+    }
 
-	@Override
-	public void visit(PrefixUnitTypeNode prefixUnitTypeNode) {
-	}
+    @Override
+    public void visit(IndexSetDefinition indexSetDefinition) {
+    }
 
-	@Override
-	public void visit(TypeMultiplyNode node) {
-		node.left.accept(this);
-		node.right.accept(this);
-	}
+    @Override
+    public void visit(MultiDeclaration multiDeclaration) {
+        Pacioli.log("Multidc");
+    }
 
-	@Override
-	public void visit(TypeDivideNode node) {
-		node.left.accept(this);
-		node.right.accept(this);
-	}
+    @Override
+    public void visit(Toplevel node) {
+        node.body.accept(this);
+    }
 
-	@Override
-	public void visit(TypeKroneckerNode node) {
-		node.left.accept(this);
-		node.right.accept(this);
-	}
+    @Override
+    public void visit(TypeDefinition typeDefinition) {
+        Pacioli.log("TYpeD");
+    }
 
-	@Override
-	public void visit(TypePerNode node) {
-		node.left.accept(this);
-		node.right.accept(this);	
-	}
+    @Override
+    public void visit(UnitDefinition node) {
+        // Pacioli.log("Unitdef");
+        if (node.body != null) {
+            node.body.accept(this);
+        }
+    }
 
-	@Override
-	public void visit(NumberUnitNode numberUnitNode) {
-	}
+    @Override
+    public void visit(UnitVectorDefinition node) {
+        // Pacioli.log("Unitfecog");
+        for (UnitDecl decl : node.items) {
+            decl.value.accept(this);
+        }
+    }
 
-	@Override
-	public void visit(UnitIdentifierNode unitIdentifierNode) {
-	}
+    @Override
+    public void visit(ValueDefinition node) {
+        node.body.accept(this);
+    }
 
-	@Override
-	public void visit(UnitOperationNode node) {
-		node.left.accept(this);
-		node.right.accept(this);
-	}
+    @Override
+    public void visit(ApplicationNode node) {
+        node.function.accept(this);
+        for (ExpressionNode argument : node.arguments) {
+            argument.accept(this);
+        }
+    }
 
-	@Override
-	public void visit(UnitPowerNode node) {
-		node.base.accept(this);		
-	}
+    @Override
+    public void visit(AssignmentNode node) {
+        node.value.accept(this);
+    }
 
+    @Override
+    public void visit(BranchNode node) {
+        node.test.accept(this);
+        node.positive.accept(this);
+        node.negative.accept(this);
+    }
+
+    @Override
+    public void visit(ConstNode constNode) {
+    }
+
+    @Override
+    public void visit(ConversionNode node) {
+        node.typeNode.accept(this);
+    }
+
+    @Override
+    public void visit(IdentifierNode identifierNode) {
+        // Pacioli.log("dient");
+    }
+
+    @Override
+    public void visit(IfStatementNode node) {
+        node.test.accept(this);
+        node.positive.accept(this);
+        node.negative.accept(this);
+    }
+
+    @Override
+    public void visit(KeyNode keyNode) {
+    }
+
+    @Override
+    public void visit(LambdaNode node) {
+        node.expression.accept(this);
+    }
+
+    @Override
+    public void visit(MatrixLiteralNode matrixLiteralNode) {
+        Pacioli.log("matrix");
+    }
+
+    @Override
+    public void visit(MatrixTypeNode node) {
+        // Pacioli.log("mattype");
+        node.typeNode.accept(this);
+    }
+
+    @Override
+    public void visit(ProjectionNode projectionNode) {
+        Pacioli.log("projd");
+    }
+
+    @Override
+    public void visit(ReturnNode node) {
+        node.value.accept(this);
+    }
+
+    @Override
+    public void visit(SequenceNode node) {
+        for (ExpressionNode argument : node.items) {
+            argument.accept(this);
+        }
+    }
+
+    @Override
+    public void visit(StatementNode node) {
+        node.body.accept(this);
+    }
+
+    @Override
+    public void visit(StringNode stringNode) {
+    }
+
+    @Override
+    public void visit(TupleAssignmentNode tupleAssignmentNode) {
+        Pacioli.log("tup");
+    }
+
+    @Override
+    public void visit(WhileNode node) {
+        node.test.accept(this);
+        node.body.accept(this);
+    }
+
+    @Override
+    public void visit(BangTypeNode bangTypeNode) {
+        Pacioli.log("bang");
+    }
+
+    @Override
+    public void visit(FunctionTypeNode node) {
+        node.domain.accept(this);
+        node.range.accept(this);
+    }
+
+    @Override
+    public void visit(NumberTypeNode numberTypeNode) {
+    }
+
+    @Override
+    public void visit(SchemaNode schemaNode) {
+        Pacioli.log("sschema");
+    }
+
+    @Override
+    public void visit(TypeApplicationNode node) {
+        node.op.accept(this);
+        for (TypeNode arg : node.args) {
+            arg.accept(this);
+        }
+    }
+
+    @Override
+    public void visit(TypeIdentifierNode node) {
+    }
+
+    @Override
+    public void visit(TypePowerNode node) {
+        node.base.accept(this);
+    }
+
+    @Override
+    public void visit(PrefixUnitTypeNode prefixUnitTypeNode) {
+    }
+
+    @Override
+    public void visit(TypeMultiplyNode node) {
+        node.left.accept(this);
+        node.right.accept(this);
+    }
+
+    @Override
+    public void visit(TypeDivideNode node) {
+        node.left.accept(this);
+        node.right.accept(this);
+    }
+
+    @Override
+    public void visit(TypeKroneckerNode node) {
+        node.left.accept(this);
+        node.right.accept(this);
+    }
+
+    @Override
+    public void visit(TypePerNode node) {
+        node.left.accept(this);
+        node.right.accept(this);
+    }
+
+    @Override
+    public void visit(NumberUnitNode numberUnitNode) {
+    }
+
+    @Override
+    public void visit(UnitIdentifierNode unitIdentifierNode) {
+    }
+
+    @Override
+    public void visit(UnitOperationNode node) {
+        node.left.accept(this);
+        node.right.accept(this);
+    }
+
+    @Override
+    public void visit(UnitPowerNode node) {
+        node.base.accept(this);
+    }
 
 }

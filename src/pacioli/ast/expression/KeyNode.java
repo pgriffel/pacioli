@@ -35,7 +35,7 @@ public class KeyNode extends AbstractExpressionNode {
     public final List<String> indexSets;
     public final List<String> keys;
     public final List<IndexSetDefinition> indexSetDefinitions;
-	public List<IndexSetInfo> info;
+    public List<IndexSetInfo> info;
 
     public KeyNode(Location location) {
         super(location);
@@ -43,7 +43,7 @@ public class KeyNode extends AbstractExpressionNode {
         keys = new ArrayList<String>();
         indexSetDefinitions = null;
     }
-    
+
     public KeyNode(KeyNode old) {
         super(old.getLocation());
         indexSets = old.indexSets;
@@ -58,31 +58,32 @@ public class KeyNode extends AbstractExpressionNode {
         indexSetDefinitions = null;
     }
 
-
-    public KeyNode(Location location, List<String> indexSets, List<String> keys, List<IndexSetDefinition> indexSetDefinitions) {
+    public KeyNode(Location location, List<String> indexSets, List<String> keys,
+            List<IndexSetDefinition> indexSetDefinitions) {
         super(location);
         this.indexSets = new ArrayList<String>(indexSets);
         this.keys = new ArrayList<String>(keys);
-        this.indexSetDefinitions = indexSetDefinitions == null ? null : new ArrayList<IndexSetDefinition>(indexSetDefinitions);
+        this.indexSetDefinitions = indexSetDefinitions == null ? null
+                : new ArrayList<IndexSetDefinition>(indexSetDefinitions);
     }
-    
+
     public KeyNode merge(KeyNode other) {
 
-    	List<String> mergedIndexSets = new ArrayList<String>(indexSets);
-    	List<String> mergedKeys = new ArrayList<String>(keys);
-    	List<IndexSetDefinition> mergedDefinitions = null;
+        List<String> mergedIndexSets = new ArrayList<String>(indexSets);
+        List<String> mergedKeys = new ArrayList<String>(keys);
+        List<IndexSetDefinition> mergedDefinitions = null;
 
-    	Location mergedLocation = getLocation().join(other.getLocation());
+        Location mergedLocation = getLocation().join(other.getLocation());
 
-    	mergedIndexSets.addAll(other.indexSets);
-    	mergedKeys.addAll(other.keys);
+        mergedIndexSets.addAll(other.indexSets);
+        mergedKeys.addAll(other.keys);
 
-    	if (indexSetDefinitions != null && other.indexSetDefinitions != null) {
-    		mergedDefinitions = new ArrayList<IndexSetDefinition>(indexSetDefinitions);
-    		mergedDefinitions.addAll(other.indexSetDefinitions);
-    	}
+        if (indexSetDefinitions != null && other.indexSetDefinitions != null) {
+            mergedDefinitions = new ArrayList<IndexSetDefinition>(indexSetDefinitions);
+            mergedDefinitions.addAll(other.indexSetDefinitions);
+        }
 
-    	return new KeyNode(mergedLocation, mergedIndexSets, mergedKeys, mergedDefinitions);
+        return new KeyNode(mergedLocation, mergedIndexSets, mergedKeys, mergedDefinitions);
     }
 
     @Override
@@ -104,42 +105,40 @@ public class KeyNode extends AbstractExpressionNode {
 
     @Override
     public String compileToJS(boolean boxed) {
-    	StringBuilder builder = new StringBuilder();
-    	builder.append("Pacioli.createCoordinates([");
-    	for (int i = 0; i < keys.size(); i++) {
-            if (0 < i) builder.append(",");
+        StringBuilder builder = new StringBuilder();
+        builder.append("Pacioli.createCoordinates([");
+        for (int i = 0; i < keys.size(); i++) {
+            if (0 < i)
+                builder.append(",");
             builder.append("['");
             builder.append(keys.get(i));
             builder.append("','");
             builder.append(indexSetDefinitions.get(i).globalName());
             builder.append("']");
         }
-    	builder.append("])");
+        builder.append("])");
         return builder.toString();
-        /*int totalSize = 1;
-        int index = 0;
-        int size = indexSets.size();
-        for (int i = 0; i < size; i++) {
-            index += positions.get(i) * totalSize;
-            totalSize *= sizes.get(i);
-        }
-        return String.format("[%s,%s]", index, totalSize);*/
+        /*
+         * int totalSize = 1; int index = 0; int size = indexSets.size(); for (int i =
+         * 0; i < size; i++) { index += positions.get(i) * totalSize; totalSize *=
+         * sizes.get(i); } return String.format("[%s,%s]", index, totalSize);
+         */
     }
-    
+
     @Override
     public String compileToMATLAB() {
         int totalSize = 1;
         int index = 0;
         int size = indexSets.size();
         for (int i = 0; i < size; i++) {
-//            index += positions.get(i) * totalSize;
-//            totalSize *= sizes.get(i);
+            // index += positions.get(i) * totalSize;
+            // totalSize *= sizes.get(i);
         }
         return String.format("{%s,%s}", index, totalSize);
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

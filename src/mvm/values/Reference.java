@@ -31,7 +31,7 @@ public class Reference extends AbstractPacioliValue {
     public Reference() {
         this.value = null;
     }
-    
+
     public Reference(PacioliValue value) {
         this.value = value;
     }

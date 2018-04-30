@@ -35,7 +35,7 @@ public abstract class Primitive extends AbstractPacioliValue implements Callable
     public Primitive(String name) {
         this.name = name;
     }
-    
+
     @Override
     public void printText(PrintWriter out) {
         out.format("|%s|", name);
@@ -70,45 +70,46 @@ public abstract class Primitive extends AbstractPacioliValue implements Callable
             throw new MVMException("Argument %s to function '%s' must be a string", i + 1, name);
         }
     }
-    
+
     public void checkCallableArg(List<PacioliValue> args, int i) throws MVMException {
         if (!(args.get(i) instanceof Callable)) {
             throw new MVMException("Argument %s to function '%s' must be callable", i + 1, name);
         }
     }
-    
+
     public void checkBooleArg(List<PacioliValue> args, int i) throws MVMException {
         if (!(args.get(i) instanceof Boole)) {
             throw new MVMException("Argument %s to function '%s' must be a Boolean", i + 1, name);
         }
     }
-    
+
     public void checkMatrixArg(List<PacioliValue> args, int i) throws MVMException {
         if (!(args.get(i) instanceof Matrix)) {
             throw new MVMException("Argument %s to function '%s' must be a matrix", i + 1, name);
         }
     }
-    
+
     public void checkKeyArg(List<PacioliValue> args, int i) throws MVMException {
         if (!(args.get(i) instanceof Key)) {
             throw new MVMException("Argument %s to function '%s' must be a key", i + 1, name);
         }
     }
-    
+
     public void checkReferenceArg(List<PacioliValue> args, int i) throws MVMException {
         if (!(args.get(i) instanceof Reference)) {
             throw new MVMException("Argument %s to function '%s' must be a reference", i + 1, name);
         }
     }
-    
+
     public PacioliValue applyToTwo(Callable fun, PacioliValue arg0, PacioliValue arg1) throws MVMException {
         List<PacioliValue> temp = new ArrayList<PacioliValue>();
         temp.add(arg0);
         temp.add(arg1);
         return fun.apply(temp);
     }
-    
-    public PacioliValue applyToThree(Callable fun, PacioliValue arg0, PacioliValue arg1, PacioliValue arg2) throws MVMException {
+
+    public PacioliValue applyToThree(Callable fun, PacioliValue arg0, PacioliValue arg1, PacioliValue arg2)
+            throws MVMException {
         List<PacioliValue> temp = new ArrayList<PacioliValue>();
         temp.add(arg0);
         temp.add(arg1);

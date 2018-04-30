@@ -63,8 +63,8 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
         return code;
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

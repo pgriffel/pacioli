@@ -33,7 +33,7 @@ public class LambdaNode extends AbstractExpressionNode {
 
     public final List<String> arguments;
     public final ExpressionNode expression;
-    
+
     public SymbolTable<ValueInfo> table;
 
     public LambdaNode(List<String> args, ExpressionNode body, Location location) {
@@ -42,7 +42,7 @@ public class LambdaNode extends AbstractExpressionNode {
         expression = body;
         table = null;
     }
-    
+
     public LambdaNode(LambdaNode old, ExpressionNode body) {
         super(old.getLocation());
         arguments = old.arguments;
@@ -62,8 +62,8 @@ public class LambdaNode extends AbstractExpressionNode {
     @Override
     public String compileToJS(boolean boxed) {
         if (false && boxed) {
-            return String.format("new Pacioli.Box(null, function (%s) { return %s; })", 
-                    argsString(), expression.compileToJS(boxed));
+            return String.format("new Pacioli.Box(null, function (%s) { return %s; })", argsString(),
+                    expression.compileToJS(boxed));
         } else {
             return String.format("function (%s) { return %s; }", argsString(), expression.compileToJS(boxed));
         }
@@ -78,9 +78,9 @@ public class LambdaNode extends AbstractExpressionNode {
         return String.format("(@(%s) %s)", Utils.intercalate(", ", arguments), expression.compileToMATLAB());
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
 }

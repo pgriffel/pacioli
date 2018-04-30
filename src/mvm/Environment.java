@@ -122,11 +122,10 @@ public class Environment {
     
     public void putCode(String name, Expression exp) {
         code.put(name, exp);
-       	/*try {
-			store.put(name, exp.eval(this));
-		} catch (MVMException e) {
-			throw new RuntimeException(e);
-		}*/
+        /*
+         * try { store.put(name, exp.eval(this)); } catch (MVMException e) { throw new
+         * RuntimeException(e); }
+         */
     }
 
     public Set<String> keySet() {
@@ -138,10 +137,10 @@ public class Environment {
         return keys;
     }
 
-	public Machine getMachine() {
-		if (machine == null) {
-			throw new RuntimeException("zou niet mogen gebeuren");
-		}
-		return machine;
-	}
+    public Machine getMachine() {
+        if (machine == null) {
+            throw new RuntimeException("zou niet mogen gebeuren");
+        }
+        return machine;
+    }
 }

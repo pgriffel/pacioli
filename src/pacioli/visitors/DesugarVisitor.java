@@ -14,38 +14,38 @@ import pacioli.ast.expression.IdentifierNode;
 
 public class DesugarVisitor extends IdentityTransformation implements Visitor {
 
-	@Override
-	public void visit(ProgramNode node) {
-		
-		// Create a copy of the program node 
-		ProgramNode prog = new ProgramNode(node.module);
-		
-		// Add the includes unaltered
-		for(IdentifierNode include: node.includes) {
-			prog.addInclude(include);
-		}
-		
-		// Create single declarations for the multideclarations
-		List<Definition> noMultis = new ArrayList<Definition>();
-		for(Definition def: node.definitions) {
-			if (def instanceof MultiDeclaration) {
-				MultiDeclaration decl = (MultiDeclaration) def;
-				for (IdentifierNode id: decl.ids) {
-					noMultis.add(new Declaration(decl.getLocation(), id, decl.node));
-				}
-			} else {
-				noMultis.add(def);
-			}
-		}
-		
-		// Desugar the definitions.
-		for(Definition def: noMultis) {
-			Node desugared = nodeAccept(def);
-	        assert(desugared instanceof Definition);
-	        prog.addDefinition((Definition) desugared);
-		}
-		
-		returnNode(prog);
-	}
-	
+    @Override
+    public void visit(ProgramNode node) {
+
+        // Create a copy of the program node
+        ProgramNode prog = new ProgramNode(node.module);
+
+        // Add the includes unaltered
+        for (IdentifierNode include : node.includes) {
+            prog.addInclude(include);
+        }
+
+        // Create single declarations for the multideclarations
+        List<Definition> noMultis = new ArrayList<Definition>();
+        for (Definition def : node.definitions) {
+            if (def instanceof MultiDeclaration) {
+                MultiDeclaration decl = (MultiDeclaration) def;
+                for (IdentifierNode id : decl.ids) {
+                    noMultis.add(new Declaration(decl.getLocation(), id, decl.node));
+                }
+            } else {
+                noMultis.add(def);
+            }
+        }
+
+        // Desugar the definitions.
+        for (Definition def : noMultis) {
+            Node desugared = nodeAccept(def);
+            assert (desugared instanceof Definition);
+            prog.addDefinition((Definition) desugared);
+        }
+
+        returnNode(prog);
+    }
+
 }

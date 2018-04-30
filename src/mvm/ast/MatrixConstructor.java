@@ -11,7 +11,7 @@ import mvm.values.matrix.Matrix;
 public class MatrixConstructor extends AbstractPrintable implements Expression {
 
     private String op;
-	private ShapeNode shape;
+    private ShapeNode shape;
 
     public MatrixConstructor(String op, ShapeNode shape) {
         this.op = op;
@@ -20,22 +20,22 @@ public class MatrixConstructor extends AbstractPrintable implements Expression {
 
     @Override
     public PacioliValue eval(Environment environment) throws MVMException {
-    	Matrix matrix = new Matrix(shape.eval(environment.getMachine()));
-		if (op.equals("ones")) {
-			return matrix.ones();
-		} else if (op.equals("conversion")) {
-			matrix.createConversion();
-			return matrix;
-		} else if (op.equals("projection")) {
-			matrix.createProjection();
-			return matrix;
-		} else {
-			throw new MVMException("Matrix constructor '" + op + "' unknown");
-		}
+        Matrix matrix = new Matrix(shape.eval(environment.getMachine()));
+        if (op.equals("ones")) {
+            return matrix.ones();
+        } else if (op.equals("conversion")) {
+            matrix.createConversion();
+            return matrix;
+        } else if (op.equals("projection")) {
+            matrix.createProjection();
+            return matrix;
+        } else {
+            throw new MVMException("Matrix constructor '" + op + "' unknown");
+        }
     }
 
     @Override
     public void printText(PrintWriter out) {
-        
+
     }
 }

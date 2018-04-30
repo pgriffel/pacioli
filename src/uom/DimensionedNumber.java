@@ -26,7 +26,7 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 
 public class DimensionedNumber {
-    
+
     private final Unit unit;
     private final BigDecimal factor;
 
@@ -44,7 +44,7 @@ public class DimensionedNumber {
         unit = Unit.ONE;
         this.factor = factor;
     }
-        
+
     public DimensionedNumber(BigDecimal factor, Unit unit) {
         this.unit = unit;
         this.factor = factor;
@@ -57,7 +57,7 @@ public class DimensionedNumber {
     public Unit unit() {
         return unit;
     }
-    
+
     @Override
     public int hashCode() {
         return unit.hashCode();
@@ -98,7 +98,8 @@ public class DimensionedNumber {
             if (0 < pow) {
                 raisedFactor = factor.pow(pow, MathContext.DECIMAL128);
             } else {
-                raisedFactor = BigDecimal.ONE.divide(factor.pow(-pow, MathContext.DECIMAL128), 25, RoundingMode.HALF_UP);
+                raisedFactor = BigDecimal.ONE.divide(factor.pow(-pow, MathContext.DECIMAL128), 25,
+                        RoundingMode.HALF_UP);
             }
         } else {
             raisedFactor = new BigDecimal(Math.pow(factor.doubleValue(), power.doubleValue()));

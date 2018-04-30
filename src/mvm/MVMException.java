@@ -22,15 +22,15 @@
 package mvm;
 
 public class MVMException extends Exception {
-	  
+
     public MVMException(String message) {
         super(message);
     }
-    
-    public MVMException(String format, Object ... args) {
+
+    public MVMException(String format, Object... args) {
         super(String.format(format, args));
     }
-    
+
     public MVMException(Throwable cause) {
         super(cause);
     }

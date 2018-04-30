@@ -35,16 +35,16 @@ public abstract class AbstractExpressionNode extends AbstractNode implements Exp
     public AbstractExpressionNode(Location location) {
         super(location);
     }
-    
+
     @Override
     public Typing inferTyping2(Progam prog) {
-    	TypeInference visitor = new TypeInference();
-    	return visitor.typingAccept(this);
+        TypeInference visitor = new TypeInference();
+        return visitor.typingAccept(this);
     }
-    
+
     @Override
     public Set<IdentifierNode> locallyAssignedVariables() {
-    	AssignedVariablesVisitor visitor = new AssignedVariablesVisitor();
-    	return visitor.idsAccept(this);
+        AssignedVariablesVisitor visitor = new AssignedVariablesVisitor();
+        return visitor.idsAccept(this);
     }
 }

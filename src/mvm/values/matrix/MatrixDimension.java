@@ -91,18 +91,18 @@ public class MatrixDimension extends AbstractPrintable {
     }
 
     public int ElementPos(List<String> index) {
-    	int pos = 0;
-    	for (int i = 0; i < width(); i++) {
+        int pos = 0;
+        for (int i = 0; i < width(); i++) {
             IndexSet set = indexSets.get(i);
             String indexName = index.get(i);
             int at = set.ElementPosition(indexName);
             if (0 <= at) {
-            	pos = pos * set.size() + at;
+                pos = pos * set.size() + at;
             } else {
                 throw new RuntimeException(String.format("Element '%s' unknown %s", indexName, i));
             }
-    	}
-    	return pos;
+        }
+        return pos;
     }
 
     public int[] individualPositions(int position) {
@@ -122,7 +122,7 @@ public class MatrixDimension extends AbstractPrintable {
             list.add(null);
         }
         int a = index;
-        for (int i = width() - 1; i >= 0; i--) {        	
+        for (int i = width() - 1; i >= 0; i--) {
             IndexSet set = indexSets.get(i);
             list.set(i, set.ElementAt(a % set.size()));
             a = a / set.size();
@@ -136,20 +136,20 @@ public class MatrixDimension extends AbstractPrintable {
         out.print(AbstractPrintable.intercalateText(",", indexSets));
         out.print(")");
     }
-    
+
     public String indexText() {
-    	List<String> names = new ArrayList<String>();
-    	for (IndexSet set: indexSets) {
-    		names.add(set.name);
-    	}
+        List<String> names = new ArrayList<String>();
+        for (IndexSet set : indexSets) {
+            names.add(set.name);
+        }
         return AbstractPrintable.intercalate(",", names);
     }
 
-	public MatrixDimension project(List<Integer> cols) {
-		List<IndexSet> sets = new ArrayList<IndexSet>();
-		for(int i = 0; i < cols.size(); i++) {
-			sets.add(indexSets.get(cols.get(i)));
-		}
-		return new MatrixDimension(sets);
-	}
+    public MatrixDimension project(List<Integer> cols) {
+        List<IndexSet> sets = new ArrayList<IndexSet>();
+        for (int i = 0; i < cols.size(); i++) {
+            sets.add(indexSets.get(cols.get(i)));
+        }
+        return new MatrixDimension(sets);
+    }
 }

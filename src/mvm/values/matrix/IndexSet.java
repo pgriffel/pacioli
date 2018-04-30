@@ -70,6 +70,5 @@ public class IndexSet extends AbstractPrintable {
         out.print(name);
         out.print(")");
     }
-    
-    
+
 }

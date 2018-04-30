@@ -36,9 +36,9 @@ public class SequenceNode extends AbstractExpressionNode {
     }
 
     public SequenceNode transform(List<ExpressionNode> items) {
-    	return new SequenceNode(getLocation(), items);
+        return new SequenceNode(getLocation(), items);
     }
-    
+
     @Override
     public void printText(PrintWriter out) {
         for (ExpressionNode item : items) {
@@ -51,7 +51,7 @@ public class SequenceNode extends AbstractExpressionNode {
     public String compileToJS(boolean boxed) {
         return desugar().compileToJS(boxed);
     }
-    
+
     @Override
     public String compileToMATLAB() {
         String code = "";
@@ -61,8 +61,8 @@ public class SequenceNode extends AbstractExpressionNode {
         return code;
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }

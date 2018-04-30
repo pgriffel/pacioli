@@ -99,7 +99,7 @@ public class Matrix extends AbstractPacioliValue {
         String sep = rowDimension().width() == 0 || columnDimension().width() == 0 ? "" : ", ";
         String indexText = rowDimension().indexText() + sep + columnDimension().indexText();
         int len = indexText.length();
-        
+
         List<String> idxList = new ArrayList<String>();
         List<String> numList = new ArrayList<String>();
         List<String> unitList = new ArrayList<String>();
@@ -108,12 +108,11 @@ public class Matrix extends AbstractPacioliValue {
         int numWidth = len + 2;
         int unitWidth = 0;
 
-
         for (int i = 0; i < rowDimension().size(); i++) {
             for (int j = 0; j < columnDimension().size(); j++) {
                 double num = numbers.getEntry(i, j);
                 if (num < -0.0000000001 || 0.0000000001 < num) {
-                //if (num != 0) {
+                    // if (num != 0) {
 
                     String numString = String.format("%f", num);
                     numList.add(numString);
@@ -205,8 +204,7 @@ public class Matrix extends AbstractPacioliValue {
     }
 
     private Unit unitAt(int i, int j) {
-        return shape.getFactor()
-                .multiply(getUnit(rowDimension(), shape.rowUnit, i)
+        return shape.getFactor().multiply(getUnit(rowDimension(), shape.rowUnit, i)
                 .multiply(getUnit(columnDimension(), shape.columnUnit, j).reciprocal()));
     }
 
@@ -299,15 +297,15 @@ public class Matrix extends AbstractPacioliValue {
         matrix.numbers.setEntry(0, 0, numbers.getEntry(row.position(), column.position()));
         return matrix;
     }
-    
+
     public PacioliValue get_num(Key row, Key column) {
         Matrix matrix = new Matrix(1);
         matrix.numbers.setEntry(0, 0, numbers.getEntry(row.position(), column.position()));
         return matrix;
     }
-    
+
     public Unit get_unit(Key row, Key column) {
-    	return unitAt(row.position(), column.position());
+        return unitAt(row.position(), column.position());
     }
 
     public PacioliValue magnitude() {
@@ -370,7 +368,7 @@ public class Matrix extends AbstractPacioliValue {
         }
         return matrix;
     }
-    
+
     public Matrix negSupport() {
         Matrix matrix = new Matrix(shape.dimensionless());
         for (int i = 0; i < nrRows(); i++) {
@@ -384,93 +382,93 @@ public class Matrix extends AbstractPacioliValue {
     }
 
     private class Triple implements Comparable<Object> {
-    	final int i;
-    	final int j;
-    	final Double value;
-    	
-    	Triple(int i, int j, Double value) {
-    		this.i = i;
-    		this.j = j;
-    		this.value = value;
-    	}
-    	
-    	public int compareTo(Object other) {
-    		Triple otherTriple = (Triple) other;
-    		return Double.compare(this.value, otherTriple.value);
-    	}
+        final int i;
+        final int j;
+        final Double value;
 
-    	public boolean equals(Object other) {
-    		return compareTo(other) == 0;
-    	}
+        Triple(int i, int j, Double value) {
+            this.i = i;
+            this.j = j;
+            this.value = value;
+        }
+
+        public int compareTo(Object other) {
+            Triple otherTriple = (Triple) other;
+            return Double.compare(this.value, otherTriple.value);
+        }
+
+        public boolean equals(Object other) {
+            return compareTo(other) == 0;
+        }
     }
-    
-	public Matrix top(int n) {
-		
+
+    public Matrix top(int n) {
+
         Matrix matrix = new Matrix(shape);
-        
-		if (0 < n) {
-			PriorityQueue<Triple> queue = new PriorityQueue<Triple>(n);
-			int count = 0;
-			
-			for (int i = 0; i < nrRows(); i++) {
-				for (int j = 0; j < nrColumns(); j++) {
-					Double value = numbers.getEntry(i, j);
-					if (value != 0.0) {
-						if (count < n) {
-							queue.add(new Triple(i,j, value));
-							count++;
-						} else {
-							if (queue.peek().value < value) {
-								queue.poll();
-								queue.add(new Triple(i,j, value));
-							}
-						}
-					}
-				}
-			}
-			while(!queue.isEmpty()) {
-	            Triple triple = queue.poll();
-	            matrix.numbers.setEntry(triple.i, triple.j, triple.value);
-	        }
-		}
-		
+
+        if (0 < n) {
+            PriorityQueue<Triple> queue = new PriorityQueue<Triple>(n);
+            int count = 0;
+
+            for (int i = 0; i < nrRows(); i++) {
+                for (int j = 0; j < nrColumns(); j++) {
+                    Double value = numbers.getEntry(i, j);
+                    if (value != 0.0) {
+                        if (count < n) {
+                            queue.add(new Triple(i, j, value));
+                            count++;
+                        } else {
+                            if (queue.peek().value < value) {
+                                queue.poll();
+                                queue.add(new Triple(i, j, value));
+                            }
+                        }
+                    }
+                }
+            }
+            while (!queue.isEmpty()) {
+                Triple triple = queue.poll();
+                matrix.numbers.setEntry(triple.i, triple.j, triple.value);
+            }
+        }
+
         return matrix;
-	}
-	
-	public Matrix bottom(int n) {
-		
-		Matrix matrix = new Matrix(shape);
-		
-		if (0 < n) {
-			
-			PriorityQueue<Triple> queue = new PriorityQueue<Triple>(n);
-			int count = 0;
-			
-			for (int i = 0; i < nrRows(); i++) {
-				for (int j = 0; j < nrColumns(); j++) {
-					Double value = -numbers.getEntry(i, j);
-					if (value != 0.0) {
-						if (count < n) {
-							queue.add(new Triple(i,j, value));
-							count++;
-						} else {
-							if (queue.peek().value < value) {
-								queue.poll();
-								queue.add(new Triple(i,j, value));
-							}
-						}
-					}
-				}
-			}
-			while(!queue.isEmpty()) {
-	            Triple triple = queue.poll();
-	            matrix.numbers.setEntry(triple.i, triple.j, -triple.value);
-	        }	
-		}
-        
+    }
+
+    public Matrix bottom(int n) {
+
+        Matrix matrix = new Matrix(shape);
+
+        if (0 < n) {
+
+            PriorityQueue<Triple> queue = new PriorityQueue<Triple>(n);
+            int count = 0;
+
+            for (int i = 0; i < nrRows(); i++) {
+                for (int j = 0; j < nrColumns(); j++) {
+                    Double value = -numbers.getEntry(i, j);
+                    if (value != 0.0) {
+                        if (count < n) {
+                            queue.add(new Triple(i, j, value));
+                            count++;
+                        } else {
+                            if (queue.peek().value < value) {
+                                queue.poll();
+                                queue.add(new Triple(i, j, value));
+                            }
+                        }
+                    }
+                }
+            }
+            while (!queue.isEmpty()) {
+                Triple triple = queue.poll();
+                matrix.numbers.setEntry(triple.i, triple.j, -triple.value);
+            }
+        }
+
         return matrix;
-	}
-	
+    }
+
     ////////////////////////////////////////////////////////////////////////////
     // Projections and Conversions
     public void createProjection() throws MVMException {
@@ -497,13 +495,11 @@ public class Matrix extends AbstractPacioliValue {
                     number = (dstUnit.multiply(srcUnit.reciprocal())).flat();
 
                     if (!number.unit().bases().isEmpty()) {
-                        throw new MVMException("Cannot project '%s' to '%s'",
-                                srcUnit.toText(), dstUnit.toText());
+                        throw new MVMException("Cannot project '%s' to '%s'", srcUnit.toText(), dstUnit.toText());
                     }
-                    
+
                     if (!number.factor().equals(BigDecimal.ONE)) {
-                        throw new MVMException("Cannot project '%s' to '%s'",
-                                srcUnit.toText(), dstUnit.toText());
+                        throw new MVMException("Cannot project '%s' to '%s'", srcUnit.toText(), dstUnit.toText());
                     }
 
                     numbers.setEntry(i, j, 1);
@@ -524,13 +520,12 @@ public class Matrix extends AbstractPacioliValue {
         for (int i = 0; i < nrRows; i++) {
             DimensionedNumber number = unitAt(i, i).reciprocal().flat();
             if (!number.unit().bases().isEmpty()) {
-                throw new MVMException("Cannot convert '%s'  (%s)",
-                        number.toText(), number.unit().bases());
+                throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
             } else {
                 Double num = number.factor().doubleValue();
                 if (num == 0) {
-                	throw new MVMException("Zero conversion factor for '%s' '%s'  (%s)",
-                			unitAt(i, i).flat().reciprocal().toText(), number.toText(), number.unit().bases());
+                    throw new MVMException("Zero conversion factor for '%s' '%s'  (%s)",
+                            unitAt(i, i).flat().reciprocal().toText(), number.toText(), number.unit().bases());
                 }
                 numbers.setEntry(i, i, num);
             }
@@ -561,14 +556,12 @@ public class Matrix extends AbstractPacioliValue {
                 if (i == j) {
                     DimensionedNumber number = unitAt(i, j).reciprocal().flat();
                     if (!number.unit().bases().isEmpty()) {
-                        throw new MVMException("Cannot convert '%s'  (%s)",
-                                number.toText(), number.unit().bases());
+                        throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
                     } else {
-//                        Double num = unit.factor().doubleValue();
-//                        numbers.setEntry(i, i, num);
+                        // Double num = unit.factor().doubleValue();
+                        // numbers.setEntry(i, i, num);
                         num = number.factor().toPlainString();
                     }
-
 
                 }
 
@@ -607,14 +600,12 @@ public class Matrix extends AbstractPacioliValue {
                 if (i == j) {
                     DimensionedNumber number = unitAt(i, j).reciprocal().flat();
                     if (!number.unit().bases().isEmpty()) {
-                        throw new MVMException("Cannot convert '%s'  (%s)",
-                                number.toText(), number.unit().bases());
+                        throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
                     } else {
-//                        Double num = unit.factor().doubleValue();
-//                        numbers.setEntry(i, i, num);
+                        // Double num = unit.factor().doubleValue();
+                        // numbers.setEntry(i, i, num);
                         num = number.factor().toPlainString();
                     }
-
 
                 }
 
@@ -689,7 +680,8 @@ public class Matrix extends AbstractPacioliValue {
             matrix.numbers = numbers.add(other.numbers);
             return matrix;
         } else {
-            throw new MVMException("types '" + shape.toText() + "' and '" + other.shape.toText() + "' not equal in sum");
+            throw new MVMException(
+                    "types '" + shape.toText() + "' and '" + other.shape.toText() + "' not equal in sum");
         }
     }
 
@@ -703,10 +695,8 @@ public class Matrix extends AbstractPacioliValue {
             }
             return matrix;
 
-
         } else {
-            throw new MVMException("Shapes %s and %s not compatible for multiplication",
-                    shape.toText(),
+            throw new MVMException("Shapes %s and %s not compatible for multiplication", shape.toText(),
                     other.shape.toText());
         }
     }
@@ -738,7 +728,8 @@ public class Matrix extends AbstractPacioliValue {
             matrix.numbers = numbers.multiply(other.numbers);
             return matrix;
         } else {
-            throw new MVMException("types '" + shape.toText() + "' and '" + other.shape.toText() + "' not compatible for joining");
+            throw new MVMException(
+                    "types '" + shape.toText() + "' and '" + other.shape.toText() + "' not compatible for joining");
         }
     }
 
@@ -752,7 +743,8 @@ public class Matrix extends AbstractPacioliValue {
             for (int j = 0; j < nrColumns; j++) {
                 for (int k = 0; k < otherNrRows; k++) {
                     for (int l = 0; l < otherNrColumns; l++) {
-                        matrix.numbers.setEntry(i * otherNrRows + k, j * otherNrColumns + l, numbers.getEntry(i, j) * other.numbers.getEntry(k, l));
+                        matrix.numbers.setEntry(i * otherNrRows + k, j * otherNrColumns + l,
+                                numbers.getEntry(i, j) * other.numbers.getEntry(k, l));
                     }
                 }
             }
@@ -766,7 +758,8 @@ public class Matrix extends AbstractPacioliValue {
             matrix.numbers = other.numbers.scalarMultiply(numbers.getEntry(0, 0));
             return matrix;
         } else {
-            throw new MVMException("types '" + shape.toText() + "' and '" + other.shape.toText() + "' not compatible for scaling");
+            throw new MVMException(
+                    "types '" + shape.toText() + "' and '" + other.shape.toText() + "' not compatible for scaling");
         }
     }
 
@@ -809,13 +802,13 @@ public class Matrix extends AbstractPacioliValue {
         }
         return matrix;
     }
-    
+
     public PacioliValue power(Matrix y) {
         Matrix matrix = new Matrix(shape);
         matrix.numbers = numbers.power((int) y.numbers.getEntry(0, 0));
         return matrix;
     }
-    
+
     public PacioliValue log(Matrix y) {
         Matrix matrix = new Matrix(shape);
         for (int i = 0; i < nrRows(); i++) {
@@ -883,7 +876,7 @@ public class Matrix extends AbstractPacioliValue {
         }
         return matrix;
     }
-    
+
     public Matrix max(Matrix other) {
         Matrix matrix = new Matrix(shape);
         for (int i = 0; i < nrRows(); i++) {
@@ -893,7 +886,7 @@ public class Matrix extends AbstractPacioliValue {
         }
         return matrix;
     }
-    
+
     public Matrix div(Matrix other) {
         Matrix matrix = new Matrix(shape.multiply(other.shape.reciprocal()));
         for (int i = 0; i < nrRows(); i++) {
@@ -938,7 +931,7 @@ public class Matrix extends AbstractPacioliValue {
         }
         return matrix;
     }
-    
+
     public PacioliValue tan() {
         Matrix matrix = new Matrix(shape.dimensionless());
         for (int i = 0; i < nrRows(); i++) {
@@ -948,7 +941,7 @@ public class Matrix extends AbstractPacioliValue {
         }
         return matrix;
     }
-    
+
     public PacioliValue asin() {
         Matrix matrix = new Matrix(shape.dimensionless());
         for (int i = 0; i < nrRows(); i++) {
@@ -958,7 +951,7 @@ public class Matrix extends AbstractPacioliValue {
         }
         return matrix;
     }
-    
+
     public PacioliValue acos() {
         Matrix matrix = new Matrix(shape.dimensionless());
         for (int i = 0; i < nrRows(); i++) {
@@ -968,6 +961,7 @@ public class Matrix extends AbstractPacioliValue {
         }
         return matrix;
     }
+
     public PacioliValue atan() {
         Matrix matrix = new Matrix(shape.dimensionless());
         for (int i = 0; i < nrRows(); i++) {
@@ -977,7 +971,7 @@ public class Matrix extends AbstractPacioliValue {
         }
         return matrix;
     }
-    
+
     public Matrix atan2(Matrix other) {
         Matrix matrix = new Matrix(shape);
         for (int i = 0; i < nrRows(); i++) {
@@ -999,82 +993,82 @@ public class Matrix extends AbstractPacioliValue {
 
     public PacioliList svdNonZero() throws MVMException {
 
-    	NonZeroSubMatrix sub = new NonZeroSubMatrix(numbers);
+        NonZeroSubMatrix sub = new NonZeroSubMatrix(numbers);
 
-    	int m = sub.numbers.getRowDimension();
-    	int n = sub.numbers.getColumnDimension();
-    	int p = Math.min(m, n);
+        int m = sub.numbers.getRowDimension();
+        int n = sub.numbers.getColumnDimension();
+        int p = Math.min(m, n);
 
-    	SingularValueDecomposition decomposition = new SingularValueDecomposition(sub.numbers);
+        SingularValueDecomposition decomposition = new SingularValueDecomposition(sub.numbers);
 
-    	RealMatrix numbersU = decomposition.getU();
-    	RealMatrix numbersS = decomposition.getS();
-    	RealMatrix numbersV = decomposition.getV();
+        RealMatrix numbersU = decomposition.getU();
+        RealMatrix numbersS = decomposition.getS();
+        RealMatrix numbersV = decomposition.getV();
 
-    	List<PacioliValue> svs = new ArrayList<PacioliValue>();
-    	for (int i = 0; i < p; i++) {
+        List<PacioliValue> svs = new ArrayList<PacioliValue>();
+        for (int i = 0; i < p; i++) {
 
-    		List<PacioliValue> items = new ArrayList<PacioliValue>();
+            List<PacioliValue> items = new ArrayList<PacioliValue>();
 
-    		Matrix matrixS = new Matrix(shape.getFactor());
-    		Matrix matrixU = new Matrix(shape.rowUnits());
-    		Matrix matrixV = new Matrix(shape.columnUnits());
+            Matrix matrixS = new Matrix(shape.getFactor());
+            Matrix matrixU = new Matrix(shape.rowUnits());
+            Matrix matrixV = new Matrix(shape.columnUnits());
 
-    		matrixS.numbers.setEntry(0, 0, numbersS.getEntry(i, i));
-    		for (int j = 0; j < m; j++) {
-    			matrixU.numbers.setEntry(sub.originalRow(j), 0, numbersU.getEntry(j, i));
-    		}
-    		for (int j = 0; j < n; j++) {
-    			matrixV.numbers.setEntry(sub.originalColumn(j), 0, numbersV.getEntry(j, i));
-    		}
+            matrixS.numbers.setEntry(0, 0, numbersS.getEntry(i, i));
+            for (int j = 0; j < m; j++) {
+                matrixU.numbers.setEntry(sub.originalRow(j), 0, numbersU.getEntry(j, i));
+            }
+            for (int j = 0; j < n; j++) {
+                matrixV.numbers.setEntry(sub.originalColumn(j), 0, numbersV.getEntry(j, i));
+            }
 
-    		items.add(matrixS);
-    		items.add(matrixU);
-    		items.add(matrixV);
+            items.add(matrixS);
+            items.add(matrixU);
+            items.add(matrixV);
 
-    		svs.add(new PacioliTuple(items));
-    	}
-    	
-    	return new PacioliList(svs);
+            svs.add(new PacioliTuple(items));
+        }
+
+        return new PacioliList(svs);
     }
-    
+
     public PacioliList svd() throws MVMException {
 
-    	int m = shape.rowDimension().size();
-    	int n = shape.columnDimension().size();
-    	int p = Math.min(m, n);
+        int m = shape.rowDimension().size();
+        int n = shape.columnDimension().size();
+        int p = Math.min(m, n);
 
-    	SingularValueDecomposition decomposition = new SingularValueDecomposition(numbers);
+        SingularValueDecomposition decomposition = new SingularValueDecomposition(numbers);
 
-    	RealMatrix numbersU = decomposition.getU();
-    	RealMatrix numbersS = decomposition.getS();
-    	RealMatrix numbersV = decomposition.getV();
+        RealMatrix numbersU = decomposition.getU();
+        RealMatrix numbersS = decomposition.getS();
+        RealMatrix numbersV = decomposition.getV();
 
-    	List<PacioliValue> svs = new ArrayList<PacioliValue>();
-    	for (int i = 0; i < p; i++) {
+        List<PacioliValue> svs = new ArrayList<PacioliValue>();
+        for (int i = 0; i < p; i++) {
 
-    		List<PacioliValue> items = new ArrayList<PacioliValue>();
+            List<PacioliValue> items = new ArrayList<PacioliValue>();
 
-    		Matrix matrixS = new Matrix(shape.getFactor());
-    		Matrix matrixU = new Matrix(shape.rowUnits());
-    		Matrix matrixV = new Matrix(shape.columnUnits());
+            Matrix matrixS = new Matrix(shape.getFactor());
+            Matrix matrixU = new Matrix(shape.rowUnits());
+            Matrix matrixV = new Matrix(shape.columnUnits());
 
-    		matrixS.numbers.setEntry(0, 0, numbersS.getEntry(i, i));
-    		for (int j = 0; j < m; j++) {
-    			matrixU.numbers.setEntry(j, 0, numbersU.getEntry(j, i));
-    		}
-    		for (int j = 0; j < n; j++) {
-    			matrixV.numbers.setEntry(j, 0, numbersV.getEntry(j, i));
-    		}
+            matrixS.numbers.setEntry(0, 0, numbersS.getEntry(i, i));
+            for (int j = 0; j < m; j++) {
+                matrixU.numbers.setEntry(j, 0, numbersU.getEntry(j, i));
+            }
+            for (int j = 0; j < n; j++) {
+                matrixV.numbers.setEntry(j, 0, numbersV.getEntry(j, i));
+            }
 
-    		items.add(matrixS);
-    		items.add(matrixU);
-    		items.add(matrixV);
+            items.add(matrixS);
+            items.add(matrixU);
+            items.add(matrixV);
 
-    		svs.add(new PacioliTuple(items));
-    	}
-    	
-    	return new PacioliList(svs);
+            svs.add(new PacioliTuple(items));
+        }
+
+        return new PacioliList(svs);
     }
 
     public PacioliTuple plu() throws MVMException {
@@ -1085,15 +1079,12 @@ public class Matrix extends AbstractPacioliValue {
 
         LUDecomposition decomposition = new LUDecomposition(numbers);
 
-
         matrixP.numbers = decomposition.getP();
         matrixL.numbers = decomposition.getL();
         matrixU.numbers = decomposition.getU();
 
         if (matrixP.numbers == null || matrixL.numbers == null || matrixU.numbers == null) {
-            throw new MVMException("No PLU decomposition for \n\n%s\n\n %s",
-                    toText(),
-                    "the matrix is singular");
+            throw new MVMException("No PLU decomposition for \n\n%s\n\n %s", toText(), "the matrix is singular");
         }
 
         List<PacioliValue> items = new ArrayList<PacioliValue>();
@@ -1103,44 +1094,42 @@ public class Matrix extends AbstractPacioliValue {
 
         return new PacioliTuple(items);
     }
-    
-    
-    
+
     public PacioliTuple qrZeroSub() throws MVMException {
-   
-    	// Collect the non-zero numbers
+
+        // Collect the non-zero numbers
         NonZeroSubMatrix sub = new NonZeroSubMatrix(numbers);
-        
+
         // Do the QR decomposition on the non-zero numbers.
         QRDecomposition decomposition = new QRDecomposition(sub.numbers);
         RealMatrix numbersQ = decomposition.getQ();
         RealMatrix numbersR = decomposition.getR();
-        
+
         Pacioli.logln("mat=%s", sub.numbers.toString());
-        
+
         // Create the full result matrices
         Matrix matrixQ = new Matrix(shape.leftIdentity());
         Matrix matrixR = new Matrix(shape);
-        
+
         // Fill the result matrices from the decomposition result
         for (int i = 0; i < sub.numbers.getRowDimension(); i++) {
             for (int j = 0; j < sub.numbers.getRowDimension(); j++) {
-            	matrixQ.numbers.setEntry(sub.originalRow(i), sub.originalRow(j), numbersQ.getEntry(i, j));
+                matrixQ.numbers.setEntry(sub.originalRow(i), sub.originalRow(j), numbersQ.getEntry(i, j));
             }
         }
         for (int i = 0; i < sub.numbers.getRowDimension(); i++) {
             for (int j = 0; j < sub.numbers.getColumnDimension(); j++) {
-            	matrixR.numbers.setEntry(sub.originalRow(i), sub.originalColumn(j), numbersR.getEntry(i, j));
+                matrixR.numbers.setEntry(sub.originalRow(i), sub.originalColumn(j), numbersR.getEntry(i, j));
             }
         }
-        
+
         // Return a tuple with the result matrices
         List<PacioliValue> items = new ArrayList<PacioliValue>();
         items.add(matrixQ);
         items.add(matrixR);
         return new PacioliTuple(items);
     }
-    
+
     public PacioliTuple qr() throws MVMException {
 
         Matrix matrixQ = new Matrix(shape.leftIdentity());
@@ -1158,80 +1147,81 @@ public class Matrix extends AbstractPacioliValue {
         return new PacioliTuple(items);
     }
 
-	public void set(Integer i, Integer j, Double value) {
-		numbers.setEntry(i, j, value);		
-	}
+    public void set(Integer i, Integer j, Double value) {
+        numbers.setEntry(i, j, value);
+    }
 
-	public PacioliValue project(List<Integer> cols) {
-		Matrix matrix = new Matrix(shape.project(cols));
-		List<Key> keys = rowKeys();
-		for (int i = 0; i < keys.size(); i++) {
-			double value = numbers.getEntry(i, 0);
-			if (value != 0) {
-				int pos = matrix.rowDimension().ElementPos(keys.get(i).projectNames(cols));
-				matrix.numbers.setEntry(pos, 0, matrix.numbers.getEntry(pos, 0) + value);
-			}
-		}
-		return matrix;
-	}
-	private class NonZeroSubMatrix {
+    public PacioliValue project(List<Integer> cols) {
+        Matrix matrix = new Matrix(shape.project(cols));
+        List<Key> keys = rowKeys();
+        for (int i = 0; i < keys.size(); i++) {
+            double value = numbers.getEntry(i, 0);
+            if (value != 0) {
+                int pos = matrix.rowDimension().ElementPos(keys.get(i).projectNames(cols));
+                matrix.numbers.setEntry(pos, 0, matrix.numbers.getEntry(pos, 0) + value);
+            }
+        }
+        return matrix;
+    }
 
-		public RealMatrix numbers;
-		
-		private List<Integer> rowMap = new ArrayList<Integer>();
+    private class NonZeroSubMatrix {
+
+        public RealMatrix numbers;
+
+        private List<Integer> rowMap = new ArrayList<Integer>();
         private List<Integer> columnMap = new ArrayList<Integer>();
-        
-		public NonZeroSubMatrix(RealMatrix matrix) {
-			
-			// Temporary data structure for the non-zero entries
-	        List<Integer> rowCoordinates = new ArrayList<Integer>();
-	        List<Integer> columnCoordinates = new ArrayList<Integer>();
-	        List<Double> values = new ArrayList<Double>();
 
-	        // The dimensions of the non-zero submatrix
-	        int m = 0;
-	        int n = 0;
-	        
-	        Map<Integer, Integer> revRowMap = new HashMap<Integer, Integer>();
-	        Map<Integer, Integer> revColumnMap = new HashMap<Integer, Integer>();
-	        
-	        for (int i = 0; i < nrRows(); i++) {
-	            for (int j = 0; j < nrColumns(); j++) {
-	            	Double value = matrix.getEntry(i, j);
-	            	if (value != 0) {
-	            		
-	            		if (!revRowMap.containsKey(i)) {
-	            			revRowMap.put(i, m++);
-	            			rowMap.add(i);
-	            		}
-	            		if (!revColumnMap.containsKey(j)) {
-	            			revColumnMap.put(j, n++);
-	            			columnMap.add(j);
-	            		}
-	          
-	            		// Remember the value for submatrix coordinates 
-		            	rowCoordinates.add(revRowMap.get(i));
-		            	columnCoordinates.add(revColumnMap.get(j));
-		            	values.add(value);
-	            	}
-	            }
-	        }
-	        
-	        // Create a submatrix for just the non-zero items
-	        numbers = matrix.createMatrix(m, n);
-	        //RealMatrix subMatrix = numbers.createMatrix(rowMap.size(), columnMap.size());
-	        for (int k = 0; k < values.size(); k++) {
-	        	numbers.setEntry(rowCoordinates.get(k), columnCoordinates.get(k), values.get(k));
-	        }
-		}
-    	
-		public int originalRow(int row) {
-			return rowMap.get(row);
-		}
-		
-		public int originalColumn(int column) {
-			return columnMap.get(column);
-		}
-		
+        public NonZeroSubMatrix(RealMatrix matrix) {
+
+            // Temporary data structure for the non-zero entries
+            List<Integer> rowCoordinates = new ArrayList<Integer>();
+            List<Integer> columnCoordinates = new ArrayList<Integer>();
+            List<Double> values = new ArrayList<Double>();
+
+            // The dimensions of the non-zero submatrix
+            int m = 0;
+            int n = 0;
+
+            Map<Integer, Integer> revRowMap = new HashMap<Integer, Integer>();
+            Map<Integer, Integer> revColumnMap = new HashMap<Integer, Integer>();
+
+            for (int i = 0; i < nrRows(); i++) {
+                for (int j = 0; j < nrColumns(); j++) {
+                    Double value = matrix.getEntry(i, j);
+                    if (value != 0) {
+
+                        if (!revRowMap.containsKey(i)) {
+                            revRowMap.put(i, m++);
+                            rowMap.add(i);
+                        }
+                        if (!revColumnMap.containsKey(j)) {
+                            revColumnMap.put(j, n++);
+                            columnMap.add(j);
+                        }
+
+                        // Remember the value for submatrix coordinates
+                        rowCoordinates.add(revRowMap.get(i));
+                        columnCoordinates.add(revColumnMap.get(j));
+                        values.add(value);
+                    }
+                }
+            }
+
+            // Create a submatrix for just the non-zero items
+            numbers = matrix.createMatrix(m, n);
+            // RealMatrix subMatrix = numbers.createMatrix(rowMap.size(), columnMap.size());
+            for (int k = 0; k < values.size(); k++) {
+                numbers.setEntry(rowCoordinates.get(k), columnCoordinates.get(k), values.get(k));
+            }
+        }
+
+        public int originalRow(int row) {
+            return rowMap.get(row);
+        }
+
+        public int originalColumn(int column) {
+            return columnMap.get(column);
+        }
+
     }
 }

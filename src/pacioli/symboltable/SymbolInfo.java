@@ -4,12 +4,12 @@ import pacioli.ast.definition.Definition;
 
 public interface SymbolInfo {
 
-	GenericInfo generic();
-	
-	Definition getDefinition();
-	
-	String name();
-	
-	String globalName();
+    GenericInfo generic();
+
+    Definition getDefinition();
+
+    String name();
+
+    String globalName();
 
 }

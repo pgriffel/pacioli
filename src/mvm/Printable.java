@@ -23,14 +23,11 @@ package mvm;
 
 import java.io.PrintWriter;
 
-/**
- *
- * @author Paul Griffioen
- */
+
 public interface Printable {
 
     public String toText();
 
     public void printText(PrintWriter out);
-    
+
 }

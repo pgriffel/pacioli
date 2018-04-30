@@ -45,24 +45,24 @@ public class IndexSetDefinition extends AbstractDefinition {
         this.items = items;
     }
 
-	@Override
-	public void addToProgr(Progam program, GenericInfo generic) {
-		IndexSetInfo info = program.ensureIndexSetRecord(id.getName());
-		info.generic = generic;
-		info.definition = this;
-	}
-	
-	public String globalName() {
+    @Override
+    public void addToProgr(Progam program, GenericInfo generic) {
+        IndexSetInfo info = program.ensureIndexSetRecord(id.getName());
+        info.generic = generic;
+        info.definition = this;
+    }
+
+    public String globalName() {
         return String.format("index_%s_%s", getModule().getName(), localName());
     }
-	
+
     public IndexSet getIndexSet() {
         return new IndexSet(localName(), items);
     }
 
     @Override
     public void printText(PrintWriter out) {
-    	out.print("todo: indexSetDefinition");
+        out.print("todo: indexSetDefinition");
     }
 
     @Override
@@ -76,8 +76,8 @@ public class IndexSetDefinition extends AbstractDefinition {
 
     @Override
     public String compileToJS(boolean boxed) {
-        String output = String.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', [", 
-        		globalName(), localName());
+        String output = String.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', [",
+                globalName(), localName());
         List<String> quotedItems = new ArrayList<String>();
         for (String item : items) {
             quotedItems.add(String.format("\"%s\"", item));
@@ -89,12 +89,13 @@ public class IndexSetDefinition extends AbstractDefinition {
 
     @Override
     public String compileToMATLAB() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 
 }

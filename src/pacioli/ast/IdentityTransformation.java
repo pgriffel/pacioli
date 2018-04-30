@@ -52,324 +52,294 @@ import pacioli.types.ast.TypeNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 
-public  class IdentityTransformation implements Visitor {
+public class IdentityTransformation implements Visitor {
 
-	private Stack<Node> stack;
-	
-	public IdentityTransformation() {
-		stack = new Stack<Node>(); 
-	}
-	
-	public Node nodeAccept(Node child) {
-		//Pacioli.logln("accept: %s", child.getClass());
-		child.accept(this);
-		return stack.pop();
-	}
+    private Stack<Node> stack;
 
-	public void returnNode(Node value) {
-		//Pacioli.logln("return: %s", value.getClass());
-		stack.push(value);
-	}
-	
-	public ExpressionNode expAccept(Node child) {
-		Node node = nodeAccept(child);
-        assert(node instanceof ExpressionNode);
+    public IdentityTransformation() {
+        stack = new Stack<Node>();
+    }
+
+    public Node nodeAccept(Node child) {
+        // Pacioli.logln("accept: %s", child.getClass());
+        child.accept(this);
+        return stack.pop();
+    }
+
+    public void returnNode(Node value) {
+        // Pacioli.logln("return: %s", value.getClass());
+        stack.push(value);
+    }
+
+    public ExpressionNode expAccept(Node child) {
+        Node node = nodeAccept(child);
+        assert (node instanceof ExpressionNode);
         return (ExpressionNode) node;
-	}
-	
-	public TypeNode typeAccept(Node child) {
+    }
+
+    public TypeNode typeAccept(Node child) {
         Node node = nodeAccept(child);
-        assert(node instanceof TypeNode);
+        assert (node instanceof TypeNode);
         return (TypeNode) node;
-	}
-	
-	public UnitNode unitAccept(Node child) {
+    }
+
+    public UnitNode unitAccept(Node child) {
         Node node = nodeAccept(child);
-        assert(node instanceof UnitNode);
+        assert (node instanceof UnitNode);
         return (UnitNode) node;
-	}
-	
-	@Override
-	public void visit(ProgramNode program) {
-		List<Definition> defs = new ArrayList<Definition>();
-        for (Definition def: program.definitions) {
+    }
+
+    @Override
+    public void visit(ProgramNode program) {
+        List<Definition> defs = new ArrayList<Definition>();
+        for (Definition def : program.definitions) {
             Node node = nodeAccept(def);
-            assert(node instanceof Definition);
+            assert (node instanceof Definition);
             defs.add((Definition) node);
-    		
+
         }
-		returnNode(new ProgramNode(program.module, program.includes, defs));
-	}
+        returnNode(new ProgramNode(program.module, program.includes, defs));
+    }
 
-	@Override
-	public void visit(AliasDefinition node) {
-		returnNode(node);
-	}
+    @Override
+    public void visit(AliasDefinition node) {
+        returnNode(node);
+    }
 
+    @Override
+    public void visit(Declaration node) {
+        returnNode(node.transform(typeAccept(node.typeNode)));
+    }
 
-	@Override
-	public void visit(Declaration node) {
-		returnNode(node.transform(typeAccept(node.typeNode)));
-	}
+    @Override
+    public void visit(IndexSetDefinition node) {
+        returnNode(node);
+    }
 
+    @Override
+    public void visit(MultiDeclaration node) {
+        // throw new RuntimeException("todo");
+        returnNode(node);
+    }
 
-	@Override
-	public void visit(IndexSetDefinition node) {
-		returnNode(node);
-	}
+    @Override
+    public void visit(Toplevel node) {
+        // returnNode(node);
+        returnNode(new Toplevel(node.getLocation(), expAccept(node.body)));
+    }
 
+    @Override
+    public void visit(TypeDefinition node) {
+        returnNode(node);
+    }
 
-	@Override
-	public void visit(MultiDeclaration node) {
-		//throw new RuntimeException("todo");
-		returnNode(node);
-	}
+    @Override
+    public void visit(UnitDefinition node) {
+        returnNode(node);
+    }
 
+    @Override
+    public void visit(UnitVectorDefinition node) {
+        returnNode(node);
+    }
 
-	@Override
-	public void visit(Toplevel node) {
-		//returnNode(node);
-		returnNode(new Toplevel(node.getLocation(), expAccept(node.body)));
-	}
+    @Override
+    public void visit(ValueDefinition node) {
+        returnNode(node.transform(expAccept(node.body)));
+    }
 
-
-	@Override
-	public void visit(TypeDefinition node) {
-		returnNode(node);
-	}
-
-
-	@Override
-	public void visit(UnitDefinition node) {
-		returnNode(node);
-	}
-
-
-	@Override
-	public void visit(UnitVectorDefinition node) {
-		returnNode(node);
-	}
-
-
-	@Override
-	public void visit(ValueDefinition node) {
-		returnNode(node.transform(expAccept(node.body)));		
-	}
-
-
-	@Override
-	public void visit(ApplicationNode node) {
-		List<ExpressionNode> args = new ArrayList<ExpressionNode>();
+    @Override
+    public void visit(ApplicationNode node) {
+        List<ExpressionNode> args = new ArrayList<ExpressionNode>();
         for (ExpressionNode argument : node.arguments) {
             args.add(expAccept(argument));
         }
-		returnNode(new ApplicationNode(node, expAccept(node.function), args));
-	}
+        returnNode(new ApplicationNode(node, expAccept(node.function), args));
+    }
 
+    @Override
+    public void visit(AssignmentNode node) {
+        returnNode(new AssignmentNode(node, expAccept(node.value)));
+    }
 
-	@Override
-	public void visit(AssignmentNode node) {
-		returnNode(new AssignmentNode(node, expAccept(node.value)));
-	}
+    @Override
+    public void visit(BranchNode node) {
+        returnNode(new BranchNode(node, expAccept(node.test), expAccept(node.positive), expAccept(node.negative)));
+    }
 
+    @Override
+    public void visit(ConstNode node) {
+        // returnValue(new ConstNode(node));
+        returnNode(node);
+    }
 
-	@Override
-	public void visit(BranchNode node) {
-		returnNode(new BranchNode(node, expAccept(node.test), expAccept(node.positive), expAccept(node.negative)));
-	}
+    @Override
+    public void visit(ConversionNode node) {
+        // returnValue(new ConversionNode(node));
+        // returnValue(node);
+        returnNode(node.transform(typeAccept(node.typeNode)));
+    }
 
+    @Override
+    public void visit(IdentifierNode node) {
+        // returnValue(new IdentifierNode(node));
+        returnNode(node);
+    }
 
-	@Override
-	public void visit(ConstNode node) {
-		//returnValue(new ConstNode(node));
-		returnNode(node);
-	}
+    @Override
+    public void visit(IfStatementNode node) {
+        returnNode(new IfStatementNode(node, expAccept(node.test), expAccept(node.positive), expAccept(node.negative)));
+    }
 
+    @Override
+    public void visit(KeyNode node) {
+        // returnValue(new KeyNode(node));
+        returnNode(node);
+    }
 
-	@Override
-	public void visit(ConversionNode node) {
-		//returnValue(new ConversionNode(node));
-		//returnValue(node);
-		returnNode(node.transform(typeAccept(node.typeNode)));
-	}
+    @Override
+    public void visit(LambdaNode node) {
+        returnNode(new LambdaNode(node, expAccept(node.expression)));
+    }
 
+    @Override
+    public void visit(MatrixLiteralNode node) {
+        // returnValue(new MatrixLiteralNode(node));
+        returnNode(node);
+    }
 
-	@Override
-	public void visit(IdentifierNode node) {
-		//returnValue(new IdentifierNode(node));
-		returnNode(node);
-	}
+    @Override
+    public void visit(MatrixTypeNode node) {
+        // throw new RuntimeException("todo");
+        // returnValue(node);
+        returnNode(node);
+    }
 
+    @Override
+    public void visit(ProjectionNode node) {
+        returnNode(node);
+        throw new RuntimeException("todo");
+    }
 
-	@Override
-	public void visit(IfStatementNode node) {
-		returnNode(new IfStatementNode(node, expAccept(node.test), expAccept(node.positive), expAccept(node.negative)));		
-	}
+    @Override
+    public void visit(ReturnNode node) {
+        returnNode(node.transform(expAccept(node.value)));
+    }
 
-
-	@Override
-	public void visit(KeyNode node) {
-		//returnValue(new KeyNode(node));
-		returnNode(node);
-	}
-
-
-	@Override
-	public void visit(LambdaNode node) {
-		returnNode(new LambdaNode(node, expAccept(node.expression)));
-	}
-
-
-	@Override
-	public void visit(MatrixLiteralNode node) {
-		//returnValue(new MatrixLiteralNode(node));
-		returnNode(node);
-	}
-
-
-	@Override
-	public void visit(MatrixTypeNode node) {
-		//throw new RuntimeException("todo");
-		//returnValue(node);
-		returnNode(node);
-	}
-
-
-	@Override
-	public void visit(ProjectionNode node) {
-		returnNode(node);
-		throw new RuntimeException("todo");
-	}
-
-
-	@Override
-	public void visit(ReturnNode node) {
-		returnNode(node.transform(expAccept(node.value)));
-	}
-
-
-	@Override
-	public void visit(SequenceNode node) {
-		List<ExpressionNode> items = new ArrayList<ExpressionNode>();
-		for (ExpressionNode item : node.items) {
-        	items.add(expAccept(item));
+    @Override
+    public void visit(SequenceNode node) {
+        List<ExpressionNode> items = new ArrayList<ExpressionNode>();
+        for (ExpressionNode item : node.items) {
+            items.add(expAccept(item));
         }
-		returnNode(node.transform(items));
-	}
+        returnNode(node.transform(items));
+    }
 
+    @Override
+    public void visit(StatementNode node) {
+        returnNode(node);
+        // throw new RuntimeException("todo");
+    }
 
-	@Override
-	public void visit(StatementNode node) {
-		returnNode(node);		
-		//throw new RuntimeException("todo");
-	}
+    @Override
+    public void visit(StringNode node) {
+        returnNode(node);
+    }
 
+    @Override
+    public void visit(TupleAssignmentNode node) {
+        returnNode(node);
+        throw new RuntimeException("todo");
+    }
 
-	@Override
-	public void visit(StringNode node) {
-		returnNode(node);		
-	}
+    @Override
+    public void visit(WhileNode node) {
+        returnNode(node.transform(expAccept(node.test), expAccept(node.body)));
+    }
 
+    @Override
+    public void visit(BangTypeNode node) {
+        returnNode(node);
+    }
 
-	@Override
-	public void visit(TupleAssignmentNode node) {
-		returnNode(node);
-		throw new RuntimeException("todo");
-	}
+    @Override
+    public void visit(FunctionTypeNode node) {
+        returnNode(node.transform(typeAccept(node.domain), typeAccept(node.range)));
+    }
 
+    @Override
+    public void visit(NumberTypeNode node) {
+        returnNode(node);
+    }
 
-	@Override
-	public void visit(WhileNode node) {
-		returnNode(node.transform(expAccept(node.test), expAccept(node.body)));
-	}
+    @Override
+    public void visit(SchemaNode node) {
+        returnNode(node.transform(typeAccept(node.type)));
+    }
 
-
-	@Override
-	public void visit(BangTypeNode node) {
-		returnNode(node);
-	}
-
-
-	@Override
-	public void visit(FunctionTypeNode node) {
-		returnNode(node.transform(typeAccept(node.domain), typeAccept(node.range)));
-	}
-
-
-	@Override
-	public void visit(NumberTypeNode node) {
-		returnNode(node);		
-	}
-
-
-	@Override
-	public void visit(SchemaNode node) {
-		returnNode(node.transform(typeAccept(node.type)));
-	}
-
-	@Override
-	public void visit(TypeApplicationNode node) {
-		List<TypeNode> args = new ArrayList<TypeNode>();
+    @Override
+    public void visit(TypeApplicationNode node) {
+        List<TypeNode> args = new ArrayList<TypeNode>();
         for (TypeNode arg : node.args) {
             args.add(typeAccept(arg));
         }
-		returnNode(node.transform(node.op, args));
-	}
+        returnNode(node.transform(node.op, args));
+    }
 
-	@Override
-	public void visit(TypeIdentifierNode node) {
-		returnNode(node);
-	}
+    @Override
+    public void visit(TypeIdentifierNode node) {
+        returnNode(node);
+    }
 
-	@Override
-	public void visit(TypePowerNode node) {
-		returnNode(node.transform(typeAccept(node.base)));
-	}
+    @Override
+    public void visit(TypePowerNode node) {
+        returnNode(node.transform(typeAccept(node.base)));
+    }
 
-	@Override
-	public void visit(PrefixUnitTypeNode node) {
-		returnNode(node);
-	}
+    @Override
+    public void visit(PrefixUnitTypeNode node) {
+        returnNode(node);
+    }
 
-	@Override
-	public void visit(TypeMultiplyNode node) {
-		returnNode(node.transform(typeAccept(node.left), typeAccept(node.right)));
-	}
+    @Override
+    public void visit(TypeMultiplyNode node) {
+        returnNode(node.transform(typeAccept(node.left), typeAccept(node.right)));
+    }
 
-	@Override
-	public void visit(TypeDivideNode node) {
-		returnNode(node.transform(typeAccept(node.left), typeAccept(node.right)));
-		
-	}
+    @Override
+    public void visit(TypeDivideNode node) {
+        returnNode(node.transform(typeAccept(node.left), typeAccept(node.right)));
 
-	@Override
-	public void visit(TypeKroneckerNode node) {
-		returnNode(node.transform(typeAccept(node.left), typeAccept(node.right)));
-	}
+    }
 
-	@Override
-	public void visit(TypePerNode node) {
-		returnNode(node.transform(typeAccept(node.left), typeAccept(node.right)));
-	}
+    @Override
+    public void visit(TypeKroneckerNode node) {
+        returnNode(node.transform(typeAccept(node.left), typeAccept(node.right)));
+    }
 
-	@Override
-	public void visit(NumberUnitNode node) {
-		returnNode(node);
-	}
+    @Override
+    public void visit(TypePerNode node) {
+        returnNode(node.transform(typeAccept(node.left), typeAccept(node.right)));
+    }
 
-	@Override
-	public void visit(UnitIdentifierNode node) {
-		returnNode(node);
-	}
+    @Override
+    public void visit(NumberUnitNode node) {
+        returnNode(node);
+    }
 
-	@Override
-	public void visit(UnitOperationNode node) {
-		returnNode(node.transform(unitAccept(node.left), unitAccept(node.right)));
-	}
+    @Override
+    public void visit(UnitIdentifierNode node) {
+        returnNode(node);
+    }
 
-	@Override
-	public void visit(UnitPowerNode node) {
-		returnNode(node.transform(unitAccept(node.base)));
-	}
+    @Override
+    public void visit(UnitOperationNode node) {
+        returnNode(node.transform(unitAccept(node.left), unitAccept(node.right)));
+    }
+
+    @Override
+    public void visit(UnitPowerNode node) {
+        returnNode(node.transform(unitAccept(node.base)));
+    }
 
 }

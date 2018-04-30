@@ -28,9 +28,9 @@ import pacioli.Typing;
 import pacioli.ast.Node;
 
 public interface ExpressionNode extends Node {
-    
+
     public Typing inferTyping2(Progam prog);
 
     public Set<IdentifierNode> locallyAssignedVariables();
-    
+
 }

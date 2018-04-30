@@ -111,7 +111,7 @@ public class PacioliList extends AbstractPacioliValue {
             throw new MVMException("Index %s for function 'nth' out of bounds. List size is %s", n, items.size());
         }
     }
-    
+
     public PacioliValue head() throws MVMException {
         if (items.isEmpty()) {
             throw new MVMException("function 'head' called on empty list");
@@ -120,9 +120,9 @@ public class PacioliList extends AbstractPacioliValue {
         }
     }
 
-	public PacioliValue reverse() {
-		ArrayList<PacioliValue> accu = new ArrayList<PacioliValue>(items);
-		Collections.reverse(accu);
+    public PacioliValue reverse() {
+        ArrayList<PacioliValue> accu = new ArrayList<PacioliValue>(items);
+        Collections.reverse(accu);
         return new PacioliList(accu);
-	}
+    }
 }

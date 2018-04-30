@@ -30,25 +30,25 @@ import pacioli.symboltable.ValueInfo;
 public class ReturnNode extends AbstractExpressionNode {
 
     public final ExpressionNode value;
-    
+
     private final IdentifierNode resultPlace;
 
-	public ValueInfo info;
+    public ValueInfo info;
 
     public ReturnNode(Location location, ExpressionNode value) {
         super(location);
         this.value = value;
         this.resultPlace = null;
     }
-    
+
     public ExpressionNode transform(ExpressionNode value) {
-    	return new ReturnNode(getLocation(), value, resultPlace);
+        return new ReturnNode(getLocation(), value, resultPlace);
     }
-    
+
     public ExpressionNode resolve(ExpressionNode value, IdentifierNode resultPlace) throws PacioliException {
-   		return new ReturnNode(getLocation(), value, resultPlace);
+        return new ReturnNode(getLocation(), value, resultPlace);
     }
-    
+
     public ReturnNode(Location location, ExpressionNode value, IdentifierNode resultPlace) {
         super(location);
         this.value = value;
@@ -64,16 +64,17 @@ public class ReturnNode extends AbstractExpressionNode {
 
     @Override
     public String compileToJS(boolean boxed) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
     }
-    
+
     @Override
     public String compileToMATLAB() {
         return resultPlace.toText() + " = " + value.compileToMATLAB() + ";\nreturn";
     }
 
-	@Override
-	public void accept(Visitor visitor) {
-		visitor.visit(this);
-	}
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
 }
