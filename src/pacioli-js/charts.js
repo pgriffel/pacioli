@@ -41,7 +41,7 @@ Pacioli.LineChart = function (parent, data, options) {
         norm: null,
         ymin: null,
         ymax: null,
-        xticks: 8,
+        xticks: 5,
         yticks: 5,
         rotate: false,
         smooth: false
@@ -158,7 +158,7 @@ Pacioli.LineChart.prototype.draw = function () {
              .attr("class", "data");
     
     } catch (err) {
-        Pacioli.displayChartError(this.parent, "While drawing bar chart '" + this.options.label + "':", err);
+        Pacioli.displayChartError(this.parent, "While drawing line chart '" + this.options.label + "':", err);
     }
 
     return this
@@ -178,6 +178,7 @@ Pacioli.PieChart = function (parent, data, options) {
     var defaultOptions = {
         width: 640,
         height: 360,
+        radius: 100,
         left: 10,
         top: 10,
         right: 10,
@@ -185,13 +186,211 @@ Pacioli.PieChart = function (parent, data, options) {
         unit: null,
         label: "",
         labelOffset: 0.5,
-        decimals: 2
+        decimals: 1
     }
 
     this.options = Pacioli.copyOptions(options, defaultOptions)
 }
 
 Pacioli.PieChart.prototype.draw = function () {
+
+    try {
+
+        var shape = this.data.type.param
+        var numbers = this.data.value
+        var parent = this.parent
+        
+        // Make the parent node empty
+        while (parent.firstChild) {
+            parent.removeChild(parent.firstChild)
+        }
+    
+        // Convert the Pacioli vector to an array with the right info
+        var data = []
+        var unit = this.options.unit || shape.unitAt(0, 0)
+        var uom = unit.symbolized().toText();
+        var decimals = this.options.decimals;
+        for (var i = 0; i < numbers.nrRows; i++) {
+            var factor = shape.unitAt(i, 0).conversionFactor(unit)
+            var num = Pacioli.getNumber(numbers, i, 0) * factor;
+            if (num != 0) {
+            data.push({
+                number: num,
+                label: shape.rowCoordinates(i).shortText()
+//                label: shape.rowCoordinates(i).shortText() + ' ' + num.toFixed(decimals) + (uom === "1" ? '' : ' ' + uom)
+            })
+            }
+        }
+
+        var width = this.options.width;
+        var height = this.options.height;
+        //var radius = Math.min(width, height) / 2
+        var radius = this.options.radius;
+
+        var svg = d3.select(this.parent).append("svg");
+        svg.attr("class", "pacioli-pie-chart");
+        svg.attr("width", width);
+        svg.attr("height", height);
+//        svg.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+        svg = svg.append("g");
+
+        if (data.length === 0) {
+            svg.append("text")
+//               .attr("dy", ".35em")
+               .attr('text-anchor', 'middle')
+               .text("No data available");
+        }
+
+        svg.append("g")
+                .attr("class", "slices");
+        svg.append("g")
+                .attr("class", "labels");
+        svg.append("g")
+                .attr("class", "lines");
+
+        var pie = d3.layout.pie()
+                .sort(null)
+                .value(function(d) {
+                        return d.number;
+                });
+
+        var arc = d3.svg.arc()
+                .outerRadius(radius * 0.8)
+                .innerRadius(radius * 0.4);
+
+        var outerArc = d3.svg.arc()
+                .innerRadius(radius * 0.9)
+                .outerRadius(radius * 0.9);
+
+
+        svg.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+        var key = function(d){ return d.data.label; };
+
+        var color = d3.scale.ordinal()
+                .domain(["Lorem ipsum", "dolor sit", "amet", "consectetur", "adipisicing", "elit", "sed", "do", "eiusmod", "tempor", "incididunt"])
+                .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
+        function randomData (){
+                var labels = color.domain();
+                return labels.map(function(label){
+                        return { label: label, number: Math.random() }
+                });
+        }
+
+        function change(data) {
+
+                /* ------- PIE SLICES -------*/
+                var slice = svg.select(".slices").selectAll("path.slice")
+                        .data(pie(data), key);
+
+                slice.enter()
+                        .insert("path")
+                        .style("fill", function(d) { return color(d.data.label); })
+                        .attr("class", "slice");
+
+                slice		
+                        .transition().duration(1000)
+                        .attrTween("d", function(d) {
+                                this._current = this._current || d;
+                                var interpolate = d3.interpolate(this._current, d);
+                                this._current = interpolate(0);
+                                return function(t) {
+                                        return arc(interpolate(t));
+                                };
+                        })
+
+                slice.exit()
+                        .remove();
+
+                /* ------- TEXT LABELS -------*/
+
+                var text = svg.select(".labels").selectAll("text")
+                        .data(pie(data), key);
+
+                text.enter()
+                        .append("text")
+                        .attr("dy", ".35em")
+                        .text(function(d) {
+                                return d.data.label;
+                        });
+
+                function midAngle(d){
+                        return d.startAngle + (d.endAngle - d.startAngle)/2;
+                }
+
+                text.transition().duration(1000)
+                        .attrTween("transform", function(d) {
+                                this._current = this._current || d;
+                                var interpolate = d3.interpolate(this._current, d);
+                                this._current = interpolate(0);
+                                return function(t) {
+                                        var d2 = interpolate(t);
+                                        var pos = outerArc.centroid(d2);
+                                        var pos2 = outerArc.centroid(d2);
+                                        pos2[0] = radius * (midAngle(d2) < Math.PI ? 1 : -1);
+                                        pos2[1] = (1 + 0.2 * Math.abs(Math.cos(midAngle(d2)))) * pos2[1];
+                                        return "translate("+ pos2 +")";
+                                };
+                        })
+                        .styleTween("text-anchor", function(d){
+                                this._current = this._current || d;
+                                var interpolate = d3.interpolate(this._current, d);
+                                this._current = interpolate(0);
+                                return function(t) {
+                                        var d2 = interpolate(t);
+                                        return midAngle(d2) < Math.PI ? "start":"end";
+                                };
+                        });
+
+                text.exit()
+                        .remove();
+
+                /* ------- SLICE TO TEXT POLYLINES -------*/
+
+                var polyline = svg.select(".lines").selectAll("polyline")
+                        .data(pie(data), key);
+
+                polyline.enter()
+                        .append("polyline");
+
+                polyline.transition().duration(1000)
+                        .attrTween("points", function(d){
+                                this._current = this._current || d;
+                                var interpolate = d3.interpolate(this._current, d);
+                                this._current = interpolate(0);
+                                return function(t) {
+                                        var d2 = interpolate(t);
+                                        var pos = outerArc.centroid(d2);
+                                        var pos2 = outerArc.centroid(d2);
+                                        //pos2[0] = radius * 0.95 * (midAngle(d2) < Math.PI ? 1 : -1);
+                                        pos2[0] = radius * 0.95 * (midAngle(d2) < Math.PI ? 1 : -1);
+                                        //pos2[1] = (1 - Math.sin(midAngle(d2))) * pos2[1];
+                                        pos[1] = (1 + 0.2 * Math.abs(Math.cos(midAngle(d2)))) * pos[1];
+                                        pos2[1] = (1 + 0.2 * Math.abs(Math.cos(midAngle(d2)))) * pos2[1];
+                                        return [arc.centroid(d2), pos, pos2];
+                                };			
+                        });
+
+                polyline.exit()
+                        .remove();
+        };
+
+  //console.log('chart', data.filter(function (x) {return x.number != 0; }));
+
+        change(data.filter(function (x) {return x.number != 0; }));
+//        change(randomData());
+
+    } catch (err) {
+        Pacioli.displayChartError(this.parent, "While drawing pie chart '" + this.options.label + "':", err)
+    }
+
+    return this
+};
+
+
+Pacioli.PieChart.prototype.drawOLD = function () {
 
     try {
 
@@ -276,7 +475,7 @@ Pacioli.PieChart.prototype.draw = function () {
              //return 0 < d.data.number ? d.data.label + ' = ' + d.data.number.toFixed(this.options.decimals) + ' ' + unit.symbolized().toText() : ""
          });    
     } catch (err) {
-        Pacioli.displayChartError(this.parent, "While drawing bar chart '" + this.options.label + "':", err)
+        Pacioli.displayChartError(this.parent, "While drawing pie chart '" + this.options.label + "':", err)
     }
 
     return this
@@ -294,11 +493,17 @@ Pacioli.BarChart = function (parent, data, options) {
     var defaultOptions = {
         width: 640,
         height: 360,
-        margin: {left: 10, top: 10, right: 10, bottom: 10},
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
         unit: null,
         ymin: null,
         ymax: null,
-        label: ""
+        label: "",
+        onclick: function (data) {
+            alert("Values for " + data.label + " is " + data.number.toFixed(2));
+        }
     }
 
     this.options = Pacioli.copyOptions(options, defaultOptions)
@@ -308,18 +513,18 @@ Pacioli.BarChart.prototype.draw = function () {
 
     try {
 
-        var shape = this.data.type.param
-        var numbers = this.data.value
-        var parent = this.parent
-        
-        // Make the parent node empty
-        while (parent.firstChild) {
-            parent.removeChild(parent.firstChild)
-        }
-    
-        // Convert the Pacioli vector to an array with the right info
+        var shape = this.data.type.param;
+        var numbers = this.data.value;
+        var parent = this.parent;
+        var options = this.options;
+
+        // Determine the value's unit
+        var unit = options.unit || shape.unitAt(0, 0)
+        var yUnitText = unit.symbolized().toText();
+
+        // Convert the Pacioli vector to an array with labels (x
+        // dimension) and numbers (y dimension)
         var data = []
-        var unit = this.options.unit || shape.unitAt(0, 0)
         for (var i = 0; i < numbers.nrRows; i++) {
             var factor = shape.unitAt(i, 0).conversionFactor(unit)
             data.push({
@@ -328,41 +533,59 @@ Pacioli.BarChart.prototype.draw = function () {
             })
         }
 
-        // Copied from the interwebs
-        var margin = {top: 20, right: 20, bottom: 150, left: 40}
-        var width = this.options.width - margin.left - margin.right
-        var height = this.options.height - margin.top - margin.bottom
-        
-        var x = d3.scale.ordinal()
-                  .rangeRoundBands([0, width], .1);
-        
-        var y = d3.scale.linear()
-                  .range([height, 0]);
-        
-        var xAxis = d3.svg.axis()
-                      .scale(x)
-                      .orient("bottom");
+        // Determine the min and max data values
+        var yMin = options.ymin != null ? options.ymin : d3.min(data, function(d) { return d.number; });
+        var yMax = options.ymax != null ? options.ymax : d3.max(data, function(d) { return d.number; });
 
         // todo: show this text on x axis
         var xSet = shape.rowName() //vector.shape.rowSets.map(function (x) {return x.name})
+      
+        // Make the parent node empty
+        while (parent.firstChild) {
+            parent.removeChild(parent.firstChild);
+        }
+
+        // Add an svg element
+        var svg = d3.select(parent).append("svg");
+        svg.attr("width", options.width)
+           .attr("height", options.height);
+  
+        // Create a margin object following the D3 convention
+        var margin = {
+            left:   40 + options.left, 
+            top:    20 + options.top, 
+            right:  10 + options.right, 
+            bottom: 50 + options.bottom
+        };
+        var width = options.width - margin.left - margin.right;
+        var height = options.height - margin.top - margin.bottom;
         
-        var yAxis = d3.svg.axis()
-                       .scale(y)
-                       .orient("left")
-                       .ticks(5, "%");
+        // Create the x and y scales 
+        var x = d3.scale.ordinal();
+        //x.rangePoints([0, width], .1)
+        x.rangeRoundBands([0, width], .1)
+         .domain(data.map(function(d) { return d.label; }));
+
+        var y = d3.scale.linear();
+        y.range([height, 0])
+         .domain([yMin, yMax]);
+
+        // Add an inner group according to the margins
+        var inner = svg.append("g")
+        inner.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        // Create an x and y axis for the inner group
+        var xAxis = d3.svg.axis();
+        xAxis.scale(x)
+             .orient("bottom");
         
-        var svg = d3.select(this.parent).append("svg")
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-                    .append("g")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        var yAxis = d3.svg.axis();
+        yAxis.scale(y)
+             .orient("left")
+             .ticks(5, "%");
     
-        x.domain(data.map(function(d) { return d.label; }));
-        var yMin = this.options.ymin ? this.options.ymin : 0;
-        var yMax = this.options.ymax ? this.options.ymax : d3.max(data, function(d) { return d.number; });
-        y.domain([yMin, yMax]);
-    
-        svg.append("g")
+        // Add the x axis to the inner group
+        inner.append("g")
            .attr("class", "x axis")
            .attr("transform", "translate(0," + height + ")")
            .call(xAxis)
@@ -372,24 +595,35 @@ Pacioli.BarChart.prototype.draw = function () {
            .attr("dy", ".15em")
            .attr("transform", function(d) { return "rotate(-65)" });
 
-        svg.append("g")
+        // Add the y axis to the inner group
+        inner.append("g")
            .attr("class", "y axis")
            .call(yAxis)
-           .append("text")
-           .attr("transform", "rotate(-90)")
-           .attr("y", 6)
-           .attr("dy", ".71em")
-           .style("text-anchor", "end")
-           .text(this.options.label + " [" + unit.symbolized().toText() + "]");
-    
-        svg.selectAll(".bar")
+
+        // Add the bars the inner group
+        inner.selectAll(".bar")
            .data(data)
            .enter().append("rect")
            .attr("class", "bar")
-           .attr("x", function(d) { return x(d.label)+12; })    // the +12 -12 makes room for the y axis label
-           .attr("width", x.rangeBand()-12)
-           .attr("y", function(d) { return y(d.number); })
-           .attr("height", function(d) { return height - y(d.number); });
+           .attr("x", function(d) { return x(d.label); })
+           .attr("width", x.rangeBand())
+           .attr("y", function(d) { return Math.min(y(0), y(d.number)); })
+           .attr("height", function(d) { return Math.abs(y(0) - y(d.number)); })
+           .on("click", function (d, i) {
+                            var dat = {
+                                description: this.options.label,
+                                number: new Pacioli.DimensionedNumber(d.number, unit),
+                                label: d.label,
+                                index: xSet
+                            };
+                            this.options.onclick(dat);
+                        }.bind(this))
+
+        // Add the y axis label to the inner group
+        inner.append("text")
+           .attr("dx", "0.5em")
+           .style("text-anchor", "start")
+           .text(this.options.label + (yUnitText === "1" ? "" : " [" + yUnitText + "]"));
 
     } catch (err) {
         Pacioli.displayChartError(this.parent, "While drawing bar chart '" + this.options.label + "':", err)
@@ -441,17 +675,18 @@ Pacioli.Histogram = function (parent, data, options) {
 Pacioli.Histogram.prototype.draw = function () {
 
     try {
-
+        console.log('hist', this.options);
         var unit = this.options.unit || Pacioli.dataUnit(this.data)
         var data = Pacioli.transformData(this.data, unit)
-
+        console.log('hist this.data', this.data);
+        console.log('hist data', data);
         // Create an array with the bin tresholds and generate a histogram layout from it for the data
-        var lower = this.options.lower || data.min //d3.min(data)
-        var upper = this.options.upper || data.max //d3.max(data)
+        var lower = (typeof this.options.lower === "number") ? this.options.lower : data.min; //d3.min(data)
+        var upper = (typeof this.options.upper === "number") ? this.options.upper : data.max; //d3.max(data)
         var binScale = d3.scale.linear().domain([0, this.options.bins]).range([lower, upper]);
         var binArray = d3.range(this.options.bins + 1).map(binScale);
         var layout = d3.layout.histogram().bins(binArray)(data.values);   
-
+console.log('hist lower', lower);
         // Determine the drawing dimensions
         var margin = this.options.margin
         var width = this.options.width - margin.left - margin.right
@@ -465,7 +700,7 @@ Pacioli.Histogram.prototype.draw = function () {
         
         // Create the axes
         var xAxis = d3.svg.axis().scale(x).orient("bottom");
-        var yAxis = d3.svg.axis().scale(y).orient("left")
+        var yAxis = d3.svg.axis().scale(y).orient("left").ticks(5, "%");
         
         // Make the parent node empty
         while (parent.firstChild) {
@@ -523,7 +758,7 @@ Pacioli.Histogram.prototype.draw = function () {
 };
 
 Pacioli.Histogram.prototype.onClick = function (lower, upper, max, frequency) {
-
+    console.log('onclick', lower, upper);
     var result
     var unit = this.options.unit || Pacioli.dataUnit(this.data)
     var unitShape = new Pacioli.Shape(unit);
@@ -794,6 +1029,117 @@ Pacioli.linearRegression = function (x,y){
 		
 		return lr;
 }
+
+// -----------------------------------------------------------------------------
+// Word Cloud
+// -----------------------------------------------------------------------------
+
+Pacioli.WordCloud = function (parent, data, options) {
+
+    this.parent = parent
+    this.data = data
+
+    var defaultOptions = {
+        width: 640,
+        height: 360,
+        margin: {left: 40, top: 20, right: 20, bottom: 50},
+        xunit: null,
+        yunit: null,
+        lowerX: null,
+        lowerXa: null,
+        upperX: null,
+        lowerY: null,
+        upperY: null,
+        labelX: "",
+        labelY: "",
+        radius: 2.5,
+        trendline: false,
+        onclick: function (data) {
+                     alert("Values at coordinates " + data.coordinates.names + " of index sets (" +
+                           data.coordinates.indexSets.map(function (x) {return x.name}) + ") are \n\n" +
+                           data.xlabel + " = " + data.xnumber.toFixed(2) + "\n" +
+                           data.ylabel + " = " + data.ynumber.toFixed(2));
+                 }
+    }
+
+    this.options = Pacioli.copyOptions(options, defaultOptions)
+}
+
+Pacioli.WordCloud.prototype.draw = function () {
+
+    try {
+
+      console.log("drawing wordcloud option", this.options);
+      console.log("drawing wordcloud data", this.data);
+
+      var words = this.data.map( function (d) {
+          return {text: d[0],
+                  size: d[1]}
+      })
+
+      console.log("words", words);
+
+        // Determine the drawing dimensions
+        var margin = this.options.margin
+        var width = this.options.width - margin.left - margin.right
+        var height = this.options.height - margin.top - margin.bottom
+
+       var w = width + margin.left + margin.right;
+       var h = height + margin.top + margin.bottom;
+       
+        // Create an svg element under the parent        
+        var svg = d3.select(this.parent).append("svg")
+                    .attr("width", w)
+                    .attr("height", h)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+        var layout = d3.layout.cloud()
+            .size([w, h])
+            .words(
+
+            /*[
+              "Hello", "world", "normally", "you", "want", "more", "words",
+              "than", "this"].map(function(d) {
+              return {text: d, size: 10 + Math.random() * 90, test: "haha"};
+            })*/
+             words)
+            .padding(5)
+            .rotate(function() { return ~~(Math.random() * 2) * 90; })
+            .font("Impact")
+            .fontSize(function(d) { return d.size; })
+            .on("end", draw);
+
+        layout.start();
+
+        function draw(words) {
+//          d3.select("body").append("svg")
+//              .attr("width", layout.size()[0])
+//              .attr("height", layout.size()[1])
+
+            svg.append("g")
+              .attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+            .selectAll("text")
+              .data(words)
+            .enter().append("text")
+              .style("font-size", function(d) { return d.size + "px"; })
+              .style("font-family", "Impact")
+              .attr("text-anchor", "middle")
+              .attr("transform", function(d) {
+                return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+              })
+              .text(function(d) { return d.text; });
+        }
+
+    } catch (err) {
+        Pacioli.displayChartError(this.parent, "While drawing word cloud '" + this.options.labelX + "':", err)
+    }
+
+    return this
+
+    };
+
 // -----------------------------------------------------------------------------
 // Utilities
 // -----------------------------------------------------------------------------
@@ -860,6 +1206,7 @@ Pacioli.transformData = function (data, unit) {
         var numbers = data.value
         var shape = data.type.param
 
+ if (false) {
     var nums = Pacioli.getCOONumbers(numbers)
     var rows = nums[0]
     var columns = nums[1]
@@ -872,17 +1219,19 @@ Pacioli.transformData = function (data, unit) {
             if (max === undefined || max < value) max = value
             if (min === undefined || value < min) min = value
     }
+    } else {
 
-//        for (var i = 0; i < numbers.nrRows; i++) {
-//            var factor = shape.unitAt(i, 0).conversionFactor(unit)
-//            var value = Pacioli.getNumber(numbers, i, 0) * factor
-//            if (value !== 0) { 
-//                values.push(value)
-//                labels.push(shape.rowCoordinates(i).shortText())
-//                if (max === undefined || max < value) max = value
-//                if (min === undefined || value < min) min = value
-//            }
-//        }
+        for (var i = 0; i < numbers.nrRows; i++) {
+            var factor = shape.unitAt(i, 0).conversionFactor(unit)
+            var value = Pacioli.getNumber(numbers, i, 0) * factor
+            if (false || value !== 0) { 
+                values.push(value)
+                labels.push(shape.rowCoordinates(i).shortText())
+            }
+            if (max === undefined || max < value) max = value
+            if (min === undefined || value < min) min = value
+        }
+   }
         break;
     default:
         throw "exptected a vector or a list of numbers but got a " + data.type.kind

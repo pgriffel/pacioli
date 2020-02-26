@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import mvm.ast.Expression;
+import mvm.ast.expression.Expression;
 import mvm.values.PacioliValue;
 
 public class Environment {

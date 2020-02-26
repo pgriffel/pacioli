@@ -21,18 +21,28 @@
 
 package pacioli.ast;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import pacioli.AbstractPrintable;
 import pacioli.CompilationSettings;
 import pacioli.Location;
 import pacioli.Progam;
+import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.ValueDefinition;
+import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.SymbolInfo;
-import pacioli.visitors.DesugarStatements;
+import pacioli.symboltable.UnitInfo;
+import pacioli.symboltable.ValueInfo;
 import pacioli.visitors.DesugarVisitor;
 import pacioli.visitors.MVMGenerator;
+import pacioli.visitors.PrintVisitor;
 import pacioli.visitors.ResolveVisitor;
 import pacioli.visitors.UsesVisitor;
 
@@ -56,19 +66,29 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
             return location.description();
         }
     }
+    
+    @Override
+    public void printText(PrintWriter out) {
+        //BufferedWriter out = new BufferedWriter(new FileWriter(baseName() + ".mvm"));
 
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(out);
+            PrintVisitor visitor = new PrintVisitor(writer);
+            this.accept(visitor);
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
+    }
+    
     @Override
     public Node desugar() {
         DesugarVisitor visitor = new DesugarVisitor();
         return visitor.nodeAccept(this);
     }
-
-    @Override
-    public Node desugarStatements(Progam prog) {
-        DesugarStatements visitor = new DesugarStatements(prog);
-        return visitor.nodeAccept(this);
-    }
-
+    
     @Override
     public String compileToMVM(CompilationSettings settings) {
         StringWriter outputStream = new StringWriter();

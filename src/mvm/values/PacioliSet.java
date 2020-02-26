@@ -68,7 +68,7 @@ public class PacioliSet extends AbstractPacioliValue {
     @Override
     public void printText(PrintWriter out) {
         out.print("{");
-        out.print(AbstractPrintable.intercalateText(", ", new ArrayList(items)));
+        out.print(AbstractPrintable.intercalateText(", ", new ArrayList<PacioliValue>(items)));
         out.print("}");
     }
 

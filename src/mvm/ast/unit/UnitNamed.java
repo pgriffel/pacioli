@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
-import mvm.ast.shape.ShapeNode;
 import uom.Unit;
 
 public class UnitNamed extends AbstractPrintable implements UnitNode {

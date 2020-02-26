@@ -19,14 +19,33 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package mvm.ast;
+package mvm.ast.expression;
 
+import java.io.PrintWriter;
+import mvm.AbstractPrintable;
 import mvm.Environment;
 import mvm.MVMException;
-import mvm.Printable;
 import mvm.values.PacioliValue;
 
-public interface Expression extends Printable {
+public class Identifier extends AbstractPrintable implements Expression {
 
-    public PacioliValue eval(Environment environment) throws MVMException;
+    private final String name;
+
+    public Identifier(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public PacioliValue eval(Environment environment) throws MVMException {
+        return environment.lookup(name);
+    }
+
+    @Override
+    public void printText(PrintWriter out) {
+        out.print(name);
+    }
 }

@@ -13,6 +13,7 @@ public class ValueInfo implements SymbolInfo {
     public PacioliType inferredType;
     public IdentifierNode resultPlace; // for return statements
     public boolean isRef = false;
+    public ValueInfo initialRefInfo;
 
     @Override
     public GenericInfo generic() {

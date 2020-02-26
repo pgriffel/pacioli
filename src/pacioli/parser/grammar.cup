@@ -324,7 +324,7 @@ command ::=
  | DECLARE:d quali ids:ids DBLCLN schema:s          {: RESULT = new MultiDeclaration(makeLoc(dxleft, sxright), ids, s); :}
  | DEFINDEX:d id:id                                 {: List<String> names = new ArrayList<String>();
                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, idxright), id, names); :}
- | DEFINDEX:d id:id EQL LBRC ids:ids RBRC:p         {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
+ | DEFINDEX:d id:id EQL LBRC names:ids RBRC:p       {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
  | DEFTYPE:d schema:s EQL type:t                    {: RESULT = new TypeDefinition(makeLoc(dxleft, txright), s.context, s.type, t); :}
  | DEFALIAS:d id:id EQL unit:u                      {: RESULT = new AliasDefinition(makeLoc(dxleft, uxright), id, u); :}
  | DEFUNIT:d id:id EXCL id:n EQL unitvec:ps         {: /* Todo: remove hashmap and use pair list directly in UnitVectorDefinition */

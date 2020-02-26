@@ -67,9 +67,9 @@ public class UnitDefinition extends AbstractDefinition {
     @Override
     public void printText(PrintWriter out) {
         if (body == null) {
-            out.format("unit definition %s", id.toText());
+            out.format("unit definition %s\n", id.toText());
         } else {
-            out.format("unit definition %s = %s", id.toText(), body.toText());
+            out.format("unit definition %s = %s\n", id.toText(), body.toText());
         }
     }
 

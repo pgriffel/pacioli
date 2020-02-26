@@ -137,10 +137,13 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
 
   "+"               { return symbol("plus", PLUS); }
   "*"               { return symbol("mult", MULT); }
-  ".*"              { return symbol("dot", DOT); }
-  ".^"              { return symbol("dothat", DOTHAT); }
+//  ".*"              { return symbol("dot", DOT); }
+  "'*'"              { return symbol("dot", DOT); }
+//  ".^"              { return symbol("dothat", DOTHAT); }
+  "'^'"              { return symbol("dothat", DOTHAT); }
   "/"               { return symbol("div", DIV); }
-  "./"              { return symbol("dotdiv", DOTDIV); }
+//  "./"              { return symbol("dotdiv", DOTDIV); }
+  "'/'"              { return symbol("dotdiv", DOTDIV); }  
   "\\"              { return symbol("ldiv", LDIV); }
   "\.\\"            { return symbol("dotldiv", DOTLDIV); }
   "_*"              { return symbol("lscale", LSCALE); }

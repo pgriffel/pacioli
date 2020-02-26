@@ -19,33 +19,61 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package mvm.ast;
+package mvm.ast.expression;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import mvm.AbstractPrintable;
 import mvm.Environment;
 import mvm.MVMException;
+import mvm.Machine;
+import mvm.values.Callable;
 import mvm.values.PacioliValue;
 
-public class Identifier extends AbstractPrintable implements Expression {
+public class Application extends AbstractPrintable implements Expression {
 
-    private final String name;
+    private final Expression function;
+    private final List<Expression> arguments;
 
-    public Identifier(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
+    public Application(Expression fun, List<Expression> args) {
+        function = fun;
+        arguments = args;
     }
 
     @Override
     public PacioliValue eval(Environment environment) throws MVMException {
-        return environment.lookup(name);
+        /*
+        if (function instanceof Identifier) {
+            Identifier id = (Identifier) function;
+            Machine.logln("\nCalling %s with arguments", id.getName());
+        }
+        */
+        Callable fun = (Callable) function.eval(environment);
+        List<PacioliValue> params = new ArrayList<PacioliValue>();
+        for (Expression exp : arguments) {
+            params.add(exp.eval(environment));
+        }
+        /*
+        if (function instanceof Identifier) {
+            for (PacioliValue param : params) {
+                Machine.logln("\n- %s", param.toText());
+            }
+        }*/
+        PacioliValue result = fun.apply(params);
+        
+        return result;
     }
+
 
     @Override
     public void printText(PrintWriter out) {
-        out.print(name);
+        out.print("application(");
+        function.printText(out);
+        for (Expression arg : arguments) {
+            out.print(", ");
+            arg.printText(out);
+        }
+        out.print(")");
     }
 }

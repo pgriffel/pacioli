@@ -10,8 +10,10 @@ import java.util.Set;
 
 import mvm.values.matrix.MatrixDimension;
 import pacioli.CompilationSettings;
+import pacioli.Location;
 import pacioli.Pacioli;
 import pacioli.Utils;
+import pacioli.ValueContext;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.ProgramNode;
@@ -30,6 +32,7 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
@@ -65,13 +68,14 @@ import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 import uom.DimensionedNumber;
 
-public class MVMGenerator implements Visitor {
+public class MVMGenerator extends PrintVisitor implements Visitor {
 
-    PrintWriter out;
+//    PrintWriter out;
     CompilationSettings settings;
 
     public MVMGenerator(PrintWriter printWriter, CompilationSettings settings) {
-        out = printWriter;
+        super(printWriter);
+//        out = printWriter;
         this.settings = settings;
     }
 
@@ -116,6 +120,7 @@ public class MVMGenerator implements Visitor {
         out.print("print ");
         node.body.accept(this);
         out.print(";\n");
+        newline();
     }
 
     @Override
@@ -154,14 +159,19 @@ public class MVMGenerator implements Visitor {
     @Override
     public void visit(ValueDefinition node) {
         out.format("store \"%s\" ", node.globalName());
+        newlineUp();
         // node.resolvedBody.desugar().accept(this);
         node.body.accept(this);
-        out.write(";\n");
+        out.write(";");
+        newlineDown();
+        newline();
     }
 
     @Override
     public void visit(ApplicationNode node) {
-        if (settings.debug() && node.function instanceof IdentifierNode) {
+        //if (settings.debug() && node.function instanceof IdentifierNode) {
+        mark();
+        if (false && node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
             String stackText = id.getName();
             String fullText = node.getLocation().description();
@@ -174,15 +184,18 @@ public class MVMGenerator implements Visitor {
             // escapeString(stackText), escapeString(fullText), traceOn, code, args);
         } else {
             out.write("application(");
+            newlineUp();
             node.function.accept(this);
             // return String.format("application(%s%s)",
             // node.function.compileToMVM(settings), args);
         }
         for (Node arg : node.arguments) {
             out.write(", ");
+            newline();
             arg.accept(this);
         }
         out.write(")");
+        unmark();
     }
 
     private String escapeString(String in) {
@@ -193,7 +206,12 @@ public class MVMGenerator implements Visitor {
     @Override
     public void visit(AssignmentNode node) {
         // node.desugar().accept(this);
-        na();
+        //na();
+        out.print("application(var(\"global_Primitives_ref_set\"), var(\"");
+        out.print(node.var.name);
+        out.print("\"), ");
+        node.value.accept(this);
+        out.print(")");
     }
 
     @Override
@@ -227,12 +245,22 @@ public class MVMGenerator implements Visitor {
         // String full = info.generic.global ? node.compiledName(prefix) : node.name;
         String full = info.generic.global ? prefix + info.generic.module + "_" + node.name : node.name;
 
-        out.format("var(\"%s\")", full);
+        if (node.info.isRef) {
+            out.format("application(var(\"global_Primitives_ref_get\"), var(\"%s\"))", full);
+        } else {
+            out.format("var(\"%s\")", full);
+        }
     }
 
     @Override
-    public void visit(IfStatementNode ifStatementNode) {
-        throw new RuntimeException("todo ");
+    public void visit(IfStatementNode node) {
+        out.write("if(");
+        node.test.accept(this);
+        out.write(", ");
+        node.positive.accept(this);
+        out.write(", ");
+        node.negative.accept(this);
+        out.write(")");
     }
 
     @Override
@@ -258,9 +286,13 @@ public class MVMGenerator implements Visitor {
         for (String arg : node.arguments) {
             quoted.add("\"" + arg + "\"");
         }
-        String args = Utils.intercalate(",", quoted);
-        out.format("lambda (%s) ", args);
+        String args = Utils.intercalate(", ", quoted);
+        write("lambda (");
+        write(args);
+        write(")");
+        newlineUp();
         node.expression.accept(this);
+        newlineDown();
     }
 
     @Override
@@ -342,18 +374,123 @@ public class MVMGenerator implements Visitor {
 
     @Override
     public void visit(ReturnNode node) {
-        node.desugar().accept(this);
+        write("application(var(\"global_Primitives_throw_result\"), var(\"result\"), ");
+        node.value.accept(this);
+        write(")");
     }
 
     @Override
     public void visit(SequenceNode node) {
-        node.desugar().accept(this);
+        
+        if (node.items.isEmpty()) {
+            throw new RuntimeException("todo: MVM generator for empty sequence");
+        } else {
+            Integer n = node.items.size();
+            mark();
+            for (int i = 0; i < n-1; i++) {
+                write("application(var(\"global_Primitives_seq\"), ");
+                newlineUp();
+                node.items.get(i).accept(this);
+                write(", ");
+                newline();
+                
+            }
+            node.items.get(n-1).accept(this);
+            for (int i = 0; i < n-1; i++) {
+                out.print(")");
+            }
+            unmark();
+        }
+        
+        //throw new RuntimeException("todo MVM for SequenceNode");
+        //node.desugar().accept(this);
     }
 
     @Override
     public void visit(StatementNode node) {
-        // node.desugar().accept(this);
-        throw new RuntimeException("todo ");
+        
+        mark();
+        
+        // Find all assigned variables
+        Set<IdentifierNode> assignedVariables = node.body.locallyAssignedVariables();
+
+        // A lambda to bind the result place and the assigned variables places
+        write("application(lambda (");
+        
+        // Write the result lambda param
+        write("\"result\"");
+        
+        // Write the other lambda params
+        for (IdentifierNode id : assignedVariables) {
+            write(", ");
+            write("\"");
+            write(id.getName());
+            write("\"");
+        }
+        write(")");
+        
+        newlineUp();
+        
+        // A catch to get the result
+        write("application(var(\"global_Primitives_catch_result\"),");
+        
+        newlineUp();
+        
+        // Catch expect a lambda
+        write("lambda ()");
+        
+        newlineUp();
+        
+        // The body
+        node.body.accept(this);
+        write(",");
+        
+        newline();
+
+        // Catch's second argument is the place name
+        write("var(\"result\")");
+        
+        // Close the catch application
+        write("), ");
+        
+        newlineDown();
+        
+        // The initial result place
+        write("application(var(\"global_Primitives_empty_ref\"))");
+
+        //first = true;
+        for (IdentifierNode id : assignedVariables) {
+            //if (!first) 
+            write(", ");
+            //first = false;
+            
+            if (id.info.initialRefInfo != null) {
+                // todo: handle the case the id exists in this scope.
+                if (id.info.initialRefInfo.isRef) {
+                    write("application(var(\"global_Primitives_new_ref\"), application(val(\"global_Primitives_ref_get\"), var(\"");
+                    write(id.getName());
+                    write("\")))");
+                } else {
+                    write("application(var(\"global_Primitives_new_ref\"), var(\"");
+                    write(id.getName());
+                    write("\"))");
+                }
+            } else {
+                write("application(var(\"global_Primitives_empty_ref\"))");
+            }
+        }        
+        
+        // The result place for catch
+        //write("var(\"result\")");
+        
+        
+        // Close the lambda application
+        write(")");
+        
+        unmark();
+        //out.format("application(global_Primitives_ref_set, ");
+        //node.body.accept(this);
+        //out.format(")");
     }
 
     @Override
@@ -363,12 +500,84 @@ public class MVMGenerator implements Visitor {
 
     @Override
     public void visit(TupleAssignmentNode node) {
-        node.desugar().accept(this);
+        //node.desugar().accept(this);
+        
+        // Some tuple properties
+        List<IdentifierNode> vars = node.vars;
+        Integer size = vars.size();
+        
+        assert (0 < size); // het 'skip' statement als 0
+        
+        // Create a list of fresh names for the assigned names
+        final List<String> names = new ArrayList<String>();
+        for (IdentifierNode id : vars) {
+            names.add(id.getName());
+        }
+        final List<String> freshNames = Utils.freshNames(names);
+
+        // Create an application of apply to a lambda with two arguments: 
+        // the fresh names and the tuple. The freshnames get bound to the 
+        // tuple elements and are used in the lambda body to assign the 
+        // variables. The lambda body is a sequence of these assignments.
+        mark();
+        write("application(var(\"global_Primitives_apply\"), lambda (");
+        
+        // The lambda arguments
+        Boolean first = true;
+        for (String name: freshNames) {
+            if (!first) out.print(", ");
+            write("\"");
+            out.print(name);
+            write("\"");
+            first = false;
+        }
+        out.print(")");
+        
+        newlineUp();
+        
+        // The sequence of assignments
+        for (int i = 0; i < size; i++) {
+            if (i < size-1) write("application(var(\"global_Primitives_seq\"), ");
+            write("application(var(\"global_Primitives_ref_set\"), var(\"");
+            write(names.get(i));
+            write("\"), var(\"");
+            write(freshNames.get(i));
+            write("\"))");
+            if (i < size-1) write(",");
+            newline();
+        }
+        
+        // Close the sequences
+        for (int i = 0; i < size-1; i++) {
+            out.print(")");
+        }
+        
+        write(", ");
+        node.tuple.accept(this);
+        
+        // Close the apply
+        write(")");
+        
+        unmark();
+        
     }
 
     @Override
     public void visit(WhileNode node) {
-        node.desugar().accept(this);
+        //node.desugar().accept(this);
+        mark();
+        write("application(var(\"global_Primitives_while_function\"),");
+        newlineUp();
+        write("lambda () ");
+        newlineUp();
+        node.test.accept(this);
+        write(",");
+        newlineDown();
+        write("lambda ()");
+        newlineUp();
+        node.body.accept(this);
+        write(")");
+        unmark();
     }
 
     @Override
@@ -415,9 +624,12 @@ public class MVMGenerator implements Visitor {
     }
 
     @Override
-    public void visit(TypePowerNode typePowerNode) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("todo ");
+    public void visit(TypePowerNode node) {
+        out.write("shape_expt(");
+        node.base.accept(this);
+        out.write(", ");
+        out.write(node.power.number);
+        out.write(")");
     }
 
     @Override

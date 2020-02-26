@@ -1,16 +1,12 @@
 package mvm.ast;
 
 import java.io.PrintWriter;
-import java.math.BigDecimal;
 import java.util.List;
 
 import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
-import mvm.ast.unit.UnitNode;
 import mvm.values.matrix.IndexSet;
-import uom.DimensionedNumber;
-import uom.NamedUnit;
 
 public class StoreIndexSet extends AbstractPrintable implements Instruction {
 

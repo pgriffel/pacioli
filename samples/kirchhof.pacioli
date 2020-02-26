@@ -1,4 +1,4 @@
-module PRG/Kirchhof;
+module PRGKirchhof;
 
 include si;
 
@@ -60,6 +60,8 @@ define M2 = M1 .* grounded_incidence;
 
 define potential(battery, inflow) =
   M2 .\ (M1 .* battery - inflow);
+#  inverse(M2) .*(M1 .* battery - inflow);
+#  solve(M2, M1 .* battery - inflow);
 
 define current(battery, inflow) = 
   conductance * (battery - grounded_incidence .* potential(battery, inflow));
@@ -68,11 +70,18 @@ define current(battery, inflow) =
 # A case
 # ----------------------------------------------------------------------------
 
-defmatrix my_battery :: volt*Edge! = {
+defmatrix my_batteryALT :: volt*Edge! = {
   e0 -> 12,
   e1 -> 12,
   e2 -> 6,
   e3 -> 6
+};
+
+defmatrix my_battery :: volt*Edge! = {
+  e0 -> 0,
+  e1 -> 0,
+  e2 -> 0,
+  e3 -> 0
 };
 
 defmatrix my_inflow :: ampere*Node! = {
@@ -100,6 +109,9 @@ define solve_system(battery, inflow) =
 
 solve_system(my_battery, my_inflow);
 
+potential(my_battery, my_inflow);
+current(my_battery, my_inflow);
+
 # ----------------------------------------------------------------------------
 # Kirchhofs Law
 # ----------------------------------------------------------------------------
@@ -109,7 +121,7 @@ defunit decimals "decimals";
 declare check_kirchhof :: 
   (volt*Node!, ampere*Edge!, volt*Edge!, ampere*Node!) -> Tuple(decimals*Edge!, decimals*Node!);
 
-define decimal_places(x) = |decimals| c* -log(abs(magnitude(x)), 10);
+define decimal_places(x) = |decimals| _* -log(abs(magnitude(x)), 10);
 
 define check_kirchhof(potential, current, battery, inflow) =
   let
@@ -125,3 +137,8 @@ define check_kirchhof(potential, current, battery, inflow) =
 let (potential, current) = solve_system(my_battery, my_inflow) in
   check_kirchhof(potential, current, my_battery, my_inflow)
 end;
+
+define diagonal(x) =
+  let u = unit(x), units = unit_factor(u) _* u per u in
+    make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
+  end;

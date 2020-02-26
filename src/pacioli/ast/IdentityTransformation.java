@@ -248,8 +248,10 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(TupleAssignmentNode node) {
-        returnNode(node);
-        throw new RuntimeException("todo");
+        
+        returnNode(new TupleAssignmentNode(node, expAccept(node.tuple)));
+        //returnNode(node.transform(this));        
+        //throw new RuntimeException("todo");
     }
 
     @Override

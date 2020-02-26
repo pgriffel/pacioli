@@ -38,6 +38,12 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
         this.tuple = tuple;
     }
 
+    public TupleAssignmentNode(TupleAssignmentNode node, ExpressionNode tuple) {
+        super(node.getLocation());
+        this.vars = node.vars;
+        this.tuple = tuple;
+    }
+
     @Override
     public void printText(PrintWriter out) {
         out.print("(");

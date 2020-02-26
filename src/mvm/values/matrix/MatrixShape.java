@@ -22,16 +22,11 @@
 package mvm.values.matrix;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 
-import pacioli.Pacioli;
-import pacioli.types.matrix.MatrixType;
 import mvm.AbstractPrintable;
-import uom.Base;
 import uom.Fraction;
 import uom.Unit;
-import uom.UnitMap;
 
 public class MatrixShape extends AbstractPrintable {
 

@@ -1,4 +1,4 @@
-package mvm.ast;
+package mvm.ast.expression;
 
 import java.io.PrintWriter;
 import mvm.AbstractPrintable;

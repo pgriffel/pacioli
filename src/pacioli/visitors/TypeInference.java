@@ -311,9 +311,22 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(TupleAssignmentNode tupleAssignmentNode) {
-        na();
-
+    public void visit(TupleAssignmentNode node) {
+        
+        List<PacioliType> varTypes = new ArrayList<PacioliType>();
+        for (IdentifierNode var : node.vars) {
+            varTypes.add(var.info.inferredType);
+        }      
+        PacioliType tupleType = new ParametricType("Tuple", varTypes);
+        
+        
+        PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
+        Typing tupleTyping = typingAccept(node.tuple);
+        Typing typing = new Typing(voidType);
+        typing.addConstraints(tupleTyping);
+        typing.addConstraint(tupleType, tupleTyping.getType(),
+                "assigned variable must have proper type");
+        returnNode(typing);
     }
 
     @Override

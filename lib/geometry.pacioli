@@ -142,19 +142,19 @@ declare public z_rotation :: (radian) -> Space! per Space!;
 declare public rotation :: (radian, radian, radian) -> Space! per Space!;
 
 define x_rotation(angle) =
-  (space_vec(1,           0,          0) .* d_x^T +
-   space_vec(0,  cos(angle), sin(angle)) .* d_y^T +
-   space_vec(0, -sin(angle), cos(angle)) .* d_z^T);
+  (space_vec(1,           0,          0) '*' d_x^T +
+   space_vec(0,  cos(angle), sin(angle)) '*' d_y^T +
+   space_vec(0, -sin(angle), cos(angle)) '*' d_z^T);
 
 define y_rotation(angle) =
-  (space_vec(cos(angle), 0, -sin(angle)) .* d_x^T +
-   space_vec(         0, 1,           0) .* d_y^T +
-   space_vec(sin(angle), 0,  cos(angle)) .* d_z^T);
+  (space_vec(cos(angle), 0, -sin(angle)) '*' d_x^T +
+   space_vec(         0, 1,           0) '*' d_y^T +
+   space_vec(sin(angle), 0,  cos(angle)) '*' d_z^T);
 
 define z_rotation(angle) =
-  (space_vec( cos(angle), sin(angle), 0) .* d_x^T +
-   space_vec(-sin(angle), cos(angle), 0) .* d_y^T +
-   space_vec(         0,           0, 1) .* d_z^T);
+  (space_vec( cos(angle), sin(angle), 0) '*' d_x^T +
+   space_vec(-sin(angle), cos(angle), 0) '*' d_y^T +
+   space_vec(         0,           0, 1) '*' d_z^T);
 
 define rotation(x_angle, y_angle, z_angle) =
-  z_rotation(z_angle) .* y_rotation(y_angle) .* x_rotation(x_angle);
+  z_rotation(z_angle) '*' y_rotation(y_angle) '*' x_rotation(x_angle);

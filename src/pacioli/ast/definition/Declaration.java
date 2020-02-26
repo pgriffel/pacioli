@@ -51,7 +51,7 @@ public class Declaration extends AbstractDefinition {
 
     @Override
     public void printText(PrintWriter out) {
-        throw new RuntimeException("todo");
+        out.format("declare %s :: %s;\n", localName(), typeNode.toText());
     }
 
     @Override

@@ -38,9 +38,7 @@ public interface Node extends Printable {
     public Set<SymbolInfo> uses();
 
     public Node desugar();
-
-    public Node desugarStatements(Progam prog);
-
+    
     public void resolve(Progam prog);
 
     public String compileToMVM(CompilationSettings settings);

@@ -160,11 +160,14 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
         // Check that it exists
         if (info == null) {
-            visitorThrow(node.getLocation(), "Identifier '%s' unknown", node.name);
+            if (node.info == null) {
+                visitorThrow(node.getLocation(), "Identifier '%s' unknown", node.name);
+            }
+        } else {
+            // Store the record in the identifier
+            node.info = info;
         }
 
-        // Store the record in the identifier
-        node.info = info;
     }
 
     @Override
@@ -268,10 +271,13 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         // Find all assigned variables
         for (IdentifierNode id : node.body.locallyAssignedVariables()) {
 
+            ValueInfo shadowedInfo = valueTables.peek().lookup(id.getName());
+            
             // Create a value info record for the variable
             ValueInfo info = new ValueInfo();
             info.generic = new GenericInfo(id.getName(), prog.program.module.name, prog.file, false, false);
             info.isRef = true;
+            info.initialRefInfo = shadowedInfo;
 
             // Put the info in the symbol table
             node.table.put(id.getName(), info);
@@ -296,7 +302,23 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(TupleAssignmentNode node) {
-        // Fixme
+        
+        // Guessed fixme based on assignment above:
+        
+        
+        // Find the info. It should have been created in a statement node.
+        for (IdentifierNode var: node.vars) {
+            ValueInfo info = valueTables.peek().lookup(var.getName());
+            assert (info != null);
+
+            // Store the info in the variable and resolve the value
+            var.info = info;
+            
+        }
+        node.tuple.accept(this);
+        
+/*        
+        // Fixme (fixed above?)
         List<IdentifierNode> resolvedVars = new ArrayList<IdentifierNode>();
         for (IdentifierNode var : node.vars) {
             IdentifierNode resolved = IdentifierNode.newLocalMutableVar(var.getName(), var.getLocation());
@@ -306,6 +328,8 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         node.tuple.accept(this);
         // returnNode(new TupleAssignmentNode(node.getLocation(), resolvedVars,
         // resolvedTuple));
+         * 
+         */
     }
 
     @Override

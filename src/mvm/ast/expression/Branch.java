@@ -19,46 +19,45 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package mvm.ast;
+package mvm.ast.expression;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
 import mvm.AbstractPrintable;
 import mvm.Environment;
 import mvm.MVMException;
-import mvm.values.Callable;
+import mvm.values.Boole;
 import mvm.values.PacioliValue;
 
-public class Application extends AbstractPrintable implements Expression {
+public class Branch extends AbstractPrintable implements Expression {
 
-    private final Expression function;
-    private final List<Expression> arguments;
+    private final Expression test;
+    private final Expression positive;
+    private final Expression negative;
 
-    public Application(Expression fun, List<Expression> args) {
-        function = fun;
-        arguments = args;
+    public Branch(Expression test, Expression pos, Expression neg) {
+        this.test = test;
+        this.positive = pos;
+        this.negative = neg;
     }
 
     @Override
     public PacioliValue eval(Environment environment) throws MVMException {
-        Callable fun = (Callable) function.eval(environment);
-        List<PacioliValue> params = new ArrayList<PacioliValue>();
-        for (Expression exp : arguments) {
-            params.add(exp.eval(environment));
+        Boole outcome = (Boole) test.eval(environment);
+        if (outcome.positive()) {
+            return positive.eval(environment);
+        } else {
+            return negative.eval(environment);
         }
-        return fun.apply(params);
     }
-
 
     @Override
     public void printText(PrintWriter out) {
-        out.print("application(");
-        function.printText(out);
-        for (Expression arg : arguments) {
-            out.print(", ");
-            arg.printText(out);
-        }
+        out.print("if(");
+        test.printText(out);
+        out.print(", ");
+        positive.printText(out);
+        out.print(", ");
+        negative.printText(out);
         out.print(")");
     }
 }

@@ -26,12 +26,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.Set;
-
 import mvm.MVMException;
 import mvm.values.AbstractPacioliValue;
 import mvm.values.PacioliList;
@@ -42,7 +39,6 @@ import org.apache.commons.math3.linear.Array2DRowRealMatrix;
 import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.QRDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.SingularMatrixException;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 
 import pacioli.Pacioli;

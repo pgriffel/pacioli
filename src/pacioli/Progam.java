@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,10 +30,11 @@ import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.PacioliType;
 import pacioli.visitors.MVMGenerator;
+import pacioli.visitors.PrintVisitor;
 import pacioli.visitors.ResolveVisitor;
 import uom.DimensionedNumber;
 
-public class Progam {
+public class Progam extends AbstractPrintable {
 
     public final File file;
     private final List<File> libs;
@@ -174,15 +176,21 @@ public class Progam {
 
             Pacioli.logln("Compiling %s", file);
             desugar();
+            //desugarStatements();
+            
+             
+            //out.format("declare %s :: %s;\n", pacioli.Utils.intercalate(",", names), node.toText());
+            
             // resolve();
             try {
                 resolve();
             } finally {
-                // Pacioli.printSymbolTable(values, "value");
+                //Pacioli.printSymbolTable(values, "value");
             }
             // desugarStatements();
             inferTypes();
-            desugarStatements();
+            //desugarStatements();
+            //Pacioli.logln("Desugared:\n%s\nEND DESUGAR", toText());
             compileMVM(settings);
         }
 
@@ -287,31 +295,12 @@ public class Progam {
     // -------------------------------------------------------------------------
 
     public void desugar() throws PacioliException {
-        // desugarStatements();
+
         program = (ProgramNode) program.desugar();
 
         // hack to set the modules
         for (Definition def : program.definitions) {
             def.setModule(new PacioliFile(program.module.getName()));
-        }
-
-    }
-
-    public void desugarStatements() throws PacioliException {
-        // program = (ProgramNode) program.desugarStatements();
-
-        // version on symbol tables (for use after resolving!?):
-
-        for (String value : values.allNames()) {
-            ValueInfo info = values.lookup(value);
-            if (info.generic.local && info.getDefinition() != null) {
-                ValueDefinition def = (ValueDefinition) info.getDefinition();
-                def.body = (ExpressionNode) def.body.desugarStatements(this);
-                // Pacioli.logln("%s :: %s;", info.name(), info.inferredType.toText());
-            }
-        }
-        for (Toplevel definition : toplevels) {
-            definition.body = (ExpressionNode) definition.body.desugarStatements(this);
         }
 
     }
@@ -337,11 +326,20 @@ public class Progam {
         Set<SymbolInfo> discovered = new HashSet<SymbolInfo>();
         Set<SymbolInfo> finished = new HashSet<SymbolInfo>();
 
-        for (String value : values.allNames()) {
+        List<String> names = values.allNames();
+        names.sort(new Comparator<String>() {
+
+            @Override
+            public int compare(String o1, String o2) {
+                return o1.compareTo(o2);
+            }
+        });
+        
+        for (String value : names) {
             ValueInfo info = values.lookup(value);
             if (info.generic.local && info.getDefinition() != null) {
                 inferValueDefinitionType(info, discovered, finished);
-                Pacioli.logln("%s :: %s;", info.name(), info.inferredType.toText());
+                Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.toText());
             }
         }
         for (Toplevel toplevel : toplevels) {
@@ -358,7 +356,7 @@ public class Progam {
     private void inferUsedTypes(Definition definition, Set<SymbolInfo> discovered, Set<SymbolInfo> finished) {
         for (SymbolInfo pre : definition.uses()) {
             if (pre.generic().global && pre instanceof ValueInfo) {
-                if (pre.generic().local) {
+                if (pre.generic().local && pre.getDefinition() != null) {
                     inferValueDefinitionType(pre, discovered, finished);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
@@ -388,6 +386,9 @@ public class Progam {
                 Typing typing = def.body.inferTyping2(this);
                 try {
                     PacioliType solved = typing.solve();
+                    Pacioli.log3("\n\nSolved type of %s is %s", info.name(), solved.toText());
+                    Pacioli.log3("\n\nSimple type of %s is %s", info.name(), solved.simplify().toText());
+                    Pacioli.log3("\n\nGenerl type of %s is %s", info.name(), solved.simplify().generalize().toText());
                     values.lookup(info.name()).inferredType = solved.simplify().generalize();
                 } catch (PacioliException e) {
                     throw new RuntimeException(e);
@@ -402,7 +403,7 @@ public class Progam {
     }
 
     // -------------------------------------------------------------------------
-    // Code generation
+    // MVM code generation
     // -------------------------------------------------------------------------
 
     public void compileMVM(CompilationSettings settings) throws Exception {
@@ -416,19 +417,6 @@ public class Progam {
                 writer.format("require %s;\n", include);
             }
 
-            MVMGenerator gen = new MVMGenerator(writer, settings);
-
-            List<Definition> toCompile = new ArrayList<Definition>();
-
-            for (String indexSet : indexSets.allNames()) {
-                IndexSetInfo info = indexSets.lookup(indexSet);
-                if (info.generic.local) {
-                    assert (info.definition != null);
-                    // toCompile.add(info.definition);
-                    info.definition.accept(gen);
-                }
-            }
-
             List<Definition> unitsToCompile = new ArrayList<Definition>();
             List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
             for (String unit : units.allNames()) {
@@ -440,10 +428,7 @@ public class Progam {
             }
 
             unitsToCompileTmp = orderedInfos(unitsToCompileTmp);
-            for (UnitInfo info : unitsToCompileTmp) {
-                compileUnit(info, writer);
-            }
-
+            
             List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
             for (String value : values.allNames()) {
                 ValueInfo info = values.lookup(value);
@@ -453,9 +438,19 @@ public class Progam {
                     }
                 }
             }
+            
+            MVMGenerator gen = new MVMGenerator(writer, settings);
 
-            for (Toplevel def : toplevels) {
-                toCompile.add(def);
+            for (String indexSet : indexSets.allNames()) {
+                IndexSetInfo info = indexSets.lookup(indexSet);
+                if (info.generic.local) {
+                    assert (info.definition != null);
+                    info.definition.accept(gen);
+                }
+            }
+            
+            for (UnitInfo info : unitsToCompileTmp) {
+                compileUnitMVM(info, writer);
             }
 
             for (ValueInfo info : valuesToCompile) {
@@ -465,7 +460,7 @@ public class Progam {
                 writer.write(";\n");
             }
 
-            for (Definition def : toCompile) {
+            for (Toplevel def : toplevels) {
                 def.accept(gen);
             }
 
@@ -477,7 +472,7 @@ public class Progam {
 
     }
 
-    private void compileUnit(UnitInfo info, PrintWriter writer) {
+    private void compileUnitMVM(UnitInfo info, PrintWriter writer) {
         if (info.isVector) {
             IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.definition).indexSetNode.info;
             List<String> unitTexts = new ArrayList<String>();
@@ -500,7 +495,101 @@ public class Progam {
                     Utils.compileUnitToMVM(number.unit()));
         }
     }
+    
+    // -------------------------------------------------------------------------
+    // Matlab code generation
+    // -------------------------------------------------------------------------
 
+    public void compileMatlab(CompilationSettings settings) throws Exception {
+
+        BufferedWriter out = new BufferedWriter(new FileWriter(baseName() + ".m"));
+
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(out);
+            for (String include : includes()) {
+                writer.format("require %s;\n", include);
+            }
+
+            List<Definition> unitsToCompile = new ArrayList<Definition>();
+            List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
+            for (String unit : units.allNames()) {
+                UnitInfo info = units.lookup(unit);
+                if (info.generic.local) {
+                    unitsToCompile.add(info.definition);
+                    unitsToCompileTmp.add(info);
+                }
+            }
+
+            unitsToCompileTmp = orderedInfos(unitsToCompileTmp);
+            
+            List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
+            for (String value : values.allNames()) {
+                ValueInfo info = values.lookup(value);
+                if (info.generic.local) {
+                    if (info.definition != null) {
+                        valuesToCompile.add(info);
+                    }
+                }
+            }
+            
+            MVMGenerator gen = new MVMGenerator(writer, settings);
+
+            for (String indexSet : indexSets.allNames()) {
+                IndexSetInfo info = indexSets.lookup(indexSet);
+                if (info.generic.local) {
+                    assert (info.definition != null);
+                    info.definition.accept(gen);
+                }
+            }
+            
+            for (UnitInfo info : unitsToCompileTmp) {
+                compileUnitMatlab(info, writer);
+            }
+
+            for (ValueInfo info : valuesToCompile) {
+                writer.format("store \"%s\" ", info.globalName());
+                ValueDefinition def = (ValueDefinition) info.getDefinition();
+                def.body.accept(gen);
+                writer.write(";\n");
+            }
+
+            for (Toplevel def : toplevels) {
+                def.accept(gen);
+            }
+
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
+
+    }
+
+    private void compileUnitMatlab(UnitInfo info, PrintWriter writer) {
+        if (info.isVector) {
+            IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.definition).indexSetNode.info;
+            List<String> unitTexts = new ArrayList<String>();
+            // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
+            for (UnitDecl entry : info.items) {
+                DimensionedNumber number = entry.value.evalUnit();
+                unitTexts.add("\"" + entry.key.getName() + "\": " + Utils.compileUnitToMVM(number.unit()));
+            }
+            writer.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n",
+                    // String.format("index_%s_%s", node.getModule().getName(), node.localName()),
+                    setInfo.definition.globalName(),
+                    // resolvedIndexSet.getDefinition().globalName(),
+                    info.name(), Utils.intercalate(", ", unitTexts)));
+        } else if (info.baseDefinition == null) {
+            writer.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol);
+        } else {
+            DimensionedNumber number = info.baseDefinition.evalUnit();
+            number = number.flat();
+            writer.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
+                    Utils.compileUnitToMVM(number.unit()));
+        }
+    }
+    
     // -------------------------------------------------------------------------
     // Topological Order of Definitions
     // -------------------------------------------------------------------------
@@ -536,6 +625,25 @@ public class Progam {
             }
             definitions.add(info);
             finished.add(info);
+        }
+    }
+
+    @Override
+    public void printText(PrintWriter out) {
+     
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(out);
+            PrintVisitor visitor = new PrintVisitor(writer);
+            //this.accept(visitor);
+            for (Definition def : program.definitions) {
+                def.accept(visitor);
+                writer.println();
+            }
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
         }
     }
 }

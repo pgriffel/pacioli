@@ -44,3 +44,4 @@ declare seq :: (Void(), Void()) -> Void();
 declare while_function :: (() -> Boole(), () -> Void()) -> Void();
 
 #declare nothing :: Void();
+declare report_alt :: (String(), String()) -> Report();

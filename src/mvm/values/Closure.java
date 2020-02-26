@@ -25,7 +25,7 @@ import java.io.PrintWriter;
 import java.util.List;
 import mvm.Environment;
 import mvm.MVMException;
-import mvm.ast.Expression;
+import mvm.ast.expression.Expression;
 
 public class Closure extends AbstractPacioliValue implements Callable {
 

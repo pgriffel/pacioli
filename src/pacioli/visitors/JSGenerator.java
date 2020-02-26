@@ -1,11 +1,10 @@
 package pacioli.visitors;
 
 import java.io.PrintWriter;
-import java.util.Stack;
 
-import pacioli.Pacioli;
-import pacioli.ast.Visitor;
+import pacioli.CompilationSettings;
 import pacioli.ast.ProgramNode;
+import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.IndexSetDefinition;
@@ -20,7 +19,6 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
-import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
@@ -38,7 +36,6 @@ import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
-import pacioli.types.PacioliType;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
@@ -52,346 +49,283 @@ import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 
-public class PrintVisitor implements Visitor {
+public class JSGenerator implements Visitor {
 
     PrintWriter out;
-    private Stack<Integer> indentationStack;
-    Integer indentation = 0;
-    Integer offset = 0;
-    final Integer delta = 4;
-    
-    protected void write(String text) {
-        out.print(text);
-        offset += text.length();
-    }
-    
-    protected void mark() {
-        indentationStack.push(indentation);
-        indentation = offset;
-        //offset = 
-    }
-    
-    protected void unmark() {
-        indentation = indentationStack.pop();
-        //offset = 
-    }
-    
-    protected void newline() {
-        out.format("\n");
-        for (int i = 0; i < indentation; i++) {
-            out.print(" ");
-        }
-        offset = indentation; 
-    }
-    
-    protected void newlineUp() {
-        indentation += delta;
-        newline();
-    }
-    
-    protected void newlineDown() {
-        indentation -= delta;
-        newline();
+    CompilationSettings settings;
+
+    public JSGenerator(PrintWriter printWriter, CompilationSettings settings) {
+        out = printWriter;
+        this.settings = settings;
     }
 
-    public PrintVisitor(PrintWriter printWriter) {
-        indentationStack = new Stack<Integer>();
-        out = printWriter;
+    private void na() {
+        throw new RuntimeException("Cannot call this");
     }
 
     @Override
     public void visit(ProgramNode program) {
-        write("Prog");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(AliasDefinition aliasDefinition) {
-        write("Alias");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(Declaration declaration) {
-        write("Decl\n");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(IndexSetDefinition indexSetDefinition) {
-        write("Ind");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(MultiDeclaration multiDeclaration) {
-        write("Multidc");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
-    public void visit(Toplevel node) {
-        node.body.accept(this);
+    public void visit(Toplevel toplevel) {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(TypeDefinition typeDefinition) {
-        write("TYpeD");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(UnitDefinition unitDefinition) {
-        write("Unitdef\n");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(UnitVectorDefinition unitVectorDefinition) {
-        write("Unitfecog\n");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
-    public void visit(ValueDefinition node) {
-        write("define ");
-        node.id.accept(this);
-        write(" =");
-        newlineUp();
-        node.body.accept(this);
-        write(";");
-        newlineDown();
+    public void visit(ValueDefinition valueDefinition) {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(ApplicationNode node) {
-        node.function.accept(this);
-        write("(");
-        mark();
-        Boolean first = true;
-        for (ExpressionNode argument : node.arguments) {
-            if (!first) {
-                write(", ");
-                newline();
-            }
-            argument.accept(this);
-            first = false;
-        }
-        write(")");
-        unmark();
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
-    public void visit(AssignmentNode node) {
-        node.var.accept(this);
-        write(" := ");
-        node.value.accept(this);
+    public void visit(AssignmentNode assignmentNode) {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
-    public void visit(BranchNode node) {
-        write("if ");
-        node.test.accept(this);
-        write(" then ");
-        node.positive.accept(this);
-        write(" else ");
-        node.negative.accept(this);
-        write(" end");
+    public void visit(BranchNode branchNode) {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
-    public void visit(ConstNode node) {
-        out.format("const(\"%s\")", node.valueString());
+    public void visit(ConstNode constNode) {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(ConversionNode conversionNode) {
-        write("conv");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(IdentifierNode identifierNode) {
-        write(identifierNode.getName());
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(IfStatementNode ifStatementNode) {
-        write("if");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(KeyNode keyNode) {
-        write("key");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
-    public void visit(LambdaNode node) {
-        write("lambda (");
-        Boolean first = true;
-        for (String arg : node.arguments) {
-            if (!first)
-                out.format(", ");
-            out.format(arg);
-            first = false;
-        }
-        out.format(") ");
-        newlineUp();
-        node.expression.accept(this);
-        newlineDown();
-        out.format("end");
+    public void visit(LambdaNode lambdaNode) {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(MatrixLiteralNode matrixLiteralNode) {
-        write("matrix");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(MatrixTypeNode matrixTypeNode) {
-        write("mattype");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(ProjectionNode projectionNode) {
-        write("projd");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(ReturnNode returnNode) {
-        write("ret");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
-    public void visit(SequenceNode node) {
-        mark();
-        Boolean first = true;
-        for (ExpressionNode item : node.items) {
-            if (!first) newline();
-            first = false;
-            item.accept(this);
-            
-        }
-        unmark();
+    public void visit(SequenceNode sequenceNode) {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
-    public void visit(StatementNode node) {
-        write("begin ");
-        newlineUp();
-        node.body.accept(this);
-        newlineDown();
-        write("end");
+    public void visit(StatementNode statementNode) {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
-    public void visit(StringNode node) {
-        //out.format("\"%s\"", node.valueString());
-        write("\"" + node.valueString() + "\"");
+    public void visit(StringNode stringNode) {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
-    public void visit(TupleAssignmentNode node) {
-        write("(");
-        Boolean first = true; 
-        for (IdentifierNode var: node.vars) {
-            if (!first) write(",");
-            first = false;
-            var.accept(this);
-        }
-        write(") := ");
-        node.tuple.accept(this);
-        write(";");
+    public void visit(TupleAssignmentNode tupleAssignmentNode) {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
-    public void visit(WhileNode node) {
-        write("while ");
-        node.test.accept(this);
-        write(" do");
-        newlineUp();
-        node.body.accept(this);
-        newlineDown();
+    public void visit(WhileNode whileNode) {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(BangTypeNode bangTypeNode) {
-        write("bang");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(FunctionTypeNode functionTypeNode) {
-        write("funty");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(NumberTypeNode numberTypeNode) {
-        write("numytpe");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(SchemaNode schemaNode) {
-        write("sschema");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(TypeApplicationNode typeApplicationNode) {
-        write("typepapp");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(TypeIdentifierNode typeIdentifierNode) {
-        write("typeident");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(TypePowerNode typePowerNode) {
-        write("typepow");
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
     public void visit(PrefixUnitTypeNode prefixUnitTypeNode) {
         // TODO Auto-generated method stub
-        write("todo1");
+        
     }
 
     @Override
     public void visit(TypeMultiplyNode typeMultiplyNode) {
         // TODO Auto-generated method stub
-        write("todo2");
+        
     }
 
     @Override
     public void visit(TypeDivideNode typeDivideNode) {
         // TODO Auto-generated method stub
-        write("todo1");
+        
     }
 
     @Override
     public void visit(TypeKroneckerNode typeKroneckerNode) {
         // TODO Auto-generated method stub
-        write("todo1");
+        
     }
 
     @Override
     public void visit(TypePerNode typePerNode) {
         // TODO Auto-generated method stub
-        write("todo1");
+        
     }
 
     @Override
     public void visit(NumberUnitNode numberUnitNode) {
         // TODO Auto-generated method stub
-        write("todo1");
+        
     }
 
     @Override
     public void visit(UnitIdentifierNode unitIdentifierNode) {
         // TODO Auto-generated method stub
-        write("todo1");
+        
     }
 
     @Override
     public void visit(UnitOperationNode unitOperationNode) {
         // TODO Auto-generated method stub
-        write("todo1");
+        
     }
 
     @Override
     public void visit(UnitPowerNode unitOperationNode) {
         // TODO Auto-generated method stub
-        write("todo1");
+        
     }
+
 
 }

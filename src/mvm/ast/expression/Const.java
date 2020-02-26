@@ -19,45 +19,29 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package mvm.ast;
+package mvm.ast.expression;
 
 import java.io.PrintWriter;
 import mvm.AbstractPrintable;
 import mvm.Environment;
 import mvm.MVMException;
-import mvm.values.Boole;
 import mvm.values.PacioliValue;
 
-public class Branch extends AbstractPrintable implements Expression {
+public class Const extends AbstractPrintable implements Expression {
 
-    private final Expression test;
-    private final Expression positive;
-    private final Expression negative;
+    private final PacioliValue value;
 
-    public Branch(Expression test, Expression pos, Expression neg) {
-        this.test = test;
-        this.positive = pos;
-        this.negative = neg;
+    public Const(PacioliValue value) {
+        this.value = value;
     }
 
     @Override
     public PacioliValue eval(Environment environment) throws MVMException {
-        Boole outcome = (Boole) test.eval(environment);
-        if (outcome.positive()) {
-            return positive.eval(environment);
-        } else {
-            return negative.eval(environment);
-        }
+        return value;
     }
 
     @Override
     public void printText(PrintWriter out) {
-        out.print("if(");
-        test.printText(out);
-        out.print(", ");
-        positive.printText(out);
-        out.print(", ");
-        negative.printText(out);
-        out.print(")");
+        value.printText(out);
     }
 }

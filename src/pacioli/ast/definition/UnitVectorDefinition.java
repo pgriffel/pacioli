@@ -22,10 +22,7 @@
 package pacioli.ast.definition;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import pacioli.Location;
 import pacioli.Progam;
 import pacioli.Utils;

@@ -131,16 +131,16 @@ Pacioli.Coordinates.prototype.position = function () {
 
 Pacioli.Coordinates.prototype.findIndividualUnit = function (unit) {
 
-    var names = this.names
+    var names = this.names;
     
     vecBaseItem = function (base, order) {
-        var parts = base.split('$')
+        var parts = base.split('$');
         if (parts[1] == order) {
-            var vec = Pacioli.lookupItem('unitvec_' + parts[0]) 
-            var pos = names[order]
-            return vec.units[pos] || Pacioli.unit()
+            var vec = Pacioli.fetchVectorBase(parts[0]);
+            var pos = names[order];
+            return vec.units[pos] || Pacioli.unit();
         } else {
-            return Pacioli.unit()
+            return Pacioli.unit();
         }
     }
 

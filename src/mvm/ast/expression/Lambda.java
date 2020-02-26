@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package mvm.ast;
+package mvm.ast.expression;
 
 import java.io.PrintWriter;
 import java.util.List;

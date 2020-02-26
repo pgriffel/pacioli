@@ -258,11 +258,11 @@ Pacioli.Shape.prototype.columnCoordinates = function (position) {
 }
 
 Pacioli.Shape.prototype.rowName = function () {
-    return this.rowSets.map(function (x) {return x.name})
+    return this.rowSets.map(function (x) {return x.name}).reduce(function (x, y) {return x + '%' + y})
 }
 
 Pacioli.Shape.prototype.columnName = function () {
-    return this.columnSets.map(function (x) {return x.name})
+    return this.columnSets.map(function (x) {return x.name}).reduce(function (x, y) {return x + '%' + y})
 }
 
 Pacioli.Shape.prototype.columnCoordinates = function (position) {

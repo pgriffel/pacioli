@@ -30,7 +30,7 @@ var Pacioli = Pacioli || {};
 // -----------------------------------------------------------------------------
 
 Pacioli.DimensionedNumber = function (factor, unit) {
-    this.factor = factor || 1;
+    this.factor = typeof factor === "number" ? factor : 1;
     this.unit = unit || Pacioli.unit();
 }
 

@@ -10,6 +10,7 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StatementNode;
+import pacioli.ast.expression.TupleAssignmentNode;
 
 public class AssignedVariablesVisitor extends IdentityVisitor implements Visitor {
 
@@ -40,5 +41,12 @@ public class AssignedVariablesVisitor extends IdentityVisitor implements Visitor
     @Override
     public void visit(AssignmentNode node) {
         typeStack.peek().add(node.var);
+    }
+    
+    @Override
+    public void visit(TupleAssignmentNode node) {
+        for (IdentifierNode var: node.vars) {
+            typeStack.peek().add(var);
+        }
     }
 }

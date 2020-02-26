@@ -69,7 +69,7 @@ Pacioli.PowerProduct.prototype.isDimensionless = function () {
 Pacioli.PowerProduct.prototype.flat = function () {
 
     flatUnit = function (name) {
-        var unit = Pacioli.fetchUnit(name)
+        var unit = Pacioli.fetchScalarBase(name)
         if (unit.definition === undefined) {
             return new Pacioli.DimensionedNumber(1, new Pacioli.PowerProduct(name));
         } else {
@@ -236,13 +236,13 @@ Pacioli.PowerProduct.prototype.symbolized = function () {
     return this.map(function (base) { 
         var names = base.split('$')
         if (names.length === 1) {
-            return Pacioli.fetchUnit(base).symbol 
+            return Pacioli.fetchScalarBase(base).symbol 
         } else {
             var prefix = Pacioli.prefix[names[0]]
             if (prefix === undefined) {
                 throw new Error("prefix '" + names[0] + "' unknown")
             } else {
-                return prefix.symbol + Pacioli.fetchUnit(names[1]).symbol
+                return prefix.symbol + Pacioli.fetchScalarBase(names[1]).symbol
             }
         }
     })

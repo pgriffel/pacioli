@@ -284,11 +284,13 @@ public class Pacioli {
 
     private static void typesCommand(String fileName, List<File> libs) throws Exception {
 
-        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
+        File file = locatePacioliFile(fileName, libs);
 
         if (file == null) {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
+        
+        file = file.getAbsoluteFile();
 
         Pacioli.logln1("Displaying types for file '%s'", file);
         Progam program = new Progam(file, libraryDirectories(libs));
@@ -362,41 +364,82 @@ public class Pacioli {
 
     private static void testCommand(List<File> libs, CompilationSettings settings) throws Exception {
 
-        String dir = "E:/code/private/pacioli/samples/";
+        //String dir = "E:/code/private/pacioli/samples/";
+        String dir = "E:/code/private/pacioli-samples/";
 
         // compileFileCUP(dir + "net" + ".pacioli", libs, settings);
 
         // if (true) return;
-
-        List<String> samples = Arrays.asList("minijava", "abstract-resource", "adt", "adt-use",
-                // "alias", // bugged, also in old version
-                "apply_mag",
-                // "biglist", // okay but slow
-                // "blas", // bugged, also in old version
-                "blocks", "bom", "commodity", "dice", "do", // werkt niet meer met oude schema syntax
-                "envelope", "fourier-motzkin", "gcd", "gcd-test",
-                // "geom", // bugged, also in old version
-                "good", "grass", "hello-world", // bug introduced STATEMENTS
-                // "huh", // strange old bug
-                "indexing", // bug introduced STATEMENTS
-                "intro", "kirchhof", "klein", "krylov", // bug introduced STATEMENTS
-                // "loop", // bug introduced STATEMENTS
-                "magic", "math",
-                // "net", // bug introduced MULTI LEVEL INCLUDES
-                "power", "precedence", "quad", "queue", "random", "resource", "runtime-types", // bug introduced
-                                                                                               // STATEMENTS
-                "series", "convolution", "service",
-                // "solver", // svd has changed
-                // "statement", // bugged, also in old version
-                "test");
+        List<String> samples = Arrays.asList(
+            "abstract-resource/abstract-resource.pacioli",
+            "adt/adt.pacioli",
+            "adt/adt_use.pacioli",
+            //"alias/alias.pacioli",  // bugged, also in old version
+            "apply_mag/apply_mag.pacioli",
+            //"biglist/biglist.pacioli",  // okay but slow
+            //"blas/blas.pacioli",  // bugged, also in old version
+            "blocks/blocks.pacioli",
+            "bom/bom.pacioli",
+            "commodity/commodity.pacioli",
+            "convolution/convolution.pacioli",
+            "dice/dice.pacioli",
+            "do/do.pacioli",
+            "empty/empty.pacioli",
+            "envelope/envelope.pacioli",
+            //"fourier-motzkin/fourier_motzkin.pacioli",
+            //"fourier-motzkin/quad.pacioli",
+            "gcd/gcd.pacioli",
+            "gcd/gcd_test.pacioli",
+            //"geom/geom.pacioli",  // bugged, also in old version
+            "good/good.pacioli",
+            "grass/grass.pacioli",
+            "hello_world/hello_world.pacioli",
+            //"holtzman/holtzman.pacioli",
+            //"huh/huh.pacioli",   // strange old bug
+            "indexing/indexing.pacioli",
+            "intro/intro.pacioli",
+            //"kirchhof/kirchhof.pacioli",   // diagonal
+            "klein/klein.pacioli",
+            "krylov/krylov.pacioli",
+            //"loop/loop.pacioli",  // bug introduced STATEMENTS
+            "magic/magic.pacioli",
+            "math/math.pacioli",
+            "minijava/minijava.pacioli",
+            //"net/net.pacioli",  // bug introduced MULTI LEVEL INCLUDES
+            "oops/oops.pacioli",
+            "power/power.pacioli",
+            "precedence/precedence.pacioli",
+            "queue/queue.pacioli",
+            "random/random.pacioli",
+            "resource/resource.pacioli",
+            "runtime_types/runtime_types.pacioli",
+            "series/series.pacioli",
+            "service/service.pacioli",
+            //"shock_tube/shock_tube.pacioli",  // works, but slow
+            //"soda/soda.pacioli",
+            //"solver/solver.pacioli",  // svd has changed
+            //"statement/statement.pacioli",   // bugged, also in old version
+            "test/test.pacioli",
+            "shells/shells.pacioli"                
+            );
 
         for (String sample : samples) {
+            logln("--------------------------------------------------------------------------------" + sample);
             // typesCommand(dir + sample + ".pacioli", libs);
             // interpretCommand(dir + sample + ".mvm", libs);
             // runCommand(dir + sample + ".pacioli", libs, settings);
             // compileCommand(dir + sample + ".pacioli", dir + sample + ".mvm", libs,
             // settings);
-            compileFileCUP(dir + sample + ".pacioli", libs, settings);
+            //compileFileCUP(dir + sample, libs, settings);
+            
+            try {
+                compileFileCUP(dir + sample, libs, settings);
+
+            } catch (IOException e) {
+                Pacioli.logln("\nError: cannot cup compile file '%s':\n\n%s", sample, e);
+            }
+            
+            
             logln("--------------------------------------------------------------------------------");
         }
     }

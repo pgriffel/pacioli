@@ -1,16 +1,12 @@
 package mvm.ast;
 
 import java.io.PrintWriter;
-import java.math.BigDecimal;
-
 import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
-import mvm.ast.unit.UnitNode;
+import mvm.ast.expression.Expression;
 import mvm.values.PacioliValue;
 import pacioli.Pacioli;
-import uom.DimensionedNumber;
-import uom.NamedUnit;
 
 public class Print extends AbstractPrintable implements Instruction {
 

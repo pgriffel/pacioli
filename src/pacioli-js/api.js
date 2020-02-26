@@ -1,6 +1,6 @@
 /* Runtime Support for the Pacioli language
  *
- * Copyright (c) 2013 Paul Griffioen
+ * Copyright (c) 2013-2018 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -93,13 +93,6 @@ Pacioli.createCoordinates = function (pairs) {
     return {kind: "coordinates", position: coords.position(), size: coords.size(), coords: coords}
 }
 
-Pacioli.bangShape = function (indexHome, index, unitHome, unit) {
-    var result = new Pacioli.Shape();
-    result.rowSets = [Pacioli.fetchIndex(indexHome, index)]
-    result.rowUnit = Pacioli.unit(unit === '' ? 1 : unitHome + '_' + index + '_' + unit + '$' + 0)
-    return result;
-}
-
 Pacioli.scalarShape = function (unit) {
     var result = new Pacioli.Shape();
     result.multiplier = unit;
@@ -170,6 +163,10 @@ Pacioli.printValue = function (x) {
     return x;
 }
 
+Pacioli.dimNum = function (a, b) {
+    return new Pacioli.DimensionedNumber(a, b);
+}
+
 // -----------------------------------------------------------------------------
 // 1. The Store
 // -----------------------------------------------------------------------------
@@ -184,19 +181,36 @@ Pacioli.bfetchValue = function (home, name) {
     return Pacioli.lookupItem("b_global_" + home + "_" + name);
 }
 
-Pacioli.fetchIndex = function (home, name) {
-    return Pacioli.lookupItem("index_" + home + "_" + name);
+Pacioli.fetchIndex = function (id) {
+    return Pacioli.lookupItem("index_" + id);
 }
 
-Pacioli.fetchUnit = function (name) {
-    return Pacioli.lookupItem("unit_" + name);
+Pacioli.storeIndex = function (id, index) {
+    Pacioli.cache["index_" + id] = index;
 }
 
-Pacioli.fetchUnitVec = function (indexHome, index, unitHome, unit) {
-    return Pacioli.lookupItem("unitvec_" + unitHome + "_" + index + "_" + unit);
+// todo: replace unit_ by sbase_
+Pacioli.storeScalarBase = function (id, base) {
+    Pacioli.cache["unit_" + id] = base;
+}
+
+// todo: replace unit_ by sbase_
+Pacioli.fetchScalarBase = function (id) {
+    return Pacioli.lookupItem("unit_" + id);
+}
+
+// todo: replace unit_ by sbase_
+Pacioli.storeVectorBase = function (id, base) {
+    Pacioli.cache["unitvec_" + id] = base;
+}
+
+// todo: replace unit_ by sbase_
+Pacioli.fetchVectorBase = function (id) {
+    return Pacioli.lookupItem("unitvec_" + id);
 }
 
 Pacioli.fetchType = function (home, name) {
+    alert('Who used fetchType?');
     return Pacioli.lookupItem("u_global_" + home + "_" + name);
 }
 

@@ -55,9 +55,9 @@ define sqr(x) = x * x;
 
 define cube(x) = x * x * x;
 
-define inner(x,y) = x^T .* y;
+define inner(x,y) = x^T '*' y;
 
-define outer(x,y) = x .* y^T;
+define outer(x,y) = x '*' y^T;
 
 define neg(x) = -1 _* x;
 
@@ -130,16 +130,20 @@ define negatives(x) = x * negative_support(x);
 
 declare public diagonal :: for_index P: for_unit a,P!u: (a*P!u) -> a*P!u per P!u;
 declare public diagonal2 :: for_index P: for_unit a,P!u: (a*P!u) -> a*P!u per P!;
+declare public diagonal3 :: for_index P: for_unit a,P!u: (a*P!u) -> P! per P!;
 
-define diagonal(x) =
-  let u = unit(x), units = unit_factor(u) _* u per u in
-    make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
-  end;
+#define diagonal(x) =
+#  let u = unit(x), units = unit_factor(u) _* u per u in
+#    make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
+#  end;
 
 define diagonal2(x) =
   let u = unit(x), units = u per (magnitude(u)) in
     make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
   end;
+
+define diagonal3(x) =
+  make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]);
 
 # ------------------------------------------------------------------------------
 # Closures
@@ -167,9 +171,9 @@ define closure(x) = kleene(x) - left_identity(x);
 declare public left_division :: for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*P!u per R!w) -> b*Q!v per a*R!w;
 declare public right_division :: for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*R!w per Q!v) -> a*P!u per b*R!w;
 
-define left_division(x,y) = inverse(x) .* y;
+define left_division(x,y) = inverse(x) '*' y;
 
-define right_division(x,y) = x .* inverse(y);
+define right_division(x,y) = x '*' inverse(y);
 
 # ------------------------------------------------------------------------------
 # Lists
