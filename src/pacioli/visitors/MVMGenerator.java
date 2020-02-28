@@ -10,12 +10,9 @@ import java.util.Set;
 
 import mvm.values.matrix.MatrixDimension;
 import pacioli.CompilationSettings;
-import pacioli.Location;
 import pacioli.Pacioli;
 import pacioli.Utils;
-import pacioli.ValueContext;
 import pacioli.ast.Node;
-import pacioli.ast.Visitor;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Declaration;
@@ -32,7 +29,6 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
-import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
@@ -68,7 +64,7 @@ import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 import uom.DimensionedNumber;
 
-public class MVMGenerator extends PrintVisitor implements Visitor {
+public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
 //    PrintWriter out;
     CompilationSettings settings;
@@ -243,7 +239,7 @@ public class MVMGenerator extends PrintVisitor implements Visitor {
         String prefix = settings.debug() && node.debugable() ? "debug_" : "global_";
         // String full = node.isLocal() ? node.name : node.compiledName(prefix);
         // String full = info.generic.global ? node.compiledName(prefix) : node.name;
-        String full = info.generic.global ? prefix + info.generic.module + "_" + node.name : node.name;
+        String full = info.generic.isGlobal() ? prefix + info.generic.module + "_" + node.name : node.name;
 
         if (node.info.isRef) {
             out.format("application(var(\"global_Primitives_ref_get\"), var(\"%s\"))", full);
@@ -691,5 +687,11 @@ public class MVMGenerator extends PrintVisitor implements Visitor {
     @Override
     public void visit(UnitPowerNode unitOperationNode) {
         na();
+    }
+
+    @Override
+    public void compileValueDefinition(ValueDefinition def, ValueInfo info) {
+        // TODO Auto-generated method stub
+        
     }
 }

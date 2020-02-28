@@ -30,7 +30,7 @@ public class UsesVisitor extends IdentityVisitor implements Visitor {
     @Override
     public void visit(IdentifierNode node) {
         assert (node.info != null);
-        assert (node.info.getDefinition() != null || node.info.declaredType != null || !node.info.generic.global);
+        assert (node.info.getDefinition() != null || node.info.declaredType != null || !node.info.generic.isGlobal());
         infos.add(node.info);
     }
 

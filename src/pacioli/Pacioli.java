@@ -31,6 +31,7 @@ import java.util.List;
 
 import mvm.MVMException;
 import mvm.Machine;
+import pacioli.Progam.Phase;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 
@@ -244,11 +245,16 @@ public class Pacioli {
         }
         File dstName = new File(program.baseName() + extension).getAbsoluteFile();
 
-        program.load();
-
+        //program.load();
+        //program.loadTill(Phase.typed);
+        
+        program.compileRec(settings, target);
+        /*
         if (target.equals("javascript")) {
-            throw new RuntimeException("Todo: fix js compilation");
-            // program.compileJS(new PrintWriter(outputStream), settings);
+            program.compileRec(settings, target);
+
+//            throw new RuntimeException("Todo: fix js compilation");
+            //program.compileJS(settings);
         } else if (target.equals("matlab")) {
             throw new RuntimeException("Todo: fix matlab compilation");
             // program.compileMatlab(new PrintWriter(outputStream), settings);
@@ -264,7 +270,7 @@ public class Pacioli {
             compileStandardIncludes(libs, settings);
             program.compileMVMRec(settings);
         }
-
+        */
         Pacioli.logln("Compiled file '%s'", dstName);
 
     }
@@ -488,7 +494,7 @@ public class Pacioli {
         for (String name : table.allNames()) {
             SymbolInfo info = table.lookup(name);
             Pacioli.logln("  %-25s %-15s %s %-50s %s", name, info.generic().module,
-                    info.generic().local ? "local" : "     ", info.generic().file, info.getDefinition());
+                    info.generic().isImported() ? "     " : "local", info.generic().file, info.getDefinition());
         }
         Pacioli.logln("End table");
     }

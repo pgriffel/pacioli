@@ -186,7 +186,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                 TypeDefinition typeDefinition = (TypeDefinition) definition;
 
                 // if (reduce && definition.getModule() == node.op.home()) {
-                if (reduce && node.op.info.generic().local) {
+                if (reduce && !node.op.info.generic().isImported()) {
                     try {
                         returnType(typeDefinition.constaint(true).reduce(new ParametricType(typeDefinition, types)));
                     } catch (PacioliException e) {

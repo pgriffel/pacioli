@@ -14,7 +14,7 @@ public class ProjectionNode extends AbstractExpressionNode {
     public final List<ConstNode> columns;
     public final ExpressionNode body;
     private final TypeNode hardType;
-    private MatrixType type;
+    public MatrixType type;
 
     public ProjectionNode(List<ConstNode> columns, TypeNode hardType, ExpressionNode body, Location location) {
         super(location);

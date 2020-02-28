@@ -41,6 +41,7 @@ import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.visitors.DesugarVisitor;
+import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
 import pacioli.visitors.PrintVisitor;
 import pacioli.visitors.ResolveVisitor;
@@ -93,6 +94,14 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
     public String compileToMVM(CompilationSettings settings) {
         StringWriter outputStream = new StringWriter();
         MVMGenerator gen = new MVMGenerator(new PrintWriter(outputStream), settings);
+        this.accept(gen);
+        return outputStream.toString();
+    }
+    
+    @Override
+    public String compileToJSNew(CompilationSettings settings, boolean boxed) {
+        StringWriter outputStream = new StringWriter();
+        JSGenerator gen = new JSGenerator(new PrintWriter(outputStream), settings, boxed);
         this.accept(gen);
         return outputStream.toString();
     }

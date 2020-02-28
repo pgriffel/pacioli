@@ -6,9 +6,12 @@ import java.util.List;
 import mvm.values.matrix.MatrixDimension;
 
 import pacioli.Location;
+import pacioli.PacioliException;
 import pacioli.Utils;
 import pacioli.ast.Visitor;
+import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.matrix.MatrixType;
 
 public class MatrixLiteralNode extends AbstractExpressionNode {
 
@@ -22,9 +25,9 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
     public MatrixDimension columnDim;
 
     // Obsolete
-    private final List<Integer> rowIndices = new ArrayList<Integer>();
-    private final List<Integer> columnIndices = new ArrayList<Integer>();
-    private final List<String> values = new ArrayList<String>();
+    public final List<Integer> rowIndices = new ArrayList<Integer>();
+    public final List<Integer> columnIndices = new ArrayList<Integer>();
+    public final List<String> values = new ArrayList<String>();
 
     // Obsolete? Move to parser if necessary.
     public static class ValueDecl {
@@ -60,7 +63,16 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
         this.rowDim = old.rowDim;
         this.columnDim = old.columnDim;
     }
-
+    
+    public MatrixType evalType(Boolean reduce) throws PacioliException {
+        PacioliType type = typeNode.evalType(reduce);
+        if (type instanceof MatrixType) {
+            return (MatrixType) type;
+        } else {
+            throw new PacioliException(typeNode.getLocation(), "Expected a matrix type");
+        }
+    }
+    
     @Override
     public String compileToJS(boolean boxed) {
 
@@ -81,7 +93,9 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
             return "Pacioli.initialMatrix(" + typeNode.compileToJS(boxed) + "," + builder.toString() + ")";
             // throw new RuntimeException("matrix literal node ");
         }
-        return String.format("Pacioli.initialNumbers(%s, %s, [%s])", rowDim.size(), columnDim.size(),
+        return String.format("Pacioli.initialNumbers(%s, %s, [%s])", 
+                //rowDim.size(), 
+                //columnDim.size(),
                 builder.toString());
 
         // return String.format("Pacioli.initialMatrix(%s, [%s])",

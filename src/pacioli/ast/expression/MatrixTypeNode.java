@@ -24,15 +24,18 @@ package pacioli.ast.expression;
 import java.io.PrintWriter;
 import mvm.values.matrix.MatrixDimension;
 import pacioli.Location;
+import pacioli.PacioliException;
 import pacioli.ast.Visitor;
+import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.matrix.MatrixType;
 
 public class MatrixTypeNode extends AbstractExpressionNode {
 
     public final TypeNode typeNode;
 
-    private final MatrixDimension rowDim;
-    private final MatrixDimension columnDim;
+    public final MatrixDimension rowDim;
+    public final MatrixDimension columnDim;
 
     public MatrixTypeNode(Location location, TypeNode typeNode) {
         super(location);
@@ -40,19 +43,29 @@ public class MatrixTypeNode extends AbstractExpressionNode {
         this.rowDim = null;
         this.columnDim = null;
     }
-
+/*
     public MatrixTypeNode(Location location, TypeNode typeNode, MatrixDimension rowDim, MatrixDimension columnDim) {
         super(location);
         this.typeNode = typeNode;
         this.rowDim = rowDim;
         this.columnDim = columnDim;
     }
-
+*/
     @Override
     public void printText(PrintWriter out) {
         out.print("|");
         typeNode.printText(out);
         out.print("|");
+    }
+    
+    
+    public MatrixType evalType(Boolean reduce) throws PacioliException {
+        PacioliType type = typeNode.evalType(reduce);
+        if (type instanceof MatrixType) {
+            return (MatrixType) type;
+        } else {
+            throw new PacioliException(typeNode.getLocation(), "Expected a matrix type");
+        }
     }
 
     @Override

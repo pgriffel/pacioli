@@ -41,9 +41,9 @@ import pacioli.types.ast.TypeNode;
 
 public class TypeDefinition extends AbstractDefinition {
 
-    private final TypeContext context;
-    private final TypeNode lhs;
-    private final TypeNode rhs;
+    public final TypeContext context;
+    public final TypeNode lhs;
+    public final TypeNode rhs;
     private TypeApplicationNode resolvedLhs;
     private TypeNode resolvedRhs;
     private TypeConstraint constraint;
@@ -61,7 +61,8 @@ public class TypeDefinition extends AbstractDefinition {
         totalContext.addAll(this.context);
 
         if (lhs instanceof TypeApplicationNode) {
-            TypeApplicationNode app = resolvedLhs;
+            //TypeApplicationNode app = resolvedLhs;
+            TypeApplicationNode app = (TypeApplicationNode) lhs;
 
             List<PacioliType> types = new ArrayList<PacioliType>();
             for (TypeNode arg : app.getArgs()) {
@@ -77,7 +78,8 @@ public class TypeDefinition extends AbstractDefinition {
 
             PacioliType lhsType = new ParametricType(app.getName(), types);
 
-            PacioliType rhsType = resolvedRhs.evalType(true);
+            PacioliType rhsType = rhs.evalType(true);
+            //PacioliType rhsType = resolvedRhs.evalType(true);
             if (lhsType instanceof ParametricType) {
                 constraint = new TypeConstraint(app, rhsType);
             } else {

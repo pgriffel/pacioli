@@ -12,6 +12,7 @@ import mvm.values.matrix.MatrixDimension;
 import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Progam;
+import pacioli.TypeContext;
 import pacioli.ast.Visitor;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.definition.AliasDefinition;
@@ -43,7 +44,9 @@ import pacioli.types.PacioliType;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.SchemaNode;
+import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeIdentifierNode;
+import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 
@@ -107,9 +110,28 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(TypeDefinition typeDefinition) {
+    public void visit(TypeDefinition node) {
+        
+        pushTypeContext(node.context);
+        
+        
         // throw new RuntimeException("todo ");
-        Pacioli.logln("NOT VISITING TYPE DEF %s", typeDefinition.getLocation().description());
+        //Pacioli.logln("NOT VISITING TYPE DEF %s", node.getLocation().description());
+        if (node.lhs instanceof TypeApplicationNode) {
+            TypeApplicationNode app = (TypeApplicationNode) node.lhs;
+            //List<TypeNode> types = new ArrayList<TypeNode>();
+            for (TypeNode arg : app.getArgs()) {
+                //types.add(arg.resolved(dictionary, this.context));
+                arg.accept(this);
+            }
+            node.lhs.accept(this);
+            //resolvedLhs = new TypeApplicationNode(getLocation(), app.getOperator(), types);
+        } else {
+            visitorThrow(node.getLocation(), "Left side of typedef is not a type function: %s", node.lhs.toText());
+        }
+        //node.lhs.accept(this);
+        node.rhs.accept(this);
+        typeTables.pop();
     }
 
     @Override
@@ -142,7 +164,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         // table
         for (String arg : node.arguments) {
             ValueInfo info = new ValueInfo();
-            info.generic = new GenericInfo(arg, prog.program.module.name, prog.file, false, false);
+            info.generic = new GenericInfo(arg, prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL);
             node.table.put(arg, info);
         }
 
@@ -221,12 +243,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         // Evaluate the matrix type
         MatrixType matrixType;
         try {
-            PacioliType type = node.typeNode.evalType(false);
-            if (type instanceof MatrixType) {
-                matrixType = (MatrixType) type;
-            } else {
-                throw new PacioliException(node.typeNode.getLocation(), "Expected a matrix type");
-            }
+            matrixType = node.evalType(false);
         } catch (PacioliException e) {
             throw new RuntimeException(e);
         }
@@ -275,7 +292,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             
             // Create a value info record for the variable
             ValueInfo info = new ValueInfo();
-            info.generic = new GenericInfo(id.getName(), prog.program.module.name, prog.file, false, false);
+            info.generic = new GenericInfo(id.getName(), prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL);
             info.isRef = true;
             info.initialRefInfo = shadowedInfo;
 
@@ -285,7 +302,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
         // Create an info record for the result and put it in the symbol table
         ValueInfo info = new ValueInfo();
-        info.generic = new GenericInfo("result", prog.program.module.name, prog.file, false, false);
+        info.generic = new GenericInfo("result", prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL);
         node.table.put("result", info);
 
         // Create a place for the statement result and attach the info record
@@ -350,7 +367,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(SchemaNode node) {
-
+/*
         // Create the node's symbol table
         node.table = new SymbolTable<SymbolInfo>(typeTables.peek());
 
@@ -376,8 +393,40 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
         // Resolve the node's type
         typeTables.push(node.table);
+*/
+        pushTypeContext(node.context);
+        node.table = typeTables.peek();
         node.type.accept(this);
         typeTables.pop();
+    }
+
+    private void pushTypeContext(TypeContext context) {
+
+        // Create the node's symbol table
+        SymbolTable<SymbolInfo> table = new SymbolTable<SymbolInfo>(typeTables.peek());
+
+        // Add info records for all variables
+        for (String arg : context.typeVars) {
+            GenericInfo generic = new GenericInfo(arg, prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL);
+            TypeInfo info = new TypeInfo();
+            info.generic = generic;
+            table.put(arg, info);
+        }
+        for (String arg : context.indexVars) {
+            GenericInfo generic = new GenericInfo(arg, prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL);
+            IndexSetInfo info = new IndexSetInfo();
+            info.generic = generic;
+            table.put(arg, info);
+        }
+        for (String arg : context.unitVars) {
+            GenericInfo generic = new GenericInfo(arg, prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL);
+            UnitInfo info = new UnitInfo();
+            info.generic = generic;
+            table.put(arg, info);
+        }
+        
+        typeTables.push(table);        
+        
     }
 
     @Override

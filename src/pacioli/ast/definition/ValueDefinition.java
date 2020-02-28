@@ -128,7 +128,7 @@ public class ValueDefinition extends AbstractDefinition {
     public void addToProgr(Progam program, GenericInfo generic) {
         ValueInfo info = program.ensureValueRecord(id.getName());
         info.generic = generic;
-        if (info.generic.local) {
+        if (!info.generic.isImported()) {
             info.definition = this;
         }
     }

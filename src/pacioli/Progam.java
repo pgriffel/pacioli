@@ -12,7 +12,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import pacioli.Progam.Phase;
 import pacioli.ast.ProgramNode;
+import pacioli.ast.Visitor;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.UnitVectorDefinition;
@@ -29,6 +31,8 @@ import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.PacioliType;
+import pacioli.visitors.CodeGenerator;
+import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
 import pacioli.visitors.PrintVisitor;
 import pacioli.visitors.ResolveVisitor;
@@ -36,6 +40,12 @@ import uom.DimensionedNumber;
 
 public class Progam extends AbstractPrintable {
 
+    public enum Phase {
+        parsed,
+        desugared,
+        typed, resolved
+    }
+    
     public final File file;
     private final List<File> libs;
 
@@ -127,6 +137,20 @@ public class Progam extends AbstractPrintable {
         program = Parser.parseFile(this.file.getAbsolutePath());
 
     }
+    
+    public void loadTill(Phase phase) throws Exception {
+        
+        program = Parser.parseFile(this.file.getAbsolutePath());
+        if (phase.equals(Phase.parsed)) return;
+        
+        desugar();
+        if (phase.equals(Phase.desugared)) return;
+        
+        resolve();
+        if (phase.equals(Phase.resolved)) return;
+    
+        inferTypes();
+    }
 
     // -------------------------------------------------------------------------
     // Cleaning MVM files
@@ -159,7 +183,7 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     // Compilation driver
     // -------------------------------------------------------------------------
-
+    
     public void compileMVMRec(CompilationSettings settings) throws Exception {
 
         File dst = new File(baseName() + ".mvm");
@@ -191,9 +215,132 @@ public class Progam extends AbstractPrintable {
             inferTypes();
             //desugarStatements();
             //Pacioli.logln("Desugared:\n%s\nEND DESUGAR", toText());
-            compileMVM(settings);
+            compile(settings, "mvm");
         }
 
+    }
+
+    public void compileRec(CompilationSettings settings, String target) throws Exception {
+
+        String extension;
+        if (target.equals("javascript")) {
+            extension = "js";
+        } else if (target.equals("matlab")) {
+            extension = "m";
+        } else if (target.equals("html")) {
+            extension = "html";
+        } else {
+            extension = "mvm";
+        }
+        
+        File dst = new File(baseName() + "." + extension);
+        
+        loadTill(Phase.typed);
+        
+        if (dst.lastModified() < file.lastModified() || true) {
+
+            for (String include : includes()) {
+                File file = findIncludeFile(include);
+                // Pacioli.logln("Parsing include file: %s", file);
+                Progam prog = new Progam(file, libs);
+                //prog.load();
+                prog.compileRec(settings, target);
+            }
+
+            Pacioli.logln("Compiling %s", file);
+            
+            
+            compile(settings, target);
+        }
+
+    }
+    
+
+    public void compile(CompilationSettings settings, String target) throws Exception {
+
+        BufferedWriter out = new BufferedWriter(new FileWriter(baseName() + ".js"));
+
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(out);
+            for (String include : includes()) {
+                if (!target.equals("javascript")) {
+                    writer.format("require %s;\n", include);
+                }
+            }
+
+            List<Definition> unitsToCompile = new ArrayList<Definition>();
+            List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
+            for (String unit : units.allNames()) {
+                UnitInfo info = units.lookup(unit);
+                if (!info.generic.isImported()) {
+                    unitsToCompile.add(info.definition);
+                    unitsToCompileTmp.add(info);
+                }
+            }
+
+            unitsToCompileTmp = orderedInfos(unitsToCompileTmp);
+            
+            List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
+            for (String value : values.allNames()) {
+                ValueInfo info = values.lookup(value);
+                if (!info.generic.isImported()) {
+                    if (info.definition != null) {
+                        valuesToCompile.add(info);
+                    }
+                }
+            }
+            
+            CodeGenerator gen;
+            
+            
+            if (target.equals("javascript")) {
+                gen = new JSGenerator(writer, settings, false);
+            } else if (target.equals("matlab")) {
+                throw new RuntimeException("Todo: fix matlab compilation");
+                // program.compileMatlab(new PrintWriter(outputStream), settings);
+            } else if (target.equals("html")) {
+                throw new RuntimeException("Todo: fix html compilation");
+                // program.compileHtml(new PrintWriter(outputStream), settings);
+            } else {
+                gen = new MVMGenerator(writer, settings);
+            }
+            
+
+            for (String indexSet : indexSets.allNames()) {
+                IndexSetInfo info = indexSets.lookup(indexSet);
+                if (!info.generic.isImported()) {
+                    assert (info.definition != null);
+                    info.definition.accept(gen);
+                }
+            }
+            
+            for (UnitInfo info : unitsToCompileTmp) {
+                compileUnitMVM(info, writer, target);
+                writer.print("\n");
+            }
+
+            for (ValueInfo info : valuesToCompile) {
+                //writer.format("store \"%s\" ", info.globalName());
+                ValueDefinition def = (ValueDefinition) info.getDefinition();
+                
+                //def.body.accept(gen);
+                
+                gen.compileValueDefinition(def, info);
+                
+                
+                writer.write(";\n");
+            }
+            
+            for (Toplevel def : toplevels) {
+                def.accept(gen);
+            }
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
+        
     }
 
     // -------------------------------------------------------------------------
@@ -204,7 +351,7 @@ public class Progam extends AbstractPrintable {
 
         for (String type : ResolveVisitor.builtinTypes) {
             TypeInfo info = ensureTypeRecord(type);
-            GenericInfo generic = new GenericInfo(type, program.module.name, null, false, true);
+            GenericInfo generic = new GenericInfo(type, program.module.name, null, GenericInfo.Scope.IMPORTED);
             info.generic = generic;
         }
 
@@ -219,7 +366,7 @@ public class Progam extends AbstractPrintable {
                 // GenericInfo info = new GenericInfo(prog.program.module.name, file, false,
                 // true);
                 for (Definition def : prog.program.definitions) {
-                    GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, false, true);
+                    GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED);
                     def.addToProgr(this, info);
                 }
             }
@@ -234,7 +381,7 @@ public class Progam extends AbstractPrintable {
             // GenericInfo info = new GenericInfo(prog.program.module.name, file, false,
             // true);
             for (Definition def : prog.program.definitions) {
-                GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, false, true);
+                GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED);
                 def.addToProgr(this, info);
             }
         }
@@ -242,7 +389,7 @@ public class Progam extends AbstractPrintable {
         // Fill symbol tables for this file
         // GenericInfo info = new GenericInfo(program.module.name, file, true, true);
         for (Definition def : program.definitions) {
-            GenericInfo info = new GenericInfo(def.localName(), program.module.name, file, true, true);
+            GenericInfo info = new GenericInfo(def.localName(), program.module.name, file, GenericInfo.Scope.FILE);
             def.addToProgr(this, info);
         }
         // Pacioli.logln("Resolving %s", file);
@@ -337,7 +484,7 @@ public class Progam extends AbstractPrintable {
         
         for (String value : names) {
             ValueInfo info = values.lookup(value);
-            if (info.generic.local && info.getDefinition() != null) {
+            if (!info.generic.isImported() && info.getDefinition() != null) {
                 inferValueDefinitionType(info, discovered, finished);
                 Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.toText());
             }
@@ -355,8 +502,8 @@ public class Progam extends AbstractPrintable {
 
     private void inferUsedTypes(Definition definition, Set<SymbolInfo> discovered, Set<SymbolInfo> finished) {
         for (SymbolInfo pre : definition.uses()) {
-            if (pre.generic().global && pre instanceof ValueInfo) {
-                if (pre.generic().local && pre.getDefinition() != null) {
+            if (pre.generic().isGlobal() && pre instanceof ValueInfo) {
+                if (!pre.generic().isImported() && pre.getDefinition() != null) {
                     inferValueDefinitionType(pre, discovered, finished);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
@@ -405,7 +552,7 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     // MVM code generation
     // -------------------------------------------------------------------------
-
+/*
     public void compileMVM(CompilationSettings settings) throws Exception {
 
         BufferedWriter out = new BufferedWriter(new FileWriter(baseName() + ".mvm"));
@@ -421,7 +568,7 @@ public class Progam extends AbstractPrintable {
             List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
             for (String unit : units.allNames()) {
                 UnitInfo info = units.lookup(unit);
-                if (info.generic.local) {
+                if (!info.generic.isImported()) {
                     unitsToCompile.add(info.definition);
                     unitsToCompileTmp.add(info);
                 }
@@ -432,7 +579,7 @@ public class Progam extends AbstractPrintable {
             List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
             for (String value : values.allNames()) {
                 ValueInfo info = values.lookup(value);
-                if (info.generic.local) {
+                if (!info.generic.isImported()) {
                     if (info.definition != null) {
                         valuesToCompile.add(info);
                     }
@@ -443,14 +590,14 @@ public class Progam extends AbstractPrintable {
 
             for (String indexSet : indexSets.allNames()) {
                 IndexSetInfo info = indexSets.lookup(indexSet);
-                if (info.generic.local) {
+                if (!info.generic.isImported()) {
                     assert (info.definition != null);
                     info.definition.accept(gen);
                 }
             }
             
             for (UnitInfo info : unitsToCompileTmp) {
-                compileUnitMVM(info, writer);
+                compileUnitMVM(info, writer, "mvm");
             }
 
             for (ValueInfo info : valuesToCompile) {
@@ -470,29 +617,57 @@ public class Progam extends AbstractPrintable {
             }
         }
 
-    }
+    } */
 
-    private void compileUnitMVM(UnitInfo info, PrintWriter writer) {
+    private void compileUnitMVM(UnitInfo info, PrintWriter writer, String target) {
         if (info.isVector) {
             IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.definition).indexSetNode.info;
             List<String> unitTexts = new ArrayList<String>();
             // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
             for (UnitDecl entry : info.items) {
                 DimensionedNumber number = entry.value.evalUnit();
-                unitTexts.add("\"" + entry.key.getName() + "\": " + Utils.compileUnitToMVM(number.unit()));
+                // todo: take number.factor() into account!? 
+                if (target.equals("mvm")) {
+                    unitTexts.add("\"" + entry.key.getName() + "\": " + Utils.compileUnitToMVM(number.unit()));
+                } else if (target.equals("javascript")) {
+                    unitTexts.add("'" + entry.key.getName() + "': " + Utils.compileUnitToJS(number.unit()));
+                } else {
+                    throw new RuntimeException("Unknown target");
+                }
             }
-            writer.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n",
-                    // String.format("index_%s_%s", node.getModule().getName(), node.localName()),
-                    setInfo.definition.globalName(),
-                    // resolvedIndexSet.getDefinition().globalName(),
-                    info.name(), Utils.intercalate(", ", unitTexts)));
+            String globalName = setInfo.definition.globalName();
+            String name = info.name();
+            String args = Utils.intercalate(", ", unitTexts); 
+            if (target.equals("mvm")) {
+                writer.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n", globalName, name, args));
+            } else if (target.equals("javascript")) {
+                writer.print(String.format("function compute_%s () { return {units: { %s }}};\n", globalName, name, args));
+            } else {
+                throw new RuntimeException("Unknown target");
+            }
         } else if (info.baseDefinition == null) {
-            writer.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol);
+            if (target.equals("mvm")) {
+                writer.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol);
+            } else if (target.equals("javascript")) {
+                writer.format("Pacioli.compute_%s = function () { return {symbol: '%s'}};\n", 
+                        info.globalName(), info.symbol);
+            } else {
+                throw new RuntimeException("Unknown target");
+            }
         } else {
             DimensionedNumber number = info.baseDefinition.evalUnit();
             number = number.flat();
-            writer.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
-                    Utils.compileUnitToMVM(number.unit()));
+            if (target.equals("mvm")) {
+                writer.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
+                        Utils.compileUnitToMVM(number.unit()));
+            } else if (target.equals("javascript")) {
+                writer.format("Pacioli.compute_%s = function () {\n", info.globalName());
+                writer.format("    return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}\n",
+                        number.factor(), Utils.compileUnitToJS(number.unit()), info.symbol);   
+                writer.format("}\n");
+            } else {
+                throw new RuntimeException("Unknown target");
+            }
         }
     }
     
@@ -515,7 +690,7 @@ public class Progam extends AbstractPrintable {
             List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
             for (String unit : units.allNames()) {
                 UnitInfo info = units.lookup(unit);
-                if (info.generic.local) {
+                if (!info.generic.isImported()) {
                     unitsToCompile.add(info.definition);
                     unitsToCompileTmp.add(info);
                 }
@@ -526,7 +701,7 @@ public class Progam extends AbstractPrintable {
             List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
             for (String value : values.allNames()) {
                 ValueInfo info = values.lookup(value);
-                if (info.generic.local) {
+                if (!info.generic.isImported()) {
                     if (info.definition != null) {
                         valuesToCompile.add(info);
                     }
@@ -537,7 +712,7 @@ public class Progam extends AbstractPrintable {
 
             for (String indexSet : indexSets.allNames()) {
                 IndexSetInfo info = indexSets.lookup(indexSet);
-                if (info.generic.local) {
+                if (!info.generic.isImported()) {
                     assert (info.definition != null);
                     info.definition.accept(gen);
                 }
