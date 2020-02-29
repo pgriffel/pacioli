@@ -205,14 +205,18 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(MatrixLiteralNode node) {
         // returnValue(new MatrixLiteralNode(node));
-        returnNode(node);
+        //returnNode(node);
+        returnNode(new MatrixLiteralNode(node.getLocation(), typeAccept(node.typeNode), node.pairs));
     }
 
     @Override
     public void visit(MatrixTypeNode node) {
         // throw new RuntimeException("todo");
         // returnValue(node);
-        returnNode(node);
+        //returnNode(node);
+        TypeNode yo = typeAccept(node.typeNode);
+        assert(yo != null);
+        returnNode(new MatrixTypeNode(node.getLocation(), typeAccept(node.typeNode)));
     }
 
     @Override

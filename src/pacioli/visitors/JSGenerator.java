@@ -73,11 +73,12 @@ import uom.DimensionedNumber;
 public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     CompilationSettings settings;
-    Boolean boxed = true;
+    Boolean boxed;
 
     public JSGenerator(PrintWriter printWriter, CompilationSettings settings, boolean boxed) {
         super(printWriter);
         this.settings = settings;
+        this.boxed = boxed;
     }
 
     private void na() {
@@ -105,7 +106,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         for (String item : node.items) {
             quotedItems.add(String.format("\"%s\"", item));
         }
-        out.format("\\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', [ %s ])}\n", 
+        out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', [ %s ])}\n", 
                 node.globalName(), 
                 node.localName(),
                 Utils.intercalate(",", quotedItems));
@@ -207,10 +208,30 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         } else {
             
             //newlineUp();
+            
             if (node.function instanceof IdentifierNode && ((IdentifierNode)node.function).info.generic.isGlobal()) {
-                out.format("Pacioli.%s", ((IdentifierNode) node.function).info.globalName()); // is globalName() correct?
+                String fullName = ((IdentifierNode) node.function).info.globalName();
+                if (!boxed ||
+                        fullName.equals("global_List_empty_list") || fullName.equals("global_List_loop_list")
+                        || fullName.equals("global_List_fold_list") || fullName.equals("global_List_cons")
+                        || fullName.equals("global_List_zip") || fullName.equals("global_List_tail")
+                        || fullName.equals("global_List_head") || fullName.equals("global_List_add_mut")
+                        || fullName.equals("global_List_append") || fullName.equals("global_List_reverse")
+                        || fullName.equals("global_Primitives_tuple") || fullName.equals("global_Primitives_new_ref")
+                        || fullName.equals("global_Primitives_empty_ref")
+                        || fullName.equals("global_Primitives_throw_result")
+                        || fullName.equals("global_Primitives_catch_result") || fullName.equals("global_Primitives_seq")
+                        || fullName.equals("global_Primitives_ref_set") || fullName.equals("global_Primitives_ref_get")
+                        || fullName.equals("global_Primitives_while_function")
+                        || fullName.equals("global_Primitives_apply")) {
+                    out.format("Pacioli.%s", fullName); // is globalName() correct?
+                } else {
+                    out.format("Pacioli.b_%s", fullName); // is globalName() correct?
+                }
             } else {
+                out.print("(");
                 node.function.accept(this);
+                out.print(")");
             }
             out.write("(");
             // return String.format("application(%s%s)",
@@ -269,7 +290,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ConversionNode node) {
-        out.format("Pacioli.conversionNumbers(%s)", node.typeNode.compileToJS(false));
+        out.format("Pacioli.conversionNumbers(%s)", node.typeNode.compileToJS(boxed));
     }
 
     @Override
@@ -278,11 +299,12 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         //String prefix = settings.debug() && node.debugable() ? "debug_" : "global_";
         // String full = node.isLocal() ? node.name : node.compiledName(prefix);
         // String full = info.generic.global ? node.compiledName(prefix) : node.name;
-        String full = info.generic.isGlobal() ? "Pacioli.fetchValue('" + info.generic.module + "', '" + node.name + "')" 
+        String fun = boxed ? "bfetchValue" : "fetchValue";
+        String full = info.generic.isGlobal() ? "Pacioli." + fun + "('" + info.generic.module + "', '" + node.name + "')" 
                                           : node.name;
 
         if (node.info.isRef) {
-            out.format("Pacioli.ref_get(%s)", full);
+            out.format("Pacioli.global_Primitives_ref_get(%s)", full);
         } else {
             out.format("%s", full);
         }
@@ -351,7 +373,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             sep = ",";
         }
         if (boxed) {
-            out.print("Pacioli.initialMatrix(" + node.typeNode.compileToJS(false) + "," + builder.toString() + ")");
+            out.print("Pacioli.initialMatrix(" + node.typeNode.compileToJS(boxed) + "," + builder.toString() + ")");
             // throw new RuntimeException("matrix literal node ");
         }
         out.format("Pacioli.initialNumbers(%s, %s, [%s])", 
@@ -373,11 +395,12 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         if (boxed) {
             // throw new RuntimeException("matrix type node ");
             //out.print("Pacioli.oneMatrix(" + node.typeNode.compileToJS(boxed) + ")");
-            out.print("Pacioli.oneMatrix(" + type.compileToJS() + ")");
+            // ADDED .param!!!!!!!!
+            out.print("Pacioli.oneMatrix(" + type.compileToJS() + ".param)");
             
         } else {
             // Obsolete code
-            //out.print("Pacioli.oneNumbers(" +  node.rowDim.size() + ", " + node.columnDim.size() + ")");
+            out.print("Pacioli.oneNumbers(" +  node.rowDim.size() + ", " + node.columnDim.size() + ")");
         }
     }
 
@@ -445,9 +468,10 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             write(id.getName());
             //write("\"");
         }
-        write(") { return ");
+        write(") {");
         
         newlineUp();
+        write("return ");
         
         // A catch to get the result
         write("Pacioli.global_Primitives_catch_result(");
@@ -455,10 +479,10 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         newlineUp();
         
         // Catch expect a lambda
-        write("function () { return ");
+        write("function () {");
         
         newlineUp();
-        
+        write("return ");
         // The body
         node.body.accept(this);
         write("; } ,");
@@ -469,7 +493,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         write("result");
         
         // Close the catch application
-        write(")( ");
+        write("); }( ");
         
         newlineDown();
         
@@ -503,7 +527,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         
         
         // Close the lambda application
-        write("); }");
+        write(")");
         
         unmark();
         //out.format("application(global_Primitives_ref_set, ");
@@ -603,7 +627,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         newlineDown();
         write("function () {");
         newlineUp();
-        write("return");
+        write("return ");
         node.body.accept(this);
         write(";})");
         unmark();

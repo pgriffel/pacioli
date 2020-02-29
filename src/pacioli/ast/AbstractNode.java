@@ -27,12 +27,14 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import pacioli.AbstractPrintable;
 import pacioli.CompilationSettings;
 import pacioli.Location;
 import pacioli.Progam;
+import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.ValueDefinition;

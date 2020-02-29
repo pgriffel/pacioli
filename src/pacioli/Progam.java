@@ -8,13 +8,16 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import pacioli.Progam.Phase;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.Visitor;
+import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.UnitVectorDefinition;
@@ -56,6 +59,8 @@ public class Progam extends AbstractPrintable {
     public SymbolTable<TypeInfo> types = new SymbolTable<TypeInfo>();
     public SymbolTable<ValueInfo> values = new SymbolTable<ValueInfo>();
     public List<Toplevel> toplevels = new ArrayList<Toplevel>();
+    // todo: integrate with units. Is the same namespace!
+    public Map<String, AliasDefinition> aliasDefinitions = new HashMap<String, AliasDefinition>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -106,17 +111,40 @@ public class Progam extends AbstractPrintable {
     public void addToplevel(Toplevel toplevel) {
         toplevels.add(toplevel);
     }
+    
+    public void addAliasDefinition(AliasDefinition definition) {
+        Pacioli.logln("PUT ALIAS %s", definition.localName());
+        aliasDefinitions.put(definition.localName(), definition);
+    }
 
     // -------------------------------------------------------------------------
     // Properties
     // -------------------------------------------------------------------------
 
     String baseName() {
+        return fileBaseName(file);
+    }
+    
+    static String fileBaseName(File file) {
         String name = file.getAbsolutePath();
         assert (name.endsWith(".pacioli"));
         return name.substring(0, name.length() - 8);
     }
-
+    
+    static String targetFileExtension(String target) {
+        if (target.equals("javascript")) {
+            return "js";
+        } else if (target.equals("matlab")) {
+            return "m";
+        } else if (target.equals("html")) {
+            return "html";
+        } else if (target.equals("mvm")) {
+            return "mvm";
+        } else {
+            throw new RuntimeException("Compilation target " + target + " unknown. Expected javascript, matlab or mvm.");
+        }
+    }
+    
     public List<String> includes() {
         List<String> list = new ArrayList<String>();
         for (IdentifierNode id : program.includes) {
@@ -144,6 +172,8 @@ public class Progam extends AbstractPrintable {
         if (phase.equals(Phase.parsed)) return;
         
         desugar();
+        fillTables();
+        //subsAliases();
         if (phase.equals(Phase.desugared)) return;
         
         resolve();
@@ -153,201 +183,10 @@ public class Progam extends AbstractPrintable {
     }
 
     // -------------------------------------------------------------------------
-    // Cleaning MVM files
+    // Filling symbol tables
     // -------------------------------------------------------------------------
 
-    public Boolean cleanMVMFiles(Boolean force) throws Exception {
-
-        File dst = new File(baseName() + ".mvm");
-        Boolean srcDirty = false;
-
-        for (String include : includes()) {
-            File incl = findIncludeFile(include);
-            Progam prog = new Progam(incl, libs);
-            prog.load();
-            srcDirty = srcDirty || prog.cleanMVMFiles(force);
-        }
-
-        if (srcDirty || dst.lastModified() < file.lastModified() || force) {
-            if (dst.exists()) {
-                Pacioli.logln("Deleting MVM file %s %s", dst, includes());
-                dst.delete();
-            }
-            return true;
-        } else {
-            return srcDirty;
-        }
-
-    }
-
-    // -------------------------------------------------------------------------
-    // Compilation driver
-    // -------------------------------------------------------------------------
-    
-    public void compileMVMRec(CompilationSettings settings) throws Exception {
-
-        File dst = new File(baseName() + ".mvm");
-
-        if (dst.lastModified() < file.lastModified()) {
-
-            for (String include : includes()) {
-                File file = findIncludeFile(include);
-                // Pacioli.logln("Parsing include file: %s", file);
-                Progam prog = new Progam(file, libs);
-                prog.load();
-                prog.compileMVMRec(settings);
-            }
-
-            Pacioli.logln("Compiling %s", file);
-            desugar();
-            //desugarStatements();
-            
-             
-            //out.format("declare %s :: %s;\n", pacioli.Utils.intercalate(",", names), node.toText());
-            
-            // resolve();
-            try {
-                resolve();
-            } finally {
-                //Pacioli.printSymbolTable(values, "value");
-            }
-            // desugarStatements();
-            inferTypes();
-            //desugarStatements();
-            //Pacioli.logln("Desugared:\n%s\nEND DESUGAR", toText());
-            compile(settings, "mvm");
-        }
-
-    }
-
-    public void compileRec(CompilationSettings settings, String target) throws Exception {
-
-        String extension;
-        if (target.equals("javascript")) {
-            extension = "js";
-        } else if (target.equals("matlab")) {
-            extension = "m";
-        } else if (target.equals("html")) {
-            extension = "html";
-        } else {
-            extension = "mvm";
-        }
-        
-        File dst = new File(baseName() + "." + extension);
-        
-        loadTill(Phase.typed);
-        
-        if (dst.lastModified() < file.lastModified() || true) {
-
-            for (String include : includes()) {
-                File file = findIncludeFile(include);
-                // Pacioli.logln("Parsing include file: %s", file);
-                Progam prog = new Progam(file, libs);
-                //prog.load();
-                prog.compileRec(settings, target);
-            }
-
-            Pacioli.logln("Compiling %s", file);
-            
-            
-            compile(settings, target);
-        }
-
-    }
-    
-
-    public void compile(CompilationSettings settings, String target) throws Exception {
-
-        BufferedWriter out = new BufferedWriter(new FileWriter(baseName() + ".js"));
-
-        PrintWriter writer = null;
-        try {
-            writer = new PrintWriter(out);
-            for (String include : includes()) {
-                if (!target.equals("javascript")) {
-                    writer.format("require %s;\n", include);
-                }
-            }
-
-            List<Definition> unitsToCompile = new ArrayList<Definition>();
-            List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
-            for (String unit : units.allNames()) {
-                UnitInfo info = units.lookup(unit);
-                if (!info.generic.isImported()) {
-                    unitsToCompile.add(info.definition);
-                    unitsToCompileTmp.add(info);
-                }
-            }
-
-            unitsToCompileTmp = orderedInfos(unitsToCompileTmp);
-            
-            List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
-            for (String value : values.allNames()) {
-                ValueInfo info = values.lookup(value);
-                if (!info.generic.isImported()) {
-                    if (info.definition != null) {
-                        valuesToCompile.add(info);
-                    }
-                }
-            }
-            
-            CodeGenerator gen;
-            
-            
-            if (target.equals("javascript")) {
-                gen = new JSGenerator(writer, settings, false);
-            } else if (target.equals("matlab")) {
-                throw new RuntimeException("Todo: fix matlab compilation");
-                // program.compileMatlab(new PrintWriter(outputStream), settings);
-            } else if (target.equals("html")) {
-                throw new RuntimeException("Todo: fix html compilation");
-                // program.compileHtml(new PrintWriter(outputStream), settings);
-            } else {
-                gen = new MVMGenerator(writer, settings);
-            }
-            
-
-            for (String indexSet : indexSets.allNames()) {
-                IndexSetInfo info = indexSets.lookup(indexSet);
-                if (!info.generic.isImported()) {
-                    assert (info.definition != null);
-                    info.definition.accept(gen);
-                }
-            }
-            
-            for (UnitInfo info : unitsToCompileTmp) {
-                compileUnitMVM(info, writer, target);
-                writer.print("\n");
-            }
-
-            for (ValueInfo info : valuesToCompile) {
-                //writer.format("store \"%s\" ", info.globalName());
-                ValueDefinition def = (ValueDefinition) info.getDefinition();
-                
-                //def.body.accept(gen);
-                
-                gen.compileValueDefinition(def, info);
-                
-                
-                writer.write(";\n");
-            }
-            
-            for (Toplevel def : toplevels) {
-                def.accept(gen);
-            }
-        } finally {
-            if (writer != null) {
-                writer.close();
-            }
-        }
-        
-    }
-
-    // -------------------------------------------------------------------------
-    // Resolving
-    // -------------------------------------------------------------------------
-
-    public void resolve() throws Exception {
+    public void fillTables() throws Exception {
 
         for (String type : ResolveVisitor.builtinTypes) {
             TypeInfo info = ensureTypeRecord(type);
@@ -392,6 +231,103 @@ public class Progam extends AbstractPrintable {
             GenericInfo info = new GenericInfo(def.localName(), program.module.name, file, GenericInfo.Scope.FILE);
             def.addToProgr(this, info);
         }
+        /*
+        // Pacioli.logln("Resolving %s", file);
+
+        // Resolve everything FOUT!!!!
+        for (String unit : units.allNames()) {
+
+            UnitInfo nfo = units.lookup(unit);
+            // if (nfo.generic.local && nfo.definition != null) {
+            assert (nfo.definition != null);
+            if (nfo.definition != null) {
+                nfo.definition.resolve(this);
+            }
+        }
+        for (String type : types.allNames()) {
+
+            TypeInfo nfo = types.lookup(type);
+            // if (nfo.generic.local && nfo.definition != null) {
+            // assert(nfo.definition != null);
+            // Primitive types have no definition
+            if (nfo.definition != null) {
+                nfo.definition.resolve(this);
+            }
+        }
+        for (String value : values.allNames()) {
+            ValueInfo nfo = values.lookup(value);
+            // if (nfo.generic.local && nfo.definition != null) {
+            // Primitive values have no definition
+            if (nfo.definition != null) {
+                nfo.definition.resolve(this);
+            }
+            if (nfo.declaredType != null) {
+                nfo.declaredType.resolve(this);
+            }
+        }
+        for (Toplevel definition : toplevels) {
+            definition.resolve(this);
+        }
+        */
+        // program.resolve2(this);
+        /*
+         * for (Definition def: program.definitions) { //def.addToProgr(this, info); if
+         * (def instanceof ValueDefinition) { ((ValueDefinition)
+         * def).body.resolve2(this); } if (def instanceof Toplevel) { ((Toplevel)
+         * def).body.resolve2(this); } }
+         */
+    }
+
+    // -------------------------------------------------------------------------
+    // Resolving
+    // -------------------------------------------------------------------------
+
+    public void resolve() throws Exception {
+/*
+        for (String type : ResolveVisitor.builtinTypes) {
+            TypeInfo info = ensureTypeRecord(type);
+            GenericInfo generic = new GenericInfo(type, program.module.name, null, GenericInfo.Scope.IMPORTED);
+            info.generic = generic;
+        }
+
+        // Fill symbol tables for the default include files
+        for (String include : PacioliFile.defaultIncludes) {
+            File file = findIncludeFile(include);
+            if (!file.equals(this.file)) {
+                // Pacioli.logln("Loading default include %s", include);
+                Progam prog = new Progam(file, libs);
+                prog.load();
+                prog.desugar();
+                // GenericInfo info = new GenericInfo(prog.program.module.name, file, false,
+                // true);
+                for (Definition def : prog.program.definitions) {
+                    GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED);
+                    def.addToProgr(this, info);
+                }
+            }
+        }
+
+        // Fill symbol tables for the included files
+        for (String include : includes()) {
+            File file = findIncludeFile(include);
+            Progam prog = new Progam(file, libs);
+            prog.load();
+            prog.desugar();
+            // GenericInfo info = new GenericInfo(prog.program.module.name, file, false,
+            // true);
+            for (Definition def : prog.program.definitions) {
+                GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED);
+                def.addToProgr(this, info);
+            }
+        }
+
+        // Fill symbol tables for this file
+        // GenericInfo info = new GenericInfo(program.module.name, file, true, true);
+        for (Definition def : program.definitions) {
+            GenericInfo info = new GenericInfo(def.localName(), program.module.name, file, GenericInfo.Scope.FILE);
+            def.addToProgr(this, info);
+        }
+        */
         // Pacioli.logln("Resolving %s", file);
 
         // Resolve everything FOUT!!!!
@@ -437,6 +373,20 @@ public class Progam extends AbstractPrintable {
          */
     }
 
+    // -------------------------------------------------------------------------
+    // Desugaring
+    // -------------------------------------------------------------------------
+/*
+    public void subsAliases() throws PacioliException {
+
+        //program = (ProgramNode) program.subsAliases(aliasDefinitions);
+        
+        for (Definition def : program.definitions) {
+            def.subsAliases(aliasDefinitions);
+        }
+
+    }
+*/
     // -------------------------------------------------------------------------
     // Desugaring
     // -------------------------------------------------------------------------
@@ -547,6 +497,244 @@ public class Progam extends AbstractPrintable {
                 finished.add(info);
             }
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Cleaning MVM files
+    // -------------------------------------------------------------------------
+
+    public Boolean cleanMVMFiles(Boolean force) throws Exception {
+
+        File dst = new File(baseName() + ".mvm");
+        Boolean srcDirty = false;
+
+        for (String include : includes()) {
+            File incl = findIncludeFile(include);
+            Progam prog = new Progam(incl, libs);
+            prog.load();
+            srcDirty = srcDirty || prog.cleanMVMFiles(force);
+        }
+
+        if (srcDirty || dst.lastModified() < file.lastModified() || force) {
+            if (dst.exists()) {
+                Pacioli.logln("Deleting MVM file %s %s", dst, includes());
+                dst.delete();
+            }
+            return true;
+        } else {
+            return srcDirty;
+        }
+
+    }
+
+    // -------------------------------------------------------------------------
+    // Compilation driver
+    // -------------------------------------------------------------------------
+    
+    public void compileMVMRec(CompilationSettings settings) throws Exception {
+/*
+        File dst = new File(baseName() + ".mvm");
+
+        if (dst.lastModified() < file.lastModified()) {
+
+            for (String include : includes()) {
+                File file = findIncludeFile(include);
+                // Pacioli.logln("Parsing include file: %s", file);
+                Progam prog = new Progam(file, libs);
+                prog.load();
+                prog.compileMVMRec(settings);
+            }
+
+            Pacioli.logln("Compiling %s", file);
+            desugar();
+            //desugarStatements();
+            
+             
+            //out.format("declare %s :: %s;\n", pacioli.Utils.intercalate(",", names), node.toText());
+            
+            // resolve();
+            try {
+                resolve();
+            } finally {
+                //Pacioli.printSymbolTable(values, "value");
+            }
+            // desugarStatements();
+            inferTypes();
+            //desugarStatements();
+            //Pacioli.logln("Desugared:\n%s\nEND DESUGAR", toText());
+            compile(settings, "mvm");
+        }
+*/
+    }
+
+    
+    public void compileRec(CompilationSettings settings, String target) throws Exception {
+
+        String dstName = baseName() + "." + targetFileExtension(target);
+        File dst = new File(dstName);
+        
+        Pacioli.logln("Loading %s", file);
+        loadTill(Phase.typed);
+        
+        if (dst.lastModified() < file.lastModified() || true) {
+
+            for (String include : includes()) {
+                File file = findIncludeFile(include);
+                // Pacioli.logln("Parsing include file: %s", file);
+                Progam prog = new Progam(file, libs);
+                //prog.load();
+                prog.compileRec(settings, target);
+            }
+
+            Pacioli.logln("Compiling %s", file);
+            BufferedWriter out = new BufferedWriter(new FileWriter(dstName));
+            PrintWriter writer = null;
+            try {
+                writer = new PrintWriter(out);
+                compile(writer, settings, target);
+            } finally {
+                if (writer != null) {
+                    writer.close();
+                }
+            }
+        }
+
+    }
+    
+    public void bundle(PrintWriter writer, CompilationSettings settings, String target) throws Exception {
+/*
+        List<File> todo = new ArrayList<File>();
+        List<Progam> done = new ArrayList<Progam>();
+        
+        todo.add(this.);
+        
+        while (!todo.isEmpty()) {
+            File current = todo.get(0);
+            todo.remove(0);
+            if (!done.contains(current)) {
+         
+                Pacioli.logln("Loading bundle %s", file);
+                current.loadTill(Phase.typed);
+            
+                for (String include : current.includes()) {
+                    File file = findIncludeFile(include);
+                    if (!loaded.contains(file)) {
+                        Progam prog = new Progam(file, libs);
+                        prog.bundle(writer, settings, target);    
+                    }
+                }
+
+                Pacioli.logln("Compiling bundle %s", file);
+                compile(writer, settings, target);
+                
+                done.add(current);
+            }
+        }*/
+        /*
+        Set<File> loaded = new HashSet<File>();
+       
+        Pacioli.logln("Loading bundle %s", file);
+        loadTill(Phase.typed);
+    
+        for (String include : includes()) {
+            File file = findIncludeFile(include);
+            if (!loaded.contains(file)) {
+                Progam prog = new Progam(file, libs);
+                prog.bundle(writer, settings, target);    
+            }
+        }
+
+        Pacioli.logln("Compiling bundle %s", file);
+        compile(writer, settings, target);
+        */
+    }
+    
+
+    public void compile(PrintWriter writer, CompilationSettings settings, String target) throws Exception {
+
+        //BufferedWriter out = new BufferedWriter(new FileWriter(baseName() + ".js"));
+
+        //PrintWriter writer = null;
+        //try {
+          //  writer = new PrintWriter(out);
+            for (String include : includes()) {
+                if (!target.equals("javascript")) {
+                    writer.format("require %s;\n", include);
+                }
+            }
+
+            List<Definition> unitsToCompile = new ArrayList<Definition>();
+            List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
+            for (String unit : units.allNames()) {
+                UnitInfo info = units.lookup(unit);
+                if (!info.generic.isImported() && !info.isAlias()) {
+                    unitsToCompile.add(info.definition);
+                    unitsToCompileTmp.add(info);
+                }
+            }
+
+            unitsToCompileTmp = orderedInfos(unitsToCompileTmp);
+            
+            List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
+            for (String value : values.allNames()) {
+                ValueInfo info = values.lookup(value);
+                if (!info.generic.isImported()) {
+                    if (info.definition != null) {
+                        valuesToCompile.add(info);
+                    }
+                }
+            }
+            
+            CodeGenerator gen;
+            
+            
+            if (target.equals("javascript")) {
+                gen = new JSGenerator(writer, settings, false);
+            } else if (target.equals("matlab")) {
+                throw new RuntimeException("Todo: fix matlab compilation");
+                // program.compileMatlab(new PrintWriter(outputStream), settings);
+            } else if (target.equals("html")) {
+                throw new RuntimeException("Todo: fix html compilation");
+                // program.compileHtml(new PrintWriter(outputStream), settings);
+            } else {
+                gen = new MVMGenerator(writer, settings);
+            }
+            
+
+            for (String indexSet : indexSets.allNames()) {
+                IndexSetInfo info = indexSets.lookup(indexSet);
+                if (!info.generic.isImported()) {
+                    assert (info.definition != null);
+                    info.definition.accept(gen);
+                }
+            }
+            
+            for (UnitInfo info : unitsToCompileTmp) {
+                compileUnitMVM(info, writer, target);
+                writer.print("\n");
+            }
+
+            for (ValueInfo info : valuesToCompile) {
+                //writer.format("store \"%s\" ", info.globalName());
+                ValueDefinition def = (ValueDefinition) info.getDefinition();
+                
+                //def.body.accept(gen);
+                
+                gen.compileValueDefinition(def, info);
+                
+                
+                writer.write(";\n");
+            }
+            
+            for (Toplevel def : toplevels) {
+                def.accept(gen);
+            }
+        //} finally {
+          //  if (writer != null) {
+            //    writer.close();
+            //}
+        //}
+        
     }
 
     // -------------------------------------------------------------------------

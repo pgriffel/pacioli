@@ -20,9 +20,12 @@
  */
 package pacioli;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -247,8 +250,23 @@ public class Pacioli {
 
         //program.load();
         //program.loadTill(Phase.typed);
+        /*
+        BufferedWriter out = new BufferedWriter(new FileWriter(program.baseName() + ".js"));
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(out);
+            program.bundle(writer, settings, target);
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
+        */
         
-        program.compileRec(settings, target);
+        bundle(file, libs, settings, target);
+        
+        //program.compileRec(settings, target);
+        
         /*
         if (target.equals("javascript")) {
             program.compileRec(settings, target);
@@ -274,7 +292,93 @@ public class Pacioli {
         Pacioli.logln("Compiled file '%s'", dstName);
 
     }
+    
+    public static void bundle(File file, List<File> libs, CompilationSettings settings, String target) throws Exception {
+        
+        String dstName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension(target); 
+        //File dstName = new File(program.baseName() + extension).getAbsoluteFile();
 
+        //program.load();
+        //program.loadTill(Phase.typed);
+        
+        BufferedWriter out = new BufferedWriter(new FileWriter(dstName));
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(out);
+
+            List<File> todo = new ArrayList<File>();
+            List<File> done = new ArrayList<File>();
+            
+            todo.add(file);
+            
+            
+            while (!todo.isEmpty()) {
+                File current = todo.get(0);
+                todo.remove(0);
+                Pacioli.logln("toDO: %s", todo);
+                
+                if (!done.contains(current)) {
+                    
+                    Progam program = new Progam(current, libraryDirectories(libs));
+            
+                    // Somehow find a better spot. This is done over and over
+                    // because it depends on program.
+                    for (String include : PacioliFile.defaultIncludes) {
+                        File defaultFile = program.findIncludeFile(include);
+                        if (!done.contains(defaultFile) && !todo.contains(defaultFile)) {
+                            todo.add(defaultFile);
+                        }
+                    }
+                    
+                    Pacioli.logln("Loading bundle file %s", current);
+                    program.loadTill(Phase.typed);
+                
+                    for (String include : program.includes()) {
+                        File includeFile = program.findIncludeFile(include);
+                        if (!done.contains(includeFile) && !todo.contains(includeFile)) {
+                            todo.add(includeFile);    
+                        }
+                    }
+
+                    Pacioli.logln("Compiling bundle file %s", current);
+                    program.compile(writer, settings, target);
+                    
+                    done.add(current);
+                } else {
+                    Pacioli.logln("SEE!!!!");
+                }
+            }
+            
+            //program.bundle(writer, settings, target);
+            
+            
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
+
+        
+
+        /*
+        Set<File> loaded = new HashSet<File>();
+       
+        Pacioli.logln("Loading bundle %s", file);
+        loadTill(Phase.typed);
+    
+        for (String include : includes()) {
+            File file = findIncludeFile(include);
+            if (!loaded.contains(file)) {
+                Progam prog = new Progam(file, libs);
+                prog.bundle(writer, settings, target);    
+            }
+        }
+
+        Pacioli.logln("Compiling bundle %s", file);
+        compile(writer, settings, target);
+        */
+    }
+    
     private static void interpretCommand(String fileName, List<File> libs) throws Exception {
 
         File file = new File(fileName).getAbsoluteFile();

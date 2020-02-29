@@ -1,6 +1,8 @@
 package pacioli.ast.definition;
 
 import java.io.PrintWriter;
+import java.math.BigDecimal;
+
 import pacioli.Location;
 import pacioli.Pacioli;
 import pacioli.Progam;
@@ -8,6 +10,9 @@ import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.GenericInfo;
+import pacioli.symboltable.UnitInfo;
+import uom.DimensionedNumber;
+import uom.Unit;
 
 public class AliasDefinition extends AbstractDefinition {
 
@@ -45,6 +50,14 @@ public class AliasDefinition extends AbstractDefinition {
         throw new RuntimeException("todo");
     }
 
+    public Unit evalBody() {
+        DimensionedNumber number = unit.evalUnit();
+        if (!number.factor().equals(BigDecimal.ONE)) {
+            throw new RuntimeException("Unexpected number in unit alias");
+        }
+        return number.unit();
+    }
+
     /*
      * public Unit evalBody() { DimensionedNumber number = getBody().evalUnit(); if
      * (!number.factor().equals(BigDecimal.ONE)) { throw new
@@ -53,8 +66,14 @@ public class AliasDefinition extends AbstractDefinition {
      */
 
     @Override
-    public void addToProgr(Progam program, GenericInfo info) {
-        Pacioli.logln("IGNORING ALIAS");
+    public void addToProgr(Progam program, GenericInfo generic) {
+        //Pacioli.logln("Todo: store alias generic info for %s", info.name);
+        //program.addAliasDefinition(this);
+        UnitInfo info = program.ensureUnitRecord(localName());
+        info.generic = generic;
+        info.definition = this;
+        info.symbol = null;
+        info.baseDefinition = unit;
     }
 
 }

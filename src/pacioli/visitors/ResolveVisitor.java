@@ -29,6 +29,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.MatrixLiteralNode;
+import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ReturnNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.TupleAssignmentNode;
@@ -91,7 +92,8 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     @Override
     public void visit(AliasDefinition node) {
         // returnNode(node.setUnit(node.unit.resolved(dictionary)));
-        visitorThrow(node.getLocation(), "todo");
+        //visitorThrow(node.getLocation(), "todo");
+        node.unit.accept(this);
     }
 
     @Override
@@ -234,6 +236,30 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         }
     }
 
+    @Override
+    public void visit(MatrixTypeNode node) {
+
+        // Resolve the matrix type
+        node.typeNode.accept(this);
+
+        // Evaluate the matrix type
+        MatrixType matrixType;
+        try {
+            matrixType = node.evalType(false);
+        } catch (PacioliException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Store the matrix type's row and column dimension
+        node.rowDim = compileTimeMatrixDimension(matrixType.rowDimension);
+        node.columnDim = compileTimeMatrixDimension(matrixType.columnDimension);
+
+        // Check that the dimensions exist
+        if (node.rowDim == null || node.columnDim == null) {
+            visitorThrow(node.typeNode.getLocation(), "Expected a closed matrix type");
+        }
+    }
+    
     @Override
     public void visit(MatrixLiteralNode node) {
 

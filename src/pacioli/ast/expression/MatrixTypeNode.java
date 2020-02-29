@@ -34,11 +34,12 @@ public class MatrixTypeNode extends AbstractExpressionNode {
 
     public final TypeNode typeNode;
 
-    public final MatrixDimension rowDim;
-    public final MatrixDimension columnDim;
+    public MatrixDimension rowDim;
+    public MatrixDimension columnDim;
 
     public MatrixTypeNode(Location location, TypeNode typeNode) {
         super(location);
+        assert(typeNode != null);
         this.typeNode = typeNode;
         this.rowDim = null;
         this.columnDim = null;

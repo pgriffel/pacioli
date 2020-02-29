@@ -222,8 +222,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             }
         } else if (definition instanceof AliasDefinition) {
             // todo: rewrite evalBody
-            // returnType(new MatrixType(((AliasDefinition) definition).evalBody()));
-            throw new RuntimeException("fixme");
+            returnType(new MatrixType(((AliasDefinition) definition).evalBody()));
+            //throw new RuntimeException("fixme");
         } else {
             returnType(new MatrixType(new StringBase(node.getName())));
         }

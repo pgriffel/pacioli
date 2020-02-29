@@ -38,5 +38,9 @@ public class UnitInfo implements SymbolInfo {
     public Definition getDefinition() {
         return definition;
     }
+    
+    public Boolean isAlias() {
+        return symbol == null;
+    }
 
 }

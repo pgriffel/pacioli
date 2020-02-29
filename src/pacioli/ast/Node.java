@@ -21,12 +21,14 @@
 
 package pacioli.ast;
 
+import java.util.Map;
 import java.util.Set;
 
 import pacioli.CompilationSettings;
 import pacioli.Location;
 import pacioli.Printable;
 import pacioli.Progam;
+import pacioli.ast.definition.AliasDefinition;
 import pacioli.symboltable.SymbolInfo;
 
 public interface Node extends Printable {
@@ -48,4 +50,5 @@ public interface Node extends Printable {
     public String compileToJS(boolean boxed);
 
     public String compileToMATLAB();
+
 }
