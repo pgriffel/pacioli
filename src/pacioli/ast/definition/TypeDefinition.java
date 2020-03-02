@@ -31,6 +31,7 @@ import pacioli.TypeConstraint;
 import pacioli.TypeContext;
 import pacioli.ast.Visitor;
 import pacioli.symboltable.GenericInfo;
+import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.TypeInfo;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
@@ -126,11 +127,13 @@ public class TypeDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo generic) {
-        TypeInfo info = program.ensureTypeRecord(localName());
-        info.generic = generic;
+    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
+        GenericInfo generic = new GenericInfo(localName(), program.program.module.name, 
+                program.file, scope, getLocation());       
+        TypeInfo info = new TypeInfo(generic);
         info.typeAST = rhs;
         info.definition = this;
+        program.addInfo(info);
     }
 
 }

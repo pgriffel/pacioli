@@ -158,4 +158,10 @@ public class IndexList extends AbstractType {
         return parts;
     }
 
+    @Override
+    public String compileToMVM() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
 }

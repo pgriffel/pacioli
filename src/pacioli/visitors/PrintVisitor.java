@@ -333,6 +333,7 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(TypeIdentifierNode typeIdentifierNode) {
         write("typeident");
+        throw new RuntimeException("Cannot print (visit) TypeIdentifierNode");
     }
 
     @Override

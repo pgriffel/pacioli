@@ -6,7 +6,11 @@ import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.unit.UnitNode;
 
-public class UnitInfo implements SymbolInfo {
+public class UnitInfo extends AbstractSymbolInfo implements SymbolInfo {
+
+    public UnitInfo(GenericInfo generic) {
+        super(generic);
+    }
 
     public Definition definition;
 
@@ -15,23 +19,11 @@ public class UnitInfo implements SymbolInfo {
 
     public List<UnitDecl> items;
 
-    public GenericInfo generic;
-
     public boolean isVector = false;
 
     @Override
-    public GenericInfo generic() {
-        return generic;
-    }
-
-    @Override
-    public String name() {
-        return generic.name;
-    }
-
-    @Override
     public String globalName() {
-        return String.format("unit_%s", generic.name);
+        return String.format("unit_%s", name());
     }
 
     @Override
@@ -40,7 +32,12 @@ public class UnitInfo implements SymbolInfo {
     }
     
     public Boolean isAlias() {
-        return symbol == null;
+        return symbol == null && !isVector;
+    }
+
+    public UnitInfo includeOther(UnitInfo otherInfo) {
+        // TODO Auto-generated method stub
+        return this;
     }
 
 }

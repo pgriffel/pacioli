@@ -110,4 +110,10 @@ public class FunctionType extends AbstractType {
     public PacioliType reduce() {
         return new FunctionType(domain.reduce(), range.reduce());
     }
+
+    @Override
+    public String compileToMVM() {
+        throw new RuntimeException("todo ");
+    }
+
 }

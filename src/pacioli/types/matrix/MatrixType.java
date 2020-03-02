@@ -499,4 +499,9 @@ public class MatrixType extends AbstractType {
     public PacioliType reduce() {
         return this;
     }
+
+    @Override
+    public String compileToMVM() {
+        throw new RuntimeException("todo ");
+    }
 }

@@ -23,12 +23,14 @@ package pacioli.ast.definition;
 
 import java.io.PrintWriter;
 import pacioli.Location;
+import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.Utils;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.GenericInfo;
+import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.UnitInfo;
 import uom.DimensionedNumber;
 
@@ -107,12 +109,13 @@ public class UnitDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo generic) {
-        UnitInfo info = program.ensureUnitRecord(id.getName());
-        info.generic = generic;
+    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
+        GenericInfo generic = new GenericInfo(localName(), program.program.module.name, 
+                program.file, scope, getLocation());       
+        UnitInfo info = new UnitInfo(generic);
         info.definition = this;
         info.symbol = symbol;
         info.baseDefinition = body;
+        program.addInfo(info);
     }
-
 }

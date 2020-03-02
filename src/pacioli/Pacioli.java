@@ -295,11 +295,83 @@ public class Pacioli {
     
     public static void bundle(File file, List<File> libs, CompilationSettings settings, String target) throws Exception {
         
+        Progam mainProgram = new Progam(file, libraryDirectories(libs));
+        mainProgram.loadTill(Phase.typed);
+        
+        
+       
         String dstName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension(target); 
-        //File dstName = new File(program.baseName() + extension).getAbsoluteFile();
+        
+        BufferedWriter out = new BufferedWriter(new FileWriter(dstName));
+        PrintWriter writer = null;
+        try {
+            writer = new PrintWriter(out);
 
-        //program.load();
-        //program.loadTill(Phase.typed);
+            List<File> todo = new ArrayList<File>();
+            List<File> done = new ArrayList<File>();
+            
+            for (String include : mainProgram.includes()) {
+                File includeFile = mainProgram.findIncludeFile(include);
+                todo.add(includeFile);
+            }
+            
+            //todo.add(file);
+            /*
+            for (String include : PacioliFile.defaultIncludes) {
+                File defaultFile = mainProgram.findIncludeFile(include);
+                todo.add(defaultFile);
+            }
+            */
+            while (!todo.isEmpty()) {
+                File current = todo.get(0);
+                todo.remove(0);
+                Pacioli.logln("toDO: %s", todo);
+                
+                if (!done.contains(current)) {
+                    
+                    Progam program = new Progam(current, libraryDirectories(libs));
+            /*
+                    // Somehow find a better spot. This is done over and over
+                    // because it depends on program.
+                    for (String include : PacioliFile.defaultIncludes) {
+                        File defaultFile = program.findIncludeFile(include);
+                        if (!done.contains(defaultFile) && !todo.contains(defaultFile)) {
+                            todo.add(defaultFile);
+                        }
+                    }
+              */      
+                    Pacioli.logln("Loading bundle file %s", current);
+                    program.loadTill(Phase.typed);
+                
+                    for (String include : program.includes()) {
+                        File includeFile = program.findIncludeFile(include);
+                        if (!done.contains(includeFile) && !todo.contains(includeFile)) {
+                            todo.add(includeFile);    
+                        }
+                    }
+
+                    Pacioli.logln("Compiling bundle file %s", current);
+                    //program.generateCode(writer, settings, target);
+                    mainProgram.includeOther(program);
+                    
+                    done.add(current);
+                } else {
+                    Pacioli.logln("SEE!!!!");
+                }
+            }
+            //mainProgram.printSymbolTables();
+            mainProgram.generateCode(writer, settings, target);
+            
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+        }
+    }
+    
+    public static void bundleOLD(File file, List<File> libs, CompilationSettings settings, String target) throws Exception {
+        
+        String dstName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension(target); 
         
         BufferedWriter out = new BufferedWriter(new FileWriter(dstName));
         PrintWriter writer = null;
@@ -341,7 +413,7 @@ public class Pacioli {
                     }
 
                     Pacioli.logln("Compiling bundle file %s", current);
-                    program.compile(writer, settings, target);
+                    program.generateCode(writer, settings, target);
                     
                     done.add(current);
                 } else {
@@ -349,34 +421,11 @@ public class Pacioli {
                 }
             }
             
-            //program.bundle(writer, settings, target);
-            
-            
         } finally {
             if (writer != null) {
                 writer.close();
             }
         }
-
-        
-
-        /*
-        Set<File> loaded = new HashSet<File>();
-       
-        Pacioli.logln("Loading bundle %s", file);
-        loadTill(Phase.typed);
-    
-        for (String include : includes()) {
-            File file = findIncludeFile(include);
-            if (!loaded.contains(file)) {
-                Progam prog = new Progam(file, libs);
-                prog.bundle(writer, settings, target);    
-            }
-        }
-
-        Pacioli.logln("Compiling bundle %s", file);
-        compile(writer, settings, target);
-        */
     }
     
     private static void interpretCommand(String fileName, List<File> libs) throws Exception {
@@ -556,7 +605,30 @@ public class Pacioli {
 
     private static void compileFileCUP(String fileName, List<File> libs, CompilationSettings settings)
             throws Exception {
-
+        
+        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
+        bundle(file, libs, settings, "mvm");
+        
+    /*    
+        
+        Pacioli.logln("CUP STANDAARD INCLUDES");
+        
+        //cleanStandardIncludes(libs, true);
+        //compileStandardIncludes(libs, settings);
+        
+        Pacioli.logln("CUP COMPILE %s", fileName);
+        
+        Progam prog = new Progam(fileName, libs);
+        prog.loadTill(Phase.typed);
+        compileCommand(fileName, "mvm", libs, settings);
+        
+        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
+        */
+        String binName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension("mvm");
+        interpretMVMText(new File(binName), libs);
+        
+        
+/*        
         Boolean force = true;
 
         Progam prog = new Progam(fileName, libs);
@@ -572,7 +644,7 @@ public class Pacioli {
         String file = prog.baseName() + ".mvm";
 
         interpretMVMText(new File(file), libs);
-
+*/
     }
 
     private static void cleanStandardIncludes(List<File> libs, Boolean force) throws Exception {
@@ -589,7 +661,7 @@ public class Pacioli {
             File file = PacioliFile.findIncludeFile(include, libs);
             Progam prog = new Progam(file, libs);
             prog.load();
-            prog.compileMVMRec(settings);
+            prog.compileRec(settings, "mvm");
         }
     }
 
@@ -598,7 +670,7 @@ public class Pacioli {
         for (String name : table.allNames()) {
             SymbolInfo info = table.lookup(name);
             Pacioli.logln("  %-25s %-15s %s %-50s %s", name, info.generic().module,
-                    info.generic().isImported() ? "     " : "local", info.generic().file, info.getDefinition());
+                    info.generic().isExternal() ? "     " : "local", info.generic().file, info.getDefinition());
         }
         Pacioli.logln("End table");
     }

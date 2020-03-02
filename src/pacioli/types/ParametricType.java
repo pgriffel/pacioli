@@ -210,4 +210,9 @@ public class ParametricType extends AbstractType {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public String compileToMVM() {
+        throw new RuntimeException("todo ");
+    }
 }

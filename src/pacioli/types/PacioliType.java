@@ -58,6 +58,8 @@ public interface PacioliType extends Printable {
     public PacioliType unfresh();
 
     public String compileToJS();
+    
+    public String compileToMVM();
 
     // Hack to print proper compound unit vector in schema's
     public Set<String> unitVecVarCompoundNames();

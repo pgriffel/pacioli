@@ -21,6 +21,7 @@
 
 package pacioli.ast.definition;
 
+import pacioli.PacioliException;
 import pacioli.PacioliFile;
 import pacioli.Progam;
 import pacioli.ast.Node;
@@ -36,5 +37,5 @@ public interface Definition extends Node {
 
     public PacioliFile getModule();
 
-    public void addToProgr(Progam program, GenericInfo info);
+    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException;
 }

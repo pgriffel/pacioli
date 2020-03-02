@@ -109,4 +109,9 @@ public class Schema extends AbstractType {
     public PacioliType reduce() {
         return new Schema(variables, type.reduce());
     }
+
+    @Override
+    public String compileToMVM() {
+        throw new RuntimeException("todo ");
+    }
 }

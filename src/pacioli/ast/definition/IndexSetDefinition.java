@@ -26,12 +26,14 @@ import java.util.ArrayList;
 import java.util.List;
 import mvm.values.matrix.IndexSet;
 import pacioli.Location;
+import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.Utils;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.ValueInfo;
 import pacioli.types.TypeIdentifier;
 
 public class IndexSetDefinition extends AbstractDefinition {
@@ -46,10 +48,16 @@ public class IndexSetDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo generic) {
-        IndexSetInfo info = program.ensureIndexSetRecord(id.getName());
-        info.generic = generic;
+    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
+        GenericInfo generic = new GenericInfo(localName(), program.program.module.name, 
+                program.file, scope, getLocation());
+        
+        //IndexSetInfo info = program.ensureIndexSetRecord(id.getName());
+        //info.generic = generic;
+        IndexSetInfo info = new IndexSetInfo(generic);
         info.definition = this;
+        program.addInfo(info);
+        
     }
 
     public String globalName() {

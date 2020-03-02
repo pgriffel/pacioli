@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import pacioli.Location;
+import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
@@ -33,6 +34,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.symboltable.GenericInfo;
+import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 
 public class ValueDefinition extends AbstractDefinition {
@@ -125,12 +127,21 @@ public class ValueDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo generic) {
-        ValueInfo info = program.ensureValueRecord(id.getName());
-        info.generic = generic;
-        if (!info.generic.isImported()) {
-            info.definition = this;
+    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
+
+        String name = localName();
+        
+        GenericInfo generic = new GenericInfo(name, program.program.module.name, 
+                program.file, scope, getLocation());       
+        ValueInfo info = new ValueInfo(generic);
+        info.definition = this;
+        
+        ValueInfo oldInfo = program.values.lookup(name);
+        if (oldInfo != null) {
+            info = oldInfo.includeOther(info);
         }
+            
+        program.values.put(name, info);
     }
 
 }

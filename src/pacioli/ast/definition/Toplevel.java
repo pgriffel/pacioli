@@ -44,7 +44,7 @@ public class Toplevel extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo info) {
+    public void addToProgr(Progam program, GenericInfo.Scope scope) {
         program.addToplevel(this);
     }
 

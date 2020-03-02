@@ -46,7 +46,8 @@ public class Progam extends AbstractPrintable {
     public enum Phase {
         parsed,
         desugared,
-        typed, resolved
+        typed, 
+        resolved
     }
     
     public final File file;
@@ -59,8 +60,6 @@ public class Progam extends AbstractPrintable {
     public SymbolTable<TypeInfo> types = new SymbolTable<TypeInfo>();
     public SymbolTable<ValueInfo> values = new SymbolTable<ValueInfo>();
     public List<Toplevel> toplevels = new ArrayList<Toplevel>();
-    // todo: integrate with units. Is the same namespace!
-    public Map<String, AliasDefinition> aliasDefinitions = new HashMap<String, AliasDefinition>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -79,7 +78,7 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     // Adding symbol table entries
     // -------------------------------------------------------------------------
-
+/*
     public IndexSetInfo ensureIndexSetRecord(String name) {
         if (!indexSets.contains(name)) {
             indexSets.put(name, new IndexSetInfo());
@@ -107,22 +106,60 @@ public class Progam extends AbstractPrintable {
         }
         return values.lookup(name);
     }
+    */
+    // above is obsolete
+
+    public void addInfo(IndexSetInfo info) throws PacioliException {
+        String name = info.name();
+        if (indexSets.contains(name)) {
+            throw new PacioliException(info.getLocation(), "Duplicate index set name: " + name);
+        } else {
+            indexSets.put(name, info);
+        }
+    }
+
+    public void addInfo(UnitInfo info) throws PacioliException {
+        String name = info.name();
+        //Pacioli.logln("ADD UNIT %s", name);
+        if (units.contains(name)) {
+            throw new PacioliException(info.getLocation(), "Duplicate unit name: " + name);
+        } else {
+            units.put(name, info);
+        }
+    }
+    
+    public void addInfo(TypeInfo info) throws PacioliException {
+        String name = info.name();
+        if (types.contains(name)) {
+            throw new PacioliException(info.getLocation(), "Duplicate type name: " + name);
+        } else {
+            types.put(name, info);
+        }
+    }
+    
+    public void addInfo(ValueInfo info) throws PacioliException {
+        String name = info.name();
+        if (values.contains(name)) {
+            throw new PacioliException(info.getLocation(), "Duplicate name: " + name);
+        } else {
+            values.put(name, info);
+        }
+    }
 
     public void addToplevel(Toplevel toplevel) {
         toplevels.add(toplevel);
     }
     
-    public void addAliasDefinition(AliasDefinition definition) {
-        Pacioli.logln("PUT ALIAS %s", definition.localName());
-        aliasDefinitions.put(definition.localName(), definition);
-    }
-
     // -------------------------------------------------------------------------
     // Properties
     // -------------------------------------------------------------------------
 
     String baseName() {
         return fileBaseName(file);
+    }
+    
+    Boolean isExternal(SymbolInfo info) {
+        return !info.generic().file.equals(file);
     }
     
     static String fileBaseName(File file) {
@@ -163,16 +200,42 @@ public class Progam extends AbstractPrintable {
 
     public void load() throws Exception {
         program = Parser.parseFile(this.file.getAbsolutePath());
-
     }
     
+    public void loadPrimitives() throws Exception {
+        for (String include : PacioliFile.defaultIncludes) {
+            File file = findIncludeFile(include);
+            if (!file.equals(this.file)) {
+                Progam prog = new Progam(file, libs);
+                prog.loadTillHelper(Progam.Phase.typed, include == "standard", false);
+                //prog.loadTill(Progam.Phase.typed);
+                //prog.load();
+                //prog.desugar();
+                if (false) {
+                for (Definition def : prog.program.definitions) {
+                    //GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED, def.getLocation());
+                    def.addToProgr(this, GenericInfo.Scope.IMPORTED);
+                } 
+                } else {
+                    this.includeOther(prog);
+                }
+            }
+        }
+    }
+    
+    
     public void loadTill(Phase phase) throws Exception {
+        loadTillHelper(phase, true, true);
+    }
+    
+    public void loadTillHelper(Phase phase, Boolean loadPrimitives, Boolean loadStandard) throws Exception {
         
         program = Parser.parseFile(this.file.getAbsolutePath());
         if (phase.equals(Phase.parsed)) return;
         
         desugar();
-        fillTables();
+        fillTables(loadPrimitives, loadStandard);
+        //printSymbolTables();
         //subsAliases();
         if (phase.equals(Phase.desugared)) return;
         
@@ -186,174 +249,183 @@ public class Progam extends AbstractPrintable {
     // Filling symbol tables
     // -------------------------------------------------------------------------
 
-    public void fillTables() throws Exception {
+    public void fillTables(Boolean loadPrimitives, Boolean loadStandard) throws Exception {
 
         for (String type : ResolveVisitor.builtinTypes) {
-            TypeInfo info = ensureTypeRecord(type);
-            GenericInfo generic = new GenericInfo(type, program.module.name, null, GenericInfo.Scope.IMPORTED);
-            info.generic = generic;
+            //TypeInfo info = ensureTypeRecord(type);
+            GenericInfo generic = new GenericInfo(type, program.module.name, null, GenericInfo.Scope.IMPORTED, null);
+            //info.generic = generic;
+            addInfo(new TypeInfo(generic));
         }
 
         // Fill symbol tables for the default include files
+        if (true || loadPrimitives) {
         for (String include : PacioliFile.defaultIncludes) {
+            Boolean isStandard = include.equals("standard");
             File file = findIncludeFile(include);
-            if (!file.equals(this.file)) {
-                // Pacioli.logln("Loading default include %s", include);
+            //if (true || !file.equals(this.file)) {
+            if ((isStandard && loadStandard) || (!isStandard && loadPrimitives)) {
                 Progam prog = new Progam(file, libs);
-                prog.load();
-                prog.desugar();
-                // GenericInfo info = new GenericInfo(prog.program.module.name, file, false,
-                // true);
+                //prog.load();
+                Pacioli.logln("Loading default %s", include);
+                prog.loadTillHelper(Progam.Phase.typed, isStandard, false);
+                //prog.loadTill(Progam.Phase.typed);
+                //prog.load();
+                //prog.desugar();
+                if (false) {
                 for (Definition def : prog.program.definitions) {
-                    GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED);
-                    def.addToProgr(this, info);
+                    //GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED, def.getLocation());
+                    def.addToProgr(this, GenericInfo.Scope.IMPORTED);
+                } 
+                } else {
+                    this.includeOther(prog);
                 }
             }
+        }
         }
 
         // Fill symbol tables for the included files
         for (String include : includes()) {
             File file = findIncludeFile(include);
             Progam prog = new Progam(file, libs);
-            prog.load();
-            prog.desugar();
-            // GenericInfo info = new GenericInfo(prog.program.module.name, file, false,
-            // true);
+            prog.loadTill(Progam.Phase.typed);
+            //prog.load();
+            //prog.desugar();
+            if (false) {
             for (Definition def : prog.program.definitions) {
-                GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED);
-                def.addToProgr(this, info);
+                //GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED, def.getLocation());
+                def.addToProgr(this, GenericInfo.Scope.IMPORTED);
+            }
+            } else {
+                this.includeOther(prog);
             }
         }
 
         // Fill symbol tables for this file
-        // GenericInfo info = new GenericInfo(program.module.name, file, true, true);
         for (Definition def : program.definitions) {
-            GenericInfo info = new GenericInfo(def.localName(), program.module.name, file, GenericInfo.Scope.FILE);
-            def.addToProgr(this, info);
+            //GenericInfo info = new GenericInfo(def.localName(), program.module.name, file, GenericInfo.Scope.FILE, def.getLocation());
+            def.addToProgr(this, GenericInfo.Scope.FILE);
         }
-        /*
-        // Pacioli.logln("Resolving %s", file);
-
-        // Resolve everything FOUT!!!!
-        for (String unit : units.allNames()) {
-
-            UnitInfo nfo = units.lookup(unit);
-            // if (nfo.generic.local && nfo.definition != null) {
-            assert (nfo.definition != null);
-            if (nfo.definition != null) {
-                nfo.definition.resolve(this);
-            }
-        }
-        for (String type : types.allNames()) {
-
-            TypeInfo nfo = types.lookup(type);
-            // if (nfo.generic.local && nfo.definition != null) {
-            // assert(nfo.definition != null);
-            // Primitive types have no definition
-            if (nfo.definition != null) {
-                nfo.definition.resolve(this);
-            }
-        }
-        for (String value : values.allNames()) {
-            ValueInfo nfo = values.lookup(value);
-            // if (nfo.generic.local && nfo.definition != null) {
-            // Primitive values have no definition
-            if (nfo.definition != null) {
-                nfo.definition.resolve(this);
-            }
-            if (nfo.declaredType != null) {
-                nfo.declaredType.resolve(this);
-            }
-        }
-        for (Toplevel definition : toplevels) {
-            definition.resolve(this);
-        }
-        */
-        // program.resolve2(this);
-        /*
-         * for (Definition def: program.definitions) { //def.addToProgr(this, info); if
-         * (def instanceof ValueDefinition) { ((ValueDefinition)
-         * def).body.resolve2(this); } if (def instanceof Toplevel) { ((Toplevel)
-         * def).body.resolve2(this); } }
-         */
     }
 
+    // -------------------------------------------------------------------------
+    // Printing symbol tables
+    // -------------------------------------------------------------------------
+    
+    public void printSymbolTables() throws Exception {
+
+        // Include the units from the other program
+        Pacioli.logln("Symbol table for %s", file);
+        Pacioli.logln("UNITS");
+        for (String name: units.allNames()) {
+            UnitInfo info = units.lookup(name);
+            Pacioli.logln("%s", info.name());
+        }
+        
+        // Include the index sets from the other program
+        Pacioli.logln("INDEX SETS");
+        for (String name: indexSets.allNames()) {
+            IndexSetInfo info = indexSets.lookup(name);
+            Pacioli.logln("%s", info.name());
+        }
+        
+        // Include the types from the other program
+        Pacioli.logln("TYPES");
+        for (String name : types.allNames()) {
+            TypeInfo info = types.lookup(name);
+            Pacioli.logln("%s", info.name());
+        }
+        
+        // Include the values from the other program
+        Pacioli.logln("VALUES");
+        for (String name : values.allNames()) {
+            ValueInfo info = values.lookup(name);
+            Pacioli.logln("%s %s %s",
+                    isExternal(info) ? "ext " : "file",
+                            info.generic().file,
+                    info.name());
+        }
+        
+    }
+
+    // -------------------------------------------------------------------------
+    // MVM code generation
+    // -------------------------------------------------------------------------
+    
+    public void includeOther(Progam other) throws Exception {
+
+        // Include the units from the other program
+        for (String name: other.units.allNames()) {
+            UnitInfo otherInfo = other.units.lookup(name);
+            if (!other.isExternal(otherInfo)) {
+            UnitInfo info = units.lookup(name);
+            if (info == null) {
+                units.put(name, otherInfo);
+            } else {
+                units.put(name, info.includeOther(otherInfo));
+            }
+            }
+        }
+        
+        // Include the index sets from the other program
+        for (String name: other.indexSets.allNames()) {
+            IndexSetInfo otherInfo = other.indexSets.lookup(name);
+            IndexSetInfo info = indexSets.lookup(name);
+            if (info == null) {
+                indexSets.put(name, otherInfo);
+            } else {
+                indexSets.put(name, info.includeOther(otherInfo));
+            }
+        }
+        
+        // Include the types from the other program
+        for (String name : other.types.allNames()) {
+            TypeInfo otherInfo = other.types.lookup(name);
+            TypeInfo info = types.lookup(name);
+            if (info == null) {
+                types.put(name, otherInfo);
+            } else {
+                types.put(name, info.includeOther(otherInfo));
+            }
+        }
+        
+        // Include the values from the other program
+        for (String name : other.values.allNames()) {
+            ValueInfo otherInfo = other.values.lookup(name);
+            //if (true || !isExternal(otherInfo)) {
+            if (!other.isExternal(otherInfo)) {
+                ValueInfo info = values.lookup(name);
+                if (info == null) {
+                    values.put(name, otherInfo);
+                } else {
+                    values.put(name, info.includeOther(otherInfo));
+                }
+            }
+        }
+        
+    }
+    
     // -------------------------------------------------------------------------
     // Resolving
     // -------------------------------------------------------------------------
 
     public void resolve() throws Exception {
-/*
-        for (String type : ResolveVisitor.builtinTypes) {
-            TypeInfo info = ensureTypeRecord(type);
-            GenericInfo generic = new GenericInfo(type, program.module.name, null, GenericInfo.Scope.IMPORTED);
-            info.generic = generic;
-        }
 
-        // Fill symbol tables for the default include files
-        for (String include : PacioliFile.defaultIncludes) {
-            File file = findIncludeFile(include);
-            if (!file.equals(this.file)) {
-                // Pacioli.logln("Loading default include %s", include);
-                Progam prog = new Progam(file, libs);
-                prog.load();
-                prog.desugar();
-                // GenericInfo info = new GenericInfo(prog.program.module.name, file, false,
-                // true);
-                for (Definition def : prog.program.definitions) {
-                    GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED);
-                    def.addToProgr(this, info);
-                }
-            }
-        }
-
-        // Fill symbol tables for the included files
-        for (String include : includes()) {
-            File file = findIncludeFile(include);
-            Progam prog = new Progam(file, libs);
-            prog.load();
-            prog.desugar();
-            // GenericInfo info = new GenericInfo(prog.program.module.name, file, false,
-            // true);
-            for (Definition def : prog.program.definitions) {
-                GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED);
-                def.addToProgr(this, info);
-            }
-        }
-
-        // Fill symbol tables for this file
-        // GenericInfo info = new GenericInfo(program.module.name, file, true, true);
-        for (Definition def : program.definitions) {
-            GenericInfo info = new GenericInfo(def.localName(), program.module.name, file, GenericInfo.Scope.FILE);
-            def.addToProgr(this, info);
-        }
-        */
-        // Pacioli.logln("Resolving %s", file);
-
-        // Resolve everything FOUT!!!!
         for (String unit : units.allNames()) {
-
             UnitInfo nfo = units.lookup(unit);
-            // if (nfo.generic.local && nfo.definition != null) {
             assert (nfo.definition != null);
             if (nfo.definition != null) {
                 nfo.definition.resolve(this);
             }
         }
         for (String type : types.allNames()) {
-
             TypeInfo nfo = types.lookup(type);
-            // if (nfo.generic.local && nfo.definition != null) {
-            // assert(nfo.definition != null);
-            // Primitive types have no definition
             if (nfo.definition != null) {
                 nfo.definition.resolve(this);
             }
         }
         for (String value : values.allNames()) {
             ValueInfo nfo = values.lookup(value);
-            // if (nfo.generic.local && nfo.definition != null) {
-            // Primitive values have no definition
             if (nfo.definition != null) {
                 nfo.definition.resolve(this);
             }
@@ -364,29 +436,8 @@ public class Progam extends AbstractPrintable {
         for (Toplevel definition : toplevels) {
             definition.resolve(this);
         }
-        // program.resolve2(this);
-        /*
-         * for (Definition def: program.definitions) { //def.addToProgr(this, info); if
-         * (def instanceof ValueDefinition) { ((ValueDefinition)
-         * def).body.resolve2(this); } if (def instanceof Toplevel) { ((Toplevel)
-         * def).body.resolve2(this); } }
-         */
     }
 
-    // -------------------------------------------------------------------------
-    // Desugaring
-    // -------------------------------------------------------------------------
-/*
-    public void subsAliases() throws PacioliException {
-
-        //program = (ProgramNode) program.subsAliases(aliasDefinitions);
-        
-        for (Definition def : program.definitions) {
-            def.subsAliases(aliasDefinitions);
-        }
-
-    }
-*/
     // -------------------------------------------------------------------------
     // Desugaring
     // -------------------------------------------------------------------------
@@ -408,13 +459,7 @@ public class Progam extends AbstractPrintable {
 
     public void checkTypes() throws Exception {
         desugar();
-        // resolve();
-        try {
-            resolve();
-        } finally {
-            // Pacioli.printSymbolTable(values, "value");
-        }
-        // desugarStatements();
+        resolve();
         inferTypes();
     }
 
@@ -434,7 +479,7 @@ public class Progam extends AbstractPrintable {
         
         for (String value : names) {
             ValueInfo info = values.lookup(value);
-            if (!info.generic.isImported() && info.getDefinition() != null) {
+            if (!isExternal(info) && info.getDefinition() != null) {
                 inferValueDefinitionType(info, discovered, finished);
                 Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.toText());
             }
@@ -453,7 +498,7 @@ public class Progam extends AbstractPrintable {
     private void inferUsedTypes(Definition definition, Set<SymbolInfo> discovered, Set<SymbolInfo> finished) {
         for (SymbolInfo pre : definition.uses()) {
             if (pre.generic().isGlobal() && pre instanceof ValueInfo) {
-                if (!pre.generic().isImported() && pre.getDefinition() != null) {
+                if (!pre.generic().isExternal() && pre.getDefinition() != null) {
                     inferValueDefinitionType(pre, discovered, finished);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
@@ -532,39 +577,8 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     
     public void compileMVMRec(CompilationSettings settings) throws Exception {
-/*
-        File dst = new File(baseName() + ".mvm");
-
-        if (dst.lastModified() < file.lastModified()) {
-
-            for (String include : includes()) {
-                File file = findIncludeFile(include);
-                // Pacioli.logln("Parsing include file: %s", file);
-                Progam prog = new Progam(file, libs);
-                prog.load();
-                prog.compileMVMRec(settings);
-            }
-
-            Pacioli.logln("Compiling %s", file);
-            desugar();
-            //desugarStatements();
-            
-             
-            //out.format("declare %s :: %s;\n", pacioli.Utils.intercalate(",", names), node.toText());
-            
-            // resolve();
-            try {
-                resolve();
-            } finally {
-                //Pacioli.printSymbolTable(values, "value");
-            }
-            // desugarStatements();
-            inferTypes();
-            //desugarStatements();
-            //Pacioli.logln("Desugared:\n%s\nEND DESUGAR", toText());
-            compile(settings, "mvm");
-        }
-*/
+        // Obsolete
+        throw new RuntimeException("compileMVMRec is obsolete");
     }
 
     
@@ -580,9 +594,7 @@ public class Progam extends AbstractPrintable {
 
             for (String include : includes()) {
                 File file = findIncludeFile(include);
-                // Pacioli.logln("Parsing include file: %s", file);
                 Progam prog = new Progam(file, libs);
-                //prog.load();
                 prog.compileRec(settings, target);
             }
 
@@ -591,7 +603,7 @@ public class Progam extends AbstractPrintable {
             PrintWriter writer = null;
             try {
                 writer = new PrintWriter(out);
-                compile(writer, settings, target);
+                generateCode(writer, settings, target);
             } finally {
                 if (writer != null) {
                     writer.close();
@@ -599,213 +611,87 @@ public class Progam extends AbstractPrintable {
             }
         }
 
-    }
-    
-    public void bundle(PrintWriter writer, CompilationSettings settings, String target) throws Exception {
-/*
-        List<File> todo = new ArrayList<File>();
-        List<Progam> done = new ArrayList<Progam>();
-        
-        todo.add(this.);
-        
-        while (!todo.isEmpty()) {
-            File current = todo.get(0);
-            todo.remove(0);
-            if (!done.contains(current)) {
-         
-                Pacioli.logln("Loading bundle %s", file);
-                current.loadTill(Phase.typed);
-            
-                for (String include : current.includes()) {
-                    File file = findIncludeFile(include);
-                    if (!loaded.contains(file)) {
-                        Progam prog = new Progam(file, libs);
-                        prog.bundle(writer, settings, target);    
-                    }
-                }
+    }    
 
-                Pacioli.logln("Compiling bundle %s", file);
-                compile(writer, settings, target);
-                
-                done.add(current);
-            }
-        }*/
-        /*
-        Set<File> loaded = new HashSet<File>();
-       
-        Pacioli.logln("Loading bundle %s", file);
-        loadTill(Phase.typed);
-    
+    public void generateCode(PrintWriter writer, CompilationSettings settings, String target) throws Exception {
+/*
         for (String include : includes()) {
-            File file = findIncludeFile(include);
-            if (!loaded.contains(file)) {
-                Progam prog = new Progam(file, libs);
-                prog.bundle(writer, settings, target);    
+            if (!target.equals("javascript")) {
+                writer.format("require %s;\n", include);
+            }
+        }
+*/
+        Boolean externals = true;
+        
+        List<Definition> unitsToCompile = new ArrayList<Definition>();
+        List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
+        for (String unit : units.allNames()) {
+            UnitInfo info = units.lookup(unit);
+            if ((!isExternal(info) || externals) && !info.isAlias()) {
+                unitsToCompile.add(info.definition);
+                unitsToCompileTmp.add(info);
             }
         }
 
-        Pacioli.logln("Compiling bundle %s", file);
-        compile(writer, settings, target);
-        */
-    }
-    
-
-    public void compile(PrintWriter writer, CompilationSettings settings, String target) throws Exception {
-
-        //BufferedWriter out = new BufferedWriter(new FileWriter(baseName() + ".js"));
-
-        //PrintWriter writer = null;
-        //try {
-          //  writer = new PrintWriter(out);
-            for (String include : includes()) {
-                if (!target.equals("javascript")) {
-                    writer.format("require %s;\n", include);
+        unitsToCompileTmp = orderedInfos(unitsToCompileTmp);
+        
+        List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
+        for (String value : values.allNames()) {
+            
+            ValueInfo info = values.lookup(value);
+            //Pacioli.logln("GEN VALUE NAME %s, ext=%s, def=%s", value, !info.isExternal() || externals, info.definition != null);
+            if (!isExternal(info) || externals) {
+                if (info.definition != null) {
+                    valuesToCompile.add(info);
                 }
             }
+        }
+        
+        CodeGenerator gen;
+        
+        if (target.equals("javascript")) {
+            gen = new JSGenerator(writer, settings, false);
+        } else if (target.equals("matlab")) {
+            throw new RuntimeException("Todo: fix matlab compilation");
+            // program.compileMatlab(new PrintWriter(outputStream), settings);
+        } else if (target.equals("html")) {
+            throw new RuntimeException("Todo: fix html compilation");
+            // program.compileHtml(new PrintWriter(outputStream), settings);
+        } else {
+            gen = new MVMGenerator(writer, settings);
+        }
+        
+        for (String indexSet : indexSets.allNames()) {
+            IndexSetInfo info = indexSets.lookup(indexSet);
+            if (!isExternal(info) || externals) {
+                assert (info.definition != null);
+                info.definition.accept(gen);
+            }
+        }
+        
+        for (UnitInfo info : unitsToCompileTmp) {
+            compileUnitMVM(info, writer, target);
+            writer.print("\n");
+        }
 
-            List<Definition> unitsToCompile = new ArrayList<Definition>();
-            List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
-            for (String unit : units.allNames()) {
-                UnitInfo info = units.lookup(unit);
-                if (!info.generic.isImported() && !info.isAlias()) {
-                    unitsToCompile.add(info.definition);
-                    unitsToCompileTmp.add(info);
-                }
+        for (ValueInfo info : valuesToCompile) {
+            if (!isExternal(info) || externals) {
+                //Pacioli.logln("GEN VALUE %s\n", info.name());
+            ValueDefinition def = (ValueDefinition) info.getDefinition();
+            gen.compileValueDefinition(def, info);
+            writer.write("\n");
             }
-
-            unitsToCompileTmp = orderedInfos(unitsToCompileTmp);
-            
-            List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
-            for (String value : values.allNames()) {
-                ValueInfo info = values.lookup(value);
-                if (!info.generic.isImported()) {
-                    if (info.definition != null) {
-                        valuesToCompile.add(info);
-                    }
-                }
-            }
-            
-            CodeGenerator gen;
-            
-            
-            if (target.equals("javascript")) {
-                gen = new JSGenerator(writer, settings, false);
-            } else if (target.equals("matlab")) {
-                throw new RuntimeException("Todo: fix matlab compilation");
-                // program.compileMatlab(new PrintWriter(outputStream), settings);
-            } else if (target.equals("html")) {
-                throw new RuntimeException("Todo: fix html compilation");
-                // program.compileHtml(new PrintWriter(outputStream), settings);
-            } else {
-                gen = new MVMGenerator(writer, settings);
-            }
-            
-
-            for (String indexSet : indexSets.allNames()) {
-                IndexSetInfo info = indexSets.lookup(indexSet);
-                if (!info.generic.isImported()) {
-                    assert (info.definition != null);
-                    info.definition.accept(gen);
-                }
-            }
-            
-            for (UnitInfo info : unitsToCompileTmp) {
-                compileUnitMVM(info, writer, target);
-                writer.print("\n");
-            }
-
-            for (ValueInfo info : valuesToCompile) {
-                //writer.format("store \"%s\" ", info.globalName());
-                ValueDefinition def = (ValueDefinition) info.getDefinition();
-                
-                //def.body.accept(gen);
-                
-                gen.compileValueDefinition(def, info);
-                
-                
-                writer.write(";\n");
-            }
-            
-            for (Toplevel def : toplevels) {
-                def.accept(gen);
-            }
-        //} finally {
-          //  if (writer != null) {
-            //    writer.close();
-            //}
-        //}
+        }
+        
+        for (Toplevel def : toplevels) {
+            def.accept(gen);
+        }
         
     }
-
+    
     // -------------------------------------------------------------------------
     // MVM code generation
     // -------------------------------------------------------------------------
-/*
-    public void compileMVM(CompilationSettings settings) throws Exception {
-
-        BufferedWriter out = new BufferedWriter(new FileWriter(baseName() + ".mvm"));
-
-        PrintWriter writer = null;
-        try {
-            writer = new PrintWriter(out);
-            for (String include : includes()) {
-                writer.format("require %s;\n", include);
-            }
-
-            List<Definition> unitsToCompile = new ArrayList<Definition>();
-            List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
-            for (String unit : units.allNames()) {
-                UnitInfo info = units.lookup(unit);
-                if (!info.generic.isImported()) {
-                    unitsToCompile.add(info.definition);
-                    unitsToCompileTmp.add(info);
-                }
-            }
-
-            unitsToCompileTmp = orderedInfos(unitsToCompileTmp);
-            
-            List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
-            for (String value : values.allNames()) {
-                ValueInfo info = values.lookup(value);
-                if (!info.generic.isImported()) {
-                    if (info.definition != null) {
-                        valuesToCompile.add(info);
-                    }
-                }
-            }
-            
-            MVMGenerator gen = new MVMGenerator(writer, settings);
-
-            for (String indexSet : indexSets.allNames()) {
-                IndexSetInfo info = indexSets.lookup(indexSet);
-                if (!info.generic.isImported()) {
-                    assert (info.definition != null);
-                    info.definition.accept(gen);
-                }
-            }
-            
-            for (UnitInfo info : unitsToCompileTmp) {
-                compileUnitMVM(info, writer, "mvm");
-            }
-
-            for (ValueInfo info : valuesToCompile) {
-                writer.format("store \"%s\" ", info.globalName());
-                ValueDefinition def = (ValueDefinition) info.getDefinition();
-                def.body.accept(gen);
-                writer.write(";\n");
-            }
-
-            for (Toplevel def : toplevels) {
-                def.accept(gen);
-            }
-
-        } finally {
-            if (writer != null) {
-                writer.close();
-            }
-        }
-
-    } */
 
     private void compileUnitMVM(UnitInfo info, PrintWriter writer, String target) {
         if (info.isVector) {
@@ -878,7 +764,7 @@ public class Progam extends AbstractPrintable {
             List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
             for (String unit : units.allNames()) {
                 UnitInfo info = units.lookup(unit);
-                if (!info.generic.isImported()) {
+                if (!isExternal(info)) {
                     unitsToCompile.add(info.definition);
                     unitsToCompileTmp.add(info);
                 }
@@ -889,7 +775,7 @@ public class Progam extends AbstractPrintable {
             List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
             for (String value : values.allNames()) {
                 ValueInfo info = values.lookup(value);
-                if (!info.generic.isImported()) {
+                if (!isExternal(info)) {
                     if (info.definition != null) {
                         valuesToCompile.add(info);
                     }
@@ -900,7 +786,7 @@ public class Progam extends AbstractPrintable {
 
             for (String indexSet : indexSets.allNames()) {
                 IndexSetInfo info = indexSets.lookup(indexSet);
-                if (!info.generic.isImported()) {
+                if (!isExternal(info)) {
                     assert (info.definition != null);
                     info.definition.accept(gen);
                 }
@@ -1010,24 +896,3 @@ public class Progam extends AbstractPrintable {
         }
     }
 }
-
-/*
- * public void compileHtml(PrintWriter out, CompilationSettings settings) throws
- * PacioliException { out.println("<!DOCTYPE HTML>\n" + "\n" +
- * "<!-- HTML and Javascript code generated from Pacioli module " +
- * main.getName() + " -->\n" + "\n" + "<html lang=\"en\">\n" + "  <head>\n" +
- * "    <title>" + main.getName() + "</title>\n" +
- * "    <meta charset=\"utf-8\">\n" +
- * "    <link rel=\"stylesheet\" type=\"text/css\" href=\"pacioli.css\">\n" +
- * "  </head>\n" + "\n" + "  <body onload=\"onLoad();\">\n" + "\n" +
- * "    <div id=\"main\">\n" + "    </div>\n" + "\n" +
- * "    <script type=\"text/javascript\" src=\"numeric-1.2.6.js\"></script>\n" +
- * "    <script type=\"text/javascript\" src=\"pacioli-0.2.3.js\"></script>\n" +
- * "\n" + "    <script type=\"text/javascript\">\n" + "\n"); compileJS(out,
- * settings); out.println("function onLoad() {"); for (Toplevel definition :
- * toplevelExpressions) { out.print("Pacioli.print(new Pacioli.Box(");
- * out.print(definition.type.compileToJS()); out.print(", ");
- * out.print(definition.compileToJS(false)); out.print("))"); out.println(""); }
- * out.println("}"); out.println("\n" + "\n" + "    </script>\n" + "\n" +
- * "  </body>\n" + "\n" + "</hmtl>\n"); }
- */

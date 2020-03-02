@@ -180,4 +180,9 @@ public class IndexType extends AbstractType {
     public List<Unit> simplificationParts() {
         return indexSet.simplificationParts();
     }
+
+    @Override
+    public String compileToMVM() {
+        throw new RuntimeException("todo ");
+    }
 }

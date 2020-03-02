@@ -98,7 +98,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
         if (indexInfo.definition == null) {
             indexType = new IndexType(new TypeVar("for_index", indexSetName));
         } else {
-            indexType = new IndexType(new TypeIdentifier(indexInfo.generic.module, indexSetName));
+            indexType = new IndexType(new TypeIdentifier(indexInfo.generic().module, indexSetName));
         }
 
         // Create the row unit if it exists, otherwise the unit is 1.
@@ -115,8 +115,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             if (unitInfo.definition == null) {
                 rowUnit = new TypeVar("for_unit", indexSetName + "!" + unitName);
             } else {
-                rowUnit = new BangBase(new TypeIdentifier(indexInfo.generic.module, indexSetName),
-                        new TypeIdentifier(unitInfo.generic.module, unitName), 0);
+                rowUnit = new BangBase(new TypeIdentifier(indexInfo.generic().module, indexSetName),
+                        new TypeIdentifier(unitInfo.generic().module, unitName), 0);
             }
         }
 
@@ -186,7 +186,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                 TypeDefinition typeDefinition = (TypeDefinition) definition;
 
                 // if (reduce && definition.getModule() == node.op.home()) {
-                if (reduce && !node.op.info.generic().isImported()) {
+                if (reduce && !node.op.info.generic().isExternal()) {
                     try {
                         returnType(typeDefinition.constaint(true).reduce(new ParametricType(typeDefinition, types)));
                     } catch (PacioliException e) {

@@ -1,13 +1,18 @@
 package pacioli.symboltable;
 
+import pacioli.Location;
+import pacioli.PacioliException;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
 
-public class ValueInfo implements SymbolInfo {
+public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
 
-    public GenericInfo generic;
+    public ValueInfo(GenericInfo generic) {
+        super(generic);
+    }
+
     public Definition definition;
     public TypeNode declaredType;
     public PacioliType inferredType;
@@ -16,23 +21,52 @@ public class ValueInfo implements SymbolInfo {
     public ValueInfo initialRefInfo;
 
     @Override
-    public GenericInfo generic() {
-        return generic;
-    }
-
-    @Override
-    public String name() {
-        return generic.name;
-    }
-
-    @Override
     public String globalName() {
-        return String.format("global_%s_%s", generic.module, generic.name);
+        return String.format("global_%s_%s", generic().module, name());
     }
 
     @Override
     public Definition getDefinition() {
         return definition;
+    }
+
+    public ValueInfo includeOther(ValueInfo other) {
+        if (other.definition != null) {
+            if (definition == null) {
+                definition = other.definition;
+            } else {
+                //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
+            }
+        }
+        if (other.declaredType != null) {
+            if (declaredType == null) {
+                declaredType = other.declaredType;
+            } else {
+                //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
+            }
+        }
+        if (other.inferredType != null) {
+            if (inferredType == null) {
+                inferredType = other.inferredType;
+            } else {
+                //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
+            }
+        }
+        if (other.resultPlace != null) {
+            if (resultPlace == null) {
+                resultPlace = other.resultPlace;
+            } else {
+                //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
+            }
+        }
+        if (other.initialRefInfo != null) {
+            if (initialRefInfo == null) {
+                initialRefInfo = other.initialRefInfo;
+            } else {
+                //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
+            }
+        }
+        return this;
     }
 
 }

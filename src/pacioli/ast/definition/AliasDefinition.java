@@ -4,7 +4,7 @@ import java.io.PrintWriter;
 import java.math.BigDecimal;
 
 import pacioli.Location;
-import pacioli.Pacioli;
+import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
@@ -58,22 +58,16 @@ public class AliasDefinition extends AbstractDefinition {
         return number.unit();
     }
 
-    /*
-     * public Unit evalBody() { DimensionedNumber number = getBody().evalUnit(); if
-     * (!number.factor().equals(BigDecimal.ONE)) { throw new
-     * RuntimeException("Unexpected number in unit alias"); } return number.unit();
-     * }
-     */
-
     @Override
-    public void addToProgr(Progam program, GenericInfo generic) {
-        //Pacioli.logln("Todo: store alias generic info for %s", info.name);
-        //program.addAliasDefinition(this);
-        UnitInfo info = program.ensureUnitRecord(localName());
-        info.generic = generic;
+    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
+        GenericInfo generic = new GenericInfo(localName(), program.program.module.name, 
+                program.file, scope, getLocation());
+        
+        UnitInfo info = new UnitInfo(generic); //program.ensureUnitRecord(localName());
         info.definition = this;
         info.symbol = null;
         info.baseDefinition = unit;
+        program.addInfo(info);
     }
 
 }

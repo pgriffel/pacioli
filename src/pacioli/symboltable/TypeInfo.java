@@ -3,25 +3,18 @@ package pacioli.symboltable;
 import pacioli.ast.definition.Definition;
 import pacioli.types.ast.TypeNode;
 
-public class TypeInfo implements SymbolInfo {
+public class TypeInfo extends AbstractSymbolInfo implements SymbolInfo {
+
+    public TypeInfo(GenericInfo generic) {
+        super(generic);
+    }
 
     public Definition definition;
     public TypeNode typeAST;
-    public GenericInfo generic;
     public Boolean isIndexSetId;
     public Boolean isUnitId;
     public Boolean isVar;
-
-    @Override
-    public GenericInfo generic() {
-        return generic;
-    }
-
-    @Override
-    public String name() {
-        return generic.name;
-    }
-
+    
     @Override
     public String globalName() {
         throw new RuntimeException("todo");
@@ -30,6 +23,11 @@ public class TypeInfo implements SymbolInfo {
     @Override
     public Definition getDefinition() {
         return definition;
+    }
+
+    public TypeInfo includeOther(TypeInfo otherInfo) {
+        // TODO Auto-generated method stub
+        return this;
     }
 
 }

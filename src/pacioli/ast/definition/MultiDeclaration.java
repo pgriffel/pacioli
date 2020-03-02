@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import pacioli.CompilationSettings;
 import pacioli.Location;
+import pacioli.PacioliException;
 import pacioli.PacioliFile;
 import pacioli.Progam;
 import pacioli.ast.Visitor;
@@ -75,11 +76,11 @@ public class MultiDeclaration extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo generic) {
+    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
         // obsolete?!
         for (IdentifierNode id : ids) {
             Declaration declaration = new Declaration(getLocation(), id, node);
-            declaration.addToProgr(program, generic);
+            declaration.addToProgr(program, scope);
         }
     }
 

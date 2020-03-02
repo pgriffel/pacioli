@@ -229,7 +229,9 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(ConversionNode node) {
         out.write("matrix_constructor(\"conversion\", ");
+        // todo: switch to new compile
         node.typeNode.accept(this);
+        //out.print(node.typeNode.evalType(true).compileToMVM());
         out.write(")");
     }
 
@@ -239,7 +241,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
         String prefix = settings.debug() && node.debugable() ? "debug_" : "global_";
         // String full = node.isLocal() ? node.name : node.compiledName(prefix);
         // String full = info.generic.global ? node.compiledName(prefix) : node.name;
-        String full = info.generic.isGlobal() ? prefix + info.generic.module + "_" + node.name : node.name;
+        String full = info.isGlobal() ? prefix + info.generic().module + "_" + node.name : node.name;
 
         if (node.info.isRef) {
             out.format("application(var(\"global_Primitives_ref_get\"), var(\"%s\"))", full);
@@ -315,7 +317,9 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
         // Write the opening of the literal
         out.write("literal_matrix(");
+        // Todo: switch to new compiler
         node.typeNode.accept(this);
+        //out.print(node.typeNode.evalType(true).compileToMVM());
         out.write(", ");
 
         // Write the elements. Table check stores all found indices to check for
@@ -578,6 +582,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(BangTypeNode node) {
+        //na();
         IndexSetInfo info = (IndexSetInfo) node.indexSet.info;
         UnitInfo unitInfo = node.unit == null ? null : (UnitInfo) node.unit.info;
         out.format("bang_shape(\"%s\", \"%s\")",
@@ -611,16 +616,19 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(TypeApplicationNode typeApplicationNode) {
         // TODO Auto-generated method stub
+        //na();
         throw new RuntimeException("todo ");
     }
 
     @Override
     public void visit(TypeIdentifierNode node) {
+        //na();
         out.write(node.MVMCode(settings));
     }
 
     @Override
     public void visit(TypePowerNode node) {
+        //na();
         out.write("shape_expt(");
         node.base.accept(this);
         out.write(", ");
@@ -630,11 +638,13 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(PrefixUnitTypeNode node) {
+        //na();
         out.write(node.MVMCode(settings));
     }
 
     @Override
     public void visit(TypeMultiplyNode node) {
+        //na();
         out.write("shape_binop(\"multiply\", ");
         node.left.accept(this);
         out.write(", ");
@@ -644,6 +654,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(TypeDivideNode node) {
+        //na();
         out.write("shape_binop(\"divide\", ");
         node.left.accept(this);
         out.write(", ");
@@ -653,6 +664,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(TypeKroneckerNode node) {
+        //na();
         out.write("shape_binop(\"kronecker\", ");
         node.left.accept(this);
         out.write(", ");
@@ -662,6 +674,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(TypePerNode node) {
+        //na();
         out.write("shape_binop(\"per\", ");
         node.left.accept(this);
         out.write(", ");
@@ -691,7 +704,6 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void compileValueDefinition(ValueDefinition def, ValueInfo info) {
-        // TODO Auto-generated method stub
-        
+        def.accept(this);
     }
 }

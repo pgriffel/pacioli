@@ -24,6 +24,7 @@ package pacioli.ast.definition;
 import java.io.PrintWriter;
 import java.util.List;
 import pacioli.Location;
+import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.Utils;
 import pacioli.ast.Visitor;
@@ -116,12 +117,14 @@ public class UnitVectorDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo generic) {
-        UnitInfo info = program.ensureUnitRecord(localName());
+    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
+        GenericInfo generic = new GenericInfo(localName(), program.program.module.name, 
+                program.file, scope, getLocation());       
+        UnitInfo info = new UnitInfo(generic);
         info.isVector = true;
-        info.generic = generic;
         info.definition = this;
         info.items = items;
+        program.addInfo(info);
     }
 
 }

@@ -3,20 +3,14 @@ package pacioli.visitors;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import mvm.values.matrix.MatrixDimension;
 import pacioli.CompilationSettings;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Utils;
 import pacioli.ast.Node;
 import pacioli.ast.ProgramNode;
-import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.IndexSetDefinition;
@@ -26,7 +20,6 @@ import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
-import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
@@ -46,29 +39,8 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
-import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
-import pacioli.ast.unit.NumberUnitNode;
-import pacioli.ast.unit.UnitIdentifierNode;
-import pacioli.ast.unit.UnitOperationNode;
-import pacioli.ast.unit.UnitPowerNode;
-import pacioli.symboltable.IndexSetInfo;
-import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
-import pacioli.types.PacioliType;
-import pacioli.types.ast.BangTypeNode;
-import pacioli.types.ast.FunctionTypeNode;
-import pacioli.types.ast.NumberTypeNode;
-import pacioli.types.ast.PrefixUnitTypeNode;
-import pacioli.types.ast.SchemaNode;
-import pacioli.types.ast.TypeApplicationNode;
-import pacioli.types.ast.TypeDivideNode;
-import pacioli.types.ast.TypeIdentifierNode;
-import pacioli.types.ast.TypeKroneckerNode;
-import pacioli.types.ast.TypeMultiplyNode;
-import pacioli.types.ast.TypePerNode;
-import pacioli.types.ast.TypePowerNode;
 import pacioli.types.matrix.MatrixType;
-import uom.DimensionedNumber;
 
 public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
@@ -119,9 +91,6 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(Toplevel node) {
-        //out.print("print ");
-//        node.body.accept(this);
-        //out.print(";\n");
         newline();
     }
 
@@ -207,9 +176,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             // escapeString(stackText), escapeString(fullText), traceOn, code, args);
         } else {
             
-            //newlineUp();
-            
-            if (node.function instanceof IdentifierNode && ((IdentifierNode)node.function).info.generic.isGlobal()) {
+            if (node.function instanceof IdentifierNode && ((IdentifierNode)node.function).info.isGlobal()) {
                 String fullName = ((IdentifierNode) node.function).info.globalName();
                 if (!boxed ||
                         fullName.equals("global_List_empty_list") || fullName.equals("global_List_loop_list")
@@ -224,9 +191,9 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
                         || fullName.equals("global_Primitives_ref_set") || fullName.equals("global_Primitives_ref_get")
                         || fullName.equals("global_Primitives_while_function")
                         || fullName.equals("global_Primitives_apply")) {
-                    out.format("Pacioli.%s", fullName); // is globalName() correct?
+                    out.format("Pacioli.%s", fullName);
                 } else {
-                    out.format("Pacioli.b_%s", fullName); // is globalName() correct?
+                    out.format("Pacioli.b_%s", fullName);
                 }
             } else {
                 out.print("(");
@@ -234,8 +201,6 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
                 out.print(")");
             }
             out.write("(");
-            // return String.format("application(%s%s)",
-            // node.function.compileToMVM(settings), args);
         }
         Boolean sep = false;
         for (Node arg : node.arguments) {
@@ -254,8 +219,6 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(AssignmentNode node) {
-        // node.desugar().accept(this);
-        //na();
         out.print("Pacioli.global_Primitives_ref_set(");
         out.print(node.var.name);
         out.print(", ");
@@ -300,7 +263,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         // String full = node.isLocal() ? node.name : node.compiledName(prefix);
         // String full = info.generic.global ? node.compiledName(prefix) : node.name;
         String fun = boxed ? "bfetchValue" : "fetchValue";
-        String full = info.generic.isGlobal() ? "Pacioli." + fun + "('" + info.generic.module + "', '" + node.name + "')" 
+        String full = info.isGlobal() ? "Pacioli." + fun + "('" + info.generic().module + "', '" + node.name + "')" 
                                           : node.name;
 
         if (node.info.isRef) {
@@ -348,10 +311,8 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         write("function (");
         write(args);
         write(") { return ");
-        //newlineUp();
         node.expression.accept(this);
         write(";");
-        //newlineDown();
         write("}");
     }
 
@@ -374,7 +335,6 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         }
         if (boxed) {
             out.print("Pacioli.initialMatrix(" + node.typeNode.compileToJS(boxed) + "," + builder.toString() + ")");
-            // throw new RuntimeException("matrix literal node ");
         }
         out.format("Pacioli.initialNumbers(%s, %s, [%s])", 
                 node.rowDim.size(), node.columnDim.size(),
@@ -391,6 +351,8 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         } catch (PacioliException e) {
             throw new RuntimeException(e);
         }
+        
+        //node.typeNode.accept(this);
         
         if (boxed) {
             // throw new RuntimeException("matrix type node ");
@@ -442,9 +404,6 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             }
             unmark();
         }
-        
-        //throw new RuntimeException("todo MVM for SequenceNode");
-        //node.desugar().accept(this);
     }
 
     @Override
@@ -464,9 +423,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         // Write the other lambda params
         for (IdentifierNode id : assignedVariables) {
             write(", ");
-            //write("\"");
             write(id.getName());
-            //write("\"");
         }
         write(") {");
         
@@ -500,11 +457,8 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         // The initial result place
         write("Pacioli.global_Primitives_empty_ref()");
 
-        //first = true;
         for (IdentifierNode id : assignedVariables) {
-            //if (!first) 
             write(", ");
-            //first = false;
             
             if (id.info.initialRefInfo != null) {
                 // todo: handle the case the id exists in this scope.
@@ -522,17 +476,10 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             }
         }        
         
-        // The result place for catch
-        //write("var(\"result\")");
-        
-        
         // Close the lambda application
         write(")");
         
         unmark();
-        //out.format("application(global_Primitives_ref_set, ");
-        //node.body.accept(this);
-        //out.format(")");
     }
 
     @Override
@@ -550,7 +497,6 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(TupleAssignmentNode node) {
-        //node.desugar().accept(this);
         
         // Some tuple properties
         List<IdentifierNode> vars = node.vars;
@@ -576,9 +522,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         Boolean first = true;
         for (String name: freshNames) {
             if (!first) out.print(", ");
-            //write("\"");
             out.print(name);
-            //write("\"");
             first = false;
         }
         out.print(") {");
@@ -615,7 +559,6 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(WhileNode node) {
-        //node.desugar().accept(this);
         mark();
         write("Pacioli.global_Primitives_while_function(");
         newlineUp();
@@ -631,116 +574,5 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         node.body.accept(this);
         write(";})");
         unmark();
-    }
-
-    @Override
-    public void visit(BangTypeNode node) {
-        out.format("Pacioli.bangShape('%s', '%s', '%s', '%s')",
-                node.indexSet.getDefinition().getModule().getName(), 
-                node.indexSet.getName(),
-                node.unit == null ? "" : node.unit.getDefinition().getModule().getName(), 
-                node.unit == null ? "" : node.unit.getName());
-    }
-
-    @Override
-    public void visit(FunctionTypeNode functionTypeNode) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("todo ");
-    }
-
-    @Override
-    public void visit(NumberTypeNode numberTypeNode) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("todo ");
-    }
-
-    @Override
-    public void visit(SchemaNode schemaNode) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("todo ");
-    }
-
-    @Override
-    public void visit(TypeApplicationNode typeApplicationNode) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("todo ");
-    }
-
-    @Override
-    public void visit(TypeIdentifierNode node) {
-        out.write(node.MVMCode(settings));
-    }
-
-    @Override
-    public void visit(TypePowerNode node) {
-        na();
-        out.write("shape_expt(");
-        node.base.accept(this);
-        out.write(", ");
-        out.write(node.power.number);
-        out.write(")");
-    }
-
-    @Override
-    public void visit(PrefixUnitTypeNode node) {
-        out.write(node.MVMCode(settings));
-    }
-
-    @Override
-    public void visit(TypeMultiplyNode node) {
-        na();
-        out.write("shape_binop(\"multiply\", ");
-        node.left.accept(this);
-        out.write(", ");
-        node.right.accept(this);
-        out.write(")");
-    }
-
-    @Override
-    public void visit(TypeDivideNode node) {
-        out.write("shape_binop(\"divide\", ");
-        node.left.accept(this);
-        out.write(", ");
-        node.right.accept(this);
-        out.write(")");
-    }
-
-    @Override
-    public void visit(TypeKroneckerNode node) {
-        out.write("shape_binop(\"kronecker\", ");
-        node.left.accept(this);
-        out.write(", ");
-        node.right.accept(this);
-        out.write(")");
-    }
-
-    @Override
-    public void visit(TypePerNode node) {
-        out.write("shape_binop(\"per\", ");
-        node.left.accept(this);
-        out.write(", ");
-        node.right.accept(this);
-        out.write(")");
-    }
-
-    @Override
-    public void visit(NumberUnitNode numberUnitNode) {
-        na();
-    }
-
-    @Override
-    public void visit(UnitIdentifierNode unitIdentifierNode) {
-        na();
-    }
-
-    @Override
-    public void visit(UnitOperationNode unitOperationNode) {
-        na();
-    }
-
-    @Override
-    public void visit(UnitPowerNode unitOperationNode) {
-        na();
-    }
-
+    }        
 }

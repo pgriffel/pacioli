@@ -1,5 +1,6 @@
 package pacioli.symboltable;
 
+import pacioli.Location;
 import pacioli.ast.definition.Definition;
 
 public interface SymbolInfo {
@@ -11,5 +12,9 @@ public interface SymbolInfo {
     String name();
 
     String globalName();
+
+    //Boolean isExternal();
+
+    Location getLocation();
 
 }
