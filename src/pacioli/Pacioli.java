@@ -195,7 +195,7 @@ public class Pacioli {
         try {
 
             Pacioli.logln2("Loading module '%s'", file.getPath());
-            program.load();
+            program.loadTill(Phase.typed);
 
             StringWriter outputStream = new StringWriter();
             try {
@@ -225,124 +225,60 @@ public class Pacioli {
     private static void compileCommand(String fileName, String target, List<File> libs, CompilationSettings settings)
             throws Exception {
 
-        // File file = new File(fileName);
         File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
 
-        if (!file.exists()) {
-            throw new PacioliException("Error: file '%s' does not exist.", fileName);
-        }
-
-        Pacioli.logln1("Compiling file '%s'", fileName);
-
-        Progam program = new Progam(file, libraryDirectories(libs));
-
-        String extension;
-        if (target.equals("javascript")) {
-            extension = ".js";
-        } else if (target.equals("matlab")) {
-            extension = ".m";
-        } else if (target.equals("html")) {
-            extension = ".html";
+        if (file == null) {
+            throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);    
         } else {
-            extension = ".mvm";
+            bundle(file, libs, settings, target);
         }
-        File dstName = new File(program.baseName() + extension).getAbsoluteFile();
-
-        //program.load();
-        //program.loadTill(Phase.typed);
-        /*
-        BufferedWriter out = new BufferedWriter(new FileWriter(program.baseName() + ".js"));
-        PrintWriter writer = null;
-        try {
-            writer = new PrintWriter(out);
-            program.bundle(writer, settings, target);
-        } finally {
-            if (writer != null) {
-                writer.close();
-            }
-        }
-        */
-        
-        bundle(file, libs, settings, target);
-        
-        //program.compileRec(settings, target);
-        
-        /*
-        if (target.equals("javascript")) {
-            program.compileRec(settings, target);
-
-//            throw new RuntimeException("Todo: fix js compilation");
-            //program.compileJS(settings);
-        } else if (target.equals("matlab")) {
-            throw new RuntimeException("Todo: fix matlab compilation");
-            // program.compileMatlab(new PrintWriter(outputStream), settings);
-        } else if (target.equals("html")) {
-            throw new RuntimeException("Todo: fix html compilation");
-            // program.compileHtml(new PrintWriter(outputStream), settings);
-        } else {
-
-            Boolean force = false;
-
-            cleanStandardIncludes(libs, force);
-            program.cleanMVMFiles(force);
-            compileStandardIncludes(libs, settings);
-            program.compileMVMRec(settings);
-        }
-        */
-        Pacioli.logln("Compiled file '%s'", dstName);
-
     }
     
     public static void bundle(File file, List<File> libs, CompilationSettings settings, String target) throws Exception {
         
+        Pacioli.logln1("Creating bundle for file '%s'", file);
+        
+        // Load the file itself
+        Pacioli.logln1("Loading file '%s'", file);
         Progam mainProgram = new Progam(file, libraryDirectories(libs));
         mainProgram.loadTill(Phase.typed);
         
-        
-       
+        // Setup a writer for the output file
         String dstName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension(target); 
+        PrintWriter writer = null;       
         
-        BufferedWriter out = new BufferedWriter(new FileWriter(dstName));
-        PrintWriter writer = null;
         try {
-            writer = new PrintWriter(out);
+            
+            // Open the writer
+            writer = new PrintWriter(new BufferedWriter(new FileWriter(dstName)));
 
+            // Main loop variables. List todo contains include files still to process.
+            // List done contains all processed files to avoid duplicates and cycles.
             List<File> todo = new ArrayList<File>();
             List<File> done = new ArrayList<File>();
             
+            // Initialize the loop by adding the file's includes to the todo list
             for (String include : mainProgram.includes()) {
                 File includeFile = mainProgram.findIncludeFile(include);
                 todo.add(includeFile);
             }
             
-            //todo.add(file);
-            /*
-            for (String include : PacioliFile.defaultIncludes) {
-                File defaultFile = mainProgram.findIncludeFile(include);
-                todo.add(defaultFile);
-            }
-            */
+            // Loop over the todo list, adding new include files when found
             while (!todo.isEmpty()) {
+                
+                // Take the first element of the todo list to process next
                 File current = todo.get(0);
                 todo.remove(0);
-                Pacioli.logln("toDO: %s", todo);
                 
                 if (!done.contains(current)) {
                     
+                    Pacioli.logln("Bundling file %s", current);
+                    
+                    // Load the current file
                     Progam program = new Progam(current, libraryDirectories(libs));
-            /*
-                    // Somehow find a better spot. This is done over and over
-                    // because it depends on program.
-                    for (String include : PacioliFile.defaultIncludes) {
-                        File defaultFile = program.findIncludeFile(include);
-                        if (!done.contains(defaultFile) && !todo.contains(defaultFile)) {
-                            todo.add(defaultFile);
-                        }
-                    }
-              */      
-                    Pacioli.logln("Loading bundle file %s", current);
                     program.loadTill(Phase.typed);
                 
+                    // Add its include files to the todo list
                     for (String include : program.includes()) {
                         File includeFile = program.findIncludeFile(include);
                         if (!done.contains(includeFile) && !todo.contains(includeFile)) {
@@ -350,84 +286,27 @@ public class Pacioli {
                         }
                     }
 
-                    Pacioli.logln("Compiling bundle file %s", current);
-                    //program.generateCode(writer, settings, target);
+                    // Add the loaded program to the main program creating the entire bundle
                     mainProgram.includeOther(program);
                     
+                    // Remember that this include was processed.
                     done.add(current);
-                } else {
-                    Pacioli.logln("SEE!!!!");
                 }
             }
-            //mainProgram.printSymbolTables();
+            
+            // Generate the code for the entire bundle
             mainProgram.generateCode(writer, settings, target);
             
         } finally {
+            
+            // Close the writer
             if (writer != null) {
                 writer.close();
             }
         }
+        Pacioli.logln("Created bundle '%s'", dstName);
     }
-    
-    public static void bundleOLD(File file, List<File> libs, CompilationSettings settings, String target) throws Exception {
         
-        String dstName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension(target); 
-        
-        BufferedWriter out = new BufferedWriter(new FileWriter(dstName));
-        PrintWriter writer = null;
-        try {
-            writer = new PrintWriter(out);
-
-            List<File> todo = new ArrayList<File>();
-            List<File> done = new ArrayList<File>();
-            
-            todo.add(file);
-            
-            
-            while (!todo.isEmpty()) {
-                File current = todo.get(0);
-                todo.remove(0);
-                Pacioli.logln("toDO: %s", todo);
-                
-                if (!done.contains(current)) {
-                    
-                    Progam program = new Progam(current, libraryDirectories(libs));
-            
-                    // Somehow find a better spot. This is done over and over
-                    // because it depends on program.
-                    for (String include : PacioliFile.defaultIncludes) {
-                        File defaultFile = program.findIncludeFile(include);
-                        if (!done.contains(defaultFile) && !todo.contains(defaultFile)) {
-                            todo.add(defaultFile);
-                        }
-                    }
-                    
-                    Pacioli.logln("Loading bundle file %s", current);
-                    program.loadTill(Phase.typed);
-                
-                    for (String include : program.includes()) {
-                        File includeFile = program.findIncludeFile(include);
-                        if (!done.contains(includeFile) && !todo.contains(includeFile)) {
-                            todo.add(includeFile);    
-                        }
-                    }
-
-                    Pacioli.logln("Compiling bundle file %s", current);
-                    program.generateCode(writer, settings, target);
-                    
-                    done.add(current);
-                } else {
-                    Pacioli.logln("SEE!!!!");
-                }
-            }
-            
-        } finally {
-            if (writer != null) {
-                writer.close();
-            }
-        }
-    }
-    
     private static void interpretCommand(String fileName, List<File> libs) throws Exception {
 
         File file = new File(fileName).getAbsoluteFile();
@@ -457,7 +336,7 @@ public class Pacioli {
         try {
 
             Pacioli.logln2("Loading module '%s'", file.getPath());
-            program.load();
+            program.loadTill(Phase.parsed);
 
             Pacioli.logln2("Displaying types in module '%s'", file.getPath());
             program.checkTypes();
@@ -583,14 +462,8 @@ public class Pacioli {
             );
 
         for (String sample : samples) {
-            logln("--------------------------------------------------------------------------------" + sample);
-            // typesCommand(dir + sample + ".pacioli", libs);
-            // interpretCommand(dir + sample + ".mvm", libs);
-            // runCommand(dir + sample + ".pacioli", libs, settings);
-            // compileCommand(dir + sample + ".pacioli", dir + sample + ".mvm", libs,
-            // settings);
-            //compileFileCUP(dir + sample, libs, settings);
-            
+            logln(sample);
+            logln("--------------------------------------------------------------------------------");
             try {
                 compileFileCUP(dir + sample, libs, settings);
 
@@ -609,49 +482,16 @@ public class Pacioli {
         File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
         bundle(file, libs, settings, "mvm");
         
-    /*    
-        
-        Pacioli.logln("CUP STANDAARD INCLUDES");
-        
-        //cleanStandardIncludes(libs, true);
-        //compileStandardIncludes(libs, settings);
-        
-        Pacioli.logln("CUP COMPILE %s", fileName);
-        
-        Progam prog = new Progam(fileName, libs);
-        prog.loadTill(Phase.typed);
-        compileCommand(fileName, "mvm", libs, settings);
-        
-        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
-        */
         String binName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension("mvm");
+        Pacioli.logln("Running file %s", binName);
         interpretMVMText(new File(binName), libs);
-        
-        
-/*        
-        Boolean force = true;
-
-        Progam prog = new Progam(fileName, libs);
-        prog.load();
-
-        cleanStandardIncludes(libs, force);
-        prog.cleanMVMFiles(force);
-
-        compileStandardIncludes(libs, settings);
-
-        prog.compileMVMRec(settings);
-
-        String file = prog.baseName() + ".mvm";
-
-        interpretMVMText(new File(file), libs);
-*/
     }
 
     private static void cleanStandardIncludes(List<File> libs, Boolean force) throws Exception {
         for (String include : PacioliFile.defaultsToCompile) {
             File file = PacioliFile.findIncludeFile(include, libs);
             Progam prog = new Progam(file, libs);
-            prog.load();
+            prog.loadTill(Phase.parsed);
             prog.cleanMVMFiles(force);
         }
     }
@@ -660,7 +500,7 @@ public class Pacioli {
         for (String include : PacioliFile.defaultsToCompile) {
             File file = PacioliFile.findIncludeFile(include, libs);
             Progam prog = new Progam(file, libs);
-            prog.load();
+            prog.loadTill(Phase.parsed);
             prog.compileRec(settings, "mvm");
         }
     }

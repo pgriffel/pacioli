@@ -78,36 +78,6 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     // Adding symbol table entries
     // -------------------------------------------------------------------------
-/*
-    public IndexSetInfo ensureIndexSetRecord(String name) {
-        if (!indexSets.contains(name)) {
-            indexSets.put(name, new IndexSetInfo());
-        }
-        return indexSets.lookup(name);
-    }
-
-    public UnitInfo ensureUnitRecord(String name) {
-        if (!units.contains(name)) {
-            units.put(name, new UnitInfo());
-        }
-        return units.lookup(name);
-    }
-
-    public TypeInfo ensureTypeRecord(String name) {
-        if (!types.contains(name)) {
-            types.put(name, new TypeInfo());
-        }
-        return types.lookup(name);
-    }
-
-    public ValueInfo ensureValueRecord(String name) {
-        if (!values.contains(name)) {
-            values.put(name, new ValueInfo());
-        }
-        return values.lookup(name);
-    }
-    */
-    // above is obsolete
 
     public void addInfo(IndexSetInfo info) throws PacioliException {
         String name = info.name();
@@ -120,7 +90,6 @@ public class Progam extends AbstractPrintable {
 
     public void addInfo(UnitInfo info) throws PacioliException {
         String name = info.name();
-        //Pacioli.logln("ADD UNIT %s", name);
         if (units.contains(name)) {
             throw new PacioliException(info.getLocation(), "Duplicate unit name: " + name);
         } else {
@@ -197,32 +166,6 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     // Loading
     // -------------------------------------------------------------------------
-
-    public void load() throws Exception {
-        program = Parser.parseFile(this.file.getAbsolutePath());
-    }
-    
-    public void loadPrimitives() throws Exception {
-        for (String include : PacioliFile.defaultIncludes) {
-            File file = findIncludeFile(include);
-            if (!file.equals(this.file)) {
-                Progam prog = new Progam(file, libs);
-                prog.loadTillHelper(Progam.Phase.typed, include == "standard", false);
-                //prog.loadTill(Progam.Phase.typed);
-                //prog.load();
-                //prog.desugar();
-                if (false) {
-                for (Definition def : prog.program.definitions) {
-                    //GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED, def.getLocation());
-                    def.addToProgr(this, GenericInfo.Scope.IMPORTED);
-                } 
-                } else {
-                    this.includeOther(prog);
-                }
-            }
-        }
-    }
-    
     
     public void loadTill(Phase phase) throws Exception {
         loadTillHelper(phase, true, true);
@@ -252,58 +195,32 @@ public class Progam extends AbstractPrintable {
     public void fillTables(Boolean loadPrimitives, Boolean loadStandard) throws Exception {
 
         for (String type : ResolveVisitor.builtinTypes) {
-            //TypeInfo info = ensureTypeRecord(type);
             GenericInfo generic = new GenericInfo(type, program.module.name, null, GenericInfo.Scope.IMPORTED, null);
-            //info.generic = generic;
             addInfo(new TypeInfo(generic));
         }
 
         // Fill symbol tables for the default include files
-        if (true || loadPrimitives) {
         for (String include : PacioliFile.defaultIncludes) {
             Boolean isStandard = include.equals("standard");
-            File file = findIncludeFile(include);
-            //if (true || !file.equals(this.file)) {
             if ((isStandard && loadStandard) || (!isStandard && loadPrimitives)) {
+                File file = findIncludeFile(include);
                 Progam prog = new Progam(file, libs);
-                //prog.load();
-                Pacioli.logln("Loading default %s", include);
                 prog.loadTillHelper(Progam.Phase.typed, isStandard, false);
-                //prog.loadTill(Progam.Phase.typed);
-                //prog.load();
-                //prog.desugar();
-                if (false) {
-                for (Definition def : prog.program.definitions) {
-                    //GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED, def.getLocation());
-                    def.addToProgr(this, GenericInfo.Scope.IMPORTED);
-                } 
-                } else {
-                    this.includeOther(prog);
-                }
+                this.includeOther(prog);
             }
-        }
         }
 
         // Fill symbol tables for the included files
         for (String include : includes()) {
             File file = findIncludeFile(include);
             Progam prog = new Progam(file, libs);
+            Pacioli.logln("Loading include file %s", include);
             prog.loadTill(Progam.Phase.typed);
-            //prog.load();
-            //prog.desugar();
-            if (false) {
-            for (Definition def : prog.program.definitions) {
-                //GenericInfo info = new GenericInfo(def.localName(), prog.program.module.name, file, GenericInfo.Scope.IMPORTED, def.getLocation());
-                def.addToProgr(this, GenericInfo.Scope.IMPORTED);
-            }
-            } else {
-                this.includeOther(prog);
-            }
+            this.includeOther(prog);
         }
 
         // Fill symbol tables for this file
         for (Definition def : program.definitions) {
-            //GenericInfo info = new GenericInfo(def.localName(), program.module.name, file, GenericInfo.Scope.FILE, def.getLocation());
             def.addToProgr(this, GenericInfo.Scope.FILE);
         }
     }
@@ -461,6 +378,7 @@ public class Progam extends AbstractPrintable {
         desugar();
         resolve();
         inferTypes();
+        printTypes();
     }
 
     private void inferTypes() {
@@ -481,14 +399,14 @@ public class Progam extends AbstractPrintable {
             ValueInfo info = values.lookup(value);
             if (!isExternal(info) && info.getDefinition() != null) {
                 inferValueDefinitionType(info, discovered, finished);
-                Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.toText());
+                //Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.toText());
             }
         }
         for (Toplevel toplevel : toplevels) {
 
             inferUsedTypes(toplevel, discovered, finished);
             Typing typing = toplevel.body.inferTyping2(this);
-            Pacioli.log3("\n%s", typing.toText());
+            //Pacioli.log3("\n%s", typing.toText());
             /*
              * type = typing.solve().simplify(); return type;
              */
@@ -543,7 +461,37 @@ public class Progam extends AbstractPrintable {
             }
         }
     }
+    
+    private void printTypes() {
 
+        Set<SymbolInfo> discovered = new HashSet<SymbolInfo>();
+        Set<SymbolInfo> finished = new HashSet<SymbolInfo>();
+
+        List<String> names = values.allNames();
+        names.sort(new Comparator<String>() {
+
+            @Override
+            public int compare(String o1, String o2) {
+                return o1.compareTo(o2);
+            }
+        });
+        
+        for (String value : names) {
+            ValueInfo info = values.lookup(value);
+            if (!isExternal(info) && info.getDefinition() != null) {
+                Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.toText());
+            }
+        }
+        for (Toplevel toplevel : toplevels) {
+
+            Typing typing = toplevel.body.inferTyping2(this);
+            Pacioli.log3("\n%s", typing.toText());
+            /*
+             * type = typing.solve().simplify(); return type;
+             */
+        }
+    }
+    
     // -------------------------------------------------------------------------
     // Cleaning MVM files
     // -------------------------------------------------------------------------
@@ -556,7 +504,7 @@ public class Progam extends AbstractPrintable {
         for (String include : includes()) {
             File incl = findIncludeFile(include);
             Progam prog = new Progam(incl, libs);
-            prog.load();
+            prog.loadTill(Phase.parsed);
             srcDirty = srcDirty || prog.cleanMVMFiles(force);
         }
 
@@ -614,13 +562,7 @@ public class Progam extends AbstractPrintable {
     }    
 
     public void generateCode(PrintWriter writer, CompilationSettings settings, String target) throws Exception {
-/*
-        for (String include : includes()) {
-            if (!target.equals("javascript")) {
-                writer.format("require %s;\n", include);
-            }
-        }
-*/
+
         Boolean externals = true;
         
         List<Definition> unitsToCompile = new ArrayList<Definition>();
@@ -639,7 +581,6 @@ public class Progam extends AbstractPrintable {
         for (String value : values.allNames()) {
             
             ValueInfo info = values.lookup(value);
-            //Pacioli.logln("GEN VALUE NAME %s, ext=%s, def=%s", value, !info.isExternal() || externals, info.definition != null);
             if (!isExternal(info) || externals) {
                 if (info.definition != null) {
                     valuesToCompile.add(info);
@@ -676,7 +617,6 @@ public class Progam extends AbstractPrintable {
 
         for (ValueInfo info : valuesToCompile) {
             if (!isExternal(info) || externals) {
-                //Pacioli.logln("GEN VALUE %s\n", info.name());
             ValueDefinition def = (ValueDefinition) info.getDefinition();
             gen.compileValueDefinition(def, info);
             writer.write("\n");
