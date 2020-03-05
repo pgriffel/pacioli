@@ -95,7 +95,7 @@ public class Schema extends AbstractType {
     }
 
     @Override
-    public List<Unit> simplificationParts() {
+    public List<Unit<TypeBase>> simplificationParts() {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.
     }

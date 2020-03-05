@@ -1,8 +1,5 @@
 package pacioli.visitors;
 
-import java.io.PrintWriter;
-
-import pacioli.CompilationSettings;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.symboltable.ValueInfo;

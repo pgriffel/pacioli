@@ -24,14 +24,14 @@ package pacioli.ast.definition;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+
 import pacioli.Location;
-import pacioli.Progam;
 import pacioli.PacioliException;
+import pacioli.Progam;
 import pacioli.TypeConstraint;
 import pacioli.TypeContext;
 import pacioli.ast.Visitor;
 import pacioli.symboltable.GenericInfo;
-import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.TypeInfo;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
@@ -45,8 +45,8 @@ public class TypeDefinition extends AbstractDefinition {
     public final TypeContext context;
     public final TypeNode lhs;
     public final TypeNode rhs;
-    private TypeApplicationNode resolvedLhs;
-    private TypeNode resolvedRhs;
+    //private TypeApplicationNode resolvedLhs;
+    //private TypeNode resolvedRhs;
     private TypeConstraint constraint;
 
     public TypeDefinition(Location location, TypeContext context, TypeNode lhs, TypeNode rhs) {

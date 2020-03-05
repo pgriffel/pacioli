@@ -22,6 +22,7 @@
 package pacioli.ast.definition;
 
 import java.io.PrintWriter;
+
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Progam;
@@ -30,8 +31,8 @@ import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.GenericInfo;
-import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.UnitInfo;
+import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 
 public class UnitDefinition extends AbstractDefinition {
@@ -62,7 +63,7 @@ public class UnitDefinition extends AbstractDefinition {
         return symbol;
     }
 
-    public DimensionedNumber evalBody() {
+    public DimensionedNumber<TypeBase> evalBody() {
         return (body == null) ? null : body.evalUnit();
     }
 
@@ -90,7 +91,7 @@ public class UnitDefinition extends AbstractDefinition {
         if (body == null) {
             return String.format("Pacioli.compute_%s = function () {return {symbol: '%s'}}", globalName(), symbol);
         } else {
-            DimensionedNumber number = body.evalUnit().flat();
+            DimensionedNumber<TypeBase> number = body.evalUnit().flat();
             return String.format(
                     "Pacioli.compute_%s = function () {return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}}",
                     globalName(), number.factor(), Utils.compileUnitToJS(number.unit()), symbol);

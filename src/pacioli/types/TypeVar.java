@@ -117,8 +117,8 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Printabl
     }
 
     @Override
-    public List<Unit> simplificationParts() {
-        List<Unit> parts = new ArrayList<Unit>();
+    public List<Unit<TypeBase>> simplificationParts() {
+        List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
         return parts;
     }
 

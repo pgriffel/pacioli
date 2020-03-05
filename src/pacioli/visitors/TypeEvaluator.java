@@ -88,7 +88,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
 
         // The index type and row unit for the to be created matrix type
         IndexType indexType;
-        Unit rowUnit;
+        Unit<TypeBase> rowUnit;
 
         // Find index set info. The node must have been resolved.
         IndexSetInfo indexInfo = (IndexSetInfo) node.indexSet.info;

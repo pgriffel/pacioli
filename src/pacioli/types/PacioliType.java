@@ -43,7 +43,7 @@ public interface PacioliType extends Printable {
 
     public PacioliType reduce();
 
-    public List<Unit> simplificationParts();
+    public List<Unit<TypeBase>> simplificationParts();
 
     public PacioliType simplify();
 

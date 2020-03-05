@@ -29,7 +29,6 @@ import java.util.Set;
 import pacioli.AbstractPrintable;
 import pacioli.PacioliException;
 import pacioli.Substitution;
-import uom.Base;
 import uom.Fraction;
 import uom.Unit;
 
@@ -56,7 +55,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
     @Override
     public PacioliType simplify() {
         Substitution mgu = new Substitution();
-        List<Unit> parts = simplificationParts();
+        List<Unit<TypeBase>> parts = simplificationParts();
         Set<TypeVar> ignore = new HashSet<TypeVar>();
         for (int i = 0; i < parts.size(); i++) {
             Unit<TypeBase> part = mgu.apply(parts.get(i));

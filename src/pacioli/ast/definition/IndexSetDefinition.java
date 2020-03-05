@@ -24,6 +24,7 @@ package pacioli.ast.definition;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+
 import mvm.values.matrix.IndexSet;
 import pacioli.Location;
 import pacioli.PacioliException;
@@ -33,7 +34,6 @@ import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.IndexSetInfo;
-import pacioli.symboltable.ValueInfo;
 import pacioli.types.TypeIdentifier;
 
 public class IndexSetDefinition extends AbstractDefinition {

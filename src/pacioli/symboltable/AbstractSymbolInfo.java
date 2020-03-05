@@ -1,8 +1,6 @@
 package pacioli.symboltable;
 
 import pacioli.Location;
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.IndexSetDefinition;
 
 public abstract class AbstractSymbolInfo implements SymbolInfo {
     

@@ -11,6 +11,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.UnitInfo;
+import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 import uom.Unit;
 
@@ -50,8 +51,8 @@ public class AliasDefinition extends AbstractDefinition {
         throw new RuntimeException("todo");
     }
 
-    public Unit evalBody() {
-        DimensionedNumber number = unit.evalUnit();
+    public Unit<TypeBase> evalBody() {
+        DimensionedNumber<TypeBase> number = unit.evalUnit();
         if (!number.factor().equals(BigDecimal.ONE)) {
             throw new RuntimeException("Unexpected number in unit alias");
         }

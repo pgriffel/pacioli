@@ -50,6 +50,7 @@ import pacioli.ast.unit.UnitPowerNode;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
+import pacioli.types.TypeBase;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
@@ -126,7 +127,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(UnitDefinition node) {
-        DimensionedNumber number = node.evalBody();
+        DimensionedNumber<TypeBase> number = node.evalBody();
         if (number == null) {
             out.format("baseunit \"%s\" \"%s\";\n", node.getName(), node.getSymbol());
         } else {
@@ -142,7 +143,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
         List<String> unitTexts = new ArrayList<String>();
         // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
         for (UnitDecl entry : node.items) {
-            DimensionedNumber number = entry.value.evalUnit();
+            DimensionedNumber<TypeBase> number = entry.value.evalUnit();
             unitTexts.add("\"" + entry.key.getName() + "\": " + Utils.compileUnitToMVM(number.unit()));
         }
         out.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n",

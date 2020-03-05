@@ -29,8 +29,8 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+
 import pacioli.types.TypeBase;
-import uom.Base;
 import uom.Unit;
 
 public class Utils {
@@ -46,11 +46,6 @@ public class Utils {
             sep = seperator;
         }
         return builder.toString();
-    }
-
-    private String escapeString(String in) {
-        // Quick fix for the debug option for string literals
-        return in.replaceAll("\"", "\\\\\"");
     }
 
     public static String intercalateText(String seperator, List<? extends Printable> printables) {

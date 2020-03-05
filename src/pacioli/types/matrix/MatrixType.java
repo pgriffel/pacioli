@@ -36,7 +36,6 @@ import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
-import uom.Base;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitFold;
@@ -74,7 +73,7 @@ public class MatrixType extends AbstractType {
         this.columnUnit = TypeBase.ONE;
     }
 
-    public MatrixType(IndexType rowDimension, Unit rowUnit) {
+    public MatrixType(IndexType rowDimension, Unit<TypeBase> rowUnit) {
         this.factor = TypeBase.ONE;
         this.rowDimension = rowDimension;
         this.rowUnit = rowUnit;
@@ -107,7 +106,7 @@ public class MatrixType extends AbstractType {
                 columnUnit);
     }
 
-    public Unit getFactor() {
+    public Unit<TypeBase> getFactor() {
         return factor;
     }
 
@@ -171,9 +170,6 @@ public class MatrixType extends AbstractType {
     }
 
     public MatrixType project(final List<Integer> columns) throws PacioliException {
-        Unit<TypeBase> u = new StringBase("Foo");
-        Unit<TypeBase> v = new BangBase("Foo", "Foo", 1);
-        Unit<TypeBase> w = u.multiply(v).multiply(u);
         if (rowDimension instanceof IndexType) {
 
             assert (((IndexType) columnDimension).width() == 0);
@@ -340,7 +336,7 @@ public class MatrixType extends AbstractType {
                 for (int i = 0; i < dimType.width(); i++) {
                     final int index = i;
                     Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
-                        public Unit map(TypeBase base) {
+                        public Unit<TypeBase> map(TypeBase base) {
                             assert ((base instanceof TypeVar) || (base instanceof BangBase));
                             if (base instanceof BangBase) {
                                 if (((BangBase) base).position == index) {
@@ -388,12 +384,12 @@ public class MatrixType extends AbstractType {
         });
 
         List<String> rowStringList = new ArrayList<String>();
-        Unit factorUnit = columnWidth == 0 ? factor : pos;
+        Unit<TypeBase> factorUnit = columnWidth == 0 ? factor : pos;
         if (rowWidth == 0) {
             rowStringList.add(factorUnit.toText());
         } else {
             for (int i = 0; i < rowWidth; i++) {
-                Unit ithUnit = rowUnitList.get(i);
+                Unit<TypeBase> ithUnit = rowUnitList.get(i);
                 if (i == 0) {
                     ithUnit = factorUnit.multiply(ithUnit);
                 }
@@ -403,7 +399,7 @@ public class MatrixType extends AbstractType {
 
         List<String> columnStringList = new ArrayList<String>();
         for (int j = 0; j < columnWidth; j++) {
-            Unit jthUnit = columnUnitList.get(j);
+            Unit<TypeBase> jthUnit = columnUnitList.get(j);
             if (j == 0) {
                 jthUnit = neg.reciprocal().multiply(jthUnit);
             }
@@ -449,8 +445,8 @@ public class MatrixType extends AbstractType {
     }
 
     @Override
-    public List<Unit> simplificationParts() {
-        List<Unit> parts = new ArrayList<Unit>();
+    public List<Unit<TypeBase>> simplificationParts() {
+        List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
         parts.add(factor);
         if (rowDimension.isVar() || rowDimension.width() > 0) {
             parts.add(rowUnit);

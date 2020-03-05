@@ -1,7 +1,5 @@
 package pacioli.symboltable;
 
-import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.types.PacioliType;

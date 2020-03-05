@@ -11,6 +11,7 @@ import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
+import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
 import uom.Unit;
@@ -177,7 +178,7 @@ public class IndexType extends AbstractType {
     }
 
     @Override
-    public List<Unit> simplificationParts() {
+    public List<Unit<TypeBase>> simplificationParts() {
         return indexSet.simplificationParts();
     }
 

@@ -3,9 +3,8 @@ package pacioli.visitors;
 import java.io.PrintWriter;
 import java.util.Stack;
 
-import pacioli.Pacioli;
-import pacioli.ast.Visitor;
 import pacioli.ast.ProgramNode;
+import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.IndexSetDefinition;
@@ -38,7 +37,6 @@ import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
-import pacioli.types.PacioliType;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;

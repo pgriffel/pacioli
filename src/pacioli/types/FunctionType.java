@@ -83,8 +83,8 @@ public class FunctionType extends AbstractType {
     }
 
     @Override
-    public List<Unit> simplificationParts() {
-        List<Unit> parts = new ArrayList<Unit>();
+    public List<Unit<TypeBase>> simplificationParts() {
+        List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
         parts.addAll(domain.simplificationParts());
         parts.addAll(range.simplificationParts());
         return parts;

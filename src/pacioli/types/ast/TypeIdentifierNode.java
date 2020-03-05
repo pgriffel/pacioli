@@ -24,10 +24,10 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import pacioli.CompilationSettings;
 import pacioli.Location;
 import pacioli.PacioliFile;
-import pacioli.Utils;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;

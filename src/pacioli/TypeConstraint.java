@@ -25,7 +25,6 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import pacioli.types.FunctionType;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 import pacioli.types.TypeVar;

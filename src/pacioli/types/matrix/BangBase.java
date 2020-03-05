@@ -102,7 +102,7 @@ public class BangBase extends BaseUnit<TypeBase> implements TypeBase {
         return new BangBase(indexSetName, unitName, offset);
     }
 
-    public static Unit kroneckerNth(Unit unit, final int index) {
+    public static Unit<TypeBase> kroneckerNth(Unit<TypeBase> unit, final int index) {
         return unit.map(new UnitMap<TypeBase>() {
             public Unit<TypeBase> map(TypeBase base) {
                 if (base instanceof BangBase) {

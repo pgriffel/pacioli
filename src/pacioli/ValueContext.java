@@ -4,8 +4,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
-
 public class ValueContext extends AbstractPrintable {
 
     private final List<String> vars = new ArrayList<String>();
