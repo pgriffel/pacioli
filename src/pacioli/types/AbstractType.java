@@ -110,7 +110,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
             assert (unit.power(var).isInt());
             int power = unit.power(var).intValue();
             // Unit residu = Unit.ONE.multiply(unit.factor());
-            Unit residu = Unit.ONE;
+            Unit<TypeBase> residu = TypeBase.ONE;
 
             for (TypeBase fixed : fixedBases) {
                 assert (unit.power(fixed).isInt());

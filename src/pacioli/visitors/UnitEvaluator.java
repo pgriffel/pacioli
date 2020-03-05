@@ -10,6 +10,7 @@ import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
+import pacioli.types.TypeBase;
 import pacioli.types.matrix.StringBase;
 import uom.DimensionedNumber;
 import uom.Fraction;
@@ -40,7 +41,7 @@ public class UnitEvaluator extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(NumberUnitNode node) {
-        returnNode(Unit.ONE.multiply(new BigDecimal(node.number)));
+        returnNode(TypeBase.ONE.multiply(new BigDecimal(node.number)));
     }
 
     @Override

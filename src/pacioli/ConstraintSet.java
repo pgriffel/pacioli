@@ -152,7 +152,7 @@ public class ConstraintSet extends AbstractPrintable {
             TypeVar var = (TypeVar) varBases.get(0);
             assert (unit.power(var).isInt());
             int power = unit.power(var).intValue();
-            Unit residu = Unit.ONE;
+            Unit<TypeBase> residu = TypeBase.ONE;
 
             for (TypeBase fixed : fixedBases) {
                 assert (unit.power(fixed).isInt());
@@ -175,7 +175,7 @@ public class ConstraintSet extends AbstractPrintable {
 
         assert (unit.power(minVar).isInt());
         Fraction minPower = unit.power(minVar);
-        Unit rest = Unit.ONE;
+        Unit<TypeBase> rest = TypeBase.ONE;
         for (TypeBase var : unit.bases()) {
             if (!var.equals(minVar)) {
                 assert (unit.power(var).isInt());

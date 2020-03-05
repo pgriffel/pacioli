@@ -25,27 +25,29 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 
-public class DimensionedNumber {
+public class DimensionedNumber<B> {
 
-    private final Unit unit;
+    private final Unit<B> unit;
     private final BigDecimal factor;
 
     public DimensionedNumber() {
-        unit = Unit.ONE;
+        //unit = Unit.ONE;
+        unit = new PowerProduct<B>();
         factor = BigDecimal.ONE;
     }
 
-    public DimensionedNumber(Unit unit) {
+    public DimensionedNumber(Unit<B> unit) {
         this.unit = unit;
         factor = BigDecimal.ONE;
     }
 
     public DimensionedNumber(BigDecimal factor) {
-        unit = Unit.ONE;
+        //unit = Unit.ONE;
+        unit = new PowerProduct<B>();
         this.factor = factor;
     }
 
-    public DimensionedNumber(BigDecimal factor, Unit unit) {
+    public DimensionedNumber(BigDecimal factor, Unit<B> unit) {
         this.unit = unit;
         this.factor = factor;
     }
@@ -54,7 +56,7 @@ public class DimensionedNumber {
         return factor;
     }
 
-    public Unit unit() {
+    public Unit<B> unit() {
         return unit;
     }
 
@@ -71,7 +73,7 @@ public class DimensionedNumber {
         if (!(other instanceof DimensionedNumber)) {
             return false;
         }
-        DimensionedNumber otherNumber = (DimensionedNumber) other;
+        DimensionedNumber<B> otherNumber = (DimensionedNumber<B>) other;
         if (factor.compareTo(otherNumber.factor()) != 0) {
             return false;
         }
@@ -83,15 +85,15 @@ public class DimensionedNumber {
         return factor.toString() + " " + unit.toString();
     }
 
-    public DimensionedNumber multiply(BigDecimal factor) {
-        return new DimensionedNumber(this.factor.multiply(factor), unit);
+    public DimensionedNumber<B> multiply(BigDecimal factor) {
+        return new DimensionedNumber<B>(this.factor.multiply(factor), unit);
     }
 
-    public DimensionedNumber multiply(DimensionedNumber other) {
-        return new DimensionedNumber(other.factor.multiply(factor), other.unit.multiply(unit));
+    public DimensionedNumber<B> multiply(DimensionedNumber<B> other) {
+        return new DimensionedNumber<B>(other.factor.multiply(factor), other.unit.multiply(unit));
     }
 
-    public DimensionedNumber raise(Fraction power) {
+    public DimensionedNumber<B> raise(Fraction power) {
         BigDecimal raisedFactor;
         if (power.isInt()) {
             int pow = power.intValue();
@@ -104,14 +106,14 @@ public class DimensionedNumber {
         } else {
             raisedFactor = new BigDecimal(Math.pow(factor.doubleValue(), power.doubleValue()));
         }
-        return new DimensionedNumber(raisedFactor, unit.raise(power));
+        return new DimensionedNumber<B>(raisedFactor, unit.raise(power));
     }
 
-    public DimensionedNumber reciprocal() {
+    public DimensionedNumber<B> reciprocal() {
         return raise(new Fraction(-1));
     }
 
-    public DimensionedNumber flat() {
+    public DimensionedNumber<B> flat() {
         return unit.flat().multiply(factor);
     }
 

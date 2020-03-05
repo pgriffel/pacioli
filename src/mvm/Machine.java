@@ -48,6 +48,7 @@ import mvm.values.Reference;
 import mvm.values.matrix.IndexSet;
 import mvm.values.matrix.Key;
 import mvm.values.matrix.Matrix;
+import mvm.values.matrix.MatrixBase;
 import mvm.values.matrix.MatrixShape;
 import mvm.values.matrix.UnitVector;
 import pacioli.Pacioli;
@@ -2367,8 +2368,8 @@ public class Machine {
         }
     }
 
-    static public UnitSystem makeSI() {
-        UnitSystem si = new UnitSystem();
+    static public UnitSystem<MatrixBase> makeSI() {
+        UnitSystem<MatrixBase> si = new UnitSystem<MatrixBase>();
         si.addPrefix("giga", new Prefix("G", new BigDecimal("1000000000")));
         si.addPrefix("mega", new Prefix("M", new BigDecimal("1000000")));
         si.addPrefix("kilo", new Prefix("k", new BigDecimal("1000")));

@@ -21,47 +21,10 @@
 
 package uom;
 
-import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
+public interface UnitFold<B, T> {
 
-public abstract class BaseUnit<B> extends AbstractUnit<B> implements Base<B> {
-    @Override
-    public Set<B> bases() {
-        Set<B> set = new HashSet<B>();
-        set.add((B) this);
-        return set;
-    }
-
-    @Override
-    public Fraction power(B base) {
-        if (equals(base)) {
-            return Fraction.ONE;
-        } else {
-            return Fraction.ZERO;
-        }
-    }
-
- 
-    @Override
-    public DimensionedNumber<B> multiply(BigDecimal other) {
-        PowerProduct<B> me = new PowerProduct<B>((B) this);
-        return me.multiply(other);
-    }
-
-    @Override
-    public Unit<B> raise(Fraction power) {
-        PowerProduct<B> me = new PowerProduct<B>((B) this);
-        return me.raise(power);
-    }
-
-    @Override
-    public Unit<B> reciprocal() {
-        return raise(new Fraction(-1));
-    }
-
-    @Override
-    public DimensionedNumber<B> flat() {
-        return new DimensionedNumber<B>(this);
-    }
+    public T map(B base);
+    public T mult(T x, T y);
+    public T expt(T x, Fraction n);
+    public T one();
 }

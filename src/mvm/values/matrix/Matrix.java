@@ -83,7 +83,7 @@ public class Matrix extends AbstractPacioliValue {
     public void printText(PrintWriter out) {
 
         if (rowDimension().width() == 0 && columnDimension().width() == 0) {
-            if (unitAt(0, 0).equals(Unit.ONE)) {
+            if (unitAt(0, 0).equals(MatrixBase.ONE)) {
                 out.format("%f", numbers.getEntry(0, 0));
                 return;
             } else {
@@ -128,7 +128,7 @@ public class Matrix extends AbstractPacioliValue {
                     idxList.add(idxString);
 
                     Unit unit = unitAt(i, j);
-                    String unitString = unit.equals(Unit.ONE) ? "" : unit.toText();
+                    String unitString = unit.equals(MatrixBase.ONE) ? "" : unit.toText();
                     unitList.add(unitString);
                     unitWidth = Math.max(unitWidth, unitString.length());
                 }

@@ -33,16 +33,16 @@ public class BangShape extends AbstractPrintable implements ShapeNode {
             if (!machine.indexSets.containsKey(entity)) {
                 throw new MVMException("Index set '%s' unnown", entity);
             }
-            shape = new MatrixShape(Unit.ONE, new MatrixDimension(machine.indexSets.get(entity)), Unit.ONE,
-                    new MatrixDimension(), Unit.ONE);
+            shape = new MatrixShape(MatrixBase.ONE, new MatrixDimension(machine.indexSets.get(entity)), MatrixBase.ONE,
+                    new MatrixDimension(), MatrixBase.ONE);
         } else {
             String name = unit;
             if (!machine.unitVectors.containsKey(name)) {
                 throw new MVMException("Unit vector '%s' unnown", name);
             }
             UnitVector vector = machine.unitVectors.get(name);
-            shape = new MatrixShape(Unit.ONE, new MatrixDimension(vector.indexSet), new MatrixBase(vector, 0),
-                    new MatrixDimension(), Unit.ONE);
+            shape = new MatrixShape(MatrixBase.ONE, new MatrixDimension(vector.indexSet), new MatrixBase(vector, 0),
+                    new MatrixDimension(), MatrixBase.ONE);
         }
         return shape;
     }

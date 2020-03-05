@@ -104,7 +104,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
 
         // Create the row unit if it exists, otherwise the unit is 1.
         if (node.unit == null) {
-            rowUnit = Unit.ONE;
+            rowUnit = TypeBase.ONE;
         } else {
 
             // Find the unit info. The node must have been resolved.

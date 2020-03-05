@@ -24,19 +24,19 @@ package uom;
 import java.util.HashMap;
 import java.util.Set;
 
-public class UnitSystem {
+public class UnitSystem<B> {
 
     private final HashMap<String, Prefix> prefixDictionary;
-    private final HashMap<String, NamedUnit> unitDictionary;
+    private final HashMap<String, Unit<B>> unitDictionary;
 
     public UnitSystem() {
-        unitDictionary = new HashMap<String, NamedUnit>();
+        unitDictionary = new HashMap<String, Unit<B>>();
         prefixDictionary = new HashMap<String, Prefix>();
     }
 
-    public void importSystem(UnitSystem other) {
+    public void importSystem(UnitSystem<B> other) {
         for (String name : other.names()) {
-            addUnit(name, (NamedUnit) other.lookupUnit(name));
+            addUnit(name, other.lookupUnit(name));
         }
     }
 
@@ -64,7 +64,7 @@ public class UnitSystem {
         }
     }
 
-    public void addUnit(String name, NamedUnit unit) {
+    public void addUnit(String name, Unit<B> unit) {
         unitDictionary.put(name, unit);
     }
 
@@ -77,12 +77,12 @@ public class UnitSystem {
         return unitDictionary.containsKey(name);
     }
 
-    public Unit lookupUnit(String name) {
+    public Unit<B> lookupUnit(String name) {
         for (String prefix : prefixNames()) {
             if (name.startsWith(prefix + ":")) {
                 String suffix = name.substring(prefix.length() + 1);
                 if (unitDictionary.containsKey(suffix)) {
-                    return new ScaledUnit(lookupPrefix(prefix), unitDictionary.get(suffix));
+                    return new ScaledUnit<B>(lookupPrefix(prefix), unitDictionary.get(suffix));
                 } else {
                     throw new RuntimeException("No unit named '" + suffix + "' when looking for '" + name + "'");
                 }

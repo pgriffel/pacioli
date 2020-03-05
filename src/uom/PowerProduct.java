@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 //public class PowerProduct<B extends Base<B>> implements Unit<B> {
-public class PowerProduct<B> implements Unit<B> {
+public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
 
     private final HashMap<B, Fraction> powers;
 
@@ -78,7 +78,8 @@ public class PowerProduct<B> implements Unit<B> {
         return (value == null ? Fraction.ZERO : value);
     }
 
-    public static <B extends Base<B>> Unit<B> normal(Unit<B> unit) {
+    //public static <B extends Base<B>> Unit<B> normal(Unit<B> unit) {
+    public static <B> Unit<B> normal(Unit<B> unit) {
         Set<B> bases = unit.bases();
         if (bases.size() == 1) {
             B base = (B) bases.toArray()[0];
@@ -129,23 +130,10 @@ public class PowerProduct<B> implements Unit<B> {
     }
 
     @Override
-    public DimensionedNumber multiply(BigDecimal factor) {
-        return new DimensionedNumber(factor, this);
+    public DimensionedNumber<B> multiply(BigDecimal factor) {
+        return new DimensionedNumber<B>(factor, this);
     }
-
-    @Override
-    public Unit<B> multiply(Unit<B> other) {
-
-        HashMap<B, Fraction> hash = new HashMap<B, Fraction>();
-        for (B base : bases()) {
-            hash.put(base, power(base));
-        }
-        for (B base : other.bases()) {
-            hash.put(base, other.power(base).add(power(base)));
-        }
-        return new PowerProduct<B>(hash);
-    }
-
+    
     @Override
     public Unit<B> raise(Fraction power) {
         HashMap<B, Fraction> hash = new HashMap<B, Fraction>();
@@ -156,15 +144,15 @@ public class PowerProduct<B> implements Unit<B> {
     }
 
     @Override
-    public Unit reciprocal() {
+    public Unit<B> reciprocal() {
         return raise(new Fraction(-1));
     }
 
     @Override
-    public DimensionedNumber flat() {
-        DimensionedNumber number = new DimensionedNumber();
+    public DimensionedNumber<B> flat() {
+        DimensionedNumber<B> number = new DimensionedNumber<B>();
         for (B base : bases()) {
-            DimensionedNumber flattened = ((Unit<B>) base).flat().raise(power(base));
+            DimensionedNumber<B> flattened = ((Unit<B>) base).flat().raise(power(base));
             number = number.multiply(flattened);
         }
         return number;
@@ -198,7 +186,7 @@ public class PowerProduct<B> implements Unit<B> {
         String sep = "";
 
         List<B> bases = new ArrayList<B>(bases());
-        Collections.sort(bases, new BaseComparator());
+        Collections.sort(bases, new BaseComparator<B>());
         for (B base : bases) {
             Fraction power = power(base);
             if (0 < power.signum()) {

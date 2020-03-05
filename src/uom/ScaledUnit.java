@@ -21,12 +21,14 @@
 
 package uom;
 
-public class ScaledUnit extends BaseUnit {
+public class ScaledUnit<B> extends BaseUnit<B> {
 
-    private final NamedUnit unit;
+    //private final NamedUnit unit;
+    private final Unit<B> unit;
     private final Prefix prefix;
 
-    public ScaledUnit(Prefix scale, NamedUnit scaled) {
+    //public ScaledUnit(Prefix scale, NamedUnit scaled) {
+    public ScaledUnit(Prefix scale, Unit<B> scaled) {
         prefix = scale;
         unit = scaled;
     }
@@ -44,14 +46,14 @@ public class ScaledUnit extends BaseUnit {
         if (!(other instanceof Unit)) {
             return false;
         }
-        Object real = PowerProduct.normal((Unit) other);
+        Object real = PowerProduct.normal((Unit<B>) other);
         if (real == this) {
             return true;
         }
         if (!(real instanceof ScaledUnit)) {
             return false;
         }
-        ScaledUnit otherUnit = (ScaledUnit) real;
+        ScaledUnit<B> otherUnit = (ScaledUnit<B>) real;
         if (!unit.equals(otherUnit.unit)) {
             return false;
         }
@@ -62,7 +64,7 @@ public class ScaledUnit extends BaseUnit {
     }
 
     @Override
-    public DimensionedNumber flat() {
+    public DimensionedNumber<B> flat() {
         return unit.flat().multiply(prefix.prefixFactor());
     }
 

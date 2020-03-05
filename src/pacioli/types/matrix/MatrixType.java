@@ -510,7 +510,7 @@ public class MatrixType extends AbstractType {
         return factor.fold(new UnitFold<TypeBase, String> () {
 
             @Override
-            public String map(TypeBase base) {
+            public String map(TypeBase base) {                
                 return "todo: base";
             }
 

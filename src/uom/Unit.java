@@ -24,8 +24,6 @@ package uom;
 import java.math.BigDecimal;
 import java.util.Set;
 
-//public interface Unit<B extends Base<B>> {
-//public interface Unit<B extends Base<B>> {
 public interface Unit<B> {
     
     public Set<B> bases();
@@ -34,21 +32,17 @@ public interface Unit<B> {
 
     public Unit<B> multiply(Unit<B> other);
 
-    public DimensionedNumber multiply(BigDecimal factor);
+    public DimensionedNumber<B> multiply(BigDecimal factor);
 
     public Unit<B> raise(Fraction power);
 
     public Unit<B> reciprocal();
 
-    public DimensionedNumber flat();
+    public DimensionedNumber<B> flat();
 
     public String toText();
 
     public Unit<B> map(UnitMap<B> map);
     
     public <T> T fold(UnitFold<B, T> fold);
-    
-    //public Unit<B> one() = new PowerProduct<B>();
-    public final Unit<Base> ONE = new PowerProduct<Base>();
-    //public  final Unit<B> ONE = new PowerProduct<B>();
 }
