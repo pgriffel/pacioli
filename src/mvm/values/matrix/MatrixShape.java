@@ -30,14 +30,14 @@ import uom.Unit;
 
 public class MatrixShape extends AbstractPrintable {
 
-    private final Unit factor;
+    private final Unit<MatrixBase> factor;
     private final MatrixDimension rowDimension;
     private final MatrixDimension columnDimension;
-    public final Unit rowUnit;
-    public final Unit columnUnit;
+    public final Unit<MatrixBase> rowUnit;
+    public final Unit<MatrixBase> columnUnit;
 
-    public MatrixShape(Unit factor, MatrixDimension rowDimension, Unit rowUnit, MatrixDimension columnDimension,
-            Unit columnUnit) {
+    public MatrixShape(Unit<MatrixBase> factor, MatrixDimension rowDimension, Unit<MatrixBase> rowUnit, MatrixDimension columnDimension,
+            Unit<MatrixBase> columnUnit) {
         this.factor = factor;
         this.rowDimension = rowDimension;
         this.rowUnit = rowUnit;
@@ -45,7 +45,7 @@ public class MatrixShape extends AbstractPrintable {
         this.columnUnit = columnUnit;
     }
 
-    public MatrixShape(Unit factor, MatrixDimension rowDimension, MatrixDimension columnDimension) {
+    public MatrixShape(Unit<MatrixBase> factor, MatrixDimension rowDimension, MatrixDimension columnDimension) {
         this.factor = factor;
         this.rowDimension = rowDimension;
         this.rowUnit = MatrixBase.ONE;
@@ -53,7 +53,7 @@ public class MatrixShape extends AbstractPrintable {
         this.columnUnit = MatrixBase.ONE;
     }
 
-    public MatrixShape(Unit factor) {
+    public MatrixShape(Unit<MatrixBase> factor) {
         this.factor = factor;
         this.rowDimension = new MatrixDimension();
         this.rowUnit = MatrixBase.ONE;
@@ -69,7 +69,7 @@ public class MatrixShape extends AbstractPrintable {
         this.columnUnit = MatrixBase.ONE;
     }
 
-    public Unit getFactor() {
+    public Unit<MatrixBase> getFactor() {
         return factor;
     }
 
@@ -124,12 +124,12 @@ public class MatrixShape extends AbstractPrintable {
         return columnDimension().nthIndexSet(n);
     }
 
-    public Unit nthRowUnit(int n) {
+    public Unit<MatrixBase> nthRowUnit(int n) {
         assert (n < rowOrder());
         return MatrixBase.kroneckerNth(rowUnit, n);
     }
 
-    public Unit nthColumnUnit(int n) {
+    public Unit<MatrixBase> nthColumnUnit(int n) {
         assert (n < columnOrder());
         return MatrixBase.kroneckerNth(columnUnit, n);
     }
@@ -184,7 +184,7 @@ public class MatrixShape extends AbstractPrintable {
     }
 
     public MatrixShape project(List<Integer> cols) {
-        Unit projectedUnit = MatrixBase.ONE;
+        Unit<MatrixBase> projectedUnit = MatrixBase.ONE;
         for (int i = 0; i < cols.size(); i++) {
             projectedUnit = projectedUnit
                     .multiply(MatrixBase.shiftUnit(MatrixBase.kroneckerNth(rowUnit, cols.get(i)), i - cols.get(i)));

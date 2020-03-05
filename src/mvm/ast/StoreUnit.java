@@ -7,6 +7,7 @@ import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.ast.unit.UnitNode;
+import mvm.values.matrix.MatrixBase;
 import uom.DimensionedNumber;
 import uom.NamedUnit;
 
@@ -37,10 +38,10 @@ public class StoreUnit extends AbstractPrintable implements Instruction {
     @Override
     public void eval(Machine machine) throws MVMException {
         if (definitionUnit == null) {
-            machine.storeUnit(name, new NamedUnit(symbol));
+            machine.storeUnit(name, new NamedUnit<MatrixBase>(symbol));
         } else {
-            machine.storeUnit(name, new NamedUnit(symbol,
-                    new DimensionedNumber(new BigDecimal(definitionNumber), definitionUnit.eval(machine))));
+            machine.storeUnit(name, new NamedUnit<MatrixBase>(symbol,
+                    new DimensionedNumber<MatrixBase>(new BigDecimal(definitionNumber), definitionUnit.eval(machine))));
         }
     }
 

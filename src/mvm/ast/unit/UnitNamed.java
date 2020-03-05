@@ -23,7 +23,7 @@ public class UnitNamed extends AbstractPrintable implements UnitNode {
     }
 
     @Override
-    public Unit eval(Machine machine) throws MVMException {
+    public Unit<MatrixBase> eval(Machine machine) throws MVMException {
         if (name.isEmpty()) {
             return MatrixBase.ONE;
         } else if (machine.unitSystem.congtainsUnit(name)) {

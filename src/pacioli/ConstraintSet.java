@@ -24,10 +24,10 @@ package pacioli;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
-import uom.Base;
 import uom.Fraction;
 import uom.Unit;
 
@@ -36,16 +36,16 @@ public class ConstraintSet extends AbstractPrintable {
     private final List<PacioliType> lhss;
     private final List<PacioliType> rhss;
     private final List<String> reason;
-    private final List<Unit> ulhss;
-    private final List<Unit> urhss;
+    private final List<Unit<TypeBase>> ulhss;
+    private final List<Unit<TypeBase>> urhss;
     private final List<String> ureason;
 
     public ConstraintSet() {
         lhss = new ArrayList<PacioliType>();
         rhss = new ArrayList<PacioliType>();
         reason = new ArrayList<String>();
-        ulhss = new ArrayList<Unit>();
-        urhss = new ArrayList<Unit>();
+        ulhss = new ArrayList<Unit<TypeBase>>();
+        urhss = new ArrayList<Unit<TypeBase>>();
         ureason = new ArrayList<String>();
     }
 
@@ -70,7 +70,7 @@ public class ConstraintSet extends AbstractPrintable {
         }
     }
 
-    public void addUnitConstraint(Unit lhs, Unit rhs, String text) {
+    public void addUnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String text) {
         ulhss.add(lhs);
         urhss.add(rhs);
         ureason.add(text);
@@ -101,8 +101,8 @@ public class ConstraintSet extends AbstractPrintable {
         }
         for (int i = 0; i < ulhss.size(); i++) {
             try {
-                Unit left = mgu.apply(ulhss.get(i));
-                Unit right = mgu.apply(urhss.get(i));
+                Unit<TypeBase> left = mgu.apply(ulhss.get(i));
+                Unit<TypeBase> right = mgu.apply(urhss.get(i));
                 mgu = unifyUnits(left, right).compose(mgu);
             } catch (PacioliException ex) {
                 throw new PacioliException("\n" + ex.getLocalizedMessage() + "\n\n" + ureason.get(i));
@@ -112,7 +112,7 @@ public class ConstraintSet extends AbstractPrintable {
         return mgu;
     }
 
-    private Substitution unifyUnits(Unit x, Unit y) throws PacioliException {
+    private Substitution unifyUnits(Unit<TypeBase> x, Unit<TypeBase> y) throws PacioliException {
         try {
             if (x.equals(y)) {
                 return new Substitution();

@@ -29,9 +29,9 @@ public class UnitVector extends AbstractPrintable {
 
     public final String name;
     public final IndexSet indexSet;
-    private final Unit[] elements;
+    private final Unit<MatrixBase>[] elements;
 
-    public UnitVector(IndexSet set, String name, Unit[] units) {
+    public UnitVector(IndexSet set, String name, Unit<MatrixBase>[] units) {
         this.indexSet = set;
         this.name = name;
         elements = units;
@@ -41,7 +41,7 @@ public class UnitVector extends AbstractPrintable {
         return elements.length;
     }
 
-    public Unit get(int position) {
+    public Unit<MatrixBase> get(int position) {
         return elements[position];
     }
 

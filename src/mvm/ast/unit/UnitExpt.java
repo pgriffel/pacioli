@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
+import mvm.values.matrix.MatrixBase;
 import uom.Fraction;
 import uom.Unit;
 
@@ -28,7 +29,7 @@ public class UnitExpt extends AbstractPrintable implements UnitNode {
     }
 
     @Override
-    public Unit eval(Machine machine) throws MVMException {
+    public Unit<MatrixBase> eval(Machine machine) throws MVMException {
         return unit.eval(machine).raise(power);
     }
 

@@ -44,7 +44,7 @@ public class StoreUnitVector extends AbstractPrintable implements Instruction {
 
         // Create a unit array for the index set and fill it with ones
         int n = indexSet.size();
-        Unit[] unitArray = new Unit[n];
+        Unit<MatrixBase>[] unitArray = new Unit[n];
         for (int i = 0; i < n; i++) {
             unitArray[i] = MatrixBase.ONE;
         }

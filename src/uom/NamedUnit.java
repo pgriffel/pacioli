@@ -21,22 +21,22 @@
 
 package uom;
 
-public class NamedUnit extends BaseUnit<NamedUnit> {
+public class NamedUnit<B> extends BaseUnit<B> {
 
     private final String symbolic;
-    protected DimensionedNumber<NamedUnit> definition;
+    protected DimensionedNumber<B> definition;
 
     public NamedUnit(String symbolic) {
         this.symbolic = symbolic;
-        this.definition = new DimensionedNumber<NamedUnit>(this);
+        this.definition = new DimensionedNumber<B>(this);
     }
 
-    public NamedUnit(String symbolic, DimensionedNumber<NamedUnit> definition) {
+    public NamedUnit(String symbolic, DimensionedNumber<B> definition) {
         this.symbolic = symbolic;
         this.definition = definition.flat();
     }
 
-    public void setDefinition(DimensionedNumber<NamedUnit> definition) {
+    public void setDefinition(DimensionedNumber<B> definition) {
         this.definition = definition.flat();
     }
 
@@ -53,14 +53,14 @@ public class NamedUnit extends BaseUnit<NamedUnit> {
         if (!(other instanceof Unit)) {
             return false;
         }
-        Unit real = PowerProduct.normal((Unit<NamedUnit>) other);
+        Unit<B> real = PowerProduct.normal((Unit<B>) other);
         if (real == this) {
             return true;
         }
         if (!(real instanceof NamedUnit)) {
             return false;
         }
-        NamedUnit otherUnit = (NamedUnit) real;
+        NamedUnit<B> otherUnit = (NamedUnit<B>) real;
         if (!symbolic.equals(otherUnit.symbolic)) {
             return false;
         }
@@ -73,7 +73,7 @@ public class NamedUnit extends BaseUnit<NamedUnit> {
     }
 
     @Override
-    public DimensionedNumber<NamedUnit> flat() {
+    public DimensionedNumber<B> flat() {
         return definition;
     }
 }

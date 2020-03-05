@@ -34,6 +34,7 @@ import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.PacioliType;
+import pacioli.types.TypeBase;
 import pacioli.visitors.CodeGenerator;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
@@ -639,7 +640,7 @@ public class Progam extends AbstractPrintable {
             List<String> unitTexts = new ArrayList<String>();
             // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
             for (UnitDecl entry : info.items) {
-                DimensionedNumber number = entry.value.evalUnit();
+                DimensionedNumber<TypeBase> number = entry.value.evalUnit();
                 // todo: take number.factor() into account!? 
                 if (target.equals("mvm")) {
                     unitTexts.add("\"" + entry.key.getName() + "\": " + Utils.compileUnitToMVM(number.unit()));
@@ -669,7 +670,7 @@ public class Progam extends AbstractPrintable {
                 throw new RuntimeException("Unknown target");
             }
         } else {
-            DimensionedNumber number = info.baseDefinition.evalUnit();
+            DimensionedNumber<TypeBase> number = info.baseDefinition.evalUnit();
             number = number.flat();
             if (target.equals("mvm")) {
                 writer.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
@@ -761,7 +762,7 @@ public class Progam extends AbstractPrintable {
             List<String> unitTexts = new ArrayList<String>();
             // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
             for (UnitDecl entry : info.items) {
-                DimensionedNumber number = entry.value.evalUnit();
+                DimensionedNumber<TypeBase> number = entry.value.evalUnit();
                 unitTexts.add("\"" + entry.key.getName() + "\": " + Utils.compileUnitToMVM(number.unit()));
             }
             writer.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n",
@@ -772,7 +773,7 @@ public class Progam extends AbstractPrintable {
         } else if (info.baseDefinition == null) {
             writer.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol);
         } else {
-            DimensionedNumber number = info.baseDefinition.evalUnit();
+            DimensionedNumber<TypeBase> number = info.baseDefinition.evalUnit();
             number = number.flat();
             writer.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
                     Utils.compileUnitToMVM(number.unit()));

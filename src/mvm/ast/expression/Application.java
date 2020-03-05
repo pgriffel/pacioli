@@ -24,10 +24,10 @@ package mvm.ast.expression;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+
 import mvm.AbstractPrintable;
 import mvm.Environment;
 import mvm.MVMException;
-import mvm.Machine;
 import mvm.values.Callable;
 import mvm.values.PacioliValue;
 

@@ -56,12 +56,13 @@ import pacioli.PacioliFile;
 
 import uom.NamedUnit;
 import uom.Prefix;
+import uom.Unit;
 import uom.UnitSystem;
 
 public class Machine {
 
     public final Environment store;
-    public final UnitSystem unitSystem;
+    public final UnitSystem<MatrixBase> unitSystem;
     public final HashMap<String, IndexSet> indexSets;
     public final HashMap<String, UnitVector> unitVectors;
     private static final LinkedList<String> debugStack = new LinkedList<String>();
@@ -92,7 +93,7 @@ public class Machine {
         store.put(name, value);
     }
 
-    public void storeUnit(String name, NamedUnit unit) {
+    public void storeUnit(String name, Unit<MatrixBase> unit) {
         unitSystem.addUnit(name, unit);
     }
 
@@ -987,9 +988,9 @@ public class Machine {
 
         store.put("global_Matrix_set", new Primitive("set") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                Key row = (Key) params.get(0);
-                Key column = (Key) params.get(1);
-                Matrix x = (Matrix) params.get(2);
+                //Key row = (Key) params.get(0);
+                //Key column = (Key) params.get(1);
+                //Matrix x = (Matrix) params.get(2);
                 // TODO: fix
                 // return x.set(row,column,x);
                 throw new MVMException("set is not implemented");
@@ -2363,7 +2364,7 @@ public class Machine {
         }
         logln("\nStack:");
         int i = 1;
-        for (Iterator it = debugStack.descendingIterator(); it.hasNext();) {
+        for (Iterator<String> it = debugStack.descendingIterator(); it.hasNext();) {
             logln("\n%s) %s", i++, it.next());
         }
     }
@@ -2384,9 +2385,9 @@ public class Machine {
     }
 
     public void run(File file, PrintStream out, List<File> libs) throws Exception {
-        for (String include : PacioliFile.defaultIncludes) {
+   ////     for (String include : PacioliFile.defaultIncludes) {
    ///         runRec(PacioliFile.findFile(include + ".mvm", libs, file.getParentFile()), out, libs);
-        }
+   ////     }
         runRec(file, out, libs);
     }
 

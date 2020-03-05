@@ -21,8 +21,6 @@
 
 package mvm.values.matrix;
 
-import pacioli.types.TypeBase;
-import uom.Base;
 import uom.BaseUnit;
 import uom.PowerProduct;
 import uom.Unit;
@@ -41,7 +39,7 @@ public class MatrixBase extends BaseUnit<MatrixBase> {
         this.position = position;
     }
 
-    public Unit get(int position) {
+    public Unit<MatrixBase> get(int position) {
         return vector.get(position);
     }
 
@@ -58,7 +56,7 @@ public class MatrixBase extends BaseUnit<MatrixBase> {
         if (!(other instanceof Unit)) {
             return false;
         }
-        Object real = PowerProduct.normal((Unit) other);
+        Object real = PowerProduct.normal((Unit<MatrixBase>) other);
         if (real == this) {
             return true;
         }
@@ -78,7 +76,7 @@ public class MatrixBase extends BaseUnit<MatrixBase> {
         return new MatrixBase(vector, position + offset);
     }
 
-    public static Unit kroneckerNth(Unit unit, final int index) {
+    public static Unit<MatrixBase> kroneckerNth(Unit<MatrixBase> unit, final int index) {
         return unit.map(new UnitMap<MatrixBase>() {
             public Unit<MatrixBase> map(MatrixBase base) {
                 if (base instanceof MatrixBase) {
@@ -94,9 +92,9 @@ public class MatrixBase extends BaseUnit<MatrixBase> {
         });
     }
 
-    public static Unit shiftUnit(Unit unit, final int offset) {
+    public static Unit<MatrixBase> shiftUnit(Unit<MatrixBase> unit, final int offset) {
         return unit.map(new UnitMap<MatrixBase>() {
-            public Unit map(MatrixBase base) {
+            public Unit<MatrixBase> map(MatrixBase base) {
                 if (base instanceof MatrixBase) {
                     return ((MatrixBase) base).shift(offset);
                 } else {

@@ -50,7 +50,7 @@ public class Substitution extends AbstractPrintable {
         this.map.put(var, type);
     }
 
-    public Substitution(TypeVar var, Unit unit) {
+    public Substitution(TypeVar var, Unit<TypeBase> unit) {
         map = new HashMap<TypeVar, Object>();
         this.map.put(var, unit);
     }
@@ -90,7 +90,7 @@ public class Substitution extends AbstractPrintable {
                     assert (obj instanceof Unit);
                     return (Unit<B>) obj;
                 } else {
-                    return (Unit<B>) base;
+                    return ((Unit<B>) base);
                 }
             }
         });

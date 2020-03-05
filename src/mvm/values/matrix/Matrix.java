@@ -42,7 +42,6 @@ import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 
 import pacioli.Pacioli;
-import uom.Base;
 import uom.DimensionedNumber;
 import uom.Unit;
 import uom.UnitMap;
@@ -66,7 +65,7 @@ public class Matrix extends AbstractPacioliValue {
         numbers.setEntry(0, 0, num);
     }
 
-    public Matrix(Unit unit) {
+    public Matrix(Unit<MatrixBase> unit) {
         shape = new MatrixShape(unit);
         numbers = new Array2DRowRealMatrix(rowDimension().size(), columnDimension().size());
         numbers.setEntry(0, 0, 1);
@@ -127,7 +126,7 @@ public class Matrix extends AbstractPacioliValue {
                     idxWidth = Math.max(idxWidth, idxString.length());
                     idxList.add(idxString);
 
-                    Unit unit = unitAt(i, j);
+                    Unit<MatrixBase> unit = unitAt(i, j);
                     String unitString = unit.equals(MatrixBase.ONE) ? "" : unit.toText();
                     unitList.add(unitString);
                     unitWidth = Math.max(unitWidth, unitString.length());
@@ -199,15 +198,15 @@ public class Matrix extends AbstractPacioliValue {
         return keys;
     }
 
-    private Unit unitAt(int i, int j) {
+    private Unit<MatrixBase> unitAt(int i, int j) {
         return shape.getFactor().multiply(getUnit(rowDimension(), shape.rowUnit, i)
                 .multiply(getUnit(columnDimension(), shape.columnUnit, j).reciprocal()));
     }
 
-    private Unit getUnit(MatrixDimension dimension, final Unit matrixUnit, int position) {
+    private Unit<MatrixBase> getUnit(MatrixDimension dimension, final Unit<MatrixBase> matrixUnit, int position) {
         final int[] positions = dimension.individualPositions(position);
         return matrixUnit.map(new UnitMap<MatrixBase>() {
-            public Unit map(MatrixBase base) {
+            public Unit<MatrixBase> map(MatrixBase base) {
                 MatrixBase indexBase = (MatrixBase) base;
                 return indexBase.get(positions[indexBase.position]);
             }
@@ -300,7 +299,7 @@ public class Matrix extends AbstractPacioliValue {
         return matrix;
     }
 
-    public Unit get_unit(Key row, Key column) {
+    public Unit<MatrixBase> get_unit(Key row, Key column) {
         return unitAt(row.position(), column.position());
     }
 
@@ -473,9 +472,9 @@ public class Matrix extends AbstractPacioliValue {
         int nrColumns = columnDimension().size();
 
         List<String> dst;
-        Unit srcUnit;
-        Unit dstUnit;
-        DimensionedNumber number;
+        Unit<MatrixBase> srcUnit;
+        Unit<MatrixBase> dstUnit;
+        DimensionedNumber<MatrixBase> number;
 
         for (int i = 0; i < nrRows; i++) {
 
@@ -514,7 +513,7 @@ public class Matrix extends AbstractPacioliValue {
         }
 
         for (int i = 0; i < nrRows; i++) {
-            DimensionedNumber number = unitAt(i, i).reciprocal().flat();
+            DimensionedNumber<MatrixBase> number = unitAt(i, i).reciprocal().flat();
             if (!number.unit().bases().isEmpty()) {
                 throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
             } else {
@@ -550,7 +549,7 @@ public class Matrix extends AbstractPacioliValue {
                 String num = "0";
 
                 if (i == j) {
-                    DimensionedNumber number = unitAt(i, j).reciprocal().flat();
+                    DimensionedNumber<MatrixBase> number = unitAt(i, j).reciprocal().flat();
                     if (!number.unit().bases().isEmpty()) {
                         throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
                     } else {
@@ -594,7 +593,7 @@ public class Matrix extends AbstractPacioliValue {
                 String num = "0";
 
                 if (i == j) {
-                    DimensionedNumber number = unitAt(i, j).reciprocal().flat();
+                    DimensionedNumber<MatrixBase> number = unitAt(i, j).reciprocal().flat();
                     if (!number.unit().bases().isEmpty()) {
                         throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
                     } else {

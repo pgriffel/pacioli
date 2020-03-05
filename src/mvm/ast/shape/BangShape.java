@@ -9,7 +9,6 @@ import mvm.values.matrix.MatrixBase;
 import mvm.values.matrix.MatrixDimension;
 import mvm.values.matrix.MatrixShape;
 import mvm.values.matrix.UnitVector;
-import uom.Unit;
 
 public class BangShape extends AbstractPrintable implements ShapeNode {
 
