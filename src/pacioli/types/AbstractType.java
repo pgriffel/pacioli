@@ -59,9 +59,9 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         List<Unit> parts = simplificationParts();
         Set<TypeVar> ignore = new HashSet<TypeVar>();
         for (int i = 0; i < parts.size(); i++) {
-            Unit part = mgu.apply(parts.get(i));
+            Unit<TypeBase> part = mgu.apply(parts.get(i));
             Substitution simplified = unitSimplify(part, ignore);
-            for (Base base : simplified.apply(part).bases()) {
+            for (TypeBase base : simplified.apply(part).bases()) {
                 if (base instanceof TypeVar) {
                     ignore.add((TypeVar) base);
                 }
@@ -72,12 +72,12 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         return result;
     }
 
-    private static Substitution unitSimplify(Unit unit, Set<TypeVar> ignore) {
+    private static Substitution unitSimplify(Unit<TypeBase> unit, Set<TypeVar> ignore) {
 
-        List<Base> varBases = new ArrayList<Base>();
-        List<Base> fixedBases = new ArrayList<Base>();
+        List<TypeBase> varBases = new ArrayList<TypeBase>();
+        List<TypeBase> fixedBases = new ArrayList<TypeBase>();
 
-        for (Base base : unit.bases()) {
+        for (TypeBase base : unit.bases()) {
             if (base instanceof TypeVar && !ignore.contains((TypeVar) base)) {
                 varBases.add(base);
             } else {
@@ -91,7 +91,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         }
 
         TypeVar minVar = (TypeVar) varBases.get(0);
-        for (Base var : varBases) {
+        for (TypeBase var : varBases) {
             if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
                 minVar = (TypeVar) var;
             }
@@ -112,7 +112,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
             // Unit residu = Unit.ONE.multiply(unit.factor());
             Unit residu = Unit.ONE;
 
-            for (Base fixed : fixedBases) {
+            for (TypeBase fixed : fixedBases) {
                 assert (unit.power(fixed).isInt());
                 int fixedPower = unit.power(fixed).intValue();
                 residu = residu.multiply(fixed.raise(new Fraction(-fixedPower / power)));
@@ -121,8 +121,8 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
             return new Substitution(var, var.multiply(residu));
         }
 
-        Unit rest = Unit.ONE;
-        for (Base var : unit.bases()) {
+        Unit<TypeBase> rest = (Unit<TypeBase>) TypeBase.ONE;
+        for (TypeBase var : unit.bases()) {
             if (!var.equals(minVar)) {
                 assert (unit.power(var).isInt());
                 rest = rest.multiply(var.raise(unit.power(var).div(minPower).floor().negate()));

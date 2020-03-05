@@ -206,8 +206,8 @@ public class Matrix extends AbstractPacioliValue {
 
     private Unit getUnit(MatrixDimension dimension, final Unit matrixUnit, int position) {
         final int[] positions = dimension.individualPositions(position);
-        return matrixUnit.map(new UnitMap() {
-            public Unit map(Base base) {
+        return matrixUnit.map(new UnitMap<MatrixBase>() {
+            public Unit map(MatrixBase base) {
                 MatrixBase indexBase = (MatrixBase) base;
                 return indexBase.get(positions[indexBase.position]);
             }

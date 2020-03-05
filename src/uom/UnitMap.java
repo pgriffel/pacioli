@@ -21,7 +21,7 @@
 
 package uom;
 
-public interface UnitMap {
-
-    public Unit map(Base base);
+//public interface UnitMap<B extends Base<B>> {
+public interface UnitMap<B> {
+    public Unit<B> map(B base);
 }

@@ -22,11 +22,13 @@
 package pacioli.types.matrix;
 
 import pacioli.types.TypeBase;
+import uom.Base;
 import uom.BaseUnit;
 import uom.PowerProduct;
 import uom.Unit;
 
-public class StringBase extends BaseUnit implements TypeBase {
+//public class StringBase extends BaseUnit implements TypeBase {
+public class StringBase extends BaseUnit<TypeBase> implements TypeBase {    
 
     private final String prefix;
     private final String text;

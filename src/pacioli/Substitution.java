@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import pacioli.types.PacioliType;
+import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
 import uom.Base;
 import uom.PowerProduct;
@@ -66,16 +67,30 @@ public class Substitution extends AbstractPrintable {
     Substitution(Map<TypeVar, Object> map) {
         this.map = map;
     }
-
-    public Unit apply(Unit unit) {
-        return unit.map(new UnitMap() {
-            public Unit map(Base base) {
+/*
+    public Unit<TypeBase> apply(Unit<TypeBase> unit) {
+        return unit.map(new UnitMap<TypeBase>() {
+            public Unit<TypeBase> map(TypeBase base) {
                 if (base instanceof TypeVar && map.containsKey((TypeVar) base)) {
                     Object obj = map.get((TypeVar) base);
                     assert (obj instanceof Unit);
-                    return (Unit) obj;
+                    return (Unit<TypeBase>) obj;
                 } else {
-                    return base;
+                    return (Unit<TypeBase>) base;
+                }
+            }
+        });
+    }*/
+    
+    public <B> Unit<B> apply(Unit<B> unit) {
+        return unit.map(new UnitMap<B>() {
+            public Unit<B> map(B base) {
+                if (base instanceof TypeVar && map.containsKey((TypeVar) base)) {
+                    Object obj = map.get((TypeVar) base);
+                    assert (obj instanceof Unit);
+                    return (Unit<B>) obj;
+                } else {
+                    return (Unit<B>) base;
                 }
             }
         });

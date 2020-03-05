@@ -88,10 +88,10 @@ public class Utils {
 
     // Got to find a good place for the following two functions
 
-    public static String compileUnitToJS(Unit unit) {
+    public static String compileUnitToJS(Unit<TypeBase> unit) {
         String product = "";
         int n = 0;
-        for (Base base : unit.bases()) {
+        for (TypeBase base : unit.bases()) {
             TypeBase typeBase = (TypeBase) base;
             String baseText = typeBase.compileToJS() + ".expt(" + unit.power(base) + ")";
             product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
@@ -105,10 +105,10 @@ public class Utils {
 
     }
 
-    public static String compileUnitToMVM(Unit unit) {
+    public static String compileUnitToMVM(Unit<TypeBase> unit) {
         String product = "";
         int n = 0;
-        for (Base base : unit.bases()) {
+        for (TypeBase base : unit.bases()) {
             TypeBase typeBase = (TypeBase) base;
             String baseText = "unit_expt(" + typeBase.compileToMVM() + ", " + unit.power(base) + ")";
             product = n == 0 ? baseText : "unit_mult(" + baseText + ", " + product + ")";

@@ -30,26 +30,41 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class PowerProduct implements Unit {
+//public class PowerProduct<B extends Base<B>> implements Unit<B> {
+public class PowerProduct<B> implements Unit<B> {
 
-    private final HashMap<Base, Fraction> powers;
+    private final HashMap<B, Fraction> powers;
 
     public PowerProduct() {
-        powers = new HashMap<Base, Fraction>();
+        powers = new HashMap<B, Fraction>();
     }
+    
+    public PowerProduct(Unit<B> x, Unit<B> y) {
+        //PowerProduct<B> powers = new HashMap<B, Fraction>();
 
-    public PowerProduct(Base base) {
-        powers = new HashMap<Base, Fraction>();
+        HashMap<B, Fraction> hash = new HashMap<B, Fraction>();
+        for (B base : x.bases()) {
+            hash.put(base, x.power(base));
+        }
+        for (B base : y.bases()) {
+            hash.put(base, y.power(base).add(x.power(base)));
+        }
+        powers = hash;
+        //return new PowerProduct<B>(hash);
+    }
+    
+    public PowerProduct(B base) {
+        powers = new HashMap<B, Fraction>();
         powers.put(base, Fraction.ONE);
     }
 
-    private PowerProduct(HashMap<Base, Fraction> map) {
+    private PowerProduct(HashMap<B, Fraction> map) {
         powers = map;
     }
 
-    public Set<Base> bases() {
-        Set<Base> bases = new HashSet<Base>();
-        for (Base base : powers.keySet()) {
+    public Set<B> bases() {
+        Set<B> bases = new HashSet<B>();
+        for (B base : powers.keySet()) {
             if (power(base).compareTo(Fraction.ZERO) != 0) {
                 bases.add(base);
             }
@@ -58,17 +73,17 @@ public class PowerProduct implements Unit {
     }
 
     @Override
-    public Fraction power(Base base) {
+    public Fraction power(B base) {
         Fraction value = powers.get(base);
         return (value == null ? Fraction.ZERO : value);
     }
 
-    public static Unit normal(Unit unit) {
-        Set<Base> bases = unit.bases();
+    public static <B extends Base<B>> Unit<B> normal(Unit<B> unit) {
+        Set<B> bases = unit.bases();
         if (bases.size() == 1) {
-            Base base = (Base) bases.toArray()[0];
+            B base = (B) bases.toArray()[0];
             if (unit.power(base).compareTo(Fraction.ONE) == 0) {
-                return base;
+                return (Unit<B>) base;
             } else {
                 return unit;
             }
@@ -87,16 +102,16 @@ public class PowerProduct implements Unit {
         if (other == this) {
             return true;
         }
-        if (!(other instanceof Unit)) {
+        if (!(other instanceof Unit<?>)) {
             return false;
         }
-        Unit otherUnit = (Unit) other;
-        for (Base base : bases()) {
+        Unit<B> otherUnit = (Unit<B>) other;
+        for (B base : bases()) {
             if (power(base).compareTo(otherUnit.power(base)) != 0) {
                 return false;
             }
         }
-        for (Base base : otherUnit.bases()) {
+        for (B base : otherUnit.bases()) {
             if (power(base).compareTo(otherUnit.power(base)) != 0) {
                 return false;
             }
@@ -107,7 +122,7 @@ public class PowerProduct implements Unit {
     @Override
     public String toString() {
         String output = "";
-        for (Base base : bases()) {
+        for (B base : bases()) {
             output += String.format("*%s^%s", base, power(base));
         }
         return output;
@@ -119,25 +134,25 @@ public class PowerProduct implements Unit {
     }
 
     @Override
-    public Unit multiply(Unit other) {
+    public Unit<B> multiply(Unit<B> other) {
 
-        HashMap<Base, Fraction> hash = new HashMap<Base, Fraction>();
-        for (Base base : bases()) {
+        HashMap<B, Fraction> hash = new HashMap<B, Fraction>();
+        for (B base : bases()) {
             hash.put(base, power(base));
         }
-        for (Base base : other.bases()) {
+        for (B base : other.bases()) {
             hash.put(base, other.power(base).add(power(base)));
         }
-        return new PowerProduct(hash);
+        return new PowerProduct<B>(hash);
     }
 
     @Override
-    public Unit raise(Fraction power) {
-        HashMap<Base, Fraction> hash = new HashMap<Base, Fraction>();
-        for (Base base : bases()) {
+    public Unit<B> raise(Fraction power) {
+        HashMap<B, Fraction> hash = new HashMap<B, Fraction>();
+        for (B base : bases()) {
             hash.put(base, power(base).mult(power));
         }
-        return new PowerProduct(hash);
+        return new PowerProduct<B>(hash);
     }
 
     @Override
@@ -148,18 +163,29 @@ public class PowerProduct implements Unit {
     @Override
     public DimensionedNumber flat() {
         DimensionedNumber number = new DimensionedNumber();
-        for (Base base : bases()) {
-            DimensionedNumber flattened = base.flat().raise(power(base));
+        for (B base : bases()) {
+            DimensionedNumber flattened = ((Unit<B>) base).flat().raise(power(base));
             number = number.multiply(flattened);
         }
         return number;
     }
 
     @Override
-    public Unit map(UnitMap map) {
-        Unit newUnit = new PowerProduct();
-        for (Base base : bases()) {
-            Unit mapped = map.map(base).raise(power(base));
+    public <T> T fold(UnitFold<B, T> fold) {
+        //T newUnit = new PowerProduct();
+        T result = fold.one();
+        for (B base : bases()) {
+            T mapped = fold.expt(fold.map(base), power(base));
+            result = fold.mult(result, mapped);
+        }
+        return result;
+    }
+    
+    @Override
+    public Unit<B> map(UnitMap<B> map) {
+        Unit<B> newUnit = new PowerProduct<B>();
+        for (B base : bases()) {
+            Unit<B> mapped = map.map(base).raise(power(base));
             newUnit = newUnit.multiply(mapped);
         }
         return newUnit;
@@ -171,15 +197,15 @@ public class PowerProduct implements Unit {
         String symbolic = "";
         String sep = "";
 
-        List<Base> bases = new ArrayList<Base>(bases());
+        List<B> bases = new ArrayList<B>(bases());
         Collections.sort(bases, new BaseComparator());
-        for (Base base : bases) {
+        for (B base : bases) {
             Fraction power = power(base);
             if (0 < power.signum()) {
                 symbolic = symbolic.concat(sep);
                 // sep = "·";
                 sep = "*";
-                symbolic = symbolic.concat(base.toText());
+                symbolic = symbolic.concat(((Unit<B>) base).toText());
 
                 // if (power.compareTo(Fraction.MINTHREE) == 0) {
                 // symbolic = symbolic.concat("³");
@@ -206,14 +232,14 @@ public class PowerProduct implements Unit {
         }
         sep = "/";
         // sep = "·";
-        for (Base base : bases) {
+        for (B base : bases) {
             Fraction power = power(base);
             if (power.signum() < 0) {
                 // power = power.negate();
                 symbolic = symbolic.concat(sep);
                 // sep = "·";
                 sep = "/";
-                symbolic = symbolic.concat(base.toText());
+                symbolic = symbolic.concat(((Unit<B>) base).toText());
 
                 if (power.compareTo(Fraction.MINONE) != 0) {
                     symbolic = symbolic.concat("^");
@@ -225,12 +251,12 @@ public class PowerProduct implements Unit {
         return symbolic;
     }
 
-    public class BaseComparator implements Comparator<Base> {
+    public class BaseComparator<B> implements Comparator<B> {
 
         @Override
-        public int compare(Base o1, Base o2) {
-            String text1 = o1.toText();
-            String text2 = o2.toText();
+        public int compare(B o1, B o2) {
+            String text1 = ((Unit<B>) o1).toText();
+            String text2 = ((Unit<B>) o2).toText();
             if (text1.length() > 0 && text2.length() > 0) {
                 boolean char1Upper = Character.isUpperCase(text1.charAt(0));
                 boolean char2Upper = Character.isUpperCase(text2.charAt(0));

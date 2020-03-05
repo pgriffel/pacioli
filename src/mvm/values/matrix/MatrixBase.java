@@ -21,14 +21,18 @@
 
 package mvm.values.matrix;
 
+import pacioli.types.TypeBase;
 import uom.Base;
 import uom.BaseUnit;
 import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitMap;
 
-public class MatrixBase extends BaseUnit {
+public class MatrixBase extends BaseUnit<MatrixBase> {
 
+    public final static Unit<MatrixBase> ONE = new PowerProduct<MatrixBase>();
+    
+    
     private final UnitVector vector;
     public final int position;
 
@@ -75,13 +79,13 @@ public class MatrixBase extends BaseUnit {
     }
 
     public static Unit kroneckerNth(Unit unit, final int index) {
-        return unit.map(new UnitMap() {
-            public Unit map(Base base) {
+        return unit.map(new UnitMap<MatrixBase>() {
+            public Unit<MatrixBase> map(MatrixBase base) {
                 if (base instanceof MatrixBase) {
                     if (((MatrixBase) base).position == index) {
                         return base;
                     } else {
-                        return Unit.ONE;
+                        return MatrixBase.ONE;
                     }
                 } else {
                     throw new RuntimeException("kroneckerNth is for row and column units only");
@@ -91,8 +95,8 @@ public class MatrixBase extends BaseUnit {
     }
 
     public static Unit shiftUnit(Unit unit, final int offset) {
-        return unit.map(new UnitMap() {
-            public Unit map(Base base) {
+        return unit.map(new UnitMap<MatrixBase>() {
+            public Unit map(MatrixBase base) {
                 if (base instanceof MatrixBase) {
                     return ((MatrixBase) base).shift(offset);
                 } else {

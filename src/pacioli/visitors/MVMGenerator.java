@@ -467,7 +467,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
             if (id.info.initialRefInfo != null) {
                 // todo: handle the case the id exists in this scope.
                 if (id.info.initialRefInfo.isRef) {
-                    write("application(var(\"global_Primitives_new_ref\"), application(val(\"global_Primitives_ref_get\"), var(\"");
+                    write("application(var(\"global_Primitives_new_ref\"), application(var(\"global_Primitives_ref_get\"), var(\"");
                     write(id.getName());
                     write("\")))");
                 } else {
@@ -604,7 +604,8 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(NumberTypeNode numberTypeNode) {
         // TODO Auto-generated method stub
-        throw new RuntimeException("todo ");
+        //throw new RuntimeException("todo ");
+        out.print("scalar_shape(unit(\"\"))");
     }
 
     @Override

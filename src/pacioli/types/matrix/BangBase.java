@@ -29,7 +29,9 @@ import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitMap;
 
-public class BangBase extends BaseUnit implements TypeBase {
+//public class BangBase extends BaseUnit implements TypeBase {
+//public class BangBase extends TypeBase {
+public class BangBase extends BaseUnit<TypeBase> implements TypeBase {
 
     public final TypeIdentifier indexSetName;
     public final TypeIdentifier unitName;
@@ -87,7 +89,7 @@ public class BangBase extends BaseUnit implements TypeBase {
         return String.format("%s{%s, %s, %s}", super.toString(), indexSetName, unitName, position);
     }
 
-    @Override
+//    @Override
     public String toText() {
         return indexSetName.name + "!" + unitName.name;
     }
@@ -101,13 +103,13 @@ public class BangBase extends BaseUnit implements TypeBase {
     }
 
     public static Unit kroneckerNth(Unit unit, final int index) {
-        return unit.map(new UnitMap() {
-            public Unit map(Base base) {
+        return unit.map(new UnitMap<TypeBase>() {
+            public Unit<TypeBase> map(TypeBase base) {
                 if (base instanceof BangBase) {
                     if (((BangBase) base).position == index) {
                         return base;
                     } else {
-                        return Unit.ONE;
+                        return TypeBase.ONE;
                     }
                 } else {
                     throw new RuntimeException("kroneckerNth is for row and column units only");
@@ -116,9 +118,9 @@ public class BangBase extends BaseUnit implements TypeBase {
         });
     }
 
-    public static Unit shiftUnit(Unit unit, final int offset) {
-        return unit.map(new UnitMap() {
-            public Unit map(Base base) {
+    public static Unit<TypeBase> shiftUnit(Unit<TypeBase> unit, final int offset) {
+        return unit.map(new UnitMap<TypeBase>() {
+            public Unit<TypeBase> map(TypeBase base) {
                 if (base instanceof BangBase) {
                     return ((BangBase) base).shift(offset);
                 } else {

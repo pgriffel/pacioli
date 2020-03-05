@@ -432,7 +432,7 @@ public class Pacioli {
             "good/good.pacioli",
             "grass/grass.pacioli",
             "hello_world/hello_world.pacioli",
-            //"holtzman/holtzman.pacioli",
+            "holtzman/holtzman.pacioli",
             //"huh/huh.pacioli",   // strange old bug
             "indexing/indexing.pacioli",
             "intro/intro.pacioli",

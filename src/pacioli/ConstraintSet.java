@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import pacioli.types.PacioliType;
+import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
 import uom.Base;
 import uom.Fraction;
@@ -124,12 +125,12 @@ public class ConstraintSet extends AbstractPrintable {
         }
     }
 
-    private Substitution unitUnify(Unit unit) throws PacioliException {
+    private Substitution unitUnify(Unit<TypeBase> unit) throws PacioliException {
 
-        List<Base> varBases = new ArrayList<Base>();
-        List<Base> fixedBases = new ArrayList<Base>();
+        List<TypeBase> varBases = new ArrayList<TypeBase>();
+        List<TypeBase> fixedBases = new ArrayList<TypeBase>();
 
-        for (Base base : unit.bases()) {
+        for (TypeBase base : unit.bases()) {
             if (base instanceof TypeVar) {
                 varBases.add(base);
             } else {
@@ -153,7 +154,7 @@ public class ConstraintSet extends AbstractPrintable {
             int power = unit.power(var).intValue();
             Unit residu = Unit.ONE;
 
-            for (Base fixed : fixedBases) {
+            for (TypeBase fixed : fixedBases) {
                 assert (unit.power(fixed).isInt());
                 int fixedPower = unit.power(fixed).intValue();
                 if (fixedPower % power != 0) {
@@ -166,7 +167,7 @@ public class ConstraintSet extends AbstractPrintable {
         }
 
         TypeVar minVar = (TypeVar) varBases.get(0);
-        for (Base var : varBases) {
+        for (TypeBase var : varBases) {
             if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
                 minVar = (TypeVar) var;
             }
@@ -175,7 +176,7 @@ public class ConstraintSet extends AbstractPrintable {
         assert (unit.power(minVar).isInt());
         Fraction minPower = unit.power(minVar);
         Unit rest = Unit.ONE;
-        for (Base var : unit.bases()) {
+        for (TypeBase var : unit.bases()) {
             if (!var.equals(minVar)) {
                 assert (unit.power(var).isInt());
                 rest = rest.multiply(var.raise(unit.power(var).div(minPower).floor().negate()));

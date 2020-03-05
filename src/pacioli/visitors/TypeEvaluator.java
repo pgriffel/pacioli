@@ -19,6 +19,7 @@ import pacioli.types.FunctionType;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 import pacioli.types.Schema;
+import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
 import pacioli.types.ast.BangTypeNode;
@@ -133,7 +134,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
         if (!new BigDecimal(node.number).equals(BigDecimal.ONE)) {
             visitorThrow(node.getLocation(), "Didn't expect number, just a 1");
         }
-        returnType(new MatrixType(Unit.ONE));
+        returnType(new MatrixType(TypeBase.ONE));
     }
 
     @Override

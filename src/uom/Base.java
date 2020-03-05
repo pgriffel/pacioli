@@ -21,5 +21,7 @@
 
 package uom;
 
-public interface Base extends Unit {
+public interface Base<B> extends Unit<B> {
+//public interface Base<B extends Base<B>> extends Unit<B> {
+//public interface Base<B> extends Unit<B> {
 }

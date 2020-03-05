@@ -34,21 +34,23 @@ import pacioli.Substitution;
 import pacioli.Utils;
 import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
+import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
 import uom.Base;
 import uom.Fraction;
 import uom.Unit;
+import uom.UnitFold;
 import uom.UnitMap;
 
 public class MatrixType extends AbstractType {
 
-    public final Unit factor;
+    public final Unit<TypeBase> factor;
     public final IndexType rowDimension;
     public final IndexType columnDimension;
-    public final Unit rowUnit;
-    public final Unit columnUnit;
+    public final Unit<TypeBase> rowUnit;
+    public final Unit<TypeBase> columnUnit;
 
-    private MatrixType(Unit factor, IndexType rowDimension, Unit rowUnit, IndexType columnDimension, Unit columnUnit) {
+    private MatrixType(Unit<TypeBase> factor, IndexType rowDimension, Unit<TypeBase> rowUnit, IndexType columnDimension, Unit<TypeBase> columnUnit) {
         this.factor = factor;
         this.rowDimension = rowDimension;
         this.rowUnit = rowUnit;
@@ -56,28 +58,28 @@ public class MatrixType extends AbstractType {
         this.columnUnit = columnUnit;
     }
 
-    public MatrixType(Unit factor) {
+    public MatrixType(Unit<TypeBase> factor) {
         this.factor = factor;
         this.rowDimension = new IndexType();
-        this.rowUnit = Unit.ONE;
+        this.rowUnit = TypeBase.ONE;
         this.columnDimension = new IndexType();
-        this.columnUnit = Unit.ONE;
+        this.columnUnit = TypeBase.ONE;
     }
 
     public MatrixType() {
-        this.factor = Unit.ONE;
+        this.factor = TypeBase.ONE;
         this.rowDimension = new IndexType();
-        this.rowUnit = Unit.ONE;
+        this.rowUnit = TypeBase.ONE;
         this.columnDimension = new IndexType();
-        this.columnUnit = Unit.ONE;
+        this.columnUnit = TypeBase.ONE;
     }
 
     public MatrixType(IndexType rowDimension, Unit rowUnit) {
-        this.factor = Unit.ONE;
+        this.factor = TypeBase.ONE;
         this.rowDimension = rowDimension;
         this.rowUnit = rowUnit;
         this.columnDimension = new IndexType();
-        this.columnUnit = Unit.ONE;
+        this.columnUnit = TypeBase.ONE;
     }
 
     @Override
@@ -114,7 +116,7 @@ public class MatrixType extends AbstractType {
     }
 
     public MatrixType dimensionless() {
-        return new MatrixType(Unit.ONE, rowDimension, Unit.ONE, columnDimension, Unit.ONE);
+        return new MatrixType(TypeBase.ONE, rowDimension, TypeBase.ONE, columnDimension, TypeBase.ONE);
     }
 
     public MatrixType transpose() {
@@ -161,7 +163,7 @@ public class MatrixType extends AbstractType {
             int offset = rowType.width();
 
             return new MatrixType(factor.multiply(other.factor), rowType.kronecker(other.rowDimension),
-                    rowUnit.multiply(BangBase.shiftUnit(other.rowUnit, offset)), new IndexType(), Unit.ONE);
+                    rowUnit.multiply(BangBase.shiftUnit(other.rowUnit, offset)), new IndexType(), TypeBase.ONE);
         } else {
             throw new PacioliException("Kronecker product is not allowed for index variables: %s %% %s (%s)", toText(),
                     other.toText(), rowDimension.getClass());
@@ -169,20 +171,23 @@ public class MatrixType extends AbstractType {
     }
 
     public MatrixType project(final List<Integer> columns) throws PacioliException {
+        Unit<TypeBase> u = new StringBase("Foo");
+        Unit<TypeBase> v = new BangBase("Foo", "Foo", 1);
+        Unit<TypeBase> w = u.multiply(v).multiply(u);
         if (rowDimension instanceof IndexType) {
 
             assert (((IndexType) columnDimension).width() == 0);
 
             IndexType rowType = (IndexType) rowDimension;
 
-            Unit unit = Unit.ONE;
+            Unit<TypeBase> unit = TypeBase.ONE;
             for (int i = 0; i < columns.size(); i++) {
                 final int tmp = i;
-                unit = unit.map(new UnitMap() {
-                    public Unit map(Base base) {
+                unit = unit.map(new UnitMap<TypeBase>() {
+                    public Unit<TypeBase> map(TypeBase base) {
                         assert (base instanceof BangBase);
                         BangBase bangBase = (BangBase) base;
-                        return (bangBase.position == columns.get(tmp)) ? bangBase.move(tmp) : Unit.ONE;
+                        return (Unit<TypeBase>) ((bangBase.position == columns.get(tmp)) ? bangBase.move(tmp) : TypeBase.ONE);
                     }
                 });
             }
@@ -190,7 +195,7 @@ public class MatrixType extends AbstractType {
             // THE REMAINING UNITS MUST MULTIPLY TO 1 because they are summed at
             // runtime!!!!!
 
-            return new MatrixType(factor, rowType.project(columns), unit, new IndexType(), Unit.ONE);
+            return new MatrixType(factor, rowType.project(columns), unit, new IndexType(), TypeBase.ONE);
 
         } else {
             throw new PacioliException("Projection is not allowed for open type: %s", toText());
@@ -210,19 +215,19 @@ public class MatrixType extends AbstractType {
     }
 
     public MatrixType extractColumn() {
-        return new MatrixType(factor, rowDimension, rowUnit, new IndexType(), Unit.ONE);
+        return new MatrixType(factor, rowDimension, rowUnit, new IndexType(), TypeBase.ONE);
     }
 
     public MatrixType extractRow() {
-        return new MatrixType(factor, new IndexType(), Unit.ONE, columnDimension, columnUnit);
+        return new MatrixType(factor, new IndexType(), TypeBase.ONE, columnDimension, columnUnit);
     }
 
     public MatrixType leftIdentity() {
-        return new MatrixType(Unit.ONE, rowDimension, rowUnit, rowDimension, rowUnit);
+        return new MatrixType(TypeBase.ONE, rowDimension, rowUnit, rowDimension, rowUnit);
     }
 
     public MatrixType rightIdentity() {
-        return new MatrixType(Unit.ONE, columnDimension, columnUnit, columnDimension, columnUnit);
+        return new MatrixType(TypeBase.ONE, columnDimension, columnUnit, columnDimension, columnUnit);
     }
 
     public MatrixType raise(Fraction power) {
@@ -245,9 +250,9 @@ public class MatrixType extends AbstractType {
         return all;
     }
 
-    public static Set<TypeVar> unitVars(Unit unit) {
+    public static Set<TypeVar> unitVars(Unit<TypeBase> unit) {
         Set<TypeVar> all = new LinkedHashSet<TypeVar>();
-        for (Base base : unit.bases()) {
+        for (TypeBase base : unit.bases()) {
             if (base instanceof TypeVar) {
                 all.add((TypeVar) base);
             }
@@ -263,10 +268,10 @@ public class MatrixType extends AbstractType {
         return names;
     }
 
-    public Set<String> dimensionUnitVecVarCompoundNames(IndexType dimension, Unit unit) {
+    public Set<String> dimensionUnitVecVarCompoundNames(IndexType dimension, Unit<TypeBase> unit) {
         Set<String> names = new HashSet<String>();
         if (dimension.isVar()) {
-            for (Base base : unit.bases()) {
+            for (TypeBase base : unit.bases()) {
                 assert (base instanceof TypeVar);
                 names.add(dimension.varName() + "!" + base.toText());
             }
@@ -276,19 +281,19 @@ public class MatrixType extends AbstractType {
 
     // These hacks are for MatrixTypeNode and for printing below
 
-    public List<Unit> rowBangUnitList() {
+    public List<Unit<TypeBase>> rowBangUnitList() {
         return dimensionBangUnitList(rowDimension, rowUnit);
     }
 
-    public List<Unit> columnBangUnitList() {
+    public List<Unit<TypeBase>> columnBangUnitList() {
         return dimensionBangUnitList(columnDimension, columnUnit);
     }
 
-    private List<Unit> dimensionBangUnitList(final IndexType dimension, Unit unit) {
-        List<Unit> units = new ArrayList<Unit>();
+    private List<Unit<TypeBase>> dimensionBangUnitList(final IndexType dimension, Unit<TypeBase> unit) {
+        List<Unit<TypeBase>> units = new ArrayList<Unit<TypeBase>>();
         if (dimension.isVar()) {
-            Unit candidate = unit.map(new UnitMap() {
-                public Unit map(Base base) {
+            Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
+                public Unit<TypeBase> map(TypeBase base) {
                     assert (base instanceof TypeVar);
                     // return new BangBase(dimension.toText(), base.toText(), 0);
                     // return new StringBase(dimension.varName() + "!" + base.toText());
@@ -296,7 +301,7 @@ public class MatrixType extends AbstractType {
                     return base;
                 }
             });
-            if (candidate.equals(Unit.ONE)) {
+            if (candidate.equals(TypeBase.ONE)) {
                 // units.add(new BangBase(dimension.toText(), "", 0));
                 // units.add(new StringBase(dimension.varName()));
                 units.add(new BangBase(dimension.varName(), "", 0));
@@ -308,8 +313,8 @@ public class MatrixType extends AbstractType {
 
             if (dimType.width() == 1) {
                 final String dimName = dimType.nthIndexSet(0).name;
-                Unit candidate = unit.map(new UnitMap() {
-                    public Unit map(Base base) {
+                Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
+                    public Unit<TypeBase> map(TypeBase base) {
                         assert ((base instanceof TypeVar) || (base instanceof BangBase));
                         if (base instanceof BangBase) {
                             // return base;
@@ -324,7 +329,7 @@ public class MatrixType extends AbstractType {
                         }
                     }
                 });
-                if (candidate.equals(Unit.ONE)) {
+                if (candidate.equals(TypeBase.ONE)) {
                     // units.add(new BangBase(dimType.nthIndexSet(0).name, "", 0));
                     // units.add(new StringBase(dimName + "!"));
                     units.add(new BangBase(dimName, "", 0));
@@ -334,14 +339,14 @@ public class MatrixType extends AbstractType {
             } else {
                 for (int i = 0; i < dimType.width(); i++) {
                     final int index = i;
-                    Unit candidate = unit.map(new UnitMap() {
-                        public Unit map(Base base) {
+                    Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
+                        public Unit map(TypeBase base) {
                             assert ((base instanceof TypeVar) || (base instanceof BangBase));
                             if (base instanceof BangBase) {
                                 if (((BangBase) base).position == index) {
                                     return base;
                                 } else {
-                                    return Unit.ONE;
+                                    return TypeBase.ONE;
                                 }
                             } else {
                                 return new BangBase(dimType.nthIndexSet(index).name,
@@ -349,7 +354,7 @@ public class MatrixType extends AbstractType {
                             }
                         }
                     });
-                    if (candidate.equals(Unit.ONE)) {
+                    if (candidate.equals(TypeBase.ONE)) {
                         // units.add(new BangBase(dimType.nthIndexSet(index).name, "", i));
                         // units.add(new StringBase(dimType.nthIndexSet(index).name));
                         units.add(new BangBase(dimType.nthIndexSet(index).name, "", i));
@@ -365,20 +370,20 @@ public class MatrixType extends AbstractType {
     @Override
     public void printText(PrintWriter out) {
 
-        List<Unit> rowUnitList = dimensionBangUnitList(rowDimension, rowUnit);
-        List<Unit> columnUnitList = dimensionBangUnitList(columnDimension, columnUnit);
+        List<Unit<TypeBase>> rowUnitList = dimensionBangUnitList(rowDimension, rowUnit);
+        List<Unit<TypeBase>> columnUnitList = dimensionBangUnitList(columnDimension, columnUnit);
 
         int rowWidth = rowUnitList.size();
         int columnWidth = columnUnitList.size();
 
-        Unit pos = factor.map(new UnitMap() {
-            public Unit map(Base base) {
-                return factor.power(base).signum() < 0 ? Unit.ONE : base;
+        Unit<TypeBase> pos = factor.map(new UnitMap<TypeBase>() {
+            public Unit<TypeBase> map(TypeBase base) {
+                return factor.power(base).signum() < 0 ? TypeBase.ONE : base;
             }
         });
-        Unit neg = factor.map(new UnitMap() {
-            public Unit map(Base base) {
-                return factor.power(base).signum() > 0 ? Unit.ONE : base;
+        Unit<TypeBase> neg = factor.map(new UnitMap<TypeBase>() {
+            public Unit<TypeBase> map(TypeBase base) {
+                return factor.power(base).signum() > 0 ? TypeBase.ONE : base;
             }
         });
 
@@ -502,6 +507,28 @@ public class MatrixType extends AbstractType {
 
     @Override
     public String compileToMVM() {
-        throw new RuntimeException("todo ");
+        return factor.fold(new UnitFold<TypeBase, String> () {
+
+            @Override
+            public String map(TypeBase base) {
+                return "todo: base";
+            }
+
+            @Override
+            public String mult(String x, String y) {
+                return String.format("mult(%s, %s)", x, y);
+            }
+
+            @Override
+            public String expt(String x, Fraction n) {
+                return String.format("raise(%s, %s)", x, n);
+            }
+
+            @Override
+            public String one() {
+                return "scalar_shape(unit(\"\"))";
+            }
+            
+        });
     }
 }

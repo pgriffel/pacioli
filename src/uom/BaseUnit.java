@@ -25,8 +25,55 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class BaseUnit implements Base {
+//public abstract class BaseUnit implements Base {
+//public abstract class BaseUnit<B extends Base<B>> implements Base<B> {
+//public abstract class BaseUnit<B extends Base<B>> implements Base<B> {
+//public abstract class BaseUnit<B extends Base<B>> implements Base<B> {
 
+public abstract class BaseUnit<B> extends AbstractUnit<B> implements Base<B> {
+    @Override
+    public Set<B> bases() {
+        Set<B> set = new HashSet<B>();
+        set.add((B) this);
+        return set;
+    }
+
+    @Override
+    public Fraction power(B base) {
+        if (equals(base)) {
+            return Fraction.ONE;
+        } else {
+            return Fraction.ZERO;
+        }
+    }
+
+ 
+    @Override
+    public DimensionedNumber multiply(BigDecimal other) {
+        PowerProduct me = new PowerProduct(this);
+        return me.multiply(other);
+    }
+
+    @Override
+    public Unit raise(Fraction power) {
+        PowerProduct me = new PowerProduct(this);
+        return me.raise(power);
+    }
+
+    @Override
+    public Unit reciprocal() {
+        return raise(new Fraction(-1));
+    }
+
+    @Override
+    public DimensionedNumber flat() {
+        return new DimensionedNumber(this);
+    }
+    
+    
+    /*
+     * 
+     * 
     @Override
     public Set<Base> bases() {
         Set<Base> set = new HashSet<Base>();
@@ -44,7 +91,7 @@ public abstract class BaseUnit implements Base {
     }
 
     @Override
-    public Unit multiply(Unit other) {
+    public Unit<Base> multiply(Unit other) {
         PowerProduct me = new PowerProduct(this);
         return me.multiply(other);
     }
@@ -72,7 +119,15 @@ public abstract class BaseUnit implements Base {
     }
 
     @Override
-    public Unit map(UnitMap map) {
+    public Unit<Base> map(UnitMap<Base> map) {
         return map.map(this);
     }
+    
+    @Override
+    public <T> T fold(UnitFold<Base, T> fold) {
+        return fold.map(this);
+    }
+    
+    */
+     
 }

@@ -34,7 +34,9 @@ import pacioli.Substitution;
 import uom.BaseUnit;
 import uom.Unit;
 
-public class TypeVar extends BaseUnit implements PacioliType, Printable, TypeBase {
+//public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Printable {
+public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Printable, TypeBase {
+//public class TypeVar extends TypeBase implements PacioliType, Printable {
 
     private static int counter = 0;
     private final String name;
