@@ -21,7 +21,6 @@
 
 package pacioli.types.ast;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Visitor;
 
@@ -36,11 +35,6 @@ public class TypeOperationNode extends AbstractTypeNode {
         this.operator = operation;
         this.left = left;
         this.right = right;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.format("%s%s%s", left.toText(), operator, right.toText());
     }
 
     @Override

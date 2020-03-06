@@ -9,6 +9,7 @@ import pacioli.ast.ProgramNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Declaration;
+import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.definition.Toplevel;
@@ -118,8 +119,11 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(ProgramNode program) {
-        write("Prog");
+    public void visit(ProgramNode node) {
+        for (Definition def : node.definitions) {
+            def.accept(this);
+            newline();
+        }
     }
 
     @Override
@@ -238,13 +242,19 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(BranchNode node) {
+        mark();
         write("if ");
         node.test.accept(this);
-        write(" then ");
+        write(" then");
+        newlineUp();
         node.positive.accept(this);
-        write(" else ");
+        newlineDown();
+        write("else");
+        newlineUp();
         node.negative.accept(this);
+        newlineDown();
         write(" end");
+        unmark();
     }
 
     @Override
@@ -254,7 +264,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(ConversionNode node) {
-        node.typeNode.printText(out);
+        node.typeNode.accept(this);
     }
 
     @Override

@@ -820,20 +820,6 @@ public class Progam extends AbstractPrintable {
 
     @Override
     public void printText(PrintWriter out) {
-     
-        PrintWriter writer = null;
-        try {
-            writer = new PrintWriter(out);
-            PrintVisitor visitor = new PrintVisitor(writer);
-            //this.accept(visitor);
-            for (Definition def : program.definitions) {
-                def.accept(visitor);
-                writer.println();
-            }
-        } finally {
-            if (writer != null) {
-                writer.close();
-            }
-        }
+        program.printText(out);
     }
 }
