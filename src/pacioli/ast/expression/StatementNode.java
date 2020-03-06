@@ -1,6 +1,5 @@
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ValueContext;
 import pacioli.ast.Visitor;
@@ -31,13 +30,6 @@ public class StatementNode extends AbstractExpressionNode {
     @Override
     public String compileToMATLAB() {
         return body.compileToMATLAB();
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print("begin ");
-        body.printText(out);
-        out.print("end");
     }
 
     @Override

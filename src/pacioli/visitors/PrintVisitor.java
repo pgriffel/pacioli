@@ -1,8 +1,10 @@
 package pacioli.visitors;
 
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Stack;
 
+import pacioli.ast.Node;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
@@ -13,6 +15,7 @@ import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
+import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
@@ -25,6 +28,7 @@ import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.MatrixLiteralNode;
+import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
@@ -58,9 +62,25 @@ public class PrintVisitor implements Visitor {
     Integer offset = 0;
     final Integer delta = 4;
     
+    public void format(String string, Object... args) {
+        out.format(string, args);
+    }
+    
     protected void write(String text) {
         out.print(text);
         offset += text.length();
+    }
+    
+    protected void writeCommaSeparated(List<? extends Node> nodes) {
+        Boolean sep = false;
+        for (Node node: nodes) {
+            if (sep) {
+                write(", ");
+            } else {
+                sep = true;
+            }
+            node.accept(this);
+        }
     }
     
     protected void mark() {
@@ -103,23 +123,35 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(AliasDefinition aliasDefinition) {
-        write("Alias");
+    public void visit(AliasDefinition node) {
+        write("defalias ");
+        node.id.accept(this);
+        write(" ");
+        node.unit.accept(this);
+        write(";");
     }
 
     @Override
-    public void visit(Declaration declaration) {
-        write("Decl\n");
+    public void visit(Declaration node) {
+        out.format("declare %s :: ", node.localName());
+        node.typeNode.accept(this);
+        write(";");
     }
 
     @Override
     public void visit(IndexSetDefinition indexSetDefinition) {
-        write("Ind");
+        write("defindex ");
+        write("TODO!");
+        write(";");
     }
 
     @Override
-    public void visit(MultiDeclaration multiDeclaration) {
-        write("Multidc");
+    public void visit(MultiDeclaration node) {
+        write("declare ");
+        writeCommaSeparated(node.ids);
+        write(" :: ");
+        node.node.accept(this);
+        write(";");
     }
 
     @Override
@@ -128,18 +160,44 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(TypeDefinition typeDefinition) {
-        write("TYpeD");
+    public void visit(TypeDefinition node) {
+        write("deftype ");
+        node.lhs.accept(this);
+        write(" = ");
+        node.rhs.accept(this);
+        write(";");
     }
 
     @Override
-    public void visit(UnitDefinition unitDefinition) {
-        write("Unitdef\n");
+    public void visit(UnitDefinition node) {
+        write("defunit ");
+        node.id.accept(this);
+        format(" %s", node.symbol);
+        if (node.body != null) {
+            write(" = ");
+            node.body.accept(this);
+        }
+        write(";");
     }
 
     @Override
-    public void visit(UnitVectorDefinition unitVectorDefinition) {
-        write("Unitfecog\n");
+    public void visit(UnitVectorDefinition node) {
+        format("defunit %s = {", node.localName());
+        newlineUp();
+        Boolean sep = false;
+        for (UnitDecl entry : node.items) {
+            if (sep) {
+                write(",");
+                newline();
+            } else {
+                sep = true;
+            }
+            entry.key.accept(this);
+            write(": ");
+            entry.value.accept(this);
+        }
+        newlineDown();
+        out.print("};");
     }
 
     @Override
@@ -195,8 +253,8 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(ConversionNode conversionNode) {
-        write("conv");
+    public void visit(ConversionNode node) {
+        node.typeNode.printText(out);
     }
 
     @Override
@@ -205,13 +263,33 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(IfStatementNode ifStatementNode) {
-        write("if");
+    public void visit(IfStatementNode node) {
+        write("if ");
+        node.test.accept(this);
+        write(" then");
+        newlineUp();
+        node.positive.accept(this);
+        newlineDown();
+        write(" else");
+        newlineUp();
+        node.negative.accept(this);
+        newlineDown();
+        write("end");
     }
 
     @Override
-    public void visit(KeyNode keyNode) {
-        write("key");
+    public void visit(KeyNode node) {
+        int size = node.indexSets.size();
+        if (size == 0) {
+            write("_");
+        } else {
+            for (int i = 0; i < size; i++) {
+                if (0 < i) {
+                    write("%");
+                }
+                format("%s@%s", node.indexSets.get(i), node.keys.get(i));
+            }
+        }
     }
 
     @Override
@@ -232,23 +310,40 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(MatrixLiteralNode matrixLiteralNode) {
-        write("matrix");
+    public void visit(MatrixLiteralNode node) {
+        String sep = "{";
+        write(" :: ");
+        node.typeNode.accept(this);
+        write(" = ");
+        for (ValueDecl pair : node.pairs) {
+            write(sep);
+            write(pair.toText());
+            sep = ", ";
+        }
+        out.print("}>");
     }
 
     @Override
-    public void visit(MatrixTypeNode matrixTypeNode) {
-        write("mattype");
+    public void visit(MatrixTypeNode node) {
+        write("|");
+        node.typeNode.accept(this);;
+        write("|");
     }
 
     @Override
-    public void visit(ProjectionNode projectionNode) {
-        write("projd");
+    public void visit(ProjectionNode node) {
+        write("project ");
+        write(node.numString());
+        write(" from ");
+        node.body.accept(this);;
+        write(" end");
     }
 
     @Override
-    public void visit(ReturnNode returnNode) {
-        write("ret");
+    public void visit(ReturnNode node) {
+        write("return ");
+        node.value.accept(this);;
+        write(";");
     }
 
     @Override
@@ -275,7 +370,6 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(StringNode node) {
-        //out.format("\"%s\"", node.valueString());
         write("\"" + node.valueString() + "\"");
     }
 
@@ -305,93 +399,109 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(BangTypeNode node) {
-        //write("bang");
         out.format("%s!%s", node.indexSet.getName(), node.unit == null ? "" : node.unit.getName());
     }
 
     @Override
-    public void visit(FunctionTypeNode functionTypeNode) {
-        write("funty");
+    public void visit(FunctionTypeNode node) {
+        node.domain.accept(this);
+        write(" -> ");
+        node.range.accept(this);
     }
 
     @Override
-    public void visit(NumberTypeNode numberTypeNode) {
-        write("numytpe");
+    public void visit(NumberTypeNode node) {
+        write(node.number);
     }
 
     @Override
-    public void visit(SchemaNode schemaNode) {
-        write("sschema");
+    public void visit(SchemaNode node) {
+        node.context.printText(out);
+        node.type.accept(this);
     }
 
     @Override
-    public void visit(TypeApplicationNode typeApplicationNode) {
-        write("typepapp");
+    public void visit(TypeApplicationNode node) {
+        node.op.accept(this);
+        write("(");
+        writeCommaSeparated(node.args);
+        write(")");
     }
 
     @Override
-    public void visit(TypeIdentifierNode typeIdentifierNode) {
-        write("typeident");
-        throw new RuntimeException("Cannot print (visit) TypeIdentifierNode");
+    public void visit(TypeIdentifierNode node) {
+        write(node.getName());
     }
 
     @Override
-    public void visit(TypePowerNode typePowerNode) {
-        write("typepow");
+    public void visit(TypePowerNode node) {
+        node.base.accept(this);
+        write("^");
+        node.power.accept(this);
     }
 
     @Override
-    public void visit(PrefixUnitTypeNode prefixUnitTypeNode) {
-        // TODO Auto-generated method stub
-        write("todo1");
+    public void visit(PrefixUnitTypeNode node) {
+        node.prefix.accept(this);
+        write(":");
+        node.unit.accept(this);
     }
 
     @Override
-    public void visit(TypeMultiplyNode typeMultiplyNode) {
-        // TODO Auto-generated method stub
-        write("todo2");
+    public void visit(TypeMultiplyNode node) {
+        node.left.accept(this);
+        write("*");
+        node.right.accept(this);
     }
 
     @Override
-    public void visit(TypeDivideNode typeDivideNode) {
-        // TODO Auto-generated method stub
-        write("todo1");
+    public void visit(TypeDivideNode node) {
+        node.left.accept(this);
+        write("/");
+        node.right.accept(this);
     }
 
     @Override
-    public void visit(TypeKroneckerNode typeKroneckerNode) {
-        // TODO Auto-generated method stub
-        write("todo1");
+    public void visit(TypeKroneckerNode node) {
+        node.left.accept(this);
+        write(" % ");
+        node.right.accept(this);
     }
 
     @Override
-    public void visit(TypePerNode typePerNode) {
-        // TODO Auto-generated method stub
-        write("todo1");
+    public void visit(TypePerNode node) {
+        node.left.accept(this);
+        write(" per ");
+        node.right.accept(this);
     }
 
     @Override
-    public void visit(NumberUnitNode numberUnitNode) {
-        // TODO Auto-generated method stub
-        write("todo1");
+    public void visit(NumberUnitNode node) {
+        write(node.number);
     }
 
     @Override
-    public void visit(UnitIdentifierNode unitIdentifierNode) {
-        // TODO Auto-generated method stub
-        write("todo1");
+    public void visit(UnitIdentifierNode node) {
+        if (node.prefix == null) {
+            write(node.name);
+        } else {
+            write(node.prefix);
+            write(":");
+            write(node.name);
+        }
     }
 
     @Override
-    public void visit(UnitOperationNode unitOperationNode) {
-        // TODO Auto-generated method stub
-        write("todo1");
+    public void visit(UnitOperationNode node) {
+        node.left.accept(this);
+        write(node.operator);
+        node.right.accept(this);
     }
 
     @Override
-    public void visit(UnitPowerNode unitOperationNode) {
-        // TODO Auto-generated method stub
-        write("todo1");
+    public void visit(UnitPowerNode node) {
+        node.base.accept(this);
+        write("^");
+        node.power.accept(this);
     }
-
 }

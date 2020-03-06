@@ -21,7 +21,6 @@
 
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Visitor;
 
@@ -38,15 +37,6 @@ public class WhileNode extends AbstractExpressionNode {
 
     public WhileNode transform(ExpressionNode test, ExpressionNode body) {
         return new WhileNode(getLocation(), test, body);
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print("while ");
-        test.printText(out);
-        out.print(" do ");
-        body.printText(out);
-        out.print(" end");
     }
 
     @Override

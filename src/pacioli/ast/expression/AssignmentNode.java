@@ -21,7 +21,6 @@
 
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Visitor;
 
@@ -40,14 +39,6 @@ public class AssignmentNode extends AbstractExpressionNode {
         super(old.getLocation());
         this.var = old.var;
         this.value = value;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        var.printText(out);
-        out.print(" := ");
-        value.printText(out);
-        out.print(";");
     }
 
     @Override

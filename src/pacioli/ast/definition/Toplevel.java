@@ -1,6 +1,5 @@
 package pacioli.ast.definition;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.Progam;
 import pacioli.ast.Visitor;
@@ -19,12 +18,6 @@ public class Toplevel extends AbstractDefinition {
     @Override
     public String localName() {
         return null;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        body.printText(out);
-        out.print(";\n");
     }
 
     @Override

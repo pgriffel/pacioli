@@ -21,8 +21,8 @@
 
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import java.util.List;
+
 import pacioli.Location;
 import pacioli.Utils;
 import pacioli.ast.Visitor;
@@ -42,15 +42,6 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
         super(node.getLocation());
         this.vars = node.vars;
         this.tuple = tuple;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print("(");
-        out.print(Utils.intercalateText(", ", vars));
-        out.print(") :=");
-        tuple.printText(out);
-        out.print(";");
     }
 
     @Override

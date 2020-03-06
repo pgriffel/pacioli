@@ -21,7 +21,6 @@
 
 package pacioli.types.ast;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Visitor;
 import pacioli.symboltable.IndexSetInfo;

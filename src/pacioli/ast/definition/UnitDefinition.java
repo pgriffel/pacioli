@@ -21,12 +21,9 @@
 
 package pacioli.ast.definition;
 
-import java.io.PrintWriter;
-
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Progam;
-import pacioli.Utils;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
@@ -37,8 +34,8 @@ import uom.DimensionedNumber;
 
 public class UnitDefinition extends AbstractDefinition {
 
-    private final IdentifierNode id;
-    private final String symbol;
+    public final IdentifierNode id;
+    public final String symbol;
     public final UnitNode body;
 
     public UnitDefinition(Location location, IdentifierNode id, String symbol) {
@@ -65,15 +62,6 @@ public class UnitDefinition extends AbstractDefinition {
 
     public DimensionedNumber<TypeBase> evalBody() {
         return (body == null) ? null : body.evalUnit();
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        if (body == null) {
-            out.format("unit definition %s\n", id.toText());
-        } else {
-            out.format("unit definition %s = %s\n", id.toText(), body.toText());
-        }
     }
 
     @Override

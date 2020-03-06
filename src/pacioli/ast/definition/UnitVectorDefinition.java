@@ -21,12 +21,11 @@
 
 package pacioli.ast.definition;
 
-import java.io.PrintWriter;
 import java.util.List;
+
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Progam;
-import pacioli.Utils;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
@@ -57,20 +56,6 @@ public class UnitVectorDefinition extends AbstractDefinition {
         this.indexSetNode = indexSet;
         this.unitNode = unit;
         this.items = items;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print("defunit ");
-        out.print(localName());
-        out.print(" = ");
-        String sep = "{";
-        for (UnitDecl entry : items) {
-            out.printf("%s%s:", sep, entry.key);
-            entry.value.printText(out);
-            sep = ", ";
-        }
-        out.print("};");
     }
 
     @Override

@@ -1,8 +1,8 @@
 package pacioli.ast;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+
 import pacioli.ast.definition.Definition;
 import pacioli.ast.expression.IdentifierNode;
 
@@ -43,11 +43,5 @@ public class ProgramNode extends AbstractNode {
     public String compileToMATLAB() {
         throw new RuntimeException("todo");
     }
-
-    @Override
-    public void printText(PrintWriter out) {
-        throw new RuntimeException("todo");
-    }
-
 
 }

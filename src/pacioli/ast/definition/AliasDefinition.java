@@ -1,6 +1,5 @@
 package pacioli.ast.definition;
 
-import java.io.PrintWriter;
 import java.math.BigDecimal;
 
 import pacioli.Location;
@@ -34,11 +33,6 @@ public class AliasDefinition extends AbstractDefinition {
     @Override
     public String localName() {
         return id.getName();
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        throw new RuntimeException("todo");
     }
 
     @Override

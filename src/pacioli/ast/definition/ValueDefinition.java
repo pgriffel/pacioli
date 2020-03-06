@@ -21,9 +21,9 @@
 
 package pacioli.ast.definition;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Progam;
@@ -34,7 +34,6 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.symboltable.GenericInfo;
-import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 
 public class ValueDefinition extends AbstractDefinition {
@@ -59,11 +58,6 @@ public class ValueDefinition extends AbstractDefinition {
     @Override
     public String localName() {
         return id.getName();
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.format("define %s = %s;\n", localName(), body.toText());
     }
 
     public String compileStatementToMATLAB() {

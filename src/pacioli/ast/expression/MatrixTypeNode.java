@@ -21,7 +21,6 @@
 
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import mvm.values.matrix.MatrixDimension;
 import pacioli.Location;
 import pacioli.PacioliException;
@@ -44,22 +43,7 @@ public class MatrixTypeNode extends AbstractExpressionNode {
         this.rowDim = null;
         this.columnDim = null;
     }
-/*
-    public MatrixTypeNode(Location location, TypeNode typeNode, MatrixDimension rowDim, MatrixDimension columnDim) {
-        super(location);
-        this.typeNode = typeNode;
-        this.rowDim = rowDim;
-        this.columnDim = columnDim;
-    }
-*/
-    @Override
-    public void printText(PrintWriter out) {
-        out.print("|");
-        typeNode.printText(out);
-        out.print("|");
-    }
-    
-    
+
     public MatrixType evalType(Boolean reduce) throws PacioliException {
         PacioliType type = typeNode.evalType(reduce);
         if (type instanceof MatrixType) {

@@ -1,6 +1,5 @@
 package pacioli.types.ast;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
@@ -18,11 +17,6 @@ public class TypeDivideNode extends AbstractTypeNode {
 
     public Node transform(TypeNode left, TypeNode right) {
         return new TypeDivideNode(getLocation(), left, right);
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.format("%s/%s", left.toText(), right.toText());
     }
 
     @Override

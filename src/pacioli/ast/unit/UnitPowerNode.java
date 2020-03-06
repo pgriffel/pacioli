@@ -1,6 +1,5 @@
 package pacioli.ast.unit;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
@@ -18,13 +17,6 @@ public class UnitPowerNode extends AbstractUnitNode {
 
     public Node transform(UnitNode base) {
         return new UnitPowerNode(getLocation(), base, power);
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        base.printText(out);
-        out.print("^");
-        power.printText(out);
     }
 
     @Override

@@ -20,7 +20,6 @@
  */
 package pacioli.types.ast;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -67,11 +66,6 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         this.definition = definition;
         this.home = home;
         assert (!name.contains("!"));
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print(name);
     }
 
     public String getName() {

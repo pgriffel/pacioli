@@ -21,7 +21,6 @@
 
 package pacioli.types.ast;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Visitor;
 
@@ -38,13 +37,6 @@ public class FunctionTypeNode extends AbstractTypeNode {
 
     public FunctionTypeNode transform(TypeNode domain, TypeNode range) {
         return new FunctionTypeNode(getLocation(), domain, range);
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        domain.printText(out);
-        out.format(" -> ");
-        range.printText(out);
     }
 
     @Override

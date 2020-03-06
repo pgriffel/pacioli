@@ -21,7 +21,6 @@
 
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.PacioliFile;
 import pacioli.ast.Visitor;

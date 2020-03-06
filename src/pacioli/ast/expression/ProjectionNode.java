@@ -1,8 +1,8 @@
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+
 import pacioli.Location;
 import pacioli.Utils;
 import pacioli.ast.Visitor;
@@ -30,15 +30,6 @@ public class ProjectionNode extends AbstractExpressionNode {
         this.body = body;
         this.hardType = hardType;
         this.type = type;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print("project ");
-        out.print(numString());
-        out.print(" from ");
-        body.printText(out);
-        out.print(" end");
     }
 
     public String numString() {

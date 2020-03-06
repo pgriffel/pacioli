@@ -21,8 +21,8 @@
 
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import java.util.List;
+
 import pacioli.Location;
 import pacioli.ast.Visitor;
 
@@ -37,14 +37,6 @@ public class SequenceNode extends AbstractExpressionNode {
 
     public SequenceNode transform(List<ExpressionNode> items) {
         return new SequenceNode(getLocation(), items);
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        for (ExpressionNode item : items) {
-            item.printText(out);
-            out.print(" ");
-        }
     }
 
     @Override

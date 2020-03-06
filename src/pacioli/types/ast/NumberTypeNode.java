@@ -21,7 +21,6 @@
 
 package pacioli.types.ast;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Visitor;
 
@@ -32,11 +31,6 @@ public class NumberTypeNode extends AbstractTypeNode {
     public NumberTypeNode(Location location, String number) {
         super(location);
         this.number = number;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print(number);
     }
 
     @Override

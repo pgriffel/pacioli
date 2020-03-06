@@ -21,10 +21,10 @@
 
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import pacioli.Location;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.IndexSetDefinition;
@@ -84,23 +84,6 @@ public class KeyNode extends AbstractExpressionNode {
         }
 
         return new KeyNode(mergedLocation, mergedIndexSets, mergedKeys, mergedDefinitions);
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        int size = indexSets.size();
-        if (size == 0) {
-            out.print("_");
-        } else {
-            for (int i = 0; i < size; i++) {
-                if (0 < i) {
-                    out.print("%");
-                }
-                out.print(indexSets.get(i));
-                out.print('@');
-                out.print(keys.get(i));
-            }
-        }
     }
 
     @Override

@@ -21,7 +21,6 @@
 
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Visitor;
 
@@ -41,11 +40,6 @@ public class ConstNode extends AbstractExpressionNode {
 
     public String valueString() {
         return value;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print(value);
     }
     
     @Override

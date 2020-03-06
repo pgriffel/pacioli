@@ -21,7 +21,6 @@
 
 package pacioli.ast.definition;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,11 +95,6 @@ public class TypeDefinition extends AbstractDefinition {
             throw new RuntimeException("todo: contraint when reduce is false");
         }
         return constraint;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print("todo: print type definition;\n");
     }
 
     @Override

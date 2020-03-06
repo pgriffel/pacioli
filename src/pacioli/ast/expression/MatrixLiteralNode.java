@@ -4,7 +4,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import mvm.values.matrix.MatrixDimension;
-
+import pacioli.AbstractPrintable;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Utils;
@@ -30,7 +30,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
     public final List<String> values = new ArrayList<String>();
 
     // Obsolete? Move to parser if necessary.
-    public static class ValueDecl {
+    public static class ValueDecl extends AbstractPrintable {
         public List<IdentifierNode> key;
         public String value;
 
@@ -45,6 +45,11 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
                 keys.add(id.name);
             }
             return keys;
+        }
+
+        @Override
+        public void printText(PrintWriter out) {
+            out.printf("%s -> %s", Utils.intercalate(", ", keys()), value);
         }
     }
 
@@ -76,17 +81,6 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
     @Override
     public String compileToMATLAB() {
         throw new RuntimeException("todo");
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        String sep = "{";
-        out.printf("<matrix lit :: %s = ", typeNode.toText());
-        for (ValueDecl pair : pairs) {
-            out.printf("%s%s -> %s", sep, Utils.intercalate(", ", pair.keys()), pair.value);
-            sep = ", ";
-        }
-        out.print("}>");
     }
 
     @Override

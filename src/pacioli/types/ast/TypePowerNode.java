@@ -21,7 +21,6 @@
 
 package pacioli.types.ast;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
@@ -30,13 +29,11 @@ import pacioli.ast.unit.NumberUnitNode;
 public class TypePowerNode extends AbstractTypeNode {
 
     public final TypeNode base;
-    // public final Integer power;
     public final NumberTypeNode power;
 
     public TypePowerNode(Location location, TypeNode base, NumberTypeNode power) {
         super(location);
         this.base = base;
-        // this.power = Integer.parseInt(power.toText());
         this.power = power;
     }
 
@@ -46,18 +43,8 @@ public class TypePowerNode extends AbstractTypeNode {
         this.power = new NumberTypeNode(power.getLocation(), power.toText());
     }
 
-    /*
-     * private TypePowerNode(Location location, TypeNode base, Integer power) {
-     * super(location); this.base = base; this.power = power; }
-     */
-
     public Node transform(TypeNode base) {
         return new TypePowerNode(getLocation(), base, power);
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.format("%s^%s", base.toText(), power.toText());
     }
 
     @Override

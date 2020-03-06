@@ -21,7 +21,6 @@
 
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.ast.Visitor;
@@ -53,13 +52,6 @@ public class ReturnNode extends AbstractExpressionNode {
         super(location);
         this.value = value;
         this.resultPlace = resultPlace;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print("return ");
-        value.printText(out);
-        out.print(";");
     }
 
     @Override

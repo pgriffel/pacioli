@@ -1,7 +1,5 @@
 package pacioli.types.ast;
 
-import java.io.PrintWriter;
-import pacioli.CompilationSettings;
 import pacioli.Location;
 import pacioli.ast.Visitor;
 
@@ -14,11 +12,6 @@ public class PrefixUnitTypeNode extends AbstractTypeNode {
         super(location);
         this.prefix = prefix;
         this.unit = unit;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.format("%s:%s", prefix.toText(), unit.toText());
     }
     
     @Override

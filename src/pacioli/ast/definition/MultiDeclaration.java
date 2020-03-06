@@ -1,8 +1,7 @@
 package pacioli.ast.definition;
 
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
+
 import pacioli.CompilationSettings;
 import pacioli.Location;
 import pacioli.PacioliException;
@@ -27,17 +26,6 @@ public class MultiDeclaration extends AbstractDefinition {
     @Override
     public String compileToMATLAB() {
         throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        List<String> names = new ArrayList<String>();
-        for (IdentifierNode id : ids) {
-            names.add(id.getName());
-        }
-        out.format("declare %s :: %s;\n", pacioli.Utils.intercalate(",", names), node.toText());
-        // throw new RuntimeException("Cannot do that on a multi declaration. Can only
-        // addToProgram");
     }
 
     @Override

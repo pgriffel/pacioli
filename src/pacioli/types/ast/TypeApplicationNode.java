@@ -21,10 +21,9 @@
 
 package pacioli.types.ast;
 
-import java.io.PrintWriter;
 import java.util.List;
+
 import pacioli.Location;
-import pacioli.Utils;
 import pacioli.ast.Visitor;
 
 public class TypeApplicationNode extends AbstractTypeNode {
@@ -40,14 +39,6 @@ public class TypeApplicationNode extends AbstractTypeNode {
 
     public TypeNode transform(TypeIdentifierNode name, List<TypeNode> args) {
         return new TypeApplicationNode(getLocation(), name, args);
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        op.printText(out);
-        out.print("(");
-        out.print(Utils.intercalateText(", ", args));
-        out.print(")");
     }
 
     public TypeIdentifierNode getOperator() {

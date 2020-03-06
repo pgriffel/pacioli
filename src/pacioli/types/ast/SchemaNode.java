@@ -21,7 +21,6 @@
 
 package pacioli.types.ast;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.TypeContext;
 import pacioli.ast.Visitor;
@@ -42,12 +41,6 @@ public class SchemaNode extends AbstractTypeNode {
 
     public SchemaNode transform(TypeNode type) {
         return new SchemaNode(getLocation(), context, type);
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        context.printText(out);
-        type.printText(out);
     }
 
     @Override

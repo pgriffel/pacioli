@@ -21,8 +21,8 @@
 
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import java.util.List;
+
 import pacioli.Location;
 import pacioli.Utils;
 import pacioli.ast.Visitor;
@@ -48,15 +48,6 @@ public class LambdaNode extends AbstractExpressionNode {
         arguments = old.arguments;
         expression = body;
         table = old.table;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print("lambda (");
-        out.print(Utils.intercalate(", ", arguments));
-        out.print(") ");
-        expression.printText(out);
-        out.print(" end");
     }
 
     public String argsString() {

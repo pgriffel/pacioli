@@ -1,6 +1,5 @@
 package pacioli.ast.definition;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Progam;
@@ -33,11 +32,6 @@ public class Declaration extends AbstractDefinition {
     @Override
     public String compileToMATLAB() {
         throw new RuntimeException("todo");
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.format("declare %s :: %s;\n", localName(), typeNode.toText());
     }
 
     @Override

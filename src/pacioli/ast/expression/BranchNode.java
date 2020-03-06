@@ -21,7 +21,6 @@
 
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Visitor;
 
@@ -43,17 +42,6 @@ public class BranchNode extends AbstractExpressionNode {
         this.test = test;
         this.positive = pos;
         this.negative = neg;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print("if ");
-        test.printText(out);
-        out.print(" then ");
-        positive.printText(out);
-        out.print(" else ");
-        negative.printText(out);
-        out.print(" end");
     }
 
     @Override

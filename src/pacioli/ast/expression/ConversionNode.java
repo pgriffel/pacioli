@@ -1,6 +1,5 @@
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
@@ -38,13 +37,6 @@ public class ConversionNode extends AbstractExpressionNode {
     @Override
     public String compileToMATLAB() {
         throw new RuntimeException("Not implemented");
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print("<conversion of type ");
-        typeNode.printText(out);
-        out.print(">");
     }
 
     @Override

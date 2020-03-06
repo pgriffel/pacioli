@@ -1,6 +1,5 @@
 package pacioli.ast.unit;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Visitor;
 
@@ -11,11 +10,6 @@ public class NumberUnitNode extends AbstractUnitNode {
     public NumberUnitNode(String number, Location location) {
         super(location);
         this.number = number;
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print(number);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package pacioli.ast.unit;
 
-import java.io.PrintWriter;
 import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
@@ -20,13 +19,6 @@ public class UnitOperationNode extends AbstractUnitNode {
 
     public Node transform(UnitNode left, UnitNode right) {
         return new UnitOperationNode(getLocation(), operator, left, right);
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        left.printText(out);
-        out.print(operator);
-        right.printText(out);
     }
 
     @Override

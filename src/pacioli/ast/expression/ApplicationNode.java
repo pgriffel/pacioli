@@ -21,10 +21,10 @@
 
 package pacioli.ast.expression;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import pacioli.Location;
 import pacioli.Utils;
 import pacioli.ast.Node;
@@ -50,14 +50,6 @@ public class ApplicationNode extends AbstractExpressionNode {
     public static ApplicationNode newCall(Location location, String module, String function, ExpressionNode... args) {
         IdentifierNode id = IdentifierNode.newValueIdentifier(module, function, location);
         return new ApplicationNode(id, Arrays.asList(args), location);
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        function.printText(out);
-        out.print('(');
-        out.print(Utils.intercalateText(", ", arguments));
-        out.print(')');
     }
 
     @Override

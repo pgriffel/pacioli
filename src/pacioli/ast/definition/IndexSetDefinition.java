@@ -21,15 +21,12 @@
 
 package pacioli.ast.definition;
 
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 
 import mvm.values.matrix.IndexSet;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Progam;
-import pacioli.Utils;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.symboltable.GenericInfo;
@@ -66,11 +63,6 @@ public class IndexSetDefinition extends AbstractDefinition {
 
     public IndexSet getIndexSet() {
         return new IndexSet(localName(), items);
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print("todo: indexSetDefinition");
     }
 
     @Override
