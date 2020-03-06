@@ -63,14 +63,14 @@ public class TypeConstraint extends AbstractPrintable {
                         map.put((TypeVar) ((IndexType) varType).getIndexSet(), ((IndexType) arg).getIndexSet());
                     } else {
                         throw new PacioliException(var.getLocation(),
-                                "Type definitions's parameter is quantified as index, but is given '%s'", arg.toText());
+                                "Type definitions's parameter is quantified as index, but is given '%s'", arg.pretty());
                     }
                 } else if (varType instanceof MatrixType) {
                     if (arg instanceof MatrixType) {
                         map.put((TypeVar) ((MatrixType) varType).getFactor(), ((MatrixType) arg).getFactor());
                     } else {
                         throw new PacioliException(var.getLocation(),
-                                "Type definitions's parameter is quantified as unit, but is given '%s'", arg.toText());
+                                "Type definitions's parameter is quantified as unit, but is given '%s'", arg.pretty());
                     }
                 } else {
                     throw new PacioliException(var.getLocation(),
@@ -85,7 +85,7 @@ public class TypeConstraint extends AbstractPrintable {
                 } else {
                     throw new PacioliException(var.getLocation(),
                             "Type definitions's parameter is quantified as unit vector, but is given '%s'",
-                            arg.toText());
+                            arg.pretty());
                 }
             } else {
                 throw new PacioliException(var.getLocation(),
@@ -96,7 +96,7 @@ public class TypeConstraint extends AbstractPrintable {
     }
 
     @Override
-    public void printText(PrintWriter out) {
-        out.format("type constraint %s = %s", lhs.toText(), rhs.toText());
+    public void printPretty(PrintWriter out) {
+        out.format("type constraint %s = %s", lhs.pretty(), rhs.pretty());
     }
 }

@@ -69,8 +69,8 @@ public class ScaledUnit<B> extends BaseUnit<B> {
     }
 
     @Override
-    public String toText() {
-        return prefix.prefixName() + unit.toText();
+    public String pretty() {
+        return prefix.prefixName() + unit.pretty();
     }
 
 }

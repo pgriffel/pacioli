@@ -55,7 +55,7 @@ public class IndexType extends AbstractType {
     }
 
     public String varName() {
-        return ((TypeVar) indexSet).toText();
+        return ((TypeVar) indexSet).pretty();
     }
 
     public IndexList indexList() {
@@ -113,9 +113,9 @@ public class IndexType extends AbstractType {
     }
 
     @Override
-    public void printText(PrintWriter out) {
+    public void printPretty(PrintWriter out) {
         out.print("Index(");
-        indexSet.printText(out);
+        indexSet.printPretty(out);
         out.print(")");
     }
 

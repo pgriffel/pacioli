@@ -50,7 +50,7 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
         String code = tmpVar + " = " + tuple.compileToMATLAB();
         int i = 1;
         for (IdentifierNode var : vars) {
-            code += ";\n" + var.toText() + " = " + tmpVar + "{" + i++ + "}";
+            code += ";\n" + var.pretty() + " = " + tmpVar + "{" + i++ + "}";
         }
         return code;
     }

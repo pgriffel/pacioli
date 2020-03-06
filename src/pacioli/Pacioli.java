@@ -243,7 +243,7 @@ public class Pacioli {
         Progam mainProgram = new Progam(file, libraryDirectories(libs));
         mainProgram.loadTill(Phase.typed);
         
-        Pacioli.logln("%s", mainProgram.toText());
+        Pacioli.logln("%s", mainProgram.pretty());
         
         // Setup a writer for the output file
         String dstName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension(target); 

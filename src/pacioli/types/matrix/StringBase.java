@@ -86,7 +86,7 @@ public class StringBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
     @Override
-    public String toText() {
+    public String pretty() {
         return prefixText() + text;
     }
 

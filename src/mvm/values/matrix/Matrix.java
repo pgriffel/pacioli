@@ -86,7 +86,7 @@ public class Matrix extends AbstractPacioliValue {
                 out.format("%f", numbers.getEntry(0, 0));
                 return;
             } else {
-                out.format("%f %s", numbers.getEntry(0, 0), unitAt(0, 0).toText());
+                out.format("%f %s", numbers.getEntry(0, 0), unitAt(0, 0).pretty());
                 return;
             }
         }
@@ -127,7 +127,7 @@ public class Matrix extends AbstractPacioliValue {
                     idxList.add(idxString);
 
                     Unit<MatrixBase> unit = unitAt(i, j);
-                    String unitString = unit.equals(MatrixBase.ONE) ? "" : unit.toText();
+                    String unitString = unit.equals(MatrixBase.ONE) ? "" : unit.pretty();
                     unitList.add(unitString);
                     unitWidth = Math.max(unitWidth, unitString.length());
                 }
@@ -490,11 +490,11 @@ public class Matrix extends AbstractPacioliValue {
                     number = (dstUnit.multiply(srcUnit.reciprocal())).flat();
 
                     if (!number.unit().bases().isEmpty()) {
-                        throw new MVMException("Cannot project '%s' to '%s'", srcUnit.toText(), dstUnit.toText());
+                        throw new MVMException("Cannot project '%s' to '%s'", srcUnit.pretty(), dstUnit.pretty());
                     }
 
                     if (!number.factor().equals(BigDecimal.ONE)) {
-                        throw new MVMException("Cannot project '%s' to '%s'", srcUnit.toText(), dstUnit.toText());
+                        throw new MVMException("Cannot project '%s' to '%s'", srcUnit.pretty(), dstUnit.pretty());
                     }
 
                     numbers.setEntry(i, j, 1);

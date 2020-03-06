@@ -77,12 +77,12 @@ public class ConstraintSet extends AbstractPrintable {
     }
 
     @Override
-    public void printText(PrintWriter out) {
+    public void printPretty(PrintWriter out) {
         for (int i = 0; i < lhss.size(); i++) {
-            out.format("  %s = %s\n", lhss.get(i).toText(), rhss.get(i).toText());
+            out.format("  %s = %s\n", lhss.get(i).pretty(), rhss.get(i).pretty());
         }
         for (int i = 0; i < ulhss.size(); i++) {
-            out.format("  %s u= %s\n", ulhss.get(i).toText(), urhss.get(i).toText());
+            out.format("  %s u= %s\n", ulhss.get(i).pretty(), urhss.get(i).pretty());
         }
     }
 
@@ -92,11 +92,11 @@ public class ConstraintSet extends AbstractPrintable {
             PacioliType left = mgu.apply(lhss.get(i));
             PacioliType right = mgu.apply(rhss.get(i));
             try {
-                Pacioli.logln3("Unifying %s and %s\n%s", left.toText(), right.toText(), reason.get(i));
+                Pacioli.logln3("Unifying %s and %s\n%s", left.pretty(), right.pretty(), reason.get(i));
                 mgu = left.unify(right).compose(mgu);
             } catch (PacioliException ex) {
-                throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", reason.get(i), left.unfresh().toText(),
-                        right.unfresh().toText(), ex.getLocalizedMessage());
+                throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", reason.get(i), left.unfresh().pretty(),
+                        right.unfresh().pretty(), ex.getLocalizedMessage());
             }
         }
         for (int i = 0; i < ulhss.size(); i++) {
@@ -121,7 +121,7 @@ public class ConstraintSet extends AbstractPrintable {
                 return unitUnify(x.multiply(y.reciprocal()));
             }
         } catch (PacioliException ex) {
-            throw new PacioliException("Cannot unify units %s and %s", x.toText(), y.toText());
+            throw new PacioliException("Cannot unify units %s and %s", x.pretty(), y.pretty());
         }
     }
 
@@ -143,7 +143,7 @@ public class ConstraintSet extends AbstractPrintable {
             if (fixedBases.isEmpty()) {
                 return new Substitution();
             } else {
-                throw new PacioliException("Cannot unify unit 1 %s", unit.toText());
+                throw new PacioliException("Cannot unify unit 1 %s", unit.pretty());
             }
         }
 
@@ -158,7 +158,7 @@ public class ConstraintSet extends AbstractPrintable {
                 assert (unit.power(fixed).isInt());
                 int fixedPower = unit.power(fixed).intValue();
                 if (fixedPower % power != 0) {
-                    throw new PacioliException("Cannot unify unit 2 %s", unit.toText());
+                    throw new PacioliException("Cannot unify unit 2 %s", unit.pretty());
                 }
                 residu = residu.multiply(fixed.raise(new Fraction(-fixedPower / power)));
             }

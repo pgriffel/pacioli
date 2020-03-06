@@ -69,6 +69,6 @@ public class UnitEvaluator extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(UnitPowerNode node) {
-        returnNode(unitAccept(node.base).raise(new Fraction(Integer.parseInt(node.power.toText()))));
+        returnNode(unitAccept(node.base).raise(new Fraction(Integer.parseInt(node.power.pretty()))));
     }
 }

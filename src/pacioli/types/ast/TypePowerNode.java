@@ -40,7 +40,7 @@ public class TypePowerNode extends AbstractTypeNode {
     public TypePowerNode(Location location, TypeNode base, NumberUnitNode power) {
         super(location);
         this.base = base;
-        this.power = new NumberTypeNode(power.getLocation(), power.toText());
+        this.power = new NumberTypeNode(power.getLocation(), power.pretty());
     }
 
     public Node transform(TypeNode base) {

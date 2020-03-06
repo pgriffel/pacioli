@@ -160,17 +160,17 @@ public class Substitution extends AbstractPrintable {
     }
 
     @Override
-    public void printText(PrintWriter out) {
+    public void printPretty(PrintWriter out) {
         List<String> elements = new ArrayList<String>();
         for (TypeVar var : map.keySet()) {
             Object obj = map.get(var);
             String text;
             if (obj instanceof Unit) {
-                text = ((Unit) obj).toText();
+                text = ((Unit) obj).pretty();
             } else {
-                text = ((Printable) obj).toText();
+                text = ((Printable) obj).pretty();
             }
-            elements.add(String.format("%s=%s", var.toText(), text));
+            elements.add(String.format("%s=%s", var.pretty(), text));
 
         }
         out.print("subs{");

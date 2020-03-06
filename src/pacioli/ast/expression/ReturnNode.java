@@ -56,7 +56,7 @@ public class ReturnNode extends AbstractExpressionNode {
 
     @Override
     public String compileToMATLAB() {
-        return resultPlace.toText() + " = " + value.compileToMATLAB() + ";\nreturn";
+        return resultPlace.pretty() + " = " + value.compileToMATLAB() + ";\nreturn";
     }
 
     @Override

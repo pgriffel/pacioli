@@ -505,7 +505,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(StringNode node) {
-        out.format("string(%s)", node.toText());
+        out.format("string(%s)", node.pretty());
     }
 
     @Override

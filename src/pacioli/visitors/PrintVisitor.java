@@ -327,7 +327,7 @@ public class PrintVisitor implements Visitor {
         write(" = ");
         for (ValueDecl pair : node.pairs) {
             write(sep);
-            write(pair.toText());
+            write(pair.pretty());
             sep = ", ";
         }
         out.print("}>");
@@ -426,7 +426,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(SchemaNode node) {
-        node.context.printText(out);
+        node.context.printPretty(out);
         node.type.accept(this);
     }
 

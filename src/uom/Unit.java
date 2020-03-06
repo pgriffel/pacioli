@@ -40,7 +40,7 @@ public interface Unit<B> {
 
     public DimensionedNumber<B> flat();
 
-    public String toText();
+    public String pretty();
 
     public Unit<B> map(UnitMap<B> map);
     

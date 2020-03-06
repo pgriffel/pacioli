@@ -84,10 +84,10 @@ public class TypeDefinition extends AbstractDefinition {
                 constraint = new TypeConstraint(app, rhsType);
             } else {
                 throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s",
-                        lhsType.toText());
+                        lhsType.pretty());
             }
         } else {
-            throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s", lhs.toText());
+            throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s", lhs.pretty());
         }
 
         assert (constraint != null);

@@ -48,7 +48,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
         }
 
         @Override
-        public void printText(PrintWriter out) {
+        public void printPretty(PrintWriter out) {
             out.printf("%s -> %s", Utils.intercalate(", ", keys()), value);
         }
     }

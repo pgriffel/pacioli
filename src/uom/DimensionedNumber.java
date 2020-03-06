@@ -118,6 +118,6 @@ public class DimensionedNumber<B> {
     }
 
     public String toText() {
-        return factor.toString() + " " + unit.toText();
+        return factor.toString() + " " + unit.pretty();
     }
 }

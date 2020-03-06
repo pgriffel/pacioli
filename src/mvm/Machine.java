@@ -2225,7 +2225,7 @@ public class Machine {
                 Matrix x = (Matrix) params.get(0);
                 Key row = (Key) params.get(1);
                 Key column = (Key) params.get(2);
-                return new PacioliString(x.get_unit(row, column).toText());
+                return new PacioliString(x.get_unit(row, column).pretty());
             }
         });
 

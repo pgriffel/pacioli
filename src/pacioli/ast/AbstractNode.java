@@ -59,7 +59,7 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
     }
     
     @Override
-    public void printText(PrintWriter out) {
+    public void printPretty(PrintWriter out) {
         //BufferedWriter out = new BufferedWriter(new FileWriter(baseName() + ".mvm"));
 
         PrintWriter writer = null;

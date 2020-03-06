@@ -447,9 +447,9 @@ public class Progam extends AbstractPrintable {
                 Typing typing = def.body.inferTyping2(this);
                 try {
                     PacioliType solved = typing.solve();
-                    Pacioli.log3("\n\nSolved type of %s is %s", info.name(), solved.toText());
-                    Pacioli.log3("\n\nSimple type of %s is %s", info.name(), solved.simplify().toText());
-                    Pacioli.log3("\n\nGenerl type of %s is %s", info.name(), solved.simplify().generalize().toText());
+                    Pacioli.log3("\n\nSolved type of %s is %s", info.name(), solved.pretty());
+                    Pacioli.log3("\n\nSimple type of %s is %s", info.name(), solved.simplify().pretty());
+                    Pacioli.log3("\n\nGenerl type of %s is %s", info.name(), solved.simplify().generalize().pretty());
                     values.lookup(info.name()).inferredType = solved.simplify().generalize();
                 } catch (PacioliException e) {
                     throw new RuntimeException(e);
@@ -480,13 +480,13 @@ public class Progam extends AbstractPrintable {
         for (String value : names) {
             ValueInfo info = values.lookup(value);
             if (!isExternal(info) && info.getDefinition() != null) {
-                Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.toText());
+                Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.pretty());
             }
         }
         for (Toplevel toplevel : toplevels) {
 
             Typing typing = toplevel.body.inferTyping2(this);
-            Pacioli.log3("\n%s", typing.toText());
+            Pacioli.log3("\n%s", typing.pretty());
             /*
              * type = typing.solve().simplify(); return type;
              */
@@ -819,7 +819,7 @@ public class Progam extends AbstractPrintable {
     }
 
     @Override
-    public void printText(PrintWriter out) {
-        program.printText(out);
+    public void printPretty(PrintWriter out) {
+        program.printPretty(out);
     }
 }

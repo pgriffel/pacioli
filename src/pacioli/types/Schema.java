@@ -43,9 +43,9 @@ public class Schema extends AbstractType {
     }
 
     @Override
-    public void printText(PrintWriter out) {
-        new TypeContext(variables).printText(out);
-        type.printText(out);
+    public void printPretty(PrintWriter out) {
+        new TypeContext(variables).printPretty(out);
+        type.printPretty(out);
 
     }
 

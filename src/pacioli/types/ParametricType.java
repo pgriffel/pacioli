@@ -69,7 +69,7 @@ public class ParametricType extends AbstractType {
     }
 
     @Override
-    public void printText(PrintWriter out) {
+    public void printPretty(PrintWriter out) {
         out.print(name);
         out.print(pprintArgs());
     }
@@ -99,8 +99,8 @@ public class ParametricType extends AbstractType {
             throw new PacioliException("Types '%s and '%s' differ", name, otherType.name);
         }
         if (args.size() != otherType.args.size()) {
-            throw new PacioliException("Number of arguments for '%s and '%s' differ", this.toText(),
-                    otherType.toText());
+            throw new PacioliException("Number of arguments for '%s and '%s' differ", this.pretty(),
+                    otherType.pretty());
         }
         ConstraintSet constraints = new ConstraintSet();
         for (int i = 0; i < args.size(); i++) {

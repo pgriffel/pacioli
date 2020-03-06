@@ -60,11 +60,11 @@ public class TypeContext extends AbstractPrintable {
         indexVars = new ArrayList<String>();
         for (TypeVar var : vars) {
             if (var.quantifier.equals("for_type")) {
-                typeVars.add(var.toText());
+                typeVars.add(var.pretty());
             } else if (var.quantifier.equals("for_index")) {
-                indexVars.add(var.toText());
+                indexVars.add(var.pretty());
             } else if (var.quantifier.equals("for_unit")) {
-                unitVars.add(var.toText());
+                unitVars.add(var.pretty());
             } else {
                 throw new RuntimeException("Unknown quantifier: " + var.quantifier);
             }
@@ -120,7 +120,7 @@ public class TypeContext extends AbstractPrintable {
     }
 
     @Override
-    public void printText(PrintWriter out) {
+    public void printPretty(PrintWriter out) {
         out.print(quantified("for_type", typeVars));
         out.print(quantified("for_index", indexVars));
         out.print(quantified("for_unit", unitVars));

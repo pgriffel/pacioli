@@ -127,7 +127,7 @@ public class PacioliFile extends AbstractPrintable {
     }
 
     @Override
-    public void printText(PrintWriter out) {
+    public void printPretty(PrintWriter out) {
         out.format("module \"%s\";\n", name);
         for (String i : getIncludes()) {
             out.format("include \"%s\";\n", i);

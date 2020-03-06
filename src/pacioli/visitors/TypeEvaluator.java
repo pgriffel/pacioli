@@ -165,7 +165,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                         TypeIdentifier id = ((TypeIdentifierNode) node.args.get(i)).typeIdentifier();
                         names.add(id);
                     } else {
-                        throw new RuntimeException(String.format("Index set expected but found '%s'", type.toText()));
+                        throw new RuntimeException(String.format("Index set expected but found '%s'", type.pretty()));
                     }
                 }
                 returnType(new IndexType(names));
@@ -265,14 +265,14 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             if (left.multiplyable(right)) {
                 returnType(left.multiply(right.reciprocal()));
             } else {
-                throw new RuntimeException(String.format("Cannot divide %s by %s", left.toText(), right.toText()));
+                throw new RuntimeException(String.format("Cannot divide %s by %s", left.pretty(), right.pretty()));
             }
         }
     }
 
     @Override
     public void visit(TypePowerNode node) {
-        returnType(matrixTypeAccept(node.base).raise(new Fraction(Integer.parseInt(node.power.toText()))));
+        returnType(matrixTypeAccept(node.base).raise(new Fraction(Integer.parseInt(node.power.pretty()))));
     }
 
     @Override

@@ -25,7 +25,7 @@ import java.io.PrintWriter;
 
 public interface Printable {
 
-    public String toText();
+    public String pretty();
 
-    public void printText(PrintWriter out);
+    public void printPretty(PrintWriter out);
 }

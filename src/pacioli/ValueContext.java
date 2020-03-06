@@ -14,7 +14,7 @@ public class ValueContext extends AbstractPrintable {
     }
 
     @Override
-    public void printText(PrintWriter out) {
+    public void printPretty(PrintWriter out) {
         out.print("some value context");
     }
 

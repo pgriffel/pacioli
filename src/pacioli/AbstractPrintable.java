@@ -27,9 +27,9 @@ import java.io.StringWriter;
 public abstract class AbstractPrintable implements Printable {
 
     @Override
-    public String toText() {
+    public String pretty() {
         StringWriter out = new StringWriter();
-        printText(new PrintWriter(out));
+        printPretty(new PrintWriter(out));
         return out.toString();
     }
 }

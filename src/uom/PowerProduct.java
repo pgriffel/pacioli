@@ -180,7 +180,7 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
     }
 
     @Override
-    public String toText() {
+    public String pretty() {
 
         String symbolic = "";
         String sep = "";
@@ -193,7 +193,7 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
                 symbolic = symbolic.concat(sep);
                 // sep = "·";
                 sep = "*";
-                symbolic = symbolic.concat(((Unit<B>) base).toText());
+                symbolic = symbolic.concat(((Unit<B>) base).pretty());
 
                 // if (power.compareTo(Fraction.MINTHREE) == 0) {
                 // symbolic = symbolic.concat("³");
@@ -227,7 +227,7 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
                 symbolic = symbolic.concat(sep);
                 // sep = "·";
                 sep = "/";
-                symbolic = symbolic.concat(((Unit<B>) base).toText());
+                symbolic = symbolic.concat(((Unit<B>) base).pretty());
 
                 if (power.compareTo(Fraction.MINONE) != 0) {
                     symbolic = symbolic.concat("^");
@@ -243,8 +243,8 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
 
         @Override
         public int compare(B o1, B o2) {
-            String text1 = ((Unit<B>) o1).toText();
-            String text2 = ((Unit<B>) o2).toText();
+            String text1 = ((Unit<B>) o1).pretty();
+            String text2 = ((Unit<B>) o2).pretty();
             if (text1.length() > 0 && text2.length() > 0) {
                 boolean char1Upper = Character.isUpperCase(text1.charAt(0));
                 boolean char2Upper = Character.isUpperCase(text2.charAt(0));

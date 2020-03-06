@@ -68,7 +68,7 @@ public class MatrixBase extends BaseUnit<MatrixBase> {
     }
 
     @Override
-    public String toText() {
+    public String pretty() {
         return "Index(" + vector.toText() + ", " + Integer.toString(position) + ")";
     }
 

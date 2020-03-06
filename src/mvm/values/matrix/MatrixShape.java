@@ -225,15 +225,15 @@ public class MatrixShape extends AbstractPrintable {
     @Override
     public void printText(PrintWriter out) {
         out.print("shape(");
-        out.print(factor.toText());
+        out.print(factor.pretty());
         out.print(", ");
         out.print(rowDimension.toText());
         out.print(", ");
-        out.print(rowUnit.toText());
+        out.print(rowUnit.pretty());
         out.print(", ");
         out.print(columnDimension.toText());
         out.print(", ");
-        out.print(columnUnit.toText());
+        out.print(columnUnit.pretty());
         out.print(")");
     }
 

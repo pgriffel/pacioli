@@ -71,7 +71,7 @@ public class IndexList extends AbstractType {
     }
 
     @Override
-    public void printText(PrintWriter out) {
+    public void printPretty(PrintWriter out) {
         out.print("[");
         String sep = "";
         for (TypeIdentifier id : indexSets) {

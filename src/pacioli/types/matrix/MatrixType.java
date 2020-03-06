@@ -164,8 +164,8 @@ public class MatrixType extends AbstractType {
             return new MatrixType(factor.multiply(other.factor), rowType.kronecker(other.rowDimension),
                     rowUnit.multiply(BangBase.shiftUnit(other.rowUnit, offset)), new IndexType(), TypeBase.ONE);
         } else {
-            throw new PacioliException("Kronecker product is not allowed for index variables: %s %% %s (%s)", toText(),
-                    other.toText(), rowDimension.getClass());
+            throw new PacioliException("Kronecker product is not allowed for index variables: %s %% %s (%s)", pretty(),
+                    other.pretty(), rowDimension.getClass());
         }
     }
 
@@ -194,7 +194,7 @@ public class MatrixType extends AbstractType {
             return new MatrixType(factor, rowType.project(columns), unit, new IndexType(), TypeBase.ONE);
 
         } else {
-            throw new PacioliException("Projection is not allowed for open type: %s", toText());
+            throw new PacioliException("Projection is not allowed for open type: %s", pretty());
         }
     }
 
@@ -269,7 +269,7 @@ public class MatrixType extends AbstractType {
         if (dimension.isVar()) {
             for (TypeBase base : unit.bases()) {
                 assert (base instanceof TypeVar);
-                names.add(dimension.varName() + "!" + base.toText());
+                names.add(dimension.varName() + "!" + base.pretty());
             }
         }
         return names;
@@ -323,7 +323,7 @@ public class MatrixType extends AbstractType {
                         } else {
                             // return new BangBase(dimType.nthIndexSet(0).name, base.toText(), 0);
                             // return new StringBase(dimName + "!" + base.toText());
-                            return new BangBase(dimHome, dimName, base.toText(), 0);
+                            return new BangBase(dimHome, dimName, base.pretty(), 0);
                         }
                     }
                 });
@@ -349,7 +349,7 @@ public class MatrixType extends AbstractType {
                             } else {
                                 return new BangBase(dimType.nthIndexSet(index).home,
                                         dimType.nthIndexSet(index).name,
-                                        String.format("%s(%s)", base.toText(), index), index);
+                                        String.format("%s(%s)", base.pretty(), index), index);
                             }
                         }
                     });
@@ -367,7 +367,7 @@ public class MatrixType extends AbstractType {
     }
 
     @Override
-    public void printText(PrintWriter out) {
+    public void printPretty(PrintWriter out) {
 
         List<Unit<TypeBase>> rowUnitList = dimensionBangUnitList(rowDimension, rowUnit);
         List<Unit<TypeBase>> columnUnitList = dimensionBangUnitList(columnDimension, columnUnit);
@@ -389,14 +389,14 @@ public class MatrixType extends AbstractType {
         List<String> rowStringList = new ArrayList<String>();
         Unit<TypeBase> factorUnit = columnWidth == 0 ? factor : pos;
         if (rowWidth == 0) {
-            rowStringList.add(factorUnit.toText());
+            rowStringList.add(factorUnit.pretty());
         } else {
             for (int i = 0; i < rowWidth; i++) {
                 Unit<TypeBase> ithUnit = rowUnitList.get(i);
                 if (i == 0) {
                     ithUnit = factorUnit.multiply(ithUnit);
                 }
-                rowStringList.add(ithUnit.toText());
+                rowStringList.add(ithUnit.pretty());
             }
         }
 
@@ -406,19 +406,19 @@ public class MatrixType extends AbstractType {
             if (j == 0) {
                 jthUnit = neg.reciprocal().multiply(jthUnit);
             }
-            columnStringList.add(jthUnit.toText());
+            columnStringList.add(jthUnit.pretty());
         }
         if (false) {
             out.print("<");
-            out.print(factor.toText());
+            out.print(factor.pretty());
             out.print(", ");
-            out.print(rowDimension.toText());
+            out.print(rowDimension.pretty());
             out.print(", ");
-            out.print(rowUnit.toText());
+            out.print(rowUnit.pretty());
             out.print(", ");
-            out.print(columnDimension.toText());
+            out.print(columnDimension.pretty());
             out.print(", ");
-            out.print(columnUnit.toText());
+            out.print(columnUnit.pretty());
             out.print(">");
         } else {
             if (columnWidth == 0) {

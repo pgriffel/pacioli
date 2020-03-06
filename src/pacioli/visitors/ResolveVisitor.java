@@ -128,7 +128,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             node.lhs.accept(this);
             //resolvedLhs = new TypeApplicationNode(getLocation(), app.getOperator(), types);
         } else {
-            visitorThrow(node.getLocation(), "Left side of typedef is not a type function: %s", node.lhs.toText());
+            visitorThrow(node.getLocation(), "Left side of typedef is not a type function: %s", node.lhs.pretty());
         }
         //node.lhs.accept(this);
         node.rhs.accept(this);

@@ -84,12 +84,12 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Printabl
     }
 
     @Override
-    public void printText(PrintWriter out) {
-        out.print(toText());
+    public void printPretty(PrintWriter out) {
+        out.print(pretty());
     }
 
     @Override
-    public String toText() {
+    public String pretty() {
         if (!name.isEmpty() && quantifier.equals("for_index")) {
             String first = name.substring(0, 1);
             return first.toUpperCase() + name.substring(1);
@@ -178,9 +178,9 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Printabl
     @Override
     public String compileToJS() {
         if (quantifier.equals("for_unit")) {
-            return "new Pacioli.PowerProduct('_" + this.toText() + "_')";
+            return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
         } else {
-            return "'_" + this.toText() + "_'";
+            return "'_" + this.pretty() + "_'";
         }
     }
 

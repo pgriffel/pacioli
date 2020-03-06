@@ -47,10 +47,10 @@ public class Typing extends AbstractPrintable {
     }
 
     @Override
-    public void printText(PrintWriter out) {
-        type.printText(out);
+    public void printPretty(PrintWriter out) {
+        type.printPretty(out);
         out.print(" with\n");
-        constraints.printText(out);
+        constraints.printPretty(out);
     }
 
     public PacioliType solve() throws PacioliException {

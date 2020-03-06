@@ -68,7 +68,7 @@ public class NamedUnit<B> extends BaseUnit<B> {
     }
 
     @Override
-    public String toText() {
+    public String pretty() {
         return symbolic;
     }
 

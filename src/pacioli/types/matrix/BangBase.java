@@ -99,7 +99,7 @@ public class BangBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
 //    @Override
-    public String toText() {
+    public String pretty() {
         return indexSetName.name + "!" + unitName.name;
     }
 

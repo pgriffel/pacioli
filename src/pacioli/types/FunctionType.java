@@ -42,14 +42,14 @@ public class FunctionType extends AbstractType {
     }
 
     @Override
-    public void printText(PrintWriter out) {
+    public void printPretty(PrintWriter out) {
         if (domain instanceof ParametricType && ((ParametricType) domain).name.equals("Tuple")) {
             out.print(((ParametricType) domain).pprintArgs());
         } else {
-            domain.printText(out);
+            domain.printPretty(out);
         }
         out.print(" -> ");
-        range.printText(out);
+        range.printPretty(out);
     }
 
     @Override

@@ -51,7 +51,7 @@ public class Utils {
     public static String intercalateText(String seperator, List<? extends Printable> printables) {
         List<String> strings = new ArrayList<String>();
         for (Printable printable : printables) {
-            strings.add(printable.toText());
+            strings.add(printable.pretty());
         }
         return intercalate(seperator, strings);
     }
