@@ -44,25 +44,6 @@ public class TypeOperationNode extends AbstractTypeNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        String leftJS = left.compileToJS(false);
-        String rightJS = right.compileToJS(false);
-        if (operator == "multiply") {
-            return leftJS + ".mult(" + rightJS + ")";
-        } else if (operator == "divide") {
-            return leftJS + ".div(" + rightJS + ")";
-        } else if (operator == "per") {
-            return leftJS + ".per(" + rightJS + ")";
-        } else if (operator == "kronecker") {
-            return leftJS + ".kron(" + rightJS + ")";
-        } else if (operator == "scale") {
-            return "Pacioli.scalarShape(Pacioli.unit('" + left + "', '" + right + "'))";
-        } else {
-            throw new RuntimeException("Type operator '" + operator + "' unknown");
-        }
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         // visitor.visit(this);
     }

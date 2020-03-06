@@ -41,13 +41,6 @@ public class ProjectionNode extends AbstractExpressionNode {
         out.print(" end");
     }
 
-    @Override
-    public String compileToJS(boolean boxed) {
-        assert (type != null);
-        return String.format("Pacioli.projectNumbers(%s, %s.param, [%s])", body.compileToJS(boxed), type.compileToJS(),
-                numString());
-    }
-
     public String numString() {
         List<String> columns = new ArrayList<String>();
         for (ConstNode node : this.columns) {

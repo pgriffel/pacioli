@@ -24,12 +24,6 @@ public class NumberUnitNode extends AbstractUnitNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public String compileToMATLAB() {
         // TODO Auto-generated method stub
         return null;

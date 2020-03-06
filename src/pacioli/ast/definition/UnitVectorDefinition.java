@@ -84,29 +84,6 @@ public class UnitVectorDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("function compute_").append(globalName()).append(" () {");
-        builder.append("return {units:{");
-        boolean sep = false;
-        for (UnitDecl entry : items) {
-            if (sep) {
-                builder.append(",");
-            } else {
-                sep = true;
-            }
-            builder.append("'");
-            builder.append(entry.key);
-            builder.append("':");
-            builder.append(Utils.compileUnitToJS(entry.value.evalUnit().unit()));
-            builder.append("");
-        }
-        builder.append("}}}");
-
-        return builder.toString();
-    }
-
-    @Override
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("MATLAB and Octave have no units.");
     }

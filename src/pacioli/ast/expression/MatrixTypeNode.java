@@ -70,27 +70,6 @@ public class MatrixTypeNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        /*
-         * String row = "[1"; for (int i = 0; i < nrColumns - 1; i++) { row += ",1"; }
-         * row += "]";
-         * 
-         * String matrix = "["; matrix += row; for (int i = 0; i < nrRows - 1; i++) {
-         * matrix += "," + row; } matrix += "]";
-         * 
-         * return matrix;
-         */
-        // return "Pacioli.oneMatrix(" + typeNode.compileToJS() + ")";
-        if (boxed) {
-            // throw new RuntimeException("matrix type node ");
-            return "Pacioli.oneMatrix(" + typeNode.compileToJS(boxed) + ")";
-        } else {
-            return "Pacioli.oneNumbers(" + rowDim.size() + ", " + columnDim.size() + ")";
-        }
-
-    }
-
-    @Override
     public String compileToMATLAB() {
         return String.format("ones(%s, %s)", rowDim.size(), columnDim.size());
     }

@@ -26,13 +26,6 @@ public class TypeMultiplyNode extends AbstractTypeNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        String leftJS = left.compileToJS(false);
-        String rightJS = right.compileToJS(false);
-        return leftJS + ".mult(" + rightJS + ")";
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

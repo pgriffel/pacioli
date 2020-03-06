@@ -20,16 +20,7 @@ public class PrefixUnitTypeNode extends AbstractTypeNode {
     public void printText(PrintWriter out) {
         out.format("%s:%s", prefix.toText(), unit.toText());
     }
-
-    @Override
-    public String compileToJS(boolean boxed) {
-        return "Pacioli.scalarShape(Pacioli.unit('" + prefix + "', '" + unit + "'))";
-    }
-
-    public String MVMCode(CompilationSettings settings) {
-        return "scalar_shape(scaled_unit(\"" + prefix.getName() + "\", \"" + unit.getName() + "\"))";
-    }
-
+    
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);

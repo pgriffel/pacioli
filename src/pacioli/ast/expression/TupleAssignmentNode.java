@@ -54,11 +54,6 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        return desugar().compileToJS(boxed);
-    }
-
-    @Override
     public String compileToMATLAB() {
         String tmpVar = Utils.freshName();
         String code = tmpVar + " = " + tuple.compileToMATLAB();

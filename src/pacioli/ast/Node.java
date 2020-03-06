@@ -45,7 +45,7 @@ public interface Node extends Printable {
 
     public String compileToJSNew(CompilationSettings settings, boolean boxed);
     
-    public String compileToJS(boolean boxed);
+    //public String compileToJS(boolean boxed);
 
     public String compileToMATLAB();
 

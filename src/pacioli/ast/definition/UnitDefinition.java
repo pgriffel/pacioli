@@ -87,18 +87,6 @@ public class UnitDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        if (body == null) {
-            return String.format("Pacioli.compute_%s = function () {return {symbol: '%s'}}", globalName(), symbol);
-        } else {
-            DimensionedNumber<TypeBase> number = body.evalUnit().flat();
-            return String.format(
-                    "Pacioli.compute_%s = function () {return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}}",
-                    globalName(), number.factor(), Utils.compileUnitToJS(number.unit()), symbol);
-        }
-    }
-
-    @Override
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.

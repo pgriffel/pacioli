@@ -48,11 +48,6 @@ public class SequenceNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        return desugar().compileToJS(boxed);
-    }
-
-    @Override
     public String compileToMATLAB() {
         String code = "";
         for (ExpressionNode item : items) {

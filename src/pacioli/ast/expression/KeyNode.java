@@ -104,28 +104,6 @@ public class KeyNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Pacioli.createCoordinates([");
-        for (int i = 0; i < keys.size(); i++) {
-            if (0 < i)
-                builder.append(",");
-            builder.append("['");
-            builder.append(keys.get(i));
-            builder.append("','");
-            builder.append(indexSetDefinitions.get(i).globalName());
-            builder.append("']");
-        }
-        builder.append("])");
-        return builder.toString();
-        /*
-         * int totalSize = 1; int index = 0; int size = indexSets.size(); for (int i =
-         * 0; i < size; i++) { index += positions.get(i) * totalSize; totalSize *=
-         * sizes.get(i); } return String.format("[%s,%s]", index, totalSize);
-         */
-    }
-
-    @Override
     public String compileToMATLAB() {
         int totalSize = 1;
         int index = 0;

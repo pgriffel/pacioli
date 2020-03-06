@@ -40,11 +40,6 @@ public class ProgramNode extends AbstractNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        throw new RuntimeException("todo");
-    }
-
-    @Override
     public String compileToMATLAB() {
         throw new RuntimeException("todo");
     }

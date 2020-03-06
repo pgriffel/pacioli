@@ -26,19 +26,6 @@ public class StringNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        StringWriter writer = new StringWriter();
-        writer.write("'");
-        String[] lines = value.split("\n");
-        for (String line : lines) {
-            writer.write(line);
-            writer.write("\\\n");
-        }
-        writer.write("'");
-        return writer.toString();
-    }
-
-    @Override
     public String compileToMATLAB() {
         return toText();
     }

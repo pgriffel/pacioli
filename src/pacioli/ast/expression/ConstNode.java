@@ -47,20 +47,7 @@ public class ConstNode extends AbstractExpressionNode {
     public void printText(PrintWriter out) {
         out.print(value);
     }
-
-    @Override
-    public String compileToJS(boolean boxed) {
-        if (value.equals("true") || value.equals("false")) {
-            return String.format("%s", value);
-        } else {
-            if (boxed) {
-                return String.format("Pacioli.num(%s)", value);
-            } else {
-                return String.format("Pacioli.initialNumbers(1, 1, [[0, 0, %s]])", value);
-            }
-        }
-    }
-
+    
     @Override
     public String compileToMATLAB() {
         return value;

@@ -26,13 +26,6 @@ public class TypeKroneckerNode extends AbstractTypeNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        String leftJS = left.compileToJS(false);
-        String rightJS = right.compileToJS(false);
-        return leftJS + ".kron(" + rightJS + ")";
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

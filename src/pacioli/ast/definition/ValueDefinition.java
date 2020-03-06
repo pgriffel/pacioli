@@ -66,30 +66,6 @@ public class ValueDefinition extends AbstractDefinition {
         out.format("define %s = %s;\n", localName(), body.toText());
     }
 
-    @Override
-    public String compileToJS(boolean boxed) {
-        // ExpressionNode transformedBody = resolvedBody.transformMutableVarRefs();
-        ExpressionNode transformedBody = null; // resolvedBody.desugar();
-        if (transformedBody instanceof LambdaNode) {
-            LambdaNode code = (LambdaNode) transformedBody;
-            return String.format("\n" + "Pacioli.u_%s = function () {\n"
-                    + "    var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));\n"
-                    + "    var type = %s;\n" + "    return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));\n"
-                    + "}\n" + "Pacioli.b_%s = function (%s) {\n" + "    return %s;\n" + "}\n"
-                    + "Pacioli.%s = function (%s) {\n" + "    return %s;\n" + "}\n", globalName(),
-                    "fixme:: type.reduce().compileToJS()", globalName(), code.argsString(),
-                    code.expression.compileToJS(true), globalName(), code.argsString(),
-                    code.expression.compileToJS(false));
-        } else {
-            return String.format(
-                    "\n" + "Pacioli.compute_u_%s = function () {\n" + "    return %s;\n" + "}\n"
-                            + "Pacioli.compute_%s = function () {\n  return %s;\n}\n"
-                            + "Pacioli.compute_b_%s = function () {\n  return %s;\n}\n",
-                    globalName(), "fixme:  type.reduce().compileToJS()", // transformedBody.compileToJSShape(),
-                    globalName(), transformedBody.compileToJS(false), globalName(), transformedBody.compileToJS(true));
-        }
-    }
-
     public String compileStatementToMATLAB() {
         Object resolvedBody = null; // fixme
         assert (resolvedBody instanceof LambdaNode);

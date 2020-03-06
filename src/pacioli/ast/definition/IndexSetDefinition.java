@@ -83,19 +83,6 @@ public class IndexSetDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        String output = String.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', [",
-                globalName(), localName());
-        List<String> quotedItems = new ArrayList<String>();
-        for (String item : items) {
-            quotedItems.add(String.format("\"%s\"", item));
-        }
-        output += Utils.intercalate(",", quotedItems);
-        output += "])}\n";
-        return output;
-    }
-
-    @Override
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.

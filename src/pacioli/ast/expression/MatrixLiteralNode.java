@@ -72,37 +72,6 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
             throw new PacioliException(typeNode.getLocation(), "Expected a matrix type");
         }
     }
-    
-    @Override
-    public String compileToJS(boolean boxed) {
-
-        StringBuilder builder = new StringBuilder();
-        String sep = "";
-        for (int i = 0; i < values.size(); i++) {
-            builder.append(sep);
-            builder.append("[");
-            builder.append(rowIndices.get(i));
-            builder.append(",");
-            builder.append(columnIndices.get(i));
-            builder.append(",");
-            builder.append(values.get(i));
-            builder.append("]");
-            sep = ",";
-        }
-        if (boxed) {
-            return "Pacioli.initialMatrix(" + typeNode.compileToJS(boxed) + "," + builder.toString() + ")";
-            // throw new RuntimeException("matrix literal node ");
-        }
-        return String.format("Pacioli.initialNumbers(%s, %s, [%s])", 
-                //rowDim.size(), 
-                //columnDim.size(),
-                builder.toString());
-
-        // return String.format("Pacioli.initialMatrix(%s, [%s])",
-        // typeNode.compileToJS(),
-        // builder.toString());
-
-    }
 
     @Override
     public String compileToMATLAB() {

@@ -61,11 +61,6 @@ public class TypePowerNode extends AbstractTypeNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        return base.compileToJS(false) + ".expt(" + power + ")";
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

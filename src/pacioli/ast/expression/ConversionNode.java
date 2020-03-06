@@ -36,11 +36,6 @@ public class ConversionNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        return String.format("Pacioli.conversionNumbers(%s)", typeNode.compileToJS(boxed));
-    }
-
-    @Override
     public String compileToMATLAB() {
         throw new RuntimeException("Not implemented");
     }

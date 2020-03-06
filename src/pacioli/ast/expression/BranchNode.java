@@ -57,12 +57,6 @@ public class BranchNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        return String.format("(%s ? %s : %s)", test.compileToJS(boxed), positive.compileToJS(boxed),
-                negative.compileToJS(boxed));
-    }
-
-    @Override
     public String compileToMATLAB() {
         return String.format("_if(%s, @() %s, @() %s)", test.compileToMATLAB(), positive.compileToMATLAB(),
                 negative.compileToMATLAB());

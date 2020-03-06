@@ -40,11 +40,6 @@ public class NumberTypeNode extends AbstractTypeNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        return "Pacioli.scalarShape(Pacioli.ONE)";
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

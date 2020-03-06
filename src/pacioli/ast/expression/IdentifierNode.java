@@ -134,16 +134,6 @@ public class IdentifierNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        assert (home != null); // names must have been resolved
-        if (boxed) {
-            return home.isEmpty() ? name : "Pacioli.bfetchValue('" + home + "', '" + name + "')";
-        } else {
-            return home.isEmpty() ? name : "Pacioli.fetchValue('" + home + "', '" + name + "')";
-        }
-    }
-
-    @Override
     public String compileToMATLAB() {
         assert (home != null); // names must have been resolved
         return home.isEmpty() ? name.toLowerCase()

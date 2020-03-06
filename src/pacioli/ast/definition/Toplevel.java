@@ -28,12 +28,6 @@ public class Toplevel extends AbstractDefinition {
     }
 
     @Override
-    public String compileToJS(boolean boxed) {
-        // return resolvedBody.compileToJS(false);
-        throw new RuntimeException("todo");
-    }
-
-    @Override
     public String compileToMATLAB() {
         throw new RuntimeException("todo");
     }

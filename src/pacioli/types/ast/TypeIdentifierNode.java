@@ -102,17 +102,6 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         return definition;
     }
 
-    @Override
-    public String compileToJS(boolean boxed) {
-        if (definition instanceof AliasDefinition) {
-            // return "Pacioli.scalarShape(" + Utils.compileUnitToJS(((AliasDefinition)
-            // definition).evalBody()) + ")";
-            throw new RuntimeException("fixme");
-        } else {
-            return "Pacioli.scalarShape(Pacioli.unit('" + name + "'))";
-        }
-    }
-
     public String MVMCode(CompilationSettings settings) {
         if (definition instanceof AliasDefinition) {
             // return "scalar_shape(" + Utils.compileUnitToMVM(((AliasDefinition)
@@ -122,45 +111,6 @@ public class TypeIdentifierNode extends AbstractTypeNode {
             return "scalar_shape(unit(\"" + name + "\"))";
         }
     }
-
-    /*
-     * public TypeIdentifierNode resolveAsType(Dictionary dictionary, TypeContext
-     * context) throws PacioliException { Definition definition = null; if
-     * (!context.containsTypeVar(name) && !builtinTypes.contains(name)) { if
-     * (dictionary.containsTypeDefinition(name)) { definition =
-     * dictionary.getTypeDefinition(name); } else { throw new
-     * PacioliException(getLocation(), "Type '" + name + "' unknown"); } } return
-     * new TypeIdentifierNode(getLocation(), name, Kind.TYPE, definition,
-     * dictionary.home()); }
-     * 
-     * public TypeIdentifierNode resolveAsUnit(Dictionary dictionary, TypeContext
-     * context) throws PacioliException { Definition definition = null; if
-     * (!context.containsUnitVar(name)) { if
-     * (dictionary.containsUnitDefinition(name)) { definition =
-     * dictionary.getUnitDefinition(name); } else { throw new
-     * PacioliException(getLocation(), "Unit '" + name + "' unknown"); } } return
-     * new TypeIdentifierNode(getLocation(), name, Kind.UNIT, definition,
-     * dictionary.home()); }
-     * 
-     * public TypeIdentifierNode resolveAsUnitVector(String indexSet, Dictionary
-     * dictionary, TypeContext context) throws PacioliException { Definition
-     * definition = null; String fullName = indexSet + "!" + name; if
-     * (!context.containsUnitVar(fullName)) { if
-     * (dictionary.containsUnitVectorDefinition(fullName)) { definition =
-     * dictionary.getUnitVectorDefinition(fullName); } else { throw new
-     * PacioliException(getLocation(), "Unit vector '" + fullName + "' unknown" +
-     * context.toText()); } } return new TypeIdentifierNode(getLocation(), name,
-     * Kind.UNIT, definition, dictionary.home()); }
-     * 
-     * public TypeIdentifierNode resolveAsIndex(Dictionary dictionary, TypeContext
-     * context) throws PacioliException { Definition definition = null; if
-     * (!context.containsIndexVar(name)) { if
-     * (dictionary.containsIndexSetDefinition(name)) { definition =
-     * dictionary.getIndexSetDefinition(name); } else { throw new
-     * PacioliException(getLocation(), "Index set '" + name + "' unknown"); } }
-     * return new TypeIdentifierNode(getLocation(), name, Kind.INDEX, definition,
-     * dictionary.home()); }
-     */
 
     @Override
     public void accept(Visitor visitor) {
