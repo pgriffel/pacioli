@@ -304,8 +304,9 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(BangTypeNode bangTypeNode) {
-        write("bang");
+    public void visit(BangTypeNode node) {
+        //write("bang");
+        out.format("%s!%s", node.indexSet.getName(), node.unit == null ? "" : node.unit.getName());
     }
 
     @Override

@@ -130,10 +130,10 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
                     //info.inferredType.compileToJS(),
                     node.globalName(),
                     code.argsString(),
-                    code.expression.compileToJSNew(settings, true),
+                    code.expression.compileToJS(settings, true),
                     node.globalName(),
                     code.argsString(),
-                    code.expression.compileToJSNew(settings, false));
+                    code.expression.compileToJS(settings, false));
         } else {
             out.format("\n"
                     + "Pacioli.compute_u_%s = function () {\n"
@@ -145,9 +145,9 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
                     info.inferredType.reduce().compileToJS(), //transformedBody.compileToJSShape(),
                     //info.inferredType.compileToJS(), //transformedBody.compileToJSShape(),
                     node.globalName(),
-                    transformedBody.compileToJSNew(settings, false),
+                    transformedBody.compileToJS(settings, false),
                     node.globalName(),
-                    transformedBody.compileToJSNew(settings, true));
+                    transformedBody.compileToJS(settings, true));
         }
                 
     }
@@ -384,7 +384,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         //node.body.accept(this),
         
         out.format("Pacioli.projectNumbers(%s, %s.param, [%s])", 
-                node.body.compileToJSNew(settings, boxed), 
+                node.body.compileToJS(settings, boxed), 
                 node.type.compileToJS(),
                 node.numString());
     }

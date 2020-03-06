@@ -44,7 +44,7 @@ public abstract class AbstractTypeNode extends AbstractNode implements TypeNode 
     }
 
     @Override
-    public String compileToJSNew(CompilationSettings settings, boolean boxed) {
+    public String compileToJS(CompilationSettings settings, boolean boxed) {
         throw new RuntimeException("Not implemented for this type of node (" + this.getClass()
                 + "). Only matrix type nodes can be compiled.");
     }

@@ -117,12 +117,12 @@ public class IdentifierNode extends AbstractExpressionNode {
         assert (home != null); // names must have been resolved
         return home.isEmpty();
     }
-
+/*
     @Override
     public void printText(PrintWriter out) {
         out.print(name);
     }
-
+*/
     public boolean isMutableVar() {
         assert (isMutableVar != null); // names must have been resolved
         return isMutableVar;

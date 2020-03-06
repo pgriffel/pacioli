@@ -213,8 +213,11 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(BangTypeNode bangTypeNode) {
-        Pacioli.log("bang");
+    public void visit(BangTypeNode node) {
+        node.indexSet.accept(this);
+        if (node.unit != null) {
+            node.unit.accept(this);
+        }
     }
 
     @Override

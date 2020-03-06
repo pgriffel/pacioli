@@ -76,36 +76,30 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
     
     @Override
     public Node desugar() {
-        DesugarVisitor visitor = new DesugarVisitor();
-        return visitor.nodeAccept(this);
+        return new DesugarVisitor().nodeAccept(this);
     }
     
     @Override
     public String compileToMVM(CompilationSettings settings) {
         StringWriter outputStream = new StringWriter();
-        MVMGenerator gen = new MVMGenerator(new PrintWriter(outputStream), settings);
-        this.accept(gen);
+        accept(new MVMGenerator(new PrintWriter(outputStream), settings));
         return outputStream.toString();
     }
     
     @Override
-    public String compileToJSNew(CompilationSettings settings, boolean boxed) {
+    public String compileToJS(CompilationSettings settings, boolean boxed) {
         StringWriter outputStream = new StringWriter();
-        JSGenerator gen = new JSGenerator(new PrintWriter(outputStream), settings, boxed);
-        this.accept(gen);
+        this.accept(new JSGenerator(new PrintWriter(outputStream), settings, boxed));
         return outputStream.toString();
     }
 
     @Override
     public void resolve(Progam prog) {
-        ResolveVisitor visitor = new ResolveVisitor(prog);
-        accept(visitor);
+        accept(new ResolveVisitor(prog));
     }
 
     @Override
     public Set<SymbolInfo> uses() {
-        UsesVisitor visitor = new UsesVisitor();
-        Set<SymbolInfo> ids = visitor.idsAccept(this);
-        return ids;
+        return new UsesVisitor().idsAccept(this);
     }
 }

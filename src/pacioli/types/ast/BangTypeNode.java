@@ -56,11 +56,6 @@ public class BangTypeNode extends AbstractTypeNode {
     }
 
     @Override
-    public void printText(PrintWriter out) {
-        out.format("%s!%s", indexSet.getName(), unit == null ? "" : unit.getName());
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
