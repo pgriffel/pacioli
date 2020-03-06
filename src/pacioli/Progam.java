@@ -8,22 +8,16 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import pacioli.Progam.Phase;
 import pacioli.ast.ProgramNode;
-import pacioli.ast.Visitor;
-import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.UnitVectorDefinition;
-import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
-import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.parser.Parser;
 import pacioli.symboltable.GenericInfo;
@@ -38,7 +32,6 @@ import pacioli.types.TypeBase;
 import pacioli.visitors.CodeGenerator;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
-import pacioli.visitors.PrintVisitor;
 import pacioli.visitors.ResolveVisitor;
 import uom.DimensionedNumber;
 
@@ -76,6 +69,15 @@ public class Progam extends AbstractPrintable {
         this.libs = libs;
     }
 
+    // -------------------------------------------------------------------------
+    // Pretty printing
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void printPretty(PrintWriter out) {
+        program.printPretty(out);
+    }
+    
     // -------------------------------------------------------------------------
     // Adding symbol table entries
     // -------------------------------------------------------------------------
@@ -178,11 +180,9 @@ public class Progam extends AbstractPrintable {
         if (phase.equals(Phase.parsed)) return;
         
         desugar();
-        fillTables(loadPrimitives, loadStandard);
-        //printSymbolTables();
-        //subsAliases();
         if (phase.equals(Phase.desugared)) return;
         
+        fillTables(loadPrimitives, loadStandard);
         resolve();
         if (phase.equals(Phase.resolved)) return;
     
@@ -374,14 +374,14 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     // Type inference
     // -------------------------------------------------------------------------
-
+/*
     public void checkTypes() throws Exception {
         desugar();
         resolve();
         inferTypes();
         printTypes();
     }
-
+*/
     private void inferTypes() {
 
         Set<SymbolInfo> discovered = new HashSet<SymbolInfo>();
@@ -524,12 +524,6 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     // Compilation driver
     // -------------------------------------------------------------------------
-    
-    public void compileMVMRec(CompilationSettings settings) throws Exception {
-        // Obsolete
-        throw new RuntimeException("compileMVMRec is obsolete");
-    }
-
     
     public void compileRec(CompilationSettings settings, String target) throws Exception {
 
@@ -818,8 +812,4 @@ public class Progam extends AbstractPrintable {
         }
     }
 
-    @Override
-    public void printPretty(PrintWriter out) {
-        program.printPretty(out);
-    }
 }

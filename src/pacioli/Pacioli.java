@@ -206,7 +206,7 @@ public class Pacioli {
                 cleanStandardIncludes(libs, force);
                 program.cleanMVMFiles(force);
                 compileStandardIncludes(libs, settings);
-                program.compileMVMRec(settings);
+                program.compileRec(settings, "mvm");
 
                 Pacioli.logln2("Interpreting module '%s'", file.getPath());
                 String mvmFile = program.baseName() + ".mvm";

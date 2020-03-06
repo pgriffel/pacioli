@@ -381,12 +381,13 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(ProjectionNode node) {
         assert (node.type != null);
-        //node.body.accept(this),
-        
-        out.format("Pacioli.projectNumbers(%s, %s.param, [%s])", 
-                node.body.compileToJS(settings, boxed), 
-                node.type.compileToJS(),
-                node.numString());
+        write("Pacioli.projectNumbers(");
+        node.body.accept(this);
+        write(", ");
+        out.format("%s.param", node.type.compileToJS());
+        write(", ");
+        out.format("[%s]",node.numString());
+        write(")");
     }
 
     @Override
