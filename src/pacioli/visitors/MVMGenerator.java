@@ -233,8 +233,8 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
     public void visit(ConversionNode node) {
         out.write("matrix_constructor(\"conversion\", ");
         // todo: switch to new compile
-        node.typeNode.accept(this);
-        //out.print(node.typeNode.evalType(true).compileToMVM());
+        //node.typeNode.accept(this);
+        out.print(node.typeNode.evalType(true).compileToMVM());
         out.write(")");
     }
 
@@ -589,10 +589,10 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
         write(")");
         unmark();
     }
-
+/*
     @Override
     public void visit(BangTypeNode node) {
-        //na();
+        na();
         IndexSetInfo info = (IndexSetInfo) node.indexSet.info;
         UnitInfo unitInfo = node.unit == null ? null : (UnitInfo) node.unit.info;
         out.format("bang_shape(\"%s\", \"%s\")",
@@ -633,7 +633,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(TypeIdentifierNode node) {
-        //na();
+        na();
         out.write(node.MVMCode(settings));
     }
 
@@ -649,13 +649,13 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(PrefixUnitTypeNode node) {
-        //na();
+        na();
         out.write(node.MVMCode(settings));
     }
 
     @Override
     public void visit(TypeMultiplyNode node) {
-        //na();
+        na();
         out.write("shape_binop(\"multiply\", ");
         node.left.accept(this);
         out.write(", ");
@@ -665,7 +665,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(TypeDivideNode node) {
-        //na();
+        na();
         out.write("shape_binop(\"divide\", ");
         node.left.accept(this);
         out.write(", ");
@@ -675,7 +675,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(TypeKroneckerNode node) {
-        //na();
+        na();
         out.write("shape_binop(\"kronecker\", ");
         node.left.accept(this);
         out.write(", ");
@@ -712,7 +712,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
     public void visit(UnitPowerNode unitOperationNode) {
         na();
     }
-
+*/
     @Override
     public void compileValueDefinition(ValueDefinition def, ValueInfo info) {
         def.accept(this);
