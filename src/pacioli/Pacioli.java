@@ -336,10 +336,10 @@ public class Pacioli {
         try {
 
             Pacioli.logln2("Loading module '%s'", file.getPath());
-            program.loadTill(Phase.parsed);
+            program.loadTill(Phase.typed);
 
             Pacioli.logln2("Displaying types in module '%s'", file.getPath());
-            program.checkTypes();
+            program.printTypes();
 
         } catch (IOException e) {
             Pacioli.logln("\nError: cannot display types in file '%s':\n\n%s", fileName, e);

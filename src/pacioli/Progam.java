@@ -463,7 +463,7 @@ public class Progam extends AbstractPrintable {
         }
     }
     
-    private void printTypes() {
+    void printTypes() {
 
         Set<SymbolInfo> discovered = new HashSet<SymbolInfo>();
         Set<SymbolInfo> finished = new HashSet<SymbolInfo>();
