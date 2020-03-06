@@ -253,7 +253,11 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ConversionNode node) {
-        out.format("Pacioli.conversionNumbers(%s)", node.typeNode.compileToJS(boxed));
+        //out.format("Pacioli.conversionNumbers(");
+        //out.format("Pacioli.conversionNumbers(%s)", node.typeNode.compileToJSNew(settings, boxed));
+        
+        out.format("Pacioli.conversionNumbers(%s)", node.typeNode.evalType(true).compileToJS());
+        //out.format(")");
     }
 
     @Override
@@ -275,13 +279,20 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(IfStatementNode node) {
-        out.write("if (");
+/*        out.write("if (");
         node.test.accept(this);
         out.write(") { ");
         node.positive.accept(this);
         out.write(" } else { ");
         node.negative.accept(this);
-        out.write(" }");
+        out.write(" }");*/
+        out.write("(");
+        node.test.accept(this);
+        out.write(" ? ");
+        node.positive.accept(this);
+        out.write(" : ");
+        node.negative.accept(this);
+        out.write(" )");
     }
 
     @Override
@@ -334,7 +345,8 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             sep = ",";
         }
         if (boxed) {
-            out.print("Pacioli.initialMatrix(" + node.typeNode.compileToJS(boxed) + "," + builder.toString() + ")");
+            //out.print("Pacioli.initialMatrix(" + node.typeNode.compileToJSNew(settings, boxed) + "," + builder.toString() + ")");
+            out.print("Pacioli.initialMatrix(" + node.typeNode.evalType(true).compileToJS() + "," + builder.toString() + ")");
         }
         out.format("Pacioli.initialNumbers(%s, %s, [%s])", 
                 node.rowDim.size(), node.columnDim.size(),
@@ -369,8 +381,10 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(ProjectionNode node) {
         assert (node.type != null);
+        //node.body.accept(this),
+        
         out.format("Pacioli.projectNumbers(%s, %s.param, [%s])", 
-                node.body.compileToJS(boxed), 
+                node.body.compileToJSNew(settings, boxed), 
                 node.type.compileToJS(),
                 node.numString());
     }
