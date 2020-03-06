@@ -231,3 +231,18 @@ define intercalate(items, seperator) =
   if items = [] then "" else
     fold_list(lambda (x, y) concatenate(x, concatenate(seperator, y)) end, items)
   end;
+
+
+define remove_nth(n, list) =
+  begin
+      result := [];
+      i := 0;
+      size := list_size(list);
+      while i != size do
+          if i != n then
+              result := add_mut(result, nth(i, list));
+          end
+          i := i + 1;
+      end
+      return result;
+  end;
