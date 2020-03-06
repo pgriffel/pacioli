@@ -157,7 +157,7 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
         }
         return number;
     }
-
+/*
     @Override
     public <T> T fold(UnitFold<B, T> fold) {
         //T newUnit = new PowerProduct();
@@ -168,7 +168,7 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
         }
         return result;
     }
-    
+  */  
     @Override
     public Unit<B> map(UnitMap<B> map) {
         Unit<B> newUnit = new PowerProduct<B>();

@@ -11,6 +11,7 @@ import java.util.Set;
 import mvm.values.matrix.MatrixDimension;
 import pacioli.CompilationSettings;
 import pacioli.Pacioli;
+import pacioli.PacioliException;
 import pacioli.Utils;
 import pacioli.ast.Node;
 import pacioli.ast.ProgramNode;
@@ -63,6 +64,7 @@ import pacioli.types.ast.TypeKroneckerNode;
 import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
+import pacioli.types.matrix.MatrixType;
 import uom.DimensionedNumber;
 
 public class MVMGenerator extends PrintVisitor implements CodeGenerator {
@@ -319,8 +321,8 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
         // Write the opening of the literal
         out.write("literal_matrix(");
         // Todo: switch to new compiler
-        node.typeNode.accept(this);
-        //out.print(node.typeNode.evalType(true).compileToMVM());
+        //node.typeNode.accept(this);
+        out.print(node.typeNode.evalType(true).compileToMVM());
         out.write(", ");
 
         // Write the elements. Table check stores all found indices to check for
@@ -362,8 +364,15 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(MatrixTypeNode node) {
+        MatrixType type;
+        try {
+            type = node.evalType(true);
+        } catch (PacioliException e) {
+            throw new RuntimeException(e);
+        }
         out.write("matrix_constructor(\"ones\", ");
-        node.typeNode.accept(this);
+        //node.typeNode.accept(this);
+        out.print(type.compileToMVM());
         out.write(")");
     }
 

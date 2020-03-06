@@ -422,7 +422,7 @@ public class Pacioli {
             "convolution/convolution.pacioli",
             "dice/dice.pacioli",
             "do/do.pacioli",
-            "empty/empty.pacioli",
+            //"empty/empty.pacioli",
             "envelope/envelope.pacioli",
             //"fourier-motzkin/fourier_motzkin.pacioli",
             //"fourier-motzkin/quad.pacioli",

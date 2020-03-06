@@ -309,6 +309,7 @@ public class MatrixType extends AbstractType {
 
             if (dimType.width() == 1) {
                 final String dimName = dimType.nthIndexSet(0).name;
+                final String dimHome = dimType.nthIndexSet(0).home;
                 Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
                     public Unit<TypeBase> map(TypeBase base) {
                         assert ((base instanceof TypeVar) || (base instanceof BangBase));
@@ -317,18 +318,19 @@ public class MatrixType extends AbstractType {
                             BangBase bangBase = (BangBase) base;
                             assert (dimName.equals(bangBase.indexSetName()));
                             // return new StringBase(bangBase.indexSetName() + "!" + bangBase.unitName());
-                            return new BangBase(bangBase.indexSetName(), bangBase.unitName(), 0);
+                            BangBase newBase = new BangBase(dimHome, bangBase.indexSetName(), bangBase.unitName(), 0);
+                            return newBase;
                         } else {
                             // return new BangBase(dimType.nthIndexSet(0).name, base.toText(), 0);
                             // return new StringBase(dimName + "!" + base.toText());
-                            return new BangBase(dimName, base.toText(), 0);
+                            return new BangBase(dimHome, dimName, base.toText(), 0);
                         }
                     }
                 });
                 if (candidate.equals(TypeBase.ONE)) {
                     // units.add(new BangBase(dimType.nthIndexSet(0).name, "", 0));
                     // units.add(new StringBase(dimName + "!"));
-                    units.add(new BangBase(dimName, "", 0));
+                    units.add(new BangBase(dimHome, dimName, "", 0));
                 } else {
                     units.add(candidate);
                 }
@@ -345,7 +347,8 @@ public class MatrixType extends AbstractType {
                                     return TypeBase.ONE;
                                 }
                             } else {
-                                return new BangBase(dimType.nthIndexSet(index).name,
+                                return new BangBase(dimType.nthIndexSet(index).home,
+                                        dimType.nthIndexSet(index).name,
                                         String.format("%s(%s)", base.toText(), index), index);
                             }
                         }
@@ -353,7 +356,7 @@ public class MatrixType extends AbstractType {
                     if (candidate.equals(TypeBase.ONE)) {
                         // units.add(new BangBase(dimType.nthIndexSet(index).name, "", i));
                         // units.add(new StringBase(dimType.nthIndexSet(index).name));
-                        units.add(new BangBase(dimType.nthIndexSet(index).name, "", i));
+                        units.add(new BangBase(dimType.nthIndexSet(index).home, dimType.nthIndexSet(index).name, "", i));
                     } else {
                         units.add(candidate);
                     }
@@ -503,28 +506,111 @@ public class MatrixType extends AbstractType {
 
     @Override
     public String compileToMVM() {
-        return factor.fold(new UnitFold<TypeBase, String> () {
+        UnitMVMCompiler unitCompiler = new UnitMVMCompiler();
+        DimMVMCompiler dimCompiler = new DimMVMCompiler();
+        
+        //String factorCode = factor.fold(unitCompiler);
+        //String rowDimCode = rowUnit.fold(dimCompiler);
+        String rowDimCode = compileDimension(rowDimension, rowUnit);
+        String columnDimCode = compileDimension(columnDimension, columnUnit);
+        //String columnDimCode = columnUnit.fold(dimCompiler);
+        
+        String factorCode = factor.fold(new UnitFold<TypeBase, String> () {
 
             @Override
             public String map(TypeBase base) {                
-                return "todo: base";
+                return base.compileToMVM();
             }
 
             @Override
             public String mult(String x, String y) {
-                return String.format("mult(%s, %s)", x, y);
+                return String.format("unit_mult(%s, %s)", x, y);
             }
 
             @Override
             public String expt(String x, Fraction n) {
-                return String.format("raise(%s, %s)", x, n);
+                return String.format("unit_expt(%s, %s)", x, n);
             }
 
             @Override
             public String one() {
-                return "scalar_shape(unit(\"\"))";
+                //return "scalar_shape(unit(\"\"))";
+                return "unit(\"\")";
             }
             
         });
+        
+        return String.format("shape_binop(\"multiply\", scalar_shape(%s), shape_binop(\"per\", %s, %s))", 
+                factorCode, rowDimCode, columnDimCode);
+    }
+ 
+    private String compileDimension(final IndexType dimension, Unit<TypeBase> unit) {
+        DimMVMCompiler unitCompiler = new DimMVMCompiler();
+        
+        List<Unit<TypeBase>> units = dimensionBangUnitList(dimension, unit);
+        if (units.isEmpty()) {
+            return "scalar_shape(unit(\"\"))";
+        } else {
+            String code = "";
+            for (Unit<TypeBase> dimUnit: units) {
+                String unitCode = dimUnit.fold(unitCompiler);
+                if (code.isEmpty()) {
+                    code = unitCode;
+                } else {
+                    code = String.format("shape_binop(\"kronecker\", %s, %s)", code, unitCode);
+                }
+            }
+            return code;
+        }
+    }
+    
+    class UnitMVMCompiler implements UnitFold<TypeBase, String> {
+
+        @Override
+        public String map(TypeBase base) {    
+            return base.compileToMVM();
+        }
+
+        @Override
+        public String mult(String x, String y) {
+            return String.format("shape_binop(\"multiply\", %s, %s)", x, y);
+        }
+
+        @Override
+        public String expt(String x, Fraction n) {
+            return String.format("shape_expt(%s, %s)", x, n);
+        }
+
+        @Override
+        public String one() {
+            return "scalar_shape(unit(\"\"))";
+        }
+    }
+    
+    class DimMVMCompiler implements UnitFold<TypeBase, String> {
+
+        @Override
+        public String map(TypeBase base) {
+            if (true || base instanceof BangBase) {
+                return base.compileToMVM();
+            } else {
+                return "scalar_shape(" + base.compileToMVM() + ")";
+            }
+        }
+
+        @Override
+        public String mult(String x, String y) {
+            return String.format("shape_binop(\"multiply\", %s, %s)", x, y);
+        }
+
+        @Override
+        public String expt(String x, Fraction n) {
+            return String.format("shape_expt(%s, %s)", x, n);
+        }
+
+        @Override
+        public String one() {
+            return "scalar_shape(unit(\"\"))";
+        }
     }
 }

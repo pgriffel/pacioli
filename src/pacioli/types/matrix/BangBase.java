@@ -39,15 +39,24 @@ public class BangBase extends BaseUnit<TypeBase> implements TypeBase {
 
     public BangBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position) {
         assert (!unitName.name.contains("!"));
+        assert (!indexSetName.home.isEmpty());
         this.indexSetName = indexSetName;
         this.unitName = unitName;
         this.position = position;
     }
 
-    // hack for matrix type
+ // hack for matrix type
     public BangBase(String indexSetName, String unitName, int position) {
         this.indexSetName = new TypeIdentifier("", indexSetName);
         this.unitName = new TypeIdentifier("", unitName);
+        this.position = position;
+    }
+    
+    // hack for matrix type
+    public BangBase(String home, String indexSetName, String unitName, int position) {
+        assert (!home.isEmpty());
+        this.indexSetName = new TypeIdentifier(home, indexSetName);
+        this.unitName = new TypeIdentifier(home, unitName);
         this.position = position;
     }
 
@@ -140,8 +149,11 @@ public class BangBase extends BaseUnit<TypeBase> implements TypeBase {
 
     @Override
     public String compileToMVM() {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
+        //assert(!indexSetName.home.isEmpty());
+        String unitName = this.unitName.name;
+        return String.format("bang_shape(\"index_%s_%s\", \"%s\")",
+                indexSetName.home, indexSetName.name,
+                unitName.isEmpty() ? "" : String.format("%s!%s" , indexSetName.name, unitName));
     }
 
 }
