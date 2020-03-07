@@ -26,7 +26,6 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -84,6 +83,7 @@ public class Pacioli {
             String command = "";
             List<String> files = new ArrayList<String>();
             String target = "mvm";
+            String kind = "bundle";
             List<File> libs = new ArrayList<File>();
 
             int i = 0;
@@ -112,6 +112,12 @@ public class Pacioli {
                         target = args[i++];
                     } else {
                         displayError("Expected 'mvm', 'javascript' or 'matlab' after -target. Ignoring target option.");
+                    }
+                } else if (arg.equals("-kind")) {
+                    if (i < args.length) {
+                        target = args[i++];
+                    } else {
+                        displayError("Expected 'single', 'recursive' or 'bundle' after -kind. Ignoring kind option.");
                     }
                 } else if (arg.equals("-trace")) {
                     if (i < args.length) {
@@ -154,7 +160,28 @@ public class Pacioli {
                     displayError("No files to compile.");
                 }
                 for (String file : files) {
-                    compileCommand(file, target, libs, settings);
+                    compileCommand(file, target, kind, libs, settings);
+                }
+            } else if (command.equals("clean")) {
+                if (files.isEmpty()) {
+                    displayError("No files to clean.");
+                }
+                for (String file : files) {
+                    cleanCommand(file, target, kind, libs, settings);
+                }
+            } else if (command.equals("parse")) {
+                if (files.isEmpty()) {
+                    displayError("No files to parse.");
+                }
+                for (String file : files) {
+                    parseCommand(file, libs);
+                }
+            } else if (command.equals("desugar")) {
+                if (files.isEmpty()) {
+                    displayError("No files to desugar.");
+                }
+                for (String file : files) {
+                    desugarCommand(file, libs);
                 }
             } else if (command.equals("types")) {
                 if (files.isEmpty()) {
@@ -180,148 +207,37 @@ public class Pacioli {
     /*
      * Commands
      */
-    private static void runCommand(String fileName, List<File> libs, CompilationSettings settings) throws Exception {
 
-        // File file = new File(fileName);
-        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
-
-        if (!file.exists()) {
-            throw new PacioliException("Error: file '%s' does not exist.", fileName);
-        }
-
-        Pacioli.logln1("Running file '%s'", fileName);
-        Progam program = new Progam(file, libraryDirectories(libs));
-
-        try {
-
-            Pacioli.logln2("Loading module '%s'", file.getPath());
-            program.loadTill(Phase.typed);
-
-            StringWriter outputStream = new StringWriter();
-            try {
-
-                Boolean force = false; // forced removal of MVM files
-
-                Pacioli.logln2("Compiling module '%s'", file.getPath());
-                cleanStandardIncludes(libs, force);
-                program.cleanMVMFiles(force);
-                compileStandardIncludes(libs, settings);
-                program.compileRec(settings, "mvm");
-
-                Pacioli.logln2("Interpreting module '%s'", file.getPath());
-                String mvmFile = program.baseName() + ".mvm";
-                interpretMVMText(new File(mvmFile), libs);
-
-            } finally {
-                outputStream.close();
-            }
-
-        } catch (IOException e) {
-            throw new PacioliException("cannot run module '%s':\n\n%s", file.getPath(), e);
-        }
-
-    }
-
-    private static void compileCommand(String fileName, String target, List<File> libs, CompilationSettings settings)
+    private static void parseCommand(String fileName, List<File> libs)
             throws Exception {
 
         File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
 
         if (file == null) {
-            throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);    
+            throw new PacioliException("Cannot parse: file '%s' does not exist.", fileName);    
         } else {
-            bundle(file, libs, settings, target);
+            Pacioli.logln1("Parsing file '%s'", file);
+            Progam program = new Progam(file, libraryDirectories(libs));
+            program.loadTill(Phase.parsed);
+            Pacioli.logln("%s", program.pretty());
         }
     }
     
-    public static void bundle(File file, List<File> libs, CompilationSettings settings, String target) throws Exception {
-        
-        Pacioli.logln1("Creating bundle for file '%s'", file);
-        
-        // Load the file itself
-        Pacioli.logln1("Loading file '%s'", file);
-        Progam mainProgram = new Progam(file, libraryDirectories(libs));
-        mainProgram.loadTill(Phase.typed);
-        
-        Pacioli.logln("%s", mainProgram.pretty());
-        
-        // Setup a writer for the output file
-        String dstName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension(target); 
-        PrintWriter writer = null;       
-        
-        try {
-            
-            // Open the writer
-            writer = new PrintWriter(new BufferedWriter(new FileWriter(dstName)));
+    private static void desugarCommand(String fileName, List<File> libs)
+            throws Exception {
 
-            // Main loop variables. List todo contains include files still to process.
-            // List done contains all processed files to avoid duplicates and cycles.
-            List<File> todo = new ArrayList<File>();
-            List<File> done = new ArrayList<File>();
-            
-            // Initialize the loop by adding the file's includes to the todo list
-            for (String include : mainProgram.includes()) {
-                File includeFile = mainProgram.findIncludeFile(include);
-                todo.add(includeFile);
-            }
-            
-            // Loop over the todo list, adding new include files when found
-            while (!todo.isEmpty()) {
-                
-                // Take the first element of the todo list to process next
-                File current = todo.get(0);
-                todo.remove(0);
-                
-                if (!done.contains(current)) {
-                    
-                    Pacioli.logln("Bundling file %s", current);
-                    
-                    // Load the current file
-                    Progam program = new Progam(current, libraryDirectories(libs));
-                    program.loadTill(Phase.typed);
-                
-                    // Add its include files to the todo list
-                    for (String include : program.includes()) {
-                        File includeFile = program.findIncludeFile(include);
-                        if (!done.contains(includeFile) && !todo.contains(includeFile)) {
-                            todo.add(includeFile);    
-                        }
-                    }
+        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
 
-                    // Add the loaded program to the main program creating the entire bundle
-                    mainProgram.includeOther(program);
-                    
-                    // Remember that this include was processed.
-                    done.add(current);
-                }
-            }
-            
-            // Generate the code for the entire bundle
-            mainProgram.generateCode(writer, settings, target);
-            
-        } finally {
-            
-            // Close the writer
-            if (writer != null) {
-                writer.close();
-            }
+        if (file == null) {
+            throw new PacioliException("Cannot desugar: file '%s' does not exist.", fileName);    
+        } else {
+            Pacioli.logln1("Desugaring file '%s'", file);
+            Progam program = new Progam(file, libraryDirectories(libs));
+            program.loadTill(Phase.desugared);
+            Pacioli.logln("%s", program.pretty());
         }
-        Pacioli.logln("Created bundle '%s'", dstName);
     }
-        
-    private static void interpretCommand(String fileName, List<File> libs) throws Exception {
-
-        File file = new File(fileName).getAbsoluteFile();
-
-        if (!file.exists()) {
-            throw new MVMException("Error: file '%s' does not exist.", fileName);
-        }
-
-        Pacioli.logln1("Interpreting file '%s'", fileName);
-
-        interpretMVMText(new File(fileName), libs);
-    }
-
+    
     private static void typesCommand(String fileName, List<File> libs) throws Exception {
 
         File file = locatePacioliFile(fileName, libs);
@@ -347,6 +263,84 @@ public class Pacioli {
             Pacioli.logln("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
         }
 
+    }
+    
+    private static void cleanCommand(String fileName, String target, String kind, List<File> libs, CompilationSettings settings)
+            throws Exception {
+        throw new RuntimeException("Todo: clean command");
+    }
+    
+    private static void compileCommand(String fileName, String target, String kind, List<File> libs, CompilationSettings settings)
+            throws Exception {
+
+        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
+
+        if (file == null) {
+            throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);    
+        } else {
+            if (kind.equals("bundle")) {
+                bundle(file, libs, settings, target);
+            } else if (kind.equals("single")) {
+                
+            } else if (kind.equals("recursive")) {
+                Boolean force = false;
+                Pacioli.logln1("Running file '%s'", fileName);
+                Progam program = new Progam(file, libraryDirectories(libs));
+
+                Pacioli.logln2("Compiling module '%s'", file.getPath());
+                cleanStandardIncludes(libs, force);
+                program.cleanMVMFiles(force);
+                compileStandardIncludes(libs, settings);
+                program.compileRec(settings, "mvm");
+
+                Pacioli.logln2("Interpreting module '%s'", file.getPath());
+                String mvmFile = program.baseName() + ".mvm";
+                interpretMVMText(new File(mvmFile), libs);
+            } else {
+                throw new PacioliException("Cannot compile: kind '%s' is not one of single, recursive or bundle.",
+                        kind);
+            }
+        }
+    }
+    private static void interpretCommand(String fileName, List<File> libs) throws Exception {
+
+        File file = new File(fileName).getAbsoluteFile();
+
+        if (!file.exists()) {
+            throw new MVMException("Error: file '%s' does not exist.", fileName);
+        }
+
+        Pacioli.logln1("Interpreting file '%s'", fileName);
+
+        interpretMVMText(new File(fileName), libs);
+    }
+    
+    private static void runCommand(String fileName, List<File> libs, CompilationSettings settings) throws Exception {
+
+        Pacioli.logln1("Running file '%s'", fileName);
+        
+        // Find the file
+        File file = locatePacioliFile(fileName, libs); //.getAbsoluteFile();
+        if (file == null || !file.exists()) {
+            throw new PacioliException("Error: file '%s' does not exist.", fileName);
+        }
+
+        // Compile and run it
+        try {
+            
+            Pacioli.logln1("Compiling file '%s'", file.getPath());
+            
+            bundle(file, libs, settings, "mvm");
+            
+            String mvmFile = Progam.fileBaseName(file) + "." + Progam.targetFileExtension("mvm");
+            
+            Pacioli.logln1("Running mvm file '%s'", mvmFile);
+            
+            interpretMVMText(new File(mvmFile), libs);
+
+        } catch (IOException e) {
+            throw new PacioliException("Cannot run file '%s':\n\n%s", file.getPath(), e);
+        }
     }
 
     private static void infoCommand(List<File> libs) {
@@ -467,8 +461,14 @@ public class Pacioli {
             logln(sample);
             logln("--------------------------------------------------------------------------------");
             try {
-                compileFileCUP(dir + sample, libs, settings);
-
+                String fileName = dir + sample;
+                File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
+                bundle(file, libs, settings, "mvm");
+                
+                String binName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension("mvm");
+                Pacioli.logln("Running file %s", binName);
+                interpretMVMText(new File(binName), libs);
+                
             } catch (IOException e) {
                 Pacioli.logln("\nError: cannot cup compile file '%s':\n\n%s", sample, e);
             }
@@ -478,17 +478,10 @@ public class Pacioli {
         }
     }
 
-    private static void compileFileCUP(String fileName, List<File> libs, CompilationSettings settings)
-            throws Exception {
-        
-        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
-        bundle(file, libs, settings, "mvm");
-        
-        String binName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension("mvm");
-        Pacioli.logln("Running file %s", binName);
-        interpretMVMText(new File(binName), libs);
-    }
-
+    /*
+     * Helpers
+     */
+    
     private static void cleanStandardIncludes(List<File> libs, Boolean force) throws Exception {
         for (String include : PacioliFile.defaultsToCompile) {
             File file = PacioliFile.findIncludeFile(include, libs);
@@ -516,15 +509,82 @@ public class Pacioli {
         }
         Pacioli.logln("End table");
     }
+    
+    public static void bundle(File file, List<File> libs, CompilationSettings settings, String target) throws Exception {
+        
+        Pacioli.logln1("Creating bundle for file '%s'", file);
+        
+        // Load the file itself
+        Pacioli.logln1("Loading file '%s'", file);
+        Progam mainProgram = new Progam(file, libraryDirectories(libs));
+        mainProgram.loadTill(Phase.typed);
+        
+        Pacioli.logln("%s", mainProgram.pretty());
+        
+        // Setup a writer for the output file
+        String dstName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension(target); 
+        PrintWriter writer = null;       
+        
+        try {
+            
+            // Open the writer
+            writer = new PrintWriter(new BufferedWriter(new FileWriter(dstName)));
 
-    /*
-     * Utilities
-     */
-    private static void displayError(String text) {
-        logln("Invalid command: %s", text);
-        logln("\nType 'pacioli help' for help");
+            // Main loop variables. List todo contains include files still to process.
+            // List done contains all processed files to avoid duplicates and cycles.
+            List<File> todo = new ArrayList<File>();
+            List<File> done = new ArrayList<File>();
+            
+            // Initialize the loop by adding the file's includes to the todo list
+            for (String include : mainProgram.includes()) {
+                File includeFile = mainProgram.findIncludeFile(include);
+                todo.add(includeFile);
+            }
+            
+            // Loop over the todo list, adding new include files when found
+            while (!todo.isEmpty()) {
+                
+                // Take the first element of the todo list to process next
+                File current = todo.get(0);
+                todo.remove(0);
+                
+                if (!done.contains(current)) {
+                    
+                    Pacioli.logln("Bundling file %s", current);
+                    
+                    // Load the current file
+                    Progam program = new Progam(current, libraryDirectories(libs));
+                    program.loadTill(Phase.typed);
+                
+                    // Add its include files to the todo list
+                    for (String include : program.includes()) {
+                        File includeFile = program.findIncludeFile(include);
+                        if (!done.contains(includeFile) && !todo.contains(includeFile)) {
+                            todo.add(includeFile);    
+                        }
+                    }
+
+                    // Add the loaded program to the main program creating the entire bundle
+                    mainProgram.includeOther(program);
+                    
+                    // Remember that this include was processed.
+                    done.add(current);
+                }
+            }
+            
+            // Generate the code for the entire bundle
+            mainProgram.generateCode(writer, settings, target);
+            
+        } finally {
+            
+            // Close the writer
+            if (writer != null) {
+                writer.close();
+            }
+        }
+        Pacioli.logln("Created bundle '%s'", dstName);
     }
-
+    
     private static void interpretMVMText(File file, List<File> libs) throws Exception {
         Machine vm = new Machine();
         try {
@@ -538,6 +598,15 @@ public class Pacioli {
             }
             throw ex;
         }
+    }        
+
+    /*
+     * Utilities
+     */
+    
+    private static void displayError(String text) {
+        logln("Invalid command: %s", text);
+        logln("\nType 'pacioli help' for help");
     }
 
     private static File locatePacioliFile(String fileName, List<File> directories) {
