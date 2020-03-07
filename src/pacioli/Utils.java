@@ -80,40 +80,4 @@ public class Utils {
             stream.close();
         }
     }
-
-    // Got to find a good place for the following two functions
-
-    public static String compileUnitToJS(Unit<TypeBase> unit) {
-        String product = "";
-        int n = 0;
-        for (TypeBase base : unit.bases()) {
-            TypeBase typeBase = (TypeBase) base;
-            String baseText = typeBase.compileToJS() + ".expt(" + unit.power(base) + ")";
-            product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
-            n++;
-        }
-        if (n == 0) {
-            return "Pacioli.ONE";
-        } else {
-            return product;
-        }
-
-    }
-
-    public static String compileUnitToMVM(Unit<TypeBase> unit) {
-        String product = "";
-        int n = 0;
-        for (TypeBase base : unit.bases()) {
-            TypeBase typeBase = (TypeBase) base;
-            String baseText = "unit_expt(" + typeBase.compileToMVM() + ", " + unit.power(base) + ")";
-            product = n == 0 ? baseText : "unit_mult(" + baseText + ", " + product + ")";
-            n++;
-        }
-        if (n == 0) {
-            return "unit(\"\")";
-        } else {
-            return product;
-        }
-
-    }
 }

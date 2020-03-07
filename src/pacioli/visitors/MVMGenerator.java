@@ -66,12 +66,31 @@ import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 import pacioli.types.matrix.MatrixType;
 import uom.DimensionedNumber;
+import uom.Unit;
 
 public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
-//    PrintWriter out;
     CompilationSettings settings;
 
+    
+    public static String compileUnitToMVM(Unit<TypeBase> unit) {
+        String product = "";
+        int n = 0;
+        for (TypeBase base : unit.bases()) {
+            TypeBase typeBase = (TypeBase) base;
+            String baseText = "unit_expt(" + typeBase.compileToMVM() + ", " + unit.power(base) + ")";
+            product = n == 0 ? baseText : "unit_mult(" + baseText + ", " + product + ")";
+            n++;
+        }
+        if (n == 0) {
+            return "unit(\"\")";
+        } else {
+            return product;
+        }
+
+    }
+    
+    
     public MVMGenerator(PrintWriter printWriter, CompilationSettings settings) {
         super(printWriter);
 //        out = printWriter;
@@ -135,7 +154,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
         } else {
             number = number.flat();
             out.format("unit \"%s\" \"%s\" %s %s;\n", node.getName(), node.getSymbol(), number.factor(),
-                    Utils.compileUnitToMVM(number.unit()));
+                    compileUnitToMVM(number.unit()));
         }
     }
 
@@ -146,7 +165,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
         // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
         for (UnitDecl entry : node.items) {
             DimensionedNumber<TypeBase> number = entry.value.evalUnit();
-            unitTexts.add("\"" + entry.key.getName() + "\": " + Utils.compileUnitToMVM(number.unit()));
+            unitTexts.add("\"" + entry.key.getName() + "\": " + compileUnitToMVM(number.unit()));
         }
         out.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n",
                 // String.format("index_%s_%s", node.getModule().getName(), node.localName()),

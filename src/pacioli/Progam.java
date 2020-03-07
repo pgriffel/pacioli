@@ -374,14 +374,7 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     // Type inference
     // -------------------------------------------------------------------------
-/*
-    public void checkTypes() throws Exception {
-        desugar();
-        resolve();
-        inferTypes();
-        printTypes();
-    }
-*/
+
     private void inferTypes() {
 
         Set<SymbolInfo> discovered = new HashSet<SymbolInfo>();
@@ -464,9 +457,6 @@ public class Progam extends AbstractPrintable {
     }
     
     void printTypes() {
-
-        Set<SymbolInfo> discovered = new HashSet<SymbolInfo>();
-        Set<SymbolInfo> finished = new HashSet<SymbolInfo>();
 
         List<String> names = values.allNames();
         names.sort(new Comparator<String>() {
@@ -637,9 +627,9 @@ public class Progam extends AbstractPrintable {
                 DimensionedNumber<TypeBase> number = entry.value.evalUnit();
                 // todo: take number.factor() into account!? 
                 if (target.equals("mvm")) {
-                    unitTexts.add("\"" + entry.key.getName() + "\": " + Utils.compileUnitToMVM(number.unit()));
+                    unitTexts.add("\"" + entry.key.getName() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));
                 } else if (target.equals("javascript")) {
-                    unitTexts.add("'" + entry.key.getName() + "': " + Utils.compileUnitToJS(number.unit()));
+                    unitTexts.add("'" + entry.key.getName() + "': " + JSGenerator.compileUnitToJS(number.unit()));
                 } else {
                     throw new RuntimeException("Unknown target");
                 }
@@ -668,11 +658,11 @@ public class Progam extends AbstractPrintable {
             number = number.flat();
             if (target.equals("mvm")) {
                 writer.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
-                        Utils.compileUnitToMVM(number.unit()));
+                        MVMGenerator.compileUnitToMVM(number.unit()));
             } else if (target.equals("javascript")) {
                 writer.format("Pacioli.compute_%s = function () {\n", info.globalName());
                 writer.format("    return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}\n",
-                        number.factor(), Utils.compileUnitToJS(number.unit()), info.symbol);   
+                        number.factor(), JSGenerator.compileUnitToJS(number.unit()), info.symbol);   
                 writer.format("}\n");
             } else {
                 throw new RuntimeException("Unknown target");
@@ -757,7 +747,7 @@ public class Progam extends AbstractPrintable {
             // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
             for (UnitDecl entry : info.items) {
                 DimensionedNumber<TypeBase> number = entry.value.evalUnit();
-                unitTexts.add("\"" + entry.key.getName() + "\": " + Utils.compileUnitToMVM(number.unit()));
+                unitTexts.add("\"" + entry.key.getName() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));
             }
             writer.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n",
                     // String.format("index_%s_%s", node.getModule().getName(), node.localName()),
@@ -770,7 +760,7 @@ public class Progam extends AbstractPrintable {
             DimensionedNumber<TypeBase> number = info.baseDefinition.evalUnit();
             number = number.flat();
             writer.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
-                    Utils.compileUnitToMVM(number.unit()));
+                    MVMGenerator.compileUnitToMVM(number.unit()));
         }
     }
     

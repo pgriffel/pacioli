@@ -36,6 +36,7 @@ import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
+import pacioli.visitors.JSGenerator;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitFold;
@@ -461,6 +462,11 @@ public class MatrixType extends AbstractType {
     }
 
     @Override
+    public PacioliType reduce() {
+        return this;
+    }
+    
+    @Override
     public PacioliType applySubstitution(Substitution subs) {
         return new MatrixType(subs.apply(factor), (IndexType) rowDimension.applySubstitution(subs), subs.apply(rowUnit),
                 (IndexType) columnDimension.applySubstitution(subs), subs.apply(columnUnit));
@@ -473,14 +479,14 @@ public class MatrixType extends AbstractType {
         StringBuilder out = new StringBuilder();
 
         out.append("Pacioli.createMatrixType(");
-        out.append(Utils.compileUnitToJS(factor));
+        out.append(JSGenerator.compileUnitToJS(factor));
         out.append(", ");
         out.append(rowDimension.compileToJS());
         if (!rowDimension.isVar())
             out.append(".param");
         out.append(", ");
         if (rowDimension.isVar() || rowDimension.width() > 0) {
-            out.append(Utils.compileUnitToJS(rowUnit));
+            out.append(JSGenerator.compileUnitToJS(rowUnit));
         } else {
             out.append("Pacioli.ONE");
         }
@@ -490,18 +496,13 @@ public class MatrixType extends AbstractType {
             out.append(".param");
         out.append(", ");
         if (columnDimension.isVar() || columnDimension.width() > 0) {
-            out.append(Utils.compileUnitToJS(columnUnit));
+            out.append(JSGenerator.compileUnitToJS(columnUnit));
         } else {
             out.append("Pacioli.ONE");
         }
         out.append(")");
 
         return out.toString();
-    }
-
-    @Override
-    public PacioliType reduce() {
-        return this;
     }
 
     @Override
