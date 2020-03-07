@@ -38,7 +38,7 @@ import pacioli.types.ast.TypePowerNode;
 import pacioli.types.matrix.VectorBase;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.StringBase;
+import pacioli.types.matrix.ScalarBase;
 import uom.Fraction;
 import uom.Unit;
 
@@ -226,13 +226,13 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             returnType(new MatrixType(((AliasDefinition) definition).evalBody()));
             //throw new RuntimeException("fixme");
         } else {
-            returnType(new MatrixType(new StringBase(node.getName())));
+            returnType(new MatrixType(new ScalarBase(node.getName())));
         }
     }
 
     @Override
     public void visit(PrefixUnitTypeNode node) {
-        returnType(new MatrixType(new StringBase(node.prefix.getName(), node.unit.getName())));
+        returnType(new MatrixType(new ScalarBase(node.prefix.getName(), node.unit.getName())));
     }
 
     @Override

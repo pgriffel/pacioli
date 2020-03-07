@@ -28,17 +28,17 @@ import uom.PowerProduct;
 import uom.Unit;
 
 //public class StringBase extends BaseUnit implements TypeBase {
-public class StringBase extends BaseUnit<TypeBase> implements TypeBase {    
+public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {    
 
     private final String prefix;
     private final String text;
 
-    public StringBase(String text) {
+    public ScalarBase(String text) {
         this.prefix = null;
         this.text = text;
     }
 
-    public StringBase(String prefix, String name) {
+    public ScalarBase(String prefix, String name) {
         this.prefix = prefix;
         this.text = name;
     }
@@ -60,10 +60,10 @@ public class StringBase extends BaseUnit<TypeBase> implements TypeBase {
         if (real == this) {
             return true;
         }
-        if (!(real instanceof StringBase)) {
+        if (!(real instanceof ScalarBase)) {
             return false;
         }
-        StringBase otherUnit = (StringBase) real;
+        ScalarBase otherUnit = (ScalarBase) real;
         if (!text.equals(otherUnit.text)) {
             return false;
         }

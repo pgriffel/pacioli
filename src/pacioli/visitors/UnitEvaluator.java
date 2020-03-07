@@ -11,7 +11,7 @@ import pacioli.ast.unit.UnitNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.types.TypeBase;
-import pacioli.types.matrix.StringBase;
+import pacioli.types.matrix.ScalarBase;
 import uom.DimensionedNumber;
 import uom.Fraction;
 
@@ -46,9 +46,9 @@ public class UnitEvaluator extends IdentityVisitor implements Visitor {
     @Override
     public void visit(UnitIdentifierNode node) {
         if (node.prefix == null) {
-            returnNode(new DimensionedNumber<TypeBase>(new StringBase(node.name)));
+            returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.name)));
         } else {
-            returnNode(new DimensionedNumber<TypeBase>(new StringBase(node.prefix, node.name)));
+            returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.prefix, node.name)));
         }
     }
 
