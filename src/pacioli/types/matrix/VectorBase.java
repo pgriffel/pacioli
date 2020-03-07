@@ -31,13 +31,13 @@ import uom.UnitMap;
 
 //public class BangBase extends BaseUnit implements TypeBase {
 //public class BangBase extends TypeBase {
-public class BangBase extends BaseUnit<TypeBase> implements TypeBase {
+public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
 
     public final TypeIdentifier indexSetName;
     public final TypeIdentifier unitName;
     public final int position;
 
-    public BangBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position) {
+    public VectorBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position) {
         assert (!unitName.name.contains("!"));
         assert (!indexSetName.home.isEmpty());
         this.indexSetName = indexSetName;
@@ -46,14 +46,14 @@ public class BangBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
  // hack for matrix type
-    public BangBase(String indexSetName, String unitName, int position) {
+    public VectorBase(String indexSetName, String unitName, int position) {
         this.indexSetName = new TypeIdentifier("", indexSetName);
         this.unitName = new TypeIdentifier("", unitName);
         this.position = position;
     }
     
     // hack for matrix type
-    public BangBase(String home, String indexSetName, String unitName, int position) {
+    public VectorBase(String home, String indexSetName, String unitName, int position) {
         assert (!home.isEmpty());
         this.indexSetName = new TypeIdentifier(home, indexSetName);
         this.unitName = new TypeIdentifier(home, unitName);
@@ -85,10 +85,10 @@ public class BangBase extends BaseUnit<TypeBase> implements TypeBase {
         if (real == this) {
             return true;
         }
-        if (!(real instanceof BangBase)) {
+        if (!(real instanceof VectorBase)) {
             return false;
         }
-        BangBase otherBase = (BangBase) real;
+        VectorBase otherBase = (VectorBase) real;
         return indexSetName.equals(otherBase.indexSetName) && unitName.equals(otherBase.unitName)
                 && position == otherBase.position;
     }
@@ -103,19 +103,19 @@ public class BangBase extends BaseUnit<TypeBase> implements TypeBase {
         return indexSetName.name + "!" + unitName.name;
     }
 
-    public BangBase shift(int offset) {
-        return new BangBase(indexSetName, unitName, position + offset);
+    public VectorBase shift(int offset) {
+        return new VectorBase(indexSetName, unitName, position + offset);
     }
 
-    public BangBase move(int offset) {
-        return new BangBase(indexSetName, unitName, offset);
+    public VectorBase move(int offset) {
+        return new VectorBase(indexSetName, unitName, offset);
     }
 
     public static Unit<TypeBase> kroneckerNth(Unit<TypeBase> unit, final int index) {
         return unit.map(new UnitMap<TypeBase>() {
             public Unit<TypeBase> map(TypeBase base) {
-                if (base instanceof BangBase) {
-                    if (((BangBase) base).position == index) {
+                if (base instanceof VectorBase) {
+                    if (((VectorBase) base).position == index) {
                         return base;
                     } else {
                         return TypeBase.ONE;
@@ -130,8 +130,8 @@ public class BangBase extends BaseUnit<TypeBase> implements TypeBase {
     public static Unit<TypeBase> shiftUnit(Unit<TypeBase> unit, final int offset) {
         return unit.map(new UnitMap<TypeBase>() {
             public Unit<TypeBase> map(TypeBase base) {
-                if (base instanceof BangBase) {
-                    return ((BangBase) base).shift(offset);
+                if (base instanceof VectorBase) {
+                    return ((VectorBase) base).shift(offset);
                 } else {
                     return base;
                 }

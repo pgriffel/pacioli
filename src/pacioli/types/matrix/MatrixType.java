@@ -163,7 +163,7 @@ public class MatrixType extends AbstractType {
             int offset = rowType.width();
 
             return new MatrixType(factor.multiply(other.factor), rowType.kronecker(other.rowDimension),
-                    rowUnit.multiply(BangBase.shiftUnit(other.rowUnit, offset)), new IndexType(), TypeBase.ONE);
+                    rowUnit.multiply(VectorBase.shiftUnit(other.rowUnit, offset)), new IndexType(), TypeBase.ONE);
         } else {
             throw new PacioliException("Kronecker product is not allowed for index variables: %s %% %s (%s)", pretty(),
                     other.pretty(), rowDimension.getClass());
@@ -182,8 +182,8 @@ public class MatrixType extends AbstractType {
                 final int tmp = i;
                 unit = unit.map(new UnitMap<TypeBase>() {
                     public Unit<TypeBase> map(TypeBase base) {
-                        assert (base instanceof BangBase);
-                        BangBase bangBase = (BangBase) base;
+                        assert (base instanceof VectorBase);
+                        VectorBase bangBase = (VectorBase) base;
                         return (Unit<TypeBase>) ((bangBase.position == columns.get(tmp)) ? bangBase.move(tmp) : TypeBase.ONE);
                     }
                 });
@@ -301,7 +301,7 @@ public class MatrixType extends AbstractType {
             if (candidate.equals(TypeBase.ONE)) {
                 // units.add(new BangBase(dimension.toText(), "", 0));
                 // units.add(new StringBase(dimension.varName()));
-                units.add(new BangBase(dimension.varName(), "", 0));
+                units.add(new VectorBase(dimension.varName(), "", 0));
             } else {
                 units.add(candidate);
             }
@@ -313,25 +313,25 @@ public class MatrixType extends AbstractType {
                 final String dimHome = dimType.nthIndexSet(0).home;
                 Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
                     public Unit<TypeBase> map(TypeBase base) {
-                        assert ((base instanceof TypeVar) || (base instanceof BangBase));
-                        if (base instanceof BangBase) {
+                        assert ((base instanceof TypeVar) || (base instanceof VectorBase));
+                        if (base instanceof VectorBase) {
                             // return base;
-                            BangBase bangBase = (BangBase) base;
+                            VectorBase bangBase = (VectorBase) base;
                             assert (dimName.equals(bangBase.indexSetName()));
                             // return new StringBase(bangBase.indexSetName() + "!" + bangBase.unitName());
-                            BangBase newBase = new BangBase(dimHome, bangBase.indexSetName(), bangBase.unitName(), 0);
+                            VectorBase newBase = new VectorBase(dimHome, bangBase.indexSetName(), bangBase.unitName(), 0);
                             return newBase;
                         } else {
                             // return new BangBase(dimType.nthIndexSet(0).name, base.toText(), 0);
                             // return new StringBase(dimName + "!" + base.toText());
-                            return new BangBase(dimHome, dimName, base.pretty(), 0);
+                            return new VectorBase(dimHome, dimName, base.pretty(), 0);
                         }
                     }
                 });
                 if (candidate.equals(TypeBase.ONE)) {
                     // units.add(new BangBase(dimType.nthIndexSet(0).name, "", 0));
                     // units.add(new StringBase(dimName + "!"));
-                    units.add(new BangBase(dimHome, dimName, "", 0));
+                    units.add(new VectorBase(dimHome, dimName, "", 0));
                 } else {
                     units.add(candidate);
                 }
@@ -340,15 +340,15 @@ public class MatrixType extends AbstractType {
                     final int index = i;
                     Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
                         public Unit<TypeBase> map(TypeBase base) {
-                            assert ((base instanceof TypeVar) || (base instanceof BangBase));
-                            if (base instanceof BangBase) {
-                                if (((BangBase) base).position == index) {
+                            assert ((base instanceof TypeVar) || (base instanceof VectorBase));
+                            if (base instanceof VectorBase) {
+                                if (((VectorBase) base).position == index) {
                                     return base;
                                 } else {
                                     return TypeBase.ONE;
                                 }
                             } else {
-                                return new BangBase(dimType.nthIndexSet(index).home,
+                                return new VectorBase(dimType.nthIndexSet(index).home,
                                         dimType.nthIndexSet(index).name,
                                         String.format("%s(%s)", base.pretty(), index), index);
                             }
@@ -357,7 +357,7 @@ public class MatrixType extends AbstractType {
                     if (candidate.equals(TypeBase.ONE)) {
                         // units.add(new BangBase(dimType.nthIndexSet(index).name, "", i));
                         // units.add(new StringBase(dimType.nthIndexSet(index).name));
-                        units.add(new BangBase(dimType.nthIndexSet(index).home, dimType.nthIndexSet(index).name, "", i));
+                        units.add(new VectorBase(dimType.nthIndexSet(index).home, dimType.nthIndexSet(index).name, "", i));
                     } else {
                         units.add(candidate);
                     }
@@ -592,7 +592,7 @@ public class MatrixType extends AbstractType {
 
         @Override
         public String map(TypeBase base) {
-            if (true || base instanceof BangBase) {
+            if (true || base instanceof VectorBase) {
                 return base.compileToMVM();
             } else {
                 return "scalar_shape(" + base.compileToMVM() + ")";

@@ -35,7 +35,7 @@ import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
-import pacioli.types.matrix.BangBase;
+import pacioli.types.matrix.VectorBase;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.StringBase;
@@ -116,7 +116,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             if (unitInfo.definition == null) {
                 rowUnit = new TypeVar("for_unit", indexSetName + "!" + unitName);
             } else {
-                rowUnit = new BangBase(new TypeIdentifier(indexInfo.generic().module, indexSetName),
+                rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generic().module, indexSetName),
                         new TypeIdentifier(unitInfo.generic().module, unitName), 0);
             }
         }
