@@ -3,6 +3,7 @@ package pacioli.visitors;
 import java.io.PrintWriter;
 
 import pacioli.CompilationSettings;
+import pacioli.Printer;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.Visitor;
@@ -50,12 +51,12 @@ import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 
-public class MatlabGenerator extends IdentityVisitor implements Visitor {
+public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
-    PrintWriter out;
+    Printer out;
     CompilationSettings settings;
 
-    public MatlabGenerator(PrintWriter printWriter, CompilationSettings settings) {
+    public MatlabGenerator(Printer printWriter, CompilationSettings settings) {
         out = printWriter;
         this.settings = settings;
     }
