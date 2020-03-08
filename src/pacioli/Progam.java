@@ -236,30 +236,30 @@ public class Progam extends AbstractPrintable {
     
     public void printSymbolTables() throws Exception {
 
-        // Include the units from the other program
         Pacioli.logln("Symbol table for %s", file);
-        Pacioli.logln("UNITS");
+        
+        Pacioli.logln("Units:");
         for (String name: units.allNames()) {
             UnitInfo info = units.lookup(name);
             Pacioli.logln("%s", info.name());
         }
         
         // Include the index sets from the other program
-        Pacioli.logln("INDEX SETS");
+        Pacioli.logln("Index sets:");
         for (String name: indexSets.allNames()) {
             IndexSetInfo info = indexSets.lookup(name);
             Pacioli.logln("%s", info.name());
         }
         
         // Include the types from the other program
-        Pacioli.logln("TYPES");
+        Pacioli.logln("Types:");
         for (String name : types.allNames()) {
             TypeInfo info = types.lookup(name);
             Pacioli.logln("%s", info.name());
         }
         
         // Include the values from the other program
-        Pacioli.logln("VALUES");
+        Pacioli.logln("Values:");
         for (String name : values.allNames()) {
             ValueInfo info = values.lookup(name);
             Pacioli.logln("%s %s %s",
@@ -271,7 +271,7 @@ public class Progam extends AbstractPrintable {
     }
 
     // -------------------------------------------------------------------------
-    // MVM code generation
+    // Absorbing symbol table entries from other programs 
     // -------------------------------------------------------------------------
     
     public void includeOther(Progam other) throws Exception {
@@ -280,12 +280,12 @@ public class Progam extends AbstractPrintable {
         for (String name: other.units.allNames()) {
             UnitInfo otherInfo = other.units.lookup(name);
             if (!other.isExternal(otherInfo)) {
-            UnitInfo info = units.lookup(name);
-            if (info == null) {
-                units.put(name, otherInfo);
-            } else {
-                units.put(name, info.includeOther(otherInfo));
-            }
+                UnitInfo info = units.lookup(name);
+                if (info == null) {
+                    units.put(name, otherInfo);
+                } else {
+                    units.put(name, info.includeOther(otherInfo));
+                }
             }
         }
         
@@ -314,7 +314,6 @@ public class Progam extends AbstractPrintable {
         // Include the values from the other program
         for (String name : other.values.allNames()) {
             ValueInfo otherInfo = other.values.lookup(name);
-            //if (true || !isExternal(otherInfo)) {
             if (!other.isExternal(otherInfo)) {
                 ValueInfo info = values.lookup(name);
                 if (info == null) {
@@ -488,8 +487,125 @@ public class Progam extends AbstractPrintable {
         }
     }
     
+
     // -------------------------------------------------------------------------
-    // Cleaning MVM files
+    // Generating code
+    // -------------------------------------------------------------------------
+    
+    public void generateCode(PrintWriter writer, CompilationSettings settings, String target) throws Exception {
+        
+        // Dev switch
+        Boolean externals = true;
+        
+        // Declare a compiler (symbol table visitor) instance
+        Printer printer = new Printer(writer);
+        SymbolTableVisitor compiler;
+        CodeGenerator gen;
+        
+        // Create a symbol table visitor for the requested target
+        if (target.equals("javascript")) {
+            gen = new JSGenerator(writer, settings, false);
+            compiler = new JSCompiler(printer, settings);
+        } else if (target.equals("matlab")) {
+            throw new RuntimeException("Todo: fix matlab compilation");
+            // program.compileMatlab(new PrintWriter(outputStream), settings);
+        } else if (target.equals("html")) {
+            throw new RuntimeException("Todo: fix html compilation");
+            // program.compileHtml(new PrintWriter(outputStream), settings);
+        } else {
+            gen = new MVMGenerator(printer, settings);
+            compiler = new MVMCompiler(printer, settings);
+        }
+
+        // Generate code for the index sets
+        for (String indexSet : indexSets.allNames()) {
+            IndexSetInfo info = indexSets.lookup(indexSet);
+            if (!isExternal(info) || externals) {
+                assert (info.definition != null);
+                info.accept(compiler);
+            }
+        }
+        
+        // Find all units to compile
+        List<UnitInfo> unitsToCompile = new ArrayList<UnitInfo>();
+        for (String unit : units.allNames()) {
+            UnitInfo info = units.lookup(unit);
+            if ((!isExternal(info) || externals) && !info.isAlias()) {
+                unitsToCompile.add(info);
+            }
+        }
+
+        // Sort the units according to depency order
+        unitsToCompile = orderedInfos(unitsToCompile);
+
+        // Generate code for the units
+        for (UnitInfo info : unitsToCompile) {
+            info.accept(compiler);
+        }
+        
+        // Find all values to compile (unnecessary step, or do we want to sort alphabetically?)
+        List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
+        for (String value : values.allNames()) {
+            
+            ValueInfo info = values.lookup(value);
+            if (!isExternal(info) || externals) {
+                if (info.definition != null) {
+                    valuesToCompile.add(info);
+                }
+            }
+        }
+        
+        // Generate code for the values
+        for (ValueInfo info : valuesToCompile) {
+            info.accept(compiler);
+        }
+        
+        // Generate code for the toplevels
+        for (Toplevel def : toplevels) {
+            def.accept(gen);
+        }
+        
+    }
+    // -------------------------------------------------------------------------
+    // Topological Order of Definitions
+    // -------------------------------------------------------------------------
+
+    static <T extends SymbolInfo> List<T> orderedInfos(Collection<T> definitions) throws PacioliException {
+
+        Set<T> discovered = new HashSet<T>();
+        Set<T> finished = new HashSet<T>();
+
+        List<T> orderedDefinitions = new ArrayList<T>();
+        for (T definition : definitions) {
+            insertInfo(definition, orderedDefinitions, discovered, finished, definitions);
+        }
+        return orderedDefinitions;
+    }
+
+    static <T extends SymbolInfo> void insertInfo(T info, List<T> definitions, Set<T> discovered, Set<T> finished,
+            Collection<T> all) throws PacioliException {
+
+        Definition def = info.getDefinition();
+        assert (def != null);
+
+        if (!finished.contains(info)) {
+
+            if (discovered.contains(info)) {
+                throw new PacioliException(def.getLocation(), "Cycle in definition " + info.name());
+            }
+            discovered.add(info);
+            for (SymbolInfo other : def.uses()) {
+                if (all.contains(other) && other.getDefinition() != null) {
+                    insertInfo((T) other, definitions, discovered, finished, all);
+                }
+            }
+            definitions.add(info);
+            finished.add(info);
+        }
+    }
+    
+    // -------------------------------------------------------------------------
+    // Fixme: Compilation per file
     // -------------------------------------------------------------------------
 
     public Boolean cleanMVMFiles(Boolean force) throws Exception {
@@ -513,12 +629,7 @@ public class Progam extends AbstractPrintable {
         } else {
             return srcDirty;
         }
-
     }
-
-    // -------------------------------------------------------------------------
-    // Compilation driver
-    // -------------------------------------------------------------------------
     
     public void compileRec(CompilationSettings settings, String target) throws Exception {
 
@@ -548,143 +659,10 @@ public class Progam extends AbstractPrintable {
                 }
             }
         }
-
     }    
 
-    public void generateCode(PrintWriter writer, CompilationSettings settings, String target) throws Exception {
-
-        Printer printer = new Printer(writer);
-        Boolean externals = true;
-        
-        List<Definition> unitsToCompile = new ArrayList<Definition>();
-        List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
-        for (String unit : units.allNames()) {
-            UnitInfo info = units.lookup(unit);
-            if ((!isExternal(info) || externals) && !info.isAlias()) {
-                unitsToCompile.add(info.getDefinition());
-                unitsToCompileTmp.add(info);
-            }
-        }
-
-        unitsToCompileTmp = orderedInfos(unitsToCompileTmp);
-        
-        List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
-        for (String value : values.allNames()) {
-            
-            ValueInfo info = values.lookup(value);
-            if (!isExternal(info) || externals) {
-                if (info.definition != null) {
-                    valuesToCompile.add(info);
-                }
-            }
-        }
-        
-        SymbolTableVisitor compiler;
-        CodeGenerator gen;
-        
-        if (target.equals("javascript")) {
-            gen = new JSGenerator(writer, settings, false);
-            compiler = new JSCompiler(printer, settings);
-        } else if (target.equals("matlab")) {
-            throw new RuntimeException("Todo: fix matlab compilation");
-            // program.compileMatlab(new PrintWriter(outputStream), settings);
-        } else if (target.equals("html")) {
-            throw new RuntimeException("Todo: fix html compilation");
-            // program.compileHtml(new PrintWriter(outputStream), settings);
-        } else {
-            gen = new MVMGenerator(printer, settings);
-            compiler = new MVMCompiler(printer, settings);
-        }
-
-        
-        for (String indexSet : indexSets.allNames()) {
-            IndexSetInfo info = indexSets.lookup(indexSet);
-            if (!isExternal(info) || externals) {
-                assert (info.definition != null);
-                //info.definition.accept(gen);
-                info.accept(compiler);
-            }
-        }
-        
-        for (UnitInfo info : unitsToCompileTmp) {
-            //compileUnitMVM(info, writer, target);
-            //writer.print("\n");
-            info.accept(compiler);
-        }
-
-        for (ValueInfo info : valuesToCompile) {
-            if (!isExternal(info) || externals) {
-            //ValueDefinition def = (ValueDefinition) info.getDefinition();
-            //gen.compileValueDefinition(def, info);
-            //writer.write("\n");
-            info.accept(compiler);
-            }
-        }
-        
-        for (Toplevel def : toplevels) {
-            def.accept(gen);
-        }
-        
-    }
-    
     // -------------------------------------------------------------------------
-    // MVM code generation
-    // -------------------------------------------------------------------------
-/*
-    private void compileUnitMVM(UnitInfo info, PrintWriter writer, String target) {
-        if (info.isVector) {
-            IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.getDefinition()).indexSetNode.info;
-            List<String> unitTexts = new ArrayList<String>();
-            // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
-            for (UnitDecl entry : info.items) {
-                DimensionedNumber<TypeBase> number = entry.value.evalUnit();
-                // todo: take number.factor() into account!? 
-                if (target.equals("mvm")) {
-                    unitTexts.add("\"" + entry.key.getName() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));
-                } else if (target.equals("javascript")) {
-                    unitTexts.add("'" + entry.key.getName() + "': " + JSGenerator.compileUnitToJS(number.unit()));
-                } else {
-                    throw new RuntimeException("Unknown target");
-                }
-            }
-            String globalName = setInfo.definition.globalName();
-            String name = info.name();
-            String args = Utils.intercalate(", ", unitTexts); 
-            if (target.equals("mvm")) {
-                writer.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n", globalName, name, args));
-            } else if (target.equals("javascript")) {
-                writer.print(String.format("function compute_%s () { return {units: { %s }}};\n", globalName, name, args));
-            } else {
-                throw new RuntimeException("Unknown target");
-            }
-        } else if (info.baseDefinition == null) {
-            if (target.equals("mvm")) {
-                writer.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol);
-            } else if (target.equals("javascript")) {
-                writer.format("Pacioli.compute_%s = function () { return {symbol: '%s'}};\n", 
-                        info.globalName(), info.symbol);
-            } else {
-                throw new RuntimeException("Unknown target");
-            }
-        } else {
-            DimensionedNumber<TypeBase> number = info.baseDefinition.evalUnit();
-            number = number.flat();
-            if (target.equals("mvm")) {
-                writer.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
-                        MVMGenerator.compileUnitToMVM(number.unit()));
-            } else if (target.equals("javascript")) {
-                writer.format("Pacioli.compute_%s = function () {\n", info.globalName());
-                writer.format("    return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}\n",
-                        number.factor(), JSGenerator.compileUnitToJS(number.unit()), info.symbol);   
-                writer.format("}\n");
-            } else {
-                throw new RuntimeException("Unknown target");
-            }
-        }
-    }
-  */  
-    // -------------------------------------------------------------------------
-    // Matlab code generation
+    // Fixme: Matlab code generation
     // -------------------------------------------------------------------------
 
     public void compileMatlab(CompilationSettings settings) throws Exception {
@@ -778,42 +756,60 @@ public class Progam extends AbstractPrintable {
         }
     }
   */  
-    // -------------------------------------------------------------------------
-    // Topological Order of Definitions
-    // -------------------------------------------------------------------------
 
-    static <T extends SymbolInfo> List<T> orderedInfos(Collection<T> definitions) throws PacioliException {
-
-        Set<T> discovered = new HashSet<T>();
-        Set<T> finished = new HashSet<T>();
-
-        List<T> orderedDefinitions = new ArrayList<T>();
-        for (T definition : definitions) {
-            insertInfo(definition, orderedDefinitions, discovered, finished, definitions);
-        }
-        return orderedDefinitions;
-    }
-
-    static <T extends SymbolInfo> void insertInfo(T info, List<T> definitions, Set<T> discovered, Set<T> finished,
-            Collection<T> all) throws PacioliException {
-
-        Definition def = info.getDefinition();
-        assert (def != null);
-
-        if (!finished.contains(info)) {
-
-            if (discovered.contains(info)) {
-                throw new PacioliException(def.getLocation(), "Cycle in definition " + info.name());
-            }
-            discovered.add(info);
-            for (SymbolInfo other : def.uses()) {
-                if (all.contains(other) && other.getDefinition() != null) {
-                    insertInfo((T) other, definitions, discovered, finished, all);
+    // MVM code generation (kept for the MATLAB part!!!!!)
+    
+/*
+    private void compileUnitMVM(UnitInfo info, PrintWriter writer, String target) {
+        if (info.isVector) {
+            IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.getDefinition()).indexSetNode.info;
+            List<String> unitTexts = new ArrayList<String>();
+            // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
+            for (UnitDecl entry : info.items) {
+                DimensionedNumber<TypeBase> number = entry.value.evalUnit();
+                // todo: take number.factor() into account!? 
+                if (target.equals("mvm")) {
+                    unitTexts.add("\"" + entry.key.getName() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));
+                } else if (target.equals("javascript")) {
+                    unitTexts.add("'" + entry.key.getName() + "': " + JSGenerator.compileUnitToJS(number.unit()));
+                } else {
+                    throw new RuntimeException("Unknown target");
                 }
             }
-            definitions.add(info);
-            finished.add(info);
+            String globalName = setInfo.definition.globalName();
+            String name = info.name();
+            String args = Utils.intercalate(", ", unitTexts); 
+            if (target.equals("mvm")) {
+                writer.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n", globalName, name, args));
+            } else if (target.equals("javascript")) {
+                writer.print(String.format("function compute_%s () { return {units: { %s }}};\n", globalName, name, args));
+            } else {
+                throw new RuntimeException("Unknown target");
+            }
+        } else if (info.baseDefinition == null) {
+            if (target.equals("mvm")) {
+                writer.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol);
+            } else if (target.equals("javascript")) {
+                writer.format("Pacioli.compute_%s = function () { return {symbol: '%s'}};\n", 
+                        info.globalName(), info.symbol);
+            } else {
+                throw new RuntimeException("Unknown target");
+            }
+        } else {
+            DimensionedNumber<TypeBase> number = info.baseDefinition.evalUnit();
+            number = number.flat();
+            if (target.equals("mvm")) {
+                writer.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
+                        MVMGenerator.compileUnitToMVM(number.unit()));
+            } else if (target.equals("javascript")) {
+                writer.format("Pacioli.compute_%s = function () {\n", info.globalName());
+                writer.format("    return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}\n",
+                        number.factor(), JSGenerator.compileUnitToJS(number.unit()), info.symbol);   
+                writer.format("}\n");
+            } else {
+                throw new RuntimeException("Unknown target");
+            }
         }
     }
-
+  */  
 }

@@ -43,7 +43,7 @@ public class MVMCompiler implements SymbolTableVisitor {
         
         out.format("store \"%s\" ", info.globalName());
         out.newlineUp();
-        ValueDefinition def = (ValueDefinition) info.getDefinition();
+        ValueDefinition def = info.definition;
         def.body.accept(new MVMGenerator(out, settings));
         out.print(";");
         out.newlineDown();

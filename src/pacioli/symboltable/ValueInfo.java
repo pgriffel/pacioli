@@ -1,6 +1,7 @@
 package pacioli.symboltable;
 
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
@@ -11,7 +12,7 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
         super(generic);
     }
 
-    public Definition definition;
+    public ValueDefinition definition;
     public TypeNode declaredType;
     public PacioliType inferredType;
     public IdentifierNode resultPlace; // for return statements
