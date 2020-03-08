@@ -5,6 +5,7 @@ import java.util.List;
 
 import pacioli.CompilationSettings;
 import pacioli.Pacioli;
+import pacioli.Printer;
 import pacioli.Utils;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
@@ -23,7 +24,6 @@ import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.TypeBase;
 import pacioli.visitors.JSGenerator;
-import pacioli.visitors.Printer;
 import uom.DimensionedNumber;
 
 public class JSCompiler implements SymbolTableVisitor {

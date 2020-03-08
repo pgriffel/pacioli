@@ -28,13 +28,13 @@ import java.util.Set;
 import pacioli.AbstractPrintable;
 import pacioli.CompilationSettings;
 import pacioli.Location;
+import pacioli.Printer;
 import pacioli.Progam;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.visitors.DesugarVisitor;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
 import pacioli.visitors.PrintVisitor;
-import pacioli.visitors.Printer;
 import pacioli.visitors.ResolveVisitor;
 import pacioli.visitors.UsesVisitor;
 

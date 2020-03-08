@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Stack;
 
+import pacioli.Printer;
 import pacioli.ast.Node;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.Visitor;

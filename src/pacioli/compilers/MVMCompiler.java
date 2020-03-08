@@ -5,6 +5,7 @@ import java.util.List;
 
 import pacioli.CompilationSettings;
 import pacioli.Pacioli;
+import pacioli.Printer;
 import pacioli.Utils;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
@@ -19,7 +20,6 @@ import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.TypeBase;
 import pacioli.visitors.MVMGenerator;
-import pacioli.visitors.Printer;
 import uom.DimensionedNumber;
 
 public class MVMCompiler implements SymbolTableVisitor {

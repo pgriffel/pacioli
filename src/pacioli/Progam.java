@@ -35,7 +35,6 @@ import pacioli.types.TypeBase;
 import pacioli.visitors.CodeGenerator;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
-import pacioli.visitors.Printer;
 import pacioli.visitors.ResolveVisitor;
 import uom.DimensionedNumber;
 

@@ -11,6 +11,7 @@ import mvm.values.matrix.MatrixDimension;
 import pacioli.CompilationSettings;
 import pacioli.Pacioli;
 import pacioli.PacioliException;
+import pacioli.Printer;
 import pacioli.Utils;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;

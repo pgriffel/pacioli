@@ -1,11 +1,11 @@
-package pacioli.visitors;
+package pacioli;
 
 import java.io.PrintWriter;
 import java.util.Stack;
 
 public class Printer {
 
-    PrintWriter out;
+    protected PrintWriter out;
     private Stack<Integer> indentationStack;
     Integer indentation = 0;
     Integer offset = 0;
@@ -25,18 +25,18 @@ public class Printer {
         offset += text.length();
     }
     
-    protected void write(String text) {
+    public void write(String text) {
         out.print(text);
         offset += text.length();
     }
         
-    protected void mark() {
+    public void mark() {
         indentationStack.push(indentation);
         indentation = offset;
         //offset = 
     }
     
-    protected void unmark() {
+    public void unmark() {
         indentation = indentationStack.pop();
         //offset = 
     }
