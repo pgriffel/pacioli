@@ -31,6 +31,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.UnitInfo;
+import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.ast.TypeIdentifierNode;
 
 public class UnitVectorDefinition extends AbstractDefinition {
@@ -82,8 +83,8 @@ public class UnitVectorDefinition extends AbstractDefinition {
     public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
         GenericInfo generic = new GenericInfo(localName(), program.program.module.name, 
                 program.file, scope, getLocation());       
-        UnitInfo info = new UnitInfo(generic);
-        info.isVector = true;
+        VectorUnitInfo info = new VectorUnitInfo(generic);
+        //info.isVector = true;
         info.definition = this;
         info.items = items;
         program.addInfo(info);

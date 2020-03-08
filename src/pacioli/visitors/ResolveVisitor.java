@@ -36,11 +36,13 @@ import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.SchemaNode;
@@ -448,7 +450,12 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         }
         for (String arg : context.unitVars) {
             GenericInfo generic = new GenericInfo(arg, prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL, location);
-            UnitInfo info = new UnitInfo(generic);
+            UnitInfo info;
+            if (arg.contains("!")) {
+                info = new VectorUnitInfo(generic);
+            } else {
+                info = new ScalarUnitInfo(generic);
+            }
             table.put(arg, info);
         }
         

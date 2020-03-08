@@ -34,6 +34,7 @@ import pacioli.visitors.DesugarVisitor;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
 import pacioli.visitors.PrintVisitor;
+import pacioli.visitors.Printer;
 import pacioli.visitors.ResolveVisitor;
 import pacioli.visitors.UsesVisitor;
 
@@ -82,7 +83,7 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
     @Override
     public String compileToMVM(CompilationSettings settings) {
         StringWriter outputStream = new StringWriter();
-        accept(new MVMGenerator(new PrintWriter(outputStream), settings));
+        accept(new MVMGenerator(new Printer(new PrintWriter(outputStream)), settings));
         return outputStream.toString();
     }
     

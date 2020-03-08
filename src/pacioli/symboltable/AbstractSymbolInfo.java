@@ -5,7 +5,7 @@ import pacioli.Location;
 public abstract class AbstractSymbolInfo implements SymbolInfo {
     
     private GenericInfo generic;
-    
+        
     public AbstractSymbolInfo(GenericInfo generic) {
         this.generic = generic;
     };

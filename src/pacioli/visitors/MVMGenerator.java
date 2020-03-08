@@ -13,6 +13,7 @@ import pacioli.CompilationSettings;
 import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Utils;
+import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.AliasDefinition;
@@ -68,9 +69,10 @@ import pacioli.types.matrix.MatrixType;
 import uom.DimensionedNumber;
 import uom.Unit;
 
-public class MVMGenerator extends PrintVisitor implements CodeGenerator {
+public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     CompilationSettings settings;
+    Printer out;
 
     
     public static String compileUnitToMVM(Unit<TypeBase> unit) {
@@ -91,9 +93,9 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
     }
     
     
-    public MVMGenerator(PrintWriter printWriter, CompilationSettings settings) {
-        super(printWriter);
-//        out = printWriter;
+    public MVMGenerator(Printer printWriter, CompilationSettings settings) {
+        //super(printWriter);
+        out = printWriter;
         this.settings = settings;
     }
 
@@ -138,7 +140,7 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
         out.print("print ");
         node.body.accept(this);
         out.print(";\n");
-        newline();
+        out.newline();
     }
 
     @Override
@@ -177,18 +179,18 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(ValueDefinition node) {
         out.format("store \"%s\" ", node.globalName());
-        newlineUp();
+        out.newlineUp();
         // node.resolvedBody.desugar().accept(this);
         node.body.accept(this);
         out.write(";");
-        newlineDown();
-        newline();
+        out.newlineDown();
+        out.newline();
     }
 
     @Override
     public void visit(ApplicationNode node) {
         //if (settings.debug() && node.function instanceof IdentifierNode) {
-        mark();
+        out.mark();
         if (false && node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
             String stackText = id.getName();
@@ -202,18 +204,18 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
             // escapeString(stackText), escapeString(fullText), traceOn, code, args);
         } else {
             out.write("application(");
-            newlineUp();
+            out.newlineUp();
             node.function.accept(this);
             // return String.format("application(%s%s)",
             // node.function.compileToMVM(settings), args);
         }
         for (Node arg : node.arguments) {
             out.write(", ");
-            newline();
+            out.newline();
             arg.accept(this);
         }
         out.write(")");
-        unmark();
+        out.unmark();
     }
 
     private String escapeString(String in) {
@@ -307,12 +309,12 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
             quoted.add("\"" + arg + "\"");
         }
         String args = Utils.intercalate(", ", quoted);
-        write("lambda (");
-        write(args);
-        write(")");
-        newlineUp();
+        out.print("lambda (");
+        out.print(args);
+        out.print(")");
+        out.newlineUp();
         node.expression.accept(this);
-        newlineDown();
+        out.newlineDown();
     }
 
     @Override
@@ -403,9 +405,9 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnNode node) {
-        write("application(var(\"global_Primitives_throw_result\"), var(\"result\"), ");
+        out.print("application(var(\"global_Primitives_throw_result\"), var(\"result\"), ");
         node.value.accept(this);
-        write(")");
+        out.print(")");
     }
 
     @Override
@@ -415,20 +417,20 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
             throw new RuntimeException("todo: MVM generator for empty sequence");
         } else {
             Integer n = node.items.size();
-            mark();
+            out.mark();
             for (int i = 0; i < n-1; i++) {
-                write("application(var(\"global_Primitives_seq\"), ");
-                newlineUp();
+                out.print("application(var(\"global_Primitives_seq\"), ");
+                out.newlineUp();
                 node.items.get(i).accept(this);
-                write(", ");
-                newline();
+                out.print(", ");
+                out.newline();
                 
             }
             node.items.get(n-1).accept(this);
             for (int i = 0; i < n-1; i++) {
                 out.print(")");
             }
-            unmark();
+            out.unmark();
         }
         
         //throw new RuntimeException("todo MVM for SequenceNode");
@@ -438,85 +440,85 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(StatementNode node) {
         
-        mark();
+        out.mark();
         
         // Find all assigned variables
         Set<IdentifierNode> assignedVariables = node.body.locallyAssignedVariables();
 
         // A lambda to bind the result place and the assigned variables places
-        write("application(lambda (");
+        out.print("application(lambda (");
         
         // Write the result lambda param
-        write("\"result\"");
+        out.print("\"result\"");
         
         // Write the other lambda params
         for (IdentifierNode id : assignedVariables) {
-            write(", ");
-            write("\"");
-            write(id.getName());
-            write("\"");
+            out.print(", ");
+            out.print("\"");
+            out.print(id.getName());
+            out.print("\"");
         }
-        write(")");
+        out.print(")");
         
-        newlineUp();
+        out.newlineUp();
         
         // A catch to get the result
-        write("application(var(\"global_Primitives_catch_result\"),");
+        out.print("application(var(\"global_Primitives_catch_result\"),");
         
-        newlineUp();
+        out.newlineUp();
         
         // Catch expect a lambda
-        write("lambda ()");
+        out.print("lambda ()");
         
-        newlineUp();
+        out.newlineUp();
         
         // The body
         node.body.accept(this);
-        write(",");
+        out.print(",");
         
-        newline();
+        out.newline();
 
         // Catch's second argument is the place name
-        write("var(\"result\")");
+        out.print("var(\"result\")");
         
         // Close the catch application
-        write("), ");
+        out.print("), ");
         
-        newlineDown();
+        out.newlineDown();
         
         // The initial result place
-        write("application(var(\"global_Primitives_empty_ref\"))");
+        out.print("application(var(\"global_Primitives_empty_ref\"))");
 
         //first = true;
         for (IdentifierNode id : assignedVariables) {
             //if (!first) 
-            write(", ");
+            out.print(", ");
             //first = false;
             
             if (id.info.initialRefInfo != null) {
                 // todo: handle the case the id exists in this scope.
                 if (id.info.initialRefInfo.isRef) {
-                    write("application(var(\"global_Primitives_new_ref\"), application(var(\"global_Primitives_ref_get\"), var(\"");
-                    write(id.getName());
-                    write("\")))");
+                    out.print("application(var(\"global_Primitives_new_ref\"), application(var(\"global_Primitives_ref_get\"), var(\"");
+                    out.print(id.getName());
+                    out.print("\")))");
                 } else {
-                    write("application(var(\"global_Primitives_new_ref\"), var(\"");
-                    write(id.getName());
-                    write("\"))");
+                    out.print("application(var(\"global_Primitives_new_ref\"), var(\"");
+                    out.print(id.getName());
+                    out.print("\"))");
                 }
             } else {
-                write("application(var(\"global_Primitives_empty_ref\"))");
+                out.print("application(var(\"global_Primitives_empty_ref\"))");
             }
         }        
         
         // The result place for catch
-        //write("var(\"result\")");
+        //out.print("var(\"result\")");
         
         
         // Close the lambda application
-        write(")");
+        out.print(")");
         
-        unmark();
+        out.unmark();
         //out.format("application(global_Primitives_ref_set, ");
         //node.body.accept(this);
         //out.format(")");
@@ -548,32 +550,32 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
         // the fresh names and the tuple. The freshnames get bound to the 
         // tuple elements and are used in the lambda body to assign the 
         // variables. The lambda body is a sequence of these assignments.
-        mark();
-        write("application(var(\"global_Primitives_apply\"), lambda (");
+        out.mark();
+        out.print("application(var(\"global_Primitives_apply\"), lambda (");
         
         // The lambda arguments
         Boolean first = true;
         for (String name: freshNames) {
             if (!first) out.print(", ");
-            write("\"");
+            out.print("\"");
             out.print(name);
-            write("\"");
+            out.print("\"");
             first = false;
         }
         out.print(")");
         
-        newlineUp();
+        out.newlineUp();
         
         // The sequence of assignments
         for (int i = 0; i < size; i++) {
-            if (i < size-1) write("application(var(\"global_Primitives_seq\"), ");
-            write("application(var(\"global_Primitives_ref_set\"), var(\"");
-            write(names.get(i));
-            write("\"), var(\"");
-            write(freshNames.get(i));
-            write("\"))");
-            if (i < size-1) write(",");
-            newline();
+            if (i < size-1) out.print("application(var(\"global_Primitives_seq\"), ");
+            out.print("application(var(\"global_Primitives_ref_set\"), var(\"");
+            out.print(names.get(i));
+            out.print("\"), var(\"");
+            out.print(freshNames.get(i));
+            out.print("\"))");
+            if (i < size-1) out.print(",");
+            out.newline();
         }
         
         // Close the sequences
@@ -581,32 +583,32 @@ public class MVMGenerator extends PrintVisitor implements CodeGenerator {
             out.print(")");
         }
         
-        write(", ");
+        out.print(", ");
         node.tuple.accept(this);
         
         // Close the apply
-        write(")");
+        out.print(")");
         
-        unmark();
+        out.unmark();
         
     }
 
     @Override
     public void visit(WhileNode node) {
         //node.desugar().accept(this);
-        mark();
-        write("application(var(\"global_Primitives_while_function\"),");
-        newlineUp();
-        write("lambda () ");
-        newlineUp();
+        out.mark();
+        out.print("application(var(\"global_Primitives_while_function\"),");
+        out.newlineUp();
+        out.print("lambda () ");
+        out.newlineUp();
         node.test.accept(this);
-        write(",");
-        newlineDown();
-        write("lambda ()");
-        newlineUp();
+        out.print(",");
+        out.newlineDown();
+        out.print("lambda ()");
+        out.newlineUp();
         node.body.accept(this);
-        write(")");
-        unmark();
+        out.print(")");
+        out.unmark();
     }
 /*
     @Override

@@ -28,6 +28,7 @@ import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.GenericInfo;
+import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
@@ -89,7 +90,7 @@ public class UnitDefinition extends AbstractDefinition {
     public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
         GenericInfo generic = new GenericInfo(localName(), program.program.module.name, 
                 program.file, scope, getLocation());       
-        UnitInfo info = new UnitInfo(generic);
+        ScalarUnitInfo info = new ScalarUnitInfo(generic);
         info.definition = this;
         info.symbol = symbol;
         info.baseDefinition = body;

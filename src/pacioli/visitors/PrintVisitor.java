@@ -55,8 +55,13 @@ import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 
-public class PrintVisitor implements Visitor {
+public class PrintVisitor extends Printer implements Visitor {
 
+    public PrintVisitor(PrintWriter printWriter) {
+        super(printWriter);
+    }
+    
+    /*
     PrintWriter out;
     private Stack<Integer> indentationStack;
     Integer indentation = 0;
@@ -71,7 +76,7 @@ public class PrintVisitor implements Visitor {
         out.print(text);
         offset += text.length();
     }
-    
+    */
     protected void writeCommaSeparated(List<? extends Node> nodes) {
         Boolean sep = false;
         for (Node node: nodes) {
@@ -83,7 +88,7 @@ public class PrintVisitor implements Visitor {
             node.accept(this);
         }
     }
-    
+    /*
     protected void mark() {
         indentationStack.push(indentation);
         indentation = offset;
@@ -117,7 +122,7 @@ public class PrintVisitor implements Visitor {
         indentationStack = new Stack<Integer>();
         out = printWriter;
     }
-
+*/
     @Override
     public void visit(ProgramNode node) {
         for (Definition def : node.definitions) {

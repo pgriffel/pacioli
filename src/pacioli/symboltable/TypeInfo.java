@@ -14,6 +14,11 @@ public class TypeInfo extends AbstractSymbolInfo implements SymbolInfo {
     public Boolean isIndexSetId;
     public Boolean isUnitId;
     public Boolean isVar;
+
+    @Override
+    public void accept(SymbolTableVisitor visitor) {
+        visitor.visit(this);
+    }
     
     @Override
     public String globalName() {
@@ -29,5 +34,4 @@ public class TypeInfo extends AbstractSymbolInfo implements SymbolInfo {
         // TODO Auto-generated method stub
         return this;
     }
-
 }

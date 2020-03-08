@@ -61,4 +61,10 @@ public class SymbolTable<R extends SymbolInfo> {
         }
 
     }
+    
+    public void accept(SymbolTableVisitor visitor) {
+        for (SymbolInfo info: table.values()) {
+            info.accept(visitor);
+        }
+    }
 }

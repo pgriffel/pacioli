@@ -7,6 +7,11 @@ public class IndexSetInfo extends AbstractSymbolInfo implements SymbolInfo {
 
     public IndexSetDefinition definition;
 
+    @Override
+    public void accept(SymbolTableVisitor visitor) {
+        visitor.visit(this);
+    }
+    
     public IndexSetInfo(GenericInfo generic) {
         super(generic);
     };

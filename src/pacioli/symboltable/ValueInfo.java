@@ -19,6 +19,11 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
     public ValueInfo initialRefInfo;
 
     @Override
+    public void accept(SymbolTableVisitor visitor) {
+        visitor.visit(this);
+    }
+    
+    @Override
     public String globalName() {
         return String.format("global_%s_%s", generic().module, name());
     }

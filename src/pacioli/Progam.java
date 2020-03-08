@@ -19,11 +19,13 @@ import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.compilers.MVMCompiler;
 import pacioli.parser.Parser;
 import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
@@ -32,6 +34,7 @@ import pacioli.types.TypeBase;
 import pacioli.visitors.CodeGenerator;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
+import pacioli.visitors.Printer;
 import pacioli.visitors.ResolveVisitor;
 import uom.DimensionedNumber;
 
@@ -331,9 +334,10 @@ public class Progam extends AbstractPrintable {
 
         for (String unit : units.allNames()) {
             UnitInfo nfo = units.lookup(unit);
-            assert (nfo.definition != null);
-            if (nfo.definition != null) {
-                nfo.definition.resolve(this);
+            Definition definition = nfo.getDefinition();
+            assert (definition != null);
+            if (definition != null) {
+                definition.resolve(this);
             }
         }
         for (String type : types.allNames()) {
@@ -548,6 +552,7 @@ public class Progam extends AbstractPrintable {
 
     public void generateCode(PrintWriter writer, CompilationSettings settings, String target) throws Exception {
 
+        Printer printer = new Printer(writer);
         Boolean externals = true;
         
         List<Definition> unitsToCompile = new ArrayList<Definition>();
@@ -555,7 +560,7 @@ public class Progam extends AbstractPrintable {
         for (String unit : units.allNames()) {
             UnitInfo info = units.lookup(unit);
             if ((!isExternal(info) || externals) && !info.isAlias()) {
-                unitsToCompile.add(info.definition);
+                unitsToCompile.add(info.getDefinition());
                 unitsToCompileTmp.add(info);
             }
         }
@@ -584,27 +589,34 @@ public class Progam extends AbstractPrintable {
             throw new RuntimeException("Todo: fix html compilation");
             // program.compileHtml(new PrintWriter(outputStream), settings);
         } else {
-            gen = new MVMGenerator(writer, settings);
+            gen = new MVMGenerator(printer, settings);
         }
+
+        SymbolTableVisitor compiler = new MVMCompiler(printer, settings);
+        //values.accept(compiler);
+
         
         for (String indexSet : indexSets.allNames()) {
             IndexSetInfo info = indexSets.lookup(indexSet);
             if (!isExternal(info) || externals) {
                 assert (info.definition != null);
-                info.definition.accept(gen);
+                //info.definition.accept(gen);
+                info.accept(compiler);
             }
         }
         
         for (UnitInfo info : unitsToCompileTmp) {
-            compileUnitMVM(info, writer, target);
-            writer.print("\n");
+            //compileUnitMVM(info, writer, target);
+            //writer.print("\n");
+            info.accept(compiler);
         }
 
         for (ValueInfo info : valuesToCompile) {
             if (!isExternal(info) || externals) {
-            ValueDefinition def = (ValueDefinition) info.getDefinition();
-            gen.compileValueDefinition(def, info);
-            writer.write("\n");
+            //ValueDefinition def = (ValueDefinition) info.getDefinition();
+            //gen.compileValueDefinition(def, info);
+            //writer.write("\n");
+            info.accept(compiler);
             }
         }
         
@@ -617,10 +629,10 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     // MVM code generation
     // -------------------------------------------------------------------------
-
+/*
     private void compileUnitMVM(UnitInfo info, PrintWriter writer, String target) {
         if (info.isVector) {
-            IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.definition).indexSetNode.info;
+            IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.getDefinition()).indexSetNode.info;
             List<String> unitTexts = new ArrayList<String>();
             // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
             for (UnitDecl entry : info.items) {
@@ -669,7 +681,7 @@ public class Progam extends AbstractPrintable {
             }
         }
     }
-    
+  */  
     // -------------------------------------------------------------------------
     // Matlab code generation
     // -------------------------------------------------------------------------
@@ -690,7 +702,7 @@ public class Progam extends AbstractPrintable {
             for (String unit : units.allNames()) {
                 UnitInfo info = units.lookup(unit);
                 if (!isExternal(info)) {
-                    unitsToCompile.add(info.definition);
+                    unitsToCompile.add(info.getDefinition());
                     unitsToCompileTmp.add(info);
                 }
             }
@@ -707,7 +719,8 @@ public class Progam extends AbstractPrintable {
                 }
             }
             
-            MVMGenerator gen = new MVMGenerator(writer, settings);
+            Printer printer = new Printer(writer);
+            MVMGenerator gen = new MVMGenerator(printer , settings);
 
             for (String indexSet : indexSets.allNames()) {
                 IndexSetInfo info = indexSets.lookup(indexSet);
@@ -718,7 +731,7 @@ public class Progam extends AbstractPrintable {
             }
             
             for (UnitInfo info : unitsToCompileTmp) {
-                compileUnitMatlab(info, writer);
+    //            compileUnitMatlab(info, writer);
             }
 
             for (ValueInfo info : valuesToCompile) {
@@ -739,10 +752,10 @@ public class Progam extends AbstractPrintable {
         }
 
     }
-
+/*
     private void compileUnitMatlab(UnitInfo info, PrintWriter writer) {
         if (info.isVector) {
-            IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.definition).indexSetNode.info;
+            IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.getDefinition()).indexSetNode.info;
             List<String> unitTexts = new ArrayList<String>();
             // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
             for (UnitDecl entry : info.items) {
@@ -763,7 +776,7 @@ public class Progam extends AbstractPrintable {
                     MVMGenerator.compileUnitToMVM(number.unit()));
         }
     }
-    
+  */  
     // -------------------------------------------------------------------------
     // Topological Order of Definitions
     // -------------------------------------------------------------------------

@@ -17,4 +17,6 @@ public interface SymbolInfo {
 
     Location getLocation();
 
+    void accept(SymbolTableVisitor visitor);
+
 }

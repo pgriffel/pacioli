@@ -8,6 +8,7 @@ import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
+import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.types.TypeBase;
@@ -53,10 +54,10 @@ public class AliasDefinition extends AbstractDefinition {
         GenericInfo generic = new GenericInfo(localName(), program.program.module.name, 
                 program.file, scope, getLocation());
         
-        UnitInfo info = new UnitInfo(generic); //program.ensureUnitRecord(localName());
+        AliasInfo info = new AliasInfo(generic); //program.ensureUnitRecord(localName());
         info.definition = this;
-        info.symbol = null;
-        info.baseDefinition = unit;
+        //info.symbol = null;
+        //info.baseDefinition = unit;
         program.addInfo(info);
     }
 
