@@ -38,7 +38,9 @@ import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.TypeBase;
 import pacioli.types.matrix.MatrixType;
+import uom.Fraction;
 import uom.Unit;
+import uom.UnitFold;
 
 public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
@@ -55,6 +57,9 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     
     // Unit compilation
     public static String compileUnitToMVM(Unit<TypeBase> unit) {
+        UnitMVMCompiler com = new UnitMVMCompiler();
+        return unit.fold(com);
+        /*
         String product = "";
         int n = 0;
         for (TypeBase base : unit.bases()) {
@@ -68,7 +73,31 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         } else {
             return product;
         }
+*/
+    }
+    
+    
+    static class UnitMVMCompiler implements UnitFold<TypeBase, String> {
 
+        @Override
+        public String map(TypeBase base) {    
+            return base.compileToMVM();
+        }
+
+        @Override
+        public String mult(String x, String y) {
+            return String.format("unit_mult(%s, %s)", x, y);
+        }
+
+        @Override
+        public String expt(String x, Fraction n) {
+            return String.format("unit_expt(%s, %s)", x, n);
+        }
+
+        @Override
+        public String one() {
+            return "unit(\"\")";
+        }
     }
     
     // Visitors

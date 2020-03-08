@@ -507,8 +507,8 @@ public class MatrixType extends AbstractType {
 
     @Override
     public String compileToMVM() {
-        UnitMVMCompiler unitCompiler = new UnitMVMCompiler();
-        DimMVMCompiler dimCompiler = new DimMVMCompiler();
+        //UnitMVMCompiler unitCompiler = new UnitMVMCompiler();
+        //DimMVMCompiler dimCompiler = new DimMVMCompiler();
         
         //String factorCode = factor.fold(unitCompiler);
         //String rowDimCode = rowUnit.fold(dimCompiler);
@@ -562,29 +562,6 @@ public class MatrixType extends AbstractType {
                 }
             }
             return code;
-        }
-    }
-    
-    class UnitMVMCompiler implements UnitFold<TypeBase, String> {
-
-        @Override
-        public String map(TypeBase base) {    
-            return base.compileToMVM();
-        }
-
-        @Override
-        public String mult(String x, String y) {
-            return String.format("shape_binop(\"multiply\", %s, %s)", x, y);
-        }
-
-        @Override
-        public String expt(String x, Fraction n) {
-            return String.format("shape_expt(%s, %s)", x, n);
-        }
-
-        @Override
-        public String one() {
-            return "scalar_shape(unit(\"\"))";
         }
     }
     
