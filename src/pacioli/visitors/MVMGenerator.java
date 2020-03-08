@@ -50,30 +50,13 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     // Constructor
     public MVMGenerator(Printer printWriter, CompilationSettings settings) {
-        //super(printWriter);
         out = printWriter;
         this.settings = settings;
     }
     
     // Unit compilation
     public static String compileUnitToMVM(Unit<TypeBase> unit) {
-        UnitMVMCompiler com = new UnitMVMCompiler();
-        return unit.fold(com);
-        /*
-        String product = "";
-        int n = 0;
-        for (TypeBase base : unit.bases()) {
-            TypeBase typeBase = (TypeBase) base;
-            String baseText = "unit_expt(" + typeBase.compileToMVM() + ", " + unit.power(base) + ")";
-            product = n == 0 ? baseText : "unit_mult(" + baseText + ", " + product + ")";
-            n++;
-        }
-        if (n == 0) {
-            return "unit(\"\")";
-        } else {
-            return product;
-        }
-*/
+        return unit.fold(new UnitMVMCompiler());
     }
     
     
@@ -115,6 +98,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         
         out.mark();
         
+        // Fixme
         //if (settings.debug() && node.function instanceof IdentifierNode) {
         if (false && node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;

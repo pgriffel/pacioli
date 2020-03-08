@@ -37,6 +37,7 @@ import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
 import pacioli.visitors.JSGenerator;
+import pacioli.visitors.MVMGenerator;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitFold;
@@ -507,40 +508,11 @@ public class MatrixType extends AbstractType {
 
     @Override
     public String compileToMVM() {
-        //UnitMVMCompiler unitCompiler = new UnitMVMCompiler();
-        //DimMVMCompiler dimCompiler = new DimMVMCompiler();
         
-        //String factorCode = factor.fold(unitCompiler);
-        //String rowDimCode = rowUnit.fold(dimCompiler);
         String rowDimCode = compileDimension(rowDimension, rowUnit);
         String columnDimCode = compileDimension(columnDimension, columnUnit);
-        //String columnDimCode = columnUnit.fold(dimCompiler);
-        
-        String factorCode = factor.fold(new UnitFold<TypeBase, String> () {
-
-            @Override
-            public String map(TypeBase base) {                
-                return base.compileToMVM();
-            }
-
-            @Override
-            public String mult(String x, String y) {
-                return String.format("unit_mult(%s, %s)", x, y);
-            }
-
-            @Override
-            public String expt(String x, Fraction n) {
-                return String.format("unit_expt(%s, %s)", x, n);
-            }
-
-            @Override
-            public String one() {
-                //return "scalar_shape(unit(\"\"))";
-                return "unit(\"\")";
-            }
-            
-        });
-        
+        String factorCode = MVMGenerator.compileUnitToMVM(factor); 
+                
         return String.format("shape_binop(\"multiply\", scalar_shape(%s), shape_binop(\"per\", %s, %s))", 
                 factorCode, rowDimCode, columnDimCode);
     }
