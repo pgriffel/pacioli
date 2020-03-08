@@ -12,6 +12,7 @@ import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
+import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarUnitInfo;
@@ -106,17 +107,17 @@ public class JSCompiler implements SymbolTableVisitor {
     }
 
     @Override
-    public void visit(UnitInfo infoToRefactor) {
-        
-        ScalarUnitInfo info = (ScalarUnitInfo) infoToRefactor; 
+    public void visit(ScalarUnitInfo info) {
         
         Pacioli.logln("Compiling unit %s", info.globalName());
         
-        if (info.baseDefinition == null) {
+        UnitNode body = info.definition.body;
+        
+        if (body == null) {
             out.format("Pacioli.compute_%s = function () { return {symbol: '%s'}};\n", 
                     info.globalName(), info.symbol);
         } else {
-            DimensionedNumber<TypeBase> number = info.baseDefinition.evalUnit();
+            DimensionedNumber<TypeBase> number = body.evalUnit();
             number = number.flat();
             out.format("Pacioli.compute_%s = function () {\n", info.globalName());
             out.format("    return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}\n",

@@ -93,7 +93,6 @@ public class UnitDefinition extends AbstractDefinition {
         ScalarUnitInfo info = new ScalarUnitInfo(generic);
         info.definition = this;
         info.symbol = symbol;
-        info.baseDefinition = body;
         program.addInfo(info);
     }
 }

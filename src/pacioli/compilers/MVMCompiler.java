@@ -69,35 +69,18 @@ public class MVMCompiler implements SymbolTableVisitor {
     }
 
     @Override
-    public void visit(UnitInfo info) {
+    public void visit(ScalarUnitInfo info) {
         
         Pacioli.logln("Compiling unit %s", info.globalName());
-        if (info instanceof VectorUnitInfo) {
-            IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.getDefinition()).indexSetNode.info;
-            List<String> unitTexts = new ArrayList<String>();
-            // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
-            for (UnitDecl entry : ((VectorUnitInfo) info).items) {
-                DimensionedNumber<TypeBase> number = entry.value.evalUnit();
-                // todo: take number.factor() into account!? 
-                unitTexts.add("\"" + entry.key.getName() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));
-            }
-            String globalName = setInfo.definition.globalName();
-            String name = info.name();
-            String args = Utils.intercalate(", ", unitTexts); 
-            out.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n", globalName, name, args));
+
+        if (info.definition.body == null) {
+            out.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol);
         } else {
-            
-            ScalarUnitInfo scalarInfo = (ScalarUnitInfo) info;
-            
-            if (scalarInfo.definition.body == null) {
-                out.format("baseunit \"%s\" \"%s\";\n", info.name(), scalarInfo.symbol);
-            } else {
-                //DimensionedNumber<TypeBase> number = (scalarInfo.baseDefinition.evalUnit();
-                DimensionedNumber<TypeBase> number = scalarInfo.definition.body.evalUnit();
-                number = number.flat();
-                out.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), scalarInfo.symbol, number.factor(),
-                        MVMGenerator.compileUnitToMVM(number.unit()));
-            }
+            //DimensionedNumber<TypeBase> number = (scalarInfo.baseDefinition.evalUnit();
+            DimensionedNumber<TypeBase> number = info.definition.body.evalUnit();
+            number = number.flat();
+            out.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
+                    MVMGenerator.compileUnitToMVM(number.unit()));
         }
     }
     
