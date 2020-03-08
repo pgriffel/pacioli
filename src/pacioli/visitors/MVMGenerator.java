@@ -1,6 +1,5 @@
 package pacioli.visitors;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,17 +14,7 @@ import pacioli.PacioliException;
 import pacioli.Utils;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
-import pacioli.ast.ProgramNode;
-import pacioli.ast.definition.AliasDefinition;
-import pacioli.ast.definition.Declaration;
-import pacioli.ast.definition.IndexSetDefinition;
-import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.definition.Toplevel;
-import pacioli.ast.definition.TypeDefinition;
-import pacioli.ast.definition.UnitDefinition;
-import pacioli.ast.definition.UnitVectorDefinition;
-import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
-import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
@@ -45,36 +34,26 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
-import pacioli.ast.unit.NumberUnitNode;
-import pacioli.ast.unit.UnitIdentifierNode;
-import pacioli.ast.unit.UnitOperationNode;
-import pacioli.ast.unit.UnitPowerNode;
 import pacioli.symboltable.IndexSetInfo;
-import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.TypeBase;
-import pacioli.types.ast.BangTypeNode;
-import pacioli.types.ast.FunctionTypeNode;
-import pacioli.types.ast.NumberTypeNode;
-import pacioli.types.ast.PrefixUnitTypeNode;
-import pacioli.types.ast.SchemaNode;
-import pacioli.types.ast.TypeApplicationNode;
-import pacioli.types.ast.TypeDivideNode;
-import pacioli.types.ast.TypeIdentifierNode;
-import pacioli.types.ast.TypeKroneckerNode;
-import pacioli.types.ast.TypeMultiplyNode;
-import pacioli.types.ast.TypePerNode;
-import pacioli.types.ast.TypePowerNode;
 import pacioli.types.matrix.MatrixType;
-import uom.DimensionedNumber;
 import uom.Unit;
 
 public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
+    // Members
     CompilationSettings settings;
     Printer out;
 
+    // Constructor
+    public MVMGenerator(Printer printWriter, CompilationSettings settings) {
+        //super(printWriter);
+        out = printWriter;
+        this.settings = settings;
+    }
     
+    // Unit compilation
     public static String compileUnitToMVM(Unit<TypeBase> unit) {
         String product = "";
         int n = 0;
@@ -92,51 +71,10 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     }
     
-    
-    public MVMGenerator(Printer printWriter, CompilationSettings settings) {
-        //super(printWriter);
-        out = printWriter;
-        this.settings = settings;
-    }
-
-    private void na() {
-        throw new RuntimeException("Cannot call this");
-    }
-
-    @Override
-    public void visit(ProgramNode program) {
-        na();
-    }
-
-    @Override
-    public void visit(AliasDefinition aliasDefinition) {
-        na();
-    }
-
-    @Override
-    public void visit(Declaration declaration) {
-        na();
-    }
-
-    @Override
-    public void visit(IndexSetDefinition node) {
-        List<String> quotedItems = new ArrayList<String>();
-        for (String item : node.items) {
-            quotedItems.add(String.format("\"%s\"", item));
-        }
-        out.format("indexset \"%s\" \"%s\" list(%s);\n", node.globalName(), node.localName(),
-                Utils.intercalate(",", quotedItems));
-    }
-
-    @Override
-    public void visit(MultiDeclaration multiDeclaration) {
-        na();
-    }
+    // Visitors
 
     @Override
     public void visit(Toplevel node) {
-        // na();
-        // out.format("\nprint %s;", definition.compileToMVM(settings));
         out.print("print ");
         node.body.accept(this);
         out.print(";\n");
@@ -144,53 +82,11 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     }
 
     @Override
-    public void visit(TypeDefinition typeDefinition) {
-        na();
-    }
-
-    @Override
-    public void visit(UnitDefinition node) {
-        DimensionedNumber<TypeBase> number = node.evalBody();
-        if (number == null) {
-            out.format("baseunit \"%s\" \"%s\";\n", node.getName(), node.getSymbol());
-        } else {
-            number = number.flat();
-            out.format("unit \"%s\" \"%s\" %s %s;\n", node.getName(), node.getSymbol(), number.factor(),
-                    compileUnitToMVM(number.unit()));
-        }
-    }
-
-    @Override
-    public void visit(UnitVectorDefinition node) {
-        IndexSetInfo setInfo = (IndexSetInfo) node.indexSetNode.info;
-        List<String> unitTexts = new ArrayList<String>();
-        // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
-        for (UnitDecl entry : node.items) {
-            DimensionedNumber<TypeBase> number = entry.value.evalUnit();
-            unitTexts.add("\"" + entry.key.getName() + "\": " + compileUnitToMVM(number.unit()));
-        }
-        out.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n",
-                // String.format("index_%s_%s", node.getModule().getName(), node.localName()),
-                setInfo.definition.globalName(),
-                // resolvedIndexSet.getDefinition().globalName(),
-                node.localName(), Utils.intercalate(", ", unitTexts)));
-    }
-
-    @Override
-    public void visit(ValueDefinition node) {
-        out.format("store \"%s\" ", node.globalName());
-        out.newlineUp();
-        // node.resolvedBody.desugar().accept(this);
-        node.body.accept(this);
-        out.write(";");
-        out.newlineDown();
-        out.newline();
-    }
-
-    @Override
     public void visit(ApplicationNode node) {
-        //if (settings.debug() && node.function instanceof IdentifierNode) {
+        
         out.mark();
+        
+        //if (settings.debug() && node.function instanceof IdentifierNode) {
         if (false && node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
             String stackText = id.getName();
@@ -206,8 +102,6 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             out.write("application(");
             out.newlineUp();
             node.function.accept(this);
-            // return String.format("application(%s%s)",
-            // node.function.compileToMVM(settings), args);
         }
         for (Node arg : node.arguments) {
             out.write(", ");
@@ -225,8 +119,6 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(AssignmentNode node) {
-        // node.desugar().accept(this);
-        //na();
         out.print("application(var(\"global_Primitives_ref_set\"), var(\"");
         out.print(node.var.name);
         out.print("\"), ");
@@ -253,20 +145,18 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ConversionNode node) {
         out.write("matrix_constructor(\"conversion\", ");
-        // todo: switch to new compile
-        //node.typeNode.accept(this);
         out.print(node.typeNode.evalType(true).compileToMVM());
         out.write(")");
     }
 
     @Override
     public void visit(IdentifierNode node) {
+        
         ValueInfo info = node.info;
+        
         String prefix = settings.debug() && node.debugable() ? "debug_" : "global_";
-        // String full = node.isLocal() ? node.name : node.compiledName(prefix);
-        // String full = info.generic.global ? node.compiledName(prefix) : node.name;
         String full = info.isGlobal() ? prefix + info.generic().module + "_" + node.name : node.name;
-
+        
         if (node.info.isRef) {
             out.format("application(var(\"global_Primitives_ref_get\"), var(\"%s\"))", full);
         } else {
@@ -294,7 +184,6 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
                 out.write(", ");
             }
             IndexSetInfo info = node.info.get(i);
-            // out.write("\"" + node.indexSetDefinitions.get(i).globalName() + "\"");
             out.write("\"" + info.definition.globalName() + "\"");
             out.write(", ");
             out.write("\"" + node.keys.get(i) + "\"");
@@ -320,29 +209,14 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(MatrixLiteralNode node) {
 
-        /*
-         * // Evaluate the matrix type MatrixType matrixType; try { PacioliType type =
-         * node.typeNode.evalType(false); if (type instanceof MatrixType) { matrixType =
-         * (MatrixType) type; } else { throw new
-         * PacioliException(node.typeNode.getLocation(), "Expected a matrix type"); } }
-         * catch (PacioliException e) { throw new RuntimeException(e); }
-         */
-
         // Find the matrix type's row and column dimension. They should have been set
         // during resolving
-        /*
-         * MatrixDimension rowDim = compileTimeMatrixDimension(matrixType.rowDimension);
-         * MatrixDimension columnDim =
-         * compileTimeMatrixDimension(matrixType.columnDimension);
-         */
         MatrixDimension rowDim = node.rowDim;
         MatrixDimension columnDim = node.columnDim;
         assert (rowDim != null && columnDim != null);
 
         // Write the opening of the literal
         out.write("literal_matrix(");
-        // Todo: switch to new compiler
-        //node.typeNode.accept(this);
         out.print(node.typeNode.evalType(true).compileToMVM());
         out.write(", ");
 
@@ -385,22 +259,19 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(MatrixTypeNode node) {
-        MatrixType type;
         try {
-            type = node.evalType(true);
+            MatrixType type = node.evalType(true);
+            out.write("matrix_constructor(\"ones\", ");
+            out.print(type.compileToMVM());
+            out.write(")");
         } catch (PacioliException e) {
             throw new RuntimeException(e);
         }
-        out.write("matrix_constructor(\"ones\", ");
-        //node.typeNode.accept(this);
-        out.print(type.compileToMVM());
-        out.write(")");
     }
 
     @Override
     public void visit(ProjectionNode node) {
-        // out.write(node.MVMcode(settings));
-        throw new RuntimeException("todo ");
+        throw new RuntimeException("todo: MVM code generation for ProjectionNode");
     }
 
     @Override
@@ -432,9 +303,6 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             }
             out.unmark();
         }
-        
-        //throw new RuntimeException("todo MVM for SequenceNode");
-        //node.desugar().accept(this);
     }
 
     @Override
@@ -511,17 +379,10 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             }
         }        
         
-        // The result place for catch
-        //out.print("var(\"result\")");
-        
-        
         // Close the lambda application
         out.print(")");
         
         out.unmark();
-        //out.format("application(global_Primitives_ref_set, ");
-        //node.body.accept(this);
-        //out.format(")");
     }
 
     @Override
@@ -531,7 +392,6 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(TupleAssignmentNode node) {
-        //node.desugar().accept(this);
         
         // Some tuple properties
         List<IdentifierNode> vars = node.vars;
@@ -595,7 +455,6 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(WhileNode node) {
-        //node.desugar().accept(this);
         out.mark();
         out.print("application(var(\"global_Primitives_while_function\"),");
         out.newlineUp();
@@ -609,134 +468,5 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         node.body.accept(this);
         out.print(")");
         out.unmark();
-    }
-/*
-    @Override
-    public void visit(BangTypeNode node) {
-        na();
-        IndexSetInfo info = (IndexSetInfo) node.indexSet.info;
-        UnitInfo unitInfo = node.unit == null ? null : (UnitInfo) node.unit.info;
-        out.format("bang_shape(\"%s\", \"%s\")",
-                // node.indexSet.getDefinition().globalName(),
-                // node.indexSetInfo.definition.globalName(),
-                // node.indexSet.info.generic().module,
-                info.definition.globalName(), node.unit == null ? "" :
-                // node.unit.getDefinition().localName()
-                // node.unit.getName()
-                        unitInfo.definition.localName());
-    }
-
-    @Override
-    public void visit(FunctionTypeNode functionTypeNode) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("todo ");
-    }
-
-    @Override
-    public void visit(NumberTypeNode numberTypeNode) {
-        // TODO Auto-generated method stub
-        //throw new RuntimeException("todo ");
-        out.print("scalar_shape(unit(\"\"))");
-    }
-
-    @Override
-    public void visit(SchemaNode schemaNode) {
-        // TODO Auto-generated method stub
-        throw new RuntimeException("todo ");
-    }
-
-    @Override
-    public void visit(TypeApplicationNode typeApplicationNode) {
-        // TODO Auto-generated method stub
-        //na();
-        throw new RuntimeException("todo ");
-    }
-
-    @Override
-    public void visit(TypeIdentifierNode node) {
-        na();
-        out.write(node.MVMCode(settings));
-    }
-
-    @Override
-    public void visit(TypePowerNode node) {
-        //na();
-        out.write("shape_expt(");
-        node.base.accept(this);
-        out.write(", ");
-        out.write(node.power.number);
-        out.write(")");
-    }
-
-    @Override
-    public void visit(PrefixUnitTypeNode node) {
-        na();
-        out.write(node.MVMCode(settings));
-    }
-
-    @Override
-    public void visit(TypeMultiplyNode node) {
-        na();
-        out.write("shape_binop(\"multiply\", ");
-        node.left.accept(this);
-        out.write(", ");
-        node.right.accept(this);
-        out.write(")");
-    }
-
-    @Override
-    public void visit(TypeDivideNode node) {
-        na();
-        out.write("shape_binop(\"divide\", ");
-        node.left.accept(this);
-        out.write(", ");
-        node.right.accept(this);
-        out.write(")");
-    }
-
-    @Override
-    public void visit(TypeKroneckerNode node) {
-        na();
-        out.write("shape_binop(\"kronecker\", ");
-        node.left.accept(this);
-        out.write(", ");
-        node.right.accept(this);
-        out.write(")");
-    }
-
-    @Override
-    public void visit(TypePerNode node) {
-        //na();
-        out.write("shape_binop(\"per\", ");
-        node.left.accept(this);
-        out.write(", ");
-        node.right.accept(this);
-        out.write(")");
-    }
-
-    @Override
-    public void visit(NumberUnitNode numberUnitNode) {
-        na();
-    }
-
-    @Override
-    public void visit(UnitIdentifierNode unitIdentifierNode) {
-        na();
-    }
-
-    @Override
-    public void visit(UnitOperationNode unitOperationNode) {
-        na();
-    }
-
-    @Override
-    public void visit(UnitPowerNode unitOperationNode) {
-        na();
-    }
-*/
-    @Override
-    public void compileValueDefinition(ValueDefinition def, ValueInfo info) {
-        //def.accept(this);
-        na();
     }
 }

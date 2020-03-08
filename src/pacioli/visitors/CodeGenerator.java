@@ -6,5 +6,5 @@ import pacioli.symboltable.ValueInfo;
 
 public interface CodeGenerator extends Visitor {
 
-    void compileValueDefinition(ValueDefinition def, ValueInfo info);
+    //void compileValueDefinition(ValueDefinition def, ValueInfo info);
 }

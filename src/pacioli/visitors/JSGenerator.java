@@ -10,22 +10,11 @@ import pacioli.CompilationSettings;
 import pacioli.PacioliException;
 import pacioli.Utils;
 import pacioli.ast.Node;
-import pacioli.ast.ProgramNode;
-import pacioli.ast.definition.AliasDefinition;
-import pacioli.ast.definition.Declaration;
-import pacioli.ast.definition.IndexSetDefinition;
-import pacioli.ast.definition.MultiDeclaration;
-import pacioli.ast.definition.Toplevel;
-import pacioli.ast.definition.TypeDefinition;
-import pacioli.ast.definition.UnitDefinition;
-import pacioli.ast.definition.UnitVectorDefinition;
-import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
-import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
@@ -46,10 +35,18 @@ import uom.Unit;
 
 public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
+    // Members
     CompilationSettings settings;
     Boolean boxed;
 
-
+    // Constructor
+    public JSGenerator(PrintWriter printWriter, CompilationSettings settings, boolean boxed) {
+        super(printWriter);
+        this.settings = settings;
+        this.boxed = boxed;
+    }
+    
+    // Unit compilation
     public static String compileUnitToJS(Unit<TypeBase> unit) {
         String product = "";
         int n = 0;
@@ -64,123 +61,10 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         } else {
             return product;
         }
-
-    }
-
-    
-    
-    public JSGenerator(PrintWriter printWriter, CompilationSettings settings, boolean boxed) {
-        super(printWriter);
-        this.settings = settings;
-        this.boxed = boxed;
-    }
-
-    private void na() {
-        throw new RuntimeException("Cannot call this");
-    }
-
-    @Override
-    public void visit(ProgramNode program) {
-        na();
-    }
-
-    @Override
-    public void visit(AliasDefinition aliasDefinition) {
-        na();
-    }
-
-    @Override
-    public void visit(Declaration declaration) {
-        na();
-    }
-
-    @Override
-    public void visit(IndexSetDefinition node) {        
-        List<String> quotedItems = new ArrayList<String>();
-        for (String item : node.items) {
-            quotedItems.add(String.format("\"%s\"", item));
-        }
-        out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', [ %s ])}\n", 
-                node.globalName(), 
-                node.localName(),
-                Utils.intercalate(",", quotedItems));
-    }
-
-    @Override
-    public void visit(MultiDeclaration multiDeclaration) {
-        na();
-    }
-
-    @Override
-    public void visit(Toplevel node) {
-        newline();
-    }
-
-    @Override
-    public void visit(TypeDefinition typeDefinition) {
-        na();
-    }
-
-    @Override
-    public void visit(UnitDefinition node) {
-        na();
-    }
-
-    @Override
-    public void visit(UnitVectorDefinition node) {
-        na();
-    }
-
-    public void compileValueDefinition(ValueDefinition node, ValueInfo info) {
-        ExpressionNode transformedBody = node.body;
-        if (transformedBody instanceof LambdaNode) {
-            LambdaNode code = (LambdaNode) transformedBody;
-            out.format("\n" 
-                    + "Pacioli.u_%s = function () {\n"
-                    + "    var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));\n"
-                    + "    var type = %s;\n"
-                    + "    return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));\n"
-                    + "}\n"
-                    + "Pacioli.b_%s = function (%s) {\n"
-                    + "    return %s;\n" 
-                    + "}\n"
-                    + "Pacioli.%s = function (%s) {\n"
-                    + "    return %s;\n" 
-                    + "}\n",
-                    node.globalName(),
-                    info.inferredType.reduce().compileToJS(),
-                    //info.inferredType.compileToJS(),
-                    node.globalName(),
-                    code.argsString(),
-                    code.expression.compileToJS(settings, true),
-                    node.globalName(),
-                    code.argsString(),
-                    code.expression.compileToJS(settings, false));
-        } else {
-            out.format("\n"
-                    + "Pacioli.compute_u_%s = function () {\n"
-                    + "    return %s;\n"
-                    + "}\n"
-                        + "Pacioli.compute_%s = function () {\n  return %s;\n}\n"
-                    + "Pacioli.compute_b_%s = function () {\n  return %s;\n}\n",
-                    node.globalName(),
-                    info.inferredType.reduce().compileToJS(), //transformedBody.compileToJSShape(),
-                    //info.inferredType.compileToJS(), //transformedBody.compileToJSShape(),
-                    node.globalName(),
-                    transformedBody.compileToJS(settings, false),
-                    node.globalName(),
-                    transformedBody.compileToJS(settings, true));
-        }
-                
     }
     
-    @Override
-    public void visit(ValueDefinition node) {
-        na();
-        node.body.accept(this);    
-    }
-    
-    
+    // Visitors
+ 
     @Override
     public void visit(ApplicationNode node) {
         //if (settings.debug() && node.function instanceof IdentifierNode) {
@@ -275,19 +159,13 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ConversionNode node) {
-        //out.format("Pacioli.conversionNumbers(");
-        //out.format("Pacioli.conversionNumbers(%s)", node.typeNode.compileToJSNew(settings, boxed));
-        
         out.format("Pacioli.conversionNumbers(%s)", node.typeNode.evalType(true).compileToJS());
-        //out.format(")");
     }
 
     @Override
     public void visit(IdentifierNode node) {
         ValueInfo info = node.info;
         //String prefix = settings.debug() && node.debugable() ? "debug_" : "global_";
-        // String full = node.isLocal() ? node.name : node.compiledName(prefix);
-        // String full = info.generic.global ? node.compiledName(prefix) : node.name;
         String fun = boxed ? "bfetchValue" : "fetchValue";
         String full = info.isGlobal() ? "Pacioli." + fun + "('" + info.generic().module + "', '" + node.name + "')" 
                                           : node.name;
@@ -301,13 +179,6 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(IfStatementNode node) {
-/*        out.write("if (");
-        node.test.accept(this);
-        out.write(") { ");
-        node.positive.accept(this);
-        out.write(" } else { ");
-        node.negative.accept(this);
-        out.write(" }");*/
         out.write("(");
         node.test.accept(this);
         out.write(" ? ");
@@ -367,7 +238,6 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             sep = ",";
         }
         if (boxed) {
-            //out.print("Pacioli.initialMatrix(" + node.typeNode.compileToJSNew(settings, boxed) + "," + builder.toString() + ")");
             out.print("Pacioli.initialMatrix(" + node.typeNode.evalType(true).compileToJS() + "," + builder.toString() + ")");
         }
         out.format("Pacioli.initialNumbers(%s, %s, [%s])", 
@@ -386,12 +256,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             throw new RuntimeException(e);
         }
         
-        //node.typeNode.accept(this);
-        
         if (boxed) {
-            // throw new RuntimeException("matrix type node ");
-            //out.print("Pacioli.oneMatrix(" + node.typeNode.compileToJS(boxed) + ")");
-            // ADDED .param!!!!!!!!
             out.print("Pacioli.oneMatrix(" + type.compileToJS() + ".param)");
             
         } else {
