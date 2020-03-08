@@ -1,21 +1,8 @@
 package pacioli.visitors;
 
-import java.io.PrintWriter;
-
 import pacioli.CompilationSettings;
 import pacioli.Printer;
 import pacioli.ast.IdentityVisitor;
-import pacioli.ast.ProgramNode;
-import pacioli.ast.Visitor;
-import pacioli.ast.definition.AliasDefinition;
-import pacioli.ast.definition.Declaration;
-import pacioli.ast.definition.IndexSetDefinition;
-import pacioli.ast.definition.MultiDeclaration;
-import pacioli.ast.definition.Toplevel;
-import pacioli.ast.definition.TypeDefinition;
-import pacioli.ast.definition.UnitDefinition;
-import pacioli.ast.definition.UnitVectorDefinition;
-import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
@@ -59,10 +46,6 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     public MatlabGenerator(Printer printWriter, CompilationSettings settings) {
         out = printWriter;
         this.settings = settings;
-    }
-
-    private void na() {
-        throw new RuntimeException("Cannot call this");
     }
 
     @Override
