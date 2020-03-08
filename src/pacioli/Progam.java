@@ -19,6 +19,7 @@ import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.compilers.JSCompiler;
 import pacioli.compilers.MVMCompiler;
 import pacioli.parser.Parser;
 import pacioli.symboltable.GenericInfo;
@@ -578,10 +579,12 @@ public class Progam extends AbstractPrintable {
             }
         }
         
+        SymbolTableVisitor compiler;
         CodeGenerator gen;
         
         if (target.equals("javascript")) {
             gen = new JSGenerator(writer, settings, false);
+            compiler = new JSCompiler(printer, settings);
         } else if (target.equals("matlab")) {
             throw new RuntimeException("Todo: fix matlab compilation");
             // program.compileMatlab(new PrintWriter(outputStream), settings);
@@ -590,10 +593,8 @@ public class Progam extends AbstractPrintable {
             // program.compileHtml(new PrintWriter(outputStream), settings);
         } else {
             gen = new MVMGenerator(printer, settings);
+            compiler = new MVMCompiler(printer, settings);
         }
-
-        SymbolTableVisitor compiler = new MVMCompiler(printer, settings);
-        //values.accept(compiler);
 
         
         for (String indexSet : indexSets.allNames()) {

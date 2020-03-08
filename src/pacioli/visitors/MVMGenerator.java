@@ -736,6 +736,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 */
     @Override
     public void compileValueDefinition(ValueDefinition def, ValueInfo info) {
-        def.accept(this);
+        //def.accept(this);
+        na();
     }
 }
