@@ -39,7 +39,7 @@ public class JSCompiler implements SymbolTableVisitor {
     @Override
     public void visit(ValueInfo info) {
         
-        Pacioli.logln2("Compiling value %s", info.globalName());
+        //Pacioli.logln2("Compiling value %s", info.globalName());
         
         ValueDefinition definition = (ValueDefinition) info.definition;
         assert(definition != null); // todo: refactor further!
@@ -87,7 +87,7 @@ public class JSCompiler implements SymbolTableVisitor {
     @Override
     public void visit(IndexSetInfo info) {
      
-        Pacioli.logln2("Compiling index set %s", info.globalName());
+        //Pacioli.logln2("Compiling index set %s", info.globalName());
         
         IndexSetDefinition definition = info.definition;
         
@@ -109,7 +109,7 @@ public class JSCompiler implements SymbolTableVisitor {
     @Override
     public void visit(ScalarUnitInfo info) {
         
-        Pacioli.logln("Compiling unit %s", info.globalName());
+        //Pacioli.logln("Compiling unit %s", info.globalName());
         
         UnitNode body = info.definition.body;
         
@@ -129,7 +129,7 @@ public class JSCompiler implements SymbolTableVisitor {
     @Override
     public void visit(VectorUnitInfo info) {
         
-        Pacioli.logln("Compiling vector unit %s", info.globalName());
+        //Pacioli.logln("Compiling vector unit %s", info.globalName());
         
         IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.getDefinition()).indexSetNode.info;
         List<String> unitTexts = new ArrayList<String>();

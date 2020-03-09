@@ -39,7 +39,7 @@ public class MVMCompiler implements SymbolTableVisitor {
     @Override
     public void visit(ValueInfo info) {
         
-        Pacioli.logln2("Compiling value %s", info.globalName());
+        //Pacioli.logln2("Compiling value %s", info.globalName());
         
         out.format("store \"%s\" ", info.globalName());
         out.newlineUp();
@@ -53,7 +53,7 @@ public class MVMCompiler implements SymbolTableVisitor {
     @Override
     public void visit(IndexSetInfo info) {
      
-        Pacioli.logln2("Compiling index set %s", info.globalName());
+        //Pacioli.logln2("Compiling index set %s", info.globalName());
         
         List<String> quotedItems = new ArrayList<String>();
         for (String item : info.definition.items) {
@@ -71,7 +71,7 @@ public class MVMCompiler implements SymbolTableVisitor {
     @Override
     public void visit(ScalarUnitInfo info) {
         
-        Pacioli.logln("Compiling unit %s", info.globalName());
+        //Pacioli.logln("Compiling unit %s", info.globalName());
 
         if (info.definition.body == null) {
             out.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol);
@@ -87,7 +87,7 @@ public class MVMCompiler implements SymbolTableVisitor {
     @Override
     public void visit(VectorUnitInfo info) {
         
-        Pacioli.logln("Compiling vector unit %s", info.globalName());
+        //Pacioli.logln("Compiling vector unit %s", info.globalName());
         
         IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.definition).indexSetNode.info;
         List<String> unitTexts = new ArrayList<String>();

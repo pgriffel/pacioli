@@ -26,6 +26,7 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -601,24 +602,26 @@ public class Pacioli {
     
 public static void compile(File file, List<File> libs, CompilationSettings settings) throws Exception {
         
-        Pacioli.logln1("Compiling file '%s'", file);
+        //Pacioli.logln1("Compiling file '%s'", file);
         
         // Load the file
-        Pacioli.logln2("Loading file '%s'", file);
+        //Pacioli.logln2("Loading file '%s'", file);
         Progam program = new Progam(file, libraryDirectories(libs));
         program.loadTill(Phase.typed);
         
         // Setup a writer for the output file
         String dstName = Progam.fileBaseName(file) + "." + Progam.newTargetFileExtension(settings.getTarget()); 
         PrintWriter writer = null;       
+        StringWriter s = new StringWriter();
         
         try {
             
             // Open the writer
-            writer = new PrintWriter(new BufferedWriter(new FileWriter(dstName)));
+            //writer = new PrintWriter(new BufferedWriter(new FileWriter(dstName)));
+            writer = new PrintWriter(s);
             
             // Generate the code for the entire bundle
-            Pacioli.logln2("Loading file '%s'", file);
+            //Pacioli.logln2("Loading file '%s'", file);
             program.generateCode(writer, settings, "yo");
             
         } finally {
@@ -628,7 +631,8 @@ public static void compile(File file, List<File> libs, CompilationSettings setti
                 writer.close();
             }
         }
-        Pacioli.logln1("Created file '%s'", dstName);
+        //Pacioli.logln1("Created file '%s'", dstName);
+        Pacioli.log("%s", s.toString());
     }
     
     private static void interpretMVMText(File file, List<File> libs) throws Exception {
