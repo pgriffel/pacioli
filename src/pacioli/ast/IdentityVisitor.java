@@ -1,7 +1,6 @@
 package pacioli.ast;
 
 import pacioli.Location;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Declaration;
@@ -12,8 +11,8 @@ import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
-import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
@@ -65,13 +64,15 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(AliasDefinition aliasDefinition) {
-        Pacioli.log("Alias");
+    public void visit(AliasDefinition node) {
+        //Pacioli.log("Alias");
+        node.id.accept(this);
+        node.unit.accept(this);
     }
 
     @Override
     public void visit(Declaration declaration) {
-        Pacioli.log("Decl");
+        //Pacioli.log("Decl");
     }
 
     @Override
@@ -80,7 +81,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(MultiDeclaration multiDeclaration) {
-        Pacioli.log("Multidc");
+        //Pacioli.log("Multidc");
     }
 
     @Override
@@ -90,7 +91,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(TypeDefinition typeDefinition) {
-        Pacioli.log("TYpeD");
+        //Pacioli.log("TYpeD");
     }
 
     @Override
@@ -166,7 +167,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(MatrixLiteralNode matrixLiteralNode) {
-        Pacioli.log("matrix");
+        //Pacioli.log("matrix");
     }
 
     @Override
@@ -177,7 +178,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(ProjectionNode projectionNode) {
-        Pacioli.log("projd");
+        //Pacioli.log("projd");
     }
 
     @Override
@@ -203,7 +204,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(TupleAssignmentNode tupleAssignmentNode) {
-        Pacioli.log("tup");
+        //Pacioli.log("tup");
     }
 
     @Override
@@ -232,7 +233,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(SchemaNode schemaNode) {
-        Pacioli.log("sschema");
+        //Pacioli.log("sschema");
     }
 
     @Override

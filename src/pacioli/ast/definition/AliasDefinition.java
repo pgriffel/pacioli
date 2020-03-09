@@ -10,7 +10,6 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.GenericInfo;
-import pacioli.symboltable.UnitInfo;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 import uom.Unit;

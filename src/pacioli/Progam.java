@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import pacioli.CompilationSettings.Target;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
@@ -142,7 +143,7 @@ public class Progam extends AbstractPrintable {
         assert (name.endsWith(".pacioli"));
         return name.substring(0, name.length() - 8);
     }
-    
+
     static String targetFileExtension(String target) {
         if (target.equals("javascript")) {
             return "js";
@@ -154,6 +155,19 @@ public class Progam extends AbstractPrintable {
             return "mvm";
         } else {
             throw new RuntimeException("Compilation target " + target + " unknown. Expected javascript, matlab or mvm.");
+        }
+    }
+    
+    static String newTargetFileExtension(Target target) {
+        switch (target) {
+        case MVM:
+            return "mvm";
+        case JS:
+            return "js";
+        case MATLAB:
+            return "m";
+        default:
+            return null;
         }
     }
     
@@ -501,19 +515,21 @@ public class Progam extends AbstractPrintable {
         SymbolTableVisitor compiler;
         CodeGenerator gen;
         
-        // Create a symbol table visitor for the requested target
-        if (target.equals("javascript")) {
+        switch (settings.getTarget()) {
+        case JS:
             gen = new JSGenerator(writer, settings, false);
             compiler = new JSCompiler(printer, settings);
-        } else if (target.equals("matlab")) {
+            break;
+        case MATLAB:
             throw new RuntimeException("Todo: fix matlab compilation");
-            // program.compileMatlab(new PrintWriter(outputStream), settings);
-        } else if (target.equals("html")) {
-            throw new RuntimeException("Todo: fix html compilation");
-            // program.compileHtml(new PrintWriter(outputStream), settings);
-        } else {
+        case MVM:
             gen = new MVMGenerator(printer, settings);
             compiler = new MVMCompiler(printer, settings);
+            break;
+        default:
+            compiler = null;
+            gen = null;
+            break;
         }
 
         // Generate code for the index sets

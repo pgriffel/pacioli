@@ -21,21 +21,45 @@
 
 package pacioli;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CompilationSettings {
 
-    private final boolean debug;
-    private final boolean traceAll;
-    private final List<String> toTrace;
+    public enum Target {MVM, JS, MATLAB};
+    
+    private boolean debug;
+    private boolean traceAll;
+    private List<String> toTrace;
+    private Target target;
 
-    public CompilationSettings(boolean debug, boolean traceAll, List<String> toTrace) {
+    public CompilationSettings(boolean debug, boolean traceAll, List<String> toTrace, Target target) {
         this.debug = debug;
         this.traceAll = traceAll;
-        this.toTrace = toTrace;
+        this.toTrace = new ArrayList<String>(toTrace);
+        this.target = target;
     }
 
-    public boolean debug() {
+    public CompilationSettings() {
+        this.debug = false;
+        this.traceAll = false;
+        this.toTrace = new ArrayList<String>();
+        this.target = Target.MVM;
+    }
+
+    public Target getTarget() {
+        return target;
+    }
+    
+    public void setTarget(Target target) {
+        this.target = target;
+    }
+    
+    public void setDebug(Boolean on) { 
+        debug = on;
+    };
+    
+    public boolean isDebugOn() {
         return debug;
     }
 

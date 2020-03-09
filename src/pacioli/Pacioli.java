@@ -33,6 +33,7 @@ import java.util.List;
 
 import mvm.MVMException;
 import mvm.Machine;
+import pacioli.CompilationSettings.Target;
 import pacioli.Progam.Phase;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
@@ -82,6 +83,8 @@ public class Pacioli {
 
             String command = "";
             List<String> files = new ArrayList<String>();
+            CompilationSettings settings = new CompilationSettings();
+            
             String target = "mvm";
             String kind = "bundle";
             List<File> libs = new ArrayList<File>();
@@ -110,12 +113,23 @@ public class Pacioli {
                 } else if (arg.equals("-target")) {
                     if (i < args.length) {
                         target = args[i++];
+                        if (target.equals("javascript")) {
+                            settings.setTarget(Target.JS);
+                        } else if (target.equals("matlab")) {
+                            settings.setTarget(Target.MATLAB);
+                        } else if (target.equals("html")) {
+                            throw new RuntimeException("Compilation target html is obsolete.");
+                        } else if (target.equals("mvm")) {
+                            settings.setTarget(Target.MVM);
+                        } else {
+                            throw new RuntimeException("Compilation target " + target + " unknown. Expected javascript, matlab or mvm.");
+                        }
                     } else {
                         displayError("Expected 'mvm', 'javascript' or 'matlab' after -target. Ignoring target option.");
                     }
                 } else if (arg.equals("-kind")) {
                     if (i < args.length) {
-                        target = args[i++];
+                        kind = args[i++];
                     } else {
                         displayError("Expected 'single', 'recursive' or 'bundle' after -kind. Ignoring kind option.");
                     }
@@ -139,7 +153,7 @@ public class Pacioli {
             }
 
             boolean compileDebug = debug || traceAll || !tracedFunctions.isEmpty();
-            CompilationSettings settings = new CompilationSettings(compileDebug, traceAll, tracedFunctions);
+            //CompilationSettings settings = new CompilationSettings(compileDebug, traceAll, tracedFunctions);
 
             if (command.equals("run")) {
                 if (files.isEmpty()) {
@@ -281,7 +295,7 @@ public class Pacioli {
             if (kind.equals("bundle")) {
                 bundle(file, libs, settings, target);
             } else if (kind.equals("single")) {
-                
+                compile(file, libs, settings);
             } else if (kind.equals("recursive")) {
                 Boolean force = false;
                 Pacioli.logln1("Running file '%s'", fileName);
@@ -583,6 +597,38 @@ public class Pacioli {
             }
         }
         Pacioli.logln("Created bundle '%s'", dstName);
+    }
+    
+public static void compile(File file, List<File> libs, CompilationSettings settings) throws Exception {
+        
+        Pacioli.logln1("Compiling file '%s'", file);
+        
+        // Load the file
+        Pacioli.logln2("Loading file '%s'", file);
+        Progam program = new Progam(file, libraryDirectories(libs));
+        program.loadTill(Phase.typed);
+        
+        // Setup a writer for the output file
+        String dstName = Progam.fileBaseName(file) + "." + Progam.newTargetFileExtension(settings.getTarget()); 
+        PrintWriter writer = null;       
+        
+        try {
+            
+            // Open the writer
+            writer = new PrintWriter(new BufferedWriter(new FileWriter(dstName)));
+            
+            // Generate the code for the entire bundle
+            Pacioli.logln2("Loading file '%s'", file);
+            program.generateCode(writer, settings, "yo");
+            
+        } finally {
+            
+            // Close the writer
+            if (writer != null) {
+                writer.close();
+            }
+        }
+        Pacioli.logln1("Created file '%s'", dstName);
     }
     
     private static void interpretMVMText(File file, List<File> libs) throws Exception {
