@@ -66,9 +66,9 @@ public class ValueDefinition extends AbstractDefinition {
         LambdaNode lambda = (LambdaNode) resolvedBody;
         assert (lambda.expression instanceof SequenceNode);
         SequenceNode seq = (SequenceNode) lambda.expression;
-
+        String globalName = "FixMe: get from info in compiler visitor";
         return String.format("\nfunction %s = %s (%s)\n %s\nendfunction;\n", "result", // seq.getResultPlace().toText(),
-                globalName().toLowerCase(), lambda.argsString(), seq.compileToMATLAB());
+                globalName.toLowerCase(), lambda.argsString(), seq.compileToMATLAB());
     }
 
     @Override
@@ -81,13 +81,15 @@ public class ValueDefinition extends AbstractDefinition {
             blocksCode += def.compileStatementToMATLAB();
         }
 
+        String globalName = "FixMe: get from info in compiler visitor";
         if (transformed instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformed;
+            
             return blocksCode + String.format("\nfunction retval = %s (%s)\n retval = %s;\nendfunction;\n",
-                    globalName().toLowerCase(), code.argsString(), code.expression.compileToMATLAB());
+                    globalName.toLowerCase(), code.argsString(), code.expression.compileToMATLAB());
         } else {
             return blocksCode
-                    + String.format("\nglobal %s = %s;\n", globalName().toLowerCase(), transformed.compileToMATLAB());
+                    + String.format("\nglobal %s = %s;\n", globalName.toLowerCase(), transformed.compileToMATLAB());
         }
     }
 

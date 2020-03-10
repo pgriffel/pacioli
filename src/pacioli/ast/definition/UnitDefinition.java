@@ -69,12 +69,12 @@ public class UnitDefinition extends AbstractDefinition {
     public String localName() {
         return id.getName();
     }
-
+/*
     @Override
     public String globalName() {
         return String.format("unit_%s", localName());
     }
-
+*/
     @Override
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose

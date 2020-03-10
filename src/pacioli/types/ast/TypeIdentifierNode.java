@@ -37,8 +37,8 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 
     private final String name;
     private final Kind kind;
-    private final Definition definition;
-    private final PacioliFile home;
+    //private final Definition definition;
+//    private final PacioliFile home;
     public SymbolInfo info;
 
     public enum Kind {
@@ -54,11 +54,11 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         super(location);
         this.name = name;
         this.kind = null;
-        this.definition = null;
-        this.home = null;
+        //this.definition = null;
+  //      this.home = null;
         assert (!name.contains("!"));
     }
-
+/*
     public TypeIdentifierNode(Location location, String name, Kind kind, Definition definition, PacioliFile home) {
         super(location);
         this.name = name;
@@ -67,37 +67,40 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         this.home = home;
         assert (!name.contains("!"));
     }
-
+*/
     public String getName() {
         return name;
     }
-
+/*
     public PacioliFile home() {
         assert (isResolved());
         return home;
     }
-
+*/
     public TypeIdentifier typeIdentifier() {
         assert (isResolved());
-        return new TypeIdentifier(definition == null ? "" : definition.getModule().getName(), name);
+        //return new TypeIdentifier(definition == null ? "" : definition.getModule().getName(), name);
+        return new TypeIdentifier("", name);
     }
 
     public boolean isResolved() {
         return kind != null;
     }
-
+/*
     public boolean isVariable() {
         assert (isResolved());
-        return definition == null;
+        //return definition == null;
+        return true;
     }
-
+    */
+/*
     public Definition getDefinition() {
         assert (isResolved());
         return definition;
     }
-
+*/
     public String MVMCode(CompilationSettings settings) {
-        if (definition instanceof AliasDefinition) {
+        if (false) { //(definition instanceof AliasDefinition) {
             // return "scalar_shape(" + Utils.compileUnitToMVM(((AliasDefinition)
             // definition).evalBody()) + ")";
             throw new RuntimeException("fixme");

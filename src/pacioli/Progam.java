@@ -14,8 +14,12 @@ import java.util.Set;
 
 import pacioli.CompilationSettings.Target;
 import pacioli.ast.ProgramNode;
+import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.TypeDefinition;
+import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
@@ -206,6 +210,22 @@ public class Progam extends AbstractPrintable {
         inferTypes();
     }
 
+    void loadIncludeDeclarations(String include) throws Exception {
+        File file = findIncludeFile(include);
+        Progam prog = new Progam(file, libs);
+        Pacioli.logln("Loading include file %s ::::", include);
+        prog.loadTill(Progam.Phase.desugared);
+        //this.includeOther(prog);
+        // Fill symbol tables for this file
+        for (Definition def : prog.program.definitions) {
+            if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
+                    || def instanceof TypeDefinition) {
+                def.addToProgr(prog, GenericInfo.Scope.FILE);
+            }
+        }
+        includeOther(prog);
+    }
+    
     // -------------------------------------------------------------------------
     // Filling symbol tables
     // -------------------------------------------------------------------------
@@ -230,11 +250,14 @@ public class Progam extends AbstractPrintable {
 
         // Fill symbol tables for the included files
         for (String include : includes()) {
+            /*
             File file = findIncludeFile(include);
             Progam prog = new Progam(file, libs);
             Pacioli.logln("Loading include file %s", include);
             prog.loadTill(Progam.Phase.typed);
             this.includeOther(prog);
+            */
+            loadIncludeDeclarations(include);
         }
 
         // Fill symbol tables for this file
@@ -383,7 +406,7 @@ public class Progam extends AbstractPrintable {
 
         // hack to set the modules
         for (Definition def : program.definitions) {
-            def.setModule(new PacioliFile(program.module.getName()));
+            //def.setModule(new PacioliFile(program.module.getName()));
         }
 
     }

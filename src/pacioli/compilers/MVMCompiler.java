@@ -97,7 +97,7 @@ public class MVMCompiler implements SymbolTableVisitor {
             // todo: take number.factor() into account!? 
             unitTexts.add("\"" + entry.key.getName() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));
         }
-        String globalName = setInfo.definition.globalName();
+        String globalName = setInfo.globalName();
         String name = info.name();
         String args = Utils.intercalate(", ", unitTexts); 
         out.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n", globalName, name, args));

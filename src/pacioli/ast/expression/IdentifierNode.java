@@ -67,13 +67,13 @@ public class IdentifierNode extends AbstractExpressionNode {
         this.home = home;
         this.isMutableVar = mutable;
     }
-
+/*
     public IdentifierNode resolve(ValueDefinition def, Declaration decl, Boolean mutable) {
         Definition homeDef = def == null ? decl : def;
         String home = homeDef == null ? "" : homeDef.getModule().getName();
         return new IdentifierNode("", home, mutable, name, getLocation(), def, decl, true);
     };
-
+*/
     private IdentifierNode(String myHome, String home, boolean mutable, String name, Location location,
             ValueDefinition definition, Declaration declaration, Boolean isResolved) {
         super(location);

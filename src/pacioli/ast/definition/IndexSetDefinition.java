@@ -56,11 +56,11 @@ public class IndexSetDefinition extends AbstractDefinition {
         program.addInfo(info);
         
     }
-
+/*
     public String globalName() {
         return String.format("index_%s_%s", getModule().getName(), localName());
     }
-
+*/
     public IndexSet getIndexSet() {
         return new IndexSet(localName(), items);
     }
@@ -69,11 +69,11 @@ public class IndexSetDefinition extends AbstractDefinition {
     public String localName() {
         return id.getName();
     }
-
+/*
     public TypeIdentifier typeIdentifier() {
         return new TypeIdentifier(getModule().getName(), id.getName());
     }
-
+*/
     @Override
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose

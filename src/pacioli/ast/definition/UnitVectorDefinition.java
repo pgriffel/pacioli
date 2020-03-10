@@ -63,12 +63,12 @@ public class UnitVectorDefinition extends AbstractDefinition {
     public String localName() {
         return indexSetNode.getName() + "!" + unitNode.getName();
     }
-
+/*
     @Override
     public String globalName() {
         return String.format("unitvec_%s_%s_%s", getModule().getName(), indexSetNode.getName(), unitNode.getName());
     }
-
+*/
     @Override
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("MATLAB and Octave have no units.");

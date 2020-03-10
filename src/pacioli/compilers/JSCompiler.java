@@ -58,13 +58,13 @@ public class JSCompiler implements SymbolTableVisitor {
                     + "Pacioli.%s = function (%s) {\n"
                     + "    return %s;\n" 
                     + "}\n",
-                    definition.globalName(),
+                    info.globalName(),
                     info.inferredType.reduce().compileToJS(),
                     //info.inferredType.compileToJS(),
-                    definition.globalName(),
+                    info.globalName(),
                     code.argsString(),
                     code.expression.compileToJS(settings, true),
-                    definition.globalName(),
+                    info.globalName(),
                     code.argsString(),
                     code.expression.compileToJS(settings, false));
         } else {
@@ -74,12 +74,12 @@ public class JSCompiler implements SymbolTableVisitor {
                     + "}\n"
                         + "Pacioli.compute_%s = function () {\n  return %s;\n}\n"
                     + "Pacioli.compute_b_%s = function () {\n  return %s;\n}\n",
-                    definition.globalName(),
+                    info.globalName(),
                     info.inferredType.reduce().compileToJS(), //transformedBody.compileToJSShape(),
                     //info.inferredType.compileToJS(), //transformedBody.compileToJSShape(),
-                    definition.globalName(),
+                    info.globalName(),
                     transformedBody.compileToJS(settings, false),
-                    definition.globalName(),
+                    info.globalName(),
                     transformedBody.compileToJS(settings, true));
         }
     }
@@ -96,7 +96,7 @@ public class JSCompiler implements SymbolTableVisitor {
             quotedItems.add(String.format("\"%s\"", item));
         }
         out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', [ %s ])}\n", 
-                definition.globalName(), 
+                info.globalName(), 
                 definition.localName(),
                 Utils.intercalate(",", quotedItems));
     }
@@ -140,7 +140,7 @@ public class JSCompiler implements SymbolTableVisitor {
             unitTexts.add("'" + entry.key.getName() + "': " + JSGenerator.compileUnitToJS(number.unit()));
         }
         
-        String globalName = setInfo.definition.globalName();
+        String globalName = setInfo.globalName();
         String name = info.name();
         String args = Utils.intercalate(", ", unitTexts);
         

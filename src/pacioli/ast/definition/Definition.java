@@ -31,11 +31,11 @@ public interface Definition extends Node {
 
     public String localName();
 
-    public String globalName();
+    //public String globalName();
 
-    public void setModule(PacioliFile module);
+    //public void setModule(PacioliFile module);
 
-    public PacioliFile getModule();
+    //public PacioliFile getModule();
 
     public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException;
 }

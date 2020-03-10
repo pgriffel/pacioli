@@ -20,6 +20,7 @@
  */
 package pacioli;
 
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -31,6 +32,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.jgrapht.Graph;
+import org.jgrapht.graph.DefaultDirectedGraph;
+import org.jgrapht.graph.DefaultEdge;
 
 import mvm.MVMException;
 import mvm.Machine;
@@ -411,8 +416,73 @@ public class Pacioli {
         logln("   -warnings     toggles compiler warnings on or off");
     }
 
+    private static Project loadProject(File file, List<File> libs) throws Exception {
+        return new Project(file, libs, projectGraph(file, libs));
+    }
+    
+    static Graph<File, DefaultEdge> projectGraph(File file, List<File> libs) throws Exception {
+
+        // The graph that will be build up
+        Graph<File, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
+       
+        // Main loop variables. List todo contains include files still to process.
+        // List done contains all processed files to avoid duplicates and cycles.
+        List<File> todo = new ArrayList<File>();
+        List<File> done = new ArrayList<File>();
+        
+        // Initialize the loop by adding the file to the todo list
+        todo.add(file);
+        
+        // Loop over the todo list, adding new include files when found
+        while (!todo.isEmpty()) {
+            
+            // Take the first element of the todo list to process next
+            File current = todo.get(0);
+            todo.remove(0);
+            
+            // Process the current file if not already done
+            if (!done.contains(current)) {
+                
+                // Load the current file
+                Progam program = new Progam(current, libraryDirectories(libs));
+                program.loadTill(Phase.parsed);
+                
+                // Add the current file if not already found by some include
+                if (!graph.containsVertex(current)) {
+                    graph.addVertex(current);
+                }
+                
+                for (String include : program.includes()) {
+                    
+                    // Locate the include file
+                    File includeFile = program.findIncludeFile(include);
+                
+                    // Add the include files to the todo list
+                    if (!done.contains(includeFile) && !todo.contains(includeFile)) {
+                        todo.add(includeFile);    
+                    }
+                    
+                    // Add the included file to the graph if not already a member
+                    if (!graph.containsVertex(includeFile)) {
+                        graph.addVertex(includeFile);
+                    }
+                    
+                    // Add an edge for the include relation
+                    graph.addEdge(current, includeFile);
+                    
+                }
+
+                // Remember that this include was processed.
+                done.add(current);
+            }
+        }
+        
+        return graph;
+    }
+    
     private static void testCommand(List<File> libs, CompilationSettings settings) throws Exception {
 
+        
         //String dir = "E:/code/private/pacioli/samples/";
         String dir = "E:/code/private/pacioli-samples/";
 
@@ -478,7 +548,14 @@ public class Pacioli {
             try {
                 String fileName = dir + sample;
                 File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
-                bundle(file, libs, settings, "mvm");
+                
+                Project project = loadProject(file, libs);
+                
+                project.printInfo();
+                
+                project.bundle(libs, settings, "mvm");
+                
+                //bundle(file, libs, settings, "mvm");
                 
                 String binName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension("mvm");
                 Pacioli.logln("Running file %s", binName);
@@ -534,7 +611,7 @@ public class Pacioli {
         Progam mainProgram = new Progam(file, libraryDirectories(libs));
         mainProgram.loadTill(Phase.typed);
         
-        Pacioli.logln("%s", mainProgram.pretty());
+        //Pacioli.logln("%s", mainProgram.pretty());
         
         // Setup a writer for the output file
         String dstName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension(target); 
@@ -679,7 +756,7 @@ public static void compile(File file, List<File> libs, CompilationSettings setti
         return null;
     }
 
-    private static List<File> libraryDirectories(List<File> libs) {
+    static List<File> libraryDirectories(List<File> libs) {
         LinkedList<File> libDirs = new LinkedList<File>();
         for (File lib : libs) {
             if (lib.isDirectory()) {

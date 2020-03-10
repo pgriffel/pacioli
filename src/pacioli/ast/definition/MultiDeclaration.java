@@ -32,7 +32,7 @@ public class MultiDeclaration extends AbstractDefinition {
     public String localName() {
         throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
     }
-
+/*
     @Override
     public String globalName() {
         throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
@@ -47,7 +47,7 @@ public class MultiDeclaration extends AbstractDefinition {
     public PacioliFile getModule() {
         throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
     }
-
+*/
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
