@@ -33,8 +33,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.sun.org.apache.bcel.internal.generic.INSTANCEOF;
-
 import mvm.ast.Instruction;
 import mvm.ast.expression.Expression;
 import mvm.values.Boole;
@@ -53,8 +51,6 @@ import mvm.values.matrix.MatrixShape;
 import mvm.values.matrix.UnitVector;
 import pacioli.Pacioli;
 import pacioli.PacioliFile;
-
-import uom.NamedUnit;
 import uom.Prefix;
 import uom.Unit;
 import uom.UnitSystem;

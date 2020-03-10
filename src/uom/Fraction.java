@@ -42,7 +42,7 @@ public class Fraction extends Number implements Comparable<Fraction> {
             this.denominator = 1;
         } else {
             int gcd = BigInteger.valueOf(numerator).gcd(BigInteger.valueOf(denominator)).intValue();
-            if (this.denominator < 0) {
+            if (denominator < 0) {
                 this.numerator = -numerator / gcd;
                 this.denominator = -denominator / gcd;
             } else {
