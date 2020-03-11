@@ -66,12 +66,12 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
-
+/*
     public Progam(String fileName, List<File> libs) {
         this.file = new File(fileName);
         this.libs = libs;
     }
-
+*/
     public Progam(File file, List<File> libs) {
         this.file = file;
         this.libs = libs;
@@ -653,8 +653,9 @@ public class Progam extends AbstractPrintable {
 
         for (String include : includes()) {
             File incl = findIncludeFile(include);
-            Progam prog = new Progam(incl, libs);
-            prog.loadTill(Phase.parsed);
+            //Progam prog = new Progam(incl, libs);
+            //prog.loadTill(Phase.parsed);
+            Progam prog = Pacioli.loadProgram(incl, libs, Phase.parsed);
             srcDirty = srcDirty || prog.cleanMVMFiles(force);
         }
 

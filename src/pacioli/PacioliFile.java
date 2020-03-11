@@ -28,13 +28,49 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import mvm.values.Boole;
+
 public class PacioliFile extends AbstractPrintable {
 
-    private final String name;
-    private final List<String> includes;
-    private File file = null;
-    private boolean isDefault = false;
+    private final File file;
+    private final String module;
+    private final Integer version;
+    private final Boolean isInclude;
+    private final Boolean isLibrary;
+    
+    //private final String name;
+    //private final List<String> includes;
+    //private File file = null;
+    //private boolean isDefault = false;
 
+    public PacioliFile(File file, String module, Integer version, Boolean isInclude, Boolean isLibrary) {
+        this.file = file;
+        this.module = module;
+        this.version = version;
+        this.isInclude = isInclude;
+        this.isLibrary = isLibrary;
+    }
+    
+    String getModule() {
+        return module;
+    }
+    
+    Integer getVersion() {
+        return version;
+    }
+    
+    File getFile() {
+        return file;
+    }
+    
+    Boolean isInclude() {
+        return isInclude;
+    }
+    
+    Boolean isLibrary() {
+        return isLibrary;
+    }
+    
     public static final List<String> defaultIncludes = new ArrayList<String>(
             Arrays.asList("primitives", "list", "matrix", "string", "standard"));
     public static final List<String> defaultsToCompile = new ArrayList<String>(
@@ -84,12 +120,65 @@ public class PacioliFile extends AbstractPrintable {
 
         return theFile;
     }
+    
+    public static PacioliFile findIncludeOrLibrary(PacioliFile file, String name, List<File> libs) {
+        PacioliFile include = findInclude(file, name);
+        if (include == null) {
+            return findLibrary(name, libs);
+        } else {
+            return include;
+        }
+    }
+    
+    public static PacioliFile findInclude(PacioliFile file, String name) {
+        File include = new File(file.getFile().getParentFile(), name + ".pacioli");
+        if (include.exists()) {
+            String module = file.getModule() + "/" + name;
+            return new PacioliFile(include, module, 0, true, file.isLibrary);
+        } else {
+            return null;
+        }
+    }
+    
+    public static PacioliFile findLibrary(String name, List<File> libs) {
 
+        File theFile = null;
+
+        // Generate a list of candidates
+        List<File> candidates = new ArrayList<File>();
+        for (File dir : libs) {
+            candidates.add(new File(dir, name + ".pacioli"));
+        }
+
+        // See if a candidate exists
+        for (File candidate : candidates) {
+            if (candidate.exists()) {
+                Pacioli.logln3("Library '%s' found in file '%s'", name, candidate);
+                if (theFile == null) {
+                    theFile = candidate;
+                } else {
+                    Pacioli.warn("Shadowed '%s' library '%s' is ignored", name, candidate);
+                }
+            } else {
+                Pacioli.logln3("Library candidate '%s' does not exist", candidate);
+            }
+        }
+
+        if (theFile == null) {
+            //throw new FileNotFoundException(String.format("Library '%s' not found in directories %s", name, libs));
+            return null;
+        } else {
+            return new PacioliFile(theFile, name, 0, false, true);    
+        }
+    }
+/*
     public PacioliFile(String name) {
         this.name = name;
         this.includes = new ArrayList<String>();
     }
-
+*/
+  
+/*
     public boolean isDefault() {
         return isDefault;
     }
@@ -125,13 +214,36 @@ public class PacioliFile extends AbstractPrintable {
             getIncludes().add(name);
         }
     }
-
+*/
     @Override
     public void printPretty(PrintWriter out) {
-        out.format("module \"%s\";\n", name);
-        for (String i : getIncludes()) {
-            out.format("include \"%s\";\n", i);
-        }
+        out.print(toString());
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s %s %s v%s (%s)", 
+                isLibrary ? "Library" : "Program", 
+                        isInclude ? "include" : "file",
+                        module, 
+                        version,
+                        file);
+    }
+
+    @Override
+    public int hashCode() {
+        return file.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (!(other instanceof PacioliFile)) {
+            return false;
+        }
+        PacioliFile otherPacioliFile = (PacioliFile) other;
+        return this.file.equals(otherPacioliFile.file);
+    }
 }
