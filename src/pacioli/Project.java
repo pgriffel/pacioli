@@ -86,6 +86,7 @@ public class Project {
                     PacioliFile libFile = PacioliFile.findLibrary(lib, libs);
                     Progam prog = new Progam(libFile, libs);
                     prog.loadTillHelper(Progam.Phase.typed, isStandard, false);
+                    Pacioli.logln("Bundling default file %s", libFile);
                     mainProgram.includeOther(prog);
                 
             }

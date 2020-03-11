@@ -89,7 +89,7 @@ public class PacioliFile extends AbstractPrintable {
     public static File findIncludeFile(String include, List<File> libs, File directory) throws FileNotFoundException {
         return findFile(include + ".pacioli", libs, directory);
     }
-*/
+
     public static File findFile(String file, List<File> libs, File directory) throws FileNotFoundException {
 
         File theFile = null;
@@ -124,7 +124,7 @@ public class PacioliFile extends AbstractPrintable {
 
         return theFile;
     }
-    
+*/    
     public static PacioliFile findIncludeOrLibrary(Path baseDir, PacioliFile file, String name, List<File> libs) {
         PacioliFile include = findInclude(baseDir, file, name);
         if (include == null) {

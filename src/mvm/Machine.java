@@ -2400,7 +2400,7 @@ public class Machine {
 
             // Run the requires
             for (String require : code.requires) {
-                runRec(PacioliFile.findFile(require + ".mvm", libs, file.getParentFile()), out, libs);
+                //runRec(PacioliFile.findFile(require + ".mvm", libs, file.getParentFile()), out, libs);
             }
             ;
 

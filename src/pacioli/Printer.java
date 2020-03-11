@@ -5,7 +5,7 @@ import java.util.Stack;
 
 public class Printer {
 
-    protected PrintWriter out;
+    public PrintWriter out;
     private Stack<Integer> indentationStack;
     Integer indentation = 0;
     Integer offset = 0;

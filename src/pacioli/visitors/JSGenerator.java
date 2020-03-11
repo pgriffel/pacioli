@@ -8,6 +8,7 @@ import java.util.Set;
 
 import pacioli.CompilationSettings;
 import pacioli.PacioliException;
+import pacioli.Printer;
 import pacioli.Utils;
 import pacioli.ast.Node;
 import pacioli.ast.expression.ApplicationNode;
@@ -40,7 +41,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     Boolean boxed;
 
     // Constructor
-    public JSGenerator(PrintWriter printWriter, CompilationSettings settings, boolean boxed) {
+    public JSGenerator(Printer printWriter, CompilationSettings settings, boolean boxed) {
         super(printWriter);
         this.settings = settings;
         this.boxed = boxed;
@@ -116,10 +117,15 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             }
             out.write("(");
         }
+        newlineUp();
         Boolean sep = false;
         for (Node arg : node.arguments) {
-            if (sep) out.write(", "); else sep = true;
-            newline();
+            if (sep) {
+                out.write(", ");
+                newline();
+            } else {
+                sep = true;
+            }
             arg.accept(this);
         }
         out.write(")");
@@ -175,7 +181,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         ValueInfo info = node.info;
         //String prefix = settings.debug() && node.debugable() ? "debug_" : "global_";
         String fun = boxed ? "bfetchValue" : "fetchValue";
-        String full = info.isGlobal() ? "Pacioli." + fun + "('" + info.generic().module + "', '" + node.name + "')" 
+        String full = info.isGlobal() ? "Pacioli." + fun + "('" + info.generic().getModule() + "', '" + node.name + "')" 
                                           : node.name;
 
         if (node.info.isRef) {

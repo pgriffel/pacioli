@@ -66,7 +66,7 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
         PrintWriter writer = null;
         try {
             writer = new PrintWriter(out);
-            PrintVisitor visitor = new PrintVisitor(writer);
+            PrintVisitor visitor = new PrintVisitor(new Printer(writer));
             this.accept(visitor);
         } finally {
             if (writer != null) {
@@ -90,8 +90,14 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
     @Override
     public String compileToJS(CompilationSettings settings, boolean boxed) {
         StringWriter outputStream = new StringWriter();
-        this.accept(new JSGenerator(new PrintWriter(outputStream), settings, boxed));
+        
+        this.accept(new JSGenerator(new Printer(new PrintWriter(outputStream)), settings, boxed));
         return outputStream.toString();
+    }
+    
+    @Override
+    public void compileToJS(Printer writer, CompilationSettings settings, boolean boxed) {
+        this.accept(new JSGenerator(writer, settings, boxed));;
     }
 
     @Override

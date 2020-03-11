@@ -9,7 +9,7 @@ public class GenericInfo {
     public enum Scope {LOCAL, FILE, IMPORTED};
     
     public String name;
-    public String module;
+    private String module;
     public File file;
     public Scope scope;
     private Location location;
@@ -24,6 +24,11 @@ public class GenericInfo {
     
     public Location location() {
         return location;
+    }
+    
+    public String getModule() {
+        //return module;
+        return module.substring(0, 1).toUpperCase() + module.substring(1);
     }
     
     public Boolean isGlobal() {

@@ -40,47 +40,51 @@ public class JSCompiler implements SymbolTableVisitor {
     public void visit(ValueInfo info) {
         
         //Pacioli.logln2("Compiling value %s", info.globalName());
-        
         ValueDefinition definition = (ValueDefinition) info.definition;
         assert(definition != null); // todo: refactor further!
         ExpressionNode transformedBody = definition.body;
         if (transformedBody instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformedBody;
-            out.format("\n" 
-                    + "Pacioli.u_%s = function () {\n"
-                    + "    var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));\n"
-                    + "    var type = %s;\n"
-                    + "    return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));\n"
-                    + "}\n"
-                    + "Pacioli.b_%s = function (%s) {\n"
-                    + "    return %s;\n" 
-                    + "}\n"
-                    + "Pacioli.%s = function (%s) {\n"
-                    + "    return %s;\n" 
-                    + "}\n",
-                    info.globalName(),
-                    info.inferredType.reduce().compileToJS(),
-                    //info.inferredType.compileToJS(),
-                    info.globalName(),
-                    code.argsString(),
-                    code.expression.compileToJS(settings, true),
-                    info.globalName(),
-                    code.argsString(),
-                    code.expression.compileToJS(settings, false));
+            out.newline();
+            out.format("Pacioli.u_%s = function () {", info.globalName());
+            out.newlineUp();
+            out.format("var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));");
+            out.format("var type = %s;", info.inferredType.reduce().compileToJS());
+            out.format("return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));");
+            out.newlineDown();
+            out.write("}");
+            out.newline();
+            out.format("Pacioli.b_%s = function (%s) {", info.globalName(), code.argsString());
+            out.newlineUp();
+            out.format("return ");
+            code.expression.compileToJS(out, settings, true);
+            out.format(";");
+            out.newlineDown();
+            out.format("}");
+            out.newline();
+            out.format("Pacioli.%s = function (%s) {", info.globalName(), code.argsString());
+            out.newlineUp();
+            out.format("return ");
+            code.expression.compileToJS(out, settings, false);
+            out.format(";");
+            out.newlineDown();
+            out.format("}");
+            out.newline();
         } else {
             out.format("\n"
                     + "Pacioli.compute_u_%s = function () {\n"
                     + "    return %s;\n"
                     + "}\n"
-                        + "Pacioli.compute_%s = function () {\n  return %s;\n}\n"
-                    + "Pacioli.compute_b_%s = function () {\n  return %s;\n}\n",
+                        + "Pacioli.compute_%s = function () {\n  return ",
                     info.globalName(),
-                    info.inferredType.reduce().compileToJS(), //transformedBody.compileToJSShape(),
-                    //info.inferredType.compileToJS(), //transformedBody.compileToJSShape(),
-                    info.globalName(),
-                    transformedBody.compileToJS(settings, false),
-                    info.globalName(),
-                    transformedBody.compileToJS(settings, true));
+                    info.inferredType.reduce().compileToJS(), 
+                    info.globalName());
+            transformedBody.compileToJS(out, settings, false);
+            out.format(";\n}\n"
+                    + "Pacioli.compute_b_%s = function () {\n  return ",
+                    info.globalName());
+            transformedBody.compileToJS(out, settings, true);
+            out.format(";\n}\n");
         }
     }
 

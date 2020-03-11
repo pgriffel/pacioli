@@ -23,7 +23,7 @@ public class IndexSetInfo extends AbstractSymbolInfo implements SymbolInfo {
     
     @Override
     public String globalName() {
-        return String.format("index_%s_%s", generic().module, name());
+        return String.format("index_%s_%s", generic().getModule(), name());
     }
 
     public IndexSetInfo includeOther(IndexSetInfo otherInfo) {

@@ -56,12 +56,42 @@ import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 
-public class PrintVisitor extends Printer implements Visitor {
+public class PrintVisitor implements Visitor {
 
-    public PrintVisitor(PrintWriter printWriter) {
-        super(printWriter);
+    Printer out;
+    
+    public PrintVisitor(Printer printWriter) {
+        //out = new Printer(printWriter);
+        out = printWriter;
     }
     
+    public void write(String text) {
+        out.write(text);
+    }
+
+    public void format(String string, Object... args) {
+        out.format(string, args);
+    }
+        
+    public void mark() {
+        out.mark(); 
+    }
+    
+    public void unmark() {
+        out.unmark(); 
+    }
+    
+    public void newline() {
+        out.newline(); 
+    }
+    
+    public void newlineUp() {
+        out.newlineUp();
+    }
+    
+    public void newlineDown() {
+        out.newlineDown();
+    }
     /*
     PrintWriter out;
     private Stack<Integer> indentationStack;
@@ -432,7 +462,7 @@ public class PrintVisitor extends Printer implements Visitor {
 
     @Override
     public void visit(SchemaNode node) {
-        node.context.printPretty(out);
+        node.context.printPretty(out.out);
         node.type.accept(this);
     }
 

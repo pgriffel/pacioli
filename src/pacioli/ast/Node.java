@@ -21,11 +21,13 @@
 
 package pacioli.ast;
 
+import java.io.PrintWriter;
 import java.util.Set;
 
 import pacioli.CompilationSettings;
 import pacioli.Location;
 import pacioli.Printable;
+import pacioli.Printer;
 import pacioli.Progam;
 import pacioli.symboltable.SymbolInfo;
 
@@ -44,6 +46,8 @@ public interface Node extends Printable {
     public String compileToMVM(CompilationSettings settings);
 
     public String compileToJS(CompilationSettings settings, boolean boxed);
+    
+    public void compileToJS(Printer writer, CompilationSettings settings, boolean boxed);
 
     public String compileToMATLAB();
 

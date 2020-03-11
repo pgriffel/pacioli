@@ -133,7 +133,7 @@ public class IndexList extends AbstractType {
             out.append(pre);
             out.append("Pacioli.fetchIndex('");
             out.append(indexSets.get(i).home);
-            out.append("', '");
+            out.append("_");
             out.append(indexSets.get(i).name);
             out.append("')");
             pre = ", ";

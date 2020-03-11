@@ -559,7 +559,7 @@ public class Progam extends AbstractPrintable {
         
         switch (settings.getTarget()) {
         case JS:
-            gen = new JSGenerator(writer, settings, false);
+            gen = new JSGenerator(new Printer(writer), settings, false);
             compiler = new JSCompiler(printer, settings);
             break;
         case MATLAB:
@@ -619,7 +619,9 @@ public class Progam extends AbstractPrintable {
         
         // Generate code for the toplevels
         for (Toplevel def : toplevels) {
-            def.accept(gen);
+            if (settings.getTarget() == Target.MVM) {
+                def.accept(gen);    
+            }
         }
         
     }

@@ -716,7 +716,7 @@ public class Pacioli {
         Pacioli.logln("Begin %s table", header);
         for (String name : table.allNames()) {
             SymbolInfo info = table.lookup(name);
-            Pacioli.logln("  %-25s %-15s %s %-50s %s", name, info.generic().module,
+            Pacioli.logln("  %-25s %-15s %s %-50s %s", name, info.generic().getModule(),
                     info.generic().isExternal() ? "     " : "local", info.generic().file, info.getDefinition());
         }
         Pacioli.logln("End table");

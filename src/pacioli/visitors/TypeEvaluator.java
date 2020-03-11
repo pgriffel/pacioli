@@ -99,7 +99,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
         if (indexInfo.definition == null) {
             indexType = new IndexType(new TypeVar("for_index", indexSetName));
         } else {
-            indexType = new IndexType(new TypeIdentifier(indexInfo.generic().module, indexSetName));
+            indexType = new IndexType(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName));
         }
 
         // Create the row unit if it exists, otherwise the unit is 1.
@@ -116,8 +116,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             if (unitInfo.getDefinition() == null) {
                 rowUnit = new TypeVar("for_unit", indexSetName + "!" + unitName);
             } else {
-                rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generic().module, indexSetName),
-                        new TypeIdentifier(unitInfo.generic().module, unitName), 0);
+                rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName),
+                        new TypeIdentifier(unitInfo.generic().getModule(), unitName), 0);
             }
         }
 
