@@ -28,6 +28,7 @@ import java.util.Set;
 
 import mvm.ast.expression.Expression;
 import mvm.values.PacioliValue;
+import mvm.values.Primitive;
 
 public class Environment {
 
@@ -119,6 +120,14 @@ public class Environment {
     public void put(String name, PacioliValue value) {
         store.put(name, value);
     }
+
+    public void putGlobal(String module, String name, PacioliValue primitive) {
+        put("global_" + module + "_" + name, primitive);
+    }
+
+    public void putDebug(String module, String name, PacioliValue primitive) {
+        put("debug_" + module + "_" + name, primitive);
+    }
     
     public void putCode(String name, Expression exp) {
         code.put(name, exp);
@@ -143,4 +152,5 @@ public class Environment {
         }
         return machine;
     }
+
 }

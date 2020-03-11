@@ -168,8 +168,9 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         
         ValueInfo info = node.info;
         
-        String prefix = settings.isDebugOn() && node.debugable() ? "debug_" : "global_";
-        String full = info.isGlobal() ? prefix + info.generic().module + "_" + node.name : node.name;
+        //String prefix = settings.isDebugOn() && node.debugable() ? "debug_" : "global_";
+        //String full = info.isGlobal() ? prefix + info.generic().module + "_" + node.name : node.name;
+        String full = info.isGlobal() ? ValueInfo.global(info.generic().module , node.name ) : node.name;
         
         if (node.info.isRef) {
             out.format("application(var(\"%s\"), var(\"%s\"))", ValueInfo.global("Primitives", "ref_get"), full);
