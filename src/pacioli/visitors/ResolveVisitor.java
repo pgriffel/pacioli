@@ -35,6 +35,7 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.symboltable.GenericInfo;
+import pacioli.symboltable.GenericInfo.Scope;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.symboltable.SymbolInfo;
@@ -86,6 +87,10 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         valueTables.push(prog.values);
     }
 
+    GenericInfo newGenericInfo(String name, Scope scope, Location location) {
+        return new GenericInfo(name, prog.getModule(), prog.getFile(), scope, location);
+    }
+    
     // -------------------------------------------------------------------------
     // Visitors
     // -------------------------------------------------------------------------
@@ -166,10 +171,11 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         // Create a symbol info record for each lambda parameter and store it in the
         // table
         for (String arg : node.arguments) {
-            GenericInfo generic = new GenericInfo(arg, 
+            /*GenericInfo generic = new GenericInfo(arg, 
                     prog.program.module.name, prog.file, 
                     GenericInfo.Scope.LOCAL, 
-                    node.getLocation());
+                    node.getLocation());*/
+            GenericInfo generic = newGenericInfo(arg, GenericInfo.Scope.LOCAL, node.getLocation());
             ValueInfo info = new ValueInfo(generic);
             node.table.put(arg, info);
         }
@@ -321,8 +327,8 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             ValueInfo shadowedInfo = valueTables.peek().lookup(id.getName());
             
             // Create a value info record for the variable
-            GenericInfo generic = new GenericInfo(id.getName(), prog.program.module.name, prog.file,
-                    GenericInfo.Scope.LOCAL, id.getLocation());
+            //GenericInfo generic = new GenericInfo(id.getName(), prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL, id.getLocation());
+            GenericInfo generic = newGenericInfo(id.getName(), GenericInfo.Scope.LOCAL, id.getLocation());
             ValueInfo info = new ValueInfo(generic);
             info.isRef = true;
             info.initialRefInfo = shadowedInfo;
@@ -332,8 +338,8 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         }
 
         // Create an info record for the result and put it in the symbol table
-        GenericInfo generic = new GenericInfo("result", prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL,
-                node.getLocation());
+        //GenericInfo generic = new GenericInfo("result", prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL, node.getLocation());
+        GenericInfo generic = newGenericInfo("result", GenericInfo.Scope.LOCAL, node.getLocation());
         ValueInfo info = new ValueInfo(generic);
         node.table.put("result", info);
 
@@ -439,17 +445,20 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
         // Add info records for all variables
         for (String arg : context.typeVars) {
-            GenericInfo generic = new GenericInfo(arg, prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL, location);
+            //GenericInfo generic = new GenericInfo(arg, prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL, location);
+            GenericInfo generic = newGenericInfo(arg, GenericInfo.Scope.LOCAL, location);
             TypeInfo info = new TypeInfo(generic);
             table.put(arg, info);
         }
         for (String arg : context.indexVars) {
-            GenericInfo generic = new GenericInfo(arg, prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL, location);
+            //GenericInfo generic = new GenericInfo(arg, prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL, location);
+            GenericInfo generic = newGenericInfo(arg, GenericInfo.Scope.LOCAL, location);
             IndexSetInfo info = new IndexSetInfo(generic);
             table.put(arg, info);
         }
         for (String arg : context.unitVars) {
-            GenericInfo generic = new GenericInfo(arg, prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL, location);
+            //GenericInfo generic = new GenericInfo(arg, prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL, location);
+            GenericInfo generic = newGenericInfo(arg, GenericInfo.Scope.LOCAL, location);
             UnitInfo info;
             if (arg.contains("!")) {
                 info = new VectorUnitInfo(generic);

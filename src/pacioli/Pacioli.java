@@ -29,6 +29,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -305,7 +307,9 @@ public class Pacioli {
             throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);    
         } else {
             if (kind.equals("bundle")) {
-                bundle(file, libs, settings, target);
+                //bundle(file, libs, settings, target);
+                Project project = loadProject(file, libs);
+                project.bundle(libs, settings, target);
             } else if (kind.equals("single")) {
                 compile(file, libs, settings);
             } else if (kind.equals("recursive")) {
@@ -358,7 +362,9 @@ public class Pacioli {
             
             Pacioli.logln1("Compiling file '%s'", file.getPath());
             
-            bundle(file, libs, settings, "mvm");
+            //bundle(file, libs, settings, "mvm");
+            Project project = loadProject(file, libs);
+            project.bundle(libs, settings, "mvm");
             
             String mvmFile = Progam.fileBaseName(file) + "." + Progam.targetFileExtension("mvm");
             
@@ -441,6 +447,12 @@ public class Pacioli {
         // Initialize the loop by adding the file to the todo list
         Integer fileVersion = 0;
         String base = FilenameUtils.getBaseName(file.getName());
+        File dir = file.getParentFile();
+        Path p = Paths.get(file.getAbsolutePath());
+        Path d = p.getParent();
+        Path b = d.relativize(p);
+        Pacioli.logln("rel p=%s b=%s", p, b);
+                
         todo.add(new PacioliFile(file.getAbsoluteFile(), base, fileVersion, false, false));
         
         // Loop over the todo list, adding new include files when found
@@ -459,6 +471,7 @@ public class Pacioli {
                 Progam program = loadProgramNew(current, libs, Phase.parsed);
                 
                 // Add the current file if not already found by some include
+                Pacioli.logln("Testing graph.containsVertex(%s) = %s (current)", current, graph.containsVertex(current));
                 if (!graph.containsVertex(current)) {
                     graph.addVertex(current);
                 }
@@ -466,11 +479,11 @@ public class Pacioli {
                 for (String include : program.includes()) {
                     
                     // Locate the include file
-                    File includeFile = program.findIncludeFile(include);
+                    //File includeFile = program.findIncludeFile(include);
                     Integer version = 0;
                     String module = current.getModule() + "/" + include;
                     //PacioliFile pacioliFile = new PacioliFile(includeFile, module, version);
-                    PacioliFile pacioliFile = PacioliFile.findIncludeOrLibrary(current, include, libs);
+                    PacioliFile pacioliFile = PacioliFile.findIncludeOrLibrary(d, current, include, libs);
                     if (pacioliFile == null) {
                         throw new RuntimeException(String.format("Include '%s' for file '%s' not found in directories %s", 
                                 include, current, libs));
@@ -484,6 +497,7 @@ public class Pacioli {
                     }
                     
                     // Add the included file to the graph if not already a member
+                    Pacioli.logln("Testing graph.containsVertex(%s) = %s", pacioliFile, graph.containsVertex(pacioliFile));
                     if (!graph.containsVertex(pacioliFile)) {
                         graph.addVertex(pacioliFile);
                     }
@@ -495,12 +509,20 @@ public class Pacioli {
 
                 // Remember that this include was processed.
                 done.add(current);
+                
+                Pacioli.logln("after current %s", current);
+                for (DefaultEdge edge: graph.edgeSet()) {
+                    Pacioli.logln("- edge %s\n    -> %s", graph.getEdgeSource(edge), graph.getEdgeTarget(edge));
+                }
+                for (PacioliFile vertex: graph.vertexSet()) {
+                    Pacioli.logln("- vertex %s", vertex);
+                }
             }
         }
         
         return graph;
     }
-        
+/*        
     static Graph<File, DefaultEdge> projectGraphOLD(File file, List<File> libs) throws Exception {
 
         // The graph that will be build up
@@ -561,7 +583,7 @@ public class Pacioli {
         
         return graph;
     }
-    
+    */
     private static void testCommand(List<File> libs, CompilationSettings settings) throws Exception {
 
         
@@ -656,14 +678,17 @@ public class Pacioli {
      * Helpers
      */
     
+    /* obsolete!!! */
     static Progam loadProgram(File file, List<File> libs, Phase phase) throws Exception {
-        Progam program = new Progam(file, libraryDirectories(libs));
+        String base = FilenameUtils.getBaseName(file.getName());
+        PacioliFile pacioliFile = new PacioliFile(file.getAbsoluteFile(), base, 0, false, false);
+        Progam program = new Progam(pacioliFile, libraryDirectories(libs));
         program.loadTill(phase);
         return program;
     }
     
     static Progam loadProgramNew(PacioliFile file, List<File> libs, Phase phase) throws Exception {
-        Progam program = new Progam(file.getFile(), libraryDirectories(libs));
+        Progam program = new Progam(file, libraryDirectories(libs));
         program.loadTill(phase);
         return program;
     }
@@ -696,7 +721,7 @@ public class Pacioli {
         }
         Pacioli.logln("End table");
     }
-    
+    /*
     public static void bundle(File file, List<File> libs, CompilationSettings settings, String target) throws Exception {
         
         Pacioli.logln1("Creating bundle for file '%s'", file);
@@ -740,12 +765,17 @@ public class Pacioli {
                     
                     Pacioli.logln("Bundling %s", current);
                     
+                    String base = FilenameUtils.getBaseName(current.getName());
+                    PacioliFile pacioliFile = new PacioliFile(current.getAbsoluteFile(), base, 0, false, false);
+                    
+                    
                     // Load the current file
-                    Progam program = new Progam(current, libraryDirectories(libs));
+                    Progam program = new Progam(pacioliFile, libraryDirectories(libs));
                     program.loadTill(Phase.typed);
                 
                     // Add its include files to the todo list
                     for (String include : program.includes()) {
+                        
                         File includeFile = program.findIncludeFile(include);
                         if (!done.contains(includeFile) && !todo.contains(includeFile)) {
                             todo.add(includeFile);    
@@ -772,7 +802,7 @@ public class Pacioli {
         }
         Pacioli.logln("Created bundle '%s'", dstName);
     }
-    
+    */
 public static void compile(File file, List<File> libs, CompilationSettings settings) throws Exception {
         
         //Pacioli.logln1("Compiling file '%s'", file);

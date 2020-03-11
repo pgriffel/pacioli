@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -52,7 +54,7 @@ public class Progam extends AbstractPrintable {
         resolved
     }
     
-    public final File file;
+    public final PacioliFile file;
     private final List<File> libs;
 
     public ProgramNode program;
@@ -72,11 +74,20 @@ public class Progam extends AbstractPrintable {
         this.libs = libs;
     }
 */
-    public Progam(File file, List<File> libs) {
+    public Progam(PacioliFile file, List<File> libs) {
+        assert(file != null);
         this.file = file;
         this.libs = libs;
     }
 
+    public String getModule() {
+        return file.getModule();
+    }
+    
+    public File getFile() {
+        return file.getFile();
+    }  
+    
     // -------------------------------------------------------------------------
     // Pretty printing
     // -------------------------------------------------------------------------
@@ -135,11 +146,11 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
 
     String baseName() {
-        return fileBaseName(file);
+        return fileBaseName(getFile());
     }
     
     Boolean isExternal(SymbolInfo info) {
-        return !info.generic().file.equals(file);
+        return !info.generic().file.equals(getFile());
     }
     
     static String fileBaseName(File file) {
@@ -182,11 +193,16 @@ public class Progam extends AbstractPrintable {
         }
         return list;
     }
-
+/*
     File findIncludeFile(String include) throws FileNotFoundException {
-        return PacioliFile.findIncludeFile(include, libs, file.getParentFile());
+        return PacioliFile.findIncludeFile(include, libs, getFile().getParentFile());
     }
-
+  */  
+    PacioliFile findInclude(String include) throws FileNotFoundException {
+        Path p = Paths.get(file.getFile().getAbsolutePath());
+        return PacioliFile.findInclude(p.getParent(), file, include);
+    }
+    
     // -------------------------------------------------------------------------
     // Loading
     // -------------------------------------------------------------------------
@@ -197,7 +213,7 @@ public class Progam extends AbstractPrintable {
     
     public void loadTillHelper(Phase phase, Boolean loadPrimitives, Boolean loadStandard) throws Exception {
         
-        program = Parser.parseFile(this.file.getAbsolutePath());
+        program = Parser.parseFile(this.getFile().getAbsolutePath());
         if (phase.equals(Phase.parsed)) return;
         
         desugar();
@@ -211,7 +227,9 @@ public class Progam extends AbstractPrintable {
     }
 
     void loadIncludeDeclarations(String include) throws Exception {
-        File file = findIncludeFile(include);
+        //PacioliFile file = findInclude(include);
+        Path p = Paths.get(file.getFile().getAbsolutePath());
+        PacioliFile file = PacioliFile.findIncludeOrLibrary(p.getParent(), this.file, include, libs);
         Progam prog = new Progam(file, libs);
         Pacioli.logln("Loading include file %s ::::", include);
         prog.loadTill(Progam.Phase.desugared);
@@ -241,7 +259,8 @@ public class Progam extends AbstractPrintable {
         for (String include : PacioliFile.defaultIncludes) {
             Boolean isStandard = include.equals("standard");
             if ((isStandard && loadStandard) || (!isStandard && loadPrimitives)) {
-                File file = findIncludeFile(include);
+                //PacioliFile file = findInclude(include);
+                PacioliFile file = PacioliFile.findLibrary(include, libs);
                 Progam prog = new Progam(file, libs);
                 prog.loadTillHelper(Progam.Phase.typed, isStandard, false);
                 this.includeOther(prog);
@@ -272,7 +291,7 @@ public class Progam extends AbstractPrintable {
     
     public void printSymbolTables() throws Exception {
 
-        Pacioli.logln("Symbol table for %s", file);
+        Pacioli.logln("Symbol table for %s", getFile());
         
         Pacioli.logln("Units:");
         for (String name: units.allNames()) {
@@ -652,14 +671,16 @@ public class Progam extends AbstractPrintable {
         Boolean srcDirty = false;
 
         for (String include : includes()) {
+            /*
             File incl = findIncludeFile(include);
             //Progam prog = new Progam(incl, libs);
             //prog.loadTill(Phase.parsed);
             Progam prog = Pacioli.loadProgram(incl, libs, Phase.parsed);
             srcDirty = srcDirty || prog.cleanMVMFiles(force);
+            */
         }
 
-        if (srcDirty || dst.lastModified() < file.lastModified() || force) {
+        if (srcDirty || dst.lastModified() < getFile().lastModified() || force) {
             if (dst.exists()) {
                 Pacioli.logln("Deleting MVM file %s %s", dst, includes());
                 dst.delete();
@@ -675,18 +696,18 @@ public class Progam extends AbstractPrintable {
         String dstName = baseName() + "." + targetFileExtension(target);
         File dst = new File(dstName);
         
-        Pacioli.logln("Loading %s", file);
+        Pacioli.logln("Loading %s", getFile());
         loadTill(Phase.typed);
         
-        if (dst.lastModified() < file.lastModified() || true) {
+        if (dst.lastModified() < getFile().lastModified() || true) {
 
             for (String include : includes()) {
-                File file = findIncludeFile(include);
+                PacioliFile file = findInclude(include);
                 Progam prog = new Progam(file, libs);
                 prog.compileRec(settings, target);
             }
 
-            Pacioli.logln("Compiling %s", file);
+            Pacioli.logln("Compiling %s", getFile());
             BufferedWriter out = new BufferedWriter(new FileWriter(dstName));
             PrintWriter writer = null;
             try {
@@ -794,7 +815,8 @@ public class Progam extends AbstractPrintable {
                     MVMGenerator.compileUnitToMVM(number.unit()));
         }
     }
-  */  
+  */
+
 
     // MVM code generation (kept for the MATLAB part!!!!!)
     

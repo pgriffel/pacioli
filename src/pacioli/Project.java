@@ -80,10 +80,11 @@ public class Project {
             // Open the writer
             writer = new PrintWriter(new BufferedWriter(new FileWriter(dstName)));
             
-            for (String include : PacioliFile.defaultIncludes) {
-                Boolean isStandard = include.equals("standard");
-                    File includeFile = PacioliFile.findIncludeFile(include, libs, file.getParentFile());
-                    Progam prog = new Progam(includeFile, libs);
+            for (String lib : PacioliFile.defaultIncludes) {
+                Boolean isStandard = lib.equals("standard");
+                    //File includeFile = PacioliFile.findIncludeFile(include, libs, file.getParentFile());
+                    PacioliFile libFile = PacioliFile.findLibrary(lib, libs);
+                    Progam prog = new Progam(libFile, libs);
                     prog.loadTillHelper(Progam.Phase.typed, isStandard, false);
                     mainProgram.includeOther(prog);
                 

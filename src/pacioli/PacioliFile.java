@@ -24,9 +24,13 @@ package pacioli;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.commons.io.FilenameUtils;
 
 import mvm.values.Boole;
 
@@ -44,30 +48,30 @@ public class PacioliFile extends AbstractPrintable {
     //private boolean isDefault = false;
 
     public PacioliFile(File file, String module, Integer version, Boolean isInclude, Boolean isLibrary) {
-        this.file = file;
+        this.file = file.getAbsoluteFile();
         this.module = module;
         this.version = version;
         this.isInclude = isInclude;
         this.isLibrary = isLibrary;
     }
     
-    String getModule() {
+    public String getModule() {
         return module;
     }
     
-    Integer getVersion() {
+    public Integer getVersion() {
         return version;
     }
     
-    File getFile() {
+    public File getFile() {
         return file;
     }
     
-    Boolean isInclude() {
+    public Boolean isInclude() {
         return isInclude;
     }
     
-    Boolean isLibrary() {
+    public Boolean isLibrary() {
         return isLibrary;
     }
     
@@ -77,7 +81,7 @@ public class PacioliFile extends AbstractPrintable {
             Arrays.asList("primitives", "list", "matrix", "string", "standard"));
     public static final List<String> debugablePrimitives = new ArrayList<String>(
             Arrays.asList("primitives", "list", "matrix", "string"));
-
+    /*
     public static File findIncludeFile(String include, List<File> libs) throws FileNotFoundException {
         return findIncludeFile(include, libs, null);
     }
@@ -85,7 +89,7 @@ public class PacioliFile extends AbstractPrintable {
     public static File findIncludeFile(String include, List<File> libs, File directory) throws FileNotFoundException {
         return findFile(include + ".pacioli", libs, directory);
     }
-
+*/
     public static File findFile(String file, List<File> libs, File directory) throws FileNotFoundException {
 
         File theFile = null;
@@ -121,8 +125,8 @@ public class PacioliFile extends AbstractPrintable {
         return theFile;
     }
     
-    public static PacioliFile findIncludeOrLibrary(PacioliFile file, String name, List<File> libs) {
-        PacioliFile include = findInclude(file, name);
+    public static PacioliFile findIncludeOrLibrary(Path baseDir, PacioliFile file, String name, List<File> libs) {
+        PacioliFile include = findInclude(baseDir, file, name);
         if (include == null) {
             return findLibrary(name, libs);
         } else {
@@ -130,10 +134,21 @@ public class PacioliFile extends AbstractPrintable {
         }
     }
     
-    public static PacioliFile findInclude(PacioliFile file, String name) {
+    public static PacioliFile findInclude(Path baseDir, PacioliFile file, String name) {
         File include = new File(file.getFile().getParentFile(), name + ".pacioli");
+        
+        Path includePath = Paths.get(include.getPath());
+        Path relative = baseDir.relativize(includePath);
+        
+        
         if (include.exists()) {
-            String module = file.getModule() + "/" + name;
+            //String module = file.getModule() + "/" + name;
+            String module = FilenameUtils.removeExtension(relative.toString());
+            module = module.replaceAll("_", "_x");
+            module = module.replaceAll("\\\\", "_y");
+            module = module.replaceAll("/", "_z");
+            Pacioli.logln("module=%s", module);
+            
             return new PacioliFile(include, module, 0, true, file.isLibrary);
         } else {
             return null;

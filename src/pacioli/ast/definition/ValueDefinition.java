@@ -103,8 +103,8 @@ public class ValueDefinition extends AbstractDefinition {
 
         String name = localName();
         
-        GenericInfo generic = new GenericInfo(name, program.program.module.name, 
-                program.file, scope, getLocation());       
+        GenericInfo generic = new GenericInfo(name, program.getModule(), 
+                program.getFile(), scope, getLocation());       
         ValueInfo info = new ValueInfo(generic);
         info.definition = this;
         
