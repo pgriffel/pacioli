@@ -61,7 +61,8 @@ public class ApplicationNode extends AbstractExpressionNode {
         String argsText = "(" + Utils.intercalate(", ", compiled) + ")";
         if (function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) function;
-            return id.fullName().toLowerCase() + argsText;
+            //return id.fullName().toLowerCase() + argsText;
+            return "Fixme";
         } else {
             return function.compileToMATLAB() + argsText;
         }

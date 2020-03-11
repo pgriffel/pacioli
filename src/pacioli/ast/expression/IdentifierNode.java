@@ -102,7 +102,7 @@ public class IdentifierNode extends AbstractExpressionNode {
     public String getName() {
         return name;
     }
-
+/*
     public String fullName() {
         assert (home != null); // names must have been resolved
         return home.isEmpty() ? name : "global_" + home + "_" + name;
@@ -111,7 +111,7 @@ public class IdentifierNode extends AbstractExpressionNode {
     public String compiledName(String prefix) {
         return prefix + home + "_" + name;
     }
-
+*/
     public boolean isLocal() {
         assert (home != null); // names must have been resolved
         return home.isEmpty();

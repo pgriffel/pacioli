@@ -26,7 +26,12 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
     
     @Override
     public String globalName() {
-        return String.format("global_%s_%s", generic().module, name());
+        //return String.format("global_%s_%s", generic().module, name());
+        return global(generic().module, name());
+    }
+    
+    public static String global(String module, String name) {
+        return String.format("global_%s_%s", module, name);
     }
 
     @Override

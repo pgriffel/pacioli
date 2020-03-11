@@ -85,18 +85,26 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             if (node.function instanceof IdentifierNode && ((IdentifierNode)node.function).info.isGlobal()) {
                 String fullName = ((IdentifierNode) node.function).info.globalName();
                 if (!boxed ||
-                        fullName.equals("global_List_empty_list") || fullName.equals("global_List_loop_list")
-                        || fullName.equals("global_List_fold_list") || fullName.equals("global_List_cons")
-                        || fullName.equals("global_List_zip") || fullName.equals("global_List_tail")
-                        || fullName.equals("global_List_head") || fullName.equals("global_List_add_mut")
-                        || fullName.equals("global_List_append") || fullName.equals("global_List_reverse")
-                        || fullName.equals("global_Primitives_tuple") || fullName.equals("global_Primitives_new_ref")
-                        || fullName.equals("global_Primitives_empty_ref")
-                        || fullName.equals("global_Primitives_throw_result")
-                        || fullName.equals("global_Primitives_catch_result") || fullName.equals("global_Primitives_seq")
-                        || fullName.equals("global_Primitives_ref_set") || fullName.equals("global_Primitives_ref_get")
-                        || fullName.equals("global_Primitives_while_function")
-                        || fullName.equals("global_Primitives_apply")) {
+                    fullName.equals(ValueInfo.global("List", "empty_list")) ||
+                    fullName.equals(ValueInfo.global("List", "loop_list")) ||
+                    fullName.equals(ValueInfo.global("List", "fold_list")) ||
+                    fullName.equals(ValueInfo.global("List", "cons")) ||
+                    fullName.equals(ValueInfo.global("List", "zip")) ||
+                    fullName.equals(ValueInfo.global("List", "tail")) ||
+                    fullName.equals(ValueInfo.global("List", "head")) ||
+                    fullName.equals(ValueInfo.global("List", "add_mut")) ||
+                    fullName.equals(ValueInfo.global("List", "append")) ||
+                    fullName.equals(ValueInfo.global("List", "reverse")) ||
+                    fullName.equals(ValueInfo.global("Primitives", "tuple")) ||
+                    fullName.equals(ValueInfo.global("Primitives", "new_ref")) ||
+                    fullName.equals(ValueInfo.global("Primitives", "empty_ref")) ||
+                    fullName.equals(ValueInfo.global("Primitives", "throw_result")) ||
+                    fullName.equals(ValueInfo.global("Primitives", "catch_result")) ||
+                    fullName.equals(ValueInfo.global("Primitives", "seq")) ||
+                    fullName.equals(ValueInfo.global("Primitives", "ref_set")) ||
+                    fullName.equals(ValueInfo.global("Primitives", "ref_get")) ||
+                    fullName.equals(ValueInfo.global("Primitives", "while_function")) ||
+                    fullName.equals(ValueInfo.global("Primitives", "apply"))) {
                     out.format("Pacioli.%s", fullName);
                 } else {
                     out.format("Pacioli.b_%s", fullName);

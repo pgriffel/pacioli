@@ -223,7 +223,7 @@ public class PacioliFile extends AbstractPrintable {
     @Override
     public String toString() {
         return String.format("%s %s %s v%s (%s)", 
-                isLibrary ? "Library" : "Program", 
+                isLibrary ? "library" : "program", 
                         isInclude ? "include" : "file",
                         module, 
                         version,

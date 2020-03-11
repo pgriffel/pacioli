@@ -450,9 +450,6 @@ public class Pacioli {
             PacioliFile current = todo.get(0);
             todo.remove(0);
             
-            Pacioli.logln("Doing1 %s", current);
-            
-            
             // Process the current file if not already done
             if (!done.contains(current)) {
                 
@@ -741,7 +738,7 @@ public class Pacioli {
                 
                 if (!done.contains(current)) {
                     
-                    Pacioli.logln("Bundling file %s", current);
+                    Pacioli.logln("Bundling %s", current);
                     
                     // Load the current file
                     Progam program = new Progam(current, libraryDirectories(libs));

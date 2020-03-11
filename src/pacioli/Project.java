@@ -50,14 +50,14 @@ public class Project {
     void printInfo() {
         Pacioli.logln("\nProject graph:");
         for (DefaultEdge edge: graph.edgeSet()) {
-            Pacioli.logln(" edge %s\n   -> %s", graph.getEdgeSource(edge), graph.getEdgeTarget(edge));
+            Pacioli.logln("- edge %s\n    -> %s", graph.getEdgeSource(edge), graph.getEdgeTarget(edge));
         }
         
         Pacioli.logln("\nProject files depth first:");
         Iterator<PacioliFile> iterator = new DepthFirstIterator<>(graph, root());
         while (iterator.hasNext()) {
             PacioliFile file = iterator.next();
-            Pacioli.logln("file %s", file);
+            Pacioli.logln("- %s", file);
         }
         Pacioli.logln("\n");
     }
