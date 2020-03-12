@@ -138,7 +138,7 @@ public class Project {
         Pacioli.logln("\n");
     }
     
-    public void bundle(CompilationSettings settings, String target) throws Exception {
+    public Path bundle(CompilationSettings settings, Target target) throws Exception {
         
         Pacioli.logln1("Creating bundle for file '%s'", file);
         
@@ -147,13 +147,13 @@ public class Project {
         Progam mainProgram = Progam.load(file, libs, Phase.typed);
         
         // Setup a writer for the output file
-        String dstName = Progam.fileBaseName(file.getFile()) + "." + Progam.targetFileExtension(target);  // todo: get the dst name from somewhere else 
+        Path dstPath = bundlePath(target);
         PrintWriter writer = null;       
         
         try {
             
             // Open the writer
-            writer = new PrintWriter(new BufferedWriter(new FileWriter(dstName)));
+            writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())));
             
             for (String lib : PacioliFile.defaultIncludes) {
                 Boolean isStandard = lib.equals("standard");
@@ -182,7 +182,7 @@ public class Project {
             }
             
             // Generate the code for the entire bundle
-            mainProgram.generateCode(writer, settings, target);
+            mainProgram.generateCode(writer, settings);
             
         } finally {
             
@@ -191,6 +191,8 @@ public class Project {
                 writer.close();
             }
         }
-        Pacioli.logln("Created bundle '%s'", dstName);
+        Pacioli.logln("Created bundle '%s'", dstPath);
+        
+        return dstPath;
     }
 }

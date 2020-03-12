@@ -139,7 +139,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(AssignmentNode node) {
-        out.print("Pacioli.global_Primitives_ref_set(");
+        out.print("Pacioli.global_primitives_ref_set(");
         out.print(node.var.name);
         out.print(", ");
         node.value.accept(this);
@@ -185,7 +185,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
                                           : node.name;
 
         if (node.info.isRef) {
-            out.format("Pacioli.global_Primitives_ref_get(%s)", full);
+            out.format("Pacioli.global_primitives_ref_get(%s)", full);
         } else {
             out.format("%s", full);
         }
@@ -294,7 +294,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnNode node) {
-        write("Pacioli.global_Primitives_throw_result(result, ");
+        write("Pacioli.global_primitives_throw_result(result, ");
         node.value.accept(this);
         write(")");
     }
@@ -308,7 +308,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             Integer n = node.items.size();
             mark();
             for (int i = 0; i < n-1; i++) {
-                write("Pacioli.global_Primitives_seq(");
+                write("Pacioli.global_primitives_seq(");
                 newlineUp();
                 node.items.get(i).accept(this);
                 write(", ");
@@ -348,7 +348,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         write("return ");
         
         // A catch to get the result
-        write("Pacioli.global_Primitives_catch_result(");
+        write("Pacioli.global_primitives_catch_result(");
         
         newlineUp();
         
@@ -372,7 +372,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         newlineDown();
         
         // The initial result place
-        write("Pacioli.global_Primitives_empty_ref()");
+        write("Pacioli.global_primitives_empty_ref()");
 
         for (IdentifierNode id : assignedVariables) {
             write(", ");
@@ -380,16 +380,16 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             if (id.info.initialRefInfo != null) {
                 // todo: handle the case the id exists in this scope.
                 if (id.info.initialRefInfo.isRef) {
-                    write("Pacioli.global_Primitives_new_ref(Pacioli.global_Primitives_ref_get(");
+                    write("Pacioli.global_primitives_new_ref(Pacioli.global_primitives_ref_get(");
                     write(id.getName());
                     write("))");
                 } else {
-                    write("Pacioli.global_Primitives_new_ref(");
+                    write("Pacioli.global_primitives_new_ref(");
                     write(id.getName());
                     write(")");
                 }
             } else {
-                write("Pacioli.global_Primitives_empty_ref()");
+                write("Pacioli.global_primitives_empty_ref()");
             }
         }        
         
@@ -433,7 +433,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         // tuple elements and are used in the lambda body to assign the 
         // variables. The lambda body is a sequence of these assignments.
         mark();
-        write("Pacioli.global_Primitives_apply(function (");
+        write("Pacioli.global_primitives_apply(function (");
         
         // The lambda arguments
         Boolean first = true;
@@ -449,8 +449,8 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         
         // The sequence of assignments
         for (int i = 0; i < size; i++) {
-            if (i < size-1) write("Pacioli.global_Primitives_seq(");
-            write("Pacioli.global_Primitives_ref_set(");
+            if (i < size-1) write("Pacioli.global_primitives_seq(");
+            write("Pacioli.global_primitives_ref_set(");
             write(names.get(i));
             write(", ");
             write(freshNames.get(i));
@@ -477,7 +477,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(WhileNode node) {
         mark();
-        write("Pacioli.global_Primitives_while_function(");
+        write("Pacioli.global_primitives_while_function(");
         newlineUp();
         write("function () {");
         newlineUp();

@@ -532,7 +532,7 @@ public class Progam extends AbstractPrintable {
     // Generating code
     // -------------------------------------------------------------------------
     
-    public void generateCode(PrintWriter writer, CompilationSettings settings, String target) throws Exception {
+    public void generateCode(PrintWriter writer, CompilationSettings settings) throws Exception {
         
         // Dev switch
         Boolean externals = true;
@@ -699,7 +699,7 @@ public class Progam extends AbstractPrintable {
             PrintWriter writer = null;
             try {
                 writer = new PrintWriter(out);
-                generateCode(writer, settings, target);
+                generateCode(writer, settings);
             } finally {
                 if (writer != null) {
                     writer.close();

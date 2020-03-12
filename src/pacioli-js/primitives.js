@@ -59,49 +59,49 @@ Pacioli.prefix = {
 // Each primitive function is named 'global_<module>_<name>'.
 // -----------------------------------------------------------------------------
 
-Pacioli.global_Primitives_tuple = function () {
+Pacioli.global_primitives_tuple = function () {
     var tuple = Array.prototype.slice.call(arguments);
     tuple.kind = 'tuple'
     return tuple
 }
 
-Pacioli.global_Primitives_apply = function (fun,arg) {
+Pacioli.global_primitives_apply = function (fun,arg) {
     return fun.apply(this, arg);
 }
 
-Pacioli.global_Primitives_new_ref = function (value) {
+Pacioli.global_primitives_new_ref = function (value) {
     return [value];
 }
 
-Pacioli.global_Primitives_empty_ref = function () {
+Pacioli.global_primitives_empty_ref = function () {
     return new Array(1);
 }
 
-Pacioli.global_Primitives_ref_set = function (ref, value) {
+Pacioli.global_primitives_ref_set = function (ref, value) {
     ref[0] = value;
     return ref;
 }
 
-Pacioli.global_Primitives_ref_get = function (ref) {
+Pacioli.global_primitives_ref_get = function (ref) {
     return ref[0];
 }
 
-Pacioli.global_Primitives_not = function (boole) {
+Pacioli.global_primitives_not = function (boole) {
   return !boole;
 }
 
-Pacioli.global_Primitives_skip = function () {
+Pacioli.global_primitives_skip = function () {
     return null
 }
 
-Pacioli.global_Primitives_while_function = function (test, body) {
+Pacioli.global_primitives_while_function = function (test, body) {
     while (test()) {
         body();
     }
     return null;
 }
 
-Pacioli.global_Primitives_catch_result = function (code, ref) {
+Pacioli.global_primitives_catch_result = function (code, ref) {
     try {
         code();
     } catch(err) {
@@ -113,24 +113,24 @@ Pacioli.global_Primitives_catch_result = function (code, ref) {
     }
 }
 
-Pacioli.global_Primitives_throw_result = function (ref, value) {
+Pacioli.global_primitives_throw_result = function (ref, value) {
     ref[0] = value;
     throw "jump";
 }
 
-Pacioli.global_Primitives_seq = function (x, y) {
+Pacioli.global_primitives_seq = function (x, y) {
     return y;
 }
 
-Pacioli.global_Primitives_not_equal = function (x,y) {
-    return !Pacioli.global_Primitives_equal(x, y);
+Pacioli.global_primitives_not_equal = function (x,y) {
+    return !Pacioli.global_primitives_equal(x, y);
 }
 
-Pacioli.b_global_Primitives_not_equal = function (x,y) {
-    return !Pacioli.b_global_Primitives_equal(x, y);
+Pacioli.b_global_primitives_not_equal = function (x,y) {
+    return !Pacioli.b_global_primitives_equal(x, y);
 }
 
-Pacioli.global_Primitives_equal = function (x,y) {
+Pacioli.global_primitives_equal = function (x,y) {
 
     if (x.kind !== y.kind) return false
 
@@ -148,7 +148,7 @@ Pacioli.global_Primitives_equal = function (x,y) {
             return false
         }
         for (var i = 0; i < n; i++) {
-            if (!global_Primitives_equal(x[i], y[i])) {
+            if (!global_primitives_equal(x[i], y[i])) {
                 return false
             }
         }
@@ -158,7 +158,7 @@ Pacioli.global_Primitives_equal = function (x,y) {
     }
 }
 
-Pacioli.b_global_Primitives_equal = function (x,y) {
+Pacioli.b_global_primitives_equal = function (x,y) {
 
     if (x instanceof Pacioli.Box || y instanceof Pacioli.Box) {
         if (x instanceof Pacioli.Box && y instanceof Pacioli.Box) {
@@ -187,7 +187,7 @@ Pacioli.b_global_Primitives_equal = function (x,y) {
             return false
         }
         for (var i = 0; i < n; i++) {
-            if (!b_global_Primitives_equal(x[i], y[i])) {
+            if (!b_global_primitives_equal(x[i], y[i])) {
                 return false
             }
         }
@@ -197,11 +197,11 @@ Pacioli.b_global_Primitives_equal = function (x,y) {
     }
 }
 
-Pacioli.global_Primitives_print = function (x) {
+Pacioli.global_primitives_print = function (x) {
     return Pacioli.printValue(x)
 }
 
-Pacioli.global_Matrix_is_zero = function (x) {
+Pacioli.global_matrix_is_zero = function (x) {
     var values = Pacioli.getCOONumbers(x)[2]
     for (var i = 0; i < values.length; i++) {
         if (values[i] != 0) return false;
@@ -209,31 +209,31 @@ Pacioli.global_Matrix_is_zero = function (x) {
     return true;
 }
 
-Pacioli.compute_global_Matrix__ = function () {
+Pacioli.compute_global_matrix__ = function () {
     return Pacioli.createCoordinates([], []);
 }
 
-Pacioli.compute_b_global_Matrix__ = function () {
-    return Pacioli.compute_global_Matrix__();
+Pacioli.compute_b_global_matrix__ = function () {
+    return Pacioli.compute_global_matrix__();
 }
 
-Pacioli.global_Matrix_unit_factor = function (x) { 
+Pacioli.global_matrix_unit_factor = function (x) { 
     return Pacioli.oneNumbers(1, 1)
 }
 
-Pacioli.b_global_Matrix_unit_factor = function (x) { 
+Pacioli.b_global_matrix_unit_factor = function (x) { 
     return new Pacioli.Box(x.type.factor(), Pacioli.oneNumbers(1, 1));
 }
 
-Pacioli.global_Matrix_magnitude = function (x) {
+Pacioli.global_matrix_magnitude = function (x) {
     return x
 }
 
-Pacioli.b_global_Matrix_magnitude = function (x) {
+Pacioli.b_global_matrix_magnitude = function (x) {
     return new Pacioli.Box(x.type.dimensionless(), x.value);
 }
 
-Pacioli.global_Matrix_row = function (x, coord) {
+Pacioli.global_matrix_row = function (x, coord) {
     var row = coord.position
     var matrix = Pacioli.zeroNumbers(1, x.nrColumns)
     var numbers = Pacioli.getCOONumbers(x)
@@ -248,11 +248,11 @@ Pacioli.global_Matrix_row = function (x, coord) {
     return matrix
 }
 
-Pacioli.global_Matrix_row_unit = function (x) {
+Pacioli.global_matrix_row_unit = function (x) {
     return Pacioli.oneNumbers(x.nrRows, 1)
 }
 
-Pacioli.global_Matrix_row_domain = function (matrix) {
+Pacioli.global_matrix_row_domain = function (matrix) {
     var n = matrix.nrRows;
     var domain = new Array(n);
     for (var i = 0; i < n; i++) {
@@ -261,12 +261,12 @@ Pacioli.global_Matrix_row_domain = function (matrix) {
     return Pacioli.tagKind(domain, "list");
 }
 
-Pacioli.global_Matrix_column = function (x, coord) {
-    // todo: reconsider this and the global_Matrix_row implementation 
-    return Pacioli.global_Matrix_transpose(Pacioli.global_Matrix_row(Pacioli.global_Matrix_transpose(x), coord))
+Pacioli.global_matrix_column = function (x, coord) {
+    // todo: reconsider this and the global_matrix_row implementation 
+    return Pacioli.global_matrix_transpose(Pacioli.global_matrix_row(Pacioli.global_matrix_transpose(x), coord))
 }
 
-Pacioli.global_Matrix_column_domain = function (matrix) {
+Pacioli.global_matrix_column_domain = function (matrix) {
     var n = matrix.nrColumns;
     var domain = new Array(n);
     for (var i = 0; i < n; i++) {
@@ -275,23 +275,23 @@ Pacioli.global_Matrix_column_domain = function (matrix) {
     return Pacioli.tagKind(domain, "list");
 }
 
-Pacioli.global_Matrix_column_unit = function (x) {
+Pacioli.global_matrix_column_unit = function (x) {
     return Pacioli.oneNumbers(x.nrColumns, 1)
 }
 
-Pacioli.global_Matrix_get_num = function (matrix, i, j) {
+Pacioli.global_matrix_get_num = function (matrix, i, j) {
     return Pacioli.get(matrix, i.position, j.position)
 }
 
-Pacioli.global_Matrix_get = function (matrix, i, j) {
+Pacioli.global_matrix_get = function (matrix, i, j) {
     return Pacioli.get(matrix, i.position, j.position)
 }
 
-Pacioli.b_global_Matrix_get = function (matrix, i, j) {
-    return new Pacioli.Box(matrix.type.factor(), Pacioli.global_Matrix_get(matrix.value, i, j));
+Pacioli.b_global_matrix_get = function (matrix, i, j) {
+    return new Pacioli.Box(matrix.type.factor(), Pacioli.global_matrix_get(matrix.value, i, j));
 }
 
-Pacioli.global_Matrix_make_matrix = function (tuples) {
+Pacioli.global_matrix_make_matrix = function (tuples) {
     var first = tuples[0]
     var numbers = Pacioli.zeroNumbers(first[0].size, first[1].size)
     for (var i = 0; i < tuples.length; i++) {
@@ -301,7 +301,7 @@ Pacioli.global_Matrix_make_matrix = function (tuples) {
     return numbers;
 }
 
-Pacioli.b_global_Matrix_make_matrix = function (tuples) {
+Pacioli.b_global_matrix_make_matrix = function (tuples) {
 
     var first = tuples[0];
 
@@ -317,19 +317,19 @@ Pacioli.b_global_Matrix_make_matrix = function (tuples) {
     return new Pacioli.Box(new Pacioli.Type("matrix", shape), numbers);
 }
 
-Pacioli.global_Matrix_support = function (x) {
+Pacioli.global_matrix_support = function (x) {
     return Pacioli.unaryNumbers(x, function (val) { return 1})
 }
 
-Pacioli.global_Matrix_positive_support = function (x) {
+Pacioli.global_matrix_positive_support = function (x) {
     return Pacioli.unaryNumbers(x, function (val) { return 0 < val ? 1 : 0})
 }
 
-Pacioli.global_Matrix_negative_support = function (x) {
+Pacioli.global_matrix_negative_support = function (x) {
     return Pacioli.unaryNumbers(x, function (val) { return val < 0 ? 1 : 0})
 }
 
-Pacioli.global_Matrix_top = function (cnt, x) {
+Pacioli.global_matrix_top = function (cnt, x) {
     var n = Pacioli.getNumber(cnt, 0, 0) 
 
     if (n === 0) {
@@ -371,7 +371,7 @@ Pacioli.global_Matrix_top = function (cnt, x) {
     return matrix;
 }
 
-Pacioli.global_Matrix_bottom = function (cnt, x) {
+Pacioli.global_matrix_bottom = function (cnt, x) {
     var n = Pacioli.getNumber(cnt, 0, 0) 
 
     if (n === 0) {
@@ -413,7 +413,7 @@ Pacioli.global_Matrix_bottom = function (cnt, x) {
     return matrix;
 }
 
-Pacioli.global_Matrix_left_identity = function (x) {
+Pacioli.global_matrix_left_identity = function (x) {
     var numbers = Pacioli.zeroNumbers(x.nrRows, x.nrRows)
     for (var i = 0; i < x.nrRows; i++) {
         Pacioli.set(numbers, i, i, 1);
@@ -421,11 +421,11 @@ Pacioli.global_Matrix_left_identity = function (x) {
     return numbers
 }
 
-Pacioli.b_global_Matrix_left_identity = function (x) {
-    return new Pacioli.Box(x.type.leftIdentity(), Pacioli.global_Matrix_left_identity(x.value));
+Pacioli.b_global_matrix_left_identity = function (x) {
+    return new Pacioli.Box(x.type.leftIdentity(), Pacioli.global_matrix_left_identity(x.value));
 }
 
-Pacioli.global_Matrix_right_identity = function (x) {
+Pacioli.global_matrix_right_identity = function (x) {
     var numbers = Pacioli.zeroNumbers(x.nrColumns, x.nrColumns)
     for (var i = 0; i < x.nrColumns; i++) {
         Pacioli.set(numbers, i, i, 1);
@@ -433,15 +433,15 @@ Pacioli.global_Matrix_right_identity = function (x) {
     return numbers
 }
 
-Pacioli.global_Matrix_reciprocal = function (x) {
+Pacioli.global_matrix_reciprocal = function (x) {
     return Pacioli.unaryNumbers(x, function (val) { return val == 0 ? 0 : 1 / val})
 }
 
-Pacioli.b_global_Matrix_reciprocal = function (x) {
-    return new Pacioli.Box(x.type.reciprocal(), Pacioli.global_Matrix_reciprocal(x.value));
+Pacioli.b_global_matrix_reciprocal = function (x) {
+    return new Pacioli.Box(x.type.reciprocal(), Pacioli.global_matrix_reciprocal(x.value));
 }
 
-Pacioli.global_Matrix_transpose = function (x) {
+Pacioli.global_matrix_transpose = function (x) {
     var result = Pacioli.zeroNumbers(x.nrColumns, x.nrRows)
     var numbers = Pacioli.getCOONumbers(x)
     var rows = numbers[0]
@@ -453,27 +453,27 @@ Pacioli.global_Matrix_transpose = function (x) {
     return result
 }
 
-Pacioli.b_global_Matrix_transpose = function (x) {
-    return new Pacioli.Box(x.type.transpose(), Pacioli.global_Matrix_transpose(x.value));
+Pacioli.b_global_matrix_transpose = function (x) {
+    return new Pacioli.Box(x.type.transpose(), Pacioli.global_matrix_transpose(x.value));
 }
 
-Pacioli.global_Matrix_dim_inv = function (x) {
-    return Pacioli.global_Matrix_transpose(Pacioli.global_Matrix_reciprocal(x));
+Pacioli.global_matrix_dim_inv = function (x) {
+    return Pacioli.global_matrix_transpose(Pacioli.global_matrix_reciprocal(x));
 }
 
-Pacioli.global_Matrix_dim_div = function (x, y) {
-    return Pacioli.global_Matrix_dot(x, Pacioli.global_Matrix_dim_inv(y));
+Pacioli.global_matrix_dim_div = function (x, y) {
+    return Pacioli.global_matrix_dot(x, Pacioli.global_matrix_dim_inv(y));
 }
 
-Pacioli.global_Matrix_dot = function (x, y) {
+Pacioli.global_matrix_dot = function (x, y) {
     return Pacioli.tagNumbers(numeric.ccsDot(Pacioli.getCCSNumbers(x), Pacioli.getCCSNumbers(y)), x.nrRows, y.nrColumns, 3);
 }
 
-Pacioli.b_global_Matrix_dot = function (x, y) {
-    return new Pacioli.Box(x.type.dot(y.type), Pacioli.global_Matrix_dot(x.value, y.value));
+Pacioli.b_global_matrix_dot = function (x, y) {
+    return new Pacioli.Box(x.type.dot(y.type), Pacioli.global_matrix_dot(x.value, y.value));
 }
 
-Pacioli.global_Matrix_multiply = function (x,y) {
+Pacioli.global_matrix_multiply = function (x,y) {
     if (x.storage === 13) {
         return Pacioli.tagNumbers(numeric.ccsmul(Pacioli.getCCSNumbers(x), Pacioli.getCCSNumbers(y)), x.nrRows, y.nrColumns, 3);
     } else {
@@ -481,11 +481,11 @@ Pacioli.global_Matrix_multiply = function (x,y) {
     }
 }
 
-Pacioli.b_global_Matrix_multiply = function (x,y) {
-    return new Pacioli.Box(x.type.mult(y.type), Pacioli.global_Matrix_multiply(x.value, y.value));
+Pacioli.b_global_matrix_multiply = function (x,y) {
+    return new Pacioli.Box(x.type.mult(y.type), Pacioli.global_matrix_multiply(x.value, y.value));
 }
 
-Pacioli.global_Matrix_kronecker = function (x,y) {
+Pacioli.global_matrix_kronecker = function (x,y) {
     alert("is this used?")
     var xm = x.length
     var ym = y.length
@@ -508,15 +508,15 @@ Pacioli.global_Matrix_kronecker = function (x,y) {
     return matrix;
 }
 
-Pacioli.global_Matrix_divide = function (x,y) {
+Pacioli.global_matrix_divide = function (x,y) {
     return Pacioli.elementWiseNumbers(x, y, function(a, b) { return b !== 0 ? a/b : 0})
 }
 
-Pacioli.b_global_Matrix_divide = function (x,y) {
-    return new Pacioli.Box(x.type.div(y.type), Pacioli.global_Matrix_divide(x.value, y.value));
+Pacioli.b_global_matrix_divide = function (x,y) {
+    return new Pacioli.Box(x.type.div(y.type), Pacioli.global_matrix_divide(x.value, y.value));
 }
 
-Pacioli.global_Matrix_gcd = function (x,y) {
+Pacioli.global_matrix_gcd = function (x,y) {
     return Pacioli.elementWiseNumbers(x, y, function(a, b) { 
     if (a < 0) a = -a;
     if (b < 0) b = -b;
@@ -532,7 +532,7 @@ Pacioli.global_Matrix_gcd = function (x,y) {
     })
 }
 
-Pacioli.global_Matrix_sum = function (x,y) {
+Pacioli.global_matrix_sum = function (x,y) {
     if (x.storage === 13) {
         return Pacioli.tagNumbers(numeric.ccsadd(Pacioli.getCCSNumbers(x), Pacioli.getCCSNumbers(y)), x.nrRows, y.nrColumns, 3);
     } else {
@@ -541,14 +541,14 @@ Pacioli.global_Matrix_sum = function (x,y) {
     //return Pacioli.elementWiseNumbers(x, y, function (a, b) { return a+b})
 }
 
-Pacioli.b_global_Matrix_sum = function (x,y) {
+Pacioli.b_global_matrix_sum = function (x,y) {
     if (!x.type.equals(y.type)) {
         throw 'Type ' + x.type.param.toText() + ' not compatible for sum with type ' + y.type.param.toText();
     }
-    return new Pacioli.Box(x.type, Pacioli.global_Matrix_sum(x.value, y.value));
+    return new Pacioli.Box(x.type, Pacioli.global_matrix_sum(x.value, y.value));
 }
 
-Pacioli.global_Matrix_minus = function (x,y) {
+Pacioli.global_matrix_minus = function (x,y) {
     //return Pacioli.elementWiseNumbers(x, y, function(a, b) { return a-b})
     if (x.storage === 13) {
         return Pacioli.tagNumbers(numeric.ccssub(Pacioli.getCCSNumbers(x), Pacioli.getCCSNumbers(y)), x.nrRows, y.nrColumns, 3);
@@ -557,39 +557,39 @@ Pacioli.global_Matrix_minus = function (x,y) {
     }
 }
 
-Pacioli.b_global_Matrix_minus = function (x,y) {
+Pacioli.b_global_matrix_minus = function (x,y) {
     if (!x.type.equals(y.type)) {
         throw 'Type ' + x.type.param.toText() + ' not compatible for minus with type ' + y.type.param.toText();
     }
-    return new Pacioli.Box(x.type, Pacioli.global_Matrix_minus(x.value, y.value));
+    return new Pacioli.Box(x.type, Pacioli.global_matrix_minus(x.value, y.value));
 }
 
-Pacioli.global_Matrix_negative = function (x) { 
+Pacioli.global_matrix_negative = function (x) { 
     return Pacioli.unaryNumbers(x, function (val) { return -val})
 }
 
-Pacioli.b_global_Matrix_negative = function (x) {
-    return new Pacioli.Box(x.type, Pacioli.global_Matrix_negative(x.value));
+Pacioli.b_global_matrix_negative = function (x) {
+    return new Pacioli.Box(x.type, Pacioli.global_matrix_negative(x.value));
 }
 
-Pacioli.global_Matrix_scale = function (x,y) { 
+Pacioli.global_matrix_scale = function (x,y) { 
     var factor = Pacioli.getNumber(x, 0, 0)
     return Pacioli.unaryNumbers(y, function (val) { return factor * val})
 }
 
-Pacioli.b_global_Matrix_scale = function (x,y) { 
-    return new Pacioli.Box(y.type.scale(x.type), Pacioli.global_Matrix_scale(x.value, y.value));
+Pacioli.b_global_matrix_scale = function (x,y) { 
+    return new Pacioli.Box(y.type.scale(x.type), Pacioli.global_matrix_scale(x.value, y.value));
 }
 
-Pacioli.global_Matrix_scale_down = function (x,y) {
-    return Pacioli.global_Matrix_scale(Pacioli.global_Matrix_reciprocal(y), x);
+Pacioli.global_matrix_scale_down = function (x,y) {
+    return Pacioli.global_matrix_scale(Pacioli.global_matrix_reciprocal(y), x);
 }
 
-Pacioli.b_global_Matrix_scale_down = function (x,y) {
-    return Pacioli.b_global_Matrix_scale(Pacioli.b_global_Matrix_reciprocal(y), x);
+Pacioli.b_global_matrix_scale_down = function (x,y) {
+    return Pacioli.b_global_matrix_scale(Pacioli.b_global_matrix_reciprocal(y), x);
 }
 
-Pacioli.global_Matrix_total = function (x) { 
+Pacioli.global_matrix_total = function (x) { 
     var values = Pacioli.getCOONumbers(x)[2]
     var total = 0
     for (var i = 0; i < values.length; i++) {
@@ -600,158 +600,158 @@ Pacioli.global_Matrix_total = function (x) {
     return result
 }
 
-Pacioli.global_Matrix_mod = function (x, y) {
+Pacioli.global_matrix_mod = function (x, y) {
     return Pacioli.tagNumbers(numeric.mod(Pacioli.getFullNumbers(x), Pacioli.getFullNumbers(y)), x.nrRows, x.nrColumns, 0);
 }
 
-Pacioli.b_global_Matrix_mod = function (x, y) {
-    return new Pacioli.Box(x.type, Pacioli.global_Matrix_mod(x.value, y.value));
+Pacioli.b_global_matrix_mod = function (x, y) {
+    return new Pacioli.Box(x.type, Pacioli.global_matrix_mod(x.value, y.value));
 }
 
-Pacioli.global_Matrix_max = function (x, y) {
+Pacioli.global_matrix_max = function (x, y) {
     return Pacioli.tagNumbers(numeric.max(Pacioli.getFullNumbers(x), Pacioli.getFullNumbers(y)), x.nrRows, y.nrRows, 0)
 }
 
-Pacioli.b_global_Matrix_max = function (x, y) {
-    return new Pacioli.Box(x.type, Pacioli.global_Matrix_max(x.value, y.value));
+Pacioli.b_global_matrix_max = function (x, y) {
+    return new Pacioli.Box(x.type, Pacioli.global_matrix_max(x.value, y.value));
 }
 
-Pacioli.global_Matrix_min = function (x, y) {
+Pacioli.global_matrix_min = function (x, y) {
     return Pacioli.tagNumbers(numeric.min(Pacioli.getFullNumbers(x), Pacioli.getFullNumbers(y)), x.nrRows, y.nrRows, 0)
 }
 
-Pacioli.global_Matrix_sin = function (x) {
+Pacioli.global_matrix_sin = function (x) {
     return Pacioli.tagNumbers(numeric.sin(Pacioli.getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-Pacioli.b_global_Matrix_sin = function (x) {
+Pacioli.b_global_matrix_sin = function (x) {
     return Pacioli.num(numeric.sin(Pacioli.getFullNumbers(x.value)));
 }
 
-Pacioli.global_Matrix_cos = function (x) {
+Pacioli.global_matrix_cos = function (x) {
     return Pacioli.tagNumbers(numeric.cos(Pacioli.getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-Pacioli.b_global_Matrix_cos = function (x) {
+Pacioli.b_global_matrix_cos = function (x) {
     return Pacioli.num(numeric.cos(Pacioli.getFullNumbers(x.value)));
 }
 
-Pacioli.global_Matrix_tan = function (x) {
+Pacioli.global_matrix_tan = function (x) {
     return Pacioli.tagNumbers(numeric.tan(Pacioli.getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-Pacioli.global_Matrix_asin = function (x) {
+Pacioli.global_matrix_asin = function (x) {
     return Pacioli.tagNumbers(numeric.asin(Pacioli.getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-Pacioli.global_Matrix_acos = function (x) {
+Pacioli.global_matrix_acos = function (x) {
     return Pacioli.tagNumbers(numeric.acos(Pacioli.getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-Pacioli.global_Matrix_atan = function (x) {
+Pacioli.global_matrix_atan = function (x) {
     return Pacioli.tagNumbers(numeric.atan(Pacioli.getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-Pacioli.global_Matrix_atan2 = function (x, y) {
+Pacioli.global_matrix_atan2 = function (x, y) {
     return Pacioli.tagNumbers(numeric.atan2(Pacioli.getFullNumbers(x), Pacioli.getFullNumbers(y)), x.nrRows, x.nrColumns, 0);
 }
 
-Pacioli.global_Matrix_abs = function (x) { 
+Pacioli.global_matrix_abs = function (x) { 
     return Pacioli.unaryNumbers(x, function (val) { return Math.abs(val)})
 }
 
-Pacioli.b_global_Matrix_abs = function (x) {
-    return new Pacioli.Box(x.type, Pacioli.global_Matrix_abs(x.value));
+Pacioli.b_global_matrix_abs = function (x) {
+    return new Pacioli.Box(x.type, Pacioli.global_matrix_abs(x.value));
 }
 
-Pacioli.global_Matrix_power = function (x,y) {
+Pacioli.global_matrix_power = function (x,y) {
     var n = Pacioli.getNumber(y, 0, 0)
     if (n === 0) {
-        return Pacioli.global_Matrix_left_identity(x)
+        return Pacioli.global_matrix_left_identity(x)
     } else if (n === 1) {
         return x
     } else if (n < 0) {
-        return Pacioli.global_Matrix_power(Pacioli.global_Standard_inverse(x), Pacioli.global_Matrix_negative(y))
+        return Pacioli.global_matrix_power(Pacioli.global_standard_inverse(x), Pacioli.global_matrix_negative(y))
     } else { 
         var result = x
         for (var i = 1; i < n; i++) {
-            result = Pacioli.global_Matrix_dot(result, x)
+            result = Pacioli.global_matrix_dot(result, x)
         }
         return result
     }
 }
 
-Pacioli.global_Matrix_expt = function (x,y) {
+Pacioli.global_matrix_expt = function (x,y) {
     var n = Pacioli.getNumber(y, 0, 0)
     return Pacioli.tagNumbers(numeric.pow(Pacioli.getFullNumbers(x), n), x.nrRows, x.nrColumns, 0);
 }
 
-Pacioli.global_Matrix_log = function (x, y) {
-    return Pacioli.global_Matrix_divide(Pacioli.tagNumbers(numeric.log(Pacioli.getFullNumbers(x)), x.nrRows, x.nrColumns, 0),
+Pacioli.global_matrix_log = function (x, y) {
+    return Pacioli.global_matrix_divide(Pacioli.tagNumbers(numeric.log(Pacioli.getFullNumbers(x)), x.nrRows, x.nrColumns, 0),
                                 Pacioli.tagNumbers(numeric.log(Pacioli.getFullNumbers(y)), x.nrRows, x.nrColumns, 0));
 }
 
-Pacioli.global_Matrix_exp = function (x) {
+Pacioli.global_matrix_exp = function (x) {
     return Pacioli.tagNumbers(numeric.exp(Pacioli.getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-Pacioli.b_global_Matrix_exp = function (x) {
-    return new Pacioli.Box(x.type, Pacioli.global_Matrix_exp(x.value));
+Pacioli.b_global_matrix_exp = function (x) {
+    return new Pacioli.Box(x.type, Pacioli.global_matrix_exp(x.value));
 }
 
-Pacioli.global_Matrix_ln = function (x) {
+Pacioli.global_matrix_ln = function (x) {
     return Pacioli.tagNumbers(numeric.log(Pacioli.getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-Pacioli.b_global_Matrix_ln = function (x) {
-    return new Pacioli.Box(x.type, Pacioli.global_Matrix_ln(x.value));
+Pacioli.b_global_matrix_ln = function (x) {
+    return new Pacioli.Box(x.type, Pacioli.global_matrix_ln(x.value));
 }
 
-Pacioli.global_Matrix_less = function (x,y) { 
+Pacioli.global_matrix_less = function (x,y) { 
     return !Pacioli.findNonZero(x, y, function (a, b) {return a >= b}, true) //=== null
 }
 
-Pacioli.b_global_Matrix_less = function (x,y) { 
+Pacioli.b_global_matrix_less = function (x,y) { 
     if (!x.type.equals(y.type)) {
         throw 'Type ' + x.type.param.toText() + ' not compatible for less with type ' + y.type.param.toText();
     }
     return !Pacioli.findNonZero(x.value, y.value, function (a, b) {return a >= b}, true) //=== null
 }
 
-Pacioli.global_Matrix_less_eq = function (x,y) { 
+Pacioli.global_matrix_less_eq = function (x,y) { 
     return !Pacioli.findNonZero(x, y, function (a, b) {return a > b}, false) //=== null
 }
 
-Pacioli.global_Matrix_greater = function (x,y) { 
+Pacioli.global_matrix_greater = function (x,y) { 
     return !Pacioli.findNonZero(x, y, function (a, b) {return a <= b}, true) //=== null
 }
 
-Pacioli.global_Matrix_greater_eq = function (x,y) { 
+Pacioli.global_matrix_greater_eq = function (x,y) { 
     return !Pacioli.findNonZero(x, y, function (a, b) {return a < b}, false) //=== null
 }
 
-Pacioli.global_Matrix_sqrt = function (x) { 
+Pacioli.global_matrix_sqrt = function (x) { 
     return Pacioli.unaryNumbers(x, function (val) { return Math.sqrt(val)})
 }
 
-Pacioli.b_global_Matrix_sqrt = function (x) { 
-    return new Pacioli.Box(x.type.expt(0.5), Pacioli.global_Matrix_sqrt(x.value));
+Pacioli.b_global_matrix_sqrt = function (x) { 
+    return new Pacioli.Box(x.type.expt(0.5), Pacioli.global_matrix_sqrt(x.value));
 }
 
-Pacioli.global_Matrix_solve = function (x, ignored) {
+Pacioli.global_matrix_solve = function (x, ignored) {
     return Pacioli.tagNumbers(numeric.inv(Pacioli.getFullNumbers(x)), x.nrColumns, x.nrRows, 0);
 }
 
-Pacioli.b_global_Matrix_solve = function (x, ignored) {
+Pacioli.b_global_matrix_solve = function (x, ignored) {
     var type = x.type.column().dim_inv().per(ignored.type.column().dim_inv()).scale(x.type.factor()).scale(ignored.type.factor().reciprocal());
-    return new Pacioli.Box(type, Pacioli.global_Matrix_solve(x.value, ignored));
+    return new Pacioli.Box(type, Pacioli.global_matrix_solve(x.value, ignored));
 }
 
-Pacioli.global_Matrix_random = function () { 
+Pacioli.global_matrix_random = function () { 
     return Pacioli.tagNumbers([[Math.random()]], 1, 1, 0);
 }
 
-Pacioli.global_Matrix_ranking = function (x) { 
+Pacioli.global_matrix_ranking = function (x) { 
     var result = Pacioli.zeroNumbers(x.nrRows, x.nrColumns)
     var numbers = Pacioli.getCOONumbers(x)
     var rows = numbers[0]
@@ -775,7 +775,7 @@ Pacioli.global_Matrix_ranking = function (x) {
     return result
 }
 
-Pacioli.global_Matrix_mapnz = function (fun, x) { 
+Pacioli.global_matrix_mapnz = function (fun, x) { 
     var result = Pacioli.zeroNumbers(x.nrRows, x.nrColumns)
     var numbers = Pacioli.getCOONumbers(x)
     var rows = numbers[0]
@@ -788,7 +788,7 @@ Pacioli.global_Matrix_mapnz = function (fun, x) {
     return result
 }
 
-Pacioli.global_List_zip = function (x,y) {
+Pacioli.global_list_zip = function (x,y) {
     var list = new Array(Math.min(x.length, y.length));
     for (var i = 0; i < list.length; i++) {
         list[i] = [x[i], y[i]];
@@ -796,20 +796,20 @@ Pacioli.global_List_zip = function (x,y) {
     return Pacioli.tagKind(list, "list");
 }
 
-Pacioli.global_List_add_mut = function (list,item) {
+Pacioli.global_list_add_mut = function (list,item) {
     list.push(item);
     return list;
 }
 
-Pacioli.global_List_append = function (x,y) {
+Pacioli.global_list_append = function (x,y) {
     return Pacioli.tagKind(x.concat(y), "list")
 }
 
-Pacioli.global_List_reverse = function (x) {
+Pacioli.global_list_reverse = function (x) {
     return Pacioli.tagKind(x.slice(0).reverse(), "list");
 }
 
-Pacioli.global_List_tail = function (x) {
+Pacioli.global_list_tail = function (x) {
     var array = new Array(x.length-1);
     for (var i = 0; i < array.length; i++) {
         array[i] = x[i+1];
@@ -817,19 +817,19 @@ Pacioli.global_List_tail = function (x) {
     return Pacioli.tagKind(array, "list");
 }
 
-Pacioli.global_List_singleton_list = function (x) {
+Pacioli.global_list_singleton_list = function (x) {
     return Pacioli.tagKind([x], "list");
 }
 
-Pacioli.global_List_nth = function (x,y) {
+Pacioli.global_list_nth = function (x,y) {
     return y[Pacioli.getNumber(x, 0, 0)];
 }
 
-Pacioli.b_global_List_nth = function (x,y) {
+Pacioli.b_global_list_nth = function (x,y) {
     return y[Pacioli.getNumber(x.value, 0, 0)];
 }
 
-Pacioli.global_List_naturals = function (num) {
+Pacioli.global_list_naturals = function (num) {
     var n = Pacioli.getNumber(num, 0, 0)
     var list = new Array(n);
     for (var i = 0; i < n; i++) {
@@ -838,7 +838,7 @@ Pacioli.global_List_naturals = function (num) {
     return Pacioli.tagKind(list, "list");
 }
 
-Pacioli.b_global_List_naturals = function (num) {
+Pacioli.b_global_list_naturals = function (num) {
     var n = Pacioli.getNumber(num.value, 0, 0)
     var list = new Array(n);
     for (var i = 0; i < n; i++) {
@@ -847,59 +847,59 @@ Pacioli.b_global_List_naturals = function (num) {
     return Pacioli.tagKind(list, "list");
 }
 
-Pacioli.global_List_loop_list = function (init, fun, list) {
+Pacioli.global_list_loop_list = function (init, fun, list) {
     var accu = init;
     for (var i = 0; i < list.length; i++) {
-        accu = Pacioli.global_Primitives_apply(fun, [accu, list[i]]);
+        accu = Pacioli.global_primitives_apply(fun, [accu, list[i]]);
     }
     return accu;
 }
 
-Pacioli.global_List_list_size = function (x) {
+Pacioli.global_list_list_size = function (x) {
     return Pacioli.initialNumbers(1, 1, [[0, 0, x.length]]);
 }
 
-Pacioli.b_global_List_list_size = function (x) {
+Pacioli.b_global_list_list_size = function (x) {
     return Pacioli.num(x.length);
 }
 
-Pacioli.global_List_head = function (x) {
+Pacioli.global_list_head = function (x) {
     return x[0];
 }
 
-Pacioli.global_List_fold_list = function (fun, list) {
+Pacioli.global_list_fold_list = function (fun, list) {
     if (list.length == 0) {
         throw new Error("Cannot fold an empty list")
     }
     var accu = list[0];
     for (var i = 1; i < list.length; i++) {
-        accu = Pacioli.global_Primitives_apply(fun, [accu, list[i]]);
+        accu = Pacioli.global_primitives_apply(fun, [accu, list[i]]);
     }
     return accu;
 }
 
-Pacioli.global_List_sort_list = function (list, fun) {
+Pacioli.global_list_sort_list = function (list, fun) {
     //return list;
     return Pacioli.tagKind(list.slice(0).sort(function (a, b) {
-            if (Pacioli.global_Primitives_apply(fun, [a, b]))
+            if (Pacioli.global_primitives_apply(fun, [a, b]))
                 return 1;
-            if (Pacioli.global_Primitives_apply(fun, [b, a]))
+            if (Pacioli.global_primitives_apply(fun, [b, a]))
                 return -1;
             return 0;
         }),
         "list");
 }
 
-Pacioli.global_List_cons = function (item,list) {
-    return Pacioli.global_List_append(Pacioli.global_List_singleton_list(item), list);
+Pacioli.global_list_cons = function (item,list) {
+    return Pacioli.global_list_append(Pacioli.global_list_singleton_list(item), list);
 }
 
-Pacioli.global_List_empty_list = function () {
+Pacioli.global_list_empty_list = function () {
    return Pacioli.tagKind([], "list");
 }
 
 
-Pacioli.global_Shells_csg_polygon = function (vectors) {
+Pacioli.global_shells_csg_polygon = function (vectors) {
     var vertices = vectors.map(function (x) {
         var v = Pacioli.getFullNumbers(x)
         return new CSG.Vertex(v, [0,1,0])
@@ -908,19 +908,19 @@ Pacioli.global_Shells_csg_polygon = function (vectors) {
     return Pacioli.tagKind(new CSG.Polygon(vertices), "csg");
 }
 
-Pacioli.global_Shells_csg_mesh = function (polygons) {
+Pacioli.global_shells_csg_mesh = function (polygons) {
     console.log(polygons)
    return Pacioli.tagKind(CSG.fromPolygons(polygons), "csg");
 }
 
-Pacioli.global_Shells_csg_sphere = function (radius, slices, stacks) {
+Pacioli.global_shells_csg_sphere = function (radius, slices, stacks) {
    return Pacioli.tagKind(CSG.sphere({ radius: Pacioli.getNumber(radius, 0, 0) , slices: Pacioli.getNumber(slices, 0, 0), stacks: Pacioli.getNumber(stacks, 0, 0)}), "csg");
 }
 
-Pacioli.global_Shells_csg_cube = function (radius) { 
+Pacioli.global_shells_csg_cube = function (radius) { 
    return Pacioli.tagKind(CSG.cube({ radius: Pacioli.getNumber(radius, 0, 0) }), "csg");
 }
 
-Pacioli.global_Shells_csg_subtract = function (x, y) {
+Pacioli.global_shells_csg_subtract = function (x, y) {
    return Pacioli.tagKind(x.subtract(y), "csg");
 }

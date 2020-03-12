@@ -31,8 +31,8 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
     
     public static String global(String module, String name) {
         // IMPORTANT: SWITCH FOR CORRECT MVM OR JS
-        return String.format("global_%s_%s", module.toLowerCase(), name);
-        //return String.format("global_%s_%s", module, name);
+        //return String.format("global_%s_%s", module.toLowerCase(), name);
+        return String.format("global_%s_%s", module, name);
     }
 
     @Override

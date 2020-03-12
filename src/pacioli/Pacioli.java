@@ -294,7 +294,7 @@ public class Pacioli {
         } else {
             if (kind.equals("bundle")) {
                 Project project = Project.load(pacioliFile, libs);
-                project.bundle(settings, target);
+                project.bundle(settings, settings.getTarget());
             } else if (kind.equals("single")) {
                 compile(pacioliFile, libs, settings);
             } else if (kind.equals("recursive")) {
@@ -333,30 +333,25 @@ public class Pacioli {
     }
     
     private static void runCommand(String fileName, List<File> libs, CompilationSettings settings) throws Exception {
-
-        Integer version = 0; // todo
         
         Pacioli.logln1("Running file '%s'", fileName);
-        
+
+        // Locate the file
+        Integer version = 0; // todo
         PacioliFile file = PacioliFile.get(fileName, version);
         
+        // Check that it exists
         if (file == null) {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
 
-        // Compile and run it
+        // If so, compile and run it
         try {
             
             Pacioli.logln1("Compiling file '%s'", file.getFile());
-            
-            Project project = Project.load(file, libs);
-            project.bundle(settings, "mvm");
-            
-            //String mvmFile = Progam.fileBaseName(file.getFile()) + "." + Progam.targetFileExtension("mvm");
-            Path mvmFile = project.bundlePath(Target.MVM);
+            Path mvmFile = Project.load(file, libs).bundle(settings, Target.MVM);
             
             Pacioli.logln1("Running mvm file '%s'", mvmFile);
-            
             interpretMVMText(mvmFile.toFile(), libs);
 
         } catch (IOException e) {
@@ -485,7 +480,7 @@ public class Pacioli {
                 Project project = Project.load(file, libs);
                 
                 project.printInfo();
-                project.bundle(settings, "mvm");
+                project.bundle(settings, Target.MVM);
                 
                 Path binName = project.bundlePath(Target.MVM);
                 
@@ -534,7 +529,7 @@ public class Pacioli {
             
             // Generate the code for the entire bundle
             //Pacioli.logln2("Loading file '%s'", file);
-            program.generateCode(writer, settings, "yo");
+            program.generateCode(writer, settings);
             
         } finally {
             
