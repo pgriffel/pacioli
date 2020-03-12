@@ -49,15 +49,10 @@ public class AliasDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
-        //GenericInfo generic = new GenericInfo(localName(), program.program.module.name, 
-        GenericInfo generic = new GenericInfo(localName(), program.getModule(),
-                program.getFile(), scope, getLocation());
-        
-        AliasInfo info = new AliasInfo(generic); //program.ensureUnitRecord(localName());
+    public void addToProgr(Progam program) throws PacioliException {
+        GenericInfo generic = new GenericInfo(localName(), program.getModule(), program.getFile(), true, getLocation());        
+        AliasInfo info = new AliasInfo(generic);
         info.definition = this;
-        //info.symbol = null;
-        //info.baseDefinition = unit;
         program.addInfo(info);
     }
 

@@ -5,20 +5,18 @@ import java.io.File;
 import pacioli.Location;
 
 public class GenericInfo {
-    
-    public enum Scope {LOCAL, FILE, IMPORTED};
-    
+        
     public String name;
     private String module;
     public File file;
-    private Scope scope;
     private Location location;
+    private Boolean isGlobal;
 
-    public GenericInfo(String name, String module, File file, Scope scope, Location location) {
+    public GenericInfo(String name, String module, File file, Boolean isGlobal, Location location) {
         this.name = name;
         this.module = module;
         this.file = file;
-        this.scope = scope;
+        this.isGlobal = isGlobal;
         this.location = location;
     }
     
@@ -33,10 +31,10 @@ public class GenericInfo {
     }
     
     public Boolean isGlobal() {
-        return scope == Scope.FILE || scope == Scope.IMPORTED;
+        return isGlobal;
     }
   
     public Boolean isLocal() {
-        return scope == Scope.LOCAL;
+        return !isGlobal;
     }
 }

@@ -30,7 +30,6 @@ import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.GenericInfo;
-import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.ast.TypeIdentifierNode;
 
@@ -63,12 +62,7 @@ public class UnitVectorDefinition extends AbstractDefinition {
     public String localName() {
         return indexSetNode.getName() + "!" + unitNode.getName();
     }
-/*
-    @Override
-    public String globalName() {
-        return String.format("unitvec_%s_%s_%s", getModule().getName(), indexSetNode.getName(), unitNode.getName());
-    }
-*/
+
     @Override
     public String compileToMATLAB() {
         throw new UnsupportedOperationException("MATLAB and Octave have no units.");
@@ -80,11 +74,9 @@ public class UnitVectorDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
-        GenericInfo generic = new GenericInfo(localName(), program.getModule(), 
-                program.getFile(), scope, getLocation());       
+    public void addToProgr(Progam program) throws PacioliException {
+        GenericInfo generic = new GenericInfo(localName(), program.getModule(), program.getFile(), true, getLocation());       
         VectorUnitInfo info = new VectorUnitInfo(generic);
-        //info.isVector = true;
         info.definition = this;
         info.items = items;
         program.addInfo(info);

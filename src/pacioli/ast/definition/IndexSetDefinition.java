@@ -31,7 +31,6 @@ import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.IndexSetInfo;
-import pacioli.types.TypeIdentifier;
 
 public class IndexSetDefinition extends AbstractDefinition {
 
@@ -45,22 +44,14 @@ public class IndexSetDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
-        GenericInfo generic = new GenericInfo(localName(), program.getModule(), 
-                program.getFile(), scope, getLocation());
-        
-        //IndexSetInfo info = program.ensureIndexSetRecord(id.getName());
-        //info.generic = generic;
+    public void addToProgr(Progam program) throws PacioliException {
+        GenericInfo generic = new GenericInfo(localName(), program.getModule(), program.getFile(), true, getLocation());
         IndexSetInfo info = new IndexSetInfo(generic);
         info.definition = this;
         program.addInfo(info);
         
     }
-/*
-    public String globalName() {
-        return String.format("index_%s_%s", getModule().getName(), localName());
-    }
-*/
+
     public IndexSet getIndexSet() {
         return new IndexSet(localName(), items);
     }
@@ -69,15 +60,10 @@ public class IndexSetDefinition extends AbstractDefinition {
     public String localName() {
         return id.getName();
     }
-/*
-    public TypeIdentifier typeIdentifier() {
-        return new TypeIdentifier(getModule().getName(), id.getName());
-    }
-*/
+
     @Override
     public String compileToMATLAB() {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override

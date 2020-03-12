@@ -44,8 +44,6 @@ public class TypeDefinition extends AbstractDefinition {
     public final TypeContext context;
     public final TypeNode lhs;
     public final TypeNode rhs;
-    //private TypeApplicationNode resolvedLhs;
-    //private TypeNode resolvedRhs;
     private TypeConstraint constraint;
 
     public TypeDefinition(Location location, TypeContext context, TypeNode lhs, TypeNode rhs) {
@@ -105,8 +103,7 @@ public class TypeDefinition extends AbstractDefinition {
 
     @Override
     public String compileToMATLAB() {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -115,9 +112,8 @@ public class TypeDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
-        GenericInfo generic = new GenericInfo(localName(), program.getModule(), 
-                program.getFile(), scope, getLocation());       
+    public void addToProgr(Progam program) throws PacioliException {
+        GenericInfo generic = new GenericInfo(localName(), program.getModule(), program.getFile(), true, getLocation());       
         TypeInfo info = new TypeInfo(generic);
         info.typeAST = rhs;
         info.definition = this;

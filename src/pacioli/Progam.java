@@ -242,7 +242,7 @@ public class Progam extends AbstractPrintable {
         for (Definition def : prog.program.definitions) {
             if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
                     || def instanceof TypeDefinition) {
-                def.addToProgr(prog, GenericInfo.Scope.FILE);
+                def.addToProgr(prog);
             }
         }
         includeOther(prog);
@@ -255,7 +255,7 @@ public class Progam extends AbstractPrintable {
     public void fillTables(Boolean loadPrimitives, Boolean loadStandard) throws Exception {
 
         for (String type : ResolveVisitor.builtinTypes) {
-            GenericInfo generic = new GenericInfo(type, program.module.name, null, GenericInfo.Scope.IMPORTED, null);
+            GenericInfo generic = new GenericInfo(type, program.module.name, null, true, null);
             addInfo(new TypeInfo(generic));
         }
 
@@ -285,7 +285,7 @@ public class Progam extends AbstractPrintable {
 
         // Fill symbol tables for this file
         for (Definition def : program.definitions) {
-            def.addToProgr(this, GenericInfo.Scope.FILE);
+            def.addToProgr(this);
         }
     }
 

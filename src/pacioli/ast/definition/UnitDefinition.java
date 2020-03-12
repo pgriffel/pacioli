@@ -29,7 +29,6 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.ScalarUnitInfo;
-import pacioli.symboltable.UnitInfo;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 
@@ -69,16 +68,10 @@ public class UnitDefinition extends AbstractDefinition {
     public String localName() {
         return id.getName();
     }
-/*
-    @Override
-    public String globalName() {
-        return String.format("unit_%s", localName());
-    }
-*/
+
     @Override
     public String compileToMATLAB() {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet."); 
     }
 
     @Override
@@ -87,9 +80,8 @@ public class UnitDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
-        GenericInfo generic = new GenericInfo(localName(), program.getModule(), 
-                program.getFile(), scope, getLocation());       
+    public void addToProgr(Progam program) throws PacioliException {
+        GenericInfo generic = new GenericInfo(localName(), program.getModule(), program.getFile(), true, getLocation());       
         ScalarUnitInfo info = new ScalarUnitInfo(generic);
         info.definition = this;
         info.symbol = symbol;

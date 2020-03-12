@@ -4,7 +4,6 @@ import pacioli.Location;
 import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
-import pacioli.symboltable.GenericInfo;
 
 public class Toplevel extends AbstractDefinition {
 
@@ -31,7 +30,7 @@ public class Toplevel extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo.Scope scope) {
+    public void addToProgr(Progam program) {
         program.addToplevel(this);
     }
 

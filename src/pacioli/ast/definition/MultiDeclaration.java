@@ -5,11 +5,9 @@ import java.util.List;
 import pacioli.CompilationSettings;
 import pacioli.Location;
 import pacioli.PacioliException;
-import pacioli.PacioliFile;
 import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.symboltable.GenericInfo;
 import pacioli.types.ast.TypeNode;
 
 public class MultiDeclaration extends AbstractDefinition {
@@ -32,22 +30,7 @@ public class MultiDeclaration extends AbstractDefinition {
     public String localName() {
         throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
     }
-/*
-    @Override
-    public String globalName() {
-        throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
-    }
 
-    @Override
-    public void setModule(PacioliFile module) {
-        throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
-    }
-
-    @Override
-    public PacioliFile getModule() {
-        throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
-    }
-*/
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
@@ -59,12 +42,13 @@ public class MultiDeclaration extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
-        // obsolete?!
+    public void addToProgr(Progam program) throws PacioliException {
+/*        // obsolete?!
         for (IdentifierNode id : ids) {
             Declaration declaration = new Declaration(getLocation(), id, node);
-            declaration.addToProgr(program, scope);
-        }
+            declaration.addToProgr(program);
+        }*/
+        throw new RuntimeException("Cannot add a multi declaration to a program. It should have been desugared into single declarations.");
     }
 
 }

@@ -99,12 +99,11 @@ public class ValueDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, GenericInfo.Scope scope) throws PacioliException {
+    public void addToProgr(Progam program) throws PacioliException {
 
         String name = localName();
         
-        GenericInfo generic = new GenericInfo(name, program.getModule(), 
-                program.getFile(), scope, getLocation());       
+        GenericInfo generic = new GenericInfo(name, program.getModule(), program.getFile(), true, getLocation());       
         ValueInfo info = new ValueInfo(generic);
         info.definition = this;
         
