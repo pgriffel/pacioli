@@ -156,8 +156,16 @@ public class PrintVisitor implements Visitor {
 */
     @Override
     public void visit(ProgramNode node) {
+        for (IdentifierNode include: node.includes) {
+            write("include \"");
+            include.accept(this);
+            write("\";");
+            newline();
+        }
+        newline();
         for (Definition def : node.definitions) {
             def.accept(this);
+            newline();
             newline();
         }
     }
@@ -174,6 +182,8 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(Declaration node) {
         out.format("declare %s :: ", node.localName());
+        newline();
+        write("    ");
         node.typeNode.accept(this);
         write(";");
     }
@@ -190,6 +200,8 @@ public class PrintVisitor implements Visitor {
         write("declare ");
         writeCommaSeparated(node.ids);
         write(" :: ");
+        newline();
+        write("    ");
         node.node.accept(this);
         write(";");
     }
@@ -204,6 +216,8 @@ public class PrintVisitor implements Visitor {
         write("deftype ");
         node.lhs.accept(this);
         write(" = ");
+        newline();
+        write("    ");
         node.rhs.accept(this);
         write(";");
     }
@@ -242,13 +256,14 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(ValueDefinition node) {
+        mark();
         write("define ");
         node.id.accept(this);
         write(" =");
         newlineUp();
         node.body.accept(this);
         write(";");
-        newlineDown();
+        unmark();
     }
 
     @Override

@@ -347,8 +347,13 @@ quali ::=
 //------------------------------------------------------------------------------
 
 path ::= 
-    id:id                                           {: RESULT = new LinkedList<IdentifierNode>(Arrays.asList(id)); :}
- |  path:p DIV id:i                                 {: p.add(i); RESULT = p; :}
+    STRING:id                                       {: RESULT = new LinkedList<IdentifierNode>(Arrays.asList(new IdentifierNode(id, makeLoc(idxleft, idxright)))); :}
+ |  IDENTIFIER:id                                   {: RESULT = new LinkedList<IdentifierNode>(Arrays.asList(new IdentifierNode(id, makeLoc(idxleft, idxright)))); :}
+ |  path:p DIV STRING:id                            {: p.add(new IdentifierNode(id, makeLoc(idxleft, idxright)));
+                                                       RESULT = p; :}
+
+ |  path:p DIV IDENTIFIER:id                        {: p.add(new IdentifierNode(id, makeLoc(idxleft, idxright)));
+                                                       RESULT = p; :}
  ;
 
 //------------------------------------------------------------------------------
