@@ -237,7 +237,9 @@ public class Pacioli {
             throw new PacioliException("Cannot parse: file '%s' does not exist.", fileName);    
         } else {
             Pacioli.logln1("Parsing file '%s'", file);
-            Progam program = loadProgram(file, libs, Phase.parsed);
+            Integer version = 0;
+            
+            Progam program = loadProgramNew(PacioliFile.get(file, version), libs, Phase.parsed);
             Pacioli.logln("%s", program.pretty());
         }
     }
@@ -251,7 +253,9 @@ public class Pacioli {
             throw new PacioliException("Cannot desugar: file '%s' does not exist.", fileName);    
         } else {
             Pacioli.logln1("Desugaring file '%s'", file);
-            Progam program = loadProgram(file, libs, Phase.desugared);
+            Integer version = 0;
+            
+            Progam program = loadProgramNew(PacioliFile.get(file, version), libs, Phase.desugared);
             Pacioli.logln("%s", program.pretty());
         }
     }
@@ -269,9 +273,10 @@ public class Pacioli {
         Pacioli.logln1("Displaying types for file '%s'", file);
 
         try {
-
+            Integer version = 0;
+            
             Pacioli.logln2("Loading module '%s'", file.getPath());
-            Progam program = loadProgram(file, libs, Phase.typed);
+            Progam program = loadProgramNew(PacioliFile.get(file, version), libs, Phase.typed);
 
             Pacioli.logln2("Displaying types in module '%s'", file.getPath());
             program.printTypes();
@@ -291,13 +296,14 @@ public class Pacioli {
             throws Exception {
 
         File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
-
+        Integer version = 0;
+        
         if (file == null) {
             throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);    
         } else {
             if (kind.equals("bundle")) {
-                Project project = loadProject(file, libs);
-                project.bundle(libs, settings, target);
+                Project project = Project.load(PacioliFile.get(file, version), libs);
+                project.bundle(settings, target);
             } else if (kind.equals("single")) {
                 compile(file, libs, settings);
             } else if (kind.equals("recursive")) {
@@ -349,9 +355,10 @@ public class Pacioli {
         try {
             
             Pacioli.logln1("Compiling file '%s'", file.getPath());
+            Integer version = 0;
             
-            Project project = loadProject(file, libs);
-            project.bundle(libs, settings, "mvm");
+            Project project = Project.load(PacioliFile.get(file, version), libs);
+            project.bundle(settings, "mvm");
             
             String mvmFile = Progam.fileBaseName(file) + "." + Progam.targetFileExtension("mvm");
             
@@ -480,11 +487,12 @@ public class Pacioli {
             try {
                 String fileName = dir + sample;
                 File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
+                Integer version = 0;
                 
-                Project project = loadProject(file, libs);
+                Project project = Project.load(PacioliFile.get(file, version), libs);
                 
                 project.printInfo();
-                project.bundle(libs, settings, "mvm");
+                project.bundle(settings, "mvm");
                 
                 String binName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension("mvm");
                 Pacioli.logln("Running file %s", binName);
@@ -501,91 +509,24 @@ public class Pacioli {
     /*
      * Helpers
      */
-
+/*
     private static Project loadProject(File file, List<File> libs) throws Exception {
-        return new Project(file, libs, projectGraph(file, libs));
+        return new Project(file, libs, Project.projectGraph(file, libs));
     }
+  */  
+        
     
-    static DefaultDirectedGraph<PacioliFile, DefaultEdge> projectGraph(File file, List<File> libs) throws Exception {
-
-        // The graph that will be build up
-        DefaultDirectedGraph<PacioliFile, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
-       
-        // Main loop variables. List todo contains include files still to process.
-        // List done contains all processed files to avoid duplicates and cycles.
-        List<PacioliFile> todo = new ArrayList<PacioliFile>();
-        List<PacioliFile> done = new ArrayList<PacioliFile>();
-        
-        // Initialize the loop by adding the file to the todo list
-        Integer fileVersion = 0;
-        String base = FilenameUtils.getBaseName(file.getName());
-        File dir = file.getParentFile();
-        Path p = Paths.get(file.getAbsolutePath());
-        Path d = p.getParent();
-        Path b = d.relativize(p);
-        Pacioli.logln("rel p=%s b=%s", p, b);
-                
-        todo.add(new PacioliFile(file.getAbsoluteFile(), base, fileVersion, false, false));
-        
-        // Loop over the todo list, adding new include files when found
-        while (!todo.isEmpty()) {
-
-            // Take the first element of the todo list to process next
-            PacioliFile current = todo.get(0);
-            todo.remove(0);
-            
-            // Process the current file if not already done
-            if (!done.contains(current)) {
-                
-                // Load the current file
-                Progam program = loadProgramNew(current, libs, Phase.parsed);
-                
-                // Add the current file if not already found by some include
-                if (!graph.containsVertex(current)) {
-                    graph.addVertex(current);
-                }
-                
-                for (String include : program.includes()) {
-                    
-                    // Locate the include file
-                    PacioliFile pacioliFile = PacioliFile.findIncludeOrLibrary(d, current, include, libs);
-                    if (pacioliFile == null) {
-                        throw new RuntimeException(String.format("Include '%s' for file '%s' not found in directories %s", 
-                                include, current, libs));
-                    }
-                    
-                    // Add the include files to the todo list
-                    if (!done.contains(pacioliFile) && !todo.contains(pacioliFile)) {
-                        todo.add(pacioliFile);    
-                    }
-                    
-                    // Add the included file to the graph if not already a member
-                    if (!graph.containsVertex(pacioliFile)) {
-                        graph.addVertex(pacioliFile);
-                    }
-                    
-                    // Add an edge for the include relation
-                    graph.addEdge(current, pacioliFile);
-                    
-                }
-
-                // Remember that this include was processed.
-                done.add(current);
-            }
-        }
-        
-        return graph;
-    }    
-    
-    /* obsolete!!! */
+    /* obsolete!!! 
     static Progam loadProgram(File file, List<File> libs, Phase phase) throws Exception {
-        String base = FilenameUtils.getBaseName(file.getName());
-        PacioliFile pacioliFile = new PacioliFile(file.getAbsoluteFile(), base, 0, false, false);
+        //String base = FilenameUtils.getBaseName(file.getName());
+        //PacioliFile pacioliFile = new PacioliFile(file.getAbsoluteFile(), base, 0, false, false);
+        Integer version = 0;
+        PacioliFile pacioliFile = PacioliFile.get(file, version); 
         Progam program = new Progam(pacioliFile, libraryDirectories(libs));
         program.loadTill(phase);
         return program;
     }
-    
+    */
     static Progam loadProgramNew(PacioliFile file, List<File> libs, Phase phase) throws Exception {
         Progam program = new Progam(file, libraryDirectories(libs));
         program.loadTill(phase);
@@ -619,7 +560,9 @@ public class Pacioli {
         
         // Load the file
         //Pacioli.logln2("Loading file '%s'", file);
-        Progam program = loadProgram(file, libs, Phase.typed);
+        Integer version = 0;
+        
+        Progam program = loadProgramNew(PacioliFile.get(file, version), libs, Phase.typed);
         
         // Setup a writer for the output file
         PrintWriter writer = null;       

@@ -27,6 +27,7 @@ public class GenericInfo {
     }
     
     public String getModule() {
+        // IMPORTANT: SWITCH FOR CORRECT MVM OR JS
         return module;
         //return module.substring(0, 1).toUpperCase() + module.substring(1);
     }

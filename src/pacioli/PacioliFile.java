@@ -54,6 +54,10 @@ public class PacioliFile extends AbstractPrintable {
         this.isInclude = isInclude;
         this.isLibrary = isLibrary;
     }
+
+    public static PacioliFile get(File file, Integer version) {
+        return new PacioliFile(file.getAbsoluteFile(), FilenameUtils.getBaseName(file.getName()), version, false, false);
+    }
     
     public String getModule() {
         return module;
