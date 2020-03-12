@@ -15,6 +15,7 @@ import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.DepthFirstIterator;
 
+import pacioli.CompilationSettings.Target;
 import pacioli.Progam.Phase;
 
 public class Project {
@@ -27,6 +28,15 @@ public class Project {
         this.file = file;
         this.libs = libs;
         this.graph = graph;
+    }
+
+
+    public Path bundlePath(Target target) {
+        return bundlePath(file.getFile(), target);
+    }
+    
+    public static Path bundlePath(File file, Target target) {
+        return Paths.get(Progam.fileBaseName(file) + "." + Progam.newTargetFileExtension(target));
     }
     
     public static Project load(PacioliFile file, List<File> libs) throws Exception {

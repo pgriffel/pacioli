@@ -39,7 +39,7 @@ public class PacioliFile extends AbstractPrintable {
     private final Boolean isInclude;
     private final Boolean isLibrary;
     
-    public PacioliFile(File file, String module, Integer version, Boolean isInclude, Boolean isLibrary) {
+    private PacioliFile(File file, String module, Integer version, Boolean isInclude, Boolean isLibrary) {
         this.file = file.getAbsoluteFile();
         this.module = module;
         this.version = version;
@@ -47,8 +47,17 @@ public class PacioliFile extends AbstractPrintable {
         this.isLibrary = isLibrary;
     }
 
+
     public static PacioliFile get(File file, Integer version) {
-        return new PacioliFile(file.getAbsoluteFile(), FilenameUtils.getBaseName(file.getName()), version, false, false);
+        if (file.exists()) {
+            return new PacioliFile(file.getAbsoluteFile(), FilenameUtils.getBaseName(file.getName()), version, false, false);
+        } else {
+            return null;
+        }
+    }
+    
+    public static PacioliFile get(String file, Integer version) {
+        return get(new File(file), version);
     }
     
     public String getModule() {
@@ -133,7 +142,6 @@ public class PacioliFile extends AbstractPrintable {
         }
 
         if (theFile == null) {
-            //throw new FileNotFoundException(String.format("Library '%s' not found in directories %s", name, libs));
             return null;
         } else {
             return new PacioliFile(theFile, name, 0, false, true);    

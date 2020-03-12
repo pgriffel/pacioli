@@ -26,6 +26,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -150,9 +151,11 @@ public class Pacioli {
                 }
             }
 
-            boolean compileDebug = debug || traceAll || !tracedFunctions.isEmpty();
+            //boolean compileDebug = debug || traceAll || !tracedFunctions.isEmpty();
             //CompilationSettings settings = new CompilationSettings(compileDebug, traceAll, tracedFunctions);
-
+            
+            libs = libraryDirectories(libs);
+            
             if (command.equals("run")) {
                 if (files.isEmpty()) {
                     displayError("No files to run.");
@@ -223,15 +226,14 @@ public class Pacioli {
     private static void parseCommand(String fileName, List<File> libs)
             throws Exception {
 
-        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
-
+        Integer version = 0;
+        PacioliFile file = PacioliFile.get(fileName, version);
+        
         if (file == null) {
             throw new PacioliException("Cannot parse: file '%s' does not exist.", fileName);    
         } else {
-            Pacioli.logln1("Parsing file '%s'", file);
-            Integer version = 0;
-            
-            Progam program = Progam.load(PacioliFile.get(file, version), libs, Phase.parsed);
+            Pacioli.logln1("Parsing file '%s'", file);            
+            Progam program = Progam.load(file, libs, Phase.parsed);
             Pacioli.logln("%s", program.pretty());
         }
     }
@@ -239,38 +241,35 @@ public class Pacioli {
     private static void desugarCommand(String fileName, List<File> libs)
             throws Exception {
 
-        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
+        Integer version = 0;
+        PacioliFile file = PacioliFile.get(fileName, version);
 
         if (file == null) {
             throw new PacioliException("Cannot desugar: file '%s' does not exist.", fileName);    
         } else {
-            Pacioli.logln1("Desugaring file '%s'", file);
-            Integer version = 0;
-            
-            Progam program = Progam.load(PacioliFile.get(file, version), libs, Phase.desugared);
+            Pacioli.logln1("Desugaring file '%s'", file);            
+            Progam program = Progam.load(file, libs, Phase.desugared);
             Pacioli.logln("%s", program.pretty());
         }
     }
     
     private static void typesCommand(String fileName, List<File> libs) throws Exception {
 
-        File file = locatePacioliFile(fileName, libs);
+        Integer version = 0;
+        PacioliFile file = PacioliFile.get(fileName, version);
 
         if (file == null) {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
-        
-        file = file.getAbsoluteFile();
 
-        Pacioli.logln1("Displaying types for file '%s'", file);
+        Pacioli.logln1("Displaying types for file '%s'", file.getFile());
 
         try {
-            Integer version = 0;
             
-            Pacioli.logln2("Loading module '%s'", file.getPath());
-            Progam program = Progam.load(PacioliFile.get(file, version), libs, Phase.typed);
+            Pacioli.logln2("Loading module '%s'", file.getFile());
+            Progam program = Progam.load(file, libs, Phase.typed);
 
-            Pacioli.logln2("Displaying types in module '%s'", file.getPath());
+            Pacioli.logln2("Displaying types in module '%s'", file.getFile());
             program.printTypes();
 
         } catch (IOException e) {
@@ -287,11 +286,10 @@ public class Pacioli {
     private static void compileCommand(String fileName, String target, String kind, List<File> libs, CompilationSettings settings)
             throws Exception {
 
-        File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
         Integer version = 0;
-        PacioliFile pacioliFile = PacioliFile.get(file, version);
+        PacioliFile pacioliFile = PacioliFile.get(fileName, version);
         
-        if (file == null) {
+        if (pacioliFile == null) {
             throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);    
         } else {
             if (kind.equals("bundle")) {
@@ -336,31 +334,33 @@ public class Pacioli {
     
     private static void runCommand(String fileName, List<File> libs, CompilationSettings settings) throws Exception {
 
+        Integer version = 0; // todo
+        
         Pacioli.logln1("Running file '%s'", fileName);
         
-        // Find the file
-        File file = locatePacioliFile(fileName, libs);
-        if (file == null || !file.exists()) {
+        PacioliFile file = PacioliFile.get(fileName, version);
+        
+        if (file == null) {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
 
         // Compile and run it
         try {
             
-            Pacioli.logln1("Compiling file '%s'", file.getPath());
-            Integer version = 0;
+            Pacioli.logln1("Compiling file '%s'", file.getFile());
             
-            Project project = Project.load(PacioliFile.get(file, version), libs);
+            Project project = Project.load(file, libs);
             project.bundle(settings, "mvm");
             
-            String mvmFile = Progam.fileBaseName(file) + "." + Progam.targetFileExtension("mvm");
+            //String mvmFile = Progam.fileBaseName(file.getFile()) + "." + Progam.targetFileExtension("mvm");
+            Path mvmFile = project.bundlePath(Target.MVM);
             
             Pacioli.logln1("Running mvm file '%s'", mvmFile);
             
-            interpretMVMText(new File(mvmFile), libs);
+            interpretMVMText(mvmFile.toFile(), libs);
 
         } catch (IOException e) {
-            throw new PacioliException("Cannot run file '%s':\n\n%s", file.getPath(), e);
+            throw new PacioliException("Cannot run file '%s':\n\n%s", file.getFile().getPath(), e);
         }
     }
 
@@ -377,7 +377,7 @@ public class Pacioli {
         }
         logln("  traceall=%s", traceAll);
         logln("\nLibrary paths", warnings);
-        for (File file : libraryDirectories(libs)) {
+        for (File file : libs) {
             logln("  %s", file);
             File[] files = file.listFiles(new FilenameFilter() {
                 @Override
@@ -479,17 +479,18 @@ public class Pacioli {
             logln("--------------------------------------------------------------------------------");
             try {
                 String fileName = dir + sample;
-                File file = locatePacioliFile(fileName, libs).getAbsoluteFile();
-                Integer version = 0;
                 
-                Project project = Project.load(PacioliFile.get(file, version), libs);
+                Integer version = 0;
+                PacioliFile file = PacioliFile.get(fileName, version);
+                Project project = Project.load(file, libs);
                 
                 project.printInfo();
                 project.bundle(settings, "mvm");
                 
-                String binName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension("mvm");
+                Path binName = project.bundlePath(Target.MVM);
+                
                 Pacioli.logln("Running file %s", binName);
-                interpretMVMText(new File(binName), libs);
+                interpretMVMText(binName.toFile(), libs);
                 
             } catch (IOException e) {
                 Pacioli.logln("\nError in sample '%s':\n\n%s", sample, e);
@@ -503,26 +504,6 @@ public class Pacioli {
      * Helpers
      */
     
-    private static File locatePacioliFile(String fileName, List<File> directories) {
-
-        File file = new File(fileName);
-        if (file.exists()) {
-            return file;
-        } else {
-            for (File dir : directories) {
-                file = new File(dir, fileName);
-                if (file.exists()) {
-                    return file;
-                }
-                file = new File(dir, fileName + ".pacioli");
-                if (file.exists()) {
-                    return file;
-                }
-            }
-        }
-        return null;
-    }
-
     static List<File> libraryDirectories(List<File> libs) {
         LinkedList<File> libDirs = new LinkedList<File>();
         for (File lib : libs) {

@@ -229,24 +229,6 @@ public class Progam extends AbstractPrintable {
     
         inferTypes();
     }
-
-    void loadIncludeDeclarations(String include) throws Exception {
-        //PacioliFile file = findInclude(include);
-        Path p = Paths.get(file.getFile().getAbsolutePath());
-        PacioliFile file = PacioliFile.findIncludeOrLibrary(p.getParent(), this.file, include, libs);
-        Progam prog = new Progam(file, libs);
-        Pacioli.logln("Loading include file %s ::::", include);
-        prog.loadTill(Progam.Phase.desugared);
-        //this.includeOther(prog);
-        // Fill symbol tables for this file
-        for (Definition def : prog.program.definitions) {
-            if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
-                    || def instanceof TypeDefinition) {
-                def.addToProgr(prog);
-            }
-        }
-        includeOther(prog);
-    }
     
     // -------------------------------------------------------------------------
     // Filling symbol tables
@@ -260,11 +242,10 @@ public class Progam extends AbstractPrintable {
         }
 
         // Fill symbol tables for the default include files
-        for (String include : PacioliFile.defaultIncludes) {
-            Boolean isStandard = include.equals("standard");
+        for (String lib : PacioliFile.defaultIncludes) {
+            Boolean isStandard = lib.equals("standard");
             if ((isStandard && loadStandard) || (!isStandard && loadPrimitives)) {
-                //PacioliFile file = findInclude(include);
-                PacioliFile file = PacioliFile.findLibrary(include, libs);
+                PacioliFile file = PacioliFile.findLibrary(lib, libs);
                 Progam prog = new Progam(file, libs);
                 prog.loadTillHelper(Progam.Phase.typed, isStandard, false);
                 this.includeOther(prog);
@@ -273,14 +254,20 @@ public class Progam extends AbstractPrintable {
 
         // Fill symbol tables for the included files
         for (String include : includes()) {
-            /*
-            File file = findIncludeFile(include);
+            Path p = Paths.get(file.getFile().getAbsolutePath());
+            PacioliFile file = PacioliFile.findIncludeOrLibrary(p.getParent(), this.file, include, libs);
             Progam prog = new Progam(file, libs);
             Pacioli.logln("Loading include file %s", include);
-            prog.loadTill(Progam.Phase.typed);
-            this.includeOther(prog);
-            */
-            loadIncludeDeclarations(include);
+            prog.loadTill(Progam.Phase.desugared);
+            //this.includeOther(prog);
+            // Fill symbol tables for this file
+            for (Definition def : prog.program.definitions) {
+                if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
+                        || def instanceof TypeDefinition) {
+                    def.addToProgr(prog);
+                }
+            }
+            includeOther(prog);
         }
 
         // Fill symbol tables for this file
