@@ -248,7 +248,7 @@ Pacioli.global_Matrix_row = function (x, coord) {
     return matrix
 }
 
-Pacioli.global_Matrix_row_units = function (x) {
+Pacioli.global_Matrix_row_unit = function (x) {
     return Pacioli.oneNumbers(x.nrRows, 1)
 }
 
@@ -275,7 +275,7 @@ Pacioli.global_Matrix_column_domain = function (matrix) {
     return Pacioli.tagKind(domain, "list");
 }
 
-Pacioli.global_Matrix_column_units = function (x) {
+Pacioli.global_Matrix_column_unit = function (x) {
     return Pacioli.oneNumbers(x.nrColumns, 1)
 }
 

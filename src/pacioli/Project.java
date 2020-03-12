@@ -13,6 +13,7 @@ import org.jgrapht.Graph;
 import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.traverse.DepthFirstIterator;
 
 import pacioli.Progam.Phase;
@@ -55,6 +56,7 @@ public class Project {
         
         Pacioli.logln("\nProject files depth first:");
         Iterator<PacioliFile> iterator = new DepthFirstIterator<>(graph, root());
+        //Iterator<PacioliFile> iterator = new DepthFirstIterator<>(new EdgeReversedGraph<>(graph), root());
         while (iterator.hasNext()) {
             PacioliFile file = iterator.next();
             Pacioli.logln("- %s", file);
@@ -66,10 +68,9 @@ public class Project {
         
         Pacioli.logln1("Creating bundle for file '%s'", file);
         
+        printInfo();
         
-        //Progam mainProgram = new Progam(file, Pacioli.libraryDirectories(libs));
-        Progam mainProgram = Pacioli.loadProgram(file, libs, Phase.typed);//s new Progam(file, Pacioli.libraryDirectories(libs));
-        //mainProgram.loadTill(Phase.typed);
+        Progam mainProgram = Pacioli.loadProgram(file, libs, Phase.typed);
         
         // Setup a writer for the output file
         String dstName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension(target); 
@@ -82,7 +83,6 @@ public class Project {
             
             for (String lib : PacioliFile.defaultIncludes) {
                 Boolean isStandard = lib.equals("standard");
-                    //File includeFile = PacioliFile.findIncludeFile(include, libs, file.getParentFile());
                     PacioliFile libFile = PacioliFile.findLibrary(lib, libs);
                     Progam prog = new Progam(libFile, libs);
                     prog.loadTillHelper(Progam.Phase.typed, isStandard, false);
@@ -92,25 +92,19 @@ public class Project {
             }
             
             Iterator<PacioliFile> iterator = new DepthFirstIterator<>(graph, root());
+         
+            // Hack to avoid doing main twice
             iterator.next();
+            
             while (iterator.hasNext()) {
                 
                 PacioliFile current = iterator.next();
                 
-                // Hack to avoid doing main twice
-                if (true || iterator.hasNext()) {
-                
                 Pacioli.logln("Bundling file %s", current);
                 
-                // Load the current file
-                //Progam program = new Progam(current, Pacioli.libraryDirectories(libs));
-                //program.loadTill(Phase.typed);
+                // Add the program to the main program creating the entire bundle
                 Progam program = Pacioli.loadProgramNew(current, libs, Phase.typed);
-
-                // Add the loaded program to the main program creating the entire bundle
                 mainProgram.includeOther(program);
-
-                }
             }
             
             // Generate the code for the entire bundle

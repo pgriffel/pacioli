@@ -21,10 +21,7 @@
 package pacioli;
 
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -37,7 +34,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
-import org.jgrapht.Graph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 
@@ -241,8 +237,6 @@ public class Pacioli {
             throw new PacioliException("Cannot parse: file '%s' does not exist.", fileName);    
         } else {
             Pacioli.logln1("Parsing file '%s'", file);
-            //Progam program = new Progam(file, libraryDirectories(libs));
-            //program.loadTill(Phase.parsed);
             Progam program = loadProgram(file, libs, Phase.parsed);
             Pacioli.logln("%s", program.pretty());
         }
@@ -257,8 +251,6 @@ public class Pacioli {
             throw new PacioliException("Cannot desugar: file '%s' does not exist.", fileName);    
         } else {
             Pacioli.logln1("Desugaring file '%s'", file);
-            //Progam program = new Progam(file, libraryDirectories(libs));
-            //program.loadTill(Phase.desugared);
             Progam program = loadProgram(file, libs, Phase.desugared);
             Pacioli.logln("%s", program.pretty());
         }
@@ -275,14 +267,11 @@ public class Pacioli {
         file = file.getAbsoluteFile();
 
         Pacioli.logln1("Displaying types for file '%s'", file);
-        //Progam program = new Progam(file, libraryDirectories(libs));
-        
 
         try {
 
             Pacioli.logln2("Loading module '%s'", file.getPath());
             Progam program = loadProgram(file, libs, Phase.typed);
-            //program.loadTill(Phase.typed);
 
             Pacioli.logln2("Displaying types in module '%s'", file.getPath());
             program.printTypes();
@@ -307,7 +296,6 @@ public class Pacioli {
             throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);    
         } else {
             if (kind.equals("bundle")) {
-                //bundle(file, libs, settings, target);
                 Project project = loadProject(file, libs);
                 project.bundle(libs, settings, target);
             } else if (kind.equals("single")) {
@@ -352,7 +340,7 @@ public class Pacioli {
         Pacioli.logln1("Running file '%s'", fileName);
         
         // Find the file
-        File file = locatePacioliFile(fileName, libs); //.getAbsoluteFile();
+        File file = locatePacioliFile(fileName, libs);
         if (file == null || !file.exists()) {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
@@ -362,7 +350,6 @@ public class Pacioli {
             
             Pacioli.logln1("Compiling file '%s'", file.getPath());
             
-            //bundle(file, libs, settings, "mvm");
             Project project = loadProject(file, libs);
             project.bundle(libs, settings, "mvm");
             
@@ -430,169 +417,10 @@ public class Pacioli {
         logln("   -warnings     toggles compiler warnings on or off");
     }
 
-    private static Project loadProject(File file, List<File> libs) throws Exception {
-        return new Project(file, libs, projectGraph(file, libs));
-    }
-    
-    static DefaultDirectedGraph<PacioliFile, DefaultEdge> projectGraph(File file, List<File> libs) throws Exception {
-
-        // The graph that will be build up
-        DefaultDirectedGraph<PacioliFile, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
-       
-        // Main loop variables. List todo contains include files still to process.
-        // List done contains all processed files to avoid duplicates and cycles.
-        List<PacioliFile> todo = new ArrayList<PacioliFile>();
-        List<PacioliFile> done = new ArrayList<PacioliFile>();
-        
-        // Initialize the loop by adding the file to the todo list
-        Integer fileVersion = 0;
-        String base = FilenameUtils.getBaseName(file.getName());
-        File dir = file.getParentFile();
-        Path p = Paths.get(file.getAbsolutePath());
-        Path d = p.getParent();
-        Path b = d.relativize(p);
-        Pacioli.logln("rel p=%s b=%s", p, b);
-                
-        todo.add(new PacioliFile(file.getAbsoluteFile(), base, fileVersion, false, false));
-        
-        // Loop over the todo list, adding new include files when found
-        while (!todo.isEmpty()) {
-
-            // Take the first element of the todo list to process next
-            PacioliFile current = todo.get(0);
-            todo.remove(0);
-            
-            // Process the current file if not already done
-            if (!done.contains(current)) {
-                
-                // Load the current file
-                //Progam program = new Progam(current, libraryDirectories(libs));
-                //program.loadTill(Phase.parsed);
-                Progam program = loadProgramNew(current, libs, Phase.parsed);
-                
-                // Add the current file if not already found by some include
-                Pacioli.logln("Testing graph.containsVertex(%s) = %s (current)", current, graph.containsVertex(current));
-                if (!graph.containsVertex(current)) {
-                    graph.addVertex(current);
-                }
-                
-                for (String include : program.includes()) {
-                    
-                    // Locate the include file
-                    //File includeFile = program.findIncludeFile(include);
-                    Integer version = 0;
-                    String module = current.getModule() + "/" + include;
-                    //PacioliFile pacioliFile = new PacioliFile(includeFile, module, version);
-                    PacioliFile pacioliFile = PacioliFile.findIncludeOrLibrary(d, current, include, libs);
-                    if (pacioliFile == null) {
-                        throw new RuntimeException(String.format("Include '%s' for file '%s' not found in directories %s", 
-                                include, current, libs));
-                        //throw new FileNotFoundException(String.format("Include '%s' for file '%s' not found in directories %s", 
-                          //      include, current, libs));
-                    }
-                    
-                    // Add the include files to the todo list
-                    if (!done.contains(pacioliFile) && !todo.contains(pacioliFile)) {
-                        todo.add(pacioliFile);    
-                    }
-                    
-                    // Add the included file to the graph if not already a member
-                    Pacioli.logln("Testing graph.containsVertex(%s) = %s", pacioliFile, graph.containsVertex(pacioliFile));
-                    if (!graph.containsVertex(pacioliFile)) {
-                        graph.addVertex(pacioliFile);
-                    }
-                    
-                    // Add an edge for the include relation
-                    graph.addEdge(current, pacioliFile);
-                    
-                }
-
-                // Remember that this include was processed.
-                done.add(current);
-                
-                Pacioli.logln("after current %s", current);
-                for (DefaultEdge edge: graph.edgeSet()) {
-                    Pacioli.logln("- edge %s\n    -> %s", graph.getEdgeSource(edge), graph.getEdgeTarget(edge));
-                }
-                for (PacioliFile vertex: graph.vertexSet()) {
-                    Pacioli.logln("- vertex %s", vertex);
-                }
-            }
-        }
-        
-        return graph;
-    }
-/*        
-    static Graph<File, DefaultEdge> projectGraphOLD(File file, List<File> libs) throws Exception {
-
-        // The graph that will be build up
-        Graph<File, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
-       
-        // Main loop variables. List todo contains include files still to process.
-        // List done contains all processed files to avoid duplicates and cycles.
-        List<File> todo = new ArrayList<File>();
-        List<File> done = new ArrayList<File>();
-        
-        // Initialize the loop by adding the file to the todo list
-        todo.add(file);
-        
-        // Loop over the todo list, adding new include files when found
-        while (!todo.isEmpty()) {
-            
-            // Take the first element of the todo list to process next
-            File current = todo.get(0);
-            todo.remove(0);
-            
-            // Process the current file if not already done
-            if (!done.contains(current)) {
-                
-                // Load the current file
-                //Progam program = new Progam(current, libraryDirectories(libs));
-                //program.loadTill(Phase.parsed);
-                Progam program = loadProgram(current, libs, Phase.parsed);
-                
-                // Add the current file if not already found by some include
-                if (!graph.containsVertex(current)) {
-                    graph.addVertex(current);
-                }
-                
-                for (String include : program.includes()) {
-                    
-                    // Locate the include file
-                    File includeFile = program.findIncludeFile(include);
-                
-                    // Add the include files to the todo list
-                    if (!done.contains(includeFile) && !todo.contains(includeFile)) {
-                        todo.add(includeFile);    
-                    }
-                    
-                    // Add the included file to the graph if not already a member
-                    if (!graph.containsVertex(includeFile)) {
-                        graph.addVertex(includeFile);
-                    }
-                    
-                    // Add an edge for the include relation
-                    graph.addEdge(current, includeFile);
-                    
-                }
-
-                // Remember that this include was processed.
-                done.add(current);
-            }
-        }
-        
-        return graph;
-    }
-    */
     private static void testCommand(List<File> libs, CompilationSettings settings) throws Exception {
 
-        
-        //String dir = "E:/code/private/pacioli/samples/";
         String dir = "E:/code/private/pacioli-samples/";
 
-        // compileFileCUP(dir + "net" + ".pacioli", libs, settings);
-
-        // if (true) return;
         List<String> samples = Arrays.asList(
             "abstract-resource/abstract-resource.pacioli",
             "adt/adt.pacioli",
@@ -656,19 +484,15 @@ public class Pacioli {
                 Project project = loadProject(file, libs);
                 
                 project.printInfo();
-                
                 project.bundle(libs, settings, "mvm");
-                
-                //bundle(file, libs, settings, "mvm");
                 
                 String binName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension("mvm");
                 Pacioli.logln("Running file %s", binName);
                 interpretMVMText(new File(binName), libs);
                 
             } catch (IOException e) {
-                Pacioli.logln("\nError: cannot cup compile file '%s':\n\n%s", sample, e);
+                Pacioli.logln("\nError in sample '%s':\n\n%s", sample, e);
             }
-            
             
             logln("--------------------------------------------------------------------------------");
         }
@@ -677,6 +501,81 @@ public class Pacioli {
     /*
      * Helpers
      */
+
+    private static Project loadProject(File file, List<File> libs) throws Exception {
+        return new Project(file, libs, projectGraph(file, libs));
+    }
+    
+    static DefaultDirectedGraph<PacioliFile, DefaultEdge> projectGraph(File file, List<File> libs) throws Exception {
+
+        // The graph that will be build up
+        DefaultDirectedGraph<PacioliFile, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
+       
+        // Main loop variables. List todo contains include files still to process.
+        // List done contains all processed files to avoid duplicates and cycles.
+        List<PacioliFile> todo = new ArrayList<PacioliFile>();
+        List<PacioliFile> done = new ArrayList<PacioliFile>();
+        
+        // Initialize the loop by adding the file to the todo list
+        Integer fileVersion = 0;
+        String base = FilenameUtils.getBaseName(file.getName());
+        File dir = file.getParentFile();
+        Path p = Paths.get(file.getAbsolutePath());
+        Path d = p.getParent();
+        Path b = d.relativize(p);
+        Pacioli.logln("rel p=%s b=%s", p, b);
+                
+        todo.add(new PacioliFile(file.getAbsoluteFile(), base, fileVersion, false, false));
+        
+        // Loop over the todo list, adding new include files when found
+        while (!todo.isEmpty()) {
+
+            // Take the first element of the todo list to process next
+            PacioliFile current = todo.get(0);
+            todo.remove(0);
+            
+            // Process the current file if not already done
+            if (!done.contains(current)) {
+                
+                // Load the current file
+                Progam program = loadProgramNew(current, libs, Phase.parsed);
+                
+                // Add the current file if not already found by some include
+                if (!graph.containsVertex(current)) {
+                    graph.addVertex(current);
+                }
+                
+                for (String include : program.includes()) {
+                    
+                    // Locate the include file
+                    PacioliFile pacioliFile = PacioliFile.findIncludeOrLibrary(d, current, include, libs);
+                    if (pacioliFile == null) {
+                        throw new RuntimeException(String.format("Include '%s' for file '%s' not found in directories %s", 
+                                include, current, libs));
+                    }
+                    
+                    // Add the include files to the todo list
+                    if (!done.contains(pacioliFile) && !todo.contains(pacioliFile)) {
+                        todo.add(pacioliFile);    
+                    }
+                    
+                    // Add the included file to the graph if not already a member
+                    if (!graph.containsVertex(pacioliFile)) {
+                        graph.addVertex(pacioliFile);
+                    }
+                    
+                    // Add an edge for the include relation
+                    graph.addEdge(current, pacioliFile);
+                    
+                }
+
+                // Remember that this include was processed.
+                done.add(current);
+            }
+        }
+        
+        return graph;
+    }    
     
     /* obsolete!!! */
     static Progam loadProgram(File file, List<File> libs, Phase phase) throws Exception {
@@ -721,107 +620,22 @@ public class Pacioli {
         }
         Pacioli.logln("End table");
     }
-    /*
-    public static void bundle(File file, List<File> libs, CompilationSettings settings, String target) throws Exception {
-        
-        Pacioli.logln1("Creating bundle for file '%s'", file);
-        
-        // Load the file itself
-        Pacioli.logln1("Loading file '%s'", file);
-        //Progam mainProgram = new Progam(file, libraryDirectories(libs));
-        //mainProgram.loadTill(Phase.typed);
-        Progam mainProgram = Pacioli.loadProgram(file, libs, Phase.typed);
-        
-        //Pacioli.logln("%s", mainProgram.pretty());
-        
-        // Setup a writer for the output file
-        String dstName = Progam.fileBaseName(file) + "." + Progam.targetFileExtension(target); 
-        PrintWriter writer = null;       
-        
-        try {
-            
-            // Open the writer
-            writer = new PrintWriter(new BufferedWriter(new FileWriter(dstName)));
 
-            // Main loop variables. List todo contains include files still to process.
-            // List done contains all processed files to avoid duplicates and cycles.
-            List<File> todo = new ArrayList<File>();
-            List<File> done = new ArrayList<File>();
-            
-            // Initialize the loop by adding the file's includes to the todo list
-            for (String include : mainProgram.includes()) {
-                File includeFile = mainProgram.findIncludeFile(include);
-                todo.add(includeFile);
-            }
-            
-            // Loop over the todo list, adding new include files when found
-            while (!todo.isEmpty()) {
-                
-                // Take the first element of the todo list to process next
-                File current = todo.get(0);
-                todo.remove(0);
-                
-                if (!done.contains(current)) {
-                    
-                    Pacioli.logln("Bundling %s", current);
-                    
-                    String base = FilenameUtils.getBaseName(current.getName());
-                    PacioliFile pacioliFile = new PacioliFile(current.getAbsoluteFile(), base, 0, false, false);
-                    
-                    
-                    // Load the current file
-                    Progam program = new Progam(pacioliFile, libraryDirectories(libs));
-                    program.loadTill(Phase.typed);
-                
-                    // Add its include files to the todo list
-                    for (String include : program.includes()) {
-                        
-                        File includeFile = program.findIncludeFile(include);
-                        if (!done.contains(includeFile) && !todo.contains(includeFile)) {
-                            todo.add(includeFile);    
-                        }
-                    }
-
-                    // Add the loaded program to the main program creating the entire bundle
-                    mainProgram.includeOther(program);
-                    
-                    // Remember that this include was processed.
-                    done.add(current);
-                }
-            }
-            
-            // Generate the code for the entire bundle
-            mainProgram.generateCode(writer, settings, target);
-            
-        } finally {
-            
-            // Close the writer
-            if (writer != null) {
-                writer.close();
-            }
-        }
-        Pacioli.logln("Created bundle '%s'", dstName);
-    }
-    */
-public static void compile(File file, List<File> libs, CompilationSettings settings) throws Exception {
+    public static void compile(File file, List<File> libs, CompilationSettings settings) throws Exception {
         
         //Pacioli.logln1("Compiling file '%s'", file);
         
         // Load the file
         //Pacioli.logln2("Loading file '%s'", file);
-        //Progam program = new Progam(file, libraryDirectories(libs));
-        //program.loadTill(Phase.typed);
         Progam program = loadProgram(file, libs, Phase.typed);
         
         // Setup a writer for the output file
-        String dstName = Progam.fileBaseName(file) + "." + Progam.newTargetFileExtension(settings.getTarget()); 
         PrintWriter writer = null;       
         StringWriter s = new StringWriter();
         
         try {
             
             // Open the writer
-            //writer = new PrintWriter(new BufferedWriter(new FileWriter(dstName)));
             writer = new PrintWriter(s);
             
             // Generate the code for the entire bundle

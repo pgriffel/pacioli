@@ -68,12 +68,7 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
-/*
-    public Progam(String fileName, List<File> libs) {
-        this.file = new File(fileName);
-        this.libs = libs;
-    }
-*/
+
     public Progam(PacioliFile file, List<File> libs) {
         assert(file != null);
         this.file = file;
@@ -193,11 +188,7 @@ public class Progam extends AbstractPrintable {
         }
         return list;
     }
-/*
-    File findIncludeFile(String include) throws FileNotFoundException {
-        return PacioliFile.findIncludeFile(include, libs, getFile().getParentFile());
-    }
-  */  
+
     PacioliFile findInclude(String include) throws FileNotFoundException {
         Path p = Paths.get(file.getFile().getAbsolutePath());
         return PacioliFile.findInclude(p.getParent(), file, include);
@@ -420,14 +411,7 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
 
     public void desugar() throws PacioliException {
-
         program = (ProgramNode) program.desugar();
-
-        // hack to set the modules
-        for (Definition def : program.definitions) {
-            //def.setModule(new PacioliFile(program.module.getName()));
-        }
-
     }
 
     // -------------------------------------------------------------------------
