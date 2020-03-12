@@ -122,7 +122,7 @@ public class Environment {
     }
 
     public void putGlobal(String module, String name, PacioliValue primitive) {
-        put("global_" + module.toLowerCase() + "_" + name, primitive);
+        put("global_" + module + "_" + name, primitive);
     }
 
     public void putDebug(String module, String name, PacioliValue primitive) {
