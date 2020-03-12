@@ -11,12 +11,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.commons.io.FilenameUtils;
-import org.jgrapht.Graph;
-import org.jgrapht.Graphs;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
-import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.traverse.DepthFirstIterator;
 
 import pacioli.Progam.Phase;
@@ -31,7 +27,6 @@ public class Project {
         this.file = file;
         this.libs = libs;
         this.graph = graph;
-        //this.graph = Pacioli.projectGraph(file, libs);
     }
     
     public static Project load(PacioliFile file, List<File> libs) throws Exception {
@@ -47,23 +42,12 @@ public class Project {
         // List done contains all processed files to avoid duplicates and cycles.
         List<PacioliFile> todo = new ArrayList<PacioliFile>();
         List<PacioliFile> done = new ArrayList<PacioliFile>();
-/*        
-        // Initialize the loop by adding the file to the todo list
-        Integer fileVersion = 0;
-        String base = FilenameUtils.getBaseName(file.getName());
-        File dir = file.getParentFile();
-        Path p = Paths.get(file.getAbsolutePath());
-        Path d = p.getParent();
-        Path b = d.relativize(p);
-        Pacioli.logln("rel p=%s b=%s", p, b);
-                
-        todo.add(new PacioliFile(file.getAbsoluteFile(), base, fileVersion, false, false));
-  */      
+
         // Obsolete way to get the base directory
-        Path p = Paths.get(file.getFile().getAbsolutePath());
-        Path d = p.getParent();
+        Path d = Paths.get(file.getFile().getAbsolutePath()).getParent();
         
         todo.add(file);
+        
         // Loop over the todo list, adding new include files when found
         while (!todo.isEmpty()) {
 
@@ -75,7 +59,7 @@ public class Project {
             if (!done.contains(current)) {
                 
                 // Load the current file
-                Progam program = Pacioli.loadProgramNew(current, libs, Phase.parsed);
+                Progam program = Progam.load(current, libs, Phase.parsed);
                 
                 // Add the current file if not already found by some include
                 if (!graph.containsVertex(current)) {
@@ -120,8 +104,6 @@ public class Project {
             PacioliFile file = optionalFile.get();
             Optional<DefaultEdge> optionalIncoming = graph.incomingEdgesOf(file).stream().findAny();
             while (optionalIncoming.isPresent()) {
-                Pacioli.logln("Doing %s", file);
-                
                 file = graph.getEdgeSource(optionalIncoming.get());
                 optionalIncoming = graph.incomingEdgesOf(file).stream().findAny();
             }
@@ -139,7 +121,6 @@ public class Project {
         
         Pacioli.logln("\nProject files depth first:");
         Iterator<PacioliFile> iterator = new DepthFirstIterator<>(graph, root());
-        //Iterator<PacioliFile> iterator = new DepthFirstIterator<>(new EdgeReversedGraph<>(graph), root());
         while (iterator.hasNext()) {
             PacioliFile file = iterator.next();
             Pacioli.logln("- %s", file);
@@ -153,7 +134,7 @@ public class Project {
         
         //printInfo();
         
-        Progam mainProgram = Pacioli.loadProgramNew(file, libs, Phase.typed);
+        Progam mainProgram = Progam.load(file, libs, Phase.typed);
         
         // Setup a writer for the output file
         String dstName = Progam.fileBaseName(file.getFile()) + "." + Progam.targetFileExtension(target);  // todo: get the dst name from somewhere else 
@@ -186,7 +167,7 @@ public class Project {
                 Pacioli.logln("Bundling file %s", current);
                 
                 // Add the program to the main program creating the entire bundle
-                Progam program = Pacioli.loadProgramNew(current, libs, Phase.typed);
+                Progam program = Progam.load(current, libs, Phase.typed);
                 mainProgram.includeOther(program);
             }
             

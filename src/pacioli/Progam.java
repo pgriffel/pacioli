@@ -23,7 +23,6 @@ import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
-import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.compilers.JSCompiler;
@@ -38,12 +37,10 @@ import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.PacioliType;
-import pacioli.types.TypeBase;
 import pacioli.visitors.CodeGenerator;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
 import pacioli.visitors.ResolveVisitor;
-import uom.DimensionedNumber;
 
 public class Progam extends AbstractPrintable {
 
@@ -74,7 +71,13 @@ public class Progam extends AbstractPrintable {
         this.file = file;
         this.libs = libs;
     }
-
+    
+    static Progam load(PacioliFile file, List<File> libs, Phase phase) throws Exception {
+        Progam program = new Progam(file, libs);
+        program.loadTill(phase);
+        return program;
+    }
+    
     public String getModule() {
         return file.getModule();
     }

@@ -11,7 +11,7 @@ public class GenericInfo {
     public String name;
     private String module;
     public File file;
-    public Scope scope;
+    private Scope scope;
     private Location location;
 
     public GenericInfo(String name, String module, File file, Scope scope, Location location) {
@@ -35,11 +35,7 @@ public class GenericInfo {
     public Boolean isGlobal() {
         return scope == Scope.FILE || scope == Scope.IMPORTED;
     }
-    /*
-    public Boolean isExternal() {
-        return scope == Scope.IMPORTED;
-    }
-*/
+  
     public Boolean isLocal() {
         return scope == Scope.LOCAL;
     }
