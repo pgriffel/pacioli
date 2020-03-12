@@ -18,7 +18,7 @@ public class DesugarVisitor extends IdentityTransformation implements Visitor {
     public void visit(ProgramNode node) {
 
         // Create a copy of the program node
-        ProgramNode prog = new ProgramNode(node.module);
+        ProgramNode prog = new ProgramNode(null);
 
         // Add the includes unaltered
         for (IdentifierNode include : node.includes) {

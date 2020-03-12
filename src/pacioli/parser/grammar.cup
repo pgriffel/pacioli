@@ -293,19 +293,7 @@ precedence right TRANS, RECI, DIMINV;
 //------------------------------------------------------------------------------
 
 program ::=  
-   head:h includes:i commands:c                     {: ProgramNode m = new ProgramNode(h); 
-                                                       for(Definition def: c) {
-                                                           m.addDefinition(def);
-                                                       };
-                                                       for(IdentifierNode incl: i) {
-                                                           m.addInclude(incl);
-                                                       };
-                                                       RESULT = new ProgramNode(h, i, c); :};
-
-head ::= 
-   MODULE id:id SEMICOLON                           {: RESULT = id; :}
- | /* empty */                                      {: RESULT = new IdentifierNode("", new pacioli.Location(file, source, 0, 0)); :}
- ;
+   includes:i commands:c                            {: RESULT = new ProgramNode(new pacioli.Location(file, source, 0, 0), i, c); :};
 
 includes ::=  
    includes:is INCLUDE path:p SEMICOLON             {: is.add(new IdentifierNode(Utils.intercalateText("/", p), makeLoc(pxleft, pxright))); 

@@ -98,7 +98,7 @@ public class IdentityTransformation implements Visitor {
             defs.add((Definition) node);
 
         }
-        returnNode(new ProgramNode(program.module, program.includes, defs));
+        returnNode(new ProgramNode(null, program.includes, defs));
     }
 
     @Override
