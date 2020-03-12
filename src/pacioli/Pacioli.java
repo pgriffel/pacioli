@@ -468,7 +468,7 @@ public class Pacioli {
                 PacioliFile file = PacioliFile.get(fileName, version);
                 Project project = Project.load(file, libs);
                 
-                project.printInfo();
+                //project.printInfo();
                 project.bundle(settings, Target.MVM);
                 
                 Path binName = project.bundlePath(Target.MVM);
