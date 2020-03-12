@@ -68,7 +68,7 @@ public class Project {
         
         Pacioli.logln1("Creating bundle for file '%s'", file);
         
-        printInfo();
+        //printInfo();
         
         Progam mainProgram = Pacioli.loadProgram(file, libs, Phase.typed);
         

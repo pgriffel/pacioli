@@ -92,6 +92,16 @@ public class Progam extends AbstractPrintable {
         program.printPretty(out);
     }
     
+    void printSymbolTable(SymbolTable<? extends SymbolInfo> table, String header) {
+        Pacioli.logln("Begin %s table", header);
+        for (String name : table.allNames()) {
+            SymbolInfo info = table.lookup(name);
+            Pacioli.logln("  %-25s %-15s %s %-50s %s", name, info.generic().getModule(),
+                    isExternal(info) ? "     " : "local", info.generic().file, info.getDefinition());
+        }
+        Pacioli.logln("End table");
+    }
+    
     // -------------------------------------------------------------------------
     // Adding symbol table entries
     // -------------------------------------------------------------------------
@@ -453,7 +463,8 @@ public class Progam extends AbstractPrintable {
     private void inferUsedTypes(Definition definition, Set<SymbolInfo> discovered, Set<SymbolInfo> finished) {
         for (SymbolInfo pre : definition.uses()) {
             if (pre.generic().isGlobal() && pre instanceof ValueInfo) {
-                if (!pre.generic().isExternal() && pre.getDefinition() != null) {
+                //if (!pre.generic().isExternal() && pre.getDefinition() != null) {
+                if (!isExternal(pre) && pre.getDefinition() != null) {
                     inferValueDefinitionType(pre, discovered, finished);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;

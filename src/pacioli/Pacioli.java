@@ -611,15 +611,7 @@ public class Pacioli {
         }
     }
 */
-    static void printSymbolTable(SymbolTable<? extends SymbolInfo> table, String header) {
-        Pacioli.logln("Begin %s table", header);
-        for (String name : table.allNames()) {
-            SymbolInfo info = table.lookup(name);
-            Pacioli.logln("  %-25s %-15s %s %-50s %s", name, info.generic().getModule(),
-                    info.generic().isExternal() ? "     " : "local", info.generic().file, info.getDefinition());
-        }
-        Pacioli.logln("End table");
-    }
+
 
     public static void compile(File file, List<File> libs, CompilationSettings settings) throws Exception {
         
