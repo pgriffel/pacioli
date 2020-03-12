@@ -45,10 +45,10 @@ import pacioli.visitors.ResolveVisitor;
 public class Progam extends AbstractPrintable {
 
     public enum Phase {
-        parsed,
-        desugared,
-        typed, 
-        resolved
+        PARSED,
+        DESUGARED,
+        TYPED, 
+        RESOLVED
     }
     
     public final PacioliFile file;
@@ -152,46 +152,9 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     // Properties
     // -------------------------------------------------------------------------
-
-    String baseName() {
-        return fileBaseName(getFile());
-    }
     
     Boolean isExternal(SymbolInfo info) {
         return !info.generic().file.equals(getFile());
-    }
-    
-    static String fileBaseName(File file) {
-        String name = file.getAbsolutePath();
-        assert (name.endsWith(".pacioli"));
-        return name.substring(0, name.length() - 8);
-    }
-
-    static String targetFileExtension(String target) {
-        if (target.equals("javascript")) {
-            return "js";
-        } else if (target.equals("matlab")) {
-            return "m";
-        } else if (target.equals("html")) {
-            return "html";
-        } else if (target.equals("mvm")) {
-            return "mvm";
-        } else {
-            throw new RuntimeException("Compilation target " + target + " unknown. Expected javascript, matlab or mvm.");
-        }
-    }
-    
-    static String newTargetFileExtension(Target target) {
-        switch (target) {
-        case MVM:
-            return "mvm";
-        case JS:
-            return "js";
-        case MATLAB:
-            return "m";
-        default:
-            return null;
-        }
     }
     
     public List<String> includes() {
@@ -200,11 +163,6 @@ public class Progam extends AbstractPrintable {
             list.add(id.name);
         }
         return list;
-    }
-
-    PacioliFile findInclude(String include) throws FileNotFoundException {
-        Path p = Paths.get(file.getFile().getAbsolutePath());
-        return PacioliFile.findInclude(p.getParent(), file, include);
     }
     
     // -------------------------------------------------------------------------
@@ -218,14 +176,14 @@ public class Progam extends AbstractPrintable {
     public void loadTillHelper(Phase phase, Boolean loadPrimitives, Boolean loadStandard) throws Exception {
         
         program = Parser.parseFile(this.getFile().getAbsolutePath());
-        if (phase.equals(Phase.parsed)) return;
+        if (phase.equals(Phase.PARSED)) return;
         
         desugar();
-        if (phase.equals(Phase.desugared)) return;
+        if (phase.equals(Phase.DESUGARED)) return;
         
         fillTables(loadPrimitives, loadStandard);
         resolve();
-        if (phase.equals(Phase.resolved)) return;
+        if (phase.equals(Phase.RESOLVED)) return;
     
         inferTypes();
     }
@@ -247,7 +205,7 @@ public class Progam extends AbstractPrintable {
             if ((isStandard && loadStandard) || (!isStandard && loadPrimitives)) {
                 PacioliFile file = PacioliFile.findLibrary(lib, libs);
                 Progam prog = new Progam(file, libs);
-                prog.loadTillHelper(Progam.Phase.typed, isStandard, false);
+                prog.loadTillHelper(Progam.Phase.TYPED, isStandard, false);
                 this.includeOther(prog);
             }
         }
@@ -258,7 +216,7 @@ public class Progam extends AbstractPrintable {
             PacioliFile file = PacioliFile.findIncludeOrLibrary(p.getParent(), this.file, include, libs);
             Progam prog = new Progam(file, libs);
             Pacioli.logln("Loading include file %s", include);
-            prog.loadTill(Progam.Phase.desugared);
+            prog.loadTill(Progam.Phase.DESUGARED);
             //this.includeOther(prog);
             // Fill symbol tables for this file
             for (Definition def : prog.program.definitions) {
@@ -647,74 +605,14 @@ public class Progam extends AbstractPrintable {
             finished.add(info);
         }
     }
-    
-    // -------------------------------------------------------------------------
-    // Fixme: Compilation per file
-    // -------------------------------------------------------------------------
-
-    public Boolean cleanMVMFiles(Boolean force) throws Exception {
-
-        File dst = new File(baseName() + ".mvm");
-        Boolean srcDirty = false;
-
-        for (String include : includes()) {
-            /*
-            File incl = findIncludeFile(include);
-            //Progam prog = new Progam(incl, libs);
-            //prog.loadTill(Phase.parsed);
-            Progam prog = Pacioli.loadProgram(incl, libs, Phase.parsed);
-            srcDirty = srcDirty || prog.cleanMVMFiles(force);
-            */
-        }
-
-        if (srcDirty || dst.lastModified() < getFile().lastModified() || force) {
-            if (dst.exists()) {
-                Pacioli.logln("Deleting MVM file %s %s", dst, includes());
-                dst.delete();
-            }
-            return true;
-        } else {
-            return srcDirty;
-        }
-    }
-    
-    public void compileRec(CompilationSettings settings, String target) throws Exception {
-
-        String dstName = baseName() + "." + targetFileExtension(target);
-        File dst = new File(dstName);
-        
-        Pacioli.logln("Loading %s", getFile());
-        loadTill(Phase.typed);
-        
-        if (dst.lastModified() < getFile().lastModified() || true) {
-
-            for (String include : includes()) {
-                PacioliFile file = findInclude(include);
-                Progam prog = new Progam(file, libs);
-                prog.compileRec(settings, target);
-            }
-
-            Pacioli.logln("Compiling %s", getFile());
-            BufferedWriter out = new BufferedWriter(new FileWriter(dstName));
-            PrintWriter writer = null;
-            try {
-                writer = new PrintWriter(out);
-                generateCode(writer, settings);
-            } finally {
-                if (writer != null) {
-                    writer.close();
-                }
-            }
-        }
-    }    
-
+   
     // -------------------------------------------------------------------------
     // Fixme: Matlab code generation
     // -------------------------------------------------------------------------
 
     public void compileMatlab(CompilationSettings settings) throws Exception {
 
-        BufferedWriter out = new BufferedWriter(new FileWriter(baseName() + ".m"));
+        BufferedWriter out = new BufferedWriter(new FileWriter("fixme: baseName()" + ".m"));
 
         PrintWriter writer = null;
         try {

@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.io.FilenameUtils;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.DepthFirstIterator;
@@ -36,7 +37,7 @@ public class Project {
     }
     
     public static Path bundlePath(File file, Target target) {
-        return Paths.get(Progam.fileBaseName(file) + "." + Progam.newTargetFileExtension(target));
+        return Paths.get(FilenameUtils.getBaseName(file.getName()) + "." + PacioliFile.targetFileExtension(target));
     }
     
     public static Project load(PacioliFile file, List<File> libs) throws Exception {
@@ -69,7 +70,7 @@ public class Project {
             if (!done.contains(current)) {
                 
                 // Load the current file
-                Progam program = Progam.load(current, libs, Phase.parsed);
+                Progam program = Progam.load(current, libs, Phase.PARSED);
                 
                 // Add the current file if not already found by some include
                 if (!graph.containsVertex(current)) {
@@ -144,7 +145,7 @@ public class Project {
         
         //printInfo();
         
-        Progam mainProgram = Progam.load(file, libs, Phase.typed);
+        Progam mainProgram = Progam.load(file, libs, Phase.TYPED);
         
         // Setup a writer for the output file
         Path dstPath = bundlePath(target);
@@ -159,7 +160,7 @@ public class Project {
                 Boolean isStandard = lib.equals("standard");
                     PacioliFile libFile = PacioliFile.findLibrary(lib, libs);
                     Progam prog = new Progam(libFile, libs);
-                    prog.loadTillHelper(Progam.Phase.typed, isStandard, false);
+                    prog.loadTillHelper(Progam.Phase.TYPED, isStandard, false);
                     Pacioli.logln("Bundling default file %s", libFile);
                     mainProgram.includeOther(prog);
                 
@@ -177,7 +178,7 @@ public class Project {
                 Pacioli.logln("Bundling file %s", current);
                 
                 // Add the program to the main program creating the entire bundle
-                Progam program = Progam.load(current, libs, Phase.typed);
+                Progam program = Progam.load(current, libs, Phase.TYPED);
                 mainProgram.includeOther(program);
             }
             
@@ -194,5 +195,15 @@ public class Project {
         Pacioli.logln("Created bundle '%s'", dstPath);
         
         return dstPath;
+    }
+
+
+    public boolean targetOutdated(Target target) {
+        for (PacioliFile file: graph.vertexSet()) {
+            if (file.getFile().lastModified() > bundlePath(target).toFile().lastModified()) {
+                return true;
+            }
+        }        
+        return false;
     }
 }

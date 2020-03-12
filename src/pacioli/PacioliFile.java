@@ -31,6 +31,8 @@ import java.util.List;
 
 import org.apache.commons.io.FilenameUtils;
 
+import pacioli.CompilationSettings.Target;
+
 public class PacioliFile extends AbstractPrintable {
 
     private final File file;
@@ -80,6 +82,19 @@ public class PacioliFile extends AbstractPrintable {
         return isLibrary;
     }
     
+    static String targetFileExtension(Target target) {
+        switch (target) {
+        case MVM:
+            return "mvm";
+        case JS:
+            return "js";
+        case MATLAB:
+            return "m";
+        default:
+            return null;
+        }
+    }
+    
     public static final List<String> defaultIncludes = new ArrayList<String>(
             Arrays.asList("primitives", "list", "matrix", "string", "standard"));
     public static final List<String> defaultsToCompile = new ArrayList<String>(
@@ -109,7 +124,6 @@ public class PacioliFile extends AbstractPrintable {
             module = module.replaceAll("_", "_x");
             module = module.replaceAll("\\\\", "_y");
             module = module.replaceAll("/", "_z");
-            Pacioli.logln("module=%s", module);
             
             return new PacioliFile(include, module, 0, true, file.isLibrary);
         } else {

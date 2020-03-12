@@ -233,7 +233,7 @@ public class Pacioli {
             throw new PacioliException("Cannot parse: file '%s' does not exist.", fileName);    
         } else {
             Pacioli.logln1("Parsing file '%s'", file);            
-            Progam program = Progam.load(file, libs, Phase.parsed);
+            Progam program = Progam.load(file, libs, Phase.PARSED);
             Pacioli.logln("%s", program.pretty());
         }
     }
@@ -248,7 +248,7 @@ public class Pacioli {
             throw new PacioliException("Cannot desugar: file '%s' does not exist.", fileName);    
         } else {
             Pacioli.logln1("Desugaring file '%s'", file);            
-            Progam program = Progam.load(file, libs, Phase.desugared);
+            Progam program = Progam.load(file, libs, Phase.DESUGARED);
             Pacioli.logln("%s", program.pretty());
         }
     }
@@ -267,7 +267,7 @@ public class Pacioli {
         try {
             
             Pacioli.logln2("Loading module '%s'", file.getFile());
-            Progam program = Progam.load(file, libs, Phase.typed);
+            Progam program = Progam.load(file, libs, Phase.TYPED);
 
             Pacioli.logln2("Displaying types in module '%s'", file.getFile());
             program.printTypes();
@@ -298,21 +298,7 @@ public class Pacioli {
             } else if (kind.equals("single")) {
                 compile(pacioliFile, libs, settings);
             } else if (kind.equals("recursive")) {
-                /*
-                Boolean force = false;
-                Pacioli.logln1("Running file '%s'", fileName);
-                Progam program = new Progam(file, libraryDirectories(libs));
-
-                Pacioli.logln2("Compiling module '%s'", file.getPath());
-                cleanStandardIncludes(libs, force);
-                program.cleanMVMFiles(force);
-                compileStandardIncludes(libs, settings);
-                program.compileRec(settings, "mvm");
-
-                Pacioli.logln2("Interpreting module '%s'", file.getPath());
-                String mvmFile = program.baseName() + ".mvm";
-                interpretMVMText(new File(mvmFile), libs); 
-                */
+                
             } else {
                 throw new PacioliException("Cannot compile: kind '%s' is not one of single, recursive or bundle.",
                         kind);
@@ -347,10 +333,13 @@ public class Pacioli {
 
         // If so, compile and run it
         try {
+            Project project = Project.load(file, libs);
             
-            Pacioli.logln1("Compiling file '%s'", file.getFile());
-            Path mvmFile = Project.load(file, libs).bundle(settings, Target.MVM);
-            
+            if (project.targetOutdated(Target.MVM)) {
+                Pacioli.logln1("Compiling file '%s'", file.getFile());
+                project.bundle(settings, Target.MVM);
+            }
+            Path mvmFile = project.bundlePath(Target.MVM);
             Pacioli.logln1("Running mvm file '%s'", mvmFile);
             interpretMVMText(mvmFile.toFile(), libs);
 
@@ -516,7 +505,7 @@ public class Pacioli {
         //Pacioli.logln1("Compiling file '%s'", file);
         
         // Load the file
-        Progam program = Progam.load(file, libs, Phase.typed);
+        Progam program = Progam.load(file, libs, Phase.TYPED);
         
         // Setup a writer for the output file
         PrintWriter writer = null;       
