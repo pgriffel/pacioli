@@ -388,16 +388,20 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(BangTypeNode node) {
-        // todo: error reporting instead of asserts
+        
         SymbolInfo indexSetInfo = typeTables.peek().lookup(node.indexSetName());
-        assert (indexSetInfo != null);
+        if (indexSetInfo == null) {
+            throw new RuntimeException(new PacioliException(node.getLocation(), "Index set %s unknown", node.indexSetName()));
+        }
         node.indexSet.info = indexSetInfo;
 
         if (node.unit != null) {
             String fullName = node.indexSetName() + "!" + node.unit.getName();
 
             SymbolInfo unitInfo = typeTables.peek().lookup(fullName);
-            assert (unitInfo != null);
+            if (unitInfo == null) {
+                throw new RuntimeException(new PacioliException(node.getLocation(), "Vector unit %s unknown", fullName));
+            }
             node.unit.info = unitInfo;
         }
     }
