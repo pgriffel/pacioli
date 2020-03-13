@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.CompilationSettings.Target;
+import pacioli.ast.ImportNode;
 import pacioli.ast.IncludeNode;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.Declaration;
@@ -166,6 +167,14 @@ public class Progam extends AbstractPrintable {
         return list;
     }
     
+    public List<String> imports() {
+        List<String> list = new ArrayList<String>();
+        for (ImportNode node : program.imports) {
+            list.add(node.name.valueString());
+        }
+        return list;
+    }
+    
     // -------------------------------------------------------------------------
     // Loading
     // -------------------------------------------------------------------------
@@ -211,10 +220,26 @@ public class Progam extends AbstractPrintable {
             }
         }
 
+        // Fill symbol tables for the imported libraries
+        for (String lib : imports()) {
+            Path p = Paths.get(file.getFile().getAbsolutePath());
+            PacioliFile file = PacioliFile.findLibrary(lib, libs);
+            Progam prog = new Progam(file, libs);
+            Pacioli.logln("Loading library file %s", lib);
+            prog.loadTill(Progam.Phase.DESUGARED);
+            for (Definition def : prog.program.definitions) {
+                if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
+                        || def instanceof TypeDefinition) {
+                    def.addToProgr(prog);
+                }
+            }
+            includeOther(prog);
+        }
+        
         // Fill symbol tables for the included files
         for (String include : includes()) {
             Path p = Paths.get(file.getFile().getAbsolutePath());
-            PacioliFile file = PacioliFile.findIncludeOrLibrary(p.getParent(), this.file, include, libs);
+            PacioliFile file = PacioliFile.findInclude(p.getParent(), this.file, include);
             Progam prog = new Progam(file, libs);
             Pacioli.logln("Loading include file %s", include);
             prog.loadTill(Progam.Phase.DESUGARED);

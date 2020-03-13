@@ -77,10 +77,34 @@ public class Project {
                     graph.addVertex(current);
                 }
                 
+                for (String lib : program.imports()) {
+                    
+                    // Locate the include file
+                    PacioliFile pacioliFile = PacioliFile.findLibrary(lib, libs);
+                    if (pacioliFile == null) {
+                        throw new RuntimeException(String.format("Import '%s' for file '%s' not found in directories %s", 
+                                lib, current, libs));
+                    }
+                    
+                    // Add the include files to the todo list
+                    if (!done.contains(pacioliFile) && !todo.contains(pacioliFile)) {
+                        todo.add(pacioliFile);    
+                    }
+                    
+                    // Add the included file to the graph if not already a member
+                    if (!graph.containsVertex(pacioliFile)) {
+                        graph.addVertex(pacioliFile);
+                    }
+                    
+                    // Add an edge for the include relation
+                    graph.addEdge(current, pacioliFile);
+                    
+                }
+                
                 for (String include : program.includes()) {
                     
                     // Locate the include file
-                    PacioliFile pacioliFile = PacioliFile.findIncludeOrLibrary(d, current, include, libs);
+                    PacioliFile pacioliFile = PacioliFile.findInclude(d, current, include);
                     if (pacioliFile == null) {
                         throw new RuntimeException(String.format("Include '%s' for file '%s' not found in directories %s", 
                                 include, current, libs));
