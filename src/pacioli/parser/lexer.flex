@@ -88,6 +88,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "per"             { return symbol("per",PER); }
   "module"          { return symbol("module",MODULE); }
   "include"         { return symbol("include",INCLUDE); }
+  "import"          { return symbol("import",IMPORT); }
   "define"          { return symbol("define",DEFINE); }
   "declare"         { return symbol("declare",DECLARE); }
   "defindex"        { return symbol("defindex",DEFINDEX); }

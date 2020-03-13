@@ -16,7 +16,7 @@ public class DesugarVisitor extends IdentityTransformation implements Visitor {
 
     @Override
     public void visit(ProgramNode node) {
-
+/*
         // Create a copy of the program node
         ProgramNode prog = new ProgramNode(null);
 
@@ -24,7 +24,7 @@ public class DesugarVisitor extends IdentityTransformation implements Visitor {
         for (IdentifierNode include : node.includes) {
             prog.addInclude(include);
         }
-
+*/
         // Create single declarations for the multideclarations
         List<Definition> noMultis = new ArrayList<Definition>();
         for (Definition def : node.definitions) {
@@ -39,13 +39,15 @@ public class DesugarVisitor extends IdentityTransformation implements Visitor {
         }
 
         // Desugar the definitions.
+        List<Definition> desugared = new ArrayList<Definition>();
         for (Definition def : noMultis) {
-            Node desugared = nodeAccept(def);
-            assert (desugared instanceof Definition);
-            prog.addDefinition((Definition) desugared);
+            Node desugaredNode = nodeAccept(def);
+            assert (desugaredNode instanceof Definition);
+            //prog.addDefinition((Definition) desugared);
+            desugared.add((Definition) desugaredNode);
         }
 
-        returnNode(prog);
+        returnNode(new ProgramNode(node.getLocation(), node.includes, node.imports, desugared));
     }
 
 }

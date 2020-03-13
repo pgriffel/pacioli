@@ -47,6 +47,10 @@ import pacioli.types.ast.TypePowerNode;
 public interface Visitor {
 
     void visit(ProgramNode program);
+    
+    void visit(IncludeNode program);
+    
+    void visit(ImportNode program);
 
     void visit(AliasDefinition aliasDefinition);
 

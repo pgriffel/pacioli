@@ -235,7 +235,7 @@ parser code {:
 :};
 
 
-terminal MODULE, INCLUDE;
+terminal MODULE, INCLUDE, IMPORT;
 terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFPROJ, PUBLIC;
 terminal IF, ELSE, BEGIN, END, WHILE, DO, ASSIGN, TYPE, EXCL, TO, FROM;
 terminal IN, LET, PER, THEN, RETURN, LAMBDA, FORTYPE, FORUNIT, FORINDEX, AT;
@@ -248,7 +248,7 @@ terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING;
 
 non terminal ProgramNode             program;
 non terminal IdentifierNode          head;
-non terminal List<IdentifierNode>    includes;
+non terminal List<Node>              includes;
 non terminal List<Definition>        commands;
 non terminal Definition              command;
 non terminal ExpressionNode          expr, if_tail, lettail, letrest, listlit;
@@ -257,7 +257,7 @@ non terminal IdentifierNode          id, name;
 non terminal List<IdentifierNode>    ids, names, idlist;
 non terminal UnitNode                dimnum, unit, unit_term;
 non terminal String                  unsigned, number, integer;
-non terminal List<IdentifierNode>    path;
+non terminal StringNode              path;
 non terminal List<UnitDecl>          unitvec, unitvec_parts;
 non terminal List<ValueDecl>         matrix_parts, matrix;
 non terminal TypeNode                type, matrix_type, dim_type;
@@ -293,14 +293,37 @@ precedence right TRANS, RECI, DIMINV;
 //------------------------------------------------------------------------------
 
 program ::=  
-   includes:i commands:c                            {: RESULT = new ProgramNode(new pacioli.Location(file, source, 0, 0), i, c); :};
+   includes:i commands:c                            {: List<IncludeNode> includes = new ArrayList<IncludeNode>();
+                                                       List<ImportNode> imports = new ArrayList<ImportNode>();
+                                                       for (Node node : i) {
+                                                           if (node instanceof IncludeNode) {
+                                                               includes.add((IncludeNode) node);
+                                                           } else {
+                                                               imports.add((ImportNode) node);
+                                                           }
+                                                       }
+                                                       RESULT = new ProgramNode(new pacioli.Location(file, source, 0, 0), includes, imports, c); :};
 
 includes ::=  
-   includes:is INCLUDE path:p SEMICOLON             {: is.add(new IdentifierNode(Utils.intercalateText("/", p), makeLoc(pxleft, pxright))); 
-                                                       RESULT = is; :}
- | /* empty includes */                             {: RESULT = new LinkedList<IdentifierNode>(); :}
+   includes:is INCLUDE path:p SEMICOLON             {: is.add(new IncludeNode(makeLoc(pxleft, pxright), p)); RESULT = is; :}
+ | includes:is IMPORT path:p SEMICOLON              {: is.add(new ImportNode(makeLoc(pxleft, pxright), p)); RESULT = is; :}
+ | /* empty includes */                             {: RESULT = new ArrayList<Node>(); :}
  ;
 
+//includes ::=  
+//   includes:is INCLUDE path:p SEMICOLON             {: is.add(p); RESULT = is; :}
+// | includes:is IMPORT path:p SEMICOLON              {: is.add(p); RESULT = is; :}
+// | /* empty includes */                             {: RESULT = new HeaderNode(new pacioli.Location(file, source, 0, 0)); :}
+// ;
+
+//includes ::=  
+//   includes:is INCLUDE path:p SEMICOLON             {: is.add(new IdentifierNode(Utils.intercalateText("/", p), makeLoc(pxleft, pxright))); 
+//                                                       RESULT = is; :}
+// | includes:is IMPORT path:p SEMICOLON              {: is.add(new IdentifierNode(Utils.intercalateText("/", p), makeLoc(pxleft, pxright))); 
+//                                                       RESULT = is; :}
+// | /* empty includes */                             {: RESULT = new LinkedList<IdentifierNode>(); :}
+// ;
+ 
 commands ::=  
    commands:cs command:c SEMICOLON                  {: cs.add(c); RESULT = cs; :}
  | /* empty */                                      {: RESULT = new LinkedList<Definition>(); :}
@@ -347,13 +370,11 @@ quali ::=
 //------------------------------------------------------------------------------
 
 path ::= 
-    STRING:id                                       {: RESULT = new LinkedList<IdentifierNode>(Arrays.asList(new IdentifierNode(id, makeLoc(idxleft, idxright)))); :}
- |  IDENTIFIER:id                                   {: RESULT = new LinkedList<IdentifierNode>(Arrays.asList(new IdentifierNode(id, makeLoc(idxleft, idxright)))); :}
- |  path:p DIV STRING:id                            {: p.add(new IdentifierNode(id, makeLoc(idxleft, idxright)));
-                                                       RESULT = p; :}
+    STRING:s                                        {: RESULT = new StringNode(s, makeLoc(sxleft, sxright)); :}
+ |  IDENTIFIER:s                                    {: RESULT = new StringNode(s, makeLoc(sxleft, sxright)); :}
+ |  path:p DIV STRING:s                             {: RESULT = new StringNode(p.valueString() + "/" + s, makeLoc(pxleft, sxright)); :}
 
- |  path:p DIV IDENTIFIER:id                        {: p.add(new IdentifierNode(id, makeLoc(idxleft, idxright)));
-                                                       RESULT = p; :}
+ |  path:p DIV IDENTIFIER:s                         {: RESULT = new StringNode(p.valueString() + "/" + s, makeLoc(pxleft, sxright)); :}
  ;
 
 //------------------------------------------------------------------------------

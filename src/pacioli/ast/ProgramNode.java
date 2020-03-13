@@ -9,26 +9,33 @@ import pacioli.ast.expression.IdentifierNode;
 
 public class ProgramNode extends AbstractNode {
 
-    public List<IdentifierNode> includes;
+    public List<IncludeNode> includes;
+    public List<ImportNode> imports;
     public List<Definition> definitions;
     
-    public ProgramNode(Location location, List<IdentifierNode> includes, List<Definition> definitions) {
+    public ProgramNode(Location location, List<IncludeNode> includes, List<ImportNode> imports, List<Definition> definitions) {
         super(location);
         this.includes = includes;
+        this.imports = imports;
         this.definitions = definitions;
     }
     public ProgramNode(Location location) {
         super(location);
-        this.includes = new ArrayList<IdentifierNode>();
+        this.includes = new ArrayList<IncludeNode>();
+        this.imports = new ArrayList<ImportNode>();
         this.definitions = new ArrayList<Definition>();
     }
-
+    
     public void addDefinition(Definition definition) {
         definitions.add(definition);
     }
 
-    public void addInclude(IdentifierNode include) {
-        includes.add(include);
+    public void addInclude(IncludeNode node) {
+        includes.add(node);
+    }
+    
+    public void addImport(ImportNode node) {
+        imports.add(node);
     }
 
     @Override

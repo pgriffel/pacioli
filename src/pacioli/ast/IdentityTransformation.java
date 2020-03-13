@@ -91,16 +91,42 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(ProgramNode program) {
+        
+        List<IncludeNode> includes = new ArrayList<IncludeNode>();
+        List<ImportNode> imports = new ArrayList<ImportNode>();
         List<Definition> defs = new ArrayList<Definition>();
+        
+        for (IncludeNode def : program.includes) {
+            Node node = nodeAccept(def);
+            assert (node instanceof IncludeNode);
+            includes.add((IncludeNode) node);
+
+        }
         for (Definition def : program.definitions) {
             Node node = nodeAccept(def);
             assert (node instanceof Definition);
             defs.add((Definition) node);
 
         }
-        returnNode(new ProgramNode(null, program.includes, defs));
+        for (Definition def : program.definitions) {
+            Node node = nodeAccept(def);
+            assert (node instanceof Definition);
+            defs.add((Definition) node);
+
+        }
+        returnNode(new ProgramNode(null, includes, imports, defs));
     }
 
+    @Override
+    public void visit(IncludeNode node) {
+        returnNode(node);
+    }
+    
+    @Override
+    public void visit(ImportNode node) {
+        returnNode(node);
+    }
+    
     @Override
     public void visit(AliasDefinition node) {
         returnNode(node);

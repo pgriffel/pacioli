@@ -1,10 +1,10 @@
 package pacioli.visitors;
 
-import java.io.PrintWriter;
 import java.util.List;
-import java.util.Stack;
 
 import pacioli.Printer;
+import pacioli.ast.ImportNode;
+import pacioli.ast.IncludeNode;
 import pacioli.ast.Node;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.Visitor;
@@ -156,7 +156,7 @@ public class PrintVisitor implements Visitor {
 */
     @Override
     public void visit(ProgramNode node) {
-        for (IdentifierNode include: node.includes) {
+        for (IncludeNode include: node.includes) {
             write("include \"");
             include.accept(this);
             write("\";");
@@ -170,6 +170,20 @@ public class PrintVisitor implements Visitor {
         }
     }
 
+    @Override
+    public void visit(IncludeNode node) {
+        write("include ");
+        node.name.accept(this);
+        write(";");
+    }
+    
+    @Override
+    public void visit(ImportNode node) {
+        write("import ");
+        node.name.accept(this);
+        write(";");
+    }
+    
     @Override
     public void visit(AliasDefinition node) {
         write("defalias ");

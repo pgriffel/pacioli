@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.CompilationSettings.Target;
+import pacioli.ast.IncludeNode;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
@@ -159,8 +160,8 @@ public class Progam extends AbstractPrintable {
     
     public List<String> includes() {
         List<String> list = new ArrayList<String>();
-        for (IdentifierNode id : program.includes) {
-            list.add(id.name);
+        for (IncludeNode node : program.includes) {
+            list.add(node.name.valueString());
         }
         return list;
     }

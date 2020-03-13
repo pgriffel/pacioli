@@ -58,11 +58,26 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(ProgramNode node) {
+
+        for (IncludeNode includeNode: node.includes) {
+            includeNode.accept(this);
+        }
+        for (ImportNode importNode: node.imports) {
+            importNode.accept(this);
+        }
         for (Definition def : node.definitions) {
             def.accept(this);
         }
     }
-
+    
+    @Override
+    public void visit(IncludeNode node) {
+    }
+    
+    @Override
+    public void visit(ImportNode node) {
+    }
+    
     @Override
     public void visit(AliasDefinition node) {
         //Pacioli.log("Alias");
