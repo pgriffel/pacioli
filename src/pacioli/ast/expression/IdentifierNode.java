@@ -127,11 +127,6 @@ public class IdentifierNode extends AbstractExpressionNode {
         return isMutableVar;
     }
 
-    // what is this????
-    public Boolean debugable() {
-        return PacioliFile.debugablePrimitives.contains(home);
-    }
-
     @Override
     public String compileToMATLAB() {
         assert (home != null); // names must have been resolved

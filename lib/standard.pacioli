@@ -225,6 +225,7 @@ define intercalate(items, seperator) =
     fold_list(lambda (x, y) concatenate(x, concatenate(seperator, y)) end, items)
   end;
 
+declare public remove_nth :: for_type t: (1, List(t)) -> List(t);
 
 define remove_nth(n, list) =
   begin

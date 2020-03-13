@@ -27,16 +27,24 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.apache.commons.io.FilenameUtils;
 
 import mvm.MVMException;
 import mvm.Machine;
 import pacioli.CompilationSettings.Target;
 import pacioli.Progam.Phase;
 
+/**
+ * The main entry point of the compiler.
+ *
+ * The code mainly handles PacioliFile, Program and Project objects.
+ */
 public class Pacioli {
 
     public static int verbosity = 1;
@@ -258,6 +266,11 @@ public class Pacioli {
         Integer version = 0;
         PacioliFile file = PacioliFile.get(fileName, version);
 
+        if (file == null) {
+            file = PacioliFile.findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
+        }
+
+        
         if (file == null) {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
@@ -492,7 +505,7 @@ public class Pacioli {
         LinkedList<File> libDirs = new LinkedList<File>();
         for (File lib : libs) {
             if (lib.isDirectory()) {
-                libDirs.addFirst(lib);
+                libDirs.add(lib);
             } else {
                 Pacioli.warn("Skipping non existing library directory '%s'", lib);
             }

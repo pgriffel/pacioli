@@ -2,7 +2,6 @@ package pacioli;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.nio.file.Path;
@@ -26,7 +25,6 @@ import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
-import pacioli.ast.expression.IdentifierNode;
 import pacioli.compilers.JSCompiler;
 import pacioli.compilers.MVMCompiler;
 import pacioli.parser.Parser;
@@ -44,6 +42,16 @@ import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
 import pacioli.visitors.ResolveVisitor;
 
+/**
+ * A Program corresponds to a Pacioli file and is the unit of compilation.
+ * 
+ * A Program contains the AST and the symboltables for the Pacioli code in 
+ * a file. It can be constructed by loading a PacioliFile.   
+ * 
+ * Once a program has been loaded it can be used to generate code, display
+ * types, etc. 
+ *
+ */
 public class Progam extends AbstractPrintable {
 
     public enum Phase {
@@ -175,6 +183,23 @@ public class Progam extends AbstractPrintable {
         return list;
     }
     
+    public List<PacioliFile> findImports(List<File> libs) throws PacioliException {
+        List<PacioliFile> libraries = new ArrayList<PacioliFile>();
+        for (ImportNode node : program.imports) {
+            String name = node.name.valueString();
+            PacioliFile library = PacioliFile.findLibrary(name, libs);
+            if (library == null) {
+                throw new PacioliException(node.getLocation(),
+                        "Import '%s' for file '%s' not found in directories %s", 
+                        name, file, libs);
+            } else {
+                libraries.add(library);    
+            }
+            
+        }
+        return libraries;
+    }
+    
     // -------------------------------------------------------------------------
     // Loading
     // -------------------------------------------------------------------------
@@ -213,7 +238,7 @@ public class Progam extends AbstractPrintable {
         for (String lib : PacioliFile.defaultIncludes) {
             Boolean isStandard = lib.equals("standard");
             if ((isStandard && loadStandard) || (!isStandard && loadPrimitives)) {
-                PacioliFile file = PacioliFile.findLibrary(lib, libs);
+                PacioliFile file = PacioliFile.requireLibrary(lib, libs);
                 Progam prog = new Progam(file, libs);
                 prog.loadTillHelper(Progam.Phase.TYPED, isStandard, false);
                 this.includeOther(prog);
@@ -221,11 +246,12 @@ public class Progam extends AbstractPrintable {
         }
 
         // Fill symbol tables for the imported libraries
-        for (String lib : imports()) {
-            Path p = Paths.get(file.getFile().getAbsolutePath());
-            PacioliFile file = PacioliFile.findLibrary(lib, libs);
+        //for (String lib : imports()) {
+        for (PacioliFile file: findImports(libs)) {
+            //Path p = Paths.get(file.getFile().getAbsolutePath());
+            //PacioliFile file = PacioliFile.findLibrary(lib, libs);
             Progam prog = new Progam(file, libs);
-            Pacioli.logln("Loading library file %s", lib);
+            Pacioli.logln("Loading library file %s", file.getFile());
             prog.loadTill(Progam.Phase.DESUGARED);
             for (Definition def : prog.program.definitions) {
                 if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
@@ -442,6 +468,9 @@ public class Progam extends AbstractPrintable {
                     inferValueDefinitionType(pre, discovered, finished);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
+                    if (vinfo.declaredType == null) {
+                        throw new RuntimeException(new PacioliException(pre.getLocation(), "No type declared for %s", pre.name()));
+                    }
                     assert (vinfo.declaredType != null); // should be an exception
                     vinfo.inferredType = vinfo.declaredType.evalType(false);
                 }

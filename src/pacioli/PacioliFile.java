@@ -33,6 +33,9 @@ import org.apache.commons.io.FilenameUtils;
 
 import pacioli.CompilationSettings.Target;
 
+/**
+ * A wrapper around a file path that stores extra information about the file's role in a program or project.
+ */
 public class PacioliFile extends AbstractPrintable {
 
     private final File file;
@@ -40,7 +43,11 @@ public class PacioliFile extends AbstractPrintable {
     private final Integer version;
     private final Boolean isInclude;
     private final Boolean isLibrary;
-    
+
+    /**
+     * A private constructor. The static get methods are the public constructors. They determine the 
+     * module and check that the file exists.
+     */
     private PacioliFile(File file, String module, Integer version, Boolean isInclude, Boolean isLibrary) {
         this.file = file.getAbsoluteFile();
         this.module = module;
@@ -49,7 +56,14 @@ public class PacioliFile extends AbstractPrintable {
         this.isLibrary = isLibrary;
     }
 
-
+    /**
+     * Constructor for the PacioliFile class. Use findInclude or findLibrary to construct a PacioliFile
+     * for an include or library. 
+     * 
+     * @param file The file
+     * @param version The file version
+     * @return A PacioliFile for the file path, or null if file does not exist.
+     */
     public static PacioliFile get(File file, Integer version) {
         if (file.exists()) {
             return new PacioliFile(file.getAbsoluteFile(), FilenameUtils.getBaseName(file.getName()), version, false, false);
@@ -58,6 +72,14 @@ public class PacioliFile extends AbstractPrintable {
         }
     }
     
+    /**
+     * Constructor for the PacioliFile class. Use findInclude or findLibrary to construct a PacioliFile
+     * for an include or library. 
+     * 
+     * @param file The file name
+     * @param version The file version
+     * @return A PacioliFile for the file path, or null if file does not exist.
+     */
     public static PacioliFile get(String file, Integer version) {
         return get(new File(file), version);
     }
@@ -97,11 +119,11 @@ public class PacioliFile extends AbstractPrintable {
     
     public static final List<String> defaultIncludes = new ArrayList<String>(
             Arrays.asList("primitives", "list", "matrix", "string", "standard"));
-    public static final List<String> defaultsToCompile = new ArrayList<String>(
+   /* public static final List<String> defaultsToCompile = new ArrayList<String>(
             Arrays.asList("primitives", "list", "matrix", "string", "standard"));
     public static final List<String> debugablePrimitives = new ArrayList<String>(
             Arrays.asList("primitives", "list", "matrix", "string"));
-
+*/
     public static PacioliFile findInclude(Path baseDir, PacioliFile file, String name) {
         File include = new File(file.getFile().getParentFile(), name + ".pacioli");
         
@@ -122,6 +144,15 @@ public class PacioliFile extends AbstractPrintable {
         }
     }
     
+    public static PacioliFile requireLibrary(String name, List<File> libs) {
+        PacioliFile library = findLibrary(name, libs);
+        if (library == null) {
+            throw new RuntimeException(String.format("Library '%s' not found in directories %s", name, libs));
+        } else {
+            return library;
+        }
+    }
+    
     public static PacioliFile findLibrary(String name, List<File> libs) {
 
         File theFile = null;
@@ -130,6 +161,7 @@ public class PacioliFile extends AbstractPrintable {
         List<File> candidates = new ArrayList<File>();
         for (File dir : libs) {
             candidates.add(new File(dir, name + ".pacioli"));
+            //candidates.add(new File(dir, name + "/" + name + ".pacioli"));
         }
 
         // See if a candidate exists

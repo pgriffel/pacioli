@@ -77,14 +77,15 @@ public class Project {
                     graph.addVertex(current);
                 }
                 
-                for (String lib : program.imports()) {
+                for (PacioliFile pacioliFile: program.findImports(libs)) {
+                //for (String lib : program.imports()) {
                     
                     // Locate the include file
-                    PacioliFile pacioliFile = PacioliFile.findLibrary(lib, libs);
-                    if (pacioliFile == null) {
-                        throw new RuntimeException(String.format("Import '%s' for file '%s' not found in directories %s", 
-                                lib, current, libs));
-                    }
+                    //PacioliFile pacioliFile = PacioliFile.findLibrary(lib, libs);
+                    //if (pacioliFile == null) {
+                    //    throw new RuntimeException(String.format("Import '%s' for file '%s' not found in directories %s", 
+                    //            lib, current, libs));
+                    //}
                     
                     // Add the include files to the todo list
                     if (!done.contains(pacioliFile) && !todo.contains(pacioliFile)) {
@@ -182,7 +183,7 @@ public class Project {
             
             for (String lib : PacioliFile.defaultIncludes) {
                 Boolean isStandard = lib.equals("standard");
-                    PacioliFile libFile = PacioliFile.findLibrary(lib, libs);
+                    PacioliFile libFile = PacioliFile.requireLibrary(lib, libs);
                     Progam prog = new Progam(libFile, libs);
                     prog.loadTillHelper(Progam.Phase.TYPED, isStandard, false);
                     Pacioli.logln("Bundling default file %s", libFile);
