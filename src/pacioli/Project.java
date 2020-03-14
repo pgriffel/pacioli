@@ -37,7 +37,8 @@ public class Project {
     }
     
     public static Path bundlePath(File file, Target target) {
-        return Paths.get(FilenameUtils.getBaseName(file.getName()) + "." + PacioliFile.targetFileExtension(target));
+        //FilenameUtils.removeExtension(file);
+        return Paths.get(FilenameUtils.removeExtension(file.getPath()) + "." + PacioliFile.targetFileExtension(target));
     }
     
     public static Project load(PacioliFile file, List<File> libs) throws Exception {
