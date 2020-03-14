@@ -193,7 +193,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         // Create a list of type identifiers for all the key's dimensions
         List<TypeIdentifier> typeIds = new ArrayList<TypeIdentifier>();
         for (int i = 0; i < node.indexSets.size(); i++) {
-            IndexSetInfo info = node.info.get(i);
+            IndexSetInfo info = node.getInfo(i);
             typeIds.add(new TypeIdentifier(info.generic().getModule(), node.indexSets.get(i)));
         }
 

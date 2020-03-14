@@ -24,68 +24,80 @@ package pacioli.ast.expression;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import pacioli.Location;
 import pacioli.ast.Visitor;
-import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.symboltable.IndexSetInfo;
 
 public class KeyNode extends AbstractExpressionNode {
 
     public final List<String> indexSets;
     public final List<String> keys;
-    public final List<IndexSetDefinition> indexSetDefinitions;
-    public List<IndexSetInfo> info;
+    
+    private Optional<List<IndexSetInfo>> infos = Optional.empty();
 
     public KeyNode(Location location) {
         super(location);
         indexSets = new ArrayList<String>();
         keys = new ArrayList<String>();
-        indexSetDefinitions = null;
     }
 
     public KeyNode(KeyNode old) {
         super(old.getLocation());
         indexSets = old.indexSets;
         keys = old.keys;
-        indexSetDefinitions = old.indexSetDefinitions;
     }
 
     public KeyNode(String indexSet, String key, Location location) {
         super(location);
         indexSets = Arrays.asList(indexSet);
         keys = Arrays.asList(key);
-        indexSetDefinitions = null;
     }
 
-    public KeyNode(Location location, List<String> indexSets, List<String> keys,
-            List<IndexSetDefinition> indexSetDefinitions) {
+    public KeyNode(Location location, List<String> indexSets, List<String> keys) {
         super(location);
         this.indexSets = new ArrayList<String>(indexSets);
         this.keys = new ArrayList<String>(keys);
-        this.indexSetDefinitions = indexSetDefinitions == null ? null
-                : new ArrayList<IndexSetDefinition>(indexSetDefinitions);
     }
 
     public KeyNode merge(KeyNode other) {
 
+        assert(!infos.isPresent());
+        assert(!other.infos.isPresent());
+        
         List<String> mergedIndexSets = new ArrayList<String>(indexSets);
         List<String> mergedKeys = new ArrayList<String>(keys);
-        List<IndexSetDefinition> mergedDefinitions = null;
 
         Location mergedLocation = getLocation().join(other.getLocation());
 
         mergedIndexSets.addAll(other.indexSets);
         mergedKeys.addAll(other.keys);
 
-        if (indexSetDefinitions != null && other.indexSetDefinitions != null) {
-            mergedDefinitions = new ArrayList<IndexSetDefinition>(indexSetDefinitions);
-            mergedDefinitions.addAll(other.indexSetDefinitions);
-        }
-
-        return new KeyNode(mergedLocation, mergedIndexSets, mergedKeys, mergedDefinitions);
+        return new KeyNode(mergedLocation, mergedIndexSets, mergedKeys);
     }
-
+    
+    public List<IndexSetInfo> getInfos() {
+        if (infos.isPresent()) {
+            return infos.get();
+        } else {
+            throw new RuntimeException("Cannot get infos, key has not been resolved.");
+        }
+    }
+    
+    public IndexSetInfo getInfo(Integer index) {
+        return getInfos().get(index);
+    }
+    
+    public void setInfos(List<IndexSetInfo> infos) {
+        this.infos = Optional.of(infos);
+    } 
+    
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
+    
     @Override
     public String compileToMATLAB() {
         int totalSize = 1;
@@ -96,10 +108,5 @@ public class KeyNode extends AbstractExpressionNode {
             // totalSize *= sizes.get(i);
         }
         return String.format("{%s,%s}", index, totalSize);
-    }
-
-    @Override
-    public void accept(Visitor visitor) {
-        visitor.visit(this);
     }
 }

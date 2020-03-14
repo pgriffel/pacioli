@@ -30,9 +30,6 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
     }
     
     public static String global(String module, String name) {
-        if (module.equals("primitives")) {
-            return String.format("global_%s_%s", "base", name);
-        }
         return String.format("global_%s_%s", module, name);
     }
 

@@ -213,7 +213,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             builder.append(node.keys.get(i));
             builder.append("','");
             //builder.append(node.info.get(i).definition.globalName());
-            builder.append(node.info.get(i).globalName());
+            builder.append(node.getInfo(i).globalName());
             builder.append("']");
         }
         builder.append("])");

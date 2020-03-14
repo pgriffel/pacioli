@@ -228,7 +228,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             }
         }
 
-        node.info = infoList;
+        node.setInfos(infoList);
     }
 
     private MatrixDimension compileTimeMatrixDimension(IndexType dimType) {

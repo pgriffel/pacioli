@@ -198,7 +198,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             if (0 < i) {
                 out.write(", ");
             }
-            IndexSetInfo info = node.info.get(i);
+            IndexSetInfo info = node.getInfo(i);
             //out.write("\"" + info.definition.globalName() + "\"");
             out.write("\"" + info.globalName() + "\"");
             out.write(", ");
