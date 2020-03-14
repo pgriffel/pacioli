@@ -29,9 +29,8 @@ public class UsesVisitor extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(IdentifierNode node) {
-        assert (node.info != null);
-        assert (node.info.getDefinition() != null || node.info.declaredType != null || !node.info.isGlobal());
-        infos.add(node.info);
+        assert (node.getInfo().getDefinition() != null || node.getInfo().declaredType != null || !node.getInfo().isGlobal());
+        infos.add(node.getInfo());
     }
 
     @Override

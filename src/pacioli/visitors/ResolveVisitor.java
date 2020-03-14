@@ -189,16 +189,16 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     public void visit(IdentifierNode node) {
 
         // Lookup the info record
-        ValueInfo info = valueTables.peek().lookup(node.name);
+        ValueInfo info = valueTables.peek().lookup(node.getName());
 
         // Check that it exists
         if (info == null) {
-            if (node.info == null) {
-                visitorThrow(node.getLocation(), "Identifier '%s' unknown", node.name);
+            if (node.getInfo() == null) {
+                visitorThrow(node.getLocation(), "Identifier '%s' unknown", node.getName());
             }
         } else {
             // Store the record in the identifier
-            node.info = info;
+            node.setInfo(info);
         }
 
     }
@@ -211,7 +211,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         assert (info != null);
 
         // Store the info in the variable and resolve the value
-        node.var.info = info;
+        node.var.setInfo(info);
         node.value.accept(this);
     }
 
@@ -344,7 +344,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
         // Create a place for the statement result and attach the info record
         info.resultPlace = IdentifierNode.newLocalMutableVar("result", node.getLocation());
-        info.resultPlace.info = info;
+        info.resultPlace.setInfo(info);
 
         // Resolve the body
         statementResult.push("result");
@@ -366,7 +366,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             assert (info != null);
 
             // Store the info in the variable and resolve the value
-            var.info = info;
+            var.setInfo(info);
             
         }
         node.tuple.accept(this);

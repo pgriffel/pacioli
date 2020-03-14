@@ -341,7 +341,7 @@ command ::=
  | DEFUNIT:d id:id EXCL id:n EQL unitvec:ps         {: /* Todo: remove hashmap and use pair list directly in UnitVectorDefinition */
                                                        java.util.Map<String, UnitNode> unitVector = new HashMap<String, UnitNode>();
                                                        for (UnitDecl pair: ps) {
-                                                           unitVector.put(pair.key.name, pair.value);
+                                                           unitVector.put(pair.key.getName(), pair.value);
                                                        }
                                                        RESULT = new UnitVectorDefinition(makeLoc(dxleft, psxright), typeIDHack(id), typeIDHack(n), ps); :}
  | DEFUNIT:d id:id STRING:s                         {: RESULT = new UnitDefinition(makeLoc(dxleft, sxright), id, s); :}

@@ -97,7 +97,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         Typing valueTyping = typingAccept(node.value);
         Typing typing = new Typing(voidType);
         typing.addConstraints(valueTyping);
-        typing.addConstraint(node.var.info.inferredType, valueTyping.getType(),
+        typing.addConstraint(node.var.getInfo().inferredType, valueTyping.getType(),
                 "assigned variable must have proper type");
         returnNode(typing);
     }
@@ -152,12 +152,12 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     @Override
     public void visit(IdentifierNode node) {
 
-        if (node.info.inferredType == null) {
+        if (node.getInfo().inferredType == null) {
             // It must be a recursive function. Todo: handle properly
-            returnNode(new Typing(node.info.declaredType.evalType(true).instantiate()));
+            returnNode(new Typing(node.getInfo().declaredType.evalType(true).instantiate()));
         } else
             // Move instantiate to proper place.
-            returnNode(new Typing(node.info.inferredType.instantiate()));
+            returnNode(new Typing(node.getInfo().inferredType.instantiate()));
     }
 
     @Override
@@ -315,7 +315,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         
         List<PacioliType> varTypes = new ArrayList<PacioliType>();
         for (IdentifierNode var : node.vars) {
-            varTypes.add(var.info.inferredType);
+            varTypes.add(var.getInfo().inferredType);
         }      
         PacioliType tupleType = new ParametricType("Tuple", varTypes);
         

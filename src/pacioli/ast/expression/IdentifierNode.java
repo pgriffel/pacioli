@@ -21,65 +21,43 @@
 
 package pacioli.ast.expression;
 
+import java.util.Optional;
+
 import pacioli.Location;
-import pacioli.PacioliFile;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.Declaration;
-import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.symboltable.ValueInfo;
 
 public class IdentifierNode extends AbstractExpressionNode {
 
-    public final String name;
-
-    // Set during resolving
-    public ValueInfo info;
-
-    // Is this used?
-    private final String home;
-    private final Boolean isMutableVar;
-
+    private final String name;
+    private Optional<ValueInfo> info = Optional.empty();
+    
     public IdentifierNode(String name, Location location) {
         super(location);
         this.name = name;
-        this.home = null;
-        this.isMutableVar = null;
+    }
+        
+    private IdentifierNode(String home, boolean mutable, String name, Location location) {
+        super(location);
+        assert (home != null);
+        this.name = name;
     }
 
+    private IdentifierNode(String myHome, String home, boolean mutable, String name, Location location,
+            ValueDefinition definition, Declaration declaration, Boolean isResolved) {
+        super(location);
+        this.name = name;
+    }
+    
     public static IdentifierNode newValueIdentifier(String module, String name, Location location) {
         assert (module != null);
         return new IdentifierNode(module, false, name, location);
     }
 
-    public static IdentifierNode newLocalVar(String name, Location location) {
-        return new IdentifierNode("", false, name, location);
-    }
-
     public static IdentifierNode newLocalMutableVar(String name, Location location) {
         return new IdentifierNode("", true, name, location);
-    }
-
-    public IdentifierNode(String home, boolean mutable, String name, Location location) {
-        super(location);
-        assert (home != null);
-        this.name = name;
-        this.home = home;
-        this.isMutableVar = mutable;
-    }
-/*
-    public IdentifierNode resolve(ValueDefinition def, Declaration decl, Boolean mutable) {
-        Definition homeDef = def == null ? decl : def;
-        String home = homeDef == null ? "" : homeDef.getModule().getName();
-        return new IdentifierNode("", home, mutable, name, getLocation(), def, decl, true);
-    };
-*/
-    private IdentifierNode(String myHome, String home, boolean mutable, String name, Location location,
-            ValueDefinition definition, Declaration declaration, Boolean isResolved) {
-        super(location);
-        this.home = home;
-        this.name = name;
-        this.isMutableVar = mutable;
     }
 
     @Override
@@ -102,40 +80,39 @@ public class IdentifierNode extends AbstractExpressionNode {
     public String getName() {
         return name;
     }
-/*
-    public String fullName() {
-        assert (home != null); // names must have been resolved
-        return home.isEmpty() ? name : "global_" + home + "_" + name;
+    
+    public ValueInfo getInfo() {
+        if (info.isPresent()) {
+            return info.get();
+        } else {
+            throw new RuntimeException("Cannot get info, identifier has not been resolved.");
+        }
+    }
+    
+    public void setInfo(ValueInfo info) {
+        this.info = Optional.of(info);
     }
 
-    public String compiledName(String prefix) {
-        return prefix + home + "_" + name;
-    }
-*/
-    public boolean isLocal() {
-        assert (home != null); // names must have been resolved
-        return home.isEmpty();
-    }
-/*
-    @Override
-    public void printText(PrintWriter out) {
-        out.print(name);
-    }
-*/
-    public boolean isMutableVar() {
-        assert (isMutableVar != null); // names must have been resolved
-        return isMutableVar;
-    }
-
-    @Override
-    public String compileToMATLAB() {
-        assert (home != null); // names must have been resolved
-        return home.isEmpty() ? name.toLowerCase()
-                : "Pacioli.value(\"" + home.toLowerCase() + "\", \"" + name.toLowerCase() + "\")";
+    public Boolean isGlobal() {
+        if (info.isPresent()) {
+            return info.get().isGlobal();
+        } else {
+            throw new RuntimeException("Cannot get info, identifier has not been resolved.");
+        }
     }
 
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+    
+    @Override
+    public String compileToMATLAB() {
+        /*
+        assert (home != null); // names must have been resolved
+        return home.isEmpty() ? name.toLowerCase()
+                : "Pacioli.value(\"" + home.toLowerCase() + "\", \"" + name.toLowerCase() + "\")";
+                */
+        return "fixme: matlab compilation of identifier node";
     }
 }

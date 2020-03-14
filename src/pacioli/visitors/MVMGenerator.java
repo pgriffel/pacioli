@@ -134,7 +134,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(AssignmentNode node) {
         out.format("application(var(\"%s\"), var(\"", ValueInfo.global("primitives", "ref_set"));
-        out.print(node.var.name);
+        out.print(node.var.getName());
         out.print("\"), ");
         node.value.accept(this);
         out.print(")");
@@ -166,13 +166,13 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(IdentifierNode node) {
         
-        ValueInfo info = node.info;
+        ValueInfo info = node.getInfo();
         
         //String prefix = settings.isDebugOn() && node.debugable() ? "debug_" : "global_";
         //String full = info.isGlobal() ? prefix + info.generic().module + "_" + node.name : node.name;
-        String full = info.isGlobal() ? ValueInfo.global(info.generic().getModule() , node.name ) : node.name;
+        String full = info.isGlobal() ? ValueInfo.global(info.generic().getModule() , node.getName() ) : node.getName();
         
-        if (node.info.isRef) {
+        if (node.getInfo().isRef) {
             out.format("application(var(\"%s\"), var(\"%s\"))", ValueInfo.global("primitives", "ref_get"), full);
         } else {
             out.format("var(\"%s\")", full);
@@ -379,9 +379,9 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             out.print(", ");
             //first = false;
             
-            if (id.info.initialRefInfo != null) {
+            if (id.getInfo().initialRefInfo != null) {
                 // todo: handle the case the id exists in this scope.
-                if (id.info.initialRefInfo.isRef) {
+                if (id.getInfo().initialRefInfo.isRef) {
                     out.format("application(var(\"%s\"), application(var(\"%s\"), var(\"",
                             ValueInfo.global("primitives", "new_ref"),
                             ValueInfo.global("primitives", "ref_get"));

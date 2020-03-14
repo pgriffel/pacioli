@@ -1744,7 +1744,7 @@ class CUP$Parser$actions {
 		 /* Todo: remove hashmap and use pair list directly in UnitVectorDefinition */
                                                        java.util.Map<String, UnitNode> unitVector = new HashMap<String, UnitNode>();
                                                        for (UnitDecl pair: ps) {
-                                                           unitVector.put(pair.key.name, pair.value);
+                                                           unitVector.put(pair.key.getName(), pair.value);
                                                        }
                                                        RESULT = new UnitVectorDefinition(makeLoc(dxleft, psxright), typeIDHack(id), typeIDHack(n), ps); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("command",4, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-5)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);

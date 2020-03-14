@@ -37,7 +37,6 @@ public class Project {
     }
     
     public static Path bundlePath(File file, Target target) {
-        //FilenameUtils.removeExtension(file);
         return Paths.get(FilenameUtils.removeExtension(file.getPath()) + "." + PacioliFile.targetFileExtension(target));
     }
     

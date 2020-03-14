@@ -42,7 +42,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
         public List<String> keys() {
             List<String> keys = new ArrayList<String>();
             for (IdentifierNode id : key) {
-                keys.add(id.name);
+                keys.add(id.getName());
             }
             return keys;
         }
