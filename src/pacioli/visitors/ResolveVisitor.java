@@ -343,8 +343,8 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         node.table.put("result", info);
 
         // Create a place for the statement result and attach the info record
-        info.resultPlace = IdentifierNode.newLocalMutableVar("result", node.getLocation());
-        info.resultPlace.setInfo(info);
+        //info.resultPlace = IdentifierNode.newLocalMutableVar("result", node.getLocation());
+        //info.resultPlace.setInfo(info);
 
         // Resolve the body
         statementResult.push("result");

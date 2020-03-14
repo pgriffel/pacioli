@@ -1,5 +1,7 @@
 package pacioli.symboltable;
 
+import java.util.Optional;
+
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.IdentifierNode;
@@ -7,17 +9,20 @@ import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
 
 public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
-
-    public ValueInfo(GenericInfo generic) {
-        super(generic);
-    }
-
+    
     public ValueDefinition definition;
+    //public Optional<TypeNode> declaredType;
     public TypeNode declaredType;
+    
     public PacioliType inferredType;
-    public IdentifierNode resultPlace; // for return statements
+
     public boolean isRef = false;
     public ValueInfo initialRefInfo;
+    
+    public ValueInfo(GenericInfo generic) { //, ValueDefinition definition) {
+        super(generic);
+        //this.definition = definition;
+    }
 
     @Override
     public void accept(SymbolTableVisitor visitor) {
@@ -39,6 +44,7 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
     }
 
     public ValueInfo includeOther(ValueInfo other) {
+        
         if (other.definition != null) {
             if (definition == null) {
                 definition = other.definition;
@@ -46,6 +52,7 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
                 //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
             }
         }
+        
         if (other.declaredType != null) {
             if (declaredType == null) {
                 declaredType = other.declaredType;
@@ -53,6 +60,7 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
                 //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
             }
         }
+        
         if (other.inferredType != null) {
             if (inferredType == null) {
                 inferredType = other.inferredType;
@@ -60,13 +68,7 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
                 //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
             }
         }
-        if (other.resultPlace != null) {
-            if (resultPlace == null) {
-                resultPlace = other.resultPlace;
-            } else {
-                //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
-            }
-        }
+        
         if (other.initialRefInfo != null) {
             if (initialRefInfo == null) {
                 initialRefInfo = other.initialRefInfo;
@@ -74,6 +76,7 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
                 //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
             }
         }
+        
         return this;
     }
 
