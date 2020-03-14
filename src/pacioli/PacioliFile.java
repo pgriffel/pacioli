@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -64,11 +65,11 @@ public class PacioliFile extends AbstractPrintable {
      * @param version The file version
      * @return A PacioliFile for the file path, or null if file does not exist.
      */
-    public static PacioliFile get(File file, Integer version) {
+    public static Optional<PacioliFile> get(File file, Integer version) {
         if (file.exists()) {
-            return new PacioliFile(file.getAbsoluteFile(), FilenameUtils.getBaseName(file.getName()), version, false, false);
+            return Optional.of(new PacioliFile(file.getAbsoluteFile(), FilenameUtils.getBaseName(file.getName()), version, false, false));
         } else {
-            return null;
+            return Optional.empty();
         }
     }
     
@@ -80,7 +81,7 @@ public class PacioliFile extends AbstractPrintable {
      * @param version The file version
      * @return A PacioliFile for the file path, or null if file does not exist.
      */
-    public static PacioliFile get(String file, Integer version) {
+    public static Optional<PacioliFile> get(String file, Integer version) {
         return get(new File(file), version);
     }
     
@@ -118,7 +119,8 @@ public class PacioliFile extends AbstractPrintable {
     }
     
     public static final List<String> defaultIncludes = new ArrayList<String>(
-            Arrays.asList("primitives", "list", "matrix", "string", "standard"));
+            //Arrays.asList("primitives", "list", "matrix", "string", "standard"));
+            Arrays.asList("base", "standard"));    
    /* public static final List<String> defaultsToCompile = new ArrayList<String>(
             Arrays.asList("primitives", "list", "matrix", "string", "standard"));
     public static final List<String> debugablePrimitives = new ArrayList<String>(
@@ -145,23 +147,23 @@ public class PacioliFile extends AbstractPrintable {
     }
     
     public static PacioliFile requireLibrary(String name, List<File> libs) {
-        PacioliFile library = findLibrary(name, libs);
-        if (library == null) {
-            throw new RuntimeException(String.format("Library '%s' not found in directories %s", name, libs));
+        Optional<PacioliFile> library = findLibrary(name, libs);
+        if (library.isPresent()) {
+            return library.get();
         } else {
-            return library;
+            throw new RuntimeException(String.format("Library '%s' not found in directories %s", name, libs));
         }
     }
     
-    public static PacioliFile findLibrary(String name, List<File> libs) {
+    public static Optional<PacioliFile> findLibrary(String name, List<File> libs) {
 
         File theFile = null;
 
         // Generate a list of candidates
         List<File> candidates = new ArrayList<File>();
         for (File dir : libs) {
-            candidates.add(new File(dir, name + ".pacioli"));
-            //candidates.add(new File(dir, name + "/" + name + ".pacioli"));
+            //candidates.add(new File(dir, name + ".pacioli"));
+            candidates.add(new File(dir, name + "/" + name + ".pacioli"));
         }
 
         // See if a candidate exists
@@ -179,9 +181,9 @@ public class PacioliFile extends AbstractPrintable {
         }
 
         if (theFile == null) {
-            return null;
+            return Optional.empty();
         } else {
-            return new PacioliFile(theFile, name, 0, false, true);    
+            return Optional.of(new PacioliFile(theFile, name, 0, false, true));    
         }
     }
 

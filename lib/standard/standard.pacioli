@@ -52,7 +52,7 @@ define inner(x,y) = x^T '*' y;
 
 define outer(x,y) = x '*' y^T;
 
-define neg(x) = -1 _* x;
+define neg(x) = -1 '.*' x;
 
 # ------------------------------------------------------------------------------
 # Matrix Shape
@@ -86,7 +86,7 @@ define columns(matrix) =
   [column(matrix,j) | j <- column_domain(matrix)];
 
 define unit(mat) =
-  unit_factor(mat) _* row_unit(mat) per column_unit(mat);
+  unit_factor(mat) '.*' row_unit(mat) per column_unit(mat);
 
 define delta(x) = 
   make_matrix([tuple(x, _, 1)]);
@@ -106,10 +106,8 @@ define is_zero_column(x, j) = is_zero(column(magnitude(x), j));
 # Bit Vectors
 # ------------------------------------------------------------------------------
 
-declare log_not, complement ::
+declare complement, positives, negatives ::
   for_index P, Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
-
-define log_not(x) = unit(x) - x; # deprecated
 
 define complement(x) = unit(x) - x;
 
@@ -126,7 +124,7 @@ declare public diagonal2 :: for_index P: for_unit a,P!u: (a*P!u) -> a*P!u per P!
 declare public diagonal3 :: for_index P: for_unit a,P!u: (a*P!u) -> P! per P!;
 
 #define diagonal(x) =
-#  let u = unit(x), units = unit_factor(u) _* u per u in
+#  let u = unit(x), units = unit_factor(u) '.*' u per u in
 #    make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
 #  end;
 
@@ -212,8 +210,8 @@ defconv percent_conv :: percent;
 declare public to_percentage :: for_index D,E: (D! per E!) -> percent*D! per E!;
 declare public from_percentage :: for_index D,E: (percent*D! per E!) -> D! per E!;
 
-define to_percentage(x) = percent_conv _* x;
-define from_percentage(x) = x /_ percent_conv;
+define to_percentage(x) = percent_conv '.*' x;
+define from_percentage(x) = x '/.' percent_conv;
 
 define fraction(x, y) = to_percentage(x / y);
 

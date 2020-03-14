@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Paul Griffioen
+# Copyright (c) 2018 Paul Griffioen
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -18,10 +18,85 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # ----------------------------------------------------------------------------
-# Indices
+# Units
 # ----------------------------------------------------------------------------
 
 defunit radian "rad" = 1;
+
+# ----------------------------------------------------------------------------
+# General primitives
+# ----------------------------------------------------------------------------
+
+declare public tuple :: for_type a: a -> a;
+declare public apply :: for_type a,b: (a -> b, a) -> b;
+
+declare public identity :: for_type a: (a) -> a;
+declare public type_of :: for_type a: (a) -> Identifier();
+
+declare public equal :: for_type a: (a, a) -> Boole();
+declare public not_equal :: for_type a: (a, a) -> Boole();
+declare public not :: (Boole()) -> Boole();
+
+deftype for_type t: Maybe(t) = Maybe(t);
+
+declare public just :: for_type t: (t) -> Maybe(t);
+declare public nothing :: for_type t: () -> Maybe(t);
+declare public is_nothing :: for_type t: (Maybe(t)) -> Boole();
+
+# ----------------------------------------------------------------------------
+# Obsolete
+# ----------------------------------------------------------------------------
+
+declare public error :: for_type a: (String()) -> a;
+declare public num2string :: for_unit a: (a, 1) -> String();
+
+# ----------------------------------------------------------------------------
+# Statements
+# ----------------------------------------------------------------------------
+
+declare ref_get :: for_type a: (Ref(a)) -> a;
+declare ref_set :: for_type a: (Ref(a), a) -> Void();
+declare empty_ref :: for_type a: () -> Ref(a);
+declare new_ref :: for_type a: (a) -> Ref(a);
+
+declare throw_result :: for_type a: (Ref(a), a) -> Void();
+declare catch_result :: for_type a: (() -> Void(), Ref(a)) -> a;
+declare skip :: () -> Void();
+declare seq :: (Void(), Void()) -> Void();
+declare while_function :: (() -> Boole(), () -> Void()) -> Void();
+
+# ----------------------------------------------------------------------------
+# Lists
+# ----------------------------------------------------------------------------
+
+declare public empty_list :: for_type a: () ->  List(a);
+declare public singleton_list :: for_type a: (a) -> List(a);
+declare public head :: for_type a: (List(a)) -> a;
+declare public nth :: for_type a: (1, List(a)) -> a;
+declare public tail :: for_type a: (List(a)) -> List(a);
+declare public list_size :: for_type a: (List(a)) -> 1;
+declare public add_mut :: for_type a: (List(a), a) -> List(a);
+declare public cons :: for_type a: (a, List(a)) -> List(a);
+declare public append :: for_type a: (List(a), List(a)) -> List(a);
+declare public loop_list :: for_type a,b: (a, (a, b) -> a, List(b)) -> a;
+declare public fold_list :: for_type a: ((a, a) -> a, List(a)) -> a;
+declare public zip :: for_type a,b: (List(a), List(b)) -> List(Tuple(a, b));
+declare public naturals :: (1) -> List(1);
+declare public map_list :: for_type a,b: ((a) -> b, List(a)) -> List(b);
+declare public reverse :: for_type a: (List(a)) -> List(a);
+declare public sort_list :: for_type a: (List(a), (a, a) -> Boole()) -> List(a);
+declare public contains :: for_type a: (List(a), a) -> Boole();
+
+# ----------------------------------------------------------------------------
+# Strings
+# ----------------------------------------------------------------------------
+
+declare public string_compare :: (String(), String()) -> 1;
+declare public concatenate :: (String(), String()) -> String();
+
+# ----------------------------------------------------------------------------
+# Indices
+# ----------------------------------------------------------------------------
 
 declare public _ :: Index();
 
@@ -104,10 +179,10 @@ declare public left_divide ::
 declare public expt ::
   for_index P,Q: (P! per Q!, 1) -> P! per Q!;
 
-declare public power ::
+declare public mexpt ::
   for_index P: for_unit P!u: (P!u per P!u, 1) -> P!u per P!u;
 
-declare public dot ::
+declare public mmult ::
   for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*Q!v per R!w) -> a*b*P!u per R!w;
 
 declare public scale ::
@@ -244,4 +319,73 @@ declare public solve ::
   for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*P!u per R!w) -> a^-1*b*Q!v per R!w;
 
 declare public mapnz ::
-  for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
+#  for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
+  for_index P,Q: for_unit a, P!u, Q!v: ((1) -> 1, a*P!u per Q!v) -> a*P!u per Q!v;
+
+# ----------------------------------------------------------------------------
+# IO Settings
+# ----------------------------------------------------------------------------
+
+deftype IOSettings() = Tuple(1, Boole());
+
+declare public io_settings :: IOSettings();
+
+declare public decs :: (1) -> IOSettings();
+declare public decs_io :: (1, IOSettings()) -> IOSettings();
+
+declare public thousands_separator :: (Boole()) -> IOSettings();
+declare public thousands_separator_io :: (Boole(), IOSettings()) -> IOSettings();
+
+define io_settings =
+  tuple(2, true);
+
+define decs(n) =
+  decs_io(n, io_settings);
+
+define thousands_separator(boole) =
+  thousands_separator_io(boole, io_settings);
+
+define decs_io(n, settings) =
+  let (_, thousands_separator) = settings in
+    tuple(n, thousands_separator)
+  end;
+
+define thousands_separator_io(boole, settings) =
+  let (decs, _) = settings in
+    tuple(decs, boole)
+  end;
+
+# ----------------------------------------------------------------------------
+# String IO
+# ----------------------------------------------------------------------------
+
+declare public int2str, num2str :: for_unit a: (a) -> String();
+declare public int2str_io, num2str_io :: for_unit a: (a,  IOSettings()) -> String();
+
+declare public as_text :: for_type t: (t) -> String();
+
+declare public printed :: for_type a: (a) -> a;
+declare public print :: for_type a: (a) -> Void();
+declare public write :: for_type a: (a) -> Void();
+
+declare public print_grid :: for_type t: (List(List(t))) -> String();
+
+declare public unit_text :: for_unit a: (a) -> String();
+declare public unit_expression :: for_unit a: (a) -> String();
+
+declare public get_unit_text ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, P, Q) -> String();
+
+declare public get_unit_expression ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, P, Q) -> String();
+
+declare public text2string :: (Report()) -> String();
+
+define num2str(x) =
+  num2str_io(x, io_settings);
+
+define int2str_io(x, settings) =
+  num2str_io(x, decs_io(0, settings));
+
+define int2str(x) =
+  int2str_io(x, io_settings);

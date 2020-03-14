@@ -30,8 +30,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -39,6 +42,7 @@ import mvm.MVMException;
 import mvm.Machine;
 import pacioli.CompilationSettings.Target;
 import pacioli.Progam.Phase;
+import pacioli.symboltable.ValueInfo;
 
 /**
  * The main entry point of the compiler.
@@ -235,11 +239,12 @@ public class Pacioli {
             throws Exception {
 
         Integer version = 0;
-        PacioliFile file = PacioliFile.get(fileName, version);
+        Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
         
-        if (file == null) {
+        if (!optionalFile.isPresent()) {
             throw new PacioliException("Cannot parse: file '%s' does not exist.", fileName);    
         } else {
+            PacioliFile file = optionalFile.get();
             Pacioli.logln1("Parsing file '%s'", file);            
             Progam program = Progam.load(file, libs, Phase.PARSED);
             Pacioli.logln("%s", program.pretty());
@@ -250,31 +255,35 @@ public class Pacioli {
             throws Exception {
 
         Integer version = 0;
-        PacioliFile file = PacioliFile.get(fileName, version);
+        Optional<PacioliFile> file = PacioliFile.get(fileName, version);
 
-        if (file == null) {
+        if (!file.isPresent()) {
             throw new PacioliException("Cannot desugar: file '%s' does not exist.", fileName);    
         } else {
             Pacioli.logln1("Desugaring file '%s'", file);            
-            Progam program = Progam.load(file, libs, Phase.DESUGARED);
+            Progam program = Progam.load(file.get(), libs, Phase.DESUGARED);
             Pacioli.logln("%s", program.pretty());
         }
     }
     
     private static void typesCommand(String fileName, List<File> libs) throws Exception {
 
-        Integer version = 0;
-        PacioliFile file = PacioliFile.get(fileName, version);
-
-        if (file == null) {
-            file = PacioliFile.findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
-        }
-
+        checkPrimitives(libs);
         
-        if (file == null) {
+        Integer version = 0;
+        Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
+
+        if (!optionalFile.isPresent()) {
+            optionalFile = PacioliFile.findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
+        }
+        
+        if (!optionalFile.isPresent()) {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
 
+        PacioliFile file = optionalFile.get();
+        
+        //PacioliFile file = file.get
         Pacioli.logln1("Displaying types for file '%s'", file.getFile());
 
         try {
@@ -300,16 +309,17 @@ public class Pacioli {
             throws Exception {
 
         Integer version = 0;
-        PacioliFile pacioliFile = PacioliFile.get(fileName, version);
+        Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
         
-        if (pacioliFile == null) {
+        if (!optionalFile.isPresent()) {
             throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);    
         } else {
+            PacioliFile file = optionalFile.get();
             if (kind.equals("bundle")) {
-                Project project = Project.load(pacioliFile, libs);
+                Project project = Project.load(file, libs);
                 project.bundle(settings, settings.getTarget());
             } else if (kind.equals("single")) {
-                compile(pacioliFile, libs, settings);
+                compile(file, libs, settings);
             } else if (kind.equals("recursive")) {
                 
             } else {
@@ -337,19 +347,19 @@ public class Pacioli {
 
         // Locate the file
         Integer version = 0; // todo
-        PacioliFile file = PacioliFile.get(fileName, version);
+        Optional<PacioliFile> file = PacioliFile.get(fileName, version);
         
         // Check that it exists
-        if (file == null) {
+        if (!file.isPresent()) {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
 
         // If so, compile and run it
         try {
-            Project project = Project.load(file, libs);
+            Project project = Project.load(file.get(), libs);
             
             if (project.targetOutdated(Target.MVM)) {
-                Pacioli.logln1("Compiling file '%s'", file.getFile());
+                Pacioli.logln1("Compiling file '%s'", file.get().getFile());
                 project.bundle(settings, Target.MVM);
             }
             Path mvmFile = project.bundlePath(Target.MVM);
@@ -357,7 +367,7 @@ public class Pacioli {
             interpretMVMText(mvmFile.toFile(), libs);
 
         } catch (IOException e) {
-            throw new PacioliException("Cannot run file '%s':\n\n%s", file.getFile().getPath(), e);
+            throw new PacioliException("Cannot run file '%s':\n\n%s", file.get().getFile().getPath(), e);
         }
     }
 
@@ -478,8 +488,9 @@ public class Pacioli {
                 String fileName = dir + sample;
                 
                 Integer version = 0;
-                PacioliFile file = PacioliFile.get(fileName, version);
-                Project project = Project.load(file, libs);
+                Optional<PacioliFile> file = PacioliFile.get(fileName, version);
+                assert(file.isPresent());
+                Project project = Project.load(file.get(), libs);
                 
                 //project.printInfo();
                 project.bundle(settings, Target.MVM);
@@ -493,7 +504,7 @@ public class Pacioli {
                 Pacioli.logln("\nError in sample '%s':\n\n%s", sample, e);
             }
             
-            logln("--------------------------------------------------------------------------------");
+            logln("--------------------------------------------------------------------------------");            
         }
     }
 
@@ -545,6 +556,7 @@ public class Pacioli {
     }
     
     private static void interpretMVMText(File file, List<File> libs) throws Exception {
+        
         Machine vm = new Machine();
         try {
             vm.init();
@@ -558,6 +570,45 @@ public class Pacioli {
             throw ex;
         }
     }        
+    
+    private static void checkPrimitives(List<File> libs) throws Exception {
+        
+        PacioliFile libFile = PacioliFile.requireLibrary("base", libs);
+        Progam program = new Progam(libFile, libs);
+        program.loadTillHelper(Phase.RESOLVED, false, false);
+        List<ValueInfo> allInfos = program.values.allInfos();
+        List<String> names = new ArrayList<String>();
+        for (ValueInfo info: allInfos) {
+            //Pacioli.logln(name);
+            if (info.generic().getModule().equals("base")) {
+                names.add(info.globalName());
+            }
+        }
+        
+        Machine vm = new Machine();
+        vm.init();
+        Set<String> keys = vm.store.keySet();
+        List<String> keyList = new ArrayList<String>(keys);
+        
+        List<String> keyListCopy = new ArrayList<String>(keyList);
+        keyList.removeAll(names);
+        
+        names.removeAll(keyListCopy);
+        
+        Collections.sort(names);
+        Collections.sort(keyList);
+        
+        
+        logln("\nMissing in base.pacioli:");
+        for (String key: keyList) {
+            logln("%s", key);
+        };
+        logln("\nMissing in machine:");
+        for (String key: names) {
+            logln("%s", key);
+        };
+        logln("\nDone");
+    }
 
     /*
      * Utilities

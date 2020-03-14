@@ -170,6 +170,9 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                 }
                 returnType(new IndexType(names));
             }
+//        } else if (node.op.info == null) {
+//            // Quick fix to try types without definition
+//            returnType(new ParametricType(node.getName(), types));
         } else {
 
             // Experiment with type definitions.
@@ -188,7 +191,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
 
                 // if (reduce && definition.getModule() == node.op.home()) {
                 //if (reduce && !node.op.info.generic().isExternal()) {
-                if (reduce) {
+                if (reduce || true) {
                     try {
                         returnType(typeDefinition.constaint(true).reduce(new ParametricType(typeDefinition, types)));
                     } catch (PacioliException e) {

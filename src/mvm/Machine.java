@@ -1168,7 +1168,7 @@ public class Machine {
             }
         });
 
-        store.putGlobal("matrix", "dot", new Primitive("dot") {
+        store.putGlobal("matrix", "mmult", new Primitive("mmult") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 Matrix y = (Matrix) params.get(1);
@@ -1176,12 +1176,12 @@ public class Machine {
             }
         });
 
-        store.putDebug("matrix", "dot", new Primitive("dot") {
+        store.putDebug("matrix", "mmult", new Primitive("mmult") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 checkNrArgs(params, 2);
                 checkMatrixArg(params, 0);
                 checkMatrixArg(params, 1);
-                Callable fun = (Callable) store.lookup("global_Matrix_dot");
+                Callable fun = (Callable) store.lookup("global_Matrix_mmult");
                 PacioliValue result = fun.apply(params);
                 return result;
             }
@@ -1752,7 +1752,7 @@ public class Machine {
             }
         });
 
-        store.putGlobal("matrix", "power", new Primitive("power") {
+        store.putGlobal("matrix", "mexpt", new Primitive("mexpt") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 Matrix y = (Matrix) params.get(1);
@@ -1760,12 +1760,12 @@ public class Machine {
             }
         });
 
-        store.putDebug("matrix", "power", new Primitive("power") {
+        store.putDebug("matrix", "mexpt", new Primitive("mexpt") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 checkNrArgs(params, 2);
                 checkMatrixArg(params, 0);
                 checkMatrixArg(params, 1);
-                Callable fun = (Callable) store.lookup("global_Matrix_power");
+                Callable fun = (Callable) store.lookup("global_Matrix_mexpt");
                 PacioliValue result = fun.apply(params);
                 return result;
             }

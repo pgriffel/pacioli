@@ -35,6 +35,18 @@ public class SymbolTable<R extends SymbolInfo> {
         return lookup(name) != null;
     }
 
+    public List<R> allInfos() {
+        List<R> values = new ArrayList<R>();
+        SymbolTable<R> current = this;
+        while (current != null) {
+            for (R value : current.table.values()) {
+                values.add(value);
+            }
+            current = current.parent;
+        }
+        return values;
+    }
+    
     public List<String> allNames() {
         List<String> names = new ArrayList<String>();
         SymbolTable<R> current = this;

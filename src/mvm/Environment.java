@@ -22,6 +22,7 @@
 package mvm;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -122,11 +123,12 @@ public class Environment {
     }
 
     public void putGlobal(String module, String name, PacioliValue primitive) {
-        put("global_" + module + "_" + name, primitive);
+        //put("global_" + module + "_" + name, primitive);
+        put("global_" + "base" + "_" + name, primitive);
     }
 
     public void putDebug(String module, String name, PacioliValue primitive) {
-        put("debug_" + module.toLowerCase() + "_" + name, primitive);
+        //put("debug_" + module.toLowerCase() + "_" + name, primitive);
     }
     
     public void putCode(String name, Expression exp) {
@@ -138,7 +140,9 @@ public class Environment {
     }
 
     public Set<String> keySet() {
-        Set<String> keys = store.keySet();
+        //Set<String> keys = store.keySet();
+        Set<String> keys = new HashSet<String>(); 
+        keys.addAll(store.keySet());
         keys.addAll(code.keySet());
         if (next != null) {
             keys.addAll(next.keySet());

@@ -8,9 +8,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import pacioli.CompilationSettings.Target;
@@ -107,10 +109,13 @@ public class Progam extends AbstractPrintable {
     
     void printSymbolTable(SymbolTable<? extends SymbolInfo> table, String header) {
         Pacioli.logln("Begin %s table", header);
-        for (String name : table.allNames()) {
-            SymbolInfo info = table.lookup(name);
-            Pacioli.logln("  %-25s %-15s %s %-50s %s", name, info.generic().getModule(),
-                    isExternal(info) ? "     " : "local", info.generic().file, info.getDefinition());
+        for (SymbolInfo info: table.allInfos()) {
+            Pacioli.logln("  %-25s %-15s %s %-50s %s", 
+                    info.name(),
+                    info.generic().getModule(),
+                    isExternal(info) ? "     " : "local", 
+                    info.generic().file, 
+                    info.getDefinition());
         }
         Pacioli.logln("End table");
     }
@@ -187,13 +192,13 @@ public class Progam extends AbstractPrintable {
         List<PacioliFile> libraries = new ArrayList<PacioliFile>();
         for (ImportNode node : program.imports) {
             String name = node.name.valueString();
-            PacioliFile library = PacioliFile.findLibrary(name, libs);
-            if (library == null) {
+            Optional<PacioliFile> library = PacioliFile.findLibrary(name, libs);
+            if (!library.isPresent()) {
                 throw new PacioliException(node.getLocation(),
                         "Import '%s' for file '%s' not found in directories %s", 
                         name, file, libs);
             } else {
-                libraries.add(library);    
+                libraries.add(library.get());    
             }
             
         }
@@ -295,32 +300,28 @@ public class Progam extends AbstractPrintable {
         Pacioli.logln("Symbol table for %s", getFile());
         
         Pacioli.logln("Units:");
-        for (String name: units.allNames()) {
-            UnitInfo info = units.lookup(name);
+        for (UnitInfo info : units.allInfos()) {
             Pacioli.logln("%s", info.name());
         }
         
         // Include the index sets from the other program
         Pacioli.logln("Index sets:");
-        for (String name: indexSets.allNames()) {
-            IndexSetInfo info = indexSets.lookup(name);
+        for (IndexSetInfo info: indexSets.allInfos()) {
             Pacioli.logln("%s", info.name());
         }
         
         // Include the types from the other program
         Pacioli.logln("Types:");
-        for (String name : types.allNames()) {
-            TypeInfo info = types.lookup(name);
+        for (TypeInfo info : types.allInfos()) {
             Pacioli.logln("%s", info.name());
         }
         
         // Include the values from the other program
         Pacioli.logln("Values:");
-        for (String name : values.allNames()) {
-            ValueInfo info = values.lookup(name);
+        for (ValueInfo info : values.allInfos()) {
             Pacioli.logln("%s %s %s",
                     isExternal(info) ? "ext " : "file",
-                            info.generic().file,
+                    info.generic().file,
                     info.name());
         }
         
@@ -333,8 +334,8 @@ public class Progam extends AbstractPrintable {
     public void includeOther(Progam other) throws Exception {
 
         // Include the units from the other program
-        for (String name: other.units.allNames()) {
-            UnitInfo otherInfo = other.units.lookup(name);
+        for (UnitInfo otherInfo: other.units.allInfos()) {
+            String name = otherInfo.name();
             if (!other.isExternal(otherInfo)) {
                 UnitInfo info = units.lookup(name);
                 if (info == null) {
@@ -346,8 +347,8 @@ public class Progam extends AbstractPrintable {
         }
         
         // Include the index sets from the other program
-        for (String name: other.indexSets.allNames()) {
-            IndexSetInfo otherInfo = other.indexSets.lookup(name);
+        for (IndexSetInfo otherInfo: other.indexSets.allInfos()) {
+            String name = otherInfo.name();
             IndexSetInfo info = indexSets.lookup(name);
             if (info == null) {
                 indexSets.put(name, otherInfo);
@@ -357,8 +358,8 @@ public class Progam extends AbstractPrintable {
         }
         
         // Include the types from the other program
-        for (String name : other.types.allNames()) {
-            TypeInfo otherInfo = other.types.lookup(name);
+        for (TypeInfo otherInfo: other.types.allInfos()) {
+             String name = otherInfo.name(); 
             TypeInfo info = types.lookup(name);
             if (info == null) {
                 types.put(name, otherInfo);
@@ -368,8 +369,8 @@ public class Progam extends AbstractPrintable {
         }
         
         // Include the values from the other program
-        for (String name : other.values.allNames()) {
-            ValueInfo otherInfo = other.values.lookup(name);
+        for (ValueInfo otherInfo: other.values.allInfos()) {
+            String name = otherInfo.name();
             if (!other.isExternal(otherInfo)) {
                 ValueInfo info = values.lookup(name);
                 if (info == null) {
@@ -388,22 +389,19 @@ public class Progam extends AbstractPrintable {
 
     public void resolve() throws Exception {
 
-        for (String unit : units.allNames()) {
-            UnitInfo nfo = units.lookup(unit);
+        for (UnitInfo nfo: units.allInfos()) {
             Definition definition = nfo.getDefinition();
             assert (definition != null);
             if (definition != null) {
                 definition.resolve(this);
             }
         }
-        for (String type : types.allNames()) {
-            TypeInfo nfo = types.lookup(type);
+        for (TypeInfo nfo: types.allInfos()) {
             if (nfo.definition != null) {
                 nfo.definition.resolve(this);
             }
         }
-        for (String value : values.allNames()) {
-            ValueInfo nfo = values.lookup(value);
+        for (ValueInfo nfo: values.allInfos()) {
             if (nfo.definition != null) {
                 nfo.definition.resolve(this);
             }
@@ -434,13 +432,7 @@ public class Progam extends AbstractPrintable {
         Set<SymbolInfo> finished = new HashSet<SymbolInfo>();
 
         List<String> names = values.allNames();
-        names.sort(new Comparator<String>() {
-
-            @Override
-            public int compare(String o1, String o2) {
-                return o1.compareTo(o2);
-            }
-        });
+        Collections.sort(names);
         
         for (String value : names) {
             ValueInfo info = values.lookup(value);
@@ -516,13 +508,7 @@ public class Progam extends AbstractPrintable {
     void printTypes() {
 
         List<String> names = values.allNames();
-        names.sort(new Comparator<String>() {
-
-            @Override
-            public int compare(String o1, String o2) {
-                return o1.compareTo(o2);
-            }
-        });
+        Collections.sort(names);
         
         for (String value : names) {
             ValueInfo info = values.lookup(value);
@@ -573,8 +559,7 @@ public class Progam extends AbstractPrintable {
         }
 
         // Generate code for the index sets
-        for (String indexSet : indexSets.allNames()) {
-            IndexSetInfo info = indexSets.lookup(indexSet);
+        for (IndexSetInfo info: indexSets.allInfos()) {
             if (!isExternal(info) || externals) {
                 assert (info.definition != null);
                 info.accept(compiler);
@@ -583,8 +568,7 @@ public class Progam extends AbstractPrintable {
         
         // Find all units to compile
         List<UnitInfo> unitsToCompile = new ArrayList<UnitInfo>();
-        for (String unit : units.allNames()) {
-            UnitInfo info = units.lookup(unit);
+        for (UnitInfo info: units.allInfos()) {
             if ((!isExternal(info) || externals) && !info.isAlias()) {
                 unitsToCompile.add(info);
             }
@@ -600,9 +584,7 @@ public class Progam extends AbstractPrintable {
         
         // Find all values to compile (unnecessary step, or do we want to sort alphabetically?)
         List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
-        for (String value : values.allNames()) {
-            
-            ValueInfo info = values.lookup(value);
+        for (ValueInfo info: values.allInfos()) {
             if (!isExternal(info) || externals) {
                 if (info.definition != null) {
                     valuesToCompile.add(info);
@@ -678,8 +660,7 @@ public class Progam extends AbstractPrintable {
 
             List<Definition> unitsToCompile = new ArrayList<Definition>();
             List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
-            for (String unit : units.allNames()) {
-                UnitInfo info = units.lookup(unit);
+            for (UnitInfo info : units.allInfos()) {
                 if (!isExternal(info)) {
                     unitsToCompile.add(info.getDefinition());
                     unitsToCompileTmp.add(info);
