@@ -25,12 +25,8 @@ public abstract class AbstractSymbolInfo implements SymbolInfo {
         return generic.location();
     }
 
-    public boolean isGlobal() {
+    @Override
+    public Boolean isGlobal() {
         return generic.isGlobal();
     }
-    /*
-    @Override
-    public Boolean isExternal() {
-        return generic.isExternal();
-    }*/
 }

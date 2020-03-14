@@ -13,8 +13,8 @@ public interface SymbolInfo {
 
     String globalName();
 
-    //Boolean isExternal();
-
+    Boolean isGlobal();
+    
     Location getLocation();
 
     void accept(SymbolTableVisitor visitor);
