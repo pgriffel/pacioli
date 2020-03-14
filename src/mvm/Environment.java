@@ -122,11 +122,6 @@ public class Environment {
         store.put(name, value);
     }
 
-    public void putGlobal(String module, String name, PacioliValue primitive) {
-        //put("global_" + module + "_" + name, primitive);
-        put("global_" + "base" + "_" + name, primitive);
-    }
-
     public void putDebug(String module, String name, PacioliValue primitive) {
         //put("debug_" + module.toLowerCase() + "_" + name, primitive);
     }
