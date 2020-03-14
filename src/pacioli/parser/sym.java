@@ -13,7 +13,9 @@ public interface sym {
   public static final int FROM = 25;
   public static final int GT = 69;
   public static final int TYPE = 22;
+  public static final int MMULT = 51;
   public static final int NATURAL = 77;
+  public static final int MEXPT = 56;
   public static final int LAMBDA = 31;
   public static final int RSCALE = 59;
   public static final int EQUIV = 67;
@@ -46,15 +48,13 @@ public interface sym {
   public static final int BOOLEAN = 76;
   public static final int DIMINV = 63;
   public static final int DO = 20;
-  public static final int LDIV = 54;
-  public static final int DOTDIV = 55;
   public static final int DEFCONV = 12;
   public static final int DIV = 49;
   public static final int PUBLIC = 14;
   public static final int RETURN = 30;
   public static final int MULT = 48;
+  public static final int MDIV = 55;
   public static final int ELSE = 16;
-  public static final int DOT = 51;
   public static final int RSCALEDOWN = 58;
   public static final int EOF = 0;
   public static final int SEMICOLON = 37;
@@ -64,12 +64,13 @@ public interface sym {
   public static final int GTQ = 71;
   public static final int DEFPROJ = 13;
   public static final int RECI = 64;
-  public static final int DOTHAT = 56;
   public static final int IN = 26;
   public static final int OR = 73;
   public static final int HAT = 52;
   public static final int error = 1;
+  public static final int MLEFTDIV = 57;
   public static final int EXCL = 23;
+  public static final int LEFTDIV = 54;
   public static final int IF = 15;
   public static final int END = 18;
   public static final int COLON = 36;
@@ -80,7 +81,6 @@ public interface sym {
   public static final int FORINDEX = 34;
   public static final int BEGIN = 17;
   public static final int DEFUNIT = 9;
-  public static final int DOTLDIV = 57;
   public static final int STRING = 80;
   public static final int NEQ = 66;
   public static final int AND = 72;
@@ -141,13 +141,13 @@ public interface sym {
   "MULT",
   "DIV",
   "MOD",
-  "DOT",
+  "MMULT",
   "HAT",
   "NEG",
-  "LDIV",
-  "DOTDIV",
-  "DOTHAT",
-  "DOTLDIV",
+  "LEFTDIV",
+  "MDIV",
+  "MEXPT",
+  "MLEFTDIV",
   "RSCALEDOWN",
   "RSCALE",
   "LSCALEDOWN",

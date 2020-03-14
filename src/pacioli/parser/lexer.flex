@@ -138,19 +138,16 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
 
   "+"               { return symbol("plus", PLUS); }
   "*"               { return symbol("mult", MULT); }
-//  ".*"              { return symbol("dot", DOT); }
-  "'*'"              { return symbol("dot", DOT); }
-//  ".^"              { return symbol("dothat", DOTHAT); }
-  "'^'"              { return symbol("dothat", DOTHAT); }
+  "'*'"             { return symbol("mmult", MMULT); }
+  "'^'"             { return symbol("mexpt", MEXPT); }
   "/"               { return symbol("div", DIV); }
-//  "./"              { return symbol("dotdiv", DOTDIV); }
-  "'/'"              { return symbol("dotdiv", DOTDIV); }  
-  "\\"              { return symbol("ldiv", LDIV); }
-  "\.\\"            { return symbol("dotldiv", DOTLDIV); }
-  "_*"              { return symbol("lscale", LSCALE); }
-  "*_"              { return symbol("rscale", RSCALE); }
-  "_/"              { return symbol("lscaledown", LSCALEDOWN); }
-  "/_"              { return symbol("rscaledown",RSCALEDOWN); }
+  "'/'"             { return symbol("mdiv", MDIV); }  
+  "\\"              { return symbol("leftdiv", LEFTDIV); }
+  "'\\'"            { return symbol("mleftdiv", MLEFTDIV); }
+  "'.*'"            { return symbol("lscale", LSCALE); }
+  "'*.'"            { return symbol("rscale", RSCALE); }
+  "'./'"            { return symbol("lscaledown", LSCALEDOWN); }
+  "'/.'"            { return symbol("rscaledown",RSCALEDOWN); }
   "%"               { return symbol("mod", MOD); }
   "<="              { return symbol("leq", LEQ); }
   ">="              { return symbol("gtq", GTQ); }

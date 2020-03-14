@@ -240,7 +240,7 @@ terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCO
 terminal IF, ELSE, BEGIN, END, WHILE, DO, ASSIGN, TYPE, EXCL, TO, FROM;
 terminal IN, LET, PER, THEN, RETURN, LAMBDA, FORTYPE, FORUNIT, FORINDEX, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
-terminal PLUS, MULT, DIV, MOD, DOT,HAT, NEG, LDIV, DOTDIV, DOTHAT, DOTLDIV;
+terminal PLUS, MULT, DIV, MOD, MMULT, HAT, NEG, LEFTDIV, MDIV, MEXPT, MLEFTDIV;
 terminal RSCALEDOWN, RSCALE, LSCALEDOWN, LSCALE, TRANS, DIMINV, RECI;
 terminal EQL, NEQ, EQUIV, LE, GT, LEQ, GTQ, AND, OR, IMPLIES, FOLLOWSFROM;
 terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING;
@@ -281,9 +281,9 @@ precedence left AND, OR;
 precedence nonassoc EQL, LEQ, GTQ, NEQ, LE, GT ;
 precedence left PLUS, NEG;
 precedence left MOD;
-precedence left MULT, DOT, DIV, DOTDIV, LDIV, DOTLDIV, LSCALE, RSCALE, LSCALEDOWN, RSCALEDOWN ;
+precedence left MULT, MMULT, DIV, MDIV, LEFTDIV, MLEFTDIV, LSCALE, RSCALE, LSCALEDOWN, RSCALEDOWN ;
 precedence left PER;
-precedence left HAT, DOTHAT;
+precedence left HAT, MEXPT;
 //precedence left NEG;
 precedence right TRANS, RECI, DIMINV;
 
@@ -472,12 +472,12 @@ expr ::=
  | expr:e DIMINV:d                                  {: RESULT = singleop("dim_inv", e, makeLoc(exleft, dxright)); :}
  | expr:e1 MULT:op expr:e2                          {: RESULT = binop("multiply", e1, e2); :}
  | expr:e1 PLUS expr:e2                             {: RESULT = binop("sum", e1, e2); :}
- | expr:e1 DOT expr:e2                              {: RESULT = binop("dot", e1, e2); :}
- | expr:e1 DOTHAT expr:e2                           {: RESULT = binop("power", e1, e2); :}
+ | expr:e1 MMULT expr:e2                            {: RESULT = binop("mmult", e1, e2); :}
+ | expr:e1 MEXPT expr:e2                            {: RESULT = binop("mexpt", e1, e2); :}
  | expr:e1 DIV expr:e2                              {: RESULT = binop("divide", e1, e2); :}
- | expr:e1 DOTDIV expr:e2                           {: RESULT = binop("right_division", e1, e2); :}
- | expr:e1 LDIV expr:e2                             {: RESULT = binop("left_divide", e1, e2); :}
- | expr:e1 DOTLDIV expr:e2                          {: RESULT = binop("left_division", e1, e2); :}
+ | expr:e1 MDIV expr:e2                             {: RESULT = binop("right_division", e1, e2); :}
+ | expr:e1 LEFTDIV expr:e2                          {: RESULT = binop("left_divide", e1, e2); :}
+ | expr:e1 MLEFTDIV expr:e2                         {: RESULT = binop("left_division", e1, e2); :}
  | expr:e1 LSCALE expr:e2                           {: RESULT = binop("scale", e1, e2); :}
  | expr:e1 RSCALE expr:e2                           {: RESULT = binop("rscale", e1, e2); :}
  | expr:e1 LSCALEDOWN expr:e2                       {: RESULT = binop("lscale_down", e1, e2); :}
