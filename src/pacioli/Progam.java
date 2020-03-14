@@ -235,7 +235,7 @@ public class Progam extends AbstractPrintable {
     public void fillTables(Boolean loadPrimitives, Boolean loadStandard) throws Exception {
 
         for (String type : ResolveVisitor.builtinTypes) {
-            GenericInfo generic = new GenericInfo(type, "primitives", null, true, null);
+            GenericInfo generic = new GenericInfo(type, "base", null, true, null);
             addInfo(new TypeInfo(generic));
         }
 

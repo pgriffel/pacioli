@@ -133,7 +133,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(AssignmentNode node) {
-        out.format("application(var(\"%s\"), var(\"", ValueInfo.global("primitives", "ref_set"));
+        out.format("application(var(\"%s\"), var(\"", ValueInfo.global("base", "ref_set"));
         out.print(node.var.getName());
         out.print("\"), ");
         node.value.accept(this);
@@ -173,7 +173,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         String full = info.isGlobal() ? ValueInfo.global(info.generic().getModule() , node.getName() ) : node.getName();
         
         if (node.getInfo().isRef) {
-            out.format("application(var(\"%s\"), var(\"%s\"))", ValueInfo.global("primitives", "ref_get"), full);
+            out.format("application(var(\"%s\"), var(\"%s\"))", ValueInfo.global("base", "ref_get"), full);
         } else {
             out.format("var(\"%s\")", full);
         }
@@ -292,7 +292,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnNode node) {
-        out.format("application(var(\"%s\"), var(\"result\"), ", ValueInfo.global("primitives", "throw_result"));
+        out.format("application(var(\"%s\"), var(\"result\"), ", ValueInfo.global("base", "throw_result"));
         node.value.accept(this);
         out.print(")");
     }
@@ -306,7 +306,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             Integer n = node.items.size();
             out.mark();
             for (int i = 0; i < n-1; i++) {
-                out.format("application(var(\"%s\"), ", ValueInfo.global("primitives", "seq"));
+                out.format("application(var(\"%s\"), ", ValueInfo.global("base", "seq"));
                 out.newlineUp();
                 node.items.get(i).accept(this);
                 out.print(", ");
@@ -347,7 +347,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.newlineUp();
         
         // A catch to get the result
-        out.format("application(var(\"%s\"),", ValueInfo.global("primitives", "catch_result"));
+        out.format("application(var(\"%s\"),", ValueInfo.global("base", "catch_result"));
         
         out.newlineUp();
         
@@ -371,7 +371,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.newlineDown();
         
         // The initial result place
-        out.format("application(var(\"%s\"))", ValueInfo.global("primitives", "empty_ref"));
+        out.format("application(var(\"%s\"))", ValueInfo.global("base", "empty_ref"));
 
         //first = true;
         for (IdentifierNode id : assignedVariables) {
@@ -383,17 +383,17 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
                 // todo: handle the case the id exists in this scope.
                 if (id.getInfo().initialRefInfo.isRef) {
                     out.format("application(var(\"%s\"), application(var(\"%s\"), var(\"",
-                            ValueInfo.global("primitives", "new_ref"),
-                            ValueInfo.global("primitives", "ref_get"));
+                            ValueInfo.global("base", "new_ref"),
+                            ValueInfo.global("base", "ref_get"));
                     out.print(id.getName());
                     out.print("\")))");
                 } else {
-                    out.format("application(var(\"%s\"), var(\"", ValueInfo.global("primitives", "new_ref"));
+                    out.format("application(var(\"%s\"), var(\"", ValueInfo.global("base", "new_ref"));
                     out.print(id.getName());
                     out.print("\"))");
                 }
             } else {
-                out.format("application(var(\"%s\"))", ValueInfo.global("primitives", "empty_ref"));
+                out.format("application(var(\"%s\"))", ValueInfo.global("base", "empty_ref"));
             }
         }        
         
@@ -429,7 +429,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         // tuple elements and are used in the lambda body to assign the 
         // variables. The lambda body is a sequence of these assignments.
         out.mark();
-        out.format("application(var(\"%s\"), lambda (", ValueInfo.global("primitives", "apply"));
+        out.format("application(var(\"%s\"), lambda (", ValueInfo.global("base", "apply"));
         
         // The lambda arguments
         Boolean first = true;
@@ -446,8 +446,8 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         
         // The sequence of assignments
         for (int i = 0; i < size; i++) {
-            if (i < size-1) out.format("application(var(\"%s\"), ", ValueInfo.global("primitives", "seq"));
-            out.format("application(var(\"%s\"), var(\"", ValueInfo.global("primitives", "ref_set"));
+            if (i < size-1) out.format("application(var(\"%s\"), ", ValueInfo.global("base", "seq"));
+            out.format("application(var(\"%s\"), var(\"", ValueInfo.global("base", "ref_set"));
             out.print(names.get(i));
             out.print("\"), var(\"");
             out.print(freshNames.get(i));
@@ -474,7 +474,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(WhileNode node) {
         out.mark();
-        out.format("application(var(\"%s\"),", ValueInfo.global("primitives", "while_function"));
+        out.format("application(var(\"%s\"),", ValueInfo.global("base", "while_function"));
         out.newlineUp();
         out.print("lambda () ");
         out.newlineUp();

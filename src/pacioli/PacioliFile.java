@@ -119,13 +119,8 @@ public class PacioliFile extends AbstractPrintable {
     }
     
     public static final List<String> defaultIncludes = new ArrayList<String>(
-            //Arrays.asList("primitives", "list", "matrix", "string", "standard"));
             Arrays.asList("base", "standard"));    
-   /* public static final List<String> defaultsToCompile = new ArrayList<String>(
-            Arrays.asList("primitives", "list", "matrix", "string", "standard"));
-    public static final List<String> debugablePrimitives = new ArrayList<String>(
-            Arrays.asList("primitives", "list", "matrix", "string"));
-*/
+
     public static PacioliFile findInclude(Path baseDir, PacioliFile file, String name) {
         File include = new File(file.getFile().getParentFile(), name + ".pacioli");
         
