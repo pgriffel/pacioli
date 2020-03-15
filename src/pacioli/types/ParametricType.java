@@ -50,7 +50,7 @@ public class ParametricType extends AbstractType {
     public ParametricType(String name) {
         this.name = name;
         this.args = new ArrayList<PacioliType>();
-        this.definition = null;
+        this.definition = Optional.empty();
     }
 
     public ParametricType(TypeDefinition definition, List<PacioliType> args) {
