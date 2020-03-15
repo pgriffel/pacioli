@@ -241,9 +241,9 @@ public class PrintVisitor implements Visitor {
         write("defunit ");
         node.id.accept(this);
         format(" %s", node.symbol);
-        if (node.body != null) {
+        if (node.body.isPresent()) {
             write(" = ");
-            node.body.accept(this);
+            node.body.get().accept(this);
         }
         write(";");
     }

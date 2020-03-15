@@ -1,6 +1,10 @@
 package pacioli.symboltable;
 
+import java.util.Optional;
+
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.TypeDefinition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.ast.TypeNode;
 
 public class TypeInfo extends AbstractSymbolInfo implements SymbolInfo {
@@ -9,7 +13,7 @@ public class TypeInfo extends AbstractSymbolInfo implements SymbolInfo {
         super(generic);
     }
 
-    public Definition definition;
+    private Optional<TypeDefinition> definition = Optional.empty();
     public TypeNode typeAST;
     public Boolean isIndexSetId;
     public Boolean isUnitId;
@@ -26,8 +30,12 @@ public class TypeInfo extends AbstractSymbolInfo implements SymbolInfo {
     }
 
     @Override
-    public Definition getDefinition() {
+    public Optional<TypeDefinition> getDefinition() {
         return definition;
+    }
+    
+    public void setDefinition(TypeDefinition definition) {
+        this.definition = Optional.of(definition);
     }
 
     public TypeInfo includeOther(TypeInfo otherInfo) {

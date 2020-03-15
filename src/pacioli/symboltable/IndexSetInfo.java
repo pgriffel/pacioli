@@ -1,11 +1,14 @@
 package pacioli.symboltable;
 
+import java.util.Optional;
+
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.definition.TypeDefinition;
 
 public class IndexSetInfo extends AbstractSymbolInfo implements SymbolInfo {
 
-    public IndexSetDefinition definition;
+    private Optional<IndexSetDefinition> definition = Optional.empty();
 
     @Override
     public void accept(SymbolTableVisitor visitor) {
@@ -17,8 +20,12 @@ public class IndexSetInfo extends AbstractSymbolInfo implements SymbolInfo {
     };
     
     @Override
-    public Definition getDefinition() {
+    public Optional<IndexSetDefinition> getDefinition() {
         return definition;
+    }
+    
+    public void setDefinition(IndexSetDefinition definition) {
+        this.definition = Optional.of(definition);
     }
     
     @Override

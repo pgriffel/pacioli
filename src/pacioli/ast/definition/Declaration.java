@@ -46,7 +46,7 @@ public class Declaration extends AbstractDefinition {
         
         GenericInfo generic = new GenericInfo(name, program.getModule(), program.getFile(), true, getLocation());       
         ValueInfo info = new ValueInfo(generic);
-        info.declaredType = typeNode;
+        info.setDeclaredType(typeNode);
         
         ValueInfo oldInfo = program.values.lookup(name);
         if (oldInfo != null) {

@@ -1,30 +1,21 @@
 package pacioli.symboltable;
 
 import java.util.List;
+import java.util.Optional;
 
-import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
-import pacioli.ast.unit.UnitNode;
 
 public class VectorUnitInfo extends UnitInfo implements SymbolInfo {
 
-    public UnitVectorDefinition definition;
+    private Optional<UnitVectorDefinition> definition = Optional.empty();
     public List<UnitDecl> items;
     
     public VectorUnitInfo(GenericInfo generic) {
         super(generic);
     }
-/*
-    
 
-    public String symbol;
-    public UnitNode baseDefinition;
-
-
-
-    public boolean isVector = false;
-*/
     @Override
     public void accept(SymbolTableVisitor visitor) {
         visitor.visit(this);
@@ -36,10 +27,14 @@ public class VectorUnitInfo extends UnitInfo implements SymbolInfo {
     }
 
     @Override
-    public Definition getDefinition() {
+    public Optional<UnitVectorDefinition> getDefinition() {
         return definition;
     }
-
+    
+    public void setDefinition(UnitVectorDefinition definition) {
+        this.definition = Optional.of(definition);
+    }
+    
     public VectorUnitInfo includeOther(VectorUnitInfo otherInfo) {
         // TODO Auto-generated method stub
         return this;

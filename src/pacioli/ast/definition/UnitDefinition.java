@@ -21,6 +21,8 @@
 
 package pacioli.ast.definition;
 
+import java.util.Optional;
+
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Progam;
@@ -36,20 +38,20 @@ public class UnitDefinition extends AbstractDefinition {
 
     public final IdentifierNode id;
     public final String symbol;
-    public final UnitNode body;
+    public final Optional<UnitNode> body;
 
     public UnitDefinition(Location location, IdentifierNode id, String symbol) {
         super(location);
         this.id = id;
         this.symbol = symbol;
-        this.body = null;
+        this.body = Optional.empty();
     }
 
     public UnitDefinition(Location location, IdentifierNode id, String symbol, UnitNode body) {
         super(location);
         this.id = id;
         this.symbol = symbol;
-        this.body = body;
+        this.body = Optional.of(body);
     }
 
     public String getName() {
@@ -60,8 +62,9 @@ public class UnitDefinition extends AbstractDefinition {
         return symbol;
     }
 
+    // Make Optional!!!
     public DimensionedNumber<TypeBase> evalBody() {
-        return (body == null) ? null : body.evalUnit();
+        return body.isPresent() ? body.get().evalUnit() : null;
     }
 
     @Override
@@ -83,7 +86,7 @@ public class UnitDefinition extends AbstractDefinition {
     public void addToProgr(Progam program) throws PacioliException {
         GenericInfo generic = new GenericInfo(localName(), program.getModule(), program.getFile(), true, getLocation());       
         ScalarUnitInfo info = new ScalarUnitInfo(generic);
-        info.definition = this;
+        info.setDefinition(this);
         info.symbol = symbol;
         program.addInfo(info);
     }

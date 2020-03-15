@@ -97,7 +97,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         Typing valueTyping = typingAccept(node.value);
         Typing typing = new Typing(voidType);
         typing.addConstraints(valueTyping);
-        typing.addConstraint(node.var.getInfo().inferredType, valueTyping.getType(),
+        typing.addConstraint(node.var.getInfo().inferredType(), valueTyping.getType(),
                 "assigned variable must have proper type");
         returnNode(typing);
     }
@@ -152,12 +152,13 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     @Override
     public void visit(IdentifierNode node) {
 
-        if (node.getInfo().inferredType == null) {
+        if (!node.getInfo().inferredType.isPresent()) {
             // It must be a recursive function. Todo: handle properly
-            returnNode(new Typing(node.getInfo().declaredType.evalType(true).instantiate()));
+            assert(node.getInfo().getDeclaredType().isPresent());
+            returnNode(new Typing(node.getInfo().getDeclaredType().get().evalType(true).instantiate()));
         } else
             // Move instantiate to proper place.
-            returnNode(new Typing(node.getInfo().inferredType.instantiate()));
+            returnNode(new Typing(node.getInfo().inferredType().instantiate()));
     }
 
     @Override
@@ -215,7 +216,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
             // Also store the type in the lambda's symbol table
             ValueInfo info = node.table.lookup(arg);
-            info.inferredType = freshType;
+            info.setinferredType(freshType);
 
         }
 
@@ -266,7 +267,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         Typing valueTyping = typingAccept(node.value);
         Typing typing = new Typing(voidType);
         typing.addConstraints(valueTyping);
-        typing.addConstraint(node.info.inferredType, valueTyping.getType(), "the types of returned values must agree");
+        typing.addConstraint(node.info.inferredType(), valueTyping.getType(), "the types of returned values must agree");
         returnNode(typing);
     }
 
@@ -287,13 +288,13 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
         for (String name : node.table.localNames()) {
             ValueInfo info = node.table.lookup(name);
-            info.inferredType = new TypeVar("for_type");
+            info.setinferredType(new TypeVar("for_type"));
         }
 
         PacioliType resultType = new TypeVar("for_type");
 
         ValueInfo resultInfo = node.table.lookup("result");
-        resultInfo.inferredType = resultType;
+        resultInfo.setinferredType(resultType);
 
         PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
         Typing typing = new Typing(resultType);
@@ -315,7 +316,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         
         List<PacioliType> varTypes = new ArrayList<PacioliType>();
         for (IdentifierNode var : node.vars) {
-            varTypes.add(var.getInfo().inferredType);
+            varTypes.add(var.getInfo().inferredType());
         }      
         PacioliType tupleType = new ParametricType("Tuple", varTypes);
         

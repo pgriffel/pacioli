@@ -1,13 +1,14 @@
 package pacioli.symboltable;
 
-import pacioli.ast.definition.Definition;
+import java.util.Optional;
+
 import pacioli.ast.definition.UnitDefinition;
 
 public class ScalarUnitInfo extends UnitInfo implements SymbolInfo {
 
-    public UnitDefinition definition;
     public String symbol;
-
+    private Optional<UnitDefinition> definition = Optional.empty();
+    
     public ScalarUnitInfo(GenericInfo generic) {
         super(generic);
     }
@@ -23,8 +24,12 @@ public class ScalarUnitInfo extends UnitInfo implements SymbolInfo {
     }
 
     @Override
-    public Definition getDefinition() {
+    public Optional<UnitDefinition> getDefinition() {
         return definition;
+    }
+    
+    public void setDefinition(UnitDefinition definition) {
+        this.definition = Optional.of(definition);
     }
     
     public Boolean isAlias() {
@@ -32,7 +37,7 @@ public class ScalarUnitInfo extends UnitInfo implements SymbolInfo {
     }
 
     public ScalarUnitInfo includeOther(ScalarUnitInfo otherInfo) {
+        // TODO Auto-generated method stub
         return this;
     }
-
 }

@@ -2,28 +2,28 @@ package pacioli.symboltable;
 
 import java.util.Optional;
 
-import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.ValueDefinition;
-import pacioli.ast.expression.IdentifierNode;
 import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
 
 public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
     
-    public ValueDefinition definition;
-    //public Optional<TypeNode> declaredType;
-    public TypeNode declaredType;
-    
-    public PacioliType inferredType;
+    // Set during parsing
+    private Optional<ValueDefinition> definition = Optional.empty();
+    private Optional<TypeNode> declaredType = Optional.empty();
 
-    public boolean isRef = false;
-    public ValueInfo initialRefInfo;
+    // Set during resolving
+    private Optional<Boolean> isRef = Optional.of(false);
+    public Optional<ValueInfo> initialRefInfo = Optional.empty();
     
-    public ValueInfo(GenericInfo generic) { //, ValueDefinition definition) {
+    // Set during type inference
+    public Optional<PacioliType> inferredType = Optional.empty();
+    
+    
+    public ValueInfo(GenericInfo generic) {
         super(generic);
-        //this.definition = definition;
     }
-
+    
     @Override
     public void accept(SymbolTableVisitor visitor) {
         visitor.visit(this);
@@ -37,40 +37,92 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
     public static String global(String module, String name) {
         return String.format("global_%s_%s", module, name);
     }
-
+    
     @Override
-    public Definition getDefinition() {
+    public Optional<ValueDefinition> getDefinition() {
         return definition;
     }
+    
+    public Optional<ValueDefinition> getValueDefinition() {
+        return definition;
+    }
+    
+    public void setDefinition(ValueDefinition definition) {
+        this.definition = Optional.of(definition);
+    }
+    
+    public Optional<TypeNode> getDeclaredType() {
+        return declaredType;
+    }
+    
+    public void setDeclaredType(TypeNode declaredType) {
+        this.declaredType = Optional.of(declaredType);
+    }
 
+    public Boolean isRef() {
+        if (isRef.isPresent()) {
+            return isRef.get();
+        } else {
+            throw new RuntimeException("No isRef value, ValueInfo must have been resolved");
+        }
+    }
+    
+    public void setIsRef(Boolean isRef) {
+        this.isRef = Optional.of(isRef);
+    }
+    
+    public ValueInfo initialRefInfo() {
+        if (initialRefInfo.isPresent()) {
+            return initialRefInfo.get();
+        } else {
+            throw new RuntimeException("No initialRefInfo value, ValueInfo must have been resolved");
+        }
+    }
+    
+    public void setinitialRefInfo(ValueInfo info) {
+        this.initialRefInfo = Optional.of(info);
+    }
+    
+    public PacioliType inferredType() {
+        if (inferredType.isPresent()) {
+            return inferredType.get();
+        } else {
+            throw new RuntimeException("No initialRefInfo value, ValueInfo must have been resolved");
+        }
+    }
+    
+    public void setinferredType(PacioliType type) {
+        this.inferredType = Optional.of(type);
+    }
+    
     public ValueInfo includeOther(ValueInfo other) {
         
-        if (other.definition != null) {
-            if (definition == null) {
+        if (other.definition.isPresent()) {
+            if (!definition.isPresent()) {
                 definition = other.definition;
             } else {
                 //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
             }
         }
         
-        if (other.declaredType != null) {
-            if (declaredType == null) {
+        if (other.declaredType.isPresent()) {
+            if (!declaredType.isPresent()) {
                 declaredType = other.declaredType;
             } else {
                 //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
             }
         }
         
-        if (other.inferredType != null) {
-            if (inferredType == null) {
+        if (other.inferredType.isPresent()) {
+            if (!inferredType.isPresent()) {
                 inferredType = other.inferredType;
             } else {
                 //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
             }
         }
         
-        if (other.initialRefInfo != null) {
-            if (initialRefInfo == null) {
+        if (other.initialRefInfo.isPresent()) {
+            if (!initialRefInfo.isPresent()) {
                 initialRefInfo = other.initialRefInfo;
             } else {
                 //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));

@@ -23,6 +23,7 @@ package pacioli.ast.definition;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import pacioli.Location;
 import pacioli.PacioliException;
@@ -116,7 +117,7 @@ public class TypeDefinition extends AbstractDefinition {
         GenericInfo generic = new GenericInfo(localName(), program.getModule(), program.getFile(), true, getLocation());       
         TypeInfo info = new TypeInfo(generic);
         info.typeAST = rhs;
-        info.definition = this;
+        info.setDefinition(this);
         program.addInfo(info);
     }
 

@@ -172,7 +172,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         //String full = info.isGlobal() ? prefix + info.generic().module + "_" + node.name : node.name;
         String full = info.isGlobal() ? ValueInfo.global(info.generic().getModule() , node.getName() ) : node.getName();
         
-        if (node.getInfo().isRef) {
+        if (node.getInfo().isRef()) {
             out.format("application(var(\"%s\"), var(\"%s\"))", ValueInfo.global("base", "ref_get"), full);
         } else {
             out.format("var(\"%s\")", full);
@@ -379,9 +379,9 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             out.print(", ");
             //first = false;
             
-            if (id.getInfo().initialRefInfo != null) {
+            if (id.getInfo().initialRefInfo.isPresent()) {
                 // todo: handle the case the id exists in this scope.
-                if (id.getInfo().initialRefInfo.isRef) {
+                if (id.getInfo().initialRefInfo().isRef()) {
                     out.format("application(var(\"%s\"), application(var(\"%s\"), var(\"",
                             ValueInfo.global("base", "new_ref"),
                             ValueInfo.global("base", "ref_get"));

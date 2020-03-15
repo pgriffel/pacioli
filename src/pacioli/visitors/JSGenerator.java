@@ -184,7 +184,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         String full = info.isGlobal() ? "Pacioli." + fun + "('" + info.generic().getModule() + "', '" + node.getName() + "')" 
                                           : node.getName();
 
-        if (node.getInfo().isRef) {
+        if (node.getInfo().isRef()) {
             out.format("Pacioli.global_base_ref_get(%s)", full);
         } else {
             out.format("%s", full);
@@ -377,9 +377,9 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         for (IdentifierNode id : assignedVariables) {
             write(", ");
             
-            if (id.getInfo().initialRefInfo != null) {
+            if (id.getInfo().initialRefInfo.isPresent()) {
                 // todo: handle the case the id exists in this scope.
-                if (id.getInfo().initialRefInfo.isRef) {
+                if (id.getInfo().initialRefInfo().isRef()) {
                     write("Pacioli.global_base_new_ref(Pacioli.global_base_ref_get(");
                     write(id.getName());
                     write("))");

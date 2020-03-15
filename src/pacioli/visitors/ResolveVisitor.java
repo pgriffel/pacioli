@@ -143,8 +143,8 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(UnitDefinition node) {
-        if (node.body != null) {
-            node.body.accept(this);
+        if (node.body.isPresent()) {
+            node.body.get().accept(this);
         }
     }
 
@@ -239,7 +239,8 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             for (TypeIdentifier id : dimType.getIndexSets()) {
                 IndexSetInfo indexSetInfo = indexSetTables.peek().lookup(id.name);
                 assert (indexSetInfo != null); // exception throwen
-                sets.add(indexSetInfo.definition.getIndexSet());
+                assert(indexSetInfo.getDefinition().isPresent());
+                sets.add(indexSetInfo.getDefinition().get().getIndexSet());
             }
             return new MatrixDimension(sets);
         }
@@ -329,8 +330,10 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             //GenericInfo generic = new GenericInfo(id.getName(), prog.program.module.name, prog.file, GenericInfo.Scope.LOCAL, id.getLocation());
             GenericInfo generic = newGenericInfo(id.getName(), false, id.getLocation());
             ValueInfo info = new ValueInfo(generic);
-            info.isRef = true;
-            info.initialRefInfo = shadowedInfo;
+            info.setIsRef(true);
+            if (shadowedInfo != null) {
+                info.setinitialRefInfo(shadowedInfo);
+            }
 
             // Put the info in the symbol table
             node.table.put(id.getName(), info);

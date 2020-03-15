@@ -2,11 +2,13 @@ package pacioli.compilers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import pacioli.CompilationSettings;
 import pacioli.Pacioli;
 import pacioli.Printer;
 import pacioli.Utils;
+import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
@@ -39,11 +41,13 @@ public class MVMCompiler implements SymbolTableVisitor {
     @Override
     public void visit(ValueInfo info) {
         
+        assert(info.getDefinition().isPresent()); // Infos without definition are filtered by the caller
+        
         //Pacioli.logln2("Compiling value %s", info.globalName());
         
         out.format("store \"%s\" ", info.globalName());
         out.newlineUp();
-        ValueDefinition def = info.definition;
+        ValueDefinition def = info.getDefinition().get();
         def.body.accept(new MVMGenerator(out, settings));
         out.print(";");
         out.newlineDown();
@@ -55,11 +59,13 @@ public class MVMCompiler implements SymbolTableVisitor {
      
         //Pacioli.logln2("Compiling index set %s", info.globalName());
         
+        assert(info.getDefinition().isPresent());
+        
         List<String> quotedItems = new ArrayList<String>();
-        for (String item : info.definition.items) {
+        for (String item : info.getDefinition().get().items) {
             quotedItems.add(String.format("\"%s\"", item));
         }
-        out.format("indexset \"%s\" \"%s\" list(%s);\n", info.globalName(), info.definition.localName(),
+        out.format("indexset \"%s\" \"%s\" list(%s);\n", info.globalName(), info.getDefinition().get().localName(),
                 Utils.intercalate(",", quotedItems));
     }
 
@@ -71,16 +77,22 @@ public class MVMCompiler implements SymbolTableVisitor {
     @Override
     public void visit(ScalarUnitInfo info) {
         
+        Optional<UnitDefinition> definition = info.getDefinition();
+        
         //Pacioli.logln("Compiling unit %s", info.globalName());
 
-        if (info.definition.body == null) {
-            out.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol);
+        if (definition.isPresent()) {
+            
+            if (!definition.get().body.isPresent()) {
+                out.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol);
+            } else {
+                DimensionedNumber<TypeBase> number = definition.get().body.get().evalUnit();
+                number = number.flat();
+                out.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
+                        MVMGenerator.compileUnitToMVM(number.unit()));
+            }
         } else {
-            //DimensionedNumber<TypeBase> number = (scalarInfo.baseDefinition.evalUnit();
-            DimensionedNumber<TypeBase> number = info.definition.body.evalUnit();
-            number = number.flat();
-            out.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
-                    MVMGenerator.compileUnitToMVM(number.unit()));
+            throw new RuntimeException("Definition missing in ScalarUnitInfo");
         }
     }
     
@@ -88,8 +100,9 @@ public class MVMCompiler implements SymbolTableVisitor {
     public void visit(VectorUnitInfo info) {
         
         //Pacioli.logln("Compiling vector unit %s", info.globalName());
+        assert(info.getDefinition().isPresent());
         
-        IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.definition).indexSetNode.info;
+        IndexSetInfo setInfo = (IndexSetInfo) info.getDefinition().get().indexSetNode.info;
         List<String> unitTexts = new ArrayList<String>();
         // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
         for (UnitDecl entry : info.items) {

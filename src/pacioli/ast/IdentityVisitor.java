@@ -112,8 +112,8 @@ public class IdentityVisitor implements Visitor {
     @Override
     public void visit(UnitDefinition node) {
         // Pacioli.log("Unitdef");
-        if (node.body != null) {
-            node.body.accept(this);
+        if (node.body.isPresent()) {
+            node.body.get().accept(this);
         }
     }
 

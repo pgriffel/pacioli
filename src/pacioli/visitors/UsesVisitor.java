@@ -23,20 +23,20 @@ public class UsesVisitor extends IdentityVisitor implements Visitor {
     @Override
     public void visit(TypeIdentifierNode node) {
         assert (node.info != null);
-        assert (node.info.getDefinition() != null);
+        assert (node.info.getDefinition().isPresent());
         infos.add(node.info);
     }
 
     @Override
     public void visit(IdentifierNode node) {
-        assert (node.getInfo().getDefinition() != null || node.getInfo().declaredType != null || !node.getInfo().isGlobal());
+        assert (node.getInfo().getDefinition().isPresent() || node.getInfo().getDeclaredType().isPresent() || !node.getInfo().isGlobal());
         infos.add(node.getInfo());
     }
 
     @Override
     public void visit(UnitIdentifierNode node) {
         assert (node.info != null);
-        assert (node.info.getDefinition() != null);
+        assert (node.info.getDefinition().isPresent());
         infos.add(node.info);
     }
 

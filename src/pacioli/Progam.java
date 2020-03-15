@@ -110,12 +110,13 @@ public class Progam extends AbstractPrintable {
     void printSymbolTable(SymbolTable<? extends SymbolInfo> table, String header) {
         Pacioli.logln("Begin %s table", header);
         for (SymbolInfo info: table.allInfos()) {
+            Optional<? extends Definition> def = info.getDefinition();
             Pacioli.logln("  %-25s %-15s %s %-50s %s", 
                     info.name(),
                     info.generic().getModule(),
                     isExternal(info) ? "     " : "local", 
                     info.generic().file, 
-                    info.getDefinition());
+                    def.isPresent() ? def.get() : "No definition");
         }
         Pacioli.logln("End table");
     }
@@ -390,23 +391,23 @@ public class Progam extends AbstractPrintable {
     public void resolve() throws Exception {
 
         for (UnitInfo nfo: units.allInfos()) {
-            Definition definition = nfo.getDefinition();
-            assert (definition != null);
-            if (definition != null) {
-                definition.resolve(this);
+            Optional<? extends Definition> definition = nfo.getDefinition();
+            assert (definition.isPresent());
+            if (definition.isPresent()) {
+                definition.get().resolve(this);
             }
         }
         for (TypeInfo nfo: types.allInfos()) {
-            if (nfo.definition != null) {
-                nfo.definition.resolve(this);
+            if (nfo.getDefinition().isPresent()) {
+                nfo.getDefinition().get().resolve(this);
             }
         }
         for (ValueInfo nfo: values.allInfos()) {
-            if (nfo.definition != null) {
-                nfo.definition.resolve(this);
+            if (nfo.getDefinition().isPresent()) {
+                nfo.getDefinition().get().resolve(this);
             }
-            if (nfo.declaredType != null) {
-                nfo.declaredType.resolve(this);
+            if (nfo.getDeclaredType().isPresent()) {
+                nfo.getDeclaredType().get().resolve(this);
             }
         }
         for (Toplevel definition : toplevels) {
@@ -436,7 +437,7 @@ public class Progam extends AbstractPrintable {
         
         for (String value : names) {
             ValueInfo info = values.lookup(value);
-            if (!isExternal(info) && info.getDefinition() != null) {
+            if (!isExternal(info) && info.getDefinition().isPresent()) {
                 inferValueDefinitionType(info, discovered, finished);
                 //Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.toText());
             }
@@ -456,28 +457,28 @@ public class Progam extends AbstractPrintable {
         for (SymbolInfo pre : definition.uses()) {
             if (pre.generic().isGlobal() && pre instanceof ValueInfo) {
                 //if (!pre.generic().isExternal() && pre.getDefinition() != null) {
-                if (!isExternal(pre) && pre.getDefinition() != null) {
-                    inferValueDefinitionType(pre, discovered, finished);
+                if (!isExternal(pre) && pre.getDefinition().isPresent()) {
+                    inferValueDefinitionType((ValueInfo) pre, discovered, finished);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
-                    if (vinfo.declaredType == null) {
+                    if (!vinfo.getDeclaredType().isPresent()) {
                         throw new RuntimeException(new PacioliException(pre.getLocation(), "No type declared for %s", pre.name()));
                     }
-                    assert (vinfo.declaredType != null); // should be an exception
-                    vinfo.inferredType = vinfo.declaredType.evalType(false);
+                    assert (vinfo.getDeclaredType().isPresent()); // should be an exception
+                    vinfo.setinferredType(vinfo.getDeclaredType().get().evalType(false));
                 }
             }
         }
     }
 
-    private void inferValueDefinitionType(SymbolInfo info, Set<SymbolInfo> discovered, Set<SymbolInfo> finished) {
+    private void inferValueDefinitionType(ValueInfo info, Set<SymbolInfo> discovered, Set<SymbolInfo> finished) {
 
         if (!finished.contains(info)) {
             if (discovered.contains(info)) {
                 Pacioli.warn("Cycle in definition of %s", info.name());
             } else {
                 discovered.add(info);
-                inferUsedTypes(info.getDefinition(), discovered, finished);
+                inferUsedTypes(info.getDefinition().get(), discovered, finished);
 
                 /*
                  * int oldVerbosity = Pacioli.verbosity; if (info.name().equals("conv_matrix"))
@@ -485,14 +486,14 @@ public class Progam extends AbstractPrintable {
                  */
 
                 Pacioli.log3("\n\nInferring type of %s", info.name());
-                ValueDefinition def = (ValueDefinition) info.getDefinition();
+                ValueDefinition def = info.getDefinition().get();
                 Typing typing = def.body.inferTyping2(this);
                 try {
                     PacioliType solved = typing.solve();
                     Pacioli.log3("\n\nSolved type of %s is %s", info.name(), solved.pretty());
                     Pacioli.log3("\n\nSimple type of %s is %s", info.name(), solved.simplify().pretty());
                     Pacioli.log3("\n\nGenerl type of %s is %s", info.name(), solved.simplify().generalize().pretty());
-                    values.lookup(info.name()).inferredType = solved.simplify().generalize();
+                    values.lookup(info.name()).setinferredType(solved.simplify().generalize());
                 } catch (PacioliException e) {
                     throw new RuntimeException(e);
                 }
@@ -512,8 +513,8 @@ public class Progam extends AbstractPrintable {
         
         for (String value : names) {
             ValueInfo info = values.lookup(value);
-            if (!isExternal(info) && info.getDefinition() != null) {
-                Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.pretty());
+            if (!isExternal(info) && info.getDefinition().isPresent()) {
+                Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType().pretty());
             }
         }
         for (Toplevel toplevel : toplevels) {
@@ -561,7 +562,7 @@ public class Progam extends AbstractPrintable {
         // Generate code for the index sets
         for (IndexSetInfo info: indexSets.allInfos()) {
             if (!isExternal(info) || externals) {
-                assert (info.definition != null);
+                assert (info.getDefinition().isPresent());
                 info.accept(compiler);
             }
         }
@@ -586,7 +587,7 @@ public class Progam extends AbstractPrintable {
         List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
         for (ValueInfo info: values.allInfos()) {
             if (!isExternal(info) || externals) {
-                if (info.definition != null) {
+                if (info.getDefinition().isPresent()) {
                     valuesToCompile.add(info);
                 }
             }
@@ -624,8 +625,8 @@ public class Progam extends AbstractPrintable {
     static <T extends SymbolInfo> void insertInfo(T info, List<T> definitions, Set<T> discovered, Set<T> finished,
             Collection<T> all) throws PacioliException {
 
-        Definition def = info.getDefinition();
-        assert (def != null);
+        assert (info.getDefinition().isPresent());
+        Definition def = info.getDefinition().get();
 
         if (!finished.contains(info)) {
 
@@ -634,7 +635,7 @@ public class Progam extends AbstractPrintable {
             }
             discovered.add(info);
             for (SymbolInfo other : def.uses()) {
-                if (all.contains(other) && other.getDefinition() != null) {
+                if (all.contains(other) && other.getDefinition().isPresent()) {
                     insertInfo((T) other, definitions, discovered, finished, all);
                 }
             }
@@ -661,8 +662,8 @@ public class Progam extends AbstractPrintable {
             List<Definition> unitsToCompile = new ArrayList<Definition>();
             List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
             for (UnitInfo info : units.allInfos()) {
-                if (!isExternal(info)) {
-                    unitsToCompile.add(info.getDefinition());
+                if (!isExternal(info) && info.getDefinition().isPresent()) {
+                    unitsToCompile.add(info.getDefinition().get());
                     unitsToCompileTmp.add(info);
                 }
             }
@@ -673,7 +674,7 @@ public class Progam extends AbstractPrintable {
             for (String value : values.allNames()) {
                 ValueInfo info = values.lookup(value);
                 if (!isExternal(info)) {
-                    if (info.definition != null) {
+                    if (info.getDefinition().isPresent()) {
                         valuesToCompile.add(info);
                     }
                 }
@@ -685,8 +686,8 @@ public class Progam extends AbstractPrintable {
             for (String indexSet : indexSets.allNames()) {
                 IndexSetInfo info = indexSets.lookup(indexSet);
                 if (!isExternal(info)) {
-                    assert (info.definition != null);
-                    info.definition.accept(gen);
+                    assert (info.getDefinition().isPresent());
+                    info.getDefinition().get().accept(gen);
                 }
             }
             
@@ -696,7 +697,7 @@ public class Progam extends AbstractPrintable {
 
             for (ValueInfo info : valuesToCompile) {
                 writer.format("store \"%s\" ", info.globalName());
-                ValueDefinition def = (ValueDefinition) info.getDefinition();
+                ValueDefinition def = info.getDefinition().get();
                 def.body.accept(gen);
                 writer.write(";\n");
             }

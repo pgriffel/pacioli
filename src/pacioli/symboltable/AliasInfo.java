@@ -1,6 +1,7 @@
 package pacioli.symboltable;
 
 import java.util.List;
+import java.util.Optional;
 
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
@@ -14,17 +15,6 @@ public class AliasInfo extends UnitInfo implements SymbolInfo {
     public AliasInfo(GenericInfo generic) {
         super(generic);
     }
-    
-/*
-    //public Definition definition;
-
-    public String symbol;
-    public UnitNode baseDefinition;
-
-    public List<UnitDecl> items;
-
-    public boolean isVector = false;
-*/
 
     public Boolean isAlias() {
         return true;
@@ -41,8 +31,8 @@ public class AliasInfo extends UnitInfo implements SymbolInfo {
     }
 
     @Override
-    public Definition getDefinition() {
-        return definition;
+    public Optional<AliasDefinition> getDefinition() {
+        return Optional.of(definition);
     }
 
     public AliasInfo includeOther(AliasInfo otherInfo) {

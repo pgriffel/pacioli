@@ -1,5 +1,7 @@
 package pacioli.symboltable;
 
+import java.util.Optional;
+
 import pacioli.Location;
 import pacioli.ast.definition.Definition;
 
@@ -7,7 +9,7 @@ public interface SymbolInfo {
 
     GenericInfo generic();
 
-    Definition getDefinition();
+    Optional<? extends Definition> getDefinition();
 
     String name();
 

@@ -3,6 +3,7 @@ package pacioli.visitors;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Stack;
 
 import pacioli.PacioliException;
@@ -96,7 +97,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
 
         // Create the index type. If no definition exists it is a variable.
         String indexSetName = node.indexSetName();
-        if (indexInfo.definition == null) {
+        if (!indexInfo.getDefinition().isPresent()) {
             indexType = new IndexType(new TypeVar("for_index", indexSetName));
         } else {
             indexType = new IndexType(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName));
@@ -113,7 +114,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
 
             // Create the unit. If no definition exists it is a variable.
             String unitName = node.unitVecName();
-            if (unitInfo.getDefinition() == null) {
+            if (!unitInfo.getDefinition().isPresent()) {
                 rowUnit = new TypeVar("for_unit", indexSetName + "!" + unitName);
             } else {
                 rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName),
@@ -180,14 +181,14 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             // See also reduction on types.
 
             // Definition definition = node.op.getDefinition();
-            Definition definition = node.op.info.getDefinition();
+            Optional<? extends Definition> definition = node.op.info.getDefinition();
 
-            if (definition == null) {
+            if (!definition.isPresent()) {
                 returnType(new ParametricType(node.getName(), types));
             } else {
 
-                assert (definition instanceof TypeDefinition);
-                TypeDefinition typeDefinition = (TypeDefinition) definition;
+                assert (definition.get() instanceof TypeDefinition);
+                TypeDefinition typeDefinition = (TypeDefinition) definition.get();
 
                 // if (reduce && definition.getModule() == node.op.home()) {
                 //if (reduce && !node.op.info.generic().isExternal()) {
@@ -212,8 +213,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
         assert (info != null);
 
         // If it has no definition it is a variable.
-        Definition definition = info.getDefinition();
-        if (definition == null) {
+        Optional<? extends Definition> definition = info.getDefinition();
+        if (!definition.isPresent()) {
 
             // Create a type for each different kind of type variable
             if (info instanceof TypeInfo) {
@@ -225,9 +226,9 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             } else {
                 throw new RuntimeException("Unknown kind");
             }
-        } else if (definition instanceof AliasDefinition) {
+        } else if (definition.get() instanceof AliasDefinition) {
             // todo: rewrite evalBody
-            returnType(new MatrixType(((AliasDefinition) definition).evalBody()));
+            returnType(new MatrixType(((AliasDefinition) definition.get()).evalBody()));
             //throw new RuntimeException("fixme");
         } else {
             returnType(new MatrixType(new ScalarBase(node.getName())));
