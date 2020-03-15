@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import pacioli.ConstraintSet;
@@ -38,12 +39,12 @@ public class ParametricType extends AbstractType {
 
     public final String name;
     public final List<PacioliType> args;
-    public final TypeDefinition definition;
+    public final Optional<TypeDefinition> definition;
 
     public ParametricType(String name, List<PacioliType> args) {
         this.name = name;
         this.args = args;
-        this.definition = null;
+        this.definition = Optional.empty();
     }
 
     public ParametricType(String name) {
@@ -55,10 +56,10 @@ public class ParametricType extends AbstractType {
     public ParametricType(TypeDefinition definition, List<PacioliType> args) {
         this.name = definition.localName();
         this.args = args;
-        this.definition = definition;
+        this.definition = Optional.of(definition);
     }
 
-    private ParametricType(String name, TypeDefinition definition, List<PacioliType> args) {
+    private ParametricType(String name, Optional<TypeDefinition> definition, List<PacioliType> args) {
         this.name = name;
         this.args = args;
         this.definition = definition;
@@ -200,11 +201,11 @@ public class ParametricType extends AbstractType {
             items.add(type.reduce());
         }
         try {
-            if (definition == null) {
+            if (!definition.isPresent()) {
                 // return this;
                 return new ParametricType(name, definition, items);
             } else {
-                return definition.constaint(true).reduce(new ParametricType(name, definition, items));
+                return definition.get().constaint(true).reduce(new ParametricType(name, definition, items));
             }
         } catch (PacioliException e) {
             throw new RuntimeException(e);

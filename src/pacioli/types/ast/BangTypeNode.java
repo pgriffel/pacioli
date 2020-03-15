@@ -45,7 +45,6 @@ public class BangTypeNode extends AbstractTypeNode {
     public BangTypeNode(Location location, TypeIdentifierNode indexSet, TypeIdentifierNode unit) {
         super(location);
         assert (!unit.getName().contains("!"));
-        //assert (unit == null || !unit.getName().contains("!"));
         this.indexSet = indexSet;
         this.unit = Optional.of(unit);
     }
