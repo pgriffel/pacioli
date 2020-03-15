@@ -26,26 +26,22 @@ import java.util.List;
 
 import pacioli.CompilationSettings;
 import pacioli.Location;
-import pacioli.PacioliFile;
 import pacioli.ast.Visitor;
-import pacioli.ast.definition.AliasDefinition;
-import pacioli.ast.definition.Definition;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.types.TypeIdentifier;
 
 public class TypeIdentifierNode extends AbstractTypeNode {
 
+    // An identifier can be one of three kinds
+    public enum Kind {TYPE, UNIT, INDEX}
+
+    // From construction during parsing
     private final String name;
     private final Kind kind;
-    //private final Definition definition;
-//    private final PacioliFile home;
+    
+    // Set during resolving
     public SymbolInfo info;
-
-    public enum Kind {
-
-        TYPE, UNIT, INDEX
-    }
-
+    
     // Duplicate
     public static final List<String> builtinTypes = new ArrayList<String>(
             Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier"));
@@ -54,51 +50,23 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         super(location);
         this.name = name;
         this.kind = null;
-        //this.definition = null;
-  //      this.home = null;
         assert (!name.contains("!"));
     }
-/*
-    public TypeIdentifierNode(Location location, String name, Kind kind, Definition definition, PacioliFile home) {
-        super(location);
-        this.name = name;
-        this.kind = kind;
-        this.definition = definition;
-        this.home = home;
-        assert (!name.contains("!"));
-    }
-*/
+
     public String getName() {
         return name;
     }
-/*
-    public PacioliFile home() {
-        assert (isResolved());
-        return home;
-    }
-*/
+    
+    // Fixme: this will always assert.
     public TypeIdentifier typeIdentifier() {
         assert (isResolved());
-        //return new TypeIdentifier(definition == null ? "" : definition.getModule().getName(), name);
         return new TypeIdentifier("", name);
     }
 
     public boolean isResolved() {
         return kind != null;
     }
-/*
-    public boolean isVariable() {
-        assert (isResolved());
-        //return definition == null;
-        return true;
-    }
-    */
-/*
-    public Definition getDefinition() {
-        assert (isResolved());
-        return definition;
-    }
-*/
+
     public String MVMCode(CompilationSettings settings) {
         if (false) { //(definition instanceof AliasDefinition) {
             // return "scalar_shape(" + Utils.compileUnitToMVM(((AliasDefinition)

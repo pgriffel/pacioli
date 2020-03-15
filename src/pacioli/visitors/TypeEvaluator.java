@@ -157,6 +157,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             if (types.size() == 1 && types.get(0) instanceof TypeVar) {
                 returnType(types.get(0));
             } else {
+                // This code is flawed. The .typeIdentifier() will always assert.
+                // Is  type instanceof MatrixType  always false?!
                 List<TypeIdentifier> names = new ArrayList<TypeIdentifier>();
                 for (int i = 0; i < types.size(); i++) {
                     PacioliType type = types.get(i);
