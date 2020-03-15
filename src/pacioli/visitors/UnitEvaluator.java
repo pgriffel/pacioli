@@ -45,10 +45,10 @@ public class UnitEvaluator extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(UnitIdentifierNode node) {
-        if (node.prefix == null) {
-            returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.name)));
+        if (!node.getPrefix().isPresent()) {
+            returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.getName())));
         } else {
-            returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.prefix, node.name)));
+            returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.getPrefix().get(), node.getName())));
         }
     }
 

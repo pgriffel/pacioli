@@ -1,27 +1,38 @@
 package pacioli.ast.unit;
 
+import java.util.Optional;
+
 import pacioli.Location;
 import pacioli.ast.Visitor;
 import pacioli.symboltable.UnitInfo;
 
 public class UnitIdentifierNode extends AbstractUnitNode {
 
-    public final String name;
-    public final String prefix;
+    private final String name;
+    private final Optional<String> prefix;
+    
     public UnitInfo info;
 
     public UnitIdentifierNode(Location location, String name) {
         super(location);
         this.name = name;
-        this.prefix = null;
+        this.prefix = Optional.empty();
     }
 
     public UnitIdentifierNode(Location location, String prefix, String name) {
         super(location);
-        this.prefix = prefix;
+        this.prefix = Optional.of(prefix);
         this.name = name;
     }
 
+    public String getName() {
+        return name;
+    }
+    
+    public Optional<String> getPrefix() {
+        return prefix;
+    }
+    
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);

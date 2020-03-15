@@ -544,9 +544,9 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(UnitIdentifierNode node) {
-        UnitInfo unitInfo = unitTables.peek().lookup(node.name);
+        UnitInfo unitInfo = unitTables.peek().lookup(node.getName());
         if (unitInfo == null) {
-            throw new RuntimeException(new PacioliException(node.getLocation(), "unit %s unknown", node.name));
+            throw new RuntimeException(new PacioliException(node.getLocation(), "unit %s unknown", node.getName()));
         }
         node.info = unitInfo;
     }

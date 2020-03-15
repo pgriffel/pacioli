@@ -557,12 +557,12 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(UnitIdentifierNode node) {
-        if (node.prefix == null) {
-            write(node.name);
+        if (!node.getPrefix().isPresent()) {
+            write(node.getName());
         } else {
-            write(node.prefix);
+            write(node.getPrefix().get());
             write(":");
-            write(node.name);
+            write(node.getName());
         }
     }
 
