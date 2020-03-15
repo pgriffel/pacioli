@@ -21,25 +21,25 @@
 
 package pacioli.types.matrix;
 
+import java.util.Optional;
+
 import pacioli.types.TypeBase;
-import uom.Base;
 import uom.BaseUnit;
 import uom.PowerProduct;
 import uom.Unit;
 
-//public class StringBase extends BaseUnit implements TypeBase {
 public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {    
 
-    private final String prefix;
+    private final Optional<String> prefix;
     private final String text;
 
     public ScalarBase(String text) {
-        this.prefix = null;
+        this.prefix = Optional.empty();
         this.text = text;
     }
 
     public ScalarBase(String prefix, String name) {
-        this.prefix = prefix;
+        this.prefix = Optional.of(prefix);
         this.text = name;
     }
 
@@ -64,20 +64,11 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
             return false;
         }
         ScalarBase otherUnit = (ScalarBase) real;
-        if (!text.equals(otherUnit.text)) {
-            return false;
-        }
-        if (prefix == null) {
-            return otherUnit.prefix == null;
-        }
-        if (otherUnit.prefix == null) {
-            return false;
-        }
-        return prefix.equals(otherUnit.prefix);
+        return text.equals(otherUnit.text) && prefix.equals(otherUnit.prefix);
     }
 
     private String prefixText() {
-        return (prefix == null) ? "" : prefix + ":";
+        return (prefix.isPresent()) ? prefix.get() + ":" : "";
     }
 
     @Override
@@ -92,16 +83,17 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
 
     @Override
     public String compileToJS() {
-        return (prefix == null) ? String.format("Pacioli.unit('%s')", text)
-                : String.format("Pacioli.unit('%s', '%s')", prefix, text);
+        return prefix.isPresent()
+               ? String.format("Pacioli.unit('%s', '%s')", prefix.get(), text)
+               : String.format("Pacioli.unit('%s')", text);
     }
 
     @Override
     public String compileToMVM() {
-        if (prefix == null) {
-            return "unit(\"" + text + "\")";
+        if (prefix.isPresent()) {
+            return "scaled_unit(\"" + prefix.get() + "\", \"" + text + "\")";
         } else {
-            return "scaled_unit(\"" + prefix + "\", \"" + text + "\")";
+            return "unit(\"" + text + "\")";
         }
     }
 }
