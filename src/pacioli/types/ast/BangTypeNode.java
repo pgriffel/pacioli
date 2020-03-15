@@ -21,6 +21,8 @@
 
 package pacioli.types.ast;
 
+import java.util.Optional;
+
 import pacioli.Location;
 import pacioli.ast.Visitor;
 import pacioli.symboltable.IndexSetInfo;
@@ -29,21 +31,23 @@ import pacioli.symboltable.UnitInfo;
 public class BangTypeNode extends AbstractTypeNode {
 
     public final TypeIdentifierNode indexSet;
-    public final TypeIdentifierNode unit;
+    public final Optional<TypeIdentifierNode> unit;
+    
     public IndexSetInfo indexSetInfo;
     public UnitInfo unitInfo;
 
     public BangTypeNode(Location location, TypeIdentifierNode indexSet) {
         super(location);
         this.indexSet = indexSet;
-        this.unit = null;
+        this.unit = Optional.empty();
     }
 
     public BangTypeNode(Location location, TypeIdentifierNode indexSet, TypeIdentifierNode unit) {
         super(location);
+        assert (!unit.getName().contains("!"));
+        //assert (unit == null || !unit.getName().contains("!"));
         this.indexSet = indexSet;
-        this.unit = unit;
-        assert (unit == null || !unit.getName().contains("!"));
+        this.unit = Optional.of(unit);
     }
 
     public String indexSetName() {
@@ -51,7 +55,7 @@ public class BangTypeNode extends AbstractTypeNode {
     }
 
     public String unitVecName() {
-        return unit == null ? "" : unit.getName();
+        return unit.isPresent() ? unit.get().getName() : "";
     }
 
     @Override

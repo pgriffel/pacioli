@@ -398,14 +398,14 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         }
         node.indexSet.info = indexSetInfo;
 
-        if (node.unit != null) {
-            String fullName = node.indexSetName() + "!" + node.unit.getName();
+        if (node.unit.isPresent()) {
+            String fullName = node.indexSetName() + "!" + node.unitVecName();
 
             SymbolInfo unitInfo = typeTables.peek().lookup(fullName);
             if (unitInfo == null) {
                 throw new RuntimeException(new PacioliException(node.getLocation(), "Vector unit %s unknown", fullName));
             }
-            node.unit.info = unitInfo;
+            node.unit.get().info = unitInfo;
         }
     }
 

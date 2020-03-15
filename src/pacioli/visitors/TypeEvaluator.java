@@ -104,12 +104,12 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
         }
 
         // Create the row unit if it exists, otherwise the unit is 1.
-        if (node.unit == null) {
+        if (!node.unit.isPresent()) {
             rowUnit = TypeBase.ONE;
         } else {
 
             // Find the unit info. The node must have been resolved.
-            UnitInfo unitInfo = (UnitInfo) node.unit.info;
+            UnitInfo unitInfo = (UnitInfo) node.unit.get().info;
             assert (unitInfo != null);
 
             // Create the unit. If no definition exists it is a variable.
