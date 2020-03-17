@@ -2,6 +2,7 @@ package pacioli.symboltable;
 
 import java.util.Optional;
 
+import pacioli.Location;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.TypeDefinition;
@@ -13,6 +14,10 @@ public class IndexSetInfo extends AbstractSymbolInfo implements SymbolInfo {
     @Override
     public void accept(SymbolTableVisitor visitor) {
         visitor.visit(this);
+    }
+    
+    public IndexSetInfo(String name, String module, Boolean isGlobal, Location location) {
+        super(new GenericInfo(name, module, isGlobal, location));
     }
     
     public IndexSetInfo(GenericInfo generic) {

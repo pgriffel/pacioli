@@ -21,6 +21,9 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
     // Set during type inference
     public Optional<PacioliType> inferredType = Optional.empty();
     
+    public ValueInfo(String name, String module, Boolean isGlobal, Location location) {
+        super(new GenericInfo(name, module, isGlobal, location));
+    }
     
     public ValueInfo(GenericInfo generic) {
         super(generic);

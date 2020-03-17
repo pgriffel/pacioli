@@ -2,12 +2,17 @@ package pacioli.symboltable;
 
 import java.util.Optional;
 
+import pacioli.Location;
 import pacioli.ast.definition.UnitDefinition;
 
 public class ScalarUnitInfo extends UnitInfo implements SymbolInfo {
 
     public String symbol;
     private Optional<UnitDefinition> definition = Optional.empty();
+    
+    public ScalarUnitInfo(String name, String module, Boolean isGlobal, Location location) {
+        super(new GenericInfo(name, module, isGlobal, location));
+    }
     
     public ScalarUnitInfo(GenericInfo generic) {
         super(generic);

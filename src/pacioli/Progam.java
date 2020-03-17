@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -237,6 +236,7 @@ public class Progam extends AbstractPrintable {
     public void fillTables(Boolean loadPrimitives, Boolean loadStandard) throws Exception {
 
         for (String type : ResolveVisitor.builtinTypes) {
+            // Fixme: null arg for the location. Maybe declare them in a base.pacioli?
             GenericInfo generic = new GenericInfo(type, "base", true, null);
             addInfo(new TypeInfo(generic));
         }
@@ -696,11 +696,11 @@ public class Progam extends AbstractPrintable {
                     info.getDefinition().get().accept(gen);
                 }
             }
-            
+/*
             for (UnitInfo info : unitsToCompileTmp) {
-    //            compileUnitMatlab(info, writer);
+                compileUnitMatlab(info, writer);
             }
-
+*/
             for (ValueInfo info : valuesToCompile) {
                 writer.format("store \"%s\" ", info.globalName());
                 ValueDefinition def = info.getDefinition().get();

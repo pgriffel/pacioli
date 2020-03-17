@@ -2,6 +2,7 @@ package pacioli.symboltable;
 
 import java.util.Optional;
 
+import pacioli.Location;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.ValueDefinition;
@@ -9,6 +10,10 @@ import pacioli.types.ast.TypeNode;
 
 public class TypeInfo extends AbstractSymbolInfo implements SymbolInfo {
 
+    public TypeInfo (String name, String module, Boolean isGlobal, Location location) {
+        super(new GenericInfo(name, module, isGlobal, location));
+    }
+    
     public TypeInfo(GenericInfo generic) {
         super(generic);
     }

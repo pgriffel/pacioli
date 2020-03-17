@@ -3,6 +3,7 @@ package pacioli.symboltable;
 import java.util.List;
 import java.util.Optional;
 
+import pacioli.Location;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
@@ -11,6 +12,10 @@ public class VectorUnitInfo extends UnitInfo implements SymbolInfo {
 
     private Optional<UnitVectorDefinition> definition = Optional.empty();
     public List<UnitDecl> items;
+
+    public VectorUnitInfo(String name, String module, Boolean isGlobal, Location location) {
+        super(new GenericInfo(name, module, isGlobal, location));
+    }
     
     public VectorUnitInfo(GenericInfo generic) {
         super(generic);

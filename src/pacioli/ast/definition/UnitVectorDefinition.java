@@ -75,8 +75,9 @@ public class UnitVectorDefinition extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
-        GenericInfo generic = new GenericInfo(localName(), program.getModule(), true, getLocation());       
-        VectorUnitInfo info = new VectorUnitInfo(generic);
+        //GenericInfo generic = new GenericInfo(localName(), program.getModule(), true, getLocation());       
+        //VectorUnitInfo info = new VectorUnitInfo(generic);
+        VectorUnitInfo info = new VectorUnitInfo(localName(), program.getModule(), true, getLocation());
         info.setDefinition(this);
         info.items = items;
         program.addInfo(info);

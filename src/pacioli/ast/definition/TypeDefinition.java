@@ -114,8 +114,9 @@ public class TypeDefinition extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
-        GenericInfo generic = new GenericInfo(localName(), program.getModule(), true, getLocation());       
-        TypeInfo info = new TypeInfo(generic);
+        //GenericInfo generic = new GenericInfo(localName(), program.getModule(), true, getLocation());       
+        //TypeInfo info = new TypeInfo(generic);
+        TypeInfo info = new TypeInfo(localName(), program.getModule(), true, getLocation());
         info.typeAST = rhs;
         info.setDefinition(this);
         program.addInfo(info);
