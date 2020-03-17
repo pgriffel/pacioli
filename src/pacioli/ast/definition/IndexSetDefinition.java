@@ -29,7 +29,6 @@ import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.IndexSetInfo;
 
 public class IndexSetDefinition extends AbstractDefinition {
@@ -45,8 +44,6 @@ public class IndexSetDefinition extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
-        //GenericInfo generic = new GenericInfo(localName(), program.getModule(), true, getLocation());
-        //IndexSetInfo info = new IndexSetInfo(generic);
         IndexSetInfo info = new IndexSetInfo(localName(), program.getModule(), true, getLocation());
         info.setDefinition(this);
         program.addInfo(info);

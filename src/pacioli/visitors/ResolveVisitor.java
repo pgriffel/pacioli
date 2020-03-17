@@ -167,14 +167,8 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         // Create the node's symbol table
         node.table = new SymbolTable<ValueInfo>(valueTables.peek());
 
-        // Create a symbol info record for each lambda parameter and store it in the
-        // table
+        // Create a symbol info record for each lambda parameter and store it in the table
         for (String arg : node.arguments) {
-            /*GenericInfo generic = new GenericInfo(arg, 
-                    prog.program.module.name, prog.file, 
-                    GenericInfo.Scope.LOCAL, 
-                    node.getLocation());*/
-            //GenericInfo generic = newGenericInfo(arg, false, node.getLocation());
             ValueInfo info = new ValueInfo(arg, prog.getModule(), false, node.getLocation());
             node.table.put(arg, info);
         }
