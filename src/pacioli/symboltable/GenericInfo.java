@@ -8,14 +8,12 @@ public class GenericInfo {
         
     public String name;
     private String module;
-    //public File file;
     private Location location;
     private Boolean isGlobal;
 
     public GenericInfo(String name, String module, Boolean isGlobal, Location location) {
         this.name = name;
         this.module = module;
-        //this.file = file;
         this.isGlobal = isGlobal;
         this.location = location;
     }
