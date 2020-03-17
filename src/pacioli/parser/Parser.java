@@ -25,7 +25,6 @@ import pacioli.ast.expression.*;
 import pacioli.ast.unit.*;
 import pacioli.types.ast.*;
 import pacioli.TypeContext;
-import pacioli.Utils;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java_cup.runtime.XMLElement;
 

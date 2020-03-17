@@ -34,7 +34,6 @@ import pacioli.ast.expression.ReturnNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.unit.UnitIdentifierNode;
-import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.symboltable.SymbolInfo;

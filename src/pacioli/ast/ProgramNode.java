@@ -5,7 +5,6 @@ import java.util.List;
 
 import pacioli.Location;
 import pacioli.ast.definition.Definition;
-import pacioli.ast.expression.IdentifierNode;
 
 public class ProgramNode extends AbstractNode {
 

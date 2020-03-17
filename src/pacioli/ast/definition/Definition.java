@@ -22,10 +22,8 @@
 package pacioli.ast.definition;
 
 import pacioli.PacioliException;
-import pacioli.PacioliFile;
 import pacioli.Progam;
 import pacioli.ast.Node;
-import pacioli.symboltable.GenericInfo;
 
 public interface Definition extends Node {
 

@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import pacioli.Location;
-import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 

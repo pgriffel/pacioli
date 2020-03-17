@@ -21,7 +21,6 @@
 
 package pacioli.ast;
 
-import java.io.PrintWriter;
 import java.util.Set;
 
 import pacioli.CompilationSettings;
@@ -30,7 +29,6 @@ import pacioli.Printable;
 import pacioli.Printer;
 import pacioli.Progam;
 import pacioli.symboltable.SymbolInfo;
-import pacioli.visitors.LiftStatements;
 import pacioli.visitors.LiftStatements.Lifted;
 
 public interface Node extends Printable {

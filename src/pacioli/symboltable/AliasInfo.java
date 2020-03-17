@@ -1,13 +1,9 @@
 package pacioli.symboltable;
 
-import java.util.List;
 import java.util.Optional;
 
 import pacioli.Location;
 import pacioli.ast.definition.AliasDefinition;
-import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
-import pacioli.ast.unit.UnitNode;
 
 public class AliasInfo extends UnitInfo implements SymbolInfo {
 

@@ -3,9 +3,7 @@ package pacioli.symboltable;
 import java.util.Optional;
 
 import pacioli.Location;
-import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.IndexSetDefinition;
-import pacioli.ast.definition.TypeDefinition;
 
 public class IndexSetInfo extends AbstractSymbolInfo implements SymbolInfo {
 

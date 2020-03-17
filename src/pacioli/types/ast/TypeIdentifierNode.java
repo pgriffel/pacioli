@@ -67,16 +67,6 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         return kind != null;
     }
 
-    public String MVMCode(CompilationSettings settings) {
-        if (false) { //(definition instanceof AliasDefinition) {
-            // return "scalar_shape(" + Utils.compileUnitToMVM(((AliasDefinition)
-            // definition).evalBody()) + ")";
-            throw new RuntimeException("fixme");
-        } else {
-            return "scalar_shape(unit(\"" + name + "\"))";
-        }
-    }
-
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);

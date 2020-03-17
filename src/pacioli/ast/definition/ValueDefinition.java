@@ -21,9 +21,6 @@
 
 package pacioli.ast.definition;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Progam;
@@ -32,8 +29,6 @@ import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
-import pacioli.ast.expression.SequenceNode;
-import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.ValueInfo;
 
 public class ValueDefinition extends AbstractDefinition {
@@ -61,6 +56,7 @@ public class ValueDefinition extends AbstractDefinition {
     }
 
     public String compileStatementToMATLAB() {
+        /*
         Object resolvedBody = null; // fixme
         assert (resolvedBody instanceof LambdaNode);
         LambdaNode lambda = (LambdaNode) resolvedBody;
@@ -69,11 +65,13 @@ public class ValueDefinition extends AbstractDefinition {
         String globalName = "FixMe: get from info in compiler visitor";
         return String.format("\nfunction %s = %s (%s)\n %s\nendfunction;\n", "result", // seq.getResultPlace().toText(),
                 globalName.toLowerCase(), lambda.argsString(), seq.compileToMATLAB());
+                */
+        return "Fixme: compileStatementToMATLAB";
     }
 
     @Override
     public String compileToMATLAB() {
-
+/*
         final List<ValueDefinition> blocks = new ArrayList<ValueDefinition>();
         String blocksCode = "";
         ExpressionNode transformed = null; // resolvedBody.liftStatements(module, blocks);
@@ -91,6 +89,8 @@ public class ValueDefinition extends AbstractDefinition {
             return blocksCode
                     + String.format("\nglobal %s = %s;\n", globalName.toLowerCase(), transformed.compileToMATLAB());
         }
+*/
+        return "Fixme: compileToMATLAB for value definition";
     }
 
     @Override

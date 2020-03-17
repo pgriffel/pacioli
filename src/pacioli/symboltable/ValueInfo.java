@@ -1,6 +1,5 @@
 package pacioli.symboltable;
 
-import java.io.File;
 import java.util.Optional;
 
 import pacioli.Location;

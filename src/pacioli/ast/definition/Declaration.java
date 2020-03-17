@@ -5,7 +5,6 @@ import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.ast.TypeNode;
 

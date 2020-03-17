@@ -33,7 +33,6 @@ import pacioli.Progam;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.visitors.DesugarVisitor;
 import pacioli.visitors.JSGenerator;
-import pacioli.visitors.LiftStatements;
 import pacioli.visitors.LiftStatements.Lifted;
 import pacioli.visitors.MVMGenerator;
 import pacioli.visitors.PrintVisitor;

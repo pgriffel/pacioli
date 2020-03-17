@@ -3,10 +3,10 @@ package pacioli.visitors;
 import java.util.ArrayList;
 import java.util.List;
 
-import pacioli.ast.Node;
-import pacioli.ast.Visitor;
 import pacioli.ast.IdentityTransformation;
+import pacioli.ast.Node;
 import pacioli.ast.ProgramNode;
+import pacioli.ast.Visitor;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.MultiDeclaration;
@@ -15,9 +15,6 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
-import pacioli.symboltable.SymbolInfo;
-import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.ValueInfo;
 
 public class LiftStatements extends IdentityTransformation implements Visitor {
 

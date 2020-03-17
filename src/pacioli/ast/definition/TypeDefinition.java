@@ -23,7 +23,6 @@ package pacioli.ast.definition;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import pacioli.Location;
 import pacioli.PacioliException;
@@ -31,7 +30,6 @@ import pacioli.Progam;
 import pacioli.TypeConstraint;
 import pacioli.TypeContext;
 import pacioli.ast.Visitor;
-import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.TypeInfo;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;

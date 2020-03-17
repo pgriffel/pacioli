@@ -21,7 +21,6 @@ import pacioli.ast.expression.*;
 import pacioli.ast.unit.*;
 import pacioli.types.ast.*;
 import pacioli.TypeContext;
-import pacioli.Utils;
 
 parser code {:
 

@@ -29,7 +29,6 @@ import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
-import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.ast.TypeIdentifierNode;
 
