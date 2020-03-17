@@ -115,7 +115,7 @@ public class Progam extends AbstractPrintable {
                     info.name(),
                     info.generic().getModule(),
                     isExternal(info) ? "     " : "local", 
-                    info.generic().file, 
+                    info.generic().getFile(), 
                     def.isPresent() ? def.get() : "No definition");
         }
         Pacioli.logln("End table");
@@ -170,7 +170,7 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     
     Boolean isExternal(SymbolInfo info) {
-        return !info.generic().file.equals(getFile());
+        return !info.generic().getFile().equals(getFile());
     }
     
     public List<String> includes() {
@@ -237,7 +237,7 @@ public class Progam extends AbstractPrintable {
     public void fillTables(Boolean loadPrimitives, Boolean loadStandard) throws Exception {
 
         for (String type : ResolveVisitor.builtinTypes) {
-            GenericInfo generic = new GenericInfo(type, "base", null, true, null);
+            GenericInfo generic = new GenericInfo(type, "base", true, null);
             addInfo(new TypeInfo(generic));
         }
 
@@ -323,7 +323,7 @@ public class Progam extends AbstractPrintable {
         for (ValueInfo info : values.allInfos()) {
             Pacioli.logln("%s %s %s",
                     isExternal(info) ? "ext " : "file",
-                    info.generic().file,
+                    info.generic().getFile(),
                     info.name());
         }
         

@@ -87,7 +87,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     }
 
     GenericInfo newGenericInfo(String name, Boolean isGlobal, Location location) {
-        return new GenericInfo(name, prog.getModule(), prog.getFile(), isGlobal, location);
+        return new GenericInfo(name, prog.getModule(), isGlobal, location);
     }
     
     // -------------------------------------------------------------------------

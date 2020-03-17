@@ -44,7 +44,7 @@ public class Declaration extends AbstractDefinition {
         
         String name = localName();
         
-        GenericInfo generic = new GenericInfo(name, program.getModule(), program.getFile(), true, getLocation());       
+        GenericInfo generic = new GenericInfo(name, program.getModule(), true, getLocation());       
         ValueInfo info = new ValueInfo(generic);
         info.setDeclaredType(typeNode);
         

@@ -45,7 +45,7 @@ public class IndexSetDefinition extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
-        GenericInfo generic = new GenericInfo(localName(), program.getModule(), program.getFile(), true, getLocation());
+        GenericInfo generic = new GenericInfo(localName(), program.getModule(), true, getLocation());
         IndexSetInfo info = new IndexSetInfo(generic);
         info.setDefinition(this);
         program.addInfo(info);

@@ -84,7 +84,7 @@ public class UnitDefinition extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
-        GenericInfo generic = new GenericInfo(localName(), program.getModule(), program.getFile(), true, getLocation());       
+        GenericInfo generic = new GenericInfo(localName(), program.getModule(), true, getLocation());       
         ScalarUnitInfo info = new ScalarUnitInfo(generic);
         info.setDefinition(this);
         info.symbol = symbol;

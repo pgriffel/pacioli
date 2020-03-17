@@ -88,6 +88,10 @@ public class Location {
             throw new RuntimeException("Cannot join locations from different sources");
         }
     }
+    
+    public File getFile() {
+        return file;
+    }
 
     public String fragment() {
         try {
