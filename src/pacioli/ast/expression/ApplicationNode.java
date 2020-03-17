@@ -22,7 +22,6 @@
 package pacioli.ast.expression;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import pacioli.Location;
@@ -45,11 +44,6 @@ public class ApplicationNode extends AbstractExpressionNode {
         super(old.getLocation());
         function = fun;
         arguments = args;
-    }
-
-    public static ApplicationNode newCall(Location location, String module, String function, ExpressionNode... args) {
-        IdentifierNode id = IdentifierNode.newValueIdentifier(module, function, location);
-        return new ApplicationNode(id, Arrays.asList(args), location);
     }
 
     @Override

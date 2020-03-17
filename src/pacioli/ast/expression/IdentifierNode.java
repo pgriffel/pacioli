@@ -25,8 +25,6 @@ import java.util.Optional;
 
 import pacioli.Location;
 import pacioli.ast.Visitor;
-import pacioli.ast.definition.Declaration;
-import pacioli.ast.definition.ValueDefinition;
 import pacioli.symboltable.ValueInfo;
 
 public class IdentifierNode extends AbstractExpressionNode {
@@ -38,28 +36,7 @@ public class IdentifierNode extends AbstractExpressionNode {
         super(location);
         this.name = name;
     }
-        
-    private IdentifierNode(String home, boolean mutable, String name, Location location) {
-        super(location);
-        assert (home != null);
-        this.name = name;
-    }
-
-    private IdentifierNode(String myHome, String home, boolean mutable, String name, Location location,
-            ValueDefinition definition, Declaration declaration, Boolean isResolved) {
-        super(location);
-        this.name = name;
-    }
     
-    public static IdentifierNode newValueIdentifier(String module, String name, Location location) {
-        assert (module != null);
-        return new IdentifierNode(module, false, name, location);
-    }
-
-    public static IdentifierNode newLocalMutableVar(String name, Location location) {
-        return new IdentifierNode("", true, name, location);
-    }
-
     @Override
     public int hashCode() {
         return name.hashCode();
