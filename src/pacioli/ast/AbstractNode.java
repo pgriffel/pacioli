@@ -33,6 +33,8 @@ import pacioli.Progam;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.visitors.DesugarVisitor;
 import pacioli.visitors.JSGenerator;
+import pacioli.visitors.LiftStatements;
+import pacioli.visitors.LiftStatements.Lifted;
 import pacioli.visitors.MVMGenerator;
 import pacioli.visitors.PrintVisitor;
 import pacioli.visitors.ResolveVisitor;
@@ -78,6 +80,11 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
     @Override
     public Node desugar() {
         return new DesugarVisitor().nodeAccept(this);
+    }
+    
+    @Override
+    public Lifted liftStatements() {
+        return null;//new LiftStatements().nodeAccept(this);
     }
     
     @Override

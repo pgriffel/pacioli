@@ -81,6 +81,10 @@ public class IdentifierNode extends AbstractExpressionNode {
         return name;
     }
     
+    public Boolean isResolved() {
+        return info.isPresent();
+    }
+    
     public ValueInfo getInfo() {
         if (info.isPresent()) {
             return info.get();

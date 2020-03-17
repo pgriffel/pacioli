@@ -1,7 +1,9 @@
 package pacioli.symboltable;
 
+import java.io.File;
 import java.util.Optional;
 
+import pacioli.Location;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;

@@ -193,7 +193,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
         // Check that it exists
         if (info == null) {
-            if (node.getInfo() == null) {
+            if (!node.isResolved()) {
                 visitorThrow(node.getLocation(), "Identifier '%s' unknown", node.getName());
             }
         } else {

@@ -30,6 +30,8 @@ import pacioli.Printable;
 import pacioli.Printer;
 import pacioli.Progam;
 import pacioli.symboltable.SymbolInfo;
+import pacioli.visitors.LiftStatements;
+import pacioli.visitors.LiftStatements.Lifted;
 
 public interface Node extends Printable {
 
@@ -40,6 +42,8 @@ public interface Node extends Printable {
     public Set<SymbolInfo> uses();
 
     public Node desugar();
+    
+    public Lifted liftStatements();
     
     public void resolve(Progam prog);
 

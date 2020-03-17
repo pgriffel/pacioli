@@ -6,6 +6,7 @@
 package mvm.parser;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.util.List;
 import java.util.HashMap;
@@ -16,15 +17,7 @@ import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
 import java_cup.runtime.Symbol;
 import mvm.ast.*;
-import mvm.ast.expression.Application;
-import mvm.ast.expression.Branch;
-import mvm.ast.expression.Const;
-import mvm.ast.expression.Expression;
-import mvm.ast.expression.Identifier;
-import mvm.ast.expression.Lambda;
-import mvm.ast.expression.LitKey;
-import mvm.ast.expression.LitMat;
-import mvm.ast.expression.MatrixConstructor;
+import mvm.ast.expression.*;
 import mvm.ast.shape.*;
 import mvm.ast.unit.*;
 import pacioli.PacioliException;
@@ -304,7 +297,7 @@ public class Parser extends java_cup.runtime.lr_parser {
 
 
     /* The file being parsed. Only needed for location info. */
-    String file;                   
+   File file;                   
 
     /* Buffer to get syntax error ino from message and location info
        from CUP's syntax_error to CUP's report_fatal_error
@@ -316,13 +309,13 @@ public class Parser extends java_cup.runtime.lr_parser {
     String source;
 
    /* Public interface */
-    public Parser(Lexer lex, ComplexSymbolFactory sf, String file, String source) {
+    public Parser(Lexer lex, ComplexSymbolFactory sf, File file, String source) {
         super(lex,sf);
         this.file = file;
         this.source = source;
     }
 
-    public static Program parseFile(String file) throws Exception {
+    public static Program parseFile(File file) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(file));
         ComplexSymbolFactory csf = new ComplexSymbolFactory();
         Lexer lexer = new Lexer(reader, csf, file, null);
@@ -353,7 +346,9 @@ public class Parser extends java_cup.runtime.lr_parser {
 
    /* Utility functions for the grammar rules */
     private pacioli.Location makeLoc(Location from, Location to) {
-      return new pacioli.Location(file, source, from.getOffset(), to.getOffset());
+        pacioli.Location pacioliFrom = new pacioli.Location(file, from.getLine(), from.getColumn(), from.getOffset());
+        pacioli.Location pacioliTo = new pacioli.Location(file, to.getLine(), to.getColumn(), to.getOffset());
+        return pacioliFrom.join(pacioliTo);
     }
 
     private class UnitDecl {

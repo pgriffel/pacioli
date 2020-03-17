@@ -5,6 +5,7 @@ package mvm.parser;
 import java_cup.runtime.Symbol;
 import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.Location;
+import java.io.File;
 import java.io.IOException;
 import pacioli.PacioliException;
 
@@ -396,33 +397,34 @@ public class Lexer implements java_cup.runtime.Scanner, sym {
 
   /* user code: */
     StringBuffer string = new StringBuffer();
-    public Lexer(java.io.Reader in, ComplexSymbolFactory sf, String file, String source){
+    public Lexer(java.io.Reader in, ComplexSymbolFactory sf, File file, String source){
 	this(in);
 	symbolFactory = sf;
         this.file = file;
         this.source = source;
     }
-    String file;
+    File file;
     String source;
     ComplexSymbolFactory symbolFactory;
 
   private Symbol symbol(String name, int sym) {
-      return symbolFactory.newSymbol(name, sym, new Location(yyline+1,yycolumn+1,yychar), new Location(yyline+1,yycolumn+yylength(),yychar+yylength()));
+      return symbolFactory.newSymbol(name, sym, new Location(yyline, yycolumn, yychar), new Location(yyline, yycolumn+yylength(), yychar+yylength()));
   }
 
   private Symbol symbol(String name, int sym, Object val) {
-      Location left = new Location(yyline+1,yycolumn+1,yychar);
-      Location right= new Location(yyline+1,yycolumn+yylength(), yychar+yylength());
+      Location left = new Location(yyline,yycolumn,yychar);
+      Location right= new Location(yyline,yycolumn+yylength(), yychar+yylength());
       return symbolFactory.newSymbol(name, sym, left, right,val);
   }
   private Symbol symbol(String name, int sym, Object val,int buflength) {
-      Location left = new Location(yyline+1,yycolumn+yylength()-buflength,yychar+yylength()-buflength);
-      Location right= new Location(yyline+1,yycolumn+yylength(), yychar+yylength());
+      Location left = new Location(yyline, yycolumn+yylength()-buflength, yychar+yylength()-buflength);
+      Location right= new Location(yyline, yycolumn+yylength(), yychar+yylength());
       return symbolFactory.newSymbol(name, sym, left, right,val);
   }
   private void error(String message) throws IOException {
-    pacioli.Location errorLocation = new pacioli.Location(file, source, yychar, yychar+yylength());
-    throw new IOException(new PacioliException(errorLocation, message));
+    pacioli.Location from = new pacioli.Location(file, yyline, yycolumn, yychar);
+    pacioli.Location to = new pacioli.Location(file, yyline, yycolumn+yylength(), yychar+yylength());
+    throw new IOException(new PacioliException(from.join(to), message));
   }
 
 
@@ -807,7 +809,7 @@ public class Lexer implements java_cup.runtime.Scanner, sym {
       if (zzInput == YYEOF && zzStartRead == zzCurrentPos) {
         zzAtEOF = true;
             zzDoEOF();
-          {      return symbolFactory.newSymbol("EOF", EOF, new Location(yyline+1,yycolumn+1,yychar), new Location(yyline+1,yycolumn+1,yychar+1));
+          {      return symbolFactory.newSymbol("EOF", EOF, new Location(yyline,yycolumn,yychar), new Location(yyline,yycolumn,yychar));
  }
       }
       else {

@@ -6,6 +6,7 @@
 package pacioli.parser;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.util.List;
 import java.util.HashMap;
@@ -1261,7 +1262,7 @@ public class Parser extends java_cup.runtime.lr_parser {
 
 
     /* The file being parsed. Only needed for location info. */
-    String file;                   
+    File file;                   
 
     /* Buffer to get syntax error ino from message and location info
        from CUP's syntax_error to CUP's report_fatal_error
@@ -1273,13 +1274,13 @@ public class Parser extends java_cup.runtime.lr_parser {
     String source;
 
    /* Public interface */
-    public Parser(Lexer lex, ComplexSymbolFactory sf, String file, String source) {
+    public Parser(Lexer lex, ComplexSymbolFactory sf, File file, String source) {
         super(lex,sf);
         this.file = file;
         this.source = source;
     }
 
-    public static ProgramNode parseFile(String file) throws Exception {
+    public static ProgramNode parseFile(File file) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(file));
         ComplexSymbolFactory csf = new ComplexSymbolFactory();
         Lexer lexer = new Lexer(reader, csf, file, null);
@@ -1310,7 +1311,10 @@ public class Parser extends java_cup.runtime.lr_parser {
 
    /* Utility functions for the grammar rules */
     private pacioli.Location makeLoc(Location from, Location to) {
-      return new pacioli.Location(file, source, from.getOffset(), to.getOffset());
+      //return new pacioli.Location(file, source, from.getOffset(), to.getOffset());
+        pacioli.Location pacioliFrom = new pacioli.Location(file, from.getLine(), from.getColumn(), from.getOffset());
+        pacioli.Location pacioliTo = new pacioli.Location(file, to.getLine(), to.getColumn(), to.getOffset());
+        return pacioliFrom.join(pacioliTo);
     }
 
     private static List<String> idNames(List<IdentifierNode> ids) {
@@ -1513,7 +1517,7 @@ class CUP$Parser$actions {
                                                                imports.add((ImportNode) node);
                                                            }
                                                        }
-                                                       RESULT = new ProgramNode(new pacioli.Location(file, source, 0, 0), includes, imports, c); 
+                                                       RESULT = new ProgramNode(new pacioli.Location(file, 0, 0, 0), includes, imports, c); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("program",0, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

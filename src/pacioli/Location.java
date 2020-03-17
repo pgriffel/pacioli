@@ -26,16 +26,37 @@ import java.io.IOException;
 
 public class Location {
 
+    private final File file;
+    
+    private final int from; // offset noemen
+    private final int to; // offset noemen
     private final int fromLine;
     private final int fromColumn;
     private final int toLine;
     private final int toColumn;
+    //private final String source;
+    //private final String file;
 
-    private final int from;
-    private final int to;
-    private final String source;
-    private final String file;
-
+    public Location(File file, int line, int column, int offset) {
+        this.file = file;
+        this.from = offset;
+        this.to = offset;
+        this.fromLine = line;
+        this.fromColumn = column;
+        this.toLine = line;
+        this.toColumn = column;
+    }
+    
+    private Location(File file, int fromLine, int fromColumn, int fromOffset, int toLine, int toColumn, int toOffset) {
+        this.file = file;
+        this.from = fromOffset;
+        this.to = toOffset;
+        this.fromLine = fromLine;
+        this.fromColumn = fromColumn;
+        this.toLine = toLine;
+        this.toColumn = toColumn;
+    }
+/*    
     public Location(String file, String source, int at) {
         this.source = source;
         this.file = file;
@@ -79,25 +100,31 @@ public class Location {
         this.toLine = 0;
         this.toColumn = 0;
     }
-
+*/
     public Location join(Location other) {
         if (from < 0 || to < 0) {
+            assert(false);
             return other;
         }
         if (other.from < 0 || other.to < 0) {
+            assert(false);
             return this;
         }
-        // if (source != other.source || file != other.file) {
-        // throw new RuntimeException("Cannot join locations from different sources");
-        // } else {
-        return new Location(file, source, Math.min(from, other.from), Math.max(to, other.to));
-        // }
+        if (!file.equals(other.file)) {
+            throw new RuntimeException("Cannot join locations from different sources");
+        } else {
+            Location smallestFrom = (this.from < other.from) ? this : other;
+            Location largestTo = (this.to < other.to) ? other : this;
+            return new Location(file, smallestFrom.fromLine, smallestFrom.fromColumn, smallestFrom.from,
+                                      largestTo.toLine, largestTo.toColumn, largestTo.to);
+        }
     }
 
     public String description2() {
         String source;
         try {
-            source = Utils.readFile(new File(file));
+            //source = Utils.readFile(new File(file));
+            source = Utils.readFile(file);
         } catch (IOException e) {
             return "No source for file" + file;
         }
@@ -111,7 +138,8 @@ public class Location {
     public String description() {
         String source;
         try {
-            source = Utils.readFile(new File(file));
+            //source = Utils.readFile(new File(file));
+            source = Utils.readFile(file);
         } catch (IOException e) {
             return "No source for file" + file;
         }
@@ -120,9 +148,12 @@ public class Location {
 
         if (0 <= from && from <= to) {
 
-            int fromLine = 0;
-            int fromColumn = 0;
+    
             int i = 0;
+            
+  /*        int fromLine = 0;
+            int fromColumn = 0;
+            
             while (i != from) {
                 if (source.charAt(i++) == '\n') {
                     fromLine += 1;
@@ -146,9 +177,12 @@ public class Location {
             while (i < source.length() && source.charAt(i) != '\n') {
                 i++;
             }
-
+*/
             int start = from - fromColumn;
-            int end = i;
+            int end = from;
+            while (end < source.length() && source.charAt(end) != '\n') {
+                end++;
+            }
 
             String underline = "";
             for (int j = 0; j < to - start; j++) {

@@ -10,6 +10,8 @@ public class SymbolTable<R extends SymbolInfo> {
     private final Map<String, R> table = new HashMap<String, R>();
     private final SymbolTable<R> parent;
 
+    private static int counter;
+    
     public SymbolTable() {
         this.parent = null;
     }
@@ -78,5 +80,13 @@ public class SymbolTable<R extends SymbolInfo> {
         for (SymbolInfo info: table.values()) {
             info.accept(visitor);
         }
+    }
+    
+    public String freshSymbolName() {
+        String candidate = "sym_" + counter++;
+        while (contains(candidate)) {
+            candidate = "sym_" + counter++;
+        }
+        return candidate;
     }
 }

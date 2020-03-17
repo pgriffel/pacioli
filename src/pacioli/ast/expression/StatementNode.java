@@ -22,11 +22,11 @@ public class StatementNode extends AbstractExpressionNode {
         super(location);
         this.body = body;
     }
-
+/*
     public StatementNode resolve(SequenceNode body, ValueContext context) {
         return new StatementNode(getLocation(), body, context);
     }
-
+*/
     @Override
     public String compileToMATLAB() {
         return body.compileToMATLAB();

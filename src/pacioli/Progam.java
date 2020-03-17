@@ -216,10 +216,11 @@ public class Progam extends AbstractPrintable {
     
     public void loadTillHelper(Phase phase, Boolean loadPrimitives, Boolean loadStandard) throws Exception {
         
-        program = Parser.parseFile(this.getFile().getAbsolutePath());
+        program = Parser.parseFile(this.file.getFile());
         if (phase.equals(Phase.PARSED)) return;
         
         desugar();
+        liftStatements();
         if (phase.equals(Phase.DESUGARED)) return;
         
         fillTables(loadPrimitives, loadStandard);
@@ -422,7 +423,12 @@ public class Progam extends AbstractPrintable {
     public void desugar() throws PacioliException {
         program = (ProgramNode) program.desugar();
     }
-
+    
+    public void liftStatements() {
+        Pacioli.logln("Lifting statements for %s", file);
+        Pacioli.logln("Done lifting statements");
+    }
+    
     // -------------------------------------------------------------------------
     // Type inference
     // -------------------------------------------------------------------------

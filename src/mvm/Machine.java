@@ -1242,7 +1242,7 @@ public class Machine {
             loadedFiles.add(file);
 
             // Load the file
-            mvm.ast.Program code = mvm.parser.Parser.parseFile(file.getAbsolutePath());
+            mvm.ast.Program code = mvm.parser.Parser.parseFile(file);
 
             // Run the requires
             for (String require : code.requires) {
