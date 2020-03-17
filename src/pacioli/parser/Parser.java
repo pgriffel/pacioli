@@ -1270,21 +1270,17 @@ public class Parser extends java_cup.runtime.lr_parser {
     String errorMessage;
     pacioli.Location errorLocation;
 
-    /* Obsolete */
-    String source;
-
    /* Public interface */
-    public Parser(Lexer lex, ComplexSymbolFactory sf, File file, String source) {
+    public Parser(Lexer lex, ComplexSymbolFactory sf, File file) {
         super(lex,sf);
         this.file = file;
-        this.source = source;
     }
 
     public static ProgramNode parseFile(File file) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(file));
         ComplexSymbolFactory csf = new ComplexSymbolFactory();
         Lexer lexer = new Lexer(reader, csf, file, null);
-        Parser parser = new Parser(lexer, csf, file, null);
+        Parser parser = new Parser(lexer, csf, file);
         return (ProgramNode) parser.parse().value;
     }
 
@@ -1311,7 +1307,6 @@ public class Parser extends java_cup.runtime.lr_parser {
 
    /* Utility functions for the grammar rules */
     private pacioli.Location makeLoc(Location from, Location to) {
-      //return new pacioli.Location(file, source, from.getOffset(), to.getOffset());
         pacioli.Location pacioliFrom = new pacioli.Location(file, from.getLine(), from.getColumn(), from.getOffset());
         pacioli.Location pacioliTo = new pacioli.Location(file, to.getLine(), to.getColumn(), to.getOffset());
         return pacioliFrom.join(pacioliTo);

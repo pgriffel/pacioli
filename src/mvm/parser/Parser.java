@@ -305,21 +305,17 @@ public class Parser extends java_cup.runtime.lr_parser {
     String errorMessage;
     pacioli.Location errorLocation;
 
-    /* Obsolete */
-    String source;
-
    /* Public interface */
-    public Parser(Lexer lex, ComplexSymbolFactory sf, File file, String source) {
+    public Parser(Lexer lex, ComplexSymbolFactory sf, File file) {
         super(lex,sf);
         this.file = file;
-        this.source = source;
     }
 
     public static Program parseFile(File file) throws Exception {
         BufferedReader reader = new BufferedReader(new FileReader(file));
         ComplexSymbolFactory csf = new ComplexSymbolFactory();
         Lexer lexer = new Lexer(reader, csf, file, null);
-        Parser parser = new Parser(lexer, csf, file, null);
+        Parser parser = new Parser(lexer, csf, file);
         return (Program ) parser.parse().value;
     }
 
