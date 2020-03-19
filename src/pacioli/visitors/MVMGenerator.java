@@ -374,16 +374,9 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         // The initial result place
         out.format("application(var(\"%s\"))", ValueInfo.global("base", "empty_ref"));
 
-        //first = true;
-        for (IdentifierNode id : assignedVariables) {
-            //if (!first) 
+        for (IdentifierNode id : assignedVariables) { 
             out.print(", ");
-            //first = false;
-            //assert(node.shadowed.contains(id.getName()).equals(id.getInfo().initialRefInfo.isPresent()));
-            //if (id.getInfo().initialRefInfo.isPresent()) {
             if (node.shadowed.contains(id.getName())) {
-                // todo: handle the case the id exists in this scope.
-                //if (id.getInfo().initialRefInfo().isRef()) {
                 if (node.shadowed.lookup(id.getName()).isRef()) {
                     out.format("application(var(\"%s\"), application(var(\"%s\"), var(\"",
                             ValueInfo.global("base", "new_ref"),

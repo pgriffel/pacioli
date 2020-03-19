@@ -460,7 +460,6 @@ public class Progam extends AbstractPrintable {
         for (ValueInfo info: values.allInfos()) {
             if (info.getDefinition().isPresent() && !isExternal(info)) {
                 ValueDefinition definition = info.getDefinition().get();
-                Pacioli.logln("Lifting statements for %s", info.name());
                 ExpressionNode newBody = new LiftStatements(this).expAccept(definition.body);
                 definition.body = newBody;
                

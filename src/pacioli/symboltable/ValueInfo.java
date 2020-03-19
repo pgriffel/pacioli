@@ -15,7 +15,6 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
 
     // Set during resolving
     private Optional<Boolean> isRef = Optional.of(false);
-    public Optional<ValueInfo> initialRefInfo = Optional.empty();
     
     // Set during type inference
     public Optional<PacioliType> inferredType = Optional.empty();
@@ -75,18 +74,6 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
         this.isRef = Optional.of(isRef);
     }
     
-    public ValueInfo initialRefInfo() {
-        if (initialRefInfo.isPresent()) {
-            return initialRefInfo.get();
-        } else {
-            throw new RuntimeException("No initialRefInfo value, ValueInfo must have been resolved");
-        }
-    }
-    
-    public void setinitialRefInfo(ValueInfo info) {
-        this.initialRefInfo = Optional.of(info);
-    }
-    
     public PacioliType inferredType() {
         if (inferredType.isPresent()) {
             return inferredType.get();
@@ -120,14 +107,6 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
         if (other.inferredType.isPresent()) {
             if (!inferredType.isPresent()) {
                 inferredType = other.inferredType;
-            } else {
-                //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
-            }
-        }
-        
-        if (other.initialRefInfo.isPresent()) {
-            if (!initialRefInfo.isPresent()) {
-                initialRefInfo = other.initialRefInfo;
             } else {
                 //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
             }

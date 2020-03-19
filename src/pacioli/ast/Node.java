@@ -28,7 +28,6 @@ import pacioli.Location;
 import pacioli.Printable;
 import pacioli.Printer;
 import pacioli.Progam;
-import pacioli.ast.expression.IdentifierNode;
 import pacioli.symboltable.SymbolInfo;
 
 public interface Node extends Printable {
@@ -37,21 +36,8 @@ public interface Node extends Printable {
 
     public void accept(Visitor visitor);
 
-    /**
-     * @return All unbound value identifiers used in this node or its offspring.
-     */
-    public Set<IdentifierNode> usesIds();
-    
-    /**
-     * @return The symbol info for all (either unbound, or bound by a lambda or a statement)
-     *         value, unit or type identifiers in this node or its offspring.
-     */
     public Set<SymbolInfo> uses();
-/*    
-    public Set<ValueInfo> usesLocals();
 
-    public Set<String> usesNames();
-*/
     public Node desugar();
     
     public void resolve(Progam prog);

@@ -14,8 +14,6 @@ import pacioli.symboltable.SymbolInfo;
 import pacioli.types.ast.TypeIdentifierNode;
 
 public class UsesVisitor extends IdentityVisitor implements Visitor {
-
-    //private Stack<Set<SymbolInfo>> usesStack;
     
     Set<SymbolInfo> infos = new HashSet<SymbolInfo>();
 
@@ -23,11 +21,6 @@ public class UsesVisitor extends IdentityVisitor implements Visitor {
         node.accept(this);
         return infos;
     }
-    /*
-    public void returnInfos(Set<SymbolInfo> infos) {
-        // Pacioli.logln("return: %s", value.getClass());
-        usesStack.push(infos);
-    }*/
 
     @Override
     public void visit(TypeIdentifierNode node) {
@@ -38,7 +31,6 @@ public class UsesVisitor extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(IdentifierNode node) {
-        //assert (node.getInfo().getDefinition().isPresent() || node.getInfo().getDeclaredType().isPresent() || !node.getInfo().isGlobal());
         if (node.getInfo().getDefinition().isPresent() || node.getInfo().getDeclaredType().isPresent() || !node.getInfo().isGlobal()) {        
             infos.add(node.getInfo());
         } else {

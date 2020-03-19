@@ -376,10 +376,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         for (IdentifierNode id : assignedVariables) {
             write(", ");
             
-            //if (id.getInfo().initialRefInfo.isPresent()) {
             if (node.shadowed.contains(id.getName())) {
-                // todo: handle the case the id exists in this scope.
-                //if (id.getInfo().initialRefInfo().isRef()) {
                 if (node.shadowed.lookup(id.getName()).isRef()) {    
                     write("Pacioli.global_base_new_ref(Pacioli.global_base_ref_get(");
                     write(id.getName());
