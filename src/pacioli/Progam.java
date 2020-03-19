@@ -63,12 +63,15 @@ public class Progam extends AbstractPrintable {
         TYPED, 
         RESOLVED
     }
-    
+
+    // Added during construction
     public final PacioliFile file;
     private final List<File> libs;
 
+    // Added as first step of loading 
     public ProgramNode program;
 
+    // Fill during loading
     public SymbolTable<IndexSetInfo> indexSets = new SymbolTable<IndexSetInfo>();
     public SymbolTable<UnitInfo> units = new SymbolTable<UnitInfo>();
     public SymbolTable<TypeInfo> types = new SymbolTable<TypeInfo>();
@@ -278,16 +281,12 @@ public class Progam extends AbstractPrintable {
                 PacioliFile file = PacioliFile.requireLibrary(lib, libs);
                 Progam prog = new Progam(file, libs);
                 prog.loadTillHelper(Progam.Phase.TYPED, isStandard, false);
-                //prog.loadTillHelper(Progam.Phase.RESOLVED, isStandard, false);
                 this.includeOther(prog);
             }
         }
 
         // Fill symbol tables for the imported libraries
-        //for (String lib : imports()) {
         for (PacioliFile file: findImports(libs)) {
-            //Path p = Paths.get(file.getFile().getAbsolutePath());
-            //PacioliFile file = PacioliFile.findLibrary(lib, libs);
             Progam prog = new Progam(file, libs);
             Pacioli.logln("Loading library file %s", file.getFile());
             prog.loadTill(Progam.Phase.DESUGARED);
@@ -307,8 +306,6 @@ public class Progam extends AbstractPrintable {
             Progam prog = new Progam(file, libs);
             Pacioli.logln("Loading include file %s", include);
             prog.loadTill(Progam.Phase.DESUGARED);
-            //this.includeOther(prog);
-            // Fill symbol tables for this file
             for (Definition def : prog.program.definitions) {
                 if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
                         || def instanceof TypeDefinition) {
@@ -456,7 +453,6 @@ public class Progam extends AbstractPrintable {
     }
     
     public void liftStatements() {
-        //Pacioli.logln("Lifting statements for %s", file);
         for (ValueInfo info: values.allInfos()) {
             if (info.getDefinition().isPresent() && !isExternal(info)) {
                 ValueDefinition definition = info.getDefinition().get();
@@ -465,7 +461,6 @@ public class Progam extends AbstractPrintable {
                
             }
         }
-        //Pacioli.logln("Done lifting statements");
     }
     
     // -------------------------------------------------------------------------
@@ -501,7 +496,6 @@ public class Progam extends AbstractPrintable {
     private void inferUsedTypes(Definition definition, Set<SymbolInfo> discovered, Set<SymbolInfo> finished) {
         for (SymbolInfo pre : definition.uses()) {
             if (pre.isGlobal() && pre instanceof ValueInfo) {
-                //if (!pre.generic().isExternal() && pre.getDefinition() != null) {
                 if (!isExternal(pre) && pre.getDefinition().isPresent()) {
                     inferValueDefinitionType((ValueInfo) pre, discovered, finished);
                 } else {
@@ -509,7 +503,6 @@ public class Progam extends AbstractPrintable {
                     if (!vinfo.getDeclaredType().isPresent()) {
                         throw new RuntimeException(new PacioliException(pre.getLocation(), "No type declared for %s", pre.name()));
                     }
-                    assert (vinfo.getDeclaredType().isPresent()); // should be an exception
                     vinfo.setinferredType(vinfo.getDeclaredType().get().evalType(false));
                 }
             }
