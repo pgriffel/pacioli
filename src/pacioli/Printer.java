@@ -1,7 +1,11 @@
 package pacioli;
 
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Stack;
+
+import pacioli.ast.Node;
+import pacioli.ast.Visitor;
 
 public class Printer {
 
@@ -59,4 +63,15 @@ public class Printer {
         newline();
     }
 
+    public void writeCommaSeparated(List<? extends Node> nodes, Visitor visitor) {
+        Boolean sep = false;
+        for (Node node: nodes) {
+            if (sep) {
+                write(", ");
+            } else {
+                sep = true;
+            }
+            node.accept(visitor);
+        }
+    }
 }

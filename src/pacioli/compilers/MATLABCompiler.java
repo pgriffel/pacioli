@@ -10,6 +10,9 @@ import pacioli.Utils;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
+import pacioli.ast.definition.ValueDefinition;
+import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.IndexSetInfo;
@@ -20,6 +23,8 @@ import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.TypeBase;
 import pacioli.visitors.JSGenerator;
+import pacioli.visitors.MVMGenerator;
+import pacioli.visitors.MatlabGenerator;
 import uom.DimensionedNumber;
 
 public class MATLABCompiler implements SymbolTableVisitor {
@@ -34,34 +39,37 @@ public class MATLABCompiler implements SymbolTableVisitor {
     
     @Override
     public void visit(ValueInfo info) {
-        /*
+        
         assert(info.getDefinition().isPresent());  // Infos without definition are filtered by the caller 
         
         //Pacioli.logln2("Compiling value %s", info.globalName());
         
         ValueDefinition definition = info.getDefinition().get();
-        ExpressionNode resolvedBody = definition.body;
-        */
-        
+        ExpressionNode transformed = definition.body;
+        if (transformed instanceof LambdaNode) {
+            LambdaNode code = (LambdaNode) transformed;
+            out.newline();
+            out.format("function retval = %s (%s)", info.globalName().toLowerCase(), code.argsString());
+            out.newline();
+            out.format(" retval = ");
+            code.expression.accept(new MatlabGenerator(out, settings));
+            out.format(";");
+            out.newline();
+            out.format("endfunction;");
+            out.newline();
+        } else {
+            out.newline();
+            out.format("global %s = ", info.globalName().toLowerCase());
+            transformed.accept(new MatlabGenerator(out, settings));
+            out.format(";");
+            out.newline();
+        }
     }
 
     @Override
     public void visit(IndexSetInfo info) {
      
-        //Pacioli.logln2("Compiling index set %s", info.globalName());
         
-        assert(info.getDefinition().isPresent());
-        
-        IndexSetDefinition definition = info.getDefinition().get();
-        
-        List<String> quotedItems = new ArrayList<String>();
-        for (String item : definition.items) {
-            quotedItems.add(String.format("\"%s\"", item));
-        }
-        out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', [ %s ])}\n", 
-                info.globalName(), 
-                definition.localName(),
-                Utils.intercalate(",", quotedItems));
     }
 
     @Override
@@ -72,29 +80,6 @@ public class MATLABCompiler implements SymbolTableVisitor {
     @Override
     public void visit(ScalarUnitInfo info) {
         
-        //Pacioli.logln("Compiling unit %s", info.globalName());
-        
-        //UnitNode body = info.definition.body;
-        Optional<UnitDefinition> optionalDefinition = info.getDefinition();
-        
-        
-        if (optionalDefinition.isPresent()) {
-            Optional<UnitNode> optionalBody = optionalDefinition.get().body;
-            if (optionalBody.isPresent()) {
-                UnitNode body = optionalBody.get();
-                DimensionedNumber<TypeBase> number = body.evalUnit();
-                number = number.flat();
-                out.format("Pacioli.compute_%s = function () {\n", info.globalName());
-                out.format("    return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}\n",
-                        number.factor(), JSGenerator.compileUnitToJS(number.unit()), info.symbol);   
-                out.format("}\n");
-            } else  {
-                out.format("Pacioli.compute_%s = function () { return {symbol: '%s'}};\n", 
-                        info.globalName(), info.symbol);
-            }
-        } else {
-            throw new RuntimeException("ScalarUnitInfo misses definition");
-        }
     }
     
     @Override
@@ -102,22 +87,6 @@ public class MATLABCompiler implements SymbolTableVisitor {
         
         assert(info.getDefinition().isPresent());
         
-        //Pacioli.logln("Compiling vector unit %s", info.globalName());
-        
-        IndexSetInfo setInfo = (IndexSetInfo) info.getDefinition().get().indexSetNode.info;
-        List<String> unitTexts = new ArrayList<String>();
-        
-        for (UnitDecl entry : info.items) {
-            DimensionedNumber<TypeBase> number = entry.value.evalUnit();
-            // todo: take number.factor() into account!? 
-            unitTexts.add("'" + entry.key.getName() + "': " + JSGenerator.compileUnitToJS(number.unit()));
-        }
-        
-        String globalName = setInfo.globalName();
-        String name = info.name();
-        String args = Utils.intercalate(", ", unitTexts);
-        
-        out.format("function compute_%s () { return {units: { %s }}};\n", globalName, name, args);
     }
 
     @Override
