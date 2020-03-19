@@ -337,6 +337,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         
         // Write the other lambda params
         for (IdentifierNode id : assignedVariables) {
+            assert(id.getInfo() != null);
             out.print(", ");
             out.print("\"");
             out.print(id.getName());

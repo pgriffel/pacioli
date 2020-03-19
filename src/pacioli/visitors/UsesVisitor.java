@@ -3,22 +3,31 @@ package pacioli.visitors;
 import java.util.HashSet;
 import java.util.Set;
 
+import pacioli.PacioliException;
+import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
-import pacioli.ast.IdentityVisitor;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.expression.StatementNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.types.ast.TypeIdentifierNode;
 
 public class UsesVisitor extends IdentityVisitor implements Visitor {
 
+    //private Stack<Set<SymbolInfo>> usesStack;
+    
     Set<SymbolInfo> infos = new HashSet<SymbolInfo>();
 
     public Set<SymbolInfo> idsAccept(Node node) {
         node.accept(this);
         return infos;
     }
+    /*
+    public void returnInfos(Set<SymbolInfo> infos) {
+        // Pacioli.logln("return: %s", value.getClass());
+        usesStack.push(infos);
+    }*/
 
     @Override
     public void visit(TypeIdentifierNode node) {
@@ -29,8 +38,12 @@ public class UsesVisitor extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(IdentifierNode node) {
-        assert (node.getInfo().getDefinition().isPresent() || node.getInfo().getDeclaredType().isPresent() || !node.getInfo().isGlobal());
-        infos.add(node.getInfo());
+        //assert (node.getInfo().getDefinition().isPresent() || node.getInfo().getDeclaredType().isPresent() || !node.getInfo().isGlobal());
+        if (node.getInfo().getDefinition().isPresent() || node.getInfo().getDeclaredType().isPresent() || !node.getInfo().isGlobal()) {        
+            infos.add(node.getInfo());
+        } else {
+            throw new RuntimeException("Visit error", new PacioliException(node.getLocation(), "%s unknown", node.getName()));
+        }
     }
 
     @Override
@@ -40,4 +53,11 @@ public class UsesVisitor extends IdentityVisitor implements Visitor {
         infos.add(node.info);
     }
 
+    @Override
+    public void visit(StatementNode node) {
+        node.body.accept(this);
+        for (SymbolInfo info: node.shadowed.allInfos()) {
+            infos.add(info);
+        }
+    }
 }

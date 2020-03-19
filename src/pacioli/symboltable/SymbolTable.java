@@ -8,7 +8,7 @@ import java.util.Map;
 public class SymbolTable<R extends SymbolInfo> {
 
     private final Map<String, R> table = new HashMap<String, R>();
-    private final SymbolTable<R> parent;
+    public final SymbolTable<R> parent;
 
     private static int counter;
     
@@ -19,7 +19,7 @@ public class SymbolTable<R extends SymbolInfo> {
     public SymbolTable(SymbolTable<R> parent) {
         this.parent = parent;
     }
-
+    
     public void put(String name, R entry) {
         table.put(name, entry);
     }
@@ -31,6 +31,10 @@ public class SymbolTable<R extends SymbolInfo> {
         } else {
             return entry;
         }
+    }
+    
+    public R lookupLocally(String name) {
+        return table.get(name);
     }
 
     public Boolean contains(String name) {

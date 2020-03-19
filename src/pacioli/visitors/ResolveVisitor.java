@@ -313,22 +313,28 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         // Create a symbol table for all assigned variables in scope and the result
         // place
         node.table = new SymbolTable<ValueInfo>(valueTables.peek());
+        node.shadowed = new SymbolTable<ValueInfo>();
 
         // Find all assigned variables
         for (IdentifierNode id : node.body.locallyAssignedVariables()) {
             
+            ValueInfo info = node.table.lookupLocally(id.getName());
+            
             // Create a value info record for the mutable (IsRef == true) variable
-            ValueInfo info = new ValueInfo(id.getName(), prog.getModule(), false, id.getLocation());
-            info.setIsRef(true);
+            if (info == null) {
+                info = new ValueInfo(id.getName(), prog.getModule(), false, id.getLocation());
+                info.setIsRef(true);
 
-            // If it shadows another value then remember that for initialization in generated code
-            ValueInfo shadowedInfo = valueTables.peek().lookup(id.getName());
-            if (shadowedInfo != null) {
-                info.setinitialRefInfo(shadowedInfo);
+                // If it shadows another value then remember that for initialization in generated code
+                ValueInfo shadowedInfo = valueTables.peek().lookup(id.getName());
+                if (shadowedInfo != null) {
+                    info.setinitialRefInfo(shadowedInfo);
+                    node.shadowed.put(id.getName(), shadowedInfo);
+                }
+            
+                // Put the info in the symbol table
+                node.table.put(id.getName(), info);
             }
-
-            // Put the info in the symbol table
-            node.table.put(id.getName(), info);
         }
 
         // Create an info record for the result and put it in the symbol table

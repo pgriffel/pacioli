@@ -69,7 +69,7 @@ public class Pacioli {
             } else {
                 Throwable cause = ex.getCause();
                 if (cause instanceof PacioliException) {
-                    logln("\nPacioli error:\n\n%s\n", ((PacioliException) cause).getLocatedMessage());
+                    logln("\nPacioli error:\n%s\n%s\n", ex, ((PacioliException) cause).getLocatedMessage());
                 } else if (cause instanceof MVMException) {
                     logln("\nMVM error:\n\n%s\n", cause.getMessage());
                 } else {
@@ -288,10 +288,16 @@ public class Pacioli {
         try {
             
             Pacioli.logln2("Loading module '%s'", file.getFile());
-            Progam program = Progam.load(file, libs, Phase.TYPED);
+            //Progam program = Progam.load(file, libs, Phase.TYPED);
+            Progam program = Progam.load(file, libs, Phase.RESOLVED);
 
+            program.printSymbolTable(program.values, "Values");
+            Pacioli.logln("%s", program.pretty());
+            
             Pacioli.logln2("Displaying types in module '%s'", file.getFile());
-            program.printTypes();
+            //program.printTypes();
+            
+            
 
         } catch (IOException e) {
             Pacioli.logln("\nError: cannot display types in file '%s':\n\n%s", fileName, e);

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Visitor;
@@ -154,8 +155,11 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
         if (!node.getInfo().inferredType.isPresent()) {
             // It must be a recursive function. Todo: handle properly
-            assert(node.getInfo().getDeclaredType().isPresent());
+            if (node.getInfo().getDeclaredType().isPresent()) {
             returnNode(new Typing(node.getInfo().getDeclaredType().get().evalType(true).instantiate()));
+            } else {
+                throw new RuntimeException("Identifier node has no declared type", new PacioliException(node.getLocation(), "id=%s", node.getName()));
+            }
         } else
             // Move instantiate to proper place.
             returnNode(new Typing(node.getInfo().inferredType().instantiate()));

@@ -1,6 +1,7 @@
 package pacioli.visitors;
 
 import java.util.List;
+import java.util.Optional;
 
 import pacioli.Printer;
 import pacioli.ast.ImportNode;
@@ -43,6 +44,8 @@ import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
+import pacioli.symboltable.ValueInfo;
+import pacioli.types.PacioliType;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
@@ -375,6 +378,21 @@ public class PrintVisitor implements Visitor {
             if (!first)
                 out.format(", ");
             out.format(arg);
+            
+            
+            if (node.table != null) {
+                ValueInfo info = node.table.lookup(arg);
+                write(":");
+                Optional<PacioliType> type = info.inferredType;
+                if (type.isPresent()) {
+                    write(type.get().pretty());
+                } else {
+                    write("?");
+                }
+            };
+            
+            
+            
             first = false;
         }
         out.format(") ");

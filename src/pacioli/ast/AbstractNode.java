@@ -30,13 +30,15 @@ import pacioli.CompilationSettings;
 import pacioli.Location;
 import pacioli.Printer;
 import pacioli.Progam;
+import pacioli.ast.expression.IdentifierNode;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.visitors.DesugarVisitor;
 import pacioli.visitors.JSGenerator;
-import pacioli.visitors.LiftStatements.Lifted;
+import pacioli.visitors.LiftStatements;
 import pacioli.visitors.MVMGenerator;
 import pacioli.visitors.PrintVisitor;
 import pacioli.visitors.ResolveVisitor;
+import pacioli.visitors.UsedIdentifiers;
 import pacioli.visitors.UsesVisitor;
 
 public abstract class AbstractNode extends AbstractPrintable implements Node {
@@ -62,18 +64,7 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
     
     @Override
     public void printPretty(PrintWriter out) {
-        //BufferedWriter out = new BufferedWriter(new FileWriter(baseName() + ".mvm"));
-
-        PrintWriter writer = null;
-        try {
-            writer = new PrintWriter(out);
-            PrintVisitor visitor = new PrintVisitor(new Printer(writer));
-            this.accept(visitor);
-        } finally {
-            if (writer != null) {
-                writer.close();
-            }
-        }
+        this.accept(new PrintVisitor(new Printer(out)));
     }
     
     @Override
@@ -82,8 +73,8 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
     }
     
     @Override
-    public Lifted liftStatements() {
-        return null;//new LiftStatements().nodeAccept(this);
+    public Node liftStatements(Progam prog) {
+        return new LiftStatements(prog).nodeAccept(this);
     }
     
     @Override
@@ -96,7 +87,6 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
     @Override
     public String compileToJS(CompilationSettings settings, boolean boxed) {
         StringWriter outputStream = new StringWriter();
-        
         this.accept(new JSGenerator(new Printer(new PrintWriter(outputStream)), settings, boxed));
         return outputStream.toString();
     }
@@ -111,6 +101,11 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
         accept(new ResolveVisitor(prog));
     }
 
+    @Override
+    public Set<IdentifierNode> usesIds() {
+        return new UsedIdentifiers().idsAccept(this);
+    }
+    
     @Override
     public Set<SymbolInfo> uses() {
         return new UsesVisitor().idsAccept(this);

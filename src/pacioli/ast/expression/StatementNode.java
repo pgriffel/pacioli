@@ -12,6 +12,7 @@ public class StatementNode extends AbstractExpressionNode {
 
     // Filled during resolve
     public SymbolTable<ValueInfo> table;
+    public SymbolTable<ValueInfo> shadowed;
 
     public StatementNode(Location location, SequenceNode body) {
         super(location);
@@ -22,11 +23,7 @@ public class StatementNode extends AbstractExpressionNode {
         super(location);
         this.body = body;
     }
-/*
-    public StatementNode resolve(SequenceNode body, ValueContext context) {
-        return new StatementNode(getLocation(), body, context);
-    }
-*/
+
     @Override
     public String compileToMATLAB() {
         return body.compileToMATLAB();

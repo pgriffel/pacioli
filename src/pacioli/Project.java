@@ -207,6 +207,8 @@ public class Project {
                 mainProgram.includeOther(program);
             }
             
+            Pacioli.logln("BUNDLE\n\n%s", mainProgram.pretty());
+            
             // Generate the code for the entire bundle
             mainProgram.generateCode(writer, settings);
             

@@ -24,6 +24,7 @@ package pacioli.ast.expression;
 import java.util.Optional;
 
 import pacioli.Location;
+import pacioli.PacioliException;
 import pacioli.ast.Visitor;
 import pacioli.symboltable.ValueInfo;
 
@@ -36,7 +37,7 @@ public class IdentifierNode extends AbstractExpressionNode {
         super(location);
         this.name = name;
     }
-    
+/*    
     @Override
     public int hashCode() {
         return name.hashCode();
@@ -53,7 +54,7 @@ public class IdentifierNode extends AbstractExpressionNode {
         IdentifierNode otherNode = (IdentifierNode) other;
         return name.equals(otherNode.name);
     }
-
+*/
     public String getName() {
         return name;
     }
@@ -62,11 +63,15 @@ public class IdentifierNode extends AbstractExpressionNode {
         return info.isPresent();
     }
     
+    public Boolean hasInfo() {
+        return info.isPresent();
+    }
+    
     public ValueInfo getInfo() {
         if (info.isPresent()) {
             return info.get();
         } else {
-            throw new RuntimeException("Cannot get info, identifier has not been resolved.");
+            throw new RuntimeException("Cannot get info, identifier has not been resolved.", new PacioliException(getLocation(), "id=%s", getName()));
         }
     }
     

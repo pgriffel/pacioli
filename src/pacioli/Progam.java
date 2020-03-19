@@ -26,6 +26,7 @@ import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.ast.expression.ExpressionNode;
 import pacioli.compilers.JSCompiler;
 import pacioli.compilers.MVMCompiler;
 import pacioli.parser.Parser;
@@ -40,6 +41,7 @@ import pacioli.symboltable.ValueInfo;
 import pacioli.types.PacioliType;
 import pacioli.visitors.CodeGenerator;
 import pacioli.visitors.JSGenerator;
+import pacioli.visitors.LiftStatements;
 import pacioli.visitors.MVMGenerator;
 import pacioli.visitors.ResolveVisitor;
 
@@ -103,7 +105,32 @@ public class Progam extends AbstractPrintable {
 
     @Override
     public void printPretty(PrintWriter out) {
-        program.printPretty(out);
+        
+        if (false) {
+            program.printPretty(out);
+        } else {
+        
+            for (UnitInfo info : units.allInfos()) {
+                info.getDefinition().get().printPretty(out);;
+            }
+            
+            for (IndexSetInfo info: indexSets.allInfos()) {
+                info.getDefinition().get().printPretty(out);;
+            }
+            
+            for (TypeInfo info : types.allInfos()) {
+                if (info.getDefinition().isPresent()) {
+                    info.getDefinition().get().printPretty(out);
+                }
+            }
+            
+            for (ValueInfo info : values.allInfos()) {
+                if (info.getDefinition().isPresent() && !isExternal(info)) {
+                    info.getDefinition().get().printPretty(out);
+                    out.println();
+                }
+            }
+        }
     }
     
     void printSymbolTable(SymbolTable<? extends SymbolInfo> table, String header) {
@@ -219,11 +246,14 @@ public class Progam extends AbstractPrintable {
         if (phase.equals(Phase.PARSED)) return;
         
         desugar();
-        liftStatements();
         if (phase.equals(Phase.DESUGARED)) return;
         
         fillTables(loadPrimitives, loadStandard);
+        
         resolve();
+        liftStatements();  // Requires resolved defintions, produces non resolved definitions!
+        resolve();
+        
         if (phase.equals(Phase.RESOLVED)) return;
     
         inferTypes();
@@ -248,6 +278,7 @@ public class Progam extends AbstractPrintable {
                 PacioliFile file = PacioliFile.requireLibrary(lib, libs);
                 Progam prog = new Progam(file, libs);
                 prog.loadTillHelper(Progam.Phase.TYPED, isStandard, false);
+                //prog.loadTillHelper(Progam.Phase.RESOLVED, isStandard, false);
                 this.includeOther(prog);
             }
         }
@@ -425,8 +456,17 @@ public class Progam extends AbstractPrintable {
     }
     
     public void liftStatements() {
-        Pacioli.logln("Lifting statements for %s", file);
-        Pacioli.logln("Done lifting statements");
+        //Pacioli.logln("Lifting statements for %s", file);
+        for (ValueInfo info: values.allInfos()) {
+            if (info.getDefinition().isPresent() && !isExternal(info)) {
+                ValueDefinition definition = info.getDefinition().get();
+                Pacioli.logln("Lifting statements for %s", info.name());
+                ExpressionNode newBody = new LiftStatements(this).expAccept(definition.body);
+                definition.body = newBody;
+               
+            }
+        }
+        //Pacioli.logln("Done lifting statements");
     }
     
     // -------------------------------------------------------------------------
@@ -461,7 +501,7 @@ public class Progam extends AbstractPrintable {
 
     private void inferUsedTypes(Definition definition, Set<SymbolInfo> discovered, Set<SymbolInfo> finished) {
         for (SymbolInfo pre : definition.uses()) {
-            if (pre.generic().isGlobal() && pre instanceof ValueInfo) {
+            if (pre.isGlobal() && pre instanceof ValueInfo) {
                 //if (!pre.generic().isExternal() && pre.getDefinition() != null) {
                 if (!isExternal(pre) && pre.getDefinition().isPresent()) {
                     inferValueDefinitionType((ValueInfo) pre, discovered, finished);
