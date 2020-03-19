@@ -246,12 +246,11 @@ public class Progam extends AbstractPrintable {
     public void loadTillHelper(Phase phase, Boolean loadPrimitives, Boolean loadStandard) throws Exception {
         
         program = Parser.parseFile(this.file.getFile());
+        desugar();
         if (phase.equals(Phase.PARSED)) return;
         
-        desugar();
-        if (phase.equals(Phase.DESUGARED)) return;
-        
         fillTables(loadPrimitives, loadStandard);
+        if (phase.equals(Phase.DESUGARED)) return;
         
         resolve();
         liftStatements();  // Requires resolved defintions, produces non resolved definitions!
@@ -289,7 +288,7 @@ public class Progam extends AbstractPrintable {
         for (PacioliFile file: findImports(libs)) {
             Progam prog = new Progam(file, libs);
             Pacioli.logln("Loading library file %s", file.getFile());
-            prog.loadTill(Progam.Phase.DESUGARED);
+            prog.loadTill(Progam.Phase.PARSED);
             for (Definition def : prog.program.definitions) {
                 if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
                         || def instanceof TypeDefinition) {
@@ -305,7 +304,7 @@ public class Progam extends AbstractPrintable {
             PacioliFile file = PacioliFile.findInclude(p.getParent(), this.file, include);
             Progam prog = new Progam(file, libs);
             Pacioli.logln("Loading include file %s", include);
-            prog.loadTill(Progam.Phase.DESUGARED);
+            prog.loadTill(Progam.Phase.PARSED);
             for (Definition def : prog.program.definitions) {
                 if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
                         || def instanceof TypeDefinition) {

@@ -282,20 +282,18 @@ public class Pacioli {
 
         PacioliFile file = optionalFile.get();
         
-        //PacioliFile file = file.get
         Pacioli.logln1("Displaying types for file '%s'", file.getFile());
 
         try {
             
             Pacioli.logln2("Loading module '%s'", file.getFile());
-            //Progam program = Progam.load(file, libs, Phase.TYPED);
-            Progam program = Progam.load(file, libs, Phase.RESOLVED);
-
-            program.printSymbolTable(program.values, "Values");
-            Pacioli.logln("%s", program.pretty());
+            Progam program = Progam.load(file, libs, Phase.TYPED);
+            
+            //program.printSymbolTable(program.values, "Values");
+            //Pacioli.logln("%s", program.pretty());
             
             Pacioli.logln2("Displaying types in module '%s'", file.getFile());
-            //program.printTypes();
+            program.printTypes();
             
             
 
