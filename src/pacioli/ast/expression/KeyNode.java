@@ -27,7 +27,9 @@ import java.util.List;
 import java.util.Optional;
 
 import pacioli.Location;
+import pacioli.PacioliException;
 import pacioli.ast.Visitor;
+import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.symboltable.IndexSetInfo;
 
 public class KeyNode extends AbstractExpressionNode {
@@ -108,5 +110,45 @@ public class KeyNode extends AbstractExpressionNode {
             // totalSize *= sizes.get(i);
         }
         return String.format("{%s,%s}", index, totalSize);
+    }
+    
+    public Integer position(Integer index) {
+        
+        String key = keys.get(index);
+        
+        Optional<IndexSetDefinition> definition = getInfo(index).getDefinition();
+        assert(definition.isPresent());
+        List<String> items = definition.get().items;
+        
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).equals(key)) {
+                return i;
+            }
+        }
+        throw new RuntimeException("Key not found", new PacioliException(getLocation(), "index = %s", index));
+    }
+    
+    public Integer size(Integer index) {
+        Optional<IndexSetDefinition> definition = getInfo(index).getDefinition();
+        assert(definition.isPresent());
+        return definition.get().items.size();
+    }
+    
+    public Integer position() {
+        int totalSize = 1;
+        int index = 0;
+        for (int i = 0; i < keys.size(); i++) {
+            index += position(i) * totalSize;
+            totalSize *= size(i);
+        }
+        return index;
+    }
+    
+    public Integer size() {
+        int totalSize = 1;
+        for (int i = 0; i < keys.size(); i++) {
+            totalSize *= size(i);
+        }
+        return totalSize;
     }
 }

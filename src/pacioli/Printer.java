@@ -62,7 +62,7 @@ public class Printer {
         indentation -= delta;
         newline();
     }
-
+    
     public void writeCommaSeparated(List<? extends Node> nodes, Visitor visitor) {
         Boolean sep = false;
         for (Node node: nodes) {
@@ -72,6 +72,18 @@ public class Printer {
                 sep = true;
             }
             node.accept(visitor);
+        }
+    }
+    
+    public void writeStringsCommaSeparated(List<String> nodes, Visitor visitor) {
+        Boolean sep = false;
+        for (String node: nodes) {
+            if (sep) {
+                write(", ");
+            } else {
+                sep = true;
+            }
+            write(node);
         }
     }
 }

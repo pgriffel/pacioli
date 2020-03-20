@@ -2,7 +2,9 @@ package pacioli.visitors;
 
 import pacioli.CompilationSettings;
 import pacioli.Printer;
+import pacioli.Utils;
 import pacioli.ast.IdentityVisitor;
+import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
@@ -25,6 +27,7 @@ import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
+import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
@@ -50,26 +53,16 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(ApplicationNode node) {
-/*        List<String> compiled = new ArrayList<String>();
-        for (Node arg : node.arguments) {
-            compiled.add(arg.compileToMATLAB());
-        }
-  */      
-        //String argsText = "(" + Utils.intercalate(", ", compiled) + ")";
+        // Is this if necessary?
         if (node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
             out.write(id.getInfo().globalName().toLowerCase());
-            //out.write(argsText);
-            out.write("(");
-            out.writeCommaSeparated(node.arguments, this);
-            out.write(")");
         } else {
             node.function.accept(this);
-            //out.write(argsText);
-            out.write("(");
-            out.writeCommaSeparated(node.arguments, this);
-            out.write(")");
         }
+        out.write("(");
+        out.writeCommaSeparated(node.arguments, this);
+        out.write(")");
     }
 
     @Override
@@ -79,12 +72,18 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(BranchNode node) {
-        out.format("%s", node.getClass());
+        out.write("_if(");
+        node.test.accept(this);
+        out.write(", @() ");
+        node.positive.accept(this);
+        out.write(", @() ");
+        node.negative.accept(this);
+        out.format(")");
     }
 
     @Override
     public void visit(ConstNode node) {
-        out.format("%s", node.getClass());
+        out.format("%s", node.valueString());
     }
 
     @Override
@@ -94,7 +93,15 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(IdentifierNode node) {
-        out.format("%s", node.getClass());
+        if (node.isGlobal()) {
+            out.write("fetch_global(\"");
+            out.write(node.getInfo().generic().getModule().toLowerCase());
+            out.write("\", \"");
+            out.write(node.getName().toLowerCase());
+            out.write("\")");
+        } else {
+            out.write(node.getName().toLowerCase());
+        }
     }
 
     @Override
@@ -105,13 +112,16 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(KeyNode node) {
-        out.format("%s", node.getClass());
-        
+        out.format("{%s,%s}", node.position(), node.size());
     }
 
     @Override
     public void visit(LambdaNode node) {
-        out.format("%s", node.getClass());
+        out.write("(@(");
+        out.writeStringsCommaSeparated(node.arguments, this);
+        out.write(")");
+        node.expression.accept(this);
+        out.format(")");
     }
 
     @Override
