@@ -2,6 +2,7 @@ package pacioli.types.matrix;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,11 +10,13 @@ import java.util.Set;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
+import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
+import pacioli.types.ast.TypeNode;
 import uom.Unit;
 
 /*
@@ -22,20 +25,22 @@ import uom.Unit;
 public class IndexList extends AbstractType {
 
     private final List<TypeIdentifier> indexSets;
+    private final List<IndexSetInfo> indexSetInfos;
 
-    public IndexList(List<TypeIdentifier> indexSets) {
+    public IndexList(List<TypeIdentifier> indexSets, List<IndexSetInfo> indexSetInfos) {
         this.indexSets = indexSets;
+        this.indexSetInfos = indexSetInfos;
     }
 
-    public IndexList(TypeIdentifier indexSet) {
-        indexSets = new ArrayList<TypeIdentifier>();
-        indexSets.add(indexSet);
+    public IndexList(TypeIdentifier indexSet, IndexSetInfo indexSetInfo) {
+        indexSets = Arrays.asList(indexSet);
+        indexSetInfos = Arrays.asList(indexSetInfo);
     }
-
+    /*
     public IndexList() {
         this.indexSets = new ArrayList<TypeIdentifier>();
     }
-
+*/
     @Override
     public int hashCode() {
         return indexSets.hashCode();
@@ -107,19 +112,24 @@ public class IndexList extends AbstractType {
         return this;
     }
 
-    IndexList kronecker(IndexType other) {
+    IndexList kronecker(IndexList other) {
         List<TypeIdentifier> sets = new ArrayList<TypeIdentifier>();
         sets.addAll(indexSets);
         sets.addAll(other.getIndexSets());
-        return new IndexList(sets);
+        List<IndexSetInfo> infos = new ArrayList<IndexSetInfo>();
+        infos.addAll(indexSetInfos);
+        infos.addAll(other.indexSetInfos);
+        return new IndexList(sets, infos);
     }
 
     public IndexList project(List<Integer> columns) {
         List<TypeIdentifier> sets = new ArrayList<TypeIdentifier>();
+        List<IndexSetInfo> infos = new ArrayList<IndexSetInfo>();
         for (Integer column : columns) {
             sets.add(indexSets.get(column.intValue()));
+            infos.add(indexSetInfos.get(column.intValue()));
         }
-        return new IndexList(sets);
+        return new IndexList(sets, infos);
     }
 
     @Override
@@ -161,6 +171,12 @@ public class IndexList extends AbstractType {
 
     @Override
     public String compileToMVM() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public TypeNode deval() {
         // TODO Auto-generated method stub
         return null;
     }

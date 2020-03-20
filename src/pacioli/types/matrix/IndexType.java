@@ -2,6 +2,7 @@ package pacioli.types.matrix;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -9,33 +10,33 @@ import java.util.Set;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
+import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
+import pacioli.types.ast.TypeNode;
 import uom.Unit;
 
 public class IndexType extends AbstractType {
 
     private final PacioliType indexSet;
 
-    public IndexType(List<TypeIdentifier> indexSets) {
-        this.indexSet = new IndexList(indexSets);
+    public IndexType(List<TypeIdentifier> indexSets, List<IndexSetInfo> indexSetInfos) {
+        this.indexSet = new IndexList(indexSets, indexSetInfos);
     }
-
+    /*
     public IndexType(IndexList indexSet) {
         this.indexSet = indexSet;
     }
-
-    public IndexType(TypeIdentifier indexSet) {
-        List<TypeIdentifier> indexList = new ArrayList<TypeIdentifier>();
-        indexList.add(indexSet);
-        this.indexSet = new IndexList(indexList);
+*/
+    public IndexType(TypeIdentifier indexSet, IndexSetInfo indexSetInfo) {
+        this.indexSet = new IndexList(Arrays.asList(indexSet), Arrays.asList(indexSetInfo));
     }
 
     public IndexType() {
-        this.indexSet = new IndexList(new ArrayList<TypeIdentifier>());
+        this.indexSet = new IndexList(new ArrayList<TypeIdentifier>(), new ArrayList<IndexSetInfo>());
     }
 
     public IndexType(TypeVar typeVar) {
@@ -150,7 +151,7 @@ public class IndexType extends AbstractType {
         if (isVar()) {
             throw new RuntimeException("Method not available for an index variable");
         } else {
-            return new IndexType(indexList().kronecker(other));
+            return new IndexType(indexList().kronecker(other.indexList()));
         }
     }
 
@@ -185,5 +186,11 @@ public class IndexType extends AbstractType {
     @Override
     public String compileToMVM() {
         throw new RuntimeException("todo ");
+    }
+
+    @Override
+    public TypeNode deval() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

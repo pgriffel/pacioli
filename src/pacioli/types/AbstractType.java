@@ -207,9 +207,4 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         return unfreshType.applySubstitution(map);
 
     }
-    
-    @Override
-    public TypeNode deval() {
-        return null;
-    }
 }

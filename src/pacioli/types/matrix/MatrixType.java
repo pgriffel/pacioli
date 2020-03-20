@@ -36,6 +36,7 @@ import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
+import pacioli.types.ast.TypeNode;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
 import uom.Fraction;
@@ -278,7 +279,7 @@ public class MatrixType extends AbstractType {
     }
 
     // These hacks are for MatrixTypeNode and for printing below
-
+/*
     public List<Unit<TypeBase>> rowBangUnitList() {
         return dimensionBangUnitList(rowDimension, rowUnit);
     }
@@ -286,7 +287,7 @@ public class MatrixType extends AbstractType {
     public List<Unit<TypeBase>> columnBangUnitList() {
         return dimensionBangUnitList(columnDimension, columnUnit);
     }
-
+*/
     private List<Unit<TypeBase>> dimensionBangUnitList(final IndexType dimension, Unit<TypeBase> unit) {
         List<Unit<TypeBase>> units = new ArrayList<Unit<TypeBase>>();
         if (dimension.isVar()) {
@@ -562,5 +563,11 @@ public class MatrixType extends AbstractType {
         public String one() {
             return "scalar_shape(unit(\"\"))";
         }
+    }
+
+    @Override
+    public TypeNode deval() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

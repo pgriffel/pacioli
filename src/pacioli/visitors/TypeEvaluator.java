@@ -97,10 +97,11 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
 
         // Create the index type. If no definition exists it is a variable.
         String indexSetName = node.indexSetName();
-        if (!indexInfo.getDefinition().isPresent()) {
+        //if (!indexInfo.getDefinition().isPresent()) {
+        if (!indexInfo.isGlobal()) {    
             indexType = new IndexType(new TypeVar("for_index", indexSetName));
         } else {
-            indexType = new IndexType(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName));
+            indexType = new IndexType(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName), indexInfo);
         }
 
         // Create the row unit if it exists, otherwise the unit is 1.
@@ -160,6 +161,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                 // This code is flawed. The .typeIdentifier() will always assert.
                 // Is  type instanceof MatrixType  always false?!
                 List<TypeIdentifier> names = new ArrayList<TypeIdentifier>();
+                List<IndexSetInfo> infos = new ArrayList<IndexSetInfo>();
                 for (int i = 0; i < types.size(); i++) {
                     PacioliType type = types.get(i);
                     assert (type instanceof TypeVar || type instanceof MatrixType);
@@ -167,11 +169,12 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                         assert (node.args.get(i) instanceof TypeIdentifierNode);
                         TypeIdentifier id = ((TypeIdentifierNode) node.args.get(i)).typeIdentifier();
                         names.add(id);
+                        infos.add(null); // fixme: to implement infos
                     } else {
                         throw new RuntimeException(String.format("Index set expected but found '%s'", type.pretty()));
                     }
                 }
-                returnType(new IndexType(names));
+                returnType(new IndexType(names, infos));
             }
 //        } else if (node.op.info == null) {
 //            // Quick fix to try types without definition

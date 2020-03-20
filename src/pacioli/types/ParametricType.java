@@ -33,6 +33,7 @@ import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.Utils;
 import pacioli.ast.definition.TypeDefinition;
+import pacioli.types.ast.TypeNode;
 import uom.Unit;
 
 public class ParametricType extends AbstractType {
@@ -215,5 +216,11 @@ public class ParametricType extends AbstractType {
     @Override
     public String compileToMVM() {
         throw new RuntimeException("todo ");
+    }
+
+    @Override
+    public TypeNode deval() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
