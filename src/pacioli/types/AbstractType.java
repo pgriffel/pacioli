@@ -29,6 +29,8 @@ import java.util.Set;
 import pacioli.AbstractPrintable;
 import pacioli.PacioliException;
 import pacioli.Substitution;
+import pacioli.types.ast.FunctionTypeNode;
+import pacioli.types.ast.TypeNode;
 import uom.Fraction;
 import uom.Unit;
 
@@ -204,5 +206,10 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         }
         return unfreshType.applySubstitution(map);
 
+    }
+    
+    @Override
+    public TypeNode deval() {
+        return null;
     }
 }

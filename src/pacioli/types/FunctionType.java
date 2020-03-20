@@ -29,6 +29,8 @@ import java.util.Set;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
+import pacioli.types.ast.FunctionTypeNode;
+import pacioli.types.ast.TypeNode;
 import uom.Unit;
 
 public class FunctionType extends AbstractType {
@@ -114,6 +116,13 @@ public class FunctionType extends AbstractType {
     @Override
     public String compileToMVM() {
         throw new RuntimeException("todo ");
+    }
+
+    @Override
+    public TypeNode deval() {
+        TypeNode dom = domain.deval();
+        TypeNode ran = range.deval();
+        return new FunctionTypeNode(dom.getLocation().join(ran.getLocation()), dom, ran);
     }
 
 }

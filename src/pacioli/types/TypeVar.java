@@ -31,6 +31,7 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.Substitution;
+import pacioli.types.ast.TypeNode;
 import uom.BaseUnit;
 import uom.Unit;
 
@@ -193,5 +194,11 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Printabl
     public String compileToMVM() {
         throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
                                                                        // Tools | Templates.
+    }
+
+    @Override
+    public TypeNode deval() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

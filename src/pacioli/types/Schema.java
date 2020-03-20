@@ -30,6 +30,8 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.TypeContext;
+import pacioli.types.ast.SchemaNode;
+import pacioli.types.ast.TypeNode;
 import uom.Unit;
 
 public class Schema extends AbstractType {
@@ -113,5 +115,10 @@ public class Schema extends AbstractType {
     @Override
     public String compileToMVM() {
         throw new RuntimeException("todo ");
+    }
+
+    @Override
+    public TypeNode deval() {
+        return null;//new SchemaNode();
     }
 }

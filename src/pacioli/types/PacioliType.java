@@ -27,6 +27,7 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.Substitution;
+import pacioli.types.ast.TypeNode;
 import uom.Unit;
 
 public interface PacioliType extends Printable {
@@ -63,4 +64,6 @@ public interface PacioliType extends Printable {
 
     // Hack to print proper compound unit vector in schema's
     public Set<String> unitVecVarCompoundNames();
+    
+    public TypeNode deval();
 }

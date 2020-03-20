@@ -38,6 +38,7 @@ import uom.UnitMap;
 
 public class Substitution extends AbstractPrintable {
 
+    // Map van strings van maken. Dan is geen equality op typevars nodig en kun je ze collecten in een set etc.
     private final Map<TypeVar, Object> map;
 
     public Substitution() {

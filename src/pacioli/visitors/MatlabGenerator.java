@@ -10,6 +10,7 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
@@ -67,7 +68,8 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(AssignmentNode node) {
-        out.format("%s", node.getClass());
+        out.format("%s = ", node.var.getName());
+        node.value.accept(this);
     }
 
     @Override
@@ -89,6 +91,8 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ConversionNode node) {
         out.format("%s", node.getClass());
+        //out.format("Pacioli.conversionNumbers(%s)", node.typeNode.evalType(true).compileToMATLAB());
+        //out.format("ones(%s, %s)", node.rowDim.size(), node.columnDim.size());
     }
 
     @Override
@@ -106,8 +110,19 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(IfStatementNode node) {
-        out.format("%s", node.getClass());
-        
+        out.write("if (");
+        node.test.accept(this);
+        out.write(") ");
+        out.newlineUp();
+        node.positive.accept(this);
+        out.write(";");
+        out.newlineDown();
+        out.write("else");
+        out.newlineUp();
+        node.negative.accept(this);
+        out.write(";");
+        out.newlineDown();
+        out.write("endif");
     }
 
     @Override
@@ -132,8 +147,8 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(MatrixTypeNode node) {
-        out.format("%s", node.getClass());
-        
+        out.format("ones(%s, %s)", node.rowDim.size(), node.columnDim.size());
+        //out.format("%s", node.getClass());
     }
 
     @Override
@@ -144,37 +159,54 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnNode node) {
-        out.format("%s", node.getClass());
+        out.write("result = ");
+        node.value.accept(this);
+        out.newline();
+        out.write("return");
         
     }
 
     @Override
     public void visit(SequenceNode node) {
-        out.format("%s", node.getClass());
-        
+        for (ExpressionNode item : node.items) {
+            item.accept(this);
+            out.write(";");
+            out.newline();
+        }
     }
 
     @Override
     public void visit(StatementNode node) {
-        out.format("%s", node.getClass());
+        node.body.accept(this);
         
     }
 
     @Override
     public void visit(StringNode node) {
-        out.format("%s", node.getClass());
-        
+        out.format("\"%s\"", node.valueString());
     }
 
     @Override
     public void visit(TupleAssignmentNode node) {
-        out.format("%s", node.getClass());
-        
+        String tmpVar = Utils.freshName();
+        out.format("%s = ", tmpVar);
+        node.tuple.accept(this);
+        int i = 1;
+        for (IdentifierNode var : node.vars) {
+            out.newline();
+            out.format("%s = %s{%s}", var.getName(), tmpVar, i++);
+        }
     }
 
     @Override
     public void visit(WhileNode node) {
-        out.format("%s", node.getClass());
+        out.write("while (");
+        node.test.accept(this);
+        out.write(")");
+        out.newlineUp();
+        node.body.accept(this);
+        out.newlineDown();
+        out.write("endwhile");
         
     }
 

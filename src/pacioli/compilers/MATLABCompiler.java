@@ -13,6 +13,8 @@ import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
+import pacioli.ast.expression.SequenceNode;
+import pacioli.ast.expression.StatementNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.IndexSetInfo;
@@ -48,15 +50,25 @@ public class MATLABCompiler implements SymbolTableVisitor {
         ExpressionNode transformed = definition.body;
         if (transformed instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformed;
-            out.newline();
-            out.format("function retval = %s (%s)", info.globalName().toLowerCase(), code.argsString());
-            out.newline();
-            out.format(" retval = ");
-            code.expression.accept(new MatlabGenerator(out, settings));
-            out.format(";");
-            out.newline();
-            out.format("endfunction;");
-            out.newline();
+            if (code.expression instanceof StatementNode) {
+                out.newline();
+                out.format("function result = %s (%s)", info.globalName().toLowerCase(), code.argsString());
+                out.newlineUp();
+                code.expression.accept(new MatlabGenerator(out, settings));
+                out.newlineDown();
+                out.format("endfunction;");
+                out.newline();
+            } else {
+                out.newline();
+                out.format("function retval = %s (%s)", info.globalName().toLowerCase(), code.argsString());
+                out.newlineUp();
+                out.format(" retval = ");
+                code.expression.accept(new MatlabGenerator(out, settings));
+                out.format(";");
+                out.newlineDown();
+                out.format("endfunction;");
+                out.newline();
+            }
         } else {
             out.newline();
             out.format("global %s = ", info.globalName().toLowerCase());
