@@ -28,8 +28,10 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.types.IndexSetVar;
+import pacioli.types.ScalarUnitVar;
 import pacioli.types.TypeVar;
 import pacioli.types.Var;
+import pacioli.types.VectorUnitVar;
 
 public class TypeContext extends AbstractPrintable {
 
@@ -52,7 +54,11 @@ public class TypeContext extends AbstractPrintable {
             vars.add(new IndexSetVar("for_index", name));
         }
         for (String name : unitVars) {
-            vars.add(new TypeVar("for_unit", name));
+            if (name.contains("!")) {
+                vars.add(new VectorUnitVar("for_unit", name));
+            } else {
+                vars.add(new ScalarUnitVar("for_unit", name));
+            }
         }
         return vars;
     }
@@ -64,6 +70,8 @@ public class TypeContext extends AbstractPrintable {
         for (Var genericVar : vars) {
             if (genericVar instanceof IndexSetVar) {
                 indexVars.add(genericVar.pretty());
+            } else if (genericVar instanceof ScalarUnitVar || genericVar instanceof VectorUnitVar) {
+                unitVars.add(genericVar.pretty());
             } else {
                 TypeVar var = (TypeVar) genericVar; // fixme
                 if (var.quantifier.equals("for_type")) {

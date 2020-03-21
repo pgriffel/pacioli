@@ -13,17 +13,21 @@ import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.UnitInfo;
+import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
+import pacioli.types.ScalarUnitVar;
 import pacioli.types.Schema;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
+import pacioli.types.VectorUnitVar;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
@@ -118,7 +122,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             String unitName = node.unitVecName();
             //if (!unitInfo.getDefinition().isPresent()) {
             if (!unitInfo.isGlobal()) {
-                rowUnit = new TypeVar("for_unit", indexSetName + "!" + unitName);
+                rowUnit = new VectorUnitVar("for_unit", indexSetName + "!" + unitName);
             } else {
                 rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName),
                         new TypeIdentifier(unitInfo.generic().getModule(), unitName), 0);
@@ -226,8 +230,10 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             // Create a type for each different kind of type variable
             if (info instanceof TypeInfo) {
                 returnType(new TypeVar("for_type", node.getName()));
-            } else if (info instanceof UnitInfo) {
-                returnType(new MatrixType(new TypeVar("for_unit", node.getName())));
+            } else if (info instanceof ScalarUnitInfo) {
+                returnType(new MatrixType(new ScalarUnitVar("for_unit", node.getName())));
+            } else if (info instanceof VectorUnitInfo) {
+                returnType(new MatrixType(new VectorUnitVar("for_unit", node.getName())));
             } else if (info instanceof IndexSetInfo) {
                 returnType(new IndexType(new IndexSetVar("for_index", node.getName())));
             } else {
