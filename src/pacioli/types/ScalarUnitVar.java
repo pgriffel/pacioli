@@ -184,9 +184,6 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     @Override
     public PacioliType unfresh() {
-        if (quantifier.equals("for_index")) {
-            return new IndexSetVar(quantifier, "a");
-        }
         return new ScalarUnitVar(quantifier, "a");
     }
 

@@ -184,9 +184,6 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     @Override
     public PacioliType unfresh() {
-        if (quantifier.equals("for_index")) {
-            return new IndexSetVar(quantifier, "a");
-        }
         return new TypeVar(quantifier, "a");
     }
 

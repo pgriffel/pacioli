@@ -104,7 +104,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
         String indexSetName = node.indexSetName();
         //if (!indexInfo.getDefinition().isPresent()) {
         if (!indexInfo.isGlobal()) {    
-            indexType = new IndexType(new IndexSetVar("for_index", indexSetName));
+            //indexType = new IndexType(new IndexSetVar("for_index", indexSetName));
+            indexType = new IndexType(new IndexSetVar(indexInfo));
         } else {
             indexType = new IndexType(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName), indexInfo);
         }
@@ -239,7 +240,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                 //returnType(new MatrixType(new VectorUnitVar("for_unit", node.getName())));
                 returnType(new MatrixType(new VectorUnitVar((VectorUnitInfo) info)));
             } else if (info instanceof IndexSetInfo) {
-                returnType(new IndexType(new IndexSetVar("for_index", node.getName())));
+                //returnType(new IndexType(new IndexSetVar("for_index", node.getName())));
+                returnType(new IndexType(new IndexSetVar((IndexSetInfo) info)));
             } else {
                 throw new RuntimeException("Unknown kind");
             }

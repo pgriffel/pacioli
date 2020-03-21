@@ -25,12 +25,14 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.Substitution;
+import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.ast.TypeNode;
 import uom.BaseUnit;
 import uom.Unit;
@@ -42,15 +44,24 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     private static int counter = 0;
     private final String name;
     public final String quantifier;
+    public final Optional<IndexSetInfo> info;
 
+    public IndexSetVar(IndexSetInfo info) {
+        name = info.name();
+        this.quantifier = "for_index";
+        this.info = Optional.of(info);
+    }
+    
     public IndexSetVar(String quantifier) {
         name = freshName();
         this.quantifier = quantifier;
+        this.info = Optional.empty();
     }
 
     public IndexSetVar(String quantifier, String name) {
         this.name = name;
         this.quantifier = quantifier;
+        this.info = Optional.empty();
     }
 
     @Override
