@@ -238,7 +238,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                 returnType(new MatrixType(new ScalarUnitVar((ScalarUnitInfo) info)));
             } else if (info instanceof VectorUnitInfo) {
                 //returnType(new MatrixType(new VectorUnitVar("for_unit", node.getName())));
-                returnType(new MatrixType(new VectorUnitVar((VectorUnitInfo) info)));
+                //returnType(new MatrixType(new VectorUnitVar((VectorUnitInfo) info)));
+                throw new RuntimeException("A unit vector should be a BangTypeNode, not a TypeIdentifier. That is for scalars");
             } else if (info instanceof IndexSetInfo) {
                 //returnType(new IndexType(new IndexSetVar("for_index", node.getName())));
                 returnType(new IndexType(new IndexSetVar((IndexSetInfo) info)));

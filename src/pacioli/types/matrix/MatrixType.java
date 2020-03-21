@@ -36,6 +36,7 @@ import pacioli.Utils;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
+import pacioli.types.ScalarUnitVar;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.Var;
@@ -384,7 +385,7 @@ public class MatrixType extends AbstractType {
     @Override
     public void printPretty(PrintWriter out) {
         
-        //deval().printPretty(out);
+        deval().printPretty(out);
 
         List<Unit<TypeBase>> rowUnitList = dimensionBangUnitList(rowDimension, rowUnit);
         List<Unit<TypeBase>> columnUnitList = dimensionBangUnitList(columnDimension, columnUnit);
@@ -579,23 +580,53 @@ public class MatrixType extends AbstractType {
         }
     }
 
-    class UnitDevaluator implements UnitFold<TypeBase, TypeNode> {
+    class VectorUnitDevaluator implements UnitFold<TypeBase, TypeNode> {
 
-        private final IndexSetInfo indexSet;
+        //private final IndexSetInfo indexSet;
+        private final IndexType dimension;
 
-        public UnitDevaluator(IndexSetInfo indexSetInfo) {
-            this.indexSet = indexSetInfo;
+        public VectorUnitDevaluator(IndexType dimension) {
+            this.dimension = dimension;
         }
 
         @Override
         public TypeNode map(TypeBase base) {
-            assert(base instanceof VectorBase);
-            VectorBase vectorBase = (VectorBase) base;
-            Location location = indexSet.getLocation();
-            return new BangTypeNode(location, 
-                    new TypeIdentifierNode(location, indexSet.name()),
-                    new TypeIdentifierNode(location, vectorBase.unitName.name));
-
+            if (dimension.isVar()) {
+                Var dimVar = (Var) dimension.getIndexSet();
+                Var baseVar = (Var) base;
+                if (dimVar.isFresh()) {
+                    Location location = new Location();
+                    return new BangTypeNode(location, 
+                            new TypeIdentifierNode(location, dimVar.pretty()),
+                            new TypeIdentifierNode(location, baseVar.pretty()));
+                } else {
+                    IndexSetInfo info = dimension.nthIndexSetInfo(0);
+                    Location location = info.getLocation();
+                    return new BangTypeNode(location, 
+                        new TypeIdentifierNode(location, info.name()),
+                        // Is this the right base name!
+                        new TypeIdentifierNode(location, baseVar.pretty()));
+                }
+            } else {
+                if (base instanceof VectorBase) {
+                    assert(base instanceof VectorBase);
+                    VectorBase vectorBase = (VectorBase) base;
+                    
+                    IndexSetInfo info = dimension.nthIndexSetInfo(vectorBase.position);
+                    Location location = info.getLocation();
+                    return new BangTypeNode(location, 
+                        new TypeIdentifierNode(location, info.name()),
+                        new TypeIdentifierNode(location, vectorBase.unitName.name));
+                } else {
+                    Var baseVar = (Var) base;
+                    IndexSetInfo info = dimension.nthIndexSetInfo(0);
+                    Location location = info.getLocation();
+                    return new BangTypeNode(location, 
+                            new TypeIdentifierNode(location, info.name()),
+                            // Is this the right base name!
+                            new TypeIdentifierNode(location, baseVar.pretty()));
+                }
+            }
         }
 
         @Override
@@ -610,8 +641,25 @@ public class MatrixType extends AbstractType {
 
         @Override
         public TypeNode one() {
-            Location location = indexSet.getLocation();
-            return new BangTypeNode(location, new TypeIdentifierNode(location, indexSet.name()));
+            
+            if (dimension.isVar()) {
+                Var dimVar = (Var) dimension.getIndexSet();
+                if (dimVar.isFresh()) {
+                    Location location = new Location();
+                    return new BangTypeNode(location, 
+                            new TypeIdentifierNode(location, dimVar.pretty()));
+                } else {
+                    IndexSetInfo info = dimension.nthIndexSetInfo(0);
+                    Location location = info.getLocation();
+                    return new BangTypeNode(location, 
+                        new TypeIdentifierNode(location, info.name()));
+                }
+            } else {
+                IndexSetInfo info = dimension.nthIndexSetInfo(0);
+                Location location = info.getLocation();
+                return new BangTypeNode(location, 
+                    new TypeIdentifierNode(location, info.name()));
+            }
         }
     }
     
@@ -625,10 +673,14 @@ public class MatrixType extends AbstractType {
 
         @Override
         public TypeNode map(TypeBase base) {
-            assert(base instanceof ScalarBase || base instanceof Var);
-            ScalarBase scalarBase = (ScalarBase) base;
-            return new TypeIdentifierNode(location, base.pretty());
-
+            assert(base instanceof ScalarBase || base instanceof ScalarUnitVar);
+            if (base instanceof ScalarUnitVar) {
+                ScalarUnitVar var = (ScalarUnitVar) base;
+                return new TypeIdentifierNode(location, var.pretty());
+            } else {
+                ScalarBase scalarBase = (ScalarBase) base;
+                return new TypeIdentifierNode(location, scalarBase.pretty());
+            }
         }
 
         @Override
@@ -666,7 +718,7 @@ public class MatrixType extends AbstractType {
     
     @Override
     public TypeNode deval() {
-        TypeNode factorNode = factor.fold(new ScalarUnitDevaluator(null));
+        TypeNode factorNode = factor.fold(new ScalarUnitDevaluator(new Location()));
         TypeNode left = devalDimension(rowDimension, rowUnit);
         TypeNode right = devalDimension(columnDimension, columnUnit);
         
@@ -688,7 +740,7 @@ public class MatrixType extends AbstractType {
     public TypeNode devalDimension(final IndexType dimension, Unit<TypeBase> unit) {
         List<Unit<TypeBase>> units = new ArrayList<Unit<TypeBase>>();
         if (dimension.isVar()) {
-            UnitDevaluator unitDevaluator = new UnitDevaluator(null);
+            VectorUnitDevaluator unitDevaluator = new VectorUnitDevaluator(dimension);
             return unit.fold(unitDevaluator);
             /*Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
                 public Unit<TypeBase> map(TypeBase base) {
@@ -713,7 +765,7 @@ public class MatrixType extends AbstractType {
             TypeNode node = null;
             for (int i = 0; i < dimType.width(); i++) {
                 final int index = i;
-                UnitDevaluator unitDevaluator = new UnitDevaluator(dimType.nthIndexSetInfo(index));
+                VectorUnitDevaluator unitDevaluator = new VectorUnitDevaluator(dimType);
                 Unit<TypeBase> filtered = filterVectorUnit(unit, index);
                 TypeNode devaluated = filtered.fold(unitDevaluator);
                 if (i == 0) {

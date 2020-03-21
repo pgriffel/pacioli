@@ -44,6 +44,7 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
     private final Location location;
 
     public AbstractNode(Location location) {
+        assert(location != null);
         this.location = location;
     }
 
