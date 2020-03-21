@@ -52,6 +52,14 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         this.kind = null;
         assert (!name.contains("!"));
     }
+    
+    public TypeIdentifierNode(Location location, String name, SymbolInfo info) {
+        super(location);
+        this.name = name;
+        this.kind = null;
+        assert (!name.contains("!"));
+        this.info = info;
+    }
 
     public String getName() {
         return name;
