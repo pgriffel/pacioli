@@ -32,6 +32,7 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.Substitution;
+import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.ast.TypeNode;
 import uom.BaseUnit;
@@ -205,5 +206,19 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     public TypeNode deval() {
         // TODO Auto-generated method stub
         return null;
+    }
+    
+    @Override
+    public VectorUnitInfo getInfo() {
+        if (info.isPresent()) {
+            return info.get(); 
+        } else {
+            throw new RuntimeException(String.format("No info present for fresh vector unit variable %s", name));
+        }
+    }
+
+    @Override
+    public Boolean isFresh() {
+       return !info.isPresent();
     }
 }

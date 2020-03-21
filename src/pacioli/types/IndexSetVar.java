@@ -33,6 +33,7 @@ import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.Substitution;
 import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.SymbolInfo;
 import pacioli.types.ast.TypeNode;
 import uom.BaseUnit;
 import uom.Unit;
@@ -211,5 +212,19 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     public TypeNode deval() {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public IndexSetInfo getInfo() {
+        if (info.isPresent()) {
+            return info.get(); 
+        } else {
+            throw new RuntimeException(String.format("No info present for fresh index set variable %s", name));
+        }
+    }
+
+    @Override
+    public Boolean isFresh() {
+       return !info.isPresent();
     }
 }
