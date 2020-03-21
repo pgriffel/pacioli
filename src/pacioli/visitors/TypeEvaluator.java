@@ -17,6 +17,7 @@ import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.types.FunctionType;
+import pacioli.types.IndexSetVar;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 import pacioli.types.Schema;
@@ -99,7 +100,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
         String indexSetName = node.indexSetName();
         //if (!indexInfo.getDefinition().isPresent()) {
         if (!indexInfo.isGlobal()) {    
-            indexType = new IndexType(new TypeVar("for_index", indexSetName));
+            indexType = new IndexType(new IndexSetVar("for_index", indexSetName));
         } else {
             indexType = new IndexType(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName), indexInfo);
         }
@@ -228,7 +229,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             } else if (info instanceof UnitInfo) {
                 returnType(new MatrixType(new TypeVar("for_unit", node.getName())));
             } else if (info instanceof IndexSetInfo) {
-                returnType(new IndexType(new TypeVar("for_index", node.getName())));
+                returnType(new IndexType(new IndexSetVar("for_index", node.getName())));
             } else {
                 throw new RuntimeException("Unknown kind");
             }

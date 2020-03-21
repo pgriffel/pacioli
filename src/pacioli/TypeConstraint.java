@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import pacioli.types.IndexSetVar;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 import pacioli.types.TypeVar;
@@ -81,7 +82,7 @@ public class TypeConstraint extends AbstractPrintable {
                 if (arg instanceof MatrixType) {
                     BangTypeNode bang = (BangTypeNode) var;
                     MatrixType argMat = (MatrixType) arg;
-                    map.put(new TypeVar(bang.indexSetName()), argMat.rowDimension.getIndexSet());
+                    map.put(new IndexSetVar(bang.indexSetName()), argMat.rowDimension.getIndexSet());
                     map.put(new TypeVar("for_unit", bang.indexSetName() + "!" + bang.unitVecName()), argMat.rowUnit);
                 } else {
                     throw new PacioliException(var.getLocation(),

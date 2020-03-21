@@ -187,8 +187,8 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         // Replace all type variables by type variables named a, b, c, d, ...
         Substitution map = new Substitution();
         int character = 97; // character a
-        for (Var gvar : typeVars()) {
-            TypeVar var = (TypeVar) gvar; //fixme 
+        for (Var var : typeVars()) {
+            //TypeVar var = (TypeVar) gvar; //fixme 
             map = map.compose(new Substitution(var, var.rename(String.format("%s", (char) character++))));
         }
         PacioliType unfreshType = applySubstitution(map);

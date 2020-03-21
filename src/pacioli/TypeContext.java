@@ -27,6 +27,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import pacioli.types.IndexSetVar;
 import pacioli.types.TypeVar;
 import pacioli.types.Var;
 
@@ -48,7 +49,7 @@ public class TypeContext extends AbstractPrintable {
             vars.add(new TypeVar("for_type", name));
         }
         for (String name : indexVars) {
-            vars.add(new TypeVar("for_index", name));
+            vars.add(new IndexSetVar("for_index", name));
         }
         for (String name : unitVars) {
             vars.add(new TypeVar("for_unit", name));
@@ -61,15 +62,19 @@ public class TypeContext extends AbstractPrintable {
         unitVars = new ArrayList<String>();
         indexVars = new ArrayList<String>();
         for (Var genericVar : vars) {
-            TypeVar var = (TypeVar) genericVar; // fixme
-            if (var.quantifier.equals("for_type")) {
-                typeVars.add(var.pretty());
-            } else if (var.quantifier.equals("for_index")) {
-                indexVars.add(var.pretty());
-            } else if (var.quantifier.equals("for_unit")) {
-                unitVars.add(var.pretty());
+            if (genericVar instanceof IndexSetVar) {
+                indexVars.add(genericVar.pretty());
             } else {
-                throw new RuntimeException("Unknown quantifier: " + var.quantifier);
+                TypeVar var = (TypeVar) genericVar; // fixme
+                if (var.quantifier.equals("for_type")) {
+                    typeVars.add(var.pretty());
+                } else if (var.quantifier.equals("for_index")) {
+                    indexVars.add(var.pretty());
+                } else if (var.quantifier.equals("for_unit")) {
+                    unitVars.add(var.pretty());
+                } else {
+                    throw new RuntimeException("Unknown quantifier: " + var.quantifier);
+                }
             }
         }
     }

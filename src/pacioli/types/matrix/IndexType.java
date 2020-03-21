@@ -11,6 +11,7 @@ import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.AbstractType;
+import pacioli.types.IndexSetVar;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
@@ -36,6 +37,10 @@ public class IndexType extends AbstractType {
     }
 
     public IndexType(TypeVar typeVar) { // Note the TypeVar instead of Var !!!
+        indexSet = typeVar;
+    }
+    
+    public IndexType(IndexSetVar typeVar) { // Note the TypeVar instead of Var !!!
         indexSet = typeVar;
     }
 

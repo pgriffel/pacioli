@@ -71,8 +71,8 @@ public class Schema extends AbstractType {
     @Override
     public PacioliType instantiate() {
         Substitution map = new Substitution();
-        for (Var gvar : variables) {
-            TypeVar var = (TypeVar) gvar; //fixme
+        for (Var var : variables) {
+            //TypeVar var = (TypeVar) gvar; //fixme
             map = map.compose(new Substitution(var, var.fresh()));
         }
         // return map.apply(type);

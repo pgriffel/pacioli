@@ -36,19 +36,19 @@ import uom.BaseUnit;
 import uom.Unit;
 
 //public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Printable {
-public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
+public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 //public class TypeVar extends TypeBase implements PacioliType, Printable {
 
     private static int counter = 0;
     private final String name;
     public final String quantifier;
 
-    public TypeVar(String quantifier) {
+    public IndexSetVar(String quantifier) {
         name = freshName();
         this.quantifier = quantifier;
     }
 
-    public TypeVar(String quantifier, String name) {
+    public IndexSetVar(String quantifier, String name) {
         this.name = name;
         this.quantifier = quantifier;
     }
@@ -77,10 +77,10 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
         if (other == this) {
             return true;
         }
-        if (!(other instanceof TypeVar)) {
+        if (!(other instanceof IndexSetVar)) {
             return false;
         }
-        TypeVar otherVar = (TypeVar) other;
+        IndexSetVar otherVar = (IndexSetVar) other;
         return name.equals(otherVar.name);
     }
 
@@ -160,14 +160,11 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     @Override
     public PacioliType fresh() {
-        if (quantifier.equals("fox_index")) {
-            return new IndexSetVar(quantifier);
-        }
-        return new TypeVar(quantifier);
+        return new IndexSetVar(quantifier);
     }
 
     public PacioliType rename(String name) {
-        return new TypeVar(quantifier, name);
+        return new IndexSetVar(quantifier, name);
     }
 
     private static String freshName() {
@@ -176,10 +173,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     @Override
     public PacioliType unfresh() {
-        if (quantifier.equals("for_index")) {
-            return new IndexSetVar(quantifier, "a");
-        }
-        return new TypeVar(quantifier, "a");
+        return new IndexSetVar(quantifier, "a");
     }
 
     @Override
