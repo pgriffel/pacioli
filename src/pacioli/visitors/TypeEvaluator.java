@@ -115,7 +115,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
 
             // Create the unit. If no definition exists it is a variable.
             String unitName = node.unitVecName();
-            if (!unitInfo.getDefinition().isPresent()) {
+            //if (!unitInfo.getDefinition().isPresent()) {
+            if (!unitInfo.isGlobal()) {
                 rowUnit = new TypeVar("for_unit", indexSetName + "!" + unitName);
             } else {
                 rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName),
