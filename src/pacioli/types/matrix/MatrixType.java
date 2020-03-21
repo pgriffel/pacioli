@@ -385,8 +385,10 @@ public class MatrixType extends AbstractType {
     @Override
     public void printPretty(PrintWriter out) {
         
+        out.print("< ");
         deval().printPretty(out);
-
+        out.print(" =>");
+        
         List<Unit<TypeBase>> rowUnitList = dimensionBangUnitList(rowDimension, rowUnit);
         List<Unit<TypeBase>> columnUnitList = dimensionBangUnitList(columnDimension, columnUnit);
 
@@ -726,15 +728,29 @@ public class MatrixType extends AbstractType {
             return factorNode;
         }
         if (left == null) {
-            Location location = factorNode.getLocation().join(right.getLocation());
-            return new TypeMultiplyNode(location, factorNode, right);
+            if (factor.equals(TypeBase.ONE)) {
+                return right;
+            } else {
+                Location location = factorNode.getLocation().join(right.getLocation());
+                return new TypeMultiplyNode(location, factorNode, right);
+            }
         }
         if (right == null) {
-            Location location = left.getLocation().join(factorNode.getLocation());
-            return new TypeMultiplyNode(location, factorNode, left);
+            if (factor.equals(TypeBase.ONE)) {
+                return left;
+            } else {
+                Location location = left.getLocation().join(factorNode.getLocation());
+                return new TypeMultiplyNode(location, factorNode, left);
+            }
         }
-        Location location = factorNode.getLocation().join(left.getLocation().join(right.getLocation()));
-        return new TypeMultiplyNode(location, factorNode, new TypePerNode(location, left, right));
+        Location perLocation = left.getLocation().join(right.getLocation());
+        TypePerNode perNode = new TypePerNode(perLocation, left, right);
+        if (factor.equals(TypeBase.ONE)) {
+            return perNode;
+        } else {
+            Location location = factorNode.getLocation().join(perLocation);
+            return new TypeMultiplyNode(location, factorNode, perNode);
+        }
     }
     
     public TypeNode devalDimension(final IndexType dimension, Unit<TypeBase> unit) {
