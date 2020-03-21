@@ -122,7 +122,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             String unitName = node.unitVecName();
             //if (!unitInfo.getDefinition().isPresent()) {
             if (!unitInfo.isGlobal()) {
-                rowUnit = new VectorUnitVar("for_unit", indexSetName + "!" + unitName);
+                //rowUnit = new VectorUnitVar("for_unit", indexSetName + "!" + unitName);
+                rowUnit = new VectorUnitVar(unitInfo);
             } else {
                 rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName),
                         new TypeIdentifier(unitInfo.generic().getModule(), unitName), 0);
@@ -233,7 +234,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             } else if (info instanceof ScalarUnitInfo) {
                 returnType(new MatrixType(new ScalarUnitVar("for_unit", node.getName())));
             } else if (info instanceof VectorUnitInfo) {
-                returnType(new MatrixType(new VectorUnitVar("for_unit", node.getName())));
+                //returnType(new MatrixType(new VectorUnitVar("for_unit", node.getName())));
+                returnType(new MatrixType(new VectorUnitVar((VectorUnitInfo) info)));
             } else if (info instanceof IndexSetInfo) {
                 returnType(new IndexType(new IndexSetVar("for_index", node.getName())));
             } else {

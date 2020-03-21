@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import pacioli.ConstraintSet;
@@ -43,17 +44,18 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     private static int counter = 0;
     private final String name;
     public final String quantifier;
-    private VectorUnitInfo info;
+    private Optional<VectorUnitInfo> info;
 
     public VectorUnitVar(VectorUnitInfo info) {
         name = info.name();
         this.quantifier = "for_unit";
-        this.info = info;
+        this.info = Optional.of(info);
     }
 
     public VectorUnitVar(String quantifier, String name) {
         this.name = name;
         this.quantifier = quantifier;
+        this.info = Optional.empty();
     }
 
     @Override
@@ -176,9 +178,6 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     @Override
     public PacioliType unfresh() {
-        if (quantifier.equals("for_index")) {
-            return new IndexSetVar(quantifier, "a");
-        }
         return new VectorUnitVar(quantifier, "a");
     }
 
