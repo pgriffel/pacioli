@@ -36,7 +36,7 @@ import uom.BaseUnit;
 import uom.Unit;
 
 //public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Printable {
-public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Printable, TypeBase {
+public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 //public class TypeVar extends TypeBase implements PacioliType, Printable {
 
     private static int counter = 0;
@@ -57,7 +57,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Printabl
     public Set<String> unitVecVarCompoundNames() {
         return new LinkedHashSet<String>();
     }
-
+/*
     private TypeVar(String quantifier, String name, boolean active) {
         this.name = name;
         this.quantifier = quantifier;
@@ -66,7 +66,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Printabl
     public TypeVar changeActivation(boolean status) {
         return new TypeVar(quantifier, name, status);
     }
-
+*/
     @Override
     public int hashCode() {
         return name.hashCode();
@@ -100,8 +100,8 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Printabl
     }
 
     @Override
-    public Set<TypeVar> typeVars() {
-        Set<TypeVar> vars = new LinkedHashSet<TypeVar>();
+    public Set<Var> typeVars() {
+        Set<Var> vars = new LinkedHashSet<Var>();
         vars.add(this);
         return vars;
     }

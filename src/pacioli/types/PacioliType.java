@@ -34,7 +34,7 @@ public interface PacioliType extends Printable {
 
     public String description();
 
-    public Set<TypeVar> typeVars();
+    public Set<Var> typeVars();
 
     public PacioliType applySubstitution(Substitution subs);
 

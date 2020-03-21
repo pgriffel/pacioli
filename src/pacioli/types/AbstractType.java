@@ -43,8 +43,8 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
             return new Substitution();
         }
 
-        if (other instanceof TypeVar) {
-            return new Substitution((TypeVar) other, this);
+        if (other instanceof Var) {
+            return new Substitution((Var) other, this);
         }
 
         if (getClass().equals(other.getClass())) {
@@ -58,13 +58,13 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
     public PacioliType simplify() {
         Substitution mgu = new Substitution();
         List<Unit<TypeBase>> parts = simplificationParts();
-        Set<TypeVar> ignore = new HashSet<TypeVar>();
+        Set<Var> ignore = new HashSet<Var>();
         for (int i = 0; i < parts.size(); i++) {
             Unit<TypeBase> part = mgu.apply(parts.get(i));
             Substitution simplified = unitSimplify(part, ignore);
             for (TypeBase base : simplified.apply(part).bases()) {
-                if (base instanceof TypeVar) {
-                    ignore.add((TypeVar) base);
+                if (base instanceof Var) {
+                    ignore.add((Var) base);
                 }
             }
             mgu = simplified.compose(mgu);
@@ -73,13 +73,13 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         return result;
     }
 
-    private static Substitution unitSimplify(Unit<TypeBase> unit, Set<TypeVar> ignore) {
+    private static Substitution unitSimplify(Unit<TypeBase> unit, Set<Var> ignore) {
 
         List<TypeBase> varBases = new ArrayList<TypeBase>();
         List<TypeBase> fixedBases = new ArrayList<TypeBase>();
 
         for (TypeBase base : unit.bases()) {
-            if (base instanceof TypeVar && !ignore.contains((TypeVar) base)) {
+            if (base instanceof Var && !ignore.contains((Var) base)) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);
@@ -91,10 +91,10 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
             return new Substitution();
         }
 
-        TypeVar minVar = (TypeVar) varBases.get(0);
+        Var minVar = (Var) varBases.get(0);
         for (TypeBase var : varBases) {
             if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
-                minVar = (TypeVar) var;
+                minVar = (Var) var;
             }
         }
         assert (unit.power(minVar).isInt());
@@ -107,7 +107,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
 
         if (varBases.size() == 1) {
 
-            TypeVar var = (TypeVar) varBases.get(0);
+            Var var = (Var) varBases.get(0);
             assert (unit.power(var).isInt());
             int power = unit.power(var).intValue();
             // Unit residu = Unit.ONE.multiply(unit.factor());
@@ -174,7 +174,8 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
     @Override
     public PacioliType fresh() {
         Substitution map = new Substitution();
-        for (TypeVar var : typeVars()) {
+        for (Var gvar : typeVars()) {
+            TypeVar var = (TypeVar) gvar; //fixme
             map = map.compose(new Substitution(var, var.fresh()));
         }
         return applySubstitution(map);
@@ -186,7 +187,8 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         // Replace all type variables by type variables named a, b, c, d, ...
         Substitution map = new Substitution();
         int character = 97; // character a
-        for (TypeVar var : typeVars()) {
+        for (Var gvar : typeVars()) {
+            TypeVar var = (TypeVar) gvar; //fixme 
             map = map.compose(new Substitution(var, var.rename(String.format("%s", (char) character++))));
         }
         PacioliType unfreshType = applySubstitution(map);
@@ -201,7 +203,9 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
             // already contain !
             // assert(parts.length == 2);
             if (parts.length == 2) {
-                map = map.compose(new Substitution(new TypeVar("for_unit", parts[1]), new TypeVar("for_unit", name)));
+                Var var1 = new TypeVar("for_unit", parts[1]);
+                Var var2 = new TypeVar("for_unit", name);
+                map = map.compose(new Substitution(var1, var2));
             }
         }
         return unfreshType.applySubstitution(map);

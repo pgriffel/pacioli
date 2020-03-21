@@ -27,7 +27,7 @@ import java.util.List;
 
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
-import pacioli.types.TypeVar;
+import pacioli.types.Var;
 import uom.Fraction;
 import uom.Unit;
 
@@ -131,7 +131,7 @@ public class ConstraintSet extends AbstractPrintable {
         List<TypeBase> fixedBases = new ArrayList<TypeBase>();
 
         for (TypeBase base : unit.bases()) {
-            if (base instanceof TypeVar) {
+            if (base instanceof Var) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);
@@ -149,7 +149,7 @@ public class ConstraintSet extends AbstractPrintable {
 
         if (varBases.size() == 1) {
 
-            TypeVar var = (TypeVar) varBases.get(0);
+            Var var = (Var) varBases.get(0);
             assert (unit.power(var).isInt());
             int power = unit.power(var).intValue();
             Unit<TypeBase> residu = TypeBase.ONE;
@@ -166,10 +166,10 @@ public class ConstraintSet extends AbstractPrintable {
             return new Substitution(var, residu);
         }
 
-        TypeVar minVar = (TypeVar) varBases.get(0);
+        Var minVar = (Var) varBases.get(0);
         for (TypeBase var : varBases) {
             if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
-                minVar = (TypeVar) var;
+                minVar = (Var) var;
             }
         }
 

@@ -31,48 +31,48 @@ import java.util.Set;
 
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
-import pacioli.types.TypeVar;
+import pacioli.types.Var;
 import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitMap;
 
 public class Substitution extends AbstractPrintable {
 
-    // Map van strings van maken. Dan is geen equality op typevars nodig en kun je ze collecten in een set etc.
-    private final Map<TypeVar, Object> map;
+    // Map van strings van maken. Dan is geen equality op Vars nodig en kun je ze collecten in een set etc.
+    private final Map<Var, Object> map;
 
     public Substitution() {
-        map = new HashMap<TypeVar, Object>();
+        map = new HashMap<Var, Object>();
     }
 
-    public Substitution(TypeVar var, PacioliType type) {
-        map = new HashMap<TypeVar, Object>();
+    public Substitution(Var var, PacioliType type) {
+        map = new HashMap<Var, Object>();
         this.map.put(var, type);
     }
-
-    public Substitution(TypeVar var, Unit<TypeBase> unit) {
-        map = new HashMap<TypeVar, Object>();
+    
+    public Substitution(Var var, Unit<TypeBase> unit) {
+        map = new HashMap<Var, Object>();
         this.map.put(var, unit);
     }
-
-    public Substitution(TypeVar var, TypeVar other) {
-        map = new HashMap<TypeVar, Object>();
+    
+    public Substitution(Var var, Var other) {
+        map = new HashMap<Var, Object>();
         this.map.put(var, other);
     }
 
     public Substitution(Substitution other) {
-        map = new HashMap<TypeVar, Object>(other.map);
+        map = new HashMap<Var, Object>(other.map);
     }
 
-    Substitution(Map<TypeVar, Object> map) {
+    Substitution(Map<Var, Object> map) {
         this.map = map;
     }
 /*
     public Unit<TypeBase> apply(Unit<TypeBase> unit) {
         return unit.map(new UnitMap<TypeBase>() {
             public Unit<TypeBase> map(TypeBase base) {
-                if (base instanceof TypeVar && map.containsKey((TypeVar) base)) {
-                    Object obj = map.get((TypeVar) base);
+                if (base instanceof Var && map.containsKey((Var) base)) {
+                    Object obj = map.get((Var) base);
                     assert (obj instanceof Unit);
                     return (Unit<TypeBase>) obj;
                 } else {
@@ -85,8 +85,8 @@ public class Substitution extends AbstractPrintable {
     public <B> Unit<B> apply(Unit<B> unit) {
         return unit.map(new UnitMap<B>() {
             public Unit<B> map(B base) {
-                if (base instanceof TypeVar && map.containsKey((TypeVar) base)) {
-                    Object obj = map.get((TypeVar) base);
+                if (base instanceof Var && map.containsKey((Var) base)) {
+                    Object obj = map.get((Var) base);
                     assert (obj instanceof Unit);
                     return (Unit<B>) obj;
                 } else {
@@ -97,9 +97,9 @@ public class Substitution extends AbstractPrintable {
     }
 
     public PacioliType apply(PacioliType type) {
-        if (type instanceof TypeVar) {
-            if (map.containsKey((TypeVar) type)) {
-                Object obj = map.get((TypeVar) type);
+        if (type instanceof Var) {
+            if (map.containsKey((Var) type)) {
+                Object obj = map.get((Var) type);
                 assert (obj instanceof PacioliType);
                 return (PacioliType) obj;
             } else {
@@ -110,22 +110,22 @@ public class Substitution extends AbstractPrintable {
         }
     }
 
-    public void removeAll(Set<TypeVar> vars) {
-        for (TypeVar var : vars) {
+    public void removeAll(Set<Var> vars) {
+        for (Var var : vars) {
             map.remove(var);
         }
     }
 
     public Substitution compose(Substitution other) {
 
-        Map<TypeVar, Object> tmp = new HashMap<TypeVar, Object>();
+        Map<Var, Object> tmp = new HashMap<Var, Object>();
 
-        for (TypeVar var : map.keySet()) {
+        for (Var var : map.keySet()) {
             if (!other.map.containsKey(var)) {
                 tmp.put(var, map.get(var));
             }
         }
-        for (TypeVar var : other.map.keySet()) {
+        for (Var var : other.map.keySet()) {
             Object obj = other.map.get(var);
             if (obj instanceof PacioliType) {
                 tmp.put(var, apply((PacioliType) obj));
@@ -138,17 +138,17 @@ public class Substitution extends AbstractPrintable {
 
     public boolean isInjective() {
 
-        Set<TypeVar> check = new HashSet<TypeVar>();
+        Set<Var> check = new HashSet<Var>();
 
-        for (TypeVar var : map.keySet()) {
+        for (Var var : map.keySet()) {
             Object obj = map.get(var);
             if (obj instanceof Unit) {
                 obj = PowerProduct.normal((Unit) obj);
             }
-            if (!(obj instanceof TypeVar)) {
+            if (!(obj instanceof Var)) {
                 return false;
             } else {
-                TypeVar objVar = (TypeVar) obj;
+                Var objVar = (Var) obj;
                 if (check.contains(objVar)) {
                     return false;
                 } else {
@@ -162,7 +162,7 @@ public class Substitution extends AbstractPrintable {
     @Override
     public void printPretty(PrintWriter out) {
         List<String> elements = new ArrayList<String>();
-        for (TypeVar var : map.keySet()) {
+        for (Var var : map.keySet()) {
             Object obj = map.get(var);
             String text;
             if (obj instanceof Unit) {

@@ -15,6 +15,7 @@ import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
+import pacioli.types.Var;
 import pacioli.types.ast.TypeNode;
 import uom.Unit;
 
@@ -34,7 +35,7 @@ public class IndexType extends AbstractType {
         this.indexSet = new IndexList();
     }
 
-    public IndexType(TypeVar typeVar) {
+    public IndexType(TypeVar typeVar) { // Note the TypeVar instead of Var !!!
         indexSet = typeVar;
     }
 
@@ -47,11 +48,11 @@ public class IndexType extends AbstractType {
     }
 
     public boolean isVar() {
-        return indexSet instanceof TypeVar;
+        return indexSet instanceof Var;
     }
 
     public String varName() {
-        return ((TypeVar) indexSet).pretty();
+        return ((Var) indexSet).pretty();
     }
 
     public IndexList indexList() {
@@ -124,10 +125,10 @@ public class IndexType extends AbstractType {
     }
 
     @Override
-    public Set<TypeVar> typeVars() {
-        Set<TypeVar> vars = new LinkedHashSet<TypeVar>();
+    public Set<Var> typeVars() {
+        Set<Var> vars = new LinkedHashSet<Var>();
         if (isVar()) {
-            vars.add((TypeVar) indexSet);
+            vars.add((Var) indexSet);
         }
         return vars;
     }

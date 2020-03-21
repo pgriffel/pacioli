@@ -55,8 +55,8 @@ public class FunctionType extends AbstractType {
     }
 
     @Override
-    public Set<TypeVar> typeVars() {
-        Set<TypeVar> all = new LinkedHashSet<TypeVar>();
+    public Set<Var> typeVars() {
+        Set<Var> all = new LinkedHashSet<Var>();
         all.addAll(domain.typeVars());
         all.addAll(range.typeVars());
         return all;

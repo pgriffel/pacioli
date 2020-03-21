@@ -36,10 +36,10 @@ import uom.Unit;
 
 public class Schema extends AbstractType {
 
-    private final Set<TypeVar> variables;
+    private final Set<Var> variables;
     private final PacioliType type;
 
-    public Schema(Set<TypeVar> context, PacioliType type) {
+    public Schema(Set<Var> context, PacioliType type) {
         this.variables = context;
         this.type = type;
     }
@@ -57,8 +57,8 @@ public class Schema extends AbstractType {
     }
 
     @Override
-    public Set<TypeVar> typeVars() {
-        Set<TypeVar> freeVars = new LinkedHashSet<TypeVar>(type.typeVars());
+    public Set<Var> typeVars() {
+        Set<Var> freeVars = new LinkedHashSet<Var>(type.typeVars());
         freeVars.removeAll(variables);
         return freeVars;
     }
@@ -71,7 +71,8 @@ public class Schema extends AbstractType {
     @Override
     public PacioliType instantiate() {
         Substitution map = new Substitution();
-        for (TypeVar var : variables) {
+        for (Var gvar : variables) {
+            TypeVar var = (TypeVar) gvar; //fixme
             map = map.compose(new Substitution(var, var.fresh()));
         }
         // return map.apply(type);

@@ -77,8 +77,8 @@ public class ParametricType extends AbstractType {
     }
 
     @Override
-    public Set<TypeVar> typeVars() {
-        Set<TypeVar> all = new LinkedHashSet<TypeVar>();
+    public Set<Var> typeVars() {
+        Set<Var> all = new LinkedHashSet<Var>();
         for (PacioliType type : args) {
             all.addAll(type.typeVars());
         }

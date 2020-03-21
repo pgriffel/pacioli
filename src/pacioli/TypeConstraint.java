@@ -28,6 +28,7 @@ import java.util.Map;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 import pacioli.types.TypeVar;
+import pacioli.types.Var;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeIdentifierNode;
@@ -50,24 +51,24 @@ public class TypeConstraint extends AbstractPrintable {
             throw new PacioliException("Type function %s expects %s arguments but found %s", type.name,
                     lhs.getArgs().size(), type.args.size());
         }
-        Map<TypeVar, Object> map = new HashMap<TypeVar, Object>();
+        Map<Var, Object> map = new HashMap<Var, Object>();
         for (int i = 0; i < lhs.getArgs().size(); i++) {
             TypeNode var = lhs.getArgs().get(i);
             PacioliType arg = type.args.get(i);
             if (var instanceof TypeIdentifierNode) {
                 PacioliType varType = var.evalType(true);
-                if (varType instanceof TypeVar) {
-                    map.put((TypeVar) varType, arg);
+                if (varType instanceof Var) {
+                    map.put((Var) varType, arg);
                 } else if (varType instanceof IndexType) {
                     if (arg instanceof IndexType) {
-                        map.put((TypeVar) ((IndexType) varType).getIndexSet(), ((IndexType) arg).getIndexSet());
+                        map.put((Var) ((IndexType) varType).getIndexSet(), ((IndexType) arg).getIndexSet());
                     } else {
                         throw new PacioliException(var.getLocation(),
                                 "Type definitions's parameter is quantified as index, but is given '%s'", arg.pretty());
                     }
                 } else if (varType instanceof MatrixType) {
                     if (arg instanceof MatrixType) {
-                        map.put((TypeVar) ((MatrixType) varType).getFactor(), ((MatrixType) arg).getFactor());
+                        map.put((Var) ((MatrixType) varType).getFactor(), ((MatrixType) arg).getFactor());
                     } else {
                         throw new PacioliException(var.getLocation(),
                                 "Type definitions's parameter is quantified as unit, but is given '%s'", arg.pretty());

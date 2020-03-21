@@ -15,7 +15,7 @@ import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
-import pacioli.types.TypeVar;
+import pacioli.types.Var;
 import pacioli.types.ast.TypeNode;
 import uom.Unit;
 
@@ -93,8 +93,8 @@ public class IndexList extends AbstractType {
     }
 
     @Override
-    public Set<TypeVar> typeVars() {
-        Set<TypeVar> vars = new LinkedHashSet<TypeVar>();
+    public Set<Var> typeVars() {
+        Set<Var> vars = new LinkedHashSet<Var>();
         return vars;
     }
 

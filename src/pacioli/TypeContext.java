@@ -26,7 +26,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
 import pacioli.types.TypeVar;
+import pacioli.types.Var;
 
 public class TypeContext extends AbstractPrintable {
 
@@ -40,8 +42,8 @@ public class TypeContext extends AbstractPrintable {
         indexVars = new ArrayList<String>();
     }
 
-    public Set<TypeVar> typeVars() {
-        Set<TypeVar> vars = new LinkedHashSet<TypeVar>();
+    public Set<Var> typeVars() {
+        Set<Var> vars = new LinkedHashSet<Var>();
         for (String name : typeVars) {
             vars.add(new TypeVar("for_type", name));
         }
@@ -54,11 +56,12 @@ public class TypeContext extends AbstractPrintable {
         return vars;
     }
 
-    public TypeContext(Set<TypeVar> vars) {
+    public TypeContext(Set<Var> vars) {
         typeVars = new ArrayList<String>();
         unitVars = new ArrayList<String>();
         indexVars = new ArrayList<String>();
-        for (TypeVar var : vars) {
+        for (Var genericVar : vars) {
+            TypeVar var = (TypeVar) genericVar; // fixme
             if (var.quantifier.equals("for_type")) {
                 typeVars.add(var.pretty());
             } else if (var.quantifier.equals("for_index")) {
