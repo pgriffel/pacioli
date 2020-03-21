@@ -31,6 +31,7 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.Substitution;
+import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.ast.TypeNode;
 import uom.BaseUnit;
 import uom.Unit;
@@ -42,10 +43,12 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     private static int counter = 0;
     private final String name;
     public final String quantifier;
+    private VectorUnitInfo info;
 
-    public VectorUnitVar(String quantifier) {
-        name = freshName();
-        this.quantifier = quantifier;
+    public VectorUnitVar(VectorUnitInfo info) {
+        name = info.name();
+        this.quantifier = "for_unit";
+        this.info = info;
     }
 
     public VectorUnitVar(String quantifier, String name) {
@@ -160,10 +163,7 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     @Override
     public PacioliType fresh() {
-        if (quantifier.equals("fox_index")) {
-            return new IndexSetVar(quantifier);
-        }
-        return new VectorUnitVar(quantifier);
+        return new VectorUnitVar(quantifier, freshName());
     }
 
     public PacioliType rename(String name) {

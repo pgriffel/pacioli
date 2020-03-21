@@ -115,7 +115,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
         } else {
 
             // Find the unit info. The node must have been resolved.
-            UnitInfo unitInfo = (UnitInfo) node.unit.get().info;
+            VectorUnitInfo unitInfo = (VectorUnitInfo) node.unit.get().info;
             assert (unitInfo != null);
 
             // Create the unit. If no definition exists it is a variable.

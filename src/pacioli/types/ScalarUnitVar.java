@@ -160,9 +160,6 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     @Override
     public PacioliType fresh() {
-        if (quantifier.equals("fox_index")) {
-            return new IndexSetVar(quantifier);
-        }
         return new ScalarUnitVar(quantifier);
     }
 

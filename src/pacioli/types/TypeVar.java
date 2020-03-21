@@ -160,9 +160,6 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     @Override
     public PacioliType fresh() {
-        if (quantifier.equals("fox_index")) {
-            return new IndexSetVar(quantifier);
-        }
         return new TypeVar(quantifier);
     }
 
