@@ -32,13 +32,13 @@ public class Location {
 
     private final File file;
     
-    private final int fromLine;
-    private final int fromColumn;
-    private final int fromOffset;
+    private final Integer fromLine;
+    private final Integer fromColumn;
+    private final Integer fromOffset;
     
-    private final int toLine;
-    private final int toColumn;
-    private final int toOffset;
+    private final Integer toLine;
+    private final Integer toColumn;
+    private final Integer toOffset;
 
     /**
      * Constructs a Location that represents a position in a file. Join two position
@@ -50,6 +50,16 @@ public class Location {
      * @param column Zero based offset on the line of the position in the file
      * @param offset Zero based position in the file
      */
+    public Location() {
+        this.file = null;
+        this.fromOffset = null;
+        this.toOffset = null;
+        this.fromLine = null;
+        this.fromColumn = null;
+        this.toLine = null;
+        this.toColumn = null;
+    }
+    
     public Location(File file, int line, int column, int offset) {
         this.file = file;
         this.fromOffset = offset;
@@ -79,7 +89,11 @@ public class Location {
      * @return A location with a range from the smallest start to the larget end of the two locations.
      */
     public Location join(Location other) {
-        if (file.equals(other.file)) {
+        if (file == null) {
+            return other;
+        } else if (other.file == null) {
+            return this;
+        } else if (file.equals(other.file)) {
             Location smallestFrom = (this.fromOffset < other.fromOffset) ? this : other;
             Location largestTo = (this.toOffset < other.toOffset) ? other : this;
             return new Location(file, smallestFrom.fromLine, smallestFrom.fromColumn, smallestFrom.fromOffset,
