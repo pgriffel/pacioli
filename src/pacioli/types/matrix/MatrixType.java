@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.Location;
 import pacioli.PacioliException;
@@ -527,6 +528,8 @@ public class MatrixType extends AbstractType {
     @Override
     public String compileToMVM() {
         
+        //if (true) return deval().compileToMVM(new CompilationSettings());
+        
         String rowDimCode = compileDimension(rowDimension, rowUnit);
         String columnDimCode = compileDimension(columnDimension, columnUnit);
         String factorCode = MVMGenerator.compileUnitToMVM(factor); 
@@ -581,126 +584,9 @@ public class MatrixType extends AbstractType {
             return "scalar_shape(unit(\"\"))";
         }
     }
-
-    class VectorUnitDevaluator implements UnitFold<TypeBase, TypeNode> {
-
-        //private final IndexSetInfo indexSet;
-        private final IndexType dimension;
-
-        public VectorUnitDevaluator(IndexType dimension) {
-            this.dimension = dimension;
-        }
-
-        @Override
-        public TypeNode map(TypeBase base) {
-            if (dimension.isVar()) {
-                Var dimVar = (Var) dimension.getIndexSet();
-                Var baseVar = (Var) base;
-                if (dimVar.isFresh()) {
-                    Location location = new Location();
-                    return new BangTypeNode(location, 
-                            new TypeIdentifierNode(location, dimVar.pretty()),
-                            new TypeIdentifierNode(location, baseVar.pretty()));
-                } else {
-                    IndexSetInfo info = dimension.nthIndexSetInfo(0);
-                    Location location = info.getLocation();
-                    return new BangTypeNode(location, 
-                        new TypeIdentifierNode(location, info.name()),
-                        // Is this the right base name!
-                        new TypeIdentifierNode(location, baseVar.pretty()));
-                }
-            } else {
-                if (base instanceof VectorBase) {
-                    assert(base instanceof VectorBase);
-                    VectorBase vectorBase = (VectorBase) base;
-                    
-                    IndexSetInfo info = dimension.nthIndexSetInfo(vectorBase.position);
-                    Location location = info.getLocation();
-                    return new BangTypeNode(location, 
-                        new TypeIdentifierNode(location, info.name()),
-                        new TypeIdentifierNode(location, vectorBase.unitName.name));
-                } else {
-                    Var baseVar = (Var) base;
-                    IndexSetInfo info = dimension.nthIndexSetInfo(0);
-                    Location location = info.getLocation();
-                    return new BangTypeNode(location, 
-                            new TypeIdentifierNode(location, info.name()),
-                            // Is this the right base name!
-                            new TypeIdentifierNode(location, baseVar.pretty()));
-                }
-            }
-        }
-
-        @Override
-        public TypeNode mult(TypeNode x, TypeNode y) {
-            return new TypeMultiplyNode(x.getLocation().join(y.getLocation()), x, y);
-        }
-
-        @Override
-        public TypeNode expt(TypeNode x, Fraction n) {
-            return new TypePowerNode(x.getLocation(), x, new NumberTypeNode(x.getLocation(), n.toString()));
-        }
-
-        @Override
-        public TypeNode one() {
-            
-            if (dimension.isVar()) {
-                Var dimVar = (Var) dimension.getIndexSet();
-                if (dimVar.isFresh()) {
-                    Location location = new Location();
-                    return new BangTypeNode(location, 
-                            new TypeIdentifierNode(location, dimVar.pretty()));
-                } else {
-                    IndexSetInfo info = dimension.nthIndexSetInfo(0);
-                    Location location = info.getLocation();
-                    return new BangTypeNode(location, 
-                        new TypeIdentifierNode(location, info.name()));
-                }
-            } else {
-                IndexSetInfo info = dimension.nthIndexSetInfo(0);
-                Location location = info.getLocation();
-                return new BangTypeNode(location, 
-                    new TypeIdentifierNode(location, info.name()));
-            }
-        }
-    }
     
-    class ScalarUnitDevaluator implements UnitFold<TypeBase, TypeNode> {
-
-        Location location;
-        
-        public ScalarUnitDevaluator(Location location) {
-            this.location = location;
-        }
-
-        @Override
-        public TypeNode map(TypeBase base) {
-            assert(base instanceof ScalarBase || base instanceof ScalarUnitVar);
-            if (base instanceof ScalarUnitVar) {
-                ScalarUnitVar var = (ScalarUnitVar) base;
-                return new TypeIdentifierNode(location, var.pretty());
-            } else {
-                ScalarBase scalarBase = (ScalarBase) base;
-                return new TypeIdentifierNode(location, scalarBase.pretty());
-            }
-        }
-
-        @Override
-        public TypeNode mult(TypeNode x, TypeNode y) {
-            return new TypeMultiplyNode(x.getLocation().join(y.getLocation()), x, y);
-        }
-
-        @Override
-        public TypeNode expt(TypeNode x, Fraction n) {
-            return new TypePowerNode(x.getLocation(), x, new NumberTypeNode(x.getLocation(), n.toString()));
-        }
-
-        @Override
-        public TypeNode one() {
-            return new NumberTypeNode(location, "1");
-        }
-    }
     
+    // See VectorBase.kroneckerNth     
     Unit<TypeBase> filterVectorUnit(Unit<TypeBase> unit, final Integer index) {
          return unit.map(new UnitMap<TypeBase>() {
             public Unit<TypeBase> map(TypeBase base) {
@@ -720,9 +606,9 @@ public class MatrixType extends AbstractType {
     
     @Override
     public TypeNode deval() {
-        TypeNode factorNode = factor.fold(new ScalarUnitDevaluator(new Location()));
-        TypeNode left = devalDimension(rowDimension, rowUnit);
-        TypeNode right = devalDimension(columnDimension, columnUnit);
+        TypeNode factorNode = factor.fold(new ScalarUnitDeval(new Location()));
+        TypeNode left = devalDimensionUnitPair(rowDimension, rowUnit);
+        TypeNode right = devalDimensionUnitPair(columnDimension, columnUnit);
         
         if (left == null && right == null) {
             return factorNode;
@@ -753,10 +639,10 @@ public class MatrixType extends AbstractType {
         }
     }
     
-    public TypeNode devalDimension(final IndexType dimension, Unit<TypeBase> unit) {
+    public TypeNode devalDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
         List<Unit<TypeBase>> units = new ArrayList<Unit<TypeBase>>();
         if (dimension.isVar()) {
-            VectorUnitDevaluator unitDevaluator = new VectorUnitDevaluator(dimension);
+            VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimension);
             return unit.fold(unitDevaluator);
             /*Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
                 public Unit<TypeBase> map(TypeBase base) {
@@ -781,7 +667,7 @@ public class MatrixType extends AbstractType {
             TypeNode node = null;
             for (int i = 0; i < dimType.width(); i++) {
                 final int index = i;
-                VectorUnitDevaluator unitDevaluator = new VectorUnitDevaluator(dimType);
+                VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType);
                 Unit<TypeBase> filtered = filterVectorUnit(unit, index);
                 TypeNode devaluated = filtered.fold(unitDevaluator);
                 if (i == 0) {
