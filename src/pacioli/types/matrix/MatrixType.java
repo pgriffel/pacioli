@@ -29,16 +29,27 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.ConstraintSet;
+import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.Utils;
+import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
+import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
+import pacioli.types.ast.BangTypeNode;
+import pacioli.types.ast.NumberTypeNode;
+import pacioli.types.ast.TypeIdentifierNode;
+import pacioli.types.ast.TypeKroneckerNode;
+import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.ast.TypeOperationNode;
+import pacioli.types.ast.TypePowerNode;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
+import pacioli.visitors.UnitEvaluator;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitFold;
@@ -564,10 +575,106 @@ public class MatrixType extends AbstractType {
             return "scalar_shape(unit(\"\"))";
         }
     }
+    
+    class UnitDevaluator implements UnitFold<TypeBase, TypeNode> {
 
+        private final IndexSetInfo indexSet;
+
+        public UnitDevaluator(IndexSetInfo indexSetInfo) {
+            this.indexSet = indexSetInfo;
+        }
+
+        @Override
+        public TypeNode map(TypeBase base) {
+            assert(base instanceof VectorBase);
+            VectorBase vectorBase = (VectorBase) base;
+            Location location = indexSet.getLocation();
+            return new BangTypeNode(location, 
+                    new TypeIdentifierNode(location, indexSet.name()),
+                    new TypeIdentifierNode(location, vectorBase.unitName.name));
+
+        }
+
+        @Override
+        public TypeNode mult(TypeNode x, TypeNode y) {
+            return new TypeMultiplyNode(x.getLocation().join(y.getLocation()), x, y);
+        }
+
+        @Override
+        public TypeNode expt(TypeNode x, Fraction n) {
+            return new TypePowerNode(x.getLocation(), x, new NumberTypeNode(x.getLocation(), n.toString()));
+        }
+
+        @Override
+        public TypeNode one() {
+            Location location = indexSet.getLocation();
+            return new BangTypeNode(location, new TypeIdentifierNode(location, indexSet.name()));
+        }
+    }
+    
+    Unit<TypeBase> filterVectorUnit(Unit<TypeBase> unit, final Integer index) {
+         return unit.map(new UnitMap<TypeBase>() {
+            public Unit<TypeBase> map(TypeBase base) {
+                assert ((base instanceof TypeVar) || (base instanceof VectorBase));
+                if (base instanceof VectorBase) {
+                    if (((VectorBase) base).position == index) {
+                        return base;
+                    } else {
+                        return TypeBase.ONE;
+                    }
+                } else {
+                    return base;
+                }
+            }
+        });
+    }
+    
     @Override
     public TypeNode deval() {
-        // TODO Auto-generated method stub
-        return null;
+        TypeNode left = rowDimension.deval();
+        TypeNode right = columnDimension.deval();
+        Location location = left.getLocation().join(right.getLocation());
+        return new TypeOperationNode(location, "per", left, right);
+    }
+    
+    public TypeNode devalDimension(final IndexType dimension, Unit<TypeBase> unit) {
+        List<Unit<TypeBase>> units = new ArrayList<Unit<TypeBase>>();
+        if (dimension.isVar()) {
+            UnitDevaluator unitDevaluator = new UnitDevaluator(null);
+            return unit.fold(unitDevaluator);
+            /*Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
+                public Unit<TypeBase> map(TypeBase base) {
+                    assert (base instanceof TypeVar);
+                    // return new BangBase(dimension.toText(), base.toText(), 0);
+                    // return new StringBase(dimension.varName() + "!" + base.toText());
+                    // return new BangBase(dimension.varName(), base.toText(), 0);
+                    return base;
+                }
+            });
+            if (candidate.equals(TypeBase.ONE)) {
+                // units.add(new BangBase(dimension.toText(), "", 0));
+                // units.add(new StringBase(dimension.varName()));
+                //units.add(new VectorBase(dimension.varName(), "", 0));
+                return new BangTypeNode(location, new TypeIdentifierNode(location, indexSet.name()));
+            } else {
+                units.add(candidate);
+            }*/
+        } else {
+            final IndexType dimType = (IndexType) dimension;
+
+            TypeNode node = null;
+            for (int i = 0; i < dimType.width(); i++) {
+                final int index = i;
+                UnitDevaluator unitDevaluator = new UnitDevaluator(dimType.nthIndexSetInfo(index));
+                Unit<TypeBase> filtered = filterVectorUnit(unit, index);
+                TypeNode devaluated = filtered.fold(unitDevaluator);
+                if (i == 0) {
+                    node = devaluated;
+                } else {
+                    node = new TypeKroneckerNode(node.getLocation().join(devaluated.getLocation()), node, devaluated);
+                }            
+            }
+            return node;
+        }
     }
 }

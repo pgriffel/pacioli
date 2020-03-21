@@ -36,11 +36,12 @@ public class IndexList extends AbstractType {
         indexSets = Arrays.asList(indexSet);
         indexSetInfos = Arrays.asList(indexSetInfo);
     }
-    /*
+    
     public IndexList() {
         this.indexSets = new ArrayList<TypeIdentifier>();
+        this.indexSetInfos = new ArrayList<IndexSetInfo>();
     }
-*/
+
     @Override
     public int hashCode() {
         return indexSets.hashCode();
@@ -75,6 +76,10 @@ public class IndexList extends AbstractType {
         return indexSets.get(n);
     }
 
+    public IndexSetInfo nthIndexSetInfo(int n) {
+        return indexSetInfos.get(n);
+    }
+    
     @Override
     public void printPretty(PrintWriter out) {
         out.print("[");
@@ -177,8 +182,6 @@ public class IndexList extends AbstractType {
 
     @Override
     public TypeNode deval() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new RuntimeException("deval of index list should be handled by the matrix type");
     }
-
 }

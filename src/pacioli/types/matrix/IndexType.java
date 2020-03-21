@@ -1,7 +1,6 @@
 package pacioli.types.matrix;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -26,17 +25,13 @@ public class IndexType extends AbstractType {
     public IndexType(List<TypeIdentifier> indexSets, List<IndexSetInfo> indexSetInfos) {
         this.indexSet = new IndexList(indexSets, indexSetInfos);
     }
-    /*
-    public IndexType(IndexList indexSet) {
-        this.indexSet = indexSet;
-    }
-*/
+  
     public IndexType(TypeIdentifier indexSet, IndexSetInfo indexSetInfo) {
         this.indexSet = new IndexList(Arrays.asList(indexSet), Arrays.asList(indexSetInfo));
     }
 
     public IndexType() {
-        this.indexSet = new IndexList(new ArrayList<TypeIdentifier>(), new ArrayList<IndexSetInfo>());
+        this.indexSet = new IndexList();
     }
 
     public IndexType(TypeVar typeVar) {
@@ -110,6 +105,14 @@ public class IndexType extends AbstractType {
             throw new RuntimeException("Method not available for an index variable");
         } else {
             return indexList().nthIndexSet(n);
+        }
+    }
+    
+    public IndexSetInfo nthIndexSetInfo(int n) {
+        if (isVar()) {
+            throw new RuntimeException("Method not available for an index variable");
+        } else {
+            return indexList().nthIndexSetInfo(n);
         }
     }
 
@@ -190,7 +193,6 @@ public class IndexType extends AbstractType {
 
     @Override
     public TypeNode deval() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new RuntimeException("deval of index type should be handled by the matrix type");
     }
 }
