@@ -230,7 +230,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
 
             // Create a type for each different kind of type variable
             if (info instanceof TypeInfo) {
-                returnType(new TypeVar("for_type", node.getName()));
+                //returnType(new TypeVar("for_type", node.getName()));
+                returnType(new TypeVar((TypeInfo) info));
             } else if (info instanceof ScalarUnitInfo) {
                 returnType(new MatrixType(new ScalarUnitVar("for_unit", node.getName())));
             } else if (info instanceof VectorUnitInfo) {

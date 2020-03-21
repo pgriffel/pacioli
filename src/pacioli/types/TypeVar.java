@@ -25,12 +25,14 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.Substitution;
+import pacioli.symboltable.TypeInfo;
 import pacioli.types.ast.TypeNode;
 import uom.BaseUnit;
 import uom.Unit;
@@ -42,15 +44,24 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
     private static int counter = 0;
     private final String name;
     public final String quantifier;
+    public final Optional<TypeInfo> info;
 
+    public TypeVar(TypeInfo info) {
+        name = info.name();
+        this.quantifier = "for_type";
+        this.info = Optional.of(info);
+    }
+    
     public TypeVar(String quantifier) {
         name = freshName();
         this.quantifier = quantifier;
+        this.info = Optional.empty();
     }
 
     public TypeVar(String quantifier, String name) {
         this.name = name;
         this.quantifier = quantifier;
+        this.info = Optional.empty();
     }
 
     @Override
@@ -160,7 +171,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     @Override
     public PacioliType fresh() {
-        return new TypeVar(quantifier);
+        return new TypeVar(quantifier, freshName());
     }
 
     public PacioliType rename(String name) {
