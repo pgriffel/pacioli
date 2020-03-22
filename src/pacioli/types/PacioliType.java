@@ -30,6 +30,14 @@ import pacioli.Substitution;
 import pacioli.types.ast.TypeNode;
 import uom.Unit;
 
+/**
+ * A PacioliType is the semantic counterpart of a TypeNode.
+ * 
+ * Type equality, unification, etc. is defined on PacioliTypes and not on TypeNodes.
+ * 
+ * Use eval and deval to switch between the two type representations.
+ *
+ */
 public interface PacioliType extends Printable {
 
     public String description();
