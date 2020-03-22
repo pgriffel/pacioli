@@ -37,7 +37,7 @@ public abstract class AbstractExpressionNode extends AbstractNode implements Exp
     }
 
     @Override
-    public Typing inferTyping2(Progam prog) {
+    public Typing inferTyping(Progam prog) {
         TypeInference visitor = new TypeInference();
         return visitor.typingAccept(this);
     }

@@ -487,7 +487,7 @@ public class Progam extends AbstractPrintable {
         for (Toplevel toplevel : toplevels) {
 
             inferUsedTypes(toplevel, discovered, finished);
-            Typing typing = toplevel.body.inferTyping2(this);
+            Typing typing = toplevel.body.inferTyping(this);
             //Pacioli.log3("\n%s", typing.toText());
             /*
              * type = typing.solve().simplify(); return type;
@@ -527,7 +527,7 @@ public class Progam extends AbstractPrintable {
 
                 Pacioli.log3("\n\nInferring type of %s", info.name());
                 ValueDefinition def = info.getDefinition().get();
-                Typing typing = def.body.inferTyping2(this);
+                Typing typing = def.body.inferTyping(this);
                 try {
                     PacioliType solved = typing.solve();
                     Pacioli.log3("\n\nSolved type of %s is %s", info.name(), solved.pretty());
@@ -559,7 +559,7 @@ public class Progam extends AbstractPrintable {
         }
         for (Toplevel toplevel : toplevels) {
 
-            Typing typing = toplevel.body.inferTyping2(this);
+            Typing typing = toplevel.body.inferTyping(this);
             Pacioli.log3("\n%s", typing.pretty());
             /*
              * type = typing.solve().simplify(); return type;
