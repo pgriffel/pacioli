@@ -217,7 +217,8 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         for (String arg : node.arguments) {
 
             // Create the type variable and add it to the list
-            PacioliType freshType = new TypeVar("for_type");
+            String freshName = node.table.freshSymbolName(); 
+            PacioliType freshType = new TypeVar("for_type", freshName);
             argTypes.add(freshType);
 
             // Also store the type in the lambda's symbol table
