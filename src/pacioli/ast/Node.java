@@ -50,6 +50,10 @@ public interface Node extends Printable {
     
     public void compileToJS(Printer writer, CompilationSettings settings, boolean boxed);
 
+    public String compileToMATLAB(CompilationSettings settings);
+    
+    
+    // Obsolete
     public String compileToMATLAB();
 
 }

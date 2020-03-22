@@ -35,6 +35,7 @@ import pacioli.visitors.DesugarVisitor;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.LiftStatements;
 import pacioli.visitors.MVMGenerator;
+import pacioli.visitors.MatlabGenerator;
 import pacioli.visitors.PrintVisitor;
 import pacioli.visitors.ResolveVisitor;
 import pacioli.visitors.UsesVisitor;
@@ -94,7 +95,14 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
     public void compileToJS(Printer writer, CompilationSettings settings, boolean boxed) {
         this.accept(new JSGenerator(writer, settings, boxed));;
     }
-
+    
+    @Override
+    public String compileToMATLAB(CompilationSettings settings) {
+        StringWriter outputStream = new StringWriter();
+        this.accept(new MatlabGenerator(new Printer(new PrintWriter(outputStream)), settings));
+        return outputStream.toString();
+    }
+    
     @Override
     public void resolve(Progam prog) {
         accept(new ResolveVisitor(prog));

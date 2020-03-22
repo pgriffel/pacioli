@@ -731,7 +731,7 @@ public class Progam extends AbstractPrintable {
     // Fixme: Matlab code generation
     // -------------------------------------------------------------------------
 
-    public void compileMatlab(CompilationSettings settings) throws Exception {
+    private void compileMatlab(CompilationSettings settings) throws Exception {
 
         BufferedWriter out = new BufferedWriter(new FileWriter("fixme: baseName()" + ".m"));
 

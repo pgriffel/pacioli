@@ -28,7 +28,6 @@ import java.util.Map;
 import pacioli.types.IndexSetVar;
 import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
-import pacioli.types.TypeVar;
 import pacioli.types.Var;
 import pacioli.types.VectorUnitVar;
 import pacioli.types.ast.BangTypeNode;
