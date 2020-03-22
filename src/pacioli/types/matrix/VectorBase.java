@@ -21,18 +21,14 @@
 
 package pacioli.types.matrix;
 
-import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
-import uom.Base;
 import uom.BaseUnit;
 import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitMap;
 
-//public class BangBase extends BaseUnit implements TypeBase {
-//public class BangBase extends TypeBase {
 public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
 
     //private final IndexSetInfo indexSetInfo;

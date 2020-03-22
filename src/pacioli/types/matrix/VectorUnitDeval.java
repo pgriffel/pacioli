@@ -6,6 +6,7 @@ import pacioli.types.TypeBase;
 import pacioli.types.Var;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.NumberTypeNode;
+import pacioli.types.ast.TypeDivideNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypeNode;
@@ -13,10 +14,22 @@ import pacioli.types.ast.TypePowerNode;
 import uom.Fraction;
 import uom.UnitFold;
 
+/**
+ * Takes the kronecker-nth of a matrix dimension and creates a type node for it.
+ * Used in the deval of a matrix type.
+ *
+ */
 public class VectorUnitDeval implements UnitFold<TypeBase, TypeNode> {
 
-    //private final IndexSetInfo indexSet;
+    /**
+     * A matrix dimension. 
+     */
     private final IndexType dimension;
+    
+    
+    /**
+     * The index of dimension that is asked 
+     */
     private final Integer dim;
 
     public VectorUnitDeval(IndexType dimension, Integer dim) {
@@ -49,11 +62,11 @@ public class VectorUnitDeval implements UnitFold<TypeBase, TypeNode> {
              
                 Integer vecPos = vectorBase.position;
                 if (vecPos.equals(dim)) {
-                IndexSetInfo info = dimension.nthIndexSetInfo(dim); // should equal dim!!!
-                Location location = info.getLocation();
-                return new BangTypeNode(location, 
-                    new TypeIdentifierNode(location, info.name(), info),
-                    new TypeIdentifierNode(location, vectorBase.unitName.name, vectorBase.vectorUnitInfo));
+                    IndexSetInfo info = dimension.nthIndexSetInfo(dim);
+                    Location location = info.getLocation();
+                    return new BangTypeNode(location, 
+                        new TypeIdentifierNode(location, info.name(), info),
+                        new TypeIdentifierNode(location, vectorBase.unitName.name, vectorBase.vectorUnitInfo));
                 } else {
                     return one();
                 }
@@ -75,6 +88,16 @@ public class VectorUnitDeval implements UnitFold<TypeBase, TypeNode> {
 
     @Override
     public TypeNode mult(TypeNode x, TypeNode y) {
+        // See also scalar deval. Better make a general normalizer.
+        if (y instanceof TypePowerNode) {
+            TypePowerNode right = (TypePowerNode) y;
+            Fraction power = new Fraction(Integer.parseInt(right.power.number));
+            if (power.intValue() < 0) {
+                return new TypeDivideNode(x.getLocation().join(y.getLocation()), x, 
+                        new TypePowerNode(right.getLocation(), right.base, new NumberTypeNode(right.getLocation(),
+                                power.negate().toString())));
+            }
+        }
         return new TypeMultiplyNode(x.getLocation().join(y.getLocation()), x, y);
     }
 

@@ -302,6 +302,7 @@ public class MatrixType extends AbstractType {
         return dimensionBangUnitList(columnDimension, columnUnit);
     }
 */
+    /*
     private List<Unit<TypeBase>> dimensionBangUnitList(final IndexType dimension, Unit<TypeBase> unit) {
         List<Unit<TypeBase>> units = new ArrayList<Unit<TypeBase>>();
         if (dimension.isVar()) {
@@ -382,7 +383,7 @@ public class MatrixType extends AbstractType {
         }
         return units;
     }
-
+*/
     @Override
     public void printPretty(PrintWriter out) {
         

@@ -4,6 +4,7 @@ import pacioli.Location;
 import pacioli.types.ScalarUnitVar;
 import pacioli.types.TypeBase;
 import pacioli.types.ast.NumberTypeNode;
+import pacioli.types.ast.TypeDivideNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypeNode;
@@ -33,6 +34,16 @@ public class ScalarUnitDeval implements UnitFold<TypeBase, TypeNode> {
 
     @Override
     public TypeNode mult(TypeNode x, TypeNode y) {
+        // Copied from VectorUnitDeval
+        if (y instanceof TypePowerNode) {
+            TypePowerNode right = (TypePowerNode) y;
+            Fraction power = new Fraction(Integer.parseInt(right.power.number));
+            if (power.intValue() < 0) {
+                return new TypeDivideNode(x.getLocation().join(y.getLocation()), x, 
+                        new TypePowerNode(right.getLocation(), right.base, new NumberTypeNode(right.getLocation(),
+                                power.negate().toString())));
+            }
+        }
         return new TypeMultiplyNode(x.getLocation().join(y.getLocation()), x, y);
     }
 
