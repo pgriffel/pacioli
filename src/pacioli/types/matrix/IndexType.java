@@ -35,11 +35,11 @@ public class IndexType extends AbstractType {
     public IndexType() {
         this.indexSet = new IndexList();
     }
-
+/*
     public IndexType(TypeVar typeVar) { // Note the TypeVar instead of Var !!!
         indexSet = typeVar;
     }
-    
+    */
     public IndexType(IndexSetVar typeVar) { // Note the TypeVar instead of Var !!!
         indexSet = typeVar;
     }

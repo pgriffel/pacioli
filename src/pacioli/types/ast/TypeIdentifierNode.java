@@ -64,12 +64,6 @@ public class TypeIdentifierNode extends AbstractTypeNode {
     public String getName() {
         return name;
     }
-    
-    // Fixme: this will always assert.
-    public TypeIdentifier typeIdentifier() {
-        assert (isResolved());
-        return new TypeIdentifier("", name);
-    }
 
     public boolean isResolved() {
         return kind != null;

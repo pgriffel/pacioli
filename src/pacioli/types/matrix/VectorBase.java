@@ -45,7 +45,7 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
         this.position = position;
         this.vectorUnitInfo = vectorUnitInfo;
     }
-
+/*
  // hack for matrix type
     public VectorBase(String indexSetName, String unitName, int position) {
         this.indexSetName = new TypeIdentifier("", indexSetName);
@@ -62,7 +62,7 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
         this.position = position;
         this.vectorUnitInfo = null;
     }
-
+*/
     public String indexSetName() {
         return indexSetName.name;
     }

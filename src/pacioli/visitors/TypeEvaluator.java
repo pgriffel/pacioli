@@ -175,9 +175,12 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                     assert (type instanceof TypeVar || type instanceof MatrixType);
                     if (type instanceof MatrixType) {
                         assert (node.args.get(i) instanceof TypeIdentifierNode);
-                        TypeIdentifier id = ((TypeIdentifierNode) node.args.get(i)).typeIdentifier();
+                        TypeIdentifierNode idNode = (TypeIdentifierNode) node.args.get(i);
+                        IndexSetInfo info = (IndexSetInfo) idNode.info; // fixme: cast
+                        //TypeIdentifier id = ((TypeIdentifierNode) node.args.get(i)).typeIdentifier();
+                        TypeIdentifier id = new TypeIdentifier(info.generic().getModule(), idNode.getName());
                         names.add(id);
-                        infos.add(null); // fixme: to implement infos
+                        infos.add(info); // fixme: to implement infos
                     } else {
                         throw new RuntimeException(String.format("Index set expected but found '%s'", type.pretty()));
                     }
