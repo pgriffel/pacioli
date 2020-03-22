@@ -37,24 +37,7 @@ public class IdentifierNode extends AbstractExpressionNode {
         super(location);
         this.name = name;
     }
-/*    
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
 
-    @Override
-    public boolean equals(Object other) {
-        if (other == this) {
-            return true;
-        }
-        if (!(other instanceof IdentifierNode)) {
-            return false;
-        }
-        IdentifierNode otherNode = (IdentifierNode) other;
-        return name.equals(otherNode.name);
-    }
-*/
     public String getName() {
         return name;
     }
@@ -90,15 +73,5 @@ public class IdentifierNode extends AbstractExpressionNode {
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
-    }
-    
-    @Override
-    public String compileToMATLAB() {
-        /*
-        assert (home != null); // names must have been resolved
-        return home.isEmpty() ? name.toLowerCase()
-                : "Pacioli.value(\"" + home.toLowerCase() + "\", \"" + name.toLowerCase() + "\")";
-                */
-        return "fixme: matlab compilation of identifier node";
     }
 }

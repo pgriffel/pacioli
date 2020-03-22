@@ -23,12 +23,7 @@ public class StatementNode extends AbstractExpressionNode {
         super(location);
         this.body = body;
     }
-
-    @Override
-    public String compileToMATLAB() {
-        return body.compileToMATLAB();
-    }
-
+    
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);

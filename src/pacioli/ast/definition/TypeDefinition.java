@@ -101,11 +101,6 @@ public class TypeDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String compileToMATLAB() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

@@ -41,11 +41,6 @@ public class ProjectionNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToMATLAB() {
-        return String.format("(@(%s) %s)", numString(), body.compileToMATLAB());
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

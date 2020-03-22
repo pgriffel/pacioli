@@ -40,11 +40,6 @@ public class WhileNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToMATLAB() {
-        return "while (" + test.compileToMATLAB() + ")" + body.compileToMATLAB() + "endwhile";
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

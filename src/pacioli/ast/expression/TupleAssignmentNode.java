@@ -24,7 +24,6 @@ package pacioli.ast.expression;
 import java.util.List;
 
 import pacioli.Location;
-import pacioli.Utils;
 import pacioli.ast.Visitor;
 
 public class TupleAssignmentNode extends AbstractExpressionNode {
@@ -42,17 +41,6 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
         super(node.getLocation());
         this.vars = node.vars;
         this.tuple = tuple;
-    }
-
-    @Override
-    public String compileToMATLAB() {
-        String tmpVar = Utils.freshName();
-        String code = tmpVar + " = " + tuple.compileToMATLAB();
-        int i = 1;
-        for (IdentifierNode var : vars) {
-            code += ";\n" + var.pretty() + " = " + tmpVar + "{" + i++ + "}";
-        }
-        return code;
     }
 
     @Override

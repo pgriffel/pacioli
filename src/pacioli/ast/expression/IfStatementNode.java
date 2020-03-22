@@ -45,18 +45,6 @@ public class IfStatementNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToMATLAB() {
-        String code = "if (";
-        code += test.compileToMATLAB();
-        code += ") ";
-        code += positive.compileToMATLAB() + ";";
-        code += " else ";
-        code += negative.compileToMATLAB() + ";";
-        code += " endif";
-        return code;
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

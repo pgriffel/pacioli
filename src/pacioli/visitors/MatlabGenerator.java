@@ -154,6 +154,8 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ProjectionNode node) {
         out.format("%s", node.getClass());
+        // old (wrong) code
+        //return String.format("(@(%s) %s)", numString(), body.compileToMATLAB());
         
     }
 

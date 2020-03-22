@@ -20,11 +20,6 @@ public class Toplevel extends AbstractDefinition {
     }
 
     @Override
-    public String compileToMATLAB() {
-        throw new RuntimeException("todo");
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

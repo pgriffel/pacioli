@@ -21,12 +21,9 @@
 
 package pacioli.ast.expression;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.Location;
-import pacioli.Utils;
-import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 
 public class ApplicationNode extends AbstractExpressionNode {
@@ -44,22 +41,6 @@ public class ApplicationNode extends AbstractExpressionNode {
         super(old.getLocation());
         function = fun;
         arguments = args;
-    }
-
-    @Override
-    public String compileToMATLAB() {
-        List<String> compiled = new ArrayList<String>();
-        for (Node arg : arguments) {
-            compiled.add(arg.compileToMATLAB());
-        }
-        String argsText = "(" + Utils.intercalate(", ", compiled) + ")";
-        if (function instanceof IdentifierNode) {
-            IdentifierNode id = (IdentifierNode) function;
-            //return id.fullName().toLowerCase() + argsText;
-            return "Fixme";
-        } else {
-            return function.compileToMATLAB() + argsText;
-        }
     }
 
     @Override

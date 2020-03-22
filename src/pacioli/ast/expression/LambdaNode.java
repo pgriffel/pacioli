@@ -55,11 +55,6 @@ public class LambdaNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToMATLAB() {
-        return String.format("(@(%s) %s)", Utils.intercalate(", ", arguments), expression.compileToMATLAB());
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

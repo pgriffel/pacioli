@@ -41,11 +41,6 @@ public class ConstNode extends AbstractExpressionNode {
     public String valueString() {
         return value;
     }
-    
-    @Override
-    public String compileToMATLAB() {
-        return value;
-    }
 
     @Override
     public void accept(Visitor visitor) {

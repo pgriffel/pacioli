@@ -79,11 +79,6 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToMATLAB() {
-        throw new RuntimeException("todo");
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

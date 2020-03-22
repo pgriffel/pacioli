@@ -42,11 +42,6 @@ public class AssignmentNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToMATLAB() {
-        return var.getName() + " = " + value.compileToMATLAB();
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

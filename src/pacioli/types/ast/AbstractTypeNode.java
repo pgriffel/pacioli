@@ -42,16 +42,10 @@ public abstract class AbstractTypeNode extends AbstractNode implements TypeNode 
         TypeEvaluator visitor = new TypeEvaluator(reduce);
         return visitor.typeAccept(this);
     }
-
+/*
     @Override
     public String compileToJS(CompilationSettings settings, boolean boxed) {
         throw new RuntimeException("Not implemented for this type of node (" + this.getClass()
                 + "). Only matrix type nodes can be compiled.");
-    }
-
-    @Override
-    public String compileToMATLAB() {
-        throw new RuntimeException("Not implemented for this type of node (" + this.getClass()
-                + "). Only matrix type nodes can be compiled.");
-    }
+    }*/
 }

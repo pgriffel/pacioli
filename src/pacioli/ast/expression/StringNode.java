@@ -17,11 +17,6 @@ public class StringNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToMATLAB() {
-        return pretty();
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

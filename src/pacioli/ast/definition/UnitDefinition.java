@@ -61,7 +61,7 @@ public class UnitDefinition extends AbstractDefinition {
         return symbol;
     }
 
-    // Make Optional!!!
+    // Make Optional or exception!!!
     public DimensionedNumber<TypeBase> evalBody() {
         return body.isPresent() ? body.get().evalUnit() : null;
     }
@@ -69,11 +69,6 @@ public class UnitDefinition extends AbstractDefinition {
     @Override
     public String localName() {
         return id.getName();
-    }
-
-    @Override
-    public String compileToMATLAB() {
-        throw new UnsupportedOperationException("Not supported yet."); 
     }
 
     @Override

@@ -16,10 +16,4 @@ public class NumberUnitNode extends AbstractUnitNode {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
-    @Override
-    public String compileToMATLAB() {
-        // TODO Auto-generated method stub
-        return null;
-    }
 }

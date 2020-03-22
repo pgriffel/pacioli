@@ -54,11 +54,6 @@ public class MatrixTypeNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToMATLAB() {
-        return String.format("ones(%s, %s)", rowDim.size(), columnDim.size());
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

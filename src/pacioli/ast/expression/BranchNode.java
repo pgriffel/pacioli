@@ -45,12 +45,6 @@ public class BranchNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToMATLAB() {
-        return String.format("_if(%s, @() %s, @() %s)", test.compileToMATLAB(), positive.compileToMATLAB(),
-                negative.compileToMATLAB());
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

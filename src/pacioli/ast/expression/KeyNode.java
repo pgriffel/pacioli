@@ -100,18 +100,6 @@ public class KeyNode extends AbstractExpressionNode {
         visitor.visit(this);
     }
     
-    @Override
-    public String compileToMATLAB() {
-        int totalSize = 1;
-        int index = 0;
-        int size = indexSets.size();
-        for (int i = 0; i < size; i++) {
-            // index += positions.get(i) * totalSize;
-            // totalSize *= sizes.get(i);
-        }
-        return String.format("{%s,%s}", index, totalSize);
-    }
-    
     public Integer position(Integer index) {
         
         String key = keys.get(index);

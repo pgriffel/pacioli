@@ -40,15 +40,6 @@ public class SequenceNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToMATLAB() {
-        String code = "";
-        for (ExpressionNode item : items) {
-            code += "\n" + item.compileToMATLAB() + ";";
-        }
-        return code;
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

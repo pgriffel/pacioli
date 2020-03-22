@@ -41,10 +41,4 @@ public class ProgramNode extends AbstractNode {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
-    @Override
-    public String compileToMATLAB() {
-        throw new RuntimeException("todo");
-    }
-
 }

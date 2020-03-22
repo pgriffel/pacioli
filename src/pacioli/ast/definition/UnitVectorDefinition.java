@@ -63,11 +63,6 @@ public class UnitVectorDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String compileToMATLAB() {
-        throw new UnsupportedOperationException("MATLAB and Octave have no units.");
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

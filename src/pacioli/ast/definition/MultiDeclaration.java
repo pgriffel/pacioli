@@ -22,11 +22,6 @@ public class MultiDeclaration extends AbstractDefinition {
     }
 
     @Override
-    public String compileToMATLAB() {
-        throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
-    }
-
-    @Override
     public String localName() {
         throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
     }

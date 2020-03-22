@@ -35,11 +35,6 @@ public class ConversionNode extends AbstractExpressionNode {
     }
 
     @Override
-    public String compileToMATLAB() {
-        throw new RuntimeException("Not implemented");
-    }
-
-    @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }

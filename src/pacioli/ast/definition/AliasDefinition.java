@@ -34,11 +34,6 @@ public class AliasDefinition extends AbstractDefinition {
         return id.getName();
     }
 
-    @Override
-    public String compileToMATLAB() {
-        throw new RuntimeException("todo");
-    }
-
     public Unit<TypeBase> evalBody() {
         DimensionedNumber<TypeBase> number = unit.evalUnit();
         if (!number.factor().equals(BigDecimal.ONE)) {
