@@ -481,7 +481,7 @@ public class Progam extends AbstractPrintable {
             ValueInfo info = values.lookup(value);
             if (!isExternal(info) && info.getDefinition().isPresent()) {
                 inferValueDefinitionType(info, discovered, finished);
-                //Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.toText());
+                Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.get().pretty());
             }
         }
         for (Toplevel toplevel : toplevels) {

@@ -386,8 +386,10 @@ public class MatrixType extends AbstractType {
     @Override
     public void printPretty(PrintWriter out) {
         
-        out.print("< ");
         deval().printPretty(out);
+        /*
+        out.print("< ");
+        
         out.print(" =>");
         
         List<Unit<TypeBase>> rowUnitList = dimensionBangUnitList(rowDimension, rowUnit);
@@ -449,6 +451,7 @@ public class MatrixType extends AbstractType {
                         Utils.intercalate(" % ", columnStringList));
             }
         }
+        */
     }
 
     @Override
@@ -586,7 +589,7 @@ public class MatrixType extends AbstractType {
         }
     }
 */     
-    
+    /*
     // See VectorBase.kroneckerNth     
     Unit<TypeBase> filterVectorUnit(Unit<TypeBase> unit, final Integer index) {
          return unit.map(new UnitMap<TypeBase>() {
@@ -604,7 +607,7 @@ public class MatrixType extends AbstractType {
             }
         });
     }
-    
+    */
     @Override
     public TypeNode deval() {
         TypeNode factorNode = factor.fold(new ScalarUnitDeval(new Location()));
