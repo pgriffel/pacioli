@@ -528,7 +528,7 @@ public class MatrixType extends AbstractType {
     @Override
     public String compileToMVM() {
         
-        //if (true) return deval().compileToMVM(new CompilationSettings());
+        if (true) return deval().compileToMVM(new CompilationSettings());
         
         String rowDimCode = compileDimension(rowDimension, rowUnit);
         String columnDimCode = compileDimension(columnDimension, columnUnit);
@@ -642,7 +642,7 @@ public class MatrixType extends AbstractType {
     public TypeNode devalDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
         List<Unit<TypeBase>> units = new ArrayList<Unit<TypeBase>>();
         if (dimension.isVar()) {
-            VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimension);
+            VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimension, 0);
             return unit.fold(unitDevaluator);
             /*Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
                 public Unit<TypeBase> map(TypeBase base) {
@@ -667,7 +667,7 @@ public class MatrixType extends AbstractType {
             TypeNode node = null;
             for (int i = 0; i < dimType.width(); i++) {
                 final int index = i;
-                VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType);
+                VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
                 Unit<TypeBase> filtered = filterVectorUnit(unit, index);
                 TypeNode devaluated = filtered.fold(unitDevaluator);
                 if (i == 0) {
@@ -676,6 +676,7 @@ public class MatrixType extends AbstractType {
                     node = new TypeKroneckerNode(node.getLocation().join(devaluated.getLocation()), node, devaluated);
                 }            
             }
+            //if (node == null) return new NumberTypeNode(new Location(), "1");
             return node;
         }
     }

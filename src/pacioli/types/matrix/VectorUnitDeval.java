@@ -17,9 +17,11 @@ public class VectorUnitDeval implements UnitFold<TypeBase, TypeNode> {
 
     //private final IndexSetInfo indexSet;
     private final IndexType dimension;
+    private final Integer dim;
 
-    public VectorUnitDeval(IndexType dimension) {
+    public VectorUnitDeval(IndexType dimension, Integer dim) {
         this.dimension = dimension;
+        this.dim = dim;
     }
 
     @Override
@@ -33,7 +35,7 @@ public class VectorUnitDeval implements UnitFold<TypeBase, TypeNode> {
                         new TypeIdentifierNode(location, dimVar.pretty()),
                         new TypeIdentifierNode(location, baseVar.pretty()));
             } else {
-                IndexSetInfo info = dimension.nthIndexSetInfo(0);
+                IndexSetInfo info = dimension.nthIndexSetInfo(dim);
                 Location location = info.getLocation();
                 return new BangTypeNode(location, 
                     new TypeIdentifierNode(location, info.name()),
@@ -45,20 +47,23 @@ public class VectorUnitDeval implements UnitFold<TypeBase, TypeNode> {
                 assert(base instanceof VectorBase);
                 VectorBase vectorBase = (VectorBase) base;
                 
-                IndexSetInfo info = dimension.nthIndexSetInfo(vectorBase.position);
+                IndexSetInfo info = dimension.nthIndexSetInfo(vectorBase.position); // should equal dim!!!
                 Location location = info.getLocation();
                 return new BangTypeNode(location, 
                     new TypeIdentifierNode(location, info.name(), info),
-                    new TypeIdentifierNode(location, vectorBase.unitName.name));
+                    new TypeIdentifierNode(location, vectorBase.unitName.name, vectorBase.vectorUnitInfo));
             } else {
                 Var baseVar = (Var) base;
-                IndexSetInfo info = dimension.nthIndexSetInfo(0);
+                IndexSetInfo info = dimension.nthIndexSetInfo(dim);
                 Location location = info.getLocation();
                 return new BangTypeNode(location, 
                         new TypeIdentifierNode(location, info.name(), info),
                         // Is this the right base name!
-                        new TypeIdentifierNode(location, baseVar.pretty() //, baseVar.getInfo()
-                                ));
+                         (baseVar.isFresh()) ?
+                        new TypeIdentifierNode(location, baseVar.pretty())
+                        :
+                            new TypeIdentifierNode(location, baseVar.pretty(), baseVar.getInfo()));
+                        
             }
         }
     }
@@ -83,13 +88,13 @@ public class VectorUnitDeval implements UnitFold<TypeBase, TypeNode> {
                 return new BangTypeNode(location, 
                         new TypeIdentifierNode(location, dimVar.pretty()));
             } else {
-                IndexSetInfo info = dimension.nthIndexSetInfo(0);
+                IndexSetInfo info = dimension.nthIndexSetInfo(dim);
                 Location location = info.getLocation();
                 return new BangTypeNode(location, 
                     new TypeIdentifierNode(location, info.name(), info));
             }
         } else {
-            IndexSetInfo info = dimension.nthIndexSetInfo(0);
+            IndexSetInfo info = dimension.nthIndexSetInfo(dim);
             Location location = info.getLocation();
             return new BangTypeNode(location, 
                 new TypeIdentifierNode(location, info.name(), info));

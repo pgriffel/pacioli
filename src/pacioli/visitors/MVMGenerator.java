@@ -27,6 +27,10 @@ import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
+import pacioli.ast.unit.NumberUnitNode;
+import pacioli.ast.unit.UnitIdentifierNode;
+import pacioli.ast.unit.UnitOperationNode;
+import pacioli.ast.unit.UnitPowerNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
@@ -38,6 +42,19 @@ import pacioli.ast.expression.WhileNode;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.TypeBase;
+import pacioli.types.ast.BangTypeNode;
+import pacioli.types.ast.FunctionTypeNode;
+import pacioli.types.ast.NumberTypeNode;
+import pacioli.types.ast.PrefixUnitTypeNode;
+import pacioli.types.ast.SchemaNode;
+import pacioli.types.ast.TypeApplicationNode;
+import pacioli.types.ast.TypeDivideNode;
+import pacioli.types.ast.TypeIdentifierNode;
+import pacioli.types.ast.TypeKroneckerNode;
+import pacioli.types.ast.TypeMultiplyNode;
+import pacioli.types.ast.TypeNode;
+import pacioli.types.ast.TypePerNode;
+import pacioli.types.ast.TypePowerNode;
 import pacioli.types.matrix.MatrixType;
 import uom.Fraction;
 import uom.Unit;
@@ -328,6 +345,17 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         
         // Find all assigned variables
         Set<IdentifierNode> assignedVariables = node.body.locallyAssignedVariables();
+        
+        
+        List<String> args = new ArrayList<String>();
+        List<IdentifierNode> ids = new ArrayList<IdentifierNode>();
+        for (IdentifierNode id : assignedVariables) {
+            String name = id.getName();
+            if (!args.contains(name)) {
+                args.add(name);
+                ids.add(id);
+            }
+        }
 
         // A lambda to bind the result place and the assigned variables places
         out.print("application(lambda (");
@@ -336,7 +364,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.print("\"result\"");
         
         // Write the other lambda params
-        for (IdentifierNode id : assignedVariables) {
+        for (IdentifierNode id : ids) {
             assert(id.getInfo() != null);
             out.print(", ");
             out.print("\"");
@@ -374,7 +402,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         // The initial result place
         out.format("application(var(\"%s\"))", ValueInfo.global("base", "empty_ref"));
 
-        for (IdentifierNode id : assignedVariables) { 
+        for (IdentifierNode id : ids) { 
             out.print(", ");
             if (node.shadowed.contains(id.getName())) {
                 if (node.shadowed.lookup(id.getName()).isRef()) {
@@ -483,4 +511,139 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.print(")");
         out.unmark();
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    @Override
+    public void visit(BangTypeNode node) {
+        out.write("bang_shape(\"");
+        //node.indexSet.accept(this);
+        out.write(node.indexSet.info.globalName());
+        out.write("\", \"");
+        if (node.unit.isPresent()) {
+            //out.write(node.indexSet.info.name());
+            //out.write("!");
+            out.write(node.unit.get().info.name());
+            //node.unit.get().accept(this);
+        }
+        out.write("\")");
+    }
+
+    @Override
+    public void visit(FunctionTypeNode node) {
+        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        node.domain.accept(this);
+        node.range.accept(this);
+    }
+
+    @Override
+    public void visit(NumberTypeNode node) {
+        //if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        //out.write(node.number);
+        out.write("scalar_shape(unit(\"\"))");
+    }
+
+    @Override
+    public void visit(SchemaNode node) {
+        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+    }
+
+    @Override
+    public void visit(TypeApplicationNode node) {
+        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        node.op.accept(this);
+        for (TypeNode arg : node.args) {
+            arg.accept(this);
+        }
+    }
+
+    @Override
+    public void visit(TypeIdentifierNode node) {
+        out.write("scalar_shape(unit(\"");
+        //out.write("\"");
+        out.write(node.getName());
+        out.write("\"))");
+        //out.write("\"");
+    }
+
+    @Override
+    public void visit(TypePowerNode node) {
+        //if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        out.format("shape_expt(");
+        node.base.accept(this);
+        out.format(", ");
+        out.write(node.power.number);
+        out.format(")");
+    }
+
+    @Override
+    public void visit(PrefixUnitTypeNode node) {
+        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+    }
+
+    @Override
+    public void visit(TypeMultiplyNode node) {
+        out.write("shape_binop(\"multiply\", ");
+        node.left.accept(this);
+        out.write(", ");
+        node.right.accept(this);
+        out.write(")");
+    }
+
+    @Override
+    public void visit(TypeDivideNode node) {
+        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        node.left.accept(this);
+        node.right.accept(this);
+    }
+
+    @Override
+    public void visit(TypeKroneckerNode node) {
+        out.write("shape_binop(\"kronecker\", ");
+        node.left.accept(this);
+        out.write(", ");
+        node.right.accept(this);
+        out.write(")");
+    }
+
+    @Override
+    public void visit(TypePerNode node) {
+        out.write("shape_binop(\"per\", ");
+        node.left.accept(this);
+        out.write(", ");
+        node.right.accept(this);
+        out.write(")");
+    }
+
+    @Override
+    public void visit(NumberUnitNode node) {
+        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+    }
+
+    @Override
+    public void visit(UnitIdentifierNode node) {
+        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+    }
+
+    @Override
+    public void visit(UnitOperationNode node) {
+        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        node.left.accept(this);
+        node.right.accept(this);
+    }
+
+    @Override
+    public void visit(UnitPowerNode node) {
+        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        node.base.accept(this);
+    }
+
 }

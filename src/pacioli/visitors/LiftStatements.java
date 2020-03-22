@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.Location;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.ast.IdentityTransformation;
@@ -79,16 +80,18 @@ public class LiftStatements extends IdentityTransformation implements Visitor {
         List<String> args = new ArrayList<String>();
         List<ExpressionNode> argIds = new ArrayList<ExpressionNode>();
         for (ValueInfo var : localsInScope) {
-            String name = var.name();             
-            IdentifierNode idNode = new IdentifierNode(name, var.getLocation());
-            args.add(name);
-            argIds.add(idNode);
+            String name = var.name();
+            if (!args.contains(name)) {
+                IdentifierNode idNode = new IdentifierNode(name, var.getLocation());
+                args.add(name);
+                argIds.add(idNode);
+            }
         }
 
         // A fresh id for the helper function
         String liftedName = node.table.freshSymbolName(); 
         IdentifierNode fresh = new IdentifierNode(liftedName, nodeLocation);
-        
+
         // Define a helper function for the lifted body
         LambdaNode lambda = new LambdaNode(args, rec, nodeLocation);
         ValueDefinition vd = new ValueDefinition(nodeLocation, fresh, lambda);

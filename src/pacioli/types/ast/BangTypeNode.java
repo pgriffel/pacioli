@@ -33,8 +33,8 @@ public class BangTypeNode extends AbstractTypeNode {
     public final TypeIdentifierNode indexSet;
     public final Optional<TypeIdentifierNode> unit;
     
-    public IndexSetInfo indexSetInfo;
-    public UnitInfo unitInfo;
+    //public IndexSetInfo indexSetInfo;
+    //public UnitInfo unitInfo;
 
     public BangTypeNode(Location location, TypeIdentifierNode indexSet) {
         super(location);

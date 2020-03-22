@@ -127,7 +127,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                 rowUnit = new VectorUnitVar(unitInfo);
             } else {
                 rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName),
-                        new TypeIdentifier(unitInfo.generic().getModule(), unitName), 0);
+                        new TypeIdentifier(unitInfo.generic().getModule(), unitName), 0, unitInfo);
             }
         }
 

@@ -21,6 +21,8 @@
 
 package pacioli.types.matrix;
 
+import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
 import uom.Base;
@@ -33,16 +35,19 @@ import uom.UnitMap;
 //public class BangBase extends TypeBase {
 public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
 
+    //private final IndexSetInfo indexSetInfo;
+    public final VectorUnitInfo vectorUnitInfo;
     public final TypeIdentifier indexSetName;
     public final TypeIdentifier unitName;
     public final int position;
 
-    public VectorBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position) {
+    public VectorBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position, VectorUnitInfo vectorUnitInfo) {
         assert (!unitName.name.contains("!"));
         assert (!indexSetName.home.isEmpty());
         this.indexSetName = indexSetName;
         this.unitName = unitName;
         this.position = position;
+        this.vectorUnitInfo = vectorUnitInfo;
     }
 
  // hack for matrix type
@@ -50,6 +55,7 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
         this.indexSetName = new TypeIdentifier("", indexSetName);
         this.unitName = new TypeIdentifier("", unitName);
         this.position = position;
+        this.vectorUnitInfo = null;
     }
     
     // hack for matrix type
@@ -58,6 +64,7 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
         this.indexSetName = new TypeIdentifier(home, indexSetName);
         this.unitName = new TypeIdentifier(home, unitName);
         this.position = position;
+        this.vectorUnitInfo = null;
     }
 
     public String indexSetName() {
@@ -104,11 +111,11 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
     public VectorBase shift(int offset) {
-        return new VectorBase(indexSetName, unitName, position + offset);
+        return new VectorBase(indexSetName, unitName, position + offset, vectorUnitInfo);
     }
 
     public VectorBase move(int offset) {
-        return new VectorBase(indexSetName, unitName, offset);
+        return new VectorBase(indexSetName, unitName, offset, vectorUnitInfo);
     }
 
     public static Unit<TypeBase> kroneckerNth(Unit<TypeBase> unit, final int index) {
