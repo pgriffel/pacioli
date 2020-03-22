@@ -57,7 +57,11 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
         // Is this if necessary?
         if (node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
-            out.write(id.getInfo().globalName().toLowerCase());
+            if (id.isGlobal()) {
+                out.write(id.getInfo().globalName().toLowerCase());
+            } else {
+                node.function.accept(this);
+            }
         } else {
             node.function.accept(this);
         }
