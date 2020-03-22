@@ -528,16 +528,17 @@ public class MatrixType extends AbstractType {
     @Override
     public String compileToMVM() {
         
-        if (true) return deval().compileToMVM(new CompilationSettings());
-        
+        return deval().compileToMVM(new CompilationSettings());
+/*        
         String rowDimCode = compileDimension(rowDimension, rowUnit);
         String columnDimCode = compileDimension(columnDimension, columnUnit);
         String factorCode = MVMGenerator.compileUnitToMVM(factor); 
                 
         return String.format("shape_binop(\"multiply\", scalar_shape(%s), shape_binop(\"per\", %s, %s))", 
                 factorCode, rowDimCode, columnDimCode);
+*/                
     }
- 
+ /*
     private String compileDimension(final IndexType dimension, Unit<TypeBase> unit) {
         DimMVMCompiler unitCompiler = new DimMVMCompiler();
         
@@ -557,7 +558,7 @@ public class MatrixType extends AbstractType {
             return code;
         }
     }
-    
+   
     class DimMVMCompiler implements UnitFold<TypeBase, String> {
 
         @Override
@@ -584,7 +585,7 @@ public class MatrixType extends AbstractType {
             return "scalar_shape(unit(\"\"))";
         }
     }
-    
+*/     
     
     // See VectorBase.kroneckerNth     
     Unit<TypeBase> filterVectorUnit(Unit<TypeBase> unit, final Integer index) {
@@ -668,7 +669,10 @@ public class MatrixType extends AbstractType {
             for (int i = 0; i < dimType.width(); i++) {
                 final int index = i;
                 VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
-                Unit<TypeBase> filtered = filterVectorUnit(unit, index);
+                //Unit<TypeBase> filtered = filterVectorUnit(unit, index);
+                //Unit<TypeBase> filtered = VectorBase.kroneckerNth(unit, index);
+                Unit<TypeBase> filtered = unit;
+                
                 TypeNode devaluated = filtered.fold(unitDevaluator);
                 if (i == 0) {
                     node = devaluated;

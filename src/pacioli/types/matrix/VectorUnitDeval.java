@@ -46,12 +46,17 @@ public class VectorUnitDeval implements UnitFold<TypeBase, TypeNode> {
             if (base instanceof VectorBase) {
                 assert(base instanceof VectorBase);
                 VectorBase vectorBase = (VectorBase) base;
-                
-                IndexSetInfo info = dimension.nthIndexSetInfo(vectorBase.position); // should equal dim!!!
+             
+                Integer vecPos = vectorBase.position;
+                if (vecPos.equals(dim)) {
+                IndexSetInfo info = dimension.nthIndexSetInfo(dim); // should equal dim!!!
                 Location location = info.getLocation();
                 return new BangTypeNode(location, 
                     new TypeIdentifierNode(location, info.name(), info),
                     new TypeIdentifierNode(location, vectorBase.unitName.name, vectorBase.vectorUnitInfo));
+                } else {
+                    return one();
+                }
             } else {
                 Var baseVar = (Var) base;
                 IndexSetInfo info = dimension.nthIndexSetInfo(dim);
