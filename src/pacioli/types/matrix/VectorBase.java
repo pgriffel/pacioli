@@ -31,7 +31,6 @@ import uom.UnitMap;
 
 public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
 
-    //private final IndexSetInfo indexSetInfo;
     public final VectorUnitInfo vectorUnitInfo;
     public final TypeIdentifier indexSetName;
     public final TypeIdentifier unitName;
@@ -45,24 +44,7 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
         this.position = position;
         this.vectorUnitInfo = vectorUnitInfo;
     }
-/*
- // hack for matrix type
-    public VectorBase(String indexSetName, String unitName, int position) {
-        this.indexSetName = new TypeIdentifier("", indexSetName);
-        this.unitName = new TypeIdentifier("", unitName);
-        this.position = position;
-        this.vectorUnitInfo = null;
-    }
-    
-    // hack for matrix type
-    public VectorBase(String home, String indexSetName, String unitName, int position) {
-        assert (!home.isEmpty());
-        this.indexSetName = new TypeIdentifier(home, indexSetName);
-        this.unitName = new TypeIdentifier(home, unitName);
-        this.position = position;
-        this.vectorUnitInfo = null;
-    }
-*/
+
     public String indexSetName() {
         return indexSetName.name;
     }
@@ -101,7 +83,6 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
         return String.format("%s{%s, %s, %s}", super.toString(), indexSetName, unitName, position);
     }
 
-//    @Override
     public String pretty() {
         return indexSetName.name + "!" + unitName.name;
     }

@@ -15,7 +15,6 @@ import pacioli.types.IndexSetVar;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
-import pacioli.types.TypeVar;
 import pacioli.types.Var;
 import pacioli.types.ast.TypeNode;
 import uom.Unit;
@@ -35,12 +34,8 @@ public class IndexType extends AbstractType {
     public IndexType() {
         this.indexSet = new IndexList();
     }
-/*
-    public IndexType(TypeVar typeVar) { // Note the TypeVar instead of Var !!!
-        indexSet = typeVar;
-    }
-    */
-    public IndexType(IndexSetVar typeVar) { // Note the TypeVar instead of Var !!!
+
+    public IndexType(IndexSetVar typeVar) {
         indexSet = typeVar;
     }
 

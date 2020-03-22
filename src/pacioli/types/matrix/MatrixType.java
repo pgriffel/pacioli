@@ -33,29 +33,17 @@ import pacioli.ConstraintSet;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Substitution;
-import pacioli.Utils;
-import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
-import pacioli.types.ScalarUnitVar;
 import pacioli.types.TypeBase;
-import pacioli.types.TypeIdentifier;
 import pacioli.types.Var;
-import pacioli.types.ast.BangTypeNode;
-import pacioli.types.ast.NumberTypeNode;
-import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeKroneckerNode;
 import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypeNode;
-import pacioli.types.ast.TypeOperationNode;
 import pacioli.types.ast.TypePerNode;
-import pacioli.types.ast.TypePowerNode;
 import pacioli.visitors.JSGenerator;
-import pacioli.visitors.MVMGenerator;
-import pacioli.visitors.UnitEvaluator;
 import uom.Fraction;
 import uom.Unit;
-import uom.UnitFold;
 import uom.UnitMap;
 
 public class MatrixType extends AbstractType {
@@ -98,6 +86,7 @@ public class MatrixType extends AbstractType {
         this.columnUnit = TypeBase.ONE;
     }
 
+    
     @Override
     public int hashCode() {
         return factor.hashCode();
@@ -123,6 +112,12 @@ public class MatrixType extends AbstractType {
                 columnUnit);
     }
 
+    @Override
+    public void printPretty(PrintWriter out) {
+        deval().printPretty(out);
+    }
+
+    
     public Unit<TypeBase> getFactor() {
         return factor;
     }
@@ -248,6 +243,7 @@ public class MatrixType extends AbstractType {
                 columnUnit.raise(power));
     }
 
+    
     @Override
     public Set<Var> typeVars() {
         Set<Var> all = new LinkedHashSet<Var>();
@@ -291,170 +287,7 @@ public class MatrixType extends AbstractType {
         }
         return names;
     }
-
-    // These hacks are for MatrixTypeNode and for printing below
-/*
-    public List<Unit<TypeBase>> rowBangUnitList() {
-        return dimensionBangUnitList(rowDimension, rowUnit);
-    }
-
-    public List<Unit<TypeBase>> columnBangUnitList() {
-        return dimensionBangUnitList(columnDimension, columnUnit);
-    }
-*/
-    /*
-    private List<Unit<TypeBase>> dimensionBangUnitList(final IndexType dimension, Unit<TypeBase> unit) {
-        List<Unit<TypeBase>> units = new ArrayList<Unit<TypeBase>>();
-        if (dimension.isVar()) {
-            Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
-                public Unit<TypeBase> map(TypeBase base) {
-                    assert (base instanceof Var);
-                    // return new BangBase(dimension.toText(), base.toText(), 0);
-                    // return new StringBase(dimension.varName() + "!" + base.toText());
-                    // return new BangBase(dimension.varName(), base.toText(), 0);
-                    return base;
-                }
-            });
-            if (candidate.equals(TypeBase.ONE)) {
-                // units.add(new BangBase(dimension.toText(), "", 0));
-                // units.add(new StringBase(dimension.varName()));
-                units.add(new VectorBase(dimension.varName(), "", 0));
-            } else {
-                units.add(candidate);
-            }
-        } else {
-            final IndexType dimType = (IndexType) dimension;
-
-            if (dimType.width() == 1) {
-                final String dimName = dimType.nthIndexSet(0).name;
-                final String dimHome = dimType.nthIndexSet(0).home;
-                Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
-                    public Unit<TypeBase> map(TypeBase base) {
-                        assert ((base instanceof Var) || (base instanceof VectorBase));
-                        if (base instanceof VectorBase) {
-                            // return base;
-                            VectorBase bangBase = (VectorBase) base;
-                            assert (dimName.equals(bangBase.indexSetName()));
-                            // return new StringBase(bangBase.indexSetName() + "!" + bangBase.unitName());
-                            VectorBase newBase = new VectorBase(dimHome, bangBase.indexSetName(), bangBase.unitName(), 0);
-                            return newBase;
-                        } else {
-                            // return new BangBase(dimType.nthIndexSet(0).name, base.toText(), 0);
-                            // return new StringBase(dimName + "!" + base.toText());
-                            return new VectorBase(dimHome, dimName, base.pretty(), 0);
-                        }
-                    }
-                });
-                if (candidate.equals(TypeBase.ONE)) {
-                    // units.add(new BangBase(dimType.nthIndexSet(0).name, "", 0));
-                    // units.add(new StringBase(dimName + "!"));
-                    units.add(new VectorBase(dimHome, dimName, "", 0));
-                } else {
-                    units.add(candidate);
-                }
-            } else {
-                for (int i = 0; i < dimType.width(); i++) {
-                    final int index = i;
-                    Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
-                        public Unit<TypeBase> map(TypeBase base) {
-                            assert ((base instanceof Var) || (base instanceof VectorBase));
-                            if (base instanceof VectorBase) {
-                                if (((VectorBase) base).position == index) {
-                                    return base;
-                                } else {
-                                    return TypeBase.ONE;
-                                }
-                            } else {
-                                return new VectorBase(dimType.nthIndexSet(index).home,
-                                        dimType.nthIndexSet(index).name,
-                                        String.format("%s(%s)", base.pretty(), index), index);
-                            }
-                        }
-                    });
-                    if (candidate.equals(TypeBase.ONE)) {
-                        // units.add(new BangBase(dimType.nthIndexSet(index).name, "", i));
-                        // units.add(new StringBase(dimType.nthIndexSet(index).name));
-                        units.add(new VectorBase(dimType.nthIndexSet(index).home, dimType.nthIndexSet(index).name, "", i));
-                    } else {
-                        units.add(candidate);
-                    }
-                }
-            }
-        }
-        return units;
-    }
-*/
-    @Override
-    public void printPretty(PrintWriter out) {
-        
-        deval().printPretty(out);
-        /*
-        out.print("< ");
-        
-        out.print(" =>");
-        
-        List<Unit<TypeBase>> rowUnitList = dimensionBangUnitList(rowDimension, rowUnit);
-        List<Unit<TypeBase>> columnUnitList = dimensionBangUnitList(columnDimension, columnUnit);
-
-        int rowWidth = rowUnitList.size();
-        int columnWidth = columnUnitList.size();
-
-        Unit<TypeBase> pos = factor.map(new UnitMap<TypeBase>() {
-            public Unit<TypeBase> map(TypeBase base) {
-                return factor.power(base).signum() < 0 ? TypeBase.ONE : base;
-            }
-        });
-        Unit<TypeBase> neg = factor.map(new UnitMap<TypeBase>() {
-            public Unit<TypeBase> map(TypeBase base) {
-                return factor.power(base).signum() > 0 ? TypeBase.ONE : base;
-            }
-        });
-
-        List<String> rowStringList = new ArrayList<String>();
-        Unit<TypeBase> factorUnit = columnWidth == 0 ? factor : pos;
-        if (rowWidth == 0) {
-            rowStringList.add(factorUnit.pretty());
-        } else {
-            for (int i = 0; i < rowWidth; i++) {
-                Unit<TypeBase> ithUnit = rowUnitList.get(i);
-                if (i == 0) {
-                    ithUnit = factorUnit.multiply(ithUnit);
-                }
-                rowStringList.add(ithUnit.pretty());
-            }
-        }
-
-        List<String> columnStringList = new ArrayList<String>();
-        for (int j = 0; j < columnWidth; j++) {
-            Unit<TypeBase> jthUnit = columnUnitList.get(j);
-            if (j == 0) {
-                jthUnit = neg.reciprocal().multiply(jthUnit);
-            }
-            columnStringList.add(jthUnit.pretty());
-        }
-        if (false) {
-            out.print("<");
-            out.print(factor.pretty());
-            out.print(", ");
-            out.print(rowDimension.pretty());
-            out.print(", ");
-            out.print(rowUnit.pretty());
-            out.print(", ");
-            out.print(columnDimension.pretty());
-            out.print(", ");
-            out.print(columnUnit.pretty());
-            out.print(">");
-        } else {
-            if (columnWidth == 0) {
-                out.format("%s", Utils.intercalate(" % ", rowStringList));
-            } else {
-                out.format("%s per %s", Utils.intercalate(" % ", rowStringList),
-                        Utils.intercalate(" % ", columnStringList));
-            }
-        }
-        */
-    }
-
+    
     @Override
     public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
         MatrixType otherType = (MatrixType) other;
@@ -531,86 +364,14 @@ public class MatrixType extends AbstractType {
 
     @Override
     public String compileToMVM() {
-        
-        return deval().compileToMVM(new CompilationSettings());
-/*        
-        String rowDimCode = compileDimension(rowDimension, rowUnit);
-        String columnDimCode = compileDimension(columnDimension, columnUnit);
-        String factorCode = MVMGenerator.compileUnitToMVM(factor); 
-                
-        return String.format("shape_binop(\"multiply\", scalar_shape(%s), shape_binop(\"per\", %s, %s))", 
-                factorCode, rowDimCode, columnDimCode);
-*/                
+        return deval().compileToMVM(new CompilationSettings());                
     }
- /*
-    private String compileDimension(final IndexType dimension, Unit<TypeBase> unit) {
-        DimMVMCompiler unitCompiler = new DimMVMCompiler();
-        
-        List<Unit<TypeBase>> units = dimensionBangUnitList(dimension, unit);
-        if (units.isEmpty()) {
-            return "scalar_shape(unit(\"\"))";
-        } else {
-            String code = "";
-            for (Unit<TypeBase> dimUnit: units) {
-                String unitCode = dimUnit.fold(unitCompiler);
-                if (code.isEmpty()) {
-                    code = unitCode;
-                } else {
-                    code = String.format("shape_binop(\"kronecker\", %s, %s)", code, unitCode);
-                }
-            }
-            return code;
-        }
-    }
-   
-    class DimMVMCompiler implements UnitFold<TypeBase, String> {
 
-        @Override
-        public String map(TypeBase base) {
-            if (true || base instanceof VectorBase) {
-                return base.compileToMVM();
-            } else {
-                return "scalar_shape(" + base.compileToMVM() + ")";
-            }
-        }
-
-        @Override
-        public String mult(String x, String y) {
-            return String.format("shape_binop(\"multiply\", %s, %s)", x, y);
-        }
-
-        @Override
-        public String expt(String x, Fraction n) {
-            return String.format("shape_expt(%s, %s)", x, n);
-        }
-
-        @Override
-        public String one() {
-            return "scalar_shape(unit(\"\"))";
-        }
-    }
-*/     
-    /*
-    // See VectorBase.kroneckerNth     
-    Unit<TypeBase> filterVectorUnit(Unit<TypeBase> unit, final Integer index) {
-         return unit.map(new UnitMap<TypeBase>() {
-            public Unit<TypeBase> map(TypeBase base) {
-                assert ((base instanceof Var) || (base instanceof VectorBase));
-                if (base instanceof VectorBase) {
-                    if (((VectorBase) base).position == index) {
-                        return base;
-                    } else {
-                        return TypeBase.ONE;
-                    }
-                } else {
-                    return base;
-                }
-            }
-        });
-    }
-    */
+    
     @Override
     public TypeNode deval() {
+        
+        // Use a general rewriter to simplify. See deval van scalar and vector units
         TypeNode factorNode = factor.fold(new ScalarUnitDeval(new Location()));
         TypeNode left = devalDimensionUnitPair(rowDimension, rowUnit);
         TypeNode right = devalDimensionUnitPair(columnDimension, columnUnit);
@@ -645,38 +406,15 @@ public class MatrixType extends AbstractType {
     }
     
     public TypeNode devalDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
-        List<Unit<TypeBase>> units = new ArrayList<Unit<TypeBase>>();
         if (dimension.isVar()) {
             VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimension, 0);
             return unit.fold(unitDevaluator);
-            /*Unit<TypeBase> candidate = unit.map(new UnitMap<TypeBase>() {
-                public Unit<TypeBase> map(TypeBase base) {
-                    assert (base instanceof Var);
-                    // return new BangBase(dimension.toText(), base.toText(), 0);
-                    // return new StringBase(dimension.varName() + "!" + base.toText());
-                    // return new BangBase(dimension.varName(), base.toText(), 0);
-                    return base;
-                }
-            });
-            if (candidate.equals(TypeBase.ONE)) {
-                // units.add(new BangBase(dimension.toText(), "", 0));
-                // units.add(new StringBase(dimension.varName()));
-                //units.add(new VectorBase(dimension.varName(), "", 0));
-                return new BangTypeNode(location, new TypeIdentifierNode(location, indexSet.name()));
-            } else {
-                units.add(candidate);
-            }*/
         } else {
             final IndexType dimType = (IndexType) dimension;
-
             TypeNode node = null;
             for (int i = 0; i < dimType.width(); i++) {
-                final int index = i;
                 VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
-                //Unit<TypeBase> filtered = filterVectorUnit(unit, index);
-                //Unit<TypeBase> filtered = VectorBase.kroneckerNth(unit, index);
-                Unit<TypeBase> filtered = unit;
-                
+                Unit<TypeBase> filtered = unit;                
                 TypeNode devaluated = filtered.fold(unitDevaluator);
                 if (i == 0) {
                     node = devaluated;
@@ -684,7 +422,6 @@ public class MatrixType extends AbstractType {
                     node = new TypeKroneckerNode(node.getLocation().join(devaluated.getLocation()), node, devaluated);
                 }            
             }
-            //if (node == null) return new NumberTypeNode(new Location(), "1");
             return node;
         }
     }

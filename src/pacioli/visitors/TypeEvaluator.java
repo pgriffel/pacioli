@@ -7,8 +7,8 @@ import java.util.Optional;
 import java.util.Stack;
 
 import pacioli.PacioliException;
-import pacioli.ast.Visitor;
 import pacioli.ast.IdentityVisitor;
+import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.TypeDefinition;
@@ -16,7 +16,6 @@ import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.TypeInfo;
-import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
@@ -41,10 +40,10 @@ import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
-import pacioli.types.matrix.VectorBase;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.ScalarBase;
+import pacioli.types.matrix.VectorBase;
 import uom.Fraction;
 import uom.Unit;
 
@@ -100,11 +99,9 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
         IndexSetInfo indexInfo = (IndexSetInfo) node.indexSet.info;
         assert (indexInfo != null);
 
-        // Create the index type. If no definition exists it is a variable.
+        // Create the index type. If it is a local it is a variable.
         String indexSetName = node.indexSetName();
-        //if (!indexInfo.getDefinition().isPresent()) {
         if (!indexInfo.isGlobal()) {    
-            //indexType = new IndexType(new IndexSetVar("for_index", indexSetName));
             indexType = new IndexType(new IndexSetVar(indexInfo));
         } else {
             indexType = new IndexType(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName), indexInfo);
@@ -119,15 +116,13 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             VectorUnitInfo unitInfo = (VectorUnitInfo) node.unit.get().info;
             assert (unitInfo != null);
 
-            // Create the unit. If no definition exists it is a variable.
-            String unitName = node.unitVecName();
-            //if (!unitInfo.getDefinition().isPresent()) {
+            // Create the unit. If it is a local then it is a variable.
             if (!unitInfo.isGlobal()) {
-                //rowUnit = new VectorUnitVar("for_unit", indexSetName + "!" + unitName);
                 rowUnit = new VectorUnitVar(unitInfo);
             } else {
+                String unitName = node.unitVecName();
                 rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName),
-                        new TypeIdentifier(unitInfo.generic().getModule(), unitName), 0, unitInfo);
+                                         new TypeIdentifier(unitInfo.generic().getModule(), unitName), 0, unitInfo);
             }
         }
 
@@ -166,8 +161,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             if (types.size() == 1 && types.get(0) instanceof TypeVar) {
                 returnType(types.get(0));
             } else {
-                // This code is flawed. The .typeIdentifier() will always assert.
-                // Is  type instanceof MatrixType  always false?!
+                // Todo: Test this code. Was rewritten without test coverage.
                 List<TypeIdentifier> names = new ArrayList<TypeIdentifier>();
                 List<IndexSetInfo> infos = new ArrayList<IndexSetInfo>();
                 for (int i = 0; i < types.size(); i++) {
@@ -176,20 +170,16 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                     if (type instanceof MatrixType) {
                         assert (node.args.get(i) instanceof TypeIdentifierNode);
                         TypeIdentifierNode idNode = (TypeIdentifierNode) node.args.get(i);
-                        IndexSetInfo info = (IndexSetInfo) idNode.info; // fixme: cast
-                        //TypeIdentifier id = ((TypeIdentifierNode) node.args.get(i)).typeIdentifier();
+                        IndexSetInfo info = (IndexSetInfo) idNode.info;
                         TypeIdentifier id = new TypeIdentifier(info.generic().getModule(), idNode.getName());
                         names.add(id);
-                        infos.add(info); // fixme: to implement infos
+                        infos.add(info);
                     } else {
                         throw new RuntimeException(String.format("Index set expected but found '%s'", type.pretty()));
                     }
                 }
                 returnType(new IndexType(names, infos));
             }
-//        } else if (node.op.info == null) {
-//            // Quick fix to try types without definition
-//            returnType(new ParametricType(node.getName(), types));
         } else {
 
             // Experiment with type definitions.
@@ -228,28 +218,23 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
         SymbolInfo info = node.info;
         assert (info != null);
 
-        // If it has no definition it is a variable.
+        // If it is local then it is a variable.
         Optional<? extends Definition> definition = info.getDefinition();
-        if (!definition.isPresent()) {
-
+        if (!info.isGlobal()) {
+            
             // Create a type for each different kind of type variable
             if (info instanceof TypeInfo) {
-                //returnType(new TypeVar("for_type", node.getName()));
                 returnType(new TypeVar((TypeInfo) info));
             } else if (info instanceof ScalarUnitInfo) {
-                //returnType(new MatrixType(new ScalarUnitVar("for_unit", node.getName())));
                 returnType(new MatrixType(new ScalarUnitVar((ScalarUnitInfo) info)));
             } else if (info instanceof VectorUnitInfo) {
-                //returnType(new MatrixType(new VectorUnitVar("for_unit", node.getName())));
-                //returnType(new MatrixType(new VectorUnitVar((VectorUnitInfo) info)));
                 throw new RuntimeException("A unit vector should be a BangTypeNode, not a TypeIdentifier. That is for scalars");
             } else if (info instanceof IndexSetInfo) {
-                //returnType(new IndexType(new IndexSetVar("for_index", node.getName())));
                 returnType(new IndexType(new IndexSetVar((IndexSetInfo) info)));
             } else {
                 throw new RuntimeException("Unknown kind");
             }
-        } else if (definition.get() instanceof AliasDefinition) {
+        } else if (definition.isPresent() && definition.get() instanceof AliasDefinition) {
             // todo: rewrite evalBody
             returnType(new MatrixType(((AliasDefinition) definition.get()).evalBody()));
             //throw new RuntimeException("fixme");
