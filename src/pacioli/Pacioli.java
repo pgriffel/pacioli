@@ -91,8 +91,8 @@ public class Pacioli {
             // Command line info that is passed to the command handlers
             String command = "";
             List<String> files = new ArrayList<String>();
-            CompilationSettings settings = new CompilationSettings();
             List<File> libs = new ArrayList<File>();
+            CompilationSettings settings = new CompilationSettings();
             
             // Collect the command line info
             int i = 0;

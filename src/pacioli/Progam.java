@@ -45,6 +45,7 @@ import pacioli.visitors.LiftStatements;
 import pacioli.visitors.MVMGenerator;
 import pacioli.visitors.MatlabGenerator;
 import pacioli.visitors.ResolveVisitor;
+import pacioli.visitors.TransformConversions;
 
 /**
  * A Program corresponds to a Pacioli file and is the unit of compilation.
@@ -70,7 +71,7 @@ public class Progam extends AbstractPrintable {
     private final List<File> libs;
 
     // Added as first step of loading 
-    public ProgramNode program;
+    private ProgramNode program;
 
     // Fill during loading
     public SymbolTable<IndexSetInfo> indexSets = new SymbolTable<IndexSetInfo>();
@@ -254,6 +255,8 @@ public class Progam extends AbstractPrintable {
         if (phase.equals(Phase.DESUGARED)) return;
         
         resolve();
+        transformConversions();
+        
         liftStatements();  // Requires resolved defintions, produces non resolved definitions!
         resolve();
         
@@ -457,6 +460,17 @@ public class Progam extends AbstractPrintable {
             if (info.getDefinition().isPresent() && !isExternal(info)) {
                 ValueDefinition definition = info.getDefinition().get();
                 ExpressionNode newBody = new LiftStatements(this).expAccept(definition.body);
+                definition.body = newBody;
+               
+            }
+        }
+    }
+    
+    public void transformConversions() {
+        for (ValueInfo info: values.allInfos()) {
+            if (info.getDefinition().isPresent() && !isExternal(info)) {
+                ValueDefinition definition = info.getDefinition().get();
+                ExpressionNode newBody = new TransformConversions().expAccept(definition.body);
                 definition.body = newBody;
                
             }

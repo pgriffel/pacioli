@@ -145,14 +145,37 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(MatrixLiteralNode node) {
-        out.format("%s", node.getClass());
         
+        // TODO!!
+        
+        int nrRows = node.rowDim.size();
+        int nrColumns = node.columnDim.size();
+
+        String matrix = "[";
+        String sep = "";
+
+        for (int i = 0; i < nrRows; i++) {
+
+            matrix += sep + "";
+
+            String sep2 = "";
+            for (int j = 0; j < nrColumns; j++) {
+
+                String num = "42";
+
+                matrix += sep2 + num;
+                sep2 = ",";
+            }
+            matrix += "";
+            sep = ";";
+        }
+        matrix += "]";
+        out.write(matrix);
     }
 
     @Override
     public void visit(MatrixTypeNode node) {
         out.format("ones(%s, %s)", node.rowDim.size(), node.columnDim.size());
-        //out.format("%s", node.getClass());
     }
 
     @Override
