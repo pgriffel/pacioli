@@ -1,6 +1,7 @@
 package pacioli.visitors;
 
 import pacioli.CompilationSettings;
+import pacioli.PacioliException;
 import pacioli.Printer;
 import pacioli.Utils;
 import pacioli.ast.IdentityVisitor;
@@ -94,9 +95,8 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(ConversionNode node) {
-        out.format("%s", node.getClass());
-        //out.format("Pacioli.conversionNumbers(%s)", node.typeNode.evalType(true).compileToMATLAB());
-        //out.format("ones(%s, %s)", node.rowDim.size(), node.columnDim.size());
+        throw new RuntimeException("No dynamic conversions in MATLAB",
+                new PacioliException(node.getLocation(),  "The type %s is not closed", node.typeNode.pretty()));
     }
 
     @Override

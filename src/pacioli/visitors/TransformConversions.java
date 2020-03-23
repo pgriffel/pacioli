@@ -32,10 +32,16 @@ public class TransformConversions extends IdentityTransformation implements Visi
         
         Pacioli.logln("conv type: %s", type.pretty());
         
-        // Compute the conversion factors
-        List<ValueDecl> conversionFactors = new ArrayList<ValueDecl>();
+        Boolean closedType = false;
         
-        // Create a literal node of the same type with the conversion factors.
-        returnNode(new MatrixLiteralNode(location, node.typeNode, conversionFactors));
+        if (closedType) {
+            // Compute the conversion factors
+            List<ValueDecl> conversionFactors = new ArrayList<ValueDecl>();
+            
+            // Create a literal node of the same type with the conversion factors.
+            returnNode(new MatrixLiteralNode(location, node.typeNode, conversionFactors));
+        } else {
+            returnNode(node);
+        }
     }
 }
