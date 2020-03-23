@@ -30,7 +30,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -50,11 +49,9 @@ import pacioli.symboltable.ValueInfo;
  */
 public class Pacioli {
 
-    public static int verbosity = 1;
-    private static boolean warnings = false;
-    private static boolean debug = false;
-    private static boolean traceAll = false;
-    private static final List<String> tracedFunctions = new ArrayList<String>();
+    // Global settings for log messages. See the log... methods.
+    private static int verbosity = 1;
+    private static boolean warnings = true;
     private static boolean atLineStart = false;
 
     public static void main(String[] args) throws Exception {
@@ -85,20 +82,19 @@ public class Pacioli {
         }
     }
 
-    private static void handleArgs(String[] args) throws Exception {
-
+    private static void handleArgs(String[] args) throws Exception {       
+        
         if (args.length == 0) {
             displayError("expected a command");
         } else {
 
+            // Command line info that is passed to the command handlers
             String command = "";
             List<String> files = new ArrayList<String>();
             CompilationSettings settings = new CompilationSettings();
-            
-            String target = "mvm";
-            String kind = "bundle";
             List<File> libs = new ArrayList<File>();
-
+            
+            // Collect the command line info
             int i = 0;
             while (i != args.length) {
                 String arg = args[i++];
@@ -122,7 +118,7 @@ public class Pacioli {
                     }
                 } else if (arg.equals("-target")) {
                     if (i < args.length) {
-                        target = args[i++];
+                        String target = args[i++];
                         if (target.equals("javascript")) {
                             settings.setTarget(Target.JS);
                         } else if (target.equals("matlab")) {
@@ -139,22 +135,22 @@ public class Pacioli {
                     }
                 } else if (arg.equals("-kind")) {
                     if (i < args.length) {
-                        kind = args[i++];
+                        settings.setKind(args[i++]);
                     } else {
                         displayError("Expected 'single', 'recursive' or 'bundle' after -kind. Ignoring kind option.");
                     }
                 } else if (arg.equals("-trace")) {
                     if (i < args.length) {
-                        tracedFunctions.add(args[i++]);
+                        settings.traceName(args[i++]);
                     } else {
                         displayError("Expected function name after -trace. Ignoring trace option.");
                     }
                 } else if (arg.equals("-traceall")) {
-                    traceAll = !traceAll;
+                    settings.toggleTraceAll();
                 } else if (arg.equals("-warnings")) {
                     warnings = !warnings;
                 } else if (arg.equals("-debug")) {
-                    debug = !debug;
+                    settings.toggleDebug();;
                 } else if (command.isEmpty()) {
                     command = arg;
                 } else {
@@ -162,11 +158,14 @@ public class Pacioli {
                 }
             }
 
-            //boolean compileDebug = debug || traceAll || !tracedFunctions.isEmpty();
-            //CompilationSettings settings = new CompilationSettings(compileDebug, traceAll, tracedFunctions);
+            // Check that the passed library directories exist
+            for (File lib : libs) {
+                if (!lib.isDirectory()) {
+                    displayError(String.format("Library directory '%s' does not exist", lib));
+                }
+            }
             
-            libs = libraryDirectories(libs);
-            
+            // Handle the command
             if (command.equals("run")) {
                 if (files.isEmpty()) {
                     displayError("No files to run.");
@@ -186,14 +185,14 @@ public class Pacioli {
                     displayError("No files to compile.");
                 }
                 for (String file : files) {
-                    compileCommand(file, target, kind, libs, settings);
+                    compileCommand(file, libs, settings);
                 }
             } else if (command.equals("clean")) {
                 if (files.isEmpty()) {
                     displayError("No files to clean.");
                 }
                 for (String file : files) {
-                    cleanCommand(file, target, kind, libs, settings);
+                    cleanCommand(file, libs, settings);
                 }
             } else if (command.equals("parse")) {
                 if (files.isEmpty()) {
@@ -237,7 +236,7 @@ public class Pacioli {
     private static void parseCommand(String fileName, List<File> libs)
             throws Exception {
 
-        Integer version = 0;
+        Integer version = 0; // todo
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
         
         if (!optionalFile.isPresent()) {
@@ -253,7 +252,7 @@ public class Pacioli {
     private static void desugarCommand(String fileName, List<File> libs)
             throws Exception {
 
-        Integer version = 0;
+        Integer version = 0; // todo
         Optional<PacioliFile> file = PacioliFile.get(fileName, version);
 
         if (!file.isPresent()) {
@@ -269,7 +268,7 @@ public class Pacioli {
 
         checkPrimitives(libs);
         
-        Integer version = 0;
+        Integer version = 0; // todo
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
 
         if (!optionalFile.isPresent()) {
@@ -294,8 +293,6 @@ public class Pacioli {
             
             Pacioli.logln2("Displaying types in module '%s'", file.getFile());
             program.printTypes();
-            
-            
 
         } catch (IOException e) {
             Pacioli.logln("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
@@ -303,16 +300,17 @@ public class Pacioli {
 
     }
     
-    private static void cleanCommand(String fileName, String target, String kind, List<File> libs, CompilationSettings settings)
+    private static void cleanCommand(String fileName, List<File> libs, CompilationSettings settings)
             throws Exception {
         throw new RuntimeException("Todo: clean command");
     }
     
-    private static void compileCommand(String fileName, String target, String kind, List<File> libs, CompilationSettings settings)
+    private static void compileCommand(String fileName, List<File> libs, CompilationSettings settings)
             throws Exception {
 
         Integer version = 0;
-        Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
+        Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version); 
+        String kind = settings.getKind();
         
         if (!optionalFile.isPresent()) {
             throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);    
@@ -381,12 +379,8 @@ public class Pacioli {
         logln("\nSettings");
         logln("  verbosity=%s", verbosity);
         logln("  warnings=%s", warnings);
-        logln("  debug=%s", debug);
-        for (String fun : tracedFunctions) {
-            logln("  trace=%s", fun);
-        }
-        logln("  traceall=%s", traceAll);
-        logln("\nLibrary paths", warnings);
+
+        logln("\nLibrary paths");
         for (File file : libs) {
             logln("  %s", file);
             File[] files = file.listFiles(new FilenameFilter() {
@@ -514,18 +508,6 @@ public class Pacioli {
     /*
      * Helpers
      */
-    
-    static List<File> libraryDirectories(List<File> libs) {
-        LinkedList<File> libDirs = new LinkedList<File>();
-        for (File lib : libs) {
-            if (lib.isDirectory()) {
-                libDirs.add(lib);
-            } else {
-                Pacioli.warn("Skipping non existing library directory '%s'", lib);
-            }
-        }
-        return libDirs;
-    }
 
     public static void compile(PacioliFile file, List<File> libs, CompilationSettings settings) throws Exception {
         
@@ -565,7 +547,7 @@ public class Pacioli {
             vm.init();
             vm.run(file, System.out, libs);
         } catch (MVMException ex) {
-            if (2 < verbosity || debug) {
+            if (2 < verbosity) {
                 logln("\nState when error occured:");
                 vm.dumpTypes();
                 vm.dumpState();

@@ -28,23 +28,13 @@ public class CompilationSettings {
 
     public enum Target {MVM, JS, MATLAB};
     
-    private boolean debug;
-    private boolean traceAll;
-    private List<String> toTrace;
-    private Target target;
-
-    public CompilationSettings(boolean debug, boolean traceAll, List<String> toTrace, Target target) {
-        this.debug = debug;
-        this.traceAll = traceAll;
-        this.toTrace = new ArrayList<String>(toTrace);
-        this.target = target;
-    }
-
+    private Target target = Target.MVM;
+    private boolean debug = false;
+    private boolean traceAll = false;
+    private List<String> toTrace = new ArrayList<String>();
+    private String kind = "bundle";
+    
     public CompilationSettings() {
-        this.debug = false;
-        this.traceAll = false;
-        this.toTrace = new ArrayList<String>();
-        this.target = Target.MVM;
     }
 
     public Target getTarget() {
@@ -55,15 +45,43 @@ public class CompilationSettings {
         this.target = target;
     }
     
+    public String getKind() {
+        return kind;
+    }
+    
+    public void setKind(String kind) {
+        this.kind = kind;
+    }
+    
     public void setDebug(Boolean on) { 
         debug = on;
+    };
+    
+    public void toggleDebug() { 
+        debug = !debug;
     };
     
     public boolean isDebugOn() {
         return debug;
     }
-
-    public boolean trace(String name) {
+    
+    public void setTraceAll(Boolean on) { 
+        traceAll = on;
+    };
+    
+    public void toggleTraceAll() { 
+        traceAll = !traceAll;
+    };
+    
+    public boolean isTraceAllOn() {
+        return traceAll;
+    }
+    
+    public void traceName(String name) {
+        toTrace.add(name);
+    }
+    
+    public boolean isTracing(String name) {
         return traceAll || toTrace.contains(name);
     }
 }

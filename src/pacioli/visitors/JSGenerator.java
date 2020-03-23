@@ -73,7 +73,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             IdentifierNode id = (IdentifierNode) node.function;
             String stackText = id.getName();
             String fullText = node.getLocation().description();
-            boolean traceOn = settings.trace(id.getName());
+            boolean traceOn = settings.isTracing(id.getName());
             out.format("application_debug(\"%s\", \"%s\", \"%s\", ", escapeString(stackText), escapeString(fullText),
                     traceOn);
             id.accept(this);
