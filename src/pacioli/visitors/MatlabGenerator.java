@@ -146,11 +146,15 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(MatrixLiteralNode node) {
         
-        // TODO!!
-        
         int nrRows = node.rowDim.size();
         int nrColumns = node.columnDim.size();
 
+        
+        String[][] valueArray = new String[nrRows][nrColumns];
+        for (MatrixLiteralNode.PositionedValueDecl decl: node.positionedValueDecls()) {
+            valueArray[decl.row][decl.column] = decl.valueDecl.value;
+        }
+        
         String matrix = "[";
         String sep = "";
 
@@ -161,7 +165,10 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
             String sep2 = "";
             for (int j = 0; j < nrColumns; j++) {
 
-                String num = "42";
+                String num = valueArray[i][j];
+                if (num == null) {
+                    num = "0";
+                }
 
                 matrix += sep2 + num;
                 sep2 = ",";

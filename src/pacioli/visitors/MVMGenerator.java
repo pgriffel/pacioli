@@ -241,6 +241,23 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(MatrixLiteralNode node) {
+        
+        // Write the opening of the literal
+        out.write("literal_matrix(");
+        out.print(node.typeNode.evalType(true).compileToMVM());
+        out.write(", ");
+
+        // Write the elements. 
+        for (MatrixLiteralNode.PositionedValueDecl decl: node.positionedValueDecls()) {
+            out.format(" %s %s \"%s\",", decl.row, decl.column, decl.valueDecl.value);
+        }
+
+        // Write the closing of the literal
+        out.format(")");
+    }
+
+
+    public void visitOLD(MatrixLiteralNode node) {
 
         // Find the matrix type's row and column dimension. They should have been set
         // during resolving

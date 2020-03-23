@@ -32,7 +32,7 @@ public class TransformConversions extends IdentityTransformation implements Visi
         
         Pacioli.logln("conv type: %s", type.pretty());
         
-        Boolean closedType = false;
+        Boolean closedType = true;
         
         if (closedType) {
             // Compute the conversion factors
