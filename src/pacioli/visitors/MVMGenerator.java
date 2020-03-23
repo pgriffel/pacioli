@@ -600,9 +600,16 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(TypeDivideNode node) {
+        out.write("shape_binop(\"divide\", ");
+        node.left.accept(this);
+        out.write(", ");
+        node.right.accept(this);
+        out.write(")");
+/*
         if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
         node.left.accept(this);
         node.right.accept(this);
+*/        
     }
 
     @Override
