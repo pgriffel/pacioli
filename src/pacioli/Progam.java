@@ -1,23 +1,16 @@
 package pacioli;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import org.apache.commons.io.FileUtils;
 
 import pacioli.CompilationSettings.Target;
 import pacioli.ast.ImportNode;
@@ -664,21 +657,7 @@ public class Progam extends AbstractPrintable {
         out.newline();
         out.newline();
         out.write("1; % dummy statement to tell Octave this is not a function file");
-
-/*        
-        for (final File file: new File("E:/code/private/pacioli-samples/shells/new-matlab-primitives/").listFiles()) {
-            out.newline();
-            out.newline();
-            try {
-                String matlabPrimitive = FileUtils.readFileToString(file, Charset.defaultCharset());
-                out.print(matlabPrimitive);
-            } catch (IOException e) {
-                e.printStackTrace();
-
-            }   
-        }        
-*/
-        
+        out.write(mc);
         out.newline();
         out.newline();
         out.write("function retval = fetch_global (module, name)");
@@ -753,154 +732,363 @@ public class Progam extends AbstractPrintable {
     }
    
     // -------------------------------------------------------------------------
-    // Fixme: Matlab code generation
+    // Matlab primitives
     // -------------------------------------------------------------------------
-
-    private void compileMatlab(CompilationSettings settings) throws Exception {
-
-        BufferedWriter out = new BufferedWriter(new FileWriter("fixme: baseName()" + ".m"));
-
-        PrintWriter writer = null;
-        try {
-            writer = new PrintWriter(out);
-            for (String include : includes()) {
-                writer.format("require %s;\n", include);
-            }
-
-            List<Definition> unitsToCompile = new ArrayList<Definition>();
-            List<UnitInfo> unitsToCompileTmp = new ArrayList<UnitInfo>();
-            for (UnitInfo info : units.allInfos()) {
-                if (!isExternal(info) && info.getDefinition().isPresent()) {
-                    unitsToCompile.add(info.getDefinition().get());
-                    unitsToCompileTmp.add(info);
-                }
-            }
-
-            unitsToCompileTmp = orderedInfos(unitsToCompileTmp);
-            
-            List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
-            for (String value : values.allNames()) {
-                ValueInfo info = values.lookup(value);
-                if (!isExternal(info)) {
-                    if (info.getDefinition().isPresent()) {
-                        valuesToCompile.add(info);
-                    }
-                }
-            }
-            
-            Printer printer = new Printer(writer);
-            MVMGenerator gen = new MVMGenerator(printer , settings);
-
-            for (String indexSet : indexSets.allNames()) {
-                IndexSetInfo info = indexSets.lookup(indexSet);
-                if (!isExternal(info)) {
-                    assert (info.getDefinition().isPresent());
-                    info.getDefinition().get().accept(gen);
-                }
-            }
-/*
-            for (UnitInfo info : unitsToCompileTmp) {
-                compileUnitMatlab(info, writer);
-            }
-*/
-            for (ValueInfo info : valuesToCompile) {
-                writer.format("store \"%s\" ", info.globalName());
-                ValueDefinition def = info.getDefinition().get();
-                def.body.accept(gen);
-                writer.write(";\n");
-            }
-
-            for (Toplevel def : toplevels) {
-                def.accept(gen);
-            }
-
-        } finally {
-            if (writer != null) {
-                writer.close();
-            }
-        }
-
-    }
-/*
-    private void compileUnitMatlab(UnitInfo info, PrintWriter writer) {
-        if (info.isVector) {
-            IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.getDefinition()).indexSetNode.info;
-            List<String> unitTexts = new ArrayList<String>();
-            // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
-            for (UnitDecl entry : info.items) {
-                DimensionedNumber<TypeBase> number = entry.value.evalUnit();
-                unitTexts.add("\"" + entry.key.getName() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));
-            }
-            writer.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n",
-                    // String.format("index_%s_%s", node.getModule().getName(), node.localName()),
-                    setInfo.definition.globalName(),
-                    // resolvedIndexSet.getDefinition().globalName(),
-                    info.name(), Utils.intercalate(", ", unitTexts)));
-        } else if (info.baseDefinition == null) {
-            writer.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol);
-        } else {
-            DimensionedNumber<TypeBase> number = info.baseDefinition.evalUnit();
-            number = number.flat();
-            writer.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
-                    MVMGenerator.compileUnitToMVM(number.unit()));
-        }
-    }
-  */
-
-
-    // MVM code generation (kept for the MATLAB part!!!!!)
     
-/*
-    private void compileUnitMVM(UnitInfo info, PrintWriter writer, String target) {
-        if (info.isVector) {
-            IndexSetInfo setInfo = (IndexSetInfo) ((UnitVectorDefinition) info.getDefinition()).indexSetNode.info;
-            List<String> unitTexts = new ArrayList<String>();
-            // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
-            for (UnitDecl entry : info.items) {
-                DimensionedNumber<TypeBase> number = entry.value.evalUnit();
-                // todo: take number.factor() into account!? 
-                if (target.equals("mvm")) {
-                    unitTexts.add("\"" + entry.key.getName() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));
-                } else if (target.equals("javascript")) {
-                    unitTexts.add("'" + entry.key.getName() + "': " + JSGenerator.compileUnitToJS(number.unit()));
-                } else {
-                    throw new RuntimeException("Unknown target");
-                }
-            }
-            String globalName = setInfo.definition.globalName();
-            String name = info.name();
-            String args = Utils.intercalate(", ", unitTexts); 
-            if (target.equals("mvm")) {
-                writer.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n", globalName, name, args));
-            } else if (target.equals("javascript")) {
-                writer.print(String.format("function compute_%s () { return {units: { %s }}};\n", globalName, name, args));
-            } else {
-                throw new RuntimeException("Unknown target");
-            }
-        } else if (info.baseDefinition == null) {
-            if (target.equals("mvm")) {
-                writer.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol);
-            } else if (target.equals("javascript")) {
-                writer.format("Pacioli.compute_%s = function () { return {symbol: '%s'}};\n", 
-                        info.globalName(), info.symbol);
-            } else {
-                throw new RuntimeException("Unknown target");
-            }
-        } else {
-            DimensionedNumber<TypeBase> number = info.baseDefinition.evalUnit();
-            number = number.flat();
-            if (target.equals("mvm")) {
-                writer.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
-                        MVMGenerator.compileUnitToMVM(number.unit()));
-            } else if (target.equals("javascript")) {
-                writer.format("Pacioli.compute_%s = function () {\n", info.globalName());
-                writer.format("    return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}\n",
-                        number.factor(), JSGenerator.compileUnitToJS(number.unit()), info.symbol);   
-                writer.format("}\n");
-            } else {
-                throw new RuntimeException("Unknown target");
-            }
-        }
-    }
-  */  
+/*        
+    for (final File file: new File("E:/code/private/pacioli-samples/shells/new-matlab-primitives/").listFiles()) {
+        out.newline();
+        out.newline();
+        try {
+            String matlabPrimitive = FileUtils.readFileToString(file, Charset.defaultCharset());
+            out.print(matlabPrimitive);
+        } catch (IOException e) {
+            e.printStackTrace();
+
+        }   
+    }        
+*/
+    
+    static final String mc = "\n" + 
+            "function result = global_base_add_mut(list, item)\n" + 
+            "  result = global_base_append(list, global_base_singleton_list(item));\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function list = global_base_append(x,y)\n" + 
+            " list = {x{:} y{:}};\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_apply(fun,args)\n" + 
+            " result = fun(args{:});\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function domain = global_base_column_domain(x)\n" + 
+            "  n = size(x)(2);\n" + 
+            "  domain = cell(1, n);\n" + 
+            "  for i = 1:n\n" + 
+            "    key = {i-1,n};\n" + 
+            "    domain{1,i} = key;\n" + 
+            "  endfor;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function units = global_base_column_unit(x)\n" + 
+            "  n = size(x)(2);\n" + 
+            "  units = cell(1, n);\n" + 
+            "  for i = 1:n\n" + 
+            "      units{1,i} = 1;\n" + 
+            "  endfor\n" + 
+            "  units = ones(1,n);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_cons(item, list)\n" + 
+            "  result = global_base_append(global_base_singleton_list(item), list);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_cos(angle)\n" + 
+            "  result = cos(angle);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_divide(x,y)\n" + 
+            "  num = global_base_multiply(x, global_base_reciprocal(y));\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function list = global_base_empty_list()\n" + 
+            "  %list = {};\n" + 
+            "list = {1}(1,2:end);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_equal(x,y)\n" + 
+            "%  result = logical(x == y);\n" + 
+            "  result = isequal(x, y);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_exp(x)\n" + 
+            "  num = exp(x);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_expt(x,y)\n" + 
+            "  num = x^y;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_fold_list(fun, items)\n" + 
+            "  if (numel(items) == 0)\n" + 
+            "      error(\"fold list called on empty list\");\n" + 
+            "  endif\n" + 
+            "  result = items{1, 1};\n" + 
+            "  for i=2:numel(items)\n" + 
+            "    result = fun(result, items{1, i});\n" + 
+            "  end\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_get(x, i, j)\n" + 
+            "  num = x(i{1} + 1, j{1} + 1);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function item = global_base_head(l)\n" + 
+            "  item = l{1,1};\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_left_identity(mat)\n" + 
+            "\n" + 
+            "  result = eye(size(mat)(1));\n" + 
+            "\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_less(x,y)\n" + 
+            "  result = x < y;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function length = global_base_list_size(list)\n" + 
+            "  length = numel(list);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_ln(x)\n" + 
+            "  result = log(x);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_loop_list(init, fun, items)\n" + 
+            "  result = init;\n" + 
+            "  for i=1:numel(items)\n" + 
+            "    result = fun(result, items{i});\n" + 
+            "  end\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_magnitude(x)\n" + 
+            "  num = x;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_make_matrix(items)\n" + 
+            "  if (numel(items) == 0)\n" + 
+            "    error(\"matrix_from_tuples called on empty list\");\n" + 
+            "  endif\n" + 
+            " rowkey = items{1, 1}{1, 1};\n" + 
+            " columnkey = items{1, 1}{1, 2};\n" + 
+            " result = zeros(rowkey{1, 2}, columnkey{1, 2});\n" + 
+            " for i=1:numel(items)\n" + 
+            "   result(items{1, i}{1, 1}{1, 1} + 1, items{1, i}{1, 2}{1, 1} + 1) = items{1, i}{1, 3};\n" + 
+            " end\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_minus(x,y)\n" + 
+            "  num = global_base_sum(x, global_base_negative(y));\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_mmult(x,y)\n" + 
+            "  num = x*y;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_mod(a, m)\n" + 
+            "  result = mod(a, m);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_multiply(x,y)\n" + 
+            "  num = x.*y;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function list = global_base_naturals(n)\n" + 
+            " list = num2cell(0:n-1);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_negative(x)\n" + 
+            "  num = -x;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_not(x)\n" + 
+            "  num = not(x);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_not_equal(x,y)\n" + 
+            "  result = not(global_base_equal(x, y));\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function item = global_base_nth(n, l)\n" + 
+            "  item = l{1,n+1};\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_print(value)\n" + 
+            "  value\n" + 
+            "  result = value;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_reciprocal(x)\n" + 
+            "  num = arrayfun(@(x) one_reciprocal(x), x);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "function num = one_reciprocal(x) \n" + 
+            "  if x == 0\n" + 
+            "    num = 0;\n" + 
+            "  else\n" + 
+            "    num = 1/x;\n" + 
+            "  endif\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "function domain = global_base_row_domain(x)\n" + 
+            "  n = size(x)(1);\n" + 
+            "  domain = cell(1, n);\n" + 
+            "  for i = 1:n\n" + 
+            "    key = {i-1,n};\n" + 
+            "    domain{1,i} = key;\n" + 
+            "  endfor;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function units = global_base_row_unit(x)\n" + 
+            "  n = size(x)(1);\n" + 
+            "  units = cell(1, n);\n" + 
+            "  for i=1:n\n" + 
+            "    units{1,i} = 1;\n" + 
+            "  endfor\n" + 
+            "  units = ones(n,1);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_scale(x,y)\n" + 
+            "  num = x*y;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_scale_down(x,y)\n" + 
+            "  num = x/y;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_sin(angle)\n" + 
+            "  result = sin(angle);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function list = global_base_singleton_list(x)\n" + 
+            "  list = {x};\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_solve(lhs, rhs)\n" + 
+            "  num = lhs \\ rhs;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_sqrt(x)\n" + 
+            "  num = sqrt(x);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_sum(x,y)\n" + 
+            "  num = x+y;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function item = global_base_tail(l)\n" + 
+            "  item = l(1,2:end);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_transpose(x)\n" + 
+            "  num = x';\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_tuple(varargin)\n" + 
+            "  result = varargin;\n" + 
+            "end\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = global_base_unit_factor(x)\n" + 
+            "  num = 1;\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = global_base_zip(x,y)\n" + 
+            " result = cellfun(@(a,b) {a b}, x, y, \"UniformOutput\", false);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function result = _if(x,y,z)\n" + 
+            "  if x \n" + 
+            "    result = y();\n" + 
+            "  else\n" + 
+            "    result = z();\n" + 
+            "  endif\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "";
 }
