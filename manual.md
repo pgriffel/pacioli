@@ -6,7 +6,7 @@ layout: default
 Pacioli Manual
 ==============
 
-Manual for Pacioli 0.2
+Manual for Pacioli 0.4
 
 --------------------------------------------------------------------------------
 
