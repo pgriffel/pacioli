@@ -1,7 +1,5 @@
 package pacioli.types;
 
-import java.util.Optional;
-
 import pacioli.Printable;
 import pacioli.symboltable.SymbolInfo;
 

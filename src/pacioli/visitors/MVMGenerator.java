@@ -1,15 +1,10 @@
 package pacioli.visitors;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import mvm.values.matrix.MatrixDimension;
 import pacioli.CompilationSettings;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Printer;
 import pacioli.Utils;
@@ -26,11 +21,6 @@ import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.MatrixLiteralNode;
-import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
-import pacioli.ast.unit.NumberUnitNode;
-import pacioli.ast.unit.UnitIdentifierNode;
-import pacioli.ast.unit.UnitOperationNode;
-import pacioli.ast.unit.UnitPowerNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
@@ -39,6 +29,10 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
+import pacioli.ast.unit.NumberUnitNode;
+import pacioli.ast.unit.UnitIdentifierNode;
+import pacioli.ast.unit.UnitOperationNode;
+import pacioli.ast.unit.UnitPowerNode;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.TypeBase;
@@ -82,7 +76,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
         @Override
         public String map(TypeBase base) {    
-            return base.compileToMVM();
+            return base.compileToMVM(null);
         }
 
         @Override
@@ -176,7 +170,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ConversionNode node) {
         out.write("matrix_constructor(\"conversion\", ");
-        out.print(node.typeNode.evalType(true).compileToMVM());
+        out.print(node.typeNode.evalType(true).compileToMVM(settings));
         out.write(")");
     }
 
@@ -244,7 +238,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         
         // Write the opening of the literal
         out.write("literal_matrix(");
-        out.print(node.typeNode.evalType(true).compileToMVM());
+        out.print(node.typeNode.evalType(true).compileToMVM(settings));
         out.write(", ");
 
         // Write the elements. 
@@ -256,63 +250,12 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.format(")");
     }
 
-
-    public void visitOLD(MatrixLiteralNode node) {
-
-        // Find the matrix type's row and column dimension. They should have been set
-        // during resolving
-        MatrixDimension rowDim = node.rowDim;
-        MatrixDimension columnDim = node.columnDim;
-        assert (rowDim != null && columnDim != null);
-
-        // Write the opening of the literal
-        out.write("literal_matrix(");
-        out.print(node.typeNode.evalType(true).compileToMVM());
-        out.write(", ");
-
-        // Write the elements. Table check stores all found indices to check for
-        // doublures.
-        Map<Integer, Set<Integer>> check = new HashMap<Integer, Set<Integer>>();
-        int rowWidth = rowDim.width();
-        int width = rowWidth + columnDim.width();
-        boolean locationReported = false;
-        for (ValueDecl pair : node.pairs) {
-
-            // Determine the entry's position
-            int rowPos = rowDim.ElementPos(pair.keys().subList(0, rowWidth));
-            int columnPos = columnDim.ElementPos(pair.keys().subList(rowWidth, width));
-
-            // Check if this entry was already found
-            if (check.containsKey(rowPos)) {
-                if (check.get(rowPos).contains(columnPos)) {
-                    if (!locationReported) {
-                        Pacioli.warn("In %s", node.getLocation().description());
-                        locationReported = true;
-                    }
-                    Pacioli.warn("Duplicate: %s %s", rowDim.ElementAt(rowPos), columnDim.ElementAt(columnPos));
-                } else {
-                    check.get(rowPos).add(columnPos);
-                }
-            } else {
-                Set<Integer> set = new HashSet<Integer>();
-                set.add(columnPos);
-                check.put(rowPos, set);
-            }
-
-            // Write the entry to output
-            out.format(" %s %s \"%s\",", rowPos, columnPos, pair.value);
-        }
-
-        // Write the closing of the literal
-        out.format(")");
-    }
-
     @Override
     public void visit(MatrixTypeNode node) {
         try {
             MatrixType type = node.evalType(true);
             out.write("matrix_constructor(\"ones\", ");
-            out.print(type.compileToMVM());
+            out.print(type.compileToMVM(settings));
             out.write(")");
         } catch (PacioliException e) {
             throw new RuntimeException(e);

@@ -28,19 +28,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
-import pacioli.Printable;
 import pacioli.Substitution;
 import pacioli.symboltable.IndexSetInfo;
-import pacioli.symboltable.SymbolInfo;
 import pacioli.types.ast.TypeNode;
 import uom.BaseUnit;
 import uom.Unit;
 
-//public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Printable {
 public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var {
-//public class TypeVar extends TypeBase implements PacioliType, Printable {
 
     private static int counter = 0;
     private final String name;
@@ -201,12 +198,6 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     public PacioliType reduce() {
         return this;
     }
-/*
-    @Override
-    public String compileToMVM() {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
-    }*/
 
     @Override
     public TypeNode deval() {
@@ -228,7 +219,7 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     }
 
     @Override
-    public String compileToMVM() {
-        return PacioliType.super.compileToMVM();
+    public String compileToMVM(CompilationSettings settings) {
+        return PacioliType.super.compileToMVM(settings);
     }
 }

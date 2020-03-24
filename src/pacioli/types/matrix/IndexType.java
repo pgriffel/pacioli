@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
@@ -188,7 +189,7 @@ public class IndexType extends AbstractType {
     }
 
     @Override
-    public String compileToMVM() {
+    public String compileToMVM(CompilationSettings settings) {
         throw new RuntimeException("todo ");
     }
 

@@ -24,6 +24,7 @@ package pacioli.types.matrix;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import pacioli.CompilationSettings;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.types.TypeBase;
@@ -54,16 +55,6 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
         this.text = info.name();
         this.info = info;
     }
-    
-//    public ScalarBase(String text) {
-//        this.prefix = Optional.empty();
-//        this.text = text;
-//    }
-//
-//    public ScalarBase(String prefix, String name) {
-//        this.prefix = Optional.of(prefix);
-//        this.text = name;
-//    }
 
     @Override
     public int hashCode() {
@@ -136,7 +127,7 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
     @Override
-    public String compileToMVM() {
+    public String compileToMVM(CompilationSettings settings) {
         if (prefix.isPresent()) {
             return "scaled_unit(\"" + prefix.get() + "\", \"" + text + "\")";
         } else {

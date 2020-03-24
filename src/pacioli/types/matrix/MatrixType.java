@@ -28,7 +28,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.Location;
 import pacioli.PacioliException;

@@ -27,21 +27,12 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.AbstractPrintable;
-import pacioli.CompilationSettings;
 import pacioli.PacioliException;
 import pacioli.Substitution;
-import pacioli.types.ast.FunctionTypeNode;
-import pacioli.types.ast.TypeNode;
 import uom.Fraction;
 import uom.Unit;
 
 public abstract class AbstractType extends AbstractPrintable implements PacioliType {
-
-
-    @Override
-    public String compileToMVM() {
-        return deval().compileToMVM(new CompilationSettings());                
-    }
     
     @Override
     public Substitution unify(PacioliType other) throws PacioliException {

@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
@@ -175,7 +176,7 @@ public class IndexList extends AbstractType {
     }
 
     @Override
-    public String compileToMVM() {
+    public String compileToMVM(CompilationSettings settings) {
         // TODO Auto-generated method stub
         return null;
     }

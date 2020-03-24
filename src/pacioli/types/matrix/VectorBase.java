@@ -21,6 +21,7 @@
 
 package pacioli.types.matrix;
 
+import pacioli.CompilationSettings;
 import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
@@ -132,7 +133,7 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
     @Override
-    public String compileToMVM() {
+    public String compileToMVM(CompilationSettings settings) {
         //assert(!indexSetName.home.isEmpty());
         String unitName = this.unitName.name;
         return String.format("bang_shape(\"index_%s_%s\", \"%s\")",

@@ -30,7 +30,6 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.TypeContext;
-import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeNode;
 import uom.Unit;
 
@@ -72,10 +71,8 @@ public class Schema extends AbstractType {
     public PacioliType instantiate() {
         Substitution map = new Substitution();
         for (Var var : variables) {
-            //TypeVar var = (TypeVar) gvar; //fixme
             map = map.compose(new Substitution(var, var.fresh()));
         }
-        // return map.apply(type);
         return type.applySubstitution(map);
     }
 
@@ -93,14 +90,12 @@ public class Schema extends AbstractType {
 
     @Override
     public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public List<Unit<TypeBase>> simplificationParts() {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -115,6 +110,6 @@ public class Schema extends AbstractType {
 
     @Override
     public TypeNode deval() {
-        return null;//new SchemaNode();
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

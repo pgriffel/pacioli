@@ -67,17 +67,17 @@ public interface PacioliType extends Printable {
     public PacioliType fresh();
 
     public PacioliType unfresh();
+    
+    public TypeNode deval();
 
     public String compileToJS();
     
-    //public String compileToMVM();
-
-    // Hack to print proper compound unit vector in schema's
-    public Set<String> unitVecVarCompoundNames();
-    
-    public TypeNode deval();
-    
-    public default String compileToMVM() {
+    public default String compileToMVM(CompilationSettings settings) {
         return deval().compileToMVM(new CompilationSettings());                
     }
+    
+    
+    // Hack to print proper compound unit vector in schema's
+    public Set<String> unitVecVarCompoundNames();
+
 }
