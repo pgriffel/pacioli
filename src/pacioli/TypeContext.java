@@ -72,17 +72,10 @@ public class TypeContext extends AbstractPrintable {
                 indexVars.add(genericVar.pretty());
             } else if (genericVar instanceof ScalarUnitVar || genericVar instanceof VectorUnitVar) {
                 unitVars.add(genericVar.pretty());
+            } else if (genericVar instanceof TypeVar) {
+                typeVars.add(genericVar.pretty());
             } else {
-                TypeVar var = (TypeVar) genericVar; // fixme
-                if (var.quantifier.equals("for_type")) {
-                    typeVars.add(var.pretty());
-                } else if (var.quantifier.equals("for_index")) {
-                    indexVars.add(var.pretty());
-                } else if (var.quantifier.equals("for_unit")) {
-                    unitVars.add(var.pretty());
-                } else {
-                    throw new RuntimeException("Unknown quantifier: " + var.quantifier);
-                }
+                throw new RuntimeException("Unknown quantifier: " + genericVar.getClass());
             }
         }
     }

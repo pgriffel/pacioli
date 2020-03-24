@@ -41,8 +41,8 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     private static int counter = 0;
     private final String name;
-    public final String quantifier;
-    public final Optional<TypeInfo> info;
+    private final String quantifier;
+    private final Optional<TypeInfo> info;
 
     public TypeVar(TypeInfo info) {
         name = info.name();
