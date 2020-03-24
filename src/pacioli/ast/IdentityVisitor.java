@@ -269,7 +269,10 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(PrefixUnitTypeNode prefixUnitTypeNode) {
+    public void visit(PrefixUnitTypeNode node) {
+        // Do we want to accept the prefix?
+        //node.prefix.accept(this);
+        node.unit.accept(this);
     }
 
     @Override

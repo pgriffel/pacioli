@@ -38,7 +38,7 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
     }
     
     public static String global(String module, String name) {
-        return String.format("global_%s_%s", module, name);
+        return String.format("glbl_%s_%s", module, name);
     }
     
     @Override
