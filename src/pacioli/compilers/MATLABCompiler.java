@@ -50,9 +50,13 @@ public class MATLABCompiler implements SymbolTableVisitor {
         ExpressionNode transformed = definition.body;
         if (transformed instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformed;
+            List<String> args = new ArrayList<String>();
+            for (String arg: code.arguments) {
+                args.add(arg.toLowerCase());
+            }
             if (code.expression instanceof StatementNode) {
                 out.newline();
-                out.format("function result = %s (%s)", info.globalName().toLowerCase(), code.argsString());
+                out.format("function result = %s (%s)", info.globalName().toLowerCase(), Utils.intercalate(",", args));
                 out.newlineUp();
                 code.expression.accept(new MatlabGenerator(out, settings));
                 out.newlineDown();
@@ -60,7 +64,7 @@ public class MATLABCompiler implements SymbolTableVisitor {
                 out.newline();
             } else {
                 out.newline();
-                out.format("function retval = %s (%s)", info.globalName().toLowerCase(), code.argsString());
+                out.format("function retval = %s (%s)", info.globalName().toLowerCase(), Utils.intercalate(",", args));
                 out.newlineUp();
                 out.format(" retval = ");
                 code.expression.accept(new MatlabGenerator(out, settings));
@@ -71,7 +75,7 @@ public class MATLABCompiler implements SymbolTableVisitor {
             }
         } else {
             out.newline();
-            out.format("global %s = ", info.globalName().toLowerCase());
+            out.format("glbl %s = ", info.globalName().toLowerCase());
             transformed.accept(new MatlabGenerator(out, settings));
             out.format(";");
             out.newline();

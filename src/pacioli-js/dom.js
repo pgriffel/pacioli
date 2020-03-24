@@ -285,11 +285,11 @@ Pacioli.DOMbottom = function(n, matrix) {
 
 Pacioli.DOMrowTops = function(n, matrix) {
     var list = document.createElement("ul")
-    var keys = global_Matrix_row_domain(matrix)
+    var keys = glbl_Matrix_row_domain(matrix)
     for (var i = 0; i < keys.length; i++) {
         var item = document.createElement("li")
         item.appendChild(Pacioli.DOM(keys[i]))
-        item.appendChild(Pacioli.DOMtop(n, global_Matrix_row(matrix, keys[i])))
+        item.appendChild(Pacioli.DOMtop(n, glbl_Matrix_row(matrix, keys[i])))
         list.appendChild(item)
     }
     return list
@@ -297,11 +297,11 @@ Pacioli.DOMrowTops = function(n, matrix) {
 
 Pacioli.DOMrowBottoms = function(n, matrix) {
     var list = document.createElement("ul")
-    var keys = global_Matrix_row_domain(matrix)
+    var keys = glbl_Matrix_row_domain(matrix)
     for (var i = 0; i < keys.length; i++) {
         var item = document.createElement("li")
         item.appendChild(Pacioli.DOM(keys[i]))
-        item.appendChild(Pacioli.DOMbottom(n, global_Matrix_row(matrix, keys[i])))
+        item.appendChild(Pacioli.DOMbottom(n, glbl_Matrix_row(matrix, keys[i])))
         list.appendChild(item)
     }
     return list

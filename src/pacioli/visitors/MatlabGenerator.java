@@ -1,5 +1,8 @@
 package pacioli.visitors;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import pacioli.CompilationSettings;
 import pacioli.PacioliException;
 import pacioli.Printer;
@@ -136,8 +139,12 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(LambdaNode node) {
+        List<String> args = new ArrayList<String>();
+        for (String arg: node.arguments) {
+            args.add(arg.toLowerCase());
+        }
         out.write("(@(");
-        out.writeStringsCommaSeparated(node.arguments, this);
+        out.writeStringsCommaSeparated(args, this);
         out.write(")");
         node.expression.accept(this);
         out.format(")");

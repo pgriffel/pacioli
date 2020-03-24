@@ -861,6 +861,16 @@ public class Progam extends AbstractPrintable {
             "\n" + 
             "\n" + 
             "function num = glbl_base_expt(x,y)\n" + 
+            "  num = arrayfun(@(z) one_expt(z, y), x);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = one_expt(x, y)\n" + 
+            "  num = x^y;\n" + 
+            "endfunction\n" + 
+            "\n" +
+            "\n" +             
+            "function num = glbl_base_mexpt(x,y)\n" + 
             "  num = x^y;\n" + 
             "endfunction\n" + 
             "\n" + 

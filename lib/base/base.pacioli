@@ -93,6 +93,7 @@ declare public contains :: for_type a: (List(a), a) -> Boole();
 
 declare public string_compare :: (String(), String()) -> 1;
 declare public concatenate :: (String(), String()) -> String();
+declare public format :: for_type t: t -> String();
 
 # ----------------------------------------------------------------------------
 # Indices

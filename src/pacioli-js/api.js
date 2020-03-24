@@ -29,13 +29,13 @@ var Pacioli = Pacioli || {};
 // -----------------------------------------------------------------------------
 
 Pacioli.value = function (module, name) {
-    return new Pacioli.Box(Pacioli.lookupItem("u_global_" + module + "_" + name),
-                           Pacioli.lookupItem("global_" + module + "_" + name))
+    return new Pacioli.Box(Pacioli.lookupItem("u_glbl_" + module + "_" + name),
+                           Pacioli.lookupItem("glbl_" + module + "_" + name))
 }
 
 Pacioli.fun = function (module, name) {
-    return new Pacioli.Box(Pacioli.lookupItem("u_global_" + module + "_" + name),
-                           Pacioli.lookupItem("global_" + module + "_" + name))
+    return new Pacioli.Box(Pacioli.lookupItem("u_glbl_" + module + "_" + name),
+                           Pacioli.lookupItem("glbl_" + module + "_" + name))
 }
 
 Pacioli.unit = function (name1, name2) {
@@ -174,11 +174,11 @@ Pacioli.dimNum = function (a, b) {
 Pacioli.cache = {};
 
 Pacioli.fetchValue = function (home, name) {
-    return Pacioli.lookupItem("global_" + home + "_" + name);
+    return Pacioli.lookupItem("glbl_" + home + "_" + name);
 }
 
 Pacioli.bfetchValue = function (home, name) {
-    return Pacioli.lookupItem("b_global_" + home + "_" + name);
+    return Pacioli.lookupItem("b_glbl_" + home + "_" + name);
 }
 
 Pacioli.fetchIndex = function (id) {
@@ -211,7 +211,7 @@ Pacioli.fetchVectorBase = function (id) {
 
 Pacioli.fetchType = function (home, name) {
     alert('Who used fetchType?');
-    return Pacioli.lookupItem("u_global_" + home + "_" + name);
+    return Pacioli.lookupItem("u_glbl_" + home + "_" + name);
 }
 
 Pacioli.lookupItem = function (full) {
