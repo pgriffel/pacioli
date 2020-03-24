@@ -26,23 +26,22 @@ Pacioli <a id="pacioli"/></a>
 A Paciolo program consists of definitions organized in modules.
 
 
-### Modules <a id="modules"/></a>
+### Program <a id="modules"/></a>
 
-A module is a collection of definitions and expressions that is
-compiled as a unit.
+A program is a file containing a collection of definitions. A program can
+include other programs with an `include` and libraries with an `import`.
+A line comment starts with an `#`
 
-Each module is stored in its own file and starts with keyword `module`
-followed by the module name. A module can include other modules with
-an `include`.
+```
+# This is an example program
 
-<pre><code>module Example;
+import si;
+import geometry;
 
-include si;
-include geometry;
-include my_libs/some_lib;
+include some_dir/some_file;
 
-...
-</code></pre>
+define ...
+```
 
 A module provides namespaces for
 
@@ -63,11 +62,14 @@ a module are evaluated in the order they appear in the file.
 A definition starts with keyword `define` followed by a name, the
 equal sign, and an [expression](#expressions). A value is
 defined like
-<pre><code>define x = [expression](#expressions);
+<pre><code>
+define x = <a href="#expressions">expression</a>;
 </code></pre>
 
 and a function like
-<pre><code>define f(x, y, ..., z) = [expression](#expressions);
+
+<pre><code>
+define f(x, y, ..., z) = <a href="#expressions">expression</a>;
 </code></pre>
 
 
@@ -76,7 +78,8 @@ and a function like
 A definition can be accompanied by a type declaration. A declaration
 starts with keyword `declare` followed by a name, a pair of colons,
 and a type.
-<pre><code>declare x :: [type](#typesystem);
+<pre><code>
+declare x :: <a href="#typesystem">type</a>;
 </code></pre>
 
 Declarations are optional, except for recursive functions. If a type
@@ -89,11 +92,14 @@ contradict it.
     
 Syntax is
 
-<code>
-defmatrix x :: [matrix type](#matrices) = {foo, bar -> ..., ...};
-</code>
+<pre><code>
+defmatrix x :: <a href="#typesystem">type</a> = {
+    foo, bar -> ...,
+    ...
+};
+</code></pre>
 
-A matrix of the declared type with the given numbers is defined.
+A [matrix](#matrices) of the declared type with the given numbers is defined.
 
 
 #### Conversion Definitions <a id="conversiondefinition"/></a>
@@ -101,21 +107,10 @@ A matrix of the declared type with the given numbers is defined.
 Syntax is same as declaration
 
 <code>
-defconv foo :: [matrix type](#typesystem);
+defconv foo :: <a href="#typesystem">matrix type</a>;
 </code>
 
 A conversion matrix of the declared type is defined as value.
-
-
-#### Projection Definitions <a id="projectiondefinition"/></a>
-    
-Syntax is same as declaration
-
-<code>
-defproj foo :: [matrix type](#typesystem);
-</code>
-
-A projection matrix of the declared type is defined as value.
 
 
 #### Index Definitions <a id="indexdefinition"/></a>
@@ -166,7 +161,7 @@ Unit vectors are used in [matrix](#matrices) types.
 Syntax is
 
 <code>
-deftype [type](#typesystem) = [type](#typesystem);
+deftype <a href="#typesystem">type</a> = <a href="#typesystem">type</a>;
 </code>
 
 The defined type must be a parametric type.
@@ -179,7 +174,7 @@ A type judgement states that an expression is of some type. It is of
 the form
 
 <code>
-[expression](#expressions) :: [schema](#schema)
+<a href="#expressions">expression</a> :: <a href="#schema">schema</a>
 </code>
 
 Type judgements are used as input in definitions and declarations to
@@ -189,11 +184,11 @@ are displayed.
 The type schema introduces type variables. A type schema is can
 introduce ordinary type varibles, index variables, or unit varibles.
 
-<code>
-for\_type a,b,...: [type](#typesystem)  
-for\_index P,Q,...: [type](#typesystem)  
-for\_unit u,v,...: [type](#typesystem)
-</code>
+<pre><code>
+for_type a,b,...: <a href="#typesystem">type</a>   
+for_index P,Q,...: <a href="#typesystem">type</a>   
+for_unit u,v,...: <a href="#typesystem">type</a>
+</code></pre>
 
 Index variables are written in uppercase by convention.
 
@@ -203,7 +198,7 @@ the generic parametric type. The [function](#functions) and
 parametric type is of the form
 
 <code>
-Foo([type](#typesystem), [type](#typesystem), ...)
+Foo(<a href="#typesystem">type</a>, <a href="#typesystem">type</a>, ...)
 </code>
 
 Built in types List, Tuple and Boole are parametric types.
@@ -258,12 +253,12 @@ The runtime contents of non-terminals is defined inductively, starting
 from the contents of the unit vector terminals. Let `v` and `w` be
 unit vectors
 
-<code>
+<pre><code>
 (v * w)[i] = v[i] * w[i]  
 (v / w)[i] = v[i] / w[i]  
 (v^n)[i] = v[i]^n  
 (v % w)[i%j] = v[i] * v[j]
-</code>
+</code></pre>
 
 The pair `i%j` in the last rule is a compound index. Tensors are
 matricized with the Kronecker product. This makes multi-dimensional
@@ -316,7 +311,7 @@ arguments. Use destructuring in a let or comprehension or use function
 The type of a tuple is 
 
 <code>
-Tuple([type](#typesystem), [type](#typesystem), ...)
+Tuple(<a href="#typesystem">type</a>, <a href="#typesystem">type</a>, ...)
 </code>
 
 
@@ -327,7 +322,7 @@ A list is a varying set of values of the same type.
 The type of a list is 
 
 <code>
-List([type](#typesystem))
+List(<a href="#typesystem">type</a>)
 </code>
 
 
@@ -339,7 +334,7 @@ Functions are first class values. Functions are globally
 The type of a function is
 
 <code>
-([type](#typesystem), [type](#typesystem), ...) -> [type](#typesystem)
+(<a href="#typesystem">type</a>, <a href="#typesystem">type</a>, ...) -> <a href="#typesystem">type</a>
 </code>
 
 
@@ -378,21 +373,21 @@ Operators grouped by precedence
     ^R              reciprocal
     ^D              dim_inv
 
-    .^              power
+    '^'             mexpt
     ^               expt
 
     per             dim_div
 
-    c*              scale
-    *c              rscale
-    /c              scale_down
-    c/              lscale_down
+    '.*'            scale
+    '*.'            rscale
+    '/.'            scale_down
+    './'            lscale_down
     *               multiply
     /               divide
     \               left_divide
-    .*              dot
-    ./              right_division
-    .\              left_division
+    '*'             mmult
+    '/'             right_division
+    '\'             left_division
 
     +               sum
     -               minus
@@ -416,7 +411,7 @@ Operators grouped by precedence
 A function application is of the form 
 
 <code>
-foo([expression](#expressions), [expression](#expressions), ... )
+foo(<a href="#expressions">expression</a>, <a href="#expressions">expression</a>, ... )
 </code>
 
     
@@ -425,20 +420,20 @@ foo([expression](#expressions), [expression](#expressions), ... )
 An anonymous function is of the form 
 
 <code>
-lambda (x, y, ... ) [expression](#expressions) end
+lambda (x, y, ... ) <a href="#expressions">expression</a> end
 </code>
           
           
 ### If <a id="if"/></a>
 
 An if is of the form
-<pre><code>if [expression](#expression) then
-  [expression](#expression)
-else if [expression](#expression) then
-  [expression](#expression)
+<pre><code>if <a href="#expressions">expression</a> then
+  <a href="#expressions">expression</a>
+else if <a href="#expressions">expression</a> then
+  <a href="#expressions">expression</a>
 ...
 else
-  [expression](#expression)
+  <a href="#expressions">expression</a>
 end
 </code></pre>
 
@@ -447,11 +442,11 @@ end
 
 A let is of the form 
 <pre><code>let 
-    foo = [expression](#expression),
-    bar = [expression](#expression),
+    foo = <a href="#expressions">expression</a>,
+    bar = <a href="#expressions">expression</a>,
     ...
 in
-    [expression](#expression)
+    <a href="#expressions">expression</a>
 end
 </code></pre>
 
@@ -464,24 +459,24 @@ parenthesis to destructure a tuple.
 A list comprehension is of the form 
 
 <code>
-[ [expression](#expressions) | clause, clause, ... ]
+[ <a href="#expressions">expression</a> | clause, clause, ... ]
 </code>
  
 where each clause is
 
 * a generator 
   <code>
-  var <- [expression](#expressions)
+  var <- <a href="#expressions">expression</a>
   </code>
 
 * a filter 
   <code>
-  [expression](#expressions)
+  <a href="#expressions">expression</a>
   </code>
 
 * or an assignment
   <code>
-  var := [expression](#expressions)
+  var := <a href="#expressions">expression</a>
   </code>
 
 Each var can also be a list of variables surrounded by parenthesis to
@@ -495,8 +490,8 @@ Statements <a id="statements"/></a>
 A statement is of the form 
 <pre><code>
 begin
-  [statement](#statements)
-  [statement](#statements)
+  <a href="#statements">statement</a>
+  <a href="#statements">statement</a>
   ...
 end
 </code></pre>
@@ -509,7 +504,7 @@ A [return](#return) leaves the block prematurely.
 An assignment is of the form 
 
 <code>
-var := [expression](#expressions);
+var := <a href="#expressions">expression</a>;
 </code>
 
 The value stored by variable `var` is changed to the value of the
@@ -522,7 +517,7 @@ parenthesis to destructure a tuple.
 A return statement is of the form
 
 <code>
-return [expression](#expressions);
+return <a href="#expressions">expression</a>;
 </code>
 
 Execution of the surrounding `begin` `end` block is halted and the
@@ -533,8 +528,8 @@ optional.
 ### While <a id="while"/></a>
   
 A while statement is of the form
-<pre><code>while [expression](#expressions) do
-  [statements](#statements)
+<pre><code>while <a href="#expressions">expression</a> do
+  <a href="#statements">statement</a>
 end
 </code></pre>
 
@@ -544,13 +539,13 @@ The body of the while loop is executed as long the expression is true.
 ### If <a id="ifstatement"/></a>
   
 An if statement is of the form
-<pre><code>if [expression](#expressions) then
-  [statements](#statements)
-else if [expression](#expressions) then
-  [statements](#statements)
+<pre><code>if <a href="#expressions">expression</a> then
+  <a href="#statements">statement</a>
+else if <a href="#expressions">expression</a> then
+  <a href="#statements">statement</a>
 ...
 else
-  [statements](#statements)
+  <a href="#statements">statement</a>
 end
 </code></pre>
 
