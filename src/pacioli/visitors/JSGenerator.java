@@ -237,27 +237,33 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(MatrixLiteralNode node) {
 
+        //assert(node.values.size() > 0);
+        
         // see mvm generator!!!
         StringBuilder builder = new StringBuilder();
         String sep = "";
-        for (int i = 0; i < node.values.size(); i++) {
+        //for (int i = 0; i < node.values.size(); i++) {
+        for (MatrixLiteralNode.PositionedValueDecl decl: node.positionedValueDecls()) {
             builder.append(sep);
             builder.append("[");
-            builder.append(node.rowIndices.get(i));
+            builder.append(decl.row);
+            //builder.append(node.rowIndices.get(i));
             builder.append(",");
-            builder.append(node.columnIndices.get(i));
+            builder.append(decl.column);
+            //builder.append(node.columnIndices.get(i));
             builder.append(",");
-            builder.append(node.values.get(i));
+            builder.append(decl.valueDecl.value);
+            //builder.append(node.values.get(i));
             builder.append("]");
             sep = ",";
         }
         if (boxed) {
             out.print("Pacioli.initialMatrix(" + node.typeNode.evalType(true).compileToJS() + "," + builder.toString() + ")");
-        }
+        } else {
         out.format("Pacioli.initialNumbers(%s, %s, [%s])", 
                 node.rowDim.size(), node.columnDim.size(),
                 builder.toString());
-
+        }
     }
 
     @Override

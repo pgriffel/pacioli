@@ -98,7 +98,7 @@ public class MVMCompiler implements SymbolTableVisitor {
         IndexSetInfo setInfo = (IndexSetInfo) info.getDefinition().get().indexSetNode.info;
         List<String> unitTexts = new ArrayList<String>();
         // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
-        for (UnitDecl entry : info.items) {
+        for (UnitDecl entry : info.getItems()) {
             DimensionedNumber<TypeBase> number = entry.value.evalUnit();
             // todo: take number.factor() into account!? 
             unitTexts.add("\"" + entry.key.getName() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));

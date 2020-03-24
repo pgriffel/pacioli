@@ -203,7 +203,7 @@ public class Matrix extends AbstractPacioliValue {
                 .multiply(getUnit(columnDimension(), shape.columnUnit, j).reciprocal()));
     }
 
-    private Unit<MatrixBase> getUnit(MatrixDimension dimension, final Unit<MatrixBase> matrixUnit, int position) {
+    private static Unit<MatrixBase> getUnit(MatrixDimension dimension, final Unit<MatrixBase> matrixUnit, int position) {
         final int[] positions = dimension.individualPositions(position);
         return matrixUnit.map(new UnitMap<MatrixBase>() {
             public Unit<MatrixBase> map(MatrixBase base) {

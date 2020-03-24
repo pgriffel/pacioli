@@ -25,6 +25,7 @@ import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.AssignmentNode;
+import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
@@ -262,6 +263,31 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             visitorThrow(node.typeNode.getLocation(), "Expected a closed matrix type");
         }
     }
+    
+    @Override
+    public void visit(ConversionNode node) {
+
+        // Resolve the matrix type
+        node.typeNode.accept(this);
+
+        // Evaluate the matrix type
+        MatrixType matrixType;
+        try {
+            matrixType = node.evalType(false);
+        } catch (PacioliException e) {
+            throw new RuntimeException(e);
+        }
+
+        // Store the matrix type's row and column dimension
+        node.rowDim = compileTimeMatrixDimension(matrixType.rowDimension);
+        node.columnDim = compileTimeMatrixDimension(matrixType.columnDimension);
+
+        // Check that the dimensions exist
+        if (node.rowDim == null || node.columnDim == null) {
+            visitorThrow(node.typeNode.getLocation(), "Expected a closed matrix type");
+        }
+    }
+
     
     @Override
     public void visit(MatrixLiteralNode node) {

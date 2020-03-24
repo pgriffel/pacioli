@@ -73,7 +73,7 @@ public class UnitVectorDefinition extends AbstractDefinition {
         //VectorUnitInfo info = new VectorUnitInfo(generic);
         VectorUnitInfo info = new VectorUnitInfo(localName(), program.getModule(), true, getLocation());
         info.setDefinition(this);
-        info.items = items;
+        info.setItems(items);
         program.addInfo(info);
     }
 

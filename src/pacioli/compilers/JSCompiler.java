@@ -151,7 +151,7 @@ public class JSCompiler implements SymbolTableVisitor {
         IndexSetInfo setInfo = (IndexSetInfo) info.getDefinition().get().indexSetNode.info;
         List<String> unitTexts = new ArrayList<String>();
         
-        for (UnitDecl entry : info.items) {
+        for (UnitDecl entry : info.getItems()) {
             DimensionedNumber<TypeBase> number = entry.value.evalUnit();
             // todo: take number.factor() into account!? 
             unitTexts.add("'" + entry.key.getName() + "': " + JSGenerator.compileUnitToJS(number.unit()));

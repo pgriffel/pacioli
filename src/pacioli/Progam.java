@@ -643,15 +643,24 @@ public class Progam extends AbstractPrintable {
         
         // Find all values to compile (unnecessary step, or do we want to sort alphabetically?)
         List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
+        List<ValueInfo> functionsToCompile = new ArrayList<ValueInfo>();
         for (ValueInfo info: values.allInfos()) {
             if (!isExternal(info) || externals) {
                 if (info.getDefinition().isPresent()) {
-                    valuesToCompile.add(info);
+                    if (info.getDefinition().get().isFunction()) {
+                        functionsToCompile.add(info);
+                    } else {
+                        valuesToCompile.add(info);
+                    }
                 }
             }
         }
         
         // Generate code for the values
+        for (ValueInfo info : functionsToCompile) {
+            info.accept(compiler);
+        }
+        valuesToCompile = orderedInfos(valuesToCompile);
         for (ValueInfo info : valuesToCompile) {
             info.accept(compiler);
         }
@@ -659,7 +668,9 @@ public class Progam extends AbstractPrintable {
         // Generate code for the toplevels
         for (Toplevel def : toplevels) {
             if (settings.getTarget() == Target.MVM || settings.getTarget() == Target.MATLAB) {
+                printer.newline();
                 def.accept(gen);    
+                printer.newline();
             }
         }
         
@@ -676,9 +687,9 @@ public class Progam extends AbstractPrintable {
         out.newline();
         out.write("function retval = fetch_global (module, name)");
         out.newline();
-        out.write("  switch (strcat(\"global_\", module, \"_\", name))");
+        out.write("  switch (strcat(\"glbl_\", module, \"_\", name))");
         out.newline();
-        out.write("    case \"global_base__\"");
+        out.write("    case \"glbl_base__\"");
         out.newline();
         out.write("      retval = {0,1};");
         out.newline();
@@ -764,25 +775,25 @@ public class Progam extends AbstractPrintable {
 */
     
     static final String mc = "\n" + 
-            "function result = global_base_add_mut(list, item)\n" + 
-            "  result = global_base_append(list, global_base_singleton_list(item));\n" + 
+            "function result = glbl_base_add_mut(list, item)\n" + 
+            "  result = glbl_base_append(list, glbl_base_singleton_list(item));\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function list = global_base_append(x,y)\n" + 
+            "function list = glbl_base_append(x,y)\n" + 
             " list = {x{:} y{:}};\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_apply(fun,args)\n" + 
+            "function result = glbl_base_apply(fun,args)\n" + 
             " result = fun(args{:});\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function domain = global_base_column_domain(x)\n" + 
+            "function domain = glbl_base_column_domain(x)\n" + 
             "  n = size(x)(2);\n" + 
             "  domain = cell(1, n);\n" + 
             "  for i = 1:n\n" + 
@@ -793,7 +804,7 @@ public class Progam extends AbstractPrintable {
             "\n" + 
             "\n" + 
             "\n" + 
-            "function units = global_base_column_unit(x)\n" + 
+            "function units = glbl_base_column_unit(x)\n" + 
             "  n = size(x)(2);\n" + 
             "  units = cell(1, n);\n" + 
             "  for i = 1:n\n" + 
@@ -804,51 +815,51 @@ public class Progam extends AbstractPrintable {
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_cons(item, list)\n" + 
-            "  result = global_base_append(global_base_singleton_list(item), list);\n" + 
+            "function result = glbl_base_cons(item, list)\n" + 
+            "  result = glbl_base_append(glbl_base_singleton_list(item), list);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_cos(angle)\n" + 
+            "function result = glbl_base_cos(angle)\n" + 
             "  result = cos(angle);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_divide(x,y)\n" + 
-            "  num = global_base_multiply(x, global_base_reciprocal(y));\n" + 
+            "function num = glbl_base_divide(x,y)\n" + 
+            "  num = glbl_base_multiply(x, glbl_base_reciprocal(y));\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function list = global_base_empty_list()\n" + 
+            "function list = glbl_base_empty_list()\n" + 
             "  %list = {};\n" + 
             "list = {1}(1,2:end);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_equal(x,y)\n" + 
+            "function result = glbl_base_equal(x,y)\n" + 
             "%  result = logical(x == y);\n" + 
             "  result = isequal(x, y);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_exp(x)\n" + 
+            "function num = glbl_base_exp(x)\n" + 
             "  num = exp(x);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_expt(x,y)\n" + 
+            "function num = glbl_base_expt(x,y)\n" + 
             "  num = x^y;\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_fold_list(fun, items)\n" + 
+            "function result = glbl_base_fold_list(fun, items)\n" + 
             "  if (numel(items) == 0)\n" + 
             "      error(\"fold list called on empty list\");\n" + 
             "  endif\n" + 
@@ -860,19 +871,19 @@ public class Progam extends AbstractPrintable {
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_get(x, i, j)\n" + 
+            "function num = glbl_base_get(x, i, j)\n" + 
             "  num = x(i{1} + 1, j{1} + 1);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function item = global_base_head(l)\n" + 
+            "function item = glbl_base_head(l)\n" + 
             "  item = l{1,1};\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_left_identity(mat)\n" + 
+            "function result = glbl_base_left_identity(mat)\n" + 
             "\n" + 
             "  result = eye(size(mat)(1));\n" + 
             "\n" + 
@@ -882,25 +893,25 @@ public class Progam extends AbstractPrintable {
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_less(x,y)\n" + 
+            "function result = glbl_base_less(x,y)\n" + 
             "  result = x < y;\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function length = global_base_list_size(list)\n" + 
+            "function length = glbl_base_list_size(list)\n" + 
             "  length = numel(list);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_ln(x)\n" + 
+            "function result = glbl_base_ln(x)\n" + 
             "  result = log(x);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_loop_list(init, fun, items)\n" + 
+            "function result = glbl_base_loop_list(init, fun, items)\n" + 
             "  result = init;\n" + 
             "  for i=1:numel(items)\n" + 
             "    result = fun(result, items{i});\n" + 
@@ -909,13 +920,13 @@ public class Progam extends AbstractPrintable {
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_magnitude(x)\n" + 
+            "function num = glbl_base_magnitude(x)\n" + 
             "  num = x;\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_make_matrix(items)\n" + 
+            "function result = glbl_base_make_matrix(items)\n" + 
             "  if (numel(items) == 0)\n" + 
             "    error(\"matrix_from_tuples called on empty list\");\n" + 
             "  endif\n" + 
@@ -929,68 +940,74 @@ public class Progam extends AbstractPrintable {
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_minus(x,y)\n" + 
-            "  num = global_base_sum(x, global_base_negative(y));\n" + 
+            "function num = glbl_base_minus(x,y)\n" + 
+            "  num = glbl_base_sum(x, glbl_base_negative(y));\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_mmult(x,y)\n" + 
+            "function num = glbl_base_mmult(x,y)\n" + 
             "  num = x*y;\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_mod(a, m)\n" + 
+            "function result = glbl_base_mod(a, m)\n" + 
             "  result = mod(a, m);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_multiply(x,y)\n" + 
+            "function num = glbl_base_multiply(x,y)\n" + 
             "  num = x.*y;\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function list = global_base_naturals(n)\n" + 
+            "function list = glbl_base_naturals(n)\n" + 
             " list = num2cell(0:n-1);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_negative(x)\n" + 
+            "function num = glbl_base_negative(x)\n" + 
             "  num = -x;\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_not(x)\n" + 
+            "function num = glbl_base_not(x)\n" + 
             "  num = not(x);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_not_equal(x,y)\n" + 
-            "  result = not(global_base_equal(x, y));\n" + 
+            "function result = glbl_base_not_equal(x,y)\n" + 
+            "  result = not(glbl_base_equal(x, y));\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function item = global_base_nth(n, l)\n" + 
+            "function item = glbl_base_nth(n, l)\n" + 
             "  item = l{1,n+1};\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_print(value)\n" + 
+            "function result = glbl_base_print(value)\n" + 
             "  value\n" + 
             "  result = value;\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_reciprocal(x)\n" + 
+            "function num = glbl_base_dim_inv(x)\n" + 
+            "  num = glbl_base_transpose(glbl_base_reciprocal(x));\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function num = glbl_base_reciprocal(x)\n" + 
             "  num = arrayfun(@(x) one_reciprocal(x), x);\n" + 
             "endfunction\n" + 
             "\n" + 
@@ -1003,7 +1020,7 @@ public class Progam extends AbstractPrintable {
             "endfunction\n" + 
             "\n" + 
             "\n" + 
-            "function domain = global_base_row_domain(x)\n" + 
+            "function domain = glbl_base_row_domain(x)\n" + 
             "  n = size(x)(1);\n" + 
             "  domain = cell(1, n);\n" + 
             "  for i = 1:n\n" + 
@@ -1014,7 +1031,7 @@ public class Progam extends AbstractPrintable {
             "\n" + 
             "\n" + 
             "\n" + 
-            "function units = global_base_row_unit(x)\n" + 
+            "function units = glbl_base_row_unit(x)\n" + 
             "  n = size(x)(1);\n" + 
             "  units = cell(1, n);\n" + 
             "  for i=1:n\n" + 
@@ -1025,72 +1042,72 @@ public class Progam extends AbstractPrintable {
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_scale(x,y)\n" + 
+            "function num = glbl_base_scale(x,y)\n" + 
             "  num = x*y;\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_scale_down(x,y)\n" + 
+            "function num = glbl_base_scale_down(x,y)\n" + 
             "  num = x/y;\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_sin(angle)\n" + 
+            "function result = glbl_base_sin(angle)\n" + 
             "  result = sin(angle);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function list = global_base_singleton_list(x)\n" + 
+            "function list = glbl_base_singleton_list(x)\n" + 
             "  list = {x};\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_solve(lhs, rhs)\n" + 
+            "function num = glbl_base_solve(lhs, rhs)\n" + 
             "  num = lhs \\ rhs;\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_sqrt(x)\n" + 
+            "function num = glbl_base_sqrt(x)\n" + 
             "  num = sqrt(x);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_sum(x,y)\n" + 
+            "function num = glbl_base_sum(x,y)\n" + 
             "  num = x+y;\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function item = global_base_tail(l)\n" + 
+            "function item = glbl_base_tail(l)\n" + 
             "  item = l(1,2:end);\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_transpose(x)\n" + 
+            "function num = glbl_base_transpose(x)\n" + 
             "  num = x';\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_tuple(varargin)\n" + 
+            "function result = glbl_base_tuple(varargin)\n" + 
             "  result = varargin;\n" + 
             "end\n" + 
             "\n" + 
             "\n" + 
-            "function num = global_base_unit_factor(x)\n" + 
+            "function num = glbl_base_unit_factor(x)\n" + 
             "  num = 1;\n" + 
             "endfunction\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
-            "function result = global_base_zip(x,y)\n" + 
+            "function result = glbl_base_zip(x,y)\n" + 
             " result = cellfun(@(a,b) {a b}, x, y, \"UniformOutput\", false);\n" + 
             "endfunction\n" + 
             "\n" + 

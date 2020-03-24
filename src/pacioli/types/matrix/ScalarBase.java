@@ -21,10 +21,12 @@
 
 package pacioli.types.matrix;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import pacioli.types.TypeBase;
 import uom.BaseUnit;
+import uom.DimensionedNumber;
 import uom.PowerProduct;
 import uom.Unit;
 
@@ -66,7 +68,26 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
         ScalarBase otherUnit = (ScalarBase) real;
         return text.equals(otherUnit.text) && prefix.equals(otherUnit.prefix);
     }
-
+/*
+    @Override
+    public DimensionedNumber<TypeBase> flat() {
+        if (prefix.isPresent()) {
+            BigDecimal fac = new BigDecimal(1);
+            if (prefix.get().equals("kilo")) {
+                fac = new BigDecimal(1000);
+            } else if (prefix.get().equals("milli")) {
+                fac = new BigDecimal(0.001);
+            } else if (prefix.get().equals("deci")) {
+                fac = new BigDecimal(0.1);
+            } else {
+                throw new RuntimeException("todo: unit prefix" + prefix.get());
+            }
+            return new ScalarBase(text).multiply(fac);
+        } else {
+            return this.multiply(new BigDecimal(1));
+        }
+    }
+  */  
     private String prefixText() {
         return (prefix.isPresent()) ? prefix.get() + ":" : "";
     }
