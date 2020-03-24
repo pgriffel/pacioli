@@ -10,6 +10,7 @@ import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
+import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.types.TypeBase;
 import pacioli.types.matrix.ScalarBase;
 import uom.DimensionedNumber;
@@ -46,9 +47,11 @@ public class UnitEvaluator extends IdentityVisitor implements Visitor {
     @Override
     public void visit(UnitIdentifierNode node) {
         if (!node.getPrefix().isPresent()) {
-            returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.getName())));
+            //returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.getName())));
+            returnNode(new DimensionedNumber<TypeBase>(new ScalarBase((ScalarUnitInfo) node.info)));
         } else {
-            returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.getPrefix().get(), node.getName())));
+            //returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.getPrefix().get(), node.getName())));
+            returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.getPrefix().get(), (ScalarUnitInfo) node.info)));
         }
     }
 

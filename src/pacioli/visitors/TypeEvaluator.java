@@ -239,13 +239,17 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             returnType(new MatrixType(((AliasDefinition) definition.get()).evalBody()));
             //throw new RuntimeException("fixme");
         } else {
-            returnType(new MatrixType(new ScalarBase(node.getName())));
+            //returnType(new MatrixType(new ScalarBase(node.getName())));
+            assert(info instanceof ScalarUnitInfo);
+            returnType(new MatrixType(new ScalarBase((ScalarUnitInfo) info)));
         }
     }
 
     @Override
     public void visit(PrefixUnitTypeNode node) {
-        returnType(new MatrixType(new ScalarBase(node.prefix.getName(), node.unit.getName())));
+        //returnType(new MatrixType(new ScalarBase(node.prefix.getName(), node.unit.getName())));
+        // Todo: check this cast. Better let recursive visitor handle this: call something like unitAccept(node.unit) 
+        returnType(new MatrixType(new ScalarBase(node.prefix.getName(), (ScalarUnitInfo) node.unit.info)));
     }
 
     @Override

@@ -17,7 +17,8 @@ public class VectorUnitInfo extends UnitInfo implements SymbolInfo {
 
     private Optional<UnitVectorDefinition> definition = Optional.empty();
     private List<UnitDecl> items;
-    private Map<String, DimensionedNumber<TypeBase>> units;
+    //private Map<String, DimensionedNumber<TypeBase>> units;
+    private Map<String, UnitDecl> units;
 
     public VectorUnitInfo(String name, String module, Boolean isGlobal, Location location) {
         super(new GenericInfo(name, module, isGlobal, location));
@@ -29,9 +30,11 @@ public class VectorUnitInfo extends UnitInfo implements SymbolInfo {
 
     public void setItems(List<UnitDecl> items) {
         this.items = items;
-        units = new HashMap<String, DimensionedNumber<TypeBase>>();
+        //units = new HashMap<String, DimensionedNumber<TypeBase>>();
+        units = new HashMap<String, UnitDecl>();
         for (UnitDecl decl: items) {
-            units.put(decl.key.getName(), decl.value.evalUnit());
+            //units.put(decl.key.getName(), decl.value.evalUnit());
+            units.put(decl.key.getName(), decl);
         }
     }
     
@@ -39,11 +42,12 @@ public class VectorUnitInfo extends UnitInfo implements SymbolInfo {
         return items;
     }
     
-    public Unit<TypeBase> getUnit(String name) {
+    public DimensionedNumber<TypeBase> getUnit(String name) {
         // todo: handle ignored factor!!!
-        DimensionedNumber<TypeBase> stored = units.get(name);
-        Unit<TypeBase> val = (stored == null) ? TypeBase.ONE : stored.unit();
-        return val;
+        //DimensionedNumber<TypeBase> stored = units.get(name);
+        //DimensionedNumber<TypeBase> stored = units.get(name).value.evalUnit();
+        UnitDecl stored = units.get(name);
+        return (stored == null) ? new DimensionedNumber<TypeBase>() : stored.value.evalUnit();
     }
     
     @Override

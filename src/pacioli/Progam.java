@@ -116,21 +116,28 @@ public class Progam extends AbstractPrintable {
         } else {
         
             for (UnitInfo info : units.allInfos()) {
+                out.println();
                 info.getDefinition().get().printPretty(out);;
+                out.println();
             }
             
             for (IndexSetInfo info: indexSets.allInfos()) {
+                out.println();
                 info.getDefinition().get().printPretty(out);;
+                out.println();
             }
             
             for (TypeInfo info : types.allInfos()) {
                 if (info.getDefinition().isPresent()) {
+                    out.println();
                     info.getDefinition().get().printPretty(out);
+                    out.println();
                 }
             }
             
             for (ValueInfo info : values.allInfos()) {
                 if (info.getDefinition().isPresent() && !isExternal(info)) {
+                    out.println();
                     info.getDefinition().get().printPretty(out);
                     out.println();
                 }

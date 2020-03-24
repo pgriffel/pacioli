@@ -20,7 +20,9 @@ import pacioli.types.TypeBase;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.VectorBase;
 import uom.DimensionedNumber;
+import uom.Fraction;
 import uom.Unit;
+import uom.UnitFold;
 import uom.UnitMap;
 
 /**
@@ -44,9 +46,10 @@ public class TransformConversions extends IdentityTransformation implements Visi
         //node.rowDim = compileTimeMatrixDimension(type.rowDimension);
         //node.columnDim = compileTimeMatrixDimension(matrixType.columnDimension);
         
-        Unit<MatrixBase> matrixUnit;
+        //DimensionedNumber<TypeBase> typeFactor = new DimensionedNumber<TypeBase>(type.factor);
+        DimensionedNumber<TypeBase> typeFactor = type.factor.flat();
         
-        Pacioli.logln("conv type: %s", type.pretty());
+        Pacioli.logln("conv type: %s  factor=%s", type.pretty(), typeFactor);
         
         if (!type.rowDimension.equals(type.columnDimension)) {
             throw new RuntimeException("Invalid conversion", 
@@ -73,16 +76,48 @@ public class TransformConversions extends IdentityTransformation implements Visi
                         public Unit<TypeBase> map(TypeBase base) {
                             VectorBase vbase = (VectorBase) base;
                             String itemName = items.get(vbase.position);
-                             Unit<TypeBase> unit = vbase.vectorUnitInfo.getUnit(itemName);
+                             Unit<TypeBase> unit = vbase.vectorUnitInfo.getUnit(itemName).unit();
                             return unit;
                         }
                     };
-                    Unit<TypeBase> rowUnit = type.rowUnit.map(mapper);
-                    Unit<TypeBase> columnsUnit = type.columnUnit.map(mapper);
+                    UnitFold<TypeBase, DimensionedNumber<TypeBase>> folder = 
+                            new UnitFold<TypeBase, DimensionedNumber<TypeBase>>() {
+
+                                @Override
+                                public DimensionedNumber<TypeBase> map(TypeBase base) {
+                                    VectorBase vbase = (VectorBase) base;
+                                    String itemName = items.get(vbase.position);
+                                    DimensionedNumber<TypeBase> unit = vbase.vectorUnitInfo.getUnit(itemName);
+                                    return unit;
+                                }
+
+                                @Override
+                                public DimensionedNumber<TypeBase> mult(DimensionedNumber<TypeBase> x,
+                                        DimensionedNumber<TypeBase> y) {
+                                    return x.multiply(y);
+                                }
+
+                                @Override
+                                public DimensionedNumber<TypeBase> expt(DimensionedNumber<TypeBase> x, Fraction n) {
+                                    return x.raise(n);
+                                }
+
+                                @Override
+                                public DimensionedNumber<TypeBase> one() {
+                                    return new DimensionedNumber<TypeBase>();
+                                }
+                        
+                    };
+                    //Unit<TypeBase> rowUnit = type.rowUnit.map(mapper);
+                    //Unit<TypeBase> columnsUnit = type.columnUnit.map(mapper);
                     
-                    Unit<TypeBase> div = rowUnit.multiply(columnsUnit.reciprocal());
+                    DimensionedNumber<TypeBase> rowUnit = type.rowUnit.fold(folder);
+                    DimensionedNumber<TypeBase> columnsUnit = type.columnUnit.fold(folder);
+                    
+                    DimensionedNumber<TypeBase> div = 
+                            typeFactor.multiply(rowUnit.multiply(columnsUnit.reciprocal()));
                     DimensionedNumber<TypeBase> flat = div.flat();
-                    Pacioli.logln("CONV %s -> %s  = %s", rowUnit.pretty(), columnsUnit.pretty(),
+                    Pacioli.logln("CONV %s -> %s  = %s", rowUnit.toText(), columnsUnit.toText(),
                             flat.factor().toPlainString());
                 
                     List<IdentifierNode> key = new ArrayList<IdentifierNode>();

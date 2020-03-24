@@ -24,6 +24,8 @@ package pacioli.types.matrix;
 import java.math.BigDecimal;
 import java.util.Optional;
 
+import pacioli.ast.definition.UnitDefinition;
+import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.types.TypeBase;
 import uom.BaseUnit;
 import uom.DimensionedNumber;
@@ -34,16 +36,34 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
 
     private final Optional<String> prefix;
     private final String text;
+    
+    private final ScalarUnitInfo info;
 
-    public ScalarBase(String text) {
+    public ScalarBase(ScalarUnitInfo info) {
+        assert(info != null);
         this.prefix = Optional.empty();
-        this.text = text;
+        //this.text = text;
+        this.text = info.name();
+        this.info = info;
     }
 
-    public ScalarBase(String prefix, String name) {
+    public ScalarBase(String prefix, ScalarUnitInfo info) {
+        assert(info != null);
         this.prefix = Optional.of(prefix);
-        this.text = name;
+        //this.text = name;
+        this.text = info.name();
+        this.info = info;
     }
+    
+//    public ScalarBase(String text) {
+//        this.prefix = Optional.empty();
+//        this.text = text;
+//    }
+//
+//    public ScalarBase(String prefix, String name) {
+//        this.prefix = Optional.of(prefix);
+//        this.text = name;
+//    }
 
     @Override
     public int hashCode() {
@@ -68,11 +88,11 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
         ScalarBase otherUnit = (ScalarBase) real;
         return text.equals(otherUnit.text) && prefix.equals(otherUnit.prefix);
     }
-/*
+
     @Override
     public DimensionedNumber<TypeBase> flat() {
+        BigDecimal fac = new BigDecimal(1);
         if (prefix.isPresent()) {
-            BigDecimal fac = new BigDecimal(1);
             if (prefix.get().equals("kilo")) {
                 fac = new BigDecimal(1000);
             } else if (prefix.get().equals("milli")) {
@@ -82,12 +102,18 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
             } else {
                 throw new RuntimeException("todo: unit prefix" + prefix.get());
             }
-            return new ScalarBase(text).multiply(fac);
-        } else {
-            return this.multiply(new BigDecimal(1));
+            //return new ScalarBase(text).multiply(fac);
         }
+        Optional<UnitDefinition> def = info.getDefinition();
+        if (def.isPresent()) {
+            DimensionedNumber<TypeBase> dimNum = def.get().evalBody();
+            if (dimNum != null) {
+                return def.get().evalBody().multiply(fac);
+            }
+        } 
+        return new ScalarBase(info).multiply(fac);
     }
-  */  
+    
     private String prefixText() {
         return (prefix.isPresent()) ? prefix.get() + ":" : "";
     }

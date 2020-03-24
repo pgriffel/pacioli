@@ -413,7 +413,7 @@ public class PrintVisitor implements Visitor {
             write(pair.pretty());
             sep = ", ";
         }
-        out.print("}>");
+        out.print("}");
     }
 
     @Override
