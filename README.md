@@ -179,5 +179,5 @@ doesn't support many features for input and output yet.
 
 --------------------------------------------------------------------------------
 
-2013-2014 Paul Griffioen
+2013-2020 Paul Griffioen
 
