@@ -114,11 +114,6 @@ public class Schema extends AbstractType {
     }
 
     @Override
-    public String compileToMVM() {
-        throw new RuntimeException("todo ");
-    }
-
-    @Override
     public TypeNode deval() {
         return null;//new SchemaNode();
     }

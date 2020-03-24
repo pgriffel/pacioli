@@ -214,13 +214,9 @@ public class ParametricType extends AbstractType {
     }
 
     @Override
-    public String compileToMVM() {
-        throw new RuntimeException("todo ");
-    }
-
-    @Override
     public TypeNode deval() {
         // TODO Auto-generated method stub
         return null;
+        
     }
 }

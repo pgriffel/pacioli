@@ -23,6 +23,8 @@ package pacioli.types;
 
 import java.util.List;
 import java.util.Set;
+
+import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Printable;
@@ -68,10 +70,14 @@ public interface PacioliType extends Printable {
 
     public String compileToJS();
     
-    public String compileToMVM();
+    //public String compileToMVM();
 
     // Hack to print proper compound unit vector in schema's
     public Set<String> unitVecVarCompoundNames();
     
     public TypeNode deval();
+    
+    public default String compileToMVM() {
+        return deval().compileToMVM(new CompilationSettings());                
+    }
 }

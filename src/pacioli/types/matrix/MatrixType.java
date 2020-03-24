@@ -361,12 +361,6 @@ public class MatrixType extends AbstractType {
 
         return out.toString();
     }
-
-    @Override
-    public String compileToMVM() {
-        return deval().compileToMVM(new CompilationSettings());                
-    }
-
     
     @Override
     public TypeNode deval() {

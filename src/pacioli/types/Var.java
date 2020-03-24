@@ -26,5 +26,4 @@ public interface Var extends Printable, TypeBase {
      * @return The info for the variable
      */
     SymbolInfo getInfo();
-
 }

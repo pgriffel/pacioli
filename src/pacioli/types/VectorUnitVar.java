@@ -197,15 +197,8 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
 
     @Override
-    public String compileToMVM() {
-        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
-                                                                       // Tools | Templates.
-    }
-
-    @Override
     public TypeNode deval() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new UnsupportedOperationException("Not supported yet.");
     }
     
     @Override
@@ -220,5 +213,10 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     @Override
     public Boolean isFresh() {
        return !info.isPresent();
+    }
+
+    @Override
+    public String compileToMVM() {
+        return PacioliType.super.compileToMVM();
     }
 }

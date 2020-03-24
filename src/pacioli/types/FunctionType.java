@@ -114,11 +114,6 @@ public class FunctionType extends AbstractType {
     }
 
     @Override
-    public String compileToMVM() {
-        throw new RuntimeException("todo ");
-    }
-
-    @Override
     public TypeNode deval() {
         TypeNode dom = domain.deval();
         TypeNode ran = range.deval();
