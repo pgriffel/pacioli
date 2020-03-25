@@ -51,7 +51,7 @@ public class TypeContext extends AbstractPrintable {
             vars.add(new TypeVar(name));
         }
         for (String name : indexVars) {
-            vars.add(new IndexSetVar("for_index", name));
+            vars.add(new IndexSetVar(name));
         }
         for (String name : unitVars) {
             if (name.contains("!")) {
