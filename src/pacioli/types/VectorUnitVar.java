@@ -32,16 +32,18 @@ import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
+import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.VectorUnitInfo;
 import uom.BaseUnit;
 import uom.Unit;
 
 public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
-    private static int counter = 0;
     private final String name;
     private Optional<VectorUnitInfo> info;
 
+    // Constructors
+    
     public VectorUnitVar(VectorUnitInfo info) {
         name = info.name();
         assert (name.contains("!"));
@@ -53,17 +55,18 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
         assert (name.contains("!"));
         this.info = Optional.empty();
     }
-
+    
     @Override
-    public Set<String> unitVecVarCompoundNames() {
-        return new LinkedHashSet<String>();
+    public PacioliType fresh() {
+        return new VectorUnitVar(SymbolTable.freshVarName() + "!" + SymbolTable.freshVarName());
+    }
+
+    public PacioliType rename(String name) {
+        return new VectorUnitVar(name);
     }
     
-    public String unitPart() {
-        String[] parts = name.split("!");
-        return parts[1];
-    }
-
+    // Equality
+    
     @Override
     public int hashCode() {
         return name.hashCode();
@@ -86,6 +89,29 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
         return "'" + name + "'";
     }
     
+    // Properties
+    
+    public String unitPart() {
+        String[] parts = name.split("!");
+        return parts[1];
+    }
+    
+    @Override
+    public VectorUnitInfo getInfo() {
+        if (info.isPresent()) {
+            return info.get(); 
+        } else {
+            throw new RuntimeException(String.format("No info present for fresh vector unit variable %s", name));
+        }
+    }
+
+    @Override
+    public Boolean isFresh() {
+       return !info.isPresent();
+    }
+
+    // Pretty printing
+    
     @Override
     public void printPretty(PrintWriter out) {
         out.print(pretty());
@@ -96,6 +122,20 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
         return name;
     }
 
+    // Visiting visitors
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
+    }
+    
+    // To move to visitors
+    
+    @Override
+    public Set<String> unitVecVarCompoundNames() {
+        return new LinkedHashSet<String>();
+    }
+        
     @Override
     public Set<Var> typeVars() {
         Set<Var> vars = new LinkedHashSet<Var>();
@@ -140,58 +180,18 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
 
     @Override
-    public boolean isInstanceOf(PacioliType other) {
-        return false;
-    }
-
-    @Override
-    public PacioliType instantiate() {
-        //return this;
-        throw new RuntimeException("Is this called?s");
-    }
-
-    @Override
-    public Schema generalize() {
-        //PacioliType unfresh = unfresh();
-        //return new Schema(unfresh.typeVars(), unfresh);
-        throw new RuntimeException("Is this called?s");
-    }
-
-    @Override
-    public PacioliType fresh() {
-        return new VectorUnitVar(freshName() + "!" + freshName());
-    }
-
-    public PacioliType rename(String name) {
-        return new VectorUnitVar(name);
-    }
-
-    private static String freshName() {
-        return "?" + counter++;
-    }
-    
-    @Override
-    public String compileToJS() {
-        return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
-    }
-
-    @Override
     public PacioliType reduce() {
         return this;
     }
     
     @Override
-    public VectorUnitInfo getInfo() {
-        if (info.isPresent()) {
-            return info.get(); 
-        } else {
-            throw new RuntimeException(String.format("No info present for fresh vector unit variable %s", name));
-        }
+    public boolean isInstanceOf(PacioliType other) {
+        return false;
     }
 
     @Override
-    public Boolean isFresh() {
-       return !info.isPresent();
+    public String compileToJS() {
+        return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
     }
 
     @Override
@@ -199,8 +199,4 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
         return PacioliType.super.compileToMVM(settings);
     }
 
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
-    }
 }
