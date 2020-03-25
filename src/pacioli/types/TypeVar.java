@@ -32,6 +32,7 @@ import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
+import pacioli.Utils;
 import pacioli.symboltable.TypeInfo;
 import pacioli.types.ast.TypeNode;
 import uom.BaseUnit;
@@ -39,7 +40,7 @@ import uom.Unit;
 
 public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
-    private static int counter = 0;
+    //private static int counter = 0;
     
     private final String name;
     private final Optional<TypeInfo> info;
@@ -50,7 +51,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
     }
     
     public TypeVar() {
-        name = freshName();
+        name = Utils.freshVarName();
         this.info = Optional.empty();
     }
 
@@ -148,31 +149,33 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
     public boolean isInstanceOf(PacioliType other) {
         return false;
     }
-
+/*
     @Override
     public PacioliType instantiate() {
-        return this;
-    }
+        //return this;
+        throw new RuntimeException("Is this called?s");
+    }*/
 
     @Override
     public Schema generalize() {
-        PacioliType unfresh = unfresh();
-        return new Schema(unfresh.typeVars(), unfresh);
+        throw new RuntimeException("Is this called?s");
+        //PacioliType unfresh = unfresh();
+        //return new Schema(unfresh.typeVars(), unfresh);
     }
 
     @Override
     public PacioliType fresh() {
-        return new TypeVar(freshName());
+        return new TypeVar(Utils.freshVarName());
     }
 
     public PacioliType rename(String name) {
         return new TypeVar(name);
     }
-
+/*
     private static String freshName() {
         return "?" + counter++;
     }
-
+*/
     @Override
     public String compileToJS() {
         return "'_" + this.pretty() + "_'";

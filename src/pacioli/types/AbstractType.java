@@ -159,7 +159,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
     private static boolean alphaEqual(PacioliType x, PacioliType y) throws PacioliException {
         return x.simplify().unify(y.simplify()).isInjective();
     }
-
+/*
     @Override
     public PacioliType instantiate() {
         // throw new RuntimeException("Can only instantiate a schema");
@@ -172,7 +172,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         //PacioliType unfresh = this;
         return new Schema(unfresh.typeVars(), unfresh);
     }
-
+*/
     @Override
     public PacioliType fresh() {
         Substitution map = new Substitution();

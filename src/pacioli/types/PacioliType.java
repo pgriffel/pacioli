@@ -63,9 +63,21 @@ public interface PacioliType extends Printable {
 
     public boolean isInstanceOf(PacioliType other);
 
-    public PacioliType instantiate();
+    //public PacioliType instantiate();
+    
+    public default PacioliType instantiate() {
+        // throw new RuntimeException("Can only instantiate a schema");
+        return this;
+    }
 
-    public Schema generalize();
+    //public Schema generalize();
+    
+    public default Schema generalize() {
+        PacioliType unfresh = unfresh();
+        //PacioliType unfresh = this;
+        return new Schema(unfresh.typeVars(), unfresh);
+    }
+
 
     public PacioliType fresh();
     

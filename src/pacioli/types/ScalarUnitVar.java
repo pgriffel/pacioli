@@ -163,13 +163,15 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     @Override
     public PacioliType instantiate() {
-        return this;
+        //return this;
+        throw new RuntimeException("Is this called?s");
     }
 
     @Override
     public Schema generalize() {
-        PacioliType unfresh = unfresh();
-        return new Schema(unfresh.typeVars(), unfresh);
+        //PacioliType unfresh = unfresh();
+        //return new Schema(unfresh.typeVars(), unfresh);
+        throw new RuntimeException("Is this called?s");
     }
 
     @Override

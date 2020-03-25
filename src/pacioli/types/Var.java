@@ -5,6 +5,7 @@ import pacioli.symboltable.SymbolInfo;
 
 public interface Var extends Printable, TypeBase {
 
+    
     PacioliType fresh();
 
     PacioliType rename(String format);

@@ -75,7 +75,7 @@ public class MATLABCompiler implements SymbolTableVisitor {
             }
         } else {
             out.newline();
-            out.format("glbl %s = ", info.globalName().toLowerCase());
+            out.format("global %s = ", info.globalName().toLowerCase());
             transformed.accept(new MatlabGenerator(out, settings));
             out.format(";");
             out.newline();

@@ -51,11 +51,21 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     Printer out;
     CompilationSettings settings;
 
+    private static int counter;
+    
+    
     public MatlabGenerator(Printer printWriter, CompilationSettings settings) {
         out = printWriter;
         this.settings = settings;
     }
 
+    
+    private static String freshName() {
+        return "fresh_" + counter++;
+    }
+
+    
+    
     @Override
     public void visit(ApplicationNode node) {
         // Is this if necessary?
@@ -231,7 +241,7 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(TupleAssignmentNode node) {
-        String tmpVar = Utils.freshName();
+        String tmpVar = freshName();
         out.format("%s = ", tmpVar);
         node.tuple.accept(this);
         int i = 1;

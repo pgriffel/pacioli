@@ -12,4 +12,5 @@ public interface TypeBase extends Base<TypeBase> {
     public String compileToJS();
 
     public String compileToMVM(CompilationSettings settings);
+    
 }
