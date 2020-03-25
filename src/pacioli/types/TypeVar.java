@@ -32,20 +32,18 @@ import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
-import pacioli.Utils;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeInfo;
-import pacioli.types.ast.TypeNode;
 import uom.BaseUnit;
 import uom.Unit;
 
 public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
-
-    //private static int counter = 0;
     
     private final String name;
     private final Optional<TypeInfo> info;
 
+    // Constructors 
+    
     public TypeVar(TypeInfo info) {
         name = info.name();
         this.info = Optional.of(info);
@@ -60,12 +58,19 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
         this.name = name;
         this.info = Optional.empty();
     }
-
+    
     @Override
-    public Set<String> unitVecVarCompoundNames() {
-        return new LinkedHashSet<String>();
+    public PacioliType fresh() {
+        return new TypeVar(SymbolTable.freshVarName());
     }
 
+    @Override
+    public PacioliType rename(String name) {
+        return new TypeVar(name);
+    }
+
+    // Equality
+    
     @Override
     public int hashCode() {
         return name.hashCode();
@@ -83,6 +88,8 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
         return name.equals(otherVar.name);
     }
 
+    // Pretty printing
+    
     @Override
     public void printPretty(PrintWriter out) {
         out.print(pretty());
@@ -97,7 +104,41 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
             return name;
         }
     }
+    
+    // Properties
+    
+    public String getName() {
+        return name;
+    }
+    
+    @Override
+    public String description() {
+        return "type variable";
+    }
+    
+    @Override
+    public TypeInfo getInfo() {
+        if (info.isPresent()) {
+            return info.get(); 
+        } else {
+            throw new RuntimeException(String.format("No info present for fresh type variable %s", name));
+        }
+    }
 
+    @Override
+    public Boolean isFresh() {
+       return !info.isPresent();
+    }
+    
+    // Visiting visitors
+    
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);        
+    }
+
+    // The remainder should be moved to visitors
+    
     @Override
     public Set<Var> typeVars() {
         Set<Var> vars = new LinkedHashSet<Var>();
@@ -106,19 +147,14 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
     }
 
     @Override
+    public Set<String> unitVecVarCompoundNames() {
+        return new LinkedHashSet<String>();
+    }
+
+    @Override
     public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    
-    @Override
-    public String description() {
-        return "type variable";
     }
 
     @Override
@@ -147,67 +183,22 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
     }
 
     @Override
+    public PacioliType reduce() {
+        return this;
+    }
+
+    @Override
     public boolean isInstanceOf(PacioliType other) {
         return false;
     }
-/*
-    @Override
-    public PacioliType instantiate() {
-        //return this;
-        throw new RuntimeException("Is this called?s");
-    }*/
 
-    @Override
-    public Schema generalize() {
-        throw new RuntimeException("Is this called?s");
-        //PacioliType unfresh = unfresh();
-        //return new Schema(unfresh.typeVars(), unfresh);
-    }
-
-    @Override
-    public PacioliType fresh() {
-        return new TypeVar(SymbolTable.freshVarName());
-    }
-
-    public PacioliType rename(String name) {
-        return new TypeVar(name);
-    }
-/*
-    private static String freshName() {
-        return "?" + counter++;
-    }
-*/
     @Override
     public String compileToJS() {
         return "'_" + this.pretty() + "_'";
     }
 
     @Override
-    public PacioliType reduce() {
-        return this;
-    }
-
-    @Override
-    public TypeInfo getInfo() {
-        if (info.isPresent()) {
-            return info.get(); 
-        } else {
-            throw new RuntimeException(String.format("No info present for fresh type variable %s", name));
-        }
-    }
-
-    @Override
-    public Boolean isFresh() {
-       return !info.isPresent();
-    }
-
-    @Override
     public String compileToMVM(CompilationSettings settings) {
         return PacioliType.super.compileToMVM(settings);
-    }
-
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);        
     }
 }
