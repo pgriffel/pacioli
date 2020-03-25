@@ -184,7 +184,7 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     @Override
     public String compileToJS() {
-        return "'_" + this.pretty() + "_'";
+        return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
     }
 
     @Override
