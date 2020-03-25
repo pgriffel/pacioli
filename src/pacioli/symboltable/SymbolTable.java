@@ -93,4 +93,29 @@ public class SymbolTable<R extends SymbolInfo> {
         }
         return candidate;
     }
+    
+
+    /**
+     * A counter for freshVarName.
+     */
+    private static int varCounter;
+
+    /**
+     * A unique variable name for type, unit and index set variables in types,
+     * without access to any symbol table.
+     * 
+     * Uniqueness is achieved by using using names that cannot occur in any 
+     * namespaces. Since a questionmark is not valid in an identifier, using
+     * this as prefix makes it unique. 
+     * 
+     * See SymbolTable for unique names that require no prefixes like the
+     * question mark.
+     * 
+     * @return A unique name. 
+     */
+    public static String freshVarName() {
+        return "?" + varCounter++;
+    }
+    
+
 }

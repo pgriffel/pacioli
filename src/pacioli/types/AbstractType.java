@@ -30,6 +30,8 @@ import pacioli.AbstractPrintable;
 import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Substitution;
+import pacioli.Utils;
+import pacioli.symboltable.SymbolTable;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.visitors.Devaluator;
 import uom.Fraction;
@@ -176,9 +178,10 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
     @Override
     public PacioliType fresh() {
         Substitution map = new Substitution();
-        for (Var gvar : typeVars()) {
-            TypeVar var = (TypeVar) gvar; //fixme
+        for (Var var : typeVars()) {
+            //TypeVar var = (TypeVar) gvar; //fixme
             map = map.compose(new Substitution(var, var.fresh()));
+            //map = map.compose(new Substitution(var, var.rename(SymbolTable.freshVarName())));
         }
         return applySubstitution(map);
     }

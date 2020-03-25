@@ -30,6 +30,7 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.TypeContext;
+import pacioli.symboltable.SymbolTable;
 import pacioli.types.ast.TypeNode;
 import uom.Unit;
 

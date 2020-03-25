@@ -33,6 +33,7 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.Utils;
+import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeInfo;
 import pacioli.types.ast.TypeNode;
 import uom.BaseUnit;
@@ -51,7 +52,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
     }
     
     public TypeVar() {
-        name = Utils.freshVarName();
+        name = SymbolTable.freshVarName();
         this.info = Optional.empty();
     }
 
@@ -165,7 +166,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     @Override
     public PacioliType fresh() {
-        return new TypeVar(Utils.freshVarName());
+        return new TypeVar(SymbolTable.freshVarName());
     }
 
     public PacioliType rename(String name) {

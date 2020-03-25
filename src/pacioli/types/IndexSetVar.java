@@ -33,13 +33,13 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.symboltable.IndexSetInfo;
-import pacioli.types.ast.TypeNode;
+import pacioli.symboltable.SymbolTable;
 import uom.BaseUnit;
 import uom.Unit;
 
 public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
-    private static int counter = 0;
+    //private static int counter = 0;
     private final String name;
     public final String quantifier;
     public final Optional<IndexSetInfo> info;
@@ -51,7 +51,7 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     }
     
     public IndexSetVar(String quantifier) {
-        name = freshName();
+        name = SymbolTable.freshVarName();
         this.quantifier = quantifier;
         this.info = Optional.empty();
     }
@@ -186,11 +186,11 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     public PacioliType rename(String name) {
         return new IndexSetVar(quantifier, name);
     }
-
+    /*
     private static String freshName() {
         return "?" + counter++;
     }
-/*
+
     @Override
     public PacioliType unfresh() {
         throw new RuntimeException("Is this called?");
