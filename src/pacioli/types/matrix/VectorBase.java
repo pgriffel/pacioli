@@ -40,12 +40,13 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
     public VectorBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position, VectorUnitInfo vectorUnitInfo) {
         assert (!unitName.name.contains("!"));
         assert (!indexSetName.home.isEmpty());
+        assert(vectorUnitInfo.name().contains("!"));
         this.indexSetName = indexSetName;
         this.unitName = unitName;
         this.position = position;
         this.vectorUnitInfo = vectorUnitInfo;
     }
-
+/*
     public String indexSetName() {
         return indexSetName.name;
     }
@@ -53,7 +54,7 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
     public String unitName() {
         return unitName.name;
     }
-
+*/
     @Override
     public int hashCode() {
         return unitName.hashCode();
@@ -85,7 +86,9 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
     public String pretty() {
-        return indexSetName.name + "!" + unitName.name;
+        //return indexSetName.name + "!" + unitName.name;
+        assert(vectorUnitInfo.name().equals(indexSetName.name + "!" + unitName.name));
+        return vectorUnitInfo.name();
     }
 
     public VectorBase shift(int offset) {

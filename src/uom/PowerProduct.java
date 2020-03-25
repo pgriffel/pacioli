@@ -122,11 +122,39 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
 
     @Override
     public String toString() {
+        return fold(new UnitFold<B, String>() {
+
+            @Override
+            public String map(B base) {
+                return base.toString();
+            }
+
+            @Override
+            public String mult(String x, String y) {
+                return x + "*" + y;
+            }
+
+            @Override
+            public String expt(String x, Fraction n) {
+                if (n.intValue() == 1) {
+                    return x;
+                } else {
+                    return x + "^" + n.toString();
+                }
+            }
+
+            @Override
+            public String one() {
+                return "1";
+            }
+        });
+        /*
         String output = "";
         for (B base : bases()) {
             output += String.format("*%s^%s", base, power(base));
         }
         return output;
+        */
     }
 
     @Override

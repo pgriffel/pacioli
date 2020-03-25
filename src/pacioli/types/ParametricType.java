@@ -33,6 +33,7 @@ import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.Utils;
 import pacioli.ast.definition.TypeDefinition;
+import pacioli.symboltable.TypeInfo;
 import pacioli.types.ast.TypeNode;
 import uom.Unit;
 
@@ -40,28 +41,47 @@ public class ParametricType extends AbstractType {
 
     public final String name;
     public final List<PacioliType> args;
+    public final TypeInfo info;
     public final Optional<TypeDefinition> definition;
 
     public ParametricType(String name, List<PacioliType> args) {
+        this.info = null;
         this.name = name;
+        this.args = args;
+        this.definition = Optional.empty();
+    }
+    
+    public ParametricType(TypeInfo info, List<PacioliType> args) {
+        this.info = info;
+        this.name = info.name();
         this.args = args;
         this.definition = Optional.empty();
     }
 
     public ParametricType(String name) {
+        this.info = null;
         this.name = name;
         this.args = new ArrayList<PacioliType>();
         this.definition = Optional.empty();
     }
 
     public ParametricType(TypeDefinition definition, List<PacioliType> args) {
+        this.info = null;
         this.name = definition.localName();
         this.args = args;
         this.definition = Optional.of(definition);
     }
 
     private ParametricType(String name, Optional<TypeDefinition> definition, List<PacioliType> args) {
+        this.info = null;
         this.name = name;
+        this.args = args;
+        this.definition = definition;
+    }
+    
+    public ParametricType(TypeInfo info, Optional<TypeDefinition> definition, List<PacioliType> args) {
+        this.info = info;
+        this.name = info.name();
         this.args = args;
         this.definition = definition;
     }
@@ -132,7 +152,8 @@ public class ParametricType extends AbstractType {
         for (PacioliType type : args) {
             items.add(type.applySubstitution(subs));
         }
-        return new ParametricType(name, definition, items);
+        //return new ParametricType(name, definition, items);
+        return new ParametricType(info, definition, items);
     }
 
     @Override
@@ -204,9 +225,11 @@ public class ParametricType extends AbstractType {
         try {
             if (!definition.isPresent()) {
                 // return this;
-                return new ParametricType(name, definition, items);
+                //return new ParametricType(name, definition, items);
+                return new ParametricType(info, definition, items);
             } else {
-                return definition.get().constaint(true).reduce(new ParametricType(name, definition, items));
+                //return definition.get().constaint(true).reduce(new ParametricType(name, definition, items));
+                return definition.get().constaint(true).reduce(new ParametricType(info, definition, items));
             }
         } catch (PacioliException e) {
             throw new RuntimeException(e);
@@ -214,9 +237,7 @@ public class ParametricType extends AbstractType {
     }
 
     @Override
-    public TypeNode deval() {
-        // TODO Auto-generated method stub
-        return null;
-        
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
     }
 }

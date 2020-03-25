@@ -48,7 +48,7 @@ public class TypeContext extends AbstractPrintable {
     public Set<Var> typeVars() {
         Set<Var> vars = new LinkedHashSet<Var>();
         for (String name : typeVars) {
-            vars.add(new TypeVar("for_type", name));
+            vars.add(new TypeVar(name));
         }
         for (String name : indexVars) {
             vars.add(new IndexSetVar("for_index", name));

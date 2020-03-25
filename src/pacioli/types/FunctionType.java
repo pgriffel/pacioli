@@ -114,10 +114,8 @@ public class FunctionType extends AbstractType {
     }
 
     @Override
-    public TypeNode deval() {
-        TypeNode dom = domain.deval();
-        TypeNode ran = range.deval();
-        return new FunctionTypeNode(dom.getLocation().join(ran.getLocation()), dom, ran);
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
     }
 
 }

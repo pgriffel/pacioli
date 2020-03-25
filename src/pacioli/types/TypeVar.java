@@ -40,25 +40,22 @@ import uom.Unit;
 public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     private static int counter = 0;
+    
     private final String name;
-    private final String quantifier;
     private final Optional<TypeInfo> info;
 
     public TypeVar(TypeInfo info) {
         name = info.name();
-        this.quantifier = "for_type";
         this.info = Optional.of(info);
     }
     
-    public TypeVar(String quantifier) {
+    public TypeVar() {
         name = freshName();
-        this.quantifier = quantifier;
         this.info = Optional.empty();
     }
 
-    public TypeVar(String quantifier, String name) {
+    public TypeVar(String name) {
         this.name = name;
-        this.quantifier = quantifier;
         this.info = Optional.empty();
     }
 
@@ -66,16 +63,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
     public Set<String> unitVecVarCompoundNames() {
         return new LinkedHashSet<String>();
     }
-/*
-    private TypeVar(String quantifier, String name, boolean active) {
-        this.name = name;
-        this.quantifier = quantifier;
-    }
 
-    public TypeVar changeActivation(boolean status) {
-        return new TypeVar(quantifier, name, status);
-    }
-*/
     @Override
     public int hashCode() {
         return name.hashCode();
@@ -100,7 +88,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     @Override
     public String pretty() {
-        if (!name.isEmpty() && quantifier.equals("for_index")) {
+        if (!name.isEmpty()) {
             String first = name.substring(0, 1);
             return first.toUpperCase() + name.substring(1);
         } else {
@@ -121,6 +109,11 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    public String getName() {
+        return name;
+    }
+
+    
     @Override
     public String description() {
         return "type variable";
@@ -169,11 +162,11 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     @Override
     public PacioliType fresh() {
-        return new TypeVar(quantifier, freshName());
+        return new TypeVar(freshName());
     }
 
     public PacioliType rename(String name) {
-        return new TypeVar(quantifier, name);
+        return new TypeVar(name);
     }
 
     private static String freshName() {
@@ -182,16 +175,12 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     @Override
     public PacioliType unfresh() {
-        return new TypeVar(quantifier, "a");
+        return new TypeVar("a");
     }
 
     @Override
     public String compileToJS() {
-        if (quantifier.equals("for_unit")) {
-            return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
-        } else {
-            return "'_" + this.pretty() + "_'";
-        }
+        return "'_" + this.pretty() + "_'";
     }
 
     @Override
@@ -199,11 +188,6 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
         return this;
     }
 
-    @Override
-    public TypeNode deval() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-    
     @Override
     public TypeInfo getInfo() {
         if (info.isPresent()) {
@@ -221,5 +205,10 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
     @Override
     public String compileToMVM(CompilationSettings settings) {
         return PacioliType.super.compileToMVM(settings);
+    }
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);        
     }
 }

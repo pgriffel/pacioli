@@ -22,6 +22,7 @@ public class VectorUnitInfo extends UnitInfo implements SymbolInfo {
 
     public VectorUnitInfo(String name, String module, Boolean isGlobal, Location location) {
         super(new GenericInfo(name, module, isGlobal, location));
+        assert (name.contains("!"));
     }
     
     public VectorUnitInfo(GenericInfo generic) {

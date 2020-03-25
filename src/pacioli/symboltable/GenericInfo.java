@@ -12,6 +12,7 @@ public class GenericInfo {
     private Boolean isGlobal;
 
     public GenericInfo(String name, String module, Boolean isGlobal, Location location) {
+        assert(location != null);
         this.name = name;
         this.module = module;
         this.isGlobal = isGlobal;

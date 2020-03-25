@@ -159,9 +159,16 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
         // The Index type is special
         if (node.getName().equals("Index")) {
             if (types.size() == 1 && types.get(0) instanceof TypeVar) {
+                
+                // It is an index variable. Just return the var.
                 returnType(types.get(0));
             } else {
+                
+                // It is a list of TypeIdentifierNode. Create a list of
+                // type identifiers from it and create an IndexType from them.
+                
                 // Todo: Test this code. Was rewritten without test coverage.
+                
                 List<TypeIdentifier> names = new ArrayList<TypeIdentifier>();
                 List<IndexSetInfo> infos = new ArrayList<IndexSetInfo>();
                 for (int i = 0; i < types.size(); i++) {
@@ -190,7 +197,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             Optional<? extends Definition> definition = node.op.info.getDefinition();
 
             if (!definition.isPresent()) {
-                returnType(new ParametricType(node.getName(), types));
+                //returnType(new ParametricType(node.getName(), types));
+                returnType(new ParametricType((TypeInfo) node.op.info, types));
             } else {
 
                 assert (definition.get() instanceof TypeDefinition);
@@ -200,11 +208,13 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                 //if (reduce && !node.op.info.generic().isExternal()) {
                 if (reduce || true) {
                     try {
-                        returnType(typeDefinition.constaint(true).reduce(new ParametricType(typeDefinition, types)));
+                        //returnType(typeDefinition.constaint(true).reduce(new ParametricType(typeDefinition, types)));
+                        returnType(typeDefinition.constaint(true).reduce(new ParametricType((TypeInfo) node.op.info, Optional.of(typeDefinition), types)));
                     } catch (PacioliException e) {
                         throw new RuntimeException(e);
                     }
                 } else {
+                    // todo: add info. Not done because it is unused
                     returnType(new ParametricType(typeDefinition, types));
                 }
             }

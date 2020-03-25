@@ -30,12 +30,15 @@ import java.util.Set;
 
 import pacioli.ConstraintSet;
 import pacioli.Location;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
+import pacioli.types.TypeVisitor;
 import pacioli.types.Var;
+import pacioli.types.VectorUnitVar;
 import pacioli.types.ast.TypeKroneckerNode;
 import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypeNode;
@@ -107,13 +110,15 @@ public class MatrixType extends AbstractType {
 
     @Override
     public String toString() {
-        return String.format("%s{%s, %s, %s, %s, %s}", super.toString(), factor, rowDimension, rowUnit, columnDimension,
+        return String.format("<%s, %s, %s, %s, %s>", //super.toString(), 
+                factor, rowDimension, rowUnit, columnDimension,
                 columnUnit);
     }
 
     @Override
     public void printPretty(PrintWriter out) {
-        deval().printPretty(out);
+        //deval().printPretty(out);
+        out.print(toString());
     }
 
     
@@ -280,8 +285,11 @@ public class MatrixType extends AbstractType {
         Set<String> names = new HashSet<String>();
         if (dimension.isVar()) {
             for (TypeBase base : unit.bases()) {
-                assert (base instanceof Var);
-                names.add(dimension.varName() + "!" + base.pretty());
+                assert (base instanceof VectorUnitVar);
+                VectorUnitVar vbase = (VectorUnitVar) base;
+                //Pacioli.logln("Adding %s ! %s", dimension.varName(), vbase.unitPart());
+                names.add(dimension.varName() + "!" + vbase.unitPart());
+                //names.add(base.pretty());
             }
         }
         return names;
@@ -360,7 +368,7 @@ public class MatrixType extends AbstractType {
 
         return out.toString();
     }
-    
+    /*
     @Override
     public TypeNode deval() {
         
@@ -397,7 +405,7 @@ public class MatrixType extends AbstractType {
             return new TypeMultiplyNode(location, factorNode, perNode);
         }
     }
-    
+    */
     public TypeNode devalDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
         if (dimension.isVar()) {
             VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimension, 0);
@@ -417,5 +425,10 @@ public class MatrixType extends AbstractType {
             }
             return node;
         }
+    }
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
     }
 }

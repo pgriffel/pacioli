@@ -30,6 +30,7 @@ import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.Substitution;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.visitors.Devaluator;
 import uom.Unit;
 
 /**
@@ -43,6 +44,8 @@ import uom.Unit;
 public interface PacioliType extends Printable {
 
     public String description();
+    
+    public void accept(TypeVisitor visitor);
 
     public Set<Var> typeVars();
 
@@ -68,7 +71,11 @@ public interface PacioliType extends Printable {
 
     public PacioliType unfresh();
     
-    public TypeNode deval();
+    //public TypeNode deval();
+
+    public default TypeNode deval() {
+        return new Devaluator().typeNodeAccept(this);
+    }
 
     public String compileToJS();
     

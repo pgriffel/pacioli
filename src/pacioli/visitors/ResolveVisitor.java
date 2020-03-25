@@ -466,6 +466,14 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     }
 
     @Override
+    public void visit(TypeApplicationNode node) {
+        node.op.accept(this);
+        for (TypeNode arg : node.args) {
+            arg.accept(this);
+        }
+    }
+    
+    @Override
     public void visit(TypeIdentifierNode node) {
 
         // Find the node's name

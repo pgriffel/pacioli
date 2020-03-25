@@ -27,13 +27,16 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.AbstractPrintable;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Substitution;
+import pacioli.types.ast.TypeNode;
+import pacioli.types.visitors.Devaluator;
 import uom.Fraction;
 import uom.Unit;
 
 public abstract class AbstractType extends AbstractPrintable implements PacioliType {
-    
+        
     @Override
     public Substitution unify(PacioliType other) throws PacioliException {
 
@@ -166,6 +169,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
     @Override
     public Schema generalize() {
         PacioliType unfresh = unfresh();
+        //PacioliType unfresh = this;
         return new Schema(unfresh.typeVars(), unfresh);
     }
 
@@ -187,13 +191,20 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         int character = 97; // character a
         for (Var var : typeVars()) {
             //TypeVar var = (TypeVar) gvar; //fixme 
-            map = map.compose(new Substitution(var, var.rename(String.format("%s", (char) character++))));
+            if (var instanceof VectorUnitVar) {
+                char ch = (char) character++;
+                map = map.compose(new Substitution(var, var.rename(String.format("%s!%s", ch, ch))));
+            } else {
+                map = map.compose(new Substitution(var, var.rename(String.format("%s", (char) character++))));
+            }
         }
         PacioliType unfreshType = applySubstitution(map);
 
         // Replace all unit vector variables by its name prefixed by the index set name.
         map = new Substitution();
         for (String name : unfreshType.unitVecVarCompoundNames()) {
+            //Pacioli.logln("mapping %s (%s)", name, pretty());
+            //Pacioli.logln("unfresh %s", unfreshType.pretty());
             String[] parts = name.split("!");
             // FIXME
             // The assert fails for a type schema, because the variables are not refreshed
@@ -201,8 +212,9 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
             // already contain !
             // assert(parts.length == 2);
             if (parts.length == 2) {
-                Var var1 = new TypeVar("for_unit", parts[1]);
-                Var var2 = new TypeVar("for_unit", name);
+                Var var1 = new VectorUnitVar("for_unit", parts[1] + "!" + parts[1]);
+                Var var2 = new VectorUnitVar("for_unit", name);
+                //Pacioli.logln("mapping %s to %s", var1, var2);
                 map = map.compose(new Substitution(var1, var2));
             }
         }

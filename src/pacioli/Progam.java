@@ -280,7 +280,7 @@ public class Progam extends AbstractPrintable {
 
         for (String type : ResolveVisitor.builtinTypes) {
             // Fixme: null arg for the location. Maybe declare them in a base.pacioli?
-            GenericInfo generic = new GenericInfo(type, "base", true, null);
+            GenericInfo generic = new GenericInfo(type, "base", true, new Location());
             addInfo(new TypeInfo(generic));
         }
 
@@ -500,7 +500,8 @@ public class Progam extends AbstractPrintable {
             ValueInfo info = values.lookup(value);
             if (!isExternal(info) && info.getDefinition().isPresent()) {
                 inferValueDefinitionType(info, discovered, finished);
-                Pacioli.logln3("\n%s :: %s;", info.name(), info.inferredType.get().pretty());
+                //Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.get().pretty());
+                Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.get().deval().pretty());
             }
         }
         for (Toplevel toplevel : toplevels) {

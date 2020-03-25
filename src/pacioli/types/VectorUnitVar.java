@@ -46,12 +46,14 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     public VectorUnitVar(VectorUnitInfo info) {
         name = info.name();
+        assert (name.contains("!"));
         this.quantifier = "for_unit";
         this.info = Optional.of(info);
     }
 
     public VectorUnitVar(String quantifier, String name) {
         this.name = name;
+        assert (name.contains("!"));
         this.quantifier = quantifier;
         this.info = Optional.empty();
     }
@@ -60,6 +62,12 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     public Set<String> unitVecVarCompoundNames() {
         return new LinkedHashSet<String>();
     }
+    
+    public String unitPart() {
+        String[] parts = name.split("!");
+        return parts[1];
+    }
+    
 /*
     private TypeVar(String quantifier, String name, boolean active) {
         this.name = name;
@@ -86,7 +94,14 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
         VectorUnitVar otherVar = (VectorUnitVar) other;
         return name.equals(otherVar.name);
     }
-
+    
+    @Override
+    public String toString() {
+        //return "(" + name + (isFresh() ? "" : "@") + ")";
+        //return name;
+        return "'" + name + (isFresh() ? "" : "@") + "'";
+    }
+    
     @Override
     public void printPretty(PrintWriter out) {
         out.print(pretty());
@@ -163,7 +178,7 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     @Override
     public PacioliType fresh() {
-        return new VectorUnitVar(quantifier, freshName());
+        return new VectorUnitVar(quantifier, freshName() + "!" + freshName());
     }
 
     public PacioliType rename(String name) {
@@ -192,11 +207,6 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     public PacioliType reduce() {
         return this;
     }
-
-    @Override
-    public TypeNode deval() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
     
     @Override
     public VectorUnitInfo getInfo() {
@@ -215,5 +225,10 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     @Override
     public String compileToMVM(CompilationSettings settings) {
         return PacioliType.super.compileToMVM(settings);
+    }
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
     }
 }

@@ -92,7 +92,16 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
         IndexSetVar otherVar = (IndexSetVar) other;
         return name.equals(otherVar.name);
     }
+    
+    @Override
+    public String toString() {
+        return "'" + name + "'";
+    }
 
+    public String getName() {
+        return name;
+    }
+    
     @Override
     public void printPretty(PrintWriter out) {
         out.print(pretty());
@@ -200,11 +209,6 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     }
 
     @Override
-    public TypeNode deval() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public IndexSetInfo getInfo() {
         if (info.isPresent()) {
             return info.get(); 
@@ -221,5 +225,10 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     @Override
     public String compileToMVM(CompilationSettings settings) {
         return PacioliType.super.compileToMVM(settings);
+    }
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
     }
 }

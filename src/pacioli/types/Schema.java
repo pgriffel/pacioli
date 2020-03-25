@@ -45,9 +45,13 @@ public class Schema extends AbstractType {
 
     @Override
     public void printPretty(PrintWriter out) {
-        new TypeContext(variables).printPretty(out);
+        newContext().printPretty(out);
         type.printPretty(out);
 
+    }
+    
+    public TypeContext newContext() {
+        return(new TypeContext(variables));
     }
 
     @Override
@@ -109,7 +113,11 @@ public class Schema extends AbstractType {
     }
 
     @Override
-    public TypeNode deval() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    public PacioliType getType() {
+        return type;
     }
 }

@@ -46,6 +46,7 @@ import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.PacioliType;
+import pacioli.types.ParametricType;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
@@ -497,7 +498,14 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(FunctionTypeNode node) {
-        node.domain.accept(this);
+        
+        if (node.domain instanceof TypeApplicationNode && ((TypeApplicationNode) node.domain).op.getName().equals("Tuple")) {
+            out.write("(");
+            out.writeCommaSeparated(((TypeApplicationNode) node.domain).args, this);
+            out.write(")");
+        } else {
+            node.domain.accept(this);
+        }
         write(" -> ");
         node.range.accept(this);
     }

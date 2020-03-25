@@ -16,6 +16,7 @@ import pacioli.types.IndexSetVar;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
+import pacioli.types.TypeVisitor;
 import pacioli.types.Var;
 import pacioli.types.ast.TypeNode;
 import uom.Unit;
@@ -51,6 +52,10 @@ public class IndexType extends AbstractType {
     public boolean isVar() {
         return indexSet instanceof Var;
     }
+    
+    public IndexSetVar getVar() {
+        return (IndexSetVar) indexSet;
+    }
 
     public String varName() {
         return ((Var) indexSet).pretty();
@@ -83,7 +88,8 @@ public class IndexType extends AbstractType {
 
     @Override
     public String toString() {
-        return String.format("%s%s", super.toString(), indexSet);
+        //return String.format("%s%s", super.toString(), indexSet);
+        return indexSet.toString();
     }
 
     public List<TypeIdentifier> getIndexSets() {
@@ -194,7 +200,7 @@ public class IndexType extends AbstractType {
     }
 
     @Override
-    public TypeNode deval() {
-        throw new RuntimeException("deval of index type should be handled by the matrix type");
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
     }
 }

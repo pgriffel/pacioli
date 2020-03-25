@@ -83,7 +83,8 @@ public class TypeConstraint extends AbstractPrintable {
                     BangTypeNode bang = (BangTypeNode) var;
                     MatrixType argMat = (MatrixType) arg;
                     map.put(new IndexSetVar(bang.indexSetName()), argMat.rowDimension.getIndexSet());
-                    map.put(new VectorUnitVar("for_unit", bang.indexSetName() + "!" + bang.unitVecName()), argMat.rowUnit);
+                    map.put(new VectorUnitVar("for_unit", bang.indexSetName() + "_" + bang.unitVecName()), argMat.rowUnit);
+                    //map.put(new VectorUnitVar("for_unit", bang.indexSetName() + "!" + bang.unitVecName()), argMat.rowUnit);
                 } else {
                     throw new PacioliException(var.getLocation(),
                             "Type definitions's parameter is quantified as unit vector, but is given '%s'",

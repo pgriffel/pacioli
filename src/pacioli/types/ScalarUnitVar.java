@@ -94,6 +94,11 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
 
     @Override
+    public String toString() {
+        return "'" + name + "'";
+    }
+    
+    @Override
     public void printPretty(PrintWriter out) {
         out.print(pretty());
     }
@@ -200,11 +205,6 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
 
     @Override
-    public TypeNode deval() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-    
-    @Override
     public ScalarUnitInfo getInfo() {
         if (info.isPresent()) {
             return info.get(); 
@@ -221,5 +221,10 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     @Override
     public String compileToMVM(CompilationSettings settings) {
         return PacioliType.super.compileToMVM(settings);
+    }
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
     }
 }

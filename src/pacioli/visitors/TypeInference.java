@@ -1,6 +1,7 @@
 package pacioli.visitors;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
@@ -28,6 +29,7 @@ import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
 import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.FunctionType;
 import pacioli.types.PacioliType;
@@ -40,7 +42,37 @@ import pacioli.types.matrix.MatrixType;
 public class TypeInference extends IdentityVisitor implements Visitor {
 
     private Stack<Typing> typingStack = new Stack<Typing>();
+    private HashMap<String, TypeInfo> defaultTypes;
 
+    public TypeInference(HashMap<String, TypeInfo> defaultTypes) {
+        this.defaultTypes = defaultTypes; 
+    }
+    
+    private TypeInfo findInfo(String name) {
+        TypeInfo type = defaultTypes.get(name);
+        if (type == null) {
+            throw new RuntimeException("Unknown type: " + name);
+        }
+        return type;
+    }
+
+    private ParametricType newVoidType() {
+        return new ParametricType(findInfo("Void"), new ArrayList<PacioliType>());   
+    }
+
+    private ParametricType newBooleType() {
+        return new ParametricType(findInfo("Boole"), new ArrayList<PacioliType>());   
+    }
+    
+    private ParametricType newStringType() {
+        return new ParametricType(findInfo("String"), new ArrayList<PacioliType>());   
+    }
+    
+    private ParametricType newTupleType(List<PacioliType> args) {
+        return new ParametricType(findInfo("Tuple"), args);   
+    }
+
+    
     public Typing typingAccept(ExpressionNode node) {
         // Pacioli.logln("accept: %s", node.getClass());
         node.accept(this);
@@ -61,7 +93,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
         // Create the result typing. Its type is a variable
         // After unification the type variable will be the desired type.
-        PacioliType resultType = new TypeVar("for_type");
+        PacioliType resultType = new TypeVar();
         Typing typing = new Typing(resultType);
 
         // Infer the argument's typings. Keep the types and
@@ -80,7 +112,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
         // Create a function type from the argument types to the type variable
         // that was put in the result type.
-        PacioliType funType = new FunctionType(new ParametricType("Tuple", argTypes), resultType);
+        PacioliType funType = new FunctionType(newTupleType(argTypes), resultType);
 
         // Add the unification contraint that function type must equal the derived
         // function type.
@@ -94,9 +126,8 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(AssignmentNode node) {
-        PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
         Typing valueTyping = typingAccept(node.value);
-        Typing typing = new Typing(voidType);
+        Typing typing = new Typing(newVoidType());
         typing.addConstraints(valueTyping);
         typing.addConstraint(node.var.getInfo().inferredType(), valueTyping.getType(),
                 "assigned variable must have proper type");
@@ -120,7 +151,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         typing.addConstraints(negTyping);
 
         // Add the constraint that the test must be Boolean
-        typing.addConstraint(testTyping.getType(), new ParametricType("Boole", new ArrayList<PacioliType>()), String
+        typing.addConstraint(testTyping.getType(), newBooleType(), String
                 .format("While infering the type of\n%s\nthe test of an if must be Boolean", node.sourceDescription()));
 
         // Add the constraint that the positive and the negative branch must have the
@@ -137,7 +168,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
         // Todo: handle this properly
         if (node.valueString().equals("true") || node.valueString().equals("false")) {
-            returnNode(new Typing(new ParametricType("Boole")));
+            returnNode(new Typing(newBooleType()));
         } else {
             returnNode(new Typing(new MatrixType()));
         }
@@ -178,9 +209,9 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         typing.addConstraints(posTyping);
         typing.addConstraints(negTyping);
 
-        PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
+        PacioliType voidType = newVoidType();
 
-        typing.addConstraint(testTyping.getType(), new ParametricType("Boole", new ArrayList<PacioliType>()), String
+        typing.addConstraint(testTyping.getType(), newBooleType(), String
                 .format("While infering the type of\n%s\nthe test of an if must be Boolean", node.sourceDescription()));
         typing.addConstraint(posTyping.getType(), voidType,
                 String.format("While infering the type of\n%s\nthe then branche of an if must be a statement",
@@ -218,7 +249,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
             // Create the type variable and add it to the list
             String freshName = node.table.freshSymbolName(); 
-            PacioliType freshType = new TypeVar("for_type", freshName);
+            PacioliType freshType = new TypeVar(freshName);
             argTypes.add(freshType);
 
             // Also store the type in the lambda's symbol table
@@ -232,7 +263,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
         // Create a typing for the lambda and add the constraints from the body's
         // inference
-        Typing typing = new Typing(new FunctionType(new ParametricType("Tuple", argTypes), bodyTyping.getType()));
+        Typing typing = new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.getType()));
         typing.addConstraints(bodyTyping);
 
         returnNode(typing);
@@ -270,7 +301,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(ReturnNode node) {
-        PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
+        PacioliType voidType = newVoidType();
         Typing valueTyping = typingAccept(node.value);
         Typing typing = new Typing(voidType);
         typing.addConstraints(valueTyping);
@@ -280,7 +311,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(SequenceNode node) {
-        PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
+        PacioliType voidType = newVoidType();
         Typing typing = new Typing(voidType);
         for (ExpressionNode item : node.items) {
             Typing itemTyping = typingAccept(item);
@@ -295,15 +326,15 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
         for (String name : node.table.localNames()) {
             ValueInfo info = node.table.lookup(name);
-            info.setinferredType(new TypeVar("for_type"));
+            info.setinferredType(new TypeVar());
         }
 
-        PacioliType resultType = new TypeVar("for_type");
+        PacioliType resultType = new TypeVar();
 
         ValueInfo resultInfo = node.table.lookup("result");
         resultInfo.setinferredType(resultType);
 
-        PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
+        PacioliType voidType = newVoidType();
         Typing typing = new Typing(resultType);
         Typing itemTyping = typingAccept(node.body);
         typing.addConstraint(voidType, itemTyping.getType(), "A statement must have type Void()");
@@ -315,7 +346,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     public void visit(StringNode stringNode) {
 
         // Return a typing with type string
-        returnNode(new Typing(new ParametricType("String")));
+        returnNode(new Typing(newStringType()));
     }
 
     @Override
@@ -325,10 +356,10 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         for (IdentifierNode var : node.vars) {
             varTypes.add(var.getInfo().inferredType());
         }      
-        PacioliType tupleType = new ParametricType("Tuple", varTypes);
+        PacioliType tupleType = newTupleType(varTypes);
         
         
-        PacioliType voidType = new ParametricType("Void", new ArrayList<PacioliType>());
+        PacioliType voidType = newVoidType();
         Typing tupleTyping = typingAccept(node.tuple);
         Typing typing = new Typing(voidType);
         typing.addConstraints(tupleTyping);
@@ -342,12 +373,12 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         Typing testTyping = typingAccept(node.test);
         Typing bodyTyping = typingAccept(node.body);
 
-        Typing typing = new Typing(new ParametricType("Void", new ArrayList<PacioliType>()));
+        Typing typing = new Typing(newVoidType());
         typing.addConstraints(testTyping);
         typing.addConstraints(bodyTyping);
-        typing.addConstraint(testTyping.getType(), new ParametricType("Boole", new ArrayList<PacioliType>()),
+        typing.addConstraint(testTyping.getType(), newBooleType(),
                 "the test of a while must be boolean");
-        typing.addConstraint(bodyTyping.getType(), new ParametricType("Void", new ArrayList<PacioliType>()),
+        typing.addConstraint(bodyTyping.getType(), newVoidType(),
                 "the body of a while must be a statement");
         returnNode(typing);
 
