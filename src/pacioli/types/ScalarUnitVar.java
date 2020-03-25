@@ -33,49 +33,38 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.symboltable.ScalarUnitInfo;
-import pacioli.types.ast.TypeNode;
+import pacioli.symboltable.SymbolTable;
 import uom.BaseUnit;
 import uom.Unit;
 
 public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
-    private static int counter = 0;
     private final String name;
-    public final String quantifier;
     public final Optional<ScalarUnitInfo> info;
 
+    // Constructors
+    
     public ScalarUnitVar(ScalarUnitInfo info) {
         name = info.name();
-        this.quantifier = "for_unit";
         this.info = Optional.of(info);
     }
-    
-    public ScalarUnitVar(String quantifier) {
-        name = freshName();
-        this.quantifier = quantifier;
-        this.info = Optional.empty();
-    }
 
-    public ScalarUnitVar(String quantifier, String name) {
+    public ScalarUnitVar(String name) {
         this.name = name;
-        this.quantifier = quantifier;
         this.info = Optional.empty();
     }
 
     @Override
-    public Set<String> unitVecVarCompoundNames() {
-        return new LinkedHashSet<String>();
-    }
-/*
-    private TypeVar(String quantifier, String name, boolean active) {
-        this.name = name;
-        this.quantifier = quantifier;
+    public PacioliType fresh() {
+        return new ScalarUnitVar(SymbolTable.freshVarName());
     }
 
-    public TypeVar changeActivation(boolean status) {
-        return new TypeVar(quantifier, name, status);
+    public PacioliType rename(String name) {
+        return new ScalarUnitVar(name);
     }
-*/
+
+    // Equality
+
     @Override
     public int hashCode() {
         return name.hashCode();
@@ -97,6 +86,8 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     public String toString() {
         return "'" + name + "'";
     }
+
+    // Pretty printing
     
     @Override
     public void printPretty(PrintWriter out) {
@@ -105,14 +96,39 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     @Override
     public String pretty() {
-        if (!name.isEmpty() && quantifier.equals("for_index")) {
-            String first = name.substring(0, 1);
-            return first.toUpperCase() + name.substring(1);
+        return name;
+    }
+
+    // Properties
+
+    @Override
+    public ScalarUnitInfo getInfo() {
+        if (info.isPresent()) {
+            return info.get(); 
         } else {
-            return name;
+            throw new RuntimeException(String.format("No info present for fresh scalar unit variable %s", name));
         }
     }
 
+    @Override
+    public Boolean isFresh() {
+       return !info.isPresent();
+    }
+    
+    @Override
+    public String description() {
+        return "type variable";
+    }
+    
+    // Visiting visitors
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
+    }
+    
+    // To move to visitors 
+    
     @Override
     public Set<Var> typeVars() {
         Set<Var> vars = new LinkedHashSet<Var>();
@@ -127,10 +143,10 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
 
     @Override
-    public String description() {
-        return "type variable";
+    public Set<String> unitVecVarCompoundNames() {
+        return new LinkedHashSet<String>();
     }
-
+    
     @Override
     public List<Unit<TypeBase>> simplificationParts() {
         List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
@@ -157,71 +173,22 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
 
     @Override
+    public PacioliType reduce() {
+        return this;
+    }
+    
+    @Override
     public boolean isInstanceOf(PacioliType other) {
         return false;
     }
 
     @Override
-    public PacioliType instantiate() {
-        //return this;
-        throw new RuntimeException("Is this called?s");
-    }
-
-    @Override
-    public Schema generalize() {
-        //PacioliType unfresh = unfresh();
-        //return new Schema(unfresh.typeVars(), unfresh);
-        throw new RuntimeException("Is this called?s");
-    }
-
-    @Override
-    public PacioliType fresh() {
-        return new ScalarUnitVar(quantifier);
-    }
-
-    public PacioliType rename(String name) {
-        return new ScalarUnitVar(quantifier, name);
-    }
-
-    private static String freshName() {
-        return "?" + counter++;
-    }
-
-    @Override
     public String compileToJS() {
-        if (quantifier.equals("for_unit")) {
-            return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
-        } else {
-            return "'_" + this.pretty() + "_'";
-        }
-    }
-
-    @Override
-    public PacioliType reduce() {
-        return this;
-    }
-
-    @Override
-    public ScalarUnitInfo getInfo() {
-        if (info.isPresent()) {
-            return info.get(); 
-        } else {
-            throw new RuntimeException(String.format("No info present for fresh scalar unit variable %s", name));
-        }
-    }
-
-    @Override
-    public Boolean isFresh() {
-       return !info.isPresent();
+        return "'_" + this.pretty() + "_'";
     }
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
         return PacioliType.super.compileToMVM(settings);
-    }
-
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
     }
 }

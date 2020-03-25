@@ -57,7 +57,7 @@ public class TypeContext extends AbstractPrintable {
             if (name.contains("!")) {
                 vars.add(new VectorUnitVar(name));
             } else {
-                vars.add(new ScalarUnitVar("for_unit", name));
+                vars.add(new ScalarUnitVar(name));
             }
         }
         return vars;
