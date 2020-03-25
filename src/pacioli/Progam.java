@@ -501,7 +501,7 @@ public class Progam extends AbstractPrintable {
             if (!isExternal(info) && info.getDefinition().isPresent()) {
                 inferValueDefinitionType(info, discovered, finished);
                 //Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.get().pretty());
-                Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.get().deval().pretty());
+                //Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.get().deval().pretty());
             }
         }
         for (Toplevel toplevel : toplevels) {
@@ -574,7 +574,7 @@ public class Progam extends AbstractPrintable {
         for (String value : names) {
             ValueInfo info = values.lookup(value);
             if (!isExternal(info) && info.getDefinition().isPresent()) {
-                Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType().pretty());
+                Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType().deval().pretty());
             }
         }
         for (Toplevel toplevel : toplevels) {

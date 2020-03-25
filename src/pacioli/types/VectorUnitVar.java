@@ -33,7 +33,6 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.symboltable.VectorUnitInfo;
-import pacioli.types.ast.TypeNode;
 import uom.BaseUnit;
 import uom.Unit;
 
@@ -41,20 +40,17 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     private static int counter = 0;
     private final String name;
-    public final String quantifier;
     private Optional<VectorUnitInfo> info;
 
     public VectorUnitVar(VectorUnitInfo info) {
         name = info.name();
         assert (name.contains("!"));
-        this.quantifier = "for_unit";
         this.info = Optional.of(info);
     }
 
-    public VectorUnitVar(String quantifier, String name) {
+    public VectorUnitVar(String name) {
         this.name = name;
         assert (name.contains("!"));
-        this.quantifier = quantifier;
         this.info = Optional.empty();
     }
 
@@ -67,17 +63,7 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
         String[] parts = name.split("!");
         return parts[1];
     }
-    
-/*
-    private TypeVar(String quantifier, String name, boolean active) {
-        this.name = name;
-        this.quantifier = quantifier;
-    }
 
-    public TypeVar changeActivation(boolean status) {
-        return new TypeVar(quantifier, name, status);
-    }
-*/
     @Override
     public int hashCode() {
         return name.hashCode();
@@ -97,9 +83,7 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     
     @Override
     public String toString() {
-        //return "(" + name + (isFresh() ? "" : "@") + ")";
-        //return name;
-        return "'" + name + (isFresh() ? "" : "@") + "'";
+        return "'" + name + "'";
     }
     
     @Override
@@ -109,12 +93,7 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     @Override
     public String pretty() {
-        if (!name.isEmpty() && quantifier.equals("for_index")) {
-            String first = name.substring(0, 1);
-            return first.toUpperCase() + name.substring(1);
-        } else {
-            return name;
-        }
+        return name;
     }
 
     @Override
@@ -178,29 +157,20 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     @Override
     public PacioliType fresh() {
-        return new VectorUnitVar(quantifier, freshName() + "!" + freshName());
+        return new VectorUnitVar(freshName() + "!" + freshName());
     }
 
     public PacioliType rename(String name) {
-        return new VectorUnitVar(quantifier, name);
+        return new VectorUnitVar(name);
     }
 
     private static String freshName() {
         return "?" + counter++;
     }
-
-    @Override
-    public PacioliType unfresh() {
-        return new VectorUnitVar(quantifier, "a");
-    }
-
+    
     @Override
     public String compileToJS() {
-        if (quantifier.equals("for_unit")) {
-            return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
-        } else {
-            return "'_" + this.pretty() + "_'";
-        }
+        return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
     }
 
     @Override

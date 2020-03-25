@@ -182,7 +182,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         }
         return applySubstitution(map);
     }
-
+/*
     @Override
     public PacioliType unfresh() {
 
@@ -212,8 +212,8 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
             // already contain !
             // assert(parts.length == 2);
             if (parts.length == 2) {
-                Var var1 = new VectorUnitVar("for_unit", parts[1] + "!" + parts[1]);
-                Var var2 = new VectorUnitVar("for_unit", name);
+                Var var1 = new VectorUnitVar(parts[1] + "!" + parts[1]);
+                Var var2 = new VectorUnitVar(name);
                 //Pacioli.logln("mapping %s to %s", var1, var2);
                 map = map.compose(new Substitution(var1, var2));
             }
@@ -221,4 +221,5 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         return unfreshType.applySubstitution(map);
 
     }
+    */
 }

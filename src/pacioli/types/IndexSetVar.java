@@ -188,12 +188,13 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     private static String freshName() {
         return "?" + counter++;
     }
-
+/*
     @Override
     public PacioliType unfresh() {
-        return new IndexSetVar(quantifier, "a");
+        throw new RuntimeException("Is this called?");
+        //return new IndexSetVar(quantifier, "a");
     }
-
+*/
     @Override
     public String compileToJS() {
         if (quantifier.equals("for_unit")) {

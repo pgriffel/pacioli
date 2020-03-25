@@ -68,8 +68,44 @@ public interface PacioliType extends Printable {
     public Schema generalize();
 
     public PacioliType fresh();
+    
+    public default PacioliType unfresh() {
 
-    public PacioliType unfresh();
+        // Replace all type variables by type variables named a, b, c, d, ...
+        Substitution map = new Substitution();
+        int character = 97; // character a
+        for (Var var : typeVars()) {
+            //TypeVar var = (TypeVar) gvar; //fixme 
+            if (var instanceof VectorUnitVar) {
+                char ch = (char) character++;
+                map = map.compose(new Substitution(var, var.rename(String.format("%s!%s", ch, ch))));
+            } else {
+                map = map.compose(new Substitution(var, var.rename(String.format("%s", (char) character++))));
+            }
+        }
+        PacioliType unfreshType = applySubstitution(map);
+
+        // Replace all unit vector variables by its name prefixed by the index set name.
+        map = new Substitution();
+        for (String name : unfreshType.unitVecVarCompoundNames()) {
+            //Pacioli.logln("mapping %s (%s)", name, pretty());
+            //Pacioli.logln("unfresh %s", unfreshType.pretty());
+            String[] parts = name.split("!");
+            // FIXME
+            // The assert fails for a type schema, because the variables are not refreshed
+            // and might
+            // already contain !
+            // assert(parts.length == 2);
+            if (parts.length == 2) {
+                Var var1 = new VectorUnitVar(parts[1] + "!" + parts[1]);
+                Var var2 = new VectorUnitVar(name);
+                //Pacioli.logln("mapping %s to %s", var1, var2);
+                map = map.compose(new Substitution(var1, var2));
+            }
+        }
+        return unfreshType.applySubstitution(map);
+
+    }
     
     //public TypeNode deval();
 

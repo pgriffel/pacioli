@@ -186,11 +186,6 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
 
     @Override
-    public PacioliType unfresh() {
-        return new ScalarUnitVar(quantifier, "a");
-    }
-
-    @Override
     public String compileToJS() {
         if (quantifier.equals("for_unit")) {
             return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
