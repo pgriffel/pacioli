@@ -148,12 +148,6 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
 
     @Override
-    public List<Unit<TypeBase>> simplificationParts() {
-        List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
-        return parts;
-    }
-
-    @Override
     public PacioliType applySubstitution(Substitution subs) {
         return subs.apply((PacioliType) this);
     }

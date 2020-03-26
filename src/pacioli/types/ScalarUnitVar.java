@@ -139,12 +139,6 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     public Set<String> unitVecVarCompoundNames() {
         return new LinkedHashSet<String>();
     }
-    
-    @Override
-    public List<Unit<TypeBase>> simplificationParts() {
-        List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
-        return parts;
-    }
 
     @Override
     public PacioliType applySubstitution(Substitution subs) {

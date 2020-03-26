@@ -92,11 +92,6 @@ public class Schema extends AbstractType {
     }
 
     @Override
-    public List<Unit<TypeBase>> simplificationParts() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public String compileToJS() {
         return type.compileToJS();
     }

@@ -150,12 +150,6 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     public Set<String> unitVecVarCompoundNames() {
         return new LinkedHashSet<String>();
     }
-    
-    @Override
-    public List<Unit<TypeBase>> simplificationParts() {
-        List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
-        return parts;
-    }
 
     @Override
     public PacioliType applySubstitution(Substitution subs) {

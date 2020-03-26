@@ -287,19 +287,6 @@ public class MatrixType extends AbstractType {
     }
 
     @Override
-    public List<Unit<TypeBase>> simplificationParts() {
-        List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
-        parts.add(factor);
-        if (rowDimension.isVar() || rowDimension.width() > 0) {
-            parts.add(rowUnit);
-        }
-        if (columnDimension.isVar() || columnDimension.width() > 0) {
-            parts.add(columnUnit);
-        }
-        return parts;
-    }
-
-    @Override
     public PacioliType reduce() {
         return this;
     }

@@ -34,6 +34,7 @@ import pacioli.Printable;
 import pacioli.Substitution;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.visitors.Devaluator;
+import pacioli.types.visitors.SimplificationParts;
 import pacioli.types.visitors.UsesVars;
 import uom.Fraction;
 import uom.Unit;
@@ -64,10 +65,10 @@ public interface PacioliType extends Printable {
 
     public PacioliType reduce();
 
-    public List<Unit<TypeBase>> simplificationParts();
+    public default List<Unit<TypeBase>> simplificationParts() {
+        return new SimplificationParts().partsAccept(this);
+    };
 
-    //public PacioliType simplify();
-    
     public default PacioliType simplify() {
         Substitution mgu = new Substitution();
         List<Unit<TypeBase>> parts = simplificationParts();
@@ -85,8 +86,6 @@ public interface PacioliType extends Printable {
         PacioliType result = applySubstitution(mgu);
         return result;
     }
-
-    //public boolean isInstanceOf(PacioliType other);
 
     public default boolean isInstanceOf(PacioliType other) {
         return isInstanceOf(this, other);

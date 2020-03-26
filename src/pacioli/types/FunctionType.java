@@ -76,13 +76,6 @@ public class FunctionType extends AbstractType {
         return "function type";
     }
 
-    @Override
-    public List<Unit<TypeBase>> simplificationParts() {
-        List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
-        parts.addAll(domain.simplificationParts());
-        parts.addAll(range.simplificationParts());
-        return parts;
-    }
 
     @Override
     public PacioliType applySubstitution(Substitution subs) {

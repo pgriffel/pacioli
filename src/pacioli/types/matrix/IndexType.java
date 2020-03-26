@@ -181,11 +181,6 @@ public class IndexType extends AbstractType {
     }
 
     @Override
-    public List<Unit<TypeBase>> simplificationParts() {
-        return indexSet.simplificationParts();
-    }
-
-    @Override
     public String compileToMVM(CompilationSettings settings) {
         throw new RuntimeException("todo ");
     }

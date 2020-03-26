@@ -58,11 +58,7 @@ public class SimplificationParts implements TypeVisitor {
 
     @Override
     public void visit(IndexType type) {       
-        List<Unit<TypeBase>> vars = new ArrayList<Unit<TypeBase>>();
-        if (type.isVar()) {
-            vars.add((Var) type.indexSet);
-        }
-        returnParts(vars);
+        returnParts(partsAccept(type.indexSet));
     }
 
     @Override

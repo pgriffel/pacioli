@@ -175,12 +175,6 @@ public class IndexList extends AbstractType {
     }
 
     @Override
-    public List<Unit<TypeBase>> simplificationParts() {
-        List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
-        return parts;
-    }
-
-    @Override
     public String compileToMVM(CompilationSettings settings) {
         // TODO Auto-generated method stub
         return null;

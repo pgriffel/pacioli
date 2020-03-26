@@ -151,12 +151,6 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
     }
 
     @Override
-    public List<Unit<TypeBase>> simplificationParts() {
-        List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
-        return parts;
-    }
-
-    @Override
     public PacioliType applySubstitution(Substitution subs) {
         return subs.apply((PacioliType) this);
     }

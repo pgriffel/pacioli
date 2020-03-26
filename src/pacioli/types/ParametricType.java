@@ -129,15 +129,6 @@ public class ParametricType extends AbstractType {
     }
 
     @Override
-    public List<Unit<TypeBase>> simplificationParts() {
-        List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
-        for (PacioliType arg : args) {
-            parts.addAll(arg.simplificationParts());
-        }
-        return parts;
-    }
-
-    @Override
     public PacioliType applySubstitution(Substitution subs) {
         List<PacioliType> items = new ArrayList<PacioliType>();
         for (PacioliType type : args) {
