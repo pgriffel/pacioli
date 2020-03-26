@@ -10,22 +10,21 @@
 # The shell model is in file 'model.pacioli'. This file is mostly a small
 # wrapper around the model functions.
 #
-# Paul Griffioen 2012-2014
+# Paul Griffioen 2012-2020
 # ----------------------------------------------------------------------------
 
-module Shells;
+import geometry;
+import si;
 
-include geometry;
-include si;
 include model;
 
 # ----------------------------------------------------------------------------
 # Unit Definitions
 # ----------------------------------------------------------------------------
 
-defunit millimetre "mm" = milli:metre;
 defunit pi "pi" = 3.141592653589793;
 defunit degree "deg" = pi/180;
+defunit millimetre "mm" = milli:metre;
 
 defalias shell_unit = milli:metre;
 
