@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.Location;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.ast.IdentityTransformation;

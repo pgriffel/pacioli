@@ -21,7 +21,6 @@
 
 package pacioli.types.ast;
 
-import pacioli.CompilationSettings;
 import pacioli.Location;
 import pacioli.ast.AbstractNode;
 import pacioli.types.PacioliType;
@@ -42,10 +41,4 @@ public abstract class AbstractTypeNode extends AbstractNode implements TypeNode 
         TypeEvaluator visitor = new TypeEvaluator(reduce);
         return visitor.typeAccept(this);
     }
-/*
-    @Override
-    public String compileToJS(CompilationSettings settings, boolean boxed) {
-        throw new RuntimeException("Not implemented for this type of node (" + this.getClass()
-                + "). Only matrix type nodes can be compiled.");
-    }*/
 }

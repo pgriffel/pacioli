@@ -43,7 +43,6 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
     public ScalarBase(ScalarUnitInfo info) {
         assert(info != null);
         this.prefix = Optional.empty();
-        //this.text = text;
         this.text = info.name();
         this.info = info;
     }
@@ -51,7 +50,6 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
     public ScalarBase(String prefix, ScalarUnitInfo info) {
         assert(info != null);
         this.prefix = Optional.of(prefix);
-        //this.text = name;
         this.text = info.name();
         this.info = info;
     }

@@ -66,8 +66,6 @@ public interface PacioliType extends Printable {
     public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException;
 
     public Substitution unify(PacioliType other) throws PacioliException;
-
-    //public PacioliType reduce();
     
     public default PacioliType reduce() {
         return new ReduceTypes().typeNodeAccept(this);
@@ -119,21 +117,14 @@ public interface PacioliType extends Printable {
         return x.simplify().unify(y.simplify()).isInjective();
     }
     
-    //public PacioliType instantiate();
-    
     public default PacioliType instantiate() {
-        // throw new RuntimeException("Can only instantiate a schema");
         return this;
     }
 
-    //public Schema generalize();
-    
     public default Schema generalize() {
         PacioliType unfresh = unfresh();
-        //PacioliType unfresh = this;
         return new Schema(unfresh.typeVars(), unfresh);
     }
-
 
     public PacioliType fresh();
     
@@ -156,18 +147,11 @@ public interface PacioliType extends Printable {
         // Replace all unit vector variables by its name prefixed by the index set name.
         map = new Substitution();
         for (String name : unfreshType.unitVecVarCompoundNames()) {
-            //Pacioli.logln("mapping %s (%s)", name, pretty());
-            //Pacioli.logln("unfresh %s", unfreshType.pretty());
             String[] parts = name.split("!");
-            // FIXME
-            // The assert fails for a type schema, because the variables are not refreshed
-            // and might
-            // already contain !
-            // assert(parts.length == 2);
+            assert(parts.length == 2);
             if (parts.length == 2) {
                 Var var1 = new VectorUnitVar(parts[1] + "!" + parts[1]);
                 Var var2 = new VectorUnitVar(name);
-                //Pacioli.logln("mapping %s to %s", var1, var2);
                 map = map.compose(new Substitution(var1, var2));
             }
         }
@@ -175,8 +159,6 @@ public interface PacioliType extends Printable {
 
     }
     
-    //public TypeNode deval();
-
     public default TypeNode deval() {
         return new Devaluator().typeNodeAccept(this);
     }
@@ -190,7 +172,6 @@ public interface PacioliType extends Printable {
     public default String compileToMVM(CompilationSettings settings) {
         return deval().compileToMVM(new CompilationSettings());                
     }
-    
     
     // Hack to print proper compound unit vector in schema's
     public Set<String> unitVecVarCompoundNames();

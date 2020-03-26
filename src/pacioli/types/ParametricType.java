@@ -34,8 +34,6 @@ import pacioli.Substitution;
 import pacioli.Utils;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.symboltable.TypeInfo;
-import pacioli.types.ast.TypeNode;
-import uom.Unit;
 
 public class ParametricType extends AbstractType {
 

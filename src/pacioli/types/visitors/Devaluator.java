@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Stack;
 
 import pacioli.Location;
-import pacioli.TypeContext;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;

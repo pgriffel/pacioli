@@ -25,8 +25,6 @@ import java.util.Optional;
 
 import pacioli.Location;
 import pacioli.ast.Visitor;
-import pacioli.symboltable.IndexSetInfo;
-import pacioli.symboltable.UnitInfo;
 
 public class BangTypeNode extends AbstractTypeNode {
 

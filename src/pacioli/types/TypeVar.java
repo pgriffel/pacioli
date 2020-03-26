@@ -22,9 +22,7 @@
 package pacioli.types;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,7 +33,6 @@ import pacioli.Substitution;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeInfo;
 import uom.BaseUnit;
-import uom.Unit;
 
 public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
     

@@ -22,28 +22,21 @@
 package pacioli.types.matrix;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import pacioli.ConstraintSet;
-import pacioli.Location;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeVisitor;
-import pacioli.types.Var;
 import pacioli.types.VectorUnitVar;
 import pacioli.types.ast.TypeKroneckerNode;
-import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypeNode;
-import pacioli.types.ast.TypePerNode;
-import pacioli.visitors.JSGenerator;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitMap;

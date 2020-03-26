@@ -7,19 +7,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.AbstractType;
 import pacioli.types.PacioliType;
-import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVisitor;
-import pacioli.types.Var;
-import pacioli.types.ast.TypeNode;
-import uom.Unit;
 
 /*
  *  Not really a type, but otherwise it cannot be put in a substitution. Make a Unifiable interface.

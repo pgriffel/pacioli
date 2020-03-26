@@ -22,17 +22,12 @@
 package pacioli.types;
 
 import java.io.PrintWriter;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.TypeContext;
-import pacioli.symboltable.SymbolTable;
-import pacioli.types.ast.TypeNode;
-import uom.Unit;
 
 public class Schema extends AbstractType {
 

@@ -22,16 +22,12 @@
 package pacioli.types;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
+
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
-import pacioli.types.ast.FunctionTypeNode;
-import pacioli.types.ast.TypeNode;
-import uom.Unit;
 
 public class FunctionType extends AbstractType {
 

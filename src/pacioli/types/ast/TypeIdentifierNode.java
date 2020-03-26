@@ -24,11 +24,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import pacioli.CompilationSettings;
 import pacioli.Location;
 import pacioli.ast.Visitor;
 import pacioli.symboltable.SymbolInfo;
-import pacioli.types.TypeIdentifier;
 
 public class TypeIdentifierNode extends AbstractTypeNode {
 

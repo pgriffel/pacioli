@@ -46,15 +46,7 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
         this.position = position;
         this.vectorUnitInfo = vectorUnitInfo;
     }
-/*
-    public String indexSetName() {
-        return indexSetName.name;
-    }
 
-    public String unitName() {
-        return unitName.name;
-    }
-*/
     @Override
     public int hashCode() {
         return unitName.hashCode();

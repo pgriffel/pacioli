@@ -30,9 +30,7 @@ import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.ValueInfo;
-import pacioli.types.TypeBase;
 import pacioli.types.matrix.MatrixType;
-import uom.Unit;
 
 public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
@@ -46,23 +44,6 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         this.settings = settings;
         this.boxed = boxed;
     }
-    /* moved to TypeBase
-    // Unit compilation
-    public static String compileUnitToJS(Unit<TypeBase> unit) {
-        String product = "";
-        int n = 0;
-        for (TypeBase base : unit.bases()) {
-            TypeBase typeBase = (TypeBase) base;
-            String baseText = typeBase.compileToJS() + ".expt(" + unit.power(base) + ")";
-            product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
-            n++;
-        }
-        if (n == 0) {
-            return "Pacioli.ONE";
-        } else {
-            return product;
-        }
-    }*/
     
     // Visitors
  
