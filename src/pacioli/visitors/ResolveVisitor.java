@@ -325,7 +325,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>(valueTables.peek());
             ValueInfo info = table.lookup(resultName);
             assert (info != null);
-            node.info = info;
+            node.resultInfo = info;
             // IdentifierNode result = IdentifierNode.newLocalMutableVar(resultName,
             // node.getLocation());
             // returnNode(node.resolve(expAccept(node.value), result));
@@ -336,9 +336,13 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     @Override
     public void visit(StatementNode node) {
 
+        
         // Create a symbol table for all assigned variables in scope and the result
         // place
         node.table = new SymbolTable<ValueInfo>(valueTables.peek());
+        
+        String resultName = node.table.freshSymbolName();
+        
         node.shadowed = new SymbolTable<ValueInfo>();
 
         // Find all assigned variables
@@ -363,15 +367,16 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         }
 
         // Create an info record for the result and put it in the symbol table
-        ValueInfo info = new ValueInfo("result", prog.getModule(), false, node.getLocation());
-        node.table.put("result", info);
+        ValueInfo info = new ValueInfo(resultName, prog.getModule(), false, node.getLocation());
+        node.table.put(resultName, info);
+        node.resultInfo = info;
 
         // Create a place for the statement result and attach the info record
         //info.resultPlace = IdentifierNode.newLocalMutableVar("result", node.getLocation());
         //info.resultPlace.setInfo(info);
 
         // Resolve the body
-        statementResult.push("result");
+        statementResult.push(resultName);
         valueTables.push(node.table);
         node.body.accept(this);
         valueTables.pop();

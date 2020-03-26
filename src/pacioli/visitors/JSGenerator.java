@@ -300,7 +300,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnNode node) {
-        format("Pacioli.%s(result, ", ValueInfo.global("base", "throw_result"));
+        format("Pacioli.%s(%s, ", ValueInfo.global("base", "throw_result"), node.resultInfo.name());
         node.value.accept(this);
         write(")");
     }
@@ -341,7 +341,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         write("function (");
         
         // Write the result lambda param
-        write("result");
+        write(node.resultInfo.name());
         
         // Write the other lambda params
         for (IdentifierNode id : assignedVariables) {
@@ -370,7 +370,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         newline();
 
         // Catch's second argument is the place name
-        write("result");
+        write(node.resultInfo.name());
         
         // Close the catch application
         write("); }( ");

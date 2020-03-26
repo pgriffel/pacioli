@@ -13,6 +13,10 @@ public class StatementNode extends AbstractExpressionNode {
     // Filled during resolve
     public SymbolTable<ValueInfo> table;
     public SymbolTable<ValueInfo> shadowed;
+    
+    // Is the value info for the result place
+    public ValueInfo resultInfo;
+
 
     public StatementNode(Location location, SequenceNode body) {
         super(location);

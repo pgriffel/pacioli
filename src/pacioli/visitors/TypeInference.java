@@ -305,7 +305,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         Typing valueTyping = typingAccept(node.value);
         Typing typing = new Typing(voidType);
         typing.addConstraints(valueTyping);
-        typing.addConstraint(node.info.inferredType(), valueTyping.getType(), "the types of returned values must agree");
+        typing.addConstraint(node.resultInfo.inferredType(), valueTyping.getType(), "the types of returned values must agree");
         returnNode(typing);
     }
 
@@ -331,7 +331,8 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
         PacioliType resultType = new TypeVar();
 
-        ValueInfo resultInfo = node.table.lookup("result");
+        //ValueInfo resultInfo = node.table.lookup("result");
+        ValueInfo resultInfo = node.resultInfo;
         resultInfo.setinferredType(resultType);
 
         PacioliType voidType = newVoidType();

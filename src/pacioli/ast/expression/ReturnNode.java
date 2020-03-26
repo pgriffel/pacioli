@@ -30,9 +30,11 @@ public class ReturnNode extends AbstractExpressionNode {
 
     public final ExpressionNode value;
 
+    // obsolete
     private final IdentifierNode resultPlace;
 
-    public ValueInfo info;
+    // Is the value info for the result place
+    public ValueInfo resultInfo;
 
     public ReturnNode(Location location, ExpressionNode value) {
         super(location);
