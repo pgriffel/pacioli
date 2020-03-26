@@ -10,22 +10,21 @@
 # The shell model is in file 'model.pacioli'. This file is mostly a small
 # wrapper around the model functions.
 #
-# Paul Griffioen 2012-2014
+# Paul Griffioen 2012-2020
 # ----------------------------------------------------------------------------
 
-module Shells;
+import geometry;
+import si;
 
-include geometry;
-include si;
 include model;
 
 # ----------------------------------------------------------------------------
 # Unit Definitions
 # ----------------------------------------------------------------------------
 
-defunit millimetre "mm" = milli:metre;
 defunit pi "pi" = 3.141592653589793;
 defunit degree "deg" = pi/180;
+defunit millimetre "mm" = milli:metre;
 
 defalias shell_unit = milli:metre;
 
@@ -118,23 +117,10 @@ define my_path_b() = [tuple( 0.3*|radian|, 0.25*|shell_unit|),
 
 define my_path_c() = rectangle_path(0.5*|shell_unit|, 0.5*|shell_unit|);
 
-define testShellsOnly(n) = 
-  let 
+let 
     deg = 2*pi*|radian|/360,
     shell_vec(x, y, z) = space_vec(x*|shell_unit|, y*|shell_unit|, z*|shell_unit|)
-  in
+in
     shell_body(my_path_a(), shell_vec(0, 0, 0), shell_vec(-0.05, 0, -0.02),
-                   1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, n, 1)
-  end;
-
-define test(n) = 
-  let 
-    deg = 2*pi*|radian|/360,
-    shell_vec(x, y, z) = space_vec(x*|shell_unit|, y*|shell_unit|, z*|shell_unit|),
-    shell = shell_body(my_path_a(), shell_vec(0, 0, 0), shell_vec(-0.05, 0, -0.02),
-                         1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, n, 1)
-  in
-    extend_shell_info(shell, empty_shell_info(shell), n)
-  end;
-
-test(200);
+                   1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, 2, 1)
+end;
