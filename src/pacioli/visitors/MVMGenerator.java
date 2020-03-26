@@ -409,7 +409,6 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             names.add(id.getName());
         }
         final List<String> freshNames = SymbolTable.freshNames(names);
-        Pacioli.logln("freshNames=%s,\n uses=%s\n body=%s", freshNames, node.tuple.uses(), node.pretty());
 
         // Create an application of apply to a lambda with two arguments: 
         // the fresh names and the tuple. The freshnames get bound to the 

@@ -429,7 +429,7 @@ public class Pacioli {
             "abstract-resource/abstract-resource.pacioli",
             "adt/adt.pacioli",
             "adt/adt_use.pacioli",
-            "alias/alias.pacioli",  // bugged, also in old version
+            "alias/alias.pacioli",
             "apply_mag/apply_mag.pacioli",
             //"biglist/biglist.pacioli",  // okay but slow
             //"blas/blas.pacioli",  // bugged, also in old version
@@ -439,21 +439,20 @@ public class Pacioli {
             "convolution/convolution.pacioli",
             "dice/dice.pacioli",
             "do/do.pacioli",
-            //"empty/empty.pacioli",
+            "empty/empty.pacioli",
             "envelope/envelope.pacioli",
-            //"fourier-motzkin/fourier_motzkin.pacioli",
-            //"fourier-motzkin/quad.pacioli",
+            "fourier-motzkin/fourier_motzkin.pacioli",
+            "fourier-motzkin/quad.pacioli",
             "gcd/gcd.pacioli",
             "gcd/gcd_test.pacioli",
-            //"geom/geom.pacioli",  // bugged, also in old version
+            //"geom/geom.pacioli",  // experiment with type app in type literal
             "good/good.pacioli",
             "grass/grass.pacioli",
             "hello_world/hello_world.pacioli",
             "holtzman/holtzman.pacioli",
-            //"huh/huh.pacioli",   // strange old bug
             "indexing/indexing.pacioli",
             "intro/intro.pacioli",
-            "kirchhof/kirchhof.pacioli",   // diagonal
+            "kirchhof/kirchhof.pacioli",
             "klein/klein.pacioli",
             "krylov/krylov.pacioli",
             //"loop/loop.pacioli",  // bug introduced STATEMENTS
