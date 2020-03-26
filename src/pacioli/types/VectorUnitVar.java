@@ -173,11 +173,6 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
     
     @Override
-    public boolean isInstanceOf(PacioliType other) {
-        return false;
-    }
-
-    @Override
     public String compileToJS() {
         return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
     }

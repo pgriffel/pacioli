@@ -177,11 +177,6 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     }
 
     @Override
-    public boolean isInstanceOf(PacioliType other) {
-        return false;
-    }
-
-    @Override
     public String compileToJS() {
         return "'_" + this.pretty() + "_'";
     }

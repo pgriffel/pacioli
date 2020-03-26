@@ -164,11 +164,6 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     public PacioliType reduce() {
         return this;
     }
-    
-    @Override
-    public boolean isInstanceOf(PacioliType other) {
-        return false;
-    }
 
     @Override
     public String compileToJS() {

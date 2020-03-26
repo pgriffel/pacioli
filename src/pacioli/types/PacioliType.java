@@ -86,8 +86,32 @@ public interface PacioliType extends Printable {
         return result;
     }
 
-    public boolean isInstanceOf(PacioliType other);
+    //public boolean isInstanceOf(PacioliType other);
 
+    public default boolean isInstanceOf(PacioliType other) {
+        return isInstanceOf(this, other);
+    }
+
+    public static boolean isInstanceOf(PacioliType x, PacioliType y) {
+        try {
+            PacioliType sub = x.fresh();
+            PacioliType sup = y.fresh();
+            PacioliType unified = unified(sub, sup);
+            return alphaEqual(sub, unified);
+        } catch (PacioliException ex) {
+            System.out.println(ex);
+            return false;
+        }
+    }
+    
+    public static PacioliType unified(PacioliType x, PacioliType y) throws PacioliException {
+        return x.unify(y).apply(x);
+    }
+
+    public static boolean alphaEqual(PacioliType x, PacioliType y) throws PacioliException {
+        return x.simplify().unify(y.simplify()).isInjective();
+    }
+    
     //public PacioliType instantiate();
     
     public default PacioliType instantiate() {
