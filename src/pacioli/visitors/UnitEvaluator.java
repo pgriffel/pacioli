@@ -5,11 +5,14 @@ import java.util.Stack;
 
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Visitor;
+import pacioli.ast.definition.AliasDefinition;
+import pacioli.ast.definition.Definition;
 import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
+import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.types.TypeBase;
 import pacioli.types.matrix.ScalarBase;
@@ -46,12 +49,16 @@ public class UnitEvaluator extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(UnitIdentifierNode node) {
-        if (!node.getPrefix().isPresent()) {
-            //returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.getName())));
-            returnNode(new DimensionedNumber<TypeBase>(new ScalarBase((ScalarUnitInfo) node.info)));
+        if (node.info instanceof AliasInfo) {
+            AliasDefinition def = (AliasDefinition) node.info.getDefinition().get();
+            returnNode(unitAccept(def.unit));
         } else {
-            //returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.getPrefix().get(), node.getName())));
-            returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.getPrefix().get(), (ScalarUnitInfo) node.info)));
+            ScalarUnitInfo sinfo = (ScalarUnitInfo) node.info;
+            if (!node.getPrefix().isPresent()) {
+                returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(sinfo)));
+            } else {
+                returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.getPrefix().get(), sinfo)));
+            }
         }
     }
 

@@ -12,6 +12,7 @@ import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.TypeDefinition;
+import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.symboltable.SymbolInfo;
