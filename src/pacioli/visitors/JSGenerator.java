@@ -46,7 +46,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         this.settings = settings;
         this.boxed = boxed;
     }
-    
+    /* moved to TypeBase
     // Unit compilation
     public static String compileUnitToJS(Unit<TypeBase> unit) {
         String product = "";
@@ -62,7 +62,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         } else {
             return product;
         }
-    }
+    }*/
     
     // Visitors
  

@@ -299,14 +299,14 @@ public class MatrixType extends AbstractType {
         StringBuilder out = new StringBuilder();
 
         out.append("Pacioli.createMatrixType(");
-        out.append(JSGenerator.compileUnitToJS(factor));
+        out.append(TypeBase.compileUnitToJS(factor));
         out.append(", ");
         out.append(rowDimension.compileToJS());
         if (!rowDimension.isVar())
             out.append(".param");
         out.append(", ");
         if (rowDimension.isVar() || rowDimension.width() > 0) {
-            out.append(JSGenerator.compileUnitToJS(rowUnit));
+            out.append(TypeBase.compileUnitToJS(rowUnit));
         } else {
             out.append("Pacioli.ONE");
         }
@@ -316,7 +316,7 @@ public class MatrixType extends AbstractType {
             out.append(".param");
         out.append(", ");
         if (columnDimension.isVar() || columnDimension.width() > 0) {
-            out.append(JSGenerator.compileUnitToJS(columnUnit));
+            out.append(TypeBase.compileUnitToJS(columnUnit));
         } else {
             out.append("Pacioli.ONE");
         }

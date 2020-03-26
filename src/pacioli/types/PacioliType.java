@@ -21,6 +21,8 @@
 
 package pacioli.types;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -31,9 +33,11 @@ import pacioli.ConstraintSet;
 import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Printable;
+import pacioli.Printer;
 import pacioli.Substitution;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.visitors.Devaluator;
+import pacioli.types.visitors.JSGenerator;
 import pacioli.types.visitors.ReduceTypes;
 import pacioli.types.visitors.SimplificationParts;
 import pacioli.types.visitors.UsesVars;
@@ -178,7 +182,11 @@ public interface PacioliType extends Printable {
         return new Devaluator().typeNodeAccept(this);
     }
 
-    public String compileToJS();
+    public default String compileToJS() {
+        StringWriter outputStream = new StringWriter();
+        this.accept(new JSGenerator(new Printer(new PrintWriter(outputStream))));
+        return outputStream.toString();
+    };
     
     public default String compileToMVM(CompilationSettings settings) {
         return deval().compileToMVM(new CompilationSettings());                
