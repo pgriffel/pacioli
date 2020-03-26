@@ -106,6 +106,11 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
 
     @Override
+    public String description() {
+        return "vector unit variable";
+    }
+
+    @Override
     public Boolean isFresh() {
        return !info.isPresent();
     }
@@ -140,11 +145,6 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public String description() {
-        return "type variable";
     }
 
     @Override

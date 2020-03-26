@@ -92,11 +92,6 @@ public class Schema extends AbstractType {
     }
 
     @Override
-    public String compileToJS() {
-        return type.compileToJS();
-    }
-
-    @Override
     public void accept(TypeVisitor visitor) {
         visitor.visit(this);
     }

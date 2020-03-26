@@ -292,76 +292,7 @@ public class MatrixType extends AbstractType {
                 (IndexType) columnDimension.applySubstitution(subs), subs.apply(columnUnit));
 
     }
-
-    @Override
-    public String compileToJS() {
-
-        StringBuilder out = new StringBuilder();
-
-        out.append("Pacioli.createMatrixType(");
-        out.append(TypeBase.compileUnitToJS(factor));
-        out.append(", ");
-        out.append(rowDimension.compileToJS());
-        if (!rowDimension.isVar())
-            out.append(".param");
-        out.append(", ");
-        if (rowDimension.isVar() || rowDimension.width() > 0) {
-            out.append(TypeBase.compileUnitToJS(rowUnit));
-        } else {
-            out.append("Pacioli.ONE");
-        }
-        out.append(", ");
-        out.append(columnDimension.compileToJS());
-        if (!columnDimension.isVar())
-            out.append(".param");
-        out.append(", ");
-        if (columnDimension.isVar() || columnDimension.width() > 0) {
-            out.append(TypeBase.compileUnitToJS(columnUnit));
-        } else {
-            out.append("Pacioli.ONE");
-        }
-        out.append(")");
-
-        return out.toString();
-    }
-    /*
-    @Override
-    public TypeNode deval() {
-        
-        // Use a general rewriter to simplify. See deval van scalar and vector units
-        TypeNode factorNode = factor.fold(new ScalarUnitDeval(new Location()));
-        TypeNode left = devalDimensionUnitPair(rowDimension, rowUnit);
-        TypeNode right = devalDimensionUnitPair(columnDimension, columnUnit);
-        
-        if (left == null && right == null) {
-            return factorNode;
-        }
-        if (left == null) {
-            if (factor.equals(TypeBase.ONE)) {
-                return right;
-            } else {
-                Location location = factorNode.getLocation().join(right.getLocation());
-                return new TypeMultiplyNode(location, factorNode, right);
-            }
-        }
-        if (right == null) {
-            if (factor.equals(TypeBase.ONE)) {
-                return left;
-            } else {
-                Location location = left.getLocation().join(factorNode.getLocation());
-                return new TypeMultiplyNode(location, factorNode, left);
-            }
-        }
-        Location perLocation = left.getLocation().join(right.getLocation());
-        TypePerNode perNode = new TypePerNode(perLocation, left, right);
-        if (factor.equals(TypeBase.ONE)) {
-            return perNode;
-        } else {
-            Location location = factorNode.getLocation().join(perLocation);
-            return new TypeMultiplyNode(location, factorNode, perNode);
-        }
-    }
-    */
+   
     public TypeNode devalDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
         if (dimension.isVar()) {
             VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimension, 0);

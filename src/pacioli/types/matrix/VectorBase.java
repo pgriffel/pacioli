@@ -129,15 +129,12 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
 
     @Override
     public String compileToJS() {
-        // todo: reconsider the .rowUnit trick
-        // DIT NEEMT AAN DAT position 0 is!?!?!?!?!?!?!?!
         return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit", indexSetName.home, indexSetName.name,
                 unitName.home, unitName.name);
     }
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        //assert(!indexSetName.home.isEmpty());
         String unitName = this.unitName.name;
         return String.format("bang_shape(\"index_%s_%s\", \"%s\")",
                 indexSetName.home, indexSetName.name,

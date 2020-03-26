@@ -22,9 +22,7 @@
 package pacioli.types;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,7 +33,6 @@ import pacioli.Substitution;
 import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.symboltable.SymbolTable;
 import uom.BaseUnit;
-import uom.Unit;
 
 public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
@@ -117,7 +114,7 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     
     @Override
     public String description() {
-        return "type variable";
+        return "scalar unit variable";
     }
     
     // Visiting visitors

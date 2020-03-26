@@ -166,18 +166,8 @@ public class IndexType extends AbstractType {
     }
 
     @Override
-    public String compileToJS() {
-        return indexSet.compileToJS();
-    }
-
-    @Override
     public String description() {
         return "index type";
-    }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        throw new RuntimeException("todo ");
     }
 
     @Override

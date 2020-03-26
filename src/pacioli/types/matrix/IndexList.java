@@ -144,37 +144,9 @@ public class IndexList extends AbstractType {
     }
 
     @Override
-    public String compileToJS() {
-
-        StringBuilder out = new StringBuilder();
-
-        out.append("new Pacioli.Type('coordinates', [");
-        String pre = "";
-        for (int i = 0; i < indexSets.size(); i++) {
-            out.append(pre);
-            out.append("Pacioli.fetchIndex('");
-            out.append(indexSets.get(i).home);
-            out.append("_");
-            out.append(indexSets.get(i).name);
-            out.append("')");
-            pre = ", ";
-        }
-        out.append("])");
-
-        return out.toString();
-    }
-
-    @Override
     public String description() {
         return "index list";
     }
-
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
 
     @Override
     public void accept(TypeVisitor visitor) {

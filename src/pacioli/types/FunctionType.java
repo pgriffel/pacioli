@@ -83,17 +83,6 @@ public class FunctionType extends AbstractType {
     }
 
     @Override
-    public String compileToJS() {
-        StringBuilder out = new StringBuilder();
-        out.append("new Pacioli.Type('function', [");
-        out.append(domain.compileToJS());
-        out.append(", ");
-        out.append(range.compileToJS());
-        out.append("])");
-        return out.toString();
-    }
-
-    @Override
     public void accept(TypeVisitor visitor) {
         visitor.visit(this);
     }

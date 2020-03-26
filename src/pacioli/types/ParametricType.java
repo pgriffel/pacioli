@@ -139,66 +139,6 @@ public class ParametricType extends AbstractType {
     }
 
     @Override
-    public String compileToJS() {
-        StringBuilder builder = new StringBuilder();
-
-        if (name.equals("Boole")) {
-            builder.append("new Pacioli.Type('boole')");
-        } else if (name.equals("String")) {
-            builder.append("new Pacioli.Type('string')");
-        } else if (name.equals("Report")) {
-            builder.append("new Pacioli.Type('report')");
-        } else if (name.equals("Void")) {
-            builder.append("null");
-        } else if (name.equals("Index")) {
-            builder.append("new Pacioli.Type('coordinate', ");
-            builder.append("new Pacioli.Coordinates(null, [");
-            String sep = "";
-            for (PacioliType arg : args) {
-                builder.append(sep);
-                builder.append(arg.compileToJS());
-                sep = ", ";
-            }
-            builder.append("]))");
-        } else if (name.equals("List")) {
-
-            builder.append("new Pacioli.Type(");
-            builder.append("\"list\", ");
-            String sep = "";
-            for (PacioliType arg : args) {
-                builder.append(sep);
-                builder.append(arg.compileToJS());
-                sep = ", ";
-            }
-            builder.append(")");
-        } else if (name.equals("Ref")) {
-
-            builder.append("new Pacioli.Type(");
-            builder.append("\"reference\", ");
-            String sep = "";
-            for (PacioliType arg : args) {
-                builder.append(sep);
-                builder.append(arg.compileToJS());
-                sep = ", ";
-            }
-            builder.append(")");
-        } else if (name.equals("Tuple")) {
-            builder.append("new Pacioli.Type(");
-            builder.append("\"tuple\", [");
-            String sep = "";
-            for (PacioliType arg : args) {
-                builder.append(sep);
-                builder.append(arg.compileToJS());
-                sep = ", ";
-            }
-            builder.append("])");
-        } else {
-            throw new RuntimeException("Parametric Type " + name + " unknown");
-        }
-        return builder.toString();
-    }
-
-    @Override
     public void accept(TypeVisitor visitor) {
         visitor.visit(this);
     }

@@ -30,7 +30,6 @@ import java.util.Set;
 
 import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.Printer;

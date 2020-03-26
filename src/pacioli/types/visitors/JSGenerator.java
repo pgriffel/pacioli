@@ -1,10 +1,5 @@
 package pacioli.types.visitors;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.Stack;
-
-import pacioli.Pacioli;
 import pacioli.Printer;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
@@ -15,12 +10,10 @@ import pacioli.types.Schema;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
 import pacioli.types.TypeVisitor;
-import pacioli.types.Var;
 import pacioli.types.VectorUnitVar;
 import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
-import uom.Unit;
 
 public class JSGenerator implements TypeVisitor {
 
@@ -71,7 +64,8 @@ public class JSGenerator implements TypeVisitor {
         out.write("Pacioli.createMatrixType(");
         out.write(TypeBase.compileUnitToJS(type.factor));
         out.write(", ");
-        out.write(type.rowDimension.compileToJS());
+        //out.write(type.rowDimension.compileToJS());
+        type.rowDimension.accept(this);
         if (!type.rowDimension.isVar())
             out.write(".param");
         out.write(", ");
@@ -81,7 +75,8 @@ public class JSGenerator implements TypeVisitor {
             out.write("Pacioli.ONE");
         }
         out.write(", ");
-        out.write(type.columnDimension.compileToJS());
+        //out.write(type.columnDimension.compileToJS());
+        type.columnDimension.accept(this);
         if (!type.columnDimension.isVar())
             out.write(".param");
         out.write(", ");
@@ -95,27 +90,83 @@ public class JSGenerator implements TypeVisitor {
 
     @Override
     public void visit(IndexSetVar type) {
-
+        out.write("'_" + type.pretty() + "_'");
     }
 
     @Override
     public void visit(ParametricType type) {
+        String name = type.name;
+        if (name.equals("Boole")) {
+            out.write("new Pacioli.Type('boole')");
+        } else if (name.equals("String")) {
+            out.write("new Pacioli.Type('string')");
+        } else if (name.equals("Report")) {
+            out.write("new Pacioli.Type('report')");
+        } else if (name.equals("Void")) {
+            out.write("null");
+        } else if (name.equals("Index")) {
+            out.write("new Pacioli.Type('coordinate', ");
+            out.write("new Pacioli.Coordinates(null, [");
+            String sep = "";
+            for (PacioliType arg : type.args) {
+                out.write(sep);
+                //out.write(arg.compileToJS());
+                arg.accept(this);
+                sep = ", ";
+            }
+            out.write("]))");
+        } else if (name.equals("List")) {
 
+            out.write("new Pacioli.Type(");
+            out.write("\"list\", ");
+            String sep = "";
+            for (PacioliType arg : type.args) {
+                out.write(sep);
+                //out.write(arg.compileToJS());
+                arg.accept(this);
+                sep = ", ";
+            }
+            out.write(")");
+        } else if (name.equals("Ref")) {
+
+            out.write("new Pacioli.Type(");
+            out.write("\"reference\", ");
+            String sep = "";
+            for (PacioliType arg : type.args) {
+                out.write(sep);
+                //out.write(arg.compileToJS());
+                arg.accept(this);
+                sep = ", ";
+            }
+            out.write(")");
+        } else if (name.equals("Tuple")) {
+            out.write("new Pacioli.Type(");
+            out.write("\"tuple\", [");
+            String sep = "";
+            for (PacioliType arg : type.args) {
+                out.write(sep);
+                //out.write(arg.compileToJS());
+                arg.accept(this);
+                sep = ", ";
+            }
+            out.write("])");
+        } else {
+            throw new RuntimeException("Parametric Type " + name + " unknown");
+        }
     }
 
     @Override
     public void visit(ScalarUnitVar type) {
-
+        out.write(type.compileToJS());
     }
 
     @Override
     public void visit(TypeVar type) {
-
+        out.write(type.compileToJS());
     }
 
     @Override
     public void visit(VectorUnitVar type) {
-
+        out.write(type.compileToJS());
     }
-
 }
