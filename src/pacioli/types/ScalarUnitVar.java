@@ -128,13 +128,6 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
     
     // To move to visitors 
-    
-    @Override
-    public Set<Var> typeVars() {
-        Set<Var> vars = new LinkedHashSet<Var>();
-        vars.add(this);
-        return vars;
-    }
 
     @Override
     public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {

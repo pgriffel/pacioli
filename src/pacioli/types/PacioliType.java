@@ -49,10 +49,7 @@ public interface PacioliType extends Printable {
     
     public void accept(TypeVisitor visitor);
 
-    //public Set<Var> typeVars();
-    
     public default Set<Var> typeVars() {
-        Pacioli.logln("YOYOYOYOYO!!!!!!!!");
         return new UsesVars().typeNodeAccept(this);
     };
 

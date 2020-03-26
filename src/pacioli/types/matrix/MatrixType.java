@@ -247,22 +247,6 @@ public class MatrixType extends AbstractType {
                 columnUnit.raise(power));
     }
 
-    
-    @Override
-    public Set<Var> typeVars() {
-        Set<Var> all = new LinkedHashSet<Var>();
-        all.addAll(unitVars(factor));
-        if (rowDimension.isVar() || rowDimension.width() > 0) {
-            all.addAll(unitVars(rowUnit));
-        }
-        if (columnDimension.isVar() || columnDimension.width() > 0) {
-            all.addAll(unitVars(columnUnit));
-        }
-        all.addAll(rowDimension.typeVars());
-        all.addAll(columnDimension.typeVars());
-        return all;
-    }
-
     public static Set<Var> unitVars(Unit<TypeBase> unit) {
         Set<Var> all = new LinkedHashSet<Var>();
         for (TypeBase base : unit.bases()) {

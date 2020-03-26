@@ -141,13 +141,6 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     // Should be visitors
 
     @Override
-    public Set<Var> typeVars() {
-        Set<Var> vars = new LinkedHashSet<Var>();
-        vars.add(this);
-        return vars;
-    }
-
-    @Override
     public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");

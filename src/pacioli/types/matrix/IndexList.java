@@ -105,12 +105,6 @@ public class IndexList extends AbstractType {
     }
 
     @Override
-    public Set<Var> typeVars() {
-        Set<Var> vars = new LinkedHashSet<Var>();
-        return vars;
-    }
-
-    @Override
     public Set<String> unitVecVarCompoundNames() {
         return new LinkedHashSet<String>();
     }

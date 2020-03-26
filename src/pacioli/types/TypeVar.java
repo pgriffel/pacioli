@@ -140,13 +140,6 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
     // The remainder should be moved to visitors
     
     @Override
-    public Set<Var> typeVars() {
-        Set<Var> vars = new LinkedHashSet<Var>();
-        vars.add(this);
-        return vars;
-    }
-
-    @Override
     public Set<String> unitVecVarCompoundNames() {
         return new LinkedHashSet<String>();
     }

@@ -61,13 +61,6 @@ public class Schema extends AbstractType {
     }
 
     @Override
-    public Set<Var> typeVars() {
-        Set<Var> freeVars = new LinkedHashSet<Var>(type.typeVars());
-        freeVars.removeAll(variables);
-        return freeVars;
-    }
-
-    @Override
     public Set<String> unitVecVarCompoundNames() {
         return type.unitVecVarCompoundNames();
     }

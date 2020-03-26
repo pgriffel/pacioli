@@ -135,13 +135,6 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     public Set<String> unitVecVarCompoundNames() {
         return new LinkedHashSet<String>();
     }
-        
-    @Override
-    public Set<Var> typeVars() {
-        Set<Var> vars = new LinkedHashSet<Var>();
-        vars.add(this);
-        return vars;
-    }
 
     @Override
     public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
