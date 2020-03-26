@@ -34,6 +34,7 @@ import pacioli.Printable;
 import pacioli.Substitution;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.visitors.Devaluator;
+import pacioli.types.visitors.ReduceTypes;
 import pacioli.types.visitors.SimplificationParts;
 import pacioli.types.visitors.UsesVars;
 import uom.Fraction;
@@ -63,7 +64,11 @@ public interface PacioliType extends Printable {
 
     public Substitution unify(PacioliType other) throws PacioliException;
 
-    public PacioliType reduce();
+    //public PacioliType reduce();
+    
+    public default PacioliType reduce() {
+        return new ReduceTypes().typeNodeAccept(this);
+    };
 
     public default List<Unit<TypeBase>> simplificationParts() {
         return new SimplificationParts().partsAccept(this);
