@@ -4,9 +4,7 @@
 # Paul Griffioen 2012-2014
 # ----------------------------------------------------------------------------
 
-module Model;
-
-include geometry;
+import geometry;
 
 # ----------------------------------------------------------------------------
 # Types
@@ -191,9 +189,9 @@ define step(curve, gvm, growth_factor, landmarks) =
 define axis_point(shell) =
   let body = get_body(shell) in
       if body = [] then
-          0 * shell_unit(shell) _* |Space!|
+          0 * shell_unit(shell) '.*' |Space!|
       else
-          sum[ curve_nth(0, x) | x <- body] /_ list_size(body)
+          sum[ curve_nth(0, x) | x <- body] '/.' list_size(body)
       end
   end;
 
@@ -210,7 +208,7 @@ define axis_point(shell) =
 
 define empty_shell_info(shell) =
   let u = shell_unit(shell) in 
-      tuple([0*sqr(u)], [0*sqr(u)], [0*sqr(u)], [0 * cube(u)], [0 * cube(u)])
+      tuple([0 * sqr(u)], [0 * sqr(u)], [0 * sqr(u)], [0 * cube(u)], [0 * cube(u)])
   end;
 
 define extend_shell_info(shell, info, n) =
@@ -301,13 +299,13 @@ define translate_curve(curve, offset) =
   [ x + offset | x <- curve];
 
 define transform_curve(curve, matrix) =
-  [ matrix .* x | x <- curve];
+  [ matrix '*' x | x <- curve];
 
 define sum_curves(x, y) =
   [ a+b | (a,b) <- zip(x,y)];
 
 define scale_curve(curve, factor) =
-  [ factor _* x | x <- curve];
+  [ factor '.*' x | x <- curve];
 
 define curve_surface(curve) =
   let n = list_size(curve) - 1 in
@@ -347,14 +345,14 @@ define compute_rotation(left, top, right, bottom) =
       width = right - left,
       height = top - bottom
   in magnitude(
-      normalized(width) .* d_x^T +
-      normalized(cross_sqrt(width, height)) .* d_y^T +
-      normalized(height) .* d_z^T )
+      normalized(width) '*' d_x^T +
+      normalized(cross_sqrt(width, height)) '*' d_y^T +
+      normalized(height) '*' d_z^T )
   end;
 
-define segment_mesh(curveA, curveB) =
-  let n = list_size(curveA) in
-      tuple(append(curveA, curveB), [tuple(i, mod(i+1, n), n + mod(i+1, n), n + mod(i, n)) | i <- naturals(n)])
+define segment_mesh(curvea, curveb) =
+  let n = list_size(curvea) in
+      tuple(append(curvea, curveb), [tuple(i, mod(i+1, n), n + mod(i+1, n), n + mod(i, n)) | i <- naturals(n)])
   end;
 
 # ----------------------------------------------------------------------------
