@@ -139,7 +139,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(AssignmentNode node) {
         out.format("Pacioli.%s(", ValueInfo.global("base", "ref_set"));
-        out.print(node.var.getName());
+        out.print("lcl_" + node.var.getName());
         out.print(", ");
         node.value.accept(this);
         out.print(")");
@@ -181,7 +181,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         //String prefix = settings.debug() && node.debugable() ? "debug_" : "global_";
         String fun = boxed ? "bfetchValue" : "fetchValue";
         String full = info.isGlobal() ? "Pacioli." + fun + "('" + info.generic().getModule() + "', '" + node.getName() + "')" 
-                                          : node.getName();
+                                          : "lcl_" + node.getName();
 
         if (node.getInfo().isRef()) {
             out.format("Pacioli.%s(%s)", ValueInfo.global("base", "ref_get"), full);
@@ -223,7 +223,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     public void visit(LambdaNode node) {
         List<String> quoted = new ArrayList<String>();
         for (String arg : node.arguments) {
-            quoted.add("" + arg + "");
+            quoted.add("lcl_" + arg + "");
         }
         String args = Utils.intercalate(", ", quoted);
         write("function (");
@@ -345,7 +345,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         // Write the other lambda params
         for (IdentifierNode id : assignedVariables) {
             write(", ");
-            write(id.getName());
+            write("lcl_" + id.getName());
         }
         write(") {");
         
@@ -387,11 +387,13 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
                     format("Pacioli.%s(Pacioli.%s(", 
                             ValueInfo.global("base", "new_ref"),
                             ValueInfo.global("base", "ref_get"));
-                    write(id.getName());
+                    write("lcl_" + id.getName());
+                    //id.accept(this);
                     write("))");
                 } else {
                     format("Pacioli.%s(", ValueInfo.global("base", "new_ref"));
-                    write(id.getName());
+                    write("lcl_" + id.getName());
+                    //id.accept(this);
                     write(")");
                 }
             } else {
@@ -457,7 +459,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         for (int i = 0; i < size; i++) {
             if (i < size-1) format("Pacioli.%s(", ValueInfo.global("base", "seq"));
             format("Pacioli.%s(", ValueInfo.global("base", "ref_set"));
-            write(names.get(i));
+            write("lcl_" + names.get(i));
             write(", ");
             write(freshNames.get(i));
             write(")");

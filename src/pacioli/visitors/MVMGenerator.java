@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.CompilationSettings;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Printer;
 import pacioli.Utils;
@@ -407,6 +408,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             names.add(id.getName());
         }
         final List<String> freshNames = Utils.freshNames(names);
+        Pacioli.logln("freshNames=%s,\n uses=%s\n body=%s", freshNames, node.tuple.uses(), node.pretty());
 
         // Create an application of apply to a lambda with two arguments: 
         // the fresh names and the tuple. The freshnames get bound to the 

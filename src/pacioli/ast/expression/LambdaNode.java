@@ -21,6 +21,7 @@
 
 package pacioli.ast.expression;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.Location;
@@ -51,7 +52,11 @@ public class LambdaNode extends AbstractExpressionNode {
     }
 
     public String argsString() {
-        return Utils.intercalate(",", arguments);
+        List<String> args = new ArrayList<String>();
+        for (String arg : arguments) {
+            args.add("lcl_" + arg + "");
+        }
+        return Utils.intercalate(",", args);
     }
 
     @Override
