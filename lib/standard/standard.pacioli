@@ -123,10 +123,10 @@ declare public diagonal :: for_index P: for_unit a,P!u: (a*P!u) -> a*P!u per P!u
 declare public diagonal2 :: for_index P: for_unit a,P!u: (a*P!u) -> a*P!u per P!;
 declare public diagonal3 :: for_index P: for_unit a,P!u: (a*P!u) -> P! per P!;
 
-#define diagonal(x) =
-#  let u = unit(x), units = unit_factor(u) '.*' u per u in
-#    make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
-#  end;
+define diagonal(x) =
+  let u = row_unit(x), units = unit_factor(x) '.*' u per u in
+    make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
+  end;
 
 define diagonal2(x) =
   let u = unit(x), units = u per (magnitude(u)) in
