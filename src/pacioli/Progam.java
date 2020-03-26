@@ -693,6 +693,7 @@ public class Progam extends AbstractPrintable {
         out.write(mc);
         out.newline();
         out.newline();
+        /*
         out.write("function retval = fetch_global (module, name)");
         out.newline();
         out.write("  switch (strcat(\"glbl_\", module, \"_\", name))");
@@ -723,6 +724,7 @@ public class Progam extends AbstractPrintable {
         out.write("  endswitch;");
         out.newline();
         out.write("endfunction;");
+        */
         out.newline();
     }
     
@@ -782,7 +784,10 @@ public class Progam extends AbstractPrintable {
     }        
 */
     
-    static final String mc = "\n" + 
+    static final String mc = "\n" +
+            "\n" +
+            "glbl_base__ = {0,1};\n" +
+            "\n" +
             "function result = glbl_base_add_mut(list, item)\n" + 
             "  result = glbl_base_append(list, glbl_base_singleton_list(item));\n" + 
             "endfunction\n" + 

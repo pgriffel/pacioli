@@ -3,8 +3,11 @@ package pacioli.symboltable;
 import java.util.Optional;
 
 import pacioli.Location;
+import pacioli.PacioliException;
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.types.FunctionType;
 import pacioli.types.PacioliType;
+import pacioli.types.Schema;
 import pacioli.types.ast.TypeNode;
 
 public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
@@ -74,12 +77,29 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
         this.isRef = Optional.of(isRef);
     }
     
+    public PacioliType getType() {
+        if (inferredType.isPresent()) {
+            return inferredType.get();
+        } else if (declaredType.isPresent()) {
+            return declaredType.get().evalType(false);
+        } else {
+            throw new RuntimeException("No type info",
+                    new PacioliException(getLocation(), "no inferred or declared type"));
+        }
+    }
+    
     public PacioliType inferredType() {
         if (inferredType.isPresent()) {
             return inferredType.get();
         } else {
-            throw new RuntimeException("No initialRefInfo value, ValueInfo must have been resolved");
+            throw new RuntimeException("No type info (did you mean getType() instead of inferredType()?)",
+                    new PacioliException(getLocation(), "no inferred type"));
         }
+    }
+    
+    public Boolean isFunction() {
+        Schema schema = (Schema) getType();
+        return schema.type instanceof FunctionType;
     }
     
     public void setinferredType(PacioliType type) {

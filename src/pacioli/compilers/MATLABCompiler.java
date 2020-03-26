@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.CompilationSettings;
+import pacioli.Pacioli;
 import pacioli.Printer;
 import pacioli.Utils;
 import pacioli.ast.definition.ValueDefinition;
@@ -13,6 +14,7 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarUnitInfo;
+import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.ValueInfo;
@@ -40,6 +42,17 @@ public class MATLABCompiler implements SymbolTableVisitor {
         ExpressionNode transformed = definition.body;
         if (transformed instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformed;
+            
+            List<String> usedGlobals = new ArrayList<String>();
+            for (SymbolInfo usedInfo:code.uses()) {
+                if (usedInfo.isGlobal() && usedInfo instanceof ValueInfo) {
+                    ValueInfo vinfo = (ValueInfo) usedInfo ;
+                    if (!vinfo.isFunction()) {
+                        Pacioli.logln("USES %s", vinfo.name());
+                        usedGlobals.add(vinfo.globalName());
+                    }
+                }
+            }
             List<String> args = new ArrayList<String>();
             for (String arg: code.arguments) {
                 args.add(arg.toLowerCase());
@@ -48,6 +61,12 @@ public class MATLABCompiler implements SymbolTableVisitor {
                 out.newline();
                 out.format("function result = %s (%s)", info.globalName().toLowerCase(), Utils.intercalate(",", args));
                 out.newlineUp();
+                
+                for (String gl: usedGlobals) {
+                    out.format("global %s;", gl);
+                    out.newline();
+                }
+                
                 code.expression.accept(new MatlabGenerator(out, settings));
                 out.newlineDown();
                 out.format("endfunction;");
@@ -56,6 +75,12 @@ public class MATLABCompiler implements SymbolTableVisitor {
                 out.newline();
                 out.format("function retval = %s (%s)", info.globalName().toLowerCase(), Utils.intercalate(",", args));
                 out.newlineUp();
+                
+                for (String gl: usedGlobals) {
+                    out.format("global %s;", gl);
+                    out.newline();
+                }
+                
                 out.format(" retval = ");
                 code.expression.accept(new MatlabGenerator(out, settings));
                 out.format(";");

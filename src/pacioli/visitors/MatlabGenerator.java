@@ -30,6 +30,7 @@ import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
+import pacioli.types.FunctionType;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
@@ -112,11 +113,18 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(IdentifierNode node) {
         if (node.isGlobal()) {
+            if (false) {
             out.write("fetch_global(\"");
             out.write(node.getInfo().generic().getModule().toLowerCase());
             out.write("\", \"");
             out.write(node.getName().toLowerCase());
             out.write("\")");
+            } else {
+                if (node.getInfo().isFunction()) {
+                    out.write("@");
+                }
+                out.write(node. getInfo().globalName().toLowerCase());
+            }
         } else {
             out.write(node.getName().toLowerCase());
         }
