@@ -35,6 +35,7 @@ import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.TypeBase;
 import pacioli.types.ast.BangTypeNode;
@@ -407,7 +408,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         for (IdentifierNode id : vars) {
             names.add(id.getName());
         }
-        final List<String> freshNames = Utils.freshNames(names);
+        final List<String> freshNames = SymbolTable.freshNames(names);
         Pacioli.logln("freshNames=%s,\n uses=%s\n body=%s", freshNames, node.tuple.uses(), node.pretty());
 
         // Create an application of apply to a lambda with two arguments: 

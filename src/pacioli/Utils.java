@@ -52,17 +52,6 @@ public class Utils {
         return intercalate(seperator, strings);
     }
 
-    // todo: remove this. See symbol table.
-    private static int counter;
-    
-    public static List<String> freshNames(List<String> names) {
-        List<String> fresh = new ArrayList<String>();
-        for (String name : names) {
-            fresh.add("fresh_" + name + counter);
-        }
-        return fresh;
-    }
-
     // http://stackoverflow.com/questions/326390/how-to-create-a-java-string-from-the-contents-of-a-file
     public static String readFile(File path) throws IOException {
         FileInputStream stream = new FileInputStream(path);

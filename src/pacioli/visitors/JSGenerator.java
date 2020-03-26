@@ -28,6 +28,7 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
+import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.TypeBase;
 import pacioli.types.matrix.MatrixType;
@@ -434,7 +435,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         for (IdentifierNode id : vars) {
             names.add(id.getName());
         }
-        final List<String> freshNames = Utils.freshNames(names);
+        final List<String> freshNames = SymbolTable.freshNames(names);
 
         // Create an application of apply to a lambda with two arguments: 
         // the fresh names and the tuple. The freshnames get bound to the 

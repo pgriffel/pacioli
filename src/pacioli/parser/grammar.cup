@@ -105,6 +105,10 @@ parser code {:
     private static String freshUnderscore() {
         return "_" + counter++;
     }
+    
+    private static String freshName(String prefix) {
+        return prefix + counter++;
+    }
 
     private static ExpressionNode binop(String name, ExpressionNode left, ExpressionNode right) {
         pacioli.Location loc = left.getLocation().join(right.getLocation());
@@ -162,7 +166,8 @@ parser code {:
 
     private static ExpressionNode desugarComprehension(pacioli.Location loc, ExpressionNode e, List<Object> ps) throws PacioliException {
 
-        String accuName = "accu";
+        String accuName = freshName("accu");
+        String tupName = freshName("tup");
 
         ExpressionNode addMut = new IdentifierNode("add_mut", loc);
         ExpressionNode accu = new IdentifierNode(accuName, loc);
@@ -187,11 +192,11 @@ parser code {:
 
                 ExpressionNode apply = new IdentifierNode("apply", loc);
                 ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc);
-                ExpressionNode tup = new IdentifierNode("tup", loc);
+                ExpressionNode tup = new IdentifierNode(tupName, loc);
                 ExpressionNode loopList = new IdentifierNode("loop_list", loc);
                 ExpressionNode accuId = new IdentifierNode(accuName, loc);
                 ExpressionNode restApp = new ApplicationNode(apply, Arrays.asList(restLambda, tup), loc);
-                ExpressionNode restAppLambda = new LambdaNode(Arrays.asList(accuName, "tup"), restApp, loc);
+                ExpressionNode restAppLambda = new LambdaNode(Arrays.asList(accuName, tupName), restApp, loc);
 
                 body = new ApplicationNode(loopList, Arrays.asList(accuId, restAppLambda, clause.list), loc);
             } else if (part instanceof AssignmentClause) {

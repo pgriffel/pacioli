@@ -118,4 +118,22 @@ public class SymbolTable<R extends SymbolInfo> {
     }
     
 
+    
+    private static int namesCounter;
+    
+    /**
+     * Fresh names for generated code. Assumes that globals and locals 
+     * are in the glbl and lcl subspaces. This ensures no name clashses
+     * with the fresh variable names. 
+     * 
+     * @param names
+     * @return
+     */
+    public static List<String> freshNames(List<String> names) {
+        List<String> fresh = new ArrayList<String>();
+        for (String name : names) {
+            fresh.add("fresh_" + name + namesCounter);
+        }
+        return fresh;
+    }
 }
