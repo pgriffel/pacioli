@@ -26,11 +26,13 @@ import java.util.Set;
 
 import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.Substitution;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.visitors.Devaluator;
+import pacioli.types.visitors.UsesVars;
 import uom.Unit;
 
 /**
@@ -47,7 +49,12 @@ public interface PacioliType extends Printable {
     
     public void accept(TypeVisitor visitor);
 
-    public Set<Var> typeVars();
+    //public Set<Var> typeVars();
+    
+    public default Set<Var> typeVars() {
+        Pacioli.logln("YOYOYOYOYO!!!!!!!!");
+        return new UsesVars().typeNodeAccept(this);
+    };
 
     public PacioliType applySubstitution(Substitution subs);
 

@@ -36,8 +36,8 @@ import uom.Unit;
 
 public class Schema extends AbstractType {
 
-    private final Set<Var> variables;
-    private final PacioliType type;
+    public final Set<Var> variables;
+    public final PacioliType type;
 
     public Schema(Set<Var> context, PacioliType type) {
         this.variables = context;

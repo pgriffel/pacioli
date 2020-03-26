@@ -23,7 +23,7 @@ import uom.Unit;
 
 public class IndexType extends AbstractType {
 
-    private final PacioliType indexSet;
+    public final PacioliType indexSet;
 
     public IndexType(List<TypeIdentifier> indexSets, List<IndexSetInfo> indexSetInfos) {
         this.indexSet = new IndexList(indexSets, indexSetInfos);
