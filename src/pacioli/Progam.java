@@ -786,7 +786,7 @@ public class Progam extends AbstractPrintable {
     
     static final String mc = "\n" +
             "\n" +
-            "glbl_base__ = {0,1};\n" +
+            "global glbl_base__ = {0,1};\n" +
             "\n" +
             "function result = glbl_base_add_mut(list, item)\n" + 
             "  result = glbl_base_append(list, glbl_base_singleton_list(item));\n" + 
@@ -1104,6 +1104,16 @@ public class Progam extends AbstractPrintable {
             "function num = glbl_base_sum(x,y)\n" + 
             "  num = x+y;\n" + 
             "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "function lst = glbl_base_reverse(x)\n" + 
+            "  lst = flip(x);\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
             "\n" + 
             "\n" + 
             "\n" + 

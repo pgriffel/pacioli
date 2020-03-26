@@ -48,7 +48,6 @@ public class MATLABCompiler implements SymbolTableVisitor {
                 if (usedInfo.isGlobal() && usedInfo instanceof ValueInfo) {
                     ValueInfo vinfo = (ValueInfo) usedInfo ;
                     if (!vinfo.isFunction()) {
-                        Pacioli.logln("USES %s", vinfo.name());
                         usedGlobals.add(vinfo.globalName());
                     }
                 }
