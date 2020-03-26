@@ -247,16 +247,6 @@ public class MatrixType extends AbstractType {
                 columnUnit.raise(power));
     }
 
-    public static Set<Var> unitVars(Unit<TypeBase> unit) {
-        Set<Var> all = new LinkedHashSet<Var>();
-        for (TypeBase base : unit.bases()) {
-            if (base instanceof Var) {
-                all.add((Var) base);
-            }
-        }
-        return all;
-    }
-
     @Override
     public Set<String> unitVecVarCompoundNames() {
         Set<String> names = new LinkedHashSet<String>();

@@ -56,7 +56,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
             throw new PacioliException("Cannot unify a %s and a %s", description(), other.description());
         }
     }
-
+/*
     @Override
     public PacioliType simplify() {
         Substitution mgu = new Substitution();
@@ -136,7 +136,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         Substitution tmp = new Substitution(minVar, minVar.multiply(rest));
         return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
     }
-
+*/
     @Override
     public boolean isInstanceOf(PacioliType other) {
         return isInstanceOf(this, other);

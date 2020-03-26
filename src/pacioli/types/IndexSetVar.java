@@ -172,11 +172,6 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     }
 
     @Override
-    public PacioliType simplify() {
-        return this;
-    }
-
-    @Override
     public PacioliType reduce() {
         return this;
     }

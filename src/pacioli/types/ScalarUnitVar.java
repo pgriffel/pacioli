@@ -161,11 +161,6 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
 
     @Override
-    public PacioliType simplify() {
-        return this;
-    }
-
-    @Override
     public PacioliType reduce() {
         return this;
     }

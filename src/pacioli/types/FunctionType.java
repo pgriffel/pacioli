@@ -53,15 +53,7 @@ public class FunctionType extends AbstractType {
         out.print(" -> ");
         range.printPretty(out);
     }
-/*
-    @Override
-    public Set<Var> typeVars() {
-        Set<Var> all = new LinkedHashSet<Var>();
-        all.addAll(domain.typeVars());
-        all.addAll(range.typeVars());
-        return all;
-    }
-*/
+    
     @Override
     public Set<String> unitVecVarCompoundNames() {
         Set<String> all = new LinkedHashSet<String>();

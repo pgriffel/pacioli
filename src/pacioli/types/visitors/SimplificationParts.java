@@ -1,7 +1,7 @@
 package pacioli.types.visitors;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 import pacioli.types.FunctionType;
@@ -20,68 +20,66 @@ import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 import uom.Unit;
 
-public class UsesVars implements TypeVisitor {
+public class SimplificationParts implements TypeVisitor {
 
-    private Stack<Set<Var>> nodeStack = new Stack<Set<Var>>();
+    private Stack<List<Unit<TypeBase>>> nodeStack = new Stack<List<Unit<TypeBase>>>();
     
 
-    public Set<Var> varSetAccept(PacioliType child) {
+    public List<Unit<TypeBase>> partsAccept(PacioliType child) {
         // Pacioli.logln("accept: %s", child.getClass());
         child.accept(this);
         return nodeStack.pop();
     }
     
-    public void returnTypeNode(Set<Var> value) {
+    public void returnParts(List<Unit<TypeBase>> value) {
         // Pacioli.logln("return: %s", value.getClass());
         nodeStack.push(value);
     }
     
     @Override
     public void visit(FunctionType type) {
-        Set<Var> all = new LinkedHashSet<Var>();
-        all.addAll(varSetAccept(type.domain));
-        all.addAll(varSetAccept(type.range));
-        returnTypeNode(all);
+        List<Unit<TypeBase>> all = new ArrayList<Unit<TypeBase>>();
+        all.addAll(partsAccept(type.domain));
+        all.addAll(partsAccept(type.range));
+        returnParts(all);
     }
 
     @Override
     public void visit(Schema type) {
-        Set<Var> freeVars = new LinkedHashSet<Var>(type.type.typeVars());
+        List<Unit<TypeBase>> freeVars = new ArrayList<Unit<TypeBase>>(type.type.typeVars());
         freeVars.removeAll(type.variables);
-        returnTypeNode(freeVars);
+        returnParts(freeVars);
     }
 
     @Override
     public void visit(IndexList type) {
-        returnTypeNode(new LinkedHashSet<Var>());
+        returnParts(new ArrayList<Unit<TypeBase>>());
     }
 
     @Override
     public void visit(IndexType type) {       
-        Set<Var> vars = new LinkedHashSet<Var>();
+        List<Unit<TypeBase>> vars = new ArrayList<Unit<TypeBase>>();
         if (type.isVar()) {
             vars.add((Var) type.indexSet);
         }
-        returnTypeNode(vars);
+        returnParts(vars);
     }
 
     @Override
     public void visit(MatrixType type) {
-        Set<Var> all = new LinkedHashSet<Var>();
-        all.addAll(unitVars(type.factor));
+        List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
+        parts.add(type.factor);
         if (type.rowDimension.isVar() || type.rowDimension.width() > 0) {
-            all.addAll(unitVars(type.rowUnit));
+            parts.add(type.rowUnit);
         }
         if (type.columnDimension.isVar() || type.columnDimension.width() > 0) {
-            all.addAll(unitVars(type.columnUnit));
+            parts.add(type.columnUnit);
         }
-        all.addAll(varSetAccept(type.rowDimension));
-        all.addAll(varSetAccept(type.columnDimension));
-        returnTypeNode(all);
+        returnParts(parts);
     }
     
-    public static Set<Var> unitVars(Unit<TypeBase> unit) {
-        Set<Var> all = new LinkedHashSet<Var>();
+    public static List<Unit<TypeBase>> unitVars(Unit<TypeBase> unit) {
+        List<Unit<TypeBase>> all = new ArrayList<Unit<TypeBase>>();
         for (TypeBase base : unit.bases()) {
             if (base instanceof Var) {
                 all.add((Var) base);
@@ -92,39 +90,31 @@ public class UsesVars implements TypeVisitor {
 
     @Override
     public void visit(IndexSetVar type) {
-        Set<Var> vars = new LinkedHashSet<Var>();
-        vars.add(type);
-        returnTypeNode(vars);
+        returnParts(new ArrayList<Unit<TypeBase>>());
     }
 
     @Override
     public void visit(ParametricType type) {
-        Set<Var> all = new LinkedHashSet<Var>();
+        List<Unit<TypeBase>> all = new ArrayList<Unit<TypeBase>>();
         for (PacioliType arg : type.args) {
-            all.addAll(varSetAccept(arg));
+            all.addAll(partsAccept(arg));
         }
-        returnTypeNode(all);
+        returnParts(all);
     }
 
     @Override
     public void visit(ScalarUnitVar type) {
-        Set<Var> vars = new LinkedHashSet<Var>();
-        vars.add(type);
-        returnTypeNode(vars);
+        returnParts(new ArrayList<Unit<TypeBase>>());
     }
 
     @Override
     public void visit(TypeVar type) {
-        Set<Var> vars = new LinkedHashSet<Var>();
-        vars.add(type);
-        returnTypeNode(vars);
+        returnParts(new ArrayList<Unit<TypeBase>>());
     }
 
     @Override
     public void visit(VectorUnitVar type) {
-        Set<Var> vars = new LinkedHashSet<Var>();
-        vars.add(type);
-        returnTypeNode(vars);
+        returnParts(new ArrayList<Unit<TypeBase>>());
     }
 
 }
