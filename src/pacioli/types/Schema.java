@@ -97,11 +97,6 @@ public class Schema extends AbstractType {
     }
 
     @Override
-    public PacioliType reduce() {
-        return new Schema(variables, type.reduce());
-    }
-
-    @Override
     public void accept(TypeVisitor visitor) {
         visitor.visit(this);
     }

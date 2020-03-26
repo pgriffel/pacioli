@@ -170,11 +170,6 @@ public class IndexList extends AbstractType {
     }
 
     @Override
-    public PacioliType reduce() {
-        return this;
-    }
-
-    @Override
     public String compileToMVM(CompilationSettings settings) {
         // TODO Auto-generated method stub
         return null;

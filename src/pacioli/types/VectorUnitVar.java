@@ -160,11 +160,6 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
             return new Substitution(this, other);
         }
     }
-
-    @Override
-    public PacioliType reduce() {
-        return this;
-    }
     
     @Override
     public String compileToJS() {

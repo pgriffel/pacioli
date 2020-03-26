@@ -199,26 +199,6 @@ public class ParametricType extends AbstractType {
     }
 
     @Override
-    public PacioliType reduce() {
-        List<PacioliType> items = new ArrayList<PacioliType>();
-        for (PacioliType type : args) {
-            items.add(type.reduce());
-        }
-        try {
-            if (!definition.isPresent()) {
-                // return this;
-                //return new ParametricType(name, definition, items);
-                return new ParametricType(info, definition, items);
-            } else {
-                //return definition.get().constaint(true).reduce(new ParametricType(name, definition, items));
-                return definition.get().constaint(true).reduce(new ParametricType(info, definition, items));
-            }
-        } catch (PacioliException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
     public void accept(TypeVisitor visitor) {
         visitor.visit(this);
     }

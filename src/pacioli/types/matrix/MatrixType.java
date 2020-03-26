@@ -285,11 +285,6 @@ public class MatrixType extends AbstractType {
     public String description() {
         return "matrix type";
     }
-
-    @Override
-    public PacioliType reduce() {
-        return this;
-    }
     
     @Override
     public PacioliType applySubstitution(Substitution subs) {

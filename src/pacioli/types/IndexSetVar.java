@@ -166,11 +166,6 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     }
 
     @Override
-    public PacioliType reduce() {
-        return this;
-    }
-
-    @Override
     public String compileToJS() {
         return "'_" + this.pretty() + "_'";
     }

@@ -94,11 +94,6 @@ public class FunctionType extends AbstractType {
     }
 
     @Override
-    public PacioliType reduce() {
-        return new FunctionType(domain.reduce(), range.reduce());
-    }
-
-    @Override
     public void accept(TypeVisitor visitor) {
         visitor.visit(this);
     }
