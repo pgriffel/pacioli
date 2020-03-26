@@ -1,6 +1,5 @@
 package pacioli.symboltable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +10,6 @@ import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
-import uom.Unit;
 
 public class VectorUnitInfo extends UnitInfo implements SymbolInfo {
 

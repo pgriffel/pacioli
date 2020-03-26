@@ -2,20 +2,14 @@ package pacioli.compilers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import pacioli.CompilationSettings;
 import pacioli.Printer;
 import pacioli.Utils;
-import pacioli.ast.definition.IndexSetDefinition;
-import pacioli.ast.definition.UnitDefinition;
-import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
-import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
-import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarUnitInfo;
@@ -23,11 +17,7 @@ import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorUnitInfo;
-import pacioli.types.TypeBase;
-import pacioli.visitors.JSGenerator;
-import pacioli.visitors.MVMGenerator;
 import pacioli.visitors.MatlabGenerator;
-import uom.DimensionedNumber;
 
 public class MATLABCompiler implements SymbolTableVisitor {
 

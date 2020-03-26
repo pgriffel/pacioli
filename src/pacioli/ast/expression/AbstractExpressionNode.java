@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Set;
 
 import pacioli.Location;
-import pacioli.Pacioli;
 import pacioli.Progam;
 import pacioli.Typing;
 import pacioli.ast.AbstractNode;

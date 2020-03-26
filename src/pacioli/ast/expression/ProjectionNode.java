@@ -13,14 +13,14 @@ public class ProjectionNode extends AbstractExpressionNode {
 
     public final List<ConstNode> columns;
     public final ExpressionNode body;
-    private final TypeNode hardType;
+    //private final TypeNode hardType;
     public MatrixType type;
 
     public ProjectionNode(List<ConstNode> columns, TypeNode hardType, ExpressionNode body, Location location) {
         super(location);
         this.columns = columns;
         this.body = body;
-        this.hardType = hardType;
+        //this.hardType = hardType;
     }
 
     private ProjectionNode(List<ConstNode> columns, TypeNode hardType, ExpressionNode body, MatrixType type,
@@ -28,7 +28,7 @@ public class ProjectionNode extends AbstractExpressionNode {
         super(location);
         this.columns = columns;
         this.body = body;
-        this.hardType = hardType;
+        //this.hardType = hardType;
         this.type = type;
     }
 

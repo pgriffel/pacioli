@@ -15,7 +15,6 @@ import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Utils;
 import pacioli.ast.Visitor;
-import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
 import pacioli.types.PacioliType;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;

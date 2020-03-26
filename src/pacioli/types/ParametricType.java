@@ -69,13 +69,6 @@ public class ParametricType extends AbstractType {
         this.args = args;
         this.definition = Optional.of(definition);
     }
-
-    private ParametricType(String name, Optional<TypeDefinition> definition, List<PacioliType> args) {
-        this.info = null;
-        this.name = name;
-        this.args = args;
-        this.definition = definition;
-    }
     
     public ParametricType(TypeInfo info, Optional<TypeDefinition> definition, List<PacioliType> args) {
         this.info = info;

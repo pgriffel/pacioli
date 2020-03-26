@@ -22,7 +22,6 @@ import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorUnitInfo;
 import pacioli.types.TypeBase;
-import pacioli.visitors.JSGenerator;
 import uom.DimensionedNumber;
 
 public class JSCompiler implements SymbolTableVisitor {
