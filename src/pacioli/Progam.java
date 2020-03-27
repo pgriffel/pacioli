@@ -1153,6 +1153,13 @@ public class Progam extends AbstractPrintable {
             "    result = z();\n" + 
             "  endif\n" + 
             "endfunction\n" + 
+            "\n" +
             "\n" + 
+            "function num = glbl_base_skip()\n" + 
+            "  num = 0" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+
             "";
 }
