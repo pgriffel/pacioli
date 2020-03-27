@@ -201,13 +201,19 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                 //returnType(new ParametricType(node.getName(), types));
                 returnType(new ParametricType((TypeInfo) node.op.info, types));
             } else {
-
+                Boolean doReduce = reduce || true;   
                 assert (definition.get() instanceof TypeDefinition);
                 TypeDefinition typeDefinition = (TypeDefinition) definition.get();
-
+                TypeNode rhs = typeDefinition.rhs;
+                if (rhs instanceof TypeApplicationNode) {
+                    TypeApplicationNode app = (TypeApplicationNode) rhs;
+                    if (node.op.getName().equals(app.op.getName())) {
+                        doReduce = false;
+                    }
+                }
                 // if (reduce && definition.getModule() == node.op.home()) {
                 //if (reduce && !node.op.info.generic().isExternal()) {
-                if (reduce || true) {
+                if (doReduce) {
                     try {
                         //returnType(typeDefinition.constaint(true).reduce(new ParametricType(typeDefinition, types)));
                         returnType(typeDefinition.constaint(true).reduce(new ParametricType((TypeInfo) node.op.info, Optional.of(typeDefinition), types)));
@@ -216,7 +222,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                     }
                 } else {
                     // todo: add info. Not done because it is unused
-                    returnType(new ParametricType(typeDefinition, types));
+                    //returnType(new ParametricType(typeDefinition, types));
+                    returnType(new ParametricType((TypeInfo) node.op.info, Optional.of(typeDefinition), types));
                 }
             }
         }

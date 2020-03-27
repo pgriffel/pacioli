@@ -425,7 +425,7 @@ public class Pacioli {
 
         String dir = "E:/code/private/pacioli-samples/";
 
-        List<String> samples = Arrays.asList(
+        List<String> samples = Arrays.asList( /*
             "abstract-resource/abstract-resource.pacioli",
             "adt/adt.pacioli",
             "adt/adt_use.pacioli",
@@ -471,8 +471,8 @@ public class Pacioli {
             "service/service.pacioli",
             //"shock_tube/shock_tube.pacioli",  // works, but slow
             //"soda/soda.pacioli",
-            //"solver/solver.pacioli",  // svd has changed
-            //"statement/statement.pacioli",   // bugged, also in old version
+            "solver/solver.pacioli",*/
+            "statement/statement.pacioli",   // bugged, also in old version
             "test/test.pacioli",
             "shells/shells.pacioli"                
             );
