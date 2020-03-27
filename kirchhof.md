@@ -18,9 +18,9 @@ The problem comes from one of Strang's textbooks and asks to compute
 the equilibrium in an electricity network [Strang 88]. The network
 consists of four nodes and four edges connected as follows
 
-<center>
-![Electricity Network](network.png)
-</center>
+<p align="center">
+    <img width="100" src="network.png">
+</p>
 
 The conductivity on the edges is 1, 2, 2 and 1. Node n3 is the ground
 node.
@@ -36,9 +36,8 @@ Modelling the network
 
 Create a file `kirchhof.pacioli` containing 
 
-    module Kirchhof;
 
-    include si;
+    import si;
 
     defindex Node = {n0, n1, n2, n3};
 
@@ -163,8 +162,8 @@ First define matrices A'C and A'CA. Let's name them `M1` and
 `M2`. Function `diagonal` from the standard library creates a diagonal
 matrix from the conductance vector.
 
-    define M1 = grounded_incidence^T .* diagonal(conductance);
-    define M2 = M1 .* grounded_incidence;
+    define M1 = grounded_incidence^T '*' diagonal(conductance);
+    define M2 = M1 '*' grounded_incidence;
 
 Type inference gives the following types
 
@@ -180,10 +179,10 @@ current. Solving the matrices gives the potential, and
 back-substitution gives the current.
 
     define potential(battery, inflow) =
-      M2 .\ (M1 .* battery - inflow);
+      M2 '\' (M1 '*' battery - inflow);
 
     define current(battery, inflow) = 
-      conductance * (battery - grounded_incidence .* potential(battery, inflow));
+      conductance * (battery - grounded_incidence '*' potential(battery, inflow));
 
 The inferred types are
 
