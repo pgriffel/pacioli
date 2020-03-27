@@ -456,12 +456,12 @@ public class Lexer implements java_cup.runtime.Scanner, sym {
       Location right= new Location(yyline, yycolumn+yylength(), yychar+yylength());
       return symbolFactory.newSymbol(name, sym, left, right,val);
   }
-  private void error(String message) throws IOException {
+  private void error(String message) {
     //pacioli.Location errorLocation = new pacioli.Location(file, source, yychar, yychar+yylength());
     pacioli.Location from = new pacioli.Location(file, yyline, yycolumn, yychar);
     pacioli.Location to = new pacioli.Location(file, yyline, yycolumn+yylength(), yychar+yylength());
     pacioli.Location errorLocation = from.join(to);
-    throw new IOException(new PacioliException(errorLocation, message));
+    throw new RuntimeException("Parse error", new PacioliException(errorLocation, message));
   }
 
 
