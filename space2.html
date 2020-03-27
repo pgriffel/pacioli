@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pacioli.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Pacioli 3D</title>
+  </head>
+
+  <body onload="onLoad();">
+    <header>
+      <div class="inner">
+        <h1>Pacioli</h1>
+        <h2>Java implementation of the Pacioli language</h2>
+        <a href="https://github.com/pgriffel/pacioli" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+
+<h2>Example</h2>
+
+<div style="overflow: auto">
+  <div id="space1" style="float:left; margin: 10px"></div>
+  <div id="space2" style="float:left; margin: 10px"></div>
+</div>
+
+<h2>Pacioli Code</h2>
+
+<p>Create a file <code>blocks.pacioli</code> with the following code.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">module Blocks;
+
+include geometry;
+
+defunit metre &quot;m&quot;;
+
+define mesh1 =
+  cube_mesh(3*|metre|);
+
+define mesh2 =
+  let d = -15*|milli:metre| in
+      mesh_move(cube_mesh(30*|milli:metre|), space_vec(d, d, d))
+  end;
+</code></pre></div>
+<p>Compile it to JavaScript with command</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">pacioli compile -target javascript blocks.pacioli
+</code></pre></div>
+<p>This produces the file <code>blocks.js</code> to be included later.</p>
+
+<h2>HTML</h2>
+
+<p>The required HTML are two divs will hold the 3D spaces. Create an HTML
+page with the following includes:</p>
+
+<div class="highlight"><pre><code class="html"><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;three.min.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+<span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;numeric-1.2.6.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+<span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;pacioli-0.2.0.min.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+<span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;blocks.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</code></pre></div>
+
+<p>Add two divs with id <code>space1</code> and <code>space2</code>. Something like the
+following will place the divs besides one another.</p>
+
+<div class="highlight"><pre><code class="html"><span class="nt">&lt;div</span> <span class="na">style=</span><span class="s">&quot;overflow: auto&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;space1&quot;</span> <span class="na">style=</span><span class="s">&quot;float:left; margin: 10px&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
+  <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;space2&quot;</span> <span class="na">style=</span><span class="s">&quot;float:left; margin: 10px&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
+</code></pre></div>
+
+<h2>JavaScript Code</h2>
+
+<p>Initially the 3D spaces have to be created. Add the following <code>onLoad</code>
+handler:</p>
+
+<div class="highlight"><pre><code class="javascript"><span class="kd">function</span> <span class="nx">onLoad</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">spaceElement1</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;space1&quot;</span><span class="p">)</span>
+    <span class="kd">var</span> <span class="nx">spaceElement2</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;space2&quot;</span><span class="p">)</span>
+    
+    <span class="kd">var</span> <span class="nx">space1</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">Space</span><span class="p">(</span><span class="nx">spaceElement1</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">width</span><span class="o">:</span> <span class="mi">300</span><span class="p">,</span>
+        <span class="nx">height</span><span class="o">:</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="nx">unit</span><span class="o">:</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">unit</span><span class="p">(</span><span class="s2">&quot;centi&quot;</span><span class="p">,</span> <span class="s2">&quot;metre&quot;</span><span class="p">),</span>
+        <span class="nx">axisSize</span><span class="o">:</span> <span class="mi">30</span>
+    <span class="p">})</span>
+    
+    <span class="kd">var</span> <span class="nx">space2</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">Space</span><span class="p">(</span><span class="nx">spaceElement2</span><span class="p">,</span> <span class="p">{</span>
+        <span class="nx">width</span><span class="o">:</span> <span class="mi">300</span><span class="p">,</span>
+        <span class="nx">height</span><span class="o">:</span> <span class="mi">200</span><span class="p">,</span>
+        <span class="nx">unit</span><span class="o">:</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">unit</span><span class="p">(</span><span class="s2">&quot;metre&quot;</span><span class="p">),</span>
+        <span class="nx">axisSize</span><span class="o">:</span> <span class="mi">15</span>
+    <span class="p">})</span>
+          
+    <span class="nx">space1</span><span class="p">.</span><span class="nx">showAxes</span><span class="p">()</span>
+    <span class="nx">space2</span><span class="p">.</span><span class="nx">showAxes</span><span class="p">()</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>Don&#39;t forget to call <code>onLoad</code>  when the page is loaded.</p>
+
+<p>The last thing is to add the meshes. Add the following to the <code>onLoad</code>
+function. In a dynamic setting this would typically be done in an
+event handler.</p>
+
+<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">mesh1</span> <span class="o">=</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">value</span><span class="p">(</span><span class="s2">&quot;Blocks&quot;</span><span class="p">,</span> <span class="s2">&quot;mesh1&quot;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">mesh2</span> <span class="o">=</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">value</span><span class="p">(</span><span class="s2">&quot;Blocks&quot;</span><span class="p">,</span> <span class="s2">&quot;mesh2&quot;</span><span class="p">)</span>
+
+<span class="nx">space1</span><span class="p">.</span><span class="nx">addMesh</span><span class="p">(</span><span class="nx">mesh2</span><span class="p">,</span> <span class="p">{</span><span class="nx">wireframe</span><span class="o">:</span> <span class="kc">true</span><span class="p">});</span>
+<span class="nx">space2</span><span class="p">.</span><span class="nx">addMesh</span><span class="p">(</span><span class="nx">mesh1</span><span class="p">,</span> <span class="p">{</span><span class="nx">transparent</span><span class="o">:</span> <span class="kc">true</span><span class="p">});</span>
+<span class="nx">space2</span><span class="p">.</span><span class="nx">addMesh</span><span class="p">(</span><span class="nx">mesh2</span><span class="p">,</span> <span class="p">{</span><span class="nx">wireframe</span><span class="o">:</span> <span class="kc">true</span><span class="p">});</span>
+
+<span class="nx">space1</span><span class="p">.</span><span class="nx">draw</span><span class="p">()</span>
+<span class="nx">space2</span><span class="p">.</span><span class="nx">draw</span><span class="p">()</span>
+</code></pre></div>
+
+<script>
+
+      function onLoad() {
+
+          var spaceElement1 = document.getElementById("space1")
+          var spaceElement2 = document.getElementById("space2")
+
+          var space1 = new Pacioli.Space(spaceElement1, {
+              width: 300,
+              height: 200,
+              unit: Pacioli.unit("centi", "metre"),
+              axisSize: 30
+          })
+          var space2 = new Pacioli.Space(spaceElement2, {
+              width: 300,
+              height: 200,
+              unit: Pacioli.unit("metre"),
+              axisSize: 15
+          })
+      
+          space1.showAxes()
+          space2.showAxes()
+
+          var mesh1 = Pacioli.value("Blocks", "mesh1")
+          var mesh2 = Pacioli.value("Blocks", "mesh2")
+
+          space1.addMesh(mesh2, {wireframe: true});
+          space2.addMesh(mesh1, {transparent: true});
+          space2.addMesh(mesh2, {wireframe: true});
+ 
+          space1.draw()
+          space2.draw()
+
+      }
+
+</script>
+
+<script type="text/javascript" src="javascripts/three.min.js"></script>
+
+<script type="text/javascript" src="javascripts/numeric-1.2.6.js"></script>
+
+<script type="text/javascript" src="javascripts/pacioli-0.2.0.min.js"></script>
+
+<script type="text/javascript" src="javascripts/blocks.js"></script>
+
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/pgriffel/pacioli/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/pgriffel/pacioli/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/pgriffel/pacioli"></a> is maintained by <a href="https://github.com/pgriffel">pgriffel</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+2013-2014 Paul Griffioen
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-5527808-1");
+pageTracker._trackPageview();
+</script>
+    
+  
+  </body>
+</html>
+
