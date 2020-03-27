@@ -28,8 +28,6 @@ dimensionless vector space for index set `P`.
 
 Create a module "Curiosity" and define two index sets
 
-    module Curiosity;
-
     defindex Action = {picture, sample, travel, laser};
 
     defindex Resource = {power, communication, time};
@@ -233,7 +231,7 @@ Conversion Matrices
 With the available data we can compute how much resources the plan
 uses.
 
-    define usage = consumption .* plan;
+    define usage = consumption '*' plan;
 
 The `.*` operator is the dot product. The value of `usage` is
 
@@ -261,7 +259,7 @@ The defined matrix `conv` contains the proper conversion factors to
 perform the desired transformation. We can get the resource usage in
 plan units by
 
-    conv .* usage;
+    conv '*' usage;
 
 It results in
 
@@ -274,9 +272,9 @@ It results in
 This is the same resource usage, but now in plan units.
 
 A different way to look at it is that the total transformation is
-`conv .* consumption`.
+`conv '*' consumption`.
 
-    define conv_consumption = conv .* consumption;
+    define conv_consumption = conv '*' consumption;
 
 It is the composition of the conversion and the consumption
 matrix. The type of this matrix is
@@ -346,7 +344,7 @@ vector has type `Resource!plan_unit/sol`. The capacity needs to be
 scaled by a number of sols to get to total plan units. The following
 definition computes the remaining capacity:
 
-    define remaining_capacity = capacity *c |sol| - conv_usage;
+    define remaining_capacity = capacity '*.' |sol| - conv_usage;
 
 The value is
 
@@ -378,7 +376,7 @@ could define such a conversion, but it is just the inverse of matrix
 `conv`. We can convert the capacity vector with the dimensional
 inverse operator as follows:
 
-    conv^D .* capacity;
+    conv^D '*' capacity;
 
 It gives the capacity in operating units
 
@@ -457,7 +455,7 @@ It gives
 This used the conversed capacity. We can also convert the worktime
 from operating units to plan units. 
 
-    conv^R .* worktime;
+    conv^R '*' worktime;
 
 This conversion requires the reciprocal. It gives
 
@@ -471,12 +469,12 @@ The following equivalent formulations to compute the total worktime at
 full capacity may help explain the reciprocal.
 
     inner(worktime, conv_capacity);
-    worktime^T .* conv_capacity;
-    worktime^T .* conv^D .* capacity;
-    (worktime^T .* conv^D)^T^T .* capacity;
-    (conv^D^T .* worktime^T^T)^T .* capacity;
-    (conv^R .* worktime)^T .* capacity;
-    inner(conv^R .* worktime, capacity);
+    worktime^T '*' conv_capacity;
+    worktime^T '*' conv^D '*' capacity;
+    (worktime^T '*' conv^D)^T^T '*' capacity;
+    (conv^D^T '*' worktime^T^T)^T '*' capacity;
+    (conv^R '*' worktime)^T '*' capacity;
+    inner(conv^R '*' worktime, capacity);
 
 All lines give the total value `174.100000 workhour/sol`.
 
