@@ -455,7 +455,7 @@ public class Pacioli {
             "kirchhof/kirchhof.pacioli",
             "klein/klein.pacioli",
             "krylov/krylov.pacioli",
-            //"loop/loop.pacioli",  // bug introduced STATEMENTS
+            "loop/loop.pacioli",  // bug introduced STATEMENTS
             "magic/magic.pacioli",
             "math/math.pacioli",
             "minijava/minijava.pacioli",

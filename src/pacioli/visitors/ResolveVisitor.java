@@ -17,6 +17,7 @@ import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Declaration;
+import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.TypeDefinition;
@@ -24,8 +25,10 @@ import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
@@ -197,6 +200,33 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
     }
 
+    
+    @Override
+    public void visit(ApplicationNode node) {
+        node.function.accept(this);
+        
+        if (node.function instanceof IdentifierNode) {
+            IdentifierNode id = (IdentifierNode) node.function;
+            if (id.getInfo().getDefinition().isPresent()) {
+                ValueDefinition def = (ValueDefinition) id.getInfo().getDefinition().get();
+                if (def.body instanceof LambdaNode) {
+                    LambdaNode lambda = (LambdaNode) def.body; 
+                    if (lambda.arguments.size() != node.arguments.size()) {
+                        throw new RuntimeException("Cannot resolve",
+                                new PacioliException(node.getLocation(), 
+                                        "Number of arguments %s do not match required %s",
+                                        node.arguments.size(),
+                                        lambda.arguments.size()));
+                    }
+                }
+            }
+        }
+        
+        for (ExpressionNode argument : node.arguments) {
+            argument.accept(this);
+        }
+    }
+    
     @Override
     public void visit(AssignmentNode node) {
 
