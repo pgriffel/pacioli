@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pacioli.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Matrix Tutorial</title>
+  </head>
+
+  <body >
+    <header>
+      <div class="inner">
+        <h1>Pacioli</h1>
+        <h2>Java implementation of the Pacioli language</h2>
+        <a href="https://github.com/pgriffel/pacioli" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+
+<h1>Matrix Tutorial</h1>
+
+<p>An introduction to matrices in Pacioli</p>
+
+<hr>
+
+<h2>Dimensioned Vector Spaces</h2>
+
+<p>This tutorial demonstrates Pacioli&#39;s matrix features with some
+simplistic calculations on the resource consumption of NASA&#39;s mars
+rover Curiosity using dimensioned vector spaces for the rover&#39;s
+actions and for its resources.</p>
+
+<p>A dimensioned vector space is a vector space where a unit of
+measurement is associated with each element. For any index set <code>P</code>
+there exist many dimensioned vector spaces, written like <code>P!u</code>, <code>P!v</code>,
+... . The exclamation mark denotes a vector space and is followed by a
+unique identifier for a particular space. Space <code>P!</code> is the unique
+dimensionless vector space for index set <code>P</code>.</p>
+
+<p>Create a module &quot;Curiosity&quot; and define two index sets</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">defindex Action = {picture, sample, travel, laser};
+
+defindex Resource = {power, communication, time};
+</code></pre></div>
+<p>To keep the model small, the actions are limited to taking a picture,
+taking a soil sample, traveling or firing the laser. This is not an
+accurate model of Curiosity!</p>
+
+<p>Now we can define the spaces. In this case the index sets and the
+units are known at compile time, so we can define the spaces
+directly. Before we do that we define the individual units that are
+used throughout the tutorial:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">defunit sol &quot;sol&quot;;
+defunit metre &quot;m&quot;;
+defunit second &quot;s&quot;;
+defunit hour &quot;hour&quot; = 3600*second;
+defunit joule &quot;J&quot;;
+defunit watt &quot;W&quot; = joule/second;
+defunit bit &quot;b&quot;;
+defunit byte &quot;B&quot; = 8*bit;
+defunit workhour &quot;workhour&quot;;
+</code></pre></div>
+<p>Define a dimensioned vector space for actions as follows.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">defunit Action!unit = {
+    travel: metre
+};
+</code></pre></div>
+<p>Traveling is measured in meters, the other actions are dimensionless.</p>
+
+<p>For resources we define two spaces. One for the units in which the
+actions are planned, and one for the system&#39;s units.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">defunit Resource!plan_unit = {
+  power: watt*hour,
+  communication: megabit,
+  time: hour
+};
+
+defunit Resource!operating_unit = {
+  power: joule,
+  communication: byte,
+  time: second
+};
+</code></pre></div>
+<p>With these dimensioned vector spaces defined we can define vectors and
+matrices from these spaces.</p>
+
+<h2>The Matrix Type</h2>
+
+<p>Any numerical value in Pacioli is a matrix. A scalar is a 1x1 matrix
+and a vector a nx1 or 1xn matrix. All these matrix values are typed by
+the matrix type.</p>
+
+<p>The most general matrix type is <code>a*P!u per Q!v</code>. The combination of a
+scalar unit <code>a</code>, the row units <code>P!u</code>, and the column units <code>Q!v</code>
+matches any matrix type. The next table lists some common specific
+ones.</p>
+
+<table>
+  <tr>
+    <th>Type</th>
+    <th>Shorthand</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>1 per 1</td>
+    <td>1</td>
+    <td>dimensionless scalar</td>
+  </tr>
+  <tr>
+    <td>a per 1</td>  
+    <td>a</td>
+    <td>dimensioned scalar</td>
+  </tr>
+  <tr>
+    <td>P! per 1</td>
+    <td>P!</td>
+    <td>dimensionless column vector</td>
+  </tr>
+  <tr>
+    <td>P!u per 1</td>  
+    <td>P!u</td>
+    <td>dimensioned column vector</td>
+  </tr>
+  <tr>
+    <td>a*P! per 1</td>
+    <td>a*P!</td>
+    <td>homogeneous dimensioned column vector</td>
+  </tr>
+  <tr>
+    <td>1 per Q!v</td>
+    <td></td>
+    <td>dimensioned row vector</td>
+  </tr>
+  <tr>
+    <td>P! per Q!</td>
+    <td></td>
+    <td>dimensionless rectangular matrix</td>
+  </tr>
+  <tr>
+    <td>P!u per P!v</td>
+    <td></td>
+    <td>square matrix</td>
+  </tr>
+  <tr>
+    <td>P!u per P!u</td>
+    <td></td>
+    <td>even more square matrix</td>
+  </tr>
+  <tr>
+    <td>...</td>
+    <td></td>
+    <td>...</td>
+  </tr>
+</table> 
+
+<p>The first matrix we define is the capacity vector. The numbers are
+from <a href="http://msl-scicorner.jpl.nasa.gov/scienceplanning/">MSL Science Corner</a>.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">defmatrix capacity :: Resource!plan_unit/sol = {
+  power -&gt; 250,
+  communication -&gt; 250,
+  time -&gt; 6
+};
+</code></pre></div>
+<p>If you add a line <code>capacity;</code> to the script and run it you should see
+output like</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index                Value
+-------------------------------------
+power           250.000000 hour*W/sol
+communication   250.000000 Mb/sol
+time              6.000000 hour/sol
+</code></pre></div>
+<p>This is the capacity vector in the proper units of measurement.</p>
+
+<p>Next we define a matrix for resource consumption. This is a real
+matrix in the sense that it is a linear transformation. It transforms
+vectors from an action to a resource space. </p>
+
+<p>A matrix that transforms vectors from the <code>Q!v</code> space to the <code>P!u</code> has
+type <code>P!u per Q!v</code>. Define the consumption matrix as follows.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">defmatrix consumption :: Resource!operating_unit per Action!unit = {
+  power, sample -&gt; 2700000,
+  power, laser -&gt; 2520,
+  power, travel -&gt; 5000,
+  communication, picture -&gt; 1500000,
+  communication, sample -&gt; 30000000,
+  communication, laser -&gt; 200000,
+  time, sample -&gt; 64800,
+  time, laser -&gt; 360,
+  time, travel -&gt; 120
+};
+</code></pre></div>
+<p>The numbers are roughly guessed from the <a href="http://www.psrd.hawaii.edu/Oct06/ChemCam_Fact_Sheet.pdf">ChemCam fact
+sheet</a>, the <a href="http://en.wikipedia.org/wiki/Curiosity_(rover)">Curiosity wiki</a>,
+<a href="http://mars.jpl.nasa.gov/msl/multimedia/raw/">NASA&#39;s raw images website</a>, and the <a href="http://www-personal.umich.edu/%7Eatreya/Articles/SAM_Mahaffy_2012.pdf">The Sample Analysis at
+Mars Investigation and Instrument Suite
+documentation</a>. If you print the matrix it looks like:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index                              Value
+--------------------------------------------
+power, sample             2700000.000000 J
+power, travel                5000.000000 J/m
+power, laser                 2520.000000 J
+communication, picture    1500000.000000 B
+communication, sample    30000000.000000 B
+communication, laser       200000.000000 B
+time, sample                64800.000000 s
+time, travel                  120.000000 s/m
+time, laser                   360.000000 s
+</code></pre></div>
+<p>Every combination of resource and action is in the proper unit. </p>
+
+<p>The last matrix we define is the scientific plan. Define the plan as
+follows.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">defmatrix plan :: Action!unit = {
+   picture -&gt; 30,
+   travel -&gt; 25,
+   laser -&gt; 10
+};
+</code></pre></div>
+<p>We plan to take thirty pictures, travel twenty-five meters, and fire
+the laser ten times.</p>
+
+<h2>Conversion Matrices</h2>
+
+<p>With the available data we can compute how much resources the plan
+uses.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">define usage = consumption &#39;*&#39; plan;
+</code></pre></div>
+<p>The <code>*</code> operator is the matrix product. The value of <code>usage</code> is</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index                    Value
+--------------------------------
+power             150200.000000 J
+communication    6500000.000000 B
+time                6600.000000 s
+</code></pre></div>
+<p>The numbers are correct, but we would like to see them in plan
+units. If we infer the types we see resource usage is in operating
+unit.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">usage :: Resource!operating_unit
+</code></pre></div>
+<p>The consumption matrix transformed the <code>Action!unit</code> vector into a
+<code>Resource!operating_unit</code> vector.</p>
+
+<p>To convert from <code>Resource!operating_unit</code> to <code>Resource!plan_unit</code> we
+can create a conversion matrix as follows:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">defconv conv :: Resource!plan_unit per Resource!operating_unit;
+</code></pre></div>
+<p>The defined matrix <code>conv</code> contains the proper conversion factors to
+perform the desired transformation. We can get the resource usage in
+plan units by</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">conv &#39;*&#39; usage;
+</code></pre></div>
+<p>It results in</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index                Value
+---------------------------------
+power            41.722222 hour*W
+communication    52.000000 Mb
+time              1.833333 hour
+</code></pre></div>
+<p>This is the same resource usage, but now in plan units.</p>
+
+<p>A different way to look at it is that the total transformation is
+<code>conv &#39;*&#39; consumption</code>.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">define conv_consumption = conv &#39;*&#39; consumption;
+</code></pre></div>
+<p>It is the composition of the conversion and the consumption
+matrix. The type of this matrix is</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">conv_consumption :: Resource!plan_unit per Action!unit
+</code></pre></div>
+<p>It makes the total transformation from action units to
+resource plan units in one step. The matrix is:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index                         Value
+--------------------------------------------
+power, sample            750.000000 hour*W
+power, travel              1.388889 hour*W/m
+power, laser               0.700000 hour*W
+communication, picture    12.000000 Mb
+communication, sample    240.000000 Mb
+communication, laser       1.600000 Mb
+time, sample              18.000000 hour
+time, travel               0.033333 hour/m
+time, laser                0.100000 hour
+</code></pre></div>
+<h2>Scalar Unit Factors</h2>
+
+<p>Now that we can convert between the different resource spaces we can
+compare the capacity with the plan. The difference between the
+capacity and value <code>conv_usage</code> from the previous section is the
+remaining resources. The converted usage and the capacity are both in
+plan units so they should be comparable. However, the following fails:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">capacity - conv_usage;
+</code></pre></div>
+<p>It correctly complains that the capacity is per sol and that the usage
+isn&#39;t.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">During inference at line 94
+
+capacity - conv_usage;
+^^^^^^^^^^^^^^^^^^^^^
+the infered type must match known types:
+
+(Resource!plan_unit/sol, Resource!plan_unit) -&gt; a
+ =
+(a*D!b per E!c, a*D!b per E!c) -&gt; a*D!b per E!c 
+
+
+Function domain&#39;s types must match:
+
+Tuple(Resource!plan_unit/sol, Resource!plan_unit)
+ =
+Tuple(a*D!b per E!c, a*D!b per E!c) 
+
+
+Tuple arugment 2 must match:
+
+Resource!plan_unit
+ =
+Resource!plan_unit/sol 
+
+
+Cannot unify units 1 and 1/sol
+</code></pre></div>
+<p>The type of the usage is <code>Resource!plan_unit</code> while the capacity
+vector has type <code>Resource!plan_unit/sol</code>. The capacity needs to be
+scaled by a number of sols to get to total plan units. The following
+definition computes the remaining capacity:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">define remaining_capacity = capacity &#39;*.&#39; |sol| - conv_usage;
+</code></pre></div>
+<p>The value is</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index                Value
+---------------------------------
+power           208.277778 hour*W
+communication   198.000000 Mb
+time              4.166667 hour
+</code></pre></div>
+<p>Unit factors like <code>|sol|</code> can usually be moved around easily in
+expressions. For instance, the following matrix types are all
+equivalent</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">a*(P!u per Q!v) = (a*P!u) per Q!v = P!u per (Q!v/a) = (P!u per Q!v)*a
+</code></pre></div>
+<p>Note how the factor&#39;s reciprocal appears when it is moved to the
+co-variant column dimension.</p>
+
+<h2>The Dimensional Inverse</h2>
+
+<p>The reverse conversion from plan units to operating units requires the
+dimensional inverse of the conversion matrix. The dimensional inverse
+operator makes a conversion go in the opposite direction. For example
+to convert the capacity from plan units to operating units would
+require a <code>Resource!operating_unit per Resource!plan_unit</code> matrix. We
+could define such a conversion, but it is just the inverse of matrix
+<code>conv</code>. We can convert the capacity vector with the dimensional
+inverse operator as follows:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">conv^D &#39;*&#39; capacity;
+</code></pre></div>
+<p>It gives the capacity in operating units</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index                     Value
+-------------------------------------
+power             900000.000000 J/sol
+communication   31250000.000000 B/sol
+time               21600.000000 s/sol
+</code></pre></div>
+<p>The dimensional inverse swaps the row and column dimension, but also
+takes the reciprocal. It has property <code>x^D = x^R^T = x^T^R</code>. The
+combination of the transpose and the reciprocal is exactly what is
+needed to invert a conversion matrix.</p>
+
+<p>The dimensional inverse together with the transpose and the reciprocal
+form a strongly connected triple of functions. They have very useful
+properties in the context of dimensioned vector spaces. For example
+<code>x^D^D = x</code>, just as with transposes and reciprocals. Also the earlier
+<code>x^D = x^R^T</code> is true for any permutation of <code>D</code>, <code>R</code> and <code>T</code>.</p>
+
+<p>Say we are interested in the work time for the Curiosity operators and
+we have the following (completely made up) productivity numbers:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">defmatrix productivity :: Resource!operating_unit/workhour = {
+  power -&gt; 10000,
+  communication -&gt; 500000,
+  time -&gt; 1000
+};
+</code></pre></div>
+<p>For the purpose of illustration let&#39;s assume the work is linearly
+related to these imaginary productivity numbers. First we take the
+reciprocal</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">define worktime = productivity^R;
+</code></pre></div>
+<p>It has the desired unit <code>workhour/Resource!operating_unit</code> and value</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index                Value
+-------------------------------------
+power             0.000100 workhour/J
+communication     0.000002 workhour/B
+time              0.001000 workhour/s
+</code></pre></div>
+<p>We can multiply it with the usage to get the amount of work for a plan</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">usage * worktime;
+</code></pre></div>
+<p>The value is</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index                Value
+-----------------------------------
+power            15.020000 workhour
+communication    13.000000 workhour
+time              6.600000 workhour
+</code></pre></div>
+<p>Or we can get take the inner product</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">inner(usage, worktime);
+</code></pre></div>
+<p>to get total</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">34.620000 workhour
+</code></pre></div>
+<p>To see how many work is required to operate Curiosity at full capacity compute</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">worktime * conv_capacity;
+</code></pre></div>
+<p>It gives</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index                Value
+---------------------------------------
+power            90.000000 workhour/sol
+communication    62.500000 workhour/sol
+time             21.600000 workhour/sol
+</code></pre></div>
+<p>This used the conversed capacity. We can also convert the worktime
+from operating units to plan units. </p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">conv^R &#39;*&#39; worktime;
+</code></pre></div>
+<p>This conversion requires the reciprocal. It gives</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index                Value
+------------------------------------------
+power             0.360000 workhour/hour/W
+communication     0.250000 workhour/Mb
+time              3.600000 workhour/hour
+</code></pre></div>
+<p>The following equivalent formulations to compute the total worktime at
+full capacity may help explain the reciprocal.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">inner(worktime, conv_capacity);
+worktime^T &#39;*&#39; conv_capacity;
+worktime^T &#39;*&#39; conv^D &#39;*&#39; capacity;
+(worktime^T &#39;*&#39; conv^D)^T^T &#39;*&#39; capacity;
+(conv^D^T &#39;*&#39; worktime^T^T)^T &#39;*&#39; capacity;
+(conv^R &#39;*&#39; worktime)^T &#39;*&#39; capacity;
+inner(conv^R &#39;*&#39; worktime, capacity);
+</code></pre></div>
+<p>All lines give the total value <code>174.100000 workhour/sol</code>.</p>
+
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/pgriffel/pacioli/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/pgriffel/pacioli/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/pgriffel/pacioli"></a> is maintained by <a href="https://github.com/pgriffel">pgriffel</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+2013-2014 Paul Griffioen
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-5527808-1");
+pageTracker._trackPageview();
+</script>
+    
+  
+  </body>
+</html>
+

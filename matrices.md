@@ -195,7 +195,7 @@ documentation][SAM_Mahaffy]. If you print the matrix it looks like:
     Index                              Value
     --------------------------------------------
     power, sample             2700000.000000 J
-    power, travel               5000.000000 J/m
+    power, travel                5000.000000 J/m
     power, laser                 2520.000000 J
     communication, picture    1500000.000000 B
     communication, sample    30000000.000000 B
@@ -233,7 +233,7 @@ uses.
 
     define usage = consumption '*' plan;
 
-The `.*` operator is the dot product. The value of `usage` is
+The `*` operator is the matrix product. The value of `usage` is
 
     Index                    Value
     --------------------------------
