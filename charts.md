@@ -14,29 +14,28 @@ labels are added automatically.
 
 Create Pacioli file `series.pacioli` and add the following code
 
-    module Series;
-    
-    defunit person "p";
+```
+defunit person "p";
 
-    defindex Continent = {Asia, Africa, Americas, Europe, Oceania};
+defindex Continent = {Asia, Africa, Americas, Europe, Oceania};
 
-    # source: http://en.wikipedia.org/wiki/List_of_continents_by_population
+# source: http://en.wikipedia.org/wiki/List_of_continents_by_population
 
-    defmatrix population :: person*Continent! = {
-      Asia -> 4298723000,
-      Africa -> 1110635000,
-      Americas -> 972005000,
-      Europe -> 742452000,
-      Oceania -> 38304000
-    };
+defmatrix population :: person*Continent! = {
+  Asia -> 4298723000,
+  Africa -> 1110635000,
+  Americas -> 972005000,
+  Europe -> 742452000,
+  Oceania -> 38304000
+};
 
-    define wave =
-      let n = 1000 in
-          [sin(i/n*6*pi*|radian|) | i <- naturals(n)]
-      end;
+define wave =
+  let n = 1000 in
+      [sin(i/n*6*pi*|radian|) | i <- naturals(n)]
+  end;
 
-    define random_numbers = [random() | x <- naturals(1000)];
-
+define random_numbers = [random() | x <- naturals(1000)];
+```
 
 Compile it to JavaScript with command
 
@@ -45,27 +44,27 @@ Compile it to JavaScript with command
 This produces the file `series.js` that can be included with the
 required libraries into a HTML page as follows:
 
-{% highlight html %}
+```html
 <script type="text/javascript" src="d3.v2.js"></script>
 <script type="text/javascript" src="numeric-1.2.6.js"></script>
 <script type="text/javascript" src="pacioli-0.2.0.min.js"></script>
 <script type="text/javascript" src="series.js"></script>
-{% endhighlight %}
+```
 
 Include the pacioli style sheet:
 
-{% highlight html %}
+```html
 <link rel="stylesheet" type="text/css" href="pacioli.css" media="screen" />
-{% endhighlight %}
+```
 
 Finally add the following divs to the body of the page:
 
-{% highlight html %}
+```html
 <div id="chart1"></div>
 <div id="chart2"></div>
 <div id="chart3"></div>
 <div id="chart4"></div>
-{% endhighlight %}
+```
 
 
 Bar Chart
@@ -73,14 +72,14 @@ Bar Chart
 
 Add the following code to create a bar chart for the population:
 
-{% highlight javascript %}
+```javascript
 var parent = document.getElementById("chart1")
 var population = Pacioli.value("Series", "population")
 var chart = new Pacioli.BarChart(parent, population)
 chart.options.label = "World Population"
 chart.options.unit = Pacioli.unit("giga", "person")
 chart.draw()
-{% endhighlight %}
+```
 
 <div id="chart1"></div>
 
@@ -90,7 +89,7 @@ Pie Chart
 
 Add the following code to create a pie chart for the population:
 
-{% highlight javascript %}
+```javascript
 var parent = document.getElementById("chart2")
 var population = Pacioli.value("Series", "population")
 var chart = new Pacioli.PieChart(parent, population, {
@@ -100,7 +99,7 @@ var chart = new Pacioli.PieChart(parent, population, {
     unit: Pacioli.unit("giga", "person")
 })
 chart.draw()
-{% endhighlight %}
+```
 
 This should set the second chart to 
 
@@ -110,7 +109,7 @@ This should set the second chart to
 Histogram
 ---------
 
-{% highlight javascript %}
+```javascript
 var parent = document.getElementById("chart3")
 var chart = new Pacioli.Histogram(parent, random_numbers, {
     label: "Random Numbers",
@@ -118,7 +117,7 @@ var chart = new Pacioli.Histogram(parent, random_numbers, {
     width: 500, height: 300
 })
 chart.draw()
-{% endhighlight %}
+```
 
 <div id="chart3"></div>
 
@@ -126,10 +125,10 @@ chart.draw()
 Line Chart
 ----------
 
-{% highlight javascript %}
+```javascript
 var parent = document.getElementById("chart4")
 new Pacioli.LineChart(parent, wave, {width: 500, height: 300}).draw()
-{% endhighlight %}
+```
 
 <div id="chart4"></div>
 

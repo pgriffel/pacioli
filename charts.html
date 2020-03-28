@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pacioli.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Pacioli Charts</title>
+  </head>
+
+  <body onload="onLoad();">
+    <header>
+      <div class="inner">
+        <h1>Pacioli</h1>
+        <h2>Java implementation of the Pacioli language</h2>
+        <a href="https://github.com/pgriffel/pacioli" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+
+<h2>Setup</h2>
+
+<p>A Pacioli vector or list of scalars can be displayed in a chart on a
+webpage. Values are converted to the right units of measurement and
+labels are added automatically.</p>
+
+<p>Create Pacioli file <code>series.pacioli</code> and add the following code</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">defunit person &quot;p&quot;;
+
+defindex Continent = {Asia, Africa, Americas, Europe, Oceania};
+
+# source: http://en.wikipedia.org/wiki/List_of_continents_by_population
+
+defmatrix population :: person*Continent! = {
+  Asia -&gt; 4298723000,
+  Africa -&gt; 1110635000,
+  Americas -&gt; 972005000,
+  Europe -&gt; 742452000,
+  Oceania -&gt; 38304000
+};
+
+define wave =
+  let n = 1000 in
+      [sin(i/n*6*pi*|radian|) | i &lt;- naturals(n)]
+  end;
+
+define random_numbers = [random() | x &lt;- naturals(1000)];
+</code></pre></div>
+<p>Compile it to JavaScript with command</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">pacioli compile -target javascript series.pacioli
+</code></pre></div>
+<p>This produces the file <code>series.js</code> that can be included with the
+required libraries into a HTML page as follows:</p>
+<div class="highlight"><pre><code class="html language-html" data-lang="html"><span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;d3.v2.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+<span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;numeric-1.2.6.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+<span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;pacioli-0.2.0.min.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+<span class="nt">&lt;script </span><span class="na">type=</span><span class="s">&quot;text/javascript&quot;</span> <span class="na">src=</span><span class="s">&quot;series.js&quot;</span><span class="nt">&gt;&lt;/script&gt;</span>
+</code></pre></div>
+<p>Include the pacioli style sheet:</p>
+<div class="highlight"><pre><code class="html language-html" data-lang="html"><span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">&quot;stylesheet&quot;</span> <span class="na">type=</span><span class="s">&quot;text/css&quot;</span> <span class="na">href=</span><span class="s">&quot;pacioli.css&quot;</span> <span class="na">media=</span><span class="s">&quot;screen&quot;</span> <span class="nt">/&gt;</span>
+</code></pre></div>
+<p>Finally add the following divs to the body of the page:</p>
+<div class="highlight"><pre><code class="html language-html" data-lang="html"><span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;chart1&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;chart2&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;chart3&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">&quot;chart4&quot;</span><span class="nt">&gt;&lt;/div&gt;</span>
+</code></pre></div>
+<h2>Bar Chart</h2>
+
+<p>Add the following code to create a bar chart for the population:</p>
+<div class="highlight"><pre><code class="javascript language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">parent</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;chart1&quot;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">population</span> <span class="o">=</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">value</span><span class="p">(</span><span class="s2">&quot;Series&quot;</span><span class="p">,</span> <span class="s2">&quot;population&quot;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">chart</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">BarChart</span><span class="p">(</span><span class="nx">parent</span><span class="p">,</span> <span class="nx">population</span><span class="p">)</span>
+<span class="nx">chart</span><span class="p">.</span><span class="nx">options</span><span class="p">.</span><span class="nx">label</span> <span class="o">=</span> <span class="s2">&quot;World Population&quot;</span>
+<span class="nx">chart</span><span class="p">.</span><span class="nx">options</span><span class="p">.</span><span class="nx">unit</span> <span class="o">=</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">unit</span><span class="p">(</span><span class="s2">&quot;giga&quot;</span><span class="p">,</span> <span class="s2">&quot;person&quot;</span><span class="p">)</span>
+<span class="nx">chart</span><span class="p">.</span><span class="nx">draw</span><span class="p">()</span>
+</code></pre></div>
+<div id="chart1"></div>
+
+<h2>Pie Chart</h2>
+
+<p>Add the following code to create a pie chart for the population:</p>
+<div class="highlight"><pre><code class="javascript language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">parent</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;chart2&quot;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">population</span> <span class="o">=</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">value</span><span class="p">(</span><span class="s2">&quot;Series&quot;</span><span class="p">,</span> <span class="s2">&quot;population&quot;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">chart</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">PieChart</span><span class="p">(</span><span class="nx">parent</span><span class="p">,</span> <span class="nx">population</span><span class="p">,</span> <span class="p">{</span>
+    <span class="nx">width</span><span class="o">:</span> <span class="mi">500</span><span class="p">,</span> <span class="nx">height</span><span class="o">:</span> <span class="mi">500</span><span class="p">,</span>
+    <span class="nx">label</span><span class="o">:</span> <span class="s2">&quot;World Population (p=person)&quot;</span><span class="p">,</span>
+    <span class="nx">labelOffset</span><span class="o">:</span> <span class="mf">1.2</span><span class="p">,</span>
+    <span class="nx">unit</span><span class="o">:</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">unit</span><span class="p">(</span><span class="s2">&quot;giga&quot;</span><span class="p">,</span> <span class="s2">&quot;person&quot;</span><span class="p">)</span>
+<span class="p">})</span>
+<span class="nx">chart</span><span class="p">.</span><span class="nx">draw</span><span class="p">()</span>
+</code></pre></div>
+<p>This should set the second chart to </p>
+
+<div id="chart2"></div>
+
+<h2>Histogram</h2>
+<div class="highlight"><pre><code class="javascript language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">parent</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;chart3&quot;</span><span class="p">)</span>
+<span class="kd">var</span> <span class="nx">chart</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">Histogram</span><span class="p">(</span><span class="nx">parent</span><span class="p">,</span> <span class="nx">random_numbers</span><span class="p">,</span> <span class="p">{</span>
+    <span class="nx">label</span><span class="o">:</span> <span class="s2">&quot;Random Numbers&quot;</span><span class="p">,</span>
+    <span class="nx">bins</span><span class="o">:</span> <span class="mi">25</span><span class="p">,</span> 
+    <span class="nx">width</span><span class="o">:</span> <span class="mi">500</span><span class="p">,</span> <span class="nx">height</span><span class="o">:</span> <span class="mi">300</span>
+<span class="p">})</span>
+<span class="nx">chart</span><span class="p">.</span><span class="nx">draw</span><span class="p">()</span>
+</code></pre></div>
+<div id="chart3"></div>
+
+<h2>Line Chart</h2>
+<div class="highlight"><pre><code class="javascript language-javascript" data-lang="javascript"><span class="kd">var</span> <span class="nx">parent</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s2">&quot;chart4&quot;</span><span class="p">)</span>
+<span class="k">new</span> <span class="nx">Pacioli</span><span class="p">.</span><span class="nx">LineChart</span><span class="p">(</span><span class="nx">parent</span><span class="p">,</span> <span class="nx">wave</span><span class="p">,</span> <span class="p">{</span><span class="nx">width</span><span class="o">:</span> <span class="mi">500</span><span class="p">,</span> <span class="nx">height</span><span class="o">:</span> <span class="mi">300</span><span class="p">}).</span><span class="nx">draw</span><span class="p">()</span>
+</code></pre></div>
+<div id="chart4"></div>
+
+<script>
+
+function onLoad() {
+
+    var population = Pacioli.value("Series", "population")
+    var wave = Pacioli.value("Series", "wave")
+    var random_numbers = Pacioli.value("Series", "random_numbers")
+
+    var parent = document.getElementById("chart1")
+    var chart = new Pacioli.BarChart(parent, population)
+    chart.options.label = "World Population"
+    chart.options.unit = Pacioli.unit("giga", "person")
+    chart.draw()
+
+    var parent = document.getElementById("chart2")
+    var chart = new Pacioli.PieChart(parent, population, {
+        width: 500, height: 500,
+        label: "World Population (p=person)",
+        labelOffset: 1.2,
+        unit: Pacioli.unit("giga", "person")
+    })
+    chart.draw()
+
+    var parent = document.getElementById("chart3")
+    var chart = new Pacioli.Histogram(parent, random_numbers, {
+        label: "Random Numbers",
+        bins: 25, 
+        width: 500, height: 300
+    })
+    chart.draw()
+
+    var parent = document.getElementById("chart4")
+    new Pacioli.LineChart(parent, wave, {width: 500, height: 300}).draw()
+
+}
+
+</script>
+
+<script type="text/javascript" src="javascripts/d3.v2.js"></script>
+
+<script type="text/javascript" src="javascripts/numeric-1.2.6.js"></script>
+
+<script type="text/javascript" src="javascripts/pacioli-0.2.0.min.js"></script>
+
+<script type="text/javascript" src="javascripts/series.js"></script>
+
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/pgriffel/pacioli/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/pgriffel/pacioli/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/pgriffel/pacioli"></a> is maintained by <a href="https://github.com/pgriffel">pgriffel</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+2013-2014 Paul Griffioen
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-5527808-1");
+pageTracker._trackPageview();
+</script>
+    
+  
+  </body>
+</html>
+
