@@ -110,35 +110,43 @@ number of solutions.
 
 We will ground the network by making the column of the ground node
 zero. This differs from the common approach to remove the ground
-column from the incidence matrix. This would require manipulation of
-the index set and the matrix type doesn't support that. If we make the
-column zero we will get the same answer because the solver gives a
-least norm solution.
+column from the incidence matrix. This would require a second index
+set and that is inconvenient. If we make the column zero we can
+avoid that and get the same answer because the solver gives a least
+norm solution.
 
-Instead of filtering the column directly we make a function to do
-that. Add the following code:
+There are many ways to make a column zero. We use standard functions
+to create a diagonal filter matrix and multiply that with the
+incidence matrix. Add the following code
 
-    define filter_column(matrix, column) = 
-      make_matrix([tuple(x, y, get(matrix, x, y)) | x <- row_domain(matrix),
-                                                    y <- column_domain(matrix),
-                                                    y != column]);
-
-Type inference gives the following type for this function.
-
-    filter_column :: for_index B,C: for_unit a: (a*B! per C!, C) -> a*B! per C!
-
-The filtered matrix is of the same shape but with a column set to
-zero. This is just what we need and we can use the function to filter
-the ground column from the incidence matrix
-
-    define grounded_incidence = filter_column(incidence, ground);
-
+```
+define grounded_incidence =
+  incidence '*' diagonal(complement(delta(ground)));
+```
 The type is
 
-    grounded_incidence :: Edge! per Node!
+```
+grounded_incidence :: Edge! per Node!
+```
 
-As expected the result is a dimensionless `Edge` by `Node` matrix,
-just as the incidence matrix itself.
+The result is a dimensionless `Edge` by `Node` matrix, just as the
+incidence matrix itself.
+
+Function `delta` creates a vector with a 1 for the given element and
+zeros everywhere else. Function `complement` turns every 1 into 0 and
+every 0 into 1. Function `diagonal` creates a diagonal matrix from it. 
+Evaluating `diagonal(complement(delta(ground)))` gives
+
+```
+Node, Node            Value
+---------------------------
+n0, n0             1.000000 
+n1, n1             1.000000 
+n2, n2             1.000000 
+```
+
+By multiplying the incidence matrix with this matrix the column gets
+filtered.
 
 
 Computing Equilibrium
@@ -162,40 +170,58 @@ First define matrices A'C and A'CA. Let's name them `M1` and
 `M2`. Function `diagonal` from the standard library creates a diagonal
 matrix from the conductance vector.
 
-    define M1 = grounded_incidence^T '*' diagonal(conductance);
-    define M2 = M1 '*' grounded_incidence;
+```
+define M1 = grounded_incidence^T '*' diagonal(conductance);
+define M2 = M1 '*' grounded_incidence;
+```
 
 Type inference gives the following types
 
-    M1 :: ampere*Node! per volt*Edge!
-    M2 :: ampere*Node! per volt*Node!
+```
+M1 :: ampere/volt*Node! per Edge!
+M2 :: ampere/volt*Node! per Node!
+```
+
+Note that this can also be written as
+
+```
+M1 :: ampere*Node! per volt*Edge!
+M2 :: ampere*Node! per volt*Node!
+```
 
 This shows that matrix `M1` transforms vectors from the `volt*Edge!`
 space to the `ampere*Node!` space. Similarly matrix `M2` transforms
-vectors from the `volt*Node!` space to the `ampere*Node!`.
+vectors from the `volt*Node!` space to the `ampere*Node!` space.
 
 With the matrices we can compute the potential and the
 current. Solving the matrices gives the potential, and
 back-substitution gives the current.
 
-    define potential(battery, inflow) =
-      M2 '\' (M1 '*' battery - inflow);
+```
+define potential(battery, inflow) =
+  M2 '\' (M1 '*' battery - inflow);
 
-    define current(battery, inflow) = 
-      conductance * (battery - grounded_incidence '*' potential(battery, inflow));
+define current(battery, inflow) = 
+  conductance * (battery - grounded_incidence '*' potential(battery, inflow));
+```
 
 The inferred types are
 
-    potential :: for_index C: for_unit a,b:
-                   (a*Edge! per C!b, a*ampere*Node! per volt*C!b) -> a*Node! per C!b
-    current :: for_unit a:
-                 (a*Edge!, a*ampere*Node!/volt) -> a*ampere*Edge!/volt
+```
+potential :: for_index C: for_unit a,b:
+  (a*Edge! per C!b, a*ampere*Node! per volt*C!b) -> a*Node! per C!b
+
+current :: for_unit a:
+  (a*Edge!, a*ampere*Node!/volt) -> a*ampere*Edge!/volt
+```
 
 These types are correct but too general. The following type
 declarations strengthen them to the desired case.
 
-    declare potential :: (volt*Edge!, ampere*Node!) -> volt*Node!;
-    declare current :: (volt*Edge!, ampere*Node!) -> ampere*Edge!;
+```
+declare potential :: (volt*Edge!, ampere*Node!) -> volt*Node!;
+declare current :: (volt*Edge!, ampere*Node!) -> ampere*Edge!;
+```
 
 These types describe the computations exactly. The volt per edge and
 the ampere per node are given, and the volt per node and the ampere

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pacioli.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Kirchhof Tutorial</title>
+  </head>
+
+  <body >
+    <header>
+      <div class="inner">
+        <h1>Pacioli</h1>
+        <h2>Java implementation of the Pacioli language</h2>
+        <a href="https://github.com/pgriffel/pacioli" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+
+<h1>Kirchhof Tutorial</h1>
+
+<p>Computing the equilibrium in an electrical network.</p>
+
+<hr>
+
+<h2>The Problem</h2>
+
+<p>The problem comes from one of Strang&#39;s textbooks and asks to compute
+the equilibrium in an electricity network [Strang 88]. The network
+consists of four nodes and four edges connected as follows</p>
+
+<p align="center">
+    <img width="100" src="network.png">
+</p>
+
+<p>The conductivity on the edges is 1, 2, 2 and 1. Node n3 is the ground
+node.</p>
+
+<p>The question is to compute the equilibrium potentials and currents
+given batteries on the edges and external currents that flow into the
+nodes.</p>
+
+<h2>Modelling the network</h2>
+
+<p>Create a file <code>kirchhof.pacioli</code> containing </p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">import si;
+
+defindex Node = {n0, n1, n2, n3};
+
+defindex Edge = {e0, e1, e2, e3};
+
+defmatrix incidence :: Edge! per Node! = {
+  e0, n0 -&gt; -1,
+  e0, n1 -&gt;  1,
+  e1, n0 -&gt; -1,
+  e1, n2 -&gt;  1,
+  e2, n1 -&gt;  1,
+  e2, n3 -&gt; -1,
+  e3, n2 -&gt; -1,
+  e3, n3 -&gt;  1
+};
+
+defmatrix conductance :: ampere/volt*Edge! = {
+  e0 -&gt; 1,
+  e1 -&gt; 2,
+  e2 -&gt; 2,
+  e3 -&gt; 1
+};
+
+define ground = Node@n3;
+
+incidence;
+conductance;
+</code></pre></div>
+<p>The code creates a module Kirchhof and include the module SI for the
+units of measurement used later on. The index sets <code>Node</code> and <code>Edge</code>
+contain the four nodes and four edges from the problem. The incidence
+matrix encodes the network and the conductance is put in a vector. The
+last two lines with just <code>incidence;</code> and <code>conductance;</code> are for
+testing and will print the values.</p>
+
+<p>Inferring the types in the file will display:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">ground :: Index(Node);
+toplevel 1 :: Edge! per Node!
+toplevel 2 :: ampere/volt*Edge!
+</code></pre></div>
+<p>The ground node is an index from the <code>Node</code> index set. The incidence
+matrix and the conductance vectors have the types that we defined.</p>
+
+<p>Running the file should produce the following matrix and vector</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index             Value
+-----------------------
+e0, n0        -1.000000 
+e0, n1         1.000000 
+e1, n0        -1.000000 
+e1, n2         1.000000 
+e2, n1         1.000000 
+e3, n2        -1.000000 
+
+Index             Value
+---------------------------
+e0             1.000000 A/V
+e1             2.000000 A/V
+e2             2.000000 A/V
+e3             1.000000 A/V
+</code></pre></div>
+<h2>Grounding the Network</h2>
+
+<p>The next step is to take the ground node into account. Without
+grounding a node the problem is underspecified and has an infinite
+number of solutions.</p>
+
+<p>We will ground the network by making the column of the ground node
+zero. This differs from the common approach to remove the ground
+column from the incidence matrix. This would require a second index
+set and that is inconvenient. If we make the column zero we can
+avoid that and get the same answer because the solver gives a least
+norm solution.</p>
+
+<p>There are many ways to make a column zero. We use standard functions
+to create a diagonal filter matrix and multiply that with the
+incidence matrix. Add the following code</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">define grounded_incidence =
+  incidence &#39;*&#39; diagonal(complement(delta(ground)));
+</code></pre></div>
+<p>The type is</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">grounded_incidence :: Edge! per Node!
+</code></pre></div>
+<p>The result is a dimensionless <code>Edge</code> by <code>Node</code> matrix, just as the
+incidence matrix itself.</p>
+
+<p>Function <code>delta</code> creates a vector with a 1 for the given element and
+zeros everywhere else. Function <code>complement</code> turns every 1 into 0 and
+every 0 into 1. Function <code>diagonal</code> creates a diagonal matrix from it. 
+Evaluating <code>diagonal(complement(delta(ground)))</code> gives</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Node, Node            Value
+---------------------------
+n0, n0             1.000000 
+n1, n1             1.000000 
+n2, n2             1.000000 
+</code></pre></div>
+<p>By multiplying the incidence matrix with this matrix the column gets
+filtered.</p>
+
+<h2>Computing Equilibrium</h2>
+
+<p>With the network grounded we can compute the equilibrium. This
+requires solving Kirchhof and Ohm&#39;s equilibrium equations.</p>
+
+<p>Let unknown x contain potentials at the nodes, unknown y contain
+currents at the edges, matrix A be the incidence matrix and diagonal
+matrix C the conductance. The equilibrium equations are:</p>
+
+<p><center>y = C(b - Ax) and A&#39;y = f</center></p>
+
+<p>Key to the solution are matrices A&#39;C and A&#39;CA. Rearranging the
+equilibrium equations tells that the equation to solve for x is A&#39;CAx
+= A&#39;Cb - f. The value for y then follows from the substitution of the
+value of x.</p>
+
+<p>First define matrices A&#39;C and A&#39;CA. Let&#39;s name them <code>M1</code> and
+<code>M2</code>. Function <code>diagonal</code> from the standard library creates a diagonal
+matrix from the conductance vector.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">define M1 = grounded_incidence^T &#39;*&#39; diagonal(conductance);
+define M2 = M1 &#39;*&#39; grounded_incidence;
+</code></pre></div>
+<p>Type inference gives the following types</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">M1 :: ampere/volt*Node! per Edge!
+M2 :: ampere/volt*Node! per Node!
+</code></pre></div>
+<p>Note that this can also be written as</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">M1 :: ampere*Node! per volt*Edge!
+M2 :: ampere*Node! per volt*Node!
+</code></pre></div>
+<p>This shows that matrix <code>M1</code> transforms vectors from the <code>volt*Edge!</code>
+space to the <code>ampere*Node!</code> space. Similarly matrix <code>M2</code> transforms
+vectors from the <code>volt*Node!</code> space to the <code>ampere*Node!</code> space.</p>
+
+<p>With the matrices we can compute the potential and the
+current. Solving the matrices gives the potential, and
+back-substitution gives the current.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">define potential(battery, inflow) =
+  M2 &#39;\&#39; (M1 &#39;*&#39; battery - inflow);
+
+define current(battery, inflow) = 
+  conductance * (battery - grounded_incidence &#39;*&#39; potential(battery, inflow));
+</code></pre></div>
+<p>The inferred types are</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">potential :: for_index C: for_unit a,b:
+  (a*Edge! per C!b, a*ampere*Node! per volt*C!b) -&gt; a*Node! per C!b
+
+current :: for_unit a:
+  (a*Edge!, a*ampere*Node!/volt) -&gt; a*ampere*Edge!/volt
+</code></pre></div>
+<p>These types are correct but too general. The following type
+declarations strengthen them to the desired case.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">declare potential :: (volt*Edge!, ampere*Node!) -&gt; volt*Node!;
+declare current :: (volt*Edge!, ampere*Node!) -&gt; ampere*Edge!;
+</code></pre></div>
+<p>These types describe the computations exactly. The volt per edge and
+the ampere per node are given, and the volt per node and the ampere
+per edge are computed.</p>
+
+<h2>A Case</h2>
+
+<p>Define a battery and an inflow vector as follows</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">defmatrix my_battery :: volt*Edge! = {
+  e0 -&gt; 12,
+  e1 -&gt; 12,
+  e2 -&gt; 6,
+  e3 -&gt; 6
+};
+
+defmatrix my_inflow :: ampere*Node! = {
+  n0 -&gt; 1,
+  n1 -&gt; 1,
+  n2 -&gt; 6,
+  n3 -&gt; 0
+};
+</code></pre></div>
+<p>The potential and current can be computed with the functions from the
+previous section.</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">define my_potential = potential(my_battery, my_inflow);
+define my_current = current(my_battery, my_inflow);
+
+my_potential;
+my_current;
+</code></pre></div>
+<p>The inferred types are:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">my_potential :: volt*Node!
+my_current :: ampere*Edge!
+</code></pre></div>
+<p>The result is:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index             Value
+-------------------------
+n0           -16.000000 V
+n1             2.333333 V
+n2            -6.666667 V
+
+Index             Value
+-------------------------
+e0            -6.333333 A
+e1             5.333333 A
+e2             7.333333 A
+e3            -0.666667 A
+</code></pre></div>
+<h2>References</h2>
+
+<p>[Strang 88] <i>Gilbert Strang. 1988. Linear Algebra and Its Applications. Brooks</i>
+Cole. </p>
+
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/pgriffel/pacioli/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/pgriffel/pacioli/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/pgriffel/pacioli"></a> is maintained by <a href="https://github.com/pgriffel">pgriffel</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+2013-2014 Paul Griffioen
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-5527808-1");
+pageTracker._trackPageview();
+</script>
+    
+  
+  </body>
+</html>
+
