@@ -179,7 +179,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
 <STRINGSEQ> {
   \"              { yybegin(YYINITIAL); 
                     return symbol("String", STRING, string.toString(), string.length()); }
-  [^\n\r\"\\]+    { string.append(yytext()); }
+  [^\"\\]+    { string.append(yytext()); }
   \\t             { string.append('\t'); }
   \\n             { string.append('\n'); }
   \\r             { string.append('\r'); }

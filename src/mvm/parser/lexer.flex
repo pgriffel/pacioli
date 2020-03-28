@@ -42,10 +42,10 @@ import pacioli.PacioliException;
       Location right= new Location(yyline, yycolumn+yylength(), yychar+yylength());
       return symbolFactory.newSymbol(name, sym, left, right,val);
   }
-  private void error(String message) throws IOException {
+  private void error(String message) {
     pacioli.Location from = new pacioli.Location(file, yyline, yycolumn, yychar);
     pacioli.Location to = new pacioli.Location(file, yyline, yycolumn+yylength(), yychar+yylength());
-    throw new IOException(new PacioliException(from.join(to), message));
+    throw new RuntimeException("Parse error", new PacioliException(from.join(to), message));
   }
 %}
 
@@ -141,7 +141,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
 <STRINGSEQ> {
   \"              { yybegin(YYINITIAL); 
                     return symbol("String", STR, string.toString(), string.length()); }
-  [^\n\r\"\\]+    { string.append(yytext()); }
+  [^\"\\]+    { string.append(yytext()); }
   \\t             { string.append('\t'); }
   \\n             { string.append('\n'); }
   \\r             { string.append('\r'); }
@@ -149,8 +149,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   \\              { string.append('\\'); }
 }
 
-
 /* error fallback */
 [^]               { /* throw new Error("Illegal character <"+ yytext()+">");*/
-		    error("Illegal character <"+ yytext()+">");
+		    error("Illegal character '"+ yytext()+"'");
                   }

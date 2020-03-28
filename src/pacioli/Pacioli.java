@@ -425,14 +425,14 @@ public class Pacioli {
 
         String dir = "E:/code/private/pacioli-samples/";
 
-        List<String> samples = Arrays.asList( /*
+        List<String> samples = Arrays.asList( 
             "abstract-resource/abstract-resource.pacioli",
             "adt/adt.pacioli",
             "adt/adt_use.pacioli",
             "alias/alias.pacioli",
             "apply_mag/apply_mag.pacioli",
             //"biglist/biglist.pacioli",  // okay but slow
-            //"blas/blas.pacioli",  // bugged, also in old version
+            //"blas/blas.pacioli",  // experiment
             "blocks/blocks.pacioli",
             "bom/bom.pacioli",
             "commodity/commodity.pacioli",
@@ -449,7 +449,7 @@ public class Pacioli {
             "good/good.pacioli",
             "grass/grass.pacioli",
             "hello_world/hello_world.pacioli",
-            //"holtzman/holtzman.pacioli",
+            //"holtzman/holtzman.pacioli",  // obsolete
             "indexing/indexing.pacioli",
             "intro/intro.pacioli",
             "kirchhof/kirchhof.pacioli",
@@ -470,9 +470,9 @@ public class Pacioli {
             "series/series.pacioli",
             "service/service.pacioli",
             //"shock_tube/shock_tube.pacioli",  // works, but slow
-            //"soda/soda.pacioli",
-            "solver/solver.pacioli",*/
-            "statement/statement.pacioli",   // bugged, also in old version
+            //"soda/soda.pacioli",   // obsolete
+            "solver/solver.pacioli",
+            "statement/statement.pacioli",
             "test/test.pacioli",
             "shells/shells.pacioli"                
             );
