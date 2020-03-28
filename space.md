@@ -19,7 +19,6 @@ Pacioli Code
 
 Create a file `blocks.pacioli` with the following code.
 
-    module Blocks;
     
     include geometry;
     
@@ -39,28 +38,29 @@ Compile it to JavaScript with command
 
 This produces the file `blocks.js` to be included later.
 
+
 HTML
 ----
 
 The required HTML are two divs will hold the 3D spaces. Create an HTML
 page with the following includes:
 
-{% highlight html %}
+```html
 <script type="text/javascript" src="three.min.js"></script>
 <script type="text/javascript" src="numeric-1.2.6.js"></script>
 <script type="text/javascript" src="pacioli-0.2.0.min.js"></script>
 <script type="text/javascript" src="blocks.js"></script>
-{% endhighlight %}
+```
 
 Add two divs with id `space1` and `space2`. Something like the
 following will place the divs besides one another.
 
-{% highlight html %}
+```html
 <div style="overflow: auto">
   <div id="space1" style="float:left; margin: 10px"></div>
   <div id="space2" style="float:left; margin: 10px"></div>
 </div>
-{% endhighlight %}
+```
 
 
 JavaScript Code
@@ -69,7 +69,7 @@ JavaScript Code
 Initially the 3D spaces have to be created. Add the following `onLoad`
 handler:
 
-{% highlight javascript %}
+```javascript
 function onLoad() {
     var spaceElement1 = document.getElementById("space1")
     var spaceElement2 = document.getElementById("space2")
@@ -91,7 +91,7 @@ function onLoad() {
     space1.showAxes()
     space2.showAxes()
 }
-{% endhighlight %}
+```
 
 Don't forget to call `onLoad`  when the page is loaded.
 
@@ -99,7 +99,7 @@ The last thing is to add the meshes. Add the following to the `onLoad`
 function. In a dynamic setting this would typically be done in an
 event handler.
 
-{% highlight javascript %}
+```javascript
 var mesh1 = Pacioli.value("Blocks", "mesh1")
 var mesh2 = Pacioli.value("Blocks", "mesh2")
 
@@ -109,7 +109,7 @@ space2.addMesh(mesh2, {wireframe: true});
 
 space1.draw()
 space2.draw()
-{% endhighlight %}
+```
 
 
 <script>
