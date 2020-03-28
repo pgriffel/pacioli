@@ -62,15 +62,16 @@ a module are evaluated in the order they appear in the file.
 A definition starts with keyword `define` followed by a name, the
 equal sign, and an [expression](#expressions). A value is
 defined like
-<pre><code>
+
+<code>
 define x = <a href="#expressions">expression</a>;
-</code></pre>
+</code>
 
 and a function like
 
-<pre><code>
+<code>
 define f(x, y, ..., z) = <a href="#expressions">expression</a>;
-</code></pre>
+</code>
 
 
 #### Declarations <a id="declarations"/></a>
@@ -78,9 +79,9 @@ define f(x, y, ..., z) = <a href="#expressions">expression</a>;
 A definition can be accompanied by a type declaration. A declaration
 starts with keyword `declare` followed by a name, a pair of colons,
 and a type.
-<pre><code>
+<code>
 declare x :: <a href="#typesystem">type</a>;
-</code></pre>
+</code>
 
 Declarations are optional, except for recursive functions. If a type
 is declared then it is checked against the definition's infered
@@ -92,12 +93,12 @@ contradict it.
     
 Syntax is
 
-<pre><code>
+<pre>
 defmatrix x :: <a href="#typesystem">type</a> = {
-    foo, bar -> ...,
+    foo, bar -> 123,
     ...
 };
-</code></pre>
+</pre>
 
 A [matrix](#matrices) of the declared type with the given numbers is defined.
 
@@ -110,7 +111,8 @@ Syntax is same as declaration
 defconv foo :: <a href="#typesystem">matrix type</a>;
 </code>
 
-A conversion matrix of the declared type is defined as value.
+A conversion matrix of the declared type is defined as value. The type's
+row and column dimension must be the same.
 
 
 #### Index Definitions <a id="indexdefinition"/></a>
@@ -118,9 +120,9 @@ A conversion matrix of the declared type is defined as value.
 An index set definition starts with keyword `defindex` followed by a
 name, the equal sign, and a set of names.
 
-<code>
+<pre>
 defindex Foo = {foo, bar, baz};
-</code>
+</pre>
 
 The defined name is used in [matrix](#matrices) types.
 

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pacioli.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Pacioli Manual</title>
+  </head>
+
+  <body >
+    <header>
+      <div class="inner">
+        <h1>Pacioli</h1>
+        <h2>Java implementation of the Pacioli language</h2>
+        <a href="https://github.com/pgriffel/pacioli" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+
+<h1>Pacioli Manual</h1>
+
+<p>Manual for Pacioli 0.4</p>
+
+<hr>
+
+<h2>Contents</h2>
+
+<ul>
+<li><a href="#pacioli">Pacioli</a></li>
+<li><a href="#datatypes">Values</a></li>
+<li><a href="%22#expressions%22">Expressions</a></li>
+<li><a href="#statements">Statements</a></li>
+</ul>
+
+<h2>Pacioli <a id="pacioli"/></a></h2>
+
+<p>A Paciolo program consists of definitions organized in modules.</p>
+
+<h3>Program <a id="modules"/></a></h3>
+
+<p>A program is a file containing a collection of definitions. A program can
+include other programs with an <code>include</code> and libraries with an <code>import</code>.
+A line comment starts with an <code>#</code></p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text"># This is an example program
+
+import si;
+import geometry;
+
+include some_dir/some_file;
+
+define ...
+</code></pre></div>
+<p>A module provides namespaces for</p>
+
+<ul>
+<li>values and functions</li>
+<li>index sets</li>
+<li>units and unit vectors</li>
+<li>types</li>
+</ul>
+
+<p>After the definitions have been processed, the toplevel expressions in
+a module are evaluated in the order they appear in the file.</p>
+
+<h3>Toplevel Definitions <a id="toplevel"/></a></h3>
+
+<h4>Definitions <a id="definitions"/></a></h4>
+
+<p>A definition starts with keyword <code>define</code> followed by a name, the
+equal sign, and an <a href="#expressions">expression</a>. A value is
+defined like</p>
+
+<p><code>
+define x = <a href="#expressions">expression</a>;
+</code></p>
+
+<p>and a function like</p>
+
+<p><code>
+define f(x, y, ..., z) = <a href="#expressions">expression</a>;
+</code></p>
+
+<h4>Declarations <a id="declarations"/></a></h4>
+
+<p>A definition can be accompanied by a type declaration. A declaration
+starts with keyword <code>declare</code> followed by a name, a pair of colons,
+and a type.
+<code>
+declare x :: <a href="#typesystem">type</a>;
+</code></p>
+
+<p>Declarations are optional, except for recursive functions. If a type
+is declared then it is checked against the definition&#39;s infered
+type. A declaration may restrict the type, but not generalize or
+contradict it.</p>
+
+<h4>Matrix Definitions <a id="matrixdefinition"/></a></h4>
+
+<p>Syntax is</p>
+
+<pre>
+defmatrix x :: <a href="#typesystem">type</a> = {
+    foo, bar -> 123,
+    ...
+};
+</pre>
+
+<p>A <a href="#matrices">matrix</a> of the declared type with the given numbers is defined.</p>
+
+<h4>Conversion Definitions <a id="conversiondefinition"/></a></h4>
+
+<p>Syntax is same as declaration</p>
+
+<p><code>
+defconv foo :: <a href="#typesystem">matrix type</a>;
+</code></p>
+
+<p>A conversion matrix of the declared type is defined as value. The type&#39;s
+row and column dimension must be the same.</p>
+
+<h4>Index Definitions <a id="indexdefinition"/></a></h4>
+
+<p>An index set definition starts with keyword <code>defindex</code> followed by a
+name, the equal sign, and a set of names.</p>
+
+<pre>
+defindex Foo = {foo, bar, baz};
+</pre>
+
+<p>The defined name is used in <a href="#matrices">matrix</a> types.</p>
+
+<h4>Unit Definitions <a id="unitdefinition"/></a></h4>
+
+<p>A unit definition starts with keyword <code>defunit</code> and can define a base
+unit, a derived unit, or a unit vector.</p>
+
+<p>A base unit definition requires a name and a string to be used in
+output.  </p>
+
+<p><code>
+defunit metre &quot;m&quot;;
+</code></p>
+
+<p>A derived unit requires an additonal unit expression. This is an
+expression with operators <code>*</code>, <code>/</code> and <code>^</code> on base units or other
+derived units.</p>
+
+<p><code>
+defunit knot &quot;kn&quot; = 0.51444444*metre/second;
+</code></p>
+
+<p>A unit vector is defined for an <a href="#indexdefinition">index set</a> by
+specifying a unit for each index key. An exclamation mark seperates
+the index set name from the unit vector name.</p>
+
+<p><code>
+defunit Foo!unit = {foo: metre, bar: knot, ...};
+</code></p>
+
+<p>Unit vectors are used in <a href="#matrices">matrix</a> types.</p>
+
+<h4>Type Definitions <a id="typedefinition"/></a></h4>
+
+<p>Syntax is</p>
+
+<p><code>
+deftype <a href="#typesystem">type</a> = <a href="#typesystem">type</a>;
+</code></p>
+
+<p>The defined type must be a parametric type.</p>
+
+<h3>The Type System <a name="typesystem"/></a></h3>
+
+<p>A type judgement states that an expression is of some type. It is of
+the form</p>
+
+<p><code>
+<a href="#expressions">expression</a> :: <a href="#schema">schema</a>
+</code></p>
+
+<p>Type judgements are used as input in definitions and declarations to
+declare a type, and as output by the compiler when the inferred types
+are displayed.</p>
+
+<p>The type schema introduces type variables. A type schema is can
+introduce ordinary type varibles, index variables, or unit varibles.</p>
+
+<pre><code>
+for_type a,b,...: <a href="#typesystem">type</a>   
+for_index P,Q,...: <a href="#typesystem">type</a>   
+for_unit u,v,...: <a href="#typesystem">type</a>
+</code></pre>
+
+<p>Index variables are written in uppercase by convention.</p>
+
+<p>A type is one of the two special types for functions and matrices, or
+the generic parametric type. The <a href="#functions">function</a> and
+<a href="#matrices">matrix</a> type are described in the next section. A
+parametric type is of the form</p>
+
+<p><code>
+Foo(<a href="#typesystem">type</a>, <a href="#typesystem">type</a>, ...)
+</code></p>
+
+<p>Built in types List, Tuple and Boole are parametric types.</p>
+
+<h2>Values <a id="datatypes"/></a></h2>
+
+<p>Pacioli supports numbers, booleans, lists, tuples, functions and
+incides.</p>
+
+<h3>Matrices <a id="matrices"/></a></h3>
+
+<p>Any numerical value is a matrix. A scalar is a 1x1 matrix. A vector
+is a 1xN or a Nx1 matrix.</p>
+
+<p>The type of a <a href="#matrices">matrix</a> is of the form <code>dim per
+dim</code>. The row and column types are expressions on units and unit
+vectors with operators <code>*</code>, <code>/</code>, <code>^</code> and <code>%</code>. The grammar of the matrix
+type&#39;s dimensions is</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">dim ::= dim * dim                          dimensional multiplication
+      | dim / dim                          dimensional division
+      | dim ^ integer                      dimensional power
+      | dim % dim                          dimensional Kronecker
+      | term                               matrix type terminal
+
+term ::= identifier ! identifier           dimensioned vector
+       | identifier !                      dimensionless vector
+       | identifier                        dimensioned number
+       | 1                                 dimensionless number
+</code></pre></div>
+<p>A terminal in a row or column type expression is the name of a scalar
+unit or the name of a dimensioned vector space. A unit scalar is the
+dimensionless 1 or a unit like a <code>gram</code> or a <code>metre</code>. A dimensioned
+vector space is distinguished from a scalar by an exclamation
+mark. The exclamation mark indicates a vector space and is always
+preceded by the name of the space&#39;s index set.</p>
+
+<p>The matrix type is interpreted at runtime as a unit matrix. For each
+dimensioned vector space the representative unit vector is assumed to
+be available. Each entry in a matrix type is then given by</p>
+
+<p><code>
+(x per y)[i,j] = x[i] / y[j]
+</code></p>
+
+<p>The runtime contents of non-terminals is defined inductively, starting
+from the contents of the unit vector terminals. Let <code>v</code> and <code>w</code> be
+unit vectors</p>
+
+<pre><code>
+(v * w)[i] = v[i] * w[i]  
+(v / w)[i] = v[i] / w[i]  
+(v^n)[i] = v[i]^n  
+(v % w)[i%j] = v[i] * v[j]
+</code></pre>
+
+<p>The pair <code>i%j</code> in the last rule is a compound index. Tensors are
+matricized with the Kronecker product. This makes multi-dimensional
+data transparent for matrices and addresses the issue in the
+indices. Multi-dimensional data is indexed with compound indices
+instead of multiple row or column indices. See <a href="#indices">Indices</a>.</p>
+
+<h3>Indices <a id="indices"/></a></h3>
+
+<p>Matrices in Pacioli are indexed by general index sets, not necessarily
+integers. Indices are first class language members. They are
+accessible via functions <code>row_domain</code> and <code>column_domain</code> or via
+literal syntax <em>x</em><code>@</code><em>y</em>, with <em>x</em> an index set and <em>y</em> an index
+key. For example <code>Foo@key13</code> or <code>Bar@item42</code>.</p>
+
+<p>A consequence of the matricization of tensors is that a matrix can
+have any number of row indices and any number of column indices.  A
+row key or column key is a combination of items from possibly multiple
+index sets. Compound literal indices are constructed with the <code>%</code>
+symbol. For example <code>Foo@key13%Bar@item42</code>. The index type lists all
+index sets. In this case:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">Index(Foo, Bar)
+</code></pre></div>
+<p>Special key <code>_</code> is the only element of the index of zero index sets:</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">_ :: Index()
+</code></pre></div>
+<p>It is used to index the empty row and column domains of scalars and
+vectors.</p>
+
+<h3>Booleans <a id="booleans"/></a></h3>
+
+<p>A Boolean is one of the logical values <code>true</code> or <code>false</code>. </p>
+
+<p>The type of a boolean is <code>Boole()</code>.</p>
+
+<h3>Tuples <a id="tuples"/></a></h3>
+
+<p>A tuple is a fixed set of values of various types. Functions in
+Pacioli expect a tuple of values as argument.</p>
+
+<p>Use function <code>tuple</code> to create a tuple. It returns the tuple of
+arguments. Use destructuring in a let or comprehension or use function
+<code>apply</code> to retreive the elements of a tuple.</p>
+
+<p>The type of a tuple is </p>
+
+<p><code>
+Tuple(<a href="#typesystem">type</a>, <a href="#typesystem">type</a>, ...)
+</code></p>
+
+<h3>Lists <a id="lists"/></a></h3>
+
+<p>A list is a varying set of values of the same type.</p>
+
+<p>The type of a list is </p>
+
+<p><code>
+List(<a href="#typesystem">type</a>)
+</code></p>
+
+<h3>Functions <a id="functions"/></a></h3>
+
+<p>Functions are first class values. Functions are globally
+<a href="#definitions">defined</a> in a module or anonymous <a href="#lambdas">lambdas</a>.</p>
+
+<p>The type of a function is</p>
+
+<p><code>
+(<a href="#typesystem">type</a>, <a href="#typesystem">type</a>, ...) -&gt; <a href="#typesystem">type</a>
+</code></p>
+
+<h2>Expressions <a id="expressions"/></a></h2>
+
+<h3>Constants <a id="constants"/></a></h3>
+
+<p>Literal constants are numbers, or the Boolean values <code>true</code> or <code>false</code>.</p>
+
+<h3>Variables <a id="variables"/></a></h3>
+
+<p>A variable is an identifier built from alphanumeric characters and
+undercores. A variable can be local or it can refer to a defined value
+or function.</p>
+
+<h3>Unit Expressions <a id="unitexpressions"/></a></h3>
+
+<p>A matrix type surrounded by pipes is a unit expression. For example
+<code>|metre|</code> or <code>|Foo!unit per Foo!|</code>.</p>
+
+<h3>Operators <a id="operators"/></a></h3>
+
+<p>Operators grouped by precedence</p>
+<div class="highlight"><pre><code class="text language-text" data-lang="text">-               negative
+^T              transpose
+^R              reciprocal
+^D              dim_inv
+
+&#39;^&#39;             mexpt
+^               expt
+
+per             dim_div
+
+&#39;.*&#39;            scale
+&#39;*.&#39;            rscale
+&#39;/.&#39;            scale_down
+&#39;./&#39;            lscale_down
+*               multiply
+/               divide
+\               left_divide
+&#39;*&#39;             mmult
+&#39;/&#39;             right_division
+&#39;\&#39;             left_division
+
++               sum
+-               minus
+
+&lt;               less
+&lt;=              less_eq
+&gt;               greater
+&gt;=              greater_eq
+=               equal
+!=              not_equal
+
+and             and
+or              or
+&lt;=&gt;             equal
+==&gt;             implies
+&lt;==             follows_from
+</code></pre></div>
+<h3>Function Application <a id="functionapplication"/></a></h3>
+
+<p>A function application is of the form </p>
+
+<p><code>
+foo(<a href="#expressions">expression</a>, <a href="#expressions">expression</a>, ... )
+</code></p>
+
+<h3>Lambda <a id="lambdas"/></a></h3>
+
+<p>An anonymous function is of the form </p>
+
+<p><code>
+lambda (x, y, ... ) <a href="#expressions">expression</a> end
+</code></p>
+
+<h3>If <a id="if"/></a></h3>
+
+<p>An if is of the form
+<pre><code>if <a href="#expressions">expression</a> then
+  <a href="#expressions">expression</a>
+else if <a href="#expressions">expression</a> then
+  <a href="#expressions">expression</a>
+...
+else
+  <a href="#expressions">expression</a>
+end
+</code></pre></p>
+
+<h3>Let <a id="let"/></a></h3>
+
+<p>A let is of the form 
+<pre><code>let 
+    foo = <a href="#expressions">expression</a>,
+    bar = <a href="#expressions">expression</a>,
+    ...
+in
+    <a href="#expressions">expression</a>
+end
+</code></pre></p>
+
+<p>Each variable can also be a list of variables surrounded by
+parenthesis to destructure a tuple.</p>
+
+<h3>Comprehensions <a id="comprehensions"/></a></h3>
+
+<p>A list comprehension is of the form </p>
+
+<p><code>
+[ <a href="#expressions">expression</a> | clause, clause, ... ]
+</code></p>
+
+<p>where each clause is</p>
+
+<ul>
+<li><p>a generator 
+<code>
+var &lt;- <a href="#expressions">expression</a>
+</code></p></li>
+<li><p>a filter 
+<code>
+<a href="#expressions">expression</a>
+</code></p></li>
+<li><p>or an assignment
+<code>
+var := <a href="#expressions">expression</a>
+</code></p></li>
+</ul>
+
+<p>Each var can also be a list of variables surrounded by parenthesis to
+destructure a tuple.</p>
+
+<h2>Statements <a id="statements"/></a></h2>
+
+<p>A statement is of the form 
+<pre><code>
+begin
+  <a href="#statements">statement</a>
+  <a href="#statements">statement</a>
+  ...
+end
+</code></pre></p>
+
+<p>A <a href="#return">return</a> leaves the block prematurely.</p>
+
+<h3>Assignment <a id="assignment"/></a></h3>
+
+<p>An assignment is of the form </p>
+
+<p><code>
+var := <a href="#expressions">expression</a>;
+</code></p>
+
+<p>The value stored by variable <code>var</code> is changed to the value of the
+expression. The variable can also be a list of variables surrounded by
+parenthesis to destructure a tuple.</p>
+
+<h3>Return <a id="return"/></a></h3>
+
+<p>A return statement is of the form</p>
+
+<p><code>
+return <a href="#expressions">expression</a>;
+</code></p>
+
+<p>Execution of the surrounding <code>begin</code> <code>end</code> block is halted and the
+returned value becomes the value of the block. The expression is
+optional.</p>
+
+<h3>While <a id="while"/></a></h3>
+
+<p>A while statement is of the form
+<pre><code>while <a href="#expressions">expression</a> do
+  <a href="#statements">statement</a>
+end
+</code></pre></p>
+
+<p>The body of the while loop is executed as long the expression is true.</p>
+
+<h3>If <a id="ifstatement"/></a></h3>
+
+<p>An if statement is of the form
+<pre><code>if <a href="#expressions">expression</a> then
+  <a href="#statements">statement</a>
+else if <a href="#expressions">expression</a> then
+  <a href="#statements">statement</a>
+...
+else
+  <a href="#statements">statement</a>
+end
+</code></pre></p>
+
+<p>The <code>else</code> and <code>elseif</code> are optional. </p>
+
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/pgriffel/pacioli/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/pgriffel/pacioli/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/pgriffel/pacioli"></a> is maintained by <a href="https://github.com/pgriffel">pgriffel</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+2013-2014 Paul Griffioen
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-5527808-1");
+pageTracker._trackPageview();
+</script>
+    
+  
+  </body>
+</html>
+
