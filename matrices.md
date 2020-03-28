@@ -233,7 +233,7 @@ uses.
 
     define usage = consumption '*' plan;
 
-The `*` operator is the matrix product. The value of `usage` is
+The `'*'` operator is the matrix product. The value of `usage` is
 
     Index                    Value
     --------------------------------
