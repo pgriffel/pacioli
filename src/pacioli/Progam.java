@@ -1060,6 +1060,23 @@ public class Progam extends AbstractPrintable {
             "\n" + 
             "\n" + 
             "\n" + 
+            "function num = glbl_base_dim_div(x, y)\n" + 
+            "  num = glbl_base_mmult(x, glbl_base_dim_inv(y));\n" + 
+            "endfunction\n" + 
+            "\n" + 
+            "\n" + 
+            "function res = glbl_base_svd(x)\n" + 
+            "  n = size(x)(1);\n" + 
+            "  [U,S,V] = svd(x); \n" + 
+            "  tup = glbl_base_empty_list;\n" + 
+            "  for i=1:n\n" + 
+            "    %tup = glbl_base_append(tup, glbl_base_singleton_list(glbl_base_tuple(S(i,i), U(:, i), V(i, :)')));\n" + 
+            "    tup = glbl_base_append(tup, glbl_base_singleton_list(glbl_base_tuple(S(i,i), U(:, i), V(:, i))));\n" + 
+            "  endfor\n" + 
+            "  res = tup;\n" + 
+            "endfunction\n" + 
+            "\n" +
+            "\n" + 
             "function num = glbl_base_reciprocal(x)\n" + 
             "  num = arrayfun(@(x) one_reciprocal(x), x);\n" + 
             "endfunction\n" + 
