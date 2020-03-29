@@ -534,6 +534,11 @@ public class Progam extends AbstractPrintable {
 
             inferUsedTypes(toplevel, discovered, finished);
             Typing typing = toplevel.body.inferTyping(this);
+            try {
+                PacioliType type = typing.solve().simplify();
+            } catch (PacioliException e) {
+                throw new RuntimeException("Topleve type error", e);
+            }
             //Pacioli.log3("\n%s", typing.toText());
             /*
              * type = typing.solve().simplify(); return type;

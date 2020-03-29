@@ -1007,7 +1007,7 @@ public class Matrix extends AbstractPacioliValue {
 
             Matrix matrixS = new Matrix(shape.getFactor());
             Matrix matrixU = new Matrix(shape.rowUnits());
-            Matrix matrixV = new Matrix(shape.columnUnits());
+            Matrix matrixV = new Matrix(shape.columnUnits().reciprocal());
 
             matrixS.numbers.setEntry(0, 0, numbersS.getEntry(i, i));
             for (int j = 0; j < m; j++) {

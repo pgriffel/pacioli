@@ -110,8 +110,8 @@ public class MatrixType extends AbstractType {
 
     @Override
     public void printPretty(PrintWriter out) {
-        //deval().printPretty(out);
-        out.print(toString());
+        deval().printPretty(out);
+        //out.print(toString());
     }
 
     
