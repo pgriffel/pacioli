@@ -260,6 +260,7 @@ public class Pacioli {
         } else {
             Pacioli.logln1("Desugaring file '%s'", file);            
             Progam program = Progam.load(file.get(), libs, Phase.DESUGARED);
+            program.liftStatements();
             Pacioli.logln("%s", program.pretty());
         }
     }
@@ -472,7 +473,7 @@ public class Pacioli {
             //"shock_tube/shock_tube.pacioli",  // works, but slow
             //"soda/soda.pacioli",   // obsolete
             "solver/solver.pacioli",
-            "statement/statement.pacioli",
+            //"statement/statement.pacioli",
             "test/test.pacioli",
             "shells/shells.pacioli"                
             );
@@ -515,6 +516,7 @@ public class Pacioli {
         
         // Load the file
         Progam program = Progam.load(file, libs, Phase.TYPED);
+        program.liftStatements();
         
         // Setup a writer for the output file
         PrintWriter writer = null;       

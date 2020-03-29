@@ -171,6 +171,7 @@ public class Project {
         //printInfo();
         
         Progam mainProgram = Progam.load(file, libs, Phase.TYPED);
+        mainProgram.liftStatements();
         
         // Setup a writer for the output file
         Path dstPath = bundlePath(target);
@@ -186,6 +187,7 @@ public class Project {
                     PacioliFile libFile = PacioliFile.requireLibrary(lib, libs);
                     Progam prog = new Progam(libFile, libs);
                     prog.loadTillHelper(Progam.Phase.TYPED, isStandard, false);
+                    prog.liftStatements();
                     Pacioli.logln("Bundling default file %s", libFile);
                     mainProgram.includeOther(prog);
                 
@@ -204,6 +206,7 @@ public class Project {
                 
                 // Add the program to the main program creating the entire bundle
                 Progam program = Progam.load(current, libs, Phase.TYPED);
+                program.liftStatements();
                 mainProgram.includeOther(program);
             }
             

@@ -264,9 +264,6 @@ public class Progam extends AbstractPrintable {
         resolve();
         transformConversions();
         
-        liftStatements();  // Requires resolved defintions, produces non resolved definitions!
-        resolve();
-        
         if (phase.equals(Phase.RESOLVED)) return;
     
         inferTypes();
@@ -462,7 +459,15 @@ public class Progam extends AbstractPrintable {
         program = (ProgramNode) program.desugar();
     }
     
-    public void liftStatements() {
+    public void liftStatements() throws Exception {
+        // Note that method liftValueInfoStatements requires resolved 
+        // definitions, but produces non resolved definitions.
+        liftValueInfoStatements();
+        resolve();
+        inferTypes();
+    }
+    
+    private void liftValueInfoStatements() {
         for (ValueInfo info: values.allInfos()) {
             if (info.getDefinition().isPresent() && !isExternal(info)) {
                 ValueDefinition definition = info.getDefinition().get();
