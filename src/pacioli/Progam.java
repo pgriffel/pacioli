@@ -25,7 +25,6 @@ import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
-import pacioli.ast.expression.LambdaNode;
 import pacioli.compilers.JSCompiler;
 import pacioli.compilers.MATLABCompiler;
 import pacioli.compilers.MVMCompiler;
@@ -39,6 +38,7 @@ import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.PacioliType;
+import pacioli.types.ast.TypeNode;
 import pacioli.visitors.CodeGenerator;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.LiftStatements;
@@ -497,12 +497,33 @@ public class Progam extends AbstractPrintable {
         Collections.sort(names);
         
         for (String value : names) {
+            Boolean log = value.equals("closure_hack") || false;
+            //Pacioli.logln("%s", value);
             ValueInfo info = values.lookup(value);
             if (!isExternal(info) && info.getDefinition().isPresent()) {
                 inferValueDefinitionType(info, discovered, finished);
                 //Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.get().pretty());
                 //Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.get().deval().pretty());
             }
+            Optional<TypeNode> declared = info.getDeclaredType();
+            if (!info.inferredType.isPresent()) {
+//                Pacioli.warn("Skipping type check for %s", info.name());
+            }
+            if (declared.isPresent() && info.inferredType.isPresent()) {
+                PacioliType declaredType = declared.get().evalType(true).instantiate();
+                
+                PacioliType inferredType = info.inferredType().instantiate();
+                String condition = Pacioli.setLogCondition(log ? "instanceof" : "");
+                if (!declaredType.isInstanceOf(inferredType)) {
+                    throw new RuntimeException("Type error",
+                            new PacioliException(info.getLocation(), 
+                                    String.format("Inferred type\n  %s does not specialize the declared type\n  %s",
+                                            declaredType.unfresh().pretty(),
+                                            inferredType.unfresh().pretty())));
+                }
+                Pacioli.setLogCondition(condition);
+            }
+            
         }
         for (Toplevel toplevel : toplevels) {
 
@@ -513,6 +534,7 @@ public class Progam extends AbstractPrintable {
              * type = typing.solve().simplify(); return type;
              */
         }
+        
     }
 
     private void inferUsedTypes(Definition definition, Set<SymbolInfo> discovered, Set<SymbolInfo> finished) {

@@ -114,7 +114,7 @@ public interface PacioliType extends Printable {
     }
 
     public static boolean alphaEqual(PacioliType x, PacioliType y) throws PacioliException {
-        return x.simplify().unify(y.simplify()).isInjective();
+        return x.fresh().simplify().unify(y.simplify()).isInjective();
     }
     
     public default PacioliType instantiate() {

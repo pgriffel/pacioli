@@ -67,6 +67,10 @@ public class Substitution extends AbstractPrintable {
     Substitution(Map<Var, Object> map) {
         this.map = map;
     }
+    
+    public Boolean contains(Var var) {
+        return map.containsKey(var);
+    }
 /*
     public Unit<TypeBase> apply(Unit<TypeBase> unit) {
         return unit.map(new UnitMap<TypeBase>() {

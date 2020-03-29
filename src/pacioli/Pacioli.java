@@ -266,8 +266,6 @@ public class Pacioli {
     
     private static void typesCommand(String fileName, List<File> libs) throws Exception {
 
-        checkPrimitives(libs);
-        
         Integer version = 0; // todo
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
 
@@ -423,6 +421,8 @@ public class Pacioli {
 
     private static void testCommand(List<File> libs, CompilationSettings settings) throws Exception {
 
+        checkPrimitives(libs);
+
         String dir = "E:/code/private/pacioli-samples/";
 
         List<String> samples = Arrays.asList( 
@@ -493,6 +493,7 @@ public class Pacioli {
                 
                 Path binName = project.bundlePath(Target.MVM);
                 
+                Progam.load(project.root(), libs, Phase.TYPED).printTypes();;
                 Pacioli.logln("Running file %s", binName);
                 interpretMVMText(binName.toFile(), libs);
                 
@@ -626,6 +627,26 @@ public class Pacioli {
         }
 
         log(string, args);
+    }
+    
+    static String logCondition = "";
+    
+    static String setLogCondition(String condition) {
+        String currentCondition = logCondition;  
+        logCondition = condition;
+        return currentCondition;  
+    }
+    
+    public static void loglnif(String condition, String string, Object... args) {
+
+        if (condition.equals(logCondition)) {
+            if (!atLineStart) {
+                log("\n");
+                atLineStart = true;
+            }
+    
+            log(string, args);
+        }
     }
 
     public static void log1(String string, Object... args) {
