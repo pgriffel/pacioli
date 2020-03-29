@@ -145,23 +145,25 @@ The software consists of three packages:
 * mvm - the Matrix Virtual Machine runtime.
 * uom - general unit of measurement library
 
-It uses two external libraries:
+It uses three external libraries:
 
 * commons-math3-3.1.1.jar from [Commons Math][cm]
-* jparsec-2.0.1.jar from [Jparsec][jp]
+* jgrapht-core-1.4.0.jar from [JGraph][jgraph]
+* java-cup-11b-runtime.jar from [CUP][cup]
 
 To build in an IDE like Eclipse or NetBeans do the following:
 
 1. Import the sources into a new Pacioli project
 
-2. Include the commons-math and jparsec jar libraries
+2. Include the jars of the three libraries
 
 3. Build the file `pacioli.jar` from the project
 
 Adjust this setup according to your own environment.
 
 [cm]: http://commons.apache.org/proper/commons-math/
-[jp]: http://jparsec.codehaus.org/
+[jgraph]: https://jgrapht.org/
+[cup]: http://www2.cs.tum.edu/projects/cup/
 
 
 License
