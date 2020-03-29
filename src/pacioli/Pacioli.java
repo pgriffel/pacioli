@@ -123,8 +123,6 @@ public class Pacioli {
                             settings.setTarget(Target.JS);
                         } else if (target.equals("matlab")) {
                             settings.setTarget(Target.MATLAB);
-                        } else if (target.equals("html")) {
-                            throw new RuntimeException("Compilation target html is obsolete.");
                         } else if (target.equals("mvm")) {
                             settings.setTarget(Target.MVM);
                         } else {

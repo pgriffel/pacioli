@@ -183,7 +183,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                         names.add(id);
                         infos.add(info);
                     } else {
-                        throw new RuntimeException(String.format("Index set expected but found '%s'", type.pretty()));
+                        throw new RuntimeException(new PacioliException(node.getLocation(),
+                                "Index set expected but found '%s'", type.pretty()));
                     }
                 }
                 returnType(new IndexType(names, infos));
@@ -218,7 +219,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                         //returnType(typeDefinition.constaint(true).reduce(new ParametricType(typeDefinition, types)));
                         returnType(typeDefinition.constaint(true).reduce(new ParametricType((TypeInfo) node.op.info, Optional.of(typeDefinition), types)));
                     } catch (PacioliException e) {
-                        throw new RuntimeException(e);
+                        throw new RuntimeException("Type error", e);
                     }
                 } else {
                     // todo: add info. Not done because it is unused
@@ -300,7 +301,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             if (left.multiplyable(right)) {
                 returnType(left.multiply(right.reciprocal()));
             } else {
-                throw new RuntimeException(String.format("Cannot divide %s by %s", left.pretty(), right.pretty()));
+                throw new RuntimeException(new PacioliException(node.getLocation(), 
+                        "Cannot divide %s by %s", left.pretty(), right.pretty()));
             }
         }
     }
@@ -315,7 +317,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
         try {
             returnType(matrixTypeAccept(node.left).kronecker(matrixTypeAccept(node.right)));
         } catch (PacioliException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Type error", e);
         }
     }
 

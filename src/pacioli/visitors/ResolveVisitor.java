@@ -248,7 +248,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             if (info != null) {
                 infoList.add(info);
             } else {
-                throw new RuntimeException(new PacioliException(node.getLocation(), "Index set '%s' unknown", name));
+                throw new RuntimeException("Name error", new PacioliException(node.getLocation(), "Index set '%s' unknown", name));
             }
         }
 
@@ -281,7 +281,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         try {
             matrixType = node.evalType(false);
         } catch (PacioliException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Type error", e);
         }
 
         // Store the matrix type's row and column dimension
@@ -305,7 +305,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         try {
             matrixType = node.evalType(false);
         } catch (PacioliException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Type error", e);
         }
 
         // Store the matrix type's row and column dimension
@@ -330,7 +330,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         try {
             matrixType = node.evalType(false);
         } catch (PacioliException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Type error", e);
         }
 
         // Store the matrix type's row and column dimension
@@ -450,7 +450,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         
         SymbolInfo indexSetInfo = typeTables.peek().lookup(node.indexSetName());
         if (indexSetInfo == null) {
-            throw new RuntimeException(new PacioliException(node.getLocation(), "Index set %s unknown", node.indexSetName()));
+            throw new RuntimeException("Name error", new PacioliException(node.getLocation(), "Index set %s unknown", node.indexSetName()));
         }
         node.indexSet.info = indexSetInfo;
 
@@ -459,7 +459,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
             SymbolInfo unitInfo = typeTables.peek().lookup(fullName);
             if (unitInfo == null) {
-                throw new RuntimeException(new PacioliException(node.getLocation(), "Vector unit %s unknown", fullName));
+                throw new RuntimeException("Name error", new PacioliException(node.getLocation(), "Vector unit %s unknown", fullName));
             }
             node.unit.get().info = unitInfo;
         }
@@ -576,7 +576,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     public void visit(UnitIdentifierNode node) {
         UnitInfo unitInfo = unitTables.peek().lookup(node.getName());
         if (unitInfo == null) {
-            throw new RuntimeException(new PacioliException(node.getLocation(), "unit %s unknown", node.getName()));
+            throw new RuntimeException("Name error", new PacioliException(node.getLocation(), "unit %s unknown", node.getName()));
         }
         node.info = unitInfo;
     }

@@ -113,7 +113,8 @@ public class KeyNode extends AbstractExpressionNode {
                 return i;
             }
         }
-        throw new RuntimeException("Key not found", new PacioliException(getLocation(), "index = %s", index));
+        //throw new RuntimeException("Key not found", new PacioliException(getLocation(), "index = %s", index));
+        throw new PacioliException(getLocation(), "Key %s not found", index);
     }
     
     public Integer size(Integer index) {

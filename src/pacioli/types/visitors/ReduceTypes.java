@@ -80,7 +80,7 @@ public class ReduceTypes implements TypeVisitor {
                 returnTypeNode(type.definition.get().constaint(true).reduce(opType));
             }
         } catch (PacioliException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Type error", e);
         }
     }
 

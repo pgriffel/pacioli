@@ -555,7 +555,7 @@ public class Progam extends AbstractPrintable {
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
                     if (!vinfo.getDeclaredType().isPresent()) {
-                        throw new RuntimeException(new PacioliException(pre.getLocation(), "No type declared for %s", pre.name()));
+                        throw new RuntimeException("Type error", new PacioliException(pre.getLocation(), "No type declared for %s", pre.name()));
                     }
                     vinfo.setinferredType(vinfo.getDeclaredType().get().evalType(false));
                 }
@@ -587,7 +587,7 @@ public class Progam extends AbstractPrintable {
                     Pacioli.log3("\n\nGenerl type of %s is %s", info.name(), solved.simplify().generalize().pretty());
                     values.lookup(info.name()).setinferredType(solved.simplify().generalize());
                 } catch (PacioliException e) {
-                    throw new RuntimeException(e);
+                    throw new RuntimeException("Type error", e);
                 }
 
                 /*

@@ -37,7 +37,7 @@ public class AliasDefinition extends AbstractDefinition {
     public Unit<TypeBase> evalBody() {
         DimensionedNumber<TypeBase> number = unit.evalUnit();
         if (!number.factor().equals(BigDecimal.ONE)) {
-            throw new RuntimeException("Unexpected number in unit alias");
+            throw new PacioliException(getLocation(),  "Unexpected number in unit alias");
         }
         return number.unit();
     }

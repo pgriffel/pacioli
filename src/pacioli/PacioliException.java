@@ -21,7 +21,7 @@
 
 package pacioli;
 
-public class PacioliException extends Exception {
+public class PacioliException extends RuntimeException {
 
     private final Location location;
 

@@ -53,7 +53,7 @@ import pacioli.types.ast.TypePowerNode;
 public class IdentityVisitor implements Visitor {
 
     protected void visitorThrow(Location location, String format, Object... args) {
-        throw new RuntimeException(new PacioliException(location, format, args));
+        throw new RuntimeException("Error", new PacioliException(location, format, args));
     }
 
     @Override
