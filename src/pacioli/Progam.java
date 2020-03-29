@@ -522,9 +522,9 @@ public class Progam extends AbstractPrintable {
                 if (!declaredType.isInstanceOf(inferredType)) {
                     throw new RuntimeException("Type error",
                             new PacioliException(info.getLocation(), 
-                                    String.format("Inferred type\n  %s does not specialize the declared type\n  %s",
-                                            declaredType.unfresh().pretty(),
-                                            inferredType.unfresh().pretty())));
+                                    String.format("Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
+                                            declaredType.unfresh().deval().pretty(),
+                                            inferredType.unfresh().deval().pretty())));
                 }
                 Pacioli.setLogCondition(condition);
             }
