@@ -588,7 +588,7 @@ public class Progam extends AbstractPrintable {
         }
     }
     
-    void printTypes() {
+    void printTypes() throws PacioliException {
 
         List<String> names = values.allNames();
         Collections.sort(names);
@@ -599,12 +599,15 @@ public class Progam extends AbstractPrintable {
                 Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType().deval().pretty());
             }
         }
+        Integer count = 1;
         for (Toplevel toplevel : toplevels) {
 
             Typing typing = toplevel.body.inferTyping(this);
             Pacioli.log3("\n%s", typing.pretty());
+            PacioliType type = typing.solve().simplify(); 
+            Pacioli.logln("\nToplevel %s :: %s", count++, type.unfresh().deval().pretty());
             /*
-             * type = typing.solve().simplify(); return type;
+             * 
              */
         }
     }
