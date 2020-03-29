@@ -59,14 +59,14 @@ To get the latest sources:
 Or download a zip file from the [GitHub repository][gh].
 
 Runtime support for deployment via the web requires
-[pacioli-0.2.2.js][pacioli_js]. An [uglified][uglify] version is available as
-[pacioli-0.2.2.min.js][pacioli_min_js].
+[pacioli-0.5.0.js][pacioli_js]. An [uglified][uglify] version is available as
+[pacioli-0.5.0.min.js][pacioli_min_js].
 
 Finally you might want to download the [Pacioli style sheet][pacioli_css].
 
 [gh]: https://github.com/pgriffel/pacioli
-[pacioli_js]: http://pgriffel.github.io/pacioli/javascripts/pacioli-0.2.2.js
-[pacioli_min_js]: http://pgriffel.github.io/pacioli/javascripts/pacioli-0.2.2.min.js
+[pacioli_js]: http://pgriffel.github.io/pacioli/javascripts/pacioli-0.5.0.js
+[pacioli_min_js]: http://pgriffel.github.io/pacioli/javascripts/pacioli-0.5.0.min.js
 [pacioli_css]: http://pgriffel.github.io/pacioli/stylesheets/pacioli.css
 [uglify]: https://github.com/mishoo/UglifyJS
 
@@ -145,23 +145,25 @@ The software consists of three packages:
 * mvm - the Matrix Virtual Machine runtime.
 * uom - general unit of measurement library
 
-It uses two external libraries:
+It uses three external libraries:
 
 * commons-math3-3.1.1.jar from [Commons Math][cm]
-* jparsec-2.0.1.jar from [Jparsec][jp]
+* jgrapht-core-1.4.0.jar from [JGraph][jgraph]
+* java-cup-11b-runtime.jar from [CUP][cup]
 
 To build in an IDE like Eclipse or NetBeans do the following:
 
 1. Import the sources into a new Pacioli project
 
-2. Include the commons-math and jparsec jar libraries
+2. Include the jars of the three libraries
 
 3. Build the file `pacioli.jar` from the project
 
 Adjust this setup according to your own environment.
 
 [cm]: http://commons.apache.org/proper/commons-math/
-[jp]: http://jparsec.codehaus.org/
+[jgraph]: https://jgrapht.org/
+[cup]: http://www2.cs.tum.edu/projects/cup/
 
 
 License
@@ -179,5 +181,5 @@ doesn't support many features for input and output yet.
 
 --------------------------------------------------------------------------------
 
-2013-2020 Paul Griffioen
+2013-2020 Paul Griffioen (pgriffel@gmail)
 
