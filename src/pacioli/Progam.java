@@ -1680,8 +1680,8 @@ private void writePythonPrelude(Printer out) {
             "\n" +
             "\n" + 
             "def glbl_numpy_knn_predict(classifier, data):\n" + 
-//            "    classifier.predict(data.reshape([data.shape[0]]))\n" + 
-            "    classifier.predict(data)\n" +
+            "    return classifier.predict(np.reshape(data, [1, data.shape[0]]))\n" + 
+//            "    classifier.predict(data)\n" +
             "\n" + 
             "\n" + 
             "\n" + 
