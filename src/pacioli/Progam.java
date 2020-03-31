@@ -313,7 +313,7 @@ public class Progam extends AbstractPrintable {
             Path p = Paths.get(file.getFile().getAbsolutePath());
             PacioliFile file = PacioliFile.findInclude(p.getParent(), this.file, include);
             Progam prog = new Progam(file, libs);
-            Pacioli.logln("Loading include file %s", include);
+            Pacioli.logln("Loading include file %s", file);
             prog.loadTill(Progam.Phase.PARSED);
             for (Definition def : prog.program.definitions) {
                 if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
@@ -1295,7 +1295,11 @@ private void writePythonPrelude(Printer out) {
             "\n" + 
             "\n" + 
             "def glbl_base_divide(x,y):\n" + 
-            "    return glbl_base_multiply(x, glbl_base_reciprocal(y));\n" + 
+            "    return glbl_base_multiply(x, glbl_base_reciprocal(y))\n" + 
+            "\n" + 
+            "\n" + 
+            "def glbl_base_left_divide(x,y):\n" + 
+            "    return glbl_base_multiply(glbl_base_reciprocal(x), y)\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
@@ -1305,13 +1309,13 @@ private void writePythonPrelude(Printer out) {
             "\n" + 
             "\n" + 
             "def glbl_base_equal(x,y):\n" +  
-            "    print(\"WARNING: equal gives a matrix!!! (glbl_base_equal)\")\n" + 
-            "    return x == y\n" + 
+//            "    print(\"WARNING: equal gives a matrix!!! (glbl_base_equal)\")\n" + 
+            "    return np.all(x == y)\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
             "def glbl_base_exp(x):\n" + 
-            "    return exp(x);\n" + 
+            "    return np.exp(x)\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
@@ -1357,6 +1361,10 @@ private void writePythonPrelude(Printer out) {
             "\n" + 
             "\n" + 
             "def glbl_base_scale(x,y):\n" + 
+            "    return x*y\n" + 
+            "\n" + 
+            "\n" + 
+            "def glbl_base_rscale(x,y):\n" + 
             "    return x*y\n" + 
             "\n" + 
             "\n" + 
@@ -1433,6 +1441,14 @@ private void writePythonPrelude(Printer out) {
             "    return result\n" + 
             "\n" + 
             "\n" + 
+            "def glbl_base_map_list(fun, items):\n" +
+            "    return [fun(x) for x in items]\n" +            
+//            "    result = []\n" + 
+//            "    for item in items:\n" + 
+//            "        result.append(fun(item))\n" + 
+//            "    return result\n" + 
+            "\n" + 
+            "\n" + 
             "def glbl_base_zip(x,y):\n" + 
             "    return list(zip(x, y))\n" + 
             "\n" + 
@@ -1474,7 +1490,11 @@ private void writePythonPrelude(Printer out) {
             "\n" + 
             "\n" + 
             "def glbl_base_less(x,y):\n" + 
-            "    return x < y\n" + 
+            "    return np.all(x < y)\n" + 
+            "\n" + 
+            "\n" + 
+            "def glbl_base_less_eq(x,y):\n" + 
+            "    return np.all(x <= y)\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
@@ -1505,6 +1525,39 @@ private void writePythonPrelude(Printer out) {
             "\n" + 
             "def glbl_base_skip():\n" + 
             "    return" + 
+            "\n" + 
+            "\n" + 
+            "def glbl_base_print(value):\n" + 
+            "    print(value)\n" +
+//            "    print(\"\\n\")\n" + 
+//            "    return value\n" + 
+            "\n" + 
+            "def glbl_base_write(value):\n" + 
+            "    print(value)\n" + 
+            "    return value\n" + 
+            "\n" + 
+            "\n" + 
+            "def glbl_base_num2string(value, decs):\n" +  
+            "    return \"{}\".format(value[0, 0])\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "def glbl_base_random():\n" +  
+            "    return [[np.random.random()]]\n" + 
+            "\n" + 
+            "\n" + 
+            "def glbl_base_sin(angle):\n" + 
+            "    return np.sin(angle);\n" + 
+            "\n" + 
+            "def glbl_base_cos(angle):\n" + 
+            "    return np.cos(angle);\n" + 
+            "\n" + 
+            "\n" + 
+            "def glbl_base_nth(n, l):\n" + 
+            "    return l[n[0, 0]]\n" + 
+            "\n" + 
+            "\n" + 
             "\n" + 
             "\n" + 
             "\n" + 
@@ -1555,17 +1608,6 @@ private void writePythonPrelude(Printer out) {
             "  num = not(x);\n" + 
             "\n" + 
             "\n" + 
-            "\n" + 
-            "function item = glbl_base_nth(n, l):\n" + 
-            "  item = l{1,n+1};\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_print(value):\n" + 
-            "  value\n" + 
-            "    return value;\n" + 
-            "\n" + 
-            "\n" + 
             "function res = glbl_base_svd(x)\n" + 
             "  n = size(x)(1);\n" + 
             "  [U,S,V] = svd(x); \n" + 
@@ -1576,10 +1618,6 @@ private void writePythonPrelude(Printer out) {
             "  endfor\n" + 
             "  res = tup;\n" + 
             "\n" +
-            "\n" + 
-            "def glbl_base_sin(angle):\n" + 
-            "    return sin(angle);\n" + 
-            "\n" + 
             "\n" + 
             "\n" + 
             "function lst = glbl_base_reverse(x)\n" + 

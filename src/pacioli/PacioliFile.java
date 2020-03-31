@@ -50,6 +50,7 @@ public class PacioliFile extends AbstractPrintable {
      * module and check that the file exists.
      */
     private PacioliFile(File file, String module, Integer version, Boolean isInclude, Boolean isLibrary) {
+        assert(!module.contains("."));
         this.file = file.getAbsoluteFile();
         this.module = module;
         this.version = version;
@@ -133,6 +134,13 @@ public class PacioliFile extends AbstractPrintable {
         if (include.exists()) {
             //String module = file.getModule() + "/" + name;
             String module = FilenameUtils.removeExtension(relative.toString());
+            
+            // This replace fixes the problem that baseDir points to the wrong file.
+            // It should be the enclosing non-include file. It is however the project
+            // base dir. The result is that ..//.. etc appears in the path. This
+            // replace is a quick and dirty fix for that. 
+            module = module.replaceAll("\\.", "_");
+            
             module = module.replaceAll("_", "_x");
             module = module.replaceAll("\\\\", "_y");
             module = module.replaceAll("/", "_z");
