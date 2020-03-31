@@ -1361,7 +1361,7 @@ private void writePythonPrelude(Printer out) {
             "\n" + 
             "\n" + 
             "def glbl_base_scale(x,y):\n" + 
-            "    return x*y\n" + 
+            "    return y*x\n" + 
             "\n" + 
             "\n" + 
             "def glbl_base_rscale(x,y):\n" + 
@@ -1489,6 +1489,10 @@ private void writePythonPrelude(Printer out) {
             "    return np.linalg.lstsq(lhs, rhs)[0].reshape([lhs.shape[1], rhs.shape[1]])\n" +
             "\n" + 
             "\n" + 
+            "def glbl_base_greater(x,y):\n" + 
+            "    return np.all(x > y)\n" + 
+            "\n" + 
+            "\n" + 
             "def glbl_base_less(x,y):\n" + 
             "    return np.all(x < y)\n" + 
             "\n" + 
@@ -1597,44 +1601,26 @@ private void writePythonPrelude(Printer out) {
             "\n" + 
             "\n" + 
             "\n" + 
-            "'''\n" + 
             "\n" + 
-            "\n" + 
-            "def glbl_base_mmult(x,y):\n" + 
-            "  num = x*y;\n" + 
             "\n" + 
             "\n" + 
             "def glbl_base_not(x):\n" + 
-            "  num = not(x);\n" + 
+            "    return not(x)\n" + 
             "\n" + 
             "\n" + 
-            "function res = glbl_base_svd(x)\n" + 
-            "  n = size(x)(1);\n" + 
-            "  [U,S,V] = svd(x); \n" + 
-            "  tup = glbl_base_empty_list;\n" + 
-            "  for i=1:n\n" + 
-            "    %tup = glbl_base_append(tup, glbl_base_singleton_list(glbl_base_tuple(S(i,i), U(:, i), V(i, :)')));\n" + 
-            "    tup = glbl_base_append(tup, glbl_base_singleton_list(glbl_base_tuple(S(i,i), U(:, i), V(:, i))));\n" + 
-            "  endfor\n" + 
-            "  res = tup;\n" + 
+            "def glbl_base_svd(x):\n" + 
+            "    (U,S,V) = np.linalg.svd(x)\n" + 
+            "    n = S.shape[0]\n" +
+            "    tup = glbl_base_empty_list();\n" + 
+            "    for i in range(0, n):\n" + 
+//            "    %tup = glbl_base_append(tup, glbl_base_singleton_list(glbl_base_tuple(S(i,i), U(:, i), V(i, :)')))\n" + 
+            "        tup = glbl_base_append(tup, glbl_base_singleton_list(glbl_base_tuple(S[i], U[:, i].reshape([n, 1]), V[i, :].reshape([n, 1]))))\n" + 
+            "    return tup\n" + 
             "\n" +
             "\n" + 
             "\n" + 
-            "function lst = glbl_base_reverse(x)\n" + 
-            "  lst = flip(x);\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def _if(x,y,z):\n" + 
-            "  if x \n" + 
-            "      return y();\n" + 
-            "  else\n" + 
-            "      return z();\n" + 
-            "  endif\n" + 
+            "def glbl_base_reverse(x):\n" + 
+            "    return x[::-1]\n" + 
             "\n" +
-            "\n'''" + 
-
             "";
 }
