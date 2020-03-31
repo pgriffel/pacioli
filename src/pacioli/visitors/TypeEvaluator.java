@@ -11,6 +11,7 @@ import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.IndexSetInfo;
@@ -159,7 +160,16 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
 
         // The Index type is special
         if (node.getName().equals("Index")) {
-            if (types.size() == 1 && types.get(0) instanceof TypeVar) {
+            if (types.size() == 0) {
+                List<TypeIdentifier> names = new ArrayList<TypeIdentifier>();
+                List<IndexSetInfo> infos = new ArrayList<IndexSetInfo>();
+                returnType(new IndexType(names, infos));
+            } else if (true || types.size() == 1 && types.get(0) instanceof TypeVar) {
+                
+                if (types.size() != 1) {
+                    throw new RuntimeException("Invalid index type",
+                            new PacioliException(node.getLocation(), "Invalid nr arguments: %s", types.size()));
+                }
                 
                 // It is an index variable. Just return the var.
                 returnType(types.get(0));
@@ -257,6 +267,11 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             // todo: rewrite evalBody
             returnType(new MatrixType(((AliasDefinition) definition.get()).evalBody()));
             //throw new RuntimeException("fixme");
+
+        } else if (info instanceof IndexSetInfo) {
+            IndexSetInfo indexSetInfo = (IndexSetInfo) info;
+            TypeIdentifier id = new TypeIdentifier(indexSetInfo.generic().getModule(), node.getName());
+            returnType(new IndexType(id, indexSetInfo));        
         } else {
             //returnType(new MatrixType(new ScalarBase(node.getName())));
             assert(info instanceof ScalarUnitInfo);
