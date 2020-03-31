@@ -1562,48 +1562,6 @@ private void writePythonPrelude(Printer out) {
             "    return l[n[0, 0]]\n" + 
             "\n" + 
             "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
             "def glbl_base_not(x):\n" + 
             "    return not(x)\n" + 
             "\n" + 
@@ -1621,6 +1579,148 @@ private void writePythonPrelude(Printer out) {
             "\n" + 
             "def glbl_base_reverse(x):\n" + 
             "    return x[::-1]\n" + 
+            "\n" + 
+            "\n" + 
+            "from sklearn.datasets import load_iris\n" + 
+            "from sklearn.neighbors import KNeighborsClassifier\n" + 
+            "\n" + 
+            "\n" + 
+//            "def glbl_numpy_iris_data_array():\n" + 
+//            "    iris = load_iris()\n" + 
+//            "    data = iris.data\n" +
+//            "    result = []\n" +            
+//            "    (m, n) = data.shape\n" +
+//            "    size = m * n\n" +
+//            "    k = 0\n" +            
+//            "    for i in range(0, m):\n" + 
+//            "        for j in range(0, n):\n" +
+//            "            tup = ((k, size), (0,1), data[i, j])\n" +            
+//            "            result.append(tup)\n" + 
+//            "            k += 1\n" + 
+//            "    return glbl_base_make_matrix(result)\n" +            
+//            "\n" + 
+//            "\n" + 
+            "\n" +
+            "def glbl_numpy_iris_data_array():\n" + 
+            "    iris = load_iris()\n" + 
+            "    data = iris.data\n" +            
+            "    (m, n) = data.shape\n" +
+            "    size = m * n\n" +
+            "    return data.reshape([size, 1])\n" +
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "def glbl_numpy_iris_data_list():\n" + 
+            "    iris = load_iris()\n" + 
+            "    data = iris.data\n" +
+            "    result = []\n" +            
+            "    (m, n) = data.shape\n" +
+            "    size = m * n\n" +
+            "    k = 0\n" +            
+            "    for i in range(0, m):\n" +
+            "        tups = []\n" + 
+            "        for j in range(0, n):\n" +
+            "            tup = ((j, n), (0,1), data[i, j])\n" +            
+            "            tups.append(tup)\n" + 
+            "            k += 1\n" + 
+            "        result.append(glbl_base_make_matrix(tups))\n" +
+            "    return result\n" +            
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "def glbl_numpy_data_as_list(data):\n" + 
+            "    return [data[i] for i in range(0, data.shape[0])]\n" + 
+            "\n" + 
+            "def glbl_numpy_data_as_array(data):\n" + 
+            "    return np.reshape(data, [len(data), data[0].shape[0]])\n" +             
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "def glbl_numpy_iris_target_list():\n" + 
+            "    iris = load_iris()\n" + 
+            "    target = iris.target\n" +
+            "    nr_targets = len(iris.target_names)\n" +            
+            "    result = []\n" +            
+            "    m = target.shape[0]\n" +
+            "    n = 3\n" +
+            "    for i in range(0, m):\n" + 
+//            "        tup = ((target[i], nr_targets), (0,1), 1)\n" +            
+//            "        result.append(glbl_base_make_matrix([tup]))\n" +  
+            "        result.append((target[i], n))\n" +
+            "    return result\n" +
+            "\n" + 
+            "\n" + 
+            "def glbl_numpy_iris_target_array():\n" + 
+            "    iris = load_iris()\n" + 
+            "    target = iris.target\n" +
+            "    result = []\n" +            
+            "    m = target.shape[0]\n" +      
+            "    for i in range(0, m):\n" + 
+            "        tup = ((i, m), (0,1), target[i])\n" +            
+            "        result.append(tup)\n" +  
+            "    return glbl_base_make_matrix(result)\n" + 
+            "\n" +  
+            "\n" + 
+            "\n" + 
+            "def glbl_numpy_knn_fit(data, target):\n" + 
+//            "    classifier = KNeighborsClassifier()\n" + 
+//            "    classifier.fit(data, target)\n" +            
+//            "    return classifier\n" + 
+//            "    m = len(data)\n" +
+            "    m = target.shape[0]\n" +            
+            "    n = 4\n" +
+            "    print(data.shape)\n" +
+            "    print(target.shape)\n" +
+            "    classifier = KNeighborsClassifier()\n" + 
+            "    classifier.fit(np.reshape(data, [m, n]), np.reshape(target, [m]))\n" +            
+            "    return classifier\n" + 
+            "\n" +
+            "\n" + 
+            "def glbl_numpy_knn_predict(classifier, data):\n" + 
+//            "    classifier.predict(data.reshape([data.shape[0]]))\n" + 
+            "    classifier.predict(data)\n" +
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "def glbl_numpy_knn_fitTENSORVARIANT(data, target):\n" + 
+            "    classifier = KNeighborsClassifier()\n" + 
+            "    classifier.fit(data, target)\n" +            
+            "    return classifier\n" + 
+            "\n" +
+            "\n" + 
+            "def glbl_numpy_knn_predictTENSORVARIANT(classifier, data):\n" + 
+            "    classifier.predict(data)\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
             "\n" +
             "";
 }
