@@ -125,6 +125,8 @@ public class Pacioli {
                             settings.setTarget(Target.MATLAB);
                         } else if (target.equals("mvm")) {
                             settings.setTarget(Target.MVM);
+                        } else if (target.equals("python")) {
+                            settings.setTarget(Target.PYTHON);
                         } else {
                             throw new RuntimeException("Compilation target " + target + " unknown. Expected javascript, matlab or mvm.");
                         }
@@ -315,7 +317,7 @@ public class Pacioli {
             PacioliFile file = optionalFile.get();
             if (kind.equals("bundle")) {
                 Project project = Project.load(file, libs);
-                project.bundle(settings, settings.getTarget());
+                project.bundle(settings);
             } else if (kind.equals("single")) {
                 compile(file, libs, settings);
             } else if (kind.equals("recursive")) {
@@ -356,9 +358,9 @@ public class Pacioli {
         try {
             Project project = Project.load(file.get(), libs);
             
-            if (project.targetOutdated(Target.MVM)) {
+            if (project.targetOutdated(settings.getTarget())) {
                 Pacioli.logln1("Compiling file '%s'", file.get().getFile());
-                project.bundle(settings, Target.MVM);
+                project.bundle(settings);
             }
             Path mvmFile = project.bundlePath(Target.MVM);
             Pacioli.logln1("Running mvm file '%s'", mvmFile);
@@ -488,13 +490,16 @@ public class Pacioli {
                 Project project = Project.load(file.get(), libs);
                 
                 //project.printInfo();
-                project.bundle(settings, Target.MVM);
+                settings.setTarget(Target.PYTHON);
+                project.bundle(settings);
                 
-                Path binName = project.bundlePath(Target.MVM);
-                
-                Progam.load(project.root(), libs, Phase.TYPED).printTypes();;
-                Pacioli.logln("Running file %s", binName);
-                interpretMVMText(binName.toFile(), libs);
+//                project.bundle(settings, Target.MVM);
+//                
+//                Path binName = project.bundlePath(Target.MVM);
+//                
+//                Progam.load(project.root(), libs, Phase.TYPED).printTypes();;
+//                Pacioli.logln("Running file %s", binName);
+//                interpretMVMText(binName.toFile(), libs);
                 
             } catch (IOException e) {
                 Pacioli.logln("\nError in sample '%s':\n\n%s", sample, e);

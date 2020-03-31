@@ -113,8 +113,10 @@ public class PacioliFile extends AbstractPrintable {
             return "js";
         case MATLAB:
             return "m";
+        case PYTHON:
+            return "py";
         default:
-            return null;
+            throw new RuntimeException("Unknown target");
         }
     }
     

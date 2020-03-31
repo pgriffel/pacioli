@@ -123,6 +123,9 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
                 if (node.getInfo().isFunction()) {
                     out.write("@");
                 }
+                // Note that this expects proper ordering of global values.
+                // Other targets generate a function and fetch mechanism.
+                // Fix old code above that did this!
                 out.write(node. getInfo().globalName().toLowerCase());
             }
         } else {

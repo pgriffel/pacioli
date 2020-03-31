@@ -164,7 +164,7 @@ public class Project {
         Pacioli.logln("\n");
     }
     
-    public Path bundle(CompilationSettings settings, Target target) throws Exception {
+    public Path bundle(CompilationSettings settings) throws Exception {
         
         Pacioli.logln1("Creating bundle for file '%s'", file);
         
@@ -174,7 +174,7 @@ public class Project {
         mainProgram.liftStatements();
         
         // Setup a writer for the output file
-        Path dstPath = bundlePath(target);
+        Path dstPath = bundlePath(settings.getTarget());
         PrintWriter writer = null;       
         
         try {

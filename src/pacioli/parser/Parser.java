@@ -1402,8 +1402,8 @@ public class Parser extends java_cup.runtime.lr_parser {
 
     private static ExpressionNode desugarComprehension(pacioli.Location loc, ExpressionNode e, List<Object> ps) throws PacioliException {
 
-        String accuName = freshName("$accu");
-        String tupName = freshName("$tup");
+        String accuName = freshName("_c_accu");
+        String tupName = freshName("_c_tup");
 
         ExpressionNode addMut = new IdentifierNode("add_mut", loc);
         ExpressionNode accu = new IdentifierNode(accuName, loc);

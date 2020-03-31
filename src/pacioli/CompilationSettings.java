@@ -26,7 +26,7 @@ import java.util.List;
 
 public class CompilationSettings {
 
-    public enum Target {MVM, JS, MATLAB};
+    public enum Target {MVM, JS, MATLAB, PYTHON};
     
     private Target target = Target.MVM;
     private boolean debug = false;
