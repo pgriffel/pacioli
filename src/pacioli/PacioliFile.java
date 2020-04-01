@@ -188,7 +188,7 @@ public class PacioliFile extends AbstractPrintable {
         if (theFile == null) {
             return Optional.empty();
         } else {
-            return Optional.of(new PacioliFile(theFile, name, 0, false, true));    
+            return Optional.of(new PacioliFile(theFile, name.replace("/", "_"), 0, false, true));    
         }
     }
 
