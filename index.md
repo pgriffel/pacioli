@@ -113,25 +113,33 @@ Petal width     0.20000 cm
 
 The runtime support for the various targets is as follows.
 
-* MVM
-  * Completely unit aware. Input and output with units and index names.
-  * Uses the Apache Commons Mathematics Library for the numbers
-  * Dynamically typed.
-  * Duplicates the unit checks at compile time time. Useful to test
-    the compiler, but unnecessary overhead.
-
-* NumPy and MATLAB/GNU Octave
-  * Not unit aware. Still unit correct but no units and index names in
-    the output.
-  * No runtime type information. Zero overhead.
-
-* Javascript
-  * Completely unit aware. Input and output with units and index names.
-  * Uses numeric.js for the numbers (supports 3D graphics with three.js)
-  * No dynamic typing. The type/unit computation is separated from the
-    numbers.
-  * Marginal overhead from units.
-
+<ul>
+  <li>MVM
+    <ul>
+      <li>Completely unit aware. Input and output with units and index names.</li>
+      <li>Uses the Apache Commons Mathematics Library for the numbers.</li>
+      <li>Dynamically typed.</li>
+      <li>Duplicates the unit checks at compile time time. Useful to test
+          the compiler, but unnecessary overhead.</li>
+    </ul>
+  </li>
+  <li>NumPy and MATLAB/GNU Octave
+    <ul>
+      <li>Not unit aware. Still unit correct but no units and index names in
+          the output.</li>
+      <li>No runtime type information. Zero overhead.</li>
+    </ul>
+  </li>      
+  <li>Javascript
+    <ul>
+      <li>Completely unit aware. Input and output with units and index names.</li>
+      <li>Uses numeric.js for the numbers (supports 3D graphics with three.js)</li>
+      <li>No dynamic typing. The type/unit computation is separated from the
+    numbers.</li>
+      <li> Marginal overhead from units.</li>
+    </ul>
+  </li>
+</ul>
 
 
 License and Status
