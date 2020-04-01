@@ -481,7 +481,6 @@ public class PythonCompiler implements SymbolTableVisitor {
         "    data = iris.data\n" +
         "    target = iris.target\n" +
         "    (nr_samples, nr_features) = data.shape\n" +
-//        "    size = nr_samples * nr_features\n" +
         "    nr_targets = len(iris.target_names)\n" +
         "    result = []\n" +
         "    for i in range(0, nr_samples):\n" +
@@ -490,23 +489,9 @@ public class PythonCompiler implements SymbolTableVisitor {
         "            tups.append(((j, nr_features), (0,1), data[i, j]))\n" + 
         "        result.append((glbl_base_make_matrix(tups), (target[i], nr_targets)))\n" +
         "    return result\n" +            
-        "\n" + 
-        "\n" + 
-        "def target_samples_as_key_list(target, n):\n" +             
-        "    result = []\n" +            
-        "    m = target.shape[0]\n" +
-        "    for i in range(0, m):\n" + 
-        "        result.append((target[i], n))\n" +
-        "    return result\n" +
-        "\n" + 
-        "\n" + 
-        "\n" + 
+        "\n" +  
         "\n" + 
         "def glbl_numpy_iris_knn_fit(data, target):\n" + 
-//            "    classifier = KNeighborsClassifier()\n" + 
-//            "    classifier.fit(data, target)\n" +            
-//            "    return classifier\n" + 
-//            "    m = len(data)\n" +
         "    nr_samples = 150\n" +
         "    nr_features = 4\n" +
         "    nr_targets = 3\n" +
@@ -525,146 +510,5 @@ public class PythonCompiler implements SymbolTableVisitor {
         "\n" + 
         "def glbl_numpy_iris_knn_predict(classifier, data):\n" + 
         "    return classifier.predict(np.reshape(data, [1, data.shape[0]]))\n" + 
-//            "    classifier.predict(data)\n" +
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" +
-
- 
-        "\n" + 
-        "def glbl_numpy_train_test_split(x, y, num):\n" + 
-        "    return train_test_split(x, y, test_size = num[0,0])\n" +             
-        "\n" + 
-        "\n" +         "\n" + 
-//            "def glbl_numpy_iris_data_array():\n" + 
-//            "    iris = load_iris()\n" + 
-//            "    data = iris.data\n" +
-//            "    result = []\n" +            
-//            "    (m, n) = data.shape\n" +
-//            "    size = m * n\n" +
-//            "    k = 0\n" +            
-//            "    for i in range(0, m):\n" + 
-//            "        for j in range(0, n):\n" +
-//            "            tup = ((k, size), (0,1), data[i, j])\n" +            
-//            "            result.append(tup)\n" + 
-//            "            k += 1\n" + 
-//            "    return glbl_base_make_matrix(result)\n" +            
-//            "\n" + 
-//            "\n" + 
-        "\n" +
-        "def glbl_numpy_iris_iris_data_array():\n" + 
-        "    iris = load_iris()\n" + 
-        "    data = iris.data\n" +            
-        "    (m, n) = data.shape\n" +
-        "    size = m * n\n" +
-        "    return data.reshape([size, 1])\n" +
-        "\n" + 
-        "\n" + 
-        "def tmp_numpy_to_pacioli(vector):\n" +  
-        "    size = vector.shape[0]\n" +
-        "    tups = []\n" +            
-        "    for i in range(0, size):\n" + 
-        "        tup = ((i, size), (0,1), vector[i])\n" +            
-        "        result.append(tup)\n" +  
-        "    return glbl_base_make_matrix(result)\n" +                        
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-//        "def glbl_numpy_iris_iris_data_list():\n" + 
-//        "    iris = load_iris()\n" + 
-//        "    data = iris.data\n" +
-//        "    result = []\n" +            
-//        "    (m, n) = data.shape\n" +
-//        "    size = m * n\n" +
-//        "    k = 0\n" +            
-//        "    for i in range(0, m):\n" +
-//        "        tups = []\n" + 
-//        "        for j in range(0, n):\n" +
-//        "            tup = ((j, n), (0,1), data[i, j])\n" +            
-//        "            tups.append(tup)\n" + 
-//        "            k += 1\n" + 
-//        "        result.append(glbl_base_make_matrix(tups))\n" +
-//        "    return result\n" +            
-//        "\n" + 
-        "\n" + 
-        "\n" + 
-        "def glbl_numpy_data_as_list(data):\n" + 
-        "    return [data[i] for i in range(0, data.shape[0])]\n" + 
-        "\n" + 
-        "def glbl_numpy_data_as_array(data):\n" + 
-        "    return np.reshape(data, [len(data), data[0].shape[0]])\n" +             
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-        "\n" + 
-//        "\n" + 
-//        "def glbl_numpy_knn_fit(data, target):\n" + 
-////            "    classifier = KNeighborsClassifier()\n" + 
-////            "    classifier.fit(data, target)\n" +            
-////            "    return classifier\n" + 
-////            "    m = len(data)\n" +
-//        "    m = target.shape[0]\n" +            
-//        "    n = 4\n" +
-//        "    print(data.shape)\n" +
-//        "    print(target.shape)\n" +
-//        "    classifier = KNeighborsClassifier()\n" + 
-//        "    classifier.fit(np.reshape(data, [m, n]), np.reshape(target, [m]))\n" +            
-//        "    return classifier\n" + 
-        "\n" +
-        "\n" + 
-//        "\n" + 
-//        "def glbl_numpy_knn_fitTENSORVARIANT(data, target):\n" + 
-//        "    classifier = KNeighborsClassifier()\n" + 
-//        "    classifier.fit(data, target)\n" +            
-//        "    return classifier\n" + 
-//        "\n" +
-//        "\n" + 
-//        "def glbl_numpy_knn_predictTENSORVARIANT(classifier, data):\n" + 
-//        "    classifier.predict(data)\n" + 
-//        "\n" +
-//        "\n" +  
-//        "def data_samples_as_list(data):\n" + 
-//        "    result = []\n" +            
-//        "    (m, n) = data.shape\n" +
-//        "    size = m * n\n" +
-//        "    for i in range(0, m):\n" +
-//        "        tups = []\n" + 
-//        "        for j in range(0, n):\n" +
-//        "            tup = ((j, n), (0,1), data[i, j])\n" +            
-//        "            tups.append(tup)\n" + 
-//        "        result.append(glbl_base_make_matrix(tups))\n" +
-//        "    return result\n" +            
-//        "\n" + 
-        "\n" + 
- 
-        "";
+        "\n";
 }
