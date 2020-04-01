@@ -12,7 +12,7 @@ to mathematical software. Its parametric type system infers vector and
 matrix types based on dimensioned vector spaces.
 
 Pacioli programs can be run directly via the command line, compiled to
-NumPy or MATLAB/GNU Ocate, or compiled to JavaScript and deployed via 
+NumPy or MATLAB/GNU Octave, or compiled to JavaScript and deployed via 
 the web. 
 
 
