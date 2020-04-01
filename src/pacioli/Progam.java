@@ -720,8 +720,12 @@ public class Progam extends AbstractPrintable {
         // Generate code for the toplevels
         for (Toplevel def : toplevels) {
             if (settings.getTarget() == Target.MVM || 
-                    settings.getTarget() == Target.MATLAB ||
-                    settings.getTarget() == Target.PYTHON) {
+                    settings.getTarget() == Target.MATLAB) {
+                printer.newline();
+                def.accept(gen);
+                printer.newline();
+            }
+            if (settings.getTarget() == Target.PYTHON) {
                 printer.newline();
                 printer.write("print(");
                 def.accept(gen);
@@ -1601,7 +1605,7 @@ private void writePythonPrelude(Printer out) {
 //            "\n" + 
 //            "\n" + 
             "\n" +
-            "def glbl_numpy_iris_data_array():\n" + 
+            "def glbl_numpy_iris_iris_data_array():\n" + 
             "    iris = load_iris()\n" + 
             "    data = iris.data\n" +            
             "    (m, n) = data.shape\n" +
@@ -1609,8 +1613,21 @@ private void writePythonPrelude(Printer out) {
             "    return data.reshape([size, 1])\n" +
             "\n" + 
             "\n" + 
+            "def tmp_numpy_to_pacioli(vector):\n" +  
+            "    size = vector.shape[0]\n" +
+            "    tups = []\n" +            
+            "    for i in range(0, size):\n" + 
+            "        tup = ((i, size), (0,1), vector[i])\n" +            
+            "        result.append(tup)\n" +  
+            "    return glbl_base_make_matrix(result)\n" +                        
             "\n" + 
-            "def glbl_numpy_iris_data_list():\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "\n" + 
+            "def glbl_numpy_iris_iris_data_list():\n" + 
             "    iris = load_iris()\n" + 
             "    data = iris.data\n" +
             "    result = []\n" +            
@@ -1633,6 +1650,12 @@ private void writePythonPrelude(Printer out) {
             "\n" + 
             "def glbl_numpy_data_as_array(data):\n" + 
             "    return np.reshape(data, [len(data), data[0].shape[0]])\n" +             
+            "\n" + 
+            "\n" + 
+            "from sklearn.model_selection import train_test_split;\n" + 
+            "\n" + 
+            "def glbl_numpy_train_test_split(x, y, num):\n" + 
+            "    return train_test_split(x, y, test_size = num[0,0])\n" +             
             "\n" + 
             "\n" + 
             "\n" + 
