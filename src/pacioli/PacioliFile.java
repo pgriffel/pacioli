@@ -167,8 +167,8 @@ public class PacioliFile extends AbstractPrintable {
         // Generate a list of candidates
         List<File> candidates = new ArrayList<File>();
         for (File dir : libs) {
-            //candidates.add(new File(dir, name + ".pacioli"));
-            candidates.add(new File(dir, name + "/" + name + ".pacioli"));
+            File libdir = new File(dir, name);
+            candidates.add(new File(libdir, libdir.getName() + ".pacioli"));
         }
 
         // See if a candidate exists
