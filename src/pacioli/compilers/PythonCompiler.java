@@ -143,356 +143,421 @@ public class PythonCompiler implements SymbolTableVisitor {
         out.newline();
     }
 
-    private static final String primitives = "\n" +
-            "import numpy as np\n" +
-            "\n" +
-            "\n" +
-            "glbls_dict = {}\n" +
-            "\n" + 
-            "def fetch_global(name):\n" + 
-            "    if name not in glbls_dict:\n" + 
-            "        glbls_dict[name] = globals()[name]()\n" +      
-            "    return glbls_dict[name]\n" + 
-            "\n" + 
-            "\n" +
-            "def glbl_base__():\n" +
-            "    return (0,1)\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +            
-            "def glbl_base_add_mut(list, item):\n" + 
-            "    return glbl_base_append(list, glbl_base_singleton_list(item));\n" + 
+    private static final String primitives =
+        "import numpy as np\n" +
+        "\n" + 
+        "\n" +
+        "glbls_dict = {}\n" +
+        "\n" + 
+        "\n" + 
+        "def fetch_global(name):\n" + 
+        "    if name not in glbls_dict:\n" + 
+        "        glbls_dict[name] = globals()[name]()\n" +      
+        "    return glbls_dict[name]\n" + 
+        "\n" + 
+        "\n" +
+        "def glbl_base__():\n" +
+        "    return (0,1)\n" +
+        "\n" + 
+        "\n" +            
+        "def glbl_base_add_mut(list, item):\n" + 
+        "    return glbl_base_append(list, glbl_base_singleton_list(item));\n" + 
 //            "    list.append(item)\n" +
 //            "    return list\n" +
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_append(x,y):\n" +
-            "    tmp = x[:]\n" +
-            "    tmp.extend(y)\n" +            
-            "    return tmp\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_apply(fun,args):\n" + 
-            "    return fun(*args)\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_column_domain(x):\n" + 
-            "    n = x.shape[1]\n" + 
-//            "    return np.array([(i,n) for i in np.arange(n)])\n" + 
-            "    return [(i,n) for i in np.arange(n)]\n" +
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_column_unit(x):\n" +  
-            "    return np.ones([x.shape[1], 1])\n" +  
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_cons(item, list):\n" + 
-            "    return glbl_base_append(glbl_base_singleton_list(item), list);\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_cos(angle):\n" + 
-            "    return cos(angle);\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_divide(x,y):\n" + 
-            "    return glbl_base_multiply(x, glbl_base_reciprocal(y))\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_left_divide(x,y):\n" + 
-            "    return glbl_base_multiply(glbl_base_reciprocal(x), y)\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_empty_list():\n" + 
-            "    return []\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_equal(x,y):\n" +  
-//            "    print(\"WARNING: equal gives a matrix!!! (glbl_base_equal)\")\n" + 
-            "    return np.all(x == y)\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_exp(x):\n" + 
-            "    return np.exp(x)\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_expt(x,y):\n" + 
-            "    return x**y\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" +
-            "\n" +             
-            "def glbl_base_mexpt(x,y):\n" + 
-            "    return np.linalg.matrix_power(x, y[0,0])\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_tuple(*args):\n" + 
-            "    return args;\n" + 
-            "\n" +
-            "\n" + 
-            "def glbl_base_sum(x,y):\n" + 
-            "    return x+y;\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_mmult(x,y):\n" + 
-            "    return x@y;\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_dim_inv(x):\n" + 
-            "    return glbl_base_transpose(glbl_base_reciprocal(x))\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_transpose(x):\n" + 
-            "    return np.transpose(x)\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_reciprocal(x):\n" + 
-//            "    return 1/x\n" +
-            "    return np.vectorize(lambda val: 0 if val == 0 else 1/val)(x)\n" +
-            "\n" + 
-            "\n" + 
-            "def glbl_base_scale(x,y):\n" + 
-            "    return y*x\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_rscale(x,y):\n" + 
-            "    return x*y\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_make_matrix(items):\n" + 
-            "    if (len(items) == 0):\n" + 
-            "        error(\"matrix_from_tuples called on empty list\");\n" + 
-            "\n" + 
-            "    rowkey = items[0][0]\n" + 
-            "    columnkey = items[0][1]\n" + 
-            "    result = np.zeros([rowkey[1], columnkey[1]]);\n" + 
-            "    for (i, j, v)  in items:\n" + 
-            "        result[i[0], j[0]] = v\n" + 
-            "    return result\n" + 
-            "\n" + 
-            "def glbl_base_singleton_list(x):\n" + 
-            "    return [x]\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_minus(x,y):\n" + 
-            "    return x-y\n" + 
-            "\n" + 
-            "def glbl_base_multiply(x,y):\n" + 
-            "    return x*y\n" + 
-            "\n" + 
-            "def glbl_base_get(x, i, j):\n" + 
-            "    return x[i[0], j[0]];\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_sqrt(x):\n" + 
-            "    return np.sqrt(x)\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_magnitude(x):\n" + 
-            "    return x\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_unit_factor(x):\n" + 
-            "    return np.array([[1]]);\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_dim_div(x, y):\n" + 
-            "    return glbl_base_mmult(x, glbl_base_dim_inv(y))\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_row_unit(x):\n" + 
-            "    return np.ones([x.shape[0], 1])\n" +  
-            "\n" + 
-            "\n" + 
-            "def glbl_base_scale_down(x,y):\n" + 
-            "    return x/y\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_total(x):\n" + 
-            "    return x.sum()\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_mod(a, m):\n" + 
-            "    return np.mod(a, m)\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_negative(x):\n" + 
-            "    return -x\n" + 
-            "\n" + 
-            "def glbl_base_row_domain(x):\n" + 
-            "    n = x.shape[0]\n" +  
-            "    return [(i,n) for i in np.arange(n)]\n" +
-            "\n" + 
-            "\n" + 
-            "def glbl_base_loop_list(init, fun, items):\n" + 
-            "    result = init\n" + 
-            "    for item in items:\n" + 
-            "        result = fun(result, item)\n" + 
-            "    return result\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_map_list(fun, items):\n" +
-            "    return [fun(x) for x in items]\n" +            
-//            "    result = []\n" + 
-//            "    for item in items:\n" + 
-//            "        result.append(fun(item))\n" + 
-//            "    return result\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_zip(x,y):\n" + 
-            "    return list(zip(x, y))\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_tail(l):\n" + 
-            "    return l[1:];\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_head(l):\n" + 
-            "    return l[0];\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_left_identity(mat):\n" +  
-            "    return np.eye(mat.shape[0])\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_naturals(n):\n" + 
-            "    return [np.array([[x]]) for x in np.arange(n)]\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_list_size(list):\n" + 
-            "    return len(list)\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_fold_list(fun, items):\n" + 
-            "    if (len(items) == 0):\n" + 
-            "        error(\"fold list called on empty list\");\n" + 
-            "" + 
-            "    result = items[0]\n" + 
-            "    for item in items[1:]:\n" + 
-            "        result = fun(result, item)\n" +
-            "" + 
-            "    return result\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_solve(lhs, rhs):\n" + 
-//            "    return np.linalg.solve(lhs, rhs)\n" + 
-            "    return np.linalg.lstsq(lhs, rhs)[0].reshape([lhs.shape[1], rhs.shape[1]])\n" +
-            "\n" + 
-            "\n" + 
-            "def glbl_base_greater(x,y):\n" + 
-            "    return np.all(x > y)\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_less(x,y):\n" + 
-            "    return np.all(x < y)\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_less_eq(x,y):\n" + 
-            "    return np.all(x <= y)\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_get_num(x, i, j):\n" + 
-            "    return np.array([[x[i[0], j[0]]]])\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_ln(x):\n" + 
-            "    return np.log(x);\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_log(x, b):\n" + 
-            "    return np.log(x) / np.log(b[0,0]);\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_abs(x):\n" + 
-            "    return np.abs(x)\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_identity(x):\n" + 
-            "    return x\n" + 
-            "\n" + 
-            "def glbl_base_not_equal(x,y):\n" + 
-            "    return not(glbl_base_equal(x, y))\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_skip():\n" + 
-            "    return" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_print(value):\n" + 
-            "    print(value)\n" +
-//            "    print(\"\\n\")\n" + 
-//            "    return value\n" + 
-            "\n" + 
-            "def glbl_base_write(value):\n" + 
-            "    print(value)\n" + 
-            "    return value\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_num2string(value, decs):\n" +  
-            "    return \"{}\".format(value[0, 0])\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_random():\n" +  
-            "    return [[np.random.random()]]\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_sin(angle):\n" + 
-            "    return np.sin(angle);\n" + 
-            "\n" + 
-            "def glbl_base_cos(angle):\n" + 
-            "    return np.cos(angle);\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_nth(n, l):\n" + 
-            "    return l[n[0, 0]]\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_not(x):\n" + 
-            "    return not(x)\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_base_svd(x):\n" + 
-            "    (U,S,V) = np.linalg.svd(x)\n" + 
-            "    n = S.shape[0]\n" +
-            "    tup = glbl_base_empty_list();\n" + 
-            "    for i in range(0, n):\n" + 
-//            "    %tup = glbl_base_append(tup, glbl_base_singleton_list(glbl_base_tuple(S(i,i), U(:, i), V(i, :)')))\n" + 
-            "        tup = glbl_base_append(tup, glbl_base_singleton_list(glbl_base_tuple(S[i], U[:, i].reshape([n, 1]), V[i, :].reshape([n, 1]))))\n" + 
-            "    return tup\n" + 
-            "\n" +
-            "\n" + 
-            "\n" + 
-            "def glbl_base_reverse(x):\n" + 
-            "    return x[::-1]\n" + 
-            "\n" + 
-            "\n" + 
-            "from sklearn.datasets import load_iris\n" + 
-            "from sklearn.neighbors import KNeighborsClassifier\n" + 
-            "\n" + 
-            "\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_append(x,y):\n" +
+        "    tmp = x[:]\n" +
+        "    tmp.extend(y)\n" +            
+        "    return tmp\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_apply(fun,args):\n" + 
+        "    return fun(*args)\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_column_domain(x):\n" + 
+        "    n = x.shape[1]\n" +  
+        "    return [(i,n) for i in np.arange(n)]\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_column_unit(x):\n" +  
+        "    return np.ones([x.shape[1], 1])\n" +  
+        "\n" + 
+        "\n" + 
+        "def glbl_base_cons(item, list):\n" + 
+        "    return glbl_base_append(glbl_base_singleton_list(item), list);\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_cos(angle):\n" + 
+        "    return cos(angle);\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_divide(x,y):\n" + 
+        "    return glbl_base_multiply(x, glbl_base_reciprocal(y))\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_left_divide(x,y):\n" + 
+        "    return glbl_base_multiply(glbl_base_reciprocal(x), y)\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_empty_list():\n" + 
+        "    return []\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_equal(x,y):\n" +   
+        "    return np.all(x == y)\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_exp(x):\n" + 
+        "    return np.exp(x)\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_expt(x,y):\n" + 
+        "    return x**y\n" + 
+        "\n" +
+        "\n" +             
+        "def glbl_base_mexpt(x,y):\n" + 
+        "    return np.linalg.matrix_power(x, y[0,0])\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_tuple(*args):\n" + 
+        "    return args;\n" + 
+        "\n" +
+        "\n" + 
+        "def glbl_base_sum(x,y):\n" + 
+        "    return x+y;\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_mmult(x,y):\n" + 
+        "    return x@y;\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_dim_inv(x):\n" + 
+        "    return glbl_base_transpose(glbl_base_reciprocal(x))\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_transpose(x):\n" + 
+        "    return np.transpose(x)\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_reciprocal(x):\n" + 
+        "    return np.vectorize(lambda val: 0 if val == 0 else 1/val)(x)\n" +
+        "\n" + 
+        "\n" + 
+        "def glbl_base_scale(x,y):\n" + 
+        "    return y*x\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_rscale(x,y):\n" + 
+        "    return x*y\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_make_matrix(items):\n" + 
+        "    if (len(items) == 0):\n" + 
+        "        error(\"matrix_from_tuples called on empty list\");\n" +  
+        "    rowkey = items[0][0]\n" + 
+        "    columnkey = items[0][1]\n" + 
+        "    result = np.zeros([rowkey[1], columnkey[1]]);\n" + 
+        "    for (i, j, v)  in items:\n" + 
+        "        result[i[0], j[0]] = v\n" + 
+        "    return result\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_singleton_list(x):\n" + 
+        "    return [x]\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_minus(x,y):\n" + 
+        "    return x-y\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_multiply(x,y):\n" + 
+        "    return x*y\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_get(x, i, j):\n" + 
+        "    return x[i[0], j[0]];\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_sqrt(x):\n" + 
+        "    return np.sqrt(x)\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_magnitude(x):\n" + 
+        "    return x\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_unit_factor(x):\n" + 
+        "    return np.array([[1]]);\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_dim_div(x, y):\n" + 
+        "    return glbl_base_mmult(x, glbl_base_dim_inv(y))\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_row_unit(x):\n" + 
+        "    return np.ones([x.shape[0], 1])\n" +  
+        "\n" + 
+        "\n" + 
+        "def glbl_base_scale_down(x,y):\n" + 
+        "    return x/y\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_total(x):\n" + 
+        "    return x.sum()\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_mod(a, m):\n" + 
+        "    return np.mod(a, m)\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_negative(x):\n" + 
+        "    return -x\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_row_domain(x):\n" + 
+        "    n = x.shape[0]\n" +  
+        "    return [(i,n) for i in np.arange(n)]\n" +
+        "\n" + 
+        "\n" + 
+        "def glbl_base_loop_list(init, fun, items):\n" + 
+        "    result = init\n" + 
+        "    for item in items:\n" + 
+        "        result = fun(result, item)\n" + 
+        "    return result\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_map_list(fun, items):\n" +
+        "    return [fun(x) for x in items]\n" +             
+        "\n" + 
+        "\n" + 
+        "def glbl_base_zip(x,y):\n" + 
+        "    return list(zip(x, y))\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_tail(l):\n" + 
+        "    return l[1:];\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_head(l):\n" + 
+        "    return l[0];\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_left_identity(mat):\n" +  
+        "    return np.eye(mat.shape[0])\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_naturals(n):\n" + 
+        "    return [np.array([[x]]) for x in np.arange(n)]\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_list_size(list):\n" + 
+        "    return len(list)\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_fold_list(fun, items):\n" + 
+        "    if (len(items) == 0):\n" + 
+        "        error(\"fold list called on empty list\");\n" +  
+        "    result = items[0]\n" + 
+        "    for item in items[1:]:\n" + 
+        "        result = fun(result, item)\n" +
+        "    return result\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_solve(lhs, rhs):\n" + 
+        "    return np.linalg.lstsq(lhs, rhs)[0].reshape([lhs.shape[1], rhs.shape[1]])\n" +
+        "\n" + 
+        "\n" + 
+        "def glbl_base_greater(x,y):\n" + 
+        "    return np.all(x > y)\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_less(x,y):\n" + 
+        "    return np.all(x < y)\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_less_eq(x,y):\n" + 
+        "    return np.all(x <= y)\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_get_num(x, i, j):\n" + 
+        "    return np.array([[x[i[0], j[0]]]])\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_ln(x):\n" + 
+        "    return np.log(x);\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_log(x, b):\n" + 
+        "    return np.log(x) / np.log(b[0,0]);\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_abs(x):\n" + 
+        "    return np.abs(x)\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_identity(x):\n" + 
+        "    return x\n" + 
+        "\n" +
+        "\n" + 
+        "def glbl_base_not_equal(x,y):\n" + 
+        "    return not(glbl_base_equal(x, y))\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_skip():\n" + 
+        "    return" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_print(value):\n" + 
+        "    print(value)\n" +
+        "\n" +
+        "\n" + 
+        "def glbl_base_write(value):\n" + 
+        "    print(value)\n" + 
+        "    return value\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_num2string(value, decs):\n" +  
+        "    return \"{}\".format(value[0, 0])\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_random():\n" +  
+        "    return [[np.random.random()]]\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_sin(angle):\n" + 
+        "    return np.sin(angle);\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_cos(angle):\n" + 
+        "    return np.cos(angle);\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_nth(n, l):\n" + 
+        "    return l[n[0, 0]]\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_not(x):\n" + 
+        "    return not(x)\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_svd(x):\n" + 
+        "    (U,S,V) = np.linalg.svd(x)\n" + 
+        "    n = S.shape[0]\n" +
+        "    tup = glbl_base_empty_list();\n" + 
+        "    for i in range(0, n):\n" +  
+        "        tup = glbl_base_append(tup, glbl_base_singleton_list(glbl_base_tuple(S[i], U[:, i].reshape([n, 1]), V[i, :].reshape([n, 1]))))\n" + 
+        "    return tup\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_base_reverse(x):\n" + 
+        "    return x[::-1]\n" + 
+        "\n" + 
+        
+        
+        // lib numpy/iris
+        
+        "\n" +         
+        "from sklearn.datasets import load_iris\n" + 
+        "from sklearn.model_selection import train_test_split;\n" +
+        "from sklearn.neighbors import KNeighborsClassifier\n" + 
+        "\n" + 
+        "def glbl_numpy_iris_numpy_iris_array():\n" + 
+        "    iris = load_iris()\n" +
+        "    data = iris.data\n" +
+        "    target = iris.target\n" +
+        "    (nr_samples, nr_features) = data.shape\n" +
+        "    nr_targets = len(iris.target_names)\n" +
+        "    target_vector = np.zeros([nr_samples, nr_targets])\n" +
+        "    for i in range(0, nr_samples):\n" +   
+        "        target_vector[i, target[i]] = 1\n" +
+        "    return (data.reshape([nr_samples * nr_features, 1]), "
+        + "          target_vector.reshape([nr_samples * nr_targets, 1]))\n" + 
+        "\n" +  
+        "\n" + 
+        "def glbl_numpy_iris_numpy_iris_list():\n" + 
+        "    iris = load_iris()\n" + 
+        "    data = iris.data\n" +
+        "    target = iris.target\n" +
+        "    (nr_samples, nr_features) = data.shape\n" +
+//        "    size = nr_samples * nr_features\n" +
+        "    nr_targets = len(iris.target_names)\n" +
+        "    result = []\n" +
+        "    for i in range(0, nr_samples):\n" +
+        "        tups = []\n" + 
+        "        for j in range(0, nr_features):\n" +            
+        "            tups.append(((j, nr_features), (0,1), data[i, j]))\n" + 
+        "        result.append((glbl_base_make_matrix(tups), (target[i], nr_targets)))\n" +
+        "    return result\n" +            
+        "\n" + 
+        "\n" + 
+        "def target_samples_as_key_list(target, n):\n" +             
+        "    result = []\n" +            
+        "    m = target.shape[0]\n" +
+        "    for i in range(0, m):\n" + 
+        "        result.append((target[i], n))\n" +
+        "    return result\n" +
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_numpy_iris_knn_fit(data, target):\n" + 
+//            "    classifier = KNeighborsClassifier()\n" + 
+//            "    classifier.fit(data, target)\n" +            
+//            "    return classifier\n" + 
+//            "    m = len(data)\n" +
+        "    nr_samples = 150\n" +
+        "    nr_features = 4\n" +
+        "    nr_targets = 3\n" +
+        "    data_array = data.reshape([nr_samples, nr_features])\n" +
+        "    target_array = target.reshape([nr_samples, nr_targets])\n" +
+        "    target_vector = np.empty([nr_samples])\n" +
+        "    print(target_vector.shape)\n" +
+        "    for i in range(0, nr_samples):\n" +
+        "        for j in range(0, nr_targets):\n" +
+        "            if target_array[i,j] != 0:\n" +
+        "                target_vector[i] = j\n" +
+        "    classifier = KNeighborsClassifier()\n" + 
+        "    classifier.fit(data_array, target_vector)\n" +
+        "    return classifier\n" + 
+        "\n" +        
+        "\n" + 
+        "def glbl_numpy_iris_knn_predict(classifier, data):\n" + 
+        "    return classifier.predict(np.reshape(data, [1, data.shape[0]]))\n" + 
+//            "    classifier.predict(data)\n" +
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" +
+
+ 
+        "\n" + 
+        "def glbl_numpy_train_test_split(x, y, num):\n" + 
+        "    return train_test_split(x, y, test_size = num[0,0])\n" +             
+        "\n" + 
+        "\n" +         "\n" + 
 //            "def glbl_numpy_iris_data_array():\n" + 
 //            "    iris = load_iris()\n" + 
 //            "    data = iris.data\n" +
@@ -508,146 +573,98 @@ public class PythonCompiler implements SymbolTableVisitor {
 //            "    return glbl_base_make_matrix(result)\n" +            
 //            "\n" + 
 //            "\n" + 
-            "\n" +
-            "def glbl_numpy_iris_iris_data_array():\n" + 
-            "    iris = load_iris()\n" + 
-            "    data = iris.data\n" +            
-            "    (m, n) = data.shape\n" +
-            "    size = m * n\n" +
-            "    return data.reshape([size, 1])\n" +
-            "\n" + 
-            "\n" + 
-            "def tmp_numpy_to_pacioli(vector):\n" +  
-            "    size = vector.shape[0]\n" +
-            "    tups = []\n" +            
-            "    for i in range(0, size):\n" + 
-            "        tup = ((i, size), (0,1), vector[i])\n" +            
-            "        result.append(tup)\n" +  
-            "    return glbl_base_make_matrix(result)\n" +                        
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_numpy_iris_iris_data_list():\n" + 
-            "    iris = load_iris()\n" + 
-            "    data = iris.data\n" +
-            "    result = []\n" +            
-            "    (m, n) = data.shape\n" +
-            "    size = m * n\n" +
-            "    k = 0\n" +            
-            "    for i in range(0, m):\n" +
-            "        tups = []\n" + 
-            "        for j in range(0, n):\n" +
-            "            tup = ((j, n), (0,1), data[i, j])\n" +            
-            "            tups.append(tup)\n" + 
-            "            k += 1\n" + 
-            "        result.append(glbl_base_make_matrix(tups))\n" +
-            "    return result\n" +            
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_numpy_data_as_list(data):\n" + 
-            "    return [data[i] for i in range(0, data.shape[0])]\n" + 
-            "\n" + 
-            "def glbl_numpy_data_as_array(data):\n" + 
-            "    return np.reshape(data, [len(data), data[0].shape[0]])\n" +             
-            "\n" + 
-            "\n" + 
-            "from sklearn.model_selection import train_test_split;\n" + 
-            "\n" + 
-            "def glbl_numpy_train_test_split(x, y, num):\n" + 
-            "    return train_test_split(x, y, test_size = num[0,0])\n" +             
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_numpy_iris_target_list():\n" + 
-            "    iris = load_iris()\n" + 
-            "    target = iris.target\n" +
-            "    nr_targets = len(iris.target_names)\n" +            
-            "    result = []\n" +            
-            "    m = target.shape[0]\n" +
-            "    n = 3\n" +
-            "    for i in range(0, m):\n" + 
-//            "        tup = ((target[i], nr_targets), (0,1), 1)\n" +            
-//            "        result.append(glbl_base_make_matrix([tup]))\n" +  
-            "        result.append((target[i], n))\n" +
-            "    return result\n" +
-            "\n" + 
-            "\n" + 
-            "def glbl_numpy_iris_target_array():\n" + 
-            "    iris = load_iris()\n" + 
-            "    target = iris.target\n" +
-            "    result = []\n" +            
-            "    m = target.shape[0]\n" +      
-            "    for i in range(0, m):\n" + 
-            "        tup = ((i, m), (0,1), target[i])\n" +            
-            "        result.append(tup)\n" +  
-            "    return glbl_base_make_matrix(result)\n" + 
-            "\n" +  
-            "\n" + 
-            "\n" + 
-            "def glbl_numpy_knn_fit(data, target):\n" + 
-//            "    classifier = KNeighborsClassifier()\n" + 
-//            "    classifier.fit(data, target)\n" +            
-//            "    return classifier\n" + 
-//            "    m = len(data)\n" +
-            "    m = target.shape[0]\n" +            
-            "    n = 4\n" +
-            "    print(data.shape)\n" +
-            "    print(target.shape)\n" +
-            "    classifier = KNeighborsClassifier()\n" + 
-            "    classifier.fit(np.reshape(data, [m, n]), np.reshape(target, [m]))\n" +            
-            "    return classifier\n" + 
-            "\n" +
-            "\n" + 
-            "def glbl_numpy_knn_predict(classifier, data):\n" + 
-            "    return classifier.predict(np.reshape(data, [1, data.shape[0]]))\n" + 
-//            "    classifier.predict(data)\n" +
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "def glbl_numpy_knn_fitTENSORVARIANT(data, target):\n" + 
-            "    classifier = KNeighborsClassifier()\n" + 
-            "    classifier.fit(data, target)\n" +            
-            "    return classifier\n" + 
-            "\n" +
-            "\n" + 
-            "def glbl_numpy_knn_predictTENSORVARIANT(classifier, data):\n" + 
-            "    classifier.predict(data)\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" + 
-            "\n" +
-            "";
+        "\n" +
+        "def glbl_numpy_iris_iris_data_array():\n" + 
+        "    iris = load_iris()\n" + 
+        "    data = iris.data\n" +            
+        "    (m, n) = data.shape\n" +
+        "    size = m * n\n" +
+        "    return data.reshape([size, 1])\n" +
+        "\n" + 
+        "\n" + 
+        "def tmp_numpy_to_pacioli(vector):\n" +  
+        "    size = vector.shape[0]\n" +
+        "    tups = []\n" +            
+        "    for i in range(0, size):\n" + 
+        "        tup = ((i, size), (0,1), vector[i])\n" +            
+        "        result.append(tup)\n" +  
+        "    return glbl_base_make_matrix(result)\n" +                        
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+//        "def glbl_numpy_iris_iris_data_list():\n" + 
+//        "    iris = load_iris()\n" + 
+//        "    data = iris.data\n" +
+//        "    result = []\n" +            
+//        "    (m, n) = data.shape\n" +
+//        "    size = m * n\n" +
+//        "    k = 0\n" +            
+//        "    for i in range(0, m):\n" +
+//        "        tups = []\n" + 
+//        "        for j in range(0, n):\n" +
+//        "            tup = ((j, n), (0,1), data[i, j])\n" +            
+//        "            tups.append(tup)\n" + 
+//        "            k += 1\n" + 
+//        "        result.append(glbl_base_make_matrix(tups))\n" +
+//        "    return result\n" +            
+//        "\n" + 
+        "\n" + 
+        "\n" + 
+        "def glbl_numpy_data_as_list(data):\n" + 
+        "    return [data[i] for i in range(0, data.shape[0])]\n" + 
+        "\n" + 
+        "def glbl_numpy_data_as_array(data):\n" + 
+        "    return np.reshape(data, [len(data), data[0].shape[0]])\n" +             
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+        "\n" + 
+//        "\n" + 
+//        "def glbl_numpy_knn_fit(data, target):\n" + 
+////            "    classifier = KNeighborsClassifier()\n" + 
+////            "    classifier.fit(data, target)\n" +            
+////            "    return classifier\n" + 
+////            "    m = len(data)\n" +
+//        "    m = target.shape[0]\n" +            
+//        "    n = 4\n" +
+//        "    print(data.shape)\n" +
+//        "    print(target.shape)\n" +
+//        "    classifier = KNeighborsClassifier()\n" + 
+//        "    classifier.fit(np.reshape(data, [m, n]), np.reshape(target, [m]))\n" +            
+//        "    return classifier\n" + 
+        "\n" +
+        "\n" + 
+//        "\n" + 
+//        "def glbl_numpy_knn_fitTENSORVARIANT(data, target):\n" + 
+//        "    classifier = KNeighborsClassifier()\n" + 
+//        "    classifier.fit(data, target)\n" +            
+//        "    return classifier\n" + 
+//        "\n" +
+//        "\n" + 
+//        "def glbl_numpy_knn_predictTENSORVARIANT(classifier, data):\n" + 
+//        "    classifier.predict(data)\n" + 
+//        "\n" +
+//        "\n" +  
+//        "def data_samples_as_list(data):\n" + 
+//        "    result = []\n" +            
+//        "    (m, n) = data.shape\n" +
+//        "    size = m * n\n" +
+//        "    for i in range(0, m):\n" +
+//        "        tups = []\n" + 
+//        "        for j in range(0, n):\n" +
+//        "            tup = ((j, n), (0,1), data[i, j])\n" +            
+//        "            tups.append(tup)\n" + 
+//        "        result.append(glbl_base_make_matrix(tups))\n" +
+//        "    return result\n" +            
+//        "\n" + 
+        "\n" + 
+ 
+        "";
 }
