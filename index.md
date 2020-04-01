@@ -15,26 +15,6 @@ Pacioli programs can be run directly via the command line, compiled to
 NumPy or MATLAB/GNU Octave, or compiled to JavaScript and deployed via 
 the web. 
 
-Pacioli guarantees unit correctness at compile time independently from
-any unit support at runtime. In addition, its own runtime system, the MVM,
-is completely unit-aware and displays output with units. For example 
-an array that is displayed in NumPy as
-<pre>
-[[5.1],
- [3.5],
- [1.4],
- [0.2]]
-</pre>
-is displayed by the MVM as
-<pre>
-Index             Value
---------------------------
-Sepal length    5.10000 cm 
-Sepal width     3.50000 cm
-Petal length    1.40000 cm
-Petal width     0.20000 cm
-</pre>
-
 
 Examples
 --------
@@ -106,6 +86,27 @@ more samples there.
 Runtime support
 ---------------
 
+Pacioli guarantees unit correctness at compile time independently from
+any unit support at runtime. In addition, its own runtime system, the MVM,
+is completely unit-aware and displays output with units. For example 
+an array that is displayed in NumPy as
+<pre>
+[[5.1],
+ [3.5],
+ [1.4],
+ [0.2]]
+</pre>
+is displayed by the MVM as
+<pre>
+Index             Value
+--------------------------
+Sepal length    5.10000 cm 
+Sepal width     3.50000 cm
+Petal length    1.40000 cm
+Petal width     0.20000 cm
+</pre>
+
+
 The runtime support for the various targets is as follows.
 
 <ul>
@@ -120,17 +121,17 @@ The runtime support for the various targets is as follows.
   </li>
   <li>NumPy and MATLAB/GNU Octave
     <ul>
-      <li>Not unit aware. Still unit correct but no units and index names in
+      <li>Unit correct but no units and index names in
           the output.</li>
-      <li>No runtime type information. Zero overhead.</li>
+      <li>Zero overhead for units.</li>
     </ul>
   </li>      
   <li>Javascript
     <ul>
       <li>Completely unit aware. Input and output with units and index names.</li>
       <li>Uses numeric.js for the numbers (supports 3D graphics with three.js)</li>
-      <li>No dynamic typing. The type/unit computation is separated from the
-    numbers.</li>
+      <li>The type/unit computation is separated from the
+          numbers.</li>
       <li> Marginal overhead from units.</li>
     </ul>
   </li>
