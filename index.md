@@ -15,12 +15,25 @@ Pacioli programs can be run directly via the command line, compiled to
 NumPy or MATLAB/GNU Octave, or compiled to JavaScript and deployed via 
 the web. 
 
-
-Documentation
--------------
-
-Pacioli is described in the [manual](manual.html). The
-[specification](specification.html) lists the available functions.
+Pacioli guarantees unit correctness at compile time independently from
+any unit support at runtime. In addition, its own runtime system, the MVM,
+is completely unit-aware and displays output with units. For example 
+an array that is displayed in NumPy as
+<pre>
+[[5.1],
+ [3.5],
+ [1.4],
+ [0.2]]
+</pre>
+is displayed by the MVM as
+<pre>
+Index             Value
+--------------------------
+Sepal length    5.10000 cm 
+Sepal width     3.50000 cm
+Petal length    1.40000 cm
+Petal width     0.20000 cm
+</pre>
 
 
 Examples
@@ -49,18 +62,6 @@ has as derived type
 
     triangle area :: for unit a: (a*Space!, a*Space!, a*Space!) -> a^2
 
-
-See the tutorials in the documentation section below for more examples.
-
-[shells]: shells
-[three]: http://threejs.org/
-[prog]: https://raw.githubusercontent.com/pgriffel/pacioli/master/samples/shells/shells.pacioli
-[proglib]: https://raw.githubusercontent.com/pgriffel/pacioli/master/samples/shells/model.pacioli
-
-
-Tutorials
----------
-
 A short introduction to units of measurements in Pacioli is in the
 [tutorial on unit inference][inference].  The [Kirchhof
 case][kirchhof] on the equilibrium in an eletrical network explains
@@ -74,11 +75,22 @@ element.
 Working with the web and javascript is explained in the [tutorial on
 3D][space] and the [tutorial on charts][charts]
 
+[shells]: shells
+[three]: http://threejs.org/
+[prog]: https://raw.githubusercontent.com/pgriffel/pacioli/master/samples/shells/shells.pacioli
+[proglib]: https://raw.githubusercontent.com/pgriffel/pacioli/master/samples/shells/model.pacioli
 [inference]: unit-inference.html
 [matrices]: matrices.html
 [kirchhof]: kirchhof.html
 [space]: space.html
 [charts]: charts.html
+
+
+Documentation
+-------------
+
+Pacioli is described in the [manual](manual.html). The
+[specification](specification.html) lists the available functions.
 
 
 Download and Installation
@@ -92,24 +104,6 @@ more samples there.
 
 Runtime support
 ---------------
-Pacioli guarantees unit correctness at compile time. The difference in runtime support
-for the various targets is the display of units and index names. For example an array
-in NumPy is displayed as
-<pre>
-[[5.1],
- [3.5],
- [1.4],
- [0.2]]
-</pre>
-The completely unit-aware MVM displays this as
-<pre>
-Index             Value
---------------------------
-Sepal length    5.10000 cm 
-Sepal width     3.50000 cm
-Petal length    1.40000 cm
-Petal width     0.20000 cm
-</pre>
 
 The runtime support for the various targets is as follows.
 
