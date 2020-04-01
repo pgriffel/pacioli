@@ -42,6 +42,7 @@ Examples
 [<img src="shells.png"
       alt="Snapshot of a shell model"
       title="The Shells Case"
+      align="left"
       width="200px">][shells] 
       
 The [shells example][shells] illustrates many aspectes of the
