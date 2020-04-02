@@ -14,8 +14,9 @@ to mathematical software. Its parametric type system infers vector and
 matrix types based on dimensioned vector spaces.
 
 This implementation is a command line application that compiles and
-runs Pacioli programs. It is completely written in Java and compiled
-to a single jar file.
+runs Pacioli programs. It can also generate code for MATLAB/GNU Octave,
+NumPy, or JavaScript. The compiler itself is completely written in Java 
+and compiled to a single jar file.
 
 The Pacioli language is described in the [documentation][doc] pages.
 
