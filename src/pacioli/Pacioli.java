@@ -393,7 +393,7 @@ public class Pacioli {
             }
 
         }
-        logln("\nPaul Griffioen 2013 - 2015");
+        logln("\nPaul Griffioen 2013 - 2020");
     }
 
     private static void helpCommand() {
