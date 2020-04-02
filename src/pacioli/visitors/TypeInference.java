@@ -193,7 +193,11 @@ public class TypeInference extends IdentityVisitor implements Visitor {
             }
         } else
             // Move instantiate to proper place.
-            returnNode(new Typing(node.getInfo().inferredType().instantiate()));
+            if (node.getInfo().getDeclaredType().isPresent()) {
+                returnNode(new Typing(node.getInfo().getDeclaredType().get().evalType(true).instantiate()));
+            } else {
+                returnNode(new Typing(node.getInfo().inferredType().instantiate()));
+            }
     }
 
     @Override
