@@ -207,7 +207,13 @@ public class PythonCompiler implements SymbolTableVisitor {
         "\n" + 
         "\n" + 
         "def glbl_base_equal(x,y):\n" +   
-        "    return np.all(x == y)\n" + 
+        "    if isinstance(x, np.ndarray):\n" +
+        "        return isinstance(y, np.ndarray) and np.all(x == y)\n" +
+        "    if isinstance(x, tuple):\n" +
+        "        return isinstance(y, tuple) and len(x) == len(y) and all(glbl_base_equal(a, b) for a, b in zip(x, y))\n" +
+        "    if isinstance(x, list):\n" +
+        "        return isinstance(y, list) and len(x) == len(y) and all(glbl_base_equal(a, b) for a, b in zip(x, y))\n" +
+        "    return x == y\n" + 
         "\n" + 
         "\n" + 
         "def glbl_base_exp(x):\n" + 
