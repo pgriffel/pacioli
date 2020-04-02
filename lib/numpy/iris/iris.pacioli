@@ -1,5 +1,7 @@
 # ------------------------------------------------------------------------------
 # Numpy/Tensorflow examples
+#
+# Experiment with different representations of samples
 # ------------------------------------------------------------------------------
 
 import si;
@@ -11,8 +13,8 @@ import si;
 #   These functions call NumPy's load_iris function to get the data. The first
 #   as a list of samples, and the second as pair of vectors.
 #
-# iris_data, iris_target
-#   A hardcoded copy of NumPy's iris data in vector form.
+# iris_list, iris_data, iris_target
+#   A hardcoded copy of NumPy's iris data in list and in vector form.
 #
 # knn_fit, knn_predict
 #   Learning with K nearest neighbors using KNeighborsClassifier from the
@@ -21,6 +23,8 @@ import si;
 
 declare numpy_iris_list :: List(Tuple(Feature!unit, Index(Target)));
 declare numpy_iris_array :: Tuple(Sample! % Feature!unit, Sample! % Target!);
+
+declare iris_list :: List(Tuple(Feature!unit, Index(Target)));
 
 declare iris_data :: Sample! % Feature!unit;
 declare iris_target :: Sample! % Target!;
@@ -974,8 +978,6 @@ defmatrix iris_target :: Sample! % Target! = {
 # ------------------------------------------------------------------------------
 # The data as list
 # ------------------------------------------------------------------------------
-
-declare iris_list :: List(Tuple(Feature!unit, Index(Target)));
 
 define iris_entry(a, b, c, d, e) =
   tuple((a '.*' delta(Feature@"Sepal length") +
