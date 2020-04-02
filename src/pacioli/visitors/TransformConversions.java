@@ -102,7 +102,7 @@ public class TransformConversions extends IdentityTransformation implements Visi
                         key.add(new IdentifierNode(item, node.getLocation()));    
                     }
                 
-                    String value = flat.factor().toPlainString();
+                    String value = flat.reciprocal().factor().toPlainString();
                     
                     conversionFactors.add(new ValueDecl(key, value));
             }
