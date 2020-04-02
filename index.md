@@ -56,6 +56,10 @@ element.
 Working with the web and javascript is explained in the [tutorial on
 3D][space] and the [tutorial on charts][charts]
 
+The output example in the section on runtime support below is from the
+[numpy_test][numpy_test] sample. This is a small machine learning
+example using nearest neighbors.
+
 [shells]: shells
 [three]: http://threejs.org/
 [prog]: https://raw.githubusercontent.com/pgriffel/pacioli/master/samples/shells/shells.pacioli
@@ -65,6 +69,7 @@ Working with the web and javascript is explained in the [tutorial on
 [kirchhof]: kirchhof.html
 [space]: space.html
 [charts]: charts.html
+[numpy_test]: https://github.com/pgriffel/pacioli/blob/master/samples/numpy_test.pacioli
 
 
 Documentation
@@ -115,8 +120,8 @@ The runtime support for the various targets is as follows.
       <li>Completely unit aware. Input and output with units and index names.</li>
       <li>Uses the Apache Commons Mathematics Library for the numbers.</li>
       <li>Dynamically typed.</li>
-      <li>Duplicates the unit checks at compile time time. Useful to test
-          the compiler, but unnecessary overhead.</li>
+      <li>Duplicates the compile time unit checks at runtime. Useful as test
+          for the compiler, but unnecessary overhead.</li>
     </ul>
   </li>
   <li>NumPy and MATLAB/GNU Octave
