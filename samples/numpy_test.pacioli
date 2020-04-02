@@ -110,12 +110,19 @@ define numpy_classifier =
 # Tests on hardcode copy of numpy data (works for any target)
 # ------------------------------------------------------------------------------
 
-define list_classifier =
-  nn_fit(iris_list);
+repeat_experiment(10);
 
 nn_predict(list_classifier, my_test);
 
-define run_experiment(samples) =
+run_experiment(iris_list, true);
+
+define list_classifier =
+  nn_fit(iris_list);
+
+declare run_experiment ::
+  (List(Tuple(Feature!unit, Index(Target))), Boole()) -> Tuple(1, 1);
+
+define run_experiment(samples, verbose) =
   let prob = 10/100,
       (train, test) = split_train_test(samples, prob),
       classifier = nn_fit(train),
@@ -126,32 +133,48 @@ define run_experiment(samples) =
       nr_correct = sum[1 | (x, y) <- predictions, x = y]
   in
     begin
-      print("");
-      print("");
-      write("Experiment (test/train probability=");
-      write(to_percentage(prob));
-      print(")");
+      if verbose then
+          print("");
+          print("");
+          write("Experiment (test/train probability=");
+          write(to_percentage(prob));
+          print(")");
     
-      print("trials");
-      print(nr_trials);
-      print("correct");
-      print(nr_correct);
-      print("accuracy");
-      print(to_percentage(nr_correct/nr_trials));
+          print("trials");
+          print(nr_trials);
+          print("correct");
+          print(nr_correct);
+          print("accuracy");
+          print(to_percentage(nr_correct/nr_trials));
 
-      i := 0;
-      n := list_size(predictions);
-      print("");
-      print("Predicted, Actual");
-      while i != n do
-        (predicted, actual) := nth(i, predictions);
-        write(predicted);
-        write(", ");
-        print(actual);
-        i := i + 1;
+          i := 0;
+          n := list_size(predictions);
+          print("");
+          print("Predicted, Actual");
+          while i != n do
+            (predicted, actual) := nth(i, predictions);
+            write(predicted);
+            write(", ");
+            print(actual);
+            i := i + 1;
+          end
       end
+      return tuple(nr_correct, nr_trials);
     end
   end;
 
-run_experiment(iris_list);
-
+define repeat_experiment(n) =
+  begin
+    total_correct := 0;
+    total_trials := 0;
+    i := 0;
+    while i != n do
+      (nr_correct, nr_trials) := run_experiment(iris_list, false);
+      total_correct := total_correct + nr_correct;
+      total_trials := total_trials + nr_trials;
+      i := i + 1;
+    end
+    print("");
+    print("Asymptotic accuracy:");
+    print(to_percentage(total_correct/total_trials));
+  end;
