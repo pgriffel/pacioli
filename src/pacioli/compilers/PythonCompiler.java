@@ -145,6 +145,7 @@ public class PythonCompiler implements SymbolTableVisitor {
 
     private static final String primitives =
         "import numpy as np\n" +
+        "import sys\n" +
         "\n" + 
         "\n" +
         "glbls_dict = {}\n" +
@@ -353,7 +354,7 @@ public class PythonCompiler implements SymbolTableVisitor {
         "\n" + 
         "\n" + 
         "def glbl_base_list_size(list):\n" + 
-        "    return len(list)\n" + 
+        "    return np.array([[len(list)]])\n" + 
         "\n" + 
         "\n" + 
         "def glbl_base_fold_list(fun, items):\n" + 
@@ -414,8 +415,7 @@ public class PythonCompiler implements SymbolTableVisitor {
         "\n" +
         "\n" + 
         "def glbl_base_write(value):\n" + 
-        "    print(value)\n" + 
-        "    return value\n" + 
+        "    sys.stdout.write(str(value))\n" +  
         "\n" + 
         "\n" + 
         "def glbl_base_num2string(value, decs):\n" +  
@@ -498,7 +498,6 @@ public class PythonCompiler implements SymbolTableVisitor {
         "    data_array = data.reshape([nr_samples, nr_features])\n" +
         "    target_array = target.reshape([nr_samples, nr_targets])\n" +
         "    target_vector = np.empty([nr_samples])\n" +
-        "    print(target_vector.shape)\n" +
         "    for i in range(0, nr_samples):\n" +
         "        for j in range(0, nr_targets):\n" +
         "            if target_array[i,j] != 0:\n" +
