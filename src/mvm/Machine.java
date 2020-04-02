@@ -168,7 +168,7 @@ public class Machine {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliValue value = params.get(0);
                 if (value != null) { // void value of statements
-                    logln("%s", value.toText());
+                    log("%s\n", value.toText());
                 }
                 return value;
             }
@@ -178,7 +178,7 @@ public class Machine {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliValue value = params.get(0);
                 if (value != null) { // void value of statements
-                    logln("%s", value.toText());
+                    log("%s\n", value.toText());
                 }
                 return null;
             }
@@ -188,7 +188,7 @@ public class Machine {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliValue value = params.get(0);
                 if (value != null) { // void value of statements
-                    log(">%s<", value.toText());
+                    log("%s", value.toText());
                 }
                 return null;
             }
