@@ -475,7 +475,8 @@ public class Pacioli {
             "solver/solver.pacioli",
             //"statement/statement.pacioli",
             "test/test.pacioli",
-            "shells/shells.pacioli"                
+            "shells/shells.pacioli",
+            "numpy/numpy_test.pacioli"            
             );
 
         for (String sample : samples) {
@@ -490,16 +491,17 @@ public class Pacioli {
                 Project project = Project.load(file.get(), libs);
                 
                 //project.printInfo();
-                settings.setTarget(Target.PYTHON);
+                //settings.setTarget(Target.PYTHON);
+                //project.bundle(settings);
+                
+                settings.setTarget(Target.MVM);
                 project.bundle(settings);
                 
-//                project.bundle(settings, Target.MVM);
-//                
-//                Path binName = project.bundlePath(Target.MVM);
-//                
-//                Progam.load(project.root(), libs, Phase.TYPED).printTypes();;
-//                Pacioli.logln("Running file %s", binName);
-//                interpretMVMText(binName.toFile(), libs);
+                Path binName = project.bundlePath(Target.MVM);
+                
+                Progam.load(project.root(), libs, Phase.TYPED).printTypes();;
+                Pacioli.logln("Running file %s", binName);
+                interpretMVMText(binName.toFile(), libs);
                 
             } catch (IOException e) {
                 Pacioli.logln("\nError in sample '%s':\n\n%s", sample, e);
