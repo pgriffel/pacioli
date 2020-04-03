@@ -109,12 +109,17 @@ public class TypeInference extends IdentityVisitor implements Visitor {
             typing.addConstraints(argTyping);
         }
         
+        // The nmode product is special. It requires that the type
+        // is known (no variables) because it needs to manipulate indices.
         if (node.hasName("nmode")) {
-            Integer n;
-            MatrixType tensorType;
-            MatrixType matrixType;
-            try {    
+            try {
                 
+                // The parameters of nmode
+                MatrixType tensorType;
+                Integer n;
+                MatrixType matrixType;
+                
+                // Try to get the n parameter
                 try {
                     ConstNode nNode = (ConstNode) node.arguments.get(1);
                     n = new Integer(nNode.valueString());
@@ -123,6 +128,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                             "Second argument of nmode must be a number");
                 }
                 
+                // Try to get the type of the tensor parameter 
                 try {
                     Typing tensorTyping = typingAccept(node.arguments.get(0));
                     PacioliType tensorPacioliType = tensorTyping.solve();
@@ -132,6 +138,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                             "First argument of nmode must be a valid matrix type");
                 }
                 
+                // Try to get the type of the matrix parameter 
                 try {
                     Typing matrixTyping = typingAccept(node.arguments.get(2));
                     PacioliType matrixPacioliType = matrixTyping.solve();
@@ -141,6 +148,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                             "Third argument of nmode must be a valid matrix type");
                 }
 
+                // Determine the shape of the row dimension
                 List<Integer> shape = new ArrayList<Integer>();
                 for (int i = 0; i < tensorType.rowDimension.width(); i++) {
                     Optional<IndexSetDefinition> def = tensorType.rowDimension.nthIndexSetInfo(i).getDefinition();
@@ -151,30 +159,16 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                                 "Index set %s has no known size", i);             
                     }
                 }
-                Pacioli.logln("NMODE: n=%s, type=%s, isclosed=%s, width=%s, sets=%s, , shape=%s",
-                        n,
-                        tensorType.pretty(),
-                        !tensorType.rowDimension.isVar(),
-                        tensorType.rowDimension.width(),
-                        tensorType.rowDimension.getIndexSets(),
-                        shape);
-//                Pacioli.logln("mype=%s, rowwidth=%s, colwidht=%s, colunit=%s, proj=%s, equal=%s, joinable=%s, join=%s", 
-//                        matrixType.pretty(),
-//                        matrixType.rowDimension.width(),
-//                        matrixType.columnDimension.width(),
-//                        matrixType.columnUnit.pretty(),
-//                        tensorType.project(Arrays.asList(n)).pretty(),
-//                        tensorType.project(Arrays.asList(n)).rowUnit.equals(matrixType.columnUnit),
-//                        matrixType.joinable(tensorType.project(Arrays.asList(n))),
-//                        //matrixType.join(tensorType.project(Arrays.asList(n))).pretty()
-//                        tensorType.nmode(n, matrixType).pretty());
-                
+
+                // Remember the shape for the code generators
                 node.nmodeShape = shape;
                 
-                
+                // Call MatrixType nmode on the found types and require that the 
+                // result equals the outcome 
                 String message = String.format("During inference %s\nthe infered type must follow the nmode rules",
                         node.sourceDescription());
                 typing.addConstraint(tensorType.nmode(n, matrixType), resultType, message);
+                
             } catch (PacioliException ex) {
                 throw new RuntimeException("Invalid nmode application", ex);
             } catch (Exception ex) {
