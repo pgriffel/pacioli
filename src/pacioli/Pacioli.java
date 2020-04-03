@@ -66,7 +66,7 @@ public class Pacioli {
             } else {
                 Throwable cause = ex.getCause();
                 if (cause instanceof PacioliException) {
-                    logln("\nPacioli error:\n%s\n%s\n", ex, ((PacioliException) cause).getLocatedMessage());
+                    logln("\nPacioli error:\n\n%s\n\n%s\n", ex.getLocalizedMessage(), ((PacioliException) cause).getLocatedMessage());
                 } else if (cause instanceof MVMException) {
                     logln("\nMVM error:\n\n%s\n", cause.getMessage());
                 } else {

@@ -110,18 +110,17 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         }
         
         if (node.hasName("nmode")) {
-                
-                Integer n;
-                MatrixType tensorType;
-                MatrixType matrixType;
+            Integer n;
+            MatrixType tensorType;
+            MatrixType matrixType;
+            try {    
                 
                 try {
                     ConstNode nNode = (ConstNode) node.arguments.get(1);
                     n = new Integer(nNode.valueString());
                 } catch (Exception ex) {
-                    throw new RuntimeException("Invalid nmode application",
-                            new PacioliException(node.arguments.get(1).getLocation(), 
-                                    "Second argument of nmode must be a number"));
+                    throw new PacioliException(node.arguments.get(1).getLocation(), 
+                            "Second argument of nmode must be a number");
                 }
                 
                 try {
@@ -129,9 +128,8 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                     PacioliType tensorPacioliType = tensorTyping.solve();
                     tensorType = (MatrixType) tensorPacioliType;
                 } catch (Exception ex) {
-                    throw new RuntimeException("Invalid nmode application",
-                            new PacioliException(node.arguments.get(0).getLocation(), 
-                                    "First argument of nmode must be a valid matrix type"));
+                    throw new PacioliException(node.arguments.get(0).getLocation(), 
+                            "First argument of nmode must be a valid matrix type");
                 }
                 
                 try {
@@ -139,9 +137,8 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                     PacioliType matrixPacioliType = matrixTyping.solve();
                     matrixType = (MatrixType) matrixPacioliType;
                 } catch (Exception ex) {
-                    throw new RuntimeException("Invalid nmode application",
-                            new PacioliException(node.arguments.get(2).getLocation(), 
-                                    "Third argument of nmode must be a valid matrix type"));
+                    throw new PacioliException(node.arguments.get(2).getLocation(), 
+                            "Third argument of nmode must be a valid matrix type");
                 }
 
                 List<Integer> shape = new ArrayList<Integer>();
@@ -150,9 +147,8 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                     if (def.isPresent()) {
                         shape.add(def.get().items.size());   
                     } else {
-                        throw new RuntimeException("Invalid nmode application",
-                                new PacioliException(node.arguments.get(0).getLocation(), 
-                                        "Index set %s has no known size", i));             
+                        new PacioliException(node.arguments.get(0).getLocation(), 
+                                "Index set %s has no known size", i);             
                     }
                 }
                 Pacioli.logln("NMODE: n=%s, type=%s, isclosed=%s, width=%s, sets=%s, , shape=%s",
@@ -175,15 +171,16 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                 
                 node.nmodeShape = shape;
                 
-                try {
+                
                 String message = String.format("During inference %s\nthe infered type must follow the nmode rules",
                         node.sourceDescription());
                 typing.addConstraint(tensorType.nmode(n, matrixType), resultType, message);
-                } catch (Exception ex) {
-                    throw new RuntimeException("Invalid nmode application",
-                            new PacioliException(node.arguments.get(2).getLocation(), 
-                                    ex.getMessage()));
-                } 
+            } catch (PacioliException ex) {
+                throw new RuntimeException("Invalid nmode application", ex);
+            } catch (Exception ex) {
+                throw new RuntimeException("Invalid nmode application",
+                        new PacioliException(node.getLocation(), ex.getMessage()));
+            } 
         } else {
             
             // Infer the typing of the function. Add its contraints
