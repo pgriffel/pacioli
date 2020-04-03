@@ -31,6 +31,9 @@ public class ApplicationNode extends AbstractExpressionNode {
     public final ExpressionNode function;
     public final List<ExpressionNode> arguments;
 
+    // Set during type inference iff hasName("nmode") is true
+    public List<Integer> nmodeShape;
+
     public ApplicationNode(ExpressionNode fun, List<ExpressionNode> args, Location location) {
         super(location);
         function = fun;
@@ -48,10 +51,31 @@ public class ApplicationNode extends AbstractExpressionNode {
         visitor.visit(this);
     }
     
+    public Boolean hasId() {
+        return function instanceof IdentifierNode;
+    }
+    
+    public IdentifierNode getId() {
+        if (function instanceof IdentifierNode) {
+            return (IdentifierNode) function;
+        } else {
+            throw new RuntimeException("Application has no id");
+        }
+    }
+    
     public Boolean hasName(String name) {
         if (function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) function;
             return id.getName().equals(name);
+        } else {
+            return false;
+        }
+    }
+    
+    public Boolean isGlobal() {
+        if (function instanceof IdentifierNode) {
+            IdentifierNode id = (IdentifierNode) function;
+            return id.isGlobal();
         } else {
             return false;
         }

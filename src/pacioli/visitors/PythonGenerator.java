@@ -30,6 +30,7 @@ import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
+import pacioli.symboltable.ValueInfo;
 import pacioli.types.FunctionType;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
@@ -66,20 +67,24 @@ public class PythonGenerator extends IdentityVisitor implements CodeGenerator {
     
     @Override
     public void visit(ApplicationNode node) {
-        // Is this if necessary?
-        if (node.function instanceof IdentifierNode) {
-            IdentifierNode id = (IdentifierNode) node.function;
-            if (id.isGlobal()) {
-                out.write(id.getInfo().globalName().toLowerCase());
+        if (node.hasName("nmode")) {
+            ValueInfo info = node.getId().getInfo();
+            out.write(info.globalName().toLowerCase());
+            out.write("(");
+            out.writeCommaSeparated(node.arguments, this);
+            out.write(",");
+            out.format("%s", node.nmodeShape);
+            out.write(")");
+        } else {
+            if (node.isGlobal()) {
+                out.write(node.getId().getInfo().globalName().toLowerCase());
             } else {
                 node.function.accept(this);
             }
-        } else {
-            node.function.accept(this);
+            out.write("(");
+            out.writeCommaSeparated(node.arguments, this);
+            out.write(")");
         }
-        out.write("(");
-        out.writeCommaSeparated(node.arguments, this);
-        out.write(")");
     }
 
     @Override

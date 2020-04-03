@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Stack;
 
 import pacioli.Pacioli;
@@ -11,6 +12,7 @@ import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Visitor;
+import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
@@ -129,7 +131,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                 } catch (Exception ex) {
                     throw new RuntimeException("Invalid nmode application",
                             new PacioliException(node.arguments.get(0).getLocation(), 
-                                    "First argument of nmode must be a closed matrix type"));
+                                    "First argument of nmode must be a valid matrix type"));
                 }
                 
                 try {
@@ -139,45 +141,66 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                 } catch (Exception ex) {
                     throw new RuntimeException("Invalid nmode application",
                             new PacioliException(node.arguments.get(2).getLocation(), 
-                                    "Third argument of nmode must be a closed matrix type"));
+                                    "Third argument of nmode must be a valid matrix type"));
                 }
-                
-                Pacioli.logln("NMODE: n=%s, type=%s, isclosed=%s, width=%s, sets=%s",
+
+                List<Integer> shape = new ArrayList<Integer>();
+                for (int i = 0; i < tensorType.rowDimension.width(); i++) {
+                    Optional<IndexSetDefinition> def = tensorType.rowDimension.nthIndexSetInfo(i).getDefinition();
+                    if (def.isPresent()) {
+                        shape.add(def.get().items.size());   
+                    } else {
+                        throw new RuntimeException("Invalid nmode application",
+                                new PacioliException(node.arguments.get(0).getLocation(), 
+                                        "Index set %s has no known size", i));             
+                    }
+                }
+                Pacioli.logln("NMODE: n=%s, type=%s, isclosed=%s, width=%s, sets=%s, , shape=%s",
                         n,
                         tensorType.pretty(),
                         !tensorType.rowDimension.isVar(),
                         tensorType.rowDimension.width(),
-                        tensorType.rowDimension.getIndexSets());
-                Pacioli.logln("mype=%s, rowwidth=%s, colwidht=%s, colunit=%s, proj=%s, equal=%s, joinable=%s, join=%s", 
-                        matrixType.pretty(),
-                        matrixType.rowDimension.width(),
-                        matrixType.columnDimension.width(),
-                        matrixType.columnUnit.pretty(),
-                        tensorType.project(Arrays.asList(n)).pretty(),
-                        tensorType.project(Arrays.asList(n)).rowUnit.equals(matrixType.columnUnit),
-                        matrixType.joinable(tensorType.project(Arrays.asList(n))),
-                        //matrixType.join(tensorType.project(Arrays.asList(n))).pretty()
-                        tensorType.nmode(n, matrixType).pretty());
+                        tensorType.rowDimension.getIndexSets(),
+                        shape);
+//                Pacioli.logln("mype=%s, rowwidth=%s, colwidht=%s, colunit=%s, proj=%s, equal=%s, joinable=%s, join=%s", 
+//                        matrixType.pretty(),
+//                        matrixType.rowDimension.width(),
+//                        matrixType.columnDimension.width(),
+//                        matrixType.columnUnit.pretty(),
+//                        tensorType.project(Arrays.asList(n)).pretty(),
+//                        tensorType.project(Arrays.asList(n)).rowUnit.equals(matrixType.columnUnit),
+//                        matrixType.joinable(tensorType.project(Arrays.asList(n))),
+//                        //matrixType.join(tensorType.project(Arrays.asList(n))).pretty()
+//                        tensorType.nmode(n, matrixType).pretty());
+                
+                node.nmodeShape = shape;
+                
+                String message = String.format("During inference %s\nthe infered type must follow the nmode rules",
+                        node.sourceDescription());
+                typing.addConstraint(tensorType.nmode(n, matrixType), resultType, message);
             
+        } else {
+            
+            // Infer the typing of the function. Add its contraints
+            // to the result typing.
+            Typing funTyping = typingAccept(node.function);
+            typing.addConstraints(funTyping);
+    
+            // Create a function type from the argument types to the type variable
+            // that was put in the result type.
+            PacioliType funType = new FunctionType(newTupleType(argTypes), resultType);
+    
+            // Add the unification contraint that function type must equal the derived
+            // function type.
+            String message = String.format("During inference %s\nthe infered type must match known types",
+                    node.sourceDescription());
+            typing.addConstraint(funType, funTyping.getType(), message);
+
         }
-
-        // Infer the typing of the function. Add its contraints
-        // to the result typing.
-        Typing funTyping = typingAccept(node.function);
-        typing.addConstraints(funTyping);
-
-        // Create a function type from the argument types to the type variable
-        // that was put in the result type.
-        PacioliType funType = new FunctionType(newTupleType(argTypes), resultType);
-
-        // Add the unification contraint that function type must equal the derived
-        // function type.
-        String message = String.format("During inference %s\nthe infered type must match known types",
-                node.sourceDescription());
-        typing.addConstraint(funType, funTyping.getType(), message);
-
+        
         // Return the result typing
         returnNode(typing);
+
     }
 
     @Override

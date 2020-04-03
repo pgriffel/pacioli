@@ -727,7 +727,7 @@ public class Progam extends AbstractPrintable {
             }
             if (settings.getTarget() == Target.PYTHON) {
                 printer.newline();
-                printer.write("print(");
+                printer.write("glbl_base_print(");
                 def.accept(gen);
                 printer.write(")");
                 printer.newline();
