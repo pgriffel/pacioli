@@ -175,10 +175,15 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                 
                 node.nmodeShape = shape;
                 
+                try {
                 String message = String.format("During inference %s\nthe infered type must follow the nmode rules",
                         node.sourceDescription());
                 typing.addConstraint(tensorType.nmode(n, matrixType), resultType, message);
-            
+                } catch (Exception ex) {
+                    throw new RuntimeException("Invalid nmode application",
+                            new PacioliException(node.arguments.get(2).getLocation(), 
+                                    ex.getMessage()));
+                } 
         } else {
             
             // Infer the typing of the function. Add its contraints

@@ -418,6 +418,7 @@ public class PythonCompiler implements SymbolTableVisitor {
         "\n" + 
         "def glbl_base_print(value):\n" +
         "    if isinstance(value, np.ndarray):\n" +
+        "        print(\"Index, Value\")\n" +
         "        for i in range(0, value.size):\n" +
         "            val = value[i, 0]\n" +
         "            if val != 0:\n" +
@@ -469,22 +470,16 @@ public class PythonCompiler implements SymbolTableVisitor {
         
         "\n" + 
         "def glbl_numpy_test_nmode(tensor, n, matrix, shape):\n" +
-        "    nVal = n[0,0]\n" +
-        "    nSize = shape[nVal]\n" +
-        "    matrixRowSize = round(matrix.size / nSize)\n" +
-        "    print(\"NMODE\")\n" +
-        "    print(matrix.shape)\n" +   
-        "    print(tensor.shape)\n" +
-        "    print(shape)\n" +
-        "    print(nSize)\n" +
-        "    print(matrixRowSize)\n" +
-//        "    (m, n) = tensor.shape\n" +
-        "    last = len(shape) - 1\n" +
-        "    reshaped = tensor.reshape(shape)\n" +
-        "    swapped = np.swapaxes(reshaped, n, last)\n" +
-        "    extended = swapped.reshape(swapped.shape + (1,))\n" +
-        "    transformed = matrix.reshape([matrixRowSize, nSize]) @ extended \n" +
-//        "    swapped = np.swapaxes(transformed, n, last)\n" +
+        "    nSize = shape[n[0,0]]\n" +
+//        "    matrixRowSize = round(matrix.size / nSize)\n" +
+//        "    print(\"NMODE\")\n" +
+//        "    print(matrix.shape)\n" +   
+//        "    print(tensor.shape)\n" +
+//        "    print(shape)\n" +
+//        "    print(nSize)\n" +
+//        "    print(matrixRowSize)\n" +
+        "    swapped = np.swapaxes(tensor.reshape(shape), n, len(shape) - 1)\n" +
+        "    transformed = matrix.reshape([round(matrix.size / nSize), nSize]) @ swapped.reshape(swapped.shape + (1,)) \n" +
         "    return transformed.reshape([transformed.size, 1])\n" + 
         "\n" + 
 
