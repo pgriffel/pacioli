@@ -18,6 +18,7 @@ import pacioli.types.TypeVar;
 import pacioli.types.TypeVisitor;
 import pacioli.types.VectorUnitVar;
 import pacioli.types.ast.FunctionTypeNode;
+import pacioli.types.ast.NumberTypeNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeIdentifierNode;
@@ -97,12 +98,16 @@ public class Devaluator implements TypeVisitor {
         if (left == null && right == null) {
             returnTypeNode(factorNode);
         } else if (left == null) {
+            TypeNode rightNode; 
+            Location location;
             if (type.factor.equals(TypeBase.ONE)) {
-                returnTypeNode(right);
+                location = right.getLocation();
+                rightNode = right;
             } else {
-                Location location = factorNode.getLocation().join(right.getLocation());
-                returnTypeNode(new TypeMultiplyNode(location, factorNode, right));
+                location = factorNode.getLocation().join(right.getLocation());
+                rightNode = new TypeMultiplyNode(location, factorNode, right);
             }
+            returnTypeNode(new TypePerNode(location, new NumberTypeNode(location, "1"), rightNode));
         } else if (right == null) {
             if (type.factor.equals(TypeBase.ONE)) {
                 returnTypeNode(left);
