@@ -47,4 +47,13 @@ public class ApplicationNode extends AbstractExpressionNode {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+    
+    public Boolean hasName(String name) {
+        if (function instanceof IdentifierNode) {
+            IdentifierNode id = (IdentifierNode) function;
+            return id.getName().equals(name);
+        } else {
+            return false;
+        }
+    }
 }

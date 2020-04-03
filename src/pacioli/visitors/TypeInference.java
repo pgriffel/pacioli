@@ -1,10 +1,12 @@
 package pacioli.visitors;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.ast.IdentityVisitor;
@@ -103,6 +105,60 @@ public class TypeInference extends IdentityVisitor implements Visitor {
             Typing argTyping = typingAccept(arg);
             argTypes.add(argTyping.getType());
             typing.addConstraints(argTyping);
+        }
+        
+        if (node.hasName("nmode")) {
+                
+                Integer n;
+                MatrixType tensorType;
+                MatrixType matrixType;
+                
+                try {
+                    ConstNode nNode = (ConstNode) node.arguments.get(1);
+                    n = new Integer(nNode.valueString());
+                } catch (Exception ex) {
+                    throw new RuntimeException("Invalid nmode application",
+                            new PacioliException(node.arguments.get(1).getLocation(), 
+                                    "Second argument of nmode must be a number"));
+                }
+                
+                try {
+                    Typing tensorTyping = typingAccept(node.arguments.get(0));
+                    PacioliType tensorPacioliType = tensorTyping.solve();
+                    tensorType = (MatrixType) tensorPacioliType;
+                } catch (Exception ex) {
+                    throw new RuntimeException("Invalid nmode application",
+                            new PacioliException(node.arguments.get(0).getLocation(), 
+                                    "First argument of nmode must be a closed matrix type"));
+                }
+                
+                try {
+                    Typing matrixTyping = typingAccept(node.arguments.get(2));
+                    PacioliType matrixPacioliType = matrixTyping.solve();
+                    matrixType = (MatrixType) matrixPacioliType;
+                } catch (Exception ex) {
+                    throw new RuntimeException("Invalid nmode application",
+                            new PacioliException(node.arguments.get(2).getLocation(), 
+                                    "Third argument of nmode must be a closed matrix type"));
+                }
+                
+                Pacioli.logln("NMODE: n=%s, type=%s, isclosed=%s, width=%s, sets=%s",
+                        n,
+                        tensorType.pretty(),
+                        !tensorType.rowDimension.isVar(),
+                        tensorType.rowDimension.width(),
+                        tensorType.rowDimension.getIndexSets());
+                Pacioli.logln("mype=%s, rowwidth=%s, colwidht=%s, colunit=%s, proj=%s, equal=%s, joinable=%s, join=%s", 
+                        matrixType.pretty(),
+                        matrixType.rowDimension.width(),
+                        matrixType.columnDimension.width(),
+                        matrixType.columnUnit.pretty(),
+                        tensorType.project(Arrays.asList(n)).pretty(),
+                        tensorType.project(Arrays.asList(n)).rowUnit.equals(matrixType.columnUnit),
+                        matrixType.joinable(tensorType.project(Arrays.asList(n))),
+                        //matrixType.join(tensorType.project(Arrays.asList(n))).pretty()
+                        tensorType.nmode(n, matrixType).pretty());
+            
         }
 
         // Infer the typing of the function. Add its contraints

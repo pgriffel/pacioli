@@ -22,12 +22,14 @@
 package pacioli.types.matrix;
 
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import pacioli.ConstraintSet;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.types.AbstractType;
@@ -152,7 +154,8 @@ public class MatrixType extends AbstractType {
     }
 
     public boolean joinable(MatrixType other) {
-        return columnUnit.equals(other.rowUnit);
+        return columnDimension.equals(other.rowDimension) && 
+               columnUnit.equals(other.rowUnit);
     }
 
     public MatrixType join(MatrixType other) {
@@ -188,7 +191,7 @@ public class MatrixType extends AbstractType {
             Unit<TypeBase> unit = TypeBase.ONE;
             for (int i = 0; i < columns.size(); i++) {
                 final int tmp = i;
-                unit = unit.map(new UnitMap<TypeBase>() {
+                unit = rowUnit.map(new UnitMap<TypeBase>() {
                     public Unit<TypeBase> map(TypeBase base) {
                         assert (base instanceof VectorBase);
                         VectorBase bangBase = (VectorBase) base;
@@ -207,6 +210,28 @@ public class MatrixType extends AbstractType {
         }
     }
 
+    public MatrixType nmode(Integer n, MatrixType transform) throws PacioliException {
+//        Pacioli.logln("IN nmode n=%s, transform=%s, project=%s",
+//                n,
+//                transform.pretty(),
+//                project(Arrays.asList(n)).pretty());
+        if (!transform.joinable(project(Arrays.asList(n)))) {
+            throw new RuntimeException(
+                    String.format("Invalid transformation in nmode product: cannot multiply %s and %s",
+                                  transform.pretty(),
+                                  project(Arrays.asList(n)).pretty()));
+        };
+        MatrixType newType = new MatrixType();
+        for (int i = 0; i < n; i++) {
+            newType = newType.kronecker(project(Arrays.asList(i)));
+        }
+        newType = newType.kronecker(transform.join(project(Arrays.asList(n))));
+        for (int i = n + 1; i < rowDimension.width(); i++) {
+            newType = newType.kronecker(project(Arrays.asList(i)));
+        }
+        return newType;
+    }
+    
     public boolean singleton() {
         if (rowDimension.isVar() || columnDimension.isVar()) {
             return false;
