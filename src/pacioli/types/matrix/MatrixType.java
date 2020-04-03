@@ -211,24 +211,30 @@ public class MatrixType extends AbstractType {
     }
 
     public MatrixType nmode(Integer n, MatrixType transform) throws PacioliException {
-//        Pacioli.logln("IN nmode n=%s, transform=%s, project=%s",
-//                n,
-//                transform.pretty(),
-//                project(Arrays.asList(n)).pretty());
-        if (!transform.joinable(project(Arrays.asList(n)))) {
+
+        // Start with an empty matrix type
+        MatrixType newType = new MatrixType();
+        
+        // Add the dimension below n unchanged
+        for (int i = 0; i < n; i++) {
+            newType = newType.kronecker(project(Arrays.asList(i)));
+        }
+        
+        // Transform the n-th dimension and add it
+        MatrixType projected = project(Arrays.asList(n));
+        if (!transform.joinable(projected)) {
             throw new RuntimeException(
                     String.format("Invalid transformation in nmode product: cannot multiply %s and %s",
                                   transform.pretty(),
                                   project(Arrays.asList(n)).pretty()));
         };
-        MatrixType newType = new MatrixType();
-        for (int i = 0; i < n; i++) {
-            newType = newType.kronecker(project(Arrays.asList(i)));
-        }
-        newType = newType.kronecker(transform.join(project(Arrays.asList(n))));
+        newType = newType.kronecker(transform.join(projected));
+        
+        // Add the dimension above n unchanged
         for (int i = n + 1; i < rowDimension.width(); i++) {
             newType = newType.kronecker(project(Arrays.asList(i)));
         }
+        
         return newType;
     }
     

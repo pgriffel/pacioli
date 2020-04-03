@@ -128,14 +128,16 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                             "Second argument of nmode must be a number");
                 }
                 
-                // Try to get the type of the tensor parameter 
+                // Try to get the type of the tensor parameter
+                ExpressionNode tensorNode = node.arguments.get(0);
                 try {
-                    Typing tensorTyping = typingAccept(node.arguments.get(0));
+                    Typing tensorTyping = typingAccept(tensorNode);
                     PacioliType tensorPacioliType = tensorTyping.solve();
                     tensorType = (MatrixType) tensorPacioliType;
                 } catch (Exception ex) {
-                    throw new PacioliException(node.arguments.get(0).getLocation(), 
-                            "First argument of nmode must be a valid matrix type");
+                    throw new PacioliException(tensorNode.getLocation(), 
+                            "First argument of nmode must have a valid matrix type: %s",
+                            ex.getMessage());
                 }
                 
                 // Try to get the type of the matrix parameter 
