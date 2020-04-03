@@ -587,7 +587,7 @@ public class Progam extends AbstractPrintable {
                     Pacioli.log3("\n\nSolved type of %s is %s", info.name(), solved.pretty());
                     Pacioli.log3("\n\nSimple type of %s is %s", info.name(), solved.simplify().pretty());
                     Pacioli.log3("\n\nGenerl type of %s is %s", info.name(), solved.simplify().generalize().pretty());
-                    values.lookup(info.name()).setinferredType(solved.simplify().generalize());
+                    info.setinferredType(solved.simplify().generalize());
                 } catch (PacioliException e) {
                     throw new RuntimeException("Type error", e);
                 }
