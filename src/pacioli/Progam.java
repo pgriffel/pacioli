@@ -574,11 +574,6 @@ public class Progam extends AbstractPrintable {
                 discovered.add(info);
                 inferUsedTypes(info.getDefinition().get(), discovered, finished);
 
-                /*
-                 * int oldVerbosity = Pacioli.verbosity; if (info.name().equals("conv_matrix"))
-                 * { Pacioli.verbosity = 3; }
-                 */
-
                 Pacioli.log3("\n\nInferring type of %s", info.name());
                 ValueDefinition def = info.getDefinition().get();
                 Typing typing = def.body.inferTyping(this);
@@ -592,9 +587,6 @@ public class Progam extends AbstractPrintable {
                     throw new RuntimeException("Type error", e);
                 }
 
-                /*
-                 * if (info.name().equals("conv_matrix")) { Pacioli.verbosity = oldVerbosity; }
-                 */
                 finished.add(info);
             }
         }
