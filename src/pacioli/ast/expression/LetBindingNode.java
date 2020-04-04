@@ -27,10 +27,10 @@ import pacioli.ast.Visitor;
 
 public class LetBindingNode extends AbstractExpressionNode implements LetNode.BindingNode {
 
-    public final IdentifierNode var;
+    public final String var;
     public final ExpressionNode value;
 
-    public LetBindingNode(Location location, IdentifierNode var, ExpressionNode value) {
+    public LetBindingNode(Location location, String var, ExpressionNode value) {
         super(location);
         this.var = var;
         this.value = value;

@@ -22,6 +22,7 @@ import pacioli.ast.definition.*;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
 import pacioli.ast.expression.*;
+import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.unit.*;
 import pacioli.types.ast.*;
 import pacioli.TypeContext;
@@ -2997,8 +2998,8 @@ class CUP$Parser$actions {
 		Location rxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		ExpressionNode r = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		 List<String> args = freshUnderscores(Arrays.asList(id.getName()));
-                                                       ExpressionNode fun = new LambdaNode(args, r, makeLoc(idxleft, exright));
-                                                       RESULT = new ApplicationNode(fun, Arrays.asList(e), makeLoc(idxleft, rxright)); 
+                                                       BindingNode binding = new LetBindingNode(makeLoc(idxleft, exright), args.get(0), e);
+                                                       RESULT = new LetNode(binding, r, makeLoc(idxleft, rxright)); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("lettail",7, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

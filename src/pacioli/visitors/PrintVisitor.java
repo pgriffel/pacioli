@@ -621,7 +621,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(LetBindingNode node) {
-        node.var.accept(this);
+        out.write(node.var);
         out.write(" = ");
         node.value.accept(this);
     }

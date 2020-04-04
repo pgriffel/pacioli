@@ -18,6 +18,7 @@ import pacioli.ast.definition.*;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
 import pacioli.ast.expression.*;
+import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.unit.*;
 import pacioli.types.ast.*;
 import pacioli.TypeContext;
@@ -539,8 +540,8 @@ indexkey ::=
 
 lettail ::=
    id:id EQL expr:e letrest:r                       {: List<String> args = freshUnderscores(Arrays.asList(id.getName()));
-                                                       ExpressionNode fun = new LambdaNode(args, r, makeLoc(idxleft, exright));
-                                                       RESULT = new ApplicationNode(fun, Arrays.asList(e), makeLoc(idxleft, rxright)); :}
+                                                       BindingNode binding = new LetBindingNode(makeLoc(idxleft, exright), args.get(0), e);
+                                                       RESULT = new LetNode(binding, r, makeLoc(idxleft, rxright)); :}
  | idlist:ids EQL expr:e letrest:r                  {: List<String> args = freshUnderscores(idNames(ids));
                                                        pacioli.Location loc = makeLoc(idsxleft, rxright);
                                                        ExpressionNode fun = new LambdaNode(args, r, makeLoc(idsxleft, exright));
@@ -557,6 +558,22 @@ letrest ::=
    IN expr:e END                                    {: RESULT = e; :}
  | COMMA lettail:lt                                 {: RESULT = lt; :}
  ;
+ 
+//lettail ::=
+//   id:id EQL expr:e letrest:r                       {: List<String> args = freshUnderscores(Arrays.asList(id.getName()));
+//                                                       ExpressionNode fun = new LambdaNode(args, r, makeLoc(idxleft, exright));
+//                                                       RESULT = new ApplicationNode(fun, Arrays.asList(e), makeLoc(idxleft, rxright)); :}
+// | idlist:ids EQL expr:e letrest:r                  {: List<String> args = freshUnderscores(idNames(ids));
+//                                                       pacioli.Location loc = makeLoc(idsxleft, rxright);
+//                                                       ExpressionNode fun = new LambdaNode(args, r, makeLoc(idsxleft, exright));
+//                                                       RESULT = new ApplicationNode(new IdentifierNode("apply", loc), Arrays.asList(fun, e), loc); :}
+// | id:id idlist:ids EQL expr:e letrest:r            {: List<String> rArgs = freshUnderscores(Arrays.asList(id.getName()));
+//                                                       List<String> eArgs = freshUnderscores(idNames(ids));
+//                                                       pacioli.Location loc = makeLoc(idxleft, rxright);
+//                                                       ExpressionNode rFun = new LambdaNode(rArgs, r, loc);
+//                                                       ExpressionNode eFun = new LambdaNode(eArgs, e, loc);
+//                                                       RESULT = new ApplicationNode(rFun, Arrays.asList(eFun), loc); :}
+// ;
 
 //------------------------------------------------------------------------------
 // Statements
