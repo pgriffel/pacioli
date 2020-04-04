@@ -24,6 +24,9 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
+import pacioli.ast.expression.LetBindingNode;
+import pacioli.ast.expression.LetNode;
+import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -372,6 +375,18 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(UnitPowerNode node) {
         returnNode(node.transform(unitAccept(node.base)));
+    }
+
+    @Override
+    public void visit(LetNode node) {
+        Node bindingNode = nodeAccept(node.binding);
+        assert (bindingNode instanceof BindingNode);
+        returnNode(node.transform((BindingNode) bindingNode, expAccept(node.body)));
+    }
+
+    @Override
+    public void visit(LetBindingNode node) {
+        returnNode(node.transform(expAccept(node.value)));
     }
 
 }

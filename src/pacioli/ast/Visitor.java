@@ -18,6 +18,8 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
+import pacioli.ast.expression.LetBindingNode;
+import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -137,4 +139,8 @@ public interface Visitor {
     void visit(UnitOperationNode unitOperationNode);
 
     void visit(UnitPowerNode unitOperationNode);
+
+    void visit(LetNode letNode);
+
+    void visit(LetBindingNode letBindingNode);
 }
