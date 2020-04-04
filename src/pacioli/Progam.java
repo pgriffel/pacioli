@@ -94,7 +94,7 @@ public class Progam extends AbstractPrintable {
     
     static Progam load(PacioliFile file, List<File> libs, Phase phase) throws Exception {
         Progam program = new Progam(file, libs);
-        program.loadTill(phase);
+        program.loadTill(phase, !file.isLibrary());
         return program;
     }
     
@@ -105,6 +105,10 @@ public class Progam extends AbstractPrintable {
     public File getFile() {
         return file.getFile();
     }  
+    
+    public Boolean isLibrary() {
+        return file.isLibrary();
+    }
     
     // -------------------------------------------------------------------------
     // Pretty printing
@@ -250,17 +254,17 @@ public class Progam extends AbstractPrintable {
     // Loading
     // -------------------------------------------------------------------------
     
-    public void loadTill(Phase phase) throws Exception {
-        loadTillHelper(phase, true, true);
+    public void loadTill(Phase phase, Boolean fromProgram) throws Exception {
+        loadTillHelper(phase, true, true, fromProgram);
     }
     
-    public void loadTillHelper(Phase phase, Boolean loadPrimitives, Boolean loadStandard) throws Exception {
+    public void loadTillHelper(Phase phase, Boolean loadPrimitives, Boolean loadStandard, Boolean fromProgram) throws Exception {
         
         program = Parser.parseFile(this.file.getFile());
         desugar();
         if (phase.equals(Phase.PARSED)) return;
         
-        fillTables(loadPrimitives, loadStandard);
+        fillTables(loadPrimitives, loadStandard, fromProgram);
         if (phase.equals(Phase.DESUGARED)) return;
         
         resolve();
@@ -275,11 +279,11 @@ public class Progam extends AbstractPrintable {
     // Filling symbol tables
     // -------------------------------------------------------------------------
 
-    public void fillTables(Boolean loadPrimitives, Boolean loadStandard) throws Exception {
+    public void fillTables(Boolean loadPrimitives, Boolean loadStandard, Boolean fromProgram) throws Exception {
 
         for (String type : ResolveVisitor.builtinTypes) {
             // Fixme: null arg for the location. Maybe declare them in a base.pacioli?
-            GenericInfo generic = new GenericInfo(type, "base", true, new Location());
+            GenericInfo generic = new GenericInfo(type, "base", true, new Location(), fromProgram);
             addInfo(new TypeInfo(generic));
         }
 
@@ -289,7 +293,7 @@ public class Progam extends AbstractPrintable {
             if ((isStandard && loadStandard) || (!isStandard && loadPrimitives)) {
                 PacioliFile file = PacioliFile.requireLibrary(lib, libs);
                 Progam prog = new Progam(file, libs);
-                prog.loadTillHelper(Progam.Phase.TYPED, isStandard, false);
+                prog.loadTillHelper(Progam.Phase.TYPED, isStandard, false, false);
                 this.includeOther(prog);
             }
         }
@@ -298,7 +302,7 @@ public class Progam extends AbstractPrintable {
         for (PacioliFile file: findImports(libs)) {
             Progam prog = new Progam(file, libs);
             Pacioli.logln("Loading library file %s", file.getFile());
-            prog.loadTill(Progam.Phase.PARSED);
+            prog.loadTill(Progam.Phase.PARSED, false);
             for (Definition def : prog.program.definitions) {
                 if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
                         || def instanceof TypeDefinition) {
@@ -314,7 +318,7 @@ public class Progam extends AbstractPrintable {
             PacioliFile file = PacioliFile.findInclude(p.getParent(), this.file, include);
             Progam prog = new Progam(file, libs);
             Pacioli.logln("Loading include file %s", file);
-            prog.loadTill(Progam.Phase.PARSED);
+            prog.loadTill(Progam.Phase.PARSED, true);
             for (Definition def : prog.program.definitions) {
                 if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
                         || def instanceof TypeDefinition) {
@@ -505,11 +509,16 @@ public class Progam extends AbstractPrintable {
         
         for (String value : names) {
             Boolean log = value.equals("closure_hack") || false;
-            //Pacioli.logln("%s", value);
             ValueInfo info = values.lookup(value);
             if (!isExternal(info) && info.getDefinition().isPresent()) {
-                inferValueDefinitionType(info, discovered, finished);
-                //Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.get().pretty());
+                if (info.isFromProgram()) {
+                    Pacioli.logln2("Infering type of %s", value);
+                }
+                inferValueDefinitionType(info, discovered, finished, info.isFromProgram());
+                if (info.isFromProgram()) {
+                    Pacioli.logln2("%s :: %s;", info.name(), info.inferredType.get().pretty());
+                }
+                
                 //Pacioli.logln("\n%s :: %s;", info.name(), info.inferredType.get().deval().pretty());
             }
             Optional<TypeNode> declared = info.getDeclaredType();
@@ -521,6 +530,10 @@ public class Progam extends AbstractPrintable {
                 
                 PacioliType inferredType = info.inferredType().instantiate();
                 String condition = Pacioli.setLogCondition(log ? "instanceof" : "");
+                if (info.isFromProgram()) {
+                    Pacioli.logln2("Checking inferred type\n  %s\nagainst declared type\n  %s",
+                            inferredType.pretty(), declaredType.pretty());
+                }
                 if (!declaredType.isInstanceOf(inferredType)) {
                     throw new RuntimeException("Type error",
                             new PacioliException(info.getLocation(), 
@@ -537,7 +550,7 @@ public class Progam extends AbstractPrintable {
             inferUsedTypes(toplevel, discovered, finished);
             Typing typing = toplevel.body.inferTyping(this);
             try {
-                PacioliType type = typing.solve().simplify();
+                PacioliType type = typing.solve(true).simplify();
             } catch (PacioliException e) {
                 throw new RuntimeException("Topleve type error", e);
             }
@@ -553,7 +566,7 @@ public class Progam extends AbstractPrintable {
         for (SymbolInfo pre : definition.uses()) {
             if (pre.isGlobal() && pre instanceof ValueInfo) {
                 if (!isExternal(pre) && pre.getDefinition().isPresent()) {
-                    inferValueDefinitionType((ValueInfo) pre, discovered, finished);
+                    inferValueDefinitionType((ValueInfo) pre, discovered, finished, false);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
                     if (!vinfo.getDeclaredType().isPresent()) {
@@ -565,7 +578,15 @@ public class Progam extends AbstractPrintable {
         }
     }
 
-    private void inferValueDefinitionType(ValueInfo info, Set<SymbolInfo> discovered, Set<SymbolInfo> finished) {
+    /**
+     * @param info
+     * @param discovered
+     * @param finished
+     * @param verbose Determines whether log calls are made or not, independently
+     *                from any global log setting. Allows the caller to filter 
+     *                logging per definition.
+     */
+    private void inferValueDefinitionType(ValueInfo info, Set<SymbolInfo> discovered, Set<SymbolInfo> finished, Boolean verbose) {
 
         if (!finished.contains(info)) {
             if (discovered.contains(info)) {
@@ -574,14 +595,20 @@ public class Progam extends AbstractPrintable {
                 discovered.add(info);
                 inferUsedTypes(info.getDefinition().get(), discovered, finished);
 
-                Pacioli.log3("\n\nInferring type of %s", info.name());
                 ValueDefinition def = info.getDefinition().get();
                 Typing typing = def.body.inferTyping(this);
+                
+                if (verbose) {
+                    Pacioli.logln3("Inferred typing of %s is %s", info.name(), typing.pretty());
+                }
+                
                 try {
-                    PacioliType solved = typing.solve();
-                    Pacioli.log3("\n\nSolved type of %s is %s", info.name(), solved.pretty());
-                    Pacioli.log3("\n\nSimple type of %s is %s", info.name(), solved.simplify().pretty());
-                    Pacioli.log3("\n\nGenerl type of %s is %s", info.name(), solved.simplify().generalize().pretty());
+                    PacioliType solved = typing.solve(info.isFromProgram());
+                    if (verbose) {
+                        Pacioli.logln3("\nSolved type of %s is %s", info.name(), solved.pretty());
+                        Pacioli.logln3("\nSimple type of %s is %s", info.name(), solved.simplify().pretty());
+                        Pacioli.logln3("\nGenerl type of %s is %s", info.name(), solved.simplify().generalize().pretty());
+                    }
                     info.setinferredType(solved.simplify().generalize());
                 } catch (PacioliException e) {
                     throw new RuntimeException("Type error", e);
@@ -608,7 +635,7 @@ public class Progam extends AbstractPrintable {
 
             Typing typing = toplevel.body.inferTyping(this);
             Pacioli.log3("\n%s", typing.pretty());
-            PacioliType type = typing.solve().simplify(); 
+            PacioliType type = typing.solve(!this.isLibrary()).simplify(); 
             Pacioli.logln("\nToplevel %s :: %s", count++, type.unfresh().deval().pretty());
             /*
              * 

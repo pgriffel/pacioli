@@ -186,7 +186,7 @@ public class Project {
                 Boolean isStandard = lib.equals("standard");
                     PacioliFile libFile = PacioliFile.requireLibrary(lib, libs);
                     Progam prog = new Progam(libFile, libs);
-                    prog.loadTillHelper(Progam.Phase.TYPED, isStandard, false);
+                    prog.loadTillHelper(Progam.Phase.TYPED, isStandard, false, false);
                     prog.liftStatements();
                     Pacioli.logln("Bundling default file %s", libFile);
                     mainProgram.includeOther(prog);

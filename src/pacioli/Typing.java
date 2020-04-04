@@ -53,7 +53,7 @@ public class Typing extends AbstractPrintable {
         constraints.printPretty(out);
     }
 
-    public PacioliType solve() throws PacioliException {
-        return constraints.solve().apply(type);
+    public PacioliType solve(Boolean verbose) throws PacioliException {
+        return constraints.solve(verbose).apply(type);
     }
 }

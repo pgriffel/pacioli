@@ -18,8 +18,8 @@ public class VectorUnitInfo extends UnitInfo implements SymbolInfo {
     //private Map<String, DimensionedNumber<TypeBase>> units;
     private Map<String, UnitDecl> units;
 
-    public VectorUnitInfo(String name, String module, Boolean isGlobal, Location location) {
-        super(new GenericInfo(name, module, isGlobal, location));
+    public VectorUnitInfo(String name, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
+        super(new GenericInfo(name, module, isGlobal, location, fromProgram));
         assert (name.contains("!"));
     }
     

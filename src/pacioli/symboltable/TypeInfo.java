@@ -8,8 +8,8 @@ import pacioli.types.ast.TypeNode;
 
 public class TypeInfo extends AbstractSymbolInfo implements SymbolInfo {
 
-    public TypeInfo (String name, String module, Boolean isGlobal, Location location) {
-        super(new GenericInfo(name, module, isGlobal, location));
+    public TypeInfo (String name, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
+        super(new GenericInfo(name, module, isGlobal, location, fromProgram));
     }
     
     public TypeInfo(GenericInfo generic) {

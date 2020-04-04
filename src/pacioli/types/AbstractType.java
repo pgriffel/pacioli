@@ -39,7 +39,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
         }
 
         if (getClass().equals(other.getClass())) {
-            return unificationConstraints(other).solve();
+            return unificationConstraints(other).solve(false);
         } else {
             throw new PacioliException("Cannot unify a %s and a %s", description(), other.description());
         }

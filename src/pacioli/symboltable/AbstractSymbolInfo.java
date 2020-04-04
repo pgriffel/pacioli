@@ -29,4 +29,8 @@ public abstract class AbstractSymbolInfo implements SymbolInfo {
     public Boolean isGlobal() {
         return generic.isGlobal();
     }
+    
+    public Boolean isFromProgram() {
+        return generic.isFromProgram();
+    };
 }

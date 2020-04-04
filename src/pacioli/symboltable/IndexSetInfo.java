@@ -14,8 +14,8 @@ public class IndexSetInfo extends AbstractSymbolInfo implements SymbolInfo {
         visitor.visit(this);
     }
     
-    public IndexSetInfo(String name, String module, Boolean isGlobal, Location location) {
-        super(new GenericInfo(name, module, isGlobal, location));
+    public IndexSetInfo(String name, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
+        super(new GenericInfo(name, module, isGlobal, location, fromProgram));
     }
     
     public IndexSetInfo(GenericInfo generic) {

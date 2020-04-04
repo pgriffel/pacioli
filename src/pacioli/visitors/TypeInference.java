@@ -132,7 +132,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                 ExpressionNode tensorNode = node.arguments.get(0);
                 try {
                     Typing tensorTyping = typingAccept(tensorNode);
-                    PacioliType tensorPacioliType = tensorTyping.solve();
+                    PacioliType tensorPacioliType = tensorTyping.solve(false);
                     tensorType = (MatrixType) tensorPacioliType;
                 } catch (Exception ex) {
                     throw new PacioliException(tensorNode.getLocation(), 
@@ -143,7 +143,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                 // Try to get the type of the matrix parameter 
                 try {
                     Typing matrixTyping = typingAccept(node.arguments.get(2));
-                    PacioliType matrixPacioliType = matrixTyping.solve();
+                    PacioliType matrixPacioliType = matrixTyping.solve(false);
                     matrixType = (MatrixType) matrixPacioliType;
                 } catch (Exception ex) {
                     throw new PacioliException(node.arguments.get(2).getLocation(), 

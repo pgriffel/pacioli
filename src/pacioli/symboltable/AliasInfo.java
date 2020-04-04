@@ -9,8 +9,8 @@ public class AliasInfo extends UnitInfo implements SymbolInfo {
 
     public AliasDefinition definition;
     
-    public AliasInfo(String name, String module, Location location) {
-        super(new GenericInfo(name, module, true, location));
+    public AliasInfo(String name, String module, Location location, Boolean fromProgram) {
+        super(new GenericInfo(name, module, true, location, fromProgram));
         
     }
     

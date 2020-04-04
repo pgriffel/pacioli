@@ -86,13 +86,19 @@ public class ConstraintSet extends AbstractPrintable {
         }
     }
 
-    public Substitution solve() throws PacioliException {
+    public Substitution solveNO() throws PacioliException {
+        return solve(false);
+    }
+    
+    public Substitution solve(Boolean verbose) throws PacioliException {
         Substitution mgu = new Substitution();
         for (int i = 0; i < lhss.size(); i++) {
             PacioliType left = mgu.apply(lhss.get(i));
             PacioliType right = mgu.apply(rhss.get(i));
             try {
-                Pacioli.logln3("Unifying %s and %s\n%s", left.pretty(), right.pretty(), reason.get(i));
+                if (verbose) {
+                    Pacioli.logln3("Unifying %s and %s\n%s", left.pretty(), right.pretty(), reason.get(i));
+                }
                 mgu = left.unify(right).compose(mgu);
             } catch (PacioliException ex) {
                 throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", reason.get(i), left.unfresh().pretty(),

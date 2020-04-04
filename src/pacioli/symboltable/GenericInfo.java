@@ -10,13 +10,15 @@ public class GenericInfo {
     private String module;
     private Location location;
     private Boolean isGlobal;
+    private final Boolean isFromProgram;
 
-    public GenericInfo(String name, String module, Boolean isGlobal, Location location) {
+    public GenericInfo(String name, String module, Boolean isGlobal, Location location, Boolean isFromProgram) {
         assert(location != null);
         this.name = name;
         this.module = module;
         this.isGlobal = isGlobal;
         this.location = location;
+        this.isFromProgram = isFromProgram;
     }
     
     public Location location() {
@@ -37,5 +39,9 @@ public class GenericInfo {
   
     public Boolean isLocal() {
         return !isGlobal;
+    }
+
+    public Boolean isFromProgram() {
+        return isFromProgram;
     }
 }

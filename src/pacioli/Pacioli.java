@@ -478,7 +478,10 @@ public class Pacioli {
             "shells/shells.pacioli",
             "numpy/numpy_test.pacioli"            
             );
-
+        
+        samples = Arrays.asList( 
+                "inference/inference.pacioli");
+        
         for (String sample : samples) {
             logln(sample);
             logln("--------------------------------------------------------------------------------");
@@ -567,7 +570,7 @@ public class Pacioli {
         
         PacioliFile libFile = PacioliFile.requireLibrary("base", libs);
         Progam program = new Progam(libFile, libs);
-        program.loadTillHelper(Phase.RESOLVED, false, false);
+        program.loadTillHelper(Phase.RESOLVED, false, false, false);
         List<ValueInfo> allInfos = program.values.allInfos();
         List<String> names = new ArrayList<String>();
         for (ValueInfo info: allInfos) {

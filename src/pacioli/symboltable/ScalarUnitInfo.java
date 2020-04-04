@@ -10,8 +10,8 @@ public class ScalarUnitInfo extends UnitInfo implements SymbolInfo {
     public String symbol;
     private Optional<UnitDefinition> definition = Optional.empty();
     
-    public ScalarUnitInfo(String name, String module, Boolean isGlobal, Location location) {
-        super(new GenericInfo(name, module, isGlobal, location));
+    public ScalarUnitInfo(String name, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
+        super(new GenericInfo(name, module, isGlobal, location, fromProgram));
     }
     
     public ScalarUnitInfo(GenericInfo generic) {
