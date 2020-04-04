@@ -544,19 +544,20 @@ public class Progam extends AbstractPrintable {
             }
             
         }
+        int i = 0;
         for (Toplevel toplevel : toplevels) {
 
             inferUsedTypes(toplevel, discovered, finished);
+            
+            Pacioli.logln2("Inferring typing of toplevel %s", i);
+            
             Typing typing = toplevel.body.inferTyping(this);
-            try {
-                PacioliType type = typing.solve(true).simplify();
-            } catch (PacioliException e) {
-                throw new RuntimeException("Topleve type error", e);
-            }
-            //Pacioli.log3("\n%s", typing.toText());
-            /*
-             * type = typing.solve().simplify(); return type;
-             */
+            Pacioli.logln3("Typing of toplevel %s is %s", i, typing.pretty());
+            
+            toplevel.type = typing.solve(!isLibrary()).simplify();
+            Pacioli.logln3("Type of toplevel %s is %s", i, toplevel.type.pretty());
+            
+            i++;
         }
         
     }
@@ -631,14 +632,8 @@ public class Progam extends AbstractPrintable {
         }
         Integer count = 1;
         for (Toplevel toplevel : toplevels) {
-
-            Typing typing = toplevel.body.inferTyping(this);
-            Pacioli.log3("\n%s", typing.pretty());
-            PacioliType type = typing.solve(!this.isLibrary()).simplify(); 
+            PacioliType type = toplevel.type;
             Pacioli.logln("\nToplevel %s :: %s", count++, type.unfresh().deval().pretty());
-            /*
-             * 
-             */
         }
     }
     

@@ -290,7 +290,6 @@ public class Pacioli {
             //program.printSymbolTable(program.values, "Values");
             //Pacioli.logln("%s", program.pretty());
             
-            Pacioli.logln2("Displaying types in module '%s'", file.getFile());
             program.printTypes();
 
         } catch (IOException e) {
@@ -658,13 +657,15 @@ public class Pacioli {
 
     public static void logln1(String string, Object... args) {
         if (1 <= verbosity) {
-            logln(string, args);
+            logln("* ");
+            log(string, args);
         }
     }
 
     public static void logln2(String string, Object... args) {
         if (2 <= verbosity) {
-            logln(string, args);
+            logln("- ");
+            log(string, args);
         }
     }
 
