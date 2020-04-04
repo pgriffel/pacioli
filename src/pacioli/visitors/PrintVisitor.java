@@ -32,6 +32,7 @@ import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
+import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
 import pacioli.ast.expression.MatrixTypeNode;
@@ -622,6 +623,19 @@ public class PrintVisitor implements Visitor {
     public void visit(LetBindingNode node) {
         node.var.accept(this);
         out.write(" = ");
+        node.value.accept(this);
+    }
+
+    @Override
+    public void visit(LetTupleBindingNode node) {
+        write("(");
+        Boolean first = true; 
+        for (IdentifierNode var: node.vars) {
+            if (!first) write(",");
+            first = false;
+            var.accept(this);
+        }
+        write(") = ");
         node.value.accept(this);
     }
 }
