@@ -23,6 +23,10 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
+import pacioli.ast.expression.LetBindingNode;
+import pacioli.ast.expression.LetFunctionBindingNode;
+import pacioli.ast.expression.LetNode;
+import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -464,5 +468,30 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                 "the body of a while must be a statement");
         returnNode(typing);
 
+    }
+    
+    @Override
+    public void visit(LetNode node) {
+        node.binding.accept(this);
+        node.body.accept(this);
+        throw new RuntimeException("todo");
+    }
+
+    @Override
+    public void visit(LetBindingNode node) {
+        node.value.accept(this);
+        throw new RuntimeException("todo");
+    }
+
+    @Override
+    public void visit(LetTupleBindingNode node) {
+        node.value.accept(this);
+        throw new RuntimeException("todo");
+    }
+    
+    @Override
+    public void visit(LetFunctionBindingNode node) {
+        node.body.accept(this);
+        throw new RuntimeException("todo");
     }
 }

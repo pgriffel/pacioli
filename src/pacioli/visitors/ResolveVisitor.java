@@ -32,6 +32,10 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
+import pacioli.ast.expression.LetBindingNode;
+import pacioli.ast.expression.LetFunctionBindingNode;
+import pacioli.ast.expression.LetNode;
+import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ReturnNode;
@@ -581,5 +585,30 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             throw new RuntimeException("Name error", new PacioliException(node.getLocation(), "unit %s unknown", node.getName()));
         }
         node.info = unitInfo;
+    }
+    
+    @Override
+    public void visit(LetNode node) {
+        node.binding.accept(this);
+        node.body.accept(this);
+        throw new RuntimeException("todo");
+    }
+
+    @Override
+    public void visit(LetBindingNode node) {
+        node.value.accept(this);
+        throw new RuntimeException("todo");
+    }
+
+    @Override
+    public void visit(LetTupleBindingNode node) {
+        node.value.accept(this);
+        throw new RuntimeException("todo");
+    }
+    
+    @Override
+    public void visit(LetFunctionBindingNode node) {
+        node.body.accept(this);        
+        throw new RuntimeException("todo");
     }
 }

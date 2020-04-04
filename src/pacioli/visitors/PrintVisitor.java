@@ -31,6 +31,7 @@ import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
+import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
@@ -637,5 +638,19 @@ public class PrintVisitor implements Visitor {
         }
         write(") = ");
         node.value.accept(this);
+    }
+
+    @Override
+    public void visit(LetFunctionBindingNode node) {
+        out.write(node.name);
+        write("(");
+        Boolean first = true; 
+        for (String arg: node.args) {
+            if (!first) write(",");
+            first = false;
+            out.write(arg);
+        }
+        write(") = ");
+        node.body.accept(this);        
     }
 }

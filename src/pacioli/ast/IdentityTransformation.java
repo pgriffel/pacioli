@@ -25,6 +25,7 @@ import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
+import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.expression.LetTupleBindingNode;
@@ -393,6 +394,11 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(LetTupleBindingNode node) {
         returnNode(node.transform(expAccept(node.value)));
+    }
+
+    @Override
+    public void visit(LetFunctionBindingNode node) {
+        returnNode(node.transform(expAccept(node.body)));
     }
 
 }

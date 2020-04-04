@@ -19,6 +19,7 @@ import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
+import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
@@ -49,101 +50,103 @@ import pacioli.types.ast.TypePowerNode;
 
 public interface Visitor {
 
-    void visit(ProgramNode program);
+    void visit(ProgramNode node);
     
-    void visit(IncludeNode program);
+    void visit(IncludeNode node);
     
-    void visit(ImportNode program);
+    void visit(ImportNode node);
 
-    void visit(AliasDefinition aliasDefinition);
+    void visit(AliasDefinition node);
 
-    void visit(Declaration declaration);
+    void visit(Declaration node);
 
-    void visit(IndexSetDefinition indexSetDefinition);
+    void visit(IndexSetDefinition node);
 
-    void visit(MultiDeclaration multiDeclaration);
+    void visit(MultiDeclaration node);
 
-    void visit(Toplevel toplevel);
+    void visit(Toplevel node);
 
-    void visit(TypeDefinition typeDefinition);
+    void visit(TypeDefinition node);
 
-    void visit(UnitDefinition unitDefinition);
+    void visit(UnitDefinition node);
 
-    void visit(UnitVectorDefinition unitVectorDefinition);
+    void visit(UnitVectorDefinition node);
 
-    void visit(ValueDefinition valueDefinition);
+    void visit(ValueDefinition node);
 
     void visit(ApplicationNode node);
 
-    void visit(AssignmentNode assignmentNode);
+    void visit(AssignmentNode node);
 
-    void visit(BranchNode branchNode);
+    void visit(BranchNode node);
 
-    void visit(ConstNode constNode);
+    void visit(ConstNode node);
 
-    void visit(ConversionNode conversionNode);
+    void visit(ConversionNode node);
 
-    void visit(IdentifierNode identifierNode);
+    void visit(IdentifierNode node);
 
-    void visit(IfStatementNode ifStatementNode);
+    void visit(IfStatementNode node);
 
-    void visit(KeyNode keyNode);
+    void visit(KeyNode node);
 
-    void visit(LambdaNode lambdaNode);
+    void visit(LambdaNode node);
 
-    void visit(MatrixLiteralNode matrixLiteralNode);
+    void visit(MatrixLiteralNode node);
 
-    void visit(MatrixTypeNode matrixTypeNode);
+    void visit(MatrixTypeNode node);
 
-    void visit(ProjectionNode projectionNode);
+    void visit(ProjectionNode node);
 
-    void visit(ReturnNode returnNode);
+    void visit(ReturnNode node);
 
-    void visit(SequenceNode sequenceNode);
+    void visit(SequenceNode node);
 
-    void visit(StatementNode statementNode);
+    void visit(StatementNode node);
 
-    void visit(StringNode stringNode);
+    void visit(StringNode node);
 
-    void visit(TupleAssignmentNode tupleAssignmentNode);
+    void visit(TupleAssignmentNode node);
 
-    void visit(WhileNode whileNode);
+    void visit(WhileNode node);
 
-    void visit(BangTypeNode bangTypeNode);
+    void visit(BangTypeNode node);
 
-    void visit(FunctionTypeNode functionTypeNode);
+    void visit(FunctionTypeNode node);
 
-    void visit(NumberTypeNode numberTypeNode);
+    void visit(NumberTypeNode node);
 
-    void visit(SchemaNode schemaNode);
+    void visit(SchemaNode node);
 
-    void visit(TypeApplicationNode typeApplicationNode);
+    void visit(TypeApplicationNode node);
 
-    void visit(TypeIdentifierNode typeIdentifierNode);
+    void visit(TypeIdentifierNode node);
 
-    void visit(TypePowerNode typePowerNode);
+    void visit(TypePowerNode node);
 
-    void visit(PrefixUnitTypeNode prefixUnitTypeNode);
+    void visit(PrefixUnitTypeNode node);
 
-    void visit(TypeMultiplyNode typeMultiplyNode);
+    void visit(TypeMultiplyNode node);
 
-    void visit(TypeDivideNode typeDivideNode);
+    void visit(TypeDivideNode node);
 
-    void visit(TypeKroneckerNode typeKroneckerNode);
+    void visit(TypeKroneckerNode node);
 
-    void visit(TypePerNode typePerNode);
+    void visit(TypePerNode node);
 
-    void visit(NumberUnitNode numberUnitNode);
+    void visit(NumberUnitNode node);
 
-    void visit(UnitIdentifierNode unitIdentifierNode);
+    void visit(UnitIdentifierNode node);
 
-    void visit(UnitOperationNode unitOperationNode);
+    void visit(UnitOperationNode node);
 
-    void visit(UnitPowerNode unitOperationNode);
+    void visit(UnitPowerNode node);
 
     void visit(LetNode letNode);
 
     void visit(LetBindingNode node);
 
     void visit(LetTupleBindingNode node);
+
+    void visit(LetFunctionBindingNode node);
 }
