@@ -22,12 +22,17 @@
 package pacioli;
 
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
 import pacioli.types.PacioliType;
+import pacioli.types.TypeVar;
 
 public class Typing extends AbstractPrintable {
 
     private final PacioliType type;
     private final ConstraintSet constraints;
+    private final Map<String, TypeVar> assumptions = new HashMap<String, TypeVar>();
 
     public Typing(PacioliType type) {
         this.type = type;
@@ -38,10 +43,25 @@ public class Typing extends AbstractPrintable {
         constraints.addConstraint(lhs, rhs, text);
     }
 
+    public void addConstraintsAndAssumptions(Typing other) {
+        addConstraints(other);
+        addAssumptions(other);
+    }
+    
     public void addConstraints(Typing other) {
         constraints.addConstraints(other.constraints);
     }
-
+    
+    public void addAssumption(String name, TypeVar var) {
+        assumptions.put(name, var);
+    }
+    
+    public void addAssumptions(Typing other) {
+        for (String key: other.assumptions.keySet()) {
+            assumptions.put(key, other.assumptions.get(key));
+        }
+    }
+    
     public PacioliType getType() {
         return type;
     }
@@ -51,6 +71,13 @@ public class Typing extends AbstractPrintable {
         type.printPretty(out);
         out.print(" with\n");
         constraints.printPretty(out);
+        out.print("assuming");
+        for (String key: assumptions.keySet()) {
+            out.print("\n  ");
+            out.print(key);
+            out.print(" :: ");
+            out.print(assumptions.get(key).pretty());
+        }
     }
 
     public PacioliType solve(Boolean verbose) throws PacioliException {

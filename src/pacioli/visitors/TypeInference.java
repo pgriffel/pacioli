@@ -112,7 +112,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         for (ExpressionNode arg : node.arguments) {
             Typing argTyping = typingAccept(arg);
             argTypes.add(argTyping.getType());
-            typing.addConstraints(argTyping);
+            typing.addConstraintsAndAssumptions(argTyping);
         }
         
         // The nmode product is special. It requires that the type
@@ -188,7 +188,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
             // Infer the typing of the function. Add its contraints
             // to the result typing.
             Typing funTyping = typingAccept(node.function);
-            typing.addConstraints(funTyping);
+            typing.addConstraintsAndAssumptions(funTyping);
     
             // Create a function type from the argument types to the type variable
             // that was put in the result type.
@@ -211,7 +211,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     public void visit(AssignmentNode node) {
         Typing valueTyping = typingAccept(node.value);
         Typing typing = new Typing(newVoidType());
-        typing.addConstraints(valueTyping);
+        typing.addConstraintsAndAssumptions(valueTyping);
         typing.addConstraint(node.var.getInfo().inferredType(), valueTyping.getType(),
                 "assigned variable must have proper type");
         returnNode(typing);
@@ -229,9 +229,9 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         Typing typing = new Typing(posTyping.getType());
 
         // Add the contstraints from the parts to the branch's typing
-        typing.addConstraints(testTyping);
-        typing.addConstraints(posTyping);
-        typing.addConstraints(negTyping);
+        typing.addConstraintsAndAssumptions(testTyping);
+        typing.addConstraintsAndAssumptions(posTyping);
+        typing.addConstraintsAndAssumptions(negTyping);
 
         // Add the constraint that the test must be Boolean
         typing.addConstraint(testTyping.getType(), newBooleType(), String
@@ -267,7 +267,9 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     @Override
     public void visit(IdentifierNode node) {
 
-        if (!node.getInfo().inferredType.isPresent()) {
+        ValueInfo info = node.getInfo();
+        
+        if (!info.inferredType.isPresent()) {
             // It must be a recursive function. Todo: handle properly
             if (node.getInfo().getDeclaredType().isPresent()) {
             returnNode(new Typing(node.getInfo().getDeclaredType().get().evalType(true).instantiate()));
@@ -275,12 +277,23 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                 throw new RuntimeException("Identifier node has no declared type", new PacioliException(node.getLocation(), "id=%s", node.getName()));
             }
         } else
-            // Move instantiate to proper place.
-            if (node.getInfo().getDeclaredType().isPresent()) {
-                returnNode(new Typing(node.getInfo().getDeclaredType().get().evalType(true).instantiate()));
-            } else {
-                returnNode(new Typing(node.getInfo().inferredType().instantiate()));
+            if (info.isGlobal()) {
+                // Move instantiate to proper place.
+                if (node.getInfo().getDeclaredType().isPresent()) {
+                    returnNode(new Typing(node.getInfo().getDeclaredType().get().evalType(true).instantiate()));
+                } else {
+                    returnNode(new Typing(node.getInfo().inferredType().instantiate()));
+                }
             }
+            else {
+                Pacioli.logln("IFERRING LOCAL %s type inference in identifier node.",
+                        info.name());
+                TypeVar var = new TypeVar();
+                Typing typing = new Typing(var);
+                typing.addAssumption(node.getName(), var);
+                returnNode(typing);
+            }
+        
     }
 
     @Override
@@ -292,9 +305,9 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
         Typing typing = new Typing(posTyping.getType());
 
-        typing.addConstraints(testTyping);
-        typing.addConstraints(posTyping);
-        typing.addConstraints(negTyping);
+        typing.addConstraintsAndAssumptions(testTyping);
+        typing.addConstraintsAndAssumptions(posTyping);
+        typing.addConstraintsAndAssumptions(negTyping);
 
         PacioliType voidType = newVoidType();
 
@@ -351,7 +364,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         // Create a typing for the lambda and add the constraints from the body's
         // inference
         Typing typing = new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.getType()));
-        typing.addConstraints(bodyTyping);
+        typing.addConstraintsAndAssumptions(bodyTyping);
 
         returnNode(typing);
     }
@@ -391,7 +404,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         PacioliType voidType = newVoidType();
         Typing valueTyping = typingAccept(node.value);
         Typing typing = new Typing(voidType);
-        typing.addConstraints(valueTyping);
+        typing.addConstraintsAndAssumptions(valueTyping);
         typing.addConstraint(node.resultInfo.inferredType(), valueTyping.getType(), "the types of returned values must agree");
         returnNode(typing);
     }
@@ -403,7 +416,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         for (ExpressionNode item : node.items) {
             Typing itemTyping = typingAccept(item);
             typing.addConstraint(voidType, itemTyping.getType(), "A statement must have type Void()");
-            typing.addConstraints(itemTyping);
+            typing.addConstraintsAndAssumptions(itemTyping);
         }
         returnNode(typing);
     }
@@ -426,7 +439,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         Typing typing = new Typing(resultType);
         Typing itemTyping = typingAccept(node.body);
         typing.addConstraint(voidType, itemTyping.getType(), "A statement must have type Void()");
-        typing.addConstraints(itemTyping);
+        typing.addConstraintsAndAssumptions(itemTyping);
         returnNode(typing);
     }
 
@@ -450,7 +463,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         PacioliType voidType = newVoidType();
         Typing tupleTyping = typingAccept(node.tuple);
         Typing typing = new Typing(voidType);
-        typing.addConstraints(tupleTyping);
+        typing.addConstraintsAndAssumptions(tupleTyping);
         typing.addConstraint(tupleType, tupleTyping.getType(),
                 "assigned variable must have proper type");
         returnNode(typing);
@@ -462,8 +475,8 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         Typing bodyTyping = typingAccept(node.body);
 
         Typing typing = new Typing(newVoidType());
-        typing.addConstraints(testTyping);
-        typing.addConstraints(bodyTyping);
+        typing.addConstraintsAndAssumptions(testTyping);
+        typing.addConstraintsAndAssumptions(bodyTyping);
         typing.addConstraint(testTyping.getType(), newBooleType(),
                 "the test of a while must be boolean");
         typing.addConstraint(bodyTyping.getType(), newVoidType(),
@@ -485,7 +498,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
              // Create the type variable and add it to the list
              String freshName = node.table.freshSymbolName(); 
              PacioliType freshType = new TypeVar(freshName);
-             argTypes.add(freshType);
+             //argTypes.add(freshType);
              info.setinferredType(freshType);
         }
 
@@ -494,18 +507,19 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
         // Create a typing for the lambda and add the constraints from the body's
         // inference
-        Typing typing = new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.getType()));
-        typing.addConstraints(bodyTyping);
+//        Typing typing = new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.getType()));
+  //      typing.addConstraintsAndAssumptions(bodyTyping);
 
-        returnNode(typing);
-        throw new RuntimeException("todo");
+        returnNode(bodyTyping);
+        //throw new RuntimeException("todo");
 
     }
 
     @Override
     public void visit(LetBindingNode node) {
-        node.value.accept(this);
-        throw new RuntimeException("todo");
+        returnNode(typingAccept(node.value));
+        //node.value.accept(this);
+        //throw new RuntimeException("todo");
     }
 
     @Override
