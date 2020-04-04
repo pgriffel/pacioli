@@ -1,5 +1,8 @@
 package pacioli.ast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.ast.definition.AliasDefinition;
@@ -36,6 +39,7 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
+import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
@@ -324,7 +328,9 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(LetNode node) {
-        node.binding.accept(this);
+        for (BindingNode binding : node.binding) {
+            binding.accept(this);
+        }
         node.body.accept(this);
     }
 

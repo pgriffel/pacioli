@@ -10,6 +10,7 @@ import java.util.Stack;
 import mvm.values.matrix.IndexSet;
 import mvm.values.matrix.MatrixDimension;
 import pacioli.Location;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.TypeContext;
@@ -35,6 +36,7 @@ import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
+import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
@@ -589,26 +591,56 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     
     @Override
     public void visit(LetNode node) {
-        node.binding.accept(this);
+        
+        // Create the node's symbol table
+        node.table = new SymbolTable<ValueInfo>(valueTables.peek());
+
+        // Create a symbol info record for each lambda parameter and store it in the table
+        for (BindingNode binding : node.binding) {
+            binding.accept(this); 
+            assert(binding instanceof LetBindingNode);
+            LetBindingNode functionBinding = (LetBindingNode) binding;
+            String arg = functionBinding.var;
+            ValueInfo info = new ValueInfo(arg, prog.getModule(), false, node.getLocation(), !prog.isLibrary());
+            
+            
+            // todo: set the definition!!!!!!!
+            Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");
+            
+            node.table.put(arg, info);
+        }
+
+        // Push the symboltable on the stack and resolve the body
+        valueTables.push(node.table);
         node.body.accept(this);
-        throw new RuntimeException("todo");
+        valueTables.pop();
     }
 
     @Override
     public void visit(LetBindingNode node) {
         node.value.accept(this);
-        throw new RuntimeException("todo");
+        //throw new RuntimeException("todo");
     }
 
     @Override
     public void visit(LetTupleBindingNode node) {
         node.value.accept(this);
-        throw new RuntimeException("todo");
+        throw new RuntimeException("obsolete");
     }
     
     @Override
     public void visit(LetFunctionBindingNode node) {
-        node.body.accept(this);        
-        throw new RuntimeException("todo");
+        
+        node.table = new SymbolTable<ValueInfo>(valueTables.peek());
+
+        for (String arg : node.args) {
+            ValueInfo info = new ValueInfo(arg, prog.getModule(), false, node.getLocation(), !prog.isLibrary());
+            node.table.put(arg, info);
+        }
+        
+        valueTables.push(node.table);
+        node.body.accept(this);
+        valueTables.pop();
+        throw new RuntimeException("obsolete");
     }
 }

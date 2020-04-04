@@ -26,12 +26,16 @@ import java.util.List;
 import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
+import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.ValueInfo;
 
 public class LetFunctionBindingNode extends AbstractExpressionNode implements LetNode.BindingNode {
 
     public final String name;
     public final List<String> args;
     public final ExpressionNode body;
+
+    public SymbolTable<ValueInfo> table;
 
     public LetFunctionBindingNode(Location location, String name, List<String> args, ExpressionNode body) {
         super(location);

@@ -73,7 +73,7 @@ public class Progam extends AbstractPrintable {
     private final List<File> libs;
 
     // Added as first step of loading 
-    private ProgramNode program;
+    ProgramNode program;
 
     // Fill during loading
     public SymbolTable<IndexSetInfo> indexSets = new SymbolTable<IndexSetInfo>();

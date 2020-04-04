@@ -29,10 +29,10 @@ import pacioli.ast.Visitor;
 
 public class LetTupleBindingNode extends AbstractExpressionNode implements LetNode.BindingNode {
 
-    public final List<IdentifierNode> vars;
+    public final List<String> vars;
     public final ExpressionNode value;
 
-    public LetTupleBindingNode(Location location, List<IdentifierNode> vars, ExpressionNode value) {
+    public LetTupleBindingNode(Location location, List<String> vars, ExpressionNode value) {
         super(location);
         this.vars = vars;
         this.value = value;

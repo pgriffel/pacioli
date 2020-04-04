@@ -44,6 +44,7 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
+import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
@@ -612,7 +613,15 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(LetNode node) {
         write("let ");
-        node.binding.accept(this);
+        boolean first = true;
+        for (BindingNode binding : node.binding) {
+            if (!first) {
+                write(",");
+            } else {
+                first = false;
+            }
+            binding.accept(this);
+        }
         write("in");
         newlineUp();
         node.body.accept(this);
@@ -631,10 +640,10 @@ public class PrintVisitor implements Visitor {
     public void visit(LetTupleBindingNode node) {
         write("(");
         Boolean first = true; 
-        for (IdentifierNode var: node.vars) {
+        for (String var: node.vars) {
             if (!first) write(",");
             first = false;
-            var.accept(this);
+            out.write(var);
         }
         write(") = ");
         node.value.accept(this);

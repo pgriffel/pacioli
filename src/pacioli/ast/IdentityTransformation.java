@@ -381,9 +381,13 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(LetNode node) {
-        Node bindingNode = nodeAccept(node.binding);
-        assert (bindingNode instanceof BindingNode);
-        returnNode(node.transform((BindingNode) bindingNode, expAccept(node.body)));
+        List<BindingNode> newBindings = new ArrayList<BindingNode>();
+        for (BindingNode binding : node.binding) {
+            Node accepted = nodeAccept(binding);
+            assert (accepted instanceof BindingNode);
+            newBindings.add((BindingNode) accepted);
+        }
+        returnNode(node.transform(newBindings, expAccept(node.body)));
     }
 
     @Override

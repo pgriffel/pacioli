@@ -11,6 +11,7 @@ import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.ast.IdentityVisitor;
+import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
@@ -26,6 +27,7 @@ import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
+import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
@@ -81,7 +83,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     }
 
     
-    public Typing typingAccept(ExpressionNode node) {
+    public Typing typingAccept(Node node) {
         // Pacioli.logln("accept: %s", node.getClass());
         node.accept(this);
         return typingStack.pop();
@@ -472,9 +474,32 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     
     @Override
     public void visit(LetNode node) {
-        node.binding.accept(this);
-        node.body.accept(this);
+        List<PacioliType> argTypes = new ArrayList<PacioliType>();
+
+        for (BindingNode binding: node.binding) {
+            assert(binding instanceof LetBindingNode);
+            LetBindingNode letBinding = (LetBindingNode) binding;
+            //binding.accept(this);
+             Typing bindingTyping = typingAccept(letBinding);
+             ValueInfo info = node.table.lookup(letBinding.var);
+             // Create the type variable and add it to the list
+             String freshName = node.table.freshSymbolName(); 
+             PacioliType freshType = new TypeVar(freshName);
+             argTypes.add(freshType);
+             info.setinferredType(freshType);
+        }
+
+        // Infer the body's typing
+        Typing bodyTyping = typingAccept(node.body);
+
+        // Create a typing for the lambda and add the constraints from the body's
+        // inference
+        Typing typing = new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.getType()));
+        typing.addConstraints(bodyTyping);
+
+        returnNode(typing);
         throw new RuntimeException("todo");
+
     }
 
     @Override

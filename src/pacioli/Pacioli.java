@@ -245,7 +245,7 @@ public class Pacioli {
             PacioliFile file = optionalFile.get();
             Pacioli.logln1("Parsing file '%s'", file);            
             Progam program = Progam.load(file, libs, Phase.PARSED);
-            Pacioli.logln("%s", program.pretty());
+            Pacioli.logln("%s", program.program.pretty());
         }
     }
     

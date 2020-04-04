@@ -21,6 +21,8 @@
 
 package pacioli.ast.expression;
 
+import java.util.List;
+
 import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
@@ -30,7 +32,7 @@ import pacioli.symboltable.ValueInfo;
 
 public class LetNode extends AbstractExpressionNode {
 
-    public final BindingNode binding;
+    public final List<BindingNode> binding;
     public final ExpressionNode body;
 
     public interface BindingNode extends Node {
@@ -38,9 +40,9 @@ public class LetNode extends AbstractExpressionNode {
     
     public SymbolTable<ValueInfo> table;
 
-    public LetNode(BindingNode binding, ExpressionNode body, Location location) {
+    public LetNode(List<BindingNode> bindings, ExpressionNode body, Location location) {
         super(location);
-        this.binding = binding;
+        this.binding = bindings;
         this.body = body;
     }
 
@@ -55,8 +57,8 @@ public class LetNode extends AbstractExpressionNode {
         visitor.visit(this);
     }
 
-    public Node transform(BindingNode binding, ExpressionNode body) {
-        return new LetNode(binding, body, getLocation());
+    public Node transform(List<BindingNode> bindings, ExpressionNode body) {
+        return new LetNode(bindings, body, getLocation());
     }
 
 }
