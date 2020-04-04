@@ -529,7 +529,7 @@ public class Progam extends AbstractPrintable {
                 PacioliType declaredType = declared.get().evalType(true).instantiate();
                 
                 PacioliType inferredType = info.inferredType().instantiate();
-                String condition = Pacioli.setLogCondition(log ? "instanceof" : "");
+                
                 if (info.isFromProgram()) {
                     Pacioli.logln2("Checking inferred type\n  %s\nagainst declared type\n  %s",
                             inferredType.pretty(), declaredType.pretty());
@@ -541,7 +541,6 @@ public class Progam extends AbstractPrintable {
                                             declaredType.unfresh().deval().pretty(),
                                             inferredType.unfresh().deval().pretty())));
                 }
-                Pacioli.setLogCondition(condition);
             }
             
         }

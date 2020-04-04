@@ -479,8 +479,7 @@ public class Pacioli {
             "numpy/numpy_test.pacioli"            
             );
         
-        samples = Arrays.asList( 
-                "inference/inference.pacioli");
+        //samples = Arrays.asList("inference/inference.pacioli");
         
         for (String sample : samples) {
             logln(sample);
@@ -637,26 +636,6 @@ public class Pacioli {
         }
 
         log(string, args);
-    }
-    
-    static String logCondition = "";
-    
-    static String setLogCondition(String condition) {
-        String currentCondition = logCondition;  
-        logCondition = condition;
-        return currentCondition;  
-    }
-    
-    public static void loglnif(String condition, String string, Object... args) {
-
-        if (condition.equals(logCondition)) {
-            if (!atLineStart) {
-                log("\n");
-                atLineStart = true;
-            }
-    
-            log(string, args);
-        }
     }
 
     public static void log1(String string, Object... args) {
