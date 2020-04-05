@@ -9,6 +9,7 @@ import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.ast.IdentityTransformation;
+import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ApplicationNode;
@@ -58,21 +59,23 @@ public class LiftStatements extends IdentityTransformation implements Visitor {
         // Lift the body's statements
         ExpressionNode rec = new StatementNode(nodeLocation, (SequenceNode) expAccept(node.body));
 
-        // Determine the used local ids
-        Set<SymbolInfo> uses = new HashSet<SymbolInfo>();
-        for (SymbolInfo info: node.uses()) {
-            if (!info.isGlobal()) {
-                uses.add(info);
-            }
-        }
-        
-        // Determine the ids in scope that are used
-        Set<ValueInfo> localsInScope = new HashSet<ValueInfo>();
-        for (ValueInfo info: node.table.parent.allInfos()) {
-            if (!info.isGlobal() && uses.contains(info)) {
-                localsInScope.add(info);
-            }
-        }
+//        // Determine the used local ids
+//        Set<SymbolInfo> uses = new HashSet<SymbolInfo>();
+//        for (SymbolInfo info: node.uses()) {
+//            if (!info.isGlobal()) {
+//                uses.add(info);
+//            }
+//        }
+//        
+//        // Determine the ids in scope that are used
+//        Set<ValueInfo> localsInScope = new HashSet<ValueInfo>();
+//        for (ValueInfo info: node.table.parent.allInfos()) {
+//            if (!info.isGlobal() && uses.contains(info)) {
+//                localsInScope.add(info);
+//            }
+//        }
+//        
+        Set<ValueInfo> localsInScope = Node.freeVars(node, node.table);
         
         // Build an arg list for the helper to create. Create an 
         // identifier for each used id.

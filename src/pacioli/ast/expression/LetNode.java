@@ -21,6 +21,7 @@
 
 package pacioli.ast.expression;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.Location;
@@ -61,6 +62,24 @@ public class LetNode extends AbstractExpressionNode {
         LetNode node = new LetNode(bindings, body, getLocation());
         node.table = table;
         return node;
+    }
+    
+    public ApplicationNode asApplication() {
+        
+        List<String> argsNames = new ArrayList<String>();
+        List<ExpressionNode> args = new ArrayList<ExpressionNode>();;
+        for (BindingNode binding: binding) {
+            LetBindingNode letBinding = (LetBindingNode) binding;
+            argsNames.add(letBinding.var);
+            args.add(letBinding.value);
+        }
+        
+        
+        LambdaNode fun = new LambdaNode(argsNames, body, getLocation());
+        fun.table = table;
+        
+        
+        return new ApplicationNode(fun, args, getLocation());
     }
 
 }

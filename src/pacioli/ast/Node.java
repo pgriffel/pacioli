@@ -21,6 +21,7 @@
 
 package pacioli.ast;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import pacioli.CompilationSettings;
@@ -29,6 +30,8 @@ import pacioli.Printable;
 import pacioli.Printer;
 import pacioli.Progam;
 import pacioli.symboltable.SymbolInfo;
+import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.ValueInfo;
 
 public interface Node extends Printable {
 
@@ -52,4 +55,35 @@ public interface Node extends Printable {
 
     public String compileToMATLAB(CompilationSettings settings);
 
+    /**
+     * For the nodes that bind variables (Let, Lambda and Statement). These 
+     * nodes have a symbol table.
+     * 
+     * @param node A Let, Lambda or Statement node
+     * @param table The node's table
+     * @return The free variables in the node's body (vars bound by the
+     *         node are not in the result, only vars bound higher up that
+     *         are not global and are used in the body).
+     */
+    static public Set<ValueInfo> freeVars(Node node, SymbolTable<ValueInfo> table) { 
+        
+        // Determine the used local ids
+        Set<SymbolInfo> uses = new HashSet<SymbolInfo>();
+        for (SymbolInfo info: node.uses()) {
+            if (!info.isGlobal()) {
+                uses.add(info);
+            }
+        }
+        
+        // Determine the ids in scope that are used
+        Set<ValueInfo> localsInScope = new HashSet<ValueInfo>();
+        for (ValueInfo info: table.parent.allInfos()) {
+            if (!info.isGlobal() && uses.contains(info)) {
+                localsInScope.add(info);
+            }
+        }
+        
+        return localsInScope;
+    }
+    
 }
