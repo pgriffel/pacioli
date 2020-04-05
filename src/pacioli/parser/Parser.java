@@ -2997,9 +2997,9 @@ class CUP$Parser$actions {
 		Location rxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location rxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		ExpressionNode r = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 List<String> args = freshUnderscores(Arrays.asList(id.getName()));
-                                                       ExpressionNode fun = new LambdaNode(args, r, makeLoc(idxleft, exright));
-                                                       RESULT = new ApplicationNode(fun, Arrays.asList(e), makeLoc(idxleft, rxright)); 
+		 List<String> args = freshUnderscores(Arrays.asList(id.getName()));  // remove fresh underscors
+                                                       BindingNode binding = new LetBindingNode(makeLoc(idxleft, exright), args.get(0), e);
+                                                       RESULT = new LetNode(Arrays.asList(binding), r, makeLoc(idxleft, rxright)); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("lettail",7, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

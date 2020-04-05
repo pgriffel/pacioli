@@ -489,6 +489,11 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     public void visit(LetNode node) {
         List<PacioliType> argTypes = new ArrayList<PacioliType>();
 
+        Pacioli.logln("free vars for %s", node.getLocation().description());
+        for (ValueInfo inf: Node.freeVars(node, node.table)) {
+            Pacioli.logln("free vars = %s", inf.name());
+        }
+        
         for (BindingNode binding: node.binding) {
             assert(binding instanceof LetBindingNode);
             LetBindingNode letBinding = (LetBindingNode) binding;
@@ -499,6 +504,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
              String freshName = node.table.freshSymbolName(); 
              PacioliType freshType = new TypeVar(freshName);
              //argTypes.add(freshType);
+             
              info.setinferredType(freshType);
         }
 
