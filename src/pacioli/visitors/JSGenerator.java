@@ -19,6 +19,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
+import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -481,5 +482,11 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         node.body.accept(this);
         write(";})");
         unmark();
-    }        
+    }
+    
+
+    @Override
+    public void visit(LetNode node) {
+        node.asApplication().accept(this);
+    }
 }
