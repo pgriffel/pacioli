@@ -27,6 +27,7 @@ import java.util.List;
 
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
+import pacioli.types.TypeVar;
 import pacioli.types.Var;
 import uom.Fraction;
 import uom.Unit;
@@ -39,7 +40,54 @@ public class ConstraintSet extends AbstractPrintable {
     private final List<Unit<TypeBase>> ulhss;
     private final List<Unit<TypeBase>> urhss;
     private final List<String> ureason;
-
+    
+    private final List<EqualityConstraint> equalityConstaints = new ArrayList<EqualityConstraint>();
+    private final List<InstanceConstraint> instanceConstaints = new ArrayList<InstanceConstraint>();
+    private final List<UnitConstraint> unitConstaints = new ArrayList<UnitConstraint>();
+    
+    
+    class EqualityConstraint {
+        
+        public final PacioliType lhs;
+        public final PacioliType rhs;
+        public String reason;
+        
+        public EqualityConstraint(PacioliType lhs, PacioliType rhs, String reason) {
+            this.lhs = lhs;
+            this.rhs = rhs;
+            this.reason = reason;
+        }
+    }
+    
+    class InstanceConstraint{
+        
+        public final PacioliType lhs;
+        public final PacioliType rhs;
+        public String reason;
+        public final List<TypeVar> freeVars;
+        
+        public InstanceConstraint(PacioliType lhs, PacioliType rhs, List<TypeVar> freeVars, String reason) {
+            this.lhs = lhs;
+            this.rhs = rhs;
+            this.reason = reason;
+            this.freeVars = freeVars;
+        }
+    }
+    
+    class UnitConstraint {
+        
+        public final Unit<TypeBase> lhs;
+        public final Unit<TypeBase> rhs;
+        public String reason;
+        
+        public UnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String reason) {
+            this.lhs = lhs;
+            this.rhs = rhs;
+            this.reason = reason;
+        }
+    }
+    
+    
     public ConstraintSet() {
         lhss = new ArrayList<PacioliType>();
         rhss = new ArrayList<PacioliType>();
@@ -49,15 +97,37 @@ public class ConstraintSet extends AbstractPrintable {
         ureason = new ArrayList<String>();
     }
 
+    
     public void addConstraint(PacioliType lhs, PacioliType rhs, String text) {
         assert (lhs != null);
         assert (rhs != null);
         lhss.add(lhs);
         rhss.add(rhs);
         reason.add(text);
+        this.equalityConstaints.add(new EqualityConstraint(lhs, rhs, text));
+    }
+        
+    public void addInstanceConstraint(PacioliType lhs, PacioliType rhs, List<TypeVar> freeVars, String reason) {
+        this.instanceConstaints.add(new InstanceConstraint(lhs, rhs, freeVars, reason));
+    }
+
+    public void addUnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String text) {
+        ulhss.add(lhs);
+        urhss.add(rhs);
+        ureason.add(text);
+        this.unitConstaints.add(new UnitConstraint(lhs, rhs, text));
     }
 
     public void addConstraints(ConstraintSet other) {
+        for (EqualityConstraint constraint: other.equalityConstaints) {
+            equalityConstaints.add(constraint);
+        }
+        for (InstanceConstraint constraint: other.instanceConstaints) {
+            instanceConstaints.add(constraint);
+        }
+        for (UnitConstraint constraint: other.unitConstaints) {
+            unitConstaints.add(constraint);
+        }
         for (int i = 0; i < other.lhss.size(); i++) {
             lhss.add(other.lhss.get(i));
             rhss.add(other.rhss.get(i));
@@ -70,12 +140,6 @@ public class ConstraintSet extends AbstractPrintable {
         }
     }
 
-    public void addUnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String text) {
-        ulhss.add(lhs);
-        urhss.add(rhs);
-        ureason.add(text);
-    }
-
     @Override
     public void printPretty(PrintWriter out) {
         for (int i = 0; i < lhss.size(); i++) {
@@ -83,6 +147,15 @@ public class ConstraintSet extends AbstractPrintable {
         }
         for (int i = 0; i < ulhss.size(); i++) {
             out.format("  %s u= %s\n", ulhss.get(i).pretty(), urhss.get(i).pretty());
+        }
+        for (EqualityConstraint constraint: equalityConstaints) {
+            out.format("  %s = %s\n", constraint.lhs.pretty(), constraint.rhs.pretty());
+        }
+        for (InstanceConstraint constraint: instanceConstaints) {
+            out.format("  %s <: %s\n", constraint.lhs.pretty(), constraint.rhs.pretty());
+        }
+        for (UnitConstraint constraint: unitConstaints) {
+            out.format("  %s u= %s\n", constraint.lhs.pretty(), constraint.rhs.pretty());
         }
     }
 

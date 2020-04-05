@@ -23,6 +23,7 @@ package pacioli;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import pacioli.types.PacioliType;
@@ -41,6 +42,10 @@ public class Typing extends AbstractPrintable {
 
     public void addConstraint(PacioliType lhs, PacioliType rhs, String text) {
         constraints.addConstraint(lhs, rhs, text);
+    }
+
+    public void addInstanceConstraint(PacioliType lhs, PacioliType rhs, List<TypeVar> freeVars, String text) {
+        constraints.addInstanceConstraint(lhs, rhs, freeVars, text);
     }
 
     public void addConstraintsAndAssumptions(Typing other) {
