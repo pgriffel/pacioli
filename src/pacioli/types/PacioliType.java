@@ -121,9 +121,21 @@ public interface PacioliType extends Printable {
         return this;
     }
 
+    public default Schema generalize(Set<Var> context) {
+        //PacioliType unfresh = unfresh();
+        Set<Var> vars = new HashSet<Var>();
+        for (Var var: typeVars()) {
+            if (!context.contains(var)) {
+                vars.add(var);
+            }
+        }
+        return new Schema(vars, this);
+    }
+    
     public default Schema generalize() {
-        PacioliType unfresh = unfresh();
-        return new Schema(unfresh.typeVars(), unfresh);
+        return generalize(new HashSet<Var>());
+//        PacioliType unfresh = unfresh();
+//        return new Schema(unfresh.typeVars(), unfresh);
     }
 
     public PacioliType fresh();

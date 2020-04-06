@@ -23,12 +23,15 @@ package pacioli;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
 import pacioli.types.Var;
+import pacioli.types.visitors.UsesVars;
 import uom.Fraction;
 import uom.Unit;
 
@@ -142,21 +145,42 @@ public class ConstraintSet extends AbstractPrintable {
 
     @Override
     public void printPretty(PrintWriter out) {
-        for (int i = 0; i < lhss.size(); i++) {
-            out.format("  %s = %s\n", lhss.get(i).pretty(), rhss.get(i).pretty());
-        }
+//        for (int i = 0; i < lhss.size(); i++) {
+//            out.format("  %s = %s\n", lhss.get(i).pretty(), rhss.get(i).pretty());
+//        }
         for (int i = 0; i < ulhss.size(); i++) {
             out.format("  %s u= %s\n", ulhss.get(i).pretty(), urhss.get(i).pretty());
         }
         for (EqualityConstraint constraint: equalityConstaints) {
-            out.format("  %s = %s\n", constraint.lhs.pretty(), constraint.rhs.pretty());
+            out.format("  %s = %s\n", constraint.lhs.pretty(), constraint.rhs.pretty(), constraint.reason);
+            //out.format("  %s = %s %s\n", constraint.lhs.pretty(), constraint.rhs.pretty(), constraint.reason);
         }
         for (InstanceConstraint constraint: instanceConstaints) {
-            out.format("  %s <: %s\n", constraint.lhs.pretty(), constraint.rhs.pretty());
+            out.format("  %s <: for %s: %s\n", constraint.lhs.pretty(), 
+                    Utils.intercalateText(", ", constraint.freeVars),
+                    constraint.rhs.pretty());
         }
         for (UnitConstraint constraint: unitConstaints) {
             out.format("  %s u= %s\n", constraint.lhs.pretty(), constraint.rhs.pretty());
         }
+    }
+    
+    Set<Var> activeVars() {
+        Set<Var> vars = new HashSet<Var>();
+        for (EqualityConstraint constraint: equalityConstaints) {
+            vars.addAll(constraint.lhs.typeVars());
+            vars.addAll(constraint.rhs.typeVars());
+        }
+        for (InstanceConstraint constraint: instanceConstaints) {
+            vars.addAll(constraint.lhs.typeVars());
+            vars.addAll(constraint.rhs.typeVars());
+            vars.removeAll(constraint.freeVars); // correct? could be done on rhs vars only.
+        }
+        for (UnitConstraint constraint: unitConstaints) {
+            vars.addAll(UsesVars.unitVars(constraint.lhs));
+            vars.addAll(UsesVars.unitVars(constraint.rhs));
+        }
+        return vars;
     }
 
     public Substitution solveNO() throws PacioliException {

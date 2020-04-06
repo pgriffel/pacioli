@@ -23,8 +23,10 @@ package pacioli;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import pacioli.types.PacioliType;
 import pacioli.types.TypeVar;
@@ -33,7 +35,7 @@ public class Typing extends AbstractPrintable {
 
     private final PacioliType type;
     private final ConstraintSet constraints;
-    private final Map<String, TypeVar> assumptions = new HashMap<String, TypeVar>();
+    private final Map<String, Set<TypeVar>> assumptions = new HashMap<String, Set<TypeVar>>();
 
     public Typing(PacioliType type) {
         this.type = type;
@@ -58,12 +60,20 @@ public class Typing extends AbstractPrintable {
     }
     
     public void addAssumption(String name, TypeVar var) {
-        assumptions.put(name, var);
+        Set<TypeVar> set;
+        set = assumptions.get(name);
+        if (set == null) {
+            set = new HashSet<TypeVar>();
+            assumptions.put(name, set);
+        }
+        set.add(var);
     }
     
     public void addAssumptions(Typing other) {
         for (String key: other.assumptions.keySet()) {
-            assumptions.put(key, other.assumptions.get(key));
+            for (TypeVar var: other.assumptions.get(key)) {
+                addAssumption(key, var);
+            }
         }
     }
     
@@ -78,14 +88,29 @@ public class Typing extends AbstractPrintable {
         constraints.printPretty(out);
         out.print("assuming");
         for (String key: assumptions.keySet()) {
-            out.print("\n  ");
-            out.print(key);
-            out.print(" :: ");
-            out.print(assumptions.get(key).pretty());
+            for (TypeVar var: assumptions.get(key)) {
+                out.print("\n  ");
+                out.print(key);
+                out.print(" :: ");
+                out.print(var.pretty());
+            }
         }
     }
 
     public PacioliType solve(Boolean verbose) throws PacioliException {
         return constraints.solve(verbose).apply(type);
+    }
+
+    public Set<String> assumedNames() {
+        return assumptions.keySet();
+    }
+    
+    public Set<TypeVar> assumptions(String name) {
+        Set<TypeVar> set = assumptions.get(name);
+        if (set == null) {
+            return new HashSet<TypeVar>();
+        } else  {
+            return set;
+        }
     }
 }

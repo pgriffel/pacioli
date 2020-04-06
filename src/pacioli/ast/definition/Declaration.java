@@ -38,7 +38,7 @@ public class Declaration extends AbstractDefinition {
         
         String name = localName();
         
-        ValueInfo info = new ValueInfo(name, program.getModule(), true, getLocation(), !program.isLibrary());
+        ValueInfo info = new ValueInfo(name, program.getModule(), true, false, getLocation(), !program.isLibrary());
         info.setDeclaredType(typeNode);
         
         ValueInfo oldInfo = program.values.lookup(name);

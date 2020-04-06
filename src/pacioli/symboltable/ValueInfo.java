@@ -15,19 +15,22 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
     // Set during parsing
     private Optional<ValueDefinition> definition = Optional.empty();
     private Optional<TypeNode> declaredType = Optional.empty();
-
+    public final Boolean isMonomorphic;
+    
     // Set during resolving
     private Optional<Boolean> isRef = Optional.of(false);
     
     // Set during type inference
     public Optional<PacioliType> inferredType = Optional.empty();
     
-    public ValueInfo(String name, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
+    public ValueInfo(String name, String module, Boolean isGlobal, Boolean isMonomorphic, Location location, Boolean fromProgram) {
         super(new GenericInfo(name, module, isGlobal, location, fromProgram));
+        this.isMonomorphic = isMonomorphic;
     }
     
-    public ValueInfo(GenericInfo generic) {
+    public ValueInfo(GenericInfo generic, Boolean isMonomorphic) {
         super(generic);
+        this.isMonomorphic = isMonomorphic;
     }
     
     @Override

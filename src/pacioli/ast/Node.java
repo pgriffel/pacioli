@@ -78,7 +78,8 @@ public interface Node extends Printable {
         // Determine the ids in scope that are used
         Set<ValueInfo> localsInScope = new HashSet<ValueInfo>();
         for (ValueInfo info: table.parent.allInfos()) {
-            if (!info.isGlobal() && uses.contains(info)) {
+            //if (!info.isGlobal() && uses.contains(info)) {
+            if (!info.isGlobal()) {
                 localsInScope.add(info);
             }
         }

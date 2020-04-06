@@ -364,11 +364,131 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         // Create a typing for the lambda and add the constraints from the body's
         // inference
         Typing typing = new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.getType()));
-        typing.addConstraintsAndAssumptions(bodyTyping);
+        //typing.addConstraintsAndAssumptions(bodyTyping);
+        typing.addConstraints(bodyTyping);
 
+        for (String name: bodyTyping.assumedNames()) {
+            ValueInfo info = node.table.lookup(name);
+            if (node.arguments.contains(name)) {
+                for (TypeVar var: bodyTyping.assumptions(name)) {
+                    typing.addConstraint(var, info.inferredType(), "TODO2 Lambda inference");
+                }
+            } else {
+                for (TypeVar var: bodyTyping.assumptions(name)) {
+                    typing.addAssumption(name, var);
+                }
+            }
+        }
+        
         returnNode(typing);
     }
+    
+    @Override
+    public void visit(LetNode node) {
+        
+        List<TypeVar> freeVars = new ArrayList<TypeVar>();
+        
+        Pacioli.logln("free vars for %s", node.getLocation().description());
+        for (ValueInfo inf: Node.freeVars(node, node.table)) {
+            if (inf.isMonomorphic) {
+                Pacioli.logln("free vars = %s", inf.name());
+                Pacioli.logln("free vars = %s", inf.inferredType.get().pretty());
+                PacioliType varType = inf.inferredType.get();
+                assert(varType instanceof TypeVar);
+                freeVars.add((TypeVar) varType);
+            }
+        }
+        
+        // This typing collects the constraints from the bindings
+        PacioliType tmpType = new TypeVar();
+        Typing tmpTyping = new Typing(tmpType);
+        
+        List<String> vars = new ArrayList<String>();
+        
+        // Fill the types in the symbol table before the body's type 
+        // is inferred to make the variable types available.
+        for (BindingNode binding: node.binding) {
+            
+            
+            assert(binding instanceof LetBindingNode);
+            LetBindingNode letBinding = (LetBindingNode) binding;
+            
+            vars.add(letBinding.var);
+            
+            
+            //binding.accept(this);
+             Typing bindingTyping = typingAccept(letBinding);
+             
+             tmpTyping.addConstraintsAndAssumptions(bindingTyping);
+             
+//             String freshName = node.table.freshSymbolName(); 
+//             PacioliType freshType = new TypeVar(freshName);
+//             
+             
+//             tmpTyping.addInstanceConstraint(freshType, bindingTyping.getType(), 
+//                     freeVars,
+//                     "TODO: typeinference let node");
+//             
+             
+             ValueInfo info = node.table.lookup(letBinding.var);
+             
+             // Create the type variable and add it to the list
+             //argTypes.add(freshType);
+             
+             //info.setinferredType(freshType);
+             info.setinferredType(bindingTyping.getType());
+        }
+                
+        // Infer the body's typing
+        Typing bodyTyping = typingAccept(node.body);
+        
+        Typing resultTyping = new Typing(bodyTyping.getType());
+        
+        // Could also add a constraint that resultType equals bodyType. See
+        // what gives better debug messages.
+        //bodyTyping.addConstraintsAndAssumptions(resultTyping);
+        //tmpTyping.addConstraints(bodyTyping);
+        resultTyping.addConstraintsAndAssumptions(tmpTyping);
+        resultTyping.addConstraints(bodyTyping);
 
+        for (String name: bodyTyping.assumedNames()) {
+            ValueInfo info = node.table.lookup(name);
+            if (vars.contains(name)) {
+                for (TypeVar var: bodyTyping.assumptions(name)) {
+                    //resultTyping.addConstraint(var, info.inferredType(), "TODO2 Lambda inference");
+                    resultTyping.addInstanceConstraint(var, info.inferredType(), freeVars, "TODO2 Lambda inference");
+                }
+            } else {
+                for (TypeVar var: bodyTyping.assumptions(name)) {
+                    resultTyping.addAssumption(name, var);
+                }
+            }
+        }
+
+        //tmpTyping.addConstraint(bodyTyping.getType(), tmpTyping.getType(), "TODO3");
+        
+        returnNode(resultTyping);
+    }
+
+    @Override
+    public void visit(LetBindingNode node) {
+        returnNode(typingAccept(node.value));
+        //node.value.accept(this);
+        //throw new RuntimeException("todo");
+    }
+
+    @Override
+    public void visit(LetTupleBindingNode node) {
+        node.value.accept(this);
+        throw new RuntimeException("todo");
+    }
+    
+    @Override
+    public void visit(LetFunctionBindingNode node) {
+        node.body.accept(this);
+        throw new RuntimeException("todo");
+    }
+    
     @Override
     public void visit(MatrixLiteralNode node) {
 
@@ -483,72 +603,5 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                 "the body of a while must be a statement");
         returnNode(typing);
 
-    }
-    
-    @Override
-    public void visit(LetNode node) {
-        
-        Pacioli.logln("free vars for %s", node.getLocation().description());
-        for (ValueInfo inf: Node.freeVars(node, node.table)) {
-            Pacioli.logln("free vars = %s", inf.name());
-            Pacioli.logln("free vars = %s", inf.inferredType.get().pretty());
-        }
-        
-        // This typing collects the constraints from the bindings
-        PacioliType resultType = new TypeVar();
-        Typing resultTyping = new Typing(resultType);
-        
-        // Fill the types in the symbol table before the body's type 
-        // is inferred to make the variable types available.
-        for (BindingNode binding: node.binding) {
-            assert(binding instanceof LetBindingNode);
-            LetBindingNode letBinding = (LetBindingNode) binding;
-            //binding.accept(this);
-             Typing bindingTyping = typingAccept(letBinding);
-             
-             resultTyping.addConstraintsAndAssumptions(bindingTyping);
-             
-             String freshName = node.table.freshSymbolName(); 
-             PacioliType freshType = new TypeVar(freshName);
-             
-             
-             resultTyping.addConstraint(freshType, bindingTyping.getType(), 
-                     //Node.freeVars(node, node.table),
-                     "TODO: typeinference let node");
-             
-             ValueInfo info = node.table.lookup(letBinding.var);
-             // Create the type variable and add it to the list
-             //argTypes.add(freshType);
-             
-             info.setinferredType(freshType);
-        }
-                
-        // Infer the body's typing
-        Typing bodyTyping = typingAccept(node.body);
-        
-        // Could also add a constraint that resultType equals bodyType. See
-        // what gives better debug messages.
-        bodyTyping.addConstraintsAndAssumptions(resultTyping);
-        
-        returnNode(bodyTyping);
-    }
-
-    @Override
-    public void visit(LetBindingNode node) {
-        returnNode(typingAccept(node.value));
-        //node.value.accept(this);
-        //throw new RuntimeException("todo");
-    }
-
-    @Override
-    public void visit(LetTupleBindingNode node) {
-        node.value.accept(this);
-        throw new RuntimeException("todo");
-    }
-    
-    @Override
-    public void visit(LetFunctionBindingNode node) {
-        node.body.accept(this);
-        throw new RuntimeException("todo");
     }
 }
