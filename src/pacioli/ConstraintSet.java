@@ -30,6 +30,7 @@ import java.util.Set;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
+import pacioli.types.Unifiable;
 import pacioli.types.Var;
 import pacioli.types.visitors.UsesVars;
 import uom.Fraction;
@@ -49,7 +50,7 @@ public class ConstraintSet extends AbstractPrintable {
     private final List<UnitConstraint> unitConstaints = new ArrayList<UnitConstraint>();
     
     
-    class EqualityConstraint {
+    class EqualityConstraint implements Unifiable<PacioliType> {
         
         public final PacioliType lhs;
         public final PacioliType rhs;
@@ -60,20 +61,114 @@ public class ConstraintSet extends AbstractPrintable {
             this.rhs = rhs;
             this.reason = reason;
         }
+
+        @Override
+        public Set<Var> typeVars() {
+            Set<Var> vars = lhs.typeVars();
+            vars.addAll(rhs.typeVars());
+            return vars;
+        }
+
+        @Override
+        public Unifiable<PacioliType> applySubstitution(Substitution subs) {
+            return new EqualityConstraint(lhs.applySubstitution(subs), rhs.applySubstitution(subs), reason);
+        }
+
+        @Override
+        public ConstraintSet unificationConstraints(Unifiable<PacioliType> other) throws PacioliException {
+            throw new RuntimeException("Should this be just a type method?");
+        }
+
+        @Override
+        public Substitution unify(Unifiable<PacioliType> other) throws PacioliException {
+            throw new RuntimeException("Should this be just a type method?");
+        }
+
+        @Override
+        public Unifiable<PacioliType> reduce() {
+            throw new RuntimeException("Should this be just a type method?");
+        }
+
+        @Override
+        public List<Unit<TypeBase>> simplificationParts() {
+            throw new RuntimeException("Should this be just a type method?");
+        }
+
+        @Override
+        public List<PacioliType> yo2(List<PacioliType> in) {
+            // TODO Auto-generated method stub
+            return null;
+        }
     }
     
-    class InstanceConstraint{
+    class InstanceConstraint implements Unifiable<PacioliType> {
         
         public final PacioliType lhs;
         public final PacioliType rhs;
         public String reason;
-        public final List<TypeVar> freeVars;
+        //public final List<TypeVar> freeVars;
+        public final List<Var> freeVars;
         
-        public InstanceConstraint(PacioliType lhs, PacioliType rhs, List<TypeVar> freeVars, String reason) {
+        public InstanceConstraint(PacioliType lhs, PacioliType rhs, List<Var> freeVars, String reason) {
             this.lhs = lhs;
             this.rhs = rhs;
             this.reason = reason;
             this.freeVars = freeVars;
+        }
+
+        // Note that typeVars() is not freeVars(). TODO: use freeVars here or create
+        // a new method that properly handles freeVars.
+        @Override
+        public Set<Var> typeVars() {
+            Set<Var> vars = lhs.typeVars();
+            vars.addAll(rhs.typeVars());
+            vars.addAll(freeVars);
+            return vars;
+        }
+
+        @Override
+        public Unifiable<PacioliType> applySubstitution(Substitution subs) {
+            Pacioli.logln("FREEVARS in assumption: %s", freeVars);
+            Set<Var> newFreeVars = new HashSet<Var>();
+            for (Var freeVar: freeVars) {
+                PacioliType freeVarType = freeVar.applySubstitution(subs);
+                for (Var var: freeVarType.typeVars()) {
+                    Pacioli.logln("FREEVAR in assumption: %s->%s", freeVar, var);
+                    //assert(var instanceof TypeVar);
+                    newFreeVars.add(var);
+                }
+            }
+            return new InstanceConstraint(
+                    lhs.applySubstitution(subs), 
+                    rhs.applySubstitution(subs),
+                    new ArrayList<Var>(newFreeVars),
+                    reason);
+        }
+
+        @Override
+        public ConstraintSet unificationConstraints(Unifiable<PacioliType> other) throws PacioliException {
+            throw new RuntimeException("Should this be just a type method?");
+        }
+
+        @Override
+        public Substitution unify(Unifiable<PacioliType> other) throws PacioliException {
+            throw new RuntimeException("Should this be just a type method?");
+        }
+
+        @Override
+        public Unifiable<PacioliType> reduce() {
+            throw new RuntimeException("Should this be just a type method?");
+        }
+
+        @Override
+        public List<Unit<TypeBase>> simplificationParts() {
+            throw new RuntimeException("Should this be just a type method?");
+        }
+
+        @Override
+        public List<PacioliType> yo2(List<PacioliType> in) {
+            // TODO Auto-generated method stub
+            return null;
         }
     }
     
@@ -110,7 +205,7 @@ public class ConstraintSet extends AbstractPrintable {
         this.equalityConstaints.add(new EqualityConstraint(lhs, rhs, text));
     }
         
-    public void addInstanceConstraint(PacioliType lhs, PacioliType rhs, List<TypeVar> freeVars, String reason) {
+    public void addInstanceConstraint(PacioliType lhs, PacioliType rhs, List<Var> freeVars, String reason) {
         this.instanceConstaints.add(new InstanceConstraint(lhs, rhs, freeVars, reason));
     }
 
@@ -186,8 +281,86 @@ public class ConstraintSet extends AbstractPrintable {
     public Substitution solveNO() throws PacioliException {
         return solve(false);
     }
+
+    public Substitution solve(Boolean verboseIgnored) throws PacioliException {
+        
+        Boolean verbose = true;
+        
+        List<EqualityConstraint> todoEqs = new ArrayList<EqualityConstraint>(equalityConstaints);
+        List<UnitConstraint> todoUnits = new ArrayList<UnitConstraint>(unitConstaints);
+        List<InstanceConstraint> todoInsts = new ArrayList<InstanceConstraint>(instanceConstaints);
+        
+        Substitution mgu = new Substitution();
+        
+        while (!todoEqs.isEmpty() || !todoInsts.isEmpty() || !todoUnits.isEmpty())  {
+            
+            while (!todoEqs.isEmpty()) {
+                
+                EqualityConstraint constraint = todoEqs.get(0);
+                todoEqs.remove(0);
+                
+                PacioliType left = mgu.apply(constraint.lhs);
+                PacioliType right = mgu.apply(constraint.rhs);
+                try {
+                    if (verbose) {
+                        //Pacioli.logln3("Unifying %s and %s\n%s", left.pretty(), right.pretty(), constraint.reason);
+                    }
+                    mgu = left.unify(right).compose(mgu);
+                } catch (PacioliException ex) {
+                    throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason, left.unfresh().pretty(),
+                            right.unfresh().pretty(), ex.getLocalizedMessage());
+                }   
+            }
+            
+            while (!todoUnits.isEmpty()) {
+                
+                UnitConstraint constraint = todoUnits.get(0);
+                todoUnits.remove(0);
+                
+                try {
+                    Unit<TypeBase> left = mgu.apply(constraint.lhs);
+                    Unit<TypeBase> right = mgu.apply(constraint.rhs);
+                    mgu = unifyUnits(left, right).compose(mgu);
+                } catch (PacioliException ex) {
+                    throw new PacioliException("\n" + ex.getLocalizedMessage() + "\n\n" + constraint.reason);
+                }     
+            }
+            
+            if (0 < todoInsts.size()) {
+                int i = 0; // todo
+                
+                if (verbose) {
+                    Pacioli.logln3("subs=%s", mgu.pretty());
+                }
+                
+                //InstanceConstraint constraint = todoInsts.get(i);
+                InstanceConstraint constraint = (InstanceConstraint) mgu.apply(todoInsts.get(i));
+                todoInsts.remove(i);
+                
+                //PacioliType left = mgu.apply(constraint.lhs);
+                //PacioliType right = mgu.apply(constraint.rhs);
+                PacioliType left = constraint.lhs;
+                PacioliType right = constraint.rhs;
+                try {
+                    if (verbose) {
+                        Pacioli.logln3("INSTANCE Unifying %s and %s\n%s", left.pretty(), right.pretty(), constraint.reason);
+                    }
+                    mgu = left.unify(right).compose(mgu);
+                } catch (PacioliException ex) {
+                    throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason, left.unfresh().pretty(),
+                            right.unfresh().pretty(), ex.getLocalizedMessage());
+                }
+            }
+        }
+        
+
+        return mgu;
+    }
     
-    public Substitution solve(Boolean verbose) throws PacioliException {
+    
+    
+    
+    public Substitution solveOLD(Boolean verbose) throws PacioliException {
         Substitution mgu = new Substitution();
         for (int i = 0; i < lhss.size(); i++) {
             PacioliType left = mgu.apply(lhss.get(i));

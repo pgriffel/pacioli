@@ -1,6 +1,7 @@
 package pacioli.types;
 
 import pacioli.Printable;
+import pacioli.Substitution;
 import pacioli.symboltable.SymbolInfo;
 
 public interface Var extends Printable, TypeBase {
@@ -25,4 +26,6 @@ public interface Var extends Printable, TypeBase {
      * @return The info for the variable
      */
     SymbolInfo getInfo();
+
+    PacioliType applySubstitution(Substitution subs);
 }

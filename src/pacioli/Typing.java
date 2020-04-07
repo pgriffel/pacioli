@@ -30,6 +30,7 @@ import java.util.Set;
 
 import pacioli.types.PacioliType;
 import pacioli.types.TypeVar;
+import pacioli.types.Var;
 
 public class Typing extends AbstractPrintable {
 
@@ -46,7 +47,7 @@ public class Typing extends AbstractPrintable {
         constraints.addConstraint(lhs, rhs, text);
     }
 
-    public void addInstanceConstraint(PacioliType lhs, PacioliType rhs, List<TypeVar> freeVars, String text) {
+    public void addInstanceConstraint(PacioliType lhs, PacioliType rhs, List<Var> freeVars, String text) {
         constraints.addInstanceConstraint(lhs, rhs, freeVars, text);
     }
 

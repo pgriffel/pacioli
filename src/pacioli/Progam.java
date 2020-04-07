@@ -468,6 +468,13 @@ public class Progam extends AbstractPrintable {
     public void liftStatements() throws Exception {
         // Note that method liftValueInfoStatements requires resolved 
         // definitions, but produces non resolved definitions.
+        
+        
+        
+        Pacioli.logln("%s", pretty());
+        
+        
+        
         liftValueInfoStatements();
         resolve();
         inferTypes();
@@ -507,15 +514,17 @@ public class Progam extends AbstractPrintable {
         List<String> names = values.allNames();
         Collections.sort(names);
         
+        Boolean logAnyway = true;
+        
         for (String value : names) {
             Boolean log = value.equals("closure_hack") || false;
             ValueInfo info = values.lookup(value);
             if (!isExternal(info) && info.getDefinition().isPresent()) {
-                if (info.isFromProgram()) {
+                if (info.isFromProgram() || logAnyway) {
                     Pacioli.logln2("Infering type of %s", value);
                 }
-                inferValueDefinitionType(info, discovered, finished, info.isFromProgram());
-                if (info.isFromProgram()) {
+                inferValueDefinitionType(info, discovered, finished, info.isFromProgram() || logAnyway);
+                if (info.isFromProgram() || logAnyway) {
                     Pacioli.logln2("%s :: %s;", info.name(), info.inferredType.get().pretty());
                 }
                 
@@ -530,7 +539,7 @@ public class Progam extends AbstractPrintable {
                 
                 PacioliType inferredType = info.inferredType().instantiate();
                 
-                if (info.isFromProgram()) {
+                if (info.isFromProgram() || logAnyway) {
                     Pacioli.logln2("Checking inferred type\n  %s\nagainst declared type\n  %s",
                             inferredType.pretty(), declaredType.pretty());
                 }

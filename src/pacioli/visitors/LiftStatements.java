@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.Location;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.ast.IdentityTransformation;
@@ -58,7 +59,10 @@ public class LiftStatements extends IdentityTransformation implements Visitor {
         
         // Lift the body's statements
         ExpressionNode rec = new StatementNode(nodeLocation, (SequenceNode) expAccept(node.body));
-
+        
+        Pacioli.logln("RESOLVING IN LIFTS:\n%s", node.pretty());
+        Pacioli.logln("RESOLVING IN LIFTS:\n%s", rec.pretty());
+        rec.resolve(prog);
 //        // Determine the used local ids
 //        Set<SymbolInfo> uses = new HashSet<SymbolInfo>();
 //        for (SymbolInfo info: node.uses()) {
@@ -75,7 +79,8 @@ public class LiftStatements extends IdentityTransformation implements Visitor {
 //            }
 //        }
 //        
-        Set<ValueInfo> localsInScope = Node.freeVars(node, node.table);
+        //Set<ValueInfo> localsInScope = Node.freeVars(node, node.table);
+        Set<ValueInfo> localsInScope = Node.freeVars(rec, node.table);
         
         // Build an arg list for the helper to create. Create an 
         // identifier for each used id.

@@ -189,7 +189,7 @@ public class Substitution extends AbstractPrintable {
             } else {
                 text = ((Printable) obj).pretty();
             }
-            elements.add(String.format("%s=%s", var.pretty(), text));
+            elements.add(String.format("\n%s=%s", var.pretty(), text));
 
         }
         out.print("subs{");

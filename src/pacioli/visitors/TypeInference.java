@@ -46,6 +46,7 @@ import pacioli.types.PacioliType;
 import pacioli.types.ParametricType;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
+import pacioli.types.Var;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 
@@ -386,7 +387,8 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     @Override
     public void visit(LetNode node) {
         
-        List<TypeVar> freeVars = new ArrayList<TypeVar>();
+        //List<TypeVar> freeVars = new ArrayList<TypeVar>();
+        List<Var> freeVars = new ArrayList<Var>();
         
         Pacioli.logln("free vars for %s", node.getLocation().description());
         for (ValueInfo inf: Node.freeVars(node, node.table)) {

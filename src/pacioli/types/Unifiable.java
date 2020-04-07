@@ -36,21 +36,21 @@ import uom.Unit;
 /**
  * 
  */
-public interface Unifiable extends Printable {
+public interface Unifiable<B> {
 
     public Set<Var> typeVars();
 
-    public Unifiable applySubstitution(Substitution subs);
+    public Unifiable<B> applySubstitution(Substitution subs);
 
-    public ConstraintSet unificationConstraints(Unifiable other) throws PacioliException;
+    public ConstraintSet unificationConstraints(Unifiable<B> other) throws PacioliException;
 
-    public Substitution unify(Unifiable other) throws PacioliException;
+    public Substitution unify(Unifiable<B> other) throws PacioliException;
     
-    public Unifiable reduce();
+    public Unifiable<B> reduce();
 
     public List<Unit<TypeBase>> simplificationParts();
 
-    public default Unifiable simplify() {
+    public default Unifiable<B> simplify() {
         Substitution mgu = new Substitution();
         List<Unit<TypeBase>> parts = simplificationParts();
         Set<Var> ignore = new HashSet<Var>();
@@ -64,19 +64,19 @@ public interface Unifiable extends Printable {
             }
             mgu = simplified.compose(mgu);
         }
-        Unifiable result = applySubstitution(mgu);
+        Unifiable<B> result = applySubstitution(mgu);
         return result;
     }
 
-    public default boolean isInstanceOf(Unifiable other) {
+    public default boolean isInstanceOf(Unifiable<B> other) {
         return isInstanceOf(this, other);
     }
 
-    public static boolean isInstanceOf(Unifiable x, Unifiable y) {
+    public static <B> boolean isInstanceOf(Unifiable<B> x, Unifiable<B> y) {
         try {
-            Unifiable sub = x.fresh();
-            Unifiable sup = y.fresh();
-            Unifiable unified = unified(sub, sup);
+            Unifiable<B> sub = x.fresh();
+            Unifiable<B> sup = y.fresh();
+            Unifiable<B> unified = unified(sub, sup);
             return alphaEqual(sub, unified);
         } catch (PacioliException ex) {
             System.out.println(ex);
@@ -84,19 +84,42 @@ public interface Unifiable extends Printable {
         }
     }
     
-    public static Unifiable unified(Unifiable x, Unifiable y) throws PacioliException {
+    public static <B> Unifiable<B> unified(Unifiable<B> x, Unifiable<B> y) throws PacioliException {
         return x.unify(y).apply(x);
     }
 
-    public static boolean alphaEqual(Unifiable x, Unifiable y) throws PacioliException {
+    public static <B> boolean alphaEqual(Unifiable<B> x, Unifiable<B> y) throws PacioliException {
         return x.fresh().simplify().unify(y.simplify()).isInjective();
     }
     
-    public default Unifiable instantiate() {
+    public default Unifiable<B> instantiate() {
         return this;
     }
 
-    public Unifiable fresh();
+    public default List<B> yo (List<B> in) {
+        return in;
+    }
+    
+    public List<B> yo2 (List<B> in);
+    
+    public default List<B> fresh2() {
+        ArrayList<B> list = new ArrayList<B>();
+        return list;
+    }
+    
+    public default void test() {
+        List<B> f1 = fresh2();
+        //f1.get(0).pretty();
+    }
+    
+    //public Unifiable fresh();
+    public default Unifiable<B> fresh() {
+        Substitution map = new Substitution();
+        for (Var var : typeVars()) {
+            map = map.compose(new Substitution(var, var.fresh()));
+        }
+        return applySubstitution(map);
+    }
     
     public static Substitution unitSimplify(Unit<TypeBase> unit, Set<Var> ignore) {
 
