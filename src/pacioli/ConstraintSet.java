@@ -128,12 +128,12 @@ public class ConstraintSet extends AbstractPrintable {
 
         @Override
         public Unifiable<PacioliType> applySubstitution(Substitution subs) {
-            Pacioli.logln("FREEVARS in assumption: %s", freeVars);
+            //Pacioli.logln("FREEVARS in assumption: %s", freeVars);
             Set<Var> newFreeVars = new HashSet<Var>();
             for (Var freeVar: freeVars) {
                 PacioliType freeVarType = freeVar.applySubstitution(subs);
                 for (Var var: freeVarType.typeVars()) {
-                    Pacioli.logln("FREEVAR in assumption: %s->%s", freeVar, var);
+                    //Pacioli.logln("FREEVAR in assumption: %s->%s", freeVar, var);
                     //assert(var instanceof TypeVar);
                     newFreeVars.add(var);
                 }
@@ -282,9 +282,9 @@ public class ConstraintSet extends AbstractPrintable {
         return solve(false);
     }
 
-    public Substitution solve(Boolean verboseIgnored) throws PacioliException {
+    public Substitution solve(Boolean verbose) throws PacioliException {
         
-        Boolean verbose = true;
+        //Boolean verbose = true;
         
         List<EqualityConstraint> todoEqs = new ArrayList<EqualityConstraint>(equalityConstaints);
         List<UnitConstraint> todoUnits = new ArrayList<UnitConstraint>(unitConstaints);
@@ -303,9 +303,13 @@ public class ConstraintSet extends AbstractPrintable {
                 PacioliType right = mgu.apply(constraint.rhs);
                 try {
                     if (verbose) {
-                        //Pacioli.logln3("Unifying %s and %s\n%s", left.pretty(), right.pretty(), constraint.reason);
+                        Pacioli.logln3("\nUnifying %s and %s\n%s", left.pretty(), right.pretty(), constraint.reason);
                     }
-                    mgu = left.unify(right).compose(mgu);
+                    Substitution subs = left.unify(right);
+                    mgu = subs.compose(mgu);
+                    if (verbose) {
+                        Pacioli.logln3("Result=\n%s", subs.pretty());
+                    }
                 } catch (PacioliException ex) {
                     throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason, left.unfresh().pretty(),
                             right.unfresh().pretty(), ex.getLocalizedMessage());
@@ -330,7 +334,7 @@ public class ConstraintSet extends AbstractPrintable {
                 int i = 0; // todo
                 
                 if (verbose) {
-                    Pacioli.logln3("subs=%s", mgu.pretty());
+                    //Pacioli.logln3("subs=%s", mgu.pretty());
                 }
                 
                 //InstanceConstraint constraint = todoInsts.get(i);

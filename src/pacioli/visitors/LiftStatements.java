@@ -60,9 +60,11 @@ public class LiftStatements extends IdentityTransformation implements Visitor {
         // Lift the body's statements
         ExpressionNode rec = new StatementNode(nodeLocation, (SequenceNode) expAccept(node.body));
         
-        Pacioli.logln("RESOLVING IN LIFTS:\n%s", node.pretty());
-        Pacioli.logln("RESOLVING IN LIFTS:\n%s", rec.pretty());
+        // FIXME. Problem with nested statements in loop.pacioli
+        //Pacioli.logln("RESOLVING IN LIFTS:\n%s", node.pretty());
+        //Pacioli.logln("RESOLVING IN LIFTS:\n%s", rec.pretty());
         rec.resolve(prog);
+        
 //        // Determine the used local ids
 //        Set<SymbolInfo> uses = new HashSet<SymbolInfo>();
 //        for (SymbolInfo info: node.uses()) {

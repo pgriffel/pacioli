@@ -390,11 +390,11 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         //List<TypeVar> freeVars = new ArrayList<TypeVar>();
         List<Var> freeVars = new ArrayList<Var>();
         
-        Pacioli.logln("free vars for %s", node.getLocation().description());
+        //Pacioli.logln("free vars for %s", node.getLocation().description());
         for (ValueInfo inf: Node.freeVars(node, node.table)) {
             if (inf.isMonomorphic) {
-                Pacioli.logln("free vars = %s", inf.name());
-                Pacioli.logln("free vars = %s", inf.inferredType.get().pretty());
+                //Pacioli.logln("free vars = %s", inf.name());
+                //Pacioli.logln("free vars = %s", inf.inferredType.get().pretty());
                 PacioliType varType = inf.inferredType.get();
                 assert(varType instanceof TypeVar);
                 freeVars.add((TypeVar) varType);
@@ -546,7 +546,8 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     @Override
     public void visit(StatementNode node) {
 
-        for (String name : node.table.localNames()) {
+        List<String> localNames = node.table.localNames();
+        for (String name : localNames) {
             ValueInfo info = node.table.lookup(name);
             info.setinferredType(new TypeVar());
         }
@@ -559,9 +560,26 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
         PacioliType voidType = newVoidType();
         Typing typing = new Typing(resultType);
+        
         Typing itemTyping = typingAccept(node.body);
+        
         typing.addConstraint(voidType, itemTyping.getType(), "A statement must have type Void()");
-        typing.addConstraintsAndAssumptions(itemTyping);
+        //typing.addConstraintsAndAssumptions(itemTyping);
+        typing.addConstraints(itemTyping);
+        
+        for (String name: itemTyping.assumedNames()) {
+            ValueInfo info = node.table.lookup(name);
+            if (localNames.contains(name)) {
+                for (TypeVar var: itemTyping.assumptions(name)) {
+                    typing.addConstraint(var, info.inferredType(), "TODO2 Lambda inference");
+                }
+            } else {
+                for (TypeVar var: itemTyping.assumptions(name)) {
+                    typing.addAssumption(name, var);
+                }
+            }
+        }
+        
         returnNode(typing);
     }
 

@@ -471,7 +471,7 @@ public class Progam extends AbstractPrintable {
         
         
         
-        Pacioli.logln("%s", pretty());
+        //Pacioli.logln("%s", pretty());
         
         
         
@@ -514,7 +514,7 @@ public class Progam extends AbstractPrintable {
         List<String> names = values.allNames();
         Collections.sort(names);
         
-        Boolean logAnyway = true;
+        Boolean logAnyway = false;
         
         for (String value : names) {
             Boolean log = value.equals("closure_hack") || false;
@@ -556,7 +556,7 @@ public class Progam extends AbstractPrintable {
         int i = 0;
         for (Toplevel toplevel : toplevels) {
 
-            inferUsedTypes(toplevel, discovered, finished);
+            inferUsedTypes(toplevel, discovered, finished, true);
             
             Pacioli.logln2("Inferring typing of toplevel %s", i);
             
@@ -571,11 +571,11 @@ public class Progam extends AbstractPrintable {
         
     }
 
-    private void inferUsedTypes(Definition definition, Set<SymbolInfo> discovered, Set<SymbolInfo> finished) {
+    private void inferUsedTypes(Definition definition, Set<SymbolInfo> discovered, Set<SymbolInfo> finished, Boolean verbose) {
         for (SymbolInfo pre : definition.uses()) {
             if (pre.isGlobal() && pre instanceof ValueInfo) {
                 if (!isExternal(pre) && pre.getDefinition().isPresent()) {
-                    inferValueDefinitionType((ValueInfo) pre, discovered, finished, false);
+                    inferValueDefinitionType((ValueInfo) pre, discovered, finished, verbose);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
                     if (!vinfo.getDeclaredType().isPresent()) {
@@ -602,7 +602,7 @@ public class Progam extends AbstractPrintable {
                 Pacioli.warn("Cycle in definition of %s", info.name());
             } else {
                 discovered.add(info);
-                inferUsedTypes(info.getDefinition().get(), discovered, finished);
+                inferUsedTypes(info.getDefinition().get(), discovered, finished, verbose);
 
                 ValueDefinition def = info.getDefinition().get();
                 Typing typing = def.body.inferTyping(this);

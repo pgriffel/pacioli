@@ -455,7 +455,7 @@ public class Pacioli {
             "kirchhof/kirchhof.pacioli",
             "klein/klein.pacioli",
             "krylov/krylov.pacioli",
-//            "loop/loop.pacioli",  Problem resolving and lifting nested statements!!!
+//            "loop/loop.pacioli",  // Problem resolving and lifting nested statements!!!
             "magic/magic.pacioli",
             "math/math.pacioli",
             "minijava/minijava.pacioli",
