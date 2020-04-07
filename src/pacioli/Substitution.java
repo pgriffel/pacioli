@@ -31,6 +31,7 @@ import java.util.Set;
 
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
+import pacioli.types.Unifiable;
 import pacioli.types.Var;
 import uom.PowerProduct;
 import uom.Unit;
@@ -106,6 +107,20 @@ public class Substitution extends AbstractPrintable {
                 Object obj = map.get((Var) type);
                 assert (obj instanceof PacioliType);
                 return (PacioliType) obj;
+            } else {
+                return type;
+            }
+        } else {
+            return type.applySubstitution(this);
+        }
+    }
+    
+    public Unifiable apply(Unifiable type) {
+        if (type instanceof Var) {
+            if (map.containsKey((Var) type)) {
+                Object obj = map.get((Var) type);
+                assert (obj instanceof PacioliType);
+                return (Unifiable) obj;
             } else {
                 return type;
             }
