@@ -287,8 +287,6 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                 }
             }
             else {
-//                Pacioli.logln("IFERRING LOCAL %s type inference in identifier node.",
-  //                      info.name());
                 TypeVar var = new TypeVar();
                 Typing typing = new Typing(var);
                 typing.addAssumption(node.getName(), var);
@@ -389,14 +387,10 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     @Override
     public void visit(LetNode node) {
         
-        //List<TypeVar> freeVars = new ArrayList<TypeVar>();
         Set<Var> freeVars = new HashSet<Var>();
         
-        //Pacioli.logln("free vars for %s", node.getLocation().description());
         for (ValueInfo inf: Node.freeVars(node, node.table)) {
             if (inf.isMonomorphic) {
-                //Pacioli.logln("free vars = %s", inf.name());
-                //Pacioli.logln("free vars = %s", inf.inferredType.get().pretty());
                 PacioliType varType = inf.inferredType.get();
                 assert(varType instanceof TypeVar);
                 freeVars.add((TypeVar) varType);
@@ -412,35 +406,13 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         // Fill the types in the symbol table before the body's type 
         // is inferred to make the variable types available.
         for (BindingNode binding: node.binding) {
-            
-            
             assert(binding instanceof LetBindingNode);
             LetBindingNode letBinding = (LetBindingNode) binding;
-            
             vars.add(letBinding.var);
-            
-            
-            //binding.accept(this);
-             Typing bindingTyping = typingAccept(letBinding);
-             
-             tmpTyping.addConstraintsAndAssumptions(bindingTyping);
-             
-//             String freshName = node.table.freshSymbolName(); 
-//             PacioliType freshType = new TypeVar(freshName);
-//             
-             
-//             tmpTyping.addInstanceConstraint(freshType, bindingTyping.getType(), 
-//                     freeVars,
-//                     "TODO: typeinference let node");
-//             
-             
-             ValueInfo info = node.table.lookup(letBinding.var);
-             
-             // Create the type variable and add it to the list
-             //argTypes.add(freshType);
-             
-             //info.setinferredType(freshType);
-             info.setinferredType(bindingTyping.getType());
+            Typing bindingTyping = typingAccept(letBinding);
+            tmpTyping.addConstraintsAndAssumptions(bindingTyping);
+            ValueInfo info = node.table.lookup(letBinding.var); 
+            info.setinferredType(bindingTyping.getType());
         }
                 
         // Infer the body's typing
@@ -450,8 +422,6 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         
         // Could also add a constraint that resultType equals bodyType. See
         // what gives better debug messages.
-        //bodyTyping.addConstraintsAndAssumptions(resultTyping);
-        //tmpTyping.addConstraints(bodyTyping);
         resultTyping.addConstraintsAndAssumptions(tmpTyping);
         resultTyping.addConstraints(bodyTyping);
 
@@ -459,7 +429,6 @@ public class TypeInference extends IdentityVisitor implements Visitor {
             ValueInfo info = node.table.lookup(name);
             if (vars.contains(name)) {
                 for (TypeVar var: bodyTyping.assumptions(name)) {
-                    //resultTyping.addConstraint(var, info.inferredType(), "TODO2 Lambda inference");
                     resultTyping.addInstanceConstraint(var, info.inferredType(), freeVars, 
                             String.format("During type inference in %s\nLet var %s must have the proper type",
                                     node.sourceDescription(),
@@ -471,8 +440,6 @@ public class TypeInference extends IdentityVisitor implements Visitor {
                 }
             }
         }
-
-        //tmpTyping.addConstraint(bodyTyping.getType(), tmpTyping.getType(), "TODO3");
         
         returnNode(resultTyping);
     }
@@ -480,8 +447,6 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     @Override
     public void visit(LetBindingNode node) {
         returnNode(typingAccept(node.value));
-        //node.value.accept(this);
-        //throw new RuntimeException("todo");
     }
 
     @Override
@@ -493,7 +458,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     @Override
     public void visit(LetFunctionBindingNode node) {
         node.body.accept(this);
-        throw new RuntimeException("todo");
+        throw new RuntimeException("obsolete");
     }
     
     @Override
