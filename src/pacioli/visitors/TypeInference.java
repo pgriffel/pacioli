@@ -1,7 +1,6 @@
 package pacioli.visitors;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -9,7 +8,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Typing;
 import pacioli.ast.IdentityVisitor;
@@ -367,14 +365,16 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         // Create a typing for the lambda and add the constraints from the body's
         // inference
         Typing typing = new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.getType()));
-        //typing.addConstraintsAndAssumptions(bodyTyping);
         typing.addConstraints(bodyTyping);
 
         for (String name: bodyTyping.assumedNames()) {
             ValueInfo info = node.table.lookup(name);
             if (node.arguments.contains(name)) {
                 for (TypeVar var: bodyTyping.assumptions(name)) {
-                    typing.addConstraint(var, info.inferredType(), "TODO2 Lambda inference");
+                    typing.addConstraint(var, info.inferredType(), 
+                            String.format("During type inference in %s\nLambda var %s must have the proper type",
+                                    node.sourceDescription(),
+                                    name));
                 }
             } else {
                 for (TypeVar var: bodyTyping.assumptions(name)) {
@@ -460,7 +460,10 @@ public class TypeInference extends IdentityVisitor implements Visitor {
             if (vars.contains(name)) {
                 for (TypeVar var: bodyTyping.assumptions(name)) {
                     //resultTyping.addConstraint(var, info.inferredType(), "TODO2 Lambda inference");
-                    resultTyping.addInstanceConstraint(var, info.inferredType(), freeVars, "TODO2 Lambda inference");
+                    resultTyping.addInstanceConstraint(var, info.inferredType(), freeVars, 
+                            String.format("During type inference in %s\nLet var %s must have the proper type",
+                                    node.sourceDescription(),
+                                    name));
                 }
             } else {
                 for (TypeVar var: bodyTyping.assumptions(name)) {

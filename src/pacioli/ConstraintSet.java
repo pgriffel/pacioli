@@ -261,6 +261,11 @@ public class ConstraintSet extends AbstractPrintable {
                 try {
                     Unit<TypeBase> left = mgu.apply(constraint.lhs);
                     Unit<TypeBase> right = mgu.apply(constraint.rhs);
+                    
+                    if (verbose) {
+                        Pacioli.logln3("\nUnifying units %s and %s\n%s", left.pretty(), right.pretty(), constraint.reason);
+                    }
+                    
                     mgu = unifyUnits(left, right).compose(mgu);
                 } catch (PacioliException ex) {
                     throw new PacioliException("\n" + ex.getLocalizedMessage() + "\n\n" + constraint.reason);
@@ -279,12 +284,12 @@ public class ConstraintSet extends AbstractPrintable {
                     active.addAll(copy);
                 }
                 
-                if (verbose) {
-                    Pacioli.logln3("\nactive vars");
-                    for (Var var: active) {
-                        Pacioli.log3(", %s", var.pretty());
-                    }
-                }
+//                if (verbose) {
+//                    Pacioli.logln3("\nactive vars");
+//                    for (Var var: active) {
+//                        Pacioli.log3(", %s", var.pretty());
+//                    }
+//                }
               
                 Integer chosenConstraint = null;
                 InstanceConstraint constraint = null;
@@ -294,24 +299,24 @@ public class ConstraintSet extends AbstractPrintable {
 
                     constraint = (InstanceConstraint) mgu.apply(todoInsts.get(i));
 
-                    if (verbose) {
-                           Pacioli.logln3("constraint (k=%s, todoIns=%s) %s <: %s", 
-                                   i,
-                                   todoInsts.size(),
-                                   constraint.lhs.pretty(),
-                            constraint.rhs.pretty());                    
-                            Pacioli.logln3("right vars");
-                    }
+//                    if (verbose) {
+//                           Pacioli.logln3("constraint (k=%s, todoIns=%s) %s <: %s", 
+//                                   i,
+//                                   todoInsts.size(),
+//                                   constraint.lhs.pretty(),
+//                            constraint.rhs.pretty());                    
+//                            Pacioli.logln3("right vars");
+//                    }
                     Set<Var> leftVars = constraint.rhs.typeVars(); 
                     Boolean appli = true;
                     for (Var var:leftVars) {
                         Boolean constrainApp = constraint.freeVars.contains(var) ||!active.contains(var);
-                        if (verbose) {
-                        Pacioli.log3(", %s, infree=%s, inactive=%s, applic=%s", var.pretty(),
-                                constraint.freeVars.contains(var),
-                                active.contains(var),
-                                constrainApp);
-                        }
+//                        if (verbose) {
+//                        Pacioli.log3(", %s, infree=%s, inactive=%s, applic=%s", var.pretty(),
+//                                constraint.freeVars.contains(var),
+//                                active.contains(var),
+//                                constrainApp);
+//                        }
                         appli = appli && constrainApp; 
                     }
                     
@@ -319,13 +324,13 @@ public class ConstraintSet extends AbstractPrintable {
                         chosenConstraint = i;
                     }
 
-                    if (verbose) {
-                        Pacioli.logln3("Free vars");
-                        for (Var var: constraint.freeVars) {
-                            Pacioli.log3(", %s", var.pretty());
-                            
-                        }
-                    }
+//                    if (verbose) {
+//                        Pacioli.logln3("Free vars");
+//                        for (Var var: constraint.freeVars) {
+//                            Pacioli.log3(", %s", var.pretty());
+//                            
+//                        }
+//                    }
                                         
                     i++;
                 }
@@ -335,15 +340,15 @@ public class ConstraintSet extends AbstractPrintable {
                 todoInsts.remove((int) chosenConstraint);
                 
                 if (verbose) {
-                    Pacioli.logln3("\nINSTANCE Unifying %s and %s\n%s", constraint.lhs.pretty(), constraint.rhs.pretty(), constraint.reason);
+                    Pacioli.logln3("\nInstance unifying %s and %s\n%s", constraint.lhs.pretty(), constraint.rhs.pretty(), constraint.reason);
                 }
                 
                 PacioliType left = constraint.lhs;
                 PacioliType right = constraint.rhs.generalize(constraint.freeVars).instantiate();
 
-                if (verbose) {
-                    Pacioli.logln3("\nUnifying generalized: %s and %s\n%s", left.pretty(), right.pretty(), constraint.reason);
-                }
+//                if (verbose) {
+//                    Pacioli.logln3("\nUnifying generalized: %s and %s\n%s", left.pretty(), right.pretty(), constraint.reason);
+//                }
                 
                 try {
                     Substitution subs = left.unify(right);
