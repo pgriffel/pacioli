@@ -619,28 +619,16 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     @Override
     public void visit(LetBindingNode node) {
         node.value.accept(this);
-        //throw new RuntimeException("todo");
     }
 
     @Override
     public void visit(LetTupleBindingNode node) {
         node.value.accept(this);
-        throw new RuntimeException("obsolete");
+        throw new RuntimeException("todo");
     }
     
     @Override
     public void visit(LetFunctionBindingNode node) {
-        
-        node.table = new SymbolTable<ValueInfo>(valueTables.peek());
-
-        for (String arg : node.args) {
-            ValueInfo info = new ValueInfo(arg, prog.getModule(), false, false, node.getLocation(), !prog.isLibrary());
-            node.table.put(arg, info);
-        }
-        
-        valueTables.push(node.table);
-        node.body.accept(this);
-        valueTables.pop();
         throw new RuntimeException("obsolete");
     }
 }
