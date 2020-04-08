@@ -353,6 +353,11 @@ public class ConstraintSet extends AbstractPrintable {
                 for (Var var: active) {
                     Pacioli.log(", %s", var.pretty());
                 }
+              
+                // NOW GETS SET IN FOLLOWING WHILE 
+                int i = 0; // todo
+                //int i = todoInsts.size() - 1; // todo
+                
                 
                 int k = 0;
                 while (k < todoInsts.size()) {
@@ -364,15 +369,31 @@ public class ConstraintSet extends AbstractPrintable {
                     if (verbose) {
                     Pacioli.logln("right vars");
                     Set<Var> leftVars = constraint.rhs.typeVars(); 
+                    Boolean appli = true;
                     for (Var var:leftVars) {
-                        Pacioli.log(", %s", var.pretty());
+                        //Pacioli.log(", %s", var.pretty());
                         //if (active.contains(var))
+                        
+                        Boolean constrainApp = constraint.freeVars.contains(var) ||!active.contains(var);
+                        
+                        Pacioli.log(", %s, infree=%s, inactive=%s, applic=%s", var.pretty(),
+                                constraint.freeVars.contains(var),
+                                active.contains(var),
+                                constrainApp);
+                        appli = appli && constrainApp; 
+                    }
+                    
+                    if (appli) {
+                        i = k;
                     }
                     
                     Pacioli.logln("Free vars");
                     for (Var var: constraint.freeVars) {
                         Pacioli.log(", %s", var.pretty());
+                        
                     }
+                    
+                    
                     }
                     
                     
@@ -381,8 +402,7 @@ public class ConstraintSet extends AbstractPrintable {
                 
                 
                 
-                int i = 0; // todo
-                //int i = todoInsts.size() - 1; // todo
+              
                 
                 
                 
