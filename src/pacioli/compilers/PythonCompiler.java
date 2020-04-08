@@ -418,9 +418,10 @@ public class PythonCompiler implements SymbolTableVisitor {
         "\n" + 
         "def glbl_base_print(value):\n" +
         "    if isinstance(value, np.ndarray):\n" +
+        "        vec = value.reshape([value.size, 1])\n" +
         "        print(\"Index, Value\")\n" +
         "        for i in range(0, value.size):\n" +
-        "            val = value[i, 0]\n" +
+        "            val = vec[i, 0]\n" +
         "            if val != 0:\n" +
         "                print(f\"{i} -> {val}\")\n" +
         "    else:\n" +
