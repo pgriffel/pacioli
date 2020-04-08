@@ -95,22 +95,22 @@ public interface Unifiable<B> {
     public default Unifiable<B> instantiate() {
         return this;
     }
-
-    public default List<B> yo (List<B> in) {
-        return in;
-    }
-    
-    public List<B> yo2 (List<B> in);
-    
-    public default List<B> fresh2() {
-        ArrayList<B> list = new ArrayList<B>();
-        return list;
-    }
-    
-    public default void test() {
-        List<B> f1 = fresh2();
-        //f1.get(0).pretty();
-    }
+//
+//    public default List<B> yo (List<B> in) {
+//        return in;
+//    }
+//    
+//    public List<B> yo2 (List<B> in);
+//    
+//    public default List<B> fresh2() {
+//        ArrayList<B> list = new ArrayList<B>();
+//        return list;
+//    }
+//    
+//    public default void test() {
+//        List<B> f1 = fresh2();
+//        //f1.get(0).pretty();
+//    }
     
     //public Unifiable fresh();
     public default Unifiable<B> fresh() {

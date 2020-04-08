@@ -23,7 +23,6 @@ package pacioli;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,23 +31,22 @@ import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.Unifiable;
 import pacioli.types.Var;
-import pacioli.types.visitors.UsesVars;
 import uom.Fraction;
 import uom.Unit;
 
+/**
+ * Solver for type inference constraints.
+ * 
+ * Based on:
+ *   Bastiaan J. Heeren, Top Quality Type Error Messages, PhD Thesis,
+ *   Universiteit Utrecht, The Netherlands, 2005
+ */
 public class ConstraintSet extends AbstractPrintable {
-
-    private final List<PacioliType> lhss;
-    private final List<PacioliType> rhss;
-    private final List<String> reason;
-    private final List<Unit<TypeBase>> ulhss;
-    private final List<Unit<TypeBase>> urhss;
-    private final List<String> ureason;
     
     private final List<EqualityConstraint> equalityConstaints = new ArrayList<EqualityConstraint>();
     private final List<InstanceConstraint> instanceConstaints = new ArrayList<InstanceConstraint>();
     private final List<UnitConstraint> unitConstaints = new ArrayList<UnitConstraint>();
-    
+
     
     class EqualityConstraint implements Unifiable<PacioliType> {
         
@@ -93,12 +91,6 @@ public class ConstraintSet extends AbstractPrintable {
         public List<Unit<TypeBase>> simplificationParts() {
             throw new RuntimeException("Should this be just a type method?");
         }
-
-        @Override
-        public List<PacioliType> yo2(List<PacioliType> in) {
-            // TODO Auto-generated method stub
-            return null;
-        }
     }
     
     class InstanceConstraint implements Unifiable<PacioliType> {
@@ -106,7 +98,6 @@ public class ConstraintSet extends AbstractPrintable {
         public final PacioliType lhs;
         public final PacioliType rhs;
         public String reason;
-        //public final List<TypeVar> freeVars;
         public final Set<Var> freeVars;
         
         public InstanceConstraint(PacioliType lhs, PacioliType rhs, Set<Var> freeVars, String reason) {
@@ -128,13 +119,10 @@ public class ConstraintSet extends AbstractPrintable {
 
         @Override
         public Unifiable<PacioliType> applySubstitution(Substitution subs) {
-            //Pacioli.logln("FREEVARS in assumption: %s", freeVars);
             Set<Var> newFreeVars = new HashSet<Var>();
             for (Var freeVar: freeVars) {
                 PacioliType freeVarType = freeVar.applySubstitution(subs);
                 for (Var var: freeVarType.typeVars()) {
-                    //Pacioli.logln("FREEVAR in assumption: %s->%s", freeVar, var);
-                    //assert(var instanceof TypeVar);
                     newFreeVars.add(var);
                 }
             }
@@ -164,12 +152,6 @@ public class ConstraintSet extends AbstractPrintable {
         public List<Unit<TypeBase>> simplificationParts() {
             throw new RuntimeException("Should this be just a type method?");
         }
-
-        @Override
-        public List<PacioliType> yo2(List<PacioliType> in) {
-            // TODO Auto-generated method stub
-            return null;
-        }
     }
     
     class UnitConstraint {
@@ -187,21 +169,10 @@ public class ConstraintSet extends AbstractPrintable {
     
     
     public ConstraintSet() {
-        lhss = new ArrayList<PacioliType>();
-        rhss = new ArrayList<PacioliType>();
-        reason = new ArrayList<String>();
-        ulhss = new ArrayList<Unit<TypeBase>>();
-        urhss = new ArrayList<Unit<TypeBase>>();
-        ureason = new ArrayList<String>();
     }
 
     
     public void addConstraint(PacioliType lhs, PacioliType rhs, String text) {
-        assert (lhs != null);
-        assert (rhs != null);
-        lhss.add(lhs);
-        rhss.add(rhs);
-        reason.add(text);
         this.equalityConstaints.add(new EqualityConstraint(lhs, rhs, text));
     }
         
@@ -210,9 +181,6 @@ public class ConstraintSet extends AbstractPrintable {
     }
 
     public void addUnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String text) {
-        ulhss.add(lhs);
-        urhss.add(rhs);
-        ureason.add(text);
         this.unitConstaints.add(new UnitConstraint(lhs, rhs, text));
     }
 
@@ -226,67 +194,34 @@ public class ConstraintSet extends AbstractPrintable {
         for (UnitConstraint constraint: other.unitConstaints) {
             unitConstaints.add(constraint);
         }
-        for (int i = 0; i < other.lhss.size(); i++) {
-            lhss.add(other.lhss.get(i));
-            rhss.add(other.rhss.get(i));
-            reason.add(other.reason.get(i));
-        }
-        for (int i = 0; i < other.ulhss.size(); i++) {
-            ulhss.add(other.ulhss.get(i));
-            urhss.add(other.urhss.get(i));
-            ureason.add(other.ureason.get(i));
-        }
     }
 
     @Override
     public void printPretty(PrintWriter out) {
-//        for (int i = 0; i < lhss.size(); i++) {
-//            out.format("  %s = %s\n", lhss.get(i).pretty(), rhss.get(i).pretty());
-//        }
-        for (int i = 0; i < ulhss.size(); i++) {
-            out.format("  %s u= %s\n", ulhss.get(i).pretty(), urhss.get(i).pretty());
-        }
         for (EqualityConstraint constraint: equalityConstaints) {
-            out.format("  %s = %s\n", constraint.lhs.pretty(), constraint.rhs.pretty(), constraint.reason);
-            //out.format("  %s = %s %s\n", constraint.lhs.pretty(), constraint.rhs.pretty(), constraint.reason);
+            out.format("  %s = %s\n", 
+                    constraint.lhs.pretty(), 
+                    constraint.rhs.pretty(), 
+                    constraint.reason);
         }
         for (InstanceConstraint constraint: instanceConstaints) {
-            out.format("  %s <: for %s: %s\n", constraint.lhs.pretty(), 
+            out.format("  %s <: for %s: %s\n", 
+                    constraint.lhs.pretty(), 
                     Utils.intercalateText(", ", new ArrayList<Var>(constraint.freeVars)),
                     constraint.rhs.pretty());
         }
         for (UnitConstraint constraint: unitConstaints) {
-            out.format("  %s u= %s\n", constraint.lhs.pretty(), constraint.rhs.pretty());
+            out.format("  %s u= %s\n", 
+                    constraint.lhs.pretty(), 
+                    constraint.rhs.pretty());
         }
-    }
-    
-    Set<Var> activeVars() {
-        Set<Var> vars = new HashSet<Var>();
-        for (EqualityConstraint constraint: equalityConstaints) {
-            vars.addAll(constraint.lhs.typeVars());
-            vars.addAll(constraint.rhs.typeVars());
-        }
-        for (InstanceConstraint constraint: instanceConstaints) {
-            vars.addAll(constraint.lhs.typeVars());
-            HashSet<Var> copy = new HashSet<Var>(constraint.rhs.typeVars());
-            copy.removeAll(constraint.freeVars);
-            vars.addAll(copy);
-            //vars.removeAll(constraint.freeVars); // correct? could be done on rhs vars only.
-        }
-        for (UnitConstraint constraint: unitConstaints) {
-            vars.addAll(UsesVars.unitVars(constraint.lhs));
-            vars.addAll(UsesVars.unitVars(constraint.rhs));
-        }
-        return vars;
     }
 
-    public Substitution solveNO() throws PacioliException {
+    public Substitution solve() throws PacioliException {
         return solve(false);
     }
 
     public Substitution solve(Boolean verbose) throws PacioliException {
-        
-        //Boolean verbose = true;
         
         List<EqualityConstraint> todoEqs = new ArrayList<EqualityConstraint>(equalityConstaints);
         List<UnitConstraint> todoUnits = new ArrayList<UnitConstraint>(unitConstaints);
@@ -331,10 +266,7 @@ public class ConstraintSet extends AbstractPrintable {
                     throw new PacioliException("\n" + ex.getLocalizedMessage() + "\n\n" + constraint.reason);
                 }     
             }
-            
            
-            
-            
             if (0 < todoInsts.size()) {
                 
                 Set<Var> active = new HashSet<Var>();
@@ -343,10 +275,8 @@ public class ConstraintSet extends AbstractPrintable {
                     InstanceConstraint constraint = (InstanceConstraint) mgu.apply(con);
                     active.addAll(constraint.lhs.typeVars());
                     HashSet<Var> copy = new HashSet<Var>(constraint.rhs.typeVars());
-                    //copy.removeAll(constraint.freeVars);
                     copy.retainAll(constraint.freeVars);
                     active.addAll(copy);
-                    //vars.removeAll(constraint.freeVars); // correct? could be done on rhs vars only.
                 }
                 
                 if (verbose) {
@@ -356,30 +286,25 @@ public class ConstraintSet extends AbstractPrintable {
                     }
                 }
               
-                // NOW GETS SET IN FOLLOWING WHILE 
-                Integer i = null; // todo
-                //int i = todoInsts.size() - 1; // todo
+                Integer chosenConstraint = null;
+                InstanceConstraint constraint = null;
                 
-                
-                int k = 0;
-                while (k < todoInsts.size() && i == null) {
+                int i = 0;
+                while (i < todoInsts.size() && chosenConstraint == null) {
 
-                    InstanceConstraint constraint = (InstanceConstraint) mgu.apply(todoInsts.get(k));
+                    constraint = (InstanceConstraint) mgu.apply(todoInsts.get(i));
+
                     if (verbose) {
                            Pacioli.logln3("constraint (k=%s, todoIns=%s) %s <: %s", 
-                                   k,
+                                   i,
                                    todoInsts.size(),
                                    constraint.lhs.pretty(),
-                            constraint.rhs.pretty());
-                    
+                            constraint.rhs.pretty());                    
                             Pacioli.logln3("right vars");
                     }
                     Set<Var> leftVars = constraint.rhs.typeVars(); 
                     Boolean appli = true;
                     for (Var var:leftVars) {
-                        //Pacioli.log(", %s", var.pretty());
-                        //if (active.contains(var))
-                        
                         Boolean constrainApp = constraint.freeVars.contains(var) ||!active.contains(var);
                         if (verbose) {
                         Pacioli.log3(", %s, infree=%s, inactive=%s, applic=%s", var.pretty(),
@@ -391,7 +316,7 @@ public class ConstraintSet extends AbstractPrintable {
                     }
                     
                     if (appli) {
-                        i = k;
+                        chosenConstraint = i;
                     }
 
                     if (verbose) {
@@ -401,32 +326,18 @@ public class ConstraintSet extends AbstractPrintable {
                             
                         }
                     }
-                    
-                    
-                    k++;
+                                        
+                    i++;
                 }
-                assert(i instanceof Integer);
-                
-                
-              
-                
-                
-                
-                if (verbose) {
-                    //Pacioli.logln3("subs=%s", mgu.pretty());
-                }
-                
-                //InstanceConstraint constraint = todoInsts.get(i);
-                InstanceConstraint constraint = (InstanceConstraint) mgu.apply(todoInsts.get(i));
-                //todoInsts.remove(i);
-                todoInsts.remove((int) i);
+                assert(chosenConstraint instanceof Integer);
+                assert(constraint instanceof InstanceConstraint);
+                                  
+                todoInsts.remove((int) chosenConstraint);
                 
                 if (verbose) {
                     Pacioli.logln3("\nINSTANCE Unifying %s and %s\n%s", constraint.lhs.pretty(), constraint.rhs.pretty(), constraint.reason);
                 }
                 
-                //PacioliType left = mgu.apply(constraint.lhs);
-                //PacioliType right = mgu.apply(constraint.rhs);
                 PacioliType left = constraint.lhs;
                 PacioliType right = constraint.rhs.generalize(constraint.freeVars).instantiate();
 
@@ -434,7 +345,6 @@ public class ConstraintSet extends AbstractPrintable {
                     Pacioli.logln3("\nUnifying generalized: %s and %s\n%s", left.pretty(), right.pretty(), constraint.reason);
                 }
                 
-                //PacioliType right = constraint.rhs;
                 try {
                     Substitution subs = left.unify(right);
                     mgu = subs.compose(mgu);
@@ -449,37 +359,6 @@ public class ConstraintSet extends AbstractPrintable {
         }
         
 
-        return mgu;
-    }
-    
-    
-    
-    
-    public Substitution solveOLD(Boolean verbose) throws PacioliException {
-        Substitution mgu = new Substitution();
-        for (int i = 0; i < lhss.size(); i++) {
-            PacioliType left = mgu.apply(lhss.get(i));
-            PacioliType right = mgu.apply(rhss.get(i));
-            try {
-                if (verbose) {
-                    Pacioli.logln3("Unifying %s and %s\n%s", left.pretty(), right.pretty(), reason.get(i));
-                }
-                mgu = left.unify(right).compose(mgu);
-            } catch (PacioliException ex) {
-                throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", reason.get(i), left.unfresh().pretty(),
-                        right.unfresh().pretty(), ex.getLocalizedMessage());
-            }
-        }
-        for (int i = 0; i < ulhss.size(); i++) {
-            try {
-                Unit<TypeBase> left = mgu.apply(ulhss.get(i));
-                Unit<TypeBase> right = mgu.apply(urhss.get(i));
-                mgu = unifyUnits(left, right).compose(mgu);
-            } catch (PacioliException ex) {
-                throw new PacioliException("\n" + ex.getLocalizedMessage() + "\n\n" + ureason.get(i));
-            }
-
-        }
         return mgu;
     }
 
