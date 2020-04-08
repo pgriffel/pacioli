@@ -17,6 +17,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
+import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -381,6 +382,11 @@ public class PythonGenerator extends IdentityVisitor implements CodeGenerator {
     public void visit(UnitPowerNode node) {
         out.format("%s", node.getClass());
         
+    }
+    
+    @Override
+    public void visit(LetNode node) {
+        node.asApplication().accept(this);
     }
 
 }
