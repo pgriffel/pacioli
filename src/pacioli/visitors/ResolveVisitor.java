@@ -605,7 +605,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             
             
             // todo: set the definition!!!!!!!
-            Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");
+            //Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");
             
             node.table.put(arg, info);
         }

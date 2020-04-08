@@ -349,25 +349,31 @@ public class ConstraintSet extends AbstractPrintable {
                     //vars.removeAll(constraint.freeVars); // correct? could be done on rhs vars only.
                 }
                 
-                Pacioli.logln("\nactive vars");
-                for (Var var: active) {
-                    Pacioli.log(", %s", var.pretty());
+                if (verbose) {
+                    Pacioli.logln3("\nactive vars");
+                    for (Var var: active) {
+                        Pacioli.log3(", %s", var.pretty());
+                    }
                 }
               
                 // NOW GETS SET IN FOLLOWING WHILE 
-                int i = 0; // todo
+                Integer i = null; // todo
                 //int i = todoInsts.size() - 1; // todo
                 
                 
                 int k = 0;
-                while (k < todoInsts.size()) {
+                while (k < todoInsts.size() && i == null) {
 
                     InstanceConstraint constraint = (InstanceConstraint) mgu.apply(todoInsts.get(k));
-                    Pacioli.logln("constraint %s <: %s", constraint.lhs.pretty(),
+                    if (verbose) {
+                           Pacioli.logln3("constraint (k=%s, todoIns=%s) %s <: %s", 
+                                   k,
+                                   todoInsts.size(),
+                                   constraint.lhs.pretty(),
                             constraint.rhs.pretty());
                     
-                    if (verbose) {
-                    Pacioli.logln("right vars");
+                            Pacioli.logln3("right vars");
+                    }
                     Set<Var> leftVars = constraint.rhs.typeVars(); 
                     Boolean appli = true;
                     for (Var var:leftVars) {
@@ -375,31 +381,31 @@ public class ConstraintSet extends AbstractPrintable {
                         //if (active.contains(var))
                         
                         Boolean constrainApp = constraint.freeVars.contains(var) ||!active.contains(var);
-                        
-                        Pacioli.log(", %s, infree=%s, inactive=%s, applic=%s", var.pretty(),
+                        if (verbose) {
+                        Pacioli.log3(", %s, infree=%s, inactive=%s, applic=%s", var.pretty(),
                                 constraint.freeVars.contains(var),
                                 active.contains(var),
                                 constrainApp);
+                        }
                         appli = appli && constrainApp; 
                     }
                     
                     if (appli) {
                         i = k;
                     }
-                    
-                    Pacioli.logln("Free vars");
-                    for (Var var: constraint.freeVars) {
-                        Pacioli.log(", %s", var.pretty());
-                        
-                    }
-                    
-                    
+
+                    if (verbose) {
+                        Pacioli.logln3("Free vars");
+                        for (Var var: constraint.freeVars) {
+                            Pacioli.log3(", %s", var.pretty());
+                            
+                        }
                     }
                     
                     
                     k++;
                 }
-                
+                assert(i instanceof Integer);
                 
                 
               
@@ -412,7 +418,8 @@ public class ConstraintSet extends AbstractPrintable {
                 
                 //InstanceConstraint constraint = todoInsts.get(i);
                 InstanceConstraint constraint = (InstanceConstraint) mgu.apply(todoInsts.get(i));
-                todoInsts.remove(i);
+                //todoInsts.remove(i);
+                todoInsts.remove((int) i);
                 
                 if (verbose) {
                     Pacioli.logln3("\nINSTANCE Unifying %s and %s\n%s", constraint.lhs.pretty(), constraint.rhs.pretty(), constraint.reason);
