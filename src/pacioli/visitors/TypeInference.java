@@ -3,8 +3,10 @@ package pacioli.visitors;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Stack;
 
 import pacioli.Pacioli;
@@ -388,7 +390,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     public void visit(LetNode node) {
         
         //List<TypeVar> freeVars = new ArrayList<TypeVar>();
-        List<Var> freeVars = new ArrayList<Var>();
+        Set<Var> freeVars = new HashSet<Var>();
         
         //Pacioli.logln("free vars for %s", node.getLocation().description());
         for (ValueInfo inf: Node.freeVars(node, node.table)) {

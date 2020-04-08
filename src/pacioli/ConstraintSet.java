@@ -23,13 +23,13 @@ package pacioli;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
-import pacioli.types.TypeVar;
 import pacioli.types.Unifiable;
 import pacioli.types.Var;
 import pacioli.types.visitors.UsesVars;
@@ -107,9 +107,9 @@ public class ConstraintSet extends AbstractPrintable {
         public final PacioliType rhs;
         public String reason;
         //public final List<TypeVar> freeVars;
-        public final List<Var> freeVars;
+        public final Set<Var> freeVars;
         
-        public InstanceConstraint(PacioliType lhs, PacioliType rhs, List<Var> freeVars, String reason) {
+        public InstanceConstraint(PacioliType lhs, PacioliType rhs, Set<Var> freeVars, String reason) {
             this.lhs = lhs;
             this.rhs = rhs;
             this.reason = reason;
@@ -141,7 +141,7 @@ public class ConstraintSet extends AbstractPrintable {
             return new InstanceConstraint(
                     lhs.applySubstitution(subs), 
                     rhs.applySubstitution(subs),
-                    new ArrayList<Var>(newFreeVars),
+                    newFreeVars,
                     reason);
         }
 
@@ -205,7 +205,7 @@ public class ConstraintSet extends AbstractPrintable {
         this.equalityConstaints.add(new EqualityConstraint(lhs, rhs, text));
     }
         
-    public void addInstanceConstraint(PacioliType lhs, PacioliType rhs, List<Var> freeVars, String reason) {
+    public void addInstanceConstraint(PacioliType lhs, PacioliType rhs, Set<Var> freeVars, String reason) {
         this.instanceConstaints.add(new InstanceConstraint(lhs, rhs, freeVars, reason));
     }
 
@@ -252,7 +252,7 @@ public class ConstraintSet extends AbstractPrintable {
         }
         for (InstanceConstraint constraint: instanceConstaints) {
             out.format("  %s <: for %s: %s\n", constraint.lhs.pretty(), 
-                    Utils.intercalateText(", ", constraint.freeVars),
+                    Utils.intercalateText(", ", new ArrayList<Var>(constraint.freeVars)),
                     constraint.rhs.pretty());
         }
         for (UnitConstraint constraint: unitConstaints) {
@@ -332,6 +332,7 @@ public class ConstraintSet extends AbstractPrintable {
             
             if (0 < todoInsts.size()) {
                 int i = 0; // todo
+                //int i = todoInsts.size() - 1; // todo
                 
                 if (verbose) {
                     //Pacioli.logln3("subs=%s", mgu.pretty());
@@ -344,7 +345,8 @@ public class ConstraintSet extends AbstractPrintable {
                 //PacioliType left = mgu.apply(constraint.lhs);
                 //PacioliType right = mgu.apply(constraint.rhs);
                 PacioliType left = constraint.lhs;
-                PacioliType right = constraint.rhs;
+                PacioliType right = constraint.rhs.generalize(constraint.freeVars).instantiate();
+                //PacioliType right = constraint.rhs;
                 try {
                     if (verbose) {
                         Pacioli.logln3("INSTANCE Unifying %s and %s\n%s", left.pretty(), right.pretty(), constraint.reason);

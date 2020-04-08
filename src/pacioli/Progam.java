@@ -612,7 +612,7 @@ public class Progam extends AbstractPrintable {
                 }
                 
                 try {
-                    PacioliType solved = typing.solve(info.isFromProgram());
+                    PacioliType solved = typing.solve(info.isFromProgram()).unfresh();
                     if (verbose) {
                         Pacioli.logln3("\nSolved type of %s is %s", info.name(), solved.pretty());
                         Pacioli.logln3("\nSimple type of %s is %s", info.name(), solved.simplify().pretty());
