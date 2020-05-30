@@ -44,7 +44,8 @@ Pacioli.LineChart = function (parent, data, options) {
         xticks: 5,
         yticks: 5,
         rotate: false,
-        smooth: false
+        smooth: false,
+        zeros: false
     }
 
     this.options = Pacioli.copyOptions(options, defaultOptions)
@@ -56,7 +57,7 @@ Pacioli.LineChart.prototype.draw = function () {
 
         // Transform the data to a usable format
         var unit = this.options.unit || Pacioli.dataUnit(this.data);
-        var data = Pacioli.transformData(this.data, unit);
+        var data = Pacioli.transformData(this.data, unit, this.options.zeros);
 
         // Make the parent node empty
         var parent = this.parent
@@ -79,7 +80,7 @@ Pacioli.LineChart.prototype.draw = function () {
                       .attr("width", w)
                       .attr("height", h)
                       .attr("transform", "translate(" + m.left + "," + m.top + ")");
-    
+
         // Determine data ranges
         //var xScale = d3.scale.linear().domain([0, data.values.length]).range([0, w]);
         var xScale = d3.scale.ordinal()
@@ -651,6 +652,7 @@ Pacioli.Histogram = function (parent, data, options) {
         bins: 10,
         lower: null,
         upper: null,
+        zeros: false,
         onclick: function (data) {
             var div = document.createElement("div")
             var close = document.createElement("button")
@@ -675,18 +677,15 @@ Pacioli.Histogram = function (parent, data, options) {
 Pacioli.Histogram.prototype.draw = function () {
 
     try {
-        console.log('hist', this.options);
         var unit = this.options.unit || Pacioli.dataUnit(this.data)
-        var data = Pacioli.transformData(this.data, unit)
-        console.log('hist this.data', this.data);
-        console.log('hist data', data);
+        var data = Pacioli.transformData(this.data, unit, this.options.zeros)
         // Create an array with the bin tresholds and generate a histogram layout from it for the data
         var lower = (typeof this.options.lower === "number") ? this.options.lower : data.min; //d3.min(data)
         var upper = (typeof this.options.upper === "number") ? this.options.upper : data.max; //d3.max(data)
         var binScale = d3.scale.linear().domain([0, this.options.bins]).range([lower, upper]);
         var binArray = d3.range(this.options.bins + 1).map(binScale);
         var layout = d3.layout.histogram().bins(binArray)(data.values);   
-console.log('hist lower', lower);
+
         // Determine the drawing dimensions
         var margin = this.options.margin
         var width = this.options.width - margin.left - margin.right
@@ -758,7 +757,7 @@ console.log('hist lower', lower);
 };
 
 Pacioli.Histogram.prototype.onClick = function (lower, upper, max, frequency) {
-    console.log('onclick', lower, upper);
+
     var result
     var unit = this.options.unit || Pacioli.dataUnit(this.data)
     var unitShape = new Pacioli.Shape(unit);
@@ -1069,15 +1068,12 @@ Pacioli.WordCloud.prototype.draw = function () {
 
     try {
 
-      console.log("drawing wordcloud option", this.options);
-      console.log("drawing wordcloud data", this.data);
 
       var words = this.data.map( function (d) {
           return {text: d[0],
                   size: d[1]}
       })
 
-      console.log("words", words);
 
         // Determine the drawing dimensions
         var margin = this.options.margin
@@ -1181,7 +1177,7 @@ Pacioli.dataUnit = function (data) {
     }
 }
 
-Pacioli.transformData = function (data, unit) {
+Pacioli.transformData = function (data, unit, includeZeros) {
 
     var values = []
     var labels = []
@@ -1194,7 +1190,7 @@ Pacioli.transformData = function (data, unit) {
         var factor = data.type.param.param.multiplier.conversionFactor(unit)
         for (var i = 0; i < data.value.length; i++) {
             var value = Pacioli.getNumber(data.value[i], 0, 0) * factor
-            if (value !== 0) {
+            if (includeZeros || value !== 0) {
                 values.push(value)
                 labels.push(i)
                 if (max === undefined || max < value) max = value
@@ -1224,12 +1220,12 @@ Pacioli.transformData = function (data, unit) {
         for (var i = 0; i < numbers.nrRows; i++) {
             var factor = shape.unitAt(i, 0).conversionFactor(unit)
             var value = Pacioli.getNumber(numbers, i, 0) * factor
-            if (false || value !== 0) { 
+            if (includeZeros || value !== 0) { 
                 values.push(value)
                 labels.push(shape.rowCoordinates(i).shortText())
+                if (max === undefined || max < value) max = value
+                if (min === undefined || value < min) min = value
             }
-            if (max === undefined || max < value) max = value
-            if (min === undefined || value < min) min = value
         }
    }
         break;
