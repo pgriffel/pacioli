@@ -460,7 +460,7 @@ public class Pacioli {
             "math/math.pacioli",
             "minijava/minijava.pacioli",
             "net/net.pacioli",
-            "oops/oops.pacioli",
+//            "oops/oops.pacioli",
             "power/power.pacioli",
             "precedence/precedence.pacioli",
             "queue/queue.pacioli",
@@ -473,7 +473,7 @@ public class Pacioli {
             //"soda/soda.pacioli",   // obsolete
             "solver/solver.pacioli",
             //"statement/statement.pacioli",
-            "test/test.pacioli",
+            //"test/test.pacioli",
             "shells/shells.pacioli",
             "numpy/numpy_test.pacioli"            
             );

@@ -46,6 +46,10 @@ public class Typing extends AbstractPrintable {
     public void addConstraint(PacioliType lhs, PacioliType rhs, String text) {
         constraints.addConstraint(lhs, rhs, text);
     }
+    
+    public void addNModeConstraint(PacioliType lhs, PacioliType rhs, String text) {
+        constraints.addConstraint(lhs, rhs, text);
+    }
 
     public void addInstanceConstraint(PacioliType lhs, PacioliType rhs, Set<Var> freeVars, String text) {
         constraints.addInstanceConstraint(lhs, rhs, freeVars, text);
