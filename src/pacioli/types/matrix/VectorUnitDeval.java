@@ -108,7 +108,14 @@ public class VectorUnitDeval implements UnitFold<TypeBase, TypeNode> {
 
     @Override
     public TypeNode expt(TypeNode x, Fraction n) {
-        return new TypePowerNode(x.getLocation(), x, new NumberTypeNode(x.getLocation(), n.toString()));
+        assert(x instanceof BangTypeNode);
+        BangTypeNode base = (BangTypeNode) x;
+        if (base.unit.isPresent()) {
+            return new TypePowerNode(x.getLocation(), x, new NumberTypeNode(x.getLocation(), n.toString()));
+        } else {
+            return base;
+            
+        }
     }
 
     @Override

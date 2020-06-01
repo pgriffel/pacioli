@@ -25,12 +25,18 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
+import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.expression.ApplicationNode;
+import pacioli.ast.expression.ConstNode;
+import pacioli.ast.expression.ExpressionNode;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.Unifiable;
 import pacioli.types.Var;
+import pacioli.types.matrix.MatrixType;
 import uom.Fraction;
 import uom.Unit;
 
@@ -46,6 +52,7 @@ public class ConstraintSet extends AbstractPrintable {
     private final List<EqualityConstraint> equalityConstaints = new ArrayList<EqualityConstraint>();
     private final List<InstanceConstraint> instanceConstaints = new ArrayList<InstanceConstraint>();
     private final List<UnitConstraint> unitConstaints = new ArrayList<UnitConstraint>();
+    private final List<NModeConstraint> nModeConstaints = new ArrayList<NModeConstraint>();
 
     
     class EqualityConstraint implements Unifiable<PacioliType> {
@@ -167,10 +174,68 @@ public class ConstraintSet extends AbstractPrintable {
         }
     }
     
+    class NModeConstraint implements Unifiable<PacioliType> {
+        
+        public final PacioliType resultType;
+        public final PacioliType tensorType;
+        public final Integer dimension;
+        public final PacioliType matrixType;
+        public String reason;
+        public final ApplicationNode node;
+        
+        public NModeConstraint(PacioliType resultType, PacioliType tensorType, Integer dimension,
+                PacioliType matrixType, ApplicationNode node, String reason) {
+            this.resultType = resultType;
+            this.tensorType = tensorType;
+            this.dimension = dimension;
+            this.matrixType = matrixType;
+            this.node = node;
+            this.reason = reason;
+        }
+
+        @Override
+        public Set<Var> typeVars() {
+            Set<Var> vars = resultType.typeVars();
+            vars.addAll(tensorType.typeVars());
+            vars.addAll(matrixType.typeVars());
+            return vars;
+        }
+
+        @Override
+        public Unifiable<PacioliType> applySubstitution(Substitution subs) {
+            return new NModeConstraint(
+                    resultType.applySubstitution(subs), 
+                    tensorType.applySubstitution(subs), 
+                    dimension, 
+                    matrixType.applySubstitution(subs),
+                    node,
+                    reason);
+        }
+
+        @Override
+        public ConstraintSet unificationConstraints(Unifiable<PacioliType> other) throws PacioliException {
+            throw new RuntimeException("Should this be just a type method?");
+        }
+
+        @Override
+        public Substitution unify(Unifiable<PacioliType> other) throws PacioliException {
+            throw new RuntimeException("Should this be just a type method?");
+        }
+
+        @Override
+        public Unifiable<PacioliType> reduce() {
+            throw new RuntimeException("Should this be just a type method?");
+        }
+
+        @Override
+        public List<Unit<TypeBase>> simplificationParts() {
+            throw new RuntimeException("Should this be just a type method?");
+        }
+    }
+
     
     public ConstraintSet() {
     }
-
     
     public void addConstraint(PacioliType lhs, PacioliType rhs, String text) {
         this.equalityConstaints.add(new EqualityConstraint(lhs, rhs, text));
@@ -194,8 +259,16 @@ public class ConstraintSet extends AbstractPrintable {
         for (UnitConstraint constraint: other.unitConstaints) {
             unitConstaints.add(constraint);
         }
+        for (NModeConstraint constraint: other.nModeConstaints) {
+            nModeConstaints.add(constraint);
+        }
     }
 
+    public void addNModeConstraint(PacioliType resultType, PacioliType tensorType, Integer integer,
+            PacioliType matrixType, ApplicationNode node, String text) {
+        this.nModeConstaints.add(new NModeConstraint(resultType, tensorType, integer, matrixType, node, text));
+    }
+    
     @Override
     public void printPretty(PrintWriter out) {
         for (EqualityConstraint constraint: equalityConstaints) {
@@ -215,6 +288,13 @@ public class ConstraintSet extends AbstractPrintable {
                     constraint.lhs.pretty(), 
                     constraint.rhs.pretty());
         }
+        for (NModeConstraint constraint: nModeConstaints) {
+            out.format("  %s = nmode(%s, %s, %s)\n", 
+                    constraint.resultType.pretty(), 
+                    constraint.tensorType.pretty(),
+                    constraint.dimension,
+                    constraint.matrixType.pretty());
+        }
     }
 
     public Substitution solve() throws PacioliException {
@@ -226,10 +306,11 @@ public class ConstraintSet extends AbstractPrintable {
         List<EqualityConstraint> todoEqs = new ArrayList<EqualityConstraint>(equalityConstaints);
         List<UnitConstraint> todoUnits = new ArrayList<UnitConstraint>(unitConstaints);
         List<InstanceConstraint> todoInsts = new ArrayList<InstanceConstraint>(instanceConstaints);
+        List<NModeConstraint> todoNModes = new ArrayList<NModeConstraint>(nModeConstaints);
         
         Substitution mgu = new Substitution();
         
-        while (!todoEqs.isEmpty() || !todoInsts.isEmpty() || !todoUnits.isEmpty())  {
+        while (!todoEqs.isEmpty() || !todoInsts.isEmpty() || !todoUnits.isEmpty() || !todoNModes.isEmpty())  {
             
             while (!todoEqs.isEmpty()) {
                 
@@ -270,6 +351,94 @@ public class ConstraintSet extends AbstractPrintable {
                 } catch (PacioliException ex) {
                     throw new PacioliException("\n" + ex.getLocalizedMessage() + "\n\n" + constraint.reason);
                 }     
+            }
+            
+
+            while (!todoNModes.isEmpty()) {
+                
+                NModeConstraint constraint = todoNModes.get(0);
+                todoNModes.remove(0);
+                
+                PacioliType result = mgu.apply(constraint.resultType);
+                PacioliType tensor = mgu.apply(constraint.tensorType);
+                Integer n = constraint.dimension;
+                PacioliType matrix = mgu.apply(constraint.matrixType);
+                
+                try {
+                    if (verbose) {
+                        Pacioli.logln3("\nUnifying %s and nmode(%s, %s, %s)\n%s", 
+                                result.pretty(), 
+                                tensor.pretty(), 
+                                n,
+                                matrix.pretty(),
+                                constraint.reason);
+                    }
+                    
+                 // The parameters of nmode
+                    MatrixType tensorType;
+                    MatrixType matrixType;
+                    ApplicationNode node = constraint.node;
+                    
+                    // Try to get the type of the tensor parameter
+                    try {
+                        tensorType = (MatrixType) tensor;
+                    } catch (Exception ex) {
+                        throw new PacioliException(node.getLocation(), 
+                                "First argument of nmode must have a valid matrix type: %s",
+                                ex.getMessage());
+                    }
+                    
+                    // Try to get the type of the matrix parameter 
+                    try {
+                        matrixType = (MatrixType) matrix;
+                    } catch (Exception ex) {
+                        throw new PacioliException(node.arguments.get(2).getLocation(), 
+                                "Third argument of nmode must be a valid matrix type");
+                    }
+
+                    // Determine the shape of the row dimension
+                    List<Integer> shape = new ArrayList<Integer>();
+                    for (int i = 0; i < tensorType.rowDimension.width(); i++) {
+                        Optional<IndexSetDefinition> def = tensorType.rowDimension.nthIndexSetInfo(i).getDefinition();
+                        if (def.isPresent()) {
+                            shape.add(def.get().items.size());   
+                        } else {
+                            new PacioliException(node.arguments.get(0).getLocation(), 
+                                    "Index set %s has no known size", i);             
+                        }
+                    }
+
+                    // Remember the shape for the code generators
+                    node.nmodeShape = shape;
+                    
+                    // Call MatrixType nmode on the found types and require that the 
+                    // result equals the outcome 
+                    String message = String.format("During inference %s\nthe infered type must follow the nmode rules",
+                            node.sourceDescription());
+                    
+                    if (verbose) {
+                        Pacioli.logln3("\nUnifying %s and %s\n%s", 
+                                result.pretty(), 
+                                tensorType.nmode(n, matrixType).pretty(),
+                                constraint.reason);
+                    }
+                    
+                    //typing.addConstraint(tensorType.nmode(n, matrixType), resultType, message);
+                    Substitution subs = result.unify(tensorType.nmode(n, matrixType));
+                    //Substitution subs = result.unify(tensor);
+                    
+                    mgu = subs.compose(mgu);
+                    if (verbose) {
+                        Pacioli.logln3("Result=\n%s", subs.pretty());
+                    }
+                } catch (PacioliException ex) {
+                    throw new PacioliException("\n%s:\n\n%s\n =\nnmode(%s, %s, %s) \n\n%s", constraint.reason, 
+                            result.unfresh().pretty(),
+                            tensor.unfresh().pretty(), 
+                            n,
+                            matrix.unfresh().pretty(),
+                            ex.getLocalizedMessage());
+                }   
             }
            
             if (0 < todoInsts.size()) {

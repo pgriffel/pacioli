@@ -119,6 +119,36 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         // The nmode product is special. It requires that the type
         // is known (no variables) because it needs to manipulate indices.
         if (node.hasName("nmode")) {
+            if (true) {
+                if (node.arguments.size() != 3) {
+                    
+                throw new PacioliException(node.getLocation(), 
+                        "N-mode got %s arguments, expects 3 (a tensor, an integer and a matrix)",
+                        node.arguments.size());
+                }
+                
+                Integer n;
+                
+                // Try to get the n parameter
+                try {
+                    ConstNode nNode = (ConstNode) node.arguments.get(1);
+                    n = new Integer(nNode.valueString());
+                } catch (Exception ex) {
+                    throw new PacioliException(node.arguments.get(1).getLocation(), 
+                            "Second argument of nmode must be a number");
+                }
+                
+                String message = String.format("During inference %s\nthe infered type must follow the nmode rules",
+                        node.sourceDescription());
+                
+                typing.addNModeConstraint(resultType, 
+                        argTypes.get(0),
+                        n,
+                        argTypes.get(2),
+                        node,
+                        message);
+            } else 
+            {
             try {
                 
                 // The parameters of nmode
@@ -183,7 +213,8 @@ public class TypeInference extends IdentityVisitor implements Visitor {
             } catch (Exception ex) {
                 throw new RuntimeException("Invalid nmode application",
                         new PacioliException(node.getLocation(), ex.getMessage()));
-            } 
+            }
+            }
         } else {
             
             // Infer the typing of the function. Add its contraints

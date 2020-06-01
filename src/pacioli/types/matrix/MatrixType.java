@@ -188,6 +188,7 @@ public class MatrixType extends AbstractType {
 
             IndexType rowType = (IndexType) rowDimension;
 
+            // Can kroneckerNth from MatrixBase or VectorBase be used here?
             Unit<TypeBase> unit = TypeBase.ONE;
             for (int i = 0; i < columns.size(); i++) {
                 final int tmp = i;
@@ -325,8 +326,11 @@ public class MatrixType extends AbstractType {
             final IndexType dimType = (IndexType) dimension;
             TypeNode node = null;
             for (int i = 0; i < dimType.width(); i++) {
+                IndexType ty = dimType.project(Arrays.asList(i));
                 VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
-                Unit<TypeBase> filtered = unit;                
+                Unit<TypeBase> filtered = unit;    
+                //Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
+                
                 TypeNode devaluated = filtered.fold(unitDevaluator);
                 if (i == 0) {
                     node = devaluated;

@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import pacioli.ast.expression.ApplicationNode;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeVar;
 import pacioli.types.Var;
@@ -46,9 +47,10 @@ public class Typing extends AbstractPrintable {
     public void addConstraint(PacioliType lhs, PacioliType rhs, String text) {
         constraints.addConstraint(lhs, rhs, text);
     }
-    
-    public void addNModeConstraint(PacioliType lhs, PacioliType rhs, String text) {
-        constraints.addConstraint(lhs, rhs, text);
+
+    public void addNModeConstraint(PacioliType resultType, PacioliType tensorType, Integer integer,
+            PacioliType matrixType, ApplicationNode node, String text) {
+        constraints.addNModeConstraint(resultType, tensorType, integer, matrixType, node, text);
     }
 
     public void addInstanceConstraint(PacioliType lhs, PacioliType rhs, Set<Var> freeVars, String text) {
