@@ -2,30 +2,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>pgriffel</groupId>
+	<groupId>pacioli</groupId>
 	<artifactId>mvm</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>mvm</name>
-	<description>Units of Measurement</description>
+	<description>Matrix Virtual Machine</description>
 
 	<properties>
-		<java.version>11</java.version>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
-
 	</properties>
-
-	<repositories>
-		<repository>
-		<id>jabylon</id>
-		<name>jabylon</name>
-		<url>https://www.jabylon.org/maven/</url>
-		</repository>
-	</repositories>
 
 	<dependencies>
 		<dependency>
-			<groupId>pgriffel</groupId>
+			<groupId>pacioli</groupId>
 			<artifactId>uom</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
@@ -34,15 +24,7 @@
 			<artifactId>commons-math3</artifactId>
 			<version>3.6.1</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/java_cup/java_cup -->
-		<dependency>
-			<groupId>java_cup</groupId>
-			<artifactId>java_cup</artifactId>
-			<version>0.11b</version>
-		    <scope>system</scope>
-			<systemPath>${project.basedir}/java-cup-11b.jar</systemPath>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/java_cup/runtime -->
+		<!-- http://www2.cs.tum.edu/projects/cup/ -->
 		<dependency>
 			<groupId>java_cup</groupId>
 			<artifactId>runtime</artifactId>
@@ -51,6 +33,5 @@
 			<systemPath>${project.basedir}/java-cup-11b-runtime.jar</systemPath>
 		</dependency>
 	</dependencies>
-
 
 </project>

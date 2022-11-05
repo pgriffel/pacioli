@@ -20,7 +20,7 @@ import mvm.ast.*;
 import mvm.ast.expression.*;
 import mvm.ast.shape.*;
 import mvm.ast.unit.*;
-import pacioli.PacioliException;
+// import pacioli.PacioliException;
 import uom.Unit;
 import mvm.values.matrix.MatrixShape;
 import mvm.values.matrix.Matrix;
@@ -303,7 +303,9 @@ public class Parser extends java_cup.runtime.lr_parser {
        from CUP's syntax_error to CUP's report_fatal_error
        function. */
     String errorMessage;
-    pacioli.Location errorLocation;
+    // pacioli.Location errorLocation;
+    Location errorLeft;
+    Location errorRight;
 
    /* Public interface */
     public Parser(Lexer lex, ComplexSymbolFactory sf, File file) {
@@ -325,7 +327,8 @@ public class Parser extends java_cup.runtime.lr_parser {
 
     public void report_fatal_error(String message, Object info) throws java.lang.Exception {
         done_parsing();      
-        throw new PacioliException(errorLocation, errorMessage);
+        // throw new PacioliException(errorLocation, errorMessage);
+        throw new RuntimeException(errorMessage);
     }
 
     public void syntax_error(Symbol cur_token) {
@@ -336,16 +339,18 @@ public class Parser extends java_cup.runtime.lr_parser {
             list.add(symbl_name_from_id(expected));
         }
         ComplexSymbol token = (ComplexSymbol) cur_token;
-        errorLocation = makeLoc(token.getLeft(), token.getRight());
+        // errorLocation = makeLoc(token.getLeft(), token.getRight());
+        errorLeft = token.getLeft();
+        errorRight = token.getRight();
         errorMessage = "Expected one of " + list;
     }
 
    /* Utility functions for the grammar rules */
-    private pacioli.Location makeLoc(Location from, Location to) {
-        pacioli.Location pacioliFrom = new pacioli.Location(file, from.getLine(), from.getColumn(), from.getOffset());
-        pacioli.Location pacioliTo = new pacioli.Location(file, to.getLine(), to.getColumn(), to.getOffset());
-        return pacioliFrom.join(pacioliTo);
-    }
+    // private pacioli.Location makeLoc(Location from, Location to) {
+    //     pacioli.Location pacioliFrom = new pacioli.Location(file, from.getLine(), from.getColumn(), from.getOffset());
+    //     pacioli.Location pacioliTo = new pacioli.Location(file, to.getLine(), to.getColumn(), to.getOffset());
+    //     return pacioliFrom.join(pacioliTo);
+    // }
 
     private class UnitDecl {
 

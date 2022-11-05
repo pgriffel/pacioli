@@ -41,7 +41,7 @@ import org.apache.commons.math3.linear.QRDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 
-import pacioli.Pacioli;
+// import pacioli.Pacioli;
 import uom.DimensionedNumber;
 import uom.Unit;
 import uom.UnitMap;
@@ -1100,7 +1100,7 @@ public class Matrix extends AbstractPacioliValue {
         RealMatrix numbersQ = decomposition.getQ();
         RealMatrix numbersR = decomposition.getR();
 
-        Pacioli.logln("mat=%s", sub.numbers.toString());
+        // Pacioli.logln("mat=%s", sub.numbers.toString());
 
         // Create the full result matrices
         Matrix matrixQ = new Matrix(shape.leftIdentity());

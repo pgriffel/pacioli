@@ -6,7 +6,7 @@ import mvm.MVMException;
 import mvm.Machine;
 import mvm.ast.expression.Expression;
 import mvm.values.PacioliValue;
-import pacioli.Pacioli;
+// import pacioli.Pacioli;
 
 public class Print extends AbstractPrintable implements Instruction {
 
@@ -25,7 +25,7 @@ public class Print extends AbstractPrintable implements Instruction {
     public void eval(Machine machine) throws MVMException {
         PacioliValue result = body.eval(machine.store);
         if (result != null) {
-            Pacioli.logln("%s", result.toText());
+            // Pacioli.logln("%s", result.toText());
         }
     }
 

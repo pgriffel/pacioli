@@ -49,7 +49,7 @@ import mvm.values.matrix.Matrix;
 import mvm.values.matrix.MatrixBase;
 import mvm.values.matrix.MatrixShape;
 import mvm.values.matrix.UnitVector;
-import pacioli.Pacioli;
+// import pacioli.Pacioli;
 import uom.Prefix;
 import uom.Unit;
 import uom.UnitSystem;
@@ -1221,7 +1221,7 @@ public class Machine {
         si.addPrefix("deci", new Prefix("d", new BigDecimal("0.1")));
         si.addPrefix("centi", new Prefix("c", new BigDecimal("0.01")));
         si.addPrefix("milli", new Prefix("m", new BigDecimal("0.001")));
-        si.addPrefix("micro", new Prefix("µ", new BigDecimal("0.000001")));
+        si.addPrefix("micro", new Prefix("ï¿½", new BigDecimal("0.000001")));
         si.addPrefix("nano", new Prefix("n", new BigDecimal("0.000000001")));
         return si;
     }
@@ -1251,7 +1251,7 @@ public class Machine {
             ;
 
             // Run the file itself
-            Pacioli.logln2("Running MVM file %s", file);
+            // Pacioli.logln2("Running MVM file %s", file);
             for (Instruction instruction : code.instructions) {
                 instruction.eval(this);
             }

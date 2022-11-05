@@ -7,7 +7,7 @@ import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java.io.File;
 import java.io.IOException;
-import pacioli.PacioliException;
+// import pacioli.PacioliException;
 
 
 /**
@@ -422,9 +422,10 @@ public class Lexer implements java_cup.runtime.Scanner, sym {
       return symbolFactory.newSymbol(name, sym, left, right,val);
   }
   private void error(String message) {
-    pacioli.Location from = new pacioli.Location(file, yyline, yycolumn, yychar);
-    pacioli.Location to = new pacioli.Location(file, yyline, yycolumn+yylength(), yychar+yylength());
-    throw new RuntimeException("Parse error", new PacioliException(from.join(to), message));
+    // pacioli.Location from = new pacioli.Location(file, yyline, yycolumn, yychar);
+    // pacioli.Location to = new pacioli.Location(file, yyline, yycolumn+yylength(), yychar+yylength());
+    // throw new RuntimeException("Parse error", new PacioliException(from.join(to), message));
+    throw new RuntimeException("Parse error" + message + " at line " + String.format("%s-%s %s", yyline, yycolumn, file));
   }
 
 
