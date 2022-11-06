@@ -26,6 +26,11 @@ public class Print extends AbstractPrintable implements Instruction {
         PacioliValue result = body.eval(machine.store);
         if (result != null) {
             // Pacioli.logln("%s", result.toText());
+            if (System.console() == null) {
+                System.out.print(result.toText());
+            } else {
+                System.console().format("%s", result.toText());
+            }
         }
     }
 
