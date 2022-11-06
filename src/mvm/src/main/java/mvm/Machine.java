@@ -1221,7 +1221,7 @@ public class Machine {
         si.addPrefix("deci", new Prefix("d", new BigDecimal("0.1")));
         si.addPrefix("centi", new Prefix("c", new BigDecimal("0.01")));
         si.addPrefix("milli", new Prefix("m", new BigDecimal("0.001")));
-        si.addPrefix("micro", new Prefix("�", new BigDecimal("0.000001")));
+        si.addPrefix("micro", new Prefix("μ", new BigDecimal("0.000001")));
         si.addPrefix("nano", new Prefix("n", new BigDecimal("0.000000001")));
         return si;
     }
