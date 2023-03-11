@@ -14,6 +14,7 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
@@ -149,4 +150,6 @@ public interface Visitor {
     void visit(LetTupleBindingNode node);
 
     void visit(LetFunctionBindingNode node);
+
+    void visit(IdListNode node);
 }

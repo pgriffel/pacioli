@@ -5,11 +5,13 @@ import java.util.List;
 
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
+import pacioli.PacioliException;
 import pacioli.ast.IdentityTransformation;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.MultiDeclaration;
+import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
 
 public class DesugarVisitor extends IdentityTransformation implements Visitor {
@@ -50,4 +52,11 @@ public class DesugarVisitor extends IdentityTransformation implements Visitor {
         returnNode(new ProgramNode(node.getLocation(), node.includes, node.imports, desugared));
     }
 
+    public void visit(IdListNode node) {
+        if (node.ids.size() == 1 && node.ids.get(0) instanceof IdentifierNode) {
+            returnNode(node.ids.get(0));
+        } else {
+            throw new RuntimeException("Visit error", new PacioliException(node.getLocation(), "Didn't expect tuple destructuring here. Did you mean tuple(...)? Destructuring a tuple is only possible in a let or comprehension, or by applying a function to the tuple."));
+        }
+    }
 }

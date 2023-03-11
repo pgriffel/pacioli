@@ -1,5 +1,7 @@
 package pacioli.parser;
 
+// java -jar jflex-full-1.8.2.jar lexer.flex
+
 import java_cup.runtime.Symbol;
 import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.Location;
@@ -29,33 +31,33 @@ import pacioli.PacioliException;
     ComplexSymbolFactory symbolFactory;
 
   private Symbol symbol(String name, int sym) {
-      //return symbolFactory.newSymbol(name, sym, new Location(yyline+1,yycolumn+1,yychar), new Location(yyline+1,yycolumn+yylength(),yychar+yylength()));
-      return symbolFactory.newSymbol(name, sym, new Location(yyline, yycolumn, yychar), new Location(yyline, yycolumn+yylength(), yychar+yylength()));
+      //return symbolFactory.newSymbol(name, sym, new Location(yyline+1,yycolumn+1,(int)(long)(int)(long)yychar), new Location(yyline+1,yycolumn+yylength(),(int)(long)(int)(long)yychar+yylength()));
+      return symbolFactory.newSymbol(name, sym, new Location(yyline, yycolumn, (int)(long)yychar), new Location(yyline, yycolumn+yylength(), (int)(long)yychar+yylength()));
   }
 
   private Symbol symbol(String name, int sym, Object val) {
-      Location left = new Location(yyline, yycolumn, yychar);
-      Location right= new Location(yyline, yycolumn+yylength(), yychar+yylength());
+      Location left = new Location(yyline, yycolumn, (int)(long)yychar);
+      Location right= new Location(yyline, yycolumn+yylength(), (int)(long)yychar+yylength());
       return symbolFactory.newSymbol(name, sym, left, right,val);
   }
   
   // Seems wrong. The right line can be on a lower line in a string!
   private Symbol symbol(String name, int sym, Object val,int buflength) {
-      Location left = new Location(yyline, yycolumn+yylength()-buflength, yychar+yylength()-buflength);
-      Location right= new Location(yyline, yycolumn+yylength(), yychar+yylength());
+      Location left = new Location(yyline, yycolumn+yylength()-buflength, (int)(long)yychar+yylength()-buflength);
+      Location right= new Location(yyline, yycolumn+yylength(), (int)(long)yychar+yylength());
       return symbolFactory.newSymbol(name, sym, left, right,val);
   }
   private void error(String message) {
-    //pacioli.Location errorLocation = new pacioli.Location(file, source, yychar, yychar+yylength());
-    pacioli.Location from = new pacioli.Location(file, yyline, yycolumn, yychar);
-    pacioli.Location to = new pacioli.Location(file, yyline, yycolumn+yylength(), yychar+yylength());
+    //pacioli.Location errorLocation = new pacioli.Location(file, source, (int)(long)(int)(long)yychar, (int)(long)(int)(long)yychar+yylength());
+    pacioli.Location from = new pacioli.Location(file, yyline, yycolumn, (int)(long)(int)(long)yychar);
+    pacioli.Location to = new pacioli.Location(file, yyline, yycolumn+yylength(), (int)(long)(int)(long)yychar+yylength());
     pacioli.Location errorLocation = from.join(to);
     throw new RuntimeException("Parse error", new PacioliException(errorLocation, message));
   }
 %}
 
 %eofval{
-     return symbolFactory.newSymbol("EOF", EOF, new Location(yyline, yycolumn, yychar), new Location(yyline, yycolumn, yychar));
+     return symbolFactory.newSymbol("EOF", EOF, new Location(yyline, yycolumn, (int)(long)(int)(long)yychar), new Location(yyline, yycolumn, (int)(long)(int)(long)yychar));
 %eofval}
 
 Identifier = [a-zA-Z$_] [a-zA-Z0-9$_]*
@@ -85,6 +87,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "if"              { return symbol("if",IF); }
   "then"            { return symbol("then",THEN); }
   "else"            { return symbol("else",ELSE); }
+  "else if"          { return symbol("else if",ELSEIF); }
   "begin"           { return symbol("begin",BEGIN); }
   "end"             { return symbol("end",END); }
   "while"           { return symbol("while",WHILE); }
@@ -93,7 +96,6 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "in"              { return symbol("in",IN); }
   "return"          { return symbol("return",RETURN); }
   "per"             { return symbol("per",PER); }
-  "module"          { return symbol("module",MODULE); }
   "include"         { return symbol("include",INCLUDE); }
   "import"          { return symbol("import",IMPORT); }
   "define"          { return symbol("define",DEFINE); }
@@ -104,12 +106,11 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "defmatrix"       { return symbol("defmatrix",DEFMATRIX); }
   "defalias"        { return symbol("defalias",DEFALIAS); }
   "defconv"         { return symbol("defconv",DEFCONV); }
-  "defproj"         { return symbol("defproj",DEFPROJ); }
   "public"          { return symbol("public", PUBLIC); }
   "for_type"        { return symbol("for_type",FORTYPE); }
   "for_index"       { return symbol("for_index",FORINDEX); }
   "for_unit"        { return symbol("for_unit",FORUNIT); }
-  "lambda"          { return symbol("lambda",LAMBDA); }
+  "fn"              { return symbol("fn",FN); }
 
   /* literals */
   {Natural}         { return symbol("Natural", NATURAL, yytext()); }

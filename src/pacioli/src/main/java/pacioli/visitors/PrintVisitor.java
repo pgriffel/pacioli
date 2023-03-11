@@ -26,6 +26,7 @@ import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
@@ -528,9 +529,13 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(TypeApplicationNode node) {
         node.op.accept(this);
-        write("(");
+        if (node.args.size() > 0){
+            write("(");
+        }
         writeCommaSeparated(node.args);
-        write(")");
+        if (node.args.size() > 0){
+            write(")");
+        }
     }
 
     @Override
@@ -661,5 +666,11 @@ public class PrintVisitor implements Visitor {
         }
         write(") = ");
         node.body.accept(this);        
+    }
+
+    @Override
+    public void visit(IdListNode node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 }

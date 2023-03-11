@@ -362,7 +362,7 @@ public class Pacioli {
                 project.bundle(settings);
             }
             Path mvmFile = project.bundlePath(Target.MVM);
-            Pacioli.logln1("Running mvm file '%s'", mvmFile);
+            Pacioli.logln1("Running mvm file '%s'\n", mvmFile);
             interpretMVMText(mvmFile.toFile(), libs);
 
         } catch (IOException e) {
@@ -372,7 +372,7 @@ public class Pacioli {
 
     private static void infoCommand(List<File> libs) {
 
-        logln("Pacioli v0.4.3");
+        logln("Pacioli v0.4.5-SNAPSHOT");
 
         logln("\nSettings");
         logln("  verbosity=%s", verbosity);
@@ -392,7 +392,7 @@ public class Pacioli {
             }
 
         }
-        logln("\nPaul Griffioen 2013 - 2020");
+        logln("\nPaul Griffioen 2013 - 2023");
     }
 
     private static void helpCommand() {

@@ -78,7 +78,11 @@ public class ParametricType extends AbstractType {
     }
 
     public String pprintArgs() {
-        return "(" + Utils.intercalateText(", ", args) + ")";
+        if (args.size() == 0) {
+            return Utils.intercalateText(", ", args);
+        } else {
+            return "(" + Utils.intercalateText(", ", args) + ")";
+        }
     }
 
     @Override

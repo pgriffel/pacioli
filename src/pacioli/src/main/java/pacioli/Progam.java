@@ -431,7 +431,6 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
 
     public void resolve() throws Exception {
-
         for (UnitInfo nfo: units.allInfos()) {
             Optional<? extends Definition> definition = nfo.getDefinition();
             assert (definition.isPresent());
@@ -599,7 +598,7 @@ public class Progam extends AbstractPrintable {
 
         if (!finished.contains(info)) {
             if (discovered.contains(info)) {
-                Pacioli.warn("Cycle in definition of %s", info.name());
+                // Pacioli.warn("Cycle in definition of %s", info.name());
             } else {
                 discovered.add(info);
                 inferUsedTypes(info.getDefinition().get(), discovered, finished, verbose);

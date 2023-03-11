@@ -1135,6 +1135,34 @@ public class Machine {
             }
         });
         
+        storeBaseValue("split_string", new Primitive("split_string") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliString string = (PacioliString) params.get(0);
+                PacioliString splitter = (PacioliString) params.get(1);
+                String[] parts = string.toText().split("[" + splitter.toText() + "]");
+                PacioliList list = new PacioliList();
+                for (int i = 0; i < parts.length; i++) {
+                    list.addMut(new PacioliString(parts[i]));
+                }
+                return list;
+            }
+        });
+
+        storeBaseValue("trim", new Primitive("trim") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliString string = (PacioliString) params.get(0);
+                return new PacioliString(string.toText().trim());
+            }
+        });
+
+        storeBaseValue("parse_num", new Primitive("parse_num") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliString string = (PacioliString) params.get(0);
+                Double value = Double.parseDouble(string.toText());
+                return new Matrix(value);
+            }
+        });
+
         storeBaseValue("format", new Primitive("format") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 if (params.isEmpty()) {

@@ -20,6 +20,7 @@ import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
@@ -403,6 +404,17 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(LetFunctionBindingNode node) {
         returnNode(node.transform(expAccept(node.body)));
+    }
+
+    @Override
+    public void visit(IdListNode node) {
+        List<IdentifierNode> ids = new ArrayList<IdentifierNode>();
+        for (IdentifierNode id : node.ids) {
+            Node visited = nodeAccept(id);
+            assert (visited instanceof IdentifierNode);
+            ids.add((IdentifierNode) id);
+        }
+        returnNode(new IdListNode(node.getLocation(), ids));
     }
 
 }

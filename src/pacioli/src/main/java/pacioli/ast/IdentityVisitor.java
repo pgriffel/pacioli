@@ -22,6 +22,7 @@ import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
@@ -347,5 +348,12 @@ public class IdentityVisitor implements Visitor {
     @Override
     public void visit(LetFunctionBindingNode node) {
         node.body.accept(this);        
+    }
+
+    @Override
+    public void visit(IdListNode node) {
+        for (IdentifierNode id : node.ids) {
+            id.accept(this);
+        }
     }
 }

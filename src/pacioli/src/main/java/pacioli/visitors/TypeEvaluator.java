@@ -2,6 +2,7 @@ package pacioli.visitors;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
@@ -206,36 +207,45 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             // See also reduction on types.
 
             // Definition definition = node.op.getDefinition();
-            Optional<? extends Definition> definition = node.op.info.getDefinition();
 
-            if (!definition.isPresent()) {
-                //returnType(new ParametricType(node.getName(), types));
-                returnType(new ParametricType((TypeInfo) node.op.info, types));
+            this.handleParametric(node, types);
+        }
+    }
+
+    private void handleParametric(TypeApplicationNode node, List<PacioliType> types) {
+        Optional<? extends Definition> definition = node.op.info.getDefinition();
+
+        if (!definition.isPresent()) {
+            //returnType(new ParametricType(node.getName(), types));
+            if (!(node.op.info instanceof TypeInfo)) {
+                throw new RuntimeException("Expected type info",
+                        new PacioliException(node.getLocation(), "Invalid info"));
+            }
+            returnType(new ParametricType((TypeInfo) node.op.info, types));
+        } else {
+            Boolean doReduce = reduce || true;   
+            assert (definition.get() instanceof TypeDefinition);
+            TypeDefinition typeDefinition = (TypeDefinition) definition.get();
+            TypeNode rhs = typeDefinition.rhs;
+            if (rhs instanceof TypeApplicationNode) {
+                TypeApplicationNode app = (TypeApplicationNode) rhs;
+                if (node.op.getName().equals(app.op.getName())) {
+                    doReduce = false;
+                }
+            }
+            // if (reduce && definition.getModule() == node.op.home()) {
+            //if (reduce && !node.op.info.generic().isExternal()) {
+            if (doReduce) {
+                try {
+                    //returnType(typeDefinition.constaint(true).reduce(new ParametricType(typeDefinition, types)));
+                    returnType(typeDefinition.constaint(true).reduce(new ParametricType((TypeInfo) node.op.info, Optional.of(typeDefinition), types)));
+                } catch (PacioliException e) {
+                    throw new RuntimeException("Type error", e);
+                }
             } else {
-                Boolean doReduce = reduce || true;   
-                assert (definition.get() instanceof TypeDefinition);
-                TypeDefinition typeDefinition = (TypeDefinition) definition.get();
-                TypeNode rhs = typeDefinition.rhs;
-                if (rhs instanceof TypeApplicationNode) {
-                    TypeApplicationNode app = (TypeApplicationNode) rhs;
-                    if (node.op.getName().equals(app.op.getName())) {
-                        doReduce = false;
-                    }
-                }
-                // if (reduce && definition.getModule() == node.op.home()) {
-                //if (reduce && !node.op.info.generic().isExternal()) {
-                if (doReduce) {
-                    try {
-                        //returnType(typeDefinition.constaint(true).reduce(new ParametricType(typeDefinition, types)));
-                        returnType(typeDefinition.constaint(true).reduce(new ParametricType((TypeInfo) node.op.info, Optional.of(typeDefinition), types)));
-                    } catch (PacioliException e) {
-                        throw new RuntimeException("Type error", e);
-                    }
-                } else {
-                    // todo: add info. Not done because it is unused
-                    //returnType(new ParametricType(typeDefinition, types));
-                    returnType(new ParametricType((TypeInfo) node.op.info, Optional.of(typeDefinition), types));
-                }
+                // todo: add info. Not done because it is unused
+                //returnType(new ParametricType(typeDefinition, types));
+                returnType(new ParametricType((TypeInfo) node.op.info, Optional.of(typeDefinition), types));
             }
         }
     }
@@ -271,7 +281,10 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
         } else if (info instanceof IndexSetInfo) {
             IndexSetInfo indexSetInfo = (IndexSetInfo) info;
             TypeIdentifier id = new TypeIdentifier(indexSetInfo.generic().getModule(), node.getName());
-            returnType(new IndexType(id, indexSetInfo));        
+            returnType(new IndexType(id, indexSetInfo));  
+        } else if (info instanceof TypeInfo) {
+            TypeApplicationNode app = new TypeApplicationNode(node.getLocation(), node, new LinkedList<TypeNode>());
+            this.handleParametric(app, new ArrayList<PacioliType>());
         } else {
             //returnType(new MatrixType(new ScalarBase(node.getName())));
             assert(info instanceof ScalarUnitInfo);

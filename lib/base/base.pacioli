@@ -31,39 +31,39 @@ declare public tuple :: for_type a: a -> a;
 declare public apply :: for_type a,b: (a -> b, a) -> b;
 
 declare public identity :: for_type a: (a) -> a;
-declare public type_of :: for_type a: (a) -> Identifier();
+declare public type_of :: for_type a: (a) -> Identifier;
 
-declare public equal :: for_type a: (a, a) -> Boole();
-declare public not_equal :: for_type a: (a, a) -> Boole();
-declare public not :: (Boole()) -> Boole();
+declare public equal :: for_type a: (a, a) -> Boole;
+declare public not_equal :: for_type a: (a, a) -> Boole;
+declare public not :: (Boole) -> Boole;
 
 deftype for_type t: Maybe(t) = Maybe(t);
 
 declare public just :: for_type t: (t) -> Maybe(t);
 declare public nothing :: for_type t: () -> Maybe(t);
-declare public is_nothing :: for_type t: (Maybe(t)) -> Boole();
+declare public is_nothing :: for_type t: (Maybe(t)) -> Boole;
 
 # ----------------------------------------------------------------------------
 # Obsolete
 # ----------------------------------------------------------------------------
 
-declare public error :: for_type a: (String()) -> a;
-declare public num2string :: for_unit a: (a, 1) -> String();
+declare public error :: for_type a: (String) -> a;
+declare public num2string :: for_unit a: (a, 1) -> String;
 
 # ----------------------------------------------------------------------------
 # Statements
 # ----------------------------------------------------------------------------
 
 declare ref_get :: for_type a: (Ref(a)) -> a;
-declare ref_set :: for_type a: (Ref(a), a) -> Void();
+declare ref_set :: for_type a: (Ref(a), a) -> Void;
 declare empty_ref :: for_type a: () -> Ref(a);
 declare new_ref :: for_type a: (a) -> Ref(a);
 
-declare throw_result :: for_type a: (Ref(a), a) -> Void();
-declare catch_result :: for_type a: (() -> Void(), Ref(a)) -> a;
-declare skip :: () -> Void();
-declare seq :: (Void(), Void()) -> Void();
-declare while_function :: (() -> Boole(), () -> Void()) -> Void();
+declare throw_result :: for_type a: (Ref(a), a) -> Void;
+declare catch_result :: for_type a: (() -> Void, Ref(a)) -> a;
+declare skip :: () -> Void;
+declare seq :: (Void, Void) -> Void;
+declare while_function :: (() -> Boole, () -> Void) -> Void;
 
 # ----------------------------------------------------------------------------
 # Lists
@@ -84,15 +84,15 @@ declare public zip :: for_type a,b: (List(a), List(b)) -> List(Tuple(a, b));
 declare public naturals :: (1) -> List(1);
 declare public map_list :: for_type a,b: ((a) -> b, List(a)) -> List(b);
 declare public reverse :: for_type a: (List(a)) -> List(a);
-declare public sort_list :: for_type a: (List(a), (a, a) -> Boole()) -> List(a);
-declare public contains :: for_type a: (List(a), a) -> Boole();
+declare public sort_list :: for_type a: (List(a), (a, a) -> Boole) -> List(a);
+declare public contains :: for_type a: (List(a), a) -> Boole;
 
 # ----------------------------------------------------------------------------
 # Strings
 # ----------------------------------------------------------------------------
 
-declare public string_compare :: (String(), String()) -> 1;
-declare public concatenate :: (String(), String()) -> String();
+declare public string_compare :: (String, String) -> 1;
+declare public concatenate :: (String, String) -> String;
 declare public format :: for_type t: t -> String();
 
 # ----------------------------------------------------------------------------
@@ -381,6 +381,12 @@ declare public get_unit_expression ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, P, Q) -> String();
 
 declare public text2string :: (Report()) -> String();
+
+declare public split_string :: (String, String) -> List(String);
+
+declare public trim :: (String) -> String;
+
+declare public parse_num :: (String) -> 1;
 
 define num2str(x) =
   num2str_io(x, io_settings);
