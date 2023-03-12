@@ -1,0 +1,770 @@
+/* Pacioli Grammar */
+package pacioli.parser;
+
+// Running
+// 
+//   java -jar java-cup-11b.jar -interface -parser Parser -locations grammar.cup
+// 
+// produced
+// 
+// ------- CUP v0.11b 20160615 (GIT 4ac7450) Parser Generation Summary -------
+//   0 errors and 0 warnings
+//   79 terminals, 50 non-terminals, and 174 productions declared,
+//   producing 377 unique parse states.
+//   0 terminals declared but not used.
+//   0 non-terminals declared but not used.
+//   0 productions never reduced.
+//   0 conflicts detected (0 expected).
+//   Code written to "Parser.java", and "sym.java".
+// ---------------------------------------------------- (CUP v0.11b 20160615 (GIT 4ac7450)) 
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.List;
+import java.util.HashMap;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java_cup.runtime.ComplexSymbolFactory;
+import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
+import java_cup.runtime.ComplexSymbolFactory.Location;
+import java_cup.runtime.Symbol;
+import pacioli.PacioliException;
+import pacioli.ast.*;
+import pacioli.ast.definition.*;
+import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
+import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
+import pacioli.ast.expression.*;
+import pacioli.ast.expression.LetNode.BindingNode;
+import pacioli.ast.unit.*;
+import pacioli.types.ast.*;
+import pacioli.TypeContext;
+
+parser code {:
+
+    /* The file being parsed. Only needed for location info. */
+    File file;                   
+
+    /* Buffer to get syntax error ino from message and location info
+       from CUP's syntax_error to CUP's report_fatal_error
+       function. */
+    String errorMessage;
+    pacioli.Location errorLocation;
+
+   /* Public interface */
+    public Parser(Lexer lex, ComplexSymbolFactory sf, File file) {
+        super(lex,sf);
+        this.file = file;
+    }
+
+    public static ProgramNode parseFile(File file) throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        ComplexSymbolFactory csf = new ComplexSymbolFactory();
+        Lexer lexer = new Lexer(reader, csf, file, null);
+        Parser parser = new Parser(lexer, csf, file);
+        return (ProgramNode) parser.parse().value;
+    }
+
+   /* CUP overrides to get error handling with location info */
+    public void report_error(String message, Object info) {
+    }
+
+    public void report_fatal_error(String message, Object info) throws java.lang.Exception {
+        done_parsing();      
+        throw new PacioliException(errorLocation, errorMessage);
+    }
+
+    public void syntax_error(Symbol cur_token) {
+        assert(cur_token instanceof ComplexSymbol);
+        List<Integer> ids = expected_token_ids();
+        LinkedList<String> list = new LinkedList<String>();
+        for (Integer expected : ids){
+            list.add(symbl_name_from_id(expected));
+        }
+        ComplexSymbol token = (ComplexSymbol) cur_token;
+        errorLocation = makeLoc(token.getLeft(), token.getRight());
+        errorMessage = "Expected one of " + list;
+    }
+
+   /* Utility functions for the grammar rules */
+    private pacioli.Location makeLoc(Location from, Location to) {
+        pacioli.Location pacioliFrom = new pacioli.Location(file, from.getLine(), from.getColumn(), from.getOffset());
+        pacioli.Location pacioliTo = new pacioli.Location(file, to.getLine(), to.getColumn(), to.getOffset());
+        return pacioliFrom.join(pacioliTo);
+    }
+
+    private static List<String> idNames(List<IdentifierNode> ids) {
+        List<String> names = new ArrayList<String>();
+        for (IdentifierNode id: ids) {
+            names.add(id.getName());
+        }
+        return names;
+    }
+
+    private ValueDefinition functionDefinition(pacioli.Location loc, IdentifierNode id, List<IdentifierNode> args, ExpressionNode body) {
+        ExpressionNode function = new LambdaNode(freshUnderscores(idNames(args)), body, loc);
+        return new ValueDefinition(loc, id, function);
+    }
+
+    private static List<String> freshUnderscores(List<String> names) {
+          List<String> fresh = new ArrayList<String>();
+          for (String name : names) {
+              if (name.equals("_")) {
+                  fresh.add(freshUnderscore());
+              } else {
+                  fresh.add(name);
+              }
+          }
+          return fresh;
+      }
+
+    private static int counter = 0;
+
+    private static String freshUnderscore() {
+        return "_" + counter++;
+    }
+    
+    private static String freshName(String prefix) {
+        return prefix + counter++;
+    }
+
+    private static ExpressionNode binop(String name, ExpressionNode left, ExpressionNode right) {
+        pacioli.Location loc = left.getLocation().join(right.getLocation());
+        List<ExpressionNode> args = new ArrayList<ExpressionNode>();
+        args.add(left);
+        args.add(right);
+        return new ApplicationNode(new IdentifierNode(name, loc), args, loc);
+    }
+
+    private static ExpressionNode singleop(String name, ExpressionNode exp, pacioli.Location loc) {
+        List<ExpressionNode> args = new ArrayList<ExpressionNode>();
+        args.add(exp);
+        return new ApplicationNode(new IdentifierNode(name, loc), args, loc);
+    }
+
+    private static class GeneratorClause {
+        public final IdentifierNode id;
+        public final ExpressionNode list;
+        public GeneratorClause(IdentifierNode id, ExpressionNode list) {
+            this.id = id;
+            this.list = list;
+        }
+    }
+
+    private static class TupleGeneratorClause {
+        public final List<IdentifierNode> ids;
+        public final ExpressionNode list;
+        public TupleGeneratorClause(List<IdentifierNode> ids, ExpressionNode list) {
+            this.ids = ids;
+            this.list = list;
+        }
+    }
+
+    private static class AssignmentClause {
+        public final IdentifierNode id;
+        public final ExpressionNode value;
+        public AssignmentClause(IdentifierNode id, ExpressionNode value) {
+            this.id = id;
+            this.value = value;
+        }
+    }
+
+    private static class TupleAssignmentClause {
+        public final List<IdentifierNode> ids;
+        public final ExpressionNode value;
+        public TupleAssignmentClause(List<IdentifierNode> ids, ExpressionNode value) {
+            this.ids = ids;
+            this.value = value;
+        }
+    }
+
+    private static ExpressionNode desugarComprehension(pacioli.Location loc, ExpressionNode e, List<Object> ps) throws PacioliException {
+
+        String accuName = freshName("_c_accu");
+        String tupName = freshName("_c_tup");
+
+        ExpressionNode addMut = new IdentifierNode("add_mut", loc);
+        ExpressionNode accu = new IdentifierNode(accuName, loc);
+        ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), loc);
+
+        for (int i = ps.size() - 1; 0 <= i; i--) {
+            Object part = ps.get(i);
+            if (part instanceof GeneratorClause) {
+                GeneratorClause clause = (GeneratorClause) part;
+                body = new ApplicationNode(
+                                new IdentifierNode("loop_list", loc),
+                                Arrays.asList((ExpressionNode) new IdentifierNode(accuName, loc),
+                                              new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.getName())), body, loc), clause.list),
+                                loc);
+            } else if (part instanceof TupleGeneratorClause) {
+                TupleGeneratorClause clause = (TupleGeneratorClause) part;
+
+                List<String> args = new ArrayList<String>();
+                for (IdentifierNode var : clause.ids) {
+                    args.add(var.getName());
+                }
+
+                ExpressionNode apply = new IdentifierNode("apply", loc);
+                ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc);
+                ExpressionNode tup = new IdentifierNode(tupName, loc);
+                ExpressionNode loopList = new IdentifierNode("loop_list", loc);
+                ExpressionNode accuId = new IdentifierNode(accuName, loc);
+                ExpressionNode restApp = new ApplicationNode(apply, Arrays.asList(restLambda, tup), loc);
+                ExpressionNode restAppLambda = new LambdaNode(Arrays.asList(accuName, tupName), restApp, loc);
+
+                body = new ApplicationNode(loopList, Arrays.asList(accuId, restAppLambda, clause.list), loc);
+            } else if (part instanceof AssignmentClause) {
+                AssignmentClause clause = (AssignmentClause) part;
+
+                body = new ApplicationNode(new LambdaNode(freshUnderscores(Arrays.asList(clause.id.getName())), body, loc), Arrays.asList(clause.value), loc);
+            } else if (part instanceof TupleAssignmentClause) {
+
+                TupleAssignmentClause clause = (TupleAssignmentClause) part;
+
+                List<String> args = new ArrayList<String>();
+                for (IdentifierNode var : clause.ids) {
+                    args.add(var.getName());
+                }
+
+                ExpressionNode apply = new IdentifierNode("apply", loc);
+                ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc);
+
+                body = new ApplicationNode(apply, Arrays.asList(restLambda, clause.value), loc);
+            } else if (part instanceof ExpressionNode) {
+                ExpressionNode clause = (ExpressionNode) part;
+                body = new BranchNode(clause, body, new IdentifierNode(accuName, loc), loc);
+            } else {
+                throw new PacioliException(loc, "Unexpected clause %s", part);
+            }
+        }
+
+        ExpressionNode lambda = new LambdaNode(Arrays .asList(accuName), body, loc);
+        ExpressionNode emptyListId = new IdentifierNode("empty_list", loc);
+        ExpressionNode emptyList = new ApplicationNode(emptyListId, new ArrayList<ExpressionNode>(), loc);
+
+        return new ApplicationNode(lambda, Arrays.asList(emptyList), loc);
+    }
+
+    private static ExpressionNode desugarFoldComprehension(pacioli.Location loc, IdentifierNode op, ExpressionNode e, List<Object> ps) throws PacioliException {
+        ExpressionNode body = desugarComprehension(loc, e, ps);
+        if (op.getName().equals("sum")) {
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_sum", loc), Arrays.asList(body), loc);
+        } else if (op.getName().equals("count")) {
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_count", loc), Arrays.asList(body), loc);
+        } else if (op.getName().equals("all")) {
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_all", loc), Arrays.asList(body), loc);
+        } else if (op.getName().equals("some")) {
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_some", loc), Arrays.asList(body), loc);
+        } else if (op.getName().equals("gcd")) {
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_gcd", loc), Arrays.asList(body), loc);
+        } else if (op.getName().equals("concat")) {
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_concat", loc), Arrays.asList(body), loc);
+        } else {
+            throw new PacioliException(op.getLocation(), "Comprehension operator '%s' unknown", op.getName());
+        }
+    }
+
+:};
+
+
+terminal INCLUDE, IMPORT;
+terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, PUBLIC;
+terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, DO, ASSIGN, EXCL, TO, FROM;
+terminal IN, LET, PER, THEN, RETURN, FN, FORTYPE, FORUNIT, FORINDEX, AT;
+terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
+terminal PLUS, MULT, DIV, MOD, MMULT, HAT, NEG, LEFTDIV, MDIV, MEXPT, MLEFTDIV;
+terminal RSCALEDOWN, RSCALE, LSCALEDOWN, LSCALE, TRANS, DIMINV, RECI;
+terminal EQL, NEQ, EQUIV, LE, GT, LEQ, GTQ, AND, OR, IMPLIES, FOLLOWSFROM;
+terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING;
+
+
+non terminal ProgramNode             program;
+non terminal List<Node>              includes;
+non terminal List<Definition>        commands;
+non terminal Definition              command;
+non terminal ExpressionNode          expr, expr_no_id, if_tail, lettail, letrest, listlit;
+non terminal List<ExpressionNode>    exprs, exprlist;
+non terminal IdentifierNode          id, name;
+non terminal TypeIdentifierNode      typeid;
+non terminal List<IdentifierNode>    ids, names, idlist, idlist_tail;
+non terminal UnitNode                dimnum, unit, unit_term;
+non terminal String                  unsigned, number, integer;
+non terminal StringNode              path;
+non terminal List<UnitDecl>          unitvec, unitvec_parts;
+non terminal List<ValueDecl>         matrix_parts, matrix;
+non terminal TypeNode                type, matrix_type, dim_type;
+non terminal SchemaNode              schema;
+non terminal List<TypeNode>          types, typelist;
+non terminal String                  var;
+non terminal List<String>            vars;
+non terminal KeyNode                 indexkey;
+non terminal ExpressionNode          comprehension;
+non terminal List<Object>            parts;
+non terminal Object                  part;
+non terminal List<ExpressionNode>    statements;
+non terminal SequenceNode            sequence;
+non terminal ExpressionNode          statement, stm_if_tail;
+non terminal                         quali;
+
+
+precedence right TO;
+precedence nonassoc  EQUIV, FOLLOWSFROM, IMPLIES;
+precedence left AND, OR;
+precedence nonassoc EQL, LEQ, GTQ, NEQ, LE, GT ;
+precedence left PLUS, NEG;
+precedence left MOD;
+precedence left MULT, MMULT, DIV, MDIV, LEFTDIV, MLEFTDIV, LSCALE, RSCALE, LSCALEDOWN, RSCALEDOWN ;
+precedence left PER;
+precedence left HAT, MEXPT;
+//precedence left NEG;
+precedence right TRANS, RECI, DIMINV;
+
+
+//------------------------------------------------------------------------------
+// Program
+//------------------------------------------------------------------------------
+
+program ::=  
+   includes:i commands:c                            {: List<IncludeNode> includes = new ArrayList<IncludeNode>();
+                                                       List<ImportNode> imports = new ArrayList<ImportNode>();
+                                                       for (Node node : i) {
+                                                           if (node instanceof IncludeNode) {
+                                                               includes.add((IncludeNode) node);
+                                                           } else {
+                                                               imports.add((ImportNode) node);
+                                                           }
+                                                       }
+                                                       RESULT = new ProgramNode(new pacioli.Location(file, 0, 0, 0), includes, imports, c); :};
+
+includes ::=  
+   includes:is INCLUDE path:p SEMICOLON             {: is.add(new IncludeNode(makeLoc(pxleft, pxright), p)); RESULT = is; :}
+ | includes:is IMPORT path:p SEMICOLON              {: is.add(new ImportNode(makeLoc(pxleft, pxright), p)); RESULT = is; :}
+ | /* empty includes */                             {: RESULT = new ArrayList<Node>(); :}
+ ;
+ 
+commands ::=  
+   commands:cs command:c SEMICOLON                  {: cs.add(c); RESULT = cs; :}
+ | /* empty */                                      {: RESULT = new LinkedList<Definition>(); :}
+ ;
+
+command ::= 
+   DEFINE:d id:id EQL expr:e                        {: RESULT = new ValueDefinition(makeLoc(dxleft, exright), id, e); :}
+ | DEFINE:d id:id idlist:ids EQL expr:e             {: RESULT = functionDefinition(makeLoc(dxleft, exright), id, ids, e); :}
+ | DECLARE:d quali ids:ids DBLCLN schema:s          {: RESULT = new MultiDeclaration(makeLoc(dxleft, sxright), ids, s); :}
+ | DEFINDEX:d id:id                                 {: List<String> names = new ArrayList<String>();
+                                                       RESULT = new IndexSetDefinition(makeLoc(dxleft, idxright), id, names); :}
+ | DEFINDEX:d id:id EQL LBRC names:ids RBRC:p       {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
+ | DEFTYPE:d schema:s EQL type:t                    {: RESULT = new TypeDefinition(makeLoc(dxleft, txright), s.context, s.type, t); :}
+ | DEFALIAS:d id:id EQL unit:u                      {: RESULT = new AliasDefinition(makeLoc(dxleft, uxright), id, u); :}
+ | DEFUNIT:d typeid:id EXCL typeid:n EQL unitvec:ps {: /* Todo: remove hashmap and use pair list directly in UnitVectorDefinition */
+                                                       java.util.Map<String, UnitNode> unitVector = new HashMap<String, UnitNode>();
+                                                       for (UnitDecl pair: ps) {
+                                                           unitVector.put(pair.key.getName(), pair.value);
+                                                       }
+                                                       RESULT = new UnitVectorDefinition(makeLoc(dxleft, psxright), id, n, ps); :}
+ | DEFUNIT:d id:id STRING:s                         {: RESULT = new UnitDefinition(makeLoc(dxleft, sxright), id, s); :}
+ | DEFUNIT:d id:id STRING:s EQL dimnum:def          {: RESULT = new UnitDefinition(makeLoc(dxleft, defxright), id, s, def); :}
+ | DEFMATRIX:d id:id DBLCLN type:s EQL matrix:m     {: /* Change MatrixLiteralNode to accept a ValueDecl list */
+                                                       //List<Pair<List<String>, String>> stringPairs = new ArrayList<Pair<List<String>, String>>();
+                                                       //for (ValueDecl decl: m) {
+                                                         //  stringPairs.add(new Pair<List<String>, String>(idNames(decl.key), decl.value));
+                                                       //}
+                                                       ExpressionNode body = new MatrixLiteralNode(makeLoc(mxleft, mxright), s, m);
+                                                       //ExpressionNode body = new MatrixLiteralNode(makeLoc(mxleft, mxright), s, stringPairs);
+                                                       RESULT = new ValueDefinition(makeLoc(dxleft, mxright), id, body); :}
+ | DEFCONV:d id:id DBLCLN type:t                    {: pacioli.Location loc = makeLoc(dxleft, txright);
+                                                       ExpressionNode conv = new ConversionNode(loc, t);
+                                                       RESULT = new ValueDefinition(loc, id, conv); :}
+ | expr:e                                           {: RESULT = new Toplevel(e.getLocation(), e); :}
+ ;
+
+quali ::=  
+   PUBLIC
+ | /* empty */
+ ;
+
+//------------------------------------------------------------------------------
+// Include path
+//------------------------------------------------------------------------------
+
+path ::= 
+    STRING:s                                        {: RESULT = new StringNode(s, makeLoc(sxleft, sxright)); :}
+ |  IDENTIFIER:s                                    {: RESULT = new StringNode(s, makeLoc(sxleft, sxright)); :}
+ |  path:p DIV STRING:s                             {: RESULT = new StringNode(p.valueString() + "/" + s, makeLoc(pxleft, sxright)); :}
+
+ |  path:p DIV IDENTIFIER:s                         {: RESULT = new StringNode(p.valueString() + "/" + s, makeLoc(pxleft, sxright)); :}
+ ;
+
+//------------------------------------------------------------------------------
+// Matrix and unit vector literals
+//------------------------------------------------------------------------------
+
+matrix ::= 
+    LBRC RBRC                                       {: RESULT = new LinkedList<ValueDecl>(); :}
+  | LBRC matrix_parts:ps RBRC                       {: RESULT = ps; :}
+  ;
+
+matrix_parts ::=
+    names:ns TO number:n                            {: RESULT = new LinkedList<ValueDecl>(Arrays.asList(new ValueDecl(ns, n))); :}
+  | matrix_parts:ps COMMA names:ns TO number:n      {: ps.add(new ValueDecl(ns, n)); RESULT = ps; :}
+  ;
+
+unitvec ::= 
+   LBRC RBRC                                        {: RESULT = new LinkedList<UnitDecl>(); :}
+ | LBRC unitvec_parts:ps RBRC                       {: RESULT = ps; :}
+ ;
+
+unitvec_parts ::= 
+   name:n COLON unit:u                              {: RESULT = new LinkedList<UnitDecl>(Arrays.asList(new UnitDecl(n, u))); :}
+ | unitvec_parts:ps COMMA name:n COLON unit:u       {: ps.add(new UnitDecl(n, u)); RESULT = ps; :}
+ ;
+
+//------------------------------------------------------------------------------
+// Numbers
+//------------------------------------------------------------------------------
+
+number ::= 
+   unsigned:u                                       {: RESULT = u; :}
+ | NEG unsigned:u                                   {: RESULT = "-" + u; :}
+ ;
+
+integer ::= 
+   NATURAL:n                                        {: RESULT = n; :}
+ | NEG NATURAL:n                                    {: RESULT = "-" + n; :}
+ ;
+
+unsigned ::= 
+   DECIMAL:d                                        {: RESULT = d; :}
+ | NATURAL:n                                        {: RESULT = n; :}
+ ;
+
+//------------------------------------------------------------------------------
+// Identifiers and names
+//------------------------------------------------------------------------------
+
+id ::= IDENTIFIER:id                                {: RESULT = new IdentifierNode(id, makeLoc(idxleft, idxright)); :};
+
+ids ::= 
+    id:id                                           {: RESULT = new LinkedList<IdentifierNode>(Arrays.asList(id)); :}
+  | ids:ids COMMA id:id                             {: ids.add(id); RESULT = ids; :}
+  ;
+
+idlist ::= 
+    LPAR RPAR                                       {: RESULT = new LinkedList<IdentifierNode>(); :}
+  | LPAR idlist_tail:ids                            {: RESULT = ids; :}
+  ;
+
+idlist_tail ::= 
+    id:id RPAR                                      {: RESULT = new LinkedList<IdentifierNode>(Arrays.asList(id)); :}
+  | id:id COMMA idlist_tail:ids                     {: ids.add(0, id); RESULT = ids; :}
+  ;
+
+typeid ::= IDENTIFIER:id                            {: RESULT = new TypeIdentifierNode(makeLoc(idxleft, idxright), id); :};
+  
+name ::= 
+   id:id                                            {: RESULT = id; :}
+ | STRING:s                                         {: RESULT = new IdentifierNode(s, makeLoc(sxleft, sxright)); :}
+ ;
+
+names ::= 
+    name:n                                          {: RESULT = new LinkedList<IdentifierNode>(Arrays.asList(n)); :}
+  | names:ns COMMA name:n                           {: ns.add(n); RESULT = ns; :}
+  ;
+
+//------------------------------------------------------------------------------
+// Expressions
+//------------------------------------------------------------------------------
+
+exprs ::= 
+    expr:e                                          {: RESULT = new LinkedList<ExpressionNode>(Arrays.asList(e)); :}
+  | exprs:es COMMA expr:e                           {: es.add(e); RESULT = es; :}
+  ;
+
+exprlist ::= 
+    LPAR RPAR                                       {: RESULT = new LinkedList<ExpressionNode>(); :}
+  | LPAR exprs:exprs RPAR                           {: RESULT = exprs; :}
+  ;
+
+expr ::= 
+   expr_no_id:e                                     {: RESULT = e; :}
+ | id:id                                            {: RESULT = id; :}
+ ;
+
+expr_no_id ::=
+   NEG:n expr:e                                     {: RESULT = singleop("negative", e, makeLoc(nxleft, exright)); :}
+ | idlist:ids                            {: RESULT = new IdListNode(makeLoc(idsxleft, idsxright), ids); :}   
+ | expr:e1 NEG expr:e2                              {: RESULT = binop("minus", e1, e2); :}
+// | LPAR id:e RPAR                                   {: RESULT = e; :}
+ | LPAR expr_no_id:e RPAR                           {: RESULT = e; :}
+ | expr:e1 HAT expr:e2                              {: RESULT = binop("expt", e1, e2); :}
+ | expr:e1 PER expr:e2                              {: RESULT = binop("dim_div", e1, e2); :}
+ | expr:e1 EQL expr:e2                              {: RESULT = binop("equal", e1, e2); :}
+ | expr:e TRANS:t                                   {: RESULT = singleop("transpose", e, makeLoc(exleft, txright)); :}
+ | expr:e RECI:r                                    {: RESULT = singleop("reciprocal", e, makeLoc(exleft, rxright)); :}
+ | expr:e DIMINV:d                                  {: RESULT = singleop("dim_inv", e, makeLoc(exleft, dxright)); :}
+ | expr:e1 MULT:op expr:e2                          {: RESULT = binop("multiply", e1, e2); :}
+ | expr:e1 PLUS expr:e2                             {: RESULT = binop("sum", e1, e2); :}
+ | expr:e1 MMULT expr:e2                            {: RESULT = binop("mmult", e1, e2); :}
+ | expr:e1 MEXPT expr:e2                            {: RESULT = binop("mexpt", e1, e2); :}
+ | expr:e1 DIV expr:e2                              {: RESULT = binop("divide", e1, e2); :}
+ | expr:e1 MDIV expr:e2                             {: RESULT = binop("right_division", e1, e2); :}
+ | expr:e1 LEFTDIV expr:e2                          {: RESULT = binop("left_divide", e1, e2); :}
+ | expr:e1 MLEFTDIV expr:e2                         {: RESULT = binop("left_division", e1, e2); :}
+ | expr:e1 LSCALE expr:e2                           {: RESULT = binop("scale", e1, e2); :}
+ | expr:e1 RSCALE expr:e2                           {: RESULT = binop("rscale", e1, e2); :}
+ | expr:e1 LSCALEDOWN expr:e2                       {: RESULT = binop("lscale_down", e1, e2); :}
+ | expr:e1 RSCALEDOWN expr:e2                       {: RESULT = binop("scale_down", e1, e2); :}
+ | expr:e1 LEQ expr:e2                              {: RESULT = binop("less_eq", e1, e2); :}
+ | expr:e1 GTQ expr:e2                              {: RESULT = binop("greater_eq", e1, e2); :}
+ | expr:e1 NEQ expr:e2                              {: RESULT = binop("not_equal", e1, e2); :}
+ | expr:e1 LE expr:e2                               {: RESULT = binop("less", e1, e2); :}
+ | expr:e1 GT expr:e2                               {: RESULT = binop("greater", e1, e2); :}
+ | expr:e1 FOLLOWSFROM expr:e2                      {: pacioli.Location loc = makeLoc(e1xleft, e2xright);
+                                                       RESULT = new BranchNode(e2, e1, new ConstNode("true", loc), loc); :}
+ | expr:e1 IMPLIES expr:e2                          {: pacioli.Location loc = makeLoc(e1xleft, e2xright);
+                                                       RESULT = new BranchNode(e1, e2, new ConstNode("true", loc), loc); :}
+ | expr:e1 EQUIV expr:e2                            {: RESULT = binop("equiv", e1, e2); :}
+ | expr:e1 AND expr:e2                              {: pacioli.Location loc = makeLoc(e1xleft, e2xright);
+                                                       RESULT = new BranchNode(e1, e2, new ConstNode("false", loc), loc); :}
+ | expr:e1 OR expr:e2                               {: pacioli.Location loc = makeLoc(e1xleft, e2xright);
+                                                       RESULT = new BranchNode(e1, new ConstNode("true", loc), e2, loc); :}
+ | id:fun exprlist:args                             {: RESULT = new ApplicationNode(fun, args, makeLoc(funxleft, argsxright)); :}
+ | FN:l idlist:ids expr:b END:e                     {: RESULT = new LambdaNode(freshUnderscores(idNames(ids)), b, makeLoc(lxleft, exright)); :}
+ | IF:i expr:c THEN expr:b if_tail:t                {: RESULT = new BranchNode(c, b, t, makeLoc(ixleft, txright)); :}
+ | LET lettail:e                                    {: RESULT = e; :}
+ | listlit:e                                        {: RESULT = e; :}
+ | comprehension:e                                  {: RESULT = e; :}
+ | PIPE matrix_type:m PIPE                          {: RESULT = new MatrixTypeNode(makeLoc(mxleft, mxright), m); :}
+ | BEGIN:b sequence:s END:e                         {: RESULT = new StatementNode(makeLoc(bxleft, exright), s); :}
+ | indexkey:k                                       {: RESULT = k; :}
+ | unsigned:u                                       {: RESULT = new ConstNode(u, makeLoc(uxleft, uxright)); :}
+ | BOOLEAN:b                                        {: RESULT = new ConstNode(b, makeLoc(bxleft, bxright)); :}
+ | STRING:s                                         {: RESULT = new StringNode(s, makeLoc(sxleft, sxright)); :}
+ ;
+
+//------------------------------------------------------------------------------
+// If
+//------------------------------------------------------------------------------
+
+ if_tail ::=
+   ELSEIF:i expr:c THEN expr:b  if_tail:t           {: RESULT = new BranchNode(c, b, t, makeLoc(ixleft, txright)); :}
+ | ELSE expr:e END                                       {: RESULT = e; :}
+ ;
+
+//------------------------------------------------------------------------------
+// Index key
+//------------------------------------------------------------------------------
+
+indexkey ::=
+   name:idx AT name:id                              {: RESULT = new KeyNode(idx.getName(), id.getName(), makeLoc(idxxleft, idxright)); :}
+ | indexkey:k MOD name:idx AT name:id               {: KeyNode node = new KeyNode(idx.getName(), id.getName(), makeLoc(idxxleft, idxright));
+                                                       RESULT = k.merge(node); :}
+ ;
+
+//------------------------------------------------------------------------------
+// Let
+//------------------------------------------------------------------------------
+
+lettail ::=
+   id:id EQL expr:e letrest:r                       {: List<String> args = freshUnderscores(Arrays.asList(id.getName()));  // remove fresh underscors
+                                                       BindingNode binding = new LetBindingNode(makeLoc(idxleft, exright), args.get(0), e);
+                                                       RESULT = new LetNode(Arrays.asList(binding), r, makeLoc(idxleft, rxright)); :}
+ | idlist:ids EQL expr:e letrest:r                  {: List<String> args = freshUnderscores(idNames(ids));
+                                                       pacioli.Location loc = makeLoc(idsxleft, rxright);
+                                                       ExpressionNode fun = new LambdaNode(args, r, makeLoc(idsxleft, exright));
+                                                       RESULT = new ApplicationNode(new IdentifierNode("apply", loc), Arrays.asList(fun, e), loc); :}
+ | id:id idlist:ids EQL expr:e letrest:r            {: //List<String> rArgs = freshUnderscores(Arrays.asList(id.getName()));
+                                                       List<String> eArgs = freshUnderscores(idNames(ids)); // remove fresh underscors
+                                                       pacioli.Location loc = makeLoc(idxleft, rxright);
+                                                       ExpressionNode eFun = new LambdaNode(eArgs, e, loc);
+                                                       BindingNode binding = new LetBindingNode(makeLoc(idsxleft, exright), id.getName(), eFun);
+                                                       RESULT = new LetNode(Arrays.asList(binding), r, loc); :}
+ ;
+
+letrest ::= 
+   IN expr:e END                                    {: RESULT = e; :}
+ | COMMA lettail:lt                                 {: RESULT = lt; :}
+ ;
+
+//------------------------------------------------------------------------------
+// Statements
+//------------------------------------------------------------------------------
+
+sequence ::= 
+   statements:s                                     {: RESULT = new SequenceNode(makeLoc(sxleft, sxright), s); :}
+ ;
+
+statements ::= 
+   statement:s                                      {: RESULT = new LinkedList<ExpressionNode>(Arrays.asList(s)); :}
+ | statements:ss statement:s                        {: ss.add(s); RESULT = ss; :}
+ ;
+
+statement ::= 
+    id:id ASSIGN expr:e SEMICOLON:s                 {: RESULT = new AssignmentNode(makeLoc(idxleft, sxright), id, e); :}
+  | idlist:ids ASSIGN expr:e SEMICOLON:s            {: RESULT = new TupleAssignmentNode(makeLoc(idsxleft, sxright), ids, e); :}
+  | id:id exprlist:es SEMICOLON:s                   {: RESULT = new ApplicationNode(id, es, makeLoc(idxleft, sxright)); :}
+  | RETURN:r expr:e SEMICOLON:s                     {: pacioli.Location loc = makeLoc(rxleft, sxright);
+                                                       RESULT = new ReturnNode(loc, e); :}
+  | RETURN:r SEMICOLON:s                            {: pacioli.Location loc = makeLoc(rxleft, sxright);
+                                                       RESULT = new ReturnNode(loc, new IdentifierNode("nothing", loc)); :}
+  | WHILE:w expr:e DO sequence:s END:n              {: RESULT = new WhileNode(makeLoc(wxleft, nxright), e, s); :}
+
+  | IF:i expr:e THEN sequence:s stm_if_tail:t       {: pacioli.Location loc = makeLoc(ixleft, txright);
+                                                       RESULT = new IfStatementNode(loc, e, s, t); :}
+ ;
+
+stm_if_tail ::= 
+   ELSEIF:l expr:e THEN sequence:s stm_if_tail:t   {: pacioli.Location loc = makeLoc(lxleft, txright);
+                                                       RESULT = new IfStatementNode(loc, e, s, t); :}
+ | ELSE:l sequence:s END:e                         {: RESULT = s; :}
+ | END:e                                            {: pacioli.Location loc = makeLoc(exleft, exright);
+                                                       RESULT = new ApplicationNode(new IdentifierNode("skip", loc), new ArrayList<ExpressionNode>(), loc); :}
+ ;
+
+//------------------------------------------------------------------------------
+// Lists
+//------------------------------------------------------------------------------
+
+listlit ::= 
+   LBRACK:l RBRACK:r                                {: pacioli.Location loc = makeLoc(lxleft, rxright);
+                                                       RESULT = new ApplicationNode(new IdentifierNode("empty_list", loc), new ArrayList<ExpressionNode>(), loc); :}
+ | LBRACK:l exprs:es RBRACK:r                       {: pacioli.Location loc = makeLoc(lxleft, rxright);
+                                                       ExpressionNode list = new ApplicationNode(new IdentifierNode("empty_list", loc), new ArrayList<ExpressionNode>(), loc);
+                                                       for (ExpressionNode item : es) {
+                                                           List<ExpressionNode> tup = new ArrayList<ExpressionNode>();
+                                                           tup.add(list);
+                                                           tup.add(item);
+                                                           list = new ApplicationNode(new IdentifierNode("add_mut", loc), tup, loc);
+                                                       }
+                                                       RESULT = list; :}
+ ;
+
+comprehension ::= 
+   LBRACK:l expr:e PIPE parts:ps RBRACK:r           {: pacioli.Location loc = makeLoc(lxleft, rxright);
+                                                       RESULT = desugarComprehension(loc, e, ps); :}
+ | id:id LBRACK expr:e PIPE parts:ps RBRACK:r       {: pacioli.Location loc = makeLoc(idxleft, rxright);
+                                                       RESULT = desugarFoldComprehension(loc, id, e, ps); :}
+ ;
+
+parts ::= 
+    part:p                                          {: RESULT = new LinkedList<Object>(Arrays.asList(p)); :}
+  | parts:ps COMMA part:p                           {: ps.add(p); RESULT = ps; :}
+  ;
+
+part ::= 
+ | expr:f                                           {: RESULT = f; :}
+ | expr:g FROM expr:e                               {:  if (g instanceof IdListNode) {
+                                                           RESULT = new TupleGeneratorClause(((IdListNode)g).ids, e);
+                                                        } else if (g instanceof IdentifierNode) {
+                                                            RESULT = new GeneratorClause((IdentifierNode) g, e);
+                                                        } else {
+                                                            errorLocation = g.getLocation();
+                                                            errorMessage = "Expected a variable or tuple";
+                                                            report_fatal_error("Fixme: this string is not used? How to throw an error here?", g);
+                                                        }
+                                                    :}
+ | expr:g ASSIGN expr:e                             {:  if (g instanceof IdListNode) {
+                                                           RESULT = new TupleAssignmentClause(((IdListNode)g).ids, e);
+                                                        } else if (g instanceof IdentifierNode) {
+                                                            RESULT = new AssignmentClause((IdentifierNode) g, e);
+                                                        } else {
+                                                            errorLocation = g.getLocation();
+                                                            errorMessage = "Expected a variable or tuple";
+                                                            report_fatal_error("Fixme: this string is not used? How to throw an error here?", g);
+                                                        } 
+                                                    :}
+ ;
+
+//------------------------------------------------------------------------------
+// Types and schemas
+//------------------------------------------------------------------------------
+
+schema ::=
+    FORTYPE:f ids:ids COLON schema:s                {: TypeContext context = s.context;
+                                                       for (IdentifierNode id: ids) {
+              		                                   context.addTypeVar(id.getName());
+                                                       }
+                                                       RESULT = new SchemaNode(makeLoc(fxleft, sxright), context , s.type); :}
+  | FORINDEX:f ids:ids COLON schema:s               {: TypeContext context = s.context;
+                                                       for (IdentifierNode id: ids) {
+              		                                   context.addIndexVar(id.getName());
+                                                       }
+                                                       RESULT = new SchemaNode(makeLoc(fxleft, sxright), context , s.type); :}
+  | FORUNIT:f vars:vs COLON schema:s                {: TypeContext context = s.context;
+                                                       for (String v: vs) {
+              		                                   context.addUnitVar(v);
+                                                       }
+                                                       RESULT = new SchemaNode(makeLoc(fxleft, sxright), context , s.type); :}
+  | type:t                                          {: RESULT = new SchemaNode(makeLoc(txleft, txright), new TypeContext(), t); :}
+  ;
+
+vars ::= 
+   var:v                                            {: RESULT = new LinkedList<String>(Arrays.asList(v)); :}
+ | vars:vs COMMA var:v                              {: vs.add(v); RESULT = vs; :}
+ ;
+
+var ::= 
+   id:id                                            {: RESULT = id.getName(); :}
+ | id:idx EXCL id:id                                {: RESULT = idx.getName() + "!" + id.getName(); :}
+ ;
+
+types ::= 
+   type:t                                           {: RESULT = new LinkedList<TypeNode>(Arrays.asList(t)); :}
+ | types:ts COMMA type:t                            {: ts.add(t); RESULT = ts; :}
+ ;
+
+typelist ::= 
+    LPAR RPAR                                       {: RESULT = new LinkedList<TypeNode>(); :}
+  | LPAR types:ts RPAR                              {: RESULT = ts; :}
+  ;
+
+type ::=
+   typelist:as TO type:b                            {: TypeNode domain = new TypeApplicationNode(makeLoc(asxleft, bxright), 
+                                                                            new TypeIdentifierNode(makeLoc(asxleft, asxright), "Tuple"), as);
+                                                       RESULT = new FunctionTypeNode(makeLoc(asxleft, bxright), domain, b); :}
+ | typeid:a TO type:b                               {: RESULT = new FunctionTypeNode(makeLoc(axleft, bxright), a, b); :}
+ | typeid:id typelist:ts                            {: RESULT = new TypeApplicationNode(makeLoc(idxleft, tsxright), id, ts); :}
+ | matrix_type:x                                    {: RESULT = x; :}
+ ;
+
+matrix_type ::=
+   dim_type:x                                       {: RESULT = x; :}
+ | dim_type:x PER dim_type:y                        {: RESULT = new TypePerNode(makeLoc(xxleft, yxright), x, y); :}
+ ;
+
+dim_type ::=
+   dim_type:x MULT dim_type:y                       {: RESULT = new TypeMultiplyNode(makeLoc(xxleft, yxright), x, y); :}
+ | dim_type:x DIV dim_type:y                        {: RESULT = new TypeDivideNode(makeLoc(xxleft, yxright), x, y); :}
+ | dim_type:x HAT integer:n                         {: RESULT = new TypePowerNode(makeLoc(xxleft, nxright), x, new NumberTypeNode(makeLoc(nxleft, nxright), n)); :}
+ | dim_type:x MOD dim_type:y                        {: RESULT = new TypeKroneckerNode(makeLoc(xxleft, yxright), x, y); :}
+ | typeid:id                                        {: RESULT = id; :}
+ | typeid:p COLON typeid:u                          {: RESULT = new PrefixUnitTypeNode(makeLoc(pxleft, uxright), p, u); :}
+ | typeid:i EXCL:e                                  {: RESULT = new BangTypeNode(makeLoc(ixleft, exright), i); :}
+ | typeid:i EXCL typeid:u                           {: RESULT = new BangTypeNode(makeLoc(ixleft, uxright), i, u); :}
+ | NATURAL:n                                        {: if (n.equals("1")) {
+                                                           RESULT = new NumberTypeNode(makeLoc(nxleft, nxright), n);
+                                                       } else {
+                                                           report_fatal_error("Number unexpected. Only number 1 allowed.", n);
+                                                       } :}
+ ;
+
+//------------------------------------------------------------------------------
+// Units and dimensioned numbers
+//------------------------------------------------------------------------------
+
+unit ::= 
+   unit_term:t                                      {: RESULT = t; :}
+ | unit:x MULT unit:y                               {: RESULT = new UnitOperationNode(makeLoc(xxleft, yxright), "*", x, y); :}
+ | unit:x DIV unit:y                                {: RESULT = new UnitOperationNode(makeLoc(xxleft, yxright), "/", x, y); :}
+ | unit:x HAT integer:n                             {: RESULT = new UnitPowerNode(makeLoc(xxleft, nxright), x, new NumberUnitNode(n, makeLoc(nxleft, nxright))); :}
+ ;
+
+unit_term ::= 
+   LPAR unit_term:t RPAR                            {: RESULT = t; :}
+ | id:id                                            {: RESULT = new UnitIdentifierNode(id.getLocation(), id.getName()); :}
+ | id:pre COLON id:id                               {: RESULT = new UnitIdentifierNode(pre.getLocation().join(id.getLocation()), pre.getName(), id.getName()); :}
+ | unsigned:n                                       {: RESULT = new NumberUnitNode(n, makeLoc(nxleft, nxright)); :}
+ ;
+
+dimnum ::= unit:u                                   {: RESULT = u; :};

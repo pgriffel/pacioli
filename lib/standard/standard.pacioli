@@ -171,6 +171,8 @@ define right_division(x,y) = x '*' inverse(y);
 # ------------------------------------------------------------------------------
 
 declare public combis :: for_type a: (List(a)) -> List(Tuple(a, a));
+declare public list_count :: (List(Boole())) -> 1;
+declare public list_concat :: (List(String())) -> String();
 
 define combis(list) =
     let accumulator(accu, x) =
@@ -180,6 +182,10 @@ define combis(list) =
     in
         let (result, _) = loop_list(tuple([], list), accumulator, list) in result end
     end;
+
+define list_count(xs) = list_size([x | x <- xs, x]);
+define list_concat(xs) =
+  if xs = [] then "" else fold_list(concatenate, xs) end;
 
 # ------------------------------------------------------------------------------
 # Primitives for Comprehensions (todo: implement properly)
@@ -197,7 +203,7 @@ define list_sum(x) = fold_list(sum, x);
 define list_min(x) = fold_list(min, x);
 define list_max(x) = fold_list(max, x);
 define list_gcd(x) = fold_list(gcd, x);
-define list_all(x) = if x = [] then true else fold_list(lambda (a,b) a and b end, x) end;
+define list_all(x) = if x = [] then true else fold_list(fn (a,b) a and b end, x) end;
 
 # ------------------------------------------------------------------------------
 # Percentages and Fractions
@@ -220,7 +226,7 @@ declare public intercalate :: (List(String()), String()) -> String();
 
 define intercalate(items, seperator) =
   if items = [] then "" else
-    fold_list(lambda (x, y) concatenate(x, concatenate(seperator, y)) end, items)
+    fold_list(fn (x, y) concatenate(x, concatenate(seperator, y)) end, items)
   end;
 
 declare public remove_nth :: for_type t: (1, List(t)) -> List(t);
