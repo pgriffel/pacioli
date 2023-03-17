@@ -1,0 +1,49 @@
+import testing;
+
+run_test_suites([
+        scanl_suite,
+        scanl1_suite,
+        zip_with_suite
+    ]); 
+ 
+# ------------------------------------------------------------------------------
+# Functions scanl
+# ------------------------------------------------------------------------------
+
+define scanl_suite = test_suite("Function scanl", [
+
+    test("should handle empty list correctly",
+         fn ()
+            scanl(sum, 42, []) = [42]
+         end),
+         
+    test("should subtract correctly",
+         fn ()
+            scanl(minus, 100, [1, 2, 3, 4]) = [100, 99, 97, 94, 90]
+         end)
+    ]);
+
+# ------------------------------------------------------------------------------
+# Functions scanl1
+# ------------------------------------------------------------------------------
+
+define scanl1_suite = test_suite("Function scanl1", [
+       
+    test("should sum correctly",
+         fn ()
+            scanl1(sum, [1, 2, 3, 5]) = [1, 3, 6, 11]
+         end)
+    ]);
+
+
+# ------------------------------------------------------------------------------
+# Function zip_with
+# ------------------------------------------------------------------------------
+
+define zip_with_suite = test_suite("Function zip_with", [
+       
+    test("should sum correctly",
+         fn ()
+            zip_with(sum, [1, 2, 3], [4, 5, 6]) = [5, 7, 9]
+         end)
+    ]);

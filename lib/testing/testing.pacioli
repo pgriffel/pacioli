@@ -1,0 +1,188 @@
+# ------------------------------------------------------------------------------
+# Test utilities
+# 
+# Example use:
+#
+#   define function_naturals_suite = test_suite("Function 'naturals'", [
+#     
+#       test("should produce the empty list for 0",
+#           fn ()
+#               naturals(0) = []
+#           end),
+# 
+#       test("should produce the first 5 naturals",
+#           fn ()
+#               naturals(5) = [0, 1, 2, 3, 4]
+#           end)
+#       ]);
+# 
+#   run_test_suite(function_naturals_suite);
+# 
+# Expected output:
+# 
+#   Function 'naturals'
+#     should produce the empty list for 0 -> ok
+#     should produce the first 5 naturals -> ok
+#   All 2 tests succeeded
+#
+# Replace test and test_suite by variants test_only and test_suite_only to filter
+# tests.
+#
+# ------------------------------------------------------------------------------
+
+declare public test, test_only :: (String, () -> Boole) -> Test;
+declare public test_description :: (Test) -> String;
+declare public test_is_only :: (Test) -> Boole;
+declare public run_test :: (Test) -> Boole;
+
+declare public test_suite, test_suite_only :: (String, List(Test)) -> TestSuite;
+declare public suite_description :: (TestSuite) -> String;
+declare public suite_tests :: (TestSuite) -> List(Test);
+declare public suite_is_only :: (TestSuite) -> Boole;
+declare public run_test_suites :: (List(TestSuite)) -> Void;
+
+# ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
+
+deftype Test() = Tuple(String, () -> Boole, Boole);
+
+define test(description, body) =
+  tuple(description , body, false);
+
+define test_only(description, body) =
+  tuple(description , body, true);
+
+define test_description(test) = 
+  let (description, _, _) = test in description end;
+
+define test_is_only(test) = 
+  let (_, _, is_only) = test in is_only end;
+
+define run_test(test) = 
+  let (_, body, _) = test in body() end;
+
+# ------------------------------------------------------------------------------
+# Tests suite
+# ------------------------------------------------------------------------------
+
+deftype TestSuite() = Tuple(String, List(Test), Boole);
+
+define test_suite(description, tests) = 
+    tuple(description, tests, false);
+
+define test_suite_only(description, tests) = 
+    tuple(description, tests, true);
+
+define suite_description(suite) = 
+  let (description, _, _) = suite in description end;
+
+define suite_tests(suite) = 
+  let (_, tests, _) = suite in tests end;
+
+define suite_is_only(suite) = 
+  let (_, _, is_only) = suite in is_only end;
+
+define run_test_suites(suites) =
+  begin
+    print("\nRuning test suites\n");
+
+    # Determine which suites to run
+    suites_with_only := [s | s <- suites, suite_is_only(s)];
+    to_test := if suites_with_only = [] then suites else suites_with_only end;
+    nr_skipped_suites := list_size(suites) - list_size(to_test);
+
+    # Run the tests. Collect the results as a list of (description, result) pairs
+    results := [tuple(suite_description(s), run_test_suite(s)) | s <- to_test];
+
+    # Print a status message
+    print(format("Tests finished, %s suites tested%s\n",
+      num2string(list_size(to_test), 0),
+      skipped_message(nr_skipped_suites)));
+
+    # Print a summary of the results per suite. Also calculate totals.
+    to_print := results;
+    total_nr_tests := 0;
+    total_nr_successes := 0;
+    while to_print != [] do
+
+      # Get the result for this suite
+      (description, result) := head(to_print);
+      (nr_tests, nr_errors, nr_skipped) := result;
+      nr_successes := nr_tests - nr_errors;
+
+      # Print the result
+      print(format("  %s -> %s/%s success%s", description,
+        num2string(nr_successes, 0),
+        num2string(nr_tests, 0),
+        skipped_message(nr_skipped)));
+
+      # Update the totals
+      total_nr_tests := total_nr_tests + nr_tests;
+      total_nr_successes := total_nr_successes + nr_successes;
+
+      to_print := tail(to_print);
+    end
+
+    # Determine total number of skipped
+    total_nr_skipped := count[ true | s <- suites, t <- suite_tests(s)] - total_nr_tests;
+
+    # Print the totals
+    print(format("\nTotal tests -> %s/%s success%s",
+      num2string(total_nr_successes, 0),
+      num2string(total_nr_tests, 0),
+      skipped_message(total_nr_skipped)));
+  end;
+
+# ------------------------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------------------------
+
+declare run_test_suite :: (TestSuite) -> Tuple(1, 1, 1);
+declare skipped_message :: (1) -> String;
+
+
+# Runs a test suite. Prints output to the terminal. Returns the result as
+# triple (nr_tests, nr_failures, nr_skipped).
+
+define run_test_suite(suite) =
+  let
+    (description, all_tests, _) = suite,
+    nr_onlys = count[test_is_only(t) | t <- all_tests],
+    tests_with_only = [t | t <- all_tests, test_is_only(t)],
+    tests = if tests_with_only = [] then all_tests else tests_with_only end,
+    results = [ tuple(test_description(test), run_test(test)) | test <- tests ],
+    nr_tests = list_size(tests),
+    nr_failures = count[ not(okay) | (_, okay) <- results ],
+    nr_skipped = list_size(all_tests) - nr_tests,
+    messages = [ message | (description, okay) <- results,
+                            result := if okay then "ok" else "FAIL!" end,
+                            message := format("  %s -> %s", description, result)],
+    summary = if nr_failures = 0 then
+                format("All %s tests succeeded", num2string(nr_tests, 0))
+              else
+                format("\nTEST FAILURES!!!!!\n\n  %s of %s tests failed",
+                  num2string(nr_failures, 0), 
+                  num2string(nr_tests, 0))
+              end
+                      
+  in
+    begin
+      print(format("%s\n%s\n%s%s\n", 
+        description,
+        intercalate(messages, "\n"),
+        summary,
+        skipped_message(nr_skipped)));
+      return tuple(nr_tests, nr_failures, nr_skipped);
+    end
+  end;
+
+
+# Helper to print the number of skipped tests or suites.
+
+define skipped_message(nr_skipped) =
+  if nr_skipped = 0 then
+    ""
+  else
+    format(", %s skipped", num2string(nr_skipped, 0))
+  end;

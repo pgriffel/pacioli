@@ -1,0 +1,85 @@
+import testing;
+
+run_test_suites([
+        comprehensions_suite,
+        sort_suite
+    ]); 
+ 
+# ------------------------------------------------------------------------------
+# Comprehensions
+# ------------------------------------------------------------------------------
+
+define comprehensions_suite = test_suite("Comprehension", [
+    
+    test("should count empty list as zero",
+         fn ()
+            count[true | x <- []] = 0
+         end),
+
+    test("should count true as one",
+         fn ()
+            count[true | x <- [1, 2, 3]] = 3
+         end),
+
+    test("should count false as zero",
+         fn ()
+            count[false | x <- [1, 2, 3]] = 0
+         end),
+         
+    test("count comprehension should filter correctly I",
+         fn ()
+            count[mod(x, 2) = 0 | x <- naturals(10)] = 5
+         end),
+         
+     test("count comprehension should filter correctly II",
+         fn ()
+            count[ x < y | x <- naturals(10), y <- naturals(10)] = 45
+         end),
+             
+       test("all comprehension should be true for empty list",
+         fn ()
+            all[x | x <- []] = true
+         end),
+         
+      test("some comprehension should be false for empty list",
+         fn ()
+            some[x | x <- []] = false
+         end),
+             
+       test("all comprehension should be true for non-empty list",
+         fn ()
+            all[x < 5 | x <- [1,2,3]] = true
+         end),
+         
+      test("some comprehension should be true for non-empty list",
+         fn ()
+            some[x < 5 | x <- [1,2,3]] = true
+         end),
+             
+       test("all comprehension should be false for non-empty list",
+         fn ()
+            all[x < 3 | x <- [1,2,3]] = false
+         end),
+         
+      test("some comprehension should be true for non-empty list",
+         fn ()
+            some[x < 3 | x <- [1,2,3]] = true
+         end)
+    ]);
+
+# ------------------------------------------------------------------------------
+# Function sort
+# ------------------------------------------------------------------------------
+
+define sort_suite = test_suite("Function sort", [
+    
+    test("should sort ascending",
+         fn ()
+            sort_list([1, 9, 3, 2, 5], less) = [1, 2, 3, 5, 9]
+         end),
+         
+    test("should sort decending",
+         fn ()
+             sort_list([1, 9, 3, 2, 5], greater) = [9, 5, 3, 2, 1]
+         end)
+    ]);
