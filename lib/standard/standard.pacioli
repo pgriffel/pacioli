@@ -17,6 +17,43 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+# ----------------------------------------------------------------------------
+# Standard Library candidates
+#
+# TODO: use zip_with as the primitive and derive zip from it.
+# ----------------------------------------------------------------------------
+
+declare scanl1 :: for_type a, b: ((a, a) -> a, List(a)) -> List(a);
+declare scanl :: for_type a, b: ((b, a) -> b, b, List(a)) -> List(b);
+declare public zip_with :: for_type a,b,c: ((a, b) -> c, List(a), List(b)) -> List(c);
+declare compare :: (1, 1) -> 1;
+declare unzip :: for_type a, b: (List(Tuple(a, b))) -> Tuple(List(a), List(b));
+
+define unzip(xs) = 
+    tuple([a | (a, _) <- xs], [b | (_, b) <- xs]);
+
+define scanl1(f, acc) = 
+    scanl(f, head(acc), tail(acc));
+
+define scanl(f, x, acc) =
+    if acc = [] then
+        [x]
+    else
+        cons(x, scanl(f, f(x, head(acc)), tail(acc)))
+    end;
+
+define zip_with(f, xs, ys) = 
+    map_list(fn (pair) apply(f, pair) end, zip(xs, ys));
+
+define compare(x, y) =
+    if x < y then
+        -1
+    else if x > y then
+        1
+    else
+        0
+    end;
+    
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -197,13 +234,14 @@ declare public list_sum, list_min, list_max ::
 declare public list_gcd :: 
   for_index P, Q: for_unit a, P!u, Q!v: (List(P! per Q!)) -> P! per Q!;
 
-declare public list_all :: (List(Boole())) -> Boole();
+declare public list_all, list_some :: (List(Boole())) -> Boole();
 
 define list_sum(x) = fold_list(sum, x);
 define list_min(x) = fold_list(min, x);
 define list_max(x) = fold_list(max, x);
 define list_gcd(x) = fold_list(gcd, x);
 define list_all(x) = if x = [] then true else fold_list(fn (a,b) a and b end, x) end;
+define list_some(x) = if x = [] then false else fold_list(fn (a,b) a or b end, x) end;
 
 # ------------------------------------------------------------------------------
 # Percentages and Fractions

@@ -22,8 +22,11 @@ package pacioli;
 
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
@@ -32,6 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
@@ -371,8 +375,8 @@ public class Pacioli {
     }
 
     private static void infoCommand(List<File> libs) {
-
-        logln("Pacioli v0.4.5-SNAPSHOT");
+        
+        logln("Pacioli v0.5.0-SNAPSHOT");
 
         logln("\nSettings");
         logln("  verbosity=%s", verbosity);
