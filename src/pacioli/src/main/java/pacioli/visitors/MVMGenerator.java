@@ -142,7 +142,16 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     private String escapeString(String in) {
         // Quick fix for the debug option for string literals
-        return in.replaceAll("\"", "\\\\\"");
+        //return in.replaceAll("\"", "\\\\\"");
+
+        return in.replace("\\", "\\\\")
+        .replace("\t", "\\t")
+        .replace("\b", "\\b")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\f", "\\f")
+        //.replace("\'", "\\'")
+        .replace("\"", "\\\"");
     }
 
     @Override
@@ -392,7 +401,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(StringNode node) {
-        out.format("string(%s)", node.pretty());
+        out.format("string(\"%s\")", escapeString(node.valueString()));
     }
 
     @Override
