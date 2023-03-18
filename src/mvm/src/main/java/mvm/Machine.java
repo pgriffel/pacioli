@@ -1182,6 +1182,13 @@ public class Machine {
                 }
             }
         });
+
+        storeBaseValue("error", new Primitive("error") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliString string = (PacioliString) params.get(0);
+                throw new MVMException(string.toText());
+            }
+        });
     }
 
     /*

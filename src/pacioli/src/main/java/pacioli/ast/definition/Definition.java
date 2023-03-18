@@ -29,5 +29,5 @@ public interface Definition extends Node {
 
     public String localName();
 
-    public void addToProgr(Progam program) throws PacioliException;
+    public void addToProgr(Progam program, boolean fromProgram) throws PacioliException;
 }

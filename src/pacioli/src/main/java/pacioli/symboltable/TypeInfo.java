@@ -2,6 +2,8 @@ package pacioli.symboltable;
 
 import java.util.Optional;
 
+import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
+
 import pacioli.Location;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.types.ast.TypeNode;
@@ -42,7 +44,23 @@ public class TypeInfo extends AbstractSymbolInfo implements SymbolInfo {
     }
 
     public TypeInfo includeOther(TypeInfo otherInfo) {
-        // TODO Auto-generated method stub
-        return this;
+        TypeInfo info = new TypeInfo(generic());
+        info.definition = otherInfo.definition;
+        info.typeAST = otherInfo.typeAST;
+        info.isIndexSetId = otherInfo.isIndexSetId;
+        info.isUnitId = otherInfo.isUnitId;
+        //info.isVar = otherInfo.isVar;
+        return info;
+        //return this;
+    }
+
+    public TypeInfo withFromProgram(boolean fromProgram) {
+        TypeInfo info = new TypeInfo(generic().withFromProgram(fromProgram));
+        info.definition = definition;
+        info.typeAST = typeAST;
+        info.isIndexSetId = isIndexSetId;
+        info.isUnitId = isUnitId;
+        info.isVar = isVar;
+        return info;
     }
 }

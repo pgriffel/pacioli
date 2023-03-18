@@ -32,5 +32,6 @@ public abstract class AbstractSymbolInfo implements SymbolInfo {
     
     public Boolean isFromProgram() {
         return generic.isFromProgram();
-    };
+    }
+
 }

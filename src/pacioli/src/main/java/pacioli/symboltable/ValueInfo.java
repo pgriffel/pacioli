@@ -138,4 +138,12 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
         return this;
     }
 
+    public ValueInfo withFromProgram(boolean fromProgram) {
+        ValueInfo info = new ValueInfo(generic().withFromProgram(fromProgram), isMonomorphic);
+        info.definition = definition;
+        info.declaredType = declaredType;
+        info.inferredType = inferredType;
+        return info;
+    }
+
 }

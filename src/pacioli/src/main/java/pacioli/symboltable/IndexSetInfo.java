@@ -40,4 +40,10 @@ public class IndexSetInfo extends AbstractSymbolInfo implements SymbolInfo {
         // TODO Auto-generated method stub
         return this;
     }
+
+    public IndexSetInfo withFromProgram(boolean b) {
+        IndexSetInfo info = new IndexSetInfo(generic());
+        info.definition = definition;
+        return info;
+    }
 }

@@ -18,4 +18,8 @@ public abstract class UnitInfo extends AbstractSymbolInfo implements SymbolInfo 
     public UnitInfo includeOther(UnitInfo otherInfo) {
         return this;
     }
+
+    public UnitInfo withFromProgram(boolean b) {
+        throw new RuntimeException("Cannot do");
+    }
 }

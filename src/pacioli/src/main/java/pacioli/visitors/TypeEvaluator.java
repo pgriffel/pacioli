@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Visitor;
@@ -215,6 +216,10 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
     private void handleParametric(TypeApplicationNode node, List<PacioliType> types) {
         Optional<? extends Definition> definition = node.op.info.getDefinition();
 
+        boolean reduce2 = false || node.op.info.isFromProgram();
+
+        //Pacioli.logln("Reduce for %s = %s", node.op.getName(), reduce2);
+
         if (!definition.isPresent()) {
             //returnType(new ParametricType(node.getName(), types));
             if (!(node.op.info instanceof TypeInfo)) {
@@ -223,7 +228,7 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             }
             returnType(new ParametricType((TypeInfo) node.op.info, types));
         } else {
-            Boolean doReduce = reduce || true;   
+            Boolean doReduce = reduce2; // reduce || false;   
             assert (definition.get() instanceof TypeDefinition);
             TypeDefinition typeDefinition = (TypeDefinition) definition.get();
             TypeNode rhs = typeDefinition.rhs;

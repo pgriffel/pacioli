@@ -116,6 +116,10 @@ public class Location {
     }
 
     public String description() {
+
+        if (file == null) {
+            return "No location info";
+        }
         
         String source;
         try {

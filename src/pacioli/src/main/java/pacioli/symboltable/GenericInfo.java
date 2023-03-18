@@ -6,10 +6,10 @@ import pacioli.Location;
 
 public class GenericInfo {
         
-    public String name;
-    private String module;
-    private Location location;
-    private Boolean isGlobal;
+    public final String name;
+    private final String module;
+    private final Location location;
+    private final Boolean isGlobal;
     private final Boolean isFromProgram;
 
     public GenericInfo(String name, String module, Boolean isGlobal, Location location, Boolean isFromProgram) {
@@ -43,5 +43,9 @@ public class GenericInfo {
 
     public Boolean isFromProgram() {
         return isFromProgram;
+    }
+
+    public GenericInfo withFromProgram(boolean isFromProgram) {
+        return new GenericInfo(name, module, isGlobal, location, isFromProgram);
     }
 }

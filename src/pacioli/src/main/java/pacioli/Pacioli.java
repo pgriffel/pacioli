@@ -219,6 +219,13 @@ public class Pacioli {
                 for (String file : files) {
                     typesCommand(file, libs);
                 }
+            } else if (command.equals("symbols")) {
+                if (files.isEmpty()) {
+                    displayError("No files to read.");
+                }
+                for (String file : files) {
+                    symbolsCommand(file, libs);
+                }
             } else if (command.equals("help")) {
                 helpCommand();
             } else if (command.equals("test")) {
@@ -374,6 +381,40 @@ public class Pacioli {
         }
     }
 
+    private static void symbolsCommand(String fileName, List<File> libs) throws Exception {
+
+        Integer version = 0; // todo
+        Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
+
+        if (!optionalFile.isPresent()) {
+            optionalFile = PacioliFile.findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
+        }
+        
+        if (!optionalFile.isPresent()) {
+            throw new PacioliException("Error: file '%s' does not exist.", fileName);
+        }
+
+        PacioliFile file = optionalFile.get();
+        
+        Pacioli.logln1("Displaying symbol tables for file '%s'", file.getFile());
+
+        try {
+            
+            Pacioli.logln2("Loading module '%s'", file.getFile());
+            Progam program = Progam.load(file, libs, Phase.TYPED);
+            
+            program.printSymbolTable(program.values, "Values");
+            program.printSymbolTable(program.types, "Values");
+            //Pacioli.logln("%s", program.pretty());
+            
+            //program.printTypes();
+
+        } catch (IOException e) {
+            Pacioli.logln("\nError: cannot symbol tables in file '%s':\n\n%s", fileName, e);
+        }
+
+    }
+    
     private static void infoCommand(List<File> libs) {
         
         logln("Pacioli v0.5.0-SNAPSHOT");
@@ -572,7 +613,7 @@ public class Pacioli {
         
         PacioliFile libFile = PacioliFile.requireLibrary("base", libs);
         Progam program = new Progam(libFile, libs);
-        program.loadTillHelper(Phase.RESOLVED, false, false, false);
+        program.loadTill(Phase.RESOLVED);
         List<ValueInfo> allInfos = program.values.allInfos();
         List<String> names = new ArrayList<String>();
         for (ValueInfo info: allInfos) {

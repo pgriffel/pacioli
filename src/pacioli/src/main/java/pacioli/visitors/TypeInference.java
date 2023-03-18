@@ -312,7 +312,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
             if (info.isGlobal()) {
                 // Move instantiate to proper place.
                 if (node.getInfo().getDeclaredType().isPresent()) {
-                    returnNode(new Typing(node.getInfo().getDeclaredType().get().evalType(true).instantiate()));
+                    returnNode(new Typing(node.getInfo().getDeclaredType().get().evalType(info.isFromProgram()).instantiate()));
                 } else {
                     returnNode(new Typing(node.getInfo().inferredType().instantiate()));
                 }

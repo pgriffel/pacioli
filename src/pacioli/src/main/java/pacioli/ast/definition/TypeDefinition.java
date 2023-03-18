@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.Location;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.TypeConstraint;
@@ -107,8 +108,9 @@ public class TypeDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        TypeInfo info = new TypeInfo(localName(), program.getModule(), true, getLocation(), !program.isLibrary());
+    public void addToProgr(Progam program, boolean fromProgram) throws PacioliException {
+        //Pacioli.logln("Adding type %s to %s %s", this.localName(), program.getFile(), rhs);
+        TypeInfo info = new TypeInfo(localName(), program.getModule(), true, getLocation(), fromProgram);
         info.typeAST = rhs;
         info.setDefinition(this);
         program.addInfo(info);

@@ -73,4 +73,13 @@ public class VectorUnitInfo extends UnitInfo implements SymbolInfo {
         return this;
     }
 
+    
+    public VectorUnitInfo withFromProgram(boolean fromProgram) {
+        VectorUnitInfo info = new VectorUnitInfo(generic().withFromProgram(fromProgram));
+        info.items = items;
+        info.units = units;
+        info.definition = definition;
+        return info;
+    }
+
 }

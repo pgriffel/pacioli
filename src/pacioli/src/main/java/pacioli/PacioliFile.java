@@ -223,4 +223,9 @@ public class PacioliFile extends AbstractPrintable {
         PacioliFile otherPacioliFile = (PacioliFile) other;
         return this.file.equals(otherPacioliFile.file);
     }
+
+    public boolean isSystemLibrary(String name) {
+        // TODO: check that it is really a library. Check that filename points to lib directory!
+        return this.module.equals(name);
+    }
 }

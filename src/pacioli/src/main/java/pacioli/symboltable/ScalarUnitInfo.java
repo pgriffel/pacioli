@@ -45,4 +45,11 @@ public class ScalarUnitInfo extends UnitInfo implements SymbolInfo {
         // TODO Auto-generated method stub
         return this;
     }
+    
+    public UnitInfo withFromProgram(boolean fromProgram) {
+        ScalarUnitInfo info = new ScalarUnitInfo(generic().withFromProgram(fromProgram));
+        info.symbol = symbol;
+        info.definition = definition;
+        return info;
+    }
 }

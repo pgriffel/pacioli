@@ -61,11 +61,11 @@ public class ValueDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program) throws PacioliException {
+    public void addToProgr(Progam program, boolean fromProgram) throws PacioliException {
 
         String name = localName();
         
-        ValueInfo info = new ValueInfo(name, program.getModule(), true, false, getLocation(), !program.isLibrary());
+        ValueInfo info = new ValueInfo(name, program.getModule(), true, false, getLocation(), fromProgram);
         info.setDefinition(this);
         
         ValueInfo oldInfo = program.values.lookup(name);

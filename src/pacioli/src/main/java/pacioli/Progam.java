@@ -94,7 +94,7 @@ public class Progam extends AbstractPrintable {
     
     static Progam load(PacioliFile file, List<File> libs, Phase phase) throws Exception {
         Progam program = new Progam(file, libs);
-        program.loadTill(phase, !file.isLibrary());
+        program.loadTill(phase);
         return program;
     }
     
@@ -155,12 +155,12 @@ public class Progam extends AbstractPrintable {
         Pacioli.logln("Begin %s table", header);
         for (SymbolInfo info: table.allInfos()) {
             Optional<? extends Definition> def = info.getDefinition();
-            Pacioli.logln("  %-25s %-15s %s %-50s %s", 
+            Pacioli.logln("  %-25s %-25s %-10s %-10s %-50s", 
                     info.name(),
                     info.generic().getModule(),
-                    isExternal(info) ? "     " : "local", 
-                    info.generic().getFile(), 
-                    def.isPresent() ? def.get() : "No definition");
+                    info.isFromProgram(),//isExternal(info) ? "     " : "local", 
+                    info.generic().getFile() == null ? "" : isExternal(info), // "", //info.generic().getFile(), 
+                    def.isPresent() ? "has def" : "No definition");
         }
         Pacioli.logln("End table");
     }
@@ -214,6 +214,7 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     
     Boolean isExternal(SymbolInfo info) {
+        // Reuse isFromProgram? See symbol table output to check if that is safe.
         return !info.generic().getFile().equals(getFile());
     }
     
@@ -254,17 +255,14 @@ public class Progam extends AbstractPrintable {
     // Loading
     // -------------------------------------------------------------------------
     
-    public void loadTill(Phase phase, Boolean fromProgram) throws Exception {
-        loadTillHelper(phase, true, true, fromProgram);
-    }
-    
-    public void loadTillHelper(Phase phase, Boolean loadPrimitives, Boolean loadStandard, Boolean fromProgram) throws Exception {
-        
+    public void loadTill(Phase phase) throws Exception {
+
         program = Parser.parseFile(this.file.getFile());
+
         desugar();
         if (phase.equals(Phase.PARSED)) return;
-        
-        fillTables(loadPrimitives, loadStandard, fromProgram);
+
+        fillTables();
         if (phase.equals(Phase.DESUGARED)) return;
         
         resolve();
@@ -279,34 +277,52 @@ public class Progam extends AbstractPrintable {
     // Filling symbol tables
     // -------------------------------------------------------------------------
 
-    public void fillTables(Boolean loadPrimitives, Boolean loadStandard, Boolean fromProgram) throws Exception {
+    /**
+     * Make obsolete by deftypes without body?
+     */
 
+     public void addPrimitiveTypes() {
         for (String type : ResolveVisitor.builtinTypes) {
             // Fixme: null arg for the location. Maybe declare them in a base.pacioli?
-            GenericInfo generic = new GenericInfo(type, "base", true, new Location(), fromProgram);
+            GenericInfo generic = new GenericInfo(type, "base", true, new Location(), file.isSystemLibrary("base"));
             addInfo(new TypeInfo(generic));
         }
+     }
 
-        // Fill symbol tables for the default include files
-        for (String lib : PacioliFile.defaultIncludes) {
-            Boolean isStandard = lib.equals("standard");
-            if ((isStandard && loadStandard) || (!isStandard && loadPrimitives)) {
-                PacioliFile file = PacioliFile.requireLibrary(lib, libs);
-                Progam prog = new Progam(file, libs);
-                prog.loadTillHelper(Progam.Phase.TYPED, isStandard, false, false);
-                this.includeOther(prog);
-            }
+    /**
+     * Used to load base and standard
+     * 
+     * @param lib One of "base" or "standard"
+     * @throws Exception
+     */
+    public void loadSystemLibrary(String lib) throws Exception {
+        PacioliFile file = PacioliFile.requireLibrary(lib, libs);
+        Progam prog = new Progam(file, libs);
+        prog.loadTill(Progam.Phase.RESOLVED);
+        this.includeOther(prog);
+    }
+
+    public void fillTables() throws Exception {
+        
+        this.addPrimitiveTypes();
+
+        if (!file.isSystemLibrary("base")) {
+            this.loadSystemLibrary("base");
+        }
+
+        if (!file.isSystemLibrary("base") && !file.isSystemLibrary("standard")) {
+            this.loadSystemLibrary("standard");
         }
 
         // Fill symbol tables for the imported libraries
         for (PacioliFile file: findImports(libs)) {
             Progam prog = new Progam(file, libs);
             Pacioli.logln("Loading library file %s", file.getFile());
-            prog.loadTill(Progam.Phase.PARSED, false);
+            prog.loadTill(Progam.Phase.PARSED);
             for (Definition def : prog.program.definitions) {
                 if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
                         || def instanceof TypeDefinition) {
-                    def.addToProgr(prog);
+                    def.addToProgr(prog, false);
                 }
             }
             includeOther(prog);
@@ -318,11 +334,11 @@ public class Progam extends AbstractPrintable {
             PacioliFile file = PacioliFile.findInclude(p.getParent(), this.file, include);
             Progam prog = new Progam(file, libs);
             Pacioli.logln("Loading include file %s", file);
-            prog.loadTill(Progam.Phase.PARSED, true);
+            prog.loadTill(Progam.Phase.PARSED);
             for (Definition def : prog.program.definitions) {
                 if (def instanceof Declaration || def instanceof IndexSetDefinition  || def instanceof UnitDefinition  || def instanceof UnitVectorDefinition
                         || def instanceof TypeDefinition) {
-                    def.addToProgr(prog);
+                    def.addToProgr(prog, false);
                 }
             }
             includeOther(prog);
@@ -330,7 +346,7 @@ public class Progam extends AbstractPrintable {
 
         // Fill symbol tables for this file
         for (Definition def : program.definitions) {
-            def.addToProgr(this);
+            def.addToProgr(this, true);
         }
     }
 
@@ -379,13 +395,11 @@ public class Progam extends AbstractPrintable {
         // Include the units from the other program
         for (UnitInfo otherInfo: other.units.allInfos()) {
             String name = otherInfo.name();
-            if (!other.isExternal(otherInfo)) {
-                UnitInfo info = units.lookup(name);
-                if (info == null) {
-                    units.put(name, otherInfo);
-                } else {
-                    units.put(name, info.includeOther(otherInfo));
-                }
+            UnitInfo info = units.lookup(name);
+            if (info == null) {
+                units.put(name, otherInfo.withFromProgram(false));
+            } else {
+                units.put(name, info.includeOther(otherInfo));
             }
         }
         
@@ -394,7 +408,7 @@ public class Progam extends AbstractPrintable {
             String name = otherInfo.name();
             IndexSetInfo info = indexSets.lookup(name);
             if (info == null) {
-                indexSets.put(name, otherInfo);
+                indexSets.put(name, otherInfo.withFromProgram(false));
             } else {
                 indexSets.put(name, info.includeOther(otherInfo));
             }
@@ -402,10 +416,10 @@ public class Progam extends AbstractPrintable {
         
         // Include the types from the other program
         for (TypeInfo otherInfo: other.types.allInfos()) {
-             String name = otherInfo.name(); 
+            String name = otherInfo.name(); 
             TypeInfo info = types.lookup(name);
             if (info == null) {
-                types.put(name, otherInfo);
+                types.put(name, otherInfo.withFromProgram(false));
             } else {
                 types.put(name, info.includeOther(otherInfo));
             }
@@ -417,7 +431,7 @@ public class Progam extends AbstractPrintable {
             if (!other.isExternal(otherInfo)) {
                 ValueInfo info = values.lookup(name);
                 if (info == null) {
-                    values.put(name, otherInfo);
+                    values.put(name, otherInfo.withFromProgram(false));
                 } else {
                     values.put(name, info.includeOther(otherInfo));
                 }
@@ -534,7 +548,7 @@ public class Progam extends AbstractPrintable {
 //                Pacioli.warn("Skipping type check for %s", info.name());
             }
             if (declared.isPresent() && info.inferredType.isPresent()) {
-                PacioliType declaredType = declared.get().evalType(true).instantiate();
+                PacioliType declaredType = declared.get().evalType(info.isFromProgram()).instantiate();
                 
                 PacioliType inferredType = info.inferredType().instantiate();
                 
@@ -545,9 +559,12 @@ public class Progam extends AbstractPrintable {
                 if (!declaredType.isInstanceOf(inferredType)) {
                     throw new RuntimeException("Type error",
                             new PacioliException(info.getLocation(), 
-                                    String.format("Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
+                                    String.format("Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\nfrom program = %s\n",
                                             declaredType.unfresh().deval().pretty(),
-                                            inferredType.unfresh().deval().pretty())));
+                                            inferredType.unfresh().deval().pretty(),
+                                            
+                                            info.isFromProgram()
+                                            )));
                 }
             }
             
