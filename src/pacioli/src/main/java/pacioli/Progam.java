@@ -25,6 +25,7 @@ import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.unit.UnitNode;
 import pacioli.compilers.JSCompiler;
 import pacioli.compilers.MATLABCompiler;
 import pacioli.compilers.MVMCompiler;
@@ -32,6 +33,7 @@ import pacioli.compilers.PythonCompiler;
 import pacioli.parser.Parser;
 import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;
@@ -39,6 +41,7 @@ import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.PacioliType;
+import pacioli.types.TypeBase;
 import pacioli.types.ast.TypeNode;
 import pacioli.visitors.CodeGenerator;
 import pacioli.visitors.JSGenerator;
@@ -714,6 +717,8 @@ public class Progam extends AbstractPrintable {
             }
         }
         
+        printer.format("\npacioliUnitContext = Pacioli.PacioliContext.si()\n\n");
+
         // Find all units to compile
         List<UnitInfo> unitsToCompile = new ArrayList<UnitInfo>();
         for (UnitInfo info: units.allInfos()) {
@@ -724,6 +729,25 @@ public class Progam extends AbstractPrintable {
 
         // Sort the units according to depency order
         unitsToCompile = orderedInfos(unitsToCompile);
+
+
+
+        // for (UnitInfo info : unitsToCompile) {
+        //     if (info instanceof ScalarUnitInfo) {
+        //         ScalarUnitInfo scalarInfo = (ScalarUnitInfo) info;
+        //         Optional<UnitNode> unitNode = scalarInfo.getDefinition().flatMap(d-> d.body);
+        //         if (unitNode.isPresent()){
+        //             String body = TypeBase.compileUnitToJSON(unitNode.get().evalUnit().unit());
+        //             printer.format("\nPacioli2.%s = () => { return %s; }\n", scalarInfo.globalName(), body);
+        //             printer.format("\nconsole.log(Pacioli2.%s())\n", scalarInfo.globalName());
+        //             //printer.format("\n//Pacioli2.define_unit(\"%s\", \"%s\", %s)\n", scalarInfo.globalName(), scalarInfo.symbol, body);
+        //         } else {
+        //             printer.format("\n//Pacioli2.define_unit(\"%s\", \"%s\")\n", scalarInfo.globalName(), scalarInfo.symbol);
+        //         }
+        //     }
+        // }
+
+
 
         // Generate code for the units
         for (UnitInfo info : unitsToCompile) {

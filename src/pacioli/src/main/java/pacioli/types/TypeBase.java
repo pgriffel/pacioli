@@ -28,4 +28,25 @@ public interface TypeBase extends Base<TypeBase> {
             return product;
         }
     }
+
+    /**
+     * Compiles to uom-ts definition format. Replaces compileUnitToJS above.
+     * @param unit
+     * @return
+     */
+    public static String compileUnitToJSON(Unit<TypeBase> unit) {
+        String product = "";
+        int n = 0;
+        for (TypeBase base : unit.bases()) {
+            TypeBase typeBase = (TypeBase) base;
+            String baseText = typeBase.compileToJS() + ".expt(" + unit.power(base) + ")";
+            product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
+            n++;
+        }
+        if (n == 0) {
+            return "Pacioli.ONE";
+        } else {
+            return product;
+        }
+    }
 }
