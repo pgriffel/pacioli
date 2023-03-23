@@ -25,11 +25,11 @@ public class JSGenerator implements TypeVisitor {
     
     @Override
     public void visit(FunctionType type) {
-        out.write("new Pacioli.Type('function', [");
+        out.write("new Pacioli.FunctionType(");
         type.domain.accept(this);
         out.write(", ");
         type.range.accept(this);
-        out.write("])");
+        out.write(")");
     }
 
     @Override
@@ -39,7 +39,7 @@ public class JSGenerator implements TypeVisitor {
 
     @Override
     public void visit(IndexList type) {
-        out.write("new Pacioli.Type('coordinates', [");
+        out.write("new Pacioli.IndexType([");
         String pre = "";
         for (int i = 0; i < type.getIndexSets().size(); i++) {
             out.write(pre);
@@ -66,8 +66,7 @@ public class JSGenerator implements TypeVisitor {
         out.write(", ");
         //out.write(type.rowDimension.compileToJS());
         type.rowDimension.accept(this);
-        if (!type.rowDimension.isVar())
-            out.write(".param");
+        // if (!type.rowDimension.isVar()) out.write(".param");
         out.write(", ");
         if (type.rowDimension.isVar() || type.rowDimension.width() > 0) {
             out.write(TypeBase.compileUnitToJS(type.rowUnit));
@@ -77,8 +76,7 @@ public class JSGenerator implements TypeVisitor {
         out.write(", ");
         //out.write(type.columnDimension.compileToJS());
         type.columnDimension.accept(this);
-        if (!type.columnDimension.isVar())
-            out.write(".param");
+        // if (!type.columnDimension.isVar()) out.write(".param");
         out.write(", ");
         if (type.columnDimension.isVar() || type.columnDimension.width() > 0) {
             out.write(TypeBase.compileUnitToJS(type.columnUnit));
@@ -97,16 +95,16 @@ public class JSGenerator implements TypeVisitor {
     public void visit(ParametricType type) {
         String name = type.name;
         if (name.equals("Boole")) {
-            out.write("new Pacioli.Type('boole')");
+            out.write("new Pacioli.GenericType('Boole', [])");
         } else if (name.equals("String")) {
-            out.write("new Pacioli.Type('string')");
+            out.write("new Pacioli.GenericType('String', [])");
         } else if (name.equals("Report")) {
             out.write("new Pacioli.Type('report')");
         } else if (name.equals("Void")) {
             out.write("null");
         } else if (name.equals("Index")) {
-            out.write("new Pacioli.Type('coordinate', ");
-            out.write("new Pacioli.Coordinates(null, [");
+            //out.write("new Pacioli.Type('coordinate', ");
+            out.write("new Pacioli.GenericType('Coordinates', [");
             String sep = "";
             for (PacioliType arg : type.args) {
                 out.write(sep);
@@ -114,11 +112,11 @@ public class JSGenerator implements TypeVisitor {
                 arg.accept(this);
                 sep = ", ";
             }
-            out.write("]))");
+            out.write("])");
         } else if (name.equals("List")) {
 
-            out.write("new Pacioli.Type(");
-            out.write("\"list\", ");
+            out.write("new Pacioli.GenericType(");
+            out.write("'List', [");
             String sep = "";
             for (PacioliType arg : type.args) {
                 out.write(sep);
@@ -126,7 +124,7 @@ public class JSGenerator implements TypeVisitor {
                 arg.accept(this);
                 sep = ", ";
             }
-            out.write(")");
+            out.write("])");
         } else if (name.equals("Ref")) {
 
             out.write("new Pacioli.Type(");
@@ -140,8 +138,8 @@ public class JSGenerator implements TypeVisitor {
             }
             out.write(")");
         } else if (name.equals("Tuple")) {
-            out.write("new Pacioli.Type(");
-            out.write("\"tuple\", [");
+            out.write("new Pacioli.GenericType("); 
+            out.write("\"Tuple\", [");
             String sep = "";
             for (PacioliType arg : type.args) {
                 out.write(sep);

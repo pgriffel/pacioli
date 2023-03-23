@@ -48,9 +48,9 @@ public class JSCompiler implements SymbolTableVisitor {
             out.newline();
             out.format("Pacioli.u_%s = function () {", info.globalName());
             out.newlineUp();
-            out.format("var args = new Pacioli.Type('tuple', Array.prototype.slice.call(arguments));");
+            out.format("var args = new Pacioli.GenericType('Tuple', Array.prototype.slice.call(arguments));");
             out.format("var type = %s;", info.inferredType().reduce().compileToJS());
-            out.format("return Pacioli.subs(type.ran(), Pacioli.match(type.dom(), args));");
+            out.format("return Pacioli.subs(type.to, Pacioli.matchTypes(type.from, args));");
             out.newlineDown();
             out.write("}");
             out.newline();
