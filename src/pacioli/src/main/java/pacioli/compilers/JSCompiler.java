@@ -101,7 +101,8 @@ public class JSCompiler implements SymbolTableVisitor {
         for (String item : definition.items) {
             quotedItems.add(String.format("\"%s\"", item));
         }
-        out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', [ %s ])}\n", 
+        out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', '%s', [ %s ])}\n", 
+                info.globalName(), 
                 info.globalName(), 
                 definition.localName(),
                 Utils.intercalate(",", quotedItems));
