@@ -163,7 +163,8 @@ public class TypeVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     @Override
     public String compileToJS() {
-        return "'_" + this.pretty() + "_'";
+        //return "'_" + this.pretty() + "_'";
+        return "Pacioli.typeFromVarName('_" + this.pretty() + "_')";
     }
 
     @Override
