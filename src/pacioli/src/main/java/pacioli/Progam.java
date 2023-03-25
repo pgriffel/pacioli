@@ -717,7 +717,7 @@ public class Progam extends AbstractPrintable {
             }
         }
         
-        printer.format("\npacioliUnitContext = Pacioli.PacioliContext.si()\n\n");
+        //printer.format("\npacioliUnitContext = Pacioli.PacioliContext.si()\n\n");
 
         // Find all units to compile
         List<UnitInfo> unitsToCompile = new ArrayList<UnitInfo>();
