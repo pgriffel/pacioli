@@ -101,7 +101,7 @@ public class JSGenerator implements TypeVisitor {
         } else if (name.equals("Report")) {
             out.write("new Pacioli.Type('report')");
         } else if (name.equals("Void")) {
-            out.write("null");
+            out.write("new Pacioli.GenericType('Void', [])");
         } else if (name.equals("Index")) {
             //out.write("new Pacioli.Type('coordinate', ");
             out.write("new Pacioli.GenericType('Coordinates', [");

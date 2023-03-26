@@ -1,11 +1,15 @@
 import testing;
 
-run_test_suites([
-        scanl_suite,
-        scanl1_suite,
-        zip_with_suite
-    ]); 
- 
+define all_suites = [
+   scanl_suite,
+   scanl1_suite,
+   zip_with_suite
+];
+
+run_test_suites(all_suites); 
+
+declare scanl_suite :: TestSuite;
+
 # ------------------------------------------------------------------------------
 # Functions scanl
 # ------------------------------------------------------------------------------

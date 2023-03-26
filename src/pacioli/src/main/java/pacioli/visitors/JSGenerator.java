@@ -114,9 +114,22 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         unmark();
     }
 
+    // private String escapeString(String in) {
+    //     // Quick fix for the debug option for string literals
+    //     return in.replaceAll("\"", "\\\\\"");
+    // }
     private String escapeString(String in) {
         // Quick fix for the debug option for string literals
-        return in.replaceAll("\"", "\\\\\"");
+        //return in.replaceAll("\"", "\\\\\"");
+
+        return in.replace("\\", "\\\\")
+        .replace("\t", "\\t")
+        .replace("\b", "\\b")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\f", "\\f")
+        //.replace("\'", "\\'")
+        .replace("\"", "\\\"");
     }
 
     @Override
@@ -393,13 +406,13 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(StringNode node) {
         StringWriter writer = new StringWriter();
-        writer.write("'");
-        String[] lines = node.valueString().split("\n");
+        writer.write("\"");
+        String[] lines = escapeString(node.valueString()).split("\n");
         for (String line : lines) {
             writer.write(line);
             writer.write("\\\n");
         }
-        writer.write("'");
+        writer.write("\"");
         out.print(writer.toString());
     }
 

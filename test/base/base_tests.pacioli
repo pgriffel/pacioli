@@ -1,9 +1,12 @@
 import testing;
 
-run_test_suites([
-        comprehensions_suite,
-        sort_suite
-    ]); 
+define all_suites = [
+   comprehensions_suite,
+   sort_suite,
+   nth_suite
+];
+
+run_test_suites(all_suites); 
  
 # ------------------------------------------------------------------------------
 # Comprehensions
@@ -83,3 +86,21 @@ define sort_suite = test_suite("Function sort", [
              sort_list([1, 9, 3, 2, 5], greater) = [9, 5, 3, 2, 1]
          end)
     ]);
+
+
+# ------------------------------------------------------------------------------
+# Function nth
+# ------------------------------------------------------------------------------
+
+define nth_suite = test_suite("Function nth", [
+    
+    test("should get 0-th element",
+         fn ()
+            nth(0, [1, 9, 3, 2, 5]) = 1
+         end),
+
+    test("should get last element",
+         fn ()
+            nth(4, [1, 9, 3, 2, 5]) = 5
+         end)
+   ]);
