@@ -180,7 +180,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
         // Create a symbol info record for each lambda parameter and store it in the table
         for (String arg : node.arguments) {
-            ValueInfo info = new ValueInfo(arg, prog.getModule(), false, true, node.getLocation(), !prog.isLibrary());
+            ValueInfo info = new ValueInfo(arg, prog.file, prog.getModule(), false, true, node.getLocation(), !prog.isLibrary());
             node.table.put(arg, info);
         }
 
@@ -390,7 +390,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             
             // Create a value info record for the mutable (IsRef == true) variable
             if (info == null) {
-                info = new ValueInfo(id.getName(), prog.getModule(), false, false, id.getLocation(), !prog.isLibrary());
+                info = new ValueInfo(id.getName(), prog.file, prog.getModule(), false, false, id.getLocation(), !prog.isLibrary());
                 info.setIsRef(true);
 
                 // If it shadows another value then remember that for initialization in generated code
@@ -405,7 +405,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         }
 
         // Create an info record for the result and put it in the symbol table
-        ValueInfo info = new ValueInfo(resultName, prog.getModule(), false, false, node.getLocation(), !prog.isLibrary());
+        ValueInfo info = new ValueInfo(resultName, prog.file, prog.getModule(), false, false, node.getLocation(), !prog.isLibrary());
         node.table.put(resultName, info);
         node.resultInfo = info;
 
@@ -489,16 +489,16 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         // Add info records for all variables
         String module = prog.getModule();
         for (String arg : context.typeVars) {
-            table.put(arg, new TypeInfo(arg, module, false, location, !prog.isLibrary()));
+            table.put(arg, new TypeInfo(arg, prog.file, module, false, location, !prog.isLibrary()));
         }
         for (String arg : context.indexVars) {
-            table.put(arg, new IndexSetInfo(arg, module, false, location, !prog.isLibrary()));
+            table.put(arg, new IndexSetInfo(arg, prog.file, module, false, location, !prog.isLibrary()));
         }
         for (String arg : context.unitVars) {
             if (arg.contains("!")) {
-                table.put(arg, new VectorUnitInfo(arg, module, false, location, !prog.isLibrary()));
+                table.put(arg, new VectorUnitInfo(arg, prog.file, module, false, location, !prog.isLibrary()));
             } else {
-                table.put(arg, new ScalarUnitInfo(arg, module, false, location, !prog.isLibrary()));
+                table.put(arg, new ScalarUnitInfo(arg, prog.file, module, false, location, !prog.isLibrary()));
             }
             
         }
@@ -601,7 +601,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             assert(binding instanceof LetBindingNode);
             LetBindingNode functionBinding = (LetBindingNode) binding;
             String arg = functionBinding.var;
-            ValueInfo info = new ValueInfo(arg, prog.getModule(), false, false, node.getLocation(), !prog.isLibrary());
+            ValueInfo info = new ValueInfo(arg, prog.file, prog.getModule(), false, false, node.getLocation(), !prog.isLibrary());
             
             
             // todo: set the definition!!!!!!!

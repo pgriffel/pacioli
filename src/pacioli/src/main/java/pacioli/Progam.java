@@ -156,12 +156,15 @@ public class Progam extends AbstractPrintable {
     
     void printSymbolTable(SymbolTable<? extends SymbolInfo> table, String header) {
         Pacioli.logln("Begin %s table", header);
-        for (SymbolInfo info: table.allInfos()) {
+        List<? extends SymbolInfo> infos = table.allInfos();
+        infos.sort((SymbolInfo x, SymbolInfo y) -> x.name().compareTo(y.name()));
+        for (SymbolInfo info: infos) {
             Optional<? extends Definition> def = info.getDefinition();
-            Pacioli.logln("  %-25s %-25s %-10s %-10s %-50s", 
+            Pacioli.logln("%-25s %-25s %-10s %-10s %-50s", 
                     info.name(),
                     info.generic().getModule(),
-                    info.isFromProgram(),//isExternal(info) ? "     " : "local", 
+                    //info.isExternal(info) ? "     " : "local", 
+                    info.isGlobal() ? "glb" : "lcl",
                     info.generic().getFile() == null ? "" : isExternal(info), // "", //info.generic().getFile(), 
                     def.isPresent() ? "has def" : "No definition");
         }
@@ -284,10 +287,12 @@ public class Progam extends AbstractPrintable {
      * Make obsolete by deftypes without body?
      */
 
-     public void addPrimitiveTypes() {
+     private void addPrimitiveTypes() {
+        PacioliFile file = PacioliFile.requireLibrary("base", libs);
         for (String type : ResolveVisitor.builtinTypes) {
             // Fixme: null arg for the location. Maybe declare them in a base.pacioli?
-            GenericInfo generic = new GenericInfo(type, "base", true, new Location(), file.isSystemLibrary("base"));
+
+            GenericInfo generic = new GenericInfo(type, file, "base_base", true, new Location(), file.isSystemLibrary("base"));
             addInfo(new TypeInfo(generic));
         }
      }
@@ -334,7 +339,8 @@ public class Progam extends AbstractPrintable {
         // Fill symbol tables for the included files
         for (String include : includes()) {
             Path p = Paths.get(file.getFile().getAbsolutePath());
-            PacioliFile file = PacioliFile.findInclude(p.getParent(), this.file, include);
+            //PacioliFile file = PacioliFile.findInclude(p.getParent(), this.file, include);
+            PacioliFile file = this.file.findInclude2("p.getParent()", include);
             Progam prog = new Progam(file, libs);
             Pacioli.logln("Loading include file %s", file);
             prog.loadTill(Progam.Phase.PARSED);
@@ -431,7 +437,7 @@ public class Progam extends AbstractPrintable {
         // Include the values from the other program
         for (ValueInfo otherInfo: other.values.allInfos()) {
             String name = otherInfo.name();
-            if (!other.isExternal(otherInfo)) {
+            if (true || !other.isExternal(otherInfo)) {
                 ValueInfo info = values.lookup(name);
                 if (info == null) {
                     values.put(name, otherInfo.withFromProgram(false));
@@ -562,7 +568,7 @@ public class Progam extends AbstractPrintable {
                 if (!declaredType.isInstanceOf(inferredType)) {
                     throw new RuntimeException("Type error",
                             new PacioliException(info.getLocation(), 
-                                    String.format("Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\nfrom program = %s\n",
+                                    String.format("Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\norigin = %s\n",
                                             declaredType.unfresh().deval().pretty(),
                                             inferredType.unfresh().deval().pretty(),
                                             

@@ -65,7 +65,7 @@ public class ValueDefinition extends AbstractDefinition {
 
         String name = localName();
         
-        ValueInfo info = new ValueInfo(name, program.getModule(), true, false, getLocation(), fromProgram);
+        ValueInfo info = new ValueInfo(name, program.file, program.getModule(), true, false, getLocation(), fromProgram);
         info.setDefinition(this);
         
         ValueInfo oldInfo = program.values.lookup(name);

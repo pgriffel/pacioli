@@ -10,8 +10,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
+import org.jgrapht.Graph;
+import org.jgrapht.graph.AsSubgraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.DepthFirstIterator;
@@ -55,7 +59,7 @@ public class Project {
         List<PacioliFile> done = new ArrayList<PacioliFile>();
 
         // Obsolete way to get the base directory
-        Path d = Paths.get(file.getFile().getAbsolutePath()).getParent();
+        // Path d = Paths.get(file.getFile().getAbsolutePath()).getParent();
         
         todo.add(file);
         
@@ -105,7 +109,9 @@ public class Project {
                 for (String include : program.includes()) {
                     
                     // Locate the include file
-                    PacioliFile pacioliFile = PacioliFile.findInclude(d, current, include);
+                    //PacioliFile pacioliFile = PacioliFile.findInclude(d, current, include);
+                    //PacioliFile pacioliFile = current.findInclude2(program.getModule(), include);
+                    PacioliFile pacioliFile = current.findInclude2(current.modulePath, include);
                     if (pacioliFile == null) {
                         throw new RuntimeException(String.format("Include '%s' for file '%s' not found in directories %s", 
                                 include, current, libs));
@@ -149,17 +155,33 @@ public class Project {
         }
     }
     
-    void printInfo() {
+    public void printInfo() {
         Pacioli.logln("\nProject graph:");
         for (DefaultEdge edge: graph.edgeSet()) {
             Pacioli.logln("- edge %s\n    -> %s", graph.getEdgeSource(edge), graph.getEdgeTarget(edge));
+        }
+        
+        AsSubgraph<PacioliFile, DefaultEdge> includesOnly = new AsSubgraph<PacioliFile, DefaultEdge>(graph, graph.vertexSet(), graph.edgeSet().stream().filter(edge -> graph.getEdgeTarget(edge).isInclude()).collect(Collectors.toSet()));
+            
+        for (PacioliFile node: graph.vertexSet().stream().collect(Collectors.filtering(x -> x.isLibrary() && !x.isInclude(), Collectors.toSet()))) {
+            Pacioli.logln("%-40s %-40s", node.getModule(), node.getFile());
+            Iterator<PacioliFile> iterator = new DepthFirstIterator<>(includesOnly, node);
+            while (iterator.hasNext()) {
+                PacioliFile file = iterator.next();
+                //Pacioli.logln("- %s", file);
+                Pacioli.logln("- %-40s %-10s %-10s", file.getModule(), file.isLibrary() ? "lib" : "usr", file.getFile());
+                
+            }
+            Pacioli.logln("\n");
         }
         
         Pacioli.logln("\nProject files depth first:");
         Iterator<PacioliFile> iterator = new DepthFirstIterator<>(graph, root());
         while (iterator.hasNext()) {
             PacioliFile file = iterator.next();
-            Pacioli.logln("- %s", file);
+            //Pacioli.logln("- %s", file);
+            Pacioli.logln("- %-40s %-10s %-10s", file.getModule(), file.isLibrary() ? "lib" : "usr", file.getFile());
+            
         }
         Pacioli.logln("\n");
     }
@@ -204,7 +226,7 @@ public class Project {
                 
                 PacioliFile current = iterator.next();
                 
-                Pacioli.logln("Bundling file %s", current);
+                Pacioli.logln("Bundling file %s [%s]", current, current.getModule());
                 
                 // Add the program to the main program creating the entire bundle
                 Progam program = Progam.load(current, libs, Phase.TYPED);

@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import pacioli.Location;
+import pacioli.PacioliFile;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.types.TypeBase;
@@ -18,8 +19,8 @@ public class VectorUnitInfo extends UnitInfo implements SymbolInfo {
     //private Map<String, DimensionedNumber<TypeBase>> units;
     private Map<String, UnitDecl> units;
 
-    public VectorUnitInfo(String name, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
-        super(new GenericInfo(name, module, isGlobal, location, fromProgram));
+    public VectorUnitInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
+        super(new GenericInfo(name, file, module, isGlobal, location, fromProgram));
         assert (name.contains("!"));
     }
     

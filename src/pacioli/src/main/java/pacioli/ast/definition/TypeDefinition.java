@@ -110,7 +110,7 @@ public class TypeDefinition extends AbstractDefinition {
     @Override
     public void addToProgr(Progam program, boolean fromProgram) throws PacioliException {
         //Pacioli.logln("Adding type %s to %s %s", this.localName(), program.getFile(), rhs);
-        TypeInfo info = new TypeInfo(localName(), program.getModule(), true, getLocation(), fromProgram);
+        TypeInfo info = new TypeInfo(localName(), program.file, program.getModule(), true, getLocation(), fromProgram);
         info.typeAST = rhs;
         info.setDefinition(this);
         program.addInfo(info);

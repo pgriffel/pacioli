@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import pacioli.Location;
 import pacioli.PacioliException;
+import pacioli.PacioliFile;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.FunctionType;
 import pacioli.types.PacioliType;
@@ -23,8 +24,8 @@ public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
     // Set during type inference
     public Optional<PacioliType> inferredType = Optional.empty();
     
-    public ValueInfo(String name, String module, Boolean isGlobal, Boolean isMonomorphic, Location location, Boolean fromProgram) {
-        super(new GenericInfo(name, module, isGlobal, location, fromProgram));
+    public ValueInfo(String name, PacioliFile file, String module, Boolean isGlobal, Boolean isMonomorphic, Location location, Boolean fromProgram) {
+        super(new GenericInfo(name, file, module, isGlobal, location, fromProgram));
         this.isMonomorphic = isMonomorphic;
     }
     

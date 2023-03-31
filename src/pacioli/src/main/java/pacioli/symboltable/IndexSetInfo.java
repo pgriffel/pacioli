@@ -3,6 +3,7 @@ package pacioli.symboltable;
 import java.util.Optional;
 
 import pacioli.Location;
+import pacioli.PacioliFile;
 import pacioli.ast.definition.IndexSetDefinition;
 
 public class IndexSetInfo extends AbstractSymbolInfo implements SymbolInfo {
@@ -14,8 +15,8 @@ public class IndexSetInfo extends AbstractSymbolInfo implements SymbolInfo {
         visitor.visit(this);
     }
     
-    public IndexSetInfo(String name, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
-        super(new GenericInfo(name, module, isGlobal, location, fromProgram));
+    public IndexSetInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
+        super(new GenericInfo(name, file, module, isGlobal, location, fromProgram));
     }
     
     public IndexSetInfo(GenericInfo generic) {

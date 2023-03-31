@@ -219,13 +219,8 @@ public class Pacioli {
                 for (String file : files) {
                     typesCommand(file, libs);
                 }
-            } else if (command.equals("symbols")) {
-                if (files.isEmpty()) {
-                    displayError("No files to read.");
-                }
-                for (String file : files) {
-                    symbolsCommand(file, libs);
-                }
+            } else if (command.equals("graph") || command.equals("symbols")) {
+                debugCommand(command, files, libs);
             } else if (command.equals("help")) {
                 helpCommand();
             } else if (command.equals("test")) {
@@ -381,7 +376,11 @@ public class Pacioli {
         }
     }
 
-    private static void symbolsCommand(String fileName, List<File> libs) throws Exception {
+    private static void debugCommand(String command, List<String> fileNames, List<File> libs) throws Exception {
+
+        
+        for (String fileName : fileNames) {
+
 
         Integer version = 0; // todo
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
@@ -399,6 +398,9 @@ public class Pacioli {
         Pacioli.logln1("Displaying symbol tables for file '%s'", file.getFile());
 
         try {
+            Project project = Project.load(file, libs);
+            project.printInfo();
+            
             
             Pacioli.logln2("Loading module '%s'", file.getFile());
             Progam program = Progam.load(file, libs, Phase.TYPED);
@@ -411,6 +413,7 @@ public class Pacioli {
 
         } catch (IOException e) {
             Pacioli.logln("\nError: cannot symbol tables in file '%s':\n\n%s", fileName, e);
+        }
         }
 
     }

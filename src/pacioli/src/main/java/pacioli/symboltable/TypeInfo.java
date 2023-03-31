@@ -2,16 +2,16 @@ package pacioli.symboltable;
 
 import java.util.Optional;
 
-import javax.swing.text.html.HTMLDocument.HTMLReader.IsindexAction;
 
 import pacioli.Location;
+import pacioli.PacioliFile;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.types.ast.TypeNode;
 
 public class TypeInfo extends AbstractSymbolInfo implements SymbolInfo {
 
-    public TypeInfo (String name, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
-        super(new GenericInfo(name, module, isGlobal, location, fromProgram));
+    public TypeInfo (String name, PacioliFile file, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
+        super(new GenericInfo(name, file, module, isGlobal, location, fromProgram));
     }
     
     public TypeInfo(GenericInfo generic) {

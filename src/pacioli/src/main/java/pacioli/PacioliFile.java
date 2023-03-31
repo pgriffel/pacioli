@@ -40,6 +40,7 @@ import pacioli.CompilationSettings.Target;
 public class PacioliFile extends AbstractPrintable {
 
     private final File file;
+    public final String modulePath;
     private final String module;
     private final Integer version;
     private final Boolean isInclude;
@@ -49,9 +50,10 @@ public class PacioliFile extends AbstractPrintable {
      * A private constructor. The static get methods are the public constructors. They determine the 
      * module and check that the file exists.
      */
-    private PacioliFile(File file, String module, Integer version, Boolean isInclude, Boolean isLibrary) {
+    private PacioliFile(File file, String modulePath, String module, Integer version, Boolean isInclude, Boolean isLibrary) {
         assert(!module.contains("."));
         this.file = file.getAbsoluteFile();
+        this.modulePath = modulePath;
         this.module = module;
         this.version = version;
         this.isInclude = isInclude;
@@ -68,7 +70,7 @@ public class PacioliFile extends AbstractPrintable {
      */
     public static Optional<PacioliFile> get(File file, Integer version) {
         if (file.exists()) {
-            return Optional.of(new PacioliFile(file.getAbsoluteFile(), FilenameUtils.getBaseName(file.getName()), version, false, false));
+            return Optional.of(new PacioliFile(file.getAbsoluteFile(), "", FilenameUtils.getBaseName(file.getName()), version, false, false));
         } else {
             return Optional.empty();
         }
@@ -87,7 +89,7 @@ public class PacioliFile extends AbstractPrintable {
     }
     
     public String getModule() {
-        return module;
+        return modulePath.isEmpty() ? module : modulePath + "_" + module;
     }
     
     public Integer getVersion() {
@@ -124,6 +126,44 @@ public class PacioliFile extends AbstractPrintable {
     public static final List<String> defaultIncludes = new ArrayList<String>(
             Arrays.asList("base", "standard"));    
 
+    public PacioliFile findInclude2(String baseDir, String name) {
+        File include = new File(file.getParentFile(), name + ".pacioli");
+        String[] parts = name.split("/");
+        String nm = parts[parts.length - 1];
+        String path = parts.length == 1 ? this.modulePath : (this.modulePath.isEmpty() ? parts[0] : this.modulePath + "_" + parts[0]);
+        for (int i = 1; i < parts.length - 1; i++) {
+            path += "_" + parts[i];
+        }
+        
+        Path includePath = Paths.get(include.getPath());
+        // Path relative = baseDir.relativize(includePath);
+        
+        
+        if (include.exists()) {
+            //String module = file.getModule() + "/" + name;
+            String module = nm; //name; //baseDir + "_" + name; //FilenameUtils.removeExtension(relative.toString());
+            String modulePath = path; //this.modulePath.isEmpty() ? "" : "";
+
+            // This replace fixes the problem that baseDir points to the wrong file.
+            // It should be the enclosing non-include file. It is however the project
+            // base dir. The result is that ..//.. etc appears in the path. This
+            // replace is a quick and dirty fix for that. 
+            if (false){
+            module = module.replaceAll("\\.", "_");
+            
+            module = module.replaceAll("_", "_x");
+            module = module.replaceAll("\\\\", "_y");
+            module = module.replaceAll("/", "_z");
+            } else {
+                module = module.replaceAll("\\\\", "_");
+                module = module.replaceAll("/", "_");
+            }
+            return new PacioliFile(include, modulePath, module, 0, true, isLibrary);
+        } else {
+            return null;
+        }
+    }
+    
     public static PacioliFile findInclude(Path baseDir, PacioliFile file, String name) {
         File include = new File(file.getFile().getParentFile(), name + ".pacioli");
         
@@ -145,7 +185,7 @@ public class PacioliFile extends AbstractPrintable {
             module = module.replaceAll("\\\\", "_y");
             module = module.replaceAll("/", "_z");
             
-            return new PacioliFile(include, module, 0, true, file.isLibrary);
+            return new PacioliFile(include, "", module, 0, true, file.isLibrary);
         } else {
             return null;
         }
@@ -188,7 +228,7 @@ public class PacioliFile extends AbstractPrintable {
         if (theFile == null) {
             return Optional.empty();
         } else {
-            return Optional.of(new PacioliFile(theFile, name.replace("/", "_"), 0, false, true));    
+            return Optional.of(new PacioliFile(theFile, name.replace("/", "_"), name.replace("/", "_"), 0, false, true));    
         }
     }
 

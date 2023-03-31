@@ -3,6 +3,7 @@ package pacioli.symboltable;
 import java.util.Optional;
 
 import pacioli.Location;
+import pacioli.PacioliFile;
 import pacioli.ast.definition.UnitDefinition;
 
 public class ScalarUnitInfo extends UnitInfo implements SymbolInfo {
@@ -10,8 +11,8 @@ public class ScalarUnitInfo extends UnitInfo implements SymbolInfo {
     public String symbol;
     private Optional<UnitDefinition> definition = Optional.empty();
     
-    public ScalarUnitInfo(String name, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
-        super(new GenericInfo(name, module, isGlobal, location, fromProgram));
+    public ScalarUnitInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
+        super(new GenericInfo(name, file, module, isGlobal, location, fromProgram));
     }
     
     public ScalarUnitInfo(GenericInfo generic) {
