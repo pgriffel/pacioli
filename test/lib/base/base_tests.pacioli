@@ -1,12 +1,14 @@
 import testing;
 
-define all_suites = [
+declare base_suites :: List(TestSuite);
+
+define base_suites = [
    comprehensions_suite,
    sort_suite,
    nth_suite
 ];
 
-run_test_suites(all_suites); 
+run_test_suites(base_suites); 
  
 # ------------------------------------------------------------------------------
 # Comprehensions
