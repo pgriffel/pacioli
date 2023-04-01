@@ -307,7 +307,6 @@ non terminal SequenceNode            sequence;
 non terminal ExpressionNode          statement, stm_if_tail;
 non terminal                         quali;
 
-
 precedence right TO;
 precedence nonassoc  EQUIV, FOLLOWSFROM, IMPLIES;
 precedence left AND, OR;
@@ -319,6 +318,7 @@ precedence left PER;
 precedence left HAT, MEXPT;
 //precedence left NEG;
 precedence right TRANS, RECI, DIMINV;
+precedence left LPAR;
 
 
 //------------------------------------------------------------------------------
@@ -529,7 +529,7 @@ expr_no_id ::=
                                                        RESULT = new BranchNode(e1, e2, new ConstNode("false", loc), loc); :}
  | expr:e1 OR expr:e2                               {: pacioli.Location loc = makeLoc(e1xleft, e2xright);
                                                        RESULT = new BranchNode(e1, new ConstNode("true", loc), e2, loc); :}
- | id:fun exprlist:args                             {: RESULT = new ApplicationNode(fun, args, makeLoc(funxleft, argsxright)); :}
+ | expr:fun exprlist:args                             {: RESULT = new ApplicationNode(fun, args, makeLoc(funxleft, argsxright)); :}
  | FN:l idlist:ids expr:b END:e                     {: RESULT = new LambdaNode(freshUnderscores(idNames(ids)), b, makeLoc(lxleft, exright)); :}
  | IF:i expr:c THEN expr:b if_tail:t                {: RESULT = new BranchNode(c, b, t, makeLoc(ixleft, txright)); :}
  | LET lettail:e                                    {: RESULT = e; :}
