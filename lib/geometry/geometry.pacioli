@@ -57,16 +57,6 @@ declare public space_vec :: for_unit a: (a, a, a) -> a*Geom3!;
 
 define space_vec(a, b, c) = a '.*' d_x + b '.*' d_y + c '.*' d_z;
 
-# ----------------------------------------------------------------------------
-# General Functions
-# ----------------------------------------------------------------------------
-
-declare public norm :: for_index P: for_unit a: (a*P!) -> a;
-declare public normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
-
-define norm(x) = sqrt(inner(x,x));
-
-define normalized(x) = x '/.' magnitude(norm(x));
 
 # ----------------------------------------------------------------------------
 # Polar Coordinates

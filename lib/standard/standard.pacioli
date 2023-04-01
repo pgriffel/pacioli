@@ -66,6 +66,8 @@ define pi = 3.141592653589793;
 # Algebra
 # ------------------------------------------------------------------------------
 
+defunit decimals "decs";
+
 declare public inner ::
   for_index P: for_unit a, b, P!u: (a*P!u, b*P!u^-1) -> a*b;
   
@@ -78,8 +80,16 @@ declare public sqr ::
 declare public cube ::
   for_index D, E: for_unit a, D!b, E!c: (a * D!b per E!c) -> a^3 * D!b^3 per E!c^3;
 
-declare public neg ::
-  for_index D, E: for_unit a, D!b, E!c: (a * D!b per E!c) -> a * D!b per E!c;
+declare public neg :: 
+    for_index D, E: for_unit a, D!b, E!c: (a * D!b per E!c) -> a * D!b per E!c;
+
+declare public norm :: for_index P: for_unit a: (a*P!) -> a;
+
+declare public normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
+
+declare approximates :: for_index I, J: for_unit a, I!u, J!v: (a*I!u per J!v, a*I!u per J!v, decimals) -> Boole;
+
+declare approximates_to :: for_index I, J: for_unit a, I!u, J!v: (decimals) -> (a*I!u per J!v, a*I!u per J!v) -> Boole;
 
 define sqr(x) = x * x;
 
@@ -90,6 +100,22 @@ define inner(x,y) = x^T '*' y;
 define outer(x,y) = x '*' y^T;
 
 define neg(x) = -1 '.*' x;
+
+define norm(x) = sqrt(inner(x,x));
+
+define normalized(x) = x '/.' magnitude(norm(x));
+
+define approximates(x, y, decs) =
+    let diff = abs(x - y) in
+        magnitude(diff) <= support(diff) '/.' 10 ^ magnitude(decs)
+    end;
+
+define approximates_to(decs) =
+    fn(x, y)
+        let diff = abs(x - y) in
+            magnitude(diff) <= support(diff) '/.' 10 ^ magnitude(decs)
+        end
+    end;
 
 # ------------------------------------------------------------------------------
 # Matrix Shape
@@ -210,6 +236,7 @@ define right_division(x,y) = x '*' inverse(y);
 declare public combis :: for_type a: (List(a)) -> List(Tuple(a, a));
 declare public list_count :: (List(Boole())) -> 1;
 declare public list_concat :: (List(String())) -> String();
+declare flatten :: for_type t: (List(List(t))) -> List(t);
 
 define combis(list) =
     let accumulator(accu, x) =
@@ -221,8 +248,11 @@ define combis(list) =
     end;
 
 define list_count(xs) = list_size([x | x <- xs, x]);
+
 define list_concat(xs) =
   if xs = [] then "" else fold_list(concatenate, xs) end;
+
+define flatten(xss) = [x | xs <- xss, x <- xs];
 
 # ------------------------------------------------------------------------------
 # Primitives for Comprehensions (todo: implement properly)
