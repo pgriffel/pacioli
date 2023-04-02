@@ -112,7 +112,9 @@ define run_test_suites(suites) =
       nr_successes := nr_tests - nr_errors;
 
       # Print the result
-      print(format("  %s -> %s/%s success%s", description,
+      print(format(" %s%s -> %s/%s success%s", 
+        if nr_successes = nr_tests then " " else "*" end,
+        description,
         num2string(nr_successes, 0),
         num2string(nr_tests, 0),
         skipped_message(nr_skipped)));
