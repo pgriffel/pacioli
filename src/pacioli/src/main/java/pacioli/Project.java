@@ -28,31 +28,31 @@ public class Project {
     private final PacioliFile file;
     private final List<File> libs;
     private final DefaultDirectedGraph<PacioliFile, DefaultEdge> graph;
-    
-    Project (PacioliFile file, List<File> libs, DefaultDirectedGraph<PacioliFile, DefaultEdge> graph) throws Exception {
+
+    Project(PacioliFile file, List<File> libs, DefaultDirectedGraph<PacioliFile, DefaultEdge> graph) throws Exception {
         this.file = file;
         this.libs = libs;
         this.graph = graph;
     }
 
-
     public Path bundlePath(Target target) {
         return bundlePath(file.getFile(), target);
     }
-    
+
     public static Path bundlePath(File file, Target target) {
         return Paths.get(FilenameUtils.removeExtension(file.getPath()) + "." + PacioliFile.targetFileExtension(target));
     }
-    
+
     public static Project load(PacioliFile file, List<File> libs) throws Exception {
         return new Project(file, libs, projectGraph(file, libs));
     }
-    
-    static DefaultDirectedGraph<PacioliFile, DefaultEdge> projectGraph(PacioliFile file, List<File> libs) throws Exception {
+
+    static DefaultDirectedGraph<PacioliFile, DefaultEdge> projectGraph(PacioliFile file, List<File> libs)
+            throws Exception {
 
         // The graph that will be build up
         DefaultDirectedGraph<PacioliFile, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
-       
+
         // Main loop variables. List todo contains include files still to process.
         // List done contains all processed files to avoid duplicates and cycles.
         List<PacioliFile> todo = new ArrayList<PacioliFile>();
@@ -60,87 +60,89 @@ public class Project {
 
         // Obsolete way to get the base directory
         // Path d = Paths.get(file.getFile().getAbsolutePath()).getParent();
-        
+
         todo.add(file);
-        
+
         // Loop over the todo list, adding new include files when found
         while (!todo.isEmpty()) {
 
             // Take the first element of the todo list to process next
             PacioliFile current = todo.get(0);
             todo.remove(0);
-            
+
             // Process the current file if not already done
             if (!done.contains(current)) {
-                
+
                 // Load the current file
                 Progam program = Progam.load(current, libs, Phase.PARSED);
-                
+
                 // Add the current file if not already found by some include
                 if (!graph.containsVertex(current)) {
                     graph.addVertex(current);
                 }
-                
-                for (PacioliFile pacioliFile: program.findImports(libs)) {
-                //for (String lib : program.imports()) {
-                    
+
+                for (PacioliFile pacioliFile : program.findImports(libs)) {
+                    // for (String lib : program.imports()) {
+
                     // Locate the include file
-                    //PacioliFile pacioliFile = PacioliFile.findLibrary(lib, libs);
-                    //if (pacioliFile == null) {
-                    //    throw new RuntimeException(String.format("Import '%s' for file '%s' not found in directories %s", 
-                    //            lib, current, libs));
-                    //}
-                    
+                    // PacioliFile pacioliFile = PacioliFile.findLibrary(lib, libs);
+                    // if (pacioliFile == null) {
+                    // throw new RuntimeException(String.format("Import '%s' for file '%s' not found
+                    // in directories %s",
+                    // lib, current, libs));
+                    // }
+
                     // Add the include files to the todo list
                     if (!done.contains(pacioliFile) && !todo.contains(pacioliFile)) {
-                        todo.add(pacioliFile);    
+                        todo.add(pacioliFile);
                     }
-                    
+
                     // Add the included file to the graph if not already a member
                     if (!graph.containsVertex(pacioliFile)) {
                         graph.addVertex(pacioliFile);
                     }
-                    
+
                     // Add an edge for the include relation
                     graph.addEdge(current, pacioliFile);
-                    
+
                 }
-                
+
                 for (String include : program.includes()) {
-                    
+
                     // Locate the include file
-                    //PacioliFile pacioliFile = PacioliFile.findInclude(d, current, include);
-                    //PacioliFile pacioliFile = current.findInclude2(program.getModule(), include);
+                    // PacioliFile pacioliFile = PacioliFile.findInclude(d, current, include);
+                    // PacioliFile pacioliFile = current.findInclude2(program.getModule(), include);
                     PacioliFile pacioliFile = current.findInclude2(current.modulePath, include);
                     if (pacioliFile == null) {
-                        throw new RuntimeException(String.format("Include '%s' for file '%s' not found in directories %s", 
-                                include, current, libs));
+                        throw new RuntimeException(
+                                String.format("Include '%s' for file '%s' not found in directories %s",
+                                        include, current, libs));
                     }
-                    
+
                     // Add the include files to the todo list
                     if (!done.contains(pacioliFile) && !todo.contains(pacioliFile)) {
-                        todo.add(pacioliFile);    
+                        todo.add(pacioliFile);
                     }
-                    
+
                     // Add the included file to the graph if not already a member
                     if (!graph.containsVertex(pacioliFile)) {
                         graph.addVertex(pacioliFile);
                     }
-                    
+
                     // Add an edge for the include relation
                     graph.addEdge(current, pacioliFile);
-                    
+
                 }
 
                 // Remember that this include was processed.
                 done.add(current);
             }
         }
-        
+
         return graph;
     }
-    
-    PacioliFile root () {
+
+    PacioliFile root() {
         Optional<PacioliFile> optionalFile = graph.vertexSet().stream().findAny();
         if (optionalFile.isPresent()) {
             PacioliFile file = optionalFile.get();
@@ -154,108 +156,96 @@ public class Project {
             throw new RuntimeException("Cannot find project root. Project graph is empty.");
         }
     }
-    
+
     public void printInfo() {
-        Pacioli.logln("\nProject graph:");
-        for (DefaultEdge edge: graph.edgeSet()) {
-            Pacioli.logln("- edge %s\n    -> %s", graph.getEdgeSource(edge), graph.getEdgeTarget(edge));
+        Pacioli.println("\nProject graph:");
+        for (DefaultEdge edge : graph.edgeSet()) {
+            Pacioli.println("- edge %s\n    -> %s", graph.getEdgeSource(edge), graph.getEdgeTarget(edge));
         }
-        
-        AsSubgraph<PacioliFile, DefaultEdge> includesOnly = new AsSubgraph<PacioliFile, DefaultEdge>(graph, graph.vertexSet(), graph.edgeSet().stream().filter(edge -> graph.getEdgeTarget(edge).isInclude()).collect(Collectors.toSet()));
-            
-        for (PacioliFile node: graph.vertexSet().stream().collect(Collectors.filtering(x -> x.isLibrary() && !x.isInclude(), Collectors.toSet()))) {
-            Pacioli.logln("%-40s %-40s", node.getModule(), node.getFile());
+
+        AsSubgraph<PacioliFile, DefaultEdge> includesOnly = new AsSubgraph<PacioliFile, DefaultEdge>(graph,
+                graph.vertexSet(), graph.edgeSet().stream().filter(edge -> graph.getEdgeTarget(edge).isInclude())
+                        .collect(Collectors.toSet()));
+
+        for (PacioliFile node : graph.vertexSet().stream()
+                .collect(Collectors.filtering(x -> x.isLibrary() && !x.isInclude(), Collectors.toSet()))) {
+            Pacioli.println("%-40s %-40s", node.getModule(), node.getFile());
             Iterator<PacioliFile> iterator = new DepthFirstIterator<>(includesOnly, node);
             while (iterator.hasNext()) {
                 PacioliFile file = iterator.next();
-                //Pacioli.logln("- %s", file);
-                Pacioli.logln("- %-40s %-10s %-10s", file.getModule(), file.isLibrary() ? "lib" : "usr", file.getFile());
-                
+                // Pacioli.logln("- %s", file);
+                Pacioli.println("- %-40s %-10s %-10s", file.getModule(), file.isLibrary() ? "lib" : "usr",
+                        file.getFile());
+
             }
-            Pacioli.logln("\n");
+            Pacioli.println("\n");
         }
-        
-        Pacioli.logln("\nProject files depth first:");
+
+        Pacioli.println("\nProject files depth first:");
         Iterator<PacioliFile> iterator = new DepthFirstIterator<>(graph, root());
         while (iterator.hasNext()) {
             PacioliFile file = iterator.next();
-            //Pacioli.logln("- %s", file);
-            Pacioli.logln("- %-40s %-10s %-10s", file.getModule(), file.isLibrary() ? "lib" : "usr", file.getFile());
-            
+            Pacioli.println("- %-40s %-10s %-10s", file.getModule(), file.isLibrary() ? "lib" : "usr", file.getFile());
+
         }
-        Pacioli.logln("\n");
+        Pacioli.println("\n");
     }
-    
+
     public Path bundle(CompilationSettings settings) throws Exception {
-        
-        Pacioli.logln1("Creating bundle for file '%s'", file);
-        
-        //printInfo();
-        
+
+        Pacioli.log("Creating bundle for file '%s'", file);
+
         Progam mainProgram = Progam.load(file, libs, Phase.TYPED);
         mainProgram.liftStatements();
-        
+
         // Setup a writer for the output file
         Path dstPath = bundlePath(settings.getTarget());
-        PrintWriter writer = null;       
-        
-        try {
-            
-            // Open the writer
-            writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())));
-            
+
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())))) {
+
             for (String lib : PacioliFile.defaultIncludes) {
-                Boolean isStandard = lib.equals("standard");
-                    PacioliFile libFile = PacioliFile.requireLibrary(lib, libs);
-                    Progam prog = new Progam(libFile, libs);
-                    //prog.addPrimitiveTypes();
-                    //prog.loadTillHelper(Progam.Phase.TYPED, isStandard, false, true);
-                    prog.loadTill(Progam.Phase.TYPED);
-                    prog.liftStatements();
-                    Pacioli.logln("Bundling default file %s", libFile);
-                    mainProgram.includeOther(prog);
-                
+
+                PacioliFile libFile = PacioliFile.requireLibrary(lib, libs);
+                Progam prog = Progam.load(libFile, libs, Phase.TYPED);
+                prog.liftStatements();
+                Pacioli.log("Bundling default file %s", libFile);
+                mainProgram.includeOther(prog);
+
             }
-            
+
             Iterator<PacioliFile> iterator = new DepthFirstIterator<>(graph, root());
-         
+
             // Hack to avoid doing main twice
             iterator.next();
-            
+
             while (iterator.hasNext()) {
-                
+
                 PacioliFile current = iterator.next();
-                
-                Pacioli.logln("Bundling file %s [%s]", current, current.getModule());
-                
+
+                Pacioli.log("Bundling file %s [%s]", current, current.getModule());
+
                 // Add the program to the main program creating the entire bundle
                 Progam program = Progam.load(current, libs, Phase.TYPED);
                 program.liftStatements();
                 mainProgram.includeOther(program);
             }
-            
+
             // Generate the code for the entire bundle
             mainProgram.generateCode(writer, settings);
-            
-        } finally {
-            
-            // Close the writer
-            if (writer != null) {
-                writer.close();
-            }
+
         }
-        Pacioli.logln("Created bundle '%s'", dstPath);
-        
+
+        Pacioli.log("Created bundle '%s'", dstPath);
+
         return dstPath;
     }
 
-
     public boolean targetOutdated(Target target) {
-        for (PacioliFile file: graph.vertexSet()) {
+        for (PacioliFile file : graph.vertexSet()) {
             if (file.getFile().lastModified() > bundlePath(target).toFile().lastModified()) {
                 return true;
             }
-        }        
+        }
         return false;
     }
 }

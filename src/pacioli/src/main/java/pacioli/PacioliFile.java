@@ -214,14 +214,14 @@ public class PacioliFile extends AbstractPrintable {
         // See if a candidate exists
         for (File candidate : candidates) {
             if (candidate.exists()) {
-                Pacioli.logln3("Library '%s' found in file '%s'", name, candidate);
+                Pacioli.logIf(Pacioli.Options.showIncludeSearches, "Library '%s' found in file '%s'", name, candidate);
                 if (theFile == null) {
                     theFile = candidate;
                 } else {
-                    Pacioli.warn("Shadowed '%s' library '%s' is ignored", name, candidate);
+                    Pacioli.logIf(Pacioli.Options.showIncludeSearches,"Shadowed '%s' library '%s' is ignored", name, candidate);
                 }
             } else {
-                Pacioli.logln3("Library candidate '%s' does not exist", candidate);
+                Pacioli.logIf(Pacioli.Options.showIncludeSearches,"Library candidate '%s' does not exist", candidate);
             }
         }
 

@@ -11,8 +11,25 @@ import pacioli.types.PacioliType;
 import pacioli.types.Schema;
 import pacioli.types.ast.TypeNode;
 
+
 public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
-    
+
+    public record ParsedValueInfo(ValueDefinition definition) {
+
+    }
+
+    public record ResolvedValueInfo(ParsedValueInfo parsed, boolean isRef) {
+
+        TypedValueInfo withType(PacioliType type) {
+            return new TypedValueInfo(this, type);
+        }
+
+    }
+
+    public record TypedValueInfo(ResolvedValueInfo resolved, PacioliType type) {
+
+    }
+        
     // Set during parsing
     private Optional<ValueDefinition> definition = Optional.empty();
     private Optional<TypeNode> declaredType = Optional.empty();

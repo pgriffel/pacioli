@@ -316,7 +316,6 @@ precedence left MOD;
 precedence left MULT, MMULT, DIV, MDIV, LEFTDIV, MLEFTDIV, LSCALE, RSCALE, LSCALEDOWN, RSCALEDOWN ;
 precedence left PER;
 precedence left HAT, MEXPT;
-//precedence left NEG;
 precedence right TRANS, RECI, DIMINV;
 precedence left LPAR;
 

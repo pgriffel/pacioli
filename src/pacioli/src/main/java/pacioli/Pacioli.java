@@ -20,13 +20,9 @@
  */
 package pacioli;
 
-
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
@@ -35,7 +31,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
@@ -53,41 +48,61 @@ import pacioli.symboltable.ValueInfo;
  */
 public class Pacioli {
 
-    // Global settings for log messages. See the log... methods.
-    private static int verbosity = 1;
+    // Internal settings for log messages. Actual values depend on verbosity.
+    public static class Options {
+        public static boolean trace = false;
+        public static boolean showFileLoads = false;
+        public static boolean showSymbolTableAdditions = false;
+        public static boolean showResolvingDetails = false;
+        public static boolean showIncludeSearches = false;
+        public static boolean logTypeInference = false;
+        public static boolean logTypeInferenceDetails = false;
+        public static boolean dumpOnMVMError = false;
+    }
+
+    // User settings for log messages. See the various methods for printing and
+    // logging.
+    private static int verbosity = 3; // 1;
     private static boolean warnings = true;
+
+    // Remember if user output is at the beginning of a line. Used when printing
+    // output.
     private static boolean atLineStart = false;
 
+    /**
+     * Main entry point
+     */
     public static void main(String[] args) throws Exception {
         try {
             handleArgs(args);
         } catch (PacioliException ex) {
-            logln("\nPacioli error:\n\n%s\n", ex.getLocatedMessage());
+            println("\nPacioli error:\n\n%s\n", ex.getLocatedMessage());
         } catch (RuntimeException ex) {
             if (ex.getCause() == null) {
-                logln("\nUnexpected error:\n\n");
+                println("\nUnexpected error:\n\n");
                 ex.printStackTrace();
             } else {
                 Throwable cause = ex.getCause();
                 if (cause instanceof PacioliException) {
-                    logln("\nPacioli error:\n\n%s\n\n%s\n", ex.getLocalizedMessage(), ((PacioliException) cause).getLocatedMessage());
+                    println("\nPacioli error:\n\n%s\n\n%s\n", ex.getLocalizedMessage(),
+                            ((PacioliException) cause).getLocatedMessage());
                 } else if (cause instanceof MVMException) {
-                    logln("\nMVM error:\n\n%s\n", cause.getMessage());
+                    println("\nMVM error:\n\n%s\n", cause.getMessage());
                 } else {
-                    logln("\nUnexpected error:\n\n");
+                    println("\nUnexpected error:\n\n");
                     cause.printStackTrace();
                 }
             }
         } catch (MVMException ex) {
-            logln("\nMVM error:\n\n%s\n", ex.getMessage());
+            println("\nMVM error:\n\n%s\n", ex.getMessage());
         } catch (Exception ex) {
-            logln("\nUnexpected error:\n\n");
+            println("\nUnexpected error:\n\n");
             ex.printStackTrace();
         }
     }
 
-    private static void handleArgs(String[] args) throws Exception {       
-        
+    private static void handleArgs(String[] args) throws Exception {
+
         if (args.length == 0) {
             displayError("expected a command");
         } else {
@@ -97,7 +112,7 @@ public class Pacioli {
             List<String> files = new ArrayList<String>();
             List<File> libs = new ArrayList<File>();
             CompilationSettings settings = new CompilationSettings();
-            
+
             // Collect the command line info
             int i = 0;
             while (i != args.length) {
@@ -132,7 +147,8 @@ public class Pacioli {
                         } else if (target.equals("python")) {
                             settings.setTarget(Target.PYTHON);
                         } else {
-                            throw new RuntimeException("Compilation target " + target + " unknown. Expected javascript, matlab or mvm.");
+                            throw new RuntimeException(
+                                    "Compilation target " + target + " unknown. Expected javascript, matlab or mvm.");
                         }
                     } else {
                         displayError("Expected 'mvm', 'javascript' or 'matlab' after -target. Ignoring target option.");
@@ -154,7 +170,8 @@ public class Pacioli {
                 } else if (arg.equals("-warnings")) {
                     warnings = !warnings;
                 } else if (arg.equals("-debug")) {
-                    settings.toggleDebug();;
+                    settings.toggleDebug();
+                    ;
                 } else if (command.isEmpty()) {
                     command = arg;
                 } else {
@@ -168,7 +185,15 @@ public class Pacioli {
                     displayError(String.format("Library directory '%s' does not exist", lib));
                 }
             }
-            
+
+            // Set options given the verbosity
+            if (verbosity > 1) {
+                Options.showFileLoads = true;
+            }
+            if (verbosity > 2) {
+                Options.trace = true;
+            }
+
             // Handle the command
             if (command.equals("run")) {
                 if (files.isEmpty()) {
@@ -232,7 +257,7 @@ public class Pacioli {
             }
         }
 
-        logln("");
+        log("");
     }
 
     /*
@@ -244,17 +269,17 @@ public class Pacioli {
 
         Integer version = 0; // todo
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
-        
+
         if (!optionalFile.isPresent()) {
-            throw new PacioliException("Cannot parse: file '%s' does not exist.", fileName);    
+            throw new PacioliException("Cannot parse: file '%s' does not exist.", fileName);
         } else {
             PacioliFile file = optionalFile.get();
-            Pacioli.logln1("Parsing file '%s'", file);            
+            log("Parsing file '%s'", file);
             Progam program = Progam.load(file, libs, Phase.PARSED);
-            Pacioli.logln("%s", program.program.pretty());
+            println("%s", program.program.pretty());
         }
     }
-    
+
     private static void desugarCommand(String fileName, List<File> libs)
             throws Exception {
 
@@ -262,15 +287,15 @@ public class Pacioli {
         Optional<PacioliFile> file = PacioliFile.get(fileName, version);
 
         if (!file.isPresent()) {
-            throw new PacioliException("Cannot desugar: file '%s' does not exist.", fileName);    
+            throw new PacioliException("Cannot desugar: file '%s' does not exist.", fileName);
         } else {
-            Pacioli.logln1("Desugaring file '%s'", file);            
+            log("Desugaring file '%s'", file);
             Progam program = Progam.load(file.get(), libs, Phase.DESUGARED);
             program.liftStatements();
-            Pacioli.logln("%s", program.pretty());
+            println("%s", program.pretty());
         }
     }
-    
+
     private static void typesCommand(String fileName, List<File> libs) throws Exception {
 
         Integer version = 0; // todo
@@ -279,45 +304,40 @@ public class Pacioli {
         if (!optionalFile.isPresent()) {
             optionalFile = PacioliFile.findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
         }
-        
+
         if (!optionalFile.isPresent()) {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
 
         PacioliFile file = optionalFile.get();
-        
-        Pacioli.logln1("Displaying types for file '%s'", file.getFile());
+
+        log("Displaying types for file '%s'", file.getFile());
 
         try {
-            
-            Pacioli.logln2("Loading module '%s'", file.getFile());
+
             Progam program = Progam.load(file, libs, Phase.TYPED);
-            
-            //program.printSymbolTable(program.values, "Values");
-            //Pacioli.logln("%s", program.pretty());
-            
             program.printTypes();
 
         } catch (IOException e) {
-            Pacioli.logln("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
+            println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
         }
 
     }
-    
+
     private static void cleanCommand(String fileName, List<File> libs, CompilationSettings settings)
             throws Exception {
         throw new RuntimeException("Todo: clean command");
     }
-    
+
     private static void compileCommand(String fileName, List<File> libs, CompilationSettings settings)
             throws Exception {
 
         Integer version = 0;
-        Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version); 
+        Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
         String kind = settings.getKind();
-        
+
         if (!optionalFile.isPresent()) {
-            throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);    
+            throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);
         } else {
             PacioliFile file = optionalFile.get();
             if (kind.equals("bundle")) {
@@ -326,13 +346,14 @@ public class Pacioli {
             } else if (kind.equals("single")) {
                 compile(file, libs, settings);
             } else if (kind.equals("recursive")) {
-                
+
             } else {
                 throw new PacioliException("Cannot compile: kind '%s' is not one of single, recursive or bundle.",
                         kind);
             }
         }
     }
+
     private static void interpretCommand(String fileName, List<File> libs) throws Exception {
 
         File file = new File(fileName).getAbsoluteFile();
@@ -341,19 +362,19 @@ public class Pacioli {
             throw new MVMException("Error: file '%s' does not exist.", fileName);
         }
 
-        Pacioli.logln1("Interpreting file '%s'", fileName);
+        log("Interpreting file '%s'", fileName);
 
         interpretMVMText(new File(fileName), libs);
     }
-    
+
     private static void runCommand(String fileName, List<File> libs, CompilationSettings settings) throws Exception {
-        
-        Pacioli.logln1("Running file '%s'", fileName);
+
+        log("Running file '%s'", fileName);
 
         // Locate the file
         Integer version = 0; // todo
         Optional<PacioliFile> file = PacioliFile.get(fileName, version);
-        
+
         // Check that it exists
         if (!file.isPresent()) {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
@@ -362,13 +383,13 @@ public class Pacioli {
         // If so, compile and run it
         try {
             Project project = Project.load(file.get(), libs);
-            
+
             if (project.targetOutdated(settings.getTarget())) {
-                Pacioli.logln1("Compiling file '%s'", file.get().getFile());
+                log("Compiling file '%s'", file.get().getFile());
                 project.bundle(settings);
             }
             Path mvmFile = project.bundlePath(Target.MVM);
-            Pacioli.logln1("Running mvm file '%s'\n", mvmFile);
+            log("Running mvm file '%s'\n", mvmFile);
             interpretMVMText(mvmFile.toFile(), libs);
 
         } catch (IOException e) {
@@ -378,57 +399,53 @@ public class Pacioli {
 
     private static void debugCommand(String command, List<String> fileNames, List<File> libs) throws Exception {
 
-        
         for (String fileName : fileNames) {
 
+            Integer version = 0; // todo
+            Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
 
-        Integer version = 0; // todo
-        Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
+            if (!optionalFile.isPresent()) {
+                optionalFile = PacioliFile.findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()),
+                        libs);
+            }
 
-        if (!optionalFile.isPresent()) {
-            optionalFile = PacioliFile.findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
-        }
-        
-        if (!optionalFile.isPresent()) {
-            throw new PacioliException("Error: file '%s' does not exist.", fileName);
-        }
+            if (!optionalFile.isPresent()) {
+                throw new PacioliException("Error: file '%s' does not exist.", fileName);
+            }
 
-        PacioliFile file = optionalFile.get();
-        
-        Pacioli.logln1("Displaying symbol tables for file '%s'", file.getFile());
+            PacioliFile file = optionalFile.get();
 
-        try {
-            Project project = Project.load(file, libs);
-            project.printInfo();
-            
-            
-            Pacioli.logln2("Loading module '%s'", file.getFile());
-            Progam program = Progam.load(file, libs, Phase.TYPED);
-            
-            program.printSymbolTable(program.values, "Values");
-            program.printSymbolTable(program.types, "Values");
-            //Pacioli.logln("%s", program.pretty());
-            
-            //program.printTypes();
+            log("Displaying symbol tables for file '%s'", file.getFile());
 
-        } catch (IOException e) {
-            Pacioli.logln("\nError: cannot symbol tables in file '%s':\n\n%s", fileName, e);
-        }
+            try {
+                Project project = Project.load(file, libs);
+                project.printInfo();
+
+                Progam program = Progam.load(file, libs, Phase.TYPED);
+
+                program.printSymbolTable(program.values, "Values");
+                program.printSymbolTable(program.types, "Values");
+                // logln("%s", program.pretty());
+                // program.printTypes();
+
+            } catch (IOException e) {
+                println("\nError: cannot symbol tables in file '%s':\n\n%s", fileName, e);
+            }
         }
 
     }
-    
+
     private static void infoCommand(List<File> libs) {
-        
-        logln("Pacioli v0.5.0-SNAPSHOT");
 
-        logln("\nSettings");
-        logln("  verbosity=%s", verbosity);
-        logln("  warnings=%s", warnings);
+        println("Pacioli v0.5.0-SNAPSHOT");
 
-        logln("\nLibrary paths");
+        println("\nSettings");
+        println("  verbosity=%s", 1);
+        println("  warnings=%s", warnings);
+
+        println("\nLibrary paths");
         for (File file : libs) {
-            logln("  %s", file);
+            println("  %s", file);
             File[] files = file.listFiles(new FilenameFilter() {
                 @Override
                 public boolean accept(File dir, String name) {
@@ -436,35 +453,35 @@ public class Pacioli {
                 }
             });
             for (File lib : files) {
-                logln("    %s", lib.getName());
+                println("    %s", lib.getName());
             }
 
         }
-        logln("\nPaul Griffioen 2013 - 2023");
+        println("\nPaul Griffioen 2013 - 2023");
     }
 
     private static void helpCommand() {
 
-        logln("\nSyntax: pacioli COMMAND [OPTION]...FILE...  with COMMAND one of:");
-        logln("   run           runs a pacioli file");
-        logln("   compile       compiles a pacioli file");
-        logln("   interpret     interprets an mvm file compiled earlier from a pacioli file");
-        logln("   types         displays infered types for a pacioli file or library");
-        logln("   info          displays information about this compiler and installation");
-        logln("   help          displays this help information");
-        logln("\n");
-        logln("Options (where applicable)");
-        logln("   -lib X        Adds directory X to the library paths");
-        logln("   -target       sets the compilation target to one of 'mvm' (default) 'javascript' or 'matlab'");
-        logln("   -verbosity X  sets the verbosity to X (default 1)");
-        logln("                   0 - no messages");
-        logln("                   1 - progress messages");
-        logln("                   2 - detailed messages");
-        logln("                   3 - too detailed messages");
-        logln("   -debug        toggles stack traces on or off");
-        logln("   -trace X      turns tracing on for function X");
-        logln("   -traceall     toggles tracing of all functions on or off");
-        logln("   -warnings     toggles compiler warnings on or off");
+        println("\nSyntax: pacioli COMMAND [OPTION]...FILE...  with COMMAND one of:");
+        println("   run           runs a pacioli file");
+        println("   compile       compiles a pacioli file");
+        println("   interpret     interprets an mvm file compiled earlier from a pacioli file");
+        println("   types         displays infered types for a pacioli file or library");
+        println("   info          displays information about this compiler and installation");
+        println("   help          displays this help information");
+        println("\n");
+        println("Options (where applicable)");
+        println("   -lib X        Adds directory X to the library paths");
+        println("   -target       sets the compilation target to one of 'mvm' (default) 'javascript' or 'matlab'");
+        println("   -verbosity X  sets the verbosity to X (default 1)");
+        println("                   0 - no messages");
+        println("                   1 - progress messages");
+        println("                   2 - detailed messages");
+        println("                   3 - too detailed messages");
+        println("   -debug        toggles stack traces on or off");
+        println("   -trace X      turns tracing on for function X");
+        println("   -traceall     toggles tracing of all functions on or off");
+        println("   -warnings     toggles compiler warnings on or off");
     }
 
     private static void testCommand(List<File> libs, CompilationSettings settings) throws Exception {
@@ -473,90 +490,90 @@ public class Pacioli {
 
         String dir = "E:/code/private/pacioli-samples/";
 
-        List<String> samples = Arrays.asList( 
-            "abstract-resource/abstract-resource.pacioli",
-            "adt/adt.pacioli",
-            "adt/adt_use.pacioli",
-            "alias/alias.pacioli",
-            "apply_mag/apply_mag.pacioli",
-            //"biglist/biglist.pacioli",  // okay but slow
-            //"blas/blas.pacioli",  // experiment
-            "blocks/blocks.pacioli",
-            "bom/bom.pacioli",
-            "commodity/commodity.pacioli",
-            "convolution/convolution.pacioli",
-            "dice/dice.pacioli",
-            "do/do.pacioli",
-            "empty/empty.pacioli",
-            "envelope/envelope.pacioli",
-            "fourier-motzkin/fourier_motzkin.pacioli",
-            "fourier-motzkin/quad.pacioli",
-            "gcd/gcd.pacioli",
-            "gcd/gcd_test.pacioli",
-            //"geom/geom.pacioli",  // experiment with type app in type literal
-            "good/good.pacioli",
-            "grass/grass.pacioli",
-            "hello_world/hello_world.pacioli",
-            //"holtzman/holtzman.pacioli",  // obsolete
-            "indexing/indexing.pacioli",
-            "intro/intro.pacioli",
-            "kirchhof/kirchhof.pacioli",
-            "klein/klein.pacioli",
-            "krylov/krylov.pacioli",
-//            "loop/loop.pacioli",  // Problem resolving and lifting nested statements!!!
-            "magic/magic.pacioli",
-            "math/math.pacioli",
-            "minijava/minijava.pacioli",
-            "net/net.pacioli",
-//            "oops/oops.pacioli",
-            "power/power.pacioli",
-            "precedence/precedence.pacioli",
-            "queue/queue.pacioli",
-            "random/random.pacioli",
-            "resource/resource.pacioli",
-            "runtime_types/runtime_types.pacioli",
-            "series/series.pacioli",
-            "service/service.pacioli",
-            //"shock_tube/shock_tube.pacioli",  // works, but slow
-            //"soda/soda.pacioli",   // obsolete
-            "solver/solver.pacioli",
-            //"statement/statement.pacioli",
-            //"test/test.pacioli",
-            "shells/shells.pacioli",
-            "numpy/numpy_test.pacioli"            
-            );
-        
-        //samples = Arrays.asList("inference/inference.pacioli");
-        
+        List<String> samples = Arrays.asList(
+                "abstract-resource/abstract-resource.pacioli",
+                "adt/adt.pacioli",
+                "adt/adt_use.pacioli",
+                "alias/alias.pacioli",
+                "apply_mag/apply_mag.pacioli",
+                // "biglist/biglist.pacioli", // okay but slow
+                // "blas/blas.pacioli", // experiment
+                "blocks/blocks.pacioli",
+                "bom/bom.pacioli",
+                "commodity/commodity.pacioli",
+                "convolution/convolution.pacioli",
+                "dice/dice.pacioli",
+                "do/do.pacioli",
+                "empty/empty.pacioli",
+                "envelope/envelope.pacioli",
+                "fourier-motzkin/fourier_motzkin.pacioli",
+                "fourier-motzkin/quad.pacioli",
+                "gcd/gcd.pacioli",
+                "gcd/gcd_test.pacioli",
+                // "geom/geom.pacioli", // experiment with type app in type literal
+                "good/good.pacioli",
+                "grass/grass.pacioli",
+                "hello_world/hello_world.pacioli",
+                // "holtzman/holtzman.pacioli", // obsolete
+                "indexing/indexing.pacioli",
+                "intro/intro.pacioli",
+                "kirchhof/kirchhof.pacioli",
+                "klein/klein.pacioli",
+                "krylov/krylov.pacioli",
+                // "loop/loop.pacioli", // Problem resolving and lifting nested statements!!!
+                "magic/magic.pacioli",
+                "math/math.pacioli",
+                "minijava/minijava.pacioli",
+                "net/net.pacioli",
+                // "oops/oops.pacioli",
+                "power/power.pacioli",
+                "precedence/precedence.pacioli",
+                "queue/queue.pacioli",
+                "random/random.pacioli",
+                "resource/resource.pacioli",
+                "runtime_types/runtime_types.pacioli",
+                "series/series.pacioli",
+                "service/service.pacioli",
+                // "shock_tube/shock_tube.pacioli", // works, but slow
+                // "soda/soda.pacioli", // obsolete
+                "solver/solver.pacioli",
+                // "statement/statement.pacioli",
+                // "test/test.pacioli",
+                "shells/shells.pacioli",
+                "numpy/numpy_test.pacioli");
+
+        // samples = Arrays.asList("inference/inference.pacioli");
+
         for (String sample : samples) {
-            logln(sample);
-            logln("--------------------------------------------------------------------------------");
+            println(sample);
+            println("--------------------------------------------------------------------------------");
             try {
                 String fileName = dir + sample;
-                
+
                 Integer version = 0;
                 Optional<PacioliFile> file = PacioliFile.get(fileName, version);
-                assert(file.isPresent());
+                assert (file.isPresent());
                 Project project = Project.load(file.get(), libs);
-                
-                //project.printInfo();
-                //settings.setTarget(Target.PYTHON);
-                //project.bundle(settings);
-                
+
+                // project.printInfo();
+                // settings.setTarget(Target.PYTHON);
+                // project.bundle(settings);
+
                 settings.setTarget(Target.MVM);
                 project.bundle(settings);
-                
+
                 Path binName = project.bundlePath(Target.MVM);
-                
-                Progam.load(project.root(), libs, Phase.TYPED).printTypes();;
-                Pacioli.logln("Running file %s", binName);
+
+                Progam.load(project.root(), libs, Phase.TYPED).printTypes();
+                ;
+                log("Running file %s", binName);
                 interpretMVMText(binName.toFile(), libs);
-                
+
             } catch (IOException e) {
-                Pacioli.logln("\nError in sample '%s':\n\n%s", sample, e);
+                println("\nError in sample '%s':\n\n%s", sample, e);
             }
-            
-            logln("--------------------------------------------------------------------------------");            
+
+            println("--------------------------------------------------------------------------------");
         }
     }
 
@@ -565,102 +582,81 @@ public class Pacioli {
      */
 
     public static void compile(PacioliFile file, List<File> libs, CompilationSettings settings) throws Exception {
-        
-        //Pacioli.logln1("Compiling file '%s'", file);
-        
+
+        log("Compiling file '%s'", file);
+
         // Load the file
         Progam program = Progam.load(file, libs, Phase.TYPED);
+
+        // TODO: move to load!?
         program.liftStatements();
-        
-        // Setup a writer for the output file
-        PrintWriter writer = null;       
+
+        // Generate the code
         StringWriter s = new StringWriter();
-        
-        try {
-            
-            // Open the writer
-            writer = new PrintWriter(s);
-            
-            // Generate the code for the entire bundle
-            //Pacioli.logln2("Loading file '%s'", file);
+        try (PrintWriter writer = new PrintWriter(s)) {
             program.generateCode(writer, settings);
-            
-        } finally {
-            
-            // Close the writer
-            if (writer != null) {
-                writer.close();
-            }
         }
-        //Pacioli.logln1("Created file '%s'", dstName);
-        Pacioli.log("%s", s.toString());
+        print("%s", s.toString());
     }
-    
+
     private static void interpretMVMText(File file, List<File> libs) throws Exception {
-        
+
         Machine vm = new Machine();
         try {
             vm.init();
             vm.run(file, System.out, libs);
         } catch (MVMException ex) {
-            if (2 < verbosity) {
-                logln("\nState when error occured:");
+            if (Options.dumpOnMVMError) {
+                println("\nState when error occured:");
                 vm.dumpTypes();
                 vm.dumpState();
             }
             throw ex;
         }
-    }        
-    
+    }
+
     private static void checkPrimitives(List<File> libs) throws Exception {
-        
+
         PacioliFile libFile = PacioliFile.requireLibrary("base", libs);
-        Progam program = new Progam(libFile, libs);
-        program.loadTill(Phase.RESOLVED);
+        Progam program = Progam.load(libFile, libs, Phase.RESOLVED);
         List<ValueInfo> allInfos = program.values.allInfos();
         List<String> names = new ArrayList<String>();
-        for (ValueInfo info: allInfos) {
-            //Pacioli.logln(name);
+        for (ValueInfo info : allInfos) {
             if (info.generic().getModule().equals("base")) {
                 names.add(info.globalName());
             }
         }
-        
+
         Machine vm = new Machine();
         vm.init();
         Set<String> keys = vm.store.keySet();
         List<String> keyList = new ArrayList<String>(keys);
-        
+
         List<String> keyListCopy = new ArrayList<String>(keyList);
         keyList.removeAll(names);
-        
+
         names.removeAll(keyListCopy);
-        
+
         Collections.sort(names);
         Collections.sort(keyList);
-        
-        
-        logln("\nMissing in base.pacioli:");
-        for (String key: keyList) {
-            logln("%s", key);
-        };
-        logln("\nMissing in machine:");
-        for (String key: names) {
-            logln("%s", key);
-        };
-        logln("\nDone");
+
+        println("\nMissing in base.pacioli:");
+        for (String key : keyList) {
+            println("%s", key);
+        }
+
+        println("\nMissing in machine:");
+        for (String key : names) {
+            println("%s", key);
+        }
+
+        log("\nDone");
     }
 
-    /*
-     * Utilities
+    /**
+     * Primitive for user output. Used by println, log, logIf, trace and warn.
      */
-    
-    private static void displayError(String text) {
-        logln("Invalid command: %s", text);
-        logln("\nType 'pacioli help' for help");
-    }
-
-    public static void log(String string, Object... args) {
+    private static void print(String string, Object... args) {
 
         String text = String.format(string, args);
 
@@ -675,58 +671,95 @@ public class Pacioli {
         }
     }
 
-    public static void logln(String string, Object... args) {
+    /**
+     * Display a message to the user. Starts with a newline if needed. Contrary to
+     * the log function, te message is always displayed, even if verbosity is zero.
+     * 
+     * @param string
+     *            A format string
+     * @param args
+     *            Format arguments
+     */
+    public static void println(String string, Object... args) {
 
         if (!atLineStart) {
-            log("\n");
+            print("\n");
             atLineStart = true;
         }
 
-        log(string, args);
+        print(string, args);
     }
 
-    public static void log1(String string, Object... args) {
-        if (1 <= verbosity) {
+    /**
+     * Display a log message to the user. Starts with a newline if needed. Does not
+     * display the message if verbosity is zero.
+     * 
+     * @param string
+     *            A format string
+     * @param args
+     *            Format arguments
+     */
+    public static void log(String string, Object... args) {
+        if (verbosity > 0) {
+            println(string, args);
+        }
+    }
+
+    /**
+     * Conditionally display a message to the user. Starts with a newline if needed.
+     * Does not display the message if verbosity is zero.
+     * 
+     * @param show
+     *            Show the message if true
+     * @param string
+     *            A format string
+     * @param args
+     *            Format arguments
+     */
+    public static void logIf(boolean show, String string, Object... args) {
+        if (show) {
             log(string, args);
         }
     }
 
-    public static void log2(String string, Object... args) {
-        if (2 <= verbosity) {
-            log(string, args);
-        }
+    /**
+     * Logs a line if the trace options is on. Show detailed compiler actions for
+     * debugging purposes. Does not display the message if verbosity is zero.
+     * 
+     * @param string
+     *            A format string
+     * @param args
+     *            Format arguments
+     */
+    public static void trace(String string, Object... args) {
+        logIf(Options.trace, string, args);
     }
 
-    public static void log3(String string, Object... args) {
-        if (3 <= verbosity) {
-            log(string, args);
-        }
-    }
-
-    public static void logln1(String string, Object... args) {
-        if (1 <= verbosity) {
-            logln("* ");
-            log(string, args);
-        }
-    }
-
-    public static void logln2(String string, Object... args) {
-        if (2 <= verbosity) {
-            logln("- ");
-            log(string, args);
-        }
-    }
-
-    public static void logln3(String string, Object... args) {
-        if (3 <= verbosity) {
-            logln(string, args);
-        }
-    }
-
+    /**
+     * Display a warning to the user. Does not display the message if verbosity is
+     * zero.
+     * 
+     * @param string
+     *            A format string
+     * @param args
+     *            Format arguments
+     */
     public static void warn(String string, Object... args) {
         if (warnings) {
-            logln("Warning: ");
+            log("Warning: ");
             log(string, args);
         }
     }
+
+    /**
+     * Local utility for displaying command line errors to the user.
+     * 
+     * @param text
+     *            The messaeg to display
+     */
+    private static void displayError(String text) {
+        println("Invalid command: %s", text);
+        println("\nType 'pacioli help' for help");
+    }
+
 }

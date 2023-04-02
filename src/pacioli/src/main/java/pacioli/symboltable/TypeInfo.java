@@ -31,7 +31,9 @@ public class TypeInfo extends AbstractSymbolInfo implements SymbolInfo {
     
     @Override
     public String globalName() {
-        throw new RuntimeException("todo");
+        //throw new RuntimeException("todo");
+        // TODO: check this name with the name used by the compiler. This was added just for logging.
+        return String.format("type_%s", name());
     }
 
     @Override
