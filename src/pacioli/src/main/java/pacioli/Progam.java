@@ -56,9 +56,6 @@ public class Progam extends AbstractPrintable {
     public SymbolTable<ValueInfo> values = new SymbolTable<ValueInfo>();
     public List<Toplevel> toplevels = new ArrayList<Toplevel>();
 
-    // Number of nested calls to loadTill. Used to displayed indented log messages.
-    private static int depth = 0;
-
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------

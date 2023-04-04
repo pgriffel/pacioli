@@ -799,35 +799,35 @@ public class Machine {
             }
         });
 
-        storeBaseValue("tan", new Primitive("cos") {
+        storeBaseValue("tan", new Primitive("tan") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 return x.tan();
             }
         });
 
-        storeBaseValue("asin", new Primitive("sin") {
+        storeBaseValue("_asin", new Primitive("_asin") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 return x.asin();
             }
         });
 
-        storeBaseValue("acos", new Primitive("cos") {
+        storeBaseValue("_acos", new Primitive("_acos") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 return x.acos();
             }
         });
 
-        storeBaseValue("atan", new Primitive("cos") {
+        storeBaseValue("_atan", new Primitive("_atan") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 return x.atan();
             }
         });
 
-        storeBaseValue("atan2", new Primitive("cos") {
+        storeBaseValue("_atan2", new Primitive("_atan2") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 Matrix y = (Matrix) params.get(1);

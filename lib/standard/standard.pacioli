@@ -312,3 +312,24 @@ define remove_nth(n, list) =
       end
       return result;
   end;
+
+# ------------------------------------------------------------------------------
+# Radian functons
+# ------------------------------------------------------------------------------
+
+declare public asin ::
+  for_index P,Q: (P! per Q!) -> radian * P! per Q!;
+
+declare public acos ::
+  for_index P,Q: (P! per Q!) -> radian * P! per Q!;
+
+declare public atan ::
+  for_index P,Q: (P! per Q!) -> radian * P! per Q!;
+
+declare public atan2 ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> radian * P! per Q!;
+
+define asin(x) = |radian| '.*' _asin(x);
+define acos(x) = |radian| '.*' _acos(x);
+define atan(x) = |radian| '.*' _atan(x);
+define atan2(x, y) = |radian| '.*' _atan2(x, y);
