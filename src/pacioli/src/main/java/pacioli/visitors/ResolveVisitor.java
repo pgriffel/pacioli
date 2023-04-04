@@ -49,6 +49,7 @@ import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorUnitInfo;
@@ -84,15 +85,15 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     public ResolveVisitor(Progam prog) {
         this.prog = prog;
         statementResult = new Stack<String>();
-        indexSetTables.push(prog.indexSets);
-        unitTables.push(prog.units);
+        // indexSetTables.push(prog.indexSets);
+        // unitTables.push(prog.units);
         SymbolTable<SymbolInfo> typeTable = new SymbolTable<SymbolInfo>();
-        SymbolTable<? extends SymbolInfo> it = prog.indexSets;
-        SymbolTable<? extends SymbolInfo> ty = prog.types;
-        SymbolTable<? extends SymbolInfo> un = prog.units;
-        typeTable.addAll((SymbolTable<SymbolInfo>) it);
-        typeTable.addAll((SymbolTable<SymbolInfo>) ty);
-        typeTable.addAll((SymbolTable<SymbolInfo>) un);
+        // SymbolTable<? extends SymbolInfo> it = prog.indexSets;
+        // SymbolTable<? extends SymbolInfo> ty = prog.types;
+        // SymbolTable<? extends SymbolInfo> un = prog.units;
+        // typeTable.addAll((SymbolTable<SymbolInfo>) it);
+        // typeTable.addAll((SymbolTable<SymbolInfo>) ty);
+        // typeTable.addAll((SymbolTable<SymbolInfo>) un);
         typeTables.push(typeTable);
         valueTables.push(prog.values);
     }
@@ -476,7 +477,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     @Override
     public void visit(SchemaNode node) {
         pushTypeContext(node.context, node.getLocation());
-        node.table = typeTables.peek();
+        // node.table = typeTables.peek();
         node.type.accept(this);
         typeTables.pop();
     }

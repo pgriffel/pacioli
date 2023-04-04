@@ -50,19 +50,19 @@ public class Pacioli {
 
     // Internal settings for log messages. Actual values depend on verbosity.
     public static class Options {
-        public static boolean trace = false;
-        public static boolean showFileLoads = false;
-        public static boolean showSymbolTableAdditions = false;
-        public static boolean showResolvingDetails = false;
+        public static boolean trace = false; //false;
+        public static boolean showFileLoads = true; // false;
+        public static boolean showSymbolTableAdditions = false; //false;
+        public static boolean showResolvingDetails = false; //false;
         public static boolean showIncludeSearches = false;
-        public static boolean logTypeInference = false;
+        public static boolean logTypeInference = true;
         public static boolean logTypeInferenceDetails = false;
         public static boolean dumpOnMVMError = false;
     }
 
     // User settings for log messages. See the various methods for printing and
     // logging.
-    private static int verbosity = 3; // 1;
+    private static int verbosity = 1;
     private static boolean warnings = true;
 
     // Remember if user output is at the beginning of a line. Used when printing
@@ -424,7 +424,7 @@ public class Pacioli {
                 Progam program = Progam.load(file, libs, Phase.TYPED);
 
                 program.printSymbolTable(program.values, "Values");
-                program.printSymbolTable(program.types, "Values");
+                // program.printSymbolTable(program.types, "Values");
                 // logln("%s", program.pretty());
                 // program.printTypes();
 

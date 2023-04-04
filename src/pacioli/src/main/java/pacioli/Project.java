@@ -19,9 +19,11 @@ import org.jgrapht.graph.AsSubgraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
 import org.jgrapht.traverse.DepthFirstIterator;
+import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import pacioli.CompilationSettings.Target;
 import pacioli.Progam.Phase;
+import pacioli.symboltable.PacioliTable;
 
 public class Project {
 
@@ -103,7 +105,8 @@ public class Project {
                     }
 
                     // Add an edge for the include relation
-                    graph.addEdge(current, pacioliFile);
+                    //graph.addEdge(current, pacioliFile);
+                    graph.addEdge(pacioliFile, current);
 
                 }
 
@@ -130,7 +133,8 @@ public class Project {
                     }
 
                     // Add an edge for the include relation
-                    graph.addEdge(current, pacioliFile);
+                    //graph.addEdge(current, pacioliFile);
+                    graph.addEdge(pacioliFile, current);
 
                 }
 
@@ -155,6 +159,23 @@ public class Project {
         } else {
             throw new RuntimeException("Cannot find project root. Project graph is empty.");
         }
+    }
+
+    /**
+     * The bundle graph's nodes in toplogical order. Can only be user once!
+     * 
+     * The iterator wrapper allows forEach, etc.
+     * 
+     * @return An iterator
+     */
+    Iterable<PacioliFile> orderedFiles() {
+        Iterator<PacioliFile> iterator = new TopologicalOrderIterator<>(graph);
+        Iterable<PacioliFile> iter = new Iterable<PacioliFile>() {
+            public Iterator<PacioliFile> iterator() {
+                return iterator;
+            }
+        };
+        return iter;
     }
 
     public void printInfo() {
@@ -182,58 +203,148 @@ public class Project {
         }
 
         Pacioli.println("\nProject files depth first:");
-        Iterator<PacioliFile> iterator = new DepthFirstIterator<>(graph, root());
-        while (iterator.hasNext()) {
-            PacioliFile file = iterator.next();
+        orderedFiles().forEach(file -> {
             Pacioli.println("- %-40s %-10s %-10s", file.getModule(), file.isLibrary() ? "lib" : "usr", file.getFile());
+        });
 
-        }
         Pacioli.println("\n");
     }
 
     public Path bundle(CompilationSettings settings) throws Exception {
 
+        Path dstPath = bundlePath(settings.getTarget());
+
         Pacioli.log("Creating bundle for file '%s'", file);
 
-        Progam mainProgram = Progam.load(file, libs, Phase.TYPED);
-        mainProgram.liftStatements();
+        Bundle bundle = Bundle.empty(file, libs);
 
-        // Setup a writer for the output file
-        Path dstPath = bundlePath(settings.getTarget());
+        Pacioli.log("Adding primitives");
+        bundle.addPrimitiveTypes();
+
+        for (String lib : PacioliFile.defaultIncludes) {
+            Pacioli.log("Loading default include'%s'", lib);
+            PacioliFile libFile = PacioliFile.requireLibrary(lib, libs);
+            Progam prog = Progam.load(libFile, libs, Phase.DESUGARED);
+            Pacioli.log("Resolving default include '%s'", lib);
+            prog.resolve2(new PacioliTable(bundle.valueTable, bundle.typeTable));
+            Pacioli.log("Lifting statements '%s'", lib);
+            prog.liftStatements();
+            Pacioli.log("Resolving default include '%s'", lib);
+            prog.resolve2(new PacioliTable(bundle.valueTable, bundle.typeTable));
+            Pacioli.log("Inferring types '%s'", lib);
+            prog.inferTypes(new PacioliTable(bundle.valueTable, bundle.typeTable));
+        Pacioli.log("Loading '%s'", lib);
+            bundle.load(prog);
+        }
+
+        Pacioli.log("Creating bundle for file '%s'", file);
 
         try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())))) {
 
-            for (String lib : PacioliFile.defaultIncludes) {
-
-                PacioliFile libFile = PacioliFile.requireLibrary(lib, libs);
-                Progam prog = Progam.load(libFile, libs, Phase.TYPED);
-                prog.liftStatements();
-                Pacioli.log("Bundling default file %s", libFile);
-                mainProgram.includeOther(prog);
-
-            }
-
-            Iterator<PacioliFile> iterator = new DepthFirstIterator<>(graph, root());
-
-            // Hack to avoid doing main twice
-            iterator.next();
-
-            while (iterator.hasNext()) {
-
-                PacioliFile current = iterator.next();
-
-                Pacioli.log("Bundling file %s [%s]", current, current.getModule());
-
-                // Add the program to the main program creating the entire bundle
-                Progam program = Progam.load(current, libs, Phase.TYPED);
+            for (PacioliFile current : orderedFiles()) {
+                Progam program = Progam.load(current, libs, Phase.DESUGARED);
+                Pacioli.log("Resolving include '%s'", current);
+                program.resolve2(new PacioliTable(bundle.valueTable, bundle.typeTable));
+                Pacioli.log("Lifting statements '%s'", current);
                 program.liftStatements();
-                mainProgram.includeOther(program);
+                Pacioli.log("Resolving include '%s'", current);
+                program.resolve2(new PacioliTable(bundle.valueTable, bundle.typeTable));
+                Pacioli.log("Inferring types '%s'", current);
+                program.inferTypes(new PacioliTable(bundle.valueTable, bundle.typeTable));
+                Pacioli.log("Loading '%s'", current);
+                bundle.load(program);
             }
 
-            // Generate the code for the entire bundle
-            mainProgram.generateCode(writer, settings);
+            Pacioli.log("Creating bundle for file '%s'!!!!!!!!!!!", file);
+
+            bundle.generateCode(writer, settings);
+
+            // orderedFiles().forEach(current -> {
+            //     Pacioli.log("Bundling file %s [%s]", current, current.getModule());
+
+            //     // Add the program to the main program creating the entire bundle
+            //     Progam program;
+            //     try {
+            //         program = Progam.load(current, libs, Phase.DESUGARED);
+            //         Pacioli.log("Resolving include '%s'", current);
+            //         program.resolve2(new PacioliTable(bundle.valueTable, bundle.typeTable));
+            //         Pacioli.log("Loading '%s'", current);
+            //         bundle.load(program);
+            //     } catch (Exception e) {
+            //         // TODO Auto-generated catch block
+            //         e.printStackTrace();
+            //     }
+                
+            // });
+
+            // Iterator<PacioliFile> iterator = new DepthFirstIterator<>(graph, root());
+
+            // // Hack to avoid doing main twice
+            // iterator.next();
+
+            // while (iterator.hasNext()) {
+
+            //     PacioliFile current = iterator.next();
+
+            //     Pacioli.log("Bundling file %s [%s]", current, current.getModule());
+
+            //     // Add the program to the main program creating the entire bundle
+            //     Progam program = Progam.load(current, libs, Phase.DESUGARED);
+            //     Pacioli.log("Resolving include '%s'", current);
+            //     program.resolve2(new PacioliTable(bundle.valueTable, bundle.typeTable));
+            //     Pacioli.log("Loading '%s'", current);
+            //     bundle.load(program);
+            // }
+            // // mainProgram.liftStatements();
+
+            // // mainProgram.inferTypes();
+
+            // // // Generate the code for the entire bundle
+            // // mainProgram.generateCode(writer, settings);
 
         }
+
+        // // Progam mainProgram = Progam.load(file, libs, Phase.RESOLVED);
+        // Progam mainProgram = Progam.empty(file, libs);
+
+        // // Setup a writer for the output file
+
+        // try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())))) {
+
+        //     for (String lib : PacioliFile.defaultIncludes) {
+
+        //         PacioliFile libFile = PacioliFile.requireLibrary(lib, libs);
+        //         Progam prog = Progam.load(libFile, libs, Phase.RESOLVED);
+        //         prog.liftStatements();
+        //         Pacioli.log("Bundling default file %s", libFile);
+        //         mainProgram.includeOther(prog);
+
+        //     }
+
+        //     Iterator<PacioliFile> iterator = new DepthFirstIterator<>(graph, root());
+
+        //     // Hack to avoid doing main twice
+        //     iterator.next();
+
+        //     while (iterator.hasNext()) {
+
+        //         PacioliFile current = iterator.next();
+
+        //         Pacioli.log("Bundling file %s [%s]", current, current.getModule());
+
+        //         // Add the program to the main program creating the entire bundle
+        //         Progam program = Progam.load(current, libs, Phase.RESOLVED);
+        //         program.liftStatements();
+        //         mainProgram.includeOther(program);
+        //     }
+        //     mainProgram.liftStatements();
+
+        //     mainProgram.inferTypes();
+
+        //     // Generate the code for the entire bundle
+        //     mainProgram.generateCode(writer, settings);
+
+        // }
 
         Pacioli.log("Created bundle '%s'", dstPath);
 

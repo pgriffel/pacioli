@@ -28,9 +28,14 @@ import java.util.Set;
 import pacioli.AbstractPrintable;
 import pacioli.CompilationSettings;
 import pacioli.Location;
+import pacioli.PacioliFile;
 import pacioli.Printer;
 import pacioli.Progam;
+import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
+import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.TypeSymbolInfo;
+import pacioli.symboltable.ValueInfo;
 import pacioli.visitors.DesugarVisitor;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.LiftStatements;
@@ -38,6 +43,7 @@ import pacioli.visitors.MVMGenerator;
 import pacioli.visitors.MatlabGenerator;
 import pacioli.visitors.PrintVisitor;
 import pacioli.visitors.ResolveVisitor;
+import pacioli.visitors.ResolveVisitor2;
 import pacioli.visitors.UsesVisitor;
 
 public abstract class AbstractNode extends AbstractPrintable implements Node {
@@ -106,6 +112,11 @@ public abstract class AbstractNode extends AbstractPrintable implements Node {
     @Override
     public void resolve(Progam prog) {
         accept(new ResolveVisitor(prog));
+    }
+
+    @Override
+    public void resolve2(PacioliFile file, PacioliTable pacioliTable) {
+        accept(new ResolveVisitor2(file, pacioliTable));
     }
 
     @Override

@@ -6,7 +6,7 @@ import pacioli.Location;
 import pacioli.PacioliFile;
 import pacioli.ast.definition.UnitDefinition;
 
-public class ScalarUnitInfo extends UnitInfo implements SymbolInfo {
+public final class ScalarUnitInfo extends UnitInfo implements SymbolInfo {
 
     public String symbol;
     private Optional<UnitDefinition> definition = Optional.empty();

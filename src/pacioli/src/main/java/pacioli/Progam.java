@@ -11,6 +11,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.management.RuntimeErrorException;
+
 import pacioli.CompilationSettings.Target;
 import pacioli.ast.ImportNode;
 import pacioli.ast.IncludeNode;
@@ -32,10 +34,12 @@ import pacioli.compilers.PythonCompiler;
 import pacioli.parser.Parser;
 import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.PacioliType;
@@ -73,9 +77,10 @@ public class Progam extends AbstractPrintable {
     ProgramNode program;
 
     // Fill during loading
-    public SymbolTable<IndexSetInfo> indexSets = new SymbolTable<IndexSetInfo>();
-    public SymbolTable<UnitInfo> units = new SymbolTable<UnitInfo>();
-    public SymbolTable<TypeInfo> types = new SymbolTable<TypeInfo>();
+    // public SymbolTable<IndexSetInfo> indexSets = new SymbolTable<IndexSetInfo>();
+    // public SymbolTable<UnitInfo> units = new SymbolTable<UnitInfo>();
+    // public SymbolTable<TypeInfo> types = new SymbolTable<TypeInfo>();
+    public SymbolTable<TypeSymbolInfo> typess = new SymbolTable<TypeSymbolInfo>();
     public SymbolTable<ValueInfo> values = new SymbolTable<ValueInfo>();
     public List<Toplevel> toplevels = new ArrayList<Toplevel>();
 
@@ -90,6 +95,10 @@ public class Progam extends AbstractPrintable {
         assert (file != null);
         this.file = file;
         this.libs = libs;
+    }
+
+    static Progam empty(PacioliFile file, List<File> libs) {
+        return new Progam(file, libs);
     }
 
     static Progam load(PacioliFile file, List<File> libs, Phase phase) throws Exception {
@@ -177,30 +186,24 @@ public class Progam extends AbstractPrintable {
             return;
         }
 
-        // logLoadingStart("Desugaring");
         desugar();
-        // logLoadingEnd("Ready desugaring");
-        // logLoadingStart("Filling tables");
         fillTables();
-        // logLoadingEnd("Ready filling tables");
+
         if (phase.equals(Phase.DESUGARED)) {
             logLoadingEnd("Ready loading file");
             return;
         }
 
-        loadDirectDependencies();
-
-        // logLoadingStart("Resolving");
-        resolve();
+        // loadDirectDependencies();
+        // resolve();
         transformConversions();
+
         if (phase.equals(Phase.RESOLVED)) {
             logLoadingEnd("Ready loading file");
             return;
         }
 
-        // this.printSymbolTable(values, getModule());
-
-        inferTypes();
+        // inferTypes();
 
         logLoadingEnd("Ready loading file");
     }
@@ -229,50 +232,50 @@ public class Progam extends AbstractPrintable {
         }
     }
 
-    private void loadDirectDependencies() throws Exception {
+    // private void loadDirectDependencies() throws Exception {
 
-        this.addPrimitiveTypes();
+    // this.addPrimitiveTypes();
 
-        if (!file.isSystemLibrary("base")) {
-            this.loadSystemLibrary("base");
-        }
+    // if (!file.isSystemLibrary("base")) {
+    // this.loadSystemLibrary("base");
+    // }
 
-        if (!file.isSystemLibrary("base") && !file.isSystemLibrary("standard")) {
-            this.loadSystemLibrary("standard");
-        }
+    // if (!file.isSystemLibrary("base") && !file.isSystemLibrary("standard")) {
+    // this.loadSystemLibrary("standard");
+    // }
 
-        // Fill symbol tables for the imported libraries
-        for (PacioliFile file : findImports(libs)) {
-            Progam prog = new Progam(file, libs);
-            prog.loadTill(Progam.Phase.DESUGARED);
-            // for (Definition def : prog.program.definitions) {
-            // if (def instanceof Declaration || def instanceof IndexSetDefinition || def
-            // instanceof UnitDefinition
-            // || def instanceof UnitVectorDefinition
-            // || def instanceof TypeDefinition) {
-            // def.addToProgr(prog, false);
-            // }
-            // }
-            includeOther(prog);
-        }
+    // // Fill symbol tables for the imported libraries
+    // for (PacioliFile file : findImports(libs)) {
+    // Progam prog = new Progam(file, libs);
+    // prog.loadTill(Progam.Phase.RESOLVED);
+    // // for (Definition def : prog.program.definitions) {
+    // // if (def instanceof Declaration || def instanceof IndexSetDefinition || def
+    // // instanceof UnitDefinition
+    // // || def instanceof UnitVectorDefinition
+    // // || def instanceof TypeDefinition) {
+    // // def.addToProgr(prog, false);
+    // // }
+    // // }
+    // includeOther(prog);
+    // }
 
-        // Fill symbol tables for the included files
-        for (String include : includes()) {
-            PacioliFile file = this.file.findInclude2("p.getParent()", include);
-            Progam prog = new Progam(file, libs);
-            prog.loadTill(Progam.Phase.DESUGARED);
-            // for (Definition def : prog.program.definitions) {
-            // if (def instanceof Declaration || def instanceof IndexSetDefinition || def
-            // instanceof UnitDefinition
-            // || def instanceof UnitVectorDefinition
-            // || def instanceof TypeDefinition) {
-            // def.addToProgr(prog, false);
-            // }
-            // }
-            includeOther(prog);
-        }
+    // // Fill symbol tables for the included files
+    // for (String include : includes()) {
+    // PacioliFile file = this.file.findInclude2("p.getParent()", include);
+    // Progam prog = new Progam(file, libs);
+    // prog.loadTill(Progam.Phase.RESOLVED);
+    // // for (Definition def : prog.program.definitions) {
+    // // if (def instanceof Declaration || def instanceof IndexSetDefinition || def
+    // // instanceof UnitDefinition
+    // // || def instanceof UnitVectorDefinition
+    // // || def instanceof TypeDefinition) {
+    // // def.addToProgr(prog, false);
+    // // }
+    // // }
+    // includeOther(prog);
+    // }
 
-    }
+    // }
 
     /**
      * Make obsolete by deftypes without body?
@@ -296,39 +299,51 @@ public class Progam extends AbstractPrintable {
      *            One of "base" or "standard"
      * @throws Exception
      */
-    public void loadSystemLibrary(String lib) throws Exception {
-        PacioliFile file = PacioliFile.requireLibrary(lib, libs);
-        Progam prog = new Progam(file, libs);
-        prog.loadTill(Progam.Phase.RESOLVED);
-        this.includeOther(prog);
-    }
+    // public void loadSystemLibrary(String lib) throws Exception {
+    // PacioliFile file = PacioliFile.requireLibrary(lib, libs);
+    // Progam prog = new Progam(file, libs);
+    // prog.loadTill(Progam.Phase.RESOLVED);
+    // this.includeOther(prog);
+    // }
 
-    public void addInfo(IndexSetInfo info) throws PacioliException {
+    public void addInfo(TypeSymbolInfo info) throws PacioliException {
         String name = info.name();
-        if (indexSets.contains(name)) {
-            throw new PacioliException(info.getLocation(), "Duplicate index set name: " + name);
+        if (typess.contains(name)) {
+            throw new PacioliException(info.getLocation(), "Duplicate type set name: " + name);
         } else {
-            indexSets.put(name, info);
+            typess.put(name, info);
         }
     }
 
-    public void addInfo(UnitInfo info) throws PacioliException {
-        String name = info.name();
-        if (units.contains(name)) {
-            throw new PacioliException(info.getLocation(), "Duplicate unit name: " + name);
-        } else {
-            units.put(name, info);
-        }
-    }
+    // public void addInfo(IndexSetInfo info) throws PacioliException {
+    // String name = info.name();
+    // if (indexSets.contains(name)) {
+    // throw new PacioliException(info.getLocation(), "Duplicate index set name: " +
+    // name);
+    // } else {
+    // indexSets.put(name, info);
+    // }
+    // }
 
-    public void addInfo(TypeInfo info) throws PacioliException {
-        String name = info.name();
-        if (types.contains(name)) {
-            throw new PacioliException(info.getLocation(), "Duplicate type name: " + name);
-        } else {
-            types.put(name, info);
-        }
-    }
+    // public void addInfo(UnitInfo info) throws PacioliException {
+    // String name = info.name();
+    // if (units.contains(name)) {
+    // throw new PacioliException(info.getLocation(), "Duplicate unit name: " +
+    // name);
+    // } else {
+    // units.put(name, info);
+    // }
+    // }
+
+    // public void addInfo(TypeInfo info) throws PacioliException {
+    // String name = info.name();
+    // if (types.contains(name)) {
+    // throw new PacioliException(info.getLocation(), "Duplicate type name: " +
+    // name);
+    // } else {
+    // types.put(name, info);
+    // }
+    // }
 
     public void addInfo(ValueInfo info) throws PacioliException {
         String name = info.name();
@@ -343,87 +358,186 @@ public class Progam extends AbstractPrintable {
         toplevels.add(toplevel);
     }
 
-    public void includeOther(Progam other) throws Exception {
+    // public void includeOther(Progam other) throws Exception {
 
-        // Include the units from the other program
-        for (UnitInfo otherInfo : other.units.allInfos()) {
-            String name = otherInfo.name();
-            UnitInfo info = units.lookup(name);
-            if (info == null) {
-                units.put(name, otherInfo.withFromProgram(false));
-            } else {
-                units.put(name, info.includeOther(otherInfo));
-            }
-        }
+    // // Include the units from the other program
+    // for (UnitInfo otherInfo : other.units.allInfos()) {
+    // if (otherInfo.isFromProgram()) {
+    // String name = otherInfo.name();
+    // UnitInfo info = units.lookup(name);
+    // if (info == null) {
+    // units.put(name, otherInfo.withFromProgram(false));
+    // } else {
+    // throw new PacioliException(info.getLocation(), "Duplicate of unit %s found",
+    // info.generic().name);
+    // // units.put(name, info.includeOther(otherInfo));
+    // }
+    // }
+    // }
 
-        // Include the index sets from the other program
-        for (IndexSetInfo otherInfo : other.indexSets.allInfos()) {
-            String name = otherInfo.name();
-            IndexSetInfo info = indexSets.lookup(name);
-            if (info == null) {
-                indexSets.put(name, otherInfo.withFromProgram(false));
-            } else {
-                indexSets.put(name, info.includeOther(otherInfo));
-            }
-        }
+    // // Include the index sets from the other program
+    // for (IndexSetInfo otherInfo : other.indexSets.allInfos()) {
+    // if (otherInfo.isFromProgram()) {
+    // String name = otherInfo.name();
+    // IndexSetInfo info = indexSets.lookup(name);
+    // if (info == null) {
+    // indexSets.put(name, otherInfo.withFromProgram(false));
+    // } else {
+    // throw new PacioliException(info.getLocation(), "Duplicate of index set %s
+    // found",
+    // info.generic().name);
+    // // indexSets.put(name, info.includeOther(otherInfo));
+    // }
+    // }
+    // }
 
-        // Include the types from the other program
-        for (TypeInfo otherInfo : other.types.allInfos()) {
-            String name = otherInfo.name();
-            TypeInfo info = types.lookup(name);
-            if (info == null) {
-                types.put(name, otherInfo.withFromProgram(false));
-            } else {
-                types.put(name, info.includeOther(otherInfo));
-            }
-        }
+    // // Include the types from the other program
+    // for (TypeInfo otherInfo : other.types.allInfos()) {
+    // if (otherInfo.isFromProgram()) {
+    // String name = otherInfo.name();
+    // TypeInfo info = types.lookup(name);
+    // if (info == null) {
+    // types.put(name, otherInfo.withFromProgram(false));
+    // } else {
+    // throw new PacioliException(info.getLocation(), "Duplicate of type %s found",
+    // info.generic().name);
+    // // types.put(name, info.includeOther(otherInfo));
+    // }
+    // }
+    // }
 
-        // Include the values from the other program
-        for (ValueInfo otherInfo : other.values.allInfos()) {
-            String name = otherInfo.name();
-            if (true || !other.isExternal(otherInfo)) {
-                ValueInfo info = values.lookup(name);
-                if (info == null) {
-                    values.put(name, otherInfo.withFromProgram(false));
-                } else {
-                    values.put(name, info.includeOther(otherInfo));
-                }
-            }
-        }
+    // // Include the values from the other program
+    // for (ValueInfo otherInfo : other.values.allInfos()) {
+    // if (otherInfo.isFromProgram()) {
+    // String name = otherInfo.name();
+    // if (true || !other.isExternal(otherInfo)) {
+    // ValueInfo info = values.lookup(name);
+    // if (info == null) {
+    // values.put(name, otherInfo.withFromProgram(false));
+    // } else {
+    // throw new PacioliException(info.getLocation(), "Duplicate of value %s found",
+    // info.generic().name);
+    // //values.put(name, info.includeOther(otherInfo));
+    // }
+    // }
+    // }
+    // }
 
-    }
+    // }
 
     // -------------------------------------------------------------------------
     // Resolving
     // -------------------------------------------------------------------------
 
-    public void resolve() throws Exception {
+    // public void resolve() throws Exception {
 
-        Pacioli.trace("Resolving %s", this.file.getModule());
+    // Pacioli.trace("Resolving %s", this.file.getModule());
 
-        for (UnitInfo nfo : units.allInfos()) {
-            Optional<? extends Definition> definition = nfo.getDefinition();
-            assert (definition.isPresent());
-            if (definition.isPresent()) {
-                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving unit %s", nfo.globalName());
-                definition.get().resolve(this);
+    // for (UnitInfo nfo : units.allInfos()) {
+    // Optional<? extends Definition> definition = nfo.getDefinition();
+    // assert (definition.isPresent());
+    // if (nfo.isFromProgram() && definition.isPresent()) {
+    // Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving unit %s",
+    // nfo.globalName());
+    // definition.get().resolve(this);
+    // }
+    // }
+    // for (TypeInfo nfo : types.allInfos()) {
+    // if (nfo.isFromProgram() && nfo.getDefinition().isPresent()) {
+    // Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving type %s",
+    // nfo.globalName());
+    // nfo.getDefinition().get().resolve(this);
+    // }
+    // }
+    // for (ValueInfo nfo : values.allInfos()) {
+    // if (nfo.isFromProgram()) {
+    // if (nfo.getDefinition().isPresent()) {
+    // Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving value or
+    // function %s",
+    // nfo.globalName());
+    // nfo.getDefinition().get().resolve(this);
+    // }
+    // if (nfo.getDeclaredType().isPresent()) {
+    // Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving declaration
+    // %s", nfo.globalName());
+    // nfo.getDeclaredType().get().resolve(this);
+    // }
+    // }
+    // }
+    // for (Toplevel definition : toplevels) {
+    // Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving toplevel %s",
+    // definition.localName());
+    // definition.resolve(this);
+    // }
+    // }
+
+    public void resolve2(PacioliTable symbolTable) throws Exception {
+
+        Pacioli.trace("Resolving2 %s", this.file.getModule());
+
+        if (values.parent != null) {
+            throw new RuntimeException(String.format("Expected null parent in %s", this.file));
+        }
+        if (typess.parent != null) {
+            throw new RuntimeException(String.format("Expected null parent in %s", this.file));
+        }
+
+        // SymbolTable<TypeSymbolInfo> typeTable = new
+        // SymbolTable<TypeSymbolInfo>(symbolTable.types());
+        // SymbolTable<? extends SymbolInfo> it = indexSets;
+        // SymbolTable<? extends SymbolInfo> ty = types;
+        // SymbolTable<? extends SymbolInfo> un = units;
+        // typeTable.addAll((SymbolTable<TypeSymbolInfo>) it);
+        // typeTable.addAll((SymbolTable<TypeSymbolInfo>) ty);
+        // typeTable.addAll((SymbolTable<TypeSymbolInfo>) un);
+
+        values.parent = symbolTable.values();
+        typess.parent = symbolTable.types();
+        PacioliTable env = new PacioliTable(values, typess);
+        for (TypeSymbolInfo nfo : typess.allInfos()) {
+            if (nfo instanceof UnitInfo) {
+                Optional<? extends Definition> definition = nfo.getDefinition();
+                assert (definition.isPresent());
+                if (nfo.isFromProgram() && definition.isPresent()) {
+                    Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving unit %s", nfo.globalName());
+                    definition.get().resolve2(file, env);
+                }
             }
         }
-        for (TypeInfo nfo : types.allInfos()) {
-            if (nfo.getDefinition().isPresent()) {
-                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving type %s", nfo.globalName());
-                nfo.getDefinition().get().resolve(this);
+        for (TypeSymbolInfo nfo : typess.allInfos()) {
+            if (nfo instanceof TypeInfo) {
+                if (nfo.isFromProgram() && nfo.getDefinition().isPresent()) {
+                    Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving type %s", nfo.globalName());
+                    nfo.getDefinition().get().resolve2(file, env);
+                }
             }
         }
+        // for (UnitInfo nfo : units.allInfos()) {
+        // Optional<? extends Definition> definition = nfo.getDefinition();
+        // assert (definition.isPresent());
+        // if (nfo.isFromProgram() && definition.isPresent()) {
+        // Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving unit %s",
+        // nfo.globalName());
+        // definition.get().resolve2(file, env);
+        // }
+        // }
+        // for (TypeInfo nfo : types.allInfos()) {
+        // if (nfo.isFromProgram() && nfo.getDefinition().isPresent()) {
+        // Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving type %s",
+        // nfo.globalName());
+        // nfo.getDefinition().get().resolve2(file, env);
+        // }
+        // }
         for (ValueInfo nfo : values.allInfos()) {
             if (nfo.isFromProgram()) {
                 if (nfo.getDefinition().isPresent()) {
-                    Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving value or function %s", nfo.globalName());
-                    nfo.getDefinition().get().resolve(this);
+                    Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving value or function %s",
+                            nfo.globalName());
+                    nfo.getDefinition().get().resolve2(file, env);
                 }
                 if (nfo.getDeclaredType().isPresent()) {
                     Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving declaration %s", nfo.globalName());
-                    nfo.getDeclaredType().get().resolve(this);
+                    nfo.getDeclaredType().get().resolve2(file, env);
                 }
             }
         }
@@ -431,6 +545,8 @@ public class Progam extends AbstractPrintable {
             Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving toplevel %s", definition.localName());
             definition.resolve(this);
         }
+        values.parent = null;
+        typess.parent = null;
     }
 
     // -------------------------------------------------------------------------
@@ -449,8 +565,8 @@ public class Progam extends AbstractPrintable {
         // Pacioli.logln("%s", pretty());
 
         liftValueInfoStatements();
-        resolve();
-        inferTypes();
+        // resolve();
+        // inferTypes();
     }
 
     private void liftValueInfoStatements() {
@@ -485,9 +601,12 @@ public class Progam extends AbstractPrintable {
     // Type inference
     // -------------------------------------------------------------------------
 
-    private void inferTypes() {
+    public void inferTypes(PacioliTable environment) {
 
         Pacioli.trace("Infering types in %s", this.file.getModule());
+        
+        values.parent = environment.values();
+        typess.parent = environment.types();
 
         Set<SymbolInfo> discovered = new HashSet<SymbolInfo>();
         Set<SymbolInfo> finished = new HashSet<SymbolInfo>();
@@ -499,6 +618,8 @@ public class Progam extends AbstractPrintable {
 
         for (String value : names) {
             ValueInfo info = values.lookup(value);
+            // ValueInfo info = environment.values().lookup(value);
+
             if (!isExternal(info) && info.getDefinition().isPresent()) {
                 boolean showLog = Pacioli.Options.logTypeInference && (info.isFromProgram() || logAnyway);
                 Pacioli.logIf(showLog, "Infering type of %s", value);
@@ -515,7 +636,7 @@ public class Progam extends AbstractPrintable {
                 PacioliType inferredType = info.inferredType().instantiate();
 
                 if (info.isFromProgram() || logAnyway) {
-                    Pacioli.logIf(Pacioli.Options.logTypeInference,
+                    Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,
                             "Checking inferred type\n  %s\nagainst declared type\n  %s",
                             inferredType.pretty(), declaredType.pretty());
                 }
@@ -590,7 +711,7 @@ public class Progam extends AbstractPrintable {
                 ValueDefinition def = info.getDefinition().get();
                 Typing typing = def.body.inferTyping(this);
 
-                Pacioli.logIf(Pacioli.Options.logTypeInference, "Inferred typing of %s is %s", info.name(),
+                Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "Inferred typing of %s is %s", info.name(),
                         typing.pretty());
 
                 try {
@@ -636,7 +757,7 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
 
     public void generateCode(PrintWriter writer, CompilationSettings settings) throws Exception {
-        
+
         Pacioli.trace("Generating code for %s", this.file.getModule());
 
         // Dev switch
@@ -676,8 +797,8 @@ public class Progam extends AbstractPrintable {
         }
 
         // Generate code for the index sets
-        for (IndexSetInfo info : indexSets.allInfos()) {
-            if (!isExternal(info) || externals) {
+        for (TypeSymbolInfo info : typess.allInfos()) {
+            if (info instanceof IndexSetInfo && !isExternal(info) || externals) {
                 assert (info.getDefinition().isPresent());
                 info.accept(compiler);
             }
@@ -687,9 +808,12 @@ public class Progam extends AbstractPrintable {
 
         // Find all units to compile
         List<UnitInfo> unitsToCompile = new ArrayList<UnitInfo>();
-        for (UnitInfo info : units.allInfos()) {
-            if ((!isExternal(info) || externals) && !info.isAlias()) {
-                unitsToCompile.add(info);
+        for (TypeSymbolInfo info : typess.allInfos()) {
+            if (info instanceof IndexSetInfo) {
+                UnitInfo unitInfo = (UnitInfo) info;
+                if ((!isExternal(info) || externals) && !unitInfo.isAlias()) {
+                    unitsToCompile.add(unitInfo);
+                }
             }
         }
 
@@ -817,27 +941,27 @@ public class Progam extends AbstractPrintable {
             program.printPretty(out);
         } else {
 
-            for (UnitInfo info : units.allInfos()) {
+            for (TypeSymbolInfo info : typess.allInfos()) {
                 out.println();
                 info.getDefinition().get().printPretty(out);
                 ;
                 out.println();
             }
 
-            for (IndexSetInfo info : indexSets.allInfos()) {
-                out.println();
-                info.getDefinition().get().printPretty(out);
-                ;
-                out.println();
-            }
+            // for (IndexSetInfo info : indexSets.allInfos()) {
+            //     out.println();
+            //     info.getDefinition().get().printPretty(out);
+            //     ;
+            //     out.println();
+            // }
 
-            for (TypeInfo info : types.allInfos()) {
-                if (info.getDefinition().isPresent()) {
-                    out.println();
-                    info.getDefinition().get().printPretty(out);
-                    out.println();
-                }
-            }
+            // for (TypeInfo info : types.allInfos()) {
+            //     if (info.getDefinition().isPresent()) {
+            //         out.println();
+            //         info.getDefinition().get().printPretty(out);
+            //         out.println();
+            //     }
+            // }
 
             for (ValueInfo info : values.allInfos()) {
                 if (info.getDefinition().isPresent() && !isExternal(info)) {
@@ -866,36 +990,36 @@ public class Progam extends AbstractPrintable {
         Pacioli.println("End table");
     }
 
-    public void printSymbolTables() throws Exception {
+    // public void printSymbolTables() throws Exception {
 
-        Pacioli.println("Symbol table for %s", getFile());
+    //     Pacioli.println("Symbol table for %s", getFile());
 
-        Pacioli.println("Units:");
-        for (UnitInfo info : units.allInfos()) {
-            Pacioli.println("%s", info.name());
-        }
+    //     Pacioli.println("Units:");
+    //     for (UnitInfo info : units.allInfos()) {
+    //         Pacioli.println("%s", info.name());
+    //     }
 
-        // Include the index sets from the other program
-        Pacioli.println("Index sets:");
-        for (IndexSetInfo info : indexSets.allInfos()) {
-            Pacioli.println("%s", info.name());
-        }
+    //     // Include the index sets from the other program
+    //     Pacioli.println("Index sets:");
+    //     for (IndexSetInfo info : indexSets.allInfos()) {
+    //         Pacioli.println("%s", info.name());
+    //     }
 
-        // Include the types from the other program
-        Pacioli.println("Types:");
-        for (TypeInfo info : types.allInfos()) {
-            Pacioli.println("%s", info.name());
-        }
+    //     // Include the types from the other program
+    //     Pacioli.println("Types:");
+    //     for (TypeInfo info : types.allInfos()) {
+    //         Pacioli.println("%s", info.name());
+    //     }
 
-        // Include the values from the other program
-        Pacioli.println("Values:");
-        for (ValueInfo info : values.allInfos()) {
-            Pacioli.println("%s %s %s",
-                    isExternal(info) ? "ext " : "file",
-                    info.generic().getFile(),
-                    info.name());
-        }
+    //     // Include the values from the other program
+    //     Pacioli.println("Values:");
+    //     for (ValueInfo info : values.allInfos()) {
+    //         Pacioli.println("%s %s %s",
+    //                 isExternal(info) ? "ext " : "file",
+    //                 info.generic().getFile(),
+    //                 info.name());
+    //     }
 
-    }
+    // }
 
 }

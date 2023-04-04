@@ -26,12 +26,13 @@ import pacioli.TypeContext;
 import pacioli.ast.Visitor;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.TypeSymbolInfo;
 
 public class SchemaNode extends AbstractTypeNode {
 
     public final TypeContext context;
     public final TypeNode type;
-    public SymbolTable<SymbolInfo> table;
+    public SymbolTable<TypeSymbolInfo> table;
 
     public SchemaNode(Location location, TypeContext context, TypeNode type) {
         super(location);

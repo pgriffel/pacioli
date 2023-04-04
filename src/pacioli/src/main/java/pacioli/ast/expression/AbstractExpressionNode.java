@@ -42,10 +42,10 @@ public abstract class AbstractExpressionNode extends AbstractNode implements Exp
     public Typing inferTyping(Progam prog) {
         HashMap<String, TypeInfo> defaultTypes = new HashMap<String, TypeInfo>();
         
-        defaultTypes.put("Void", prog.types.lookup("Void"));
-        defaultTypes.put("Tuple", prog.types.lookup("Tuple"));
-        defaultTypes.put("String", prog.types.lookup("String"));
-        defaultTypes.put("Boole", prog.types.lookup("Boole"));
+        defaultTypes.put("Void", (TypeInfo) prog.typess.lookup("Void"));
+        defaultTypes.put("Tuple", (TypeInfo) prog.typess.lookup("Tuple"));
+        defaultTypes.put("String", (TypeInfo) prog.typess.lookup("String"));
+        defaultTypes.put("Boole", (TypeInfo) prog.typess.lookup("Boole"));
         
         TypeInference visitor = new TypeInference(defaultTypes);
         return visitor.typingAccept(this);

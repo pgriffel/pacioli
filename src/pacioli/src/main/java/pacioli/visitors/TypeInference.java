@@ -56,9 +56,9 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     private HashMap<String, TypeInfo> defaultTypes;
 
     public TypeInference(HashMap<String, TypeInfo> defaultTypes) {
-        this.defaultTypes = defaultTypes; 
+        this.defaultTypes = defaultTypes;
     }
-    
+
     private TypeInfo findInfo(String name) {
         TypeInfo type = defaultTypes.get(name);
         if (type == null) {
@@ -68,22 +68,21 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     }
 
     private ParametricType newVoidType() {
-        return new ParametricType(findInfo("Void"), new ArrayList<PacioliType>());   
+        return new ParametricType(findInfo("Void"), new ArrayList<PacioliType>());
     }
 
     private ParametricType newBooleType() {
-        return new ParametricType(findInfo("Boole"), new ArrayList<PacioliType>());   
-    }
-    
-    private ParametricType newStringType() {
-        return new ParametricType(findInfo("String"), new ArrayList<PacioliType>());   
-    }
-    
-    private ParametricType newTupleType(List<PacioliType> args) {
-        return new ParametricType(findInfo("Tuple"), args);   
+        return new ParametricType(findInfo("Boole"), new ArrayList<PacioliType>());
     }
 
-    
+    private ParametricType newStringType() {
+        return new ParametricType(findInfo("String"), new ArrayList<PacioliType>());
+    }
+
+    private ParametricType newTupleType(List<PacioliType> args) {
+        return new ParametricType(findInfo("Tuple"), args);
+    }
+
     public Typing typingAccept(Node node) {
         // Pacioli.logln("accept: %s", node.getClass());
         node.accept(this);
@@ -115,117 +114,116 @@ public class TypeInference extends IdentityVisitor implements Visitor {
             argTypes.add(argTyping.getType());
             typing.addConstraintsAndAssumptions(argTyping);
         }
-        
+
         // The nmode product is special. It requires that the type
         // is known (no variables) because it needs to manipulate indices.
         if (node.hasName("nmode")) {
             if (true) {
                 if (node.arguments.size() != 3) {
-                    
-                throw new PacioliException(node.getLocation(), 
-                        "N-mode got %s arguments, expects 3 (a tensor, an integer and a matrix)",
-                        node.arguments.size());
+
+                    throw new PacioliException(node.getLocation(),
+                            "N-mode got %s arguments, expects 3 (a tensor, an integer and a matrix)",
+                            node.arguments.size());
                 }
-                
+
                 Integer n;
-                
+
                 // Try to get the n parameter
                 try {
                     ConstNode nNode = (ConstNode) node.arguments.get(1);
                     n = new Integer(nNode.valueString());
                 } catch (Exception ex) {
-                    throw new PacioliException(node.arguments.get(1).getLocation(), 
+                    throw new PacioliException(node.arguments.get(1).getLocation(),
                             "Second argument of nmode must be a number");
                 }
-                
+
                 String message = String.format("During inference %s\nthe infered type must follow the nmode rules",
                         node.sourceDescription());
-                
-                typing.addNModeConstraint(resultType, 
+
+                typing.addNModeConstraint(resultType,
                         argTypes.get(0),
                         n,
                         argTypes.get(2),
                         node,
                         message);
-            } else 
-            {
-            try {
-                
-                // The parameters of nmode
-                MatrixType tensorType;
-                Integer n;
-                MatrixType matrixType;
-                
-                // Try to get the n parameter
+            } else {
                 try {
-                    ConstNode nNode = (ConstNode) node.arguments.get(1);
-                    n = new Integer(nNode.valueString());
-                } catch (Exception ex) {
-                    throw new PacioliException(node.arguments.get(1).getLocation(), 
-                            "Second argument of nmode must be a number");
-                }
-                
-                // Try to get the type of the tensor parameter
-                ExpressionNode tensorNode = node.arguments.get(0);
-                try {
-                    Typing tensorTyping = typingAccept(tensorNode);
-                    PacioliType tensorPacioliType = tensorTyping.solve(false);
-                    tensorType = (MatrixType) tensorPacioliType;
-                } catch (Exception ex) {
-                    throw new PacioliException(tensorNode.getLocation(), 
-                            "First argument of nmode must have a valid matrix type: %s",
-                            ex.getMessage());
-                }
-                
-                // Try to get the type of the matrix parameter 
-                try {
-                    Typing matrixTyping = typingAccept(node.arguments.get(2));
-                    PacioliType matrixPacioliType = matrixTyping.solve(false);
-                    matrixType = (MatrixType) matrixPacioliType;
-                } catch (Exception ex) {
-                    throw new PacioliException(node.arguments.get(2).getLocation(), 
-                            "Third argument of nmode must be a valid matrix type");
-                }
 
-                // Determine the shape of the row dimension
-                List<Integer> shape = new ArrayList<Integer>();
-                for (int i = 0; i < tensorType.rowDimension.width(); i++) {
-                    Optional<IndexSetDefinition> def = tensorType.rowDimension.nthIndexSetInfo(i).getDefinition();
-                    if (def.isPresent()) {
-                        shape.add(def.get().items.size());   
-                    } else {
-                        new PacioliException(node.arguments.get(0).getLocation(), 
-                                "Index set %s has no known size", i);             
+                    // The parameters of nmode
+                    MatrixType tensorType;
+                    Integer n;
+                    MatrixType matrixType;
+
+                    // Try to get the n parameter
+                    try {
+                        ConstNode nNode = (ConstNode) node.arguments.get(1);
+                        n = new Integer(nNode.valueString());
+                    } catch (Exception ex) {
+                        throw new PacioliException(node.arguments.get(1).getLocation(),
+                                "Second argument of nmode must be a number");
                     }
-                }
 
-                // Remember the shape for the code generators
-                node.nmodeShape = shape;
-                
-                // Call MatrixType nmode on the found types and require that the 
-                // result equals the outcome 
-                String message = String.format("During inference %s\nthe infered type must follow the nmode rules",
-                        node.sourceDescription());
-                typing.addConstraint(tensorType.nmode(n, matrixType), resultType, message);
-                
-            } catch (PacioliException ex) {
-                throw new RuntimeException("Invalid nmode application", ex);
-            } catch (Exception ex) {
-                throw new RuntimeException("Invalid nmode application",
-                        new PacioliException(node.getLocation(), ex.getMessage()));
-            }
+                    // Try to get the type of the tensor parameter
+                    ExpressionNode tensorNode = node.arguments.get(0);
+                    try {
+                        Typing tensorTyping = typingAccept(tensorNode);
+                        PacioliType tensorPacioliType = tensorTyping.solve(false);
+                        tensorType = (MatrixType) tensorPacioliType;
+                    } catch (Exception ex) {
+                        throw new PacioliException(tensorNode.getLocation(),
+                                "First argument of nmode must have a valid matrix type: %s",
+                                ex.getMessage());
+                    }
+
+                    // Try to get the type of the matrix parameter
+                    try {
+                        Typing matrixTyping = typingAccept(node.arguments.get(2));
+                        PacioliType matrixPacioliType = matrixTyping.solve(false);
+                        matrixType = (MatrixType) matrixPacioliType;
+                    } catch (Exception ex) {
+                        throw new PacioliException(node.arguments.get(2).getLocation(),
+                                "Third argument of nmode must be a valid matrix type");
+                    }
+
+                    // Determine the shape of the row dimension
+                    List<Integer> shape = new ArrayList<Integer>();
+                    for (int i = 0; i < tensorType.rowDimension.width(); i++) {
+                        Optional<IndexSetDefinition> def = tensorType.rowDimension.nthIndexSetInfo(i).getDefinition();
+                        if (def.isPresent()) {
+                            shape.add(def.get().items.size());
+                        } else {
+                            new PacioliException(node.arguments.get(0).getLocation(),
+                                    "Index set %s has no known size", i);
+                        }
+                    }
+
+                    // Remember the shape for the code generators
+                    node.nmodeShape = shape;
+
+                    // Call MatrixType nmode on the found types and require that the
+                    // result equals the outcome
+                    String message = String.format("During inference %s\nthe infered type must follow the nmode rules",
+                            node.sourceDescription());
+                    typing.addConstraint(tensorType.nmode(n, matrixType), resultType, message);
+
+                } catch (PacioliException ex) {
+                    throw new RuntimeException("Invalid nmode application", ex);
+                } catch (Exception ex) {
+                    throw new RuntimeException("Invalid nmode application",
+                            new PacioliException(node.getLocation(), ex.getMessage()));
+                }
             }
         } else {
-            
+
             // Infer the typing of the function. Add its contraints
             // to the result typing.
             Typing funTyping = typingAccept(node.function);
             typing.addConstraintsAndAssumptions(funTyping);
-    
+
             // Create a function type from the argument types to the type variable
             // that was put in the result type.
             PacioliType funType = new FunctionType(newTupleType(argTypes), resultType);
-    
+
             // Add the unification contraint that function type must equal the derived
             // function type.
             String message = String.format("During inference %s\nthe infered type must match known types",
@@ -233,7 +231,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
             typing.addConstraint(funType, funTyping.getType(), message);
 
         }
-        
+
         // Return the result typing
         returnNode(typing);
 
@@ -300,30 +298,34 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     public void visit(IdentifierNode node) {
 
         ValueInfo info = node.getInfo();
-        
+
         if (false && !info.inferredType.isPresent()) {
             // It must be a recursive function. Todo: handle properly
             if (node.getInfo().getDeclaredType().isPresent()) {
-            returnNode(new Typing(node.getInfo().getDeclaredType().get().evalType(true).instantiate()));
+                returnNode(new Typing(node.getInfo().getDeclaredType().get().evalType(true).instantiate()));
             } else {
-                throw new RuntimeException("Identifier node has no declared type", new PacioliException(node.getLocation(), "id=%s", node.getName()));
+                throw new RuntimeException("Identifier node has no declared type",
+                        new PacioliException(node.getLocation(), "id=%s", node.getName()));
             }
-        } else
-            if (info.isGlobal()) {
-                // Move instantiate to proper place.
-                if (node.getInfo().getDeclaredType().isPresent()) {
-                    returnNode(new Typing(node.getInfo().getDeclaredType().get().evalType(info.isFromProgram()).instantiate()));
+        } else if (info.isGlobal()) {
+            // Move instantiate to proper place.
+            if (node.getInfo().getDeclaredType().isPresent()) {
+                if (true || !info.isFromProgram()) {
+                    returnNode(new Typing(
+                            node.getInfo().getDeclaredType().get().evalType(info.isFromProgram()).instantiate()));
                 } else {
                     returnNode(new Typing(node.getInfo().inferredType().instantiate()));
                 }
+            } else {
+                returnNode(new Typing(node.getInfo().inferredType().instantiate()));
             }
-            else {
-                TypeVar var = new TypeVar();
-                Typing typing = new Typing(var);
-                typing.addAssumption(node.getName(), var);
-                returnNode(typing);
-            }
-        
+        } else {
+            TypeVar var = new TypeVar();
+            Typing typing = new Typing(var);
+            typing.addAssumption(node.getName(), var);
+            returnNode(typing);
+        }
+
     }
 
     @Override
@@ -378,7 +380,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         for (String arg : node.arguments) {
 
             // Create the type variable and add it to the list
-            String freshName = node.table.freshSymbolName(); 
+            String freshName = node.table.freshSymbolName();
             PacioliType freshType = new TypeVar(freshName);
             argTypes.add(freshType);
 
@@ -396,82 +398,82 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         Typing typing = new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.getType()));
         typing.addConstraints(bodyTyping);
 
-        for (String name: bodyTyping.assumedNames()) {
+        for (String name : bodyTyping.assumedNames()) {
             ValueInfo info = node.table.lookup(name);
             if (node.arguments.contains(name)) {
-                for (TypeVar var: bodyTyping.assumptions(name)) {
-                    typing.addConstraint(var, info.inferredType(), 
+                for (TypeVar var : bodyTyping.assumptions(name)) {
+                    typing.addConstraint(var, info.inferredType(),
                             String.format("During type inference in %s\nLambda var %s must have the proper type",
                                     node.sourceDescription(),
                                     name));
                 }
             } else {
-                for (TypeVar var: bodyTyping.assumptions(name)) {
+                for (TypeVar var : bodyTyping.assumptions(name)) {
                     typing.addAssumption(name, var);
                 }
             }
         }
-        
+
         returnNode(typing);
     }
-    
+
     @Override
     public void visit(LetNode node) {
-        
+
         Set<Var> freeVars = new HashSet<Var>();
-        
-        for (ValueInfo inf: Node.freeVars(node, node.table)) {
+
+        for (ValueInfo inf : Node.freeVars(node, node.table)) {
             if (inf.isMonomorphic) {
                 PacioliType varType = inf.inferredType.get();
-                assert(varType instanceof TypeVar);
+                assert (varType instanceof TypeVar);
                 freeVars.add((TypeVar) varType);
             }
         }
-        
+
         // This typing collects the constraints from the bindings
         PacioliType tmpType = new TypeVar();
         Typing tmpTyping = new Typing(tmpType);
-        
+
         List<String> vars = new ArrayList<String>();
-        
-        // Fill the types in the symbol table before the body's type 
+
+        // Fill the types in the symbol table before the body's type
         // is inferred to make the variable types available.
-        for (BindingNode binding: node.binding) {
-            assert(binding instanceof LetBindingNode);
+        for (BindingNode binding : node.binding) {
+            assert (binding instanceof LetBindingNode);
             LetBindingNode letBinding = (LetBindingNode) binding;
             vars.add(letBinding.var);
             Typing bindingTyping = typingAccept(letBinding);
             tmpTyping.addConstraintsAndAssumptions(bindingTyping);
-            ValueInfo info = node.table.lookup(letBinding.var); 
+            ValueInfo info = node.table.lookup(letBinding.var);
             info.setinferredType(bindingTyping.getType());
         }
-                
+
         // Infer the body's typing
         Typing bodyTyping = typingAccept(node.body);
-        
+
         Typing resultTyping = new Typing(bodyTyping.getType());
-        
+
         // Could also add a constraint that resultType equals bodyType. See
         // what gives better debug messages.
         resultTyping.addConstraintsAndAssumptions(tmpTyping);
         resultTyping.addConstraints(bodyTyping);
 
-        for (String name: bodyTyping.assumedNames()) {
+        for (String name : bodyTyping.assumedNames()) {
             ValueInfo info = node.table.lookup(name);
             if (vars.contains(name)) {
-                for (TypeVar var: bodyTyping.assumptions(name)) {
-                    resultTyping.addInstanceConstraint(var, info.inferredType(), freeVars, 
+                for (TypeVar var : bodyTyping.assumptions(name)) {
+                    resultTyping.addInstanceConstraint(var, info.inferredType(), freeVars,
                             String.format("During type inference in %s\nLet var %s must have the proper type",
                                     node.sourceDescription(),
                                     name));
                 }
             } else {
-                for (TypeVar var: bodyTyping.assumptions(name)) {
+                for (TypeVar var : bodyTyping.assumptions(name)) {
                     resultTyping.addAssumption(name, var);
                 }
             }
         }
-        
+
         returnNode(resultTyping);
     }
 
@@ -485,13 +487,13 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         node.value.accept(this);
         throw new RuntimeException("todo");
     }
-    
+
     @Override
     public void visit(LetFunctionBindingNode node) {
         node.body.accept(this);
         throw new RuntimeException("obsolete");
     }
-    
+
     @Override
     public void visit(MatrixLiteralNode node) {
 
@@ -528,7 +530,8 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         Typing valueTyping = typingAccept(node.value);
         Typing typing = new Typing(voidType);
         typing.addConstraintsAndAssumptions(valueTyping);
-        typing.addConstraint(node.resultInfo.inferredType(), valueTyping.getType(), "the types of returned values must agree");
+        typing.addConstraint(node.resultInfo.inferredType(), valueTyping.getType(),
+                "the types of returned values must agree");
         returnNode(typing);
     }
 
@@ -555,32 +558,32 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
         PacioliType resultType = new TypeVar();
 
-        //ValueInfo resultInfo = node.table.lookup("result");
+        // ValueInfo resultInfo = node.table.lookup("result");
         ValueInfo resultInfo = node.resultInfo;
         resultInfo.setinferredType(resultType);
 
         PacioliType voidType = newVoidType();
         Typing typing = new Typing(resultType);
-        
+
         Typing itemTyping = typingAccept(node.body);
-        
+
         typing.addConstraint(voidType, itemTyping.getType(), "A statement must have type Void()");
-        //typing.addConstraintsAndAssumptions(itemTyping);
+        // typing.addConstraintsAndAssumptions(itemTyping);
         typing.addConstraints(itemTyping);
-        
-        for (String name: itemTyping.assumedNames()) {
+
+        for (String name : itemTyping.assumedNames()) {
             ValueInfo info = node.table.lookup(name);
             if (localNames.contains(name)) {
-                for (TypeVar var: itemTyping.assumptions(name)) {
+                for (TypeVar var : itemTyping.assumptions(name)) {
                     typing.addConstraint(var, info.inferredType(), "TODO2 Lambda inference");
                 }
             } else {
-                for (TypeVar var: itemTyping.assumptions(name)) {
+                for (TypeVar var : itemTyping.assumptions(name)) {
                     typing.addAssumption(name, var);
                 }
             }
         }
-        
+
         returnNode(typing);
     }
 
@@ -593,14 +596,13 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(TupleAssignmentNode node) {
-        
+
         List<PacioliType> varTypes = new ArrayList<PacioliType>();
         for (IdentifierNode var : node.vars) {
             varTypes.add(var.getInfo().inferredType());
-        }      
+        }
         PacioliType tupleType = newTupleType(varTypes);
-        
-        
+
         PacioliType voidType = newVoidType();
         Typing tupleTyping = typingAccept(node.tuple);
         Typing typing = new Typing(voidType);

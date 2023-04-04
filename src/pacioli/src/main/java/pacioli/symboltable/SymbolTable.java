@@ -8,7 +8,8 @@ import java.util.Map;
 public class SymbolTable<R extends SymbolInfo> {
 
     private final Map<String, R> table = new HashMap<String, R>();
-    public final SymbolTable<R> parent;
+    //public final SymbolTable<R> parent;
+    public SymbolTable<R> parent;
 
     private static int counter;
     
@@ -73,11 +74,11 @@ public class SymbolTable<R extends SymbolInfo> {
         return names;
     }
 
-    public void addAll(SymbolTable<R> it) {
+    public SymbolTable<R> addAll(SymbolTable<? extends R> it) {
         for (String name : it.table.keySet()) {
             table.put(name, it.table.get(name));
         }
-
+        return this;
     }
     
     public void accept(SymbolTableVisitor visitor) {
