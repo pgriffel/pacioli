@@ -56,6 +56,8 @@ defmatrix bom :: Product!unit per Product!unit = {
 # Computations
 # ----------------------------------------------------------------------------
 conv;
+declare trade_bom :: Product!trade_unit per Product!trade_unit;
+
 define trade_bom = conv^D '*' bom '*' conv;
 
 bom;
@@ -66,4 +68,6 @@ closure(trade_bom);
 
 closure(trade_bom)^T;
 
-closure(trade_bom)^T '*' price;
+declare product_cost :: dollar/Product!trade_unit;
+
+define product_cost = closure(trade_bom)^T '*' price;

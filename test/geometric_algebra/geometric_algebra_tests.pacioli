@@ -3,9 +3,9 @@ import geometric_algebra;
 import testing;
 import si;
 
-declare all_suites :: List(TestSuite);
+declare geometric_algebra_suites :: List(TestSuite);
 
-define all_suites = [
+define geometric_algebra_suites = [
     bit_suite,
     term_suite,
     parser_suite,
@@ -15,8 +15,8 @@ define all_suites = [
     outer_product_suite,
     inner_product_suite
 ];
-
-run_test_suites(all_suites);
+ 
+run_test_suites(geometric_algebra_suites);
  
 # ------------------------------------------------------------------------------
 # Convenience utilities
@@ -29,7 +29,7 @@ define mv(input) = parse_multivector(input);
 # ------------------------------------------------------------------------------
 # Bit layer
 # ------------------------------------------------------------------------------
-
+ 
 define bit_suite = test_suite("Blade layer", [
       
     test("base blades should have correct integer representation",
@@ -495,12 +495,11 @@ define outer_product_suite = test_suite("Outer product", [
         fn ()
             let x = outer_product(mv("e1"), mv("e2")),
                 y = outer_product(mv("e2"), mv("e3")),
-                dummy = printed(multivector2string(geometric_product(x, y)))
+                dummy = multivector2string(geometric_product(x, y))
             in
-                geometric_product(x, y) = mv("e1e3")
+                geometric_product(x, y) = mv("e1e3") # fails because parsing does not normalize. See test for parsing
             end
         end)
-
 ]);
 
 # ------------------------------------------------------------------------------

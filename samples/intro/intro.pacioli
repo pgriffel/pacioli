@@ -17,7 +17,7 @@ define v4 = |gram| + |gram|;
 define v6 = |gram|*|metre| + |gram|*|metre|;
 define v7 = |gram|*|metre| + |metre|*|gram|;
 
-# The type system does inference *)
+# The type system does inference
 define f(x) = x*|metre| + |gram|*|metre|;
 
 # The type system derives a most general type
