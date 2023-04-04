@@ -12,6 +12,7 @@ import mvm.values.matrix.MatrixDimension;
 import pacioli.Location;
 import pacioli.Pacioli;
 import pacioli.PacioliException;
+import pacioli.PacioliFile;
 import pacioli.Progam;
 import pacioli.TypeContext;
 import pacioli.ast.IdentityVisitor;
@@ -45,6 +46,7 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
@@ -64,16 +66,16 @@ import pacioli.types.matrix.MatrixType;
 
 public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
-    private Progam prog;
-
-    private Deque<SymbolTable<IndexSetInfo>> indexSetTables = new ArrayDeque<SymbolTable<IndexSetInfo>>();
-    private Deque<SymbolTable<UnitInfo>> unitTables = new ArrayDeque<SymbolTable<UnitInfo>>();
-    private Deque<SymbolTable<SymbolInfo>> typeTables = new ArrayDeque<SymbolTable<SymbolInfo>>();
+    // private Progam prog;
+    private Deque<SymbolTable<TypeSymbolInfo>> typeTables = new ArrayDeque<SymbolTable<TypeSymbolInfo>>();
     private Deque<SymbolTable<ValueInfo>> valueTables = new ArrayDeque<SymbolTable<ValueInfo>>();
 
     private Stack<String> statementResult;
 
-    //private final Boolean fromProgram;
+    private PacioliFile file;
+    private String module;
+
+    // private final Boolean fromProgram;
 
     public static final List<String> builtinTypes = new ArrayList<String>(
             Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier"));
@@ -82,26 +84,19 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     // Constructor
     // -------------------------------------------------------------------------
 
-    public ResolveVisitor(Progam prog) {
-        this.prog = prog;
+    public ResolveVisitor(PacioliFile file, PacioliTable pacioliTable) {
         statementResult = new Stack<String>();
-        // indexSetTables.push(prog.indexSets);
-        // unitTables.push(prog.units);
-        SymbolTable<SymbolInfo> typeTable = new SymbolTable<SymbolInfo>();
-        // SymbolTable<? extends SymbolInfo> it = prog.indexSets;
-        // SymbolTable<? extends SymbolInfo> ty = prog.types;
-        // SymbolTable<? extends SymbolInfo> un = prog.units;
-        // typeTable.addAll((SymbolTable<SymbolInfo>) it);
-        // typeTable.addAll((SymbolTable<SymbolInfo>) ty);
-        // typeTable.addAll((SymbolTable<SymbolInfo>) un);
-        typeTables.push(typeTable);
-        valueTables.push(prog.values);
+        typeTables.push(pacioliTable.types());
+        valueTables.push(pacioliTable.values());
+        this.file = file;
+        this.module = file.getModule();
     }
-/*
-    GenericInfo newGenericInfo(String name, Boolean isGlobal, Location location) {
-        return new GenericInfo(name, prog.getModule(), isGlobal, location);
-    }
-*/    
+    /*
+     * GenericInfo newGenericInfo(String name, Boolean isGlobal, Location location)
+     * {
+     * return new GenericInfo(name, module, isGlobal, location);
+     * }
+     */
     // -------------------------------------------------------------------------
     // Visitors
     // -------------------------------------------------------------------------
@@ -109,7 +104,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     @Override
     public void visit(AliasDefinition node) {
         // returnNode(node.setUnit(node.unit.resolved(dictionary)));
-        //visitorThrow(node.getLocation(), "todo");
+        // visitorThrow(node.getLocation(), "todo");
         node.unit.accept(this);
     }
 
@@ -130,25 +125,25 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(TypeDefinition node) {
-        
+
         pushTypeContext(node.context, node.getLocation());
-        
-        
+
         // throw new RuntimeException("todo ");
-        //Pacioli.logln("NOT VISITING TYPE DEF %s", node.getLocation().description());
+        // Pacioli.logln("NOT VISITING TYPE DEF %s", node.getLocation().description());
         if (node.lhs instanceof TypeApplicationNode) {
             TypeApplicationNode app = (TypeApplicationNode) node.lhs;
-            //List<TypeNode> types = new ArrayList<TypeNode>();
+            // List<TypeNode> types = new ArrayList<TypeNode>();
             for (TypeNode arg : app.getArgs()) {
-                //types.add(arg.resolved(dictionary, this.context));
+                // types.add(arg.resolved(dictionary, this.context));
                 arg.accept(this);
             }
             node.lhs.accept(this);
-            //resolvedLhs = new TypeApplicationNode(getLocation(), app.getOperator(), types);
+            // resolvedLhs = new TypeApplicationNode(getLocation(), app.getOperator(),
+            // types);
         } else {
             visitorThrow(node.getLocation(), "Left side of typedef is not a type function: %s", node.lhs.pretty());
         }
-        //node.lhs.accept(this);
+        // node.lhs.accept(this);
         node.rhs.accept(this);
         typeTables.pop();
     }
@@ -179,9 +174,10 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         // Create the node's symbol table
         node.table = new SymbolTable<ValueInfo>(valueTables.peek());
 
-        // Create a symbol info record for each lambda parameter and store it in the table
+        // Create a symbol info record for each lambda parameter and store it in the
+        // table
         for (String arg : node.arguments) {
-            ValueInfo info = new ValueInfo(arg, prog.file, prog.getModule(), false, true, node.getLocation(), !prog.isLibrary());
+            ValueInfo info = new ValueInfo(arg, file, module, false, true, node.getLocation(), !file.isLibrary());
             node.table.put(arg, info);
         }
 
@@ -209,20 +205,19 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
     }
 
-    
     @Override
     public void visit(ApplicationNode node) {
         node.function.accept(this);
-        
+
         if (node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
             if (id.getInfo().getDefinition().isPresent()) {
                 ValueDefinition def = (ValueDefinition) id.getInfo().getDefinition().get();
                 if (def.body instanceof LambdaNode) {
-                    LambdaNode lambda = (LambdaNode) def.body; 
+                    LambdaNode lambda = (LambdaNode) def.body;
                     if (lambda.arguments.size() != node.arguments.size()) {
                         throw new RuntimeException("Cannot resolve",
-                                new PacioliException(node.getLocation(), 
+                                new PacioliException(node.getLocation(),
                                         "Number of arguments %s do not match required %s",
                                         node.arguments.size(),
                                         lambda.arguments.size()));
@@ -230,12 +225,12 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
                 }
             }
         }
-        
+
         for (ExpressionNode argument : node.arguments) {
             argument.accept(this);
         }
     }
-    
+
     @Override
     public void visit(AssignmentNode node) {
 
@@ -253,11 +248,17 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
         List<IndexSetInfo> infoList = new ArrayList<IndexSetInfo>();
         for (String name : node.indexSets) {
-            IndexSetInfo info = indexSetTables.peek().lookup(name);
-            if (info != null) {
-                infoList.add(info);
+            TypeSymbolInfo symbolInfo = typeTables.peek().lookup(name);
+            if (symbolInfo instanceof IndexSetInfo) {
+                IndexSetInfo info = (IndexSetInfo) symbolInfo;
+                if (info != null) {
+                    infoList.add(info);
+                } else {
+                    throw new RuntimeException("Name error",
+                            new PacioliException(node.getLocation(), "Index set '%s' unknown", name));
+                }
             } else {
-                throw new RuntimeException("Name error", new PacioliException(node.getLocation(), "Index set '%s' unknown", name));
+                throw new RuntimeException(String.format("%s", name));
             }
         }
 
@@ -270,10 +271,15 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         } else {
             List<IndexSet> sets = new ArrayList<IndexSet>();
             for (TypeIdentifier id : dimType.getIndexSets()) {
-                IndexSetInfo indexSetInfo = indexSetTables.peek().lookup(id.name);
-                assert (indexSetInfo != null); // exception throwen
-                assert(indexSetInfo.getDefinition().isPresent());
-                sets.add(indexSetInfo.getDefinition().get().getIndexSet());
+                TypeSymbolInfo symbolInfo = typeTables.peek().lookup(id.name);
+                if (symbolInfo instanceof IndexSetInfo) {
+                    IndexSetInfo indexSetInfo = (IndexSetInfo) symbolInfo;
+                    assert (indexSetInfo != null); // exception throwen
+                    assert (indexSetInfo.getDefinition().isPresent());
+                    sets.add(indexSetInfo.getDefinition().get().getIndexSet());
+                } else {
+                    throw new RuntimeException(String.format("%s", id.name));
+                }
             }
             return new MatrixDimension(sets);
         }
@@ -302,7 +308,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             visitorThrow(node.typeNode.getLocation(), "Expected a closed matrix type");
         }
     }
-    
+
     @Override
     public void visit(ConversionNode node) {
 
@@ -327,7 +333,6 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         }
     }
 
-    
     @Override
     public void visit(MatrixLiteralNode node) {
 
@@ -375,44 +380,45 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     @Override
     public void visit(StatementNode node) {
 
-        
         // Create a symbol table for all assigned variables in scope and the result
         // place
         node.table = new SymbolTable<ValueInfo>(valueTables.peek());
-        
+
         String resultName = node.table.freshSymbolName();
-        
+
         node.shadowed = new SymbolTable<ValueInfo>();
 
         // Find all assigned variables
         for (IdentifierNode id : node.body.locallyAssignedVariables()) {
-            
+
             ValueInfo info = node.table.lookupLocally(id.getName());
-            
+
             // Create a value info record for the mutable (IsRef == true) variable
             if (info == null) {
-                info = new ValueInfo(id.getName(), prog.file, prog.getModule(), false, false, id.getLocation(), !prog.isLibrary());
+                info = new ValueInfo(id.getName(), file, module, false, false, id.getLocation(), !file.isLibrary());
                 info.setIsRef(true);
 
-                // If it shadows another value then remember that for initialization in generated code
+                // If it shadows another value then remember that for initialization in
+                // generated code
                 ValueInfo shadowedInfo = valueTables.peek().lookup(id.getName());
                 if (shadowedInfo != null) {
                     node.shadowed.put(id.getName(), shadowedInfo);
                 }
-            
+
                 // Put the info in the symbol table
                 node.table.put(id.getName(), info);
             }
         }
 
         // Create an info record for the result and put it in the symbol table
-        ValueInfo info = new ValueInfo(resultName, prog.file, prog.getModule(), false, false, node.getLocation(), !prog.isLibrary());
+        ValueInfo info = new ValueInfo(resultName, file, module, false, false, node.getLocation(), !file.isLibrary());
         node.table.put(resultName, info);
         node.resultInfo = info;
 
         // Create a place for the statement result and attach the info record
-        //info.resultPlace = IdentifierNode.newLocalMutableVar("result", node.getLocation());
-        //info.resultPlace.setInfo(info);
+        // info.resultPlace = IdentifierNode.newLocalMutableVar("result",
+        // node.getLocation());
+        // info.resultPlace.setInfo(info);
 
         // Resolve the body
         statementResult.push(resultName);
@@ -424,42 +430,43 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(TupleAssignmentNode node) {
-        
+
         // Guessed fixme based on assignment above:
-        
-        
+
         // Find the info. It should have been created in a statement node.
-        for (IdentifierNode var: node.vars) {
+        for (IdentifierNode var : node.vars) {
             ValueInfo info = valueTables.peek().lookup(var.getName());
             assert (info != null);
 
             // Store the info in the variable and resolve the value
             var.setInfo(info);
-            
+
         }
         node.tuple.accept(this);
-        
-/*        
-        // Fixme (fixed above?)
-        List<IdentifierNode> resolvedVars = new ArrayList<IdentifierNode>();
-        for (IdentifierNode var : node.vars) {
-            IdentifierNode resolved = IdentifierNode.newLocalMutableVar(var.getName(), var.getLocation());
-            resolvedVars.add(resolved);
-        }
-        // ExpressionNode resolvedTuple = expAccept(node.tuple);
-        node.tuple.accept(this);
-        // returnNode(new TupleAssignmentNode(node.getLocation(), resolvedVars,
-        // resolvedTuple));
+
+        /*
+         * // Fixme (fixed above?)
+         * List<IdentifierNode> resolvedVars = new ArrayList<IdentifierNode>();
+         * for (IdentifierNode var : node.vars) {
+         * IdentifierNode resolved = IdentifierNode.newLocalMutableVar(var.getName(),
+         * var.getLocation());
+         * resolvedVars.add(resolved);
+         * }
+         * // ExpressionNode resolvedTuple = expAccept(node.tuple);
+         * node.tuple.accept(this);
+         * // returnNode(new TupleAssignmentNode(node.getLocation(), resolvedVars,
+         * // resolvedTuple));
          * 
          */
     }
 
     @Override
     public void visit(BangTypeNode node) {
-        
+
         SymbolInfo indexSetInfo = typeTables.peek().lookup(node.indexSetName());
         if (indexSetInfo == null) {
-            throw new RuntimeException("Name error", new PacioliException(node.getLocation(), "Index set %s unknown", node.indexSetName()));
+            throw new RuntimeException("Name error",
+                    new PacioliException(node.getLocation(), "Index set %s unknown", node.indexSetName()));
         }
         node.indexSet.info = indexSetInfo;
 
@@ -468,7 +475,8 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
             SymbolInfo unitInfo = typeTables.peek().lookup(fullName);
             if (unitInfo == null) {
-                throw new RuntimeException("Name error", new PacioliException(node.getLocation(), "Vector unit %s unknown", fullName));
+                throw new RuntimeException("Name error",
+                        new PacioliException(node.getLocation(), "Vector unit %s unknown", fullName));
             }
             node.unit.get().info = unitInfo;
         }
@@ -477,36 +485,35 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
     @Override
     public void visit(SchemaNode node) {
         pushTypeContext(node.context, node.getLocation());
-        // node.table = typeTables.peek();
+        node.table = typeTables.peek();
         node.type.accept(this);
         typeTables.pop();
     }
 
     private void pushTypeContext(TypeContext context, Location location) {
-        
+
         // Create the node's symbol table
-        SymbolTable<SymbolInfo> table = new SymbolTable<SymbolInfo>(typeTables.peek());
+        SymbolTable<TypeSymbolInfo> table = new SymbolTable<TypeSymbolInfo>(typeTables.peek());
 
         // Add info records for all variables
-        String module = prog.getModule();
         for (String arg : context.typeVars) {
-            table.put(arg, new TypeInfo(arg, prog.file, module, false, location, !prog.isLibrary()));
+            table.put(arg, new TypeInfo(arg, file, module, false, location, !file.isLibrary()));
         }
         for (String arg : context.indexVars) {
-            table.put(arg, new IndexSetInfo(arg, prog.file, module, false, location, !prog.isLibrary()));
+            table.put(arg, new IndexSetInfo(arg, file, module, false, location, !file.isLibrary()));
         }
         for (String arg : context.unitVars) {
             if (arg.contains("!")) {
-                table.put(arg, new VectorUnitInfo(arg, prog.file, module, false, location, !prog.isLibrary()));
+                table.put(arg, new VectorUnitInfo(arg, file, module, false, location, !file.isLibrary()));
             } else {
-                table.put(arg, new ScalarUnitInfo(arg, prog.file, module, false, location, !prog.isLibrary()));
+                table.put(arg, new ScalarUnitInfo(arg, file, module, false, location, !file.isLibrary()));
             }
-            
+
         }
-        
+
         // Store the table
-        typeTables.push(table);        
-        
+        typeTables.push(table);
+
     }
 
     @Override
@@ -516,7 +523,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             arg.accept(this);
         }
     }
-    
+
     @Override
     public void visit(TypeIdentifierNode node) {
 
@@ -583,31 +590,33 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(UnitIdentifierNode node) {
-        UnitInfo unitInfo = unitTables.peek().lookup(node.getName());
+        TypeSymbolInfo symbolInfo = typeTables.peek().lookup(node.getName());
+        UnitInfo unitInfo = (UnitInfo) symbolInfo;
         if (unitInfo == null) {
-            throw new RuntimeException("Name error", new PacioliException(node.getLocation(), "unit %s unknown", node.getName()));
+            throw new RuntimeException("Name error",
+                    new PacioliException(node.getLocation(), "unit %s unknown", node.getName()));
         }
         node.info = unitInfo;
     }
-    
+
     @Override
     public void visit(LetNode node) {
-        
+
         // Create the node's symbol table
         node.table = new SymbolTable<ValueInfo>(valueTables.peek());
 
-        // Create a symbol info record for each lambda parameter and store it in the table
+        // Create a symbol info record for each lambda parameter and store it in the
+        // table
         for (BindingNode binding : node.binding) {
-            binding.accept(this); 
-            assert(binding instanceof LetBindingNode);
+            binding.accept(this);
+            assert (binding instanceof LetBindingNode);
             LetBindingNode functionBinding = (LetBindingNode) binding;
             String arg = functionBinding.var;
-            ValueInfo info = new ValueInfo(arg, prog.file, prog.getModule(), false, false, node.getLocation(), !prog.isLibrary());
-            
-            
+            ValueInfo info = new ValueInfo(arg, file, module, false, false, node.getLocation(), !file.isLibrary());
+
             // todo: set the definition!!!!!!!
-            //Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");
-            
+            // Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");
+
             node.table.put(arg, info);
         }
 
@@ -627,7 +636,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
         node.value.accept(this);
         throw new RuntimeException("todo");
     }
-    
+
     @Override
     public void visit(LetFunctionBindingNode node) {
         throw new RuntimeException("obsolete");

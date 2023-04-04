@@ -33,7 +33,6 @@ import pacioli.Progam;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.ValueInfo;
 
 public interface Node extends Printable {
@@ -46,11 +45,9 @@ public interface Node extends Printable {
 
     public Node desugar();
 
-    public void resolve(Progam prog);
+    public void resolve(PacioliFile file, PacioliTable pacioliTable);
 
-    public void resolve2(PacioliFile file, PacioliTable pacioliTable);
-
-    public Node liftStatements(Progam prog);
+    public Node liftStatements(Progam prog, PacioliTable pacioliTable);
 
     public String compileToMVM(CompilationSettings settings);
 

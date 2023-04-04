@@ -50,12 +50,12 @@ public class Pacioli {
 
     // Internal settings for log messages. Actual values depend on verbosity.
     public static class Options {
-        public static boolean trace = false; //false;
-        public static boolean showFileLoads = true; // false;
-        public static boolean showSymbolTableAdditions = false; //false;
-        public static boolean showResolvingDetails = false; //false;
+        public static boolean trace = false;
+        public static boolean showFileLoads = false;
+        public static boolean showSymbolTableAdditions = false;
+        public static boolean showResolvingDetails = false;
         public static boolean showIncludeSearches = false;
-        public static boolean logTypeInference = true;
+        public static boolean logTypeInference = false;
         public static boolean logTypeInferenceDetails = false;
         public static boolean dumpOnMVMError = false;
     }
@@ -193,6 +193,14 @@ public class Pacioli {
             if (verbosity > 2) {
                 Options.trace = true;
             }
+            if (verbosity > 3) {
+                Options.showSymbolTableAdditions = true;
+                Options.showResolvingDetails = true;
+                Options.showIncludeSearches = true;
+                Options.logTypeInference = true;
+                Options.logTypeInferenceDetails = true;
+                Options.dumpOnMVMError = true;
+            }
 
             // Handle the command
             if (command.equals("run")) {
@@ -291,7 +299,8 @@ public class Pacioli {
         } else {
             log("Desugaring file '%s'", file);
             Progam program = Progam.load(file.get(), libs, Phase.DESUGARED);
-            program.liftStatements();
+            // TODO: check if this is done in load.
+            //program.liftStatements();
             println("%s", program.pretty());
         }
     }
@@ -589,12 +598,13 @@ public class Pacioli {
         Progam program = Progam.load(file, libs, Phase.TYPED);
 
         // TODO: move to load!?
-        program.liftStatements();
+        //program.liftStatements();
 
         // Generate the code
         StringWriter s = new StringWriter();
         try (PrintWriter writer = new PrintWriter(s)) {
-            program.generateCode(writer, settings);
+            // TODO: replace by bundle generate code
+            //program.generateCode(writer, settings);
         }
         print("%s", s.toString());
     }
@@ -723,7 +733,7 @@ public class Pacioli {
     }
 
     /**
-     * Logs a line if the trace options is on. Show detailed compiler actions for
+     * Logs a line if the trace option is on. Show detailed compiler actions for
      * debugging purposes. Does not display the message if verbosity is zero.
      * 
      * @param string
@@ -736,8 +746,8 @@ public class Pacioli {
     }
 
     /**
-     * Display a warning to the user. Does not display the message if verbosity is
-     * zero.
+     * Display a warning to the user if the warning options is on. Does not
+     * display the message if verbosity is zero.
      * 
      * @param string
      *            A format string

@@ -19,6 +19,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
+import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.ValueInfo;
 
@@ -41,14 +42,16 @@ public class LiftStatements extends IdentityTransformation implements Visitor {
 
     Progam prog;
     List<ValueDefinition> blocks = new ArrayList<ValueDefinition>();
+    private PacioliTable pacioliTable;
     
     public class Lifted {
         public ExpressionNode expression;
         public List<ValueDefinition> statements;
     }
 
-    public LiftStatements(Progam progam) {
+    public LiftStatements(Progam progam, PacioliTable pacioliTable) {
         this.prog = progam;
+        this.pacioliTable = pacioliTable;
     }
     
     // Assumes resolved, does not produce result version:
@@ -63,7 +66,10 @@ public class LiftStatements extends IdentityTransformation implements Visitor {
         // FIXME. Problem with nested statements in loop.pacioli
         //Pacioli.logln("RESOLVING IN LIFTS:\n%s", node.pretty());
         //Pacioli.logln("RESOLVING IN LIFTS:\n%s", rec.pretty());
-        rec.resolve(prog);
+        
+        
+        // TODO:
+        rec.resolve(prog.file, pacioliTable);
         
 //        // Determine the used local ids
 //        Set<SymbolInfo> uses = new HashSet<SymbolInfo>();
