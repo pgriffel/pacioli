@@ -259,7 +259,10 @@ public class Progam extends AbstractPrintable {
         }
 
         for (ValueInfo nfo : values.allInfos()) {
-            if (nfo.isFromProgram()) {
+            boolean fromProgram = nfo.generic().getModule().equals(file.getModule());
+            //Pacioli.log("* %s %s %-40s", fromProgram, nfo.isFromProgram(), nfo.globalName());
+            //if (nfo.isFromProgram()) {
+            if (fromProgram) {
                 if (nfo.getDefinition().isPresent()) {
                     Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving value or function %s",
                             nfo.globalName());
