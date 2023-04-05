@@ -93,6 +93,20 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
         this.columnDim = old.columnDim;
     }
     
+    public MatrixLiteralNode withTypeNode(TypeNode typeNode) {
+        MatrixLiteralNode copy = new MatrixLiteralNode(getLocation(), typeNode, pairs);
+        copy.rowDim = rowDim;
+        copy.columnDim = columnDim;
+        return copy;
+    }
+
+    public MatrixLiteralNode withPairs(List<ValueDecl> pairs) {
+        MatrixLiteralNode copy = new MatrixLiteralNode(getLocation(), typeNode, pairs);
+        copy.rowDim = rowDim;
+        copy.columnDim = columnDim;
+        return copy;
+    }
+    
     public MatrixType evalType(Boolean reduce) throws PacioliException {
         PacioliType type = typeNode.evalType(reduce);
         if (type instanceof MatrixType) {

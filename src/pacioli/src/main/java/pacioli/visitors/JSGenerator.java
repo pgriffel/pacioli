@@ -277,8 +277,8 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             
         } else {
             // Obsolete code
-            throw new PacioliException(node.getLocation(), " huh %s", type.pretty());
-            // out.print("Pacioli.oneNumbers(" +  node.rowDim.size() + ", " + node.columnDim.size() + ")");
+            //throw new PacioliException(node.getLocation(), " huh %s", type.pretty());
+            out.print("Pacioli.oneNumbers(" +  node.rowDim.size() + ", " + node.columnDim.size() + ")");
         }
     }
 

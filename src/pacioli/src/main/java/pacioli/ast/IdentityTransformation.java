@@ -238,7 +238,7 @@ public class IdentityTransformation implements Visitor {
     public void visit(MatrixLiteralNode node) {
         // returnValue(new MatrixLiteralNode(node));
         //returnNode(node);
-        returnNode(new MatrixLiteralNode(node.getLocation(), typeAccept(node.typeNode), node.pairs));
+        returnNode(node.withTypeNode(typeAccept(node.typeNode)));
     }
 
     @Override
@@ -247,8 +247,11 @@ public class IdentityTransformation implements Visitor {
         // returnValue(node);
         //returnNode(node);
         TypeNode yo = typeAccept(node.typeNode);
-        assert(yo != null);
-        returnNode(new MatrixTypeNode(node.getLocation(), typeAccept(node.typeNode)));
+        assert (yo != null);
+        MatrixTypeNode copy = new MatrixTypeNode(node.getLocation(), typeAccept(node.typeNode));
+        copy.rowDim = node.rowDim;
+        copy.columnDim = node.columnDim;
+        returnNode(copy);
     }
 
     @Override

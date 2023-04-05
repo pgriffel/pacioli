@@ -40,7 +40,10 @@ public class ConversionNode extends AbstractExpressionNode {
     }
 
     public Node transform(TypeNode typeNode) {
-        return new ConversionNode(getLocation(), typeNode, bang, type);
+        ConversionNode copy = new ConversionNode(getLocation(), typeNode, bang, type);
+        copy.rowDim = rowDim;
+        copy.columnDim = columnDim;
+        return copy;
     }
     
     public MatrixType evalType(Boolean reduce) throws PacioliException {

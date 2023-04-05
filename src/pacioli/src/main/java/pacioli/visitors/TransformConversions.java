@@ -108,7 +108,10 @@ public class TransformConversions extends IdentityTransformation implements Visi
             }
             
             // Create a literal node of the same type with the conversion factors.
-            returnNode(new MatrixLiteralNode(location, node.typeNode, conversionFactors));
+            MatrixLiteralNode literal = new MatrixLiteralNode(location, node.typeNode, conversionFactors);
+            literal.rowDim = node.rowDim;
+            literal.columnDim = node.columnDim;
+            returnNode(literal);
         } else {
             returnNode(node);
         }
