@@ -114,8 +114,8 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.mark();
         
         // Fixme
-        //if (settings.debug() && node.function instanceof IdentifierNode) {
-        if (false && node.function instanceof IdentifierNode) {
+        if (settings.isDebugOn() && node.function instanceof IdentifierNode) {
+        //if (false && node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
             String stackText = id.getName();
             String fullText = node.getLocation().description();

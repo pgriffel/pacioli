@@ -16,7 +16,7 @@ import mvm.ast.*;
 import mvm.ast.expression.*;
 import mvm.ast.shape.*;
 import mvm.ast.unit.*;
-import pacioli.PacioliException;
+import mvm.MVMException;
 import uom.Unit;
 import mvm.values.matrix.MatrixShape;
 import mvm.values.matrix.Matrix;
@@ -33,7 +33,7 @@ parser code {:
        from CUP's syntax_error to CUP's report_fatal_error
        function. */
     String errorMessage;
-    pacioli.Location errorLocation;
+    String errorLocation;
 
    /* Public interface */
     public Parser(Lexer lex, ComplexSymbolFactory sf, File file) {
@@ -55,7 +55,7 @@ parser code {:
 
     public void report_fatal_error(String message, Object info) throws java.lang.Exception {
         done_parsing();      
-        throw new PacioliException(errorLocation, errorMessage);
+        throw new MVMException("Error at %s: %s %s %s", errorLocation, errorMessage, message, info);
     }
 
     public void syntax_error(Symbol cur_token) {
@@ -66,16 +66,16 @@ parser code {:
             list.add(symbl_name_from_id(expected));
         }
         ComplexSymbol token = (ComplexSymbol) cur_token;
-        errorLocation = makeLoc(token.getLeft(), token.getRight());
+        errorLocation = String.format("%s-%s", token.getLeft(), token.getRight());
         errorMessage = "Expected one of " + list;
     }
 
    /* Utility functions for the grammar rules */
-    private pacioli.Location makeLoc(Location from, Location to) {
-        pacioli.Location pacioliFrom = new pacioli.Location(file, from.getLine(), from.getColumn(), from.getOffset());
-        pacioli.Location pacioliTo = new pacioli.Location(file, to.getLine(), to.getColumn(), to.getOffset());
-        return pacioliFrom.join(pacioliTo);
-    }
+//    private pacioli.Location makeLoc(Location from, Location to) {
+//        pacioli.Location pacioliFrom = new pacioli.Location(file, from.getLine(), from.getColumn(), from.getOffset());
+//        pacioli.Location pacioliTo = new pacioli.Location(file, to.getLine(), to.getColumn(), to.getOffset());
+//        return pacioliFrom.join(pacioliTo);
+//    }
 
     private class UnitDecl {
 
@@ -244,7 +244,8 @@ args ::=
 
 expr ::= 
    APPLICATION LPAR expr:f args:a RPAR                   {: RESULT = new Application(f, a); :}
-// | APPLICATION_DEBUG LPAR STR:fun STR:a STR:b exprs:args RPAR          //{: RESULT = new ApplicationNode(fun, args, makeLoc(funxleft, argsxright)); :}
+ | APPLICATION_DEBUG LPAR STR:a COMMA STR:b COMMA STR:trace COMMA expr:fun COMMA exprs:args RPAR          {: RESULT = new ApplicationDebug(a,b,trace.equals("true"),fun, args); :}
+ | APPLICATION_DEBUG LPAR STR:a COMMA STR:b COMMA STR:trace COMMA expr:fun RPAR          {: RESULT = new ApplicationDebug(a,b,trace.equals("true"),fun, new ArrayList<Expression>()); :}
  | LAMBDA string_list:ids expr:b                         {: RESULT = new Lambda(ids, b); :}
  | IF LPAR expr:t COMMA expr:p COMMA expr:n RPAR         {: RESULT = new Branch(t, p, n); :}
  | VAR LPAR STR:id RPAR                               {: RESULT = new Identifier(id); :}

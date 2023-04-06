@@ -51,13 +51,13 @@ public class ApplicationDebug extends AbstractPrintable implements Expression {
     @Override
     public PacioliValue eval(Environment environment) throws MVMException {
 
-        Callable fun = (Callable) function.eval(null);
+        Callable fun = (Callable) function.eval(environment);
         Machine.pushFrame(fullText);
 
         try {
             List<PacioliValue> params = new ArrayList<PacioliValue>();
             for (Expression exp : arguments) {
-                params.add(exp.eval(null));
+                params.add(exp.eval(environment));
             }
             if (trace) {
                 Machine.logln("\nCalling %s with arguments (%s)", stackText,
@@ -65,7 +65,8 @@ public class ApplicationDebug extends AbstractPrintable implements Expression {
             }
             PacioliValue result = fun.apply(params);
             if (trace) {
-                Machine.logln("\nReturn from %s with value %s", stackText, result.toText());
+                String resultText = result == null ? "nothing" : result.toText();
+                Machine.logln("\nReturn from %s with value %s", stackText, resultText);
             }
             Machine.popFrame();
             return result;
