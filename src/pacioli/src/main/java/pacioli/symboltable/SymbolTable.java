@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import pacioli.Pacioli;
+
 public class SymbolTable<R extends SymbolInfo> {
 
     private final Map<String, R> table = new HashMap<String, R>();
@@ -76,6 +78,10 @@ public class SymbolTable<R extends SymbolInfo> {
 
     public SymbolTable<R> addAll(SymbolTable<? extends R> it) {
         for (String name : it.table.keySet()) {
+            if (table.containsKey(name)) {
+                Pacioli.warn("Overwriting entry %s in symbol table", name);
+                //throw new RuntimeException(String.format("Overwriting entry %s in symbol table", name));
+            }
             table.put(name, it.table.get(name));
         }
         return this;

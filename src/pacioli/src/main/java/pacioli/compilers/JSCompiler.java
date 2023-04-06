@@ -158,10 +158,10 @@ public class JSCompiler implements SymbolTableVisitor {
         }
         
         String globalName = setInfo.globalName();
-        String name = info.name();
+        // String name = info.name();
         String args = Utils.intercalate(", ", unitTexts);
         
-        out.format("function compute_%s () { return {units: { %s }}};\n", globalName, name, args);
+        out.format("function compute_%s () { return {units: { %s }}};\n", globalName, args);
     }
 
     @Override

@@ -54,7 +54,7 @@ public class Bundle {
     private final List<File> libs;
 
     // Added as first step of loading
-    ProgramNode program;
+    // ProgramNode program;
 
     // Fill during loading
     SymbolTable<ValueInfo> valueTable = new SymbolTable<ValueInfo>();
@@ -219,6 +219,7 @@ public class Bundle {
 
         // Generate code for the toplevels
         for (Toplevel def : toplevels) {
+            if (def.getLocation().getFile().equals(file.getFile())) {
             if (settings.getTarget() == Target.MVM ||
                     settings.getTarget() == Target.MATLAB) {
                 printer.newline();
@@ -231,7 +232,7 @@ public class Bundle {
                 def.accept(gen);
                 printer.write(")");
                 printer.newline();
-            }
+            }}
         }
 
     }
