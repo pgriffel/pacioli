@@ -12,7 +12,7 @@ import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 
-public final class VectorUnitInfo extends UnitInfo implements SymbolInfo {
+public final class VectorUnitInfo extends UnitInfo<VectorUnitInfo> {
 
     private Optional<UnitVectorDefinition> definition = Optional.empty();
     private List<UnitDecl> items;

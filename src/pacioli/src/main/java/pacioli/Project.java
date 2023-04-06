@@ -10,18 +10,23 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.jgrapht.graph.AsSubgraph;
 import org.jgrapht.graph.DefaultDirectedGraph;
 import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.traverse.DepthFirstIterator;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import pacioli.CompilationSettings.Target;
 import pacioli.Progam.Phase;
 import pacioli.symboltable.PacioliTable;
+import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.TypeSymbolInfo;
+import pacioli.symboltable.ValueInfo;
 
 /**
  * The Project class's purpose is to compile and bundle a file with all its
@@ -43,7 +48,8 @@ public class Project {
     /**
      * Path of the target file for the project bundle.
      * 
-     * @param target A compilation terget
+     * @param target
+     *            A compilation terget
      * @return The path corresponding with the target
      */
     public Path bundlePath(Target target) {
@@ -68,10 +74,10 @@ public class Project {
         Optional<PacioliFile> optionalFile = graph.vertexSet().stream().findAny();
         if (optionalFile.isPresent()) {
             PacioliFile file = optionalFile.get();
-            Optional<DefaultEdge> optionalIncoming = graph.incomingEdgesOf(file).stream().findAny();
-            while (optionalIncoming.isPresent()) {
-                file = graph.getEdgeSource(optionalIncoming.get());
-                optionalIncoming = graph.incomingEdgesOf(file).stream().findAny();
+            Optional<DefaultEdge> optionalOutgoing = graph.outgoingEdgesOf(file).stream().findAny();
+            while (optionalOutgoing.isPresent()) {
+                file = graph.getEdgeTarget(optionalOutgoing.get());
+                optionalOutgoing = graph.outgoingEdgesOf(file).stream().findAny();
             }
             return file;
         } else {
@@ -96,6 +102,53 @@ public class Project {
         return iter;
     }
 
+    List<String> imported(Progam program) {
+
+        List<String> modules = new ArrayList<String>();
+
+        AsSubgraph<PacioliFile, DefaultEdge> includesOnly = new AsSubgraph<PacioliFile, DefaultEdge>(graph,
+                graph.vertexSet(), graph.edgeSet().stream().filter(edge -> graph.getEdgeSource(edge).isInclude())
+                        .collect(Collectors.toSet()));
+
+        ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>(program.findImports(libs));
+        allLibs.add(PacioliFile.requireLibrary("base", libs));
+        allLibs.add(PacioliFile.requireLibrary("standard", libs));
+
+
+        for (String include : program.includes()) {
+
+            // Locate the include file
+            PacioliFile pacioliFile = program.file.findInclude2(program.file.modulePath, include);
+            allLibs.add(pacioliFile);
+        }
+
+
+
+        Set<PacioliFile> mods = graph.vertexSet().stream()
+                .collect(Collectors.filtering(x -> {
+                    //Pacioli.log("HUH %s %s", x, allLibs.contains(x));
+                    return allLibs.contains(x);
+                }, Collectors.toSet()));
+        //Pacioli.log("Mods %s", mods);
+        for (PacioliFile imp : mods) {
+            // for (PacioliFile imp : allLibs) {
+
+            Iterator<PacioliFile> iterator = new DepthFirstIterator<PacioliFile, DefaultEdge>(
+                    new EdgeReversedGraph<PacioliFile, DefaultEdge>(includesOnly), imp);
+            while (iterator.hasNext()) {
+                PacioliFile file = iterator.next();
+                // Pacioli.logln("- %s", file);
+                // Pacioli.println("- %-40s %-10s %-10s", file.getModule(), file.isLibrary() ?
+                // "lib" : "usr",
+                // file.getFile());
+                modules.add(file.getModule());
+
+            }
+        }
+        //Pacioli.log("Imported %s %s", program.getModule(), modules);
+        return modules;
+    }
+
     /**
      * Print the project graph. For debugging.
      */
@@ -106,13 +159,19 @@ public class Project {
         }
 
         AsSubgraph<PacioliFile, DefaultEdge> includesOnly = new AsSubgraph<PacioliFile, DefaultEdge>(graph,
-                graph.vertexSet(), graph.edgeSet().stream().filter(edge -> graph.getEdgeTarget(edge).isInclude())
+                graph.vertexSet(), graph.edgeSet().stream().filter(edge -> graph.getEdgeSource(edge).isInclude())
                         .collect(Collectors.toSet()));
 
+        Pacioli.println("\nProject root = %s", root());
+
+        Pacioli.println("\nLibrary dependencies:");
         for (PacioliFile node : graph.vertexSet().stream()
                 .collect(Collectors.filtering(x -> x.isLibrary() && !x.isInclude(), Collectors.toSet()))) {
             Pacioli.println("%-40s %-40s", node.getModule(), node.getFile());
-            Iterator<PacioliFile> iterator = new DepthFirstIterator<>(includesOnly, node);
+            // Iterator<PacioliFile> iterator = new DepthFirstIterator<>(includesOnly,
+            // node);
+            Iterator<PacioliFile> iterator = new DepthFirstIterator<PacioliFile, DefaultEdge>(
+                    new EdgeReversedGraph<PacioliFile, DefaultEdge>(includesOnly), node);
             while (iterator.hasNext()) {
                 PacioliFile file = iterator.next();
                 // Pacioli.logln("- %s", file);
@@ -134,7 +193,8 @@ public class Project {
     /**
      * Create a bundle from the project files.
      * 
-     * @param settings Compiler settings
+     * @param settings
+     *            Compiler settings
      * @return The path where the bundle was saved.
      * @throws Exception
      */
@@ -149,19 +209,23 @@ public class Project {
         Pacioli.trace("Adding primitives");
         bundle.addPrimitiveTypes();
 
-        for (String lib : PacioliFile.defaultIncludes) {
-            Pacioli.trace("Loading default include'%s'", lib);
-            PacioliFile libFile = PacioliFile.requireLibrary(lib, libs);
-            Progam prog = Progam.load(libFile, libs, Phase.DESUGARED);
-            prog.loadRest(libFile, new PacioliTable(bundle.valueTable, bundle.typeTable));
-            bundle.load(prog);
-        }
+        // for (String lib : PacioliFile.defaultIncludes) {
+        //     Pacioli.trace("Loading default include'%s'", lib);
+        //     PacioliFile libFile = PacioliFile.requireLibrary(lib, libs);
+        //     Progam prog = Progam.load(libFile, libs, Phase.DESUGARED);
+        //     prog.loadRest(libFile, new PacioliTable(bundle.valueTable, bundle.typeTable));
+        //     bundle.load(prog);
+        // }
 
         try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())))) {
 
             for (PacioliFile current : orderedFiles()) {
                 Progam program = Progam.load(current, libs, Phase.DESUGARED);
-                program.loadRest(current, new PacioliTable(bundle.valueTable, bundle.typeTable));
+                SymbolTable<ValueInfo> vTable = bundle.programValueTable(imported(program));
+                SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(imported(program));
+                program.loadRest(current, new PacioliTable(vTable, tTable));
+                // program.loadRest(current, new PacioliTable(bundle.valueTable,
+                // bundle.typeTable));
                 bundle.load(program);
             }
 
@@ -174,7 +238,6 @@ public class Project {
         return dstPath;
     }
 
-
     public static Path bundlePath(File file, Target target) {
         return Paths.get(FilenameUtils.removeExtension(file.getPath()) + "." + PacioliFile.targetFileExtension(target));
     }
@@ -182,8 +245,10 @@ public class Project {
     /**
      * Constructor for a project.
      * 
-     * @param file The root file.
-     * @param libs The paths where libraries are installed
+     * @param file
+     *            The root file.
+     * @param libs
+     *            The paths where libraries are installed
      * @return The constructed project
      * @throws Exception
      */
@@ -194,8 +259,10 @@ public class Project {
     /**
      * Constructs the project graph
      * 
-     * @param file The root file.
-     * @param libs The paths where libraries are installed
+     * @param file
+     *            The root file.
+     * @param libs
+     *            The paths where libraries are installed
      * @return The graph
      * @throws Exception
      */
@@ -230,7 +297,13 @@ public class Project {
                     graph.addVertex(current);
                 }
 
-                for (PacioliFile pacioliFile : program.findImports(libs)) {
+ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>(program.findImports(libs));
+//allLibs.add(PacioliFile.requireLibrary("base", libs));
+PacioliFile standard = PacioliFile.requireLibrary("standard", libs);
+PacioliFile base = PacioliFile.requireLibrary("base", libs);
+if (!program.file.equals(base)) allLibs.add(base);
+if (!program.file.equals(standard) && !program.file.equals(base)) allLibs.add(standard);
+                for (PacioliFile pacioliFile : allLibs  ) {
 
                     // Add the include files to the todo list
                     if (!done.contains(pacioliFile) && !todo.contains(pacioliFile)) {

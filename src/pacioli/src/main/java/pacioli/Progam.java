@@ -240,10 +240,11 @@ public class Progam extends AbstractPrintable {
         typess.parent = symbolTable.types();
         PacioliTable env = new PacioliTable(values, typess);
         for (TypeSymbolInfo nfo : typess.allInfos()) {
+            boolean fromProgram = nfo.generic().getModule().equals(file.getModule());
             if (nfo instanceof UnitInfo) {
                 Optional<? extends Definition> definition = nfo.getDefinition();
                 assert (definition.isPresent());
-                if (nfo.isFromProgram() && definition.isPresent()) {
+                if (fromProgram && definition.isPresent()) {
                     Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving unit %s", nfo.globalName());
                     definition.get().resolve(file, env);
                 }
@@ -251,7 +252,8 @@ public class Progam extends AbstractPrintable {
         }
         for (TypeSymbolInfo nfo : typess.allInfos()) {
             if (nfo instanceof TypeInfo) {
-                if (nfo.isFromProgram() && nfo.getDefinition().isPresent()) {
+                boolean fromProgram = nfo.generic().getModule().equals(file.getModule());
+                if (fromProgram && nfo.getDefinition().isPresent()) {
                     Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving type %s", nfo.globalName());
                     nfo.getDefinition().get().resolve(file, env);
                 }

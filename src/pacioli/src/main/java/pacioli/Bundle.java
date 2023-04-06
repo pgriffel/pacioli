@@ -71,10 +71,31 @@ public class Bundle {
         this.libs = libs;
     }
 
-    public PacioliTable selectTable(Collection<String> libNames) {
-        PacioliTable table = PacioliTable.empty();
-        libNames.forEach(name -> {
-            table.addAll(libTables.get(name));
+    // public PacioliTable selectTable(Collection<String> libNames) {
+    // PacioliTable table = PacioliTable.empty();
+    // libNames.forEach(name -> {
+    // table.addAll(libTables.get(name));
+    // });
+    // return table;
+    // }
+
+    public SymbolTable<ValueInfo> programValueTable(Collection<String> moduleNames) {
+        SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>();
+        valueTable.allInfos().forEach(info -> {
+            if (moduleNames.contains(info.generic().getModule())) {
+                table.put(info.name(), info);
+            }
+        });
+        return table;
+    }
+
+    public SymbolTable<TypeSymbolInfo> programTypeTable(Collection<String> moduleNames) {
+        SymbolTable<TypeSymbolInfo> table = new SymbolTable<TypeSymbolInfo>();
+        typeTable.allInfos().forEach(info -> {
+            if (moduleNames.contains(info.generic().getModule())) {
+                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(), info.name());
+                table.put(info.name(), info);
+            }
         });
         return table;
     }
@@ -96,8 +117,16 @@ public class Bundle {
 
     void load(Progam other) throws Exception {
         // See duplicate code in Progam
-        valueTable.addAll(other.values);
-        typeTable.addAll(other.typess);
+        other.values.allInfos().forEach(info -> {
+            //Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s", info.globalName());
+            valueTable.put(info.globalName(), info);
+        });
+        other.typess.allInfos().forEach(info -> {
+            //Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(), info.name());
+            typeTable.put(info.globalName(), info);
+        });
+        // valueTable.addAll(other.values);
+        // typeTable.addAll(other.typess);
         other.toplevels.forEach(topLevel -> {
             this.toplevels.add(topLevel);
         });
@@ -220,24 +249,24 @@ public class Bundle {
         // Generate code for the toplevels
         for (Toplevel def : toplevels) {
             if (def.getLocation().getFile().equals(file.getFile())) {
-            if (settings.getTarget() == Target.MVM ||
-                    settings.getTarget() == Target.MATLAB) {
-                printer.newline();
-                def.accept(gen);
-                printer.newline();
+                if (settings.getTarget() == Target.MVM ||
+                        settings.getTarget() == Target.MATLAB) {
+                    printer.newline();
+                    def.accept(gen);
+                    printer.newline();
+                }
+                if (settings.getTarget() == Target.PYTHON) {
+                    printer.newline();
+                    printer.write("glbl_base_print(");
+                    def.accept(gen);
+                    printer.write(")");
+                    printer.newline();
+                }
             }
-            if (settings.getTarget() == Target.PYTHON) {
-                printer.newline();
-                printer.write("glbl_base_print(");
-                def.accept(gen);
-                printer.write(")");
-                printer.newline();
-            }}
         }
 
     }
 
-    
     // -------------------------------------------------------------------------
     // Topological Order of Definitions
     // -------------------------------------------------------------------------
