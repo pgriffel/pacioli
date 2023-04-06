@@ -401,7 +401,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
                 // If it shadows another value then remember that for initialization in
                 // generated code
                 ValueInfo shadowedInfo = valueTables.peek().lookup(id.getName());
-                if (shadowedInfo != null) {
+                if (false && shadowedInfo != null) {
                     node.shadowed.put(id.getName(), shadowedInfo);
                 }
 
