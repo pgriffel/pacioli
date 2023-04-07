@@ -60,30 +60,44 @@ public class Devaluator implements TypeVisitor {
 
     @Override
     public void visit(IndexList type) {
-        //throw new RuntimeException("todo: " + type.getClass());
-        throw new RuntimeException("deval of index list should be handled by the matrix type");
-    }
-
-    @Override
-    public void visit(IndexType type) {       
-        
-        // This must be an parameric "Index" type, otherwise it would be handled
+                // This must be an parameric "Index" type, otherwise it would be handled
         // by the deval of a matrix type.
         
         TypeIdentifierNode index = new TypeIdentifierNode(new Location(), "Index");
         List<TypeNode> ids = new ArrayList<TypeNode>();
 
-        if (type.isVar()) {
-            ids.add(typeNodeAccept(type.getVar()));
-        } else {
-            for (int n = 0; n < type.width(); n++) {
-                TypeIdentifier id = type.nthIndexSet(n);
-                IndexSetInfo info = type.nthIndexSetInfo(n);
-                ids.add(new TypeIdentifierNode(new Location(), id.name, info));
-            }
+        for (int n = 0; n < type.width(); n++) {
+            TypeIdentifier id = type.nthIndexSet(n);
+            IndexSetInfo info = type.nthIndexSetInfo(n);
+            ids.add(new TypeIdentifierNode(new Location(), id.name, info));
         }
         
         returnTypeNode(new TypeApplicationNode(new Location(), index, ids));
+        
+        // //throw new RuntimeException("todo: " + type.getClass());
+        // throw new RuntimeException("deval of index list should be handled by the matrix type");
+    }
+
+    @Override
+    public void visit(IndexType type) {       
+        throw new RuntimeException("deval of index list should be handled by the matrix type");
+        // // This must be an parameric "Index" type, otherwise it would be handled
+        // // by the deval of a matrix type.
+        
+        // TypeIdentifierNode index = new TypeIdentifierNode(new Location(), "Index");
+        // List<TypeNode> ids = new ArrayList<TypeNode>();
+
+        // if (type.isVar()) {
+        //     ids.add(typeNodeAccept(type.getVar()));
+        // } else {
+        //     for (int n = 0; n < type.width(); n++) {
+        //         TypeIdentifier id = type.nthIndexSet(n);
+        //         IndexSetInfo info = type.nthIndexSetInfo(n);
+        //         ids.add(new TypeIdentifierNode(new Location(), id.name, info));
+        //     }
+        // }
+        
+        // returnTypeNode(new TypeApplicationNode(new Location(), index, ids));
     }
 
     @Override

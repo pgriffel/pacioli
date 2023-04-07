@@ -53,7 +53,7 @@ public class Pacioli {
     // Internal settings for log messages. Actual values depend on verbosity.
     public static class Options {
         public static boolean trace = false;
-        public static boolean showFileLoads = true;
+        public static boolean showFileLoads = false;
         public static boolean showSymbolTableAdditions = false;
         public static boolean showResolvingDetails = false;
         public static boolean showIncludeSearches = false;
