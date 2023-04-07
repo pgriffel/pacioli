@@ -343,4 +343,32 @@ public class Project {
         return graph;
     }
 
+    public void printTypes() throws Exception {
+
+        Bundle bundle = Bundle.empty(file, libs);
+
+        Pacioli.trace("Adding primitives");
+        bundle.addPrimitiveTypes();
+
+        for (PacioliFile current : orderedFiles()) {
+
+            Progam program = Progam.load(current, Phase.DESUGARED);
+
+            // Filter the bundle's total symbol tables for the directly used modules of the
+            // program
+            List<String> useModules = usedModules(program);
+            SymbolTable<ValueInfo> vTable = bundle.programValueTable(useModules);
+            SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(useModules);
+
+            // Analyse the code given the imported and included infos
+            program.loadRest(current, new PacioliTable(vTable, tTable));
+
+            // Add the program's info's to the bundle's total symbol tables
+            bundle.load(program);
+        }
+
+        bundle.printTypes();
+
+    }
+
 }

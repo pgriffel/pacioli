@@ -39,6 +39,8 @@ import mvm.MVMException;
 import mvm.Machine;
 import pacioli.CompilationSettings.Target;
 import pacioli.Progam.Phase;
+import pacioli.ast.ProgramNode;
+import pacioli.parser.Parser;
 import pacioli.symboltable.ValueInfo;
 
 /**
@@ -51,7 +53,7 @@ public class Pacioli {
     // Internal settings for log messages. Actual values depend on verbosity.
     public static class Options {
         public static boolean trace = false;
-        public static boolean showFileLoads = false;
+        public static boolean showFileLoads = true;
         public static boolean showSymbolTableAdditions = false;
         public static boolean showResolvingDetails = false;
         public static boolean showIncludeSearches = false;
@@ -283,8 +285,8 @@ public class Pacioli {
         } else {
             PacioliFile file = optionalFile.get();
             log("Parsing file '%s'", file);
-            Progam program = Progam.load(file, Phase.PARSED);
-            println("%s", program.program.pretty());
+            ProgramNode program = Parser.parseFile(file.getFile());
+            println("%s", program.pretty());
         }
     }
 
@@ -299,8 +301,6 @@ public class Pacioli {
         } else {
             log("Desugaring file '%s'", file);
             Progam program = Progam.load(file.get(), Phase.DESUGARED);
-            // TODO: check if this is done in load.
-            //program.liftStatements();
             println("%s", program.pretty());
         }
     }
@@ -320,12 +320,13 @@ public class Pacioli {
 
         PacioliFile file = optionalFile.get();
 
-        log("Displaying types for file '%s'", file.getFile());
+        log("Displaying? types for file '%s'", file.getFile());
 
         try {
+            Project project = Project.load(file, libs);
 
-            Progam program = Progam.load(file, Phase.TYPED);
-            program.printTypes();
+            //Progam program = Progam.load(file, Phase.TYPED);
+            project.printTypes();
 
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
@@ -666,7 +667,7 @@ public class Pacioli {
     /**
      * Primitive for user output. Used by println, log, logIf, trace and warn.
      */
-    private static void print(String string, Object... args) {
+    public static void print(String string, Object... args) {
 
         String text = String.format(string, args);
 

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +29,7 @@ import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
+import pacioli.types.PacioliType;
 import pacioli.visitors.CodeGenerator;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
@@ -251,7 +253,26 @@ public class Bundle {
         }
 
     }
+    void printTypes() throws PacioliException {
 
+        List<String> names = valueTable.allNames();
+        Collections.sort(names);
+
+        for (String value : names) {
+            ValueInfo info = valueTable.lookup(value);
+            boolean fromProgram = info.generic().getModule().equals(file.getModule());
+            if (fromProgram && info.getDefinition().isPresent()) {
+                Pacioli.println("\n%s ::", info.name());
+                Pacioli.print(" %s;", info.inferredType().deval().pretty());
+            }
+        }
+        Integer count = 1;
+        for (Toplevel toplevel : toplevels) {
+            PacioliType type = toplevel.type;
+            Pacioli.println("\nToplevel %s ::", count++);
+            Pacioli.print(" %s", type.unfresh().deval().pretty());
+        }
+    }
     // -------------------------------------------------------------------------
     // Topological Order of Definitions
     // -------------------------------------------------------------------------
