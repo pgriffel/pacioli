@@ -29,7 +29,8 @@ public class GenericInfo {
     }
     
     public File getFile() {
-        return location.getFile();
+        //return location.getFile();
+        return file.getFile();
     }
     
     public String getModule() {

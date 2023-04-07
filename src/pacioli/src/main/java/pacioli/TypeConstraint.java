@@ -95,7 +95,7 @@ public class TypeConstraint extends AbstractPrintable {
                         "Type definitions's parameter should be a variable or a unitvec %s");
             }
         }
-        return rhs.applySubstitution(new Substitution(map)).reduce();
+        return rhs.applySubstitution(new Substitution(map)); //.reduce();
     }
 
     @Override

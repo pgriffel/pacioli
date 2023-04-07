@@ -367,10 +367,12 @@ public class Progam extends AbstractPrintable {
             if (!info.inferredType.isPresent()) {
                 // Pacioli.warn("Skipping type check for %s", info.name());
             }
-            if (declared.isPresent() && info.inferredType.isPresent()) {
-                PacioliType declaredType = declared.get().evalType(info.isFromProgram()).instantiate();
+            if (!isExternal(info) && declared.isPresent() && info.inferredType.isPresent()) {
+                //PacioliType declaredType = declared.get().evalType(info.isFromProgram()).instantiate();
+                boolean fromProgram = info.generic().getModule().equals(file.getModule());
+                PacioliType declaredType = declared.get().evalType(fromProgram).instantiate().reduce(i -> i.generic().getModule().equals(file.getModule()));
 
-                PacioliType inferredType = info.inferredType().instantiate();
+                PacioliType inferredType = info.inferredType().instantiate(); //.reduce(i -> i.generic().getModule().equals(file.getModule()));
 
                 if (info.isFromProgram() || logAnyway) {
                     Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,
@@ -420,7 +422,7 @@ public class Progam extends AbstractPrintable {
                         throw new RuntimeException("Type error",
                                 new PacioliException(pre.getLocation(), "No type declared for %s", pre.name()));
                     }
-                    vinfo.setinferredType(vinfo.getDeclaredType().get().evalType(false));
+                    //vinfo.setinferredType(vinfo.getDeclaredType().get().evalType(false));
                 }
             }
         }
@@ -446,6 +448,9 @@ public class Progam extends AbstractPrintable {
                 inferUsedTypes(info.getDefinition().get(), discovered, finished, verbose);
 
                 ValueDefinition def = info.getDefinition().get();
+                
+                Pacioli.logIf(Pacioli.Options.logTypeInference, "Infering typing of %s", info.name());
+
                 Typing typing = def.body.inferTyping(this);
 
                 Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "Inferred typing of %s is %s", info.name(),

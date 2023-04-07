@@ -38,6 +38,9 @@ public class IndexType extends AbstractType {
     }
 
     private IndexType(PacioliType type) {
+        if (!(type instanceof Var || type instanceof IndexList)) {
+            throw new RuntimeException(String.format("Expected index list of var"));
+        }
         indexSet = type;
     }
 

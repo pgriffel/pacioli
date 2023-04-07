@@ -8,7 +8,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 
+import pacioli.Pacioli;
 import pacioli.PacioliException;
+import pacioli.PacioliFile;
 import pacioli.Typing;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
@@ -47,6 +49,7 @@ import pacioli.types.ParametricType;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
 import pacioli.types.Var;
+import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 
@@ -54,9 +57,11 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
     private Stack<Typing> typingStack = new Stack<Typing>();
     private HashMap<String, TypeInfo> defaultTypes;
+    private PacioliFile file;
 
-    public TypeInference(HashMap<String, TypeInfo> defaultTypes) {
+    public TypeInference(HashMap<String, TypeInfo> defaultTypes, PacioliFile file) {
         this.defaultTypes = defaultTypes;
+        this.file =  file;
     }
 
     private TypeInfo findInfo(String name) {
@@ -309,10 +314,19 @@ public class TypeInference extends IdentityVisitor implements Visitor {
             }
         } else if (info.isGlobal()) {
             // Move instantiate to proper place.
+            boolean fromProgram = false; //info.generic().getModule().equals(file.getModule());
+            // Pacioli.log("is from program %s  %s", fromProgram, info.name(), node.getInfo().getDeclaredType().isPresent());
             if (node.getInfo().getDeclaredType().isPresent()) {
+                boolean fromProgram2 = false; // node.getLocation().getFile().equals(info.generic().getFile());
+                //Pacioli.log("is from program %s %s ", fromProgram2, info.name());
+
+                // Pacioli.log("Reduced type of %s = %s", node.getName(),
+                //         node.getInfo().getDeclaredType().get().evalType(fromProgram2).instantiate()
+                //                 .reduce(i -> i.generic().getModule().equals(file.getModule())).pretty());
+
                 if (true || !info.isFromProgram()) {
                     returnNode(new Typing(
-                            node.getInfo().getDeclaredType().get().evalType(info.isFromProgram()).instantiate()));
+                            node.getInfo().getDeclaredType().get().evalType(fromProgram2).instantiate().reduce(i -> i.generic().getModule().equals(file.getModule()))));
                 } else {
                     returnNode(new Typing(node.getInfo().inferredType().instantiate()));
                 }
@@ -368,7 +382,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
         }
 
         // Create a typing with an index type from the type identifies.
-        returnNode(new Typing(new IndexType(typeIds, typeInfos)));
+        returnNode(new Typing(new IndexList(typeIds, typeInfos)));
     }
 
     @Override

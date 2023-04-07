@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
@@ -34,6 +35,7 @@ import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.Printer;
 import pacioli.Substitution;
+import pacioli.symboltable.TypeInfo;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.visitors.Devaluator;
 import pacioli.types.visitors.JSGenerator;
@@ -67,8 +69,8 @@ public interface PacioliType extends Printable {
 
     public Substitution unify(PacioliType other) throws PacioliException;
     
-    public default PacioliType reduce() {
-        return new ReduceTypes().typeNodeAccept(this);
+    public default PacioliType reduce(Function<? super TypeInfo, ? extends Boolean> reduceCallback) {
+        return new ReduceTypes(reduceCallback).typeNodeAccept(this);
     };
 
     public default List<Unit<TypeBase>> simplificationParts() {

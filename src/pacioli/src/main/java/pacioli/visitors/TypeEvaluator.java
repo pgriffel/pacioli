@@ -1,5 +1,6 @@
 package pacioli.visitors;
 
+import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -216,9 +217,12 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
     private void handleParametric(TypeApplicationNode node, List<PacioliType> types) {
         Optional<? extends Definition> definition = node.op.info.getDefinition();
 
-        boolean reduce2 = false || node.op.info.isFromProgram();
+        //boolean reduce2 = false || node.op.info.isFromProgram();
+        File fl1 = node.op.info.generic().getFile();
+        File fl2 = node.getLocation().getFile();
+        boolean reduce2 = false; // || fl1.equals(fl2); // node.op.info.generic().getFile().equals(node.getLocation().getFile());
 
-        //Pacioli.logln("Reduce for %s = %s", node.op.getName(), reduce2);
+        //Pacioli.log("Reduce for %s = %s %s", node.op.getName(), reduce2, node.op.info.generic().getModule());
 
         if (!definition.isPresent()) {
             //returnType(new ParametricType(node.getName(), types));
@@ -274,7 +278,8 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             } else if (info instanceof VectorUnitInfo) {
                 throw new RuntimeException("A unit vector should be a BangTypeNode, not a TypeIdentifier. That is for scalars");
             } else if (info instanceof IndexSetInfo) {
-                returnType(new IndexType(new IndexSetVar((IndexSetInfo) info)));
+                //returnType(new IndexType(new IndexSetVar((IndexSetInfo) info)));
+                returnType(new IndexSetVar((IndexSetInfo) info));
             } else {
                 throw new RuntimeException("Unknown kind");
             }

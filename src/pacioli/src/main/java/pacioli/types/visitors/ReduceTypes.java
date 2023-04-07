@@ -3,7 +3,9 @@ package pacioli.types.visitors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
+import java.util.function.Function;
 
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
@@ -17,11 +19,16 @@ import pacioli.types.VectorUnitVar;
 import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
+import pacioli.symboltable.TypeInfo;
 
 public class ReduceTypes implements TypeVisitor {
 
     private Stack<PacioliType> nodeStack = new Stack<PacioliType>();
-    
+    Function<? super TypeInfo, ? extends Boolean> reduceCallback;
+
+    public ReduceTypes(Function<? super TypeInfo, ? extends Boolean> reduceCallback) {
+        this.reduceCallback = reduceCallback;
+    }
 
     public PacioliType typeNodeAccept(PacioliType child) {
         // Pacioli.logln("accept: %s", child.getClass());
@@ -74,10 +81,12 @@ public class ReduceTypes implements TypeVisitor {
         }
         try {
             ParametricType opType = new ParametricType(type.info, type.definition, items);
-            if (!type.definition.isPresent()) {
+            boolean reduce = type.definition.isPresent() && reduceCallback.apply(type.info);
+            //Pacioli.log("Reduce for %s = %s %s", type.name, reduce, type.info.generic().getModule());
+            if (!reduce) {
                 returnTypeNode(opType);
             } else {
-                returnTypeNode(type.definition.get().constaint(true).reduce(opType));
+                returnTypeNode(type.definition.get().constaint(true).reduce(opType).reduce(reduceCallback));
             }
         } catch (PacioliException e) {
             throw new RuntimeException("Type error", e);

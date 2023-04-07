@@ -47,7 +47,7 @@ public abstract class AbstractExpressionNode extends AbstractNode implements Exp
         defaultTypes.put("String", (TypeInfo) prog.typess.lookup("String"));
         defaultTypes.put("Boole", (TypeInfo) prog.typess.lookup("Boole"));
         
-        TypeInference visitor = new TypeInference(defaultTypes);
+        TypeInference visitor = new TypeInference(defaultTypes, prog.file);
         return visitor.typingAccept(this);
     }
 

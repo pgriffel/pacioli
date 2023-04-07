@@ -30,8 +30,6 @@ import java.util.Set;
 
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
-import pacioli.ast.expression.ConstNode;
-import pacioli.ast.expression.ExpressionNode;
 import pacioli.types.PacioliType;
 import pacioli.types.TypeBase;
 import pacioli.types.Unifiable;
