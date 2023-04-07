@@ -1,17 +1,14 @@
 package pacioli.visitors;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import pacioli.Location;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.ast.IdentityTransformation;
 import pacioli.ast.Node;
-import pacioli.ast.Visitor;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.ExpressionNode;
@@ -20,7 +17,6 @@ import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.symboltable.PacioliTable;
-import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.ValueInfo;
 
 /**
@@ -38,7 +34,7 @@ import pacioli.symboltable.ValueInfo;
  * Lifting statements before resolving would eliminate resolving twice, but would make
  * finding the used locals harder.   
  */
-public class LiftStatements extends IdentityTransformation implements Visitor {
+public class LiftStatements extends IdentityTransformation {
 
     Progam prog;
     List<ValueDefinition> blocks = new ArrayList<ValueDefinition>();

@@ -29,7 +29,6 @@ public class GenericInfo {
     }
     
     public File getFile() {
-        //return location.getFile();
         return file.getFile();
     }
     

@@ -5,14 +5,13 @@ import java.util.Set;
 import java.util.Stack;
 
 import pacioli.ast.IdentityVisitor;
-import pacioli.ast.Visitor;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 
-public class AssignedVariablesVisitor extends IdentityVisitor implements Visitor {
+public class AssignedVariablesVisitor extends IdentityVisitor {
 
     private Stack<Set<IdentifierNode>> typeStack = new Stack<Set<IdentifierNode>>();
 

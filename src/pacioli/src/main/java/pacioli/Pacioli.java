@@ -60,6 +60,7 @@ public class Pacioli {
         public static boolean logTypeInference = false;
         public static boolean logTypeInferenceDetails = false;
         public static boolean dumpOnMVMError = false;
+        public static boolean logGeneratingCode = false;
     }
 
     // User settings for log messages. See the various methods for printing and
@@ -320,7 +321,7 @@ public class Pacioli {
 
         PacioliFile file = optionalFile.get();
 
-        log("Displaying? types for file '%s'", file.getFile());
+        log("Displaying types for file '%s'", file.getFile());
 
         try {
             Project project = Project.load(file, libs);

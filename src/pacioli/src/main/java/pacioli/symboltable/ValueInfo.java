@@ -11,8 +11,7 @@ import pacioli.types.PacioliType;
 import pacioli.types.Schema;
 import pacioli.types.ast.TypeNode;
 
-
-public class ValueInfo extends AbstractSymbolInfo implements SymbolInfo {
+public class ValueInfo extends AbstractSymbolInfo<ValueInfo> {
 
     public record ParsedValueInfo(ValueDefinition definition) {
 

@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.PacioliFile;
 import pacioli.Typing;
@@ -50,10 +49,9 @@ import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
 import pacioli.types.Var;
 import pacioli.types.matrix.IndexList;
-import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 
-public class TypeInference extends IdentityVisitor implements Visitor {
+public class TypeInference extends IdentityVisitor {
 
     private Stack<Typing> typingStack = new Stack<Typing>();
     private HashMap<String, TypeInfo> defaultTypes;
@@ -61,7 +59,7 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
     public TypeInference(HashMap<String, TypeInfo> defaultTypes, PacioliFile file) {
         this.defaultTypes = defaultTypes;
-        this.file =  file;
+        this.file = file;
     }
 
     private TypeInfo findInfo(String name) {
@@ -89,13 +87,11 @@ public class TypeInference extends IdentityVisitor implements Visitor {
     }
 
     public Typing typingAccept(Node node) {
-        // Pacioli.logln("accept: %s", node.getClass());
         node.accept(this);
         return typingStack.pop();
     }
 
     private void returnNode(Typing value) {
-        // Pacioli.logln("return: %s", value.getClass());
         typingStack.push(value);
     }
 
@@ -304,32 +300,12 @@ public class TypeInference extends IdentityVisitor implements Visitor {
 
         ValueInfo info = node.getInfo();
 
-        if (false && !info.inferredType.isPresent()) {
-            // It must be a recursive function. Todo: handle properly
-            if (node.getInfo().getDeclaredType().isPresent()) {
-                returnNode(new Typing(node.getInfo().getDeclaredType().get().evalType(true).instantiate()));
-            } else {
-                throw new RuntimeException("Identifier node has no declared type",
-                        new PacioliException(node.getLocation(), "id=%s", node.getName()));
-            }
-        } else if (info.isGlobal()) {
+        if (info.isGlobal()) {
             // Move instantiate to proper place.
-            boolean fromProgram = false; //info.generic().getModule().equals(file.getModule());
-            // Pacioli.log("is from program %s  %s", fromProgram, info.name(), node.getInfo().getDeclaredType().isPresent());
             if (node.getInfo().getDeclaredType().isPresent()) {
-                boolean fromProgram2 = false; // node.getLocation().getFile().equals(info.generic().getFile());
-                //Pacioli.log("is from program %s %s ", fromProgram2, info.name());
-
-                // Pacioli.log("Reduced type of %s = %s", node.getName(),
-                //         node.getInfo().getDeclaredType().get().evalType(fromProgram2).instantiate()
-                //                 .reduce(i -> i.generic().getModule().equals(file.getModule())).pretty());
-
-                if (true || !info.isFromProgram()) {
-                    returnNode(new Typing(
-                            node.getInfo().getDeclaredType().get().evalType(fromProgram2).instantiate().reduce(i -> i.generic().getModule().equals(file.getModule()))));
-                } else {
-                    returnNode(new Typing(node.getInfo().inferredType().instantiate()));
-                }
+                returnNode(new Typing(
+                        node.getInfo().getDeclaredType().get().evalType(false).instantiate()
+                                .reduce(i -> i.generic().getModule().equals(file.getModule()))));
             } else {
                 returnNode(new Typing(node.getInfo().inferredType().instantiate()));
             }

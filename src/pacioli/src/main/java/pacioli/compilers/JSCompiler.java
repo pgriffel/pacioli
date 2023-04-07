@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import pacioli.CompilationSettings;
+import pacioli.Pacioli;
 import pacioli.Printer;
 import pacioli.Utils;
 import pacioli.ast.definition.IndexSetDefinition;
@@ -28,19 +29,20 @@ public class JSCompiler implements SymbolTableVisitor {
 
     CompilationSettings settings;
     Printer out;
-    
+
     public JSCompiler(Printer printWriter, CompilationSettings settings) {
         this.out = printWriter;
         this.settings = settings;
     }
-    
+
     @Override
     public void visit(ValueInfo info) {
-        
-        assert(info.getDefinition().isPresent());  // Infos without definition are filtered by the caller 
-        
-        //Pacioli.logln2("Compiling value %s", info.globalName());
-        
+
+        // Infos without definition are filtered by the caller
+        assert (info.getDefinition().isPresent());
+
+        Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling value %s", info.globalName());
+
         ValueDefinition definition = info.getDefinition().get();
         ExpressionNode transformedBody = definition.body;
         if (transformedBody instanceof LambdaNode) {
@@ -75,9 +77,9 @@ public class JSCompiler implements SymbolTableVisitor {
                     + "Pacioli.compute_u_%s = function () {\n"
                     + "    return %s;\n"
                     + "}\n"
-                        + "Pacioli.compute_%s = function () {\n  return ",
+                    + "Pacioli.compute_%s = function () {\n  return ",
                     info.globalName(),
-                    info.inferredType().reduce(i -> true).compileToJS(), 
+                    info.inferredType().reduce(i -> true).compileToJS(),
                     info.globalName());
             transformedBody.compileToJS(out, settings, false);
             out.format(";\n}\n"
@@ -90,20 +92,20 @@ public class JSCompiler implements SymbolTableVisitor {
 
     @Override
     public void visit(IndexSetInfo info) {
-     
-        //Pacioli.logln2("Compiling index set %s", info.globalName());
-        
-        assert(info.getDefinition().isPresent());
-        
+
+        Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling index set %s", info.globalName());
+
+        assert (info.getDefinition().isPresent());
+
         IndexSetDefinition definition = info.getDefinition().get();
-        
+
         List<String> quotedItems = new ArrayList<String>();
         for (String item : definition.items) {
             quotedItems.add(String.format("\"%s\"", item));
         }
-        out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', '%s', [ %s ])}\n", 
-                info.globalName(), 
-                info.globalName(), 
+        out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', '%s', [ %s ])}\n",
+                info.globalName(),
+                info.globalName(),
                 definition.localName(),
                 Utils.intercalate(",", quotedItems));
     }
@@ -115,13 +117,11 @@ public class JSCompiler implements SymbolTableVisitor {
 
     @Override
     public void visit(ScalarUnitInfo info) {
-        
-        //Pacioli.logln("Compiling unit %s", info.globalName());
-        
-        //UnitNode body = info.definition.body;
+
+        Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling unit %s", info.globalName());
+
         Optional<UnitDefinition> optionalDefinition = info.getDefinition();
-        
-        
+
         if (optionalDefinition.isPresent()) {
             Optional<UnitNode> optionalBody = optionalDefinition.get().body;
             if (optionalBody.isPresent()) {
@@ -130,37 +130,36 @@ public class JSCompiler implements SymbolTableVisitor {
                 number = number.flat();
                 out.format("Pacioli.compute_%s = function () {\n", info.globalName());
                 out.format("    return {definition: new Pacioli.DimensionedNumber(%s, %s), symbol: '%s'}\n",
-                        number.factor(), TypeBase.compileUnitToJS(number.unit()), info.symbol);   
+                        number.factor(), TypeBase.compileUnitToJS(number.unit()), info.symbol);
                 out.format("}\n");
-            } else  {
-                out.format("Pacioli.compute_%s = function () { return {symbol: '%s'}};\n", 
+            } else {
+                out.format("Pacioli.compute_%s = function () { return {symbol: '%s'}};\n",
                         info.globalName(), info.symbol);
             }
         } else {
             throw new RuntimeException("ScalarUnitInfo misses definition");
         }
     }
-    
+
     @Override
     public void visit(VectorUnitInfo info) {
-        
-        assert(info.getDefinition().isPresent());
-        
-        //Pacioli.logln("Compiling vector unit %s", info.globalName());
-        
+
+        assert (info.getDefinition().isPresent());
+
+        Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling vector unit %s", info.globalName());
+
         IndexSetInfo setInfo = (IndexSetInfo) info.getDefinition().get().indexSetNode.info;
         List<String> unitTexts = new ArrayList<String>();
-        
+
         for (UnitDecl entry : info.getItems()) {
             DimensionedNumber<TypeBase> number = entry.value.evalUnit();
-            // todo: take number.factor() into account!? 
+            // todo: take number.factor() into account!?
             unitTexts.add("'" + entry.key.getName() + "': " + TypeBase.compileUnitToJS(number.unit()));
         }
-        
+
         String globalName = setInfo.globalName();
-        // String name = info.name();
         String args = Utils.intercalate(", ", unitTexts);
-        
+
         out.format("function compute_%s () { return {units: { %s }}};\n", globalName, args);
     }
 

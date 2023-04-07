@@ -6,7 +6,7 @@ import pacioli.Location;
 import pacioli.PacioliFile;
 import pacioli.ast.definition.IndexSetDefinition;
 
-public final class IndexSetInfo extends AbstractSymbolInfo implements TypeSymbolInfo {
+public final class IndexSetInfo extends AbstractSymbolInfo<IndexSetInfo> implements TypeSymbolInfo {
 
     private Optional<IndexSetDefinition> definition = Optional.empty();
 

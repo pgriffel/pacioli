@@ -16,7 +16,6 @@ public final class VectorUnitInfo extends UnitInfo<VectorUnitInfo> {
 
     private Optional<UnitVectorDefinition> definition = Optional.empty();
     private List<UnitDecl> items;
-    //private Map<String, DimensionedNumber<TypeBase>> units;
     private Map<String, UnitDecl> units;
 
     public VectorUnitInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location, Boolean fromProgram) {

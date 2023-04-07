@@ -8,7 +8,7 @@ import pacioli.PacioliFile;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.types.ast.TypeNode;
 
-public final class TypeInfo extends AbstractSymbolInfo implements TypeSymbolInfo {
+public final class TypeInfo extends AbstractSymbolInfo<TypeInfo> implements TypeSymbolInfo {
 
     public TypeInfo (String name, PacioliFile file, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
         super(new GenericInfo(name, file, module, isGlobal, location, fromProgram));

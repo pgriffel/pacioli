@@ -6,14 +6,13 @@ import java.util.Set;
 import pacioli.PacioliException;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
-import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.types.ast.TypeIdentifierNode;
 
-public class UsesVisitor extends IdentityVisitor implements Visitor {
+public class UsesVisitor extends IdentityVisitor {
     
     Set<SymbolInfo> infos = new HashSet<SymbolInfo>();
 

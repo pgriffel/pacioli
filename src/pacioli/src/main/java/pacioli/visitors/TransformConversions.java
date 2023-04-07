@@ -6,7 +6,6 @@ import java.util.List;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.ast.IdentityTransformation;
-import pacioli.ast.Visitor;
 import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.MatrixLiteralNode;
@@ -25,7 +24,7 @@ import uom.UnitFold;
  * This is more generic than what is needed because currently conversions are
  * toplevels and cannot occur everywhere in an expression as is handled here.
  */
-public class TransformConversions extends IdentityTransformation implements Visitor {
+public class TransformConversions extends IdentityTransformation {
 
     public TransformConversions() {
     }

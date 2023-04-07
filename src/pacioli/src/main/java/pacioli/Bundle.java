@@ -5,10 +5,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,7 +19,6 @@ import pacioli.compilers.MVMCompiler;
 import pacioli.compilers.PythonCompiler;
 import pacioli.symboltable.GenericInfo;
 import pacioli.symboltable.IndexSetInfo;
-import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;

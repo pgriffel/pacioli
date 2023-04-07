@@ -1,6 +1,5 @@
 package pacioli.visitors;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -8,15 +7,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.ast.IdentityVisitor;
-import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.TypeDefinition;
-import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarUnitInfo;
 import pacioli.symboltable.SymbolInfo;
@@ -52,10 +47,9 @@ import pacioli.types.matrix.VectorBase;
 import uom.Fraction;
 import uom.Unit;
 
-public class TypeEvaluator extends IdentityVisitor implements Visitor {
+public class TypeEvaluator extends IdentityVisitor {
 
     private Stack<PacioliType> typeStack;
-    private Boolean reduce;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -63,7 +57,6 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
 
     public TypeEvaluator(Boolean reduce) {
         typeStack = new Stack<PacioliType>();
-        this.reduce = reduce;
     }
 
     // -------------------------------------------------------------------------
@@ -71,13 +64,11 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
     // -------------------------------------------------------------------------
 
     public PacioliType typeAccept(TypeNode child) {
-        // Pacioli.logln("accept: %s", child.getClass());
         child.accept(this);
         return typeStack.pop();
     }
 
     public MatrixType matrixTypeAccept(TypeNode child) {
-        // Pacioli.logln("matrix accept: %s", child.getClass());
         child.accept(this);
         PacioliType type = typeStack.pop();
         assert (type instanceof MatrixType);
@@ -85,7 +76,6 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
     }
 
     public void returnType(PacioliType value) {
-        // Pacioli.logln("return: %s", value.getClass());
         typeStack.push(value);
     }
 
@@ -203,59 +193,24 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
                 returnType(new IndexType(names, infos));
             }
         } else {
-
-            // Experiment with type definitions.
-            // Open the type if it is from the local module.
-            // See also reduction on types.
-
-            // Definition definition = node.op.getDefinition();
-
             this.handleParametric(node, types);
         }
     }
 
     private void handleParametric(TypeApplicationNode node, List<PacioliType> types) {
+
         Optional<? extends Definition> definition = node.op.info.getDefinition();
 
-        //boolean reduce2 = false || node.op.info.isFromProgram();
-        File fl1 = node.op.info.generic().getFile();
-        File fl2 = node.getLocation().getFile();
-        boolean reduce2 = false; // || fl1.equals(fl2); // node.op.info.generic().getFile().equals(node.getLocation().getFile());
-
-        //Pacioli.log("Reduce for %s = %s %s", node.op.getName(), reduce2, node.op.info.generic().getModule());
-
         if (!definition.isPresent()) {
-            //returnType(new ParametricType(node.getName(), types));
             if (!(node.op.info instanceof TypeInfo)) {
                 throw new RuntimeException("Expected type info",
                         new PacioliException(node.getLocation(), "Invalid info"));
             }
             returnType(new ParametricType((TypeInfo) node.op.info, types));
         } else {
-            Boolean doReduce = reduce2; // reduce || false;   
             assert (definition.get() instanceof TypeDefinition);
             TypeDefinition typeDefinition = (TypeDefinition) definition.get();
-            TypeNode rhs = typeDefinition.rhs;
-            if (rhs instanceof TypeApplicationNode) {
-                TypeApplicationNode app = (TypeApplicationNode) rhs;
-                if (node.op.getName().equals(app.op.getName())) {
-                    doReduce = false;
-                }
-            }
-            // if (reduce && definition.getModule() == node.op.home()) {
-            //if (reduce && !node.op.info.generic().isExternal()) {
-            if (doReduce) {
-                try {
-                    //returnType(typeDefinition.constaint(true).reduce(new ParametricType(typeDefinition, types)));
-                    returnType(typeDefinition.constaint(true).reduce(new ParametricType((TypeInfo) node.op.info, Optional.of(typeDefinition), types)));
-                } catch (PacioliException e) {
-                    throw new RuntimeException("Type error", e);
-                }
-            } else {
-                // todo: add info. Not done because it is unused
-                //returnType(new ParametricType(typeDefinition, types));
-                returnType(new ParametricType((TypeInfo) node.op.info, Optional.of(typeDefinition), types));
-            }
+            returnType(new ParametricType((TypeInfo) node.op.info, Optional.of(typeDefinition), types));
         }
     }
 
@@ -278,7 +233,6 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             } else if (info instanceof VectorUnitInfo) {
                 throw new RuntimeException("A unit vector should be a BangTypeNode, not a TypeIdentifier. That is for scalars");
             } else if (info instanceof IndexSetInfo) {
-                //returnType(new IndexType(new IndexSetVar((IndexSetInfo) info)));
                 returnType(new IndexSetVar((IndexSetInfo) info));
             } else {
                 throw new RuntimeException("Unknown kind");
@@ -287,7 +241,6 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             // todo: rewrite evalBody
             returnType(new MatrixType(((AliasDefinition) definition.get()).evalBody()));
             //throw new RuntimeException("fixme");
-
         } else if (info instanceof IndexSetInfo) {
             IndexSetInfo indexSetInfo = (IndexSetInfo) info;
             TypeIdentifier id = new TypeIdentifier(indexSetInfo.generic().getModule(), node.getName());
@@ -296,7 +249,6 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
             TypeApplicationNode app = new TypeApplicationNode(node.getLocation(), node, new LinkedList<TypeNode>());
             this.handleParametric(app, new ArrayList<PacioliType>());
         } else {
-            //returnType(new MatrixType(new ScalarBase(node.getName())));
             assert(info instanceof ScalarUnitInfo);
             returnType(new MatrixType(new ScalarBase((ScalarUnitInfo) info)));
         }
@@ -304,7 +256,6 @@ public class TypeEvaluator extends IdentityVisitor implements Visitor {
 
     @Override
     public void visit(PrefixUnitTypeNode node) {
-        //returnType(new MatrixType(new ScalarBase(node.prefix.getName(), node.unit.getName())));
         // Todo: check this cast. Better let recursive visitor handle this: call something like unitAccept(node.unit) 
         returnType(new MatrixType(new ScalarBase(node.prefix.getName(), (ScalarUnitInfo) node.unit.info)));
     }

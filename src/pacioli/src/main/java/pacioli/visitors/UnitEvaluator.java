@@ -4,9 +4,7 @@ import java.math.BigDecimal;
 import java.util.Stack;
 
 import pacioli.ast.IdentityVisitor;
-import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
-import pacioli.ast.definition.Definition;
 import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitNode;
@@ -19,7 +17,7 @@ import pacioli.types.matrix.ScalarBase;
 import uom.DimensionedNumber;
 import uom.Fraction;
 
-public class UnitEvaluator extends IdentityVisitor implements Visitor {
+public class UnitEvaluator extends IdentityVisitor {
 
     private Stack<DimensionedNumber<TypeBase>> dimNumStack = new Stack<DimensionedNumber<TypeBase>>();
 

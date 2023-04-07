@@ -10,16 +10,12 @@ import java.util.Stack;
 import mvm.values.matrix.IndexSet;
 import mvm.values.matrix.MatrixDimension;
 import pacioli.Location;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.PacioliFile;
-import pacioli.Progam;
 import pacioli.TypeContext;
 import pacioli.ast.IdentityVisitor;
-import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Declaration;
-import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.TypeDefinition;
@@ -64,7 +60,7 @@ import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 
-public class ResolveVisitor extends IdentityVisitor implements Visitor {
+public class ResolveVisitor extends IdentityVisitor {
 
     // private Progam prog;
     private Deque<SymbolTable<TypeSymbolInfo>> typeTables = new ArrayDeque<SymbolTable<TypeSymbolInfo>>();
@@ -251,12 +247,7 @@ public class ResolveVisitor extends IdentityVisitor implements Visitor {
             TypeSymbolInfo symbolInfo = typeTables.peek().lookup(name);
             if (symbolInfo instanceof IndexSetInfo) {
                 IndexSetInfo info = (IndexSetInfo) symbolInfo;
-                if (info != null) {
-                    infoList.add(info);
-                } else {
-                    throw new RuntimeException("Name error",
-                            new PacioliException(node.getLocation(), "Index set '%s' unknown", name));
-                }
+                infoList.add(info);
             } else {
                 throw new RuntimeException(String.format("%s", name));
             }

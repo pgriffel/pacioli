@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.CompilationSettings;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Printer;
 import pacioli.Utils;

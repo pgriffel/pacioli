@@ -411,8 +411,8 @@ public class ConstraintSet extends AbstractPrintable {
                     
                     // Call MatrixType nmode on the found types and require that the 
                     // result equals the outcome 
-                    String message = String.format("During inference %s\nthe infered type must follow the nmode rules",
-                            node.sourceDescription());
+                    // String message = String.format("During inference %s\nthe infered type must follow the nmode rules",
+                    //         node.sourceDescription());
                     
                     if (verbose) {
                         Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,"\nUnifying %s and %s\n%s", 
