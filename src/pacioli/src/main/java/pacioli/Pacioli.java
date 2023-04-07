@@ -597,7 +597,7 @@ public class Pacioli {
         log("Compiling file '%s'", file);
 
         // Load the file
-        Progam program = Progam.load(file, Phase.TYPED);
+        //Progam program = Progam.load(file, Phase.TYPED);
 
         // TODO: move to load!?
         //program.liftStatements();

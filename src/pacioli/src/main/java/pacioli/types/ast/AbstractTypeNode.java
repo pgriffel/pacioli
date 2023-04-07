@@ -37,8 +37,8 @@ public abstract class AbstractTypeNode extends AbstractNode implements TypeNode 
     }
 
     @Override
-    public PacioliType evalType(Boolean reduce) {
-        TypeEvaluator visitor = new TypeEvaluator(reduce);
+    public PacioliType evalType() {
+        TypeEvaluator visitor = new TypeEvaluator();
         return visitor.typeAccept(this);
     }
 }

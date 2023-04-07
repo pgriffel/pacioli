@@ -24,7 +24,6 @@ package pacioli.types.ast;
 import pacioli.Location;
 import pacioli.TypeContext;
 import pacioli.ast.Visitor;
-import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeSymbolInfo;
 

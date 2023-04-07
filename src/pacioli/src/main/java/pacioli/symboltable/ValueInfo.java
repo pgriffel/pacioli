@@ -101,7 +101,7 @@ public class ValueInfo extends AbstractSymbolInfo<ValueInfo> {
         if (inferredType.isPresent()) {
             return inferredType.get();
         } else if (declaredType.isPresent()) {
-            return declaredType.get().evalType(false);
+            return declaredType.get().evalType();
         } else {
             throw new RuntimeException("No type info",
                     new PacioliException(getLocation(), "no inferred or declared type"));

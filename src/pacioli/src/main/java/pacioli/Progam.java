@@ -368,11 +368,10 @@ public class Progam extends AbstractPrintable {
                 // Pacioli.warn("Skipping type check for %s", info.name());
             }
             if (!isExternal(info) && declared.isPresent() && info.inferredType.isPresent()) {
-                //PacioliType declaredType = declared.get().evalType(info.isFromProgram()).instantiate();
-                boolean fromProgram = info.generic().getModule().equals(file.getModule());
-                PacioliType declaredType = declared.get().evalType(fromProgram).instantiate().reduce(i -> i.generic().getModule().equals(file.getModule()));
 
-                PacioliType inferredType = info.inferredType().instantiate(); //.reduce(i -> i.generic().getModule().equals(file.getModule()));
+                PacioliType declaredType = declared.get().evalType().instantiate()
+                        .reduce(i -> i.generic().getModule().equals(file.getModule()));
+                PacioliType inferredType = info.inferredType().instantiate();
 
                 if (info.isFromProgram() || logAnyway) {
                     Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,
@@ -422,7 +421,6 @@ public class Progam extends AbstractPrintable {
                         throw new RuntimeException("Type error",
                                 new PacioliException(pre.getLocation(), "No type declared for %s", pre.name()));
                     }
-                    //vinfo.setinferredType(vinfo.getDeclaredType().get().evalType(false));
                 }
             }
         }
@@ -448,7 +446,7 @@ public class Progam extends AbstractPrintable {
                 inferUsedTypes(info.getDefinition().get(), discovered, finished, verbose);
 
                 ValueDefinition def = info.getDefinition().get();
-                
+
                 Pacioli.logIf(Pacioli.Options.logTypeInference, "Infering typing of %s", info.name());
 
                 Typing typing = def.body.inferTyping(this);
@@ -501,23 +499,21 @@ public class Progam extends AbstractPrintable {
     @Override
     public void printPretty(PrintWriter out) {
 
-        if (false) {
-            program.printPretty(out);
-        } else {
+        // Print raw AST variant
+        //program.printPretty(out);
 
-            for (TypeSymbolInfo info : typess.allInfos()) {
+        // Print parsed code variant
+        for (TypeSymbolInfo info : typess.allInfos()) {
+            out.println();
+            info.getDefinition().get().printPretty(out);
+            out.println();
+        }
+
+        for (ValueInfo info : values.allInfos()) {
+            if (info.getDefinition().isPresent() && !isExternal(info)) {
                 out.println();
                 info.getDefinition().get().printPretty(out);
-                ;
                 out.println();
-            }
-
-            for (ValueInfo info : values.allInfos()) {
-                if (info.getDefinition().isPresent() && !isExternal(info)) {
-                    out.println();
-                    info.getDefinition().get().printPretty(out);
-                    out.println();
-                }
             }
         }
     }

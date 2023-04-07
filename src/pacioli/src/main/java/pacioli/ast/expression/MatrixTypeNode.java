@@ -44,8 +44,8 @@ public class MatrixTypeNode extends AbstractExpressionNode {
         this.columnDim = null;
     }
 
-    public MatrixType evalType(Boolean reduce) throws PacioliException {
-        PacioliType type = typeNode.evalType(reduce);
+    public MatrixType evalType() throws PacioliException {
+        PacioliType type = typeNode.evalType();
         if (type instanceof MatrixType) {
             return (MatrixType) type;
         } else {

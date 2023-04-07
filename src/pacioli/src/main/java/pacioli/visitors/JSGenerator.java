@@ -168,7 +168,8 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ConversionNode node) {
-        out.format("Pacioli.conversionNumbers(%s)", node.typeNode.evalType(true).compileToJS());
+        // TODO: should this type be reduced?
+        out.format("Pacioli.conversionNumbers(%s)", node.typeNode.evalType().compileToJS());
     }
 
     @Override
@@ -254,7 +255,8 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             sep = ",";
         }
         if (boxed) {
-            out.print("Pacioli.initialMatrix(" + node.typeNode.evalType(true).compileToJS() + "," + builder.toString() + ")");
+            // TODO: should this type be reduced?
+            out.print("Pacioli.initialMatrix(" + node.typeNode.evalType().compileToJS() + "," + builder.toString() + ")");
         } else {
         out.format("Pacioli.initialNumbers(%s, %s, [%s])", 
                 node.rowDim.size(), node.columnDim.size(),
@@ -267,7 +269,8 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         
         MatrixType type;
         try {
-            type = node.evalType(true);
+            // TODO: should this type be reduced?
+            type = node.evalType();
         } catch (PacioliException e) {
             throw new RuntimeException(e);
         }

@@ -181,7 +181,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ConversionNode node) {
         out.write("matrix_constructor(\"conversion\", ");
-        out.print(node.typeNode.evalType(true).compileToMVM(settings));
+        out.print(node.typeNode.evalType().compileToMVM(settings));
         out.write(")");
     }
 
@@ -249,7 +249,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         
         // Write the opening of the literal
         out.write("literal_matrix(");
-        out.print(node.typeNode.evalType(true).compileToMVM(settings));
+        out.print(node.typeNode.evalType().compileToMVM(settings));
         out.write(", ");
 
         // Write the elements. 
@@ -264,7 +264,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(MatrixTypeNode node) {
         try {
-            MatrixType type = node.evalType(true);
+            MatrixType type = node.evalType();
             out.write("matrix_constructor(\"ones\", ");
             out.print(type.compileToMVM(settings));
             out.write(")");

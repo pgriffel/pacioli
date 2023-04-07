@@ -65,9 +65,9 @@ public class TypeDefinition extends AbstractDefinition {
             List<PacioliType> types = new ArrayList<PacioliType>();
             for (TypeNode arg : app.getArgs()) {
                 if (arg instanceof TypeIdentifierNode) {
-                    types.add(arg.evalType(reduce));
+                    types.add(arg.evalType());
                 } else if (arg instanceof BangTypeNode) {
-                    types.add(arg.evalType(reduce));
+                    types.add(arg.evalType());
                 } else {
                     throw new PacioliException(arg.getLocation(),
                             "Type definition's lhs must be a unit variable or vector %s", arg.getClass());
@@ -77,7 +77,7 @@ public class TypeDefinition extends AbstractDefinition {
             //PacioliType lhsType = new ParametricType(app.getName(), types);
             PacioliType lhsType = new ParametricType((TypeInfo) app.op.info, types);
 
-            PacioliType rhsType = rhs.evalType(true);
+            PacioliType rhsType = rhs.evalType();
             //PacioliType rhsType = resolvedRhs.evalType(true);
             if (lhsType instanceof ParametricType) {
                 constraint = new TypeConstraint(app, rhsType);

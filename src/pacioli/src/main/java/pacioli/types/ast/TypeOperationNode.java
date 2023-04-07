@@ -26,15 +26,15 @@ import pacioli.ast.Visitor;
 
 public class TypeOperationNode extends AbstractTypeNode {
 
-    private final String operator;
-    private final TypeNode left;
-    private final TypeNode right;
+    // private final String operator;
+    // private final TypeNode left;
+    // private final TypeNode right;
 
     public TypeOperationNode(Location location, String operation, TypeNode left, TypeNode right) {
         super(location);
-        this.operator = operation;
-        this.left = left;
-        this.right = right;
+        // this.operator = operation;
+        // this.left = left;
+        // this.right = right;
     }
 
     @Override

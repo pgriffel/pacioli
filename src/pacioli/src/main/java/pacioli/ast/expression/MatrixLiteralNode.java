@@ -107,8 +107,8 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
         return copy;
     }
     
-    public MatrixType evalType(Boolean reduce) throws PacioliException {
-        PacioliType type = typeNode.evalType(reduce);
+    public MatrixType evalType() throws PacioliException {
+        PacioliType type = typeNode.evalType();
         if (type instanceof MatrixType) {
             return (MatrixType) type;
         } else {

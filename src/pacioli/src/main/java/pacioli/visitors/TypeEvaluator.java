@@ -55,7 +55,7 @@ public class TypeEvaluator extends IdentityVisitor {
     // Constructor
     // -------------------------------------------------------------------------
 
-    public TypeEvaluator(Boolean reduce) {
+    public TypeEvaluator() {
         typeStack = new Stack<PacioliType>();
     }
 

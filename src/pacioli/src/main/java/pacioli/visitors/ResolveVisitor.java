@@ -285,7 +285,7 @@ public class ResolveVisitor extends IdentityVisitor {
         // Evaluate the matrix type
         MatrixType matrixType;
         try {
-            matrixType = node.evalType(false);
+            matrixType = node.evalType();
         } catch (PacioliException e) {
             throw new RuntimeException("Type error", e);
         }
@@ -309,7 +309,7 @@ public class ResolveVisitor extends IdentityVisitor {
         // Evaluate the matrix type
         MatrixType matrixType;
         try {
-            matrixType = node.evalType(false);
+            matrixType = node.evalType();
         } catch (PacioliException e) {
             throw new RuntimeException("Type error", e);
         }
@@ -333,7 +333,7 @@ public class ResolveVisitor extends IdentityVisitor {
         // Evaluate the matrix type
         MatrixType matrixType;
         try {
-            matrixType = node.evalType(false);
+            matrixType = node.evalType();
         } catch (PacioliException e) {
             throw new RuntimeException("Type error", e);
         }

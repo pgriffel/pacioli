@@ -57,7 +57,7 @@ public class TypeConstraint extends AbstractPrintable {
             TypeNode var = lhs.getArgs().get(i);
             PacioliType arg = type.args.get(i);
             if (var instanceof TypeIdentifierNode) {
-                PacioliType varType = var.evalType(true);
+                PacioliType varType = var.evalType();
                 if (varType instanceof Var) {
                     map.put((Var) varType, arg);
                 } else if (varType instanceof IndexType) {
@@ -83,7 +83,6 @@ public class TypeConstraint extends AbstractPrintable {
                     BangTypeNode bang = (BangTypeNode) var;
                     MatrixType argMat = (MatrixType) arg;
                     map.put(new IndexSetVar(bang.indexSetName()), argMat.rowDimension.getIndexSet());
-                    //map.put(new VectorUnitVar("for_unit", bang.indexSetName() + "_" + bang.unitVecName()), argMat.rowUnit);
                     map.put(new VectorUnitVar(bang.indexSetName() + "!" + bang.unitVecName()), argMat.rowUnit);
                 } else {
                     throw new PacioliException(var.getLocation(),
@@ -95,7 +94,7 @@ public class TypeConstraint extends AbstractPrintable {
                         "Type definitions's parameter should be a variable or a unitvec %s");
             }
         }
-        return rhs.applySubstitution(new Substitution(map)); //.reduce();
+        return rhs.applySubstitution(new Substitution(map));
     }
 
     @Override

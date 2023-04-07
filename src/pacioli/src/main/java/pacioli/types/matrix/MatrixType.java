@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.ConstraintSet;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.types.AbstractType;

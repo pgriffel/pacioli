@@ -292,7 +292,7 @@ public class TypeInference extends IdentityVisitor {
     public void visit(ConversionNode node) {
         // Should the true arg be based on the local property?. Remove the argument!!!!
         // Is/should be solved during resolve.
-        returnNode(new Typing(node.typeNode.evalType(true)));
+        returnNode(new Typing(node.typeNode.evalType()));
     }
 
     @Override
@@ -304,7 +304,7 @@ public class TypeInference extends IdentityVisitor {
             // Move instantiate to proper place.
             if (node.getInfo().getDeclaredType().isPresent()) {
                 returnNode(new Typing(
-                        node.getInfo().getDeclaredType().get().evalType(false).instantiate()
+                        node.getInfo().getDeclaredType().get().evalType().instantiate()
                                 .reduce(i -> i.generic().getModule().equals(file.getModule()))));
             } else {
                 returnNode(new Typing(node.getInfo().inferredType().instantiate()));
@@ -488,7 +488,7 @@ public class TypeInference extends IdentityVisitor {
     public void visit(MatrixLiteralNode node) {
 
         // Evaluate the node's type node
-        PacioliType type = node.typeNode.evalType(true);
+        PacioliType type = node.typeNode.evalType();
 
         assert (type != null);
 
@@ -500,7 +500,7 @@ public class TypeInference extends IdentityVisitor {
     public void visit(MatrixTypeNode node) {
 
         // Evaluate the node's type node
-        PacioliType type = node.typeNode.evalType(true);
+        PacioliType type = node.typeNode.evalType();
 
         assert (type != null);
 

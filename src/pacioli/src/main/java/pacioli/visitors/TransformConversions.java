@@ -33,7 +33,7 @@ public class TransformConversions extends IdentityTransformation {
 
         Location location = node.getLocation();
         
-        MatrixType type = (MatrixType) node.typeNode.evalType(true);
+        MatrixType type = (MatrixType) node.typeNode.evalType();
         
         DimensionedNumber<TypeBase> typeFactor = type.factor.flat();
         
