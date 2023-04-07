@@ -473,6 +473,13 @@ names ::=
 
 //------------------------------------------------------------------------------
 // Expressions
+//
+// Destructing tuples in comprehensions leads to a conflict with parenthesised
+// experessions for the case of an identifier in parenthesis, e.g. "(v) <- ..." 
+// and "(v) + w". To  avoid this parenthesised expressionss are restricted to 
+// LPAR expr_no_id RPAR. The IdListNode construction is for destructuring in 
+// comprehensions. See further below. Note that the LPAR id:e RPAR case is still
+// supported. It is handled when desugaring IdListNode. See DesugarVisitor.
 //------------------------------------------------------------------------------
 
 exprs ::= 
@@ -492,10 +499,9 @@ expr ::=
 
 expr_no_id ::=
    NEG:n expr:e                                     {: RESULT = singleop("negative", e, makeLoc(nxleft, exright)); :}
- | idlist:ids                            {: RESULT = new IdListNode(makeLoc(idsxleft, idsxright), ids); :}   
- | expr:e1 NEG expr:e2                              {: RESULT = binop("minus", e1, e2); :}
-// | LPAR id:e RPAR                                   {: RESULT = e; :}
+ | idlist:ids                                       {: RESULT = new IdListNode(makeLoc(idsxleft, idsxright), ids); :}   
  | LPAR expr_no_id:e RPAR                           {: RESULT = e; :}
+ | expr:e1 NEG expr:e2                              {: RESULT = binop("minus", e1, e2); :}
  | expr:e1 HAT expr:e2                              {: RESULT = binop("expt", e1, e2); :}
  | expr:e1 PER expr:e2                              {: RESULT = binop("dim_div", e1, e2); :}
  | expr:e1 EQL expr:e2                              {: RESULT = binop("equal", e1, e2); :}

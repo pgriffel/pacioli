@@ -302,14 +302,14 @@ public class Parser extends java_cup.runtime.lr_parser {
     "\073\uffd6\074\uffd6\075\uffd6\076\uffd6\077\uffd6\100\uffd6\101" +
     "\uffd6\102\uffd6\103\uffd6\104\uffd6\105\uffd6\106\uffd6\107\uffd6" +
     "\110\uffd6\111\uffd6\112\uffd6\113\uffd6\114\uffd6\115\uffd6\116" +
-    "\uffd6\117\uffd6\120\uffd6\001\002\000\130\020\uffc4\021\uffc4" +
-    "\023\uffc4\025\uffc4\026\uffc4\031\uffc4\032\uffc4\034\uffc4\035" +
-    "\uffc4\045\uffc4\047\uffc4\050\uffc4\051\uffc4\055\uffc4\056\uffc4" +
-    "\057\uffc4\060\uffc4\061\uffc4\063\uffc4\064\uffc4\065\uffc4\066" +
-    "\uffc4\067\uffc4\070\uffc4\071\uffc4\072\uffc4\073\uffc4\074\uffc4" +
-    "\075\uffc4\076\uffc4\077\uffc4\100\uffc4\101\uffc4\102\uffc4\103" +
-    "\uffc4\104\uffc4\105\uffc4\106\uffc4\107\uffc4\110\uffc4\111\uffc4" +
-    "\112\uffc4\113\uffc4\001\002\000\004\117\034\001\002\000" +
+    "\uffd6\117\uffd6\120\uffd6\001\002\000\130\020\uffc5\021\uffc5" +
+    "\023\uffc5\025\uffc5\026\uffc5\031\uffc5\032\uffc5\034\uffc5\035" +
+    "\uffc5\045\uffc5\047\uffc5\050\uffc5\051\uffc5\055\uffc5\056\uffc5" +
+    "\057\uffc5\060\uffc5\061\uffc5\063\uffc5\064\uffc5\065\uffc5\066" +
+    "\uffc5\067\uffc5\070\uffc5\071\uffc5\072\uffc5\073\uffc5\074\uffc5" +
+    "\075\uffc5\076\uffc5\077\uffc5\100\uffc5\101\uffc5\102\uffc5\103" +
+    "\uffc5\104\uffc5\105\uffc5\106\uffc5\107\uffc5\110\uffc5\111\uffc5" +
+    "\112\uffc5\113\uffc5\001\002\000\004\117\034\001\002\000" +
     "\034\017\036\022\040\033\051\037\027\050\057\054\033" +
     "\056\022\065\024\114\042\115\023\116\031\117\034\120" +
     "\043\001\002\000\154\017\uffd4\020\uffd4\021\uffd4\022\uffd4" +
@@ -578,14 +578,14 @@ public class Parser extends java_cup.runtime.lr_parser {
     "\067\102\070\133\071\112\072\127\073\121\074\131\075" +
     "\126\076\130\077\114\100\123\101\105\102\134\103\uffa8" +
     "\104\120\105\117\106\132\107\110\110\uffa8\111\uffa8\112" +
-    "\uffa8\113\uffa8\001\002\000\130\020\uffc5\021\uffc5\023\uffc5" +
-    "\025\uffc5\026\uffc5\031\uffc5\032\uffc5\034\136\035\uffc5\045" +
-    "\uffc5\047\uffc5\050\135\051\uffc5\055\uffc5\056\uffc5\057\uffc5" +
-    "\060\122\061\124\063\101\064\111\065\uffc5\066\113\067" +
+    "\uffa8\113\uffa8\001\002\000\130\020\uffc4\021\uffc4\023\uffc4" +
+    "\025\uffc4\026\uffc4\031\uffc4\032\uffc4\034\136\035\uffc4\045" +
+    "\uffc4\047\uffc4\050\135\051\uffc4\055\uffc4\056\uffc4\057\uffc4" +
+    "\060\122\061\124\063\101\064\111\065\uffc4\066\113\067" +
     "\102\070\133\071\112\072\127\073\121\074\131\075\126" +
-    "\076\130\077\114\100\123\101\uffc5\102\uffc5\103\uffc5\104" +
-    "\uffc5\105\uffc5\106\uffc5\107\uffc5\110\uffc5\111\uffc5\112\uffc5" +
-    "\113\uffc5\001\002\000\114\020\uffc1\021\uffc1\023\uffc1\025" +
+    "\076\130\077\114\100\123\101\uffc4\102\uffc4\103\uffc4\104" +
+    "\uffc4\105\uffc4\106\uffc4\107\uffc4\110\uffc4\111\uffc4\112\uffc4" +
+    "\113\uffc4\001\002\000\114\020\uffc1\021\uffc1\023\uffc1\025" +
     "\uffc1\026\uffc1\031\uffc1\032\uffc1\034\136\035\uffc1\045\uffc1" +
     "\047\uffc1\050\135\051\uffc1\055\uffc1\056\uffc1\057\104\060" +
     "\122\061\124\063\101\064\111\065\106\066\113\067\102" +
@@ -2458,7 +2458,19 @@ class CUP$Parser$actions {
           return CUP$Parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
-          case 60: // expr_no_id ::= expr NEG expr 
+          case 60: // expr_no_id ::= LPAR expr_no_id RPAR 
+            {
+              ExpressionNode RESULT =null;
+		Location exleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).xleft;
+		Location exright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).xright;
+		ExpressionNode e = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
+		 RESULT = e; 
+              CUP$Parser$result = parser.getSymbolFactory().newSymbol("expr_no_id",5, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
+            }
+          return CUP$Parser$result;
+
+          /*. . . . . . . . . . . . . . . . . . . .*/
+          case 61: // expr_no_id ::= expr NEG expr 
             {
               ExpressionNode RESULT =null;
 		Location e1xleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).xleft;
@@ -2468,18 +2480,6 @@ class CUP$Parser$actions {
 		Location e2xright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		ExpressionNode e2 = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		 RESULT = binop("minus", e1, e2); 
-              CUP$Parser$result = parser.getSymbolFactory().newSymbol("expr_no_id",5, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
-            }
-          return CUP$Parser$result;
-
-          /*. . . . . . . . . . . . . . . . . . . .*/
-          case 61: // expr_no_id ::= LPAR expr_no_id RPAR 
-            {
-              ExpressionNode RESULT =null;
-		Location exleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).xleft;
-		Location exright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).xright;
-		ExpressionNode e = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
-		 RESULT = e; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("expr_no_id",5, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
