@@ -59,7 +59,7 @@ public class Pacioli {
         public static boolean showIncludeSearches = false;
         public static boolean logTypeInference = false;
         public static boolean logTypeInferenceDetails = false;
-        public static boolean dumpOnMVMError = false;
+        public static boolean dumpOnMVMError = true;
         public static boolean logGeneratingCode = false;
     }
 
@@ -202,7 +202,6 @@ public class Pacioli {
                 Options.showIncludeSearches = true;
                 Options.logTypeInference = true;
                 Options.logTypeInferenceDetails = true;
-                Options.dumpOnMVMError = true;
             }
 
             // Handle the command
@@ -617,7 +616,7 @@ public class Pacioli {
         try {
             vm.init();
             vm.run(file, System.out, libs);
-        } catch (MVMException ex) {
+        } catch (Exception ex) {
             if (Options.dumpOnMVMError) {
                 println("\nState when error occured:");
                 vm.dumpTypes();
