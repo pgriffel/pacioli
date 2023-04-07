@@ -46,7 +46,6 @@ public class Progam extends AbstractPrintable {
 
     // Added during construction
     public final PacioliFile file;
-    private final List<File> libs;
 
     // Added as first step of loading
     ProgramNode program;
@@ -60,18 +59,17 @@ public class Progam extends AbstractPrintable {
     // Constructors
     // -------------------------------------------------------------------------
 
-    private Progam(PacioliFile file, List<File> libs) {
+    private Progam(PacioliFile file) {
         assert (file != null);
         this.file = file;
-        this.libs = libs;
     }
 
-    static Progam empty(PacioliFile file, List<File> libs) {
-        return new Progam(file, libs);
+    static Progam empty(PacioliFile file) {
+        return new Progam(file);
     }
 
-    static Progam load(PacioliFile file, List<File> libs, Phase phase) throws Exception {
-        Progam program = new Progam(file, libs);
+    static Progam load(PacioliFile file, Phase phase) throws Exception {
+        Progam program = new Progam(file);
         program.loadTill(phase);
         return program;
     }
@@ -85,22 +83,15 @@ public class Progam extends AbstractPrintable {
         return !info.generic().getFile().equals(getFile());
     }
 
-    public List<String> includes() {
-        List<String> list = new ArrayList<String>();
-        for (IncludeNode node : program.includes) {
-            list.add(node.name.valueString());
-        }
-        return list;
-    }
-
-    public List<String> imports() {
-        List<String> list = new ArrayList<String>();
-        for (ImportNode node : program.imports) {
-            list.add(node.name.valueString());
-        }
-        return list;
-    }
-
+    /**
+     * Locates all direct import in the program. Throws an exception if an imported
+     * library cannot be found.
+     * 
+     * @param libs
+     *            The directories where libraries are located
+     * @return A list of files
+     * @throws PacioliException
+     */
     public List<PacioliFile> findImports(List<File> libs) throws PacioliException {
         List<PacioliFile> libraries = new ArrayList<PacioliFile>();
         for (ImportNode node : program.imports) {
@@ -116,6 +107,31 @@ public class Progam extends AbstractPrintable {
 
         }
         return libraries;
+    }
+
+    /**
+     * Locates all direct includes in the program. Throws an exception if an
+     * included
+     * file cannot be found.
+     * 
+     * @return A list of files
+     * @throws PacioliException
+     */
+    public List<PacioliFile> findIncludes() throws PacioliException {
+        List<PacioliFile> includes = new ArrayList<PacioliFile>();
+        for (IncludeNode node : program.includes) {
+            String name = node.name.valueString();
+            Optional<PacioliFile> pacioliFile = file.findInclude(name);
+            if (!pacioliFile.isPresent()) {
+                throw new PacioliException(node.getLocation(),
+                        "Include '%s' for file '%s' not found",
+                        name, file);
+            } else {
+                includes.add(pacioliFile.get());
+            }
+
+        }
+        return includes;
     }
 
     public String getModule() {
@@ -163,17 +179,10 @@ public class Progam extends AbstractPrintable {
 
         throw new RuntimeException("Should not get here. Please refactor and use bundle");
 
-        // // loadDirectDependencies();
-        // // resolve();
-        // transformConversions();
-
-        // if (phase.equals(Phase.RESOLVED)) {
-        //     return;
-        // }
     }
 
     public void loadRest(PacioliFile current, PacioliTable environment) throws Exception {
-       
+
         // Note that method liftValueInfoStatements requires resolved
         // definitions, but produces non resolved definitions.
         resolve(environment);
@@ -184,6 +193,15 @@ public class Progam extends AbstractPrintable {
     }
 
     // -------------------------------------------------------------------------
+    // Desugaring
+    // -------------------------------------------------------------------------
+
+    public void desugar() throws PacioliException {
+        Pacioli.trace("Desugaring %s", this.file.getModule());
+        program = (ProgramNode) program.desugar();
+    }
+
+    // -------------------------------------------------------------------------
     // Filling symbol tables
     // -------------------------------------------------------------------------
 
@@ -191,7 +209,6 @@ public class Progam extends AbstractPrintable {
 
         Pacioli.trace("Filling tables for %s", this.file.getModule());
 
-        // Fill symbol tables for this file
         for (Definition def : program.definitions) {
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.localName(),
                     file.getModule(), file.getFile());
@@ -262,8 +279,6 @@ public class Progam extends AbstractPrintable {
 
         for (ValueInfo nfo : values.allInfos()) {
             boolean fromProgram = nfo.generic().getModule().equals(file.getModule());
-            //Pacioli.log("* %s %s %-40s", fromProgram, nfo.isFromProgram(), nfo.globalName());
-            //if (nfo.isFromProgram()) {
             if (fromProgram) {
                 if (nfo.getDefinition().isPresent()) {
                     Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving value or function %s",
@@ -285,13 +300,8 @@ public class Progam extends AbstractPrintable {
     }
 
     // -------------------------------------------------------------------------
-    // Desugaring
+    // Lifting statements
     // -------------------------------------------------------------------------
-
-    public void desugar() throws PacioliException {
-        Pacioli.trace("Desugaring %s", this.file.getModule());
-        program = (ProgramNode) program.desugar();
-    }
 
     public void liftStatements(PacioliTable pacioliTable) throws Exception {
 
@@ -306,6 +316,10 @@ public class Progam extends AbstractPrintable {
             }
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Transforming conversions
+    // -------------------------------------------------------------------------
 
     public void transformConversions() {
 

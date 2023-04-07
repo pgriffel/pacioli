@@ -102,50 +102,45 @@ public class Project {
         return iter;
     }
 
-    List<String> imported(Progam program) {
-
-        List<String> modules = new ArrayList<String>();
-
+    Iterable<PacioliFile> includeTree(PacioliFile root) {
         AsSubgraph<PacioliFile, DefaultEdge> includesOnly = new AsSubgraph<PacioliFile, DefaultEdge>(graph,
                 graph.vertexSet(), graph.edgeSet().stream().filter(edge -> graph.getEdgeSource(edge).isInclude())
                         .collect(Collectors.toSet()));
+        Iterator<PacioliFile> iterator = new DepthFirstIterator<PacioliFile, DefaultEdge>(
+                new EdgeReversedGraph<PacioliFile, DefaultEdge>(includesOnly), root);
+        Iterable<PacioliFile> iter = new Iterable<PacioliFile>() {
+            public Iterator<PacioliFile> iterator() {
+                return iterator;
+            }
+        };
+        return iter;
+    }
 
-        ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>(program.findImports(libs));
+    private List<String> usedModules(Progam program) {
+
+        List<String> modules = new ArrayList<String>();
+
+        // Collect all libraries
+        ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>();
         allLibs.add(PacioliFile.requireLibrary("base", libs));
         allLibs.add(PacioliFile.requireLibrary("standard", libs));
-
-
-        for (String include : program.includes()) {
-
-            // Locate the include file
-            PacioliFile pacioliFile = program.file.findInclude2(program.file.modulePath, include);
+        for (PacioliFile pacioliFile : program.findImports(libs)) {
             allLibs.add(pacioliFile);
         }
 
-
-
-        Set<PacioliFile> mods = graph.vertexSet().stream()
-                .collect(Collectors.filtering(x -> {
-                    //Pacioli.log("HUH %s %s", x, allLibs.contains(x));
-                    return allLibs.contains(x);
-                }, Collectors.toSet()));
-        //Pacioli.log("Mods %s", mods);
-        for (PacioliFile imp : mods) {
-            // for (PacioliFile imp : allLibs) {
-
-            Iterator<PacioliFile> iterator = new DepthFirstIterator<PacioliFile, DefaultEdge>(
-                    new EdgeReversedGraph<PacioliFile, DefaultEdge>(includesOnly), imp);
-            while (iterator.hasNext()) {
-                PacioliFile file = iterator.next();
-                // Pacioli.logln("- %s", file);
-                // Pacioli.println("- %-40s %-10s %-10s", file.getModule(), file.isLibrary() ?
-                // "lib" : "usr",
-                // file.getFile());
+        // Locate all files in the libraries and collect the module names
+        for (PacioliFile lib : graph.vertexSet().stream()
+                .collect(Collectors.filtering(x -> allLibs.contains(x), Collectors.toSet()))) {
+            for (PacioliFile file : includeTree(lib)) {
                 modules.add(file.getModule());
-
             }
         }
-        //Pacioli.log("Imported %s %s", program.getModule(), modules);
+
+        // Locate all included files and collect the module names
+        for (PacioliFile include : program.findIncludes()) {
+            modules.add(include.getModule());
+        }
+
         return modules;
     }
 
@@ -168,13 +163,10 @@ public class Project {
         for (PacioliFile node : graph.vertexSet().stream()
                 .collect(Collectors.filtering(x -> x.isLibrary() && !x.isInclude(), Collectors.toSet()))) {
             Pacioli.println("%-40s %-40s", node.getModule(), node.getFile());
-            // Iterator<PacioliFile> iterator = new DepthFirstIterator<>(includesOnly,
-            // node);
             Iterator<PacioliFile> iterator = new DepthFirstIterator<PacioliFile, DefaultEdge>(
                     new EdgeReversedGraph<PacioliFile, DefaultEdge>(includesOnly), node);
             while (iterator.hasNext()) {
                 PacioliFile file = iterator.next();
-                // Pacioli.logln("- %s", file);
                 Pacioli.println("- %-40s %-10s %-10s", file.getModule(), file.isLibrary() ? "lib" : "usr",
                         file.getFile());
 
@@ -209,23 +201,22 @@ public class Project {
         Pacioli.trace("Adding primitives");
         bundle.addPrimitiveTypes();
 
-        // for (String lib : PacioliFile.defaultIncludes) {
-        //     Pacioli.trace("Loading default include'%s'", lib);
-        //     PacioliFile libFile = PacioliFile.requireLibrary(lib, libs);
-        //     Progam prog = Progam.load(libFile, libs, Phase.DESUGARED);
-        //     prog.loadRest(libFile, new PacioliTable(bundle.valueTable, bundle.typeTable));
-        //     bundle.load(prog);
-        // }
-
         try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())))) {
 
             for (PacioliFile current : orderedFiles()) {
-                Progam program = Progam.load(current, libs, Phase.DESUGARED);
-                SymbolTable<ValueInfo> vTable = bundle.programValueTable(imported(program));
-                SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(imported(program));
+
+                Progam program = Progam.load(current, Phase.DESUGARED);
+
+                // Filter the bundle's total symbol tables for the directly used modules of the
+                // program
+                List<String> useModules = usedModules(program);
+                SymbolTable<ValueInfo> vTable = bundle.programValueTable(useModules);
+                SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(useModules);
+
+                // Analyse the code given the imported and included infos
                 program.loadRest(current, new PacioliTable(vTable, tTable));
-                // program.loadRest(current, new PacioliTable(bundle.valueTable,
-                // bundle.typeTable));
+
+                // Add the program's info's to the bundle's total symbol tables
                 bundle.load(program);
             }
 
@@ -269,6 +260,10 @@ public class Project {
     private static DefaultDirectedGraph<PacioliFile, DefaultEdge> projectGraph(PacioliFile file, List<File> libs)
             throws Exception {
 
+        // The libraries to include in each file
+        PacioliFile standard = PacioliFile.requireLibrary("standard", libs);
+        PacioliFile base = PacioliFile.requireLibrary("base", libs);
+
         // The graph that will be build up
         DefaultDirectedGraph<PacioliFile, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
 
@@ -279,10 +274,8 @@ public class Project {
 
         todo.add(file);
 
-        // Loop over the todo list, adding new include files when found
         while (!todo.isEmpty()) {
 
-            // Take the first element of the todo list to process next
             PacioliFile current = todo.get(0);
             todo.remove(0);
 
@@ -290,20 +283,24 @@ public class Project {
             if (!done.contains(current)) {
 
                 // Load the current file
-                Progam program = Progam.load(current, libs, Phase.PARSED);
+                Progam program = Progam.load(current, Phase.PARSED);
 
-                // Add the current file if not already found by some include
+                // Add the current file to the graph if not already found by some include
                 if (!graph.containsVertex(current)) {
                     graph.addVertex(current);
                 }
 
-ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>(program.findImports(libs));
-//allLibs.add(PacioliFile.requireLibrary("base", libs));
-PacioliFile standard = PacioliFile.requireLibrary("standard", libs);
-PacioliFile base = PacioliFile.requireLibrary("base", libs);
-if (!program.file.equals(base)) allLibs.add(base);
-if (!program.file.equals(standard) && !program.file.equals(base)) allLibs.add(standard);
-                for (PacioliFile pacioliFile : allLibs  ) {
+                // Locate the imports. Add the base lib unless this is the base lib. Add the
+                // standard lib unless this is the base lib or the standard lib
+                ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>(program.findImports(libs));
+                if (!program.file.equals(base)) {
+                    allLibs.add(base);
+                }
+                if (!program.file.equals(standard) && !program.file.equals(base)) {
+                    allLibs.add(standard);
+                }
+
+                for (PacioliFile pacioliFile : allLibs) {
 
                     // Add the include files to the todo list
                     if (!done.contains(pacioliFile) && !todo.contains(pacioliFile)) {
@@ -321,15 +318,7 @@ if (!program.file.equals(standard) && !program.file.equals(base)) allLibs.add(st
 
                 }
 
-                for (String include : program.includes()) {
-
-                    // Locate the include file
-                    PacioliFile pacioliFile = current.findInclude2(current.modulePath, include);
-                    if (pacioliFile == null) {
-                        throw new RuntimeException(
-                                String.format("Include '%s' for file '%s' not found in directories %s",
-                                        include, current, libs));
-                    }
+                for (PacioliFile pacioliFile : program.findIncludes()) {
 
                     // Add the include files to the todo list
                     if (!done.contains(pacioliFile) && !todo.contains(pacioliFile)) {

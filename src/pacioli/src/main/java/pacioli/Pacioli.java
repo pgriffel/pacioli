@@ -283,7 +283,7 @@ public class Pacioli {
         } else {
             PacioliFile file = optionalFile.get();
             log("Parsing file '%s'", file);
-            Progam program = Progam.load(file, libs, Phase.PARSED);
+            Progam program = Progam.load(file, Phase.PARSED);
             println("%s", program.program.pretty());
         }
     }
@@ -298,7 +298,7 @@ public class Pacioli {
             throw new PacioliException("Cannot desugar: file '%s' does not exist.", fileName);
         } else {
             log("Desugaring file '%s'", file);
-            Progam program = Progam.load(file.get(), libs, Phase.DESUGARED);
+            Progam program = Progam.load(file.get(), Phase.DESUGARED);
             // TODO: check if this is done in load.
             //program.liftStatements();
             println("%s", program.pretty());
@@ -324,7 +324,7 @@ public class Pacioli {
 
         try {
 
-            Progam program = Progam.load(file, libs, Phase.TYPED);
+            Progam program = Progam.load(file, Phase.TYPED);
             program.printTypes();
 
         } catch (IOException e) {
@@ -430,7 +430,7 @@ public class Pacioli {
                 Project project = Project.load(file, libs);
                 project.printInfo();
 
-                Progam program = Progam.load(file, libs, Phase.TYPED);
+                Progam program = Progam.load(file, Phase.TYPED);
 
                 program.printSymbolTable(program.values, "Values");
                 // program.printSymbolTable(program.types, "Values");
@@ -573,7 +573,7 @@ public class Pacioli {
 
                 Path binName = project.bundlePath(Target.MVM);
 
-                Progam.load(project.root(), libs, Phase.TYPED).printTypes();
+                Progam.load(project.root(), Phase.TYPED).printTypes();
                 ;
                 log("Running file %s", binName);
                 interpretMVMText(binName.toFile(), libs);
@@ -595,7 +595,7 @@ public class Pacioli {
         log("Compiling file '%s'", file);
 
         // Load the file
-        Progam program = Progam.load(file, libs, Phase.TYPED);
+        Progam program = Progam.load(file, Phase.TYPED);
 
         // TODO: move to load!?
         //program.liftStatements();
@@ -628,7 +628,7 @@ public class Pacioli {
     private static void checkPrimitives(List<File> libs) throws Exception {
 
         PacioliFile libFile = PacioliFile.requireLibrary("base", libs);
-        Progam program = Progam.load(libFile, libs, Phase.RESOLVED);
+        Progam program = Progam.load(libFile, Phase.RESOLVED);
         List<ValueInfo> allInfos = program.values.allInfos();
         List<String> names = new ArrayList<String>();
         for (ValueInfo info : allInfos) {

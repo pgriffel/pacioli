@@ -12,7 +12,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pacioli.CompilationSettings.Target;
-import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.compilers.JSCompiler;
@@ -49,12 +48,8 @@ import pacioli.visitors.ResolveVisitor;
 public class Bundle {
 
     // Added during construction
-    public final Map<String, PacioliTable> libTables = new HashMap<String, PacioliTable>();
     public final PacioliFile file;
     private final List<File> libs;
-
-    // Added as first step of loading
-    // ProgramNode program;
 
     // Fill during loading
     SymbolTable<ValueInfo> valueTable = new SymbolTable<ValueInfo>();
@@ -70,14 +65,6 @@ public class Bundle {
         this.file = file;
         this.libs = libs;
     }
-
-    // public PacioliTable selectTable(Collection<String> libNames) {
-    // PacioliTable table = PacioliTable.empty();
-    // libNames.forEach(name -> {
-    // table.addAll(libTables.get(name));
-    // });
-    // return table;
-    // }
 
     public SymbolTable<ValueInfo> programValueTable(Collection<String> moduleNames) {
         SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>();
@@ -103,8 +90,6 @@ public class Bundle {
     public void addPrimitiveTypes() {
         PacioliFile file = PacioliFile.requireLibrary("base", libs);
         for (String type : ResolveVisitor.builtinTypes) {
-            // Fixme: null arg for the location. Maybe declare them in a base.pacioli?
-
             GenericInfo generic = new GenericInfo(type, file, "base_base", true, new Location(),
                     file.isSystemLibrary("base"));
             typeTable.put(type, new TypeInfo(generic));
