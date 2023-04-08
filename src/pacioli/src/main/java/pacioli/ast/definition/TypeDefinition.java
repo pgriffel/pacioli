@@ -53,7 +53,7 @@ public class TypeDefinition extends AbstractDefinition {
         this.rhs = rhs;
     }
 
-    public TypeConstraint constaint(boolean reduce) throws PacioliException {
+    public TypeConstraint constaint() throws PacioliException {
 
         TypeContext totalContext = new TypeContext();
         totalContext.addAll(this.context);
@@ -90,9 +90,7 @@ public class TypeDefinition extends AbstractDefinition {
         }
 
         assert (constraint != null);
-        if (!reduce) {
-            throw new RuntimeException("todo: contraint when reduce is false");
-        }
+
         return constraint;
     }
 

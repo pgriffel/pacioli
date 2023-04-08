@@ -181,7 +181,7 @@ public class Progam extends AbstractPrintable {
 
     }
 
-    public void loadRest(PacioliFile current, PacioliTable environment) throws Exception {
+    public void loadRest(PacioliTable environment) throws Exception {
 
         // Note that method liftValueInfoStatements requires resolved
         // definitions, but produces non resolved definitions.

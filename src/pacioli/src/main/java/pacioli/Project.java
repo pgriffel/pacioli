@@ -213,7 +213,7 @@ public class Project {
                 SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(useModules);
 
                 // Analyse the code given the imported and included infos
-                program.loadRest(current, new PacioliTable(vTable, tTable));
+                program.loadRest(new PacioliTable(vTable, tTable));
 
                 // Add the program's info's to the bundle's total symbol tables
                 bundle.load(program);
@@ -360,7 +360,7 @@ public class Project {
             SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(useModules);
 
             // Analyse the code given the imported and included infos
-            program.loadRest(current, new PacioliTable(vTable, tTable));
+            program.loadRest(new PacioliTable(vTable, tTable));
 
             // Add the program's info's to the bundle's total symbol tables
             bundle.load(program);
