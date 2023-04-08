@@ -70,7 +70,7 @@ public class Pacioli {
 
     // Remember if user output is at the beginning of a line. Used when printing
     // output.
-    private static boolean atLineStart = false;
+    private static boolean atLineStart = true;
 
     /**
      * Main entry point
