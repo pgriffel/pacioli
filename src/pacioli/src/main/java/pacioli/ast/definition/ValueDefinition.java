@@ -64,16 +64,23 @@ public class ValueDefinition extends AbstractDefinition {
     public void addToProgr(Progam program, boolean fromProgram) throws PacioliException {
 
         String name = localName();
-        
-        ValueInfo info = new ValueInfo(name, program.file, program.getModule(), true, false, getLocation(), fromProgram);
-        info.setDefinition(this);
-        
+
         ValueInfo oldInfo = program.values.lookup(name);
         if (oldInfo != null) {
-            info = oldInfo.includeOther(info);
+            // It seems we already found a declaration for this name. Check that there is no
+            // definition yet and add this one.
+            if (oldInfo.getDefinition().isEmpty()) {
+                oldInfo.setDefinition(this);
+            } else {
+                throw new PacioliException(getLocation(), "Duplicate definition for %s", name);
+            }
+        } else {
+            ValueInfo info = new ValueInfo(name, program.file, program.getModule(), true, false, getLocation(),
+                    fromProgram);
+            info.setDefinition(this);
+            program.values.put(name, info);
         }
-            
-        program.values.put(name, info);
+
     }
 
 }

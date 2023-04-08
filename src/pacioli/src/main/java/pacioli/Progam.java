@@ -352,40 +352,38 @@ public class Progam extends AbstractPrintable {
         List<String> names = values.allNames();
         Collections.sort(names);
 
-        Boolean logAnyway = true;
-
         for (String value : names) {
             ValueInfo info = values.lookup(value);
 
             if (!isExternal(info) && info.getDefinition().isPresent()) {
-                boolean showLog = Pacioli.Options.logTypeInference && (info.isFromProgram() || logAnyway);
-                Pacioli.logIf(showLog, "Infering type of %s", value);
-                inferValueDefinitionType(info, discovered, finished, showLog);
-                Pacioli.logIf(showLog, "%s :: %s;", info.name(), info.inferredType.get().pretty());
+
+                Pacioli.logIf(Pacioli.Options.logTypeInference, "Infering type of %s", value);
+
+                inferValueDefinitionType(info, discovered, finished, Pacioli.Options.logTypeInference);
+
+                Pacioli.logIf(Pacioli.Options.logTypeInference, "%s :: %s;", info.name(),
+                        info.inferredType.get().pretty());
             }
+
             Optional<TypeNode> declared = info.getDeclaredType();
-            if (!info.inferredType.isPresent()) {
-                // Pacioli.warn("Skipping type check for %s", info.name());
-            }
+
             if (!isExternal(info) && declared.isPresent() && info.inferredType.isPresent()) {
 
                 PacioliType declaredType = declared.get().evalType().instantiate()
                         .reduce(i -> i.generic().getModule().equals(file.getModule()));
                 PacioliType inferredType = info.inferredType().instantiate();
 
-                if (info.isFromProgram() || logAnyway) {
-                    Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,
-                            "Checking inferred type\n  %s\nagainst declared type\n  %s",
-                            inferredType.pretty(), declaredType.pretty());
-                }
+                Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,
+                        "Checking inferred type\n  %s\nagainst declared type\n  %s",
+                        inferredType.pretty(), declaredType.pretty());
+
                 if (!declaredType.isInstanceOf(inferredType)) {
                     throw new RuntimeException("Type error",
                             new PacioliException(info.getLocation(),
                                     String.format(
-                                            "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\norigin = %s\n",
+                                            "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
                                             declaredType.unfresh().deval().pretty(),
-                                            inferredType.unfresh().deval().pretty(),
-                                            info.isFromProgram())));
+                                            inferredType.unfresh().deval().pretty())));
                 }
             }
 
@@ -455,7 +453,7 @@ public class Progam extends AbstractPrintable {
                         typing.pretty());
 
                 try {
-                    PacioliType solved = typing.solve(info.isFromProgram()).unfresh();
+                    PacioliType solved = typing.solve(Pacioli.Options.logTypeInferenceDetails).unfresh();
                     if (verbose) {
                         Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "\nSolved type of %s is %s", info.name(),
                                 solved.pretty());
@@ -500,7 +498,7 @@ public class Progam extends AbstractPrintable {
     public void printPretty(PrintWriter out) {
 
         // Print raw AST variant
-        //program.printPretty(out);
+        // program.printPretty(out);
 
         // Print parsed code variant
         for (TypeSymbolInfo info : typess.allInfos()) {

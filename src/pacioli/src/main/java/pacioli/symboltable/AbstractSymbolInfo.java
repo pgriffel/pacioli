@@ -29,9 +29,4 @@ public abstract class AbstractSymbolInfo<T extends AbstractSymbolInfo<T>> implem
     public Boolean isGlobal() {
         return generic.isGlobal();
     }
-    
-    public Boolean isFromProgram() {
-        return generic.isFromProgram();
-    }
-
 }
