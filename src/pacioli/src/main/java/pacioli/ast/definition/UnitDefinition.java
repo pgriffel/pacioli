@@ -77,8 +77,8 @@ public class UnitDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, boolean fromProgram) throws PacioliException {
-        ScalarUnitInfo info = new ScalarUnitInfo(localName(), program.file, program.getModule(), true, getLocation(), fromProgram);
+    public void addToProgr(Progam program) throws PacioliException {
+        ScalarUnitInfo info = new ScalarUnitInfo(localName(), program.file, program.getModule(), true, getLocation());
         info.setDefinition(this);
         info.symbol = symbol;
         program.addInfo(info);

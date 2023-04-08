@@ -11,8 +11,8 @@ public final class ScalarUnitInfo extends UnitInfo<ScalarUnitInfo> {
     public String symbol;
     private Optional<UnitDefinition> definition = Optional.empty();
     
-    public ScalarUnitInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
-        super(new GenericInfo(name, file, module, isGlobal, location, fromProgram));
+    public ScalarUnitInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location) {
+        super(new GenericInfo(name, file, module, isGlobal, location));
     }
     
     public ScalarUnitInfo(GenericInfo generic) {
@@ -40,17 +40,5 @@ public final class ScalarUnitInfo extends UnitInfo<ScalarUnitInfo> {
     
     public Boolean isAlias() {
         return false;
-    }
-
-    public ScalarUnitInfo includeOther(ScalarUnitInfo otherInfo) {
-        // TODO Auto-generated method stub
-        return this;
-    }
-    
-    public UnitInfo withFromProgram(boolean fromProgram) {
-        ScalarUnitInfo info = new ScalarUnitInfo(generic().withFromProgram(fromProgram));
-        info.symbol = symbol;
-        info.definition = definition;
-        return info;
     }
 }

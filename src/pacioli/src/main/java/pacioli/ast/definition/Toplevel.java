@@ -29,7 +29,7 @@ public class Toplevel extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, boolean fromProgram) {
+    public void addToProgr(Progam program) {
         program.addToplevel(this);
     }
 

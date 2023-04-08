@@ -10,8 +10,8 @@ public final class AliasInfo extends UnitInfo<AliasInfo> {
 
     public AliasDefinition definition;
     
-    public AliasInfo(String name, PacioliFile file, String module, Location location, Boolean fromProgram) {
-        super(new GenericInfo(name, file, module, true, location, fromProgram));
+    public AliasInfo(String name, PacioliFile file, String module, Location location) {
+        super(new GenericInfo(name, file, module, true, location));
         
     }
     
@@ -37,10 +37,4 @@ public final class AliasInfo extends UnitInfo<AliasInfo> {
     public Optional<AliasDefinition> getDefinition() {
         return Optional.of(definition);
     }
-
-    public AliasInfo includeOther(AliasInfo otherInfo) {
-        // TODO Auto-generated method stub
-        return this;
-    }
-
 }

@@ -212,7 +212,7 @@ public class Progam extends AbstractPrintable {
         for (Definition def : program.definitions) {
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.localName(),
                     file.getModule(), file.getFile());
-            def.addToProgr(this, true);
+            def.addToProgr(this);
         }
     }
 

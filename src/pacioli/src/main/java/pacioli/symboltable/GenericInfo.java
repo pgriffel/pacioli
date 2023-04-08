@@ -12,16 +12,14 @@ public class GenericInfo {
     private final String module;
     private final Location location;
     private final Boolean isGlobal;
-    private final Boolean isFromProgram;
 
-    public GenericInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location, Boolean isFromProgram) {
+    public GenericInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location) {
         assert(location != null);
         this.name = name;
         this.file = file;
         this.module = module;
         this.isGlobal = isGlobal;
         this.location = location;
-        this.isFromProgram = isFromProgram;
     }
     
     public Location location() {
@@ -42,13 +40,5 @@ public class GenericInfo {
   
     public Boolean isLocal() {
         return !isGlobal;
-    }
-
-    public Boolean isFromProgram() {
-        return isFromProgram;
-    }
-
-    public GenericInfo withFromProgram(boolean isFromProgram) {
-        return new GenericInfo(name, file, module, isGlobal, location, isFromProgram);
     }
 }

@@ -37,7 +37,7 @@ public class MultiDeclaration extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, boolean fromProgram) throws PacioliException {
+    public void addToProgr(Progam program) throws PacioliException {
 /*        // obsolete?!
         for (IdentifierNode id : ids) {
             Declaration declaration = new Declaration(getLocation(), id, node);

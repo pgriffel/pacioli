@@ -14,12 +14,4 @@ public sealed abstract class UnitInfo<T extends UnitInfo<T>> extends AbstractSym
     public Boolean isAlias() {
         return false;
     }
-
-    public UnitInfo includeOther(UnitInfo otherInfo) {
-        return this;
-    }
-
-    public UnitInfo withFromProgram(boolean b) {
-        throw new RuntimeException("Cannot do");
-    }
 }

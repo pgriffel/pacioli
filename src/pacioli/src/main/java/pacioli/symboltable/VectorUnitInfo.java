@@ -18,8 +18,8 @@ public final class VectorUnitInfo extends UnitInfo<VectorUnitInfo> {
     private List<UnitDecl> items;
     private Map<String, UnitDecl> units;
 
-    public VectorUnitInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
-        super(new GenericInfo(name, file, module, isGlobal, location, fromProgram));
+    public VectorUnitInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location) {
+        super(new GenericInfo(name, file, module, isGlobal, location));
         assert (name.contains("!"));
     }
     
@@ -67,19 +67,4 @@ public final class VectorUnitInfo extends UnitInfo<VectorUnitInfo> {
     public void setDefinition(UnitVectorDefinition definition) {
         this.definition = Optional.of(definition);
     }
-    
-    public VectorUnitInfo includeOther(VectorUnitInfo otherInfo) {
-        // TODO Auto-generated method stub
-        return this;
-    }
-
-    
-    public VectorUnitInfo withFromProgram(boolean fromProgram) {
-        VectorUnitInfo info = new VectorUnitInfo(generic().withFromProgram(fromProgram));
-        info.items = items;
-        info.units = units;
-        info.definition = definition;
-        return info;
-    }
-
 }

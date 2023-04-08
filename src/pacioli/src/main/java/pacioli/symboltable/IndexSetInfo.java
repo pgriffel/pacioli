@@ -15,8 +15,8 @@ public final class IndexSetInfo extends AbstractSymbolInfo<IndexSetInfo> impleme
         visitor.visit(this);
     }
     
-    public IndexSetInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
-        super(new GenericInfo(name, file, module, isGlobal, location, fromProgram));
+    public IndexSetInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location) {
+        super(new GenericInfo(name, file, module, isGlobal, location));
     }
     
     public IndexSetInfo(GenericInfo generic) {
@@ -35,16 +35,5 @@ public final class IndexSetInfo extends AbstractSymbolInfo<IndexSetInfo> impleme
     @Override
     public String globalName() {
         return String.format("index_%s_%s", generic().getModule(), name());
-    }
-
-    public IndexSetInfo includeOther(IndexSetInfo otherInfo) {
-        // TODO Auto-generated method stub
-        return this;
-    }
-
-    public IndexSetInfo withFromProgram(boolean b) {
-        IndexSetInfo info = new IndexSetInfo(generic());
-        info.definition = definition;
-        return info;
     }
 }

@@ -10,8 +10,8 @@ import pacioli.types.ast.TypeNode;
 
 public final class TypeInfo extends AbstractSymbolInfo<TypeInfo> implements TypeSymbolInfo {
 
-    public TypeInfo (String name, PacioliFile file, String module, Boolean isGlobal, Location location, Boolean fromProgram) {
-        super(new GenericInfo(name, file, module, isGlobal, location, fromProgram));
+    public TypeInfo (String name, PacioliFile file, String module, Boolean isGlobal, Location location) {
+        super(new GenericInfo(name, file, module, isGlobal, location));
     }
     
     public TypeInfo(GenericInfo generic) {
@@ -43,26 +43,5 @@ public final class TypeInfo extends AbstractSymbolInfo<TypeInfo> implements Type
     
     public void setDefinition(TypeDefinition definition) {
         this.definition = Optional.of(definition);
-    }
-
-    public TypeInfo includeOther(TypeInfo otherInfo) {
-        TypeInfo info = new TypeInfo(generic());
-        info.definition = otherInfo.definition;
-        info.typeAST = otherInfo.typeAST;
-        info.isIndexSetId = otherInfo.isIndexSetId;
-        info.isUnitId = otherInfo.isUnitId;
-        //info.isVar = otherInfo.isVar;
-        return info;
-        //return this;
-    }
-
-    public TypeInfo withFromProgram(boolean fromProgram) {
-        TypeInfo info = new TypeInfo(generic().withFromProgram(fromProgram));
-        info.definition = definition;
-        info.typeAST = typeAST;
-        info.isIndexSetId = isIndexSetId;
-        info.isUnitId = isUnitId;
-        info.isVar = isVar;
-        return info;
     }
 }

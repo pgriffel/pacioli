@@ -89,8 +89,7 @@ public class Bundle {
     public void addPrimitiveTypes() {
         PacioliFile file = PacioliFile.requireLibrary("base", libs);
         for (String type : ResolveVisitor.builtinTypes) {
-            GenericInfo generic = new GenericInfo(type, file, "base_base", true, new Location(),
-                    file.isSystemLibrary("base"));
+            GenericInfo generic = new GenericInfo(type, file, "base_base", true, new Location());
             typeTable.put(type, new TypeInfo(generic));
         }
     }

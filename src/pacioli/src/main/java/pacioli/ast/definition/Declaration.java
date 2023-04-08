@@ -34,7 +34,7 @@ public class Declaration extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, boolean fromProgram) throws PacioliException {
+    public void addToProgr(Progam program) throws PacioliException {
 
         String name = localName();
         ValueInfo oldInfo = program.values.lookup(name);
@@ -48,8 +48,7 @@ public class Declaration extends AbstractDefinition {
                 throw new PacioliException(typeNode.getLocation(), "Duplicate type declaration for %s", name);
             }
         } else {
-            ValueInfo info = new ValueInfo(name, program.file, program.getModule(), true, false, getLocation(),
-                    fromProgram);
+            ValueInfo info = new ValueInfo(name, program.file, program.getModule(), true, false, getLocation());
             info.setDeclaredType(typeNode);
             program.values.put(name, info);
         }

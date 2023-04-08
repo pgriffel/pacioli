@@ -40,8 +40,8 @@ public class ValueInfo extends AbstractSymbolInfo<ValueInfo> {
     // Set during type inference
     public Optional<PacioliType> inferredType = Optional.empty();
     
-    public ValueInfo(String name, PacioliFile file, String module, Boolean isGlobal, Boolean isMonomorphic, Location location, Boolean fromProgram) {
-        super(new GenericInfo(name, file, module, isGlobal, location, fromProgram));
+    public ValueInfo(String name, PacioliFile file, String module, Boolean isGlobal, Boolean isMonomorphic, Location location) {
+        super(new GenericInfo(name, file, module, isGlobal, location));
         this.isMonomorphic = isMonomorphic;
     }
     
@@ -125,42 +125,4 @@ public class ValueInfo extends AbstractSymbolInfo<ValueInfo> {
     public void setinferredType(PacioliType type) {
         this.inferredType = Optional.of(type);
     }
-    
-    public ValueInfo includeOther(ValueInfo other) {
-        
-        if (other.definition.isPresent()) {
-            if (!definition.isPresent()) {
-                definition = other.definition;
-            } else {
-                //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
-            }
-        }
-        
-        if (other.declaredType.isPresent()) {
-            if (!declaredType.isPresent()) {
-                declaredType = other.declaredType;
-            } else {
-                //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
-            }
-        }
-        
-        if (other.inferredType.isPresent()) {
-            if (!inferredType.isPresent()) {
-                inferredType = other.inferredType;
-            } else {
-                //throw new RuntimeException(new PacioliException(getLocation(), "Definition conflict for value " + name()));
-            }
-        }
-        
-        return this;
-    }
-
-    public ValueInfo withFromProgram(boolean fromProgram) {
-        ValueInfo info = new ValueInfo(generic().withFromProgram(fromProgram), isMonomorphic);
-        info.definition = definition;
-        info.declaredType = declaredType;
-        info.inferredType = inferredType;
-        return info;
-    }
-
 }

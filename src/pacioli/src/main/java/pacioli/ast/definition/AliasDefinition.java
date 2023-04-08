@@ -43,8 +43,8 @@ public class AliasDefinition extends AbstractDefinition {
     }
 
     @Override
-    public void addToProgr(Progam program, boolean fromProgram) throws PacioliException {
-        AliasInfo info = new AliasInfo(localName(), program.file, program.getModule(), getLocation(), fromProgram);
+    public void addToProgr(Progam program) throws PacioliException {
+        AliasInfo info = new AliasInfo(localName(), program.file, program.getModule(), getLocation());
         info.definition = this;
         program.addInfo(info);
     }
