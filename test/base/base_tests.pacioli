@@ -1,15 +1,65 @@
 import testing;
+import si;
 
 declare base_suites :: List(TestSuite);
 
 define base_suites = [
+   indexing_suite,
    comprehensions_suite,
    sort_suite,
-   nth_suite
+   reverse_suite,
+   nth_suite,
+   top_suite,
+   bottom_suite,
+   total_suite,
+   #ranking_suite,   does not exist in MVM yet
+   min_suite,
+   max_suite,
+   tan_suite,
+   expt_suite,
+   mexpt_suite,
+   random_suite
+   #mapnz_suite       does not exist in MVM yet
+   #kronecker_suite   TODO port in pacioli-ts
 ];
 
 run_test_suites(base_suites); 
- 
+
+# ------------------------------------------------------------------------------
+# Test vectors
+# ------------------------------------------------------------------------------
+
+defindex Foo = {v0, v1, v2, v3, v4, v5};
+
+defunit Foo!unit = {
+    v0 : second
+};
+
+define test_vec(v0, v1, v2, v3, v4, v5) =
+   v0 '.*' delta(Foo@v0) +
+   v1 '.*' delta(Foo@v1) +
+   v2 '.*' delta(Foo@v2) +
+   v3 '.*' delta(Foo@v3) +
+   v4 '.*' delta(Foo@v4) +
+   v5 '.*' delta(Foo@v5);
+
+# ------------------------------------------------------------------------------
+# Indexing
+# ------------------------------------------------------------------------------
+
+define indexing_suite = test_suite("Indexing", [
+    
+    test("should work for scalars with _",
+        fn ()
+            get(42, _, _) = 42
+        end),
+      
+   test("should work for vectors with _",
+        fn ()
+            get(test_vec(1,2,3,4,5,6), Foo@v3, _) = 4
+        end)
+]);
+
 # ------------------------------------------------------------------------------
 # Comprehensions
 # ------------------------------------------------------------------------------
@@ -89,6 +139,22 @@ define sort_suite = test_suite("Function sort", [
          end)
     ]);
 
+# ------------------------------------------------------------------------------
+# Function reverse
+# ------------------------------------------------------------------------------
+
+define reverse_suite = test_suite("Function reverse", [
+    
+    test("should reverse the empty list",
+         fn ()
+            reverse([]) = []
+         end),
+
+    test("should reverse a list of numbers correctly",
+         fn ()
+            reverse([1, 9, 3, 2, 5]) = [5, 2, 3, 9, 1]
+         end)
+   ]);
 
 # ------------------------------------------------------------------------------
 # Function nth
@@ -104,5 +170,298 @@ define nth_suite = test_suite("Function nth", [
     test("should get last element",
          fn ()
             nth(4, [1, 9, 3, 2, 5]) = 5
+         end)
+   ]);
+
+# ------------------------------------------------------------------------------
+# Function top
+# ------------------------------------------------------------------------------
+
+define top_suite = test_suite("Function top", [
+    
+    test("should do nothing for a zero vector",
+         fn ()
+            top(3, test_vec(0, 0, 0, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
+         end),
+   
+    test("should do nothing for a vector with one entry",
+         fn ()
+            top(3, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 1, 0, 0, 0)
+         end),
+   
+    test("should be zero for a vector with one entry and top 0",
+         fn ()
+            top(0, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
+         end),
+   
+    test("should get top 2 a vector with more entries",
+         fn ()
+            top(2, test_vec(0, 2, 1, 4, 6, 5)) = test_vec(0, 0, 0, 0, 6, 5)
+         end),
+   
+    test("should get top 2 a vector with entries with ties",
+         fn ()
+            top(2, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 0, 0, 5, 6, 0)
+         end),
+   
+    test("should get top 3 a vector with entries with ties",
+         fn ()
+            top(3, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 0, 0, 5, 6, 5)
+         end),
+   
+    test("should get top 4 a vector with entries with ties",
+         fn ()
+            top(4, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 0, 5, 6, 5)
+         end)
+
+   ]);
+
+# ------------------------------------------------------------------------------
+# Function bottom
+# ------------------------------------------------------------------------------
+
+define bottom_suite = test_suite("Function bottom", [
+    
+    test("should do nothing for a zero vector",
+         fn ()
+            bottom(3, test_vec(0, 0, 0, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
+         end),
+   
+    test("should do nothing for a vector with one entry",
+         fn ()
+            bottom(3, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 1, 0, 0, 0)
+         end),
+   
+    test("should be zero for a vector with one entry and bottom 0",
+         fn ()
+            bottom(0, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
+         end),
+   
+    test("should get bottom 2 a vector with more entries",
+         fn ()
+            bottom(2, test_vec(0, 2, 1, 4, 6, 5)) = test_vec(0, 2, 1, 0, 0, 0)
+         end),
+   
+    test("should get bottom 2 a vector with entries with ties",
+         fn ()
+            bottom(2, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 0, 0, 0)
+         end),
+   
+    test("should get bottom 3 a vector with entries with ties",
+         fn ()
+            bottom(3, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 5, 0, 0)
+         end),
+   
+    test("should get bottom 4 a vector with entries with ties",
+         fn ()
+            bottom(4, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 5, 0, 5)
+         end)
+
+   ]);
+
+# ------------------------------------------------------------------------------
+# Function ranking
+# ------------------------------------------------------------------------------
+
+define ranking_suite = test_suite("Function ranking", [
+    
+    test("should do nothing for a zero vector",
+         fn ()
+            ranking(test_vec(0, 0, 0, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
+         end),
+   
+   test("should partially rank a parially filled vector",
+         fn ()
+            ranking(test_vec(1, 0, 3, 0, 2, 0)) = test_vec(1, 0, 3, 0, 2, 0)
+         end),
+   
+    test("should completely rank a sorted vector",
+         fn ()
+            ranking(test_vec(2, 4, 5, 5, 6, 7)) = test_vec(1, 2, 3, 4, 5, 6)
+         end),
+   
+    test("should rank an unsorted vector",
+         fn ()
+            ranking(test_vec(7, 6, 5, 0, 4, 4)) = test_vec(5, 4, 3, 0, 1, 2)
+         end)
+   ]);
+
+# ------------------------------------------------------------------------------
+# Function total
+# ------------------------------------------------------------------------------
+
+define total_suite = test_suite("Function total", [
+    
+    test("should be zero for the zero vector",
+         fn ()
+            total(test_vec(0, 0, 0, 0, 0, 0)) = 0
+         end),
+         
+   test("should be correct a vector with one non-zero entry",
+         fn ()
+            total(test_vec(0, 0, 0, 0, 10, 0)) = 10
+         end),
+         
+   test("should be correct for a vector with multiple positive entries",
+         fn ()
+            total(test_vec(0, 4, 0, 7, 10, 0)) = 21
+         end),
+         
+   test("should be correct for a vector with multiple positive and negative entries",
+         fn ()
+            total(test_vec(3, 6, -4, -7, 10, 0)) = 8
+         end)
+   ]);
+
+# ------------------------------------------------------------------------------
+# Function min
+# ------------------------------------------------------------------------------
+
+define min_suite = test_suite("Function min", [
+    
+    test("should give the vector for two identical vectors",
+         fn ()
+            min(test_vec(0, 4, 0, 7, 10, 0), test_vec(0, 4, 0, 7, 10, 0)) = test_vec(0, 4, 0, 7, 10, 0)
+         end),
+
+    test("should do element wise min",
+         fn ()
+            min(test_vec(0, 12, 0, 7, -10, 0), test_vec(0, 4, 2, -7, -7, 1)) = test_vec(0, 4, 0, -7, -10, 0)
+         end)
+   ]);
+
+# ------------------------------------------------------------------------------
+# Function max
+# ------------------------------------------------------------------------------
+
+define max_suite = test_suite("Function max", [
+    
+    test("should give the vector for two identical vectors",
+         fn ()
+            max(test_vec(0, 4, 0, 7, 10, 0), test_vec(0, 4, 0, 7, 10, 0)) = test_vec(0, 4, 0, 7, 10, 0)
+         end),
+
+    test("should do element wise max",
+         fn ()
+            max(test_vec(0, 12, 0, 7, -10, 0), test_vec(0, 4, 2, -7, -7, 1)) = test_vec(0, 12, 2, 7, -7, 1)
+         end)
+   ]);
+
+# ------------------------------------------------------------------------------
+# Function tan
+# ------------------------------------------------------------------------------
+
+define tan_suite = test_suite("Function tan", [
+    
+    test("should be correct for 0",
+         fn ()
+            tan(0*|radian|) = 0
+         end),
+
+    test("should be correct for pi/2",
+         fn ()
+            tan(0.5*pi*|radian|) > 10^10
+         end),
+
+      test("should be correct for pi",
+         fn ()
+            approximates(tan(pi*|radian|), 0, 15*|decimals|)
+         end),
+      
+      test("should be correct for -pi/4",
+         fn ()
+            approximates(tan(-0.25*pi*|radian|), -1, 15*|decimals|)
+         end)
+   ]);
+
+# ------------------------------------------------------------------------------
+# Function expt
+# ------------------------------------------------------------------------------
+
+define expt_suite = test_suite("Function expt", [
+    
+    test("should be correct for scalars",
+         fn ()
+            2 ^ 3 = 8
+         end),
+
+    test("should be correct matrices without units",
+         fn ()
+            false # 2*|metre|'^' 3 = 16*|metre^1|
+         end),
+
+    test("should for matrices with units",
+         fn ()
+            false #|metre| ^ 2 = |metre^2|
+         end) ,
+
+    test("should be correct for non-integer powers",
+         fn ()
+            approximates(expt(1.5, 1.5), 1.83711730709, 11*|decimals|)
+         end)              
+   ]);
+
+# ------------------------------------------------------------------------------
+# Function mexpt
+# ------------------------------------------------------------------------------
+
+define mexpt_suite = test_suite("Function mexpt", [
+    
+    test("should be correct for scalars",
+         fn ()
+            2 '^' 3 = 8
+         end),
+
+    test("should be correct matrices without units",
+         fn ()
+            false # 2*|metre|'^' 3 = 16*|metre^1|
+         end),
+
+    test("should for matrices with units",
+         fn ()
+            false #|metre| ^ 2 = |metre^2|
+         end) ,
+
+    test("should be correct for non-integer powers",
+         fn ()
+            approximates(mexpt(1.5, 1.5), 1.83711730709, 11*|decimals|)
+         end)              
+   ]);
+
+# ------------------------------------------------------------------------------
+# Function random
+# ------------------------------------------------------------------------------
+
+define random_suite = test_suite("Function random", [
+    
+    test("should do something",
+         fn ()
+            let r = random() in
+               r >= 0 and r <= 1
+            end
+         end)
+   ]);
+
+# ------------------------------------------------------------------------------
+# Function mapnz
+# ------------------------------------------------------------------------------
+
+define mapnz_suite = test_suite("Function mapnz", [
+    
+    test("should do something",
+         fn ()
+            mapnz(fn (x) x + 1 end, test_vec(0, 0, 1, 0, 3, 4)) = test_vec(0, 0, 2, 0, 4, 5)
+         end)
+   ]);
+
+# ------------------------------------------------------------------------------
+# Function kronecker
+# ------------------------------------------------------------------------------
+
+define kronecker_suite = test_suite("Function kronecker", [
+    
+    test("should do something",
+         fn ()
+            false
          end)
    ]);
