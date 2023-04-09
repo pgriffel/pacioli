@@ -390,7 +390,11 @@ public class ResolveVisitor extends IdentityVisitor {
                 // If it shadows another value then remember that for initialization in
                 // generated code
                 ValueInfo shadowedInfo = valueTables.peek().lookup(id.getName());
-                if (false && shadowedInfo != null) {
+                // TODO: fix shadowing. The test !shadowedInfo.isGlobal() below prevents a shadowing issue with names
+                // like rows and pi in fourier_motzkin. Turn off uncertainQuickSolution and run fourier_motzkin_tests.pacioli
+                // to reproduce the error.
+                boolean uncertainQuickSolution = true;
+                if (shadowedInfo != null && (uncertainQuickSolution && !shadowedInfo.isGlobal())) {
                     node.shadowed.put(id.getName(), shadowedInfo);
                 }
 
