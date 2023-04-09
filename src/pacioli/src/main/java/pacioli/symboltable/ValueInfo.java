@@ -28,59 +28,60 @@ public class ValueInfo extends AbstractSymbolInfo<ValueInfo> {
     public record TypedValueInfo(ResolvedValueInfo resolved, PacioliType type) {
 
     }
-        
+
     // Set during parsing
     private Optional<ValueDefinition> definition = Optional.empty();
     private Optional<TypeNode> declaredType = Optional.empty();
     public final Boolean isMonomorphic;
-    
+
     // Set during resolving
     private Optional<Boolean> isRef = Optional.of(false);
-    
+
     // Set during type inference
     public Optional<PacioliType> inferredType = Optional.empty();
-    
-    public ValueInfo(String name, PacioliFile file, String module, Boolean isGlobal, Boolean isMonomorphic, Location location) {
+
+    public ValueInfo(String name, PacioliFile file, String module, Boolean isGlobal, Boolean isMonomorphic,
+            Location location) {
         super(new GenericInfo(name, file, module, isGlobal, location));
         this.isMonomorphic = isMonomorphic;
     }
-    
+
     public ValueInfo(GenericInfo generic, Boolean isMonomorphic) {
         super(generic);
         this.isMonomorphic = isMonomorphic;
     }
-    
+
     @Override
     public void accept(SymbolTableVisitor visitor) {
         visitor.visit(this);
     }
-    
+
     @Override
     public String globalName() {
         return global(generic().getModule(), name());
     }
-    
+
     public static String global(String module, String name) {
         return String.format("glbl_%s_%s", module.replace("-", "_"), name);
     }
-    
+
     @Override
     public Optional<ValueDefinition> getDefinition() {
         return definition;
     }
-    
+
     public Optional<ValueDefinition> getValueDefinition() {
         return definition;
     }
-    
+
     public void setDefinition(ValueDefinition definition) {
         this.definition = Optional.of(definition);
     }
-    
+
     public Optional<TypeNode> getDeclaredType() {
         return declaredType;
     }
-    
+
     public void setDeclaredType(TypeNode declaredType) {
         this.declaredType = Optional.of(declaredType);
     }
@@ -92,22 +93,22 @@ public class ValueInfo extends AbstractSymbolInfo<ValueInfo> {
             throw new RuntimeException("No isRef value, ValueInfo must have been resolved");
         }
     }
-    
+
     public void setIsRef(Boolean isRef) {
         this.isRef = Optional.of(isRef);
     }
-    
+
     public PacioliType getType() {
-        if (inferredType.isPresent()) {
-            return inferredType.get();
-        } else if (declaredType.isPresent()) {
+        if (declaredType.isPresent()) {
             return declaredType.get().evalType();
+        } else if (inferredType.isPresent()) {
+            return inferredType.get();
         } else {
             throw new RuntimeException("No type info",
                     new PacioliException(getLocation(), "no inferred or declared type"));
         }
     }
-    
+
     public PacioliType inferredType() {
         if (inferredType.isPresent()) {
             return inferredType.get();
@@ -116,12 +117,12 @@ public class ValueInfo extends AbstractSymbolInfo<ValueInfo> {
                     new PacioliException(getLocation(), "no inferred type for %s ", name()));
         }
     }
-    
+
     public Boolean isFunction() {
         Schema schema = (Schema) getType();
         return schema.type instanceof FunctionType;
     }
-    
+
     public void setinferredType(PacioliType type) {
         this.inferredType = Optional.of(type);
     }

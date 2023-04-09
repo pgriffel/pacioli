@@ -114,6 +114,7 @@ public class Pacioli {
             List<String> files = new ArrayList<String>();
             List<File> libs = new ArrayList<File>();
             CompilationSettings settings = new CompilationSettings();
+            boolean rewriteTypes = false;
 
             // Collect the command line info
             int i = 0;
@@ -169,6 +170,8 @@ public class Pacioli {
                     }
                 } else if (arg.equals("-traceall")) {
                     settings.toggleTraceAll();
+                } else if (arg.equals("-rewrite")) {
+                    rewriteTypes = !rewriteTypes;
                 } else if (arg.equals("-warnings")) {
                     warnings = !warnings;
                 } else if (arg.equals("-debug")) {
@@ -251,7 +254,7 @@ public class Pacioli {
                     displayError("No files to read.");
                 }
                 for (String file : files) {
-                    typesCommand(file, libs);
+                    typesCommand(file, libs, rewriteTypes);
                 }
             } else if (command.equals("graph") || command.equals("symbols")) {
                 debugCommand(command, files, libs);
@@ -304,7 +307,7 @@ public class Pacioli {
         }
     }
 
-    private static void typesCommand(String fileName, List<File> libs) throws Exception {
+    private static void typesCommand(String fileName, List<File> libs, boolean rewriteTypes) throws Exception {
 
         Integer version = 0; // todo
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
@@ -325,7 +328,7 @@ public class Pacioli {
             Project project = Project.load(file, libs);
 
             //Progam program = Progam.load(file, Phase.TYPED);
-            project.printTypes();
+            project.printTypes(rewriteTypes);
 
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);

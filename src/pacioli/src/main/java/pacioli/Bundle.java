@@ -253,7 +253,7 @@ public class Bundle {
 
     }
 
-    void printTypes() throws PacioliException {
+    void printTypes(boolean rewriteTypes) throws PacioliException {
 
         List<String> names = valueTable.allNames();
         Collections.sort(names);
@@ -263,7 +263,11 @@ public class Bundle {
             boolean fromProgram = info.generic().getModule().equals(file.getModule());
             if (fromProgram && info.getDefinition().isPresent()) {
                 Pacioli.println("\n%s ::", info.name());
-                Pacioli.print(" %s;", info.inferredType().deval().pretty());
+                if (rewriteTypes) {
+                    Pacioli.print(" %s;", info.inferredType().deval().pretty());
+                } else {
+                    Pacioli.print(" %s;", info.getType().deval().pretty());
+                }
             }
         }
         Integer count = 1;

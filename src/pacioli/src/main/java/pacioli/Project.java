@@ -395,7 +395,7 @@ public class Project {
         return includes;
     }
 
-    public void printTypes() throws Exception {
+    public void printTypes(boolean rewriteTypes) throws Exception {
 
         Bundle bundle = Bundle.empty(file, libs);
 
@@ -419,7 +419,7 @@ public class Project {
             bundle.load(program, current.equals(file));
         }
 
-        bundle.printTypes();
+        bundle.printTypes(rewriteTypes);
 
     }
 
