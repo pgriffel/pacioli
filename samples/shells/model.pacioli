@@ -29,6 +29,15 @@ deftype for_unit a: Info(a) = Tuple(List(a^2), List(a^2), List(a^2), List(a^3), 
 deftype for_unit a: Mesh(a) = Tuple(List(a*Geom3!), List(Tuple(1, 1, 1, 1)));
 
 # ----------------------------------------------------------------------------
+# Added because tests have no access to the shell internals
+# ----------------------------------------------------------------------------
+
+declare shell_body_internals :: for_unit a: (Shell(a)) -> List(List(a*Geom3!));
+
+define shell_body_internals(shell) = 
+  get_body(shell);
+
+# ----------------------------------------------------------------------------
 # Function Signatures
 # ----------------------------------------------------------------------------
 

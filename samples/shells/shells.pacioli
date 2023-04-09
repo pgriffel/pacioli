@@ -117,10 +117,15 @@ define my_path_b() = [tuple( 0.3*|radian|, 0.25*|shell_unit|),
 
 define my_path_c() = rectangle_path(0.5*|shell_unit|, 0.5*|shell_unit|);
 
-let 
-    deg = 2*pi*|radian|/360,
-    shell_vec(x, y, z) = space_vec(x*|shell_unit|, y*|shell_unit|, z*|shell_unit|)
-in
-    shell_body(my_path_a(), shell_vec(0, 0, 0), shell_vec(-0.05, 0, -0.02),
-                   1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, 2, 1)
-end;
+declare run :: () -> Shell(milli:metre);
+
+define run() = 
+  let 
+      deg = 2*pi*|radian|/360,
+      shell_vec(x, y, z) = space_vec(x*|shell_unit|, y*|shell_unit|, z*|shell_unit|)
+  in
+      shell_body(my_path_a(), shell_vec(0, 0, 0), shell_vec(-0.05, 0, -0.02),
+                    1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, 2, 1)
+  end;
+
+#run();
