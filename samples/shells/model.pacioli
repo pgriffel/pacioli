@@ -49,6 +49,7 @@ declare growth_factors :: (1, 1) -> List(1);
 declare initial_shell :: for_unit a:
   (List(Tuple(a, a)), a*Geom3!, a*Geom3!, 1, radian, 1, radian, radian, radian, 1, 1) -> Shell(a);
 
+declare get_settings :: for_unit a: (Shell(a)) -> Settings(a);
 declare get_body :: for_unit a: (Shell(a)) -> Body(a);
 declare get_meshes :: for_unit a: (Shell(a)) -> List(Mesh(a));
 declare shell_current_size :: for_unit a: (Shell(a)) -> 1;
