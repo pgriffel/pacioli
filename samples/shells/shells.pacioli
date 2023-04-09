@@ -128,4 +128,4 @@ define run() =
                     1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, 2, 1)
   end;
 
-#run();
+run();

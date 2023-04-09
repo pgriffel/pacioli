@@ -219,7 +219,7 @@ public class Project {
                 program.loadRest(new PacioliTable(vTable, tTable));
 
                 // Add the program's info's to the bundle's total symbol tables
-                bundle.load(program);
+                bundle.load(program, current.equals(file));
             }
 
             bundle.generateCode(writer, settings);
@@ -416,7 +416,7 @@ public class Project {
             program.loadRest(new PacioliTable(vTable, tTable));
 
             // Add the program's info's to the bundle's total symbol tables
-            bundle.load(program);
+            bundle.load(program, current.equals(file));
         }
 
         bundle.printTypes();

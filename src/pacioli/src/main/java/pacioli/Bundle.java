@@ -79,7 +79,8 @@ public class Bundle {
         SymbolTable<TypeSymbolInfo> table = new SymbolTable<TypeSymbolInfo>();
         typeTable.allInfos().forEach(info -> {
             if (moduleNames.contains(info.generic().getModule())) {
-                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(), info.name());
+                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(),
+                        info.name());
                 table.put(info.name(), info);
             }
         });
@@ -98,21 +99,23 @@ public class Bundle {
         return new Bundle(file, libs);
     }
 
-    void load(Progam other) throws Exception {
+    void load(Progam other, boolean includeToplevels) throws Exception {
         // See duplicate code in Progam
         other.values.allInfos().forEach(info -> {
-            //Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s", info.globalName());
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s",
+                    info.globalName());
             valueTable.put(info.globalName(), info);
         });
         other.typess.allInfos().forEach(info -> {
-            //Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(), info.name());
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s",
+                    info.globalName(), info.name());
             typeTable.put(info.globalName(), info);
         });
-        // valueTable.addAll(other.values);
-        // typeTable.addAll(other.typess);
-        other.toplevels.forEach(topLevel -> {
-            this.toplevels.add(topLevel);
-        });
+        if (includeToplevels) {
+            other.toplevels.forEach(topLevel -> {
+                this.toplevels.add(topLevel);
+            });
+        }
     }
 
     public void generateCode(PrintWriter writer, CompilationSettings settings) {
@@ -249,6 +252,7 @@ public class Bundle {
         }
 
     }
+
     void printTypes() throws PacioliException {
 
         List<String> names = valueTable.allNames();
