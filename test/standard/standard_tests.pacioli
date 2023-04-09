@@ -1,0 +1,126 @@
+import testing;
+import si;
+
+declare standard_suites :: List(TestSuite);
+
+define standard_suites = [
+   scanl_suite,
+   scanl1_suite,
+   zip_with_suite,
+   flatten_suite,
+   is_zero_suite
+];
+
+run_test_suites(standard_suites); 
+
+# ------------------------------------------------------------------------------
+# Functions scanl
+# ------------------------------------------------------------------------------
+
+define scanl_suite = test_suite("Function scanl", [
+
+    test("should handle empty list correctly",
+         fn ()
+            scanl(sum, 42, []) = [42]
+         end),
+         
+    test("should subtract correctly",
+         fn ()
+            scanl(minus, 100, [1, 2, 3, 4]) = [100, 99, 97, 94, 90]
+         end)
+    ]);
+
+# ------------------------------------------------------------------------------
+# Functions scanl1
+# ------------------------------------------------------------------------------
+
+define scanl1_suite = test_suite("Function scanl1", [
+       
+    test("should sum correctly",
+         fn ()
+            scanl1(sum, [1, 2, 3, 5]) = [1, 3, 6, 11]
+         end)
+    ]);
+
+# ------------------------------------------------------------------------------
+# Function zip_with
+# ------------------------------------------------------------------------------
+
+define zip_with_suite = test_suite("Function zip_with", [
+       
+    test("should sum correctly",
+         fn ()
+            zip_with(sum, [1, 2, 3], [4, 5, 6]) = [5, 7, 9]
+         end)
+    ]);
+
+# ------------------------------------------------------------------------------
+# Function flatten
+# ------------------------------------------------------------------------------
+
+define flatten_suite = test_suite("Function flatten", [
+       
+    test("should flatten empty list",
+        fn ()
+            flatten([]) = []
+        end),
+
+    test("should flatten list of number lists",
+        fn ()
+            flatten([[1], [], [2, 3]]) = [1, 2, 3]
+        end),
+
+    test("should flatten list of lists number lists",
+        fn ()
+            flatten([[[1]], [[]], [[2, 3]], []]) = [[1], [], [2, 3]]
+        end)
+]);
+
+# ------------------------------------------------------------------------------
+# Function is_zero
+# ------------------------------------------------------------------------------
+
+defindex Foo = {foo, bar, baz};
+
+defunit Foo!unit = {
+    foo : second
+};
+
+defmatrix foo :: metre * Foo! = {
+    foo -> 2,
+    bar -> 3,
+    baz -> 5
+};
+
+define is_zero_suite = test_suite("Function is_zero", [
+       
+    test("should be true for 0",
+        fn ()
+            is_zero(0)
+        end),
+
+    test("should be false for -1 and 1",
+        fn ()
+            not(is_zero(-1)) and not(is_zero(1))
+        end),
+
+    test("should be true for 0 metre",
+        fn ()
+            is_zero(0 * |metre|)
+        end),
+
+    test("should be false for -1 metre and 1 metre",
+        fn ()
+            not(is_zero(-1 * |metre|)) and not(is_zero(1 * |metre|))
+        end),
+
+    test("should be false for a non-zero metre * Foo!unit vector",
+        fn ()
+            not(is_zero(foo))
+        end),
+
+    test("should be true for zero metre * Foo!unit vector",
+        fn ()
+            is_zero(0 '.*' foo)
+        end)
+]);

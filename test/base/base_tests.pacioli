@@ -57,6 +57,11 @@ define indexing_suite = test_suite("Indexing", [
    test("should work for vectors with _",
         fn ()
             get(test_vec(1,2,3,4,5,6), Foo@v3, _) = 4
+        end),
+      
+   test("should work for transposed vectors with _",
+        fn ()
+            get(test_vec(1,2,3,4,5,6)^T, _, Foo@v3) = 4
         end)
 ]);
 

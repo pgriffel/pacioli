@@ -1,0 +1,42 @@
+import si;
+import testing;
+include bom;
+
+run_test_suites(bom_suites);
+
+declare bom_suites :: List(TestSuite);
+
+define bom_suites = [
+    bom_suite
+];
+
+defmatrix expected_trade_bom :: Product!trade_unit per Product!trade_unit = {
+  Apples, CrateOfApples ->      10.0,
+  Butter, Pastry ->              0.36,
+  Flour, Pastry ->               0.55,
+  Pastry, ApplePie ->            0.40,
+  Apples, ApplePie ->            0.75,
+  Sugar, ApplePie ->             0.225,
+  Butter, ApplePie ->            0.115,
+  ApplePie, PieceOfPie ->        0.12
+};
+
+defmatrix expected_product_cost :: dollar / Product!trade_unit = {
+    Pastry          ->  0.44,
+    ApplePie        ->  1.226,
+    PieceOfPie      ->  0.14712,
+    CrateOfApples   -> 14.0
+};
+
+define bom_suite = test_suite("Bill of Material", [
+
+    test("trade BoM should be correct", 
+        fn ()
+            trade_bom = expected_trade_bom
+        end),
+
+    test("product cost should be correct", 
+        fn ()
+            approximates(product_cost, expected_product_cost, 10*|decimals|)
+        end)
+]);

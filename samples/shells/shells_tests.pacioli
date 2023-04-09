@@ -1,0 +1,72 @@
+import si;
+import testing;
+import geometry;
+include shells;
+include model;
+
+run_test_suites(shells_suites);
+
+declare shells_suites :: List(TestSuite);
+
+define shells_suites = [
+    shells_suite
+];
+
+define shell_vec(x, y, z) =
+    |milli:metre| '.*' space_vec(x, y, z);
+
+define expected_shell = [
+    [
+        shell_vec(-0.013085,  0.006509, -0.220527), 
+        shell_vec( 0.092676,  0.025158, -0.393971), 
+        shell_vec( 0.252998,  0.053427, -0.516908), 
+        shell_vec( 0.446230,  0.087499, -0.572736), 
+        shell_vec( 0.646274,  0.122772, -0.553913), 
+        shell_vec( 0.826113,  0.154482, -0.462982), 
+        shell_vec( 0.961459,  0.178347, -0.312224), 
+        shell_vec( 1.034032,  0.191144, -0.122000), 
+        shell_vec( 1.034032,  0.191144,  0.082000), 
+        shell_vec( 0.961459,  0.178347,  0.272224), 
+        shell_vec( 0.826113,  0.154482,  0.422982), 
+        shell_vec( 0.646274,  0.122772,  0.513913), 
+        shell_vec( 0.446230,  0.087499,  0.532736), 
+        shell_vec( 0.252998,  0.053427,  0.476908), 
+        shell_vec( 0.092676,  0.025158,  0.353971), 
+        shell_vec(-0.013085,  0.006509,  0.180527), 
+        shell_vec(-0.050000,  0.000000, -0.020000),
+        shell_vec(-0.013085,  0.006509, -0.220527)
+    ]
+];
+
+define check_curves(x, y) = 
+    list_size(x) = list_size(y) and
+    all[approximates(a, b, 6*|decimals|) | (a, b) <- zip(x, y)];
+
+define shells_suite = test_suite("Shells", [
+
+    test("should have the correct settings for some initial shell", 
+        fn ()
+            let shell = run() in
+                get_settings(shell) = ???
+            end
+        end),
+    
+    test_only("should have the correct body for some initial shell", 
+        fn ()
+            let 
+                shell = run(),
+                zipped = zip(shell_body_internals(shell), expected_shell)
+             in
+                list_size(zipped) = list_size(expected_shell) and
+                all[check_curves(a, b) | (a, b) <- zipped]
+                #printed(shell_body_internals(shell)) = printed([[shell_vec(1,1,1)]])
+            end
+        end),
+
+    test("should have the correct meshes for some initial shell", 
+        fn ()
+            let shell = run() in
+                get_meshes(shell) = ???
+            end
+        end)
+]);
