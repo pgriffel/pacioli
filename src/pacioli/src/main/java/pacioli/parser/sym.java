@@ -47,6 +47,7 @@ public interface sym {
   public static final int BOOLEAN = 74;
   public static final int DIMINV = 61;
   public static final int DO = 19;
+  public static final int QUESTIONMARKS = 79;
   public static final int DEFCONV = 11;
   public static final int DIV = 47;
   public static final int PUBLIC = 12;
@@ -166,7 +167,8 @@ public interface sym {
   "NATURAL",
   "DECIMAL",
   "IDENTIFIER",
-  "STRING"
+  "STRING",
+  "QUESTIONMARKS"
   };
 }
 

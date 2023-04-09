@@ -1189,6 +1189,12 @@ public class Machine {
                 throw new MVMException(string.toText());
             }
         });
+
+        storeBaseValue("three_question_marks", new Primitive("three_question_marks") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                throw new MVMException("Not yet implemented");
+            }
+        });
     }
 
     /*

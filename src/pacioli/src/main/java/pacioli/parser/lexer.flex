@@ -167,6 +167,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "<=>"             { return symbol("equiv", EQUIV); }
   "and"             { return symbol("and", AND); }
   "or"              { return symbol("or", OR); }
+  [?][?][?]             { return symbol("questionmarks", QUESTIONMARKS); }
 
   /* names */
   {Identifier}      { return symbol("Identifier",IDENTIFIER, yytext()); }

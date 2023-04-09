@@ -276,7 +276,7 @@ terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK
 terminal PLUS, MULT, DIV, MOD, MMULT, HAT, NEG, LEFTDIV, MDIV, MEXPT, MLEFTDIV;
 terminal RSCALEDOWN, RSCALE, LSCALEDOWN, LSCALE, TRANS, DIMINV, RECI;
 terminal EQL, NEQ, EQUIV, LE, GT, LEQ, GTQ, AND, OR, IMPLIES, FOLLOWSFROM;
-terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING;
+terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING, QUESTIONMARKS;
 
 
 non terminal ProgramNode             program;
@@ -546,6 +546,7 @@ expr_no_id ::=
  | unsigned:u                                       {: RESULT = new ConstNode(u, makeLoc(uxleft, uxright)); :}
  | BOOLEAN:b                                        {: RESULT = new ConstNode(b, makeLoc(bxleft, bxright)); :}
  | STRING:s                                         {: RESULT = new StringNode(s, makeLoc(sxleft, sxright)); :}
+ | QUESTIONMARKS:s                                  {: RESULT = new ApplicationNode(new IdentifierNode("three_question_marks", makeLoc(sxleft, sxright)), new ArrayList<ExpressionNode>() , makeLoc(sxleft, sxright)); :}
  ;
 
 //------------------------------------------------------------------------------

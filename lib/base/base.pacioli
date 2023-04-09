@@ -42,6 +42,7 @@ deftype for_type t: Maybe(t) = Maybe(t);
 declare public just :: for_type t: (t) -> Maybe(t);
 declare public nothing :: for_type t: () -> Maybe(t);
 declare public is_nothing :: for_type t: (Maybe(t)) -> Boole;
+declare three_question_marks :: for_type t: () -> t;
 
 # ----------------------------------------------------------------------------
 # Obsolete
