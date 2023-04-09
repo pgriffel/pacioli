@@ -13,7 +13,6 @@ import pacioli.PacioliFile;
 import pacioli.Typing;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
-import pacioli.ast.Visitor;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;

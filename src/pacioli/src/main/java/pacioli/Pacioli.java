@@ -38,7 +38,6 @@ import org.apache.commons.io.FilenameUtils;
 import mvm.MVMException;
 import mvm.Machine;
 import pacioli.CompilationSettings.Target;
-import pacioli.Progam.Phase;
 import pacioli.ast.ProgramNode;
 import pacioli.parser.Parser;
 import pacioli.symboltable.ValueInfo;
@@ -300,7 +299,7 @@ public class Pacioli {
             throw new PacioliException("Cannot desugar: file '%s' does not exist.", fileName);
         } else {
             log("Desugaring file '%s'", file);
-            Progam program = Progam.load(file.get(), Phase.DESUGARED);
+            Progam program = Progam.load(file.get());
             println("%s", program.pretty());
         }
     }
@@ -431,7 +430,8 @@ public class Pacioli {
                 Project project = Project.load(file, libs);
                 project.printInfo();
 
-                Progam program = Progam.load(file, Phase.TYPED);
+                Progam program = Progam.load(file);
+                // todo: load rest
 
                 program.printSymbolTable(program.values, "Values");
                 // program.printSymbolTable(program.types, "Values");
@@ -574,7 +574,8 @@ public class Pacioli {
 
                 Path binName = project.bundlePath(Target.MVM);
 
-                Progam.load(project.root(), Phase.TYPED).printTypes();
+                // todo: load rest
+                Progam.load(project.root()).printTypes();
                 ;
                 log("Running file %s", binName);
                 interpretMVMText(binName.toFile(), libs);
@@ -629,7 +630,7 @@ public class Pacioli {
     private static void checkPrimitives(List<File> libs) throws Exception {
 
         PacioliFile libFile = PacioliFile.requireLibrary("base", libs);
-        Progam program = Progam.load(libFile, Phase.RESOLVED);
+        Progam program = Progam.load(libFile);
         List<ValueInfo> allInfos = program.values.allInfos();
         List<String> names = new ArrayList<String>();
         for (ValueInfo info : allInfos) {

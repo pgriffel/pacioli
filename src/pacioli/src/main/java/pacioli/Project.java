@@ -21,7 +21,10 @@ import org.jgrapht.traverse.DepthFirstIterator;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import pacioli.CompilationSettings.Target;
-import pacioli.Progam.Phase;
+import pacioli.ast.ImportNode;
+import pacioli.ast.IncludeNode;
+import pacioli.ast.ProgramNode;
+import pacioli.parser.Parser;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeSymbolInfo;
@@ -123,7 +126,7 @@ public class Project {
         ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>();
         allLibs.add(PacioliFile.requireLibrary("base", libs));
         allLibs.add(PacioliFile.requireLibrary("standard", libs));
-        for (PacioliFile pacioliFile : program.findImports(libs)) {
+        for (PacioliFile pacioliFile : findImports(program.program, libs)) {
             allLibs.add(pacioliFile);
         }
 
@@ -136,7 +139,7 @@ public class Project {
         }
 
         // Locate all included files and collect the module names
-        for (PacioliFile include : program.findIncludes()) {
+        for (PacioliFile include : findIncludes(program.file, program.program)) {
             modules.add(include.getModule());
         }
 
@@ -204,7 +207,7 @@ public class Project {
 
             for (PacioliFile current : orderedFiles()) {
 
-                Progam program = Progam.load(current, Phase.DESUGARED);
+                Progam program = Progam.load(current);
 
                 // Filter the bundle's total symbol tables for the directly used modules of the
                 // program
@@ -282,7 +285,7 @@ public class Project {
             if (!done.contains(current)) {
 
                 // Load the current file
-                Progam program = Progam.load(current, Phase.PARSED);
+                ProgramNode programNode = Parser.parseFile(current.getFile());
 
                 // Add the current file to the graph if not already found by some include
                 if (!graph.containsVertex(current)) {
@@ -291,11 +294,11 @@ public class Project {
 
                 // Locate the imports. Add the base lib unless this is the base lib. Add the
                 // standard lib unless this is the base lib or the standard lib
-                ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>(program.findImports(libs));
-                if (!program.file.equals(base)) {
+                ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>(findImports(programNode, libs));
+                if (!current.equals(base)) {
                     allLibs.add(base);
                 }
-                if (!program.file.equals(standard) && !program.file.equals(base)) {
+                if (!current.equals(standard) && !current.equals(base)) {
                     allLibs.add(standard);
                 }
 
@@ -312,12 +315,11 @@ public class Project {
                     }
 
                     // Add an edge for the include relation
-                    // graph.addEdge(current, pacioliFile);
                     graph.addEdge(pacioliFile, current);
 
                 }
 
-                for (PacioliFile pacioliFile : program.findIncludes()) {
+                for (PacioliFile pacioliFile : findIncludes(current, programNode)) {
 
                     // Add the include files to the todo list
                     if (!done.contains(pacioliFile) && !todo.contains(pacioliFile)) {
@@ -342,6 +344,57 @@ public class Project {
         return graph;
     }
 
+    /**
+     * Locates all direct import in the program. Throws an exception if an imported
+     * library cannot be found.
+     * 
+     * @param libs
+     *            The directories where libraries are located
+     * @return A list of files
+     * @throws PacioliException
+     */
+    private static List<PacioliFile> findImports(ProgramNode program, List<File> libs) throws PacioliException {
+        List<PacioliFile> libraries = new ArrayList<PacioliFile>();
+        for (ImportNode node : program.imports) {
+            String name = node.name.valueString();
+            Optional<PacioliFile> library = PacioliFile.findLibrary(name, libs);
+            if (!library.isPresent()) {
+                throw new PacioliException(node.getLocation(),
+                        "Import '%s' not found in directories %s",
+                        name, libs);
+            } else {
+                libraries.add(library.get());
+            }
+
+        }
+        return libraries;
+    }
+
+    /**
+     * Locates all direct includes in the program. Throws an exception if an
+     * included
+     * file cannot be found.
+     * 
+     * @return A list of files
+     * @throws PacioliException
+     */
+    private static List<PacioliFile> findIncludes(PacioliFile file, ProgramNode program) throws PacioliException {
+        List<PacioliFile> includes = new ArrayList<PacioliFile>();
+        for (IncludeNode node : program.includes) {
+            String name = node.name.valueString();
+            Optional<PacioliFile> pacioliFile = file.findInclude(name);
+            if (!pacioliFile.isPresent()) {
+                throw new PacioliException(node.getLocation(),
+                        "Include '%s' for file '%s' not found",
+                        name, file);
+            } else {
+                includes.add(pacioliFile.get());
+            }
+
+        }
+        return includes;
+    }
+
     public void printTypes() throws Exception {
 
         Bundle bundle = Bundle.empty(file, libs);
@@ -351,7 +404,7 @@ public class Project {
 
         for (PacioliFile current : orderedFiles()) {
 
-            Progam program = Progam.load(current, Phase.DESUGARED);
+            Progam program = Progam.load(current);
 
             // Filter the bundle's total symbol tables for the directly used modules of the
             // program

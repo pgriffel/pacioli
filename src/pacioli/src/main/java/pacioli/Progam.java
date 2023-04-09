@@ -8,8 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import pacioli.ast.ImportNode;
-import pacioli.ast.IncludeNode;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
@@ -40,10 +38,6 @@ import pacioli.visitors.TransformConversions;
  */
 public class Progam extends AbstractPrintable {
 
-    public enum Phase {
-        PARSED, DESUGARED, TYPED, RESOLVED
-    }
-
     // Added during construction
     public final PacioliFile file;
 
@@ -64,13 +58,9 @@ public class Progam extends AbstractPrintable {
         this.file = file;
     }
 
-    static Progam empty(PacioliFile file) {
-        return new Progam(file);
-    }
-
-    static Progam load(PacioliFile file, Phase phase) throws Exception {
+    static Progam load(PacioliFile file) throws Exception {
         Progam program = new Progam(file);
-        program.loadTill(phase);
+        program.loadTill();
         return program;
     }
 
@@ -79,59 +69,7 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
 
     Boolean isExternal(SymbolInfo info) {
-        // Reuse isFromProgram? See symbol table output to check if that is safe.
         return !info.generic().getFile().equals(getFile());
-    }
-
-    /**
-     * Locates all direct import in the program. Throws an exception if an imported
-     * library cannot be found.
-     * 
-     * @param libs
-     *            The directories where libraries are located
-     * @return A list of files
-     * @throws PacioliException
-     */
-    public List<PacioliFile> findImports(List<File> libs) throws PacioliException {
-        List<PacioliFile> libraries = new ArrayList<PacioliFile>();
-        for (ImportNode node : program.imports) {
-            String name = node.name.valueString();
-            Optional<PacioliFile> library = PacioliFile.findLibrary(name, libs);
-            if (!library.isPresent()) {
-                throw new PacioliException(node.getLocation(),
-                        "Import '%s' for file '%s' not found in directories %s",
-                        name, file, libs);
-            } else {
-                libraries.add(library.get());
-            }
-
-        }
-        return libraries;
-    }
-
-    /**
-     * Locates all direct includes in the program. Throws an exception if an
-     * included
-     * file cannot be found.
-     * 
-     * @return A list of files
-     * @throws PacioliException
-     */
-    public List<PacioliFile> findIncludes() throws PacioliException {
-        List<PacioliFile> includes = new ArrayList<PacioliFile>();
-        for (IncludeNode node : program.includes) {
-            String name = node.name.valueString();
-            Optional<PacioliFile> pacioliFile = file.findInclude(name);
-            if (!pacioliFile.isPresent()) {
-                throw new PacioliException(node.getLocation(),
-                        "Include '%s' for file '%s' not found",
-                        name, file);
-            } else {
-                includes.add(pacioliFile.get());
-            }
-
-        }
-        return includes;
     }
 
     public String getModule() {
@@ -151,34 +89,18 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
 
     /**
-     * Loads the program from file. Performs additional actions on the code
-     * depending on the given phase.
+     * Loads the program from file.
      * 
-     * Use option showFileLoads to enable logging of the loading.
-     * 
-     * @param phase
-     *            Which additional actions are done after loading?
      * @throws Exception
      */
-    private void loadTill(Phase phase) throws Exception {
+    private void loadTill() throws Exception {
 
-        Pacioli.logIf(Pacioli.Options.showFileLoads, "Loading file %s till %s", file.getFile(), phase);
+        Pacioli.logIf(Pacioli.Options.showFileLoads, "Loading file %s", file.getFile());
 
         program = Parser.parseFile(this.file.getFile());
 
-        if (phase.equals(Phase.PARSED)) {
-            return;
-        }
-
         desugar();
         fillTables();
-
-        if (phase.equals(Phase.DESUGARED)) {
-            return;
-        }
-
-        throw new RuntimeException("Should not get here. Please refactor and use bundle");
-
     }
 
     public void loadRest(PacioliTable environment) throws Exception {
