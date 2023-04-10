@@ -107,13 +107,13 @@ define normalized(x) = x '/.' magnitude(norm(x));
 
 define approximates(x, y, decs) =
     let diff = abs(x - y) in
-        magnitude(diff) <= support(diff) '/.' 10 ^ magnitude(decs)
+        magnitude(diff) <= support(diff) '/.' expt(10, magnitude(decs))
     end;
 
 define approximates_to(decs) =
     fn(x, y)
         let diff = abs(x - y) in
-            magnitude(diff) <= support(diff) '/.' 10 ^ magnitude(decs)
+            magnitude(diff) <= support(diff) '/.' expt(10, magnitude(decs))
         end
     end;
 

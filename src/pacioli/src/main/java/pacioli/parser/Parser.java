@@ -1463,6 +1463,37 @@ public class Parser extends java_cup.runtime.lr_parser {
         return new ApplicationNode(new IdentifierNode(name, loc), args, loc);
     }
 
+    private static ExpressionNode desugarExp(String op, ExpressionNode base, ExpressionNode power, pacioli.Location loc) {
+        if (power instanceof ConstNode) {
+          int pow = Integer.parseInt(((ConstNode) power).valueString());
+
+          if (pow == 0) {
+            List<ExpressionNode> args = new ArrayList<ExpressionNode>();
+            args.add(base);
+            return new ApplicationNode(new IdentifierNode("left_identity", loc), args, loc);    
+          } else if (pow == 1) {
+            return base;
+          } else {
+            String fresh = freshName(op);
+            
+            ExpressionNode exp = new IdentifierNode(fresh, loc);
+
+            for (int i = 1; i < pow; i++) {
+              List<ExpressionNode> args = new ArrayList<ExpressionNode>();
+              args.add(exp);
+              args.add(new IdentifierNode(fresh, loc));
+              exp = new ApplicationNode(new IdentifierNode(op, loc), args, loc);
+            }
+
+            BindingNode binding = new LetBindingNode(loc, fresh, base);
+            return new LetNode(Arrays.asList(binding), exp, loc);
+          }
+
+        } else {
+            throw new PacioliException(loc, "Expected an integer power. Use expt(base, power) or mexpt(base, power) for non-integer powers");
+        }
+    }
+
     private static ExpressionNode singleop(String name, ExpressionNode exp, pacioli.Location loc) {
         List<ExpressionNode> args = new ArrayList<ExpressionNode>();
         args.add(exp);
@@ -2511,7 +2542,7 @@ class CUP$Parser$actions {
 		Location e2xleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location e2xright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		ExpressionNode e2 = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = binop("expt", e1, e2); 
+		 RESULT = desugarExp("multiply", e1, e2, makeLoc(e1xleft, e2xright)); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("expr_no_id",5, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -2649,7 +2680,7 @@ class CUP$Parser$actions {
 		Location e2xleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location e2xright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		ExpressionNode e2 = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = binop("mexpt", e1, e2); 
+		 RESULT = desugarExp("mmult", e1, e2, makeLoc(e1xleft, e2xright)); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("expr_no_id",5, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
