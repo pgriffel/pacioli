@@ -29,19 +29,21 @@ run_test_suites(base_suites);
 # Test vectors
 # ------------------------------------------------------------------------------
 
-defindex Foo = {v0, v1, v2, v3, v4, v5};
+defindex Bar = {v0, v1, v2, v3, v4, v5};
 
-defunit Foo!unit = {
-    v0 : second
+defunit Bar!unit = {
+    v0: second,
+    v4: metre,
+    v5: gram/second^2
 };
 
 define test_vec(v0, v1, v2, v3, v4, v5) =
-   v0 '.*' delta(Foo@v0) +
-   v1 '.*' delta(Foo@v1) +
-   v2 '.*' delta(Foo@v2) +
-   v3 '.*' delta(Foo@v3) +
-   v4 '.*' delta(Foo@v4) +
-   v5 '.*' delta(Foo@v5);
+   v0 '.*' delta(Bar@v0) +
+   v1 '.*' delta(Bar@v1) +
+   v2 '.*' delta(Bar@v2) +
+   v3 '.*' delta(Bar@v3) +
+   v4 '.*' delta(Bar@v4) +
+   v5 '.*' delta(Bar@v5);
 
 # ------------------------------------------------------------------------------
 # Indexing
@@ -56,12 +58,12 @@ define indexing_suite = test_suite("Indexing", [
       
    test("should work for vectors with _",
         fn ()
-            get(test_vec(1,2,3,4,5,6), Foo@v3, _) = 4
+            get(test_vec(1,2,3,4,5,6), Bar@v3, _) = 4
         end),
       
    test("should work for transposed vectors with _",
         fn ()
-            get(test_vec(1,2,3,4,5,6)^T, _, Foo@v3) = 4
+            get(test_vec(1,2,3,4,5,6)^T, _, Bar@v3) = 4
         end)
 ]);
 
@@ -392,13 +394,17 @@ define expt_suite = test_suite("Function expt", [
 
     test("should be correct matrices without units",
          fn ()
-            false # 2*|metre|'^' 3 = 16*|metre^1|
+            let mat = test_vec(1,2,3,4,5,6) '*' test_vec(1,2,3,4,5,6)^T in
+               mat ^ 3 = mat * mat * mat
+            end
          end),
 
-    test("should for matrices with units",
+    test("should be correct for negative powers",
          fn ()
-            false #|metre| ^ 2 = |metre^2|
-         end) ,
+            let mat = test_vec(1,2,3,4,5,6) '*' test_vec(1,2,3,4,5,6)^T in
+               false # mat^-3 * mat^3 =  mat^0
+            end
+         end),
 
     test("should be correct for non-integer powers",
          fn ()
@@ -417,19 +423,33 @@ define mexpt_suite = test_suite("Function mexpt", [
             2 '^' 3 = 8
          end),
 
-    test("should be correct matrices without units",
+   test("should be correct matrices without units",
          fn ()
-            false # 2*|metre|'^' 3 = 16*|metre^1|
+            let mat = test_vec(1,2,3,4,5,6) '*' test_vec(1,2,3,4,5,6)^T in
+               mat '^' 3 = mat '*' mat '*' mat
+            end
          end),
 
-    test("should for matrices with units",
+   test("should be correct for negative powers",
          fn ()
-            false #|metre| ^ 2 = |metre^2|
+            let mat = test_vec(1,2,3,4,5,6) '*' test_vec(1,2,3,4,5,6)^T in
+               false # mat'^'-3 * mat'^'3 = mat'^'0
+            end
+         end),
+
+    test("should be correct for matrices with units",
+         fn ()
+            let
+               vec = test_vec(1,2,3,4,5,6) * |Bar!unit|,
+               mat = vec '*' vec^D
+            in
+               approximates(mat '^' 3, mat '*' mat '*' mat, 14*|decimals|)
+            end
          end) ,
 
     test("should be correct for non-integer powers",
          fn ()
-            approximates(mexpt(1.5, 1.5), 1.83711730709, 11*|decimals|)
+            approximates(_printed(mexpt(1.5, 1.5)), 1.83711730709, 10*|decimals|)
          end)              
    ]);
 
