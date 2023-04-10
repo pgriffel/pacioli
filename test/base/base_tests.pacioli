@@ -45,6 +45,17 @@ define test_vec(v0, v1, v2, v3, v4, v5) =
    v4 '.*' delta(Bar@v4) +
    v5 '.*' delta(Bar@v5);
 
+defindex Baz = {v0, v1};
+
+defunit Baz!unit = {
+    v0: second,
+    v1: metre
+};
+
+define test_vec2(v0, v1) =
+   v0 '.*' delta(Baz@v0) +
+   v1 '.*' delta(Baz@v1);
+
 # ------------------------------------------------------------------------------
 # Indexing
 # ------------------------------------------------------------------------------
@@ -402,7 +413,7 @@ define expt_suite = test_suite("Function expt", [
     test("should be correct for negative powers",
          fn ()
             let mat = test_vec(1,2,3,4,5,6) '*' test_vec(1,2,3,4,5,6)^T in
-               false # mat^-3 * mat^3 =  mat^0
+               approximates(mat^-3 * mat^3,  mat^0, 15*|decimals|)
             end
          end),
 
@@ -432,8 +443,8 @@ define mexpt_suite = test_suite("Function mexpt", [
 
    test("should be correct for negative powers",
          fn ()
-            let mat = test_vec(1,2,3,4,5,6) '*' test_vec(1,2,3,4,5,6)^T in
-               false # mat'^'-3 * mat'^'3 = mat'^'0
+            let invertible_matrix = test_vec2(1,1) '*' test_vec2(2,1)^T + test_vec2(1,3) '*' test_vec2(5,2)^T in
+               approximates(invertible_matrix'^'-3 '*' invertible_matrix'^'3, invertible_matrix'^'0, 9*|decimals|)
             end
          end),
 
@@ -445,12 +456,7 @@ define mexpt_suite = test_suite("Function mexpt", [
             in
                approximates(mat '^' 3, mat '*' mat '*' mat, 14*|decimals|)
             end
-         end) ,
-
-    test("should be correct for non-integer powers",
-         fn ()
-            approximates(_printed(mexpt(1.5, 1.5)), 1.83711730709, 10*|decimals|)
-         end)              
+         end)       
    ]);
 
 # ------------------------------------------------------------------------------

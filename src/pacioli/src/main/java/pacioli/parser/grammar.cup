@@ -137,36 +137,43 @@ parser code {:
         return new ApplicationNode(new IdentifierNode(name, loc), args, loc);
     }
 
-    private static ExpressionNode desugarExp(String op, ExpressionNode base, ExpressionNode power, pacioli.Location loc) {
-        if (power instanceof ConstNode) {
-          int pow = Integer.parseInt(((ConstNode) power).valueString());
-
-          if (pow == 0) {
-            List<ExpressionNode> args = new ArrayList<ExpressionNode>();
-            args.add(base);
-            return new ApplicationNode(new IdentifierNode("left_identity", loc), args, loc);    
-          } else if (pow == 1) {
-            return base;
-          } else if (pow < 0) {
-            return base;
-          } else {
-            String fresh = freshName(op);
-            
-            ExpressionNode exp = new IdentifierNode(fresh, loc);
-
-            for (int i = 1; i < pow; i++) {
-              List<ExpressionNode> args = new ArrayList<ExpressionNode>();
-              args.add(exp);
-              args.add(new IdentifierNode(fresh, loc));
-              exp = new ApplicationNode(new IdentifierNode(op, loc), args, loc);
-            }
-
-            BindingNode binding = new LetBindingNode(loc, fresh, base);
-            return new LetNode(Arrays.asList(binding), exp, loc);
-          }
-
+    private static ExpressionNode desugarExp(String op, ExpressionNode base, String power,
+        pacioli.Location loc, boolean swapSign) {
+      
+          int pow = Integer.parseInt(power);
+          
+        ExpressionNode bas;
+        
+        if (pow < 0) {
+            bas = new ApplicationNode(new IdentifierNode(op.equals("multiply") ? "reciprocal" : "inverse", loc), Arrays.asList(base), loc);
         } else {
-            throw new PacioliException(loc, "Expected an integer power. Use expt(base, power) or mexpt(base, power) for non-integer powers");
+            bas = base;
+        }
+        return desugarExpHelper(op, bas, (pow < 0) ? -pow : pow, loc);
+    }
+
+    private static ExpressionNode desugarExpHelper(String op, ExpressionNode base, int power, pacioli.Location loc) {
+
+        if (power == 0) {
+        List<ExpressionNode> args = new ArrayList<ExpressionNode>();
+        args.add(base);
+        return new ApplicationNode(new IdentifierNode(op.equals("multiply")? "unit" : "left_identity", loc), args, loc);
+        } else if (power == 1) {
+        return base;
+        } else {
+        String fresh = freshName(op);
+
+        ExpressionNode exp = new IdentifierNode(fresh, loc);
+
+        for (int i = 1; i < power; i++) {
+            List<ExpressionNode> args = new ArrayList<ExpressionNode>();
+            args.add(exp);
+            args.add(new IdentifierNode(fresh, loc));
+            exp = new ApplicationNode(new IdentifierNode(op, loc), args, loc);
+        }
+
+        BindingNode binding = new LetBindingNode(loc, fresh, base);
+        return new LetNode(Arrays.asList(binding), exp, loc);
         }
     }
 
@@ -535,7 +542,7 @@ expr_no_id ::=
  | idlist:ids                                       {: RESULT = new IdListNode(makeLoc(idsxleft, idsxright), ids); :}   
  | LPAR expr_no_id:e RPAR                           {: RESULT = e; :}
  | expr:e1 NEG expr:e2                              {: RESULT = binop("minus", e1, e2); :}
- | expr:e1 HAT expr:e2                              {: RESULT = desugarExp("multiply", e1, e2, makeLoc(e1xleft, e2xright)); :}
+ | expr:e1 HAT integer:e2                              {: RESULT = desugarExp("multiply", e1, e2, makeLoc(e1xleft, e2xright), false); :}
  | expr:e1 PER expr:e2                              {: RESULT = binop("dim_div", e1, e2); :}
  | expr:e1 EQL expr:e2                              {: RESULT = binop("equal", e1, e2); :}
  | expr:e TRANS:t                                   {: RESULT = singleop("transpose", e, makeLoc(exleft, txright)); :}
@@ -544,7 +551,7 @@ expr_no_id ::=
  | expr:e1 MULT:op expr:e2                          {: RESULT = binop("multiply", e1, e2); :}
  | expr:e1 PLUS expr:e2                             {: RESULT = binop("sum", e1, e2); :}
  | expr:e1 MMULT expr:e2                            {: RESULT = binop("mmult", e1, e2); :}
- | expr:e1 MEXPT expr:e2                            {: RESULT = desugarExp("mmult", e1, e2, makeLoc(e1xleft, e2xright)); :}
+ | expr:e1 MEXPT integer:e2                            {: RESULT = desugarExp("mmult", e1, e2, makeLoc(e1xleft, e2xright), false); :}
  | expr:e1 DIV expr:e2                              {: RESULT = binop("divide", e1, e2); :}
  | expr:e1 MDIV expr:e2                             {: RESULT = binop("right_division", e1, e2); :}
  | expr:e1 LEFTDIV expr:e2                          {: RESULT = binop("left_divide", e1, e2); :}

@@ -22,7 +22,7 @@ run_test_suites(geometry_suites);
 
 define vector2d_suite = test_suite("Function vector2d", [
 
-   test("should handle empty list correctly",
+   test("should construct vector correctly",
       fn ()
          let vec = vector2d(100, 200) in
             get(vec, Geom2@x, _) = 100 and
@@ -37,7 +37,7 @@ define vector2d_suite = test_suite("Function vector2d", [
 
 define vector3d_suite = test_suite("Function vector3d", [
 
-   test("should handle empty list correctly",
+   test("should construct vector correctly",
       fn ()
          let vec = vector3d(100, 200, 500) in
             get(vec, Geom3@x, _) = 100 and
