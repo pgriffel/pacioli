@@ -306,7 +306,7 @@ define remove_nth(n, list) =
       size := list_size(list);
       while i != size do
           if i != n then
-              result := add_mut(result, nth(i, list));
+              result := _add_mut(result, nth(i, list));
           end
           i := i + 1;
       end

@@ -45,12 +45,12 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         this.settings = settings;
         this.boxed = boxed;
     }
-    
+
     // Visitors
- 
+
     @Override
     public void visit(ApplicationNode node) {
-        //if (settings.debug() && node.function instanceof IdentifierNode) {
+        // if (settings.debug() && node.function instanceof IdentifierNode) {
         mark();
         if (false && node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
@@ -64,30 +64,30 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             // out.format("application_debug(\"%s\", \"%s\", \"%s\", %s%s)",
             // escapeString(stackText), escapeString(fullText), traceOn, code, args);
         } else {
-            
-            if (node.function instanceof IdentifierNode && ((IdentifierNode)node.function).isGlobal()) {
+
+            if (node.function instanceof IdentifierNode && ((IdentifierNode) node.function).isGlobal()) {
                 String fullName = ((IdentifierNode) node.function).getInfo().globalName();
                 if (!boxed ||
-                    fullName.equals(ValueInfo.global("base_base", "empty_list")) ||
-                    fullName.equals(ValueInfo.global("base_base", "loop_list")) ||
-                    fullName.equals(ValueInfo.global("base_base", "fold_list")) ||
-                    fullName.equals(ValueInfo.global("base_base", "cons")) ||
-                    fullName.equals(ValueInfo.global("base_base", "zip")) ||
-                    fullName.equals(ValueInfo.global("base_base", "tail")) ||
-                    fullName.equals(ValueInfo.global("base_base", "head")) ||
-                    fullName.equals(ValueInfo.global("base_base", "add_mut")) ||
-                    fullName.equals(ValueInfo.global("base_base", "append")) ||
-                    fullName.equals(ValueInfo.global("base_base", "reverse")) ||
-                    fullName.equals(ValueInfo.global("base_base", "tuple")) ||
-                    fullName.equals(ValueInfo.global("base_base", "new_ref")) ||
-                    fullName.equals(ValueInfo.global("base_base", "empty_ref")) ||
-                    fullName.equals(ValueInfo.global("base_base", "throw_result")) ||
-                    fullName.equals(ValueInfo.global("base_base", "catch_result")) ||
-                    fullName.equals(ValueInfo.global("base_base", "seq")) ||
-                    fullName.equals(ValueInfo.global("base_base", "ref_set")) ||
-                    fullName.equals(ValueInfo.global("base_base", "ref_get")) ||
-                    fullName.equals(ValueInfo.global("base_base", "while_function")) ||
-                    fullName.equals(ValueInfo.global("base_base", "apply"))) {
+                        fullName.equals(ValueInfo.global("base_base", "empty_list")) ||
+                        fullName.equals(ValueInfo.global("base_base", "loop_list")) ||
+                        fullName.equals(ValueInfo.global("base_base", "fold_list")) ||
+                        fullName.equals(ValueInfo.global("base_base", "cons")) ||
+                        fullName.equals(ValueInfo.global("base_base", "zip")) ||
+                        fullName.equals(ValueInfo.global("base_base", "tail")) ||
+                        fullName.equals(ValueInfo.global("base_base", "head")) ||
+                        fullName.equals(ValueInfo.global("base_base", "_add_mut")) ||
+                        fullName.equals(ValueInfo.global("base_base", "append")) ||
+                        fullName.equals(ValueInfo.global("base_base", "reverse")) ||
+                        fullName.equals(ValueInfo.global("base_base", "tuple")) ||
+                        fullName.equals(ValueInfo.global("base_base", "new_ref")) ||
+                        fullName.equals(ValueInfo.global("base_base", "empty_ref")) ||
+                        fullName.equals(ValueInfo.global("base_base", "throw_result")) ||
+                        fullName.equals(ValueInfo.global("base_base", "catch_result")) ||
+                        fullName.equals(ValueInfo.global("base_base", "seq")) ||
+                        fullName.equals(ValueInfo.global("base_base", "ref_set")) ||
+                        fullName.equals(ValueInfo.global("base_base", "ref_get")) ||
+                        fullName.equals(ValueInfo.global("base_base", "while_function")) ||
+                        fullName.equals(ValueInfo.global("base_base", "apply"))) {
                     out.format("Pacioli.%s", fullName);
                 } else {
                     out.format("Pacioli.b_%s", fullName);
@@ -115,26 +115,26 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     }
 
     // private String escapeString(String in) {
-    //     // Quick fix for the debug option for string literals
-    //     return in.replaceAll("\"", "\\\\\"");
+    // // Quick fix for the debug option for string literals
+    // return in.replaceAll("\"", "\\\\\"");
     // }
     private String escapeString(String in) {
         // Quick fix for the debug option for string literals
-        //return in.replaceAll("\"", "\\\\\"");
+        // return in.replaceAll("\"", "\\\\\"");
 
         return in.replace("\\", "\\\\")
-        .replace("\t", "\\t")
-        .replace("\b", "\\b")
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\f", "\\f")
-        //.replace("\'", "\\'")
-        .replace("\"", "\\\"");
+                .replace("\t", "\\t")
+                .replace("\b", "\\b")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\f", "\\f")
+                // .replace("\'", "\\'")
+                .replace("\"", "\\\"");
     }
 
     @Override
     public void visit(AssignmentNode node) {
-        out.format("Pacioli.%s(", ValueInfo.global("base_base", "ref_set"));
+        out.format("Pacioli.%s(", ValueInfo.global("base_base", "_ref_set"));
         out.print("lcl_" + node.var.getName());
         out.print(", ");
         node.value.accept(this);
@@ -175,13 +175,14 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(IdentifierNode node) {
         ValueInfo info = node.getInfo();
-        //String prefix = settings.debug() && node.debugable() ? "debug_" : "global_";
+        // String prefix = settings.debug() && node.debugable() ? "debug_" : "global_";
         String fun = boxed ? "bfetchValue" : "fetchValue";
-        String full = info.isGlobal() ? "Pacioli." + fun + "('" + info.generic().getModule() + "', '" + node.getName() + "')" 
-                                          : "lcl_" + node.getName();
+        String full = info.isGlobal()
+                ? "Pacioli." + fun + "('" + info.generic().getModule() + "', '" + node.getName() + "')"
+                : "lcl_" + node.getName();
 
         if (node.getInfo().isRef()) {
-            out.format("Pacioli.%s(%s)", ValueInfo.global("base_base", "ref_get"), full);
+            out.format("Pacioli.%s(%s)", ValueInfo.global("base_base", "_ref_get"), full);
         } else {
             out.format("%s", full);
         }
@@ -208,7 +209,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             builder.append("['");
             builder.append(node.keys.get(i));
             builder.append("','");
-            //builder.append(node.info.get(i).definition.globalName());
+            // builder.append(node.info.get(i).definition.globalName());
             builder.append(node.getInfo(i).globalName());
             builder.append("']");
         }
@@ -234,39 +235,40 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(MatrixLiteralNode node) {
 
-        //assert(node.values.size() > 0);
-        
+        // assert(node.values.size() > 0);
+
         // see mvm generator!!!
         StringBuilder builder = new StringBuilder();
         String sep = "";
-        //for (int i = 0; i < node.values.size(); i++) {
-        for (MatrixLiteralNode.PositionedValueDecl decl: node.positionedValueDecls()) {
+        // for (int i = 0; i < node.values.size(); i++) {
+        for (MatrixLiteralNode.PositionedValueDecl decl : node.positionedValueDecls()) {
             builder.append(sep);
             builder.append("[");
             builder.append(decl.row);
-            //builder.append(node.rowIndices.get(i));
+            // builder.append(node.rowIndices.get(i));
             builder.append(",");
             builder.append(decl.column);
-            //builder.append(node.columnIndices.get(i));
+            // builder.append(node.columnIndices.get(i));
             builder.append(",");
             builder.append(decl.valueDecl.value);
-            //builder.append(node.values.get(i));
+            // builder.append(node.values.get(i));
             builder.append("]");
             sep = ",";
         }
         if (boxed) {
             // TODO: should this type be reduced?
-            out.print("Pacioli.initialMatrix(" + node.typeNode.evalType().compileToJS() + "," + builder.toString() + ")");
+            out.print(
+                    "Pacioli.initialMatrix(" + node.typeNode.evalType().compileToJS() + "," + builder.toString() + ")");
         } else {
-        out.format("Pacioli.initialNumbers(%s, %s, [%s])", 
-                node.rowDim.size(), node.columnDim.size(),
-                builder.toString());
+            out.format("Pacioli.initialNumbers(%s, %s, [%s])",
+                    node.rowDim.size(), node.columnDim.size(),
+                    builder.toString());
         }
     }
 
     @Override
     public void visit(MatrixTypeNode node) {
-        
+
         MatrixType type;
         try {
             // TODO: should this type be reduced?
@@ -274,14 +276,14 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         } catch (PacioliException e) {
             throw new RuntimeException(e);
         }
-        
+
         if (boxed) {
             out.print("Pacioli.oneMatrix(" + type.compileToJS() + ".param)");
-            
+
         } else {
             // Obsolete code
-            //throw new PacioliException(node.getLocation(), " huh %s", type.pretty());
-            out.print("Pacioli.oneNumbers(" +  node.rowDim.size() + ", " + node.columnDim.size() + ")");
+            // throw new PacioliException(node.getLocation(), " huh %s", type.pretty());
+            out.print("Pacioli.oneNumbers(" + node.rowDim.size() + ", " + node.columnDim.size() + ")");
         }
     }
 
@@ -293,35 +295,35 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         write(", ");
         out.format("%s.param", node.type.compileToJS());
         write(", ");
-        out.format("[%s]",node.numString());
+        out.format("[%s]", node.numString());
         write(")");
     }
 
     @Override
     public void visit(ReturnNode node) {
-        format("Pacioli.%s(%s, ", ValueInfo.global("base_base", "throw_result"), node.resultInfo.name());
+        format("Pacioli.%s(%s, ", ValueInfo.global("base_base", "_throw_result"), node.resultInfo.name());
         node.value.accept(this);
         write(")");
     }
 
     @Override
     public void visit(SequenceNode node) {
-        
+
         if (node.items.isEmpty()) {
             throw new RuntimeException("todo: MVM generator for empty sequence");
         } else {
             Integer n = node.items.size();
             mark();
-            for (int i = 0; i < n-1; i++) {
-                format("Pacioli.%s(", ValueInfo.global("base_base", "seq"));
+            for (int i = 0; i < n - 1; i++) {
+                format("Pacioli.%s(", ValueInfo.global("base_base", "_seq"));
                 newlineUp();
                 node.items.get(i).accept(this);
                 write(", ");
                 newline();
-                
+
             }
-            node.items.get(n-1).accept(this);
-            for (int i = 0; i < n-1; i++) {
+            node.items.get(n - 1).accept(this);
+            for (int i = 0; i < n - 1; i++) {
                 out.print(")");
             }
             unmark();
@@ -330,80 +332,80 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(StatementNode node) {
-        
+
         mark();
-        
+
         // Find all assigned variables
         Set<IdentifierNode> assignedVariables = node.body.locallyAssignedVariables();
 
         // A lambda to bind the result place and the assigned variables places
         write("function (");
-        
+
         // Write the result lambda param
         write(node.resultInfo.name());
-        
+
         // Write the other lambda params
         for (IdentifierNode id : assignedVariables) {
             write(", ");
             write("lcl_" + id.getName());
         }
         write(") {");
-        
+
         newlineUp();
         write("return ");
-        
+
         // A catch to get the result
-        format("Pacioli.%s(", ValueInfo.global("base_base", "catch_result"));
-        
+        format("Pacioli.%s(", ValueInfo.global("base_base", "_catch_result"));
+
         newlineUp();
-        
+
         // Catch expect a lambda
         write("function () {");
-        
+
         newlineUp();
         write("return ");
         // The body
         node.body.accept(this);
         write("; } ,");
-        
+
         newline();
 
         // Catch's second argument is the place name
         write(node.resultInfo.name());
-        
+
         // Close the catch application
         write("); }( ");
-        
+
         newlineDown();
-        
+
         // The initial result place
-        format("Pacioli.%s()", ValueInfo.global("base_base", "empty_ref"));
+        format("Pacioli.%s()", ValueInfo.global("base_base", "_empty_ref"));
 
         for (IdentifierNode id : assignedVariables) {
             write(", ");
-            
+
             if (node.shadowed.contains(id.getName())) {
-                if (node.shadowed.lookup(id.getName()).isRef()) {    
-                    format("Pacioli.%s(Pacioli.%s(", 
-                            ValueInfo.global("base_base", "new_ref"),
-                            ValueInfo.global("base_base", "ref_get"));
+                if (node.shadowed.lookup(id.getName()).isRef()) {
+                    format("Pacioli.%s(Pacioli.%s(",
+                            ValueInfo.global("base_base", "_new_ref"),
+                            ValueInfo.global("base_base", "_ref_get"));
                     write("lcl_" + id.getName());
-                    //id.accept(this);
+                    // id.accept(this);
                     write("))");
                 } else {
-                    format("Pacioli.%s(", ValueInfo.global("base_base", "new_ref"));
+                    format("Pacioli.%s(", ValueInfo.global("base_base", "_new_ref"));
                     write("lcl_" + id.getName());
-                    //id.accept(this);
+                    // id.accept(this);
                     write(")");
                 }
             } else {
-                format("Pacioli.%s()", ValueInfo.global("base_base", "empty_ref"));
+                format("Pacioli.%s()", ValueInfo.global("base_base", "_empty_ref"));
             }
-        }        
-        
+        }
+
         // Close the lambda application
         write(")");
-        
+
         unmark();
     }
 
@@ -422,13 +424,13 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(TupleAssignmentNode node) {
-        
+
         // Some tuple properties
         List<IdentifierNode> vars = node.vars;
         Integer size = vars.size();
-        
+
         assert (0 < size); // het 'skip' statement als 0
-        
+
         // Create a list of fresh names for the assigned names
         final List<String> names = new ArrayList<String>();
         for (IdentifierNode id : vars) {
@@ -436,56 +438,59 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         }
         final List<String> freshNames = SymbolTable.freshNames(names);
 
-        // Create an application of apply to a lambda with two arguments: 
-        // the fresh names and the tuple. The freshnames get bound to the 
-        // tuple elements and are used in the lambda body to assign the 
+        // Create an application of apply to a lambda with two arguments:
+        // the fresh names and the tuple. The freshnames get bound to the
+        // tuple elements and are used in the lambda body to assign the
         // variables. The lambda body is a sequence of these assignments.
         mark();
         format("Pacioli.%s(function (", ValueInfo.global("base_base", "apply"));
-        
+
         // The lambda arguments
         Boolean first = true;
-        for (String name: freshNames) {
-            if (!first) out.print(", ");
+        for (String name : freshNames) {
+            if (!first)
+                out.print(", ");
             out.print(name);
             first = false;
         }
         out.print(") {");
-        
+
         newlineUp();
         out.print("return ");
-        
+
         // The sequence of assignments
         for (int i = 0; i < size; i++) {
-            if (i < size-1) format("Pacioli.%s(", ValueInfo.global("base_base", "seq"));
-            format("Pacioli.%s(", ValueInfo.global("base_base", "ref_set"));
+            if (i < size - 1)
+                format("Pacioli.%s(", ValueInfo.global("base_base", "_seq"));
+            format("Pacioli.%s(", ValueInfo.global("base_base", "_ref_set"));
             write("lcl_" + names.get(i));
             write(", ");
             write(freshNames.get(i));
             write(")");
-            if (i < size-1) write(",");
+            if (i < size - 1)
+                write(",");
             newline();
         }
-        
+
         // Close the sequences
-        for (int i = 0; i < size-1; i++) {
+        for (int i = 0; i < size - 1; i++) {
             out.print(")");
         }
-        
+
         write("; }, ");
         node.tuple.accept(this);
-        
+
         // Close the apply
         write(")");
-        
+
         unmark();
-        
+
     }
 
     @Override
     public void visit(WhileNode node) {
         mark();
-        format("Pacioli.%s(", ValueInfo.global("base_base", "while_function"));
+        format("Pacioli.%s(", ValueInfo.global("base_base", "_while"));
         newlineUp();
         write("function () {");
         newlineUp();
@@ -500,7 +505,6 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         write(";})");
         unmark();
     }
-    
 
     @Override
     public void visit(LetNode node) {

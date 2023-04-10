@@ -170,11 +170,11 @@ define eliminate_fast(quads, row) =
           q := nth(i, quads);
           m := quad_magnitude(q, row);
           if 0 < m then
-              pos := add_mut(pos, i);
+              pos := _add_mut(pos, i);
           else if m < 0 then
-              neg := add_mut(neg, i);
+              neg := _add_mut(neg, i);
           else
-              minimal := add_mut(minimal, q);
+              minimal := _add_mut(minimal, q);
           end
           i := i + 1;
       end
@@ -214,5 +214,5 @@ define insert_if_minimal(candidate, quads) =
           end
           i := i + 1;
       end
-      return if sub_found then quads else add_mut(quads, candidate) end;
+      return if sub_found then quads else _add_mut(quads, candidate) end;
   end;

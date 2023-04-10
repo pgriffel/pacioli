@@ -85,7 +85,7 @@ define suite_is_only(suite) =
 
 define run_test_suites(suites) =
   begin
-    print("\nRuning test suites\n");
+    _print("\nRuning test suites\n");
 
     # Determine which suites to run
     suites_with_only := [s | s <- suites, suite_is_only(s)];
@@ -96,7 +96,7 @@ define run_test_suites(suites) =
     results := [tuple(suite_description(s), run_test_suite(s)) | s <- to_test];
 
     # Print a status message
-    print(format("Tests finished, %s suites tested%s\n",
+    _print(format("Tests finished, %s suites tested%s\n",
       num2string(list_size(to_test), 0),
       skipped_message(nr_skipped_suites)));
 
@@ -112,7 +112,7 @@ define run_test_suites(suites) =
       nr_successes := nr_tests - nr_errors;
 
       # Print the result
-      print(format(" %s%s -> %s/%s success%s", 
+      _print(format(" %s%s -> %s/%s success%s", 
         if nr_successes = nr_tests then " " else "*" end,
         description,
         num2string(nr_successes, 0),
@@ -130,7 +130,7 @@ define run_test_suites(suites) =
     total_nr_skipped := count[ true | s <- suites, t <- suite_tests(s)] - total_nr_tests;
 
     # Print the totals
-    print(format("\nTotal tests -> %s/%s success%s",
+    _print(format("\nTotal tests -> %s/%s success%s",
       num2string(total_nr_successes, 0),
       num2string(total_nr_tests, 0),
       skipped_message(total_nr_skipped)));
@@ -170,7 +170,7 @@ define run_test_suite(suite) =
                       
   in
     begin
-      print(format("%s\n%s\n%s%s\n", 
+      _print(format("%s\n%s\n%s%s\n", 
         description,
         intercalate(messages, "\n"),
         summary,

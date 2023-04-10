@@ -42,7 +42,6 @@ deftype for_type t: Maybe(t) = Maybe(t);
 declare public just :: for_type t: (t) -> Maybe(t);
 declare public nothing :: for_type t: () -> Maybe(t);
 declare public is_nothing :: for_type t: (Maybe(t)) -> Boole;
-declare three_question_marks :: for_type t: () -> t;
 
 # ----------------------------------------------------------------------------
 # Obsolete
@@ -52,19 +51,30 @@ declare public error :: for_type a: (String) -> a;
 declare public num2string :: for_unit a: (a, 1) -> String;
 
 # ----------------------------------------------------------------------------
-# Statements
+# System functions
 # ----------------------------------------------------------------------------
 
-declare ref_get :: for_type a: (Ref(a)) -> a;
-declare ref_set :: for_type a: (Ref(a), a) -> Void;
-declare empty_ref :: for_type a: () -> Ref(a);
-declare new_ref :: for_type a: (a) -> Ref(a);
+declare public _add_mut :: for_type a: (List(a), a) -> List(a);
 
-declare throw_result :: for_type a: (Ref(a), a) -> Void;
-declare catch_result :: for_type a: (() -> Void, Ref(a)) -> a;
-declare skip :: () -> Void;
-declare seq :: (Void, Void) -> Void;
-declare while_function :: (() -> Boole, () -> Void) -> Void;
+declare public _asin :: for_index P,Q: (P! per Q!) -> P! per Q!;
+declare public _acos :: for_index P,Q: (P! per Q!) -> P! per Q!;
+declare public _atan :: for_index P,Q: (P! per Q!) -> P! per Q!;
+
+declare public _atan2 ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> P! per Q!;
+
+#declare _ref_get :: for_type a: (Ref(a)) -> a;
+#declare _ref_set :: for_type a: (Ref(a), a) -> Void;
+#declare _empty_ref :: for_type a: () -> Ref(a);
+#declare _new_ref :: for_type a: (a) -> Ref(a);
+
+#declare _throw_result :: for_type a: (Ref(a), a) -> Void;
+#declare _catch_result :: for_type a: (() -> Void, Ref(a)) -> a;
+declare _skip :: () -> Void;
+#declare _seq :: (Void, Void) -> Void;
+#declare _while :: (() -> Boole, () -> Void) -> Void;
+
+declare _three_question_marks :: for_type t: () -> t;
 
 # ----------------------------------------------------------------------------
 # Lists
@@ -76,7 +86,6 @@ declare public head :: for_type a: (List(a)) -> a;
 declare public nth :: for_type a: (1, List(a)) -> a;
 declare public tail :: for_type a: (List(a)) -> List(a);
 declare public list_size :: for_type a: (List(a)) -> 1;
-declare public add_mut :: for_type a: (List(a), a) -> List(a);
 declare public cons :: for_type a: (a, List(a)) -> List(a);
 declare public append :: for_type a: (List(a), List(a)) -> List(a);
 declare public loop_list :: for_type a,b: (a, (a, b) -> a, List(b)) -> a;
@@ -279,18 +288,6 @@ declare public cos ::
 declare public tan ::
   for_index P,Q: (radian * P! per Q!) -> P! per Q!;
 
-declare public _asin ::
-  for_index P,Q: (P! per Q!) -> P! per Q!;
-
-declare public _acos ::
-  for_index P,Q: (P! per Q!) -> P! per Q!;
-
-declare public _atan ::
-  for_index P,Q: (P! per Q!) -> P! per Q!;
-
-declare public _atan2 ::
-  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> P! per Q!;
-
 declare public top ::
   for_index P,Q: for_unit a, P!u, Q!v: (1, a*P!u per Q!v) -> a*P!u per Q!v;
 
@@ -366,9 +363,9 @@ declare public int2str_io, num2str_io :: for_unit a: (a,  IOSettings()) -> Strin
 
 declare public as_text :: for_type t: (t) -> String();
 
-declare public printed :: for_type a: (a) -> a;
-declare public print :: for_type a: (a) -> Void();
-declare public write :: for_type a: (a) -> Void();
+declare public _printed :: for_type a: (a) -> a;
+declare public _print :: for_type a: (a) -> Void();
+#declare public write :: for_type a: (a) -> Void();
 
 declare public print_grid :: for_type t: (List(List(t))) -> String();
 

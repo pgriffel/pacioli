@@ -1510,7 +1510,7 @@ public class Parser extends java_cup.runtime.lr_parser {
         String accuName = freshName("_c_accu");
         String tupName = freshName("_c_tup");
 
-        ExpressionNode addMut = new IdentifierNode("add_mut", loc);
+        ExpressionNode addMut = new IdentifierNode("_add_mut", loc);
         ExpressionNode accu = new IdentifierNode(accuName, loc);
         ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), loc);
 
@@ -3106,7 +3106,7 @@ class CUP$Parser$actions {
 		Location sxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location sxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		String s = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new ApplicationNode(new IdentifierNode("three_question_marks", makeLoc(sxleft, sxright)), new ArrayList<ExpressionNode>() , makeLoc(sxleft, sxright)); 
+		 RESULT = new ApplicationNode(new IdentifierNode("_three_question_marks", makeLoc(sxleft, sxright)), new ArrayList<ExpressionNode>() , makeLoc(sxleft, sxright)); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("expr_no_id",5, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -3488,7 +3488,7 @@ class CUP$Parser$actions {
 		Location exright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		Object e = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		 pacioli.Location loc = makeLoc(exleft, exright);
-                                                       RESULT = new ApplicationNode(new IdentifierNode("skip", loc), new ArrayList<ExpressionNode>(), loc); 
+                                                       RESULT = new ApplicationNode(new IdentifierNode("_skip", loc), new ArrayList<ExpressionNode>(), loc); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("stm_if_tail",45, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -3528,7 +3528,7 @@ class CUP$Parser$actions {
                                                            List<ExpressionNode> tup = new ArrayList<ExpressionNode>();
                                                            tup.add(list);
                                                            tup.add(item);
-                                                           list = new ApplicationNode(new IdentifierNode("add_mut", loc), tup, loc);
+                                                           list = new ApplicationNode(new IdentifierNode("_add_mut", loc), tup, loc);
                                                        }
                                                        RESULT = list; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("listlit",9, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);

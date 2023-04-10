@@ -164,7 +164,7 @@ public class Machine {
             }
         });
 
-        storeBaseValue("printed", new Primitive("printed") {
+        storeBaseValue("_printed", new Primitive("_printed") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliValue value = params.get(0);
                 if (value != null) { // void value of statements
@@ -174,7 +174,7 @@ public class Machine {
             }
         });
 
-        storeBaseValue("print", new Primitive("print") {
+        storeBaseValue("_print", new Primitive("_print") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliValue value = params.get(0);
                 if (value != null) { // void value of statements
@@ -184,7 +184,7 @@ public class Machine {
             }
         });
 
-        storeBaseValue("write", new Primitive("write") {
+        storeBaseValue("_write", new Primitive("_write") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliValue value = params.get(0);
                 if (value != null) { // void value of statements
@@ -194,7 +194,7 @@ public class Machine {
             }
         });
 
-        storeBaseValue("skip", new Primitive("skip") {
+        storeBaseValue("_skip", new Primitive("_skip") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 // return null;
                 return new Matrix(-1);
@@ -207,26 +207,26 @@ public class Machine {
             }
         });
 
-        storeBaseValue("empty_ref", new Primitive("empty_ref") {
+        storeBaseValue("_empty_ref", new Primitive("_empty_ref") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 return new Reference();
             }
         });
 
-        storeBaseValue("new_ref", new Primitive("new_ref") {
+        storeBaseValue("_new_ref", new Primitive("_new_ref") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 return new Reference(params.get(0));
             }
         });
 
-        storeBaseValue("ref_get", new Primitive("ref_get") {
+        storeBaseValue("_ref_get", new Primitive("_ref_get") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Reference ref = (Reference) params.get(0);
                 return ref.getValue();
             }
         });
 
-        storeBaseValue("ref_set", new Primitive("ref_set") {
+        storeBaseValue("_ref_set", new Primitive("_ref_set") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Reference ref = (Reference) params.get(0);
                 PacioliValue value = params.get(1);
@@ -235,13 +235,13 @@ public class Machine {
             }
         });
 
-        storeBaseValue("seq", new Primitive("seq") {
+        storeBaseValue("_seq", new Primitive("_seq") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 return params.get(1);
             }
         });
 
-        storeBaseValue("while_function", new Primitive("seq") {
+        storeBaseValue("_while", new Primitive("_while") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Callable first = (Callable) params.get(0);
                 Callable second = (Callable) params.get(1);
@@ -255,7 +255,7 @@ public class Machine {
             }
         });
 
-        storeBaseValue("throw_result", new Primitive("throw_result") {
+        storeBaseValue("_throw_result", new Primitive("_throw_result") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Reference first = (Reference) params.get(0);
                 first.setValue(params.get(1));
@@ -263,7 +263,7 @@ public class Machine {
             }
         });
 
-        storeBaseValue("catch_result", new Primitive("catch_and_return_result") {
+        storeBaseValue("_catch_result", new Primitive("_catch_result") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Callable body = (Callable) params.get(0);
                 Reference place = (Reference) params.get(1);
@@ -1001,7 +1001,7 @@ public class Machine {
             }
         });
 
-        storeBaseValue("add_mut", new Primitive("add_mut") {
+        storeBaseValue("_add_mut", new Primitive("_add_mut") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliList x = (PacioliList) params.get(0);
                 PacioliValue y = params.get(1);
@@ -1190,7 +1190,7 @@ public class Machine {
             }
         });
 
-        storeBaseValue("three_question_marks", new Primitive("three_question_marks") {
+        storeBaseValue("_three_question_marks", new Primitive("_three_question_marks") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 throw new MVMException("Not yet implemented");
             }

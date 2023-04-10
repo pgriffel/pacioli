@@ -184,7 +184,7 @@ parser code {:
         String accuName = freshName("_c_accu");
         String tupName = freshName("_c_tup");
 
-        ExpressionNode addMut = new IdentifierNode("add_mut", loc);
+        ExpressionNode addMut = new IdentifierNode("_add_mut", loc);
         ExpressionNode accu = new IdentifierNode(accuName, loc);
         ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), loc);
 
@@ -546,7 +546,7 @@ expr_no_id ::=
  | unsigned:u                                       {: RESULT = new ConstNode(u, makeLoc(uxleft, uxright)); :}
  | BOOLEAN:b                                        {: RESULT = new ConstNode(b, makeLoc(bxleft, bxright)); :}
  | STRING:s                                         {: RESULT = new StringNode(s, makeLoc(sxleft, sxright)); :}
- | QUESTIONMARKS:s                                  {: RESULT = new ApplicationNode(new IdentifierNode("three_question_marks", makeLoc(sxleft, sxright)), new ArrayList<ExpressionNode>() , makeLoc(sxleft, sxright)); :}
+ | QUESTIONMARKS:s                                  {: RESULT = new ApplicationNode(new IdentifierNode("_three_question_marks", makeLoc(sxleft, sxright)), new ArrayList<ExpressionNode>() , makeLoc(sxleft, sxright)); :}
  ;
 
 //------------------------------------------------------------------------------
@@ -625,7 +625,7 @@ stm_if_tail ::=
                                                        RESULT = new IfStatementNode(loc, e, s, t); :}
  | ELSE:l sequence:s END:e                         {: RESULT = s; :}
  | END:e                                            {: pacioli.Location loc = makeLoc(exleft, exright);
-                                                       RESULT = new ApplicationNode(new IdentifierNode("skip", loc), new ArrayList<ExpressionNode>(), loc); :}
+                                                       RESULT = new ApplicationNode(new IdentifierNode("_skip", loc), new ArrayList<ExpressionNode>(), loc); :}
  ;
 
 //------------------------------------------------------------------------------
@@ -641,7 +641,7 @@ listlit ::=
                                                            List<ExpressionNode> tup = new ArrayList<ExpressionNode>();
                                                            tup.add(list);
                                                            tup.add(item);
-                                                           list = new ApplicationNode(new IdentifierNode("add_mut", loc), tup, loc);
+                                                           list = new ApplicationNode(new IdentifierNode("_add_mut", loc), tup, loc);
                                                        }
                                                        RESULT = list; :}
  ;

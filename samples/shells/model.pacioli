@@ -170,8 +170,8 @@ define grow(shell, n) =
           i := 0;
           while i != n do
               t := step(s, gvm, growth_factor(m+i, factor, nr_ticks), landmarks);
-              me := add_mut(me, segment_mesh(s, t));
-              b := add_mut(b, t);
+              me := _add_mut(me, segment_mesh(s, t));
+              b := _add_mut(b, t);
               s := t;
               i := i + 1;
           end
@@ -240,11 +240,11 @@ define extend_shell_info(shell, info, n) =
               area := area + sass;
               vss := surface_volume(append(ss, append(curve_surface(a), cb)));
               volume := volume + vss;
-              aperture_area := add_mut(aperture_area, surface_area(cb));
-              body_area_growth := add_mut(body_area_growth, sass);
-              body_area := add_mut(body_area, area);
-              body_volume_growth := add_mut(body_volume_growth, vss);
-              body_volume := add_mut(body_volume, volume);
+              aperture_area := _add_mut(aperture_area, surface_area(cb));
+              body_area_growth := _add_mut(body_area_growth, sass);
+              body_area := _add_mut(body_area, area);
+              body_volume_growth := _add_mut(body_volume_growth, vss);
+              body_volume := _add_mut(body_volume, volume);
               i := i + 1;
           end
           return tuple(aperture_area, body_area_growth, body_area, body_volume_growth, body_volume);
