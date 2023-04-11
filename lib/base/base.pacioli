@@ -70,11 +70,11 @@ declare public _atan2 ::
 
 #declare _throw_result :: for_type a: (Ref(a), a) -> Void;
 #declare _catch_result :: for_type a: (() -> Void, Ref(a)) -> a;
-declare _skip :: () -> Void;
+declare public _skip :: () -> Void;
 #declare _seq :: (Void, Void) -> Void;
 #declare _while :: (() -> Boole, () -> Void) -> Void;
 
-declare _three_question_marks :: for_type t: () -> t;
+declare public _three_question_marks :: for_type t: () -> t;
 
 # ----------------------------------------------------------------------------
 # Lists

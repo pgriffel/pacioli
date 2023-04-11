@@ -3,13 +3,11 @@ import geometric_algebra;
 import testing;
 import si;
 
-declare geometric_algebra_suites :: List(TestSuite);
+declare public geometric_algebra_suites :: List(TestSuite);
 
 define geometric_algebra_suites = [
-    bit_suite,
     term_suite,
     parser_suite,
-    multivector_utilities_suite,
     multivector_suite,
     geometric_product_suite,
     outer_product_suite,
@@ -25,87 +23,6 @@ run_test_suites(geometric_algebra_suites);
 declare mv :: (String) -> MultiVector;
 
 define mv(input) = parse_multivector(input);
-
-# ------------------------------------------------------------------------------
-# Bit layer
-# ------------------------------------------------------------------------------
- 
-define bit_suite = test_suite("Blade layer", [
-      
-    test("base blades should have correct integer representation",
-         fn ()
-            scalar = make_int_rep(0) and
-            e1 = make_int_rep(1) and
-            e2 = make_int_rep(2) and
-            e12 = make_int_rep(3) and
-            e3 = make_int_rep(4) and
-            e13 = make_int_rep(5) and
-            e23 = make_int_rep(6) and
-            e123 = make_int_rep(7)
-         end),      
-
-    test("bin2int should be inverse of int2bin",
-         fn ()
-            bin2int(int2bin(scalar)) = scalar and
-            bin2int(int2bin(e1)) = e1 and
-            bin2int(int2bin(e2)) = e2 and
-            bin2int(int2bin(e3)) = e3 and
-            bin2int(int2bin(e12)) = e12
-         end),
-   
-          
-    test("int2bin should give correct bits for base blades",
-         fn ()
-            int2bin(scalar) = make_bit_list([0]) and
-            int2bin(e1) = make_bit_list([1]) and
-            int2bin(e2) = make_bit_list([0, 1]) and
-            int2bin(e3) = make_bit_list([0, 0, 1]) and
-            int2bin(e12) = make_bit_list([1, 1]) and
-            int2bin(e23) = make_bit_list([0, 1, 1]) and
-            int2bin(e13) = make_bit_list([1, 0, 1]) and
-            int2bin(e123) = make_bit_list([1, 1, 1]) 
-         end),
-
-    test("blade_grade should give correct grade for base blades",
-         fn ()
-            blade_grade(scalar) = 0 and
-            blade_grade(e1) = 1 and
-            blade_grade(e2) = 1 and
-            blade_grade(e3) = 1 and
-            blade_grade(e12) = 2 and
-            blade_grade(e23) = 2 and
-            blade_grade(e13) = 2 and
-            blade_grade(e123) = 3 
-         end),
-    
-     test("should count swaps correctly",
-        fn () 
-            count_swap(int2bin(scalar), int2bin(e1)) = 0 and
-            count_swap(int2bin(e1), int2bin(scalar)) = 0 and
-            count_swap(int2bin(e1), int2bin(e2)) = 0 and
-            count_swap(int2bin(e2), int2bin(e1)) = 1 and
-            count_swap(int2bin(e1), int2bin(e23)) = 0 and
-            count_swap(int2bin(e2), int2bin(e13)) = 1 and
-            count_swap(int2bin(e2), int2bin(e23)) = 0 and
-            count_swap(int2bin(e3), int2bin(e123)) = 2 and
-            count_swap(int2bin(e123), int2bin(e123)) = 3 and
-            count_swap(int2bin(e23), int2bin(e123)) = 3 and
-            count_swap(int2bin(e12), int2bin(e23)) = 0 and
-            count_swap(int2bin(e12), int2bin(e13)) = 1
-        end),
-
-    test("should convert to base two correctly",
-        fn () 
-            int2basetwo_power(0) = [] and
-            int2basetwo_power(1) = [1] and
-            int2basetwo_power(2) = [2] and
-            int2basetwo_power(3) = [1, 2] and
-            int2basetwo_power(4) = [4] and
-            int2basetwo_power(5) = [1, 4] and
-            int2basetwo_power(6) = [2, 4] and
-            int2basetwo_power(7) = [1, 2, 4]
-        end)
-]);
 
 # ------------------------------------------------------------------------------
 # Term layer
@@ -213,54 +130,6 @@ define parser_suite = test_suite("Parser", [
         end)
 ]);
 
-# ------------------------------------------------------------------------------
-# Multivector utilities layer
-# ------------------------------------------------------------------------------
-
-define multivector_utilities_suite = test_suite("Multivector utilities", [
-
-    test("should remove-zeros on empty list",
-        fn () 
-            remove_zeros(make_multivector([])) = make_multivector([])
-        end),
-
-    test("should remove-zeros on list with a zero term",
-        fn () 
-            remove_zeros(make_multivector([make_term(0, e1), make_term(1, e2)])) =
-                make_multivector([make_term(1, e2)])
-        end),
-
-    test("should not remove-zeros on list without zero terms",
-        fn () 
-            remove_zeros(make_multivector([make_term(1, e1), make_term(1, e2)])) =
-                make_multivector([make_term(1, e1), make_term(1, e2)])
-        end),
-
-    test("should simplify zero terms",
-        fn () 
-            simplify(make_multivector([make_term(0,e1), make_term(3,e2)])) =
-                make_multivector([make_term(3,e2)]) 
-        end),
-
-    test("should simplify a singleton correctly",
-        fn () 
-            simplify(make_multivector([make_term(3,e2)])) = make_multivector([make_term(3,e2)])
-        end),
-
-    test("should simplify the right term",
-        fn () 
-            simplify(make_multivector([make_term(5,scalar), make_term(3,e2)])) =
-                make_multivector([make_term(5,scalar), make_term(3,e2)]) and
-            simplify(make_multivector([make_term(5,e1), make_term(3,e2)])) =
-                make_multivector([make_term(5,e1), make_term(3,e2)]) and
-            simplify(make_multivector([make_term(5,e2), make_term(3,e2)])) =
-                make_multivector([make_term(8,e2)]) and
-            simplify(make_multivector([make_term(5,e3), make_term(3,e2)])) =
-                make_multivector([make_term(5,e3), make_term(3,e2)]) and
-            simplify(make_multivector([make_term(5,e12), make_term(3,e2)])) =
-                make_multivector([make_term(5,e12), make_term(3,e2)])
-        end)
-]);
 
 # ------------------------------------------------------------------------------
 # Multivector layer

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import mvm.values.Boole;
 import pacioli.CompilationSettings.Target;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
@@ -65,20 +66,24 @@ public class Bundle {
         this.libs = libs;
     }
 
-    public SymbolTable<ValueInfo> programValueTable(Collection<String> moduleNames) {
+    public SymbolTable<ValueInfo> programValueTable(Collection<String> importedModules, Collection<String> includedModules) {
         SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>();
         valueTable.allInfos().forEach(info -> {
-            if (moduleNames.contains(info.generic().getModule())) {
+            if (info.isPublic() && importedModules.contains(info.generic().getModule())) {
+                table.put(info.name(), info);
+            }
+            if (includedModules.contains(info.generic().getModule())) {
                 table.put(info.name(), info);
             }
         });
         return table;
     }
 
-    public SymbolTable<TypeSymbolInfo> programTypeTable(Collection<String> moduleNames) {
+    public SymbolTable<TypeSymbolInfo> programTypeTable(Collection<String> importedModules, Collection<String> includedModules) {
         SymbolTable<TypeSymbolInfo> table = new SymbolTable<TypeSymbolInfo>();
         typeTable.allInfos().forEach(info -> {
-            if (moduleNames.contains(info.generic().getModule())) {
+            String infoModule = info.generic().getModule();
+            if (importedModules.contains(infoModule) || includedModules.contains(infoModule)) {
                 Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(),
                         info.name());
                 table.put(info.name(), info);
@@ -253,7 +258,7 @@ public class Bundle {
 
     }
 
-    void printTypes(boolean rewriteTypes) throws PacioliException {
+    void printTypes(boolean rewriteTypes, boolean includePrivate) throws PacioliException {
 
         List<String> names = valueTable.allNames();
         Collections.sort(names);
@@ -261,8 +266,8 @@ public class Bundle {
         for (String value : names) {
             ValueInfo info = valueTable.lookup(value);
             boolean fromProgram = info.generic().getModule().equals(file.getModule());
-            if (fromProgram && info.getDefinition().isPresent()) {
-                Pacioli.println("\n%s ::", info.name());
+            if ((includePrivate || info.isPublic()) && fromProgram && info.getDefinition().isPresent()) {
+                Pacioli.println("%s ::", info.name());
                 if (rewriteTypes) {
                     Pacioli.print(" %s;", info.inferredType().deval().pretty());
                 } else {

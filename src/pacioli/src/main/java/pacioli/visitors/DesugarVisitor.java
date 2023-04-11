@@ -32,7 +32,7 @@ public class DesugarVisitor extends IdentityTransformation {
             if (def instanceof MultiDeclaration) {
                 MultiDeclaration decl = (MultiDeclaration) def;
                 for (IdentifierNode id : decl.ids) {
-                    noMultis.add(new Declaration(decl.getLocation(), id, decl.node));
+                    noMultis.add(new Declaration(decl.getLocation(), id, decl.node, decl.isPublic()));
                 }
             } else {
                 noMultis.add(def);

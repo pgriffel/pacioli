@@ -390,7 +390,7 @@ commands ::=
 command ::= 
    DEFINE:d id:id EQL expr:e                        {: RESULT = new ValueDefinition(makeLoc(dxleft, exright), id, e); :}
  | DEFINE:d id:id idlist:ids EQL expr:e             {: RESULT = functionDefinition(makeLoc(dxleft, exright), id, ids, e); :}
- | DECLARE:d quali ids:ids DBLCLN schema:s          {: RESULT = new MultiDeclaration(makeLoc(dxleft, sxright), ids, s); :}
+ | DECLARE:d quali:q ids:ids DBLCLN schema:s          {: RESULT = new MultiDeclaration(makeLoc(dxleft, sxright), ids, s, q != null); :}
  | DEFINDEX:d id:id                                 {: List<String> names = new ArrayList<String>();
                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, idxright), id, names); :}
  | DEFINDEX:d id:id EQL LBRC names:ids RBRC:p       {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
@@ -419,7 +419,7 @@ command ::=
  ;
 
 quali ::=  
-   PUBLIC
+   PUBLIC {: RESULT = true; :}
  | /* empty */
  ;
 

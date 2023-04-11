@@ -171,7 +171,7 @@ public class ResolveVisitor extends IdentityVisitor {
         // Create a symbol info record for each lambda parameter and store it in the
         // table
         for (String arg : node.arguments) {
-            ValueInfo info = new ValueInfo(arg, file, module, false, true, node.getLocation());
+            ValueInfo info = new ValueInfo(arg, file, module, false, true, node.getLocation(), false);
             node.table.put(arg, info);
         }
 
@@ -384,7 +384,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
             // Create a value info record for the mutable (IsRef == true) variable
             if (info == null) {
-                info = new ValueInfo(id.getName(), file, module, false, false, id.getLocation());
+                info = new ValueInfo(id.getName(), file, module, false, false, id.getLocation(), false);
                 info.setIsRef(true);
 
                 // If it shadows another value then remember that for initialization in
@@ -404,7 +404,7 @@ public class ResolveVisitor extends IdentityVisitor {
         }
 
         // Create an info record for the result and put it in the symbol table
-        ValueInfo info = new ValueInfo(resultName, file, module, false, false, node.getLocation());
+        ValueInfo info = new ValueInfo(resultName, file, module, false, false, node.getLocation(), false);
         node.table.put(resultName, info);
         node.resultInfo = info;
 
@@ -605,7 +605,7 @@ public class ResolveVisitor extends IdentityVisitor {
             assert (binding instanceof LetBindingNode);
             LetBindingNode functionBinding = (LetBindingNode) binding;
             String arg = functionBinding.var;
-            ValueInfo info = new ValueInfo(arg, file, module, false, false, node.getLocation());
+            ValueInfo info = new ValueInfo(arg, file, module, false, false, node.getLocation(), false);
 
             // todo: set the definition!!!!!!!
             // Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");

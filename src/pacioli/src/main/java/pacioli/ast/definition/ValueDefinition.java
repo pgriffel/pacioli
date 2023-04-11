@@ -75,7 +75,7 @@ public class ValueDefinition extends AbstractDefinition {
                 throw new PacioliException(getLocation(), "Duplicate definition for %s", name);
             }
         } else {
-            ValueInfo info = new ValueInfo(name, program.file, program.getModule(), true, false, getLocation());
+            ValueInfo info = new ValueInfo(name, program.file, program.getModule(), true, false, getLocation(), false);
             info.setDefinition(this);
             program.values.put(name, info);
         }

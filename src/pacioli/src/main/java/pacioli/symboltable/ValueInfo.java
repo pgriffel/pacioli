@@ -39,16 +39,19 @@ public class ValueInfo extends AbstractSymbolInfo<ValueInfo> {
 
     // Set during type inference
     public Optional<PacioliType> inferredType = Optional.empty();
+    private boolean isPublic;
 
     public ValueInfo(String name, PacioliFile file, String module, Boolean isGlobal, Boolean isMonomorphic,
-            Location location) {
+            Location location, boolean isPublic) {
         super(new GenericInfo(name, file, module, isGlobal, location));
         this.isMonomorphic = isMonomorphic;
+        this.isPublic = isPublic;
     }
 
-    public ValueInfo(GenericInfo generic, Boolean isMonomorphic) {
+    public ValueInfo(GenericInfo generic, Boolean isMonomorphic, boolean isPublic) {
         super(generic);
         this.isMonomorphic = isMonomorphic;
+        this.isPublic = isPublic;
     }
 
     @Override
@@ -125,5 +128,9 @@ public class ValueInfo extends AbstractSymbolInfo<ValueInfo> {
 
     public void setinferredType(PacioliType type) {
         this.inferredType = Optional.of(type);
+    }
+
+    public boolean isPublic() {
+        return isPublic;
     }
 }

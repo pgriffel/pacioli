@@ -118,7 +118,7 @@ public class Project {
         return iter;
     }
 
-    private List<String> usedModules(Progam program) {
+    private List<String> importedModules(Progam program) {
 
         List<String> modules = new ArrayList<String>();
 
@@ -138,6 +138,13 @@ public class Project {
             }
         }
 
+        return modules;
+    }
+
+    private List<String> includedModules(Progam program) {
+
+        List<String> modules = new ArrayList<String>();
+    
         // Locate all included files and collect the module names
         for (PacioliFile include : findIncludes(program.file, program.program)) {
             modules.add(include.getModule());
@@ -211,9 +218,10 @@ public class Project {
 
                 // Filter the bundle's total symbol tables for the directly used modules of the
                 // program
-                List<String> useModules = usedModules(program);
-                SymbolTable<ValueInfo> vTable = bundle.programValueTable(useModules);
-                SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(useModules);
+                List<String> importedModules = importedModules(program);
+                List<String> includedModules = includedModules(program);
+                SymbolTable<ValueInfo> vTable = bundle.programValueTable(importedModules, includedModules);
+                SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(importedModules, includedModules);
 
                 // Analyse the code given the imported and included infos
                 program.loadRest(new PacioliTable(vTable, tTable));
@@ -395,7 +403,7 @@ public class Project {
         return includes;
     }
 
-    public void printTypes(boolean rewriteTypes) throws Exception {
+    public void printTypes(boolean rewriteTypes, boolean includePrivate) throws Exception {
 
         Bundle bundle = Bundle.empty(file, libs);
 
@@ -408,9 +416,13 @@ public class Project {
 
             // Filter the bundle's total symbol tables for the directly used modules of the
             // program
-            List<String> useModules = usedModules(program);
-            SymbolTable<ValueInfo> vTable = bundle.programValueTable(useModules);
-            SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(useModules);
+            List<String> importedModules = importedModules(program);
+            List<String> includedModules = includedModules(program);
+            SymbolTable<ValueInfo> vTable = bundle.programValueTable(importedModules, includedModules);
+            SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(importedModules, includedModules);
+            // List<String> useModules = usedModules(program);
+            // SymbolTable<ValueInfo> vTable = bundle.programValueTable(useModules);
+            // SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(useModules);
 
             // Analyse the code given the imported and included infos
             program.loadRest(new PacioliTable(vTable, tTable));
@@ -419,7 +431,7 @@ public class Project {
             bundle.load(program, current.equals(file));
         }
 
-        bundle.printTypes(rewriteTypes);
+        bundle.printTypes(rewriteTypes, includePrivate);
 
     }
 

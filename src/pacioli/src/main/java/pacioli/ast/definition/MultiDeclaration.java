@@ -14,11 +14,13 @@ public class MultiDeclaration extends AbstractDefinition {
 
     public List<IdentifierNode> ids;
     public TypeNode node;
+    private boolean isPublic;
 
-    public MultiDeclaration(Location location, List<IdentifierNode> ids, TypeNode node) {
+    public MultiDeclaration(Location location, List<IdentifierNode> ids, TypeNode node, boolean isPublic) {
         super(location);
         this.ids = ids;
         this.node = node;
+        this.isPublic = isPublic;
     }
 
     @Override
@@ -38,12 +40,16 @@ public class MultiDeclaration extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
-/*        // obsolete?!
+        /*        // obsolete?!
         for (IdentifierNode id : ids) {
             Declaration declaration = new Declaration(getLocation(), id, node);
             declaration.addToProgr(program);
         }*/
-        throw new RuntimeException("Cannot add a multi declaration to a program. It should have been desugared into single declarations.");
+        throw new RuntimeException(
+                "Cannot add a multi declaration to a program. It should have been desugared into single declarations.");
     }
 
+    public boolean isPublic() {
+        return isPublic;
+    }
 }
