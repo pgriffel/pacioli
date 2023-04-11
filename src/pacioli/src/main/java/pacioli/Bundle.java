@@ -276,9 +276,10 @@ public class Bundle {
             }
         }
         Integer count = 1;
+        Pacioli.print("\n");
         for (Toplevel toplevel : toplevels) {
             PacioliType type = toplevel.type;
-            Pacioli.println("\nToplevel %s ::", count++);
+            Pacioli.println("Toplevel %s ::", count++);
             Pacioli.print(" %s", type.unfresh().deval().pretty());
         }
     }
