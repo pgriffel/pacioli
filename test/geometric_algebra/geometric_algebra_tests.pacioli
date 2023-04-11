@@ -43,7 +43,7 @@ define term_suite = test_suite("Term layer", [
     ),
 
     test("term_product should return the product of two non disjunct terms with outer true", () -> 
-        term_product(make_term(1, e12), make_term(2, e23), true) = make_term(0, scalar)
+        term_product(make_term(1, e12), make_term(2, e23), true) = make_term(0, e0)
     ),
 
     test("term_product should return the product of two disjunct terms with outer false", () -> 
@@ -70,36 +70,36 @@ define term_suite = test_suite("Term layer", [
 define parser_suite = test_suite("Parser", [
 
     test("should parse a scalar", () ->
-        parse_multivector("42") = make_multivector([make_term(42, scalar)])
+        parse_multivector("42") = make_multivector([make_term(42, e0)])
     ),
 
     test("should parse a negative scalar", () ->
-        parse_multivector("-999") = make_multivector([make_term(-999, scalar)])
+        parse_multivector("-999") = make_multivector([make_term(-999, e0)])
     ),
 
     test("should parse a more complex multivector", () ->
         parse_multivector("1 + 1.8e3 + -3e23") =
-            make_multivector([make_term(1, scalar), make_term(1.8, e3), make_term(-3, e23)])
+            make_multivector([make_term(1, e0), make_term(1.8, e3), make_term(-3, e23)])
     ),
 
     test("should handle missing weights", () ->
         parse_multivector("1 + e3 + -e23") =
-            make_multivector([make_term(1, scalar), make_term(1, e3), make_term(-1, e23)])
+            make_multivector([make_term(1, e0), make_term(1, e3), make_term(-1, e23)])
     ),
 
     test("should ignore extra whitespace", () ->
         parse_multivector("1   +    1.8e3+ -3e23   ") =
-            make_multivector([make_term(1, scalar), make_term(1.8, e3), make_term(-3, e23)])
+            make_multivector([make_term(1, e0), make_term(1.8, e3), make_term(-3, e23)])
     ),
 
     test("should merge terms", () ->
         parse_multivector("1 + 1.8e3 + 3e3") =
-            make_multivector([make_term(1, scalar), make_term(4.8, e3)])
+            make_multivector([make_term(1, e0), make_term(4.8, e3)])
     ),
 
     test("should reorder terms", () ->
         parse_multivector("2 + 3e2 + 4e1") =
-            make_multivector([make_term(2, scalar), make_term(4, e1), make_term(3, e2)])
+            make_multivector([make_term(2, e0), make_term(4, e1), make_term(3, e2)])
     ),
 
     test("should reorder blades", () ->
