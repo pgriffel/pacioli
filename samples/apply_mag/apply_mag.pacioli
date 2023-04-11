@@ -12,12 +12,14 @@ declare apply_mag :: for_index I, J: for_unit a, I!u, J!v:
     ((I! per J!) -> I! per J!, a*I!u per J!v) -> a*I!u per J!v;
 
 define dimmed(f) =
-    fn (x) f(magnitude(x)) * unit(x) end;
+    (x) -> f(magnitude(x)) * unit(x);
 
 define apply_mag(f, x) =
     dimmed(f)(x);
 
-apply_mag(fn(a) space_vec(1, 2, 3) + a end, space_vec(1*|metre|, 1*|metre|, 1*|metre|));
+apply_mag(
+    (a) -> space_vec(1, 2, 3) + a,
+    space_vec(1*|metre|, 1*|metre|, 1*|metre|));
 
 
 declare f :: for_index D, E: for_unit a, D!b, E!c:
@@ -28,13 +30,13 @@ declare g :: (1) -> (1) -> (1) -> (1) -> 1;
 declare h :: for_unit a: (a) -> (a) -> (a) -> (a) -> a;
 
 define f(a) =
-    fn (b) fn (c) fn (d) a + b + c + d end end end;
+    (b) -> (c) -> (d) -> a + b + c + d;
 
 define g = 
-    fn (a) fn (b) fn (c) fn (d) 1 + a + b + c + d end end end end;
+    (a) -> (b) -> (c) -> (d) -> 1 + a + b + c + d;
 
 define h =
-    fn (a) fn (b) fn (c) fn (d) 1 * a + b + c + d end end end end;
+    (a) -> (b) -> (c) -> (d) -> 1 * a + b + c + d;
 
 f(1)(2)(3)(4);
 

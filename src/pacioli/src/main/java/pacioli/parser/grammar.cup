@@ -311,7 +311,7 @@ parser code {:
 terminal INCLUDE, IMPORT;
 terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, PUBLIC;
 terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, DO, ASSIGN, EXCL, TO, FROM;
-terminal IN, LET, PER, THEN, RETURN, FN, FORTYPE, FORUNIT, FORINDEX, AT;
+terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
 terminal PLUS, MULT, DIV, MOD, MMULT, HAT, NEG, LEFTDIV, MDIV, MEXPT, MLEFTDIV;
 terminal RSCALEDOWN, RSCALE, LSCALEDOWN, LSCALE, TRANS, DIMINV, RECI;
@@ -575,7 +575,7 @@ expr_no_id ::=
  | expr:e1 OR expr:e2                               {: pacioli.Location loc = makeLoc(e1xleft, e2xright);
                                                        RESULT = new BranchNode(e1, new ConstNode("true", loc), e2, loc); :}
  | expr:fun exprlist:args                             {: RESULT = new ApplicationNode(fun, args, makeLoc(funxleft, argsxright)); :}
- | FN:l idlist:ids expr:b END:e                     {: RESULT = new LambdaNode(freshUnderscores(idNames(ids)), b, makeLoc(lxleft, exright)); :}
+ | idlist:ids TO expr:b                             {: RESULT = new LambdaNode(freshUnderscores(idNames(ids)), b, makeLoc(idsxleft, bxright)); :}
  | IF:i expr:c THEN expr:b if_tail:t                {: RESULT = new BranchNode(c, b, t, makeLoc(ixleft, txright)); :}
  | LET lettail:e                                    {: RESULT = e; :}
  | listlit:e                                        {: RESULT = e; :}

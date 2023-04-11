@@ -30,13 +30,11 @@ defmatrix expected_product_cost :: dollar / Product!trade_unit = {
 
 define bom_suite = test_suite("Bill of Material", [
 
-    test("trade BoM should be correct", 
-        fn ()
-            trade_bom = expected_trade_bom
-        end),
+    test("trade BoM should be correct", () ->
+        trade_bom = expected_trade_bom
+    ),
 
-    test("product cost should be correct", 
-        fn ()
-            approximates(product_cost, expected_product_cost, 10*|decimals|)
-        end)
+    test("product cost should be correct", () ->
+        approximates(product_cost, expected_product_cost, 10*|decimals|)
+    )
 ]);

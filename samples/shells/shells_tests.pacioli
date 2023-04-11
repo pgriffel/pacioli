@@ -44,29 +44,26 @@ define check_curves(x, y) =
 
 define shells_suite = test_suite("Shells", [
 
-    test("should have the correct settings for some initial shell", 
-        fn ()
-            let shell = run() in
-                get_settings(shell) = ???
-            end
-        end),
+    test("should have the correct settings for some initial shell", () ->
+        let shell = run() in
+            get_settings(shell) = ???
+        end
+    ),
     
-    test_only("should have the correct body for some initial shell", 
-        fn ()
-            let 
-                shell = run(),
-                zipped = zip(shell_body_internals(shell), expected_shell)
-             in
-                list_size(zipped) = list_size(expected_shell) and
-                all[check_curves(a, b) | (a, b) <- zipped]
-                #printed(shell_body_internals(shell)) = printed([[shell_vec(1,1,1)]])
-            end
-        end),
+    test_only("should have the correct body for some initial shell", () ->
+        let 
+            shell = run(),
+            zipped = zip(shell_body_internals(shell), expected_shell)
+            in
+            list_size(zipped) = list_size(expected_shell) and
+            all[check_curves(a, b) | (a, b) <- zipped]
+            #printed(shell_body_internals(shell)) = printed([[shell_vec(1,1,1)]])
+        end
+    ),
 
-    test("should have the correct meshes for some initial shell", 
-        fn ()
-            let shell = run() in
-                get_meshes(shell) = ???
-            end
-        end)
+    test("should have the correct meshes for some initial shell", () ->
+        let shell = run() in
+            get_meshes(shell) = ???
+        end
+    )
 ]);

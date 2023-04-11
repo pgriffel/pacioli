@@ -37,21 +37,18 @@ defmatrix test_matrix :: Place! per Transition! = {
 #print(fourier_motzkin(test_matrix));
 
 define fourier_motzkin_suite = test_suite("Function fourier_motzkin", [
-    test("should solve correctly for a 3 by 3 matrix with 2 non-zero entries", 
-    fn ()
+    test("should solve correctly for a 3 by 3 matrix with 2 non-zero entries", () ->
         fourier_motzkin(test_matrix) = [tvec(0,0,1), tvec(1,1,0)]
-    end),
+    ),
 
-    test("should solve correctly for the zero matrix", 
-    fn ()
+    test("should solve correctly for the zero matrix", () ->
         fourier_motzkin(0 '.*' test_matrix) = [tvec(1,0,0), tvec(0,1,0), tvec(0,0,1)]
-    end),
+    ),
 
-    test("should solve correctly for 1 by 1 matrices", 
-    fn ()
+    test("should solve correctly for 1 by 1 matrices", () ->
         fourier_motzkin(0) = [1] and
         fourier_motzkin(1) = [] and
         fourier_motzkin(9) = [] and
         fourier_motzkin(-9) = []
-    end)
+    )
 ]);

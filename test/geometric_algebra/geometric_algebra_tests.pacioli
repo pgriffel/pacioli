@@ -30,45 +30,37 @@ define mv(input) = parse_multivector(input);
 
 define term_suite = test_suite("Term layer", [
 
-    test("term_weight should return the weight of a term",
-        fn () 
-            term_weight(make_term(3,e2)) = 3
-        end),
+    test("term_weight should return the weight of a term", () -> 
+        term_weight(make_term(3,e2)) = 3
+    ),
 
-    test("term_base_blade should return the BaseBlade of a term",
-        fn () 
-            term_base_blade(make_term(3,e2)) = e2
-        end),
+    test("term_base_blade should return the BaseBlade of a term", () -> 
+        term_base_blade(make_term(3,e2)) = e2
+    ),
 
-    test("term_product should return the product of two non disjunct terms with outer false",
-        fn () 
-            term_product(make_term(1, e12), make_term(2, e23), false) = make_term(2, e13)
-        end),
+    test("term_product should return the product of two non disjunct terms with outer false", () -> 
+        term_product(make_term(1, e12), make_term(2, e23), false) = make_term(2, e13)
+    ),
 
-    test("term_product should return the product of two non disjunct terms with outer true",
-        fn () 
-            term_product(make_term(1, e12), make_term(2, e23), true) = make_term(0, scalar)
-        end),
+    test("term_product should return the product of two non disjunct terms with outer true", () -> 
+        term_product(make_term(1, e12), make_term(2, e23), true) = make_term(0, scalar)
+    ),
 
-    test("term_product should return the product of two disjunct terms with outer false",
-        fn () 
-            term_product(make_term(1, e1), make_term(2, e23), false) = make_term(2, e123)
-        end),
+    test("term_product should return the product of two disjunct terms with outer false", () -> 
+        term_product(make_term(1, e1), make_term(2, e23), false) = make_term(2, e123)
+    ),
 
-    test("term_product should return the product of two disjunct terms with outer true",
-        fn () 
-            term_product(make_term(1, e1), make_term(2, e23), true) = make_term(2, e123)
-        end),
+    test("term_product should return the product of two disjunct terms with outer true", () -> 
+        term_product(make_term(1, e1), make_term(2, e23), true) = make_term(2, e123)
+    ),
 
-    test("term_reverse should reverse a term",
-        fn () 
-            term_reverse(make_term(1, e12)) = make_term(-1, e12)
-        end),
+    test("term_reverse should reverse a term", () -> 
+        term_reverse(make_term(1, e12)) = make_term(-1, e12)
+    ),
 
-    test("term_bar should return the bar of a term",
-        fn () 
-            term_bar(make_term(1, e12)) = make_term(1, e12)
-        end)
+    test("term_bar should return the bar of a term", () -> 
+        term_bar(make_term(1, e12)) = make_term(1, e12)
+    )
 ]);
 
 # ------------------------------------------------------------------------------
@@ -77,57 +69,48 @@ define term_suite = test_suite("Term layer", [
 
 define parser_suite = test_suite("Parser", [
 
-    test("should parse a scalar",
-        fn ()
-            parse_multivector("42") = make_multivector([make_term(42, scalar)])
-        end),
+    test("should parse a scalar", () ->
+        parse_multivector("42") = make_multivector([make_term(42, scalar)])
+    ),
 
-    test("should parse a negative scalar",
-        fn ()
-            parse_multivector("-999") = make_multivector([make_term(-999, scalar)])
-        end),
+    test("should parse a negative scalar", () ->
+        parse_multivector("-999") = make_multivector([make_term(-999, scalar)])
+    ),
 
-    test("should parse a more complex multivector",
-        fn ()
-            parse_multivector("1 + 1.8e3 + -3e23") =
-                make_multivector([make_term(1, scalar), make_term(1.8, e3), make_term(-3, e23)])
-        end),
+    test("should parse a more complex multivector", () ->
+        parse_multivector("1 + 1.8e3 + -3e23") =
+            make_multivector([make_term(1, scalar), make_term(1.8, e3), make_term(-3, e23)])
+    ),
 
-    test("should handle missing weights",
-        fn ()
-            parse_multivector("1 + e3 + -e23") =
-                make_multivector([make_term(1, scalar), make_term(1, e3), make_term(-1, e23)])
-        end),
+    test("should handle missing weights", () ->
+        parse_multivector("1 + e3 + -e23") =
+            make_multivector([make_term(1, scalar), make_term(1, e3), make_term(-1, e23)])
+    ),
 
-    test("should ignore extra whitespace",
-        fn ()
-            parse_multivector("1   +    1.8e3+ -3e23   ") =
-                make_multivector([make_term(1, scalar), make_term(1.8, e3), make_term(-3, e23)])
-        end),
+    test("should ignore extra whitespace", () ->
+        parse_multivector("1   +    1.8e3+ -3e23   ") =
+            make_multivector([make_term(1, scalar), make_term(1.8, e3), make_term(-3, e23)])
+    ),
 
-    test("should merge terms",
-        fn ()
-            parse_multivector("1 + 1.8e3 + 3e3") =
-                make_multivector([make_term(1, scalar), make_term(4.8, e3)])
-        end),
+    test("should merge terms", () ->
+        parse_multivector("1 + 1.8e3 + 3e3") =
+            make_multivector([make_term(1, scalar), make_term(4.8, e3)])
+    ),
 
-    test("should reorder terms",
-        fn ()
-            parse_multivector("2 + 3e2 + 4e1") =
-                make_multivector([make_term(2, scalar), make_term(4, e1), make_term(3, e2)])
-        end),
+    test("should reorder terms", () ->
+        parse_multivector("2 + 3e2 + 4e1") =
+            make_multivector([make_term(2, scalar), make_term(4, e1), make_term(3, e2)])
+    ),
 
-    test("should reorder blades",
-        fn ()
-            parse_multivector("3e21") =
-                make_multivector([make_term(-3, e12)])
-        end),
+    test("should reorder blades", () ->
+        parse_multivector("3e21") =
+            make_multivector([make_term(-3, e12)])
+    ),
 
-    test("should normalize",
-        fn ()
-            parse_multivector("e1e2") =
-                make_multivector([make_term(1, e12)])
-        end)
+    test("should normalize", () ->
+        parse_multivector("e1e2") =
+            make_multivector([make_term(1, e12)])
+    )
 ]);
 
 
@@ -137,77 +120,65 @@ define parser_suite = test_suite("Parser", [
 
 define multivector_suite = test_suite("Multivector", [
 
-    test("should print correctly",
-        fn ()
-            let output = multivector2string(mv("8 + 2e1 + 6e2 + 7e13 + -4e23")) in
-                # Two cases in order to manage "." vs "," system settings 
-                output = "8,00 + 2,00e1 + 6,00e2 + 7,00e13 + -4,00e23" or 
-                output = "8.00 + 2.00e1 + 6.00e2 + 7.00e13 + -4.00e23"
-            end
-        end),
+    test("should print correctly", () ->
+        let output = multivector2string(mv("8 + 2e1 + 6e2 + 7e13 + -4e23")) in
+            # Two cases in order to manage "." vs "," system settings 
+            output = "8,00 + 2,00e1 + 6,00e2 + 7,00e13 + -4,00e23" or 
+            output = "8.00 + 2.00e1 + 6.00e2 + 7.00e13 + -4.00e23"
+        end
+    ),
 
-    test("should print empty multivector correctly",
-        fn ()
-            let output = multivector2string(make_multivector([])) in
-                output = "0,00" or output = "0.00"
-            end
-        end),
+    test("should print empty multivector correctly", () ->
+        let output = multivector2string(make_multivector([])) in
+            output = "0,00" or output = "0.00"
+        end
+    ),
 
-    test("should sum multi-vectors with disjunct terms",
-        fn () 
-            multivector_add(
-                mv("3 + 2e1 + 4e23"), 
-                mv("5 + 6e2 + 7e13")) = mv("8 + 2e1 + 6e2 + 7e13 + 4e23")
-        end),
+    test("should sum multi-vectors with disjunct terms", () -> 
+        multivector_add(
+            mv("3 + 2e1 + 4e23"), 
+            mv("5 + 6e2 + 7e13")) = mv("8 + 2e1 + 6e2 + 7e13 + 4e23")
+    ),
     
-    test("should sum multi-vectors with overlapping terms",
-        fn () 
-            multivector_add(
-                mv("3 + 2e1 + 4e13"), 
-                mv("5 + 6e2 + 7e13")) = mv("8 + 2e1 + 6e2 + 11e13")
-        end),
+    test("should sum multi-vectors with overlapping terms", () -> 
+        multivector_add(
+            mv("3 + 2e1 + 4e13"), 
+            mv("5 + 6e2 + 7e13")) = mv("8 + 2e1 + 6e2 + 11e13")
+    ),
 
-    test("should get the scalar part of a mulitvector",
-        fn () 
-            scalar_part(mv("12 + -9e1 + 12e2 + 16e12")) = 12
-        end),
+    test("should get the scalar part of a mulitvector", () -> 
+        scalar_part(mv("12 + -9e1 + 12e2 + 16e12")) = 12
+    ),
 
-    test("should project grade 1 with one element",
-        fn ()
-            project_grade(mv("3 + 2e1 + 4e13"), 1) = mv("2e1")
-        end),
+    test("should project grade 1 with one element", () ->
+        project_grade(mv("3 + 2e1 + 4e13"), 1) = mv("2e1")
+    ),
         
-    test("should project grade 1 with two elements",
-        fn ()
-            project_grade(mv("3 + 2e1 + 4e2"), 1) = mv("2e1 + 4e2")
-        end),
+    test("should project grade 1 with two elements", () ->
+        project_grade(mv("3 + 2e1 + 4e2"), 1) = mv("2e1 + 4e2")
+    ),
         
-    test("should reverse",
-        fn ()
-            multivector_reverse(mv("3 + 2e1 + 4e12 + 4e123")) = mv("3 + 2e1 + -4e12 + -4e123")
-        end),
+    test("should reverse", () ->
+        multivector_reverse(mv("3 + 2e1 + 4e12 + 4e123")) = mv("3 + 2e1 + -4e12 + -4e123")
+    ),
         
-    test("should bar",
-        fn ()
-            multivector_bar(mv("3 + 2e1 + 4e12 + 4e123")) = mv("3 + -2e1 + 4e12 + -4e123")
-        end),
+    test("should bar", () ->
+        multivector_bar(mv("3 + 2e1 + 4e12 + 4e123")) = mv("3 + -2e1 + 4e12 + -4e123")
+    ),
         
-    test("should filter even terms",
-        fn ()
-            multivector_even(mv("3 + 2e1 + 4e12 + 4e123")) = mv("3 + 4e12")
-        end),
+    test("should filter even terms", () ->
+        multivector_even(mv("3 + 2e1 + 4e12 + 4e123")) = mv("3 + 4e12")
+    ),
         
-    test("should filter odd terms",
-        fn ()
-            multivector_odd(mv("3 + 2e1 + 4e12 + -4e123")) = mv("2e1 + -4e123")
-        end),
+    test("should filter odd terms", () ->
+        multivector_odd(mv("3 + 2e1 + 4e12 + -4e123")) = mv("2e1 + -4e123")
+    ),
         
-    test("should filter terms with a 'greater than' predicate",
-        fn ()
-            multivector_filter(
-                fn (x) x > 3 end,
-                mv("3 + 2e1 + 4e12 + 4e123")) = mv("4e12 + 4e123")
-        end)
+    test("should filter terms with a 'greater than' predicate", () ->
+        multivector_filter(
+            (x) -> x > 3,
+            mv("3 + 2e1 + 4e12 + 4e123")) = mv("4e12 + 4e123")
+    )
 ]);
 
 # ------------------------------------------------------------------------------
@@ -216,72 +187,61 @@ define multivector_suite = test_suite("Multivector", [
 
 define geometric_product_suite = test_suite("Geometric product", [
         
-    test("should multiply scalars",
-        fn () 
-            geometric_product(mv("3"), mv("5")) = mv("15")
-        end),
+    test("should multiply scalars", () -> 
+        geometric_product(mv("3"), mv("5")) = mv("15")
+    ),
 
-    test("should multiply linear dependent vector and bivector (Leo p151)",
-        fn ()
-            geometric_product(mv("e1"), mv("e12")) = mv("e2")
-        end),
+    test("should multiply linear dependent vector and bivector (Leo p151)", () ->
+        geometric_product(mv("e1"), mv("e12")) = mv("e2")
+    ),
 
-    test("should multiply linear dependent vector and bivector, involution change (Leo p151,152)",
-        fn ()
-            geometric_product(mv("e1"), mv("e21")) = mv("-e2")
-        end),
+    test("should multiply linear dependent vector and bivector, involution change (Leo p151,152)", () ->
+        geometric_product(mv("e1"), mv("e21")) = mv("-e2")
+    ),
 
-    test("should multiply a scalar with a non-scalar",
-        fn () 
-            geometric_product(mv("3"), mv("5e1")) = mv("15e1")
-        end),
+    test("should multiply a scalar with a non-scalar", () -> 
+        geometric_product(mv("3"), mv("5e1")) = mv("15e1")
+    ),
 
-    test("should multiply a non-scalar with a scalar",
-        fn () 
-            geometric_product(mv("3e1"), mv("5")) = mv("15e1")
-        end),
+    test("should multiply a non-scalar with a scalar", () -> 
+        geometric_product(mv("3e1"), mv("5")) = mv("15e1")
+    ),
                             
-    test("should multiply multi-vectors with two terms",
-        fn () 
-            geometric_product(mv("4e1 + 3e2"), mv("4e2 + 3e12")) = 
-                mv("12 + -9e1 + 12e2 + 16e12")
-        end),
+    test("should multiply multi-vectors with two terms", () -> 
+        geometric_product(mv("4e1 + 3e2"), mv("4e2 + 3e12")) = 
+            mv("12 + -9e1 + 12e2 + 16e12")
+    ),
         
-    test("should multiply multi-vectors with three terms",
-        fn () 
-            geometric_product(mv("3 + 2e1 + 4e23"), mv("5 + 6e2 + 7e13")) =
-                mv("15 + 10e1 + 18e2 + -10e3 + 40e12 + 21e13 + 20e23")
-        end),
-    test("should multiply multivectors with single terms",
-        fn ()
-            geometric_product(mv("2e12"), mv("-6e23")) = mv("-12e13")
-        end),
+    test("should multiply multi-vectors with three terms", () -> 
+        geometric_product(mv("3 + 2e1 + 4e23"), mv("5 + 6e2 + 7e13")) =
+            mv("15 + 10e1 + 18e2 + -10e3 + 40e12 + 21e13 + 20e23")
+    ),
 
-    test("should multiply multivectors with single disjunct terms",
-        fn ()
-            geometric_product(mv("2e12"), mv("-6e3")) = mv("-12e123")
-        end),
+    test("should multiply multivectors with single terms", () ->
+        geometric_product(mv("2e12"), mv("-6e23")) = mv("-12e13")
+    ),
 
-    test("should multiply multivectors with two terms",
-        fn ()
-            geometric_product(mv("3 + 2e12"), mv("5 + -6e23")) =
-                mv("15 + 10e12 + -12e13 + -18e23")
-        end),
+    test("should multiply multivectors with single disjunct terms", () ->
+        geometric_product(mv("2e12"), mv("-6e3")) = mv("-12e123")
+    ),
 
-    test("should multiply disjunct multivectors with two terms",
-        fn ()
-            geometric_product(mv("3 + 2e12"), mv("5 + -6e3")) =
-                mv("15 + -18e3 + 10e12 + -12e123")
-          
-        end),
+    test("should multiply multivectors with two terms", () ->
+        geometric_product(mv("3 + 2e12"), mv("5 + -6e23")) =
+            mv("15 + 10e12 + -12e13 + -18e23")
+    ),
 
-    test("should multiply multivectors with three terms",
-        fn ()
-            geometric_product(mv("3 + 2e1 + 4e23"), mv("5 + 6e2 + 7e13")) =
-                mv("15 + 10e1 + 18e2 + -10e3 + 40e12 + 21e13 + 20e23")
-        end),
+    test("should multiply disjunct multivectors with two terms", () ->
+        geometric_product(mv("3 + 2e12"), mv("5 + -6e3")) =
+            mv("15 + -18e3 + 10e12 + -12e123")
+        
+    ),
 
-    test("geometric product from Leo's bivector example (Leo p58)", fn ()
+    test("should multiply multivectors with three terms", () ->
+        geometric_product(mv("3 + 2e1 + 4e23"), mv("5 + 6e2 + 7e13")) =
+            mv("15 + 10e1 + 18e2 + -10e3 + 40e12 + 21e13 + 20e23")
+    ),
+
+    test("geometric product from Leo's bivector example (Leo p58)", () ->
         let 
             a = 3 * 2 * pi *|radian| / 24,
             mv1 = make_multivector([make_term(1, e1)]),
@@ -290,7 +250,7 @@ define geometric_product_suite = test_suite("Geometric product", [
         in
             multivector2string(prod) = "0.71 + 0.71e12" or multivector2string(prod) = "0,71 + 0,71e12" 
         end
-    end)
+    )
 ]);
 
 # ------------------------------------------------------------------------------
@@ -300,45 +260,38 @@ define geometric_product_suite = test_suite("Geometric product", [
 define outer_product_suite = test_suite("Outer product", [
    
 
-    test("multiply linear dependent vector and bivector (Leo p151)",
-        fn ()
-            outer_product(mv("e1"), mv("e12")) = mv("0")
-        end),
+    test("multiply linear dependent vector and bivector (Leo p151)", () ->
+        outer_product(mv("e1"), mv("e12")) = mv("0")
+    ),
 
-    test("multiply linear dependent of vector and bivector, involution change (Leo p151,152)",
-        fn ()
-            outer_product(mv("e1"), mv("e21")) = mv("0")
-        end),
+    test("multiply linear dependent of vector and bivector, involution change (Leo p151,152)", () ->
+        outer_product(mv("e1"), mv("e21")) = mv("0")
+    ),
 
-    test("should multiply multivectors with a single term",
-        fn ()
-            outer_product(mv("2e12"), mv("-6e23")) = mv("0")
-        end),
+    test("should multiply multivectors with a single term", () ->
+        outer_product(mv("2e12"), mv("-6e23")) = mv("0")
+    ),
 
-    test("should multiply multivectors with single disjunct terms",
-        fn ()
-            outer_product(mv("2e12"), mv("-6e3")) = mv("-12e123")
-        end),
+    test("should multiply multivectors with single disjunct terms", () ->
+        outer_product(mv("2e12"), mv("-6e3")) = mv("-12e123")
+    ),
 
-    test("should multiply multivectors with two terms",
-        fn ()
-            outer_product(mv("3 + 2e12"), mv("5 + -6e23")) =
-                mv("15 + 10e12 + -18e23")
-        end),
+    test("should multiply multivectors with two terms", () ->
+        outer_product(mv("3 + 2e12"), mv("5 + -6e23")) =
+            mv("15 + 10e12 + -18e23")
+    ),
 
-    test("should multiply disjunct multivectors with two terms",
-        fn ()
-            outer_product(mv("3 + 2e12"), mv("5 + -6e3")) =
-                mv("15 + -18e3 + 10e12 + -12e123")
-        end),
+    test("should multiply disjunct multivectors with two terms", () ->
+        outer_product(mv("3 + 2e12"), mv("5 + -6e3")) =
+            mv("15 + -18e3 + 10e12 + -12e123")
+    ),
 
-    test("should multiply multivectors with three terms",
-        fn ()
-            outer_product(mv("3 + 2e1 + 4e23"), mv("5 + 6e2 + 7e13")) =
-                mv("15 + 10e1 + 18e2 + 12e12 + 21e13 + 20e23")
-        end),
+    test("should multiply multivectors with three terms", () ->
+        outer_product(mv("3 + 2e1 + 4e23"), mv("5 + 6e2 + 7e13")) =
+            mv("15 + 10e1 + 18e2 + 12e12 + 21e13 + 20e23")
+    ),
 
-    test("should compute a bivector from two vectors (Leo p58)", fn ()
+    test("should compute a bivector from two vectors (Leo p58)", () ->
         let 
             a = 3 * 2 * pi *|radian| / 24,
             mv1 = make_multivector([make_term(1, e1)]),
@@ -347,28 +300,25 @@ define outer_product_suite = test_suite("Outer product", [
         in
             multivector2string(prod) = "0.71e12" or multivector2string(prod) = "0,71e12" 
         end
-    end),
+    ),
   
     # diagonal cases of Cayley table (bivector.net)
-    test("multiply scalars",
-        fn ()
-            outer_product(mv("1"), mv("1")) = mv("1")
-        end),
+    test("multiply scalars", () ->
+        outer_product(mv("1"), mv("1")) = mv("1")
+    ),
 
-    test("multiply scalar and pseudoscalar",
-        fn ()
-            outer_product(mv("1"), mv("e123")) = mv("e123")
-        end),
+    test("multiply scalar and pseudoscalar", () ->
+        outer_product(mv("1"), mv("e123")) = mv("e123")
+    ),
 
-    test("should distribute geometric product over two outer products (Doran p33, 2.62)",
-        fn ()
-            let x = outer_product(mv("e1"), mv("e2")),
-                y = outer_product(mv("e2"), mv("e3")),
-                dummy = multivector2string(geometric_product(x, y))
-            in
-                geometric_product(x, y) = mv("e1e3") # fails because parsing does not normalize. See test for parsing
-            end
-        end)
+    test("should distribute geometric product over two outer products (Doran p33, 2.62)", () ->
+        let x = outer_product(mv("e1"), mv("e2")),
+            y = outer_product(mv("e2"), mv("e3")),
+            dummy = multivector2string(geometric_product(x, y))
+        in
+            geometric_product(x, y) = mv("e1e3") # fails because parsing does not normalize. See test for parsing
+        end
+    )
 ]);
 
 # ------------------------------------------------------------------------------
@@ -378,24 +328,24 @@ define outer_product_suite = test_suite("Outer product", [
 define inner_product_suite = test_suite("Inner product", [
 
     #test("multiply / project linear dependent vector on bivector",
-    #    fn ()
+    #    () ->
     #        inner_product(mv("e1"), mv("e12")) = mv("e2")
-    #    end),
+    #    ),
 
    # diagonal cases of Cayley tab;e (bivector.net)
    #test("multiply scalars",
-   #fn ()
+   #() ->
     #        inner_product(mv("1"), mv("1")) = mv("0")
-    #    end),
+    #    ),
 
    #test("multiply grade-1 vector on itself",
-    #    fn ()
+    #    () ->
     #        #inner_product(mv("e1"), mv("e1")) = mv("1")
-    #    end),
+    #    ),
 
    #test("multiply grade-2 bivector on itself, involution",
-    #    fn ()
+    #    () ->
     #        #inner_product(mv("e12"), mv("e12")) = mv("-1")
-    #    end),
+    #    ),
 
 ]);

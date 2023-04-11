@@ -5,13 +5,13 @@ import geometry;
 declare public geometry_suites :: List(TestSuite);
 
 define geometry_suites = [
-   vector2d_suite,
-   vector3d_suite,
-   norm_suite,
-   normalized_suite,
-   polar2cartesian_suite,
-   inclination_suite,
-   azimuth_suite
+    vector2d_suite,
+    vector3d_suite,
+    norm_suite,
+    normalized_suite,
+    polar2cartesian_suite,
+    inclination_suite,
+    azimuth_suite
 ];
 
 run_test_suites(geometry_suites); 
@@ -22,13 +22,12 @@ run_test_suites(geometry_suites);
 
 define vector2d_suite = test_suite("Function vector2d", [
 
-   test("should construct vector correctly",
-      fn ()
-         let vec = vector2d(100, 200) in
+    test("should construct vector correctly", () ->
+        let vec = vector2d(100, 200) in
             get(vec, Geom2@x, _) = 100 and
             get(vec, Geom2@y, _) = 200
-         end
-      end)
+        end
+    )
 ]);
 
 # ------------------------------------------------------------------------------
@@ -37,14 +36,13 @@ define vector2d_suite = test_suite("Function vector2d", [
 
 define vector3d_suite = test_suite("Function vector3d", [
 
-   test("should construct vector correctly",
-      fn ()
-         let vec = vector3d(100, 200, 500) in
+    test("should construct vector correctly", () ->
+        let vec = vector3d(100, 200, 500) in
             get(vec, Geom3@x, _) = 100 and
             get(vec, Geom3@y, _) = 200 and
             get(vec, Geom3@z, _) = 500
-         end
-      end)
+        end
+    )
 ]);
 
 # ------------------------------------------------------------------------------
@@ -53,43 +51,38 @@ define vector3d_suite = test_suite("Function vector3d", [
 
 define norm_suite = test_suite("Function norm", [
    
-   test("should be zero for zero vector",
-      fn ()
-         let vec = vector2d(0, 0) in
+    test("should be zero for zero vector", () ->
+        let vec = vector2d(0, 0) in
             norm(vec) = 0
-         end
-      end),
+        end
+    ),
 
-   test("should be correct for 2d vector",
-      fn ()
-         let vec = vector2d(100, 200) in
+   test("should be correct for 2d vector", () ->
+        let vec = vector2d(100, 200) in
             norm(vec)^2 = 100^2 + 200^2
-         end
-      end),
+        end
+    ),
 
-   test("should be correct for 3d vector",
-      fn ()
-         let vec = vector3d(100, 200, 300) in
-            norm(vec)^2 = 100^2 + 200^2 + 300^2
-         end
-      end)
+   test("should be correct for 3d vector", () ->
+        let vec = vector3d(100, 200, 300) in
+           norm(vec)^2 = 100^2 + 200^2 + 300^2
+        end
+    )
 ]);
-  
+
 # ------------------------------------------------------------------------------
 # Functions normalized
 # ------------------------------------------------------------------------------
 
 define normalized_suite = test_suite("Function normalized", [
 
-   test("should normalize a vector in the x direction",
-      fn ()
-         normalized(vector3d(10, 0, 0)) = vector3d(1, 0, 0)
-      end),
+    test("should normalize a vector in the x direction", () ->
+        normalized(vector3d(10, 0, 0)) = vector3d(1, 0, 0)
+    ),
    
-   test("should normalize a vector in the x and y direction",
-      fn ()
-         approximates_to(15*|decimals|)(normalized(vector3d(3, 4, 0)), vector3d(0.6, 0.8, 0))
-      end)
+    test("should normalize a vector in the x and y direction", () ->
+        approximates_to(15*|decimals|)(normalized(vector3d(3, 4, 0)), vector3d(0.6, 0.8, 0))
+    )
 ]);
  
 # ------------------------------------------------------------------------------
@@ -100,16 +93,16 @@ define normalized_suite = test_suite("Function normalized", [
 define polar2cartesian_suite = test_suite("Function polar2cartesian", [
 
    test("should transform correctly",
-      fn ()
+      () ->
          approximates(polar2cartesian(4, pi*|radian|, 2*pi*|radian|), vector3d(0, 0, -4), 15*|decimals|)
-      end),
+      ),
 
    test("should transform correctly with units",
-      fn ()
+      () ->
          approximates_to(15*|decimals|)(
             polar2cartesian(4*|metre|, pi*|radian|/2, pi*|radian|),
             |metre| '.*' vector3d(-4, 0, 0))
-      end)   
+      )   
 ]);
  
 # ------------------------------------------------------------------------------
@@ -119,9 +112,9 @@ define polar2cartesian_suite = test_suite("Function polar2cartesian", [
 define inclination_suite = test_suite("Function inclination", [
 
    test("should give correct result for vector (3,3,0)",
-      fn ()
+      () ->
          approximates(inclination(vector3d(3,3,0)), 2*pi*|radian|/4, 15*|decimals|)
-      end)
+      )
 ]);
 
 # ------------------------------------------------------------------------------
@@ -131,7 +124,7 @@ define inclination_suite = test_suite("Function inclination", [
 define azimuth_suite = test_suite("Function azimuth", [
 
    test("should give correct result for vector (3,3,0)",
-      fn ()
+      () ->
          azimuth(vector3d(3,3,0)) = 2*pi*|radian|/8
-      end)
+      )
 ]);

@@ -15,12 +15,11 @@ define kirchhof_suites = [
 
 
 define kirchhof_suite = test_suite("Kirchhof", [
-    test("should solve correctly", 
-    fn ()
+    test("should solve correctly", () ->
         # Fails in js because a least norm inverse is needed
         let (potential_decs, current_decs) = run() in
             potential_decs > 10*|decimals| '.*' |Edge!| and
             current_decs > 10 '.*' |decimals*Node!|
         end
-    end)
+    )
 ]);

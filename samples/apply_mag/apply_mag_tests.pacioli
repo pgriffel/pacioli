@@ -13,26 +13,22 @@ define apply_mag_suites = [
 
 define apply_mag_suite = test_suite("Function apply_mag", [
 
-    test("apply_mag should be correct", 
-        fn ()
-            apply_mag(fn(a) space_vec(1, 2, 3) + a end, space_vec(1*|metre|, 1*|metre|, 1*|metre|)) = space_vec(2*|metre|, 3*|metre|, 4*|metre|)
-        end),
+    test("apply_mag should be correct", () ->
+        apply_mag((a) -> space_vec(1, 2, 3) + a, space_vec(1*|metre|, 1*|metre|, 1*|metre|)) = space_vec(2*|metre|, 3*|metre|, 4*|metre|)
+    ),
 
-    test("currying should work", 
-        fn ()
-            f(1)(2)(3)(4) = 10
-        end),
+    test("currying should work", () ->
+        f(1)(2)(3)(4) = 10
+    ),
 
-    test("currying should work for alternative function definition", 
-        fn ()
-            g(1)(2)(3)(4) = 11
-        end),
+    test("currying should work for alternative function definition", () ->
+        g(1)(2)(3)(4) = 11
+    ),
 
-    test("currying should work with units", 
-        fn ()
-            h (f (1*|metre|) (2*|metre|) (3*|metre|) (4*|metre|))
-              (2*|metre|)
-              (3*|metre|)
-              (h (1*|metre|) (2*|metre|) (3*|metre|) (4*|metre|)) = 25*|metre|
-        end)
+    test("currying should work with units", () ->
+        h (f (1*|metre|) (2*|metre|) (3*|metre|) (4*|metre|))
+            (2*|metre|)
+            (3*|metre|)
+            (h (1*|metre|) (2*|metre|) (3*|metre|) (4*|metre|)) = 25*|metre|
+    )
 ]);

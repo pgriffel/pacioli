@@ -43,7 +43,7 @@ define scanl(f, x, acc) =
     end;
 
 define zip_with(f, xs, ys) = 
-    map_list(fn (pair) apply(f, pair) end, zip(xs, ys));
+    map_list((pair) -> apply(f, pair), zip(xs, ys));
 
 define compare(x, y) =
     if x < y then
@@ -111,11 +111,10 @@ define approximates(x, y, decs) =
     end;
 
 define approximates_to(decs) =
-    fn(x, y)
+    (x, y) ->
         let diff = abs(x - y) in
             magnitude(diff) <= support(diff) '/.' expt(10, magnitude(decs))
-        end
-    end;
+        end;
 
 # ------------------------------------------------------------------------------
 # Matrix Shape
@@ -270,8 +269,8 @@ define list_sum(x) = fold_list(sum, x);
 define list_min(x) = fold_list(min, x);
 define list_max(x) = fold_list(max, x);
 define list_gcd(x) = fold_list(gcd, x);
-define list_all(x) = if x = [] then true else fold_list(fn (a,b) a and b end, x) end;
-define list_some(x) = if x = [] then false else fold_list(fn (a,b) a or b end, x) end;
+define list_all(x) = if x = [] then true else fold_list((a, b) -> a and b, x) end;
+define list_some(x) = if x = [] then false else fold_list((a, b) -> a or b, x) end;
 
 # ------------------------------------------------------------------------------
 # Percentages and Fractions
@@ -294,7 +293,7 @@ declare public intercalate :: (List(String()), String()) -> String();
 
 define intercalate(items, seperator) =
   if items = [] then "" else
-    fold_list(fn (x, y) concatenate(x, concatenate(seperator, y)) end, items)
+    fold_list((x, y) -> concatenate(x, concatenate(seperator, y)), items)
   end;
 
 declare public remove_nth :: for_type t: (1, List(t)) -> List(t);

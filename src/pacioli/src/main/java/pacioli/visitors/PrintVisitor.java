@@ -378,7 +378,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(LambdaNode node) {
-        write("lambda (");
+        write("(");
         Boolean first = true;
         for (String arg : node.arguments) {
             if (!first)
@@ -401,11 +401,10 @@ public class PrintVisitor implements Visitor {
             
             first = false;
         }
-        out.format(") ");
+        out.format(") -> ");
         newlineUp();
         node.expression.accept(this);
         newlineDown();
-        out.format("end");
     }
 
     @Override

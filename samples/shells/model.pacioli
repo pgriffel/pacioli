@@ -271,10 +271,10 @@ define borders(coords) =
       indices = naturals(list_size(coords)),
       x_less(a, b) = let (ax, _) = a, (bx, _) = b in ax < bx end,
       y_less(a, b) = let (_, ay) = a, (_, by) = b in ay < by end,
-      left = fold_list(fn (i,j) if x_less(nth(i, coords), nth(j, coords)) then i else j end end, indices),
-      top = fold_list(fn (i,j) if y_less(nth(i, coords), nth(j, coords)) then i else j end end, indices),
-      right = fold_list(fn (i,j) if x_less(nth(i, coords), nth(j, coords)) then j else i end end, indices),
-      bottom = fold_list(fn (i,j) if y_less(nth(i, coords), nth(j, coords)) then j else i end end, indices)
+      left = fold_list((i,j) -> if x_less(nth(i, coords), nth(j, coords)) then i else j end, indices),
+      top = fold_list((i,j) -> if y_less(nth(i, coords), nth(j, coords)) then i else j end, indices),
+      right = fold_list((i,j) -> if x_less(nth(i, coords), nth(j, coords)) then j else i end, indices),
+      bottom = fold_list((i,j) -> if y_less(nth(i, coords), nth(j, coords)) then j else i end, indices)
   in
     [left, top, right, bottom]
   end;
