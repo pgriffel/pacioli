@@ -218,7 +218,7 @@ define axis_point(shell) =
 
 define empty_shell_info(shell) =
   let u = shell_unit(shell) in 
-      tuple([0 * sqr(u)], [0 * sqr(u)], [0 * sqr(u)], [0 * cube(u)], [0 * cube(u)])
+      tuple([0 * u^2], [0 * u^2], [0 * u^2], [0 * u^3], [0 * u^3])
   end;
 
 define extend_shell_info(shell, info, n) =

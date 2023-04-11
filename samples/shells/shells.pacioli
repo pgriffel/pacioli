@@ -22,9 +22,9 @@ include model;
 # Unit Definitions
 # ----------------------------------------------------------------------------
 
-defunit pi "pi" = 3.141592653589793;
-defunit degree "deg" = pi/180;
-defunit millimetre "mm" = milli:metre;
+#defunit pi "pi" = 3.141592653589793;
+#defunit degree "deg" = pi/180;
+#defunit millimetre "mm" = milli:metre;
 
 defalias shell_unit = milli:metre;
 
