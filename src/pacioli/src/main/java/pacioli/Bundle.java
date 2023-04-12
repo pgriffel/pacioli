@@ -66,7 +66,8 @@ public class Bundle {
         this.libs = libs;
     }
 
-    public SymbolTable<ValueInfo> programValueTable(Collection<String> importedModules, Collection<String> includedModules) {
+    public SymbolTable<ValueInfo> programValueTable(Collection<String> importedModules,
+            Collection<String> includedModules) {
         SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>();
         valueTable.allInfos().forEach(info -> {
             if (info.isPublic() && importedModules.contains(info.generic().getModule())) {
@@ -79,13 +80,14 @@ public class Bundle {
         return table;
     }
 
-    public SymbolTable<TypeSymbolInfo> programTypeTable(Collection<String> importedModules, Collection<String> includedModules) {
+    public SymbolTable<TypeSymbolInfo> programTypeTable(Collection<String> importedModules,
+            Collection<String> includedModules) {
         SymbolTable<TypeSymbolInfo> table = new SymbolTable<TypeSymbolInfo>();
         typeTable.allInfos().forEach(info -> {
             String infoModule = info.generic().getModule();
             if (importedModules.contains(infoModule) || includedModules.contains(infoModule)) {
-                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(),
-                        info.name());
+                // Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(),
+                //         info.name());
                 table.put(info.name(), info);
             }
         });
@@ -98,6 +100,9 @@ public class Bundle {
             GenericInfo generic = new GenericInfo(type, file, "base_base", true, new Location());
             typeTable.put(type, new TypeInfo(generic));
         }
+        GenericInfo generic = new GenericInfo("nmode", file, "base_base", true, new Location());
+        ValueInfo nmodeInfo = new ValueInfo(generic, false, true);
+        valueTable.put("nmode", nmodeInfo);
     }
 
     static Bundle empty(PacioliFile file, List<File> libs) {
@@ -107,14 +112,24 @@ public class Bundle {
     void load(Progam other, boolean includeToplevels) throws Exception {
         // See duplicate code in Progam
         other.values.allInfos().forEach(info -> {
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s",
-                    info.globalName());
-            valueTable.put(info.globalName(), info);
+            if (!other.isExternal(info)) {
+                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s",
+                        info.globalName());
+                if (valueTable.contains(info.globalName())) {
+                    throw new PacioliException(info.getLocation(), "Duplicate name: %s", info.globalName());
+                }
+                valueTable.put(info.globalName(), info);
+            }
         });
         other.typess.allInfos().forEach(info -> {
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s",
-                    info.globalName(), info.name());
-            typeTable.put(info.globalName(), info);
+            if (!other.isExternal(info)) {
+                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s",
+                        info.globalName(), info.name());
+                if (typeTable.contains(info.globalName())) {
+                    throw new PacioliException(info.getLocation(), "Duplicate name: %s", info.globalName());
+                }
+                typeTable.put(info.globalName(), info);
+            }
         });
         if (includeToplevels) {
             other.toplevels.forEach(topLevel -> {

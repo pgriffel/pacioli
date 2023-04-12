@@ -72,7 +72,7 @@ public class ResolveVisitor extends IdentityVisitor {
     private String module;
 
     public static final List<String> builtinTypes = new ArrayList<String>(
-            Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier"));
+            Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier", "Maybe"));
 
     // -------------------------------------------------------------------------
     // Constructor

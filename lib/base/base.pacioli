@@ -37,7 +37,7 @@ declare public equal :: for_type a: (a, a) -> Boole;
 declare public not_equal :: for_type a: (a, a) -> Boole;
 declare public not :: (Boole) -> Boole;
 
-deftype for_type t: Maybe(t) = Maybe(t);
+#deftype for_type t: Maybe(t) = Maybe(t);
 
 declare public just :: for_type t: (t) -> Maybe(t);
 declare public nothing :: for_type t: () -> Maybe(t);
