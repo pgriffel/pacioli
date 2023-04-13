@@ -224,40 +224,42 @@ parser code {:
         String accuName = freshName("_c_accu");
         String tupName = freshName("_c_tup");
 
-        ExpressionNode addMut = new IdentifierNode("_add_mut", loc);
+        ExpressionNode addMut = new IdentifierNode("_add_mut", e.getLocation());
         ExpressionNode accu = new IdentifierNode(accuName, loc);
-        ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), loc);
+        ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), e.getLocation());
 
         for (int i = ps.size() - 1; 0 <= i; i--) {
             Object part = ps.get(i);
             if (part instanceof GeneratorClause) {
                 GeneratorClause clause = (GeneratorClause) part;
+                pacioli.Location loc2 = clause.list.getLocation();
                 body = new ApplicationNode(
-                                new IdentifierNode("loop_list", loc),
-                                Arrays.asList((ExpressionNode) new IdentifierNode(accuName, loc),
-                                              new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.getName())), body, loc), clause.list),
-                                loc);
+                                new IdentifierNode("loop_list",loc2),
+                                Arrays.asList((ExpressionNode) new IdentifierNode(accuName, loc2),
+                                              new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.getName())), body, loc2), clause.list),
+                                loc2);
             } else if (part instanceof TupleGeneratorClause) {
                 TupleGeneratorClause clause = (TupleGeneratorClause) part;
+                pacioli.Location loc2 = clause.list.getLocation();
 
                 List<String> args = new ArrayList<String>();
                 for (IdentifierNode var : clause.ids) {
                     args.add(var.getName());
                 }
 
-                ExpressionNode apply = new IdentifierNode("apply", loc);
-                ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc);
-                ExpressionNode tup = new IdentifierNode(tupName, loc);
-                ExpressionNode loopList = new IdentifierNode("loop_list", loc);
-                ExpressionNode accuId = new IdentifierNode(accuName, loc);
-                ExpressionNode restApp = new ApplicationNode(apply, Arrays.asList(restLambda, tup), loc);
-                ExpressionNode restAppLambda = new LambdaNode(Arrays.asList(accuName, tupName), restApp, loc);
+                ExpressionNode apply = new IdentifierNode("apply", loc2);
+                ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc2);
+                ExpressionNode tup = new IdentifierNode(tupName, loc2);
+                ExpressionNode loopList = new IdentifierNode("loop_list", loc2);
+                ExpressionNode accuId = new IdentifierNode(accuName, loc2);
+                ExpressionNode restApp = new ApplicationNode(apply, Arrays.asList(restLambda, tup), loc2);
+                ExpressionNode restAppLambda = new LambdaNode(Arrays.asList(accuName, tupName), restApp, loc2);
 
-                body = new ApplicationNode(loopList, Arrays.asList(accuId, restAppLambda, clause.list), loc);
+                body = new ApplicationNode(loopList, Arrays.asList(accuId, restAppLambda, clause.list), loc2);
             } else if (part instanceof AssignmentClause) {
                 AssignmentClause clause = (AssignmentClause) part;
 
-                body = new ApplicationNode(new LambdaNode(freshUnderscores(Arrays.asList(clause.id.getName())), body, loc), Arrays.asList(clause.value), loc);
+                body = new ApplicationNode(new LambdaNode(freshUnderscores(Arrays.asList(clause.id.getName())), body, body.getLocation()), Arrays.asList(clause.value), clause.value.getLocation());
             } else if (part instanceof TupleAssignmentClause) {
 
                 TupleAssignmentClause clause = (TupleAssignmentClause) part;
@@ -270,7 +272,7 @@ parser code {:
                 ExpressionNode apply = new IdentifierNode("apply", loc);
                 ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc);
 
-                body = new ApplicationNode(apply, Arrays.asList(restLambda, clause.value), loc);
+                body = new ApplicationNode(apply, Arrays.asList(restLambda, clause.value), clause.value.getLocation());
             } else if (part instanceof ExpressionNode) {
                 ExpressionNode clause = (ExpressionNode) part;
                 body = new BranchNode(clause, body, new IdentifierNode(accuName, loc), loc);
@@ -287,19 +289,21 @@ parser code {:
     }
 
     private static ExpressionNode desugarFoldComprehension(pacioli.Location loc, IdentifierNode op, ExpressionNode e, List<Object> ps) throws PacioliException {
+        pacioli.Location eLoc = e.getLocation();
+        pacioli.Location opLoc = op.getLocation();
         ExpressionNode body = desugarComprehension(loc, e, ps);
         if (op.getName().equals("sum")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_sum", loc), Arrays.asList(body), loc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_sum", eLoc), Arrays.asList(body), opLoc);
         } else if (op.getName().equals("count")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_count", loc), Arrays.asList(body), loc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_count", eLoc), Arrays.asList(body), opLoc);
         } else if (op.getName().equals("all")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_all", loc), Arrays.asList(body), loc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_all", eLoc), Arrays.asList(body), opLoc);
         } else if (op.getName().equals("some")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_some", loc), Arrays.asList(body), loc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_some", eLoc), Arrays.asList(body), opLoc);
         } else if (op.getName().equals("gcd")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_gcd", loc), Arrays.asList(body), loc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_gcd", eLoc), Arrays.asList(body), opLoc);
         } else if (op.getName().equals("concat")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_concat", loc), Arrays.asList(body), loc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_concat", eLoc), Arrays.asList(body), opLoc);
         } else {
             throw new PacioliException(op.getLocation(), "Comprehension operator '%s' unknown", op.getName());
         }
@@ -681,7 +685,7 @@ listlit ::=
                                                            List<ExpressionNode> tup = new ArrayList<ExpressionNode>();
                                                            tup.add(list);
                                                            tup.add(item);
-                                                           list = new ApplicationNode(new IdentifierNode("_add_mut", loc), tup, loc);
+                                                           list = new ApplicationNode(new IdentifierNode("_add_mut", loc), tup, item.getLocation());
                                                        }
                                                        RESULT = list; :}
  ;
