@@ -5,7 +5,7 @@ import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java.io.File;
 import java.io.IOException;
-import pacioli.PacioliException;
+import mvm.MVMException;
 
 %%
 %public
@@ -29,28 +29,27 @@ import pacioli.PacioliException;
     ComplexSymbolFactory symbolFactory;
 
   private Symbol symbol(String name, int sym) {
-      return symbolFactory.newSymbol(name, sym, new Location(yyline, yycolumn, yychar), new Location(yyline, yycolumn+yylength(), yychar+yylength()));
+      //return symbolFactory.newSymbol(name, sym, new Location(yyline, yycolumn, yychar), new Location(yyline, yycolumn+yylength(), yychar+yylength()));
+      return symbolFactory.newSymbol(name, sym, new Location(yyline, yycolumn, (int)(long)yychar), new Location(yyline, yycolumn+yylength(), (int)(long)yychar+yylength()));
   }
 
   private Symbol symbol(String name, int sym, Object val) {
-      Location left = new Location(yyline,yycolumn,yychar);
-      Location right= new Location(yyline,yycolumn+yylength(), yychar+yylength());
+      Location left = new Location(yyline,yycolumn,(int)(long)yychar);
+      Location right= new Location(yyline,yycolumn+yylength(), (int)(long)yychar+yylength());
       return symbolFactory.newSymbol(name, sym, left, right,val);
   }
   private Symbol symbol(String name, int sym, Object val,int buflength) {
-      Location left = new Location(yyline, yycolumn+yylength()-buflength, yychar+yylength()-buflength);
-      Location right= new Location(yyline, yycolumn+yylength(), yychar+yylength());
+      Location left = new Location(yyline, yycolumn+yylength()-buflength, (int)(long)yychar+yylength()-buflength);
+      Location right= new Location(yyline, yycolumn+yylength(), (int)(long)yychar+yylength());
       return symbolFactory.newSymbol(name, sym, left, right,val);
   }
   private void error(String message) {
-    pacioli.Location from = new pacioli.Location(file, yyline, yycolumn, yychar);
-    pacioli.Location to = new pacioli.Location(file, yyline, yycolumn+yylength(), yychar+yylength());
-    throw new RuntimeException("Parse error", new PacioliException(from.join(to), message));
+      throw new RuntimeException(new MVMException("Parse error at line %s column %s (%s length)", yyline, yycolumn, yylength()));
   }
 %}
 
 %eofval{
-     return symbolFactory.newSymbol("EOF", EOF, new Location(yyline,yycolumn,yychar), new Location(yyline,yycolumn,yychar));
+     return symbolFactory.newSymbol("EOF", EOF, new Location(yyline,yycolumn,(int)(long)yychar), new Location(yyline,yycolumn,(int)(long)yychar));
 %eofval}
 
 Ident = [a-zA-Z$_] [a-zA-Z0-9$_]*
@@ -146,7 +145,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   \\n             { string.append('\n'); }
   \\r             { string.append('\r'); }
   \\\"            { string.append('\"'); }
-  \\              { string.append('\\'); }
+  \\\\            { string.append('\\'); }
 }
 
 /* error fallback */
