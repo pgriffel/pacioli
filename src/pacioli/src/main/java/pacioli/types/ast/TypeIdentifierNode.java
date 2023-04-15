@@ -42,7 +42,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
     
     // Duplicate
     public static final List<String> builtinTypes = new ArrayList<String>(
-            Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier"));
+            Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier", "Array"));
 
     public TypeIdentifierNode(Location location, String name) {
         super(location);

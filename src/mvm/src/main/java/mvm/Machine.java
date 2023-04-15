@@ -38,6 +38,7 @@ import mvm.ast.expression.Expression;
 import mvm.values.Boole;
 import mvm.values.Callable;
 import mvm.values.PacioliList;
+import mvm.values.PacioliArray;
 import mvm.values.PacioliString;
 import mvm.values.PacioliTuple;
 import mvm.values.PacioliValue;
@@ -1193,6 +1194,38 @@ public class Machine {
         storeBaseValue("_three_question_marks", new Primitive("_three_question_marks") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 throw new MVMException("Not yet implemented");
+            }
+        });
+
+        storeBaseValue("make_array", new Primitive("make_array") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix n = (Matrix) params.get(0);
+                int d = (int) n.SingletonNumber();
+                return new PacioliArray(d);
+            }
+        });
+        
+        storeBaseValue("array_put", new Primitive("array_put") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliArray array = (PacioliArray) params.get(0);
+                Matrix index = (Matrix) params.get(1);
+                array.put((int) index.SingletonNumber(), params.get(2));
+                return array;
+            }
+        });
+
+        storeBaseValue("array_get", new Primitive("array_get") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliArray array = (PacioliArray) params.get(0);
+                Matrix index = (Matrix) params.get(1);
+                return array.get((int) index.SingletonNumber());
+            }
+        });
+
+        storeBaseValue("array_size", new Primitive("array_size") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliArray array = (PacioliArray) params.get(0);
+                return new Matrix(array.size());
             }
         });
     }

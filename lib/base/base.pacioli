@@ -37,8 +37,6 @@ declare public equal :: for_type a: (a, a) -> Boole;
 declare public not_equal :: for_type a: (a, a) -> Boole;
 declare public not :: (Boole) -> Boole;
 
-#deftype for_type t: Maybe(t) = Maybe(t);
-
 declare public just :: for_type t: (t) -> Maybe(t);
 declare public nothing :: for_type t: () -> Maybe(t);
 declare public is_nothing :: for_type t: (Maybe(t)) -> Boole;
@@ -394,3 +392,12 @@ define int2str_io(x, settings) =
 
 define int2str(x) =
   int2str_io(x, io_settings);
+
+# ----------------------------------------------------------------------------
+# Array
+# ----------------------------------------------------------------------------
+
+declare public make_array :: for_type t: (1) -> Array(t);
+declare public array_get :: for_type t: (Array(t), 1) -> t;
+declare public array_put :: for_type t: (Array(t), 1, t) -> Void;
+declare public array_size :: for_type t: (Array(t)) -> 1;
