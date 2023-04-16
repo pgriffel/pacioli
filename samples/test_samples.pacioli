@@ -5,13 +5,15 @@ include fourier_motzkin/fourier_motzkin_tests;
 include bom/bom_tests;
 include apply_mag/apply_mag_tests;
 include shells/shells_tests;
+include commodity/commodity_tests;
 
 # Experiment
 import include_test;
 
 run_test_suites(all_suites);
 
-define all_suites = flatten(all_suite_collections);
+define all_suites =
+    flatten(all_suite_collections);
 
 define all_suite_collections = [
     fourier_motzkin_suites,
@@ -19,4 +21,5 @@ define all_suite_collections = [
     kirchhof_suites,
     apply_mag_suites,
     shells_suites
+    #commodity_suites
 ];

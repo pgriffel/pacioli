@@ -337,7 +337,7 @@ public class Progam extends AbstractPrintable {
                     inferValueDefinitionType((ValueInfo) pre, discovered, finished, verbose);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
-                    if (!vinfo.getDeclaredType().isPresent()) {
+                    if (!vinfo.getDeclaredType().isPresent() && !vinfo.name().equals("nmode")) {
                         throw new RuntimeException("Type error",
                                 new PacioliException(pre.getLocation(), "No type declared for %s", pre.name()));
                     }

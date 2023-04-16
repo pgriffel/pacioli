@@ -1,5 +1,5 @@
 
-defunit dollar "$";
+defunit us_dollar "$";
 defunit barrel "bbl";
 defunit ounce "oz";
 
@@ -9,6 +9,8 @@ defindex Year = {y1990, y1991};
 
 defindex Region = {north, east, south, west};
 
+defindex Realm = {north_east, south_west};
+
 defunit Commodity!unit = {
   oil: barrel,
   gold: ounce
@@ -16,7 +18,9 @@ defunit Commodity!unit = {
 
 Commodity@oil%Year@y1990;
 
-defmatrix sales :: dollar * Commodity! % Year! % Region! = {
+declare sales :: us_dollar * Commodity! % Year! % Region!;
+
+defmatrix sales :: us_dollar * Commodity! % Year! % Region! = {
   oil, y1990, north ->    5000.00,
   oil, y1990, south ->   87000.00,
   gold, y1990, west ->   64000.00,
@@ -40,3 +44,14 @@ sales;
 
 amount;
 
+declare agg :: Realm! per Region!;
+
+defmatrix agg :: Realm! per Region! = {
+  north_east, north ->   1,
+  north_east, east ->    1,
+  south_west, south ->   1,
+  south_west, west ->    1
+};
+
+#nmode(sales, 2, agg);
+#nmode(amount, 2, agg);

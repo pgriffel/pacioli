@@ -128,6 +128,10 @@ public class MatrixType extends AbstractType {
         return new MatrixType(TypeBase.ONE, rowDimension, TypeBase.ONE, columnDimension, TypeBase.ONE);
     }
 
+    public MatrixType factorless() {
+        return new MatrixType(TypeBase.ONE, rowDimension, rowUnit, columnDimension, columnUnit);
+    }
+
     public MatrixType transpose() {
         return new MatrixType(factor, columnDimension, columnUnit.reciprocal(), rowDimension, rowUnit.reciprocal());
     }
@@ -213,26 +217,28 @@ public class MatrixType extends AbstractType {
     public MatrixType nmode(Integer n, MatrixType transform) throws PacioliException {
 
         // Start with an empty matrix type
-        MatrixType newType = new MatrixType();
+        MatrixType newType = new MatrixType(factor);
+
+        MatrixType tmp = factorless();
         
         // Add the dimension below n unchanged
         for (int i = 0; i < n; i++) {
-            newType = newType.kronecker(project(Arrays.asList(i)));
+            newType = newType.kronecker(tmp.project(Arrays.asList(i)));
         }
         
         // Transform the n-th dimension and add it
-        MatrixType projected = project(Arrays.asList(n));
+        MatrixType projected = tmp.project(Arrays.asList(n));
         if (!transform.joinable(projected)) {
             throw new RuntimeException(
                     String.format("Invalid transformation in nmode product: cannot multiply %s and %s",
                                   transform.pretty(),
-                                  project(Arrays.asList(n)).pretty()));
+                                  tmp.project(Arrays.asList(n)).pretty()));
         };
         newType = newType.kronecker(transform.join(projected));
         
         // Add the dimension above n unchanged
         for (int i = n + 1; i < rowDimension.width(); i++) {
-            newType = newType.kronecker(project(Arrays.asList(i)));
+            newType = newType.kronecker(tmp.project(Arrays.asList(i)));
         }
         
         return newType;

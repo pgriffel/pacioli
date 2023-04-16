@@ -30,7 +30,7 @@ public class UsesVisitor extends IdentityVisitor {
 
     @Override
     public void visit(IdentifierNode node) {
-        if (node.getInfo().getDefinition().isPresent() || node.getInfo().getDeclaredType().isPresent() || !node.getInfo().isGlobal()) {        
+        if (node.getName().equals("nmode") || node.getInfo().getDefinition().isPresent() || node.getInfo().getDeclaredType().isPresent() || !node.getInfo().isGlobal()) {        
             infos.add(node.getInfo());
         } else {
             throw new RuntimeException("Visit error", new PacioliException(node.getLocation(), "%s unknown", node.getName()));

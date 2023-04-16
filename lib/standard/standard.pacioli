@@ -281,13 +281,7 @@ define remove_nth(n, list) =
 # Radian functons
 # ------------------------------------------------------------------------------
 
-declare public asin ::
-  for_index P,Q: (P! per Q!) -> radian * P! per Q!;
-
-declare public acos ::
-  for_index P,Q: (P! per Q!) -> radian * P! per Q!;
-
-declare public atan ::
+declare public asin, acos, atan ::
   for_index P,Q: (P! per Q!) -> radian * P! per Q!;
 
 declare public atan2 ::

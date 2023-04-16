@@ -26,17 +26,17 @@ defindex Transition = {
 };
 
 define tvec(x, y, z) = 
-  x '.*' delta(Transition@"Transition x") + y '.*' delta(Transition@"Transition y") + z '.*' delta(Transition@"Transition z");
+  x '.*' delta(Transition@"Transition x") +
+  y '.*' delta(Transition@"Transition y") +
+  z '.*' delta(Transition@"Transition z");
 
 defmatrix test_matrix :: Place! per Transition! = {
     "place a", "Transition x" -> 1,
     "place a", "Transition y" -> -1
 };
 
-#printed("fourier");
-#print(fourier_motzkin(test_matrix));
-
 define fourier_motzkin_suite = test_suite("Function fourier_motzkin", [
+
     test("should solve correctly for a 3 by 3 matrix with 2 non-zero entries", () ->
         fourier_motzkin(test_matrix) = [tvec(0,0,1), tvec(1,1,0)]
     ),

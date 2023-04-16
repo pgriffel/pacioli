@@ -14,7 +14,8 @@ define apply_mag_suites = [
 define apply_mag_suite = test_suite("Function apply_mag", [
 
     test("apply_mag should be correct", () ->
-        apply_mag((a) -> space_vec(1, 2, 3) + a, space_vec(1*|metre|, 1*|metre|, 1*|metre|)) = space_vec(2*|metre|, 3*|metre|, 4*|metre|)
+        apply_mag((a) -> a + space_vec(1, 2, 3), space_vec(1*|metre|, 1*|metre|, 1*|metre|)) =
+	    space_vec(2*|metre|, 3*|metre|, 4*|metre|)
     ),
 
     test("currying should work", () ->
