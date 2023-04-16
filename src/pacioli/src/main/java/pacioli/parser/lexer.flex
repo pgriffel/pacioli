@@ -185,7 +185,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   \\n             { string.append('\n'); }
   \\r             { string.append('\r'); }
   \\\"            { string.append('\"'); }
-  \\              { string.append('\\'); }
+  \\\\              { string.append('\\'); }
 }
 
 
