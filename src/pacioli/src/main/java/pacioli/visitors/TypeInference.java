@@ -556,7 +556,9 @@ public class TypeInference extends IdentityVisitor {
 
         Typing itemTyping = typingAccept(node.body);
 
-        typing.addConstraint(voidType, itemTyping.getType(), "A statement must have type Void()");
+        String stMessage = String.format("During inference %s\na statement must have type Void()",
+                        node.sourceDescription());
+        typing.addConstraint(voidType, itemTyping.getType(), stMessage);
         // typing.addConstraintsAndAssumptions(itemTyping);
         typing.addConstraints(itemTyping);
 
@@ -564,7 +566,9 @@ public class TypeInference extends IdentityVisitor {
             ValueInfo info = node.table.lookup(name);
             if (localNames.contains(name)) {
                 for (TypeVar var : itemTyping.assumptions(name)) {
-                    typing.addConstraint(var, info.inferredType(), "TODO2 Lambda inference");
+                    String message = String.format("During inference %s\nthe infered parameter type must match the argument",
+                        info.getLocation().description());
+                    typing.addConstraint(var, info.inferredType(), message);
                 }
             } else {
                 for (TypeVar var : itemTyping.assumptions(name)) {
