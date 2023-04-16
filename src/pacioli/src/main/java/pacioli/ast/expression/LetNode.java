@@ -75,7 +75,7 @@ public class LetNode extends AbstractExpressionNode {
         }
         
         
-        LambdaNode fun = new LambdaNode(argsNames, body, getLocation());
+        LambdaNode fun = new LambdaNode(argsNames, body, body.getLocation());
         fun.table = table;
         
         

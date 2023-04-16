@@ -1533,7 +1533,7 @@ public class Parser extends java_cup.runtime.lr_parser {
         String tupName = freshName("_c_tup");
 
         ExpressionNode addMut = new IdentifierNode("_add_mut", e.getLocation());
-        ExpressionNode accu = new IdentifierNode(accuName, loc);
+        ExpressionNode accu = new IdentifierNode(accuName, e.getLocation());
         ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), e.getLocation());
 
         for (int i = ps.size() - 1; 0 <= i; i--) {
@@ -3236,8 +3236,8 @@ class CUP$Parser$actions {
 		ExpressionNode r = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		 List<String> args = freshUnderscores(idNames(ids));
                                                        pacioli.Location loc = makeLoc(idsxleft, rxright);
-                                                       ExpressionNode fun = new LambdaNode(args, r, makeLoc(idsxleft, exright));
-                                                       RESULT = new ApplicationNode(new IdentifierNode("apply", loc), Arrays.asList(fun, e), loc); 
+                                                       ExpressionNode fun = new LambdaNode(args, r, r.getLocation());
+                                                       RESULT = new ApplicationNode(new IdentifierNode("apply", e.getLocation()), Arrays.asList(fun, e), loc); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("lettail",7, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -3261,7 +3261,7 @@ class CUP$Parser$actions {
 		 //List<String> rArgs = freshUnderscores(Arrays.asList(id.getName()));
                                                        List<String> eArgs = freshUnderscores(idNames(ids)); // remove fresh underscors
                                                        pacioli.Location loc = makeLoc(idxleft, rxright);
-                                                       ExpressionNode eFun = new LambdaNode(eArgs, e, loc);
+                                                       ExpressionNode eFun = new LambdaNode(eArgs, e, e.getLocation());
                                                        BindingNode binding = new LetBindingNode(makeLoc(idsxleft, exright), id.getName(), eFun);
                                                        RESULT = new LetNode(Arrays.asList(binding), r, loc); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("lettail",7, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
