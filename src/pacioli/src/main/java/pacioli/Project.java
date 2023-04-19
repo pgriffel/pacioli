@@ -88,6 +88,32 @@ public class Project {
     }
 
     /**
+     * The root file of the project.
+     * 
+     * @return The root file.
+     */
+    PacioliFile libRoot(PacioliFile include) {
+        Optional<PacioliFile> optionalFile = graph.vertexSet().stream().findAny();
+        if (!include.isLibrary()) {
+            throw new RuntimeException("Cannot find lib root.");
+        }
+        if (optionalFile.isPresent()) {
+            AsSubgraph<PacioliFile, DefaultEdge> includesOnly = new AsSubgraph<PacioliFile, DefaultEdge>(graph,
+            graph.vertexSet(), graph.edgeSet().stream().filter(edge -> graph.getEdgeSource(edge).isInclude())
+                    .collect(Collectors.toSet()));
+            PacioliFile file = optionalFile.get();
+            Optional<DefaultEdge> optionalOutgoing = includesOnly.outgoingEdgesOf(file).stream().findAny();
+            while (optionalOutgoing.isPresent()) {
+                file = graph.getEdgeTarget(optionalOutgoing.get());
+                optionalOutgoing = graph.outgoingEdgesOf(file).stream().findAny();
+            }
+            return file;
+        } else {
+            throw new RuntimeException("Cannot find lib root.");
+        }
+    }
+
+    /**
      * The bundle graph's nodes in toplogical order. Can only be user once!
      * 
      * The iterator wrapper allows for loops, etc.
@@ -306,7 +332,8 @@ public class Project {
                 if (!current.equals(base)) {
                     allLibs.add(base);
                 }
-                if (!current.equals(standard) && !current.equals(base)) {
+                //if (!current.equals(standard) && !current.equals(base)) {
+                if (!current.getFile().toPath().startsWith(standard.getFile().getParentFile().toPath()) && !current.equals(base)) {
                     allLibs.add(standard);
                 }
 
