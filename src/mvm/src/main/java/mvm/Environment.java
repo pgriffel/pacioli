@@ -29,7 +29,6 @@ import java.util.Set;
 
 import mvm.ast.expression.Expression;
 import mvm.values.PacioliValue;
-import mvm.values.Primitive;
 
 public class Environment {
 

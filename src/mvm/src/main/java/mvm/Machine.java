@@ -1325,10 +1325,9 @@ public class Machine {
             mvm.ast.Program code = mvm.parser.Parser.parseFile(file);
 
             // Run the requires
-            for (String require : code.requires) {
-                //runRec(PacioliFile.findFile(require + ".mvm", libs, file.getParentFile()), out, libs);
-            }
-            ;
+            // for (String require : code.requires) {
+            //     runRec(PacioliFile.findFile(require + ".mvm", libs, file.getParentFile()), out, libs);
+            // }
 
             // Run the file itself
             // Pacioli.logln2("Running MVM file %s", file);
