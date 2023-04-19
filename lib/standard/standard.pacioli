@@ -16,7 +16,7 @@
 # COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-    
+
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -24,6 +24,14 @@
 declare public pi :: 1;
 
 define pi = 3.141592653589793;
+
+declare public now :: () -> milli:second;
+
+define now() =
+    _system_time() * |milli:second|;
+
+
+
 
 # ------------------------------------------------------------------------------
 # Algebra

@@ -1,7 +1,6 @@
 import geometry;
 import geometric_algebra;
 import testing;
-import si;
 
 declare public geometric_algebra_suites :: List(TestSuite);
 

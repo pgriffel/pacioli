@@ -1228,6 +1228,12 @@ public class Machine {
                 return new Matrix(array.size());
             }
         });
+
+        storeBaseValue("_system_time", new Primitive("_system_time") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return new Matrix(System.nanoTime()/1000000.0);
+            }
+        });
     }
 
     /*
