@@ -35,15 +35,24 @@ public class ValueDefinition extends AbstractDefinition {
 
     public final IdentifierNode id;
     public ExpressionNode body;
+    public boolean isUserDefined;
+
+    public ValueDefinition(Location location, IdentifierNode id, ExpressionNode body, boolean isUserDefined) {
+        super(location);
+        this.id = id;
+        this.body = body;
+        this.isUserDefined = isUserDefined;
+    }
 
     public ValueDefinition(Location location, IdentifierNode id, ExpressionNode body) {
         super(location);
         this.id = id;
         this.body = body;
+        this.isUserDefined = true;
     }
 
     public Node transform(ExpressionNode body) {
-        return new ValueDefinition(getLocation(), id, body);
+        return new ValueDefinition(getLocation(), id, body, isUserDefined);
     }
 
     public boolean isFunction() {

@@ -281,7 +281,8 @@ public class Bundle {
         for (String value : names) {
             ValueInfo info = valueTable.lookup(value);
             boolean fromProgram = info.generic().getModule().equals(file.getModule());
-            if ((includePrivate || info.isPublic()) && fromProgram && info.getDefinition().isPresent()) {
+            if ((includePrivate || info.isPublic()) && fromProgram && info.getDefinition().isPresent()
+                    && info.isUserDefined()) {
                 Pacioli.println("%s ::", info.name());
                 if (rewriteTypes) {
                     Pacioli.print(" %s;", info.inferredType().deval().pretty());
@@ -290,6 +291,7 @@ public class Bundle {
                 }
             }
         }
+        
         Integer count = 1;
         Pacioli.print("\n");
         for (Toplevel toplevel : toplevels) {

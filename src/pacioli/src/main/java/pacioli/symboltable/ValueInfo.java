@@ -133,4 +133,8 @@ public class ValueInfo extends AbstractSymbolInfo<ValueInfo> {
     public boolean isPublic() {
         return isPublic;
     }
+    
+    public boolean isUserDefined() {
+        return definition.orElseThrow(() -> new RuntimeException("Must be resolved")).isUserDefined;
+    }
 }

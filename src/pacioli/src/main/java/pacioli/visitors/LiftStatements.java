@@ -105,7 +105,7 @@ public class LiftStatements extends IdentityTransformation {
 
         // Define a helper function for the lifted body
         LambdaNode lambda = new LambdaNode(args, rec, nodeLocation);
-        ValueDefinition vd = new ValueDefinition(nodeLocation, fresh, lambda);
+        ValueDefinition vd = new ValueDefinition(nodeLocation, fresh, lambda, false);
         try {
             vd.addToProgr(prog);
         } catch (PacioliException e) {
