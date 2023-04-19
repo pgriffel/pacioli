@@ -2,7 +2,7 @@ import geometry;
 import geometric_algebra;
 import testing;
 
-declare public geometric_algebra_suites :: List(TestSuite);
+declare geometric_algebra_suites :: List(TestSuite);
 
 define geometric_algebra_suites = [
     term_suite,

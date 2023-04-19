@@ -2,7 +2,7 @@ import si;
 import testing;
 import geometry;
 
-declare public geometry_suites :: List(TestSuite);
+declare export geometry_suites :: List(TestSuite);
 
 define geometry_suites = [
     vector2d_suite,

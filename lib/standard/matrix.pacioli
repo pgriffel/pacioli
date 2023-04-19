@@ -1,0 +1,165 @@
+# Copyright (c) 2013 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+# ------------------------------------------------------------------------------
+# Algebra
+# ------------------------------------------------------------------------------
+
+declare export inner ::
+  for_index P: for_unit a, b, P!u: (a*P!u, b*P!u^-1) -> a*b;
+  
+declare export outer ::
+  for_index P, Q: for_unit a, b, P!u, Q!v: (a*P!u, b*Q!v) -> a*b*P!u per Q!v^-1;
+
+declare export neg :: 
+    for_index D, E: for_unit a, D!b, E!c: (a * D!b per E!c) -> a * D!b per E!c;
+
+declare export norm :: for_index P: for_unit a: (a*P!) -> a;
+
+declare export normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
+
+
+define inner(x,y) = x^T '*' y;
+
+define outer(x,y) = x '*' y^T;
+
+define neg(x) = -1 '.*' x;
+
+define norm(x) = sqrt(inner(x,x));
+
+define normalized(x) = x '/.' magnitude(norm(x));
+
+# ------------------------------------------------------------------------------
+# Matrix Shape
+# ------------------------------------------------------------------------------
+
+declare export rows ::
+  for_index P,Q: for_unit a,Q!v: (a*P! per Q!v) -> List(a per Q!v);
+
+declare export columns ::
+  for_index P,Q: for_unit a,P!u: (a*P!u per Q!) -> List(a*P!u);
+
+declare export unit ::
+  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare export delta ::
+  for_index P: (P) -> P!;
+
+declare export map_matrix ::
+  for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
+
+declare export is_zero_row ::
+  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c, D) -> Boole();
+
+declare export is_zero_column ::
+  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c, E) -> Boole();
+
+
+define rows(matrix) = 
+  [row(matrix,i) | i <- row_domain(matrix)];
+
+define columns(matrix) =
+  [column(matrix,j) | j <- column_domain(matrix)];
+
+define unit(mat) =
+  unit_factor(mat) '.*' row_unit(mat) per column_unit(mat);
+
+define delta(x) = 
+  make_matrix([tuple(x, _, 1)]);
+
+define basis(matrix) =
+  [delta(x) | x <- row_domain(matrix)];
+
+define map_matrix(fun, mat) = 
+  make_matrix([tuple(i, j, fun(get(mat, i, j))) | i <- row_domain(mat),
+                                                  j <- column_domain(mat)]);
+
+define is_zero_row(x, i) = is_zero(row(magnitude(x), i));
+
+define is_zero_column(x, j) = is_zero(column(magnitude(x), j));
+
+# ------------------------------------------------------------------------------
+# Bit Vectors
+# ------------------------------------------------------------------------------
+
+declare complement, positives, negatives ::
+  for_index P, Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
+
+
+define complement(x) = unit(x) - x;
+
+define positives(x) = x * positive_support(x);
+
+define negatives(x) = x * negative_support(x);
+
+# ------------------------------------------------------------------------------
+# Diagonal Matrices
+# ------------------------------------------------------------------------------
+
+declare export diagonal :: for_index P: for_unit a,P!u: (a*P!u) -> a*P!u per P!u;
+declare export diagonal2 :: for_index P: for_unit a,P!u: (a*P!u) -> a*P!u per P!;
+declare export diagonal3 :: for_index P: for_unit a,P!u: (a*P!u) -> P! per P!;
+
+
+define diagonal(x) =
+  let u = row_unit(x), units = unit_factor(x) '.*' u per u in
+    make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
+  end;
+
+define diagonal2(x) =
+  let u = unit(x), units = u per (magnitude(u)) in
+    make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
+  end;
+
+define diagonal3(x) =
+  make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]);
+
+# ------------------------------------------------------------------------------
+# Closures
+# ------------------------------------------------------------------------------
+
+declare export inverse, right_inverse ::
+  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
+
+declare export left_inverse ::
+  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
+
+declare export kleene, closure ::
+  for_index P: for_unit P!u: (P!u per P!u) -> P!u per P!u;
+
+declare export left_division :: for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w:
+    (a*P!u per Q!v, b*P!u per R!w) -> b*Q!v per a*R!w;
+
+declare export right_division :: for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w:
+    (a*P!u per Q!v, b*R!w per Q!v) -> a*P!u per b*R!w;
+
+
+define right_inverse(x) = solve(x, left_identity(x));
+
+define left_inverse(x) = right_inverse(x^T)^T;
+
+define inverse(x) = right_inverse(x);
+
+define kleene(x) = inverse(left_identity(x) - x);
+
+define closure(x) = kleene(x) - left_identity(x);
+
+define left_division(x,y) = inverse(x) '*' y;
+
+define right_division(x,y) = x '*' inverse(y);

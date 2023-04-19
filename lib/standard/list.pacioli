@@ -1,0 +1,72 @@
+# Copyright (c) 2013 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+# ------------------------------------------------------------------------------
+# Lists
+# ------------------------------------------------------------------------------
+
+declare export combis :: for_type a: (List(a)) -> List(Tuple(a, a));
+declare export flatten :: for_type t: (List(List(t))) -> List(t);
+declare export scanl1 :: for_type a, b: ((a, a) -> a, List(a)) -> List(a);
+declare export scanl :: for_type a, b: ((b, a) -> b, b, List(a)) -> List(b);
+declare export zip_with :: for_type a,b,c: ((a, b) -> c, List(a), List(b)) -> List(c);
+declare export unzip :: for_type a, b: (List(Tuple(a, b))) -> Tuple(List(a), List(b));
+declare export remove_nth :: for_type t: (1, List(t)) -> List(t);
+
+define combis(list) =
+    let accumulator(accu, x) =
+        let (result, tails) = accu in
+            tuple(append([tuple(x,y) | y <- tail(tails)], result), tail(tails))
+        end
+    in
+        let (result, _) = loop_list(tuple([], list), accumulator, list) in result end
+    end;
+
+define flatten(xss) =
+    [x | xs <- xss, x <- xs];
+
+define unzip(xs) = 
+    tuple([a | (a, _) <- xs], [b | (_, b) <- xs]);
+
+define scanl1(f, acc) = 
+    scanl(f, head(acc), tail(acc));
+
+define scanl(f, x, acc) =
+    if acc = [] then
+        [x]
+    else
+        cons(x, scanl(f, f(x, head(acc)), tail(acc)))
+    end;
+
+define zip_with(f, xs, ys) = 
+    map_list((pair) -> apply(f, pair), zip(xs, ys));
+
+define remove_nth(n, list) =
+  begin
+      result := [];
+      i := 0;
+      size := list_size(list);
+      while i != size do
+          if i != n then
+              result := _add_mut(result, nth(i, list));
+          end
+          i := i + 1;
+      end
+      return result;
+  end;

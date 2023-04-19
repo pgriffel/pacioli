@@ -1,7 +1,7 @@
 import testing;
 import si;
 
-declare public standard_suites :: List(TestSuite);
+declare standard_suites :: List(TestSuite);
 
 define standard_suites = [
    scanl_suite,

@@ -30,16 +30,16 @@
 #
 # ------------------------------------------------------------------------------
 
-declare public test, test_only :: (String, () -> Boole) -> Test;
-declare public test_description :: (Test) -> String;
-declare public test_is_only :: (Test) -> Boole;
-declare public run_test :: (Test) -> Boole;
+declare export test, test_only :: (String, () -> Boole) -> Test;
+declare export test_description :: (Test) -> String;
+declare export test_is_only :: (Test) -> Boole;
+declare export run_test :: (Test) -> Boole;
 
-declare public test_suite, test_suite_only :: (String, List(Test)) -> TestSuite;
-declare public suite_description :: (TestSuite) -> String;
-declare public suite_tests :: (TestSuite) -> List(Test);
-declare public suite_is_only :: (TestSuite) -> Boole;
-declare public run_test_suites :: (List(TestSuite)) -> Void;
+declare export test_suite, test_suite_only :: (String, List(Test)) -> TestSuite;
+declare export suite_description :: (TestSuite) -> String;
+declare export suite_tests :: (TestSuite) -> List(Test);
+declare export suite_is_only :: (TestSuite) -> Boole;
+declare export run_test_suites :: (List(TestSuite)) -> Void;
 
 # ------------------------------------------------------------------------------
 # Tests

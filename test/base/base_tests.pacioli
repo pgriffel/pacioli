@@ -1,7 +1,7 @@
 import testing;
 import si;
 
-declare public base_suites :: List(TestSuite);
+declare base_suites :: List(TestSuite);
 
 define base_suites = [
    indexing_suite,
