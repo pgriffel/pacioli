@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.Location;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.TypeConstraint;

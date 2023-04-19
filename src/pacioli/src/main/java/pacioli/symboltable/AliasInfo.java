@@ -6,7 +6,7 @@ import pacioli.Location;
 import pacioli.PacioliFile;
 import pacioli.ast.definition.AliasDefinition;
 
-public final class AliasInfo extends UnitInfo<AliasInfo> {
+public final class AliasInfo extends UnitInfo {
 
     public AliasDefinition definition;
     

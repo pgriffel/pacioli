@@ -10,7 +10,6 @@ import java_cup.runtime.Symbol;
 import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java.io.File;
-import java.io.IOException;
 import pacioli.PacioliException;
 
 

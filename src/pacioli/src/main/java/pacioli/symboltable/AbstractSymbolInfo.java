@@ -2,7 +2,7 @@ package pacioli.symboltable;
 
 import pacioli.Location;
 
-public abstract class AbstractSymbolInfo<T extends AbstractSymbolInfo<T>> implements SymbolInfo {
+public abstract class AbstractSymbolInfo implements SymbolInfo {
     
     private GenericInfo generic;
         

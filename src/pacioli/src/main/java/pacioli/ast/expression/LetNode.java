@@ -27,7 +27,6 @@ import java.util.List;
 import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
-import pacioli.ast.unit.UnitPowerNode;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.ValueInfo;
 

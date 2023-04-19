@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import mvm.values.Boole;
 import pacioli.CompilationSettings.Target;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;

@@ -1,6 +1,6 @@
 package pacioli.symboltable;
 
-public sealed abstract class UnitInfo<T extends UnitInfo<T>> extends AbstractSymbolInfo<T> implements TypeSymbolInfo permits VectorUnitInfo, ScalarUnitInfo, AliasInfo {
+public sealed abstract class UnitInfo extends AbstractSymbolInfo implements TypeSymbolInfo permits VectorUnitInfo, ScalarUnitInfo, AliasInfo {
 
     public UnitInfo(GenericInfo generic) {
         super(generic);
