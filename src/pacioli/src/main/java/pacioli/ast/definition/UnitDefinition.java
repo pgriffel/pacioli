@@ -29,7 +29,7 @@ import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
-import pacioli.symboltable.ScalarUnitInfo;
+import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 
@@ -78,7 +78,7 @@ public class UnitDefinition extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
-        ScalarUnitInfo info = new ScalarUnitInfo(localName(), program.file, program.getModule(), true, getLocation());
+        ScalarBaseInfo info = new ScalarBaseInfo(localName(), program.file, program.getModule(), true, getLocation());
         info.setDefinition(this);
         info.symbol = symbol;
         program.addInfo(info);

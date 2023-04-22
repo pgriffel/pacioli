@@ -29,7 +29,7 @@ import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
-import pacioli.symboltable.VectorUnitInfo;
+import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.ast.TypeIdentifierNode;
 
 public class UnitVectorDefinition extends AbstractDefinition {
@@ -69,7 +69,7 @@ public class UnitVectorDefinition extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
-        VectorUnitInfo info = new VectorUnitInfo(localName(), program.file, program.getModule(), true, getLocation());
+        VectorBaseInfo info = new VectorBaseInfo(localName(), program.file, program.getModule(), true, getLocation());
         info.setDefinition(this);
         info.setItems(items);
         program.addInfo(info);

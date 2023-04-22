@@ -43,14 +43,14 @@ import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.PacioliTable;
-import pacioli.symboltable.ScalarUnitInfo;
+import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
-import pacioli.symboltable.VectorUnitInfo;
+import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.SchemaNode;
@@ -109,7 +109,9 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(IndexSetDefinition node) {
-        visitorThrow(node.getLocation(), "todo");
+        if (node.isDynamic()) {
+            node.getBody().accept(this);
+        }
     }
 
     @Override
@@ -254,7 +256,7 @@ public class ResolveVisitor extends IdentityVisitor {
         node.setInfos(infoList);
     }
 
-    private MatrixDimension compileTimeMatrixDimension(IndexType dimType) {
+    public MatrixDimension compileTimeMatrixDimension(IndexType dimType) {
         if (dimType.isVar()) {
             return null;
         } else {
@@ -280,22 +282,24 @@ public class ResolveVisitor extends IdentityVisitor {
         // Resolve the matrix type
         node.typeNode.accept(this);
 
-        // Evaluate the matrix type
-        MatrixType matrixType;
-        try {
-            matrixType = node.evalType();
-        } catch (PacioliException e) {
-            throw new RuntimeException("Type error", e);
-        }
+        // // Evaluate the matrix type
+        // MatrixType matrixType;
+        // try {
+        //     matrixType = node.evalType();
+        // } catch (PacioliException e) {
+        //     throw new RuntimeException("Type error", e);
+        // }
 
-        // Store the matrix type's row and column dimension
-        node.rowDim = compileTimeMatrixDimension(matrixType.rowDimension);
-        node.columnDim = compileTimeMatrixDimension(matrixType.columnDimension);
+        // // Store the matrix type's row and column dimension
+        // node.rowDim = compileTimeMatrixDimension(matrixType.rowDimension);
+        // node.columnDim = compileTimeMatrixDimension(matrixType.columnDimension);
+        // // node.rowDim = matrixType.rowDimension;
+        // // node.columnDim = matrixType.columnDimension;
 
-        // Check that the dimensions exist
-        if (node.rowDim == null || node.columnDim == null) {
-            visitorThrow(node.typeNode.getLocation(), "Expected a closed matrix type");
-        }
+        // // Check that the dimensions exist
+        // if (node.rowDim == null || node.columnDim == null) {
+        //     visitorThrow(node.typeNode.getLocation(), "Expected a closed matrix type");
+        // }
     }
 
     @Override
@@ -497,9 +501,9 @@ public class ResolveVisitor extends IdentityVisitor {
         }
         for (String arg : context.unitVars) {
             if (arg.contains("!")) {
-                table.put(arg, new VectorUnitInfo(arg, file, module, false, location));
+                table.put(arg, new VectorBaseInfo(arg, file, module, false, location));
             } else {
-                table.put(arg, new ScalarUnitInfo(arg, file, module, false, location));
+                table.put(arg, new ScalarBaseInfo(arg, file, module, false, location));
             }
 
         }

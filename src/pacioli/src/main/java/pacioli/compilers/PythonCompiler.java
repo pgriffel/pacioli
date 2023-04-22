@@ -13,12 +13,12 @@ import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.IndexSetInfo;
-import pacioli.symboltable.ScalarUnitInfo;
+import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.ValueInfo;
-import pacioli.symboltable.VectorUnitInfo;
+import pacioli.symboltable.VectorBaseInfo;
 import pacioli.visitors.PythonGenerator;
 
 public class PythonCompiler implements SymbolTableVisitor {
@@ -118,12 +118,12 @@ public class PythonCompiler implements SymbolTableVisitor {
     }
 
     @Override
-    public void visit(ScalarUnitInfo info) {
+    public void visit(ScalarBaseInfo info) {
 
     }
 
     @Override
-    public void visit(VectorUnitInfo info) {
+    public void visit(VectorBaseInfo info) {
 
         assert (info.getDefinition().isPresent());
 

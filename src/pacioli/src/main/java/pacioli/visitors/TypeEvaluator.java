@@ -13,10 +13,10 @@ import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.symboltable.IndexSetInfo;
-import pacioli.symboltable.ScalarUnitInfo;
+import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.TypeInfo;
-import pacioli.symboltable.VectorUnitInfo;
+import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
 import pacioli.types.PacioliType;
@@ -108,7 +108,7 @@ public class TypeEvaluator extends IdentityVisitor {
         } else {
 
             // Find the unit info. The node must have been resolved.
-            VectorUnitInfo unitInfo = (VectorUnitInfo) node.unit.get().info;
+            VectorBaseInfo unitInfo = (VectorBaseInfo) node.unit.get().info;
             assert (unitInfo != null);
 
             // Create the unit. If it is a local then it is a variable.
@@ -228,9 +228,9 @@ public class TypeEvaluator extends IdentityVisitor {
             // Create a type for each different kind of type variable
             if (info instanceof TypeInfo) {
                 returnType(new TypeVar((TypeInfo) info));
-            } else if (info instanceof ScalarUnitInfo) {
-                returnType(new MatrixType(new ScalarUnitVar((ScalarUnitInfo) info)));
-            } else if (info instanceof VectorUnitInfo) {
+            } else if (info instanceof ScalarBaseInfo) {
+                returnType(new MatrixType(new ScalarUnitVar((ScalarBaseInfo) info)));
+            } else if (info instanceof VectorBaseInfo) {
                 throw new RuntimeException("A unit vector should be a BangTypeNode, not a TypeIdentifier. That is for scalars");
             } else if (info instanceof IndexSetInfo) {
                 returnType(new IndexSetVar((IndexSetInfo) info));
@@ -249,15 +249,15 @@ public class TypeEvaluator extends IdentityVisitor {
             TypeApplicationNode app = new TypeApplicationNode(node.getLocation(), node, new LinkedList<TypeNode>());
             this.handleParametric(app, new ArrayList<PacioliType>());
         } else {
-            assert(info instanceof ScalarUnitInfo);
-            returnType(new MatrixType(new ScalarBase((ScalarUnitInfo) info)));
+            assert(info instanceof ScalarBaseInfo);
+            returnType(new MatrixType(new ScalarBase((ScalarBaseInfo) info)));
         }
     }
 
     @Override
     public void visit(PrefixUnitTypeNode node) {
         // Todo: check this cast. Better let recursive visitor handle this: call something like unitAccept(node.unit) 
-        returnType(new MatrixType(new ScalarBase(node.prefix.getName(), (ScalarUnitInfo) node.unit.info)));
+        returnType(new MatrixType(new ScalarBase(node.prefix.getName(), (ScalarBaseInfo) node.unit.info)));
     }
 
     @Override

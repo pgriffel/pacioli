@@ -43,11 +43,13 @@ public class JSGenerator implements TypeVisitor {
         String pre = "";
         for (int i = 0; i < type.getIndexSets().size(); i++) {
             out.write(pre);
-            out.write("Pacioli.fetchIndex('");
+            // out.write("Pacioli.fetchIndex('");
+            out.write("'");
             out.write(type.getIndexSets().get(i).home);
             out.write("_");
             out.write(type.getIndexSets().get(i).name);
-            out.write("')");
+            // out.write("')");
+            out.write("'");
             pre = ", ";
         }
         out.write("])");

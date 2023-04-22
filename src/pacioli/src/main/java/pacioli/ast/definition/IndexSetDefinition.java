@@ -28,18 +28,42 @@ import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.ast.Visitor;
+import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.symboltable.IndexSetInfo;
 
 public class IndexSetDefinition extends AbstractDefinition {
 
     public final IdentifierNode id;
-    public final List<String> items;
+    private final List<String> items;
+    private final ExpressionNode body;
 
     public IndexSetDefinition(Location location, IdentifierNode id, List<String> items) {
         super(location);
         this.id = id;
         this.items = items;
+        this.body = null;
+    }
+
+    public IndexSetDefinition(Location location, IdentifierNode id, ExpressionNode body) {
+        super(location);
+        this.id = id;
+        this.items = null;
+        this.body = body;
+    }
+
+    public List<String> getItems() {
+        if (items == null) {
+            throw new RuntimeException("Cannot access index set items, index set is dynamic.");
+        }
+        return items;
+    }
+
+    public ExpressionNode getBody() {
+        if (body == null) {
+            throw new RuntimeException("Cannot access index set body, index has a static body.");
+        }
+        return body;
     }
 
     @Override
@@ -51,7 +75,7 @@ public class IndexSetDefinition extends AbstractDefinition {
     }
 
     public IndexSet getIndexSet() {
-        return new IndexSet(localName(), items);
+        return new IndexSet(localName(), getItems());
     }
 
     @Override
@@ -62,6 +86,10 @@ public class IndexSetDefinition extends AbstractDefinition {
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+
+    public boolean isDynamic() {
+        return items == null;
     }
 
 }

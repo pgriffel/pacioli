@@ -26,7 +26,7 @@ import java.util.Optional;
 
 import pacioli.CompilationSettings;
 import pacioli.ast.definition.UnitDefinition;
-import pacioli.symboltable.ScalarUnitInfo;
+import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.types.TypeBase;
 import uom.BaseUnit;
 import uom.DimensionedNumber;
@@ -38,16 +38,16 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
     private final Optional<String> prefix;
     private final String text;
     
-    private final ScalarUnitInfo info;
+    private final ScalarBaseInfo info;
 
-    public ScalarBase(ScalarUnitInfo info) {
+    public ScalarBase(ScalarBaseInfo info) {
         assert(info != null);
         this.prefix = Optional.empty();
         this.text = info.name();
         this.info = info;
     }
 
-    public ScalarBase(String prefix, ScalarUnitInfo info) {
+    public ScalarBase(String prefix, ScalarBaseInfo info) {
         assert(info != null);
         this.prefix = Optional.of(prefix);
         this.text = info.name();
@@ -120,8 +120,8 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
     @Override
     public String compileToJS() {
         return prefix.isPresent()
-               ? String.format("Pacioli.unit('%s', '%s')", prefix.get(), text)
-               : String.format("Pacioli.unit('%s')", text);
+               ? String.format("Pacioli.unitType('%s', '%s')", prefix.get(), text)
+               : String.format("Pacioli.unitType('%s')", text);
     }
 
     @Override

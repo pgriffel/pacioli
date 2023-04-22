@@ -106,7 +106,7 @@ public class KeyNode extends AbstractExpressionNode {
         
         Optional<IndexSetDefinition> definition = getInfo(index).getDefinition();
         assert(definition.isPresent());
-        List<String> items = definition.get().items;
+        List<String> items = definition.get().getItems();
         
         for (int i = 0; i < items.size(); i++) {
             if (items.get(i).equals(key)) {
@@ -120,7 +120,7 @@ public class KeyNode extends AbstractExpressionNode {
     public Integer size(Integer index) {
         Optional<IndexSetDefinition> definition = getInfo(index).getDefinition();
         assert(definition.isPresent());
-        return definition.get().items.size();
+        return definition.get().getItems().size();
     }
     
     public Integer position() {

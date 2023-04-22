@@ -6,16 +6,16 @@ import pacioli.Location;
 import pacioli.PacioliFile;
 import pacioli.ast.definition.UnitDefinition;
 
-public final class ScalarUnitInfo extends UnitInfo {
+public final class ScalarBaseInfo extends UnitInfo {
 
     public String symbol;
     private Optional<UnitDefinition> definition = Optional.empty();
     
-    public ScalarUnitInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location) {
+    public ScalarBaseInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location) {
         super(new GenericInfo(name, file, module, isGlobal, location));
     }
     
-    public ScalarUnitInfo(GenericInfo generic) {
+    public ScalarBaseInfo(GenericInfo generic) {
         super(generic);
     }
 
@@ -26,7 +26,7 @@ public final class ScalarUnitInfo extends UnitInfo {
     
     @Override
     public String globalName() {
-        return String.format("unit_%s", name());
+        return String.format("sbase_%s", name());
     }
 
     @Override

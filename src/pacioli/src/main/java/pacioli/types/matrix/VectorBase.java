@@ -22,7 +22,7 @@
 package pacioli.types.matrix;
 
 import pacioli.CompilationSettings;
-import pacioli.symboltable.VectorUnitInfo;
+import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
 import uom.BaseUnit;
@@ -32,12 +32,12 @@ import uom.UnitMap;
 
 public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
 
-    public final VectorUnitInfo vectorUnitInfo;
+    public final VectorBaseInfo vectorUnitInfo;
     public final TypeIdentifier indexSetName;
     public final TypeIdentifier unitName;
     public final int position;
 
-    public VectorBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position, VectorUnitInfo vectorUnitInfo) {
+    public VectorBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position, VectorBaseInfo vectorUnitInfo) {
         assert (!unitName.name.contains("!"));
         assert (!indexSetName.home.isEmpty());
         assert(vectorUnitInfo.name().contains("!"));
@@ -121,8 +121,9 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
 
     @Override
     public String compileToJS() {
-        return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit", indexSetName.home, indexSetName.name,
-                unitName.home, unitName.name);
+        // return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit", indexSetName.home, indexSetName.name,
+        //         unitName.home, unitName.name);
+        return String.format("Pacioli.unitVectorType('%s', '%s_%s', %s)", indexSetName.home, indexSetName.name, this.unitName.name, position);
     }
 
     @Override

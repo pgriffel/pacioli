@@ -399,7 +399,7 @@ public class ConstraintSet extends AbstractPrintable {
                     for (int i = 0; i < tensorType.rowDimension.width(); i++) {
                         Optional<IndexSetDefinition> def = tensorType.rowDimension.nthIndexSetInfo(i).getDefinition();
                         if (def.isPresent()) {
-                            shape.add(def.get().items.size());   
+                            shape.add(def.get().getItems().size());   
                         } else {
                             new PacioliException(node.arguments.get(0).getLocation(), 
                                     "Index set %s has no known size", i);             

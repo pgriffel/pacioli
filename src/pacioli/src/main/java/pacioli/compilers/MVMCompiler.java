@@ -13,11 +13,11 @@ import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.IndexSetInfo;
-import pacioli.symboltable.ScalarUnitInfo;
+import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.ValueInfo;
-import pacioli.symboltable.VectorUnitInfo;
+import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.TypeBase;
 import pacioli.visitors.MVMGenerator;
 import uom.DimensionedNumber;
@@ -57,7 +57,7 @@ public class MVMCompiler implements SymbolTableVisitor {
         assert (info.getDefinition().isPresent());
 
         List<String> quotedItems = new ArrayList<String>();
-        for (String item : info.getDefinition().get().items) {
+        for (String item : info.getDefinition().get().getItems()) {
             quotedItems.add(String.format("\"%s\"", item));
         }
         out.format("indexset \"%s\" \"%s\" list(%s);\n", info.globalName(), info.getDefinition().get().localName(),
@@ -70,7 +70,7 @@ public class MVMCompiler implements SymbolTableVisitor {
     }
 
     @Override
-    public void visit(ScalarUnitInfo info) {
+    public void visit(ScalarBaseInfo info) {
 
         Optional<UnitDefinition> definition = info.getDefinition();
 
@@ -92,7 +92,7 @@ public class MVMCompiler implements SymbolTableVisitor {
     }
 
     @Override
-    public void visit(VectorUnitInfo info) {
+    public void visit(VectorBaseInfo info) {
 
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling vector unit %s", info.globalName());
 

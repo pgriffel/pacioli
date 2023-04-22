@@ -30,18 +30,18 @@ import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
-import pacioli.symboltable.ScalarUnitInfo;
+import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolTable;
 import uom.BaseUnit;
 
 public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     private final String name;
-    public final Optional<ScalarUnitInfo> info;
+    public final Optional<ScalarBaseInfo> info;
 
     // Constructors
     
-    public ScalarUnitVar(ScalarUnitInfo info) {
+    public ScalarUnitVar(ScalarBaseInfo info) {
         name = info.name();
         this.info = Optional.of(info);
     }
@@ -99,7 +99,7 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     // Properties
 
     @Override
-    public ScalarUnitInfo getInfo() {
+    public ScalarBaseInfo getInfo() {
         if (info.isPresent()) {
             return info.get(); 
         } else {

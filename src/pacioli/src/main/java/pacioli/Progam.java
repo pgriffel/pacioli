@@ -14,6 +14,7 @@ import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.parser.Parser;
+import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
@@ -178,6 +179,15 @@ public class Progam extends AbstractPrintable {
         values.parent = symbolTable.values();
         typess.parent = symbolTable.types();
         PacioliTable env = new PacioliTable(values, typess);
+        for (TypeSymbolInfo nfo : typess.allInfos()) {
+            if (nfo instanceof IndexSetInfo) {
+                boolean fromProgram = nfo.generic().getModule().equals(file.getModule());
+                if (fromProgram && nfo.getDefinition().isPresent()) {
+                    Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving index set %s", nfo.globalName());
+                    nfo.getDefinition().get().resolve(file, env);
+                }
+            }
+        }
         for (TypeSymbolInfo nfo : typess.allInfos()) {
             boolean fromProgram = nfo.generic().getModule().equals(file.getModule());
             if (nfo instanceof UnitInfo) {

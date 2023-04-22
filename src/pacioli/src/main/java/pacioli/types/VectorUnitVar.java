@@ -31,17 +31,17 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.VectorUnitInfo;
+import pacioli.symboltable.VectorBaseInfo;
 import uom.BaseUnit;
 
 public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Var {
 
     private final String name;
-    private Optional<VectorUnitInfo> info;
+    private Optional<VectorBaseInfo> info;
 
     // Constructors
     
-    public VectorUnitVar(VectorUnitInfo info) {
+    public VectorUnitVar(VectorBaseInfo info) {
         name = info.name();
         assert (name.contains("!"));
         this.info = Optional.of(info);
@@ -94,7 +94,7 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
     
     @Override
-    public VectorUnitInfo getInfo() {
+    public VectorBaseInfo getInfo() {
         if (info.isPresent()) {
             return info.get(); 
         } else {

@@ -278,12 +278,14 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         }
 
         if (boxed) {
-            out.print("Pacioli.oneMatrix(" + type.compileToJS() + ".param)");
+            out.print("Pacioli.oneMatrix(" + type.compileToJS() + ")");
 
         } else {
-            // Obsolete code
-            // throw new PacioliException(node.getLocation(), " huh %s", type.pretty());
-            out.print("Pacioli.oneNumbers(" + node.rowDim.size() + ", " + node.columnDim.size() + ")");
+            out.print("Pacioli.oneNumbersFromShape(" + type.compileToJS() + ")");
+
+            // // Obsolete code
+            // // throw new PacioliException(node.getLocation(), " huh %s", type.pretty());
+            // out.print("Pacioli.oneNumbers(" + node.rowDim.size() + ", " + node.columnDim.size() + ")");
         }
     }
 

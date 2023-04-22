@@ -12,18 +12,18 @@ import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 
-public final class VectorUnitInfo extends UnitInfo {
+public final class VectorBaseInfo extends UnitInfo {
 
     private Optional<UnitVectorDefinition> definition = Optional.empty();
     private List<UnitDecl> items;
     private Map<String, UnitDecl> units;
 
-    public VectorUnitInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location) {
+    public VectorBaseInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location) {
         super(new GenericInfo(name, file, module, isGlobal, location));
         assert (name.contains("!"));
     }
     
-    public VectorUnitInfo(GenericInfo generic) {
+    public VectorBaseInfo(GenericInfo generic) {
         super(generic);
     }
 
@@ -56,7 +56,7 @@ public final class VectorUnitInfo extends UnitInfo {
     
     @Override
     public String globalName() {
-        return String.format("unit_%s", name());
+        return String.format("vbase_%s", name().replace("!", "_"));
     }
 
     @Override
