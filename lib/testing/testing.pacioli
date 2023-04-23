@@ -96,7 +96,7 @@ define run_test_suites(suites) =
     results := [tuple(suite_description(s), run_test_suite(s)) | s <- to_test];
 
     # Print a status message
-    _print(format("Tests finished, %s suites tested%s\n",
+    _print(format("\nTests finished, %s suites tested%s\n",
       num2string(list_size(to_test), 0),
       skipped_message(nr_skipped_suites)));
 
@@ -170,11 +170,14 @@ define run_test_suite(suite) =
                       
   in
     begin
-      _print(format("%s\n%s\n%s%s\n", 
-        description,
-        intercalate(messages, "\n"),
-        summary,
-        skipped_message(nr_skipped)));
+      _print(description);
+      todo := messages;
+      while todo != [] do
+        frst := head(todo);
+        todo := tail(todo);
+        _print(frst);
+      end
+      _print(format("%s%s\n", summary, skipped_message(nr_skipped)));
       return tuple(nr_tests, nr_failures, nr_skipped);
     end
   end;
