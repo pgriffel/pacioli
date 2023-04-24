@@ -267,6 +267,10 @@ public class ResolveVisitor extends IdentityVisitor {
                     IndexSetInfo indexSetInfo = (IndexSetInfo) symbolInfo;
                     assert (indexSetInfo != null); // exception throwen
                     assert (indexSetInfo.getDefinition().isPresent());
+                    if (indexSetInfo.getDefinition().get().isDynamic()) {
+                        // Hack to handle dynamic index sets
+                        return null;
+                    }
                     sets.add(indexSetInfo.getDefinition().get().getIndexSet());
                 } else {
                     throw new RuntimeException(String.format("%s", id.name));
@@ -283,20 +287,20 @@ public class ResolveVisitor extends IdentityVisitor {
         node.typeNode.accept(this);
 
         // // Evaluate the matrix type
-        // MatrixType matrixType;
-        // try {
-        //     matrixType = node.evalType();
-        // } catch (PacioliException e) {
-        //     throw new RuntimeException("Type error", e);
-        // }
+        MatrixType matrixType;
+        try {
+            matrixType = node.evalType();
+        } catch (PacioliException e) {
+            throw new RuntimeException("Type error", e);
+        }
 
-        // // Store the matrix type's row and column dimension
-        // node.rowDim = compileTimeMatrixDimension(matrixType.rowDimension);
-        // node.columnDim = compileTimeMatrixDimension(matrixType.columnDimension);
-        // // node.rowDim = matrixType.rowDimension;
-        // // node.columnDim = matrixType.columnDimension;
+        // Store the matrix type's row and column dimension
+        node.rowDim = compileTimeMatrixDimension(matrixType.rowDimension);
+        node.columnDim = compileTimeMatrixDimension(matrixType.columnDimension);
+        // node.rowDim = matrixType.rowDimension;
+        // node.columnDim = matrixType.columnDimension;
 
-        // // Check that the dimensions exist
+        // Check that the dimensions exist
         // if (node.rowDim == null || node.columnDim == null) {
         //     visitorThrow(node.typeNode.getLocation(), "Expected a closed matrix type");
         // }

@@ -8,8 +8,11 @@ import pacioli.CompilationSettings;
 import pacioli.Pacioli;
 import pacioli.Printer;
 import pacioli.Utils;
+import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
+import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.StringNode;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.IndexSetInfo;
@@ -55,13 +58,25 @@ public class MVMCompiler implements SymbolTableVisitor {
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling index set %s", info.globalName());
 
         assert (info.getDefinition().isPresent());
+        
+        IndexSetDefinition definition = info.getDefinition().get();
 
-        List<String> quotedItems = new ArrayList<String>();
-        for (String item : info.getDefinition().get().getItems()) {
-            quotedItems.add(String.format("\"%s\"", item));
-        }
-        out.format("indexset \"%s\" \"%s\" list(%s);\n", info.globalName(), info.getDefinition().get().localName(),
+
+
+        
+        if (definition.isDynamic()) {
+            out.format("indexset \"%s\" \"%s\" ", info.globalName(), info.getDefinition().get().localName());
+            info.getDefinition().get().getBody().accept(new MVMGenerator(out, settings));
+            out.format(";\n");
+        } else {
+            List<String> quotedItems = new ArrayList<String>();
+            for (String item : definition.getItems()) {
+                quotedItems.add(String.format("\"%s\"", item));
+            }
+            out.format("indexset \"%s\" \"%s\" list(%s);\n", info.globalName(), info.getDefinition().get().localName(),
                 Utils.intercalate(",", quotedItems));
+        }
+
     }
 
     @Override

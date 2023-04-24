@@ -128,6 +128,9 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
         // The matrix type's row and column dimension should have been set
         // during resolving
         assert (rowDim != null && columnDim != null);
+        if (rowDim == null || columnDim == null) {
+            throw new PacioliException(getLocation(), "Not resolved");
+        }
 
         // Write the elements. Table check stores all found indices to check for
         // doublures.

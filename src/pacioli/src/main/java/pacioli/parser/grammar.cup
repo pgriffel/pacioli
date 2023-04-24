@@ -397,8 +397,20 @@ command ::=
  | DECLARE:d quali:q ids:ids DBLCLN schema:s          {: RESULT = new MultiDeclaration(makeLoc(dxleft, sxright), ids, s, q != null); :}
  | DEFINDEX:d id:id                                 {: List<String> names = new ArrayList<String>();
                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, idxright), id, names); :}
- | DEFINDEX:d id:id EQL LBRC names:ids RBRC:p       {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
- | DEFINDEX:d id:id EQL expr:e                      {: RESULT = new IndexSetDefinition(makeLoc(dxleft, exright), id, e); :} 
+| DEFINDEX:d id:id EQL LBRC names:ids RBRC:p       {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
+//| DEFINDEX:d id:id EQL LBRC names:ids RBRC:p       {: 
+//                                                        pacioli.Location loc = makeLoc(dxleft, pxright);
+//                                                        
+//                                                        ExpressionNode list = new ApplicationNode(new IdentifierNode("empty_list", loc), new ArrayList<ExpressionNode>(), loc);
+//                                                        for (ExpressionNode item : ids) {
+//                                                           List<ExpressionNode> tup = new ArrayList<ExpressionNode>();
+//                                                           tup.add(list);
+//                                                           tup.add(new StringNode(((IdentifierNode)item).getName(), item.getLocation()));
+//                                                           list = new ApplicationNode(new IdentifierNode("_add_mut", loc), tup, item.getLocation());
+//                                                        }
+//                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, list); :}
+ | DEFINDEX:d id:id EQL expr:e                      {: RESULT = new IndexSetDefinition(makeLoc(dxleft, exright), id, e); :}
+
  | DEFTYPE:d schema:s EQL type:t                    {: RESULT = new TypeDefinition(makeLoc(dxleft, txright), s.context, s.type, t); :}
  | DEFALIAS:d id:id EQL unit:u                      {: RESULT = new AliasDefinition(makeLoc(dxleft, uxright), id, u); :}
  | DEFUNIT:d typeid:id EXCL typeid:n EQL unitvec:ps {: /* Todo: remove hashmap and use pair list directly in UnitVectorDefinition */

@@ -159,12 +159,13 @@ commands ::=
  ;
 
 command ::= 
-   BASEUNIT STR:b STR:u                         {: RESULT = new StoreUnit(b, u); :}
- | UNIT STR:b STR:n unsigned:d unit:un          {: RESULT = new StoreUnit(b, n, d, un); :}
- | INDEXSET STR:f STR:n LIST string_list:s      {: RESULT = new StoreIndexSet(f, n, s); :}
- | STORE STR:n expr:e                              {: RESULT = new StoreValue(n, e); :}
+   BASEUNIT STR:b STR:u                               {: RESULT = new StoreUnit(b, u); :}
+ | UNIT STR:b STR:n unsigned:d unit:un                {: RESULT = new StoreUnit(b, n, d, un); :}
+ | INDEXSET STR:f STR:n LIST string_list:s            {: RESULT = new StoreIndexSet(f, n, s); :}
+ | INDEXSET STR:f STR:n expr:e                        {: RESULT = new StoreDynamicIndexSet(f, n, e); :}
+ | STORE STR:n expr:e                                 {: RESULT = new StoreValue(n, e); :}
  | PRINT expr:e                                       {: RESULT = new Print(e); :}
- | UNITVECTOR STR:e STR:u LIST unit_list:l      {: List<String> names = new ArrayList<String>();
+ | UNITVECTOR STR:e STR:u LIST unit_list:l            {: List<String> names = new ArrayList<String>();
                                                          List<UnitNode> units = new ArrayList<UnitNode>();
                                                          for (UnitDecl d: l) {
                                                            names.add(d.name);

@@ -127,6 +127,18 @@ public class JSGenerator implements TypeVisitor {
                 sep = ", ";
             }
             out.write("])");
+        } else if (name.equals("Array")) {
+
+            out.write("new Pacioli.GenericType(");
+            out.write("'Array', [");
+            String sep = "";
+            for (PacioliType arg : type.args) {
+                out.write(sep);
+                //out.write(arg.compileToJS());
+                arg.accept(this);
+                sep = ", ";
+            }
+            out.write("])");
         } else if (name.equals("Ref")) {
 
             out.write("new Pacioli.Type(");
