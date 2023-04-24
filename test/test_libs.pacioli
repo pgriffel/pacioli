@@ -6,7 +6,7 @@ include geometry/geometry_tests;
 include geometric_algebra/geometric_algebra_tests;
 
 run_test_suites(all_suites);
-  
+
 define all_suites =
     flatten(all_suite_collections);
 

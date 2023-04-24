@@ -177,11 +177,14 @@ public class Bundle {
                 throw new RuntimeException("Unknown target");
         }
 
+        List<SymbolInfo> infosToCompile = new ArrayList<>();
+
         // Generate code for the index sets
         for (TypeSymbolInfo info : typeTable.allInfos()) {
             if (info instanceof IndexSetInfo) {
                 assert (info.getDefinition().isPresent());
-                info.accept(compiler);
+                // info.accept(compiler);
+                infosToCompile.add(info);
             }
         }
 
@@ -194,6 +197,7 @@ public class Bundle {
                 UnitInfo unitInfo = (UnitInfo) info;
                 if (!unitInfo.isAlias()) {
                     unitsToCompile.add(unitInfo);
+                    infosToCompile.add(unitInfo);
                 }
             }
         }
@@ -220,9 +224,9 @@ public class Bundle {
         // }
 
         // Generate code for the units
-        for (UnitInfo info : unitsToCompile) {
-            info.accept(compiler);
-        }
+        // for (UnitInfo info : unitsToCompile) {
+        //     info.accept(compiler);
+        // }
 
         // Find all values to compile (unnecessary step, or do we want to sort
         // alphabetically?)
@@ -236,6 +240,7 @@ public class Bundle {
                         // valuesToCompile.add(info);
                     } else {
                         valuesToCompile.add(info);
+                        infosToCompile.add(info);
                     }
                 }
             }
@@ -246,8 +251,13 @@ public class Bundle {
             info.accept(compiler);
         }
         Pacioli.trace("Ordering values");
-        valuesToCompile = orderedInfos(valuesToCompile);
-        for (ValueInfo info : valuesToCompile) {
+        // valuesToCompile = orderedInfos(valuesToCompile);
+        // for (ValueInfo info : valuesToCompile) {
+        //     info.accept(compiler);
+        // }
+
+        infosToCompile = orderedInfos(infosToCompile);
+        for (SymbolInfo info : infosToCompile) {
             info.accept(compiler);
         }
 
@@ -329,6 +339,7 @@ public class Bundle {
             }
             discovered.add(info);
             for (SymbolInfo other : def.uses()) {
+                
                 if ((all.contains(other.globalName())) && other.getDefinition().isPresent()) {
                     insertInfo((T) other, definitions, discovered, finished, all);
                 }
