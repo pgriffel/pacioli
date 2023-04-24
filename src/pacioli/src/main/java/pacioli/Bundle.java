@@ -85,8 +85,9 @@ public class Bundle {
         typeTable.allInfos().forEach(info -> {
             String infoModule = info.generic().getModule();
             if (importedModules.contains(infoModule) || includedModules.contains(infoModule)) {
-                // Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(),
-                //         info.name());
+                // Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s",
+                // info.globalName(),
+                // info.name());
                 table.put(info.name(), info);
             }
         });
@@ -141,9 +142,6 @@ public class Bundle {
 
         Pacioli.trace("Generating code for %s", this.file.getModule());
 
-        // Dev switch
-        Boolean externals = true;
-
         // Declare a compiler (symbol table visitor) instance
         Printer printer = new Printer(writer);
         SymbolTableVisitor compiler;
@@ -177,85 +175,43 @@ public class Bundle {
                 throw new RuntimeException("Unknown target");
         }
 
+        // Lists of infos we will compile below. Functions are always compiled first.
+        List<ValueInfo> functionsToCompile = new ArrayList<>();
         List<SymbolInfo> infosToCompile = new ArrayList<>();
 
-        // Generate code for the index sets
+        // Collect the index sets and the units from the type table
         for (TypeSymbolInfo info : typeTable.allInfos()) {
+            
             if (info instanceof IndexSetInfo) {
                 assert (info.getDefinition().isPresent());
-                // info.accept(compiler);
                 infosToCompile.add(info);
             }
-        }
 
-        // printer.format("\npacioliUnitContext = Pacioli.PacioliContext.si()\n\n");
-
-        // Find all units to compile
-        List<UnitInfo> unitsToCompile = new ArrayList<UnitInfo>();
-        for (TypeSymbolInfo info : typeTable.allInfos()) {
             if (info instanceof UnitInfo) {
                 UnitInfo unitInfo = (UnitInfo) info;
                 if (!unitInfo.isAlias()) {
-                    unitsToCompile.add(unitInfo);
                     infosToCompile.add(unitInfo);
                 }
             }
         }
 
-        // Sort the units according to depency order
-        unitsToCompile = orderedInfos(unitsToCompile);
-
-        // for (UnitInfo info : unitsToCompile) {
-        // if (info instanceof ScalarUnitInfo) {
-        // ScalarUnitInfo scalarInfo = (ScalarUnitInfo) info;
-        // Optional<UnitNode> unitNode = scalarInfo.getDefinition().flatMap(d-> d.body);
-        // if (unitNode.isPresent()){
-        // String body = TypeBase.compileUnitToJSON(unitNode.get().evalUnit().unit());
-        // printer.format("\nPacioli2.%s = () => { return %s; }\n",
-        // scalarInfo.globalName(), body);
-        // printer.format("\nconsole.log(Pacioli2.%s())\n", scalarInfo.globalName());
-        // //printer.format("\n//Pacioli2.define_unit(\"%s\", \"%s\", %s)\n",
-        // scalarInfo.globalName(), scalarInfo.symbol, body);
-        // } else {
-        // printer.format("\n//Pacioli2.define_unit(\"%s\", \"%s\")\n",
-        // scalarInfo.globalName(), scalarInfo.symbol);
-        // }
-        // }
-        // }
-
-        // Generate code for the units
-        // for (UnitInfo info : unitsToCompile) {
-        //     info.accept(compiler);
-        // }
-
-        // Find all values to compile (unnecessary step, or do we want to sort
-        // alphabetically?)
-        List<ValueInfo> valuesToCompile = new ArrayList<ValueInfo>();
-        List<ValueInfo> functionsToCompile = new ArrayList<ValueInfo>();
+        // Collect all functions and values from the value table
         for (ValueInfo info : valueTable.allInfos()) {
-            if (externals) {
-                if (info.getDefinition().isPresent()) {
-                    if (info.getDefinition().get().isFunction()) {
-                        functionsToCompile.add(info);
-                        // valuesToCompile.add(info);
-                    } else {
-                        valuesToCompile.add(info);
-                        infosToCompile.add(info);
-                    }
+            if (info.getDefinition().isPresent()) {
+                if (info.getDefinition().get().isFunction()) {
+                    functionsToCompile.add(info);
+                } else {
+                    infosToCompile.add(info);
                 }
             }
         }
 
-        // Generate code for the values
+        // Generate code for the functions
         for (ValueInfo info : functionsToCompile) {
             info.accept(compiler);
         }
-        Pacioli.trace("Ordering values");
-        // valuesToCompile = orderedInfos(valuesToCompile);
-        // for (ValueInfo info : valuesToCompile) {
-        //     info.accept(compiler);
-        // }
 
+        // Generate code for the rest. This is done in the proper order
         infosToCompile = orderedInfos(infosToCompile);
         for (SymbolInfo info : infosToCompile) {
             info.accept(compiler);
@@ -300,7 +256,7 @@ public class Bundle {
                 }
             }
         }
-        
+
         Integer count = 1;
         Pacioli.print("\n");
         for (Toplevel toplevel : toplevels) {
@@ -338,8 +294,9 @@ public class Bundle {
                 throw new PacioliException(def.getLocation(), "Cycle in definition " + info.name());
             }
             discovered.add(info);
+            // Pacioli.log("uses %s %s %s", info.globalName(), info.getClass(), def.uses());
             for (SymbolInfo other : def.uses()) {
-                
+
                 if ((all.contains(other.globalName())) && other.getDefinition().isPresent()) {
                     insertInfo((T) other, definitions, discovered, finished, all);
                 }
