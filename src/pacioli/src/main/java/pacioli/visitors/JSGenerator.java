@@ -415,11 +415,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     public void visit(StringNode node) {
         StringWriter writer = new StringWriter();
         writer.write("\"");
-        String[] lines = escapeString(node.valueString()).split("\n");
-        for (String line : lines) {
-            writer.write(line);
-            writer.write("\\\n");
-        }
+        writer.write(escapeString(node.valueString()));
         writer.write("\"");
         out.print(writer.toString());
     }
