@@ -45,7 +45,7 @@ public class JSCompiler implements SymbolTableVisitor {
 
         ValueDefinition definition = info.getDefinition().get();
         ExpressionNode transformedBody = definition.body;
-        if (transformedBody instanceof LambdaNode) {
+        if (false && transformedBody instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformedBody;
             out.newline();
             out.format("Pacioli.u_%s = function () {", info.globalName());
@@ -72,6 +72,35 @@ public class JSCompiler implements SymbolTableVisitor {
             out.newlineDown();
             out.format("}");
             out.newline();
+        } else if (transformedBody instanceof LambdaNode) {
+            LambdaNode code = (LambdaNode) transformedBody;
+            out.newline();
+
+            out.format("\n"
+                    + "Pacioli.compute_u_%s = function () {\n"
+                    + "    return %s;\n"
+                    + "}\n",
+                    info.globalName(),
+                    info.getType().reduce(i -> true).compileToJS());
+
+
+            // out.newline();
+            // out.format("Pacioli.b_%s = function (%s) {", info.globalName(), code.argsString());
+            // out.newlineUp();
+            // out.format("return ");
+            // code.expression.compileToJS(out, settings, true);
+            // out.format(";");
+            // out.newlineDown();
+            // out.format("}");
+            out.newline();
+            out.format("Pacioli.%s = function (%s) {", info.globalName(), code.argsString());
+            out.newlineUp();
+            out.format("return ");
+            code.expression.compileToJS(out, settings, false);
+            out.format(";");
+            out.newlineDown();
+            out.format("}");
+            out.newline();
         } else {
             out.format("\n"
                     + "Pacioli.compute_u_%s = function () {\n"
@@ -82,11 +111,10 @@ public class JSCompiler implements SymbolTableVisitor {
                     info.inferredType().reduce(i -> true).compileToJS(),
                     info.globalName());
             transformedBody.compileToJS(out, settings, false);
-            out.format(";\n}\n"
-                    + "Pacioli.compute_b_%s = function () {\n  return ",
-                    info.globalName());
-            transformedBody.compileToJS(out, settings, true);
             out.format(";\n}\n");
+            // out.format("Pacioli.compute_b_%s = function () {\n  return ", info.globalName());
+            // transformedBody.compileToJS(out, settings, true);
+            // out.format(";\n}\n");
         }
     }
 
