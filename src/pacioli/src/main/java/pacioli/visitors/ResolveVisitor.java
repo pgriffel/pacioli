@@ -69,7 +69,6 @@ public class ResolveVisitor extends IdentityVisitor {
     private Stack<String> statementResult;
 
     private PacioliFile file;
-    private String module;
 
     public static final List<String> builtinTypes = new ArrayList<String>(
             Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier", "Maybe", "Array"));
@@ -83,7 +82,6 @@ public class ResolveVisitor extends IdentityVisitor {
         typeTables.push(pacioliTable.types());
         valueTables.push(pacioliTable.values());
         this.file = file;
-        this.module = file.getModule();
     }
     /*
      * GenericInfo newGenericInfo(String name, Boolean isGlobal, Location location)
@@ -173,7 +171,7 @@ public class ResolveVisitor extends IdentityVisitor {
         // Create a symbol info record for each lambda parameter and store it in the
         // table
         for (String arg : node.arguments) {
-            ValueInfo info = new ValueInfo(arg, file, module, false, true, node.getLocation(), false);
+            ValueInfo info = new ValueInfo(arg, file, false, true, node.getLocation(), false);
             node.table.put(arg, info);
         }
 
@@ -392,7 +390,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
             // Create a value info record for the mutable (IsRef == true) variable
             if (info == null) {
-                info = new ValueInfo(id.getName(), file, module, false, false, id.getLocation(), false);
+                info = new ValueInfo(id.getName(), file, false, false, id.getLocation(), false);
                 info.setIsRef(true);
 
                 // If it shadows another value then remember that for initialization in
@@ -412,7 +410,7 @@ public class ResolveVisitor extends IdentityVisitor {
         }
 
         // Create an info record for the result and put it in the symbol table
-        ValueInfo info = new ValueInfo(resultName, file, module, false, false, node.getLocation(), false);
+        ValueInfo info = new ValueInfo(resultName, file, false, false, node.getLocation(), false);
         node.table.put(resultName, info);
         node.resultInfo = info;
 
@@ -498,16 +496,16 @@ public class ResolveVisitor extends IdentityVisitor {
 
         // Add info records for all variables
         for (String arg : context.typeVars) {
-            table.put(arg, new TypeInfo(arg, file, module, false, location));
+            table.put(arg, new TypeInfo(arg, file, false, location));
         }
         for (String arg : context.indexVars) {
-            table.put(arg, new IndexSetInfo(arg, file, module, false, location));
+            table.put(arg, new IndexSetInfo(arg, file, false, location));
         }
         for (String arg : context.unitVars) {
             if (arg.contains("!")) {
-                table.put(arg, new VectorBaseInfo(arg, file, module, false, location));
+                table.put(arg, new VectorBaseInfo(arg, file, false, location));
             } else {
-                table.put(arg, new ScalarBaseInfo(arg, file, module, false, location));
+                table.put(arg, new ScalarBaseInfo(arg, file, false, location));
             }
 
         }
@@ -613,7 +611,7 @@ public class ResolveVisitor extends IdentityVisitor {
             assert (binding instanceof LetBindingNode);
             LetBindingNode functionBinding = (LetBindingNode) binding;
             String arg = functionBinding.var;
-            ValueInfo info = new ValueInfo(arg, file, module, false, false, node.getLocation(), false);
+            ValueInfo info = new ValueInfo(arg, file, false, false, node.getLocation(), false);
 
             // todo: set the definition!!!!!!!
             // Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");

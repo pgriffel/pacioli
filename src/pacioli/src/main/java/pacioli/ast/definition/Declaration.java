@@ -50,7 +50,7 @@ public class Declaration extends AbstractDefinition {
                 throw new PacioliException(typeNode.getLocation(), "Duplicate type declaration for %s", name);
             }
         } else {
-            ValueInfo info = new ValueInfo(name, program.file, program.getModule(), true, false, getLocation(), isPublic);
+            ValueInfo info = new ValueInfo(name, program.file, true, false, getLocation(), isPublic);
             info.setDeclaredType(typeNode);
             program.values.put(name, info);
         }

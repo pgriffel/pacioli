@@ -11,8 +11,8 @@ public final class ScalarBaseInfo extends UnitInfo {
     public String symbol;
     private Optional<UnitDefinition> definition = Optional.empty();
     
-    public ScalarBaseInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location) {
-        super(new GenericInfo(name, file, module, isGlobal, location));
+    public ScalarBaseInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
+        super(new GenericInfo(name, file, isGlobal, location));
     }
     
     public ScalarBaseInfo(GenericInfo generic) {

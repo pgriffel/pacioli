@@ -9,20 +9,15 @@ public class GenericInfo {
         
     public final String name;
     private final PacioliFile file;
-    private final String module;
     private final Location location;
     private final Boolean isGlobal;
 
-    public GenericInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location) {
+    public GenericInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
         assert(location != null);
         this.name = name;
         this.file = file;
-        this.module = module;
         this.isGlobal = isGlobal;
         this.location = location;
-        // if (!file.getModule().equals(module)) {
-        //     throw new RuntimeException("yippie");
-        // }
     }
     
     public Location location() {

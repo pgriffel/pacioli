@@ -10,8 +10,8 @@ public final class AliasInfo extends UnitInfo {
 
     public AliasDefinition definition;
     
-    public AliasInfo(String name, PacioliFile file, String module, Location location) {
-        super(new GenericInfo(name, file, module, true, location));
+    public AliasInfo(String name, PacioliFile file, Location location) {
+        super(new GenericInfo(name, file, true, location));
         
     }
     

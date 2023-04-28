@@ -18,8 +18,8 @@ public final class VectorBaseInfo extends UnitInfo {
     private List<UnitDecl> items;
     private Map<String, UnitDecl> units;
 
-    public VectorBaseInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location) {
-        super(new GenericInfo(name, file, module, isGlobal, location));
+    public VectorBaseInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
+        super(new GenericInfo(name, file, isGlobal, location));
         assert (name.contains("!"));
     }
     

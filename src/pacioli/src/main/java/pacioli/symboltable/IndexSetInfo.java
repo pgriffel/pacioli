@@ -15,8 +15,8 @@ public final class IndexSetInfo extends AbstractSymbolInfo implements TypeSymbol
         visitor.visit(this);
     }
     
-    public IndexSetInfo(String name, PacioliFile file, String module, Boolean isGlobal, Location location) {
-        super(new GenericInfo(name, file, module, isGlobal, location));
+    public IndexSetInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
+        super(new GenericInfo(name, file, isGlobal, location));
     }
     
     public IndexSetInfo(GenericInfo generic) {
