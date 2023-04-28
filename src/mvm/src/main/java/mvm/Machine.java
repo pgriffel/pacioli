@@ -94,7 +94,7 @@ public class Machine {
     }
 
     public void storeBaseValue(String name, PacioliValue primitive) {
-        storeValue("glbl_base_base_" + name, primitive);
+        storeValue("lib_base_base_" + name, primitive);
     }
     
     public void init() throws MVMException {

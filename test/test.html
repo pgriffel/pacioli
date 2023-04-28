@@ -17,7 +17,7 @@
         // Add a [script, suites] entry for each test script to this list and include its 
         // script further below. 
         const script_suites = [
-            ["test_libs", "all_suites"]
+            ["usr_test_libs", "all_suites"]
         ]
 
         function onLoad() {
@@ -26,7 +26,7 @@
                 const header = document.createElement("h2")
                 header.innerText = script
                 console.appendChild(header)
-                Pacioli.fun('testing_testing', 'run_test_suites').call(Pacioli.value(script, suites))
+                Pacioli.fun('lib_testing_testing', 'run_test_suites').call(Pacioli.value(script, suites))
             }
         }
     </script>

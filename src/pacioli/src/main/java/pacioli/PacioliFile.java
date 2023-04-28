@@ -68,7 +68,7 @@ public class PacioliFile extends AbstractPrintable {
      */
     public static Optional<PacioliFile> get(File file, Integer version) {
         if (file.exists()) {
-            return Optional.of(new PacioliFile(file.getAbsoluteFile(), "", FilenameUtils.getBaseName(file.getName()), version, false, false));
+            return Optional.of(new PacioliFile(file.getAbsoluteFile(), "usr", FilenameUtils.getBaseName(file.getName()), version, false, false));
         } else {
             return Optional.empty();
         }
@@ -212,7 +212,7 @@ public class PacioliFile extends AbstractPrintable {
         if (theFile == null) {
             return Optional.empty();
         } else {
-            return Optional.of(new PacioliFile(theFile, name.replace("/", "_"), name.replace("/", "_"), 0, false, true));    
+            return Optional.of(new PacioliFile(theFile, "lib_" + name.replace("/", "_"), name.replace("/", "_"), 0, false, true));    
         }
     }
 

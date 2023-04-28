@@ -70,10 +70,16 @@ public class Bundle {
         SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>();
         valueTable.allInfos().forEach(info -> {
             if (info.isPublic() && importedModules.contains(info.generic().getModule())) {
+                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Importing %s", info.name());
                 table.put(info.name(), info);
             }
             if (includedModules.contains(info.generic().getModule())) {
+                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Including %s", info.name());
                 table.put(info.name(), info);
+            }
+            if (!(info.isPublic() && importedModules.contains(info.generic().getModule())) &&
+                !includedModules.contains(info.generic().getModule())) {
+                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Skipping %s", info.name());
             }
         });
         return table;
@@ -85,10 +91,11 @@ public class Bundle {
         typeTable.allInfos().forEach(info -> {
             String infoModule = info.generic().getModule();
             if (importedModules.contains(infoModule) || includedModules.contains(infoModule)) {
-                // Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s",
-                // info.globalName(),
-                // info.name());
+                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(), info.name());
                 table.put(info.name(), info);
+            } else {
+                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Skipping type %s %s (%s || %s fails %s)", info.globalName(), info.name(),
+                importedModules.contains(infoModule), includedModules.contains(infoModule), infoModule);
             }
         });
         return table;
@@ -116,7 +123,10 @@ public class Bundle {
                 Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s",
                         info.globalName());
                 if (valueTable.contains(info.globalName())) {
-                    throw new PacioliException(info.getLocation(), "Duplicate name: %s", info.globalName());
+                    throw new PacioliException(info.getLocation(), "Duplicate name: %s, %s %s",
+                            info.globalName(),
+                            valueTable.lookup(info.globalName()).getLocation().equals(info.getLocation()),
+                            valueTable.lookup(info.globalName()).getLocation().description());
                 }
                 valueTable.put(info.globalName(), info);
             }
@@ -126,7 +136,8 @@ public class Bundle {
                 Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s",
                         info.globalName(), info.name());
                 if (typeTable.contains(info.globalName())) {
-                    throw new PacioliException(info.getLocation(), "Duplicate name: %s", info.globalName());
+                    throw new PacioliException(info.getLocation(), "Duplicate name: %s %s", info.globalName(),
+                    typeTable.lookup(info.globalName()).getLocation().description());
                 }
                 typeTable.put(info.globalName(), info);
             }

@@ -246,6 +246,8 @@ public class Project {
                 // program
                 List<String> importedModules = importedModules(program);
                 List<String> includedModules = includedModules(program);
+                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Imported modules = %s", importedModules);
+                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Included modules = %s", includedModules);
                 SymbolTable<ValueInfo> vTable = bundle.programValueTable(importedModules, includedModules);
                 SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(importedModules, includedModules);
 

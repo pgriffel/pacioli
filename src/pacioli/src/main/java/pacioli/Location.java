@@ -24,6 +24,7 @@ package pacioli;
 import java.io.File;
 import java.io.IOException;
 
+
 /**
  * A location is a range in a file. A position is a location with an equal range start and end.
  *
@@ -60,6 +61,67 @@ public class Location {
         this.toColumn = null;
     }
     
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((file == null) ? 0 : file.hashCode());
+        result = prime * result + ((fromLine == null) ? 0 : fromLine.hashCode());
+        result = prime * result + ((fromColumn == null) ? 0 : fromColumn.hashCode());
+        result = prime * result + ((fromOffset == null) ? 0 : fromOffset.hashCode());
+        result = prime * result + ((toLine == null) ? 0 : toLine.hashCode());
+        result = prime * result + ((toColumn == null) ? 0 : toColumn.hashCode());
+        result = prime * result + ((toOffset == null) ? 0 : toOffset.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Location other = (Location) obj;
+        if (file == null) {
+            if (other.file != null)
+                return false;
+        } else if (!file.equals(other.file))
+            return false;
+        if (fromLine == null) {
+            if (other.fromLine != null)
+                return false;
+        } else if (!fromLine.equals(other.fromLine))
+            return false;
+        if (fromColumn == null) {
+            if (other.fromColumn != null)
+                return false;
+        } else if (!fromColumn.equals(other.fromColumn))
+            return false;
+        if (fromOffset == null) {
+            if (other.fromOffset != null)
+                return false;
+        } else if (!fromOffset.equals(other.fromOffset))
+            return false;
+        if (toLine == null) {
+            if (other.toLine != null)
+                return false;
+        } else if (!toLine.equals(other.toLine))
+            return false;
+        if (toColumn == null) {
+            if (other.toColumn != null)
+                return false;
+        } else if (!toColumn.equals(other.toColumn))
+            return false;
+        if (toOffset == null) {
+            if (other.toOffset != null)
+                return false;
+        } else if (!toOffset.equals(other.toOffset))
+            return false;
+        return true;
+    }
+
     public Location(File file, int line, int column, int offset) {
         this.file = file;
         this.fromOffset = offset;

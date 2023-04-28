@@ -33,7 +33,8 @@ public final class TypeInfo extends AbstractSymbolInfo implements TypeSymbolInfo
     public String globalName() {
         //throw new RuntimeException("todo");
         // TODO: check this name with the name used by the compiler. This was added just for logging.
-        return String.format("type_%s", name());
+        // return String.format("type_%s", name());
+        return String.format("%s_%s", generic().getModule().replace("-", "_"), name());
     }
 
     @Override

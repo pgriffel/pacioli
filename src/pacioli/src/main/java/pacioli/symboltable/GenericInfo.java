@@ -20,6 +20,9 @@ public class GenericInfo {
         this.module = module;
         this.isGlobal = isGlobal;
         this.location = location;
+        // if (!file.getModule().equals(module)) {
+        //     throw new RuntimeException("yippie");
+        // }
     }
     
     public Location location() {
@@ -31,7 +34,7 @@ public class GenericInfo {
     }
     
     public String getModule() {
-        return module;
+        return file.getModule();
     }
     
     public Boolean isGlobal() {

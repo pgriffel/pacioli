@@ -7,6 +7,7 @@ include apply_mag/apply_mag_tests;
 include shells/shells_tests;
 include commodity/commodity_tests;
 include shock_tube/shock_tube_tests;
+include net/net_tests;
 
 # Experiment
 import include_test;
@@ -23,5 +24,6 @@ define all_suite_collections = [
     apply_mag_suites,
     shells_suites,
     #commodity_suites
-    shock_tube_suites
+    shock_tube_suites,
+    net_suites
 ];

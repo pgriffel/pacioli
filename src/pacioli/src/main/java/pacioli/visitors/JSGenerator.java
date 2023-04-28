@@ -134,7 +134,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(AssignmentNode node) {
-        out.format("Pacioli.%s(", ValueInfo.global("base_base", "_ref_set"));
+        out.format("Pacioli.%s(", ValueInfo.global("lib_base_base", "_ref_set"));
         out.print("lcl_" + node.var.getName());
         out.print(", ");
         node.value.accept(this);
@@ -182,7 +182,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
                 : "lcl_" + node.getName();
 
         if (node.getInfo().isRef()) {
-            out.format("Pacioli.%s(%s)", ValueInfo.global("base_base", "_ref_get"), full);
+            out.format("Pacioli.%s(%s)", ValueInfo.global("lib_base_base", "_ref_get"), full);
         } else {
             out.format("%s", full);
         }
@@ -303,7 +303,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnNode node) {
-        format("Pacioli.%s(%s, ", ValueInfo.global("base_base", "_throw_result"), node.resultInfo.name());
+        format("Pacioli.%s(%s, ", ValueInfo.global("lib_base_base", "_throw_result"), node.resultInfo.name());
         node.value.accept(this);
         write(")");
     }
@@ -317,7 +317,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             Integer n = node.items.size();
             mark();
             for (int i = 0; i < n - 1; i++) {
-                format("Pacioli.%s(", ValueInfo.global("base_base", "_seq"));
+                format("Pacioli.%s(", ValueInfo.global("lib_base_base", "_seq"));
                 newlineUp();
                 node.items.get(i).accept(this);
                 write(", ");
@@ -357,7 +357,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         write("return ");
 
         // A catch to get the result
-        format("Pacioli.%s(", ValueInfo.global("base_base", "_catch_result"));
+        format("Pacioli.%s(", ValueInfo.global("lib_base_base", "_catch_result"));
 
         newlineUp();
 
@@ -381,7 +381,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         newlineDown();
 
         // The initial result place
-        format("Pacioli.%s()", ValueInfo.global("base_base", "_empty_ref"));
+        format("Pacioli.%s()", ValueInfo.global("lib_base_base", "_empty_ref"));
 
         for (IdentifierNode id : assignedVariables) {
             write(", ");
@@ -389,19 +389,19 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             if (node.shadowed.contains(id.getName())) {
                 if (node.shadowed.lookup(id.getName()).isRef()) {
                     format("Pacioli.%s(Pacioli.%s(",
-                            ValueInfo.global("base_base", "_new_ref"),
-                            ValueInfo.global("base_base", "_ref_get"));
+                            ValueInfo.global("lib_base_base", "_new_ref"),
+                            ValueInfo.global("lib_base_base", "_ref_get"));
                     write("lcl_" + id.getName());
                     // id.accept(this);
                     write("))");
                 } else {
-                    format("Pacioli.%s(", ValueInfo.global("base_base", "_new_ref"));
+                    format("Pacioli.%s(", ValueInfo.global("lib_base_base", "_new_ref"));
                     write("lcl_" + id.getName());
                     // id.accept(this);
                     write(")");
                 }
             } else {
-                format("Pacioli.%s()", ValueInfo.global("base_base", "_empty_ref"));
+                format("Pacioli.%s()", ValueInfo.global("lib_base_base", "_empty_ref"));
             }
         }
 
@@ -441,7 +441,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         // tuple elements and are used in the lambda body to assign the
         // variables. The lambda body is a sequence of these assignments.
         mark();
-        format("Pacioli.%s(function (", ValueInfo.global("base_base", "apply"));
+        format("Pacioli.%s(function (", ValueInfo.global("lib_base_base", "apply"));
 
         // The lambda arguments
         Boolean first = true;
@@ -459,8 +459,8 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         // The sequence of assignments
         for (int i = 0; i < size; i++) {
             if (i < size - 1)
-                format("Pacioli.%s(", ValueInfo.global("base_base", "_seq"));
-            format("Pacioli.%s(", ValueInfo.global("base_base", "_ref_set"));
+                format("Pacioli.%s(", ValueInfo.global("lib_base_base", "_seq"));
+            format("Pacioli.%s(", ValueInfo.global("lib_base_base", "_ref_set"));
             write("lcl_" + names.get(i));
             write(", ");
             write(freshNames.get(i));
@@ -488,7 +488,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(WhileNode node) {
         mark();
-        format("Pacioli.%s(", ValueInfo.global("base_base", "_while"));
+        format("Pacioli.%s(", ValueInfo.global("lib_base_base", "_while"));
         newlineUp();
         write("function () {");
         newlineUp();
