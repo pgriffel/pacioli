@@ -8,6 +8,7 @@ include shells/shells_tests;
 include commodity/commodity_tests;
 include shock_tube/shock_tube_tests;
 include net/net_tests;
+include numpy/numpy_tests;
 
 # Experiment
 import include_test;
@@ -25,5 +26,6 @@ define all_suite_collections = [
     shells_suites,
     #commodity_suites
     shock_tube_suites,
-    net_suites
+    net_suites,
+    numpy_suites
 ];
