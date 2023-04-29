@@ -180,8 +180,9 @@ export function lib_base_base_equal(x: any, y: any) {
     return true;
   } else if (x.kind === "coordinates") {
     //(x instanceof Pacioli.Coordinates && y instanceof Pacioli.Coordinates) {
-    alert("duh");
-    return x.equals(y);
+    // alert("duh");
+    //return x.equals(y);
+    return x.position === y.position;
   } else if (x.kind === "matrix") {
     //(x instanceof Pacioli.Matrix && y instanceof Pacioli.Matrix) {
     return !findNonZero(

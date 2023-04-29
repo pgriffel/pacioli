@@ -18,7 +18,8 @@ define base_suites = [
    tan_suite,
    expt_suite,
    mexpt_suite,
-   random_suite
+   random_suite,
+   equal_suite
    #mapnz_suite       does not exist in MVM yet
    #kronecker_suite   TODO port in pacioli-ts
 ];
@@ -470,6 +471,29 @@ define mapnz_suite = test_suite("Function mapnz", [
             mapnz((x) -> x + 1, test_vec(0, 0, 1, 0, 3, 4)) = test_vec(0, 0, 2, 0, 4, 5)
          )
    ]);
+
+# ------------------------------------------------------------------------------
+# Function equal
+# ------------------------------------------------------------------------------
+
+define equal_suite = test_suite("Function equal", [
+    
+   test("should be true for equal indices", () ->
+      equal(Bar@v0, Bar@v0)
+   ),
+
+   test("should be false for unequal indices", () ->
+      not(equal(Bar@v0, Bar@v1))
+   ),
+   
+   test("should be true for equal compound indices", () ->
+      equal(Bar@v0%Bar@v1, Bar@v0%Bar@v1)
+   ),
+
+   test("should be false for unequal compound indices", () ->
+      not(equal(Bar@v0%Bar@v1, Bar@v1%Bar@v0))
+   )         
+]);
 
 # ------------------------------------------------------------------------------
 # Function kronecker
