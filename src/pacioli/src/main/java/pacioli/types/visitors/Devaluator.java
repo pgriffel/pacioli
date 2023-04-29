@@ -72,10 +72,6 @@ public class Devaluator implements TypeVisitor {
         }
 
         returnTypeNode(new TypeApplicationNode(new Location(), index, ids));
-
-        // //throw new RuntimeException("todo: " + type.getClass());
-        // throw new RuntimeException("deval of index list should be handled by the
-        // matrix type");
     }
 
     @Override
