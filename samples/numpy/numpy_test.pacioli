@@ -134,28 +134,21 @@ define run_experiment(samples, verbose) =
   in
     begin
       if verbose then
-          print("");
-          print("");
-          write("Experiment (test/train probability=");
-          write(to_percentage(prob));
-          print(")");
+          _print("");
+          _print("");
+          _print(format("Experiment (test/train probability=%s)", to_percentage(prob)));
     
-          print("trials");
-          print(nr_trials);
-          print("correct");
-          print(nr_correct);
-          print("accuracy");
-          print(to_percentage(nr_correct/nr_trials));
+          _print(format("trials %s", num2string(nr_trials, 0)));
+	  _print(format("correct %s", num2string(nr_correct, 0)));
+	  _print(format("accuracy %s", to_percentage(nr_correct/nr_trials)));
 
           i := 0;
           n := list_size(predictions);
-          print("");
-          print("Predicted, Actual");
+          _print("");
+          _print("Predicted, Actual");
           while i != n do
             (predicted, actual) := nth(i, predictions);
-            write(predicted);
-            write(", ");
-            print(actual);
+            _print(format("%s, %s", predicted, actual));
             i := i + 1;
           end
       end
@@ -174,7 +167,7 @@ define repeat_experiment(n) =
       total_trials := total_trials + nr_trials;
       i := i + 1;
     end
-    print("");
-    print("Asymptotic accuracy:");
-    print(to_percentage(total_correct/total_trials));
+    _print("");
+    _print("Asymptotic accuracy:");
+    _print(to_percentage(total_correct/total_trials));
   end;
