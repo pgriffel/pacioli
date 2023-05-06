@@ -35,6 +35,7 @@ import { VectorBase } from "./values/vector-base";
 import { nothing } from "./values/void";
 import { GenericType } from "./types/generic";
 import { SIBaseType, VectorBaseType } from "./types/bases";
+import { UnitVector } from "./values/unit-vector";
 
 export function boxRawValue(value: RawValue, type: PacioliType): PacioliValue {
   switch (type.kind) {
@@ -112,12 +113,14 @@ export function boxRawValue(value: RawValue, type: PacioliType): PacioliValue {
 }
 
 export function matrixShapeFromType(type: MatrixType): MatrixShape {
+  const rowDim = matrixDimensionFromIndex(type.rowIndex);
+  const columnDim = matrixDimensionFromIndex(type.columnIndex);
   return new MatrixShape(
     internUnit(type.multiplier),
-    matrixDimensionFromIndex(type.rowIndex),
-    internUnitVector(type.rowUnit),
-    matrixDimensionFromIndex(type.columnIndex),
-    internUnitVector(type.columnUnit)
+    rowDim,
+    internUnitVector(rowDim, type.rowUnit),
+    columnDim,
+    internUnitVector(columnDim, type.columnUnit)
   );
 }
 
@@ -248,12 +251,24 @@ function internUnitInv(unit: SIUnit): PacioliUnit {
  * @param unit
  * @returns
  */
-function internUnitVector(unit: PacioliVector): SIVector {
+function internUnitVector(
+  dimension: MatrixDimension,
+  unit: PacioliVector
+): SIVector {
   const siUnit: SIVector = unit.map((base) => {
     if (base.isVar) {
       throw new Error("cannot have variable");
     } else {
-      const unitVector = fetchVectorBase(base.getName());
+      const unitObject = fetchVectorBase(base.getName()).units;
+      const unitMap = new Map<string, SIUnit>();
+      for (const [key, value] of Object.entries(unitObject)) {
+        unitMap.set(key, internUnit(value as PacioliUnit));
+      }
+      const unitVector = UnitVector.fromMap(
+        base.getName(),
+        dimension.indexSets[base.position],
+        unitMap
+      );
       if (unitVector !== undefined) {
         const siUnitVec: SIVector = UOM.fromBase(
           new VectorBase(unitVector, base.position, base.getName())

@@ -66,6 +66,7 @@ export function DOM(x: any) {
   }
 }
 
+// TODO Use tableRows from Matrix
 export function DOMmatrixTable(matrix: Matrix) {
   var shape = matrix.shape;
   var numbers = matrix.numbers;

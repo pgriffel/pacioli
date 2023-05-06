@@ -64,6 +64,7 @@ import {
 import { PacioliFunction } from "./values/function";
 import { PacioliValue, tagKind } from "./value";
 import { nothing } from "./values/void";
+import { Matrix } from "./values/matrix";
 
 // -----------------------------------------------------------------------------
 // 1. Primitive Units Unit Prefixes
@@ -926,25 +927,21 @@ export function lib_base_base_set_nr_decimals(num: any) {
 }
 
 export function lib_base_base_num2string(num: any, decimals: any, unit: any) {
-  var n = getNumber(num, 0, 0);
-  var d = getNumber(decimals, 0, 0);
   const shape = unit.shape;
   if (shape === undefined) {
     throw Error("shape undefined");
   }
-  // TODO: matrices instead of just scalars
-  return n.toFixed(d) + "" + shape.unitAt(0, 0).toText();
+  const matrix = new Matrix(shape, num);
+  return matrix.toDecimal(getNumber(decimals, 0, 0));
 }
 
 export function lib_base_base_num2str(num: any, unit: any) {
-  var n = getNumber(num, 0, 0);
-  var d = NR_DECIMALS;
   const shape = unit.shape;
   if (shape === undefined) {
     throw Error("shape undefined");
   }
-  // TODO: matrices instead of just scalars
-  return n.toFixed(d) + "" + shape.unitAt(0, 0).toText();
+  const matrix = new Matrix(shape, num);
+  return matrix.toDecimal(NR_DECIMALS);
 }
 
 export function lib_base_base_concatenate(x: any, y: any) {

@@ -22,7 +22,7 @@
 
 import { DimNum } from "uom-ts";
 import { Context, SIUnit } from "uom-ts";
-import { getCOONumbers, tagNumbers } from "./numbers";
+import { getCOONumbers, getNumber, tagNumbers } from "./numbers";
 import { MatrixShape } from "./matrix-shape";
 
 /**
@@ -91,6 +91,115 @@ export class Matrix {
       rows: this.shape.rowNames(),
       columns: this.shape.columnNames(),
     };
+  }
+
+  public toDecimal(decimals: number) {
+    function columnSize(rows: string[][], column: number) {
+      return rows
+        .map((row) => row[column].length)
+        .reduce((x, y) => Math.max(x, y), 0);
+    }
+
+    const shape = this.shape;
+    const num = this.numbers;
+
+    var rowOrder = shape.rowOrder();
+    var columnOrder = shape.columnOrder();
+
+    if (rowOrder === 0 && columnOrder === 0) {
+      var n = getNumber(num, 0, 0);
+      return n.toFixed(decimals) + "" + shape.unitAt(0, 0).toText();
+    } else {
+      const matrix = new Matrix(shape, num);
+      const rows = matrix.tableRows(decimals) as string[][];
+      const colSize0 = columnSize(rows, 0);
+
+      if (rowOrder > 0 && columnOrder > 0) {
+        const colSize1 = columnSize(rows, 1);
+        const colSize2 = columnSize(rows.slice(1), 2);
+        const text = rows
+          .map((row, i) => {
+            return i === 0
+              ? `${row[0].padEnd(colSize0, " ")} ${row[1].padEnd(
+                  colSize1,
+                  " "
+                )} ${row[2]}`
+              : `${row[0].padEnd(colSize0, " ")} ${row[1].padEnd(
+                  colSize1,
+                  " "
+                )} ${row[2].padStart(colSize2, " ")} ${row[3]}`;
+          })
+          .reduce((x, y) => `${x}${y}\n`, "");
+        return text;
+      } else {
+        const colSize1 = columnSize(rows.slice(1), 1);
+        const text = rows
+          .map((row, i) => {
+            return i === 0
+              ? `${row[0].padEnd(colSize0, " ")} ${row[1]}`
+              : `${row[0].padEnd(colSize0, " ")} ${row[1].padStart(
+                  colSize1,
+                  " "
+                )} ${row[2]}`;
+          })
+          .reduce((x, y) => `${x}${y}\n`, "");
+        return text;
+      }
+    }
+  }
+
+  public tableRows(decimals: number): string[][] {
+    var shape = this.shape;
+    var numbers = this.numbers;
+
+    var rowOrder = shape.rowOrder();
+    var columnOrder = shape.columnOrder();
+
+    var table: string[][] = [];
+
+    var row: string[] = [];
+
+    if (0 < rowOrder) {
+      row.push(shape.rowName());
+    }
+    if (0 < columnOrder) {
+      row.push(shape.columnName());
+    }
+
+    row.push("Value");
+    row.push("");
+
+    table.push(row);
+
+    var coo = getCOONumbers(numbers);
+    var rows = coo[0];
+    var columns = coo[1];
+    var values = coo[2];
+    if (rows.length === 0) {
+      return [];
+    } else {
+      for (var i = 0; i < rows.length; i++) {
+        row = [];
+        if (0 < rowOrder) {
+          row.push(shape.rowCoordinates(rows[i]).names.toString());
+        }
+        if (0 < columnOrder) {
+          row.push(shape.columnCoordinates(rows[i]).names.toString());
+        }
+
+        row.push(values[i].toFixed(decimals));
+
+        var un = shape.unitAt(rows[i], columns[i]);
+        if (un.toText() === "1") {
+          row.push("");
+        } else {
+          row.push(un.toText());
+        }
+
+        table.push(row);
+      }
+    }
+    return table;
   }
 }
 
