@@ -22,11 +22,6 @@ include string;
 include list;
 include matrix;
 
-declare export int2str :: for_index D, E: for_unit a, D!b, E!c:
-    (a*D!b per E!c, a*D!b per E!c) -> String;
-
-define int2str(x, unit) = num2string(x, 0, unit);
-
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
@@ -50,6 +45,16 @@ define to_percentage(x) = percent_conv '.*' x;
 define from_percentage(x) = x '/.' percent_conv;
 
 define fraction(x, y) = to_percentage(x / y);
+
+# ------------------------------------------------------------------------------
+# String IO
+# ------------------------------------------------------------------------------
+
+declare export int2str :: for_index D, E: for_unit a, D!b, E!c:
+    (a*D!b per E!c, a*D!b per E!c) -> String;
+
+define int2str(x, unit) =
+    num2string(x, 0, unit);
 
 # ------------------------------------------------------------------------------
 # Radian functons

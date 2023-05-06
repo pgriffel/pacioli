@@ -39,20 +39,40 @@ defunit radian "rad" = 1;
 # ----------------------------------------------------------------------------
 
 declare export tuple :: for_type a: a -> a;
+
 declare export apply :: for_type a,b: (a -> b, a) -> b;
 
 declare export identity :: for_type a: (a) -> a;
+
 declare export type_of :: for_type a: (a) -> Identifier;
 
 declare export equal :: for_type a: (a, a) -> Boole;
+
 declare export not_equal :: for_type a: (a, a) -> Boole;
+
 declare export not :: (Boole) -> Boole;
 
-declare export just :: for_type t: (t) -> Maybe(t);
-declare export nothing :: for_type t: () -> Maybe(t);
-declare export is_nothing :: for_type t: (Maybe(t)) -> Boole;
-
 declare export error :: for_type a: (String) -> a;
+
+# ----------------------------------------------------------------------------
+# String IO
+# ----------------------------------------------------------------------------
+
+declare export set_nr_decimals :: (1) -> Void;
+
+declare export nr_decimals :: () -> 1;
+
+declare export format :: for_type t: t -> String;
+
+declare export print :: (String) -> Void;
+
+declare export parse_num :: (String) -> 1;
+
+declare export num2string :: for_index I, J: for_unit a, I!u, J!v:
+    (a*I!u per J!v, 1, a*I!u per J!v) -> String;
+
+declare export num2str :: for_index I, J: for_unit a, I!u, J!v:
+    (a*I!u per J!v, a*I!u per J!v) -> String;
 
 # ----------------------------------------------------------------------------
 # System functions
@@ -65,7 +85,9 @@ declare export _system_time :: () -> 1;
 declare export _add_mut :: for_type a: (List(a), a) -> List(a);
 
 declare export _asin :: for_index P,Q: (P! per Q!) -> P! per Q!;
+
 declare export _acos :: for_index P,Q: (P! per Q!) -> P! per Q!;
+
 declare export _atan :: for_index P,Q: (P! per Q!) -> P! per Q!;
 
 declare export _atan2 ::
@@ -73,47 +95,75 @@ declare export _atan2 ::
 
 declare export _skip :: () -> Void;
 
-# Functions added after type inference, so no types necessary:
+# ----------------------------------------------------------------------------
+# Strings
+# ----------------------------------------------------------------------------
 
-#declare _throw_result :: for_type a: (Ref(a), a) -> Void;
-#declare _catch_result :: for_type a: (() -> Void, Ref(a)) -> a;
-#declare _seq :: (Void, Void) -> Void;
-#declare _while :: (() -> Boole, () -> Void) -> Void;
+declare export string_compare :: (String, String) -> 1;
 
-#declare _ref_get :: for_type a: (Ref(a)) -> a;
-#declare _ref_set :: for_type a: (Ref(a), a) -> Void;
-#declare _empty_ref :: for_type a: () -> Ref(a);
-#declare _new_ref :: for_type a: (a) -> Ref(a);
+declare export concatenate :: (String, String) -> String;
+
+declare export split_string :: (String, String) -> List(String);
+
+declare export trim :: (String) -> String;
+
+# ----------------------------------------------------------------------------
+# Maybe
+# ----------------------------------------------------------------------------
+
+declare export just :: for_type t: (t) -> Maybe(t);
+
+declare export nothing :: for_type t: () -> Maybe(t);
+
+declare export is_nothing :: for_type t: (Maybe(t)) -> Boole;
 
 # ----------------------------------------------------------------------------
 # Lists
 # ----------------------------------------------------------------------------
 
 declare export empty_list :: for_type a: () ->  List(a);
+
 declare export singleton_list :: for_type a: (a) -> List(a);
+
 declare export head :: for_type a: (List(a)) -> a;
+
 declare export nth :: for_type a: (1, List(a)) -> a;
+
 declare export tail :: for_type a: (List(a)) -> List(a);
+
 declare export list_size :: for_type a: (List(a)) -> 1;
+
 declare export cons :: for_type a: (a, List(a)) -> List(a);
+
 declare export append :: for_type a: (List(a), List(a)) -> List(a);
+
 declare export loop_list :: for_type a,b: (a, (a, b) -> a, List(b)) -> a;
+
 declare export fold_list :: for_type a: ((a, a) -> a, List(a)) -> a;
+
 declare export zip :: for_type a,b: (List(a), List(b)) -> List(Tuple(a, b));
+
 declare export naturals :: (1) -> List(1);
+
 declare export map_list :: for_type a,b: ((a) -> b, List(a)) -> List(b);
+
 declare export reverse :: for_type a: (List(a)) -> List(a);
+
 declare export sort_list :: for_type a: (List(a), (a, a) -> Boole) -> List(a);
+
 declare export contains :: for_type a: (List(a), a) -> Boole;
 
 # ----------------------------------------------------------------------------
-# Strings
+# Array
 # ----------------------------------------------------------------------------
 
-declare export string_compare :: (String, String) -> 1;
-declare export concatenate :: (String, String) -> String;
-declare export split_string :: (String, String) -> List(String);
-declare export trim :: (String) -> String;
+declare export make_array :: for_type t: (1) -> Array(t);
+
+declare export array_get :: for_type t: (Array(t), 1) -> t;
+
+declare export array_put :: for_type t: (Array(t), 1, t) -> Void;
+
+declare export array_size :: for_type t: (Array(t)) -> 1;
 
 # ----------------------------------------------------------------------------
 # Indices
@@ -121,7 +171,7 @@ declare export trim :: (String) -> String;
 
 declare export _ :: Index();
 
-declare export index_less :: for_index P: (P, P) -> Boole();
+declare export index_less :: for_index P: (P, P) -> Boole;
 
 # ----------------------------------------------------------------------------
 # Matrix Shape
@@ -241,19 +291,19 @@ declare export total ::
 # ----------------------------------------------------------------------------
 
 declare export less ::
-  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole();
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
 
 declare export less_eq ::
-  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole();
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
 
 declare export greater ::
-  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole();
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
 
 declare export greater_eq ::
-  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole();
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
 
 declare export is_zero ::
-  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> Boole();
+  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> Boole;
 
 # ----------------------------------------------------------------------------
 # Other Operations
@@ -330,64 +380,3 @@ declare export solve ::
 declare export mapnz ::
 #  for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
   for_index P,Q: for_unit a, P!u, Q!v: ((1) -> 1, a*P!u per Q!v) -> a*P!u per Q!v;
-
-# ----------------------------------------------------------------------------
-# IO Settings
-# ----------------------------------------------------------------------------
-
-#deftype IOSettings() = Tuple(1, Boole());
-#
-#declare export io_settings :: IOSettings();
-#
-#declare export decs :: (1) -> IOSettings();
-#declare export decs_io :: (1, IOSettings()) -> IOSettings();
-#
-#declare export thousands_separator :: (Boole()) -> IOSettings();
-#declare export thousands_separator_io :: (Boole(), IOSettings()) -> IOSettings();
-#
-#define io_settings =
-#  tuple(2, true);
-#
-#define decs(n) =
-#  decs_io(n, io_settings);
-#
-#define thousands_separator(boole) =
-#  thousands_separator_io(boole, io_settings);
-#
-#define decs_io(n, settings) =
-#  let (_, thousands_separator) = settings in
-#    tuple(n, thousands_separator)
-#  end;
-#
-#define thousands_separator_io(boole, settings) =
-#  let (decs, _) = settings in
-#    tuple(decs, boole)
-#  end;
-
-# ----------------------------------------------------------------------------
-# String IO
-# ----------------------------------------------------------------------------
-
-declare export set_nr_decimals :: (1) -> Void;
-declare export nr_decimals :: () -> 1;
-
-declare export format :: for_type t: t -> String();
-
-declare export print :: (String) -> Void();
-
-declare export parse_num :: (String) -> 1;
-
-declare export num2string :: for_index I, J: for_unit a, I!u, J!v:
-    (a*I!u per J!v, 1, a*I!u per J!v) -> String;
-
-declare export num2str :: for_index I, J: for_unit a, I!u, J!v:
-    (a*I!u per J!v, a*I!u per J!v) -> String;
-
-# ----------------------------------------------------------------------------
-# Array
-# ----------------------------------------------------------------------------
-
-declare export make_array :: for_type t: (1) -> Array(t);
-declare export array_get :: for_type t: (Array(t), 1) -> t;
-declare export array_put :: for_type t: (Array(t), 1, t) -> Void;
-declare export array_size :: for_type t: (Array(t)) -> 1;
