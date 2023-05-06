@@ -1114,17 +1114,15 @@ public class Machine {
 
         storeBaseValue("num2str", new Primitive("num2str") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                // Just ignore the unit in the third parameter. The MVM is already typed.
+                // The unit is for targets that compute with numbers only.
                 Matrix num = (Matrix) params.get(0);
                 Matrix n = (Matrix) params.get(1);
-                // Just ignore the unit in the third parameter. The MVM is already typed.
-                // The unit is for other targets that compute with numbers only.
-                int d = (int) n.SingletonNumber();
-                DecimalFormat format = new DecimalFormat();
-                format.setMinimumIntegerDigits(1);
-                format.setMaximumFractionDigits(d);
-                format.setMinimumFractionDigits(d);
-                format.setGroupingUsed(false);
-                return new PacioliString(format.format(num.SingletonNumber()));
+                int nrDecs = Matrix.nrDecimals;
+                Matrix.nrDecimals = (int) n.SingletonNumber();
+                PacioliString string = new PacioliString(num.toText());
+                Matrix.nrDecimals = nrDecs;
+                return string;
             }
         });
 

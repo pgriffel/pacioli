@@ -24,6 +24,7 @@ package mvm.values.matrix;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,6 +51,8 @@ public class Matrix extends AbstractPacioliValue {
 
     public final MatrixShape shape;
     private RealMatrix numbers;
+
+    static public int nrDecimals = 2;
 
     ////////////////////////////////////////////////////////////////////////////
     // Constructors
@@ -81,12 +84,19 @@ public class Matrix extends AbstractPacioliValue {
     @Override
     public void printText(PrintWriter out) {
 
+        DecimalFormat format = new DecimalFormat();
+        format.setMinimumIntegerDigits(1);
+        format.setMaximumFractionDigits(nrDecimals);
+        format.setMinimumFractionDigits(nrDecimals);
+        format.setGroupingUsed(false);
+
         if (rowDimension().width() == 0 && columnDimension().width() == 0) {
+            String decString = format.format(numbers.getEntry(0, 0));
             if (unitAt(0, 0).equals(MatrixBase.ONE)) {
-                out.format("%f", numbers.getEntry(0, 0));
+                out.format("%s", decString);
                 return;
             } else {
-                out.format("%f %s", numbers.getEntry(0, 0), unitAt(0, 0).pretty());
+                out.format("%s %s", decString, unitAt(0, 0).pretty());
                 return;
             }
         }
@@ -109,7 +119,7 @@ public class Matrix extends AbstractPacioliValue {
                 if (num < -0.0000000001 || 0.0000000001 < num) {
                     // if (num != 0) {
 
-                    String numString = String.format("%f", num);
+                    String numString = format.format(num);
                     numList.add(numString);
                     numWidth = Math.max(numWidth, numString.length());
 
@@ -203,7 +213,8 @@ public class Matrix extends AbstractPacioliValue {
                 .multiply(getUnit(columnDimension(), shape.columnUnit, j).reciprocal()));
     }
 
-    private static Unit<MatrixBase> getUnit(MatrixDimension dimension, final Unit<MatrixBase> matrixUnit, int position) {
+    private static Unit<MatrixBase> getUnit(MatrixDimension dimension, final Unit<MatrixBase> matrixUnit,
+            int position) {
         final int[] positions = dimension.individualPositions(position);
         return matrixUnit.map(new UnitMap<MatrixBase>() {
             public Unit<MatrixBase> map(MatrixBase base) {
