@@ -152,6 +152,8 @@ export {
   lib_base_base_nth,
   lib_base_base_num2str,
   lib_base_base_num2string,
+  lib_base_base_pad_left,
+  lib_base_base_pad_right,
   lib_base_base_parse_num,
   lib_base_base_positive_support,
   lib_base_base_print,

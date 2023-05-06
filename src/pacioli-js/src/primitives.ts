@@ -952,6 +952,14 @@ export function lib_base_base_split_string(x: any, y: any) {
   return tagKind(x.split(y), "list");
 }
 
+export function lib_base_base_pad_left(x: any, n: any, sub: any) {
+  return x.padStart(getNumber(n, 0, 0), sub);
+}
+
+export function lib_base_base_pad_right(x: any, n: any, sub: any) {
+  return x.padEnd(getNumber(n, 0, 0), sub);
+}
+
 export function lib_base_base_trim(x: any) {
   return x.trim();
 }

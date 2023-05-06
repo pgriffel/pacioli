@@ -107,6 +107,10 @@ declare export split_string :: (String, String) -> List(String);
 
 declare export trim :: (String) -> String;
 
+declare export pad_left :: (String, 1, String) -> String;
+
+declare export pad_right :: (String, 1, String) -> String;
+
 # ----------------------------------------------------------------------------
 # Maybe
 # ----------------------------------------------------------------------------

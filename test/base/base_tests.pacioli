@@ -19,7 +19,9 @@ define base_suites = [
    expt_suite,
    mexpt_suite,
    random_suite,
-   equal_suite
+   equal_suite,
+   pad_left_suite,
+   pad_right_suite
    #mapnz_suite       does not exist in MVM yet
    #kronecker_suite   TODO port in pacioli-ts
 ];
@@ -493,6 +495,52 @@ define equal_suite = test_suite("Function equal", [
    test("should be false for unequal compound indices", () ->
       not(equal(Bar@v0%Bar@v1, Bar@v1%Bar@v0))
    )         
+]);
+
+# ------------------------------------------------------------------------------
+# Pad left suite
+# ------------------------------------------------------------------------------
+
+define pad_left_suite = test_suite("Function pad_left", [
+        
+    test("should not pad if string longer than requested length", () ->
+        pad_left("foo", 1, " ") = "foo"
+    ),
+    
+    test("should pad if string is shorter than requested length", () ->
+        pad_left("foo", 12, " ") = "         foo"
+    ),
+    
+    test("should not pad if the string length equals the requested length", () ->
+        pad_left("foo", 3, " ") = "foo"
+    ),
+    
+    test("should pad a padding string of multiple characters", () ->
+        pad_left("foo", 12, "ab") = "ababababafoo"
+    )
+]);
+
+# ------------------------------------------------------------------------------
+# Pad right suite
+# ------------------------------------------------------------------------------
+
+define pad_right_suite = test_suite("Function pad_right", [
+    
+    test("should not pad if string longer than requested length", () ->
+        pad_right("foo", 1, " ") = "foo"
+    ),
+    
+    test("should pad if string is shorter than requested length", () ->
+        pad_right("foo", 12, " ") = "foo         "
+    ),
+    
+    test("should not pad if the string length equals the requested length", () ->
+        pad_right("foo", 3, " ") = "foo"
+    ),
+    
+    test("should pad a padding string of multiple characters", () ->
+        pad_right("foo", 12, "ab") = "fooababababa"
+    )
 ]);
 
 # ------------------------------------------------------------------------------
