@@ -85,7 +85,7 @@ define suite_is_only(suite) =
 
 define run_test_suites(suites) =
   begin
-    _print("\nRuning test suites\n");
+    print("\nRuning test suites\n");
 
     # Determine which suites to run
     suites_with_only := [s | s <- suites, suite_is_only(s)];
@@ -96,43 +96,43 @@ define run_test_suites(suites) =
     results := [tuple(suite_description(s), run_test_suite(s)) | s <- to_test];
 
     # Print a status message
-    _print(format("\nTests finished, %s suites tested%s\n",
-      num2string(list_size(to_test), 0),
+    print(format("\nTests finished, %s suites tested%s\n",
+      num2str(list_size(to_test), 0, |1|),
       skipped_message(nr_skipped_suites)));
 
     # Print a summary of the results per suite. Also calculate totals.
-    to_print := results;
+    toprint := results;
     total_nr_tests := 0;
     total_nr_successes := 0;
-    while to_print != [] do
+    while toprint != [] do
 
       # Get the result for this suite
-      (description, result) := head(to_print);
+      (description, result) := head(toprint);
       (nr_tests, nr_errors, nr_skipped) := result;
       nr_successes := nr_tests - nr_errors;
 
       # Print the result
-      _print(format(" %s%s -> %s/%s success%s", 
+      print(format(" %s%s -> %s/%s success%s", 
         if nr_successes = nr_tests then " " else "*" end,
         description,
-        num2string(nr_successes, 0),
-        num2string(nr_tests, 0),
+        num2str(nr_successes, 0, |1|),
+        num2str(nr_tests, 0, |1|),
         skipped_message(nr_skipped)));
 
       # Update the totals
       total_nr_tests := total_nr_tests + nr_tests;
       total_nr_successes := total_nr_successes + nr_successes;
 
-      to_print := tail(to_print);
+      toprint := tail(toprint);
     end
 
     # Determine total number of skipped
     total_nr_skipped := count[ true | s <- suites, t <- suite_tests(s)] - total_nr_tests;
 
     # Print the totals
-    _print(format("\nTotal tests -> %s/%s success%s",
-      num2string(total_nr_successes, 0),
-      num2string(total_nr_tests, 0),
+    print(format("\nTotal tests -> %s/%s success%s",
+      num2str(total_nr_successes, 0, |1|),
+      num2str(total_nr_tests, 0, |1|),
       skipped_message(total_nr_skipped)));
   end;
 
@@ -161,23 +161,23 @@ define run_test_suite(suite) =
                             result := if okay then "ok" else "FAIL!" end,
                             message := format("  %s -> %s", description, result)],
     summary = if nr_failures = 0 then
-                format("All %s tests succeeded", num2string(nr_tests, 0))
+                format("All %s tests succeeded", num2str(nr_tests, 0, |1|))
               else
                 format("\nTEST FAILURES!!!!!\n\n  %s of %s tests failed",
-                  num2string(nr_failures, 0), 
-                  num2string(nr_tests, 0))
+                  num2str(nr_failures, 0, |1|), 
+                  num2str(nr_tests, 0, |1|))
               end
                       
   in
     begin
-      _print(description);
+      print(description);
       todo := messages;
       while todo != [] do
         frst := head(todo);
         todo := tail(todo);
-        _print(frst);
+        print(frst);
       end
-      _print(format("%s%s\n", summary, skipped_message(nr_skipped)));
+      print(format("%s%s\n", summary, skipped_message(nr_skipped)));
       return tuple(nr_tests, nr_failures, nr_skipped);
     end
   end;
@@ -189,5 +189,5 @@ define skipped_message(nr_skipped) =
   if nr_skipped = 0 then
     ""
   else
-    format(", %s skipped", num2string(nr_skipped, 0))
+    format(", %s skipped", num2str(nr_skipped, 0, |1|))
   end;

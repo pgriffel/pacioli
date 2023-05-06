@@ -96,7 +96,7 @@ public class Machine {
     public void storeBaseValue(String name, PacioliValue primitive) {
         storeValue("lib_base_base_" + name, primitive);
     }
-    
+
     public void init() throws MVMException {
 
         // //////////////////////////////////////////////////////////////////////////////
@@ -165,17 +165,7 @@ public class Machine {
             }
         });
 
-        storeBaseValue("_printed", new Primitive("_printed") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliValue value = params.get(0);
-                if (value != null) { // void value of statements
-                    log("%s\n", value.toText());
-                }
-                return value;
-            }
-        });
-
-        storeBaseValue("_print", new Primitive("_print") {
+        storeBaseValue("print", new Primitive("print") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliValue value = params.get(0);
                 if (value != null) { // void value of statements
@@ -531,9 +521,9 @@ public class Machine {
 
         storeBaseValue("set", new Primitive("set") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                //Key row = (Key) params.get(0);
-                //Key column = (Key) params.get(1);
-                //Matrix x = (Matrix) params.get(2);
+                // Key row = (Key) params.get(0);
+                // Key column = (Key) params.get(1);
+                // Matrix x = (Matrix) params.get(2);
                 // TODO: fix
                 // return x.set(row,column,x);
                 throw new MVMException("set is not implemented");
@@ -1122,10 +1112,12 @@ public class Machine {
             }
         });
 
-        storeBaseValue("num2string", new Primitive("num2string") {
+        storeBaseValue("num2str", new Primitive("num2str") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix num = (Matrix) params.get(0);
                 Matrix n = (Matrix) params.get(1);
+                // Just ignore the unit in the third parameter. The MVM is already typed.
+                // The unit is for other targets that compute with numbers only.
                 int d = (int) n.SingletonNumber();
                 DecimalFormat format = new DecimalFormat();
                 format.setMinimumIntegerDigits(1);
@@ -1135,7 +1127,7 @@ public class Machine {
                 return new PacioliString(format.format(num.SingletonNumber()));
             }
         });
-        
+
         storeBaseValue("split_string", new Primitive("split_string") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliString string = (PacioliString) params.get(0);
@@ -1171,14 +1163,14 @@ public class Machine {
                 } else {
                     checkStringArg(params, 0);
                     PacioliString formatString = (PacioliString) params.get(0);
-                    //List<String> paramStrings = new ArrayList<String>();
+                    // List<String> paramStrings = new ArrayList<String>();
                     Object[] paramStrings = new String[params.size() - 1];
                     for (int i = 0; i < params.size() - 1; i++) {
-                        //paramStrings.add(value.toText());
+                        // paramStrings.add(value.toText());
                         paramStrings[i] = params.get(i + 1).toText();
                     }
                     String text = String.format(formatString.toText(), paramStrings);
-                    //String text = String.format("yo %s", "delo");
+                    // String text = String.format("yo %s", "delo");
                     return new PacioliString(text);
                 }
             }
@@ -1204,7 +1196,7 @@ public class Machine {
                 return new PacioliArray(d);
             }
         });
-        
+
         storeBaseValue("array_put", new Primitive("array_put") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliArray array = (PacioliArray) params.get(0);
@@ -1231,7 +1223,7 @@ public class Machine {
 
         storeBaseValue("_system_time", new Primitive("_system_time") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                return new Matrix(System.nanoTime()/1000000.0);
+                return new Matrix(System.nanoTime() / 1000000.0);
             }
         });
     }
@@ -1307,9 +1299,10 @@ public class Machine {
     }
 
     public void run(File file, PrintStream out, List<File> libs) throws Exception {
-   ////     for (String include : PacioliFile.defaultIncludes) {
-   ///         runRec(PacioliFile.findFile(include + ".mvm", libs, file.getParentFile()), out, libs);
-   ////     }
+        //// for (String include : PacioliFile.defaultIncludes) {
+        /// runRec(PacioliFile.findFile(include + ".mvm", libs, file.getParentFile()),
+        //// out, libs);
+        //// }
         runRec(file, out, libs);
     }
 
@@ -1326,7 +1319,8 @@ public class Machine {
 
             // Run the requires
             // for (String require : code.requires) {
-            //     runRec(PacioliFile.findFile(require + ".mvm", libs, file.getParentFile()), out, libs);
+            // runRec(PacioliFile.findFile(require + ".mvm", libs, file.getParentFile()),
+            // out, libs);
             // }
 
             // Run the file itself

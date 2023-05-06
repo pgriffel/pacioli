@@ -52,12 +52,7 @@ declare export just :: for_type t: (t) -> Maybe(t);
 declare export nothing :: for_type t: () -> Maybe(t);
 declare export is_nothing :: for_type t: (Maybe(t)) -> Boole;
 
-# ----------------------------------------------------------------------------
-# Obsolete
-# ----------------------------------------------------------------------------
-
 declare export error :: for_type a: (String) -> a;
-declare export num2string :: for_unit a: (a, 1) -> String;
 
 # ----------------------------------------------------------------------------
 # System functions
@@ -117,7 +112,8 @@ declare export contains :: for_type a: (List(a), a) -> Boole;
 
 declare export string_compare :: (String, String) -> 1;
 declare export concatenate :: (String, String) -> String;
-declare export format :: for_type t: t -> String();
+declare export split_string :: (String, String) -> List(String);
+declare export trim :: (String) -> String;
 
 # ----------------------------------------------------------------------------
 # Indices
@@ -339,75 +335,47 @@ declare export mapnz ::
 # IO Settings
 # ----------------------------------------------------------------------------
 
-deftype IOSettings() = Tuple(1, Boole());
-
-declare export io_settings :: IOSettings();
-
-declare export decs :: (1) -> IOSettings();
-declare export decs_io :: (1, IOSettings()) -> IOSettings();
-
-declare export thousands_separator :: (Boole()) -> IOSettings();
-declare export thousands_separator_io :: (Boole(), IOSettings()) -> IOSettings();
-
-define io_settings =
-  tuple(2, true);
-
-define decs(n) =
-  decs_io(n, io_settings);
-
-define thousands_separator(boole) =
-  thousands_separator_io(boole, io_settings);
-
-define decs_io(n, settings) =
-  let (_, thousands_separator) = settings in
-    tuple(n, thousands_separator)
-  end;
-
-define thousands_separator_io(boole, settings) =
-  let (decs, _) = settings in
-    tuple(decs, boole)
-  end;
+#deftype IOSettings() = Tuple(1, Boole());
+#
+#declare export io_settings :: IOSettings();
+#
+#declare export decs :: (1) -> IOSettings();
+#declare export decs_io :: (1, IOSettings()) -> IOSettings();
+#
+#declare export thousands_separator :: (Boole()) -> IOSettings();
+#declare export thousands_separator_io :: (Boole(), IOSettings()) -> IOSettings();
+#
+#define io_settings =
+#  tuple(2, true);
+#
+#define decs(n) =
+#  decs_io(n, io_settings);
+#
+#define thousands_separator(boole) =
+#  thousands_separator_io(boole, io_settings);
+#
+#define decs_io(n, settings) =
+#  let (_, thousands_separator) = settings in
+#    tuple(n, thousands_separator)
+#  end;
+#
+#define thousands_separator_io(boole, settings) =
+#  let (decs, _) = settings in
+#    tuple(decs, boole)
+#  end;
 
 # ----------------------------------------------------------------------------
 # String IO
 # ----------------------------------------------------------------------------
 
-declare export int2str, num2str :: for_unit a: (a) -> String();
-declare export int2str_io, num2str_io :: for_unit a: (a,  IOSettings()) -> String();
+declare export format :: for_type t: t -> String();
 
-declare export as_text :: for_type t: (t) -> String();
-
-declare export _printed :: for_type a: (a) -> a;
-declare export _print :: for_type a: (a) -> Void();
-#declare export write :: for_type a: (a) -> Void();
-
-declare export print_grid :: for_type t: (List(List(t))) -> String();
-
-declare export unit_text :: for_unit a: (a) -> String();
-declare export unit_expression :: for_unit a: (a) -> String();
-
-declare export get_unit_text ::
-  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, P, Q) -> String();
-
-declare export get_unit_expression ::
-  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, P, Q) -> String();
-
-declare export text2string :: (Report()) -> String();
-
-declare export split_string :: (String, String) -> List(String);
-
-declare export trim :: (String) -> String;
+declare export print :: (String) -> Void();
 
 declare export parse_num :: (String) -> 1;
 
-define num2str(x) =
-  num2str_io(x, io_settings);
-
-define int2str_io(x, settings) =
-  num2str_io(x, decs_io(0, settings));
-
-define int2str(x) =
-  int2str_io(x, io_settings);
+declare export num2str :: for_index I, J: for_unit a, I!u, J!v:
+    (a*I!u per J!v, 1, a*I!u per J!v) -> String;
 
 # ----------------------------------------------------------------------------
 # Array

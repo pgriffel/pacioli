@@ -186,7 +186,9 @@ export function oneNumbers(m: number, n: number) {
 
 export function oneNumbersFromShape(type: MatrixType) {
   const shape = matrixShapeFromType(type);
-  return oneNumbers(shape.nrRows(), shape.nrColumns());
+  const numbers = oneNumbers(shape.nrRows(), shape.nrColumns());
+  numbers.shape = shape;
+  return numbers;
 }
 
 // Pacioli.oneMatrix = function (shape) {

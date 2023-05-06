@@ -210,13 +210,9 @@ export function lib_base_base_equal(x: any, y: any) {
   }
 }
 
-export function lib_base_base__print(x: any) {
+export function lib_base_base_print(x: any) {
   printValue(x);
   return nothing;
-}
-
-export function lib_base_base__printed(x: any) {
-  return printValue(x);
 }
 
 export function lib_base_base_is_zero(x: any) {
@@ -918,10 +914,14 @@ export function lib_base_base_format(formatter: any, ...args: any[]) {
   return output;
 }
 
-export function lib_base_base_num2string(num: any, decimals: any) {
+export function lib_base_base_num2str(num: any, decimals: any, unit: any) {
   var n = getNumber(num, 0, 0);
   var d = getNumber(decimals, 0, 0);
-  return n.toFixed(d);
+  const shape = unit.shape;
+  if (shape === undefined) {
+    throw Error("shape undefined");
+  }
+  return n.toFixed(d) + "" + shape.unitAt(0, 0).toText();
 }
 
 export function lib_base_base_concatenate(x: any, y: any) {
