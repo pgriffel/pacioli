@@ -914,13 +914,36 @@ export function lib_base_base_format(formatter: any, ...args: any[]) {
   return output;
 }
 
-export function lib_base_base_num2str(num: any, decimals: any, unit: any) {
+let NR_DECIMALS = 2;
+
+export function lib_base_base_nr_decimals() {
+  return initialNumbers(1, 1, [[0, 0, NR_DECIMALS]]);
+}
+
+export function lib_base_base_set_nr_decimals(num: any) {
+  NR_DECIMALS = getNumber(num, 0, 0);
+  return nothing;
+}
+
+export function lib_base_base_num2string(num: any, decimals: any, unit: any) {
   var n = getNumber(num, 0, 0);
   var d = getNumber(decimals, 0, 0);
   const shape = unit.shape;
   if (shape === undefined) {
     throw Error("shape undefined");
   }
+  // TODO: matrices instead of just scalars
+  return n.toFixed(d) + "" + shape.unitAt(0, 0).toText();
+}
+
+export function lib_base_base_num2str(num: any, unit: any) {
+  var n = getNumber(num, 0, 0);
+  var d = NR_DECIMALS;
+  const shape = unit.shape;
+  if (shape === undefined) {
+    throw Error("shape undefined");
+  }
+  // TODO: matrices instead of just scalars
   return n.toFixed(d) + "" + shape.unitAt(0, 0).toText();
 }
 

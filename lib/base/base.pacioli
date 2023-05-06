@@ -368,14 +368,20 @@ declare export mapnz ::
 # String IO
 # ----------------------------------------------------------------------------
 
+declare export set_nr_decimals :: (1) -> Void;
+declare export nr_decimals :: () -> 1;
+
 declare export format :: for_type t: t -> String();
 
 declare export print :: (String) -> Void();
 
 declare export parse_num :: (String) -> 1;
 
-declare export num2str :: for_index I, J: for_unit a, I!u, J!v:
+declare export num2string :: for_index I, J: for_unit a, I!u, J!v:
     (a*I!u per J!v, 1, a*I!u per J!v) -> String;
+
+declare export num2str :: for_index I, J: for_unit a, I!u, J!v:
+    (a*I!u per J!v, a*I!u per J!v) -> String;
 
 # ----------------------------------------------------------------------------
 # Array

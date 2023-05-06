@@ -96,7 +96,7 @@ public class Matrix extends AbstractPacioliValue {
                 out.format("%s", decString);
                 return;
             } else {
-                out.format("%s %s", decString, unitAt(0, 0).pretty());
+                out.format("%s%s", decString, unitAt(0, 0).pretty());
                 return;
             }
         }
@@ -150,7 +150,7 @@ public class Matrix extends AbstractPacioliValue {
             out.print(" ");
         }
         out.print(" ");
-        for (int i = 0; i < numWidth - 4; i++) {
+        for (int i = 0; i < numWidth + unitWidth - 3; i++) {
             out.print(" ");
         }
         out.print("Value");

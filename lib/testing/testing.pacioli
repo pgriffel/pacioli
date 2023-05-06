@@ -97,7 +97,7 @@ define run_test_suites(suites) =
 
     # Print a status message
     print(format("\nTests finished, %s suites tested%s\n",
-      num2str(list_size(to_test), 0, |1|),
+      int2str(list_size(to_test), |1|),
       skipped_message(nr_skipped_suites)));
 
     # Print a summary of the results per suite. Also calculate totals.
@@ -115,8 +115,8 @@ define run_test_suites(suites) =
       print(format(" %s%s -> %s/%s success%s", 
         if nr_successes = nr_tests then " " else "*" end,
         description,
-        num2str(nr_successes, 0, |1|),
-        num2str(nr_tests, 0, |1|),
+        int2str(nr_successes, |1|),
+        int2str(nr_tests, |1|),
         skipped_message(nr_skipped)));
 
       # Update the totals
@@ -131,8 +131,8 @@ define run_test_suites(suites) =
 
     # Print the totals
     print(format("\nTotal tests -> %s/%s success%s",
-      num2str(total_nr_successes, 0, |1|),
-      num2str(total_nr_tests, 0, |1|),
+      int2str(total_nr_successes, |1|),
+      int2str(total_nr_tests, |1|),
       skipped_message(total_nr_skipped)));
   end;
 
@@ -161,11 +161,11 @@ define run_test_suite(suite) =
                             result := if okay then "ok" else "FAIL!" end,
                             message := format("  %s -> %s", description, result)],
     summary = if nr_failures = 0 then
-                format("All %s tests succeeded", num2str(nr_tests, 0, |1|))
+                format("All %s tests succeeded", int2str(nr_tests, |1|))
               else
                 format("\nTEST FAILURES!!!!!\n\n  %s of %s tests failed",
-                  num2str(nr_failures, 0, |1|), 
-                  num2str(nr_tests, 0, |1|))
+                  int2str(nr_failures, |1|), 
+                  int2str(nr_tests, |1|))
               end
                       
   in
@@ -189,5 +189,5 @@ define skipped_message(nr_skipped) =
   if nr_skipped = 0 then
     ""
   else
-    format(", %s skipped", num2str(nr_skipped, 0, |1|))
+    format(", %s skipped", int2str(nr_skipped, |1|))
   end;

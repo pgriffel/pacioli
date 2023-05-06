@@ -1112,7 +1112,7 @@ public class Machine {
             }
         });
 
-        storeBaseValue("num2str", new Primitive("num2str") {
+        storeBaseValue("num2string", new Primitive("num2string") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 // Just ignore the unit in the third parameter. The MVM is already typed.
                 // The unit is for targets that compute with numbers only.
@@ -1123,6 +1123,29 @@ public class Machine {
                 PacioliString string = new PacioliString(num.toText());
                 Matrix.nrDecimals = nrDecs;
                 return string;
+            }
+        });
+
+        storeBaseValue("num2str", new Primitive("num2str") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                // Just ignore the unit in the second parameter. The MVM is already typed.
+                // The unit is for targets that compute with numbers only.
+                Matrix num = (Matrix) params.get(0);
+                return new PacioliString(num.toText());
+            }
+        });
+
+        storeBaseValue("nr_decimals", new Primitive("nr_decimals") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return new Matrix(Matrix.nrDecimals);
+            }
+        });
+
+        storeBaseValue("set_nr_decimals", new Primitive("set_nr_decimals") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix n = (Matrix) params.get(0);
+                Matrix.nrDecimals = (int) n.SingletonNumber();
+                return null;
             }
         });
 
