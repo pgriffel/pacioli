@@ -139,15 +139,16 @@ export class Space {
     }
   }
 
-  addMesh(mesh: [Matrix[], [Matrix, Matrix, Matrix, Matrix][]], options: any) {
-    this.log(
-      `Adding mesh ${mesh[0].map(vec2String)}, ${JSON.stringify(options)}`
-    );
+  addMesh(
+    mesh: [[Matrix, PacioliString][], [Matrix, Matrix, Matrix][]],
+    options: any
+  ) {
+    this.log(`Adding mesh ${mesh[0]}, ${JSON.stringify(options)}`);
 
     var graphics = options || {};
 
     // Create the proper material
-    var material = graphics.material || "normal";
+    var material = graphics.material || "OTHERnormal";
     var transparent = graphics.transparent || false;
 
     var wireframe = graphics.wireframe || false;
@@ -158,7 +159,8 @@ export class Space {
       side: THREE.DoubleSide,
       transparent: transparent,
       //        opacity: (transparent) ? 0.5 : 1.0,
-      //        color: 0Xaaaaff
+      color: 0xaaaaff,
+      vertexColors: true,
     };
 
     let mat;
@@ -174,7 +176,7 @@ export class Space {
     }
 
     // Create a mesh object with the material and add it to the body
-    var meshObject = mesh2THREE(mesh, mat, this.options.unit);
+    var meshObject = mesh2THREE(mesh, mat, this.options.unit, wireframe);
     this.body.add(meshObject);
 
     // const plane = new THREE.Triangle(new THREE.Vector3(1,1,1), new THREE.Vector3(1,1,4), new THREE.Vector3(2,1,1));
@@ -320,21 +322,22 @@ function vec2String(vector: Matrix) {
 
 // TODO: fix any type.
 function mesh2THREE(
-  mesh: [Matrix[], [Matrix, Matrix, Matrix, Matrix][]],
+  mesh: [[Matrix, PacioliString][], [Matrix, Matrix, Matrix][]],
   material: any,
-  unit: SIUnit
+  unit: SIUnit,
+  wireframe: boolean
 ) {
   const [vertices, faces] = mesh;
 
-  var factor = si.conversionFactor(vertices[0].shape.multiplier, unit);
+  var factor = si.conversionFactor(vertices[0][0].shape.multiplier, unit);
 
   var geometry = new THREE.BufferGeometry();
 
-  var indices = new Uint32Array(faces.length * 3 * 2); // indices for 4 faces
+  var indices = new Uint32Array(faces.length * 3); // indices for 4 faces
   var positions = new Float32Array(vertices.length * 3); // buffer arrray, position of 4 vertices
 
   for (var i = 0; i < vertices.length; i++) {
-    const vec = vec2THREE(vertices[i].numbers, factor);
+    const vec = vec2THREE(vertices[i][0].numbers, factor);
     positions[i * 3 + 0] = vec.x;
     positions[i * 3 + 1] = vec.y;
     positions[i * 3 + 2] = vec.z;
@@ -342,23 +345,46 @@ function mesh2THREE(
 
   for (var i = 0; i < faces.length; i++) {
     var face = faces[i];
-    indices[i * 6 + 0] = getNumber(face[0].numbers, 0, 0);
-    indices[i * 6 + 1] = getNumber(face[1].numbers, 0, 0);
-    indices[i * 6 + 2] = getNumber(face[2].numbers, 0, 0);
-    indices[i * 6 + 3] = getNumber(face[0].numbers, 0, 0);
-    indices[i * 6 + 4] = getNumber(face[2].numbers, 0, 0);
-    indices[i * 6 + 5] = getNumber(face[3].numbers, 0, 0);
+    indices[i * 3 + 0] = getNumber(face[0].numbers, 0, 0);
+    indices[i * 3 + 1] = getNumber(face[1].numbers, 0, 0);
+    indices[i * 3 + 2] = getNumber(face[2].numbers, 0, 0);
+    // indices[i * 6 + 3] = getNumber(face[0].numbers, 0, 0);
+    // indices[i * 6 + 4] = getNumber(face[2].numbers, 0, 0);
+    // indices[i * 6 + 5] = getNumber(face[3].numbers, 0, 0);
   }
 
+  const colors = [];
+  const color = new THREE.Color();
+
+  for (let i = 0; i < vertices.length; i++) {
+    color.set(vertices[i][1].value);
+
+    // define the same color for each vertex of a triangle
+
+    colors.push(color.r, color.g, color.b);
+    colors.push(color.r, color.g, color.b);
+    colors.push(color.r, color.g, color.b);
+  }
   // TODO: fix material
 
   // geometry.mergeVertices();
   // geometry.computeFaceNormals();
   // geometry.computeCentroids();
-  geometry.computeVertexNormals;
+  // geometry.computeVertexNormals;
 
   geometry.setIndex(new THREE.BufferAttribute(indices, 1));
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
 
-  return new THREE.Mesh(geometry, material);
+  var geo = new THREE.EdgesGeometry(geometry); // or WireframeGeometry( geometry )
+
+  var mat = new THREE.LineBasicMaterial({ color: 0x222222, linewidth: 2 });
+
+  var wireframeSegment = new THREE.LineSegments(geo, mat);
+
+  if (wireframe) {
+    return wireframeSegment;
+  } else {
+    return new THREE.Mesh(geometry, material);
+  }
 }
