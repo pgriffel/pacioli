@@ -21,16 +21,16 @@ import si;
 #   sklearn.neighbors library.
 # ------------------------------------------------------------------------------
 
-declare numpy_iris_list :: List(Tuple(Feature!unit, Index(Target)));
+declare export numpy_iris_list :: List(Tuple(Feature!unit, Index(Target)));
 declare export numpy_iris_array :: Tuple(Sample! % Feature!unit, Sample! % Target!);
 
 declare export iris_list :: List(Tuple(Feature!unit, Index(Target)));
 
-declare iris_data :: Sample! % Feature!unit;
-declare iris_target :: Sample! % Target!;
+declare export iris_data :: Sample! % Feature!unit;
+declare export iris_target :: Sample! % Target!;
 
-declare export knn_fit :: (Sample! % Feature!unit, Sample! % Target!) -> KNNClassifier();
-declare knn_predict :: (KNNClassifier(), Feature!unit) -> Target!;
+declare export knn_fit :: (Sample! % Feature!unit, Sample! % Target!) -> KNNClassifier;
+declare export knn_predict :: (KNNClassifier, Feature!unit) -> Target!;
 
 # ------------------------------------------------------------------------------
 # Library sklearn
