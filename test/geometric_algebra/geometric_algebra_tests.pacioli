@@ -19,9 +19,9 @@ run_test_suites(geometric_algebra_suites);
 # Convenience utilities
 # ------------------------------------------------------------------------------
 
-declare mv :: (String) -> MultiVector;
+declare mv :: (String) -> MultiVector(metre, Geom3!);
 
-define mv(input) = parse_multivector(input);
+define mv(input) = parse_mv(input);
 
 # ------------------------------------------------------------------------------
 # Term layer
@@ -69,45 +69,45 @@ define term_suite = test_suite("Term layer", [
 define parser_suite = test_suite("Parser", [
 
     test("should parse a scalar", () ->
-        parse_multivector("42") = make_multivector([make_term(42, e0)])
+        parse_multivector(parse_base_blade, "42") = make_multivector([make_term(42, e0)])
     ),
 
     test("should parse a negative scalar", () ->
-        parse_multivector("-999") = make_multivector([make_term(-999, e0)])
+        parse_multivector(parse_base_blade, "-999") = make_multivector([make_term(-999, e0)])
     ),
 
     test("should parse a more complex multivector", () ->
-        parse_multivector("1 + 1.8e3 + -3e23") =
+        parse_multivector(parse_base_blade, "1 + 1.8e3 + -3e23") =
             make_multivector([make_term(1, e0), make_term(1.8, e3), make_term(-3, e23)])
     ),
 
     test("should handle missing weights", () ->
-        parse_multivector("1 + e3 + -e23") =
+        parse_multivector(parse_base_blade, "1 + e3 + -e23") =
             make_multivector([make_term(1, e0), make_term(1, e3), make_term(-1, e23)])
     ),
 
     test("should ignore extra whitespace", () ->
-        parse_multivector("1   +    1.8e3+ -3e23   ") =
+        parse_multivector(parse_base_blade, "1   +    1.8e3+ -3e23   ") =
             make_multivector([make_term(1, e0), make_term(1.8, e3), make_term(-3, e23)])
     ),
 
     test("should merge terms", () ->
-        parse_multivector("1 + 1.8e3 + 3e3") =
+        parse_multivector(parse_base_blade, "1 + 1.8e3 + 3e3") =
             make_multivector([make_term(1, e0), make_term(4.8, e3)])
     ),
 
     test("should reorder terms", () ->
-        parse_multivector("2 + 3e2 + 4e1") =
+        parse_multivector(parse_base_blade, "2 + 3e2 + 4e1") =
             make_multivector([make_term(2, e0), make_term(4, e1), make_term(3, e2)])
     ),
 
     test("should reorder blades", () ->
-        parse_multivector("3e21") =
+        parse_multivector(parse_base_blade, "3e21") =
             make_multivector([make_term(-3, e12)])
     ),
 
     test("should normalize", () ->
-        parse_multivector("e1e2") =
+        parse_multivector(parse_base_blade, "e1e2") =
             make_multivector([make_term(1, e12)])
     )
 ]);
@@ -326,25 +326,31 @@ define outer_product_suite = test_suite("Outer product", [
 
 define inner_product_suite = test_suite("Inner product", [
 
-    #test("multiply / project linear dependent vector on bivector",
-    #    () ->
-    #        inner_product(mv("e1"), mv("e12")) = mv("e2")
-    #    ),
+    test("multiply / project linear dependent vector on bivector", () ->
+        hestenes_inner_product(mv("e1"), mv("e12")) = mv("e2")
+    ),
 
-   # diagonal cases of Cayley tab;e (bivector.net)
-   #test("multiply scalars",
-   #() ->
-    #        inner_product(mv("1"), mv("1")) = mv("0")
-    #    ),
+    # diagonal cases of Cayley tab;e (bivector.net)
+    test("multiply scalars", () ->
+        hestenes_inner_product(mv("1"), mv("1")) = mv("0")
+    ),
 
-   #test("multiply grade-1 vector on itself",
-    #    () ->
-    #        #inner_product(mv("e1"), mv("e1")) = mv("1")
-    #    ),
+    test("multiply grade-1 vector on itself", () ->
+        hestenes_inner_product(mv("e1"), mv("e1")) = mv("1")
+    ),
 
-   #test("multiply grade-2 bivector on itself, involution",
-    #    () ->
-    #        #inner_product(mv("e12"), mv("e12")) = mv("-1")
-    #    ),
+    test("multiply grade-2 bivector on itself, involution", () ->
+        hestenes_inner_product(mv("e12"), mv("e12")) = mv("-1")
+    ),
+
+    test("multiply multivectors", () ->
+        hestenes_inner_product(mv("3e1 + 3e3 + 2e12"), mv("-e12 + 8e13")) = mv("2 + -24e1 + -3e2 + 24e3")
+    )
+
+    # This doesn't even type-check, but eventually it should somehow be the same
+    # GA inner product gives 35. Normal inner product gives 35m^2. So the magnitude is okay, just the units are missing in GA.
+    #test("multiply the vectors from sample inner.pacioli", () ->
+    #    hestenes_inner_product(mv("5e1 + 5e3"), mv("7e2 + 7e3")) = inner(space_vec(5 * |metre|, 0 * |metre|, 5 * |metre|), space_vec(0 * |metre|, 7 * |metre|, 7 * |metre|))
+    #)
 
 ]);
