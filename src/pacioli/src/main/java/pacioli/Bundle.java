@@ -78,7 +78,7 @@ public class Bundle {
                 table.put(info.name(), info);
             }
             if (!(info.isPublic() && importedModules.contains(info.generic().getModule())) &&
-                !includedModules.contains(info.generic().getModule())) {
+                    !includedModules.contains(info.generic().getModule())) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Skipping %s", info.name());
             }
         });
@@ -91,11 +91,13 @@ public class Bundle {
         typeTable.allInfos().forEach(info -> {
             String infoModule = info.generic().getModule();
             if (importedModules.contains(infoModule) || includedModules.contains(infoModule)) {
-                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(), info.name());
+                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(),
+                        info.name());
                 table.put(info.name(), info);
             } else {
-                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Skipping type %s %s (%s || %s fails %s)", info.globalName(), info.name(),
-                importedModules.contains(infoModule), includedModules.contains(infoModule), infoModule);
+                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Skipping type %s %s (%s || %s fails %s)",
+                        info.globalName(), info.name(),
+                        importedModules.contains(infoModule), includedModules.contains(infoModule), infoModule);
             }
         });
         return table;
@@ -137,7 +139,7 @@ public class Bundle {
                         info.globalName(), info.name());
                 if (typeTable.contains(info.globalName())) {
                     throw new PacioliException(info.getLocation(), "Duplicate name: %s %s", info.globalName(),
-                    typeTable.lookup(info.globalName()).getLocation().description());
+                            typeTable.lookup(info.globalName()).getLocation().description());
                 }
                 typeTable.put(info.globalName(), info);
             }
@@ -192,7 +194,7 @@ public class Bundle {
 
         // Collect the index sets and the units from the type table
         for (TypeSymbolInfo info : typeTable.allInfos()) {
-            
+
             if (info instanceof IndexSetInfo) {
                 assert (info.getDefinition().isPresent());
                 infosToCompile.add(info);
@@ -249,7 +251,7 @@ public class Bundle {
 
     }
 
-    void printTypes(boolean rewriteTypes, boolean includePrivate) throws PacioliException {
+    void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws PacioliException {
 
         List<String> names = valueTable.allNames();
         Collections.sort(names);
@@ -264,6 +266,13 @@ public class Bundle {
                     Pacioli.print(" %s;", info.inferredType().deval().pretty());
                 } else {
                     Pacioli.print(" %s;", info.getType().deval().pretty());
+                }
+                if (showDocs) {
+                    if (info.getDocu().isPresent()) {
+                        Pacioli.println("\n    %s\n", info.getDocu().get());
+                    } else {
+                        Pacioli.print("\n");
+                    }
                 }
             }
         }

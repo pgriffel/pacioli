@@ -2,6 +2,7 @@ package pacioli.ast;
 
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Declaration;
+import pacioli.ast.definition.Docu;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.definition.Toplevel;
@@ -52,9 +53,9 @@ import pacioli.types.ast.TypePowerNode;
 public interface Visitor {
 
     void visit(ProgramNode node);
-    
+
     void visit(IncludeNode node);
-    
+
     void visit(ImportNode node);
 
     void visit(AliasDefinition node);
@@ -152,4 +153,6 @@ public interface Visitor {
     void visit(LetFunctionBindingNode node);
 
     void visit(IdListNode node);
+
+    void visit(Docu docu);
 }

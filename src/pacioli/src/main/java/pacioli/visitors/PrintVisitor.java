@@ -12,6 +12,7 @@ import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.Docu;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.definition.Toplevel;
@@ -68,12 +69,12 @@ import pacioli.types.ast.TypePowerNode;
 public class PrintVisitor implements Visitor {
 
     Printer out;
-    
+
     public PrintVisitor(Printer printWriter) {
-        //out = new Printer(printWriter);
+        // out = new Printer(printWriter);
         out = printWriter;
     }
-    
+
     public void write(String text) {
         out.write(text);
     }
@@ -81,45 +82,46 @@ public class PrintVisitor implements Visitor {
     public void format(String string, Object... args) {
         out.format(string, args);
     }
-        
+
     public void mark() {
-        out.mark(); 
+        out.mark();
     }
-    
+
     public void unmark() {
-        out.unmark(); 
+        out.unmark();
     }
-    
+
     public void newline() {
-        out.newline(); 
+        out.newline();
     }
-    
+
     public void newlineUp() {
         out.newlineUp();
     }
-    
+
     public void newlineDown() {
         out.newlineDown();
     }
+
     /*
-    PrintWriter out;
-    private Stack<Integer> indentationStack;
-    Integer indentation = 0;
-    Integer offset = 0;
-    final Integer delta = 4;
-    
-    public void format(String string, Object... args) {
-        out.format(string, args);
-    }
-    
-    protected void write(String text) {
-        out.print(text);
-        offset += text.length();
-    }
-    */
+     * PrintWriter out;
+     * private Stack<Integer> indentationStack;
+     * Integer indentation = 0;
+     * Integer offset = 0;
+     * final Integer delta = 4;
+     * 
+     * public void format(String string, Object... args) {
+     * out.format(string, args);
+     * }
+     * 
+     * protected void write(String text) {
+     * out.print(text);
+     * offset += text.length();
+     * }
+     */
     protected void writeCommaSeparated(List<? extends Node> nodes) {
         Boolean sep = false;
-        for (Node node: nodes) {
+        for (Node node : nodes) {
             if (sep) {
                 write(", ");
             } else {
@@ -128,44 +130,45 @@ public class PrintVisitor implements Visitor {
             node.accept(this);
         }
     }
-    /*
-    protected void mark() {
-        indentationStack.push(indentation);
-        indentation = offset;
-        //offset = 
-    }
-    
-    protected void unmark() {
-        indentation = indentationStack.pop();
-        //offset = 
-    }
-    
-    protected void newline() {
-        out.format("\n");
-        for (int i = 0; i < indentation; i++) {
-            out.print(" ");
-        }
-        offset = indentation; 
-    }
-    
-    protected void newlineUp() {
-        indentation += delta;
-        newline();
-    }
-    
-    protected void newlineDown() {
-        indentation -= delta;
-        newline();
-    }
 
-    public PrintVisitor(PrintWriter printWriter) {
-        indentationStack = new Stack<Integer>();
-        out = printWriter;
-    }
-*/
+    /*
+     * protected void mark() {
+     * indentationStack.push(indentation);
+     * indentation = offset;
+     * //offset =
+     * }
+     * 
+     * protected void unmark() {
+     * indentation = indentationStack.pop();
+     * //offset =
+     * }
+     * 
+     * protected void newline() {
+     * out.format("\n");
+     * for (int i = 0; i < indentation; i++) {
+     * out.print(" ");
+     * }
+     * offset = indentation;
+     * }
+     * 
+     * protected void newlineUp() {
+     * indentation += delta;
+     * newline();
+     * }
+     * 
+     * protected void newlineDown() {
+     * indentation -= delta;
+     * newline();
+     * }
+     * 
+     * public PrintVisitor(PrintWriter printWriter) {
+     * indentationStack = new Stack<Integer>();
+     * out = printWriter;
+     * }
+     */
     @Override
     public void visit(ProgramNode node) {
-        for (IncludeNode include: node.includes) {
+        for (IncludeNode include : node.includes) {
             write("include \"");
             include.accept(this);
             write("\";");
@@ -185,14 +188,14 @@ public class PrintVisitor implements Visitor {
         node.name.accept(this);
         write(";");
     }
-    
+
     @Override
     public void visit(ImportNode node) {
         write("import ");
         node.name.accept(this);
         write(";");
     }
-    
+
     @Override
     public void visit(AliasDefinition node) {
         write("defalias ");
@@ -384,8 +387,7 @@ public class PrintVisitor implements Visitor {
             if (!first)
                 out.format(", ");
             out.format(arg);
-            
-            
+
             if (node.table != null) {
                 ValueInfo info = node.table.lookup(arg);
                 write(":");
@@ -395,10 +397,9 @@ public class PrintVisitor implements Visitor {
                 } else {
                     write("?");
                 }
-            };
-            
-            
-            
+            }
+            ;
+
             first = false;
         }
         out.format(") -> ");
@@ -424,7 +425,8 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(MatrixTypeNode node) {
         write("|");
-        node.typeNode.accept(this);;
+        node.typeNode.accept(this);
+        ;
         write("|");
     }
 
@@ -433,14 +435,16 @@ public class PrintVisitor implements Visitor {
         write("project ");
         write(node.numString());
         write(" from ");
-        node.body.accept(this);;
+        node.body.accept(this);
+        ;
         write(" end");
     }
 
     @Override
     public void visit(ReturnNode node) {
         write("return ");
-        node.value.accept(this);;
+        node.value.accept(this);
+        ;
         write(";");
     }
 
@@ -449,10 +453,11 @@ public class PrintVisitor implements Visitor {
         mark();
         Boolean first = true;
         for (ExpressionNode item : node.items) {
-            if (!first) newline();
+            if (!first)
+                newline();
             first = false;
             item.accept(this);
-            
+
         }
         unmark();
     }
@@ -474,9 +479,10 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(TupleAssignmentNode node) {
         write("(");
-        Boolean first = true; 
-        for (IdentifierNode var: node.vars) {
-            if (!first) write(",");
+        Boolean first = true;
+        for (IdentifierNode var : node.vars) {
+            if (!first)
+                write(",");
             first = false;
             var.accept(this);
         }
@@ -502,8 +508,9 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(FunctionTypeNode node) {
-        
-        if (node.domain instanceof TypeApplicationNode && ((TypeApplicationNode) node.domain).op.getName().equals("Tuple")) {
+
+        if (node.domain instanceof TypeApplicationNode
+                && ((TypeApplicationNode) node.domain).op.getName().equals("Tuple")) {
             out.write("(");
             out.writeCommaSeparated(((TypeApplicationNode) node.domain).args, this);
             out.write(")");
@@ -528,11 +535,11 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(TypeApplicationNode node) {
         node.op.accept(this);
-        if (node.args.size() > 0){
+        if (node.args.size() > 0) {
             write("(");
         }
         writeCommaSeparated(node.args);
-        if (node.args.size() > 0){
+        if (node.args.size() > 0) {
             write(")");
         }
     }
@@ -630,7 +637,7 @@ public class PrintVisitor implements Visitor {
         newlineUp();
         node.body.accept(this);
         newlineDown();
-        write("end");        
+        write("end");
     }
 
     @Override
@@ -643,9 +650,10 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(LetTupleBindingNode node) {
         write("(");
-        Boolean first = true; 
-        for (String var: node.vars) {
-            if (!first) write(",");
+        Boolean first = true;
+        for (String var : node.vars) {
+            if (!first)
+                write(",");
             first = false;
             out.write(var);
         }
@@ -657,18 +665,25 @@ public class PrintVisitor implements Visitor {
     public void visit(LetFunctionBindingNode node) {
         out.write(node.name);
         write("(");
-        Boolean first = true; 
-        for (String arg: node.args) {
-            if (!first) write(",");
+        Boolean first = true;
+        for (String arg : node.args) {
+            if (!first)
+                write(",");
             first = false;
             out.write(arg);
         }
         write(") = ");
-        node.body.accept(this);        
+        node.body.accept(this);
     }
 
     @Override
     public void visit(IdListNode node) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public void visit(Docu docu) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }

@@ -31,26 +31,29 @@ import pacioli.symboltable.SymbolInfo;
 public class TypeIdentifierNode extends AbstractTypeNode {
 
     // An identifier can be one of three kinds
-    public enum Kind {TYPE, UNIT, INDEX}
+    public enum Kind {
+        TYPE, UNIT, INDEX
+    }
 
     // From construction during parsing
     private final String name;
     private final Kind kind;
-    
+
     // Set during resolving
     public SymbolInfo info;
-    
+
     // Duplicate
     public static final List<String> builtinTypes = new ArrayList<String>(
-            Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier", "Array"));
+            Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier", "Array",
+                    "File"));
 
     public TypeIdentifierNode(Location location, String name) {
         super(location);
         this.name = name;
         this.kind = null;
-        //assert (!name.contains("!"));
+        // assert (!name.contains("!"));
     }
-    
+
     public TypeIdentifierNode(Location location, String name, SymbolInfo info) {
         super(location);
         this.name = name;

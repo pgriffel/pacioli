@@ -32,6 +32,7 @@ public class ValueInfo extends AbstractSymbolInfo {
     // Set during parsing
     private Optional<ValueDefinition> definition = Optional.empty();
     private Optional<TypeNode> declaredType = Optional.empty();
+    private Optional<String> docu = Optional.empty();
     public final Boolean isMonomorphic;
 
     // Set during resolving
@@ -89,6 +90,14 @@ public class ValueInfo extends AbstractSymbolInfo {
         this.declaredType = Optional.of(declaredType);
     }
 
+    public Optional<String> getDocu() {
+        return docu;
+    }
+
+    public void setDocu(String docu) {
+        this.docu = Optional.of(docu);
+    }
+
     public Boolean isRef() {
         if (isRef.isPresent()) {
             return isRef.get();
@@ -133,7 +142,7 @@ public class ValueInfo extends AbstractSymbolInfo {
     public boolean isPublic() {
         return isPublic;
     }
-    
+
     public boolean isUserDefined() {
         return definition.orElseThrow(() -> new RuntimeException("Must be resolved")).isUserDefined;
     }

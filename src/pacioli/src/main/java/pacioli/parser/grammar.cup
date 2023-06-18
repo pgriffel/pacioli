@@ -314,7 +314,7 @@ parser code {:
 
 
 terminal INCLUDE, IMPORT;
-terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, EXPORT, PUBLIC;
+terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DOCU, EXPORT, PUBLIC;
 terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, DO, ASSIGN, EXCL, TO, FROM;
 terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
@@ -433,6 +433,8 @@ command ::=
  | DEFCONV:d id:id DBLCLN type:t                    {: pacioli.Location loc = makeLoc(dxleft, txright);
                                                        ExpressionNode conv = new ConversionNode(loc, t);
                                                        RESULT = new ValueDefinition(loc, id, conv); :}
+ | DOCU:d id:id STRING:s                            {: pacioli.Location loc = makeLoc(dxleft, sxright);
+                                                       RESULT = new Docu(loc, id, new StringNode(s, makeLoc(sxleft, sxright))); :}
  | expr:e                                           {: RESULT = new Toplevel(e.getLocation(), e); :}
  ;
 

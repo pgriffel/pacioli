@@ -28,36 +28,18 @@ import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.expression.LambdaNode;
+import pacioli.ast.expression.StringNode;
 import pacioli.symboltable.ValueInfo;
 
-public class ValueDefinition extends AbstractDefinition {
+public class Docu extends AbstractDefinition {
 
     public final IdentifierNode id;
     public ExpressionNode body;
-    public boolean isUserDefined;
-    private String docu;
 
-    public ValueDefinition(Location location, IdentifierNode id, ExpressionNode body, boolean isUserDefined) {
+    public Docu(Location location, IdentifierNode id, ExpressionNode body) {
         super(location);
         this.id = id;
         this.body = body;
-        this.isUserDefined = isUserDefined;
-    }
-
-    public ValueDefinition(Location location, IdentifierNode id, ExpressionNode body) {
-        super(location);
-        this.id = id;
-        this.body = body;
-        this.isUserDefined = true;
-    }
-
-    public Node transform(ExpressionNode body) {
-        return new ValueDefinition(getLocation(), id, body, isUserDefined);
-    }
-
-    public boolean isFunction() {
-        return (body instanceof LambdaNode);
     }
 
     @Override
@@ -65,35 +47,36 @@ public class ValueDefinition extends AbstractDefinition {
         return id.getName();
     }
 
-    public String docu() {
-        return docu;
-    };
-
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+
+    public Node transform(ExpressionNode body) {
+        return new Docu(getLocation(), id, body);
     }
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
 
         String name = localName();
-
         ValueInfo oldInfo = program.values.lookup(name);
+
         if (oldInfo != null) {
-            // It seems we already found a declaration for this name. Check that there is no
-            // definition yet and add this one.
-            if (oldInfo.getDefinition().isEmpty()) {
-                oldInfo.setDefinition(this);
+            // It seems we already found a definition for this name. Check that there is no
+            // declaration yet and add this one.
+            if (oldInfo.getDocu().isEmpty()) {
+                StringNode node = (StringNode) body;
+                oldInfo.setDocu(node.valueString());
             } else {
-                throw new PacioliException(getLocation(), "Duplicate definition for %s", name);
+                throw new PacioliException(body.getLocation(), "Duplicate docu for %s", name);
             }
         } else {
-            ValueInfo info = new ValueInfo(name, program.file, true, false, getLocation(), false);
-            info.setDefinition(this);
+            ValueInfo info = new ValueInfo(name, program.file, true, false, getLocation(), true);
+            StringNode node = (StringNode) body;
+            info.setDocu(node.valueString());
             program.values.put(name, info);
         }
-
     }
 
 }

@@ -259,6 +259,13 @@ public class Pacioli {
                 for (String file : files) {
                     typesCommand(file, libs, rewriteTypes, includePrivate);
                 }
+            } else if (command.equals("api")) {
+                if (files.isEmpty()) {
+                    displayError("No files to read.");
+                }
+                for (String file : files) {
+                    apiCommand(file, libs, rewriteTypes, includePrivate);
+                }
             } else if (command.equals("graph") || command.equals("symbols")) {
                 debugCommand(command, files, libs);
             } else if (command.equals("help")) {
@@ -310,7 +317,8 @@ public class Pacioli {
         }
     }
 
-    private static void typesCommand(String fileName, List<File> libs, boolean rewriteTypes, boolean includePrivate) throws Exception {
+    private static void typesCommand(String fileName, List<File> libs, boolean rewriteTypes, boolean includePrivate)
+            throws Exception {
 
         Integer version = 0; // todo
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
@@ -330,8 +338,38 @@ public class Pacioli {
         try {
             Project project = Project.load(file, libs);
 
-            //Progam program = Progam.load(file, Phase.TYPED);
-            project.printTypes(rewriteTypes, includePrivate);
+            // Progam program = Progam.load(file, Phase.TYPED);
+            project.printTypes(rewriteTypes, includePrivate, false);
+
+        } catch (IOException e) {
+            println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
+        }
+
+    }
+
+    private static void apiCommand(String fileName, List<File> libs, boolean rewriteTypes, boolean includePrivate)
+            throws Exception {
+
+        Integer version = 0; // todo
+        Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
+
+        if (!optionalFile.isPresent()) {
+            optionalFile = PacioliFile.findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
+        }
+
+        if (!optionalFile.isPresent()) {
+            throw new PacioliException("Error: file '%s' does not exist.", fileName);
+        }
+
+        PacioliFile file = optionalFile.get();
+
+        log("Displaying api for file '%s'\n", file.getFile());
+
+        try {
+            Project project = Project.load(file, libs);
+
+            // Progam program = Progam.load(file, Phase.TYPED);
+            project.printTypes(rewriteTypes, includePrivate, true);
 
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
@@ -603,16 +641,16 @@ public class Pacioli {
         log("Compiling file '%s'", file);
 
         // Load the file
-        //Progam program = Progam.load(file, Phase.TYPED);
+        // Progam program = Progam.load(file, Phase.TYPED);
 
         // TODO: move to load!?
-        //program.liftStatements();
+        // program.liftStatements();
 
         // Generate the code
         StringWriter s = new StringWriter();
         try (PrintWriter writer = new PrintWriter(s)) {
             // TODO: replace by bundle generate code
-            //program.generateCode(writer, settings);
+            // program.generateCode(writer, settings);
         }
         print("%s", s.toString());
     }
@@ -694,9 +732,9 @@ public class Pacioli {
      * the log function, te message is always displayed, even if verbosity is zero.
      * 
      * @param string
-     *            A format string
+     *               A format string
      * @param args
-     *            Format arguments
+     *               Format arguments
      */
     public static void println(String string, Object... args) {
 
@@ -713,9 +751,9 @@ public class Pacioli {
      * display the message if verbosity is zero.
      * 
      * @param string
-     *            A format string
+     *               A format string
      * @param args
-     *            Format arguments
+     *               Format arguments
      */
     public static void log(String string, Object... args) {
         if (verbosity > 0) {
@@ -728,11 +766,11 @@ public class Pacioli {
      * Does not display the message if verbosity is zero.
      * 
      * @param show
-     *            Show the message if true
+     *               Show the message if true
      * @param string
-     *            A format string
+     *               A format string
      * @param args
-     *            Format arguments
+     *               Format arguments
      */
     public static void logIf(boolean show, String string, Object... args) {
         if (show) {
@@ -745,9 +783,9 @@ public class Pacioli {
      * debugging purposes. Does not display the message if verbosity is zero.
      * 
      * @param string
-     *            A format string
+     *               A format string
      * @param args
-     *            Format arguments
+     *               Format arguments
      */
     public static void trace(String string, Object... args) {
         logIf(Options.trace, string, args);
@@ -758,9 +796,9 @@ public class Pacioli {
      * display the message if verbosity is zero.
      * 
      * @param string
-     *            A format string
+     *               A format string
      * @param args
-     *            Format arguments
+     *               Format arguments
      */
     public static void warn(String string, Object... args) {
         if (warnings) {
@@ -773,7 +811,7 @@ public class Pacioli {
      * Local utility for displaying command line errors to the user.
      * 
      * @param text
-     *            The messaeg to display
+     *             The messaeg to display
      */
     private static void displayError(String text) {
         println("Invalid command: %s", text);

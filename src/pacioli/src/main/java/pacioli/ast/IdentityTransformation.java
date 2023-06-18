@@ -7,6 +7,7 @@ import java.util.Stack;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.Docu;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.definition.Toplevel;
@@ -97,11 +98,11 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(ProgramNode program) {
-        
+
         List<IncludeNode> includes = new ArrayList<IncludeNode>();
         List<ImportNode> imports = new ArrayList<ImportNode>();
         List<Definition> defs = new ArrayList<Definition>();
-        
+
         for (IncludeNode def : program.includes) {
             Node node = nodeAccept(def);
             assert (node instanceof IncludeNode);
@@ -127,12 +128,12 @@ public class IdentityTransformation implements Visitor {
     public void visit(IncludeNode node) {
         returnNode(node);
     }
-    
+
     @Override
     public void visit(ImportNode node) {
         returnNode(node);
     }
-    
+
     @Override
     public void visit(AliasDefinition node) {
         returnNode(node);
@@ -237,7 +238,7 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(MatrixLiteralNode node) {
         // returnValue(new MatrixLiteralNode(node));
-        //returnNode(node);
+        // returnNode(node);
         returnNode(node.withTypeNode(typeAccept(node.typeNode)));
     }
 
@@ -245,7 +246,7 @@ public class IdentityTransformation implements Visitor {
     public void visit(MatrixTypeNode node) {
         // throw new RuntimeException("todo");
         // returnValue(node);
-        //returnNode(node);
+        // returnNode(node);
         TypeNode yo = typeAccept(node.typeNode);
         assert (yo != null);
         MatrixTypeNode copy = new MatrixTypeNode(node.getLocation(), typeAccept(node.typeNode));
@@ -287,10 +288,10 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(TupleAssignmentNode node) {
-        
+
         returnNode(new TupleAssignmentNode(node, expAccept(node.tuple)));
-        //returnNode(node.transform(this));        
-        //throw new RuntimeException("todo");
+        // returnNode(node.transform(this));
+        // throw new RuntimeException("todo");
     }
 
     @Override
@@ -418,6 +419,11 @@ public class IdentityTransformation implements Visitor {
             ids.add((IdentifierNode) id);
         }
         returnNode(new IdListNode(node.getLocation(), ids));
+    }
+
+    @Override
+    public void visit(Docu node) {
+        returnNode(node.transform(expAccept(node.body)));
     }
 
 }

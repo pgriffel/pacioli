@@ -105,6 +105,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "defmatrix"       { return symbol("defmatrix",DEFMATRIX); }
   "defalias"        { return symbol("defalias",DEFALIAS); }
   "defconv"         { return symbol("defconv",DEFCONV); }
+  "docu"            { return symbol("docu",DOCU); }
   "public"          { return symbol("public", PUBLIC); }
   "export"          { return symbol("export", EXPORT); }
   "for_type"        { return symbol("for_type",FORTYPE); }

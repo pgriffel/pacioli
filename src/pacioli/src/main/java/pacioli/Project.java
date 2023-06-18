@@ -51,7 +51,7 @@ public class Project {
      * Path of the target file for the project bundle.
      * 
      * @param target
-     *            A compilation terget
+     *               A compilation terget
      * @return The path corresponding with the target
      */
     public Path bundlePath(Target target) {
@@ -99,8 +99,8 @@ public class Project {
         }
         if (optionalFile.isPresent()) {
             AsSubgraph<PacioliFile, DefaultEdge> includesOnly = new AsSubgraph<PacioliFile, DefaultEdge>(graph,
-            graph.vertexSet(), graph.edgeSet().stream().filter(edge -> graph.getEdgeSource(edge).isInclude())
-                    .collect(Collectors.toSet()));
+                    graph.vertexSet(), graph.edgeSet().stream().filter(edge -> graph.getEdgeSource(edge).isInclude())
+                            .collect(Collectors.toSet()));
             PacioliFile file = optionalFile.get();
             Optional<DefaultEdge> optionalOutgoing = includesOnly.outgoingEdgesOf(file).stream().findAny();
             while (optionalOutgoing.isPresent()) {
@@ -170,7 +170,7 @@ public class Project {
     private List<String> includedModules(Progam program) {
 
         List<String> modules = new ArrayList<String>();
-    
+
         // Locate all included files and collect the module names
         for (PacioliFile include : findIncludes(program.file, program.program)) {
             modules.add(include.getModule());
@@ -221,7 +221,7 @@ public class Project {
      * Create a bundle from the project files.
      * 
      * @param settings
-     *            Compiler settings
+     *                 Compiler settings
      * @return The path where the bundle was saved.
      * @throws Exception
      */
@@ -275,9 +275,9 @@ public class Project {
      * Constructor for a project.
      * 
      * @param file
-     *            The root file.
+     *             The root file.
      * @param libs
-     *            The paths where libraries are installed
+     *             The paths where libraries are installed
      * @return The constructed project
      * @throws Exception
      */
@@ -289,9 +289,9 @@ public class Project {
      * Constructs the project graph
      * 
      * @param file
-     *            The root file.
+     *             The root file.
      * @param libs
-     *            The paths where libraries are installed
+     *             The paths where libraries are installed
      * @return The graph
      * @throws Exception
      */
@@ -334,8 +334,9 @@ public class Project {
                 if (!current.equals(base)) {
                     allLibs.add(base);
                 }
-                //if (!current.equals(standard) && !current.equals(base)) {
-                if (!current.getFile().toPath().startsWith(standard.getFile().getParentFile().toPath()) && !current.equals(base)) {
+                // if (!current.equals(standard) && !current.equals(base)) {
+                if (!current.getFile().toPath().startsWith(standard.getFile().getParentFile().toPath())
+                        && !current.equals(base)) {
                     allLibs.add(standard);
                 }
 
@@ -386,7 +387,7 @@ public class Project {
      * library cannot be found.
      * 
      * @param libs
-     *            The directories where libraries are located
+     *             The directories where libraries are located
      * @return A list of files
      * @throws PacioliException
      */
@@ -432,7 +433,7 @@ public class Project {
         return includes;
     }
 
-    public void printTypes(boolean rewriteTypes, boolean includePrivate) throws Exception {
+    public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws Exception {
 
         Bundle bundle = Bundle.empty(file, libs);
 
@@ -460,7 +461,7 @@ public class Project {
             bundle.load(program, current.equals(file));
         }
 
-        bundle.printTypes(rewriteTypes, includePrivate);
+        bundle.printTypes(rewriteTypes, includePrivate, showDocs);
 
     }
 
