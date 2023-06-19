@@ -31,12 +31,12 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.symboltable.ValueInfo;
 
-public class Docu extends AbstractDefinition {
+public class Documentation extends AbstractDefinition {
 
     public final IdentifierNode id;
     public ExpressionNode body;
 
-    public Docu(Location location, IdentifierNode id, ExpressionNode body) {
+    public Documentation(Location location, IdentifierNode id, ExpressionNode body) {
         super(location);
         this.id = id;
         this.body = body;
@@ -53,7 +53,7 @@ public class Docu extends AbstractDefinition {
     }
 
     public Node transform(ExpressionNode body) {
-        return new Docu(getLocation(), id, body);
+        return new Documentation(getLocation(), id, body);
     }
 
     @Override

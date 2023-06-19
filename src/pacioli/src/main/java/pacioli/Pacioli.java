@@ -369,7 +369,7 @@ public class Pacioli {
             Project project = Project.load(file, libs);
 
             // Progam program = Progam.load(file, Phase.TYPED);
-            project.printTypes(rewriteTypes, includePrivate, true);
+            project.printTypes(rewriteTypes, false, true);
 
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);

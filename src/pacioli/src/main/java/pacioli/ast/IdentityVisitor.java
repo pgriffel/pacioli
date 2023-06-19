@@ -5,7 +5,7 @@ import pacioli.PacioliException;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.Docu;
+import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.definition.Toplevel;
@@ -360,7 +360,7 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(Docu node) {
+    public void visit(Documentation node) {
         node.body.accept(this);
     }
 }

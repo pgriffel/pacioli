@@ -53,7 +53,7 @@ define fraction(x, y) = to_percentage(x / y);
 declare export file_writeln :: (File, String) -> Void;
 declare export file_newline :: (File) -> Void;
 
-docu file_writeln
+doc file_writeln
     "Writes a string to a file, followed by a newline.";
 
 define file_writeln(file, text) = 
@@ -62,7 +62,7 @@ define file_writeln(file, text) =
         file_write(file, "\n");
     end;
 
-docu file_newline
+doc file_newline
     "Writes a newline to a file.";
 
 define file_newline(file) = 

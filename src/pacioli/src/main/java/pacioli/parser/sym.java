@@ -59,6 +59,7 @@ public interface sym {
   public static final int EOF = 0;
   public static final int SEMICOLON = 36;
   public static final int RPAR = 40;
+  public static final int DOC = 12;
   public static final int DEFMATRIX = 9;
   public static final int IMPORT = 3;
   public static final int GTQ = 70;
@@ -87,7 +88,6 @@ public interface sym {
   public static final int TO = 24;
   public static final int LET = 27;
   public static final int NEG = 52;
-  public static final int DOCU = 12;
   public static final int LEQ = 69;
   public static final String[] terminalNames = new String[] {
   "EOF",
@@ -102,7 +102,7 @@ public interface sym {
   "DEFMATRIX",
   "DEFALIAS",
   "DEFCONV",
-  "DOCU",
+  "DOC",
   "EXPORT",
   "PUBLIC",
   "IF",
