@@ -60,6 +60,7 @@ public class Pacioli {
         public static boolean logTypeInferenceDetails = false;
         public static boolean dumpOnMVMError = true;
         public static boolean logGeneratingCode = false;
+        public static boolean showModifiedFiles = false;
     }
 
     // User settings for log messages. See the various methods for printing and
@@ -197,6 +198,7 @@ public class Pacioli {
             // Set options given the verbosity
             if (verbosity > 1) {
                 Options.showFileLoads = true;
+                Options.showModifiedFiles = true;
             }
             if (verbosity > 2) {
                 Options.trace = true;
@@ -363,7 +365,7 @@ public class Pacioli {
 
         PacioliFile file = optionalFile.get();
 
-        log("Displaying api for file '%s'\n", file.getFile());
+        // log("Generating api for file '%s'\n", file.getFile());
 
         try {
             Project project = Project.load(file, libs);
@@ -437,7 +439,12 @@ public class Pacioli {
         try {
             Project project = Project.load(file.get(), libs);
 
-            if (project.targetOutdated(settings.getTarget())) {
+            List<PacioliFile> modifiedFiles = project.modifiedFiles(settings.getTarget());
+            if (modifiedFiles.size() > 0) {
+                Pacioli.logIf(Pacioli.Options.showModifiedFiles, "Found modified files");
+                for (PacioliFile modified : modifiedFiles) {
+                    Pacioli.logIf(Pacioli.Options.showModifiedFiles, "    %s", modified.getFile());
+                }
                 log("Compiling file '%s'", file.get().getFile());
                 project.bundle(settings);
             }

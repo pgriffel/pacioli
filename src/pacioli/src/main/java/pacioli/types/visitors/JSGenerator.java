@@ -18,11 +18,11 @@ import pacioli.types.matrix.MatrixType;
 public class JSGenerator implements TypeVisitor {
 
     Printer out;
-    
+
     public JSGenerator(Printer out) {
         this.out = out;
     }
-    
+
     @Override
     public void visit(FunctionType type) {
         out.write("new Pacioli.FunctionType(");
@@ -56,17 +56,17 @@ public class JSGenerator implements TypeVisitor {
     }
 
     @Override
-    public void visit(IndexType type) {     
+    public void visit(IndexType type) {
         type.indexSet.accept(this);
     }
 
     @Override
     public void visit(MatrixType type) {
-        
+
         out.write("Pacioli.createMatrixType(");
         out.write(TypeBase.compileUnitToJS(type.factor));
         out.write(", ");
-        //out.write(type.rowDimension.compileToJS());
+        // out.write(type.rowDimension.compileToJS());
         type.rowDimension.accept(this);
         // if (!type.rowDimension.isVar()) out.write(".param");
         out.write(", ");
@@ -76,7 +76,7 @@ public class JSGenerator implements TypeVisitor {
             out.write("Pacioli.ONE");
         }
         out.write(", ");
-        //out.write(type.columnDimension.compileToJS());
+        // out.write(type.columnDimension.compileToJS());
         type.columnDimension.accept(this);
         // if (!type.columnDimension.isVar()) out.write(".param");
         out.write(", ");
@@ -100,17 +100,19 @@ public class JSGenerator implements TypeVisitor {
             out.write("new Pacioli.GenericType('Boole', [])");
         } else if (name.equals("String")) {
             out.write("new Pacioli.GenericType('String', [])");
+        } else if (name.equals("File")) {
+            out.write("new Pacioli.GenericType('File', [])");
         } else if (name.equals("Report")) {
             out.write("new Pacioli.Type('report')");
         } else if (name.equals("Void")) {
             out.write("new Pacioli.GenericType('Void', [])");
         } else if (name.equals("Index")) {
-            //out.write("new Pacioli.Type('coordinate', ");
+            // out.write("new Pacioli.Type('coordinate', ");
             out.write("new Pacioli.GenericType('Coordinates', [");
             String sep = "";
             for (PacioliType arg : type.args) {
                 out.write(sep);
-                //out.write(arg.compileToJS());
+                // out.write(arg.compileToJS());
                 arg.accept(this);
                 sep = ", ";
             }
@@ -122,7 +124,7 @@ public class JSGenerator implements TypeVisitor {
             String sep = "";
             for (PacioliType arg : type.args) {
                 out.write(sep);
-                //out.write(arg.compileToJS());
+                // out.write(arg.compileToJS());
                 arg.accept(this);
                 sep = ", ";
             }
@@ -134,7 +136,7 @@ public class JSGenerator implements TypeVisitor {
             String sep = "";
             for (PacioliType arg : type.args) {
                 out.write(sep);
-                //out.write(arg.compileToJS());
+                // out.write(arg.compileToJS());
                 arg.accept(this);
                 sep = ", ";
             }
@@ -146,18 +148,18 @@ public class JSGenerator implements TypeVisitor {
             String sep = "";
             for (PacioliType arg : type.args) {
                 out.write(sep);
-                //out.write(arg.compileToJS());
+                // out.write(arg.compileToJS());
                 arg.accept(this);
                 sep = ", ";
             }
             out.write(")");
         } else if (name.equals("Tuple")) {
-            out.write("new Pacioli.GenericType("); 
+            out.write("new Pacioli.GenericType(");
             out.write("\"Tuple\", [");
             String sep = "";
             for (PacioliType arg : type.args) {
                 out.write(sep);
-                //out.write(arg.compileToJS());
+                // out.write(arg.compileToJS());
                 arg.accept(this);
                 sep = ", ";
             }

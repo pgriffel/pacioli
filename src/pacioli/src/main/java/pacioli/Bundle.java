@@ -285,6 +285,67 @@ public class Bundle {
             Pacioli.print(" %s", type.unfresh().deval().pretty());
         }
     }
+
+    void printAPI(boolean rewriteTypes, boolean includePrivate, boolean showDocs, List<File> includes)
+            throws PacioliException {
+
+        List<ValueInfo> infos = new ArrayList<>();
+        valueTable.allNames().forEach(name -> infos.add(valueTable.lookup(name)));
+        // List<String> names = valueTable.allNames();
+        Collections.sort(infos, (first, second) -> first.name().compareTo(second.name()));
+
+        Pacioli.println("<!DOCTYPE html>");
+        Pacioli.println("<html>");
+        Pacioli.println("<head>");
+        Pacioli.println("<title>%s</title>", file.module);
+        Pacioli.println("</head>");
+        Pacioli.println("<body>");
+
+        Pacioli.println("<pre>");
+
+        for (ValueInfo info : infos) {
+            // ValueInfo info = valueTable.lookup(value);
+            // boolean fromProgram = info.generic().getModule().equals(file.getModule());
+            boolean fromProgram = includes.contains(info.getLocation().getFile());
+            if ((includePrivate || info.isPublic()) && (fromProgram) && info.getDefinition().isPresent()
+                    && info.isUserDefined()) {
+                Pacioli.println("%s ::", info.name());
+                if (rewriteTypes) {
+                    Pacioli.print(" %s;", info.inferredType().deval().pretty());
+                } else {
+                    Pacioli.print(" %s;", info.getType().deval().pretty());
+                }
+            }
+        }
+        Pacioli.println("</pre>");
+        for (ValueInfo info : infos) {
+            // boolean fromProgram = info.generic().getModule().equals(file.getModule());
+            boolean fromProgram = includes.contains(info.getLocation().getFile());
+            if ((includePrivate || info.isPublic()) && (fromProgram) && info.getDefinition().isPresent()
+                    && info.isUserDefined()) {
+                Pacioli.println("<dt>%s</dt>", info.name());
+                Pacioli.println("<dd>");
+                Pacioli.println("<pre>::");
+                if (rewriteTypes) {
+                    Pacioli.print(" %s</pre>", info.inferredType().deval().pretty());
+                } else {
+                    Pacioli.print(" %s</pre>", info.getType().deval().pretty());
+                }
+                if (showDocs) {
+                    if (info.getDocu().isPresent()) {
+                        Pacioli.println("\n<p>%s</p>\n", info.getDocu().get());
+                    } else {
+                        Pacioli.print("\n");
+                    }
+                }
+                Pacioli.println("</dd>");
+            }
+        }
+        Pacioli.println("</dl>");
+
+        Pacioli.println("</body>");
+        Pacioli.println("</html>");
+    }
     // -------------------------------------------------------------------------
     // Topological Order of Definitions
     // -------------------------------------------------------------------------

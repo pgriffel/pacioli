@@ -36,6 +36,10 @@ import pacioli.symboltable.ValueInfo;
  */
 public class Project {
 
+    public static Path bundlePath(File file, Target target) {
+        return Paths.get(FilenameUtils.removeExtension(file.getPath()) + "." + PacioliFile.targetFileExtension(target));
+    }
+
     private final PacioliFile file;
     private final List<File> libs;
     private final DefaultDirectedGraph<PacioliFile, DefaultEdge> graph;
@@ -45,6 +49,20 @@ public class Project {
         this.file = file;
         this.libs = libs;
         this.graph = graph;
+    }
+
+    /**
+     * Constructor for a project.
+     * 
+     * @param file
+     *             The root file.
+     * @param libs
+     *             The paths where libraries are installed
+     * @return The constructed project
+     * @throws Exception
+     */
+    public static Project load(PacioliFile file, List<File> libs) throws Exception {
+        return new Project(file, libs, projectGraph(file, libs));
     }
 
     /**
@@ -58,13 +76,22 @@ public class Project {
         return bundlePath(file.getFile(), target);
     }
 
-    public boolean targetOutdated(Target target) {
+    /**
+     * Checks the modified date of all project files and returns the files that are
+     * older than the previously generated bundle. TODO: handle case when no bundle
+     * exists!
+     * 
+     * @param target The type of bundle that is generated (MVM, JavaScript, etc.)
+     * @return All modified files
+     */
+    public List<PacioliFile> modifiedFiles(Target target) {
+        List<PacioliFile> files = new ArrayList<>();
         for (PacioliFile file : graph.vertexSet()) {
             if (file.getFile().lastModified() > bundlePath(target).toFile().lastModified()) {
-                return true;
+                files.add(file);
             }
         }
-        return false;
+        return files;
     }
 
     /**
@@ -144,39 +171,47 @@ public class Project {
         return iter;
     }
 
-    private List<String> importedModules(Progam program) {
+    /**
+     * Create a bundle from the project files.
+     * 
+     * @param settings
+     *                 Compiler settings
+     * @return The path where the bundle was saved.
+     * @throws Exception
+     */
+    public Path bundle(CompilationSettings settings) throws Exception {
 
-        List<String> modules = new ArrayList<String>();
+        Path dstPath = bundlePath(settings.getTarget());
 
-        // Collect all libraries
-        ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>();
-        allLibs.add(PacioliFile.requireLibrary("base", libs));
-        allLibs.add(PacioliFile.requireLibrary("standard", libs));
-        for (PacioliFile pacioliFile : findImports(program.program, libs)) {
-            allLibs.add(pacioliFile);
+        Pacioli.log("Creating bundle for file '%s'", file);
+
+        Bundle bundle = loadBundle();
+
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())))) {
+
+            bundle.generateCode(writer, settings);
+
         }
 
-        // Locate all files in the libraries and collect the module names
-        for (PacioliFile lib : graph.vertexSet().stream()
-                .collect(Collectors.filtering(x -> allLibs.contains(x), Collectors.toSet()))) {
-            for (PacioliFile file : includeTree(lib)) {
-                modules.add(file.getModule());
-            }
-        }
+        Pacioli.log("Created bundle '%s'", dstPath);
 
-        return modules;
+        return dstPath;
     }
 
-    private List<String> includedModules(Progam program) {
+    public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws Exception {
 
-        List<String> modules = new ArrayList<String>();
+        Bundle bundle = loadBundle();
 
-        // Locate all included files and collect the module names
-        for (PacioliFile include : findIncludes(program.file, program.program)) {
-            modules.add(include.getModule());
+        if (showDocs) {
+            List<File> includes = new ArrayList<>();
+            includeTree(file).forEach(x -> {
+                includes.add(x.getFile());
+            });
+            bundle.printAPI(rewriteTypes, includePrivate, showDocs, includes);
+        } else {
+            bundle.printTypes(rewriteTypes, includePrivate, showDocs);
         }
 
-        return modules;
     }
 
     /**
@@ -217,72 +252,68 @@ public class Project {
         Pacioli.println("\n");
     }
 
-    /**
-     * Create a bundle from the project files.
-     * 
-     * @param settings
-     *                 Compiler settings
-     * @return The path where the bundle was saved.
-     * @throws Exception
-     */
-    public Path bundle(CompilationSettings settings) throws Exception {
-
-        Path dstPath = bundlePath(settings.getTarget());
-
-        Pacioli.log("Creating bundle for file '%s'", file);
+    private Bundle loadBundle() throws Exception {
 
         Bundle bundle = Bundle.empty(file, libs);
 
-        Pacioli.trace("Adding primitives");
         bundle.addPrimitiveTypes();
 
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())))) {
+        for (PacioliFile current : orderedFiles()) {
 
-            for (PacioliFile current : orderedFiles()) {
+            Progam program = Progam.load(current);
 
-                Progam program = Progam.load(current);
+            // Filter the bundle's total symbol tables for the directly used modules of the
+            // program
+            List<String> importedModules = importedModules(program);
+            List<String> includedModules = includedModules(program);
+            Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Imported modules = %s", importedModules);
+            Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Included modules = %s", includedModules);
+            SymbolTable<ValueInfo> vTable = bundle.programValueTable(importedModules, includedModules);
+            SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(importedModules, includedModules);
 
-                // Filter the bundle's total symbol tables for the directly used modules of the
-                // program
-                List<String> importedModules = importedModules(program);
-                List<String> includedModules = includedModules(program);
-                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Imported modules = %s", importedModules);
-                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Included modules = %s", includedModules);
-                SymbolTable<ValueInfo> vTable = bundle.programValueTable(importedModules, includedModules);
-                SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(importedModules, includedModules);
+            // Analyse the code given the imported and included infos
+            program.loadRest(new PacioliTable(vTable, tTable));
 
-                // Analyse the code given the imported and included infos
-                program.loadRest(new PacioliTable(vTable, tTable));
-
-                // Add the program's info's to the bundle's total symbol tables
-                bundle.load(program, current.equals(file));
-            }
-
-            bundle.generateCode(writer, settings);
-
+            // Add the program's info's to the bundle's total symbol tables
+            bundle.load(program, current.equals(file));
         }
 
-        Pacioli.log("Created bundle '%s'", dstPath);
-
-        return dstPath;
+        return bundle;
     }
 
-    public static Path bundlePath(File file, Target target) {
-        return Paths.get(FilenameUtils.removeExtension(file.getPath()) + "." + PacioliFile.targetFileExtension(target));
+    private List<String> importedModules(Progam program) {
+
+        List<String> modules = new ArrayList<String>();
+
+        // Collect all libraries
+        ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>();
+        allLibs.add(PacioliFile.requireLibrary("base", libs));
+        allLibs.add(PacioliFile.requireLibrary("standard", libs));
+        for (PacioliFile pacioliFile : findImports(program.program, libs)) {
+            allLibs.add(pacioliFile);
+        }
+
+        // Locate all files in the libraries and collect the module names
+        for (PacioliFile lib : graph.vertexSet().stream()
+                .collect(Collectors.filtering(x -> allLibs.contains(x), Collectors.toSet()))) {
+            for (PacioliFile file : includeTree(lib)) {
+                modules.add(file.getModule());
+            }
+        }
+
+        return modules;
     }
 
-    /**
-     * Constructor for a project.
-     * 
-     * @param file
-     *             The root file.
-     * @param libs
-     *             The paths where libraries are installed
-     * @return The constructed project
-     * @throws Exception
-     */
-    public static Project load(PacioliFile file, List<File> libs) throws Exception {
-        return new Project(file, libs, projectGraph(file, libs));
+    private List<String> includedModules(Progam program) {
+
+        List<String> modules = new ArrayList<String>();
+
+        // Locate all included files and collect the module names
+        for (PacioliFile include : findIncludes(program.file, program.program)) {
+            modules.add(include.getModule());
+        }
+
+        return modules;
     }
 
     /**
@@ -431,38 +462,6 @@ public class Project {
 
         }
         return includes;
-    }
-
-    public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws Exception {
-
-        Bundle bundle = Bundle.empty(file, libs);
-
-        Pacioli.trace("Adding primitives");
-        bundle.addPrimitiveTypes();
-
-        for (PacioliFile current : orderedFiles()) {
-
-            Progam program = Progam.load(current);
-
-            // Filter the bundle's total symbol tables for the directly used modules of the
-            // program
-            List<String> importedModules = importedModules(program);
-            List<String> includedModules = includedModules(program);
-            SymbolTable<ValueInfo> vTable = bundle.programValueTable(importedModules, includedModules);
-            SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(importedModules, includedModules);
-            // List<String> useModules = usedModules(program);
-            // SymbolTable<ValueInfo> vTable = bundle.programValueTable(useModules);
-            // SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(useModules);
-
-            // Analyse the code given the imported and included infos
-            program.loadRest(new PacioliTable(vTable, tTable));
-
-            // Add the program's info's to the bundle's total symbol tables
-            bundle.load(program, current.equals(file));
-        }
-
-        bundle.printTypes(rewriteTypes, includePrivate, showDocs);
-
     }
 
 }

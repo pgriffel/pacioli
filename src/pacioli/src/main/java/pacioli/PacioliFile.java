@@ -39,7 +39,7 @@ public class PacioliFile extends AbstractPrintable {
 
     private final File file;
     public final String modulePath;
-    private final String module;
+    public final String module;
     private final Integer version;
     private final Boolean isInclude;
     private final Boolean isLibrary;
