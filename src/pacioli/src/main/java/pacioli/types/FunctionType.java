@@ -41,7 +41,7 @@ public class FunctionType extends AbstractType {
 
     @Override
     public void printPretty(PrintWriter out) {
-        if (domain instanceof ParametricType && ((ParametricType) domain).name.equals("Tuple")) {
+        if (domain instanceof ParametricType && ((ParametricType) domain).getName().equals("Tuple")) {
             out.print(((ParametricType) domain).pprintArgs());
         } else {
             domain.printPretty(out);
@@ -49,7 +49,7 @@ public class FunctionType extends AbstractType {
         out.print(" -> ");
         range.printPretty(out);
     }
-    
+
     @Override
     public Set<String> unitVecVarCompoundNames() {
         Set<String> all = new LinkedHashSet<String>();
@@ -71,7 +71,6 @@ public class FunctionType extends AbstractType {
     public String description() {
         return "function type";
     }
-
 
     @Override
     public PacioliType applySubstitution(Substitution subs) {

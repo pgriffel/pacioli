@@ -34,16 +34,16 @@ public class ReduceTypes implements TypeVisitor {
         child.accept(this);
         return nodeStack.pop();
     }
-    
+
     public void returnTypeNode(PacioliType value) {
         // Pacioli.logln("return: %s", value.getClass());
         nodeStack.push(value);
     }
-    
+
     @Override
     public void visit(FunctionType type) {
         PacioliType domainType = typeNodeAccept(type.domain);
-        PacioliType rangeType =  typeNodeAccept(type.range);
+        PacioliType rangeType = typeNodeAccept(type.range);
         returnTypeNode(new FunctionType(domainType, rangeType));
     }
 
@@ -58,7 +58,7 @@ public class ReduceTypes implements TypeVisitor {
     }
 
     @Override
-    public void visit(IndexType type) {       
+    public void visit(IndexType type) {
         returnTypeNode(typeNodeAccept(type.indexSet));
     }
 
@@ -79,9 +79,10 @@ public class ReduceTypes implements TypeVisitor {
             items.add(typeNodeAccept(arg));
         }
         try {
-            ParametricType opType = new ParametricType(type.info, type.definition, items);
+            ParametricType opType = new ParametricType(type.location, type.info, type.definition, items);
             boolean reduce = type.definition.isPresent() && reduceCallback.apply(type.info);
-            //Pacioli.log("Reduce for %s = %s %s", type.name, reduce, type.info.generic().getModule());
+            // Pacioli.log("Reduce for %s = %s %s", type.name, reduce,
+            // type.info.generic().getModule());
             if (!reduce) {
                 returnTypeNode(opType);
             } else {

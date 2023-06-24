@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import pacioli.ConstraintSet;
+import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.Utils;
@@ -37,44 +38,28 @@ import pacioli.symboltable.TypeInfo;
 
 public class ParametricType extends AbstractType {
 
-    public final String name;
     public final List<PacioliType> args;
     public final TypeInfo info;
+    public final Location location;
     public final Optional<TypeDefinition> definition;
 
-    public ParametricType(String name, List<PacioliType> args) {
-        this.info = null;
-        this.name = name;
-        this.args = args;
-        this.definition = Optional.empty();
-    }
-    
-    public ParametricType(TypeInfo info, List<PacioliType> args) {
+    public ParametricType(Location location, TypeInfo info, List<PacioliType> args) {
         this.info = info;
-        this.name = info.name();
         this.args = args;
         this.definition = Optional.empty();
+        this.location = location;
     }
 
-    public ParametricType(String name) {
-        this.info = null;
-        this.name = name;
-        this.args = new ArrayList<PacioliType>();
-        this.definition = Optional.empty();
-    }
-
-    public ParametricType(TypeDefinition definition, List<PacioliType> args) {
-        this.info = null;
-        this.name = definition.localName();
-        this.args = args;
-        this.definition = Optional.of(definition);
-    }
-    
-    public ParametricType(TypeInfo info, Optional<TypeDefinition> definition, List<PacioliType> args) {
+    public ParametricType(Location location, TypeInfo info, Optional<TypeDefinition> definition,
+            List<PacioliType> args) {
         this.info = info;
-        this.name = info.name();
         this.args = args;
         this.definition = definition;
+        this.location = location;
+    }
+
+    public String getName() {
+        return info.name();
     }
 
     public String pprintArgs() {
@@ -87,7 +72,7 @@ public class ParametricType extends AbstractType {
 
     @Override
     public void printPretty(PrintWriter out) {
-        out.print(name);
+        out.print(getName());
         out.print(pprintArgs());
     }
 
@@ -103,8 +88,8 @@ public class ParametricType extends AbstractType {
     @Override
     public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
         ParametricType otherType = (ParametricType) other;
-        if (!name.equals(otherType.name)) {
-            throw new PacioliException("Types '%s and '%s' differ", name, otherType.name);
+        if (!getName().equals(otherType.getName())) {
+            throw new PacioliException("Types '%s and '%s' differ", getName(), otherType.getName());
         }
         if (args.size() != otherType.args.size()) {
             throw new PacioliException("Number of arguments for '%s and '%s' differ", this.pretty(),
@@ -113,14 +98,14 @@ public class ParametricType extends AbstractType {
         ConstraintSet constraints = new ConstraintSet();
         for (int i = 0; i < args.size(); i++) {
             constraints.addConstraint(args.get(i), otherType.args.get(i),
-                    String.format("%s arugment %s must match", name, i + 1));
+                    String.format("%s arugment %s must match", getName(), i + 1));
         }
         return constraints;
     }
 
     @Override
     public String description() {
-        return name + " type";
+        return getName() + " type";
     }
 
     @Override
@@ -129,8 +114,8 @@ public class ParametricType extends AbstractType {
         for (PacioliType type : args) {
             items.add(type.applySubstitution(subs));
         }
-        //return new ParametricType(name, definition, items);
-        return new ParametricType(info, definition, items);
+        // return new ParametricType(name, definition, items);
+        return new ParametricType(location, info, definition, items);
     }
 
     @Override

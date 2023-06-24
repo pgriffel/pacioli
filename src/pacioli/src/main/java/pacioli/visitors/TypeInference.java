@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 
+import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.PacioliFile;
 import pacioli.Typing;
@@ -70,19 +71,19 @@ public class TypeInference extends IdentityVisitor {
     }
 
     private ParametricType newVoidType() {
-        return new ParametricType(findInfo("Void"), new ArrayList<PacioliType>());
+        return new ParametricType(null, findInfo("Void"), new ArrayList<PacioliType>());
     }
 
     private ParametricType newBooleType() {
-        return new ParametricType(findInfo("Boole"), new ArrayList<PacioliType>());
+        return new ParametricType(null, findInfo("Boole"), new ArrayList<PacioliType>());
     }
 
     private ParametricType newStringType() {
-        return new ParametricType(findInfo("String"), new ArrayList<PacioliType>());
+        return new ParametricType(null, findInfo("String"), new ArrayList<PacioliType>());
     }
 
     private ParametricType newTupleType(List<PacioliType> args) {
-        return new ParametricType(findInfo("Tuple"), args);
+        return new ParametricType(null, findInfo("Tuple"), args);
     }
 
     public Typing typingAccept(Node node) {
@@ -557,7 +558,7 @@ public class TypeInference extends IdentityVisitor {
         Typing itemTyping = typingAccept(node.body);
 
         String stMessage = String.format("During inference %s\na statement must have type Void()",
-                        node.sourceDescription());
+                node.sourceDescription());
         typing.addConstraint(voidType, itemTyping.getType(), stMessage);
         // typing.addConstraintsAndAssumptions(itemTyping);
         typing.addConstraints(itemTyping);
@@ -566,8 +567,9 @@ public class TypeInference extends IdentityVisitor {
             ValueInfo info = node.table.lookup(name);
             if (localNames.contains(name)) {
                 for (TypeVar var : itemTyping.assumptions(name)) {
-                    String message = String.format("During inference %s\nthe infered parameter type must match the argument",
-                        info.getLocation().description());
+                    String message = String.format(
+                            "During inference %s\nthe infered parameter type must match the argument",
+                            info.getLocation().description());
                     typing.addConstraint(var, info.inferredType(), message);
                 }
             } else {

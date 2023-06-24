@@ -49,8 +49,8 @@ public class TypeConstraint extends AbstractPrintable {
 
     public PacioliType reduce(ParametricType type) throws PacioliException {
         if (lhs.getArgs().size() != type.args.size()) {
-            throw new PacioliException("Type function %s expects %s arguments but found %s",
-                    type.name,
+            throw new PacioliException(type.location, "Type function %s expects %s arguments but found %s",
+                    type.getName(),
                     lhs.getArgs().size(), type.args.size());
         }
         Map<Var, Object> map = new HashMap<Var, Object>();

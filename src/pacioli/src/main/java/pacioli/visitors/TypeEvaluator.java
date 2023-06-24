@@ -96,7 +96,7 @@ public class TypeEvaluator extends IdentityVisitor {
 
         // Create the index type. If it is a local it is a variable.
         String indexSetName = node.indexSetName();
-        if (!indexInfo.isGlobal()) {    
+        if (!indexInfo.isGlobal()) {
             indexType = new IndexType(new IndexSetVar(indexInfo));
         } else {
             indexType = new IndexType(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName), indexInfo);
@@ -117,7 +117,7 @@ public class TypeEvaluator extends IdentityVisitor {
             } else {
                 String unitName = node.unitVecName();
                 rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName),
-                                         new TypeIdentifier(unitInfo.generic().getModule(), unitName), 0, unitInfo);
+                        new TypeIdentifier(unitInfo.generic().getModule(), unitName), 0, unitInfo);
             }
         }
 
@@ -158,21 +158,21 @@ public class TypeEvaluator extends IdentityVisitor {
                 List<IndexSetInfo> infos = new ArrayList<IndexSetInfo>();
                 returnType(new IndexType(names, infos));
             } else if (true || types.size() == 1 && types.get(0) instanceof TypeVar) {
-                
+
                 if (types.size() != 1) {
                     throw new RuntimeException("Invalid index type",
                             new PacioliException(node.getLocation(), "Invalid nr arguments: %s", types.size()));
                 }
-                
+
                 // It is an index variable. Just return the var.
                 returnType(types.get(0));
             } else {
-                
+
                 // It is a list of TypeIdentifierNode. Create a list of
                 // type identifiers from it and create an IndexType from them.
-                
+
                 // Todo: Test this code. Was rewritten without test coverage.
-                
+
                 List<TypeIdentifier> names = new ArrayList<TypeIdentifier>();
                 List<IndexSetInfo> infos = new ArrayList<IndexSetInfo>();
                 for (int i = 0; i < types.size(); i++) {
@@ -206,11 +206,15 @@ public class TypeEvaluator extends IdentityVisitor {
                 throw new RuntimeException("Expected type info",
                         new PacioliException(node.getLocation(), "Invalid info"));
             }
-            returnType(new ParametricType((TypeInfo) node.op.info, types));
+            returnType(new ParametricType(node.getLocation(), (TypeInfo) node.op.info, types));
         } else {
             assert (definition.get() instanceof TypeDefinition);
             TypeDefinition typeDefinition = (TypeDefinition) definition.get();
-            returnType(new ParametricType((TypeInfo) node.op.info, Optional.of(typeDefinition), types));
+            // TypeInfo typeInfo = (TypeInfo) node.op.info;
+            // TypeInfo info = new TypeInfo(typeInfo.name(), null, typeInfo.isGlobal(),
+            // node.getLocation());
+            returnType(new ParametricType(node.getLocation(), (TypeInfo) node.op.info, Optional.of(typeDefinition),
+                    types));
         }
     }
 
@@ -224,14 +228,15 @@ public class TypeEvaluator extends IdentityVisitor {
         // If it is local then it is a variable.
         Optional<? extends Definition> definition = info.getDefinition();
         if (!info.isGlobal()) {
-            
+
             // Create a type for each different kind of type variable
             if (info instanceof TypeInfo) {
                 returnType(new TypeVar((TypeInfo) info));
             } else if (info instanceof ScalarBaseInfo) {
                 returnType(new MatrixType(new ScalarUnitVar((ScalarBaseInfo) info)));
             } else if (info instanceof VectorBaseInfo) {
-                throw new RuntimeException("A unit vector should be a BangTypeNode, not a TypeIdentifier. That is for scalars");
+                throw new RuntimeException(
+                        "A unit vector should be a BangTypeNode, not a TypeIdentifier. That is for scalars");
             } else if (info instanceof IndexSetInfo) {
                 returnType(new IndexSetVar((IndexSetInfo) info));
             } else {
@@ -240,23 +245,24 @@ public class TypeEvaluator extends IdentityVisitor {
         } else if (definition.isPresent() && definition.get() instanceof AliasDefinition) {
             // todo: rewrite evalBody
             returnType(new MatrixType(((AliasDefinition) definition.get()).evalBody()));
-            //throw new RuntimeException("fixme");
+            // throw new RuntimeException("fixme");
         } else if (info instanceof IndexSetInfo) {
             IndexSetInfo indexSetInfo = (IndexSetInfo) info;
             TypeIdentifier id = new TypeIdentifier(indexSetInfo.generic().getModule(), node.getName());
-            returnType(new IndexType(id, indexSetInfo));  
+            returnType(new IndexType(id, indexSetInfo));
         } else if (info instanceof TypeInfo) {
             TypeApplicationNode app = new TypeApplicationNode(node.getLocation(), node, new LinkedList<TypeNode>());
             this.handleParametric(app, new ArrayList<PacioliType>());
         } else {
-            assert(info instanceof ScalarBaseInfo);
+            assert (info instanceof ScalarBaseInfo);
             returnType(new MatrixType(new ScalarBase((ScalarBaseInfo) info)));
         }
     }
 
     @Override
     public void visit(PrefixUnitTypeNode node) {
-        // Todo: check this cast. Better let recursive visitor handle this: call something like unitAccept(node.unit) 
+        // Todo: check this cast. Better let recursive visitor handle this: call
+        // something like unitAccept(node.unit)
         returnType(new MatrixType(new ScalarBase(node.prefix.getName(), (ScalarBaseInfo) node.unit.info)));
     }
 
@@ -290,7 +296,7 @@ public class TypeEvaluator extends IdentityVisitor {
             if (left.multiplyable(right)) {
                 returnType(left.multiply(right.reciprocal()));
             } else {
-                throw new RuntimeException(new PacioliException(node.getLocation(), 
+                throw new RuntimeException(new PacioliException(node.getLocation(),
                         "Cannot divide %s by %s", left.pretty(), right.pretty()));
             }
         }

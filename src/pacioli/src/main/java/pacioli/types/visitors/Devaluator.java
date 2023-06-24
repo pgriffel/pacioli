@@ -156,7 +156,7 @@ public class Devaluator implements TypeVisitor {
         }
         // throw new RuntimeException("todo: " + type.getClass());
         returnTypeNode(new TypeApplicationNode(new Location(),
-                new TypeIdentifierNode(type.info.getLocation(), type.info.name()),
+                new TypeIdentifierNode(type.location, type.info.name()),
                 args));
     }
 

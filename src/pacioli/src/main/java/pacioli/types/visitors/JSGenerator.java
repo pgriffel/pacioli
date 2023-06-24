@@ -95,7 +95,7 @@ public class JSGenerator implements TypeVisitor {
 
     @Override
     public void visit(ParametricType type) {
-        String name = type.name;
+        String name = type.getName();
         if (name.equals("Boole")) {
             out.write("new Pacioli.GenericType('Boole', [])");
         } else if (name.equals("String")) {
