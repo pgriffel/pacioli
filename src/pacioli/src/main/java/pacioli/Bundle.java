@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import pacioli.CompilationSettings.Target;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.compilers.JSCompiler;
 import pacioli.compilers.MATLABCompiler;
@@ -299,96 +300,25 @@ public class Bundle {
      */
     void printAPI(List<File> includes, String version) throws PacioliException {
 
-        // Get all infos from the value table and sort them alphbetically
-        List<ValueInfo> infos = new ArrayList<>();
-        valueTable.allNames().forEach(name -> infos.add(valueTable.lookup(name)));
-        Collections.sort(infos, (first, second) -> first.name().compareTo(second.name()));
+        DocumentationGenerator generator = new DocumentationGenerator(file.module, version);
 
-        // Split the infos to show into values and functions
-        List<ValueInfo> valuesToShow = new ArrayList<>();
-        List<ValueInfo> functionToShow = new ArrayList<>();
-        for (ValueInfo info : infos) {
+        for (String name : valueTable.allNames()) {
+            ValueInfo info = valueTable.lookup(name);
             if (info.isPublic()
                     && includes.contains(info.getLocation().getFile())
                     && info.getDefinition().isPresent()
                     && info.isUserDefined()) {
-                if (info.getDefinition().get().body instanceof LambdaNode) {
-                    functionToShow.add(info);
+                ExpressionNode body = info.getDefinition().get().body;
+                if (body instanceof LambdaNode) {
+                    LambdaNode lambda = (LambdaNode) body;
+                    generator.addFunction(info.name(), lambda.arguments, info.getType(), info.getDocu().orElse(""));
                 } else {
-                    valuesToShow.add(info);
+                    generator.addValue(info.name(), info.getType(), info.getDocu().orElse(""));
                 }
             }
         }
 
-        // Generate the general HTML headers
-        Pacioli.println("<!DOCTYPE html>");
-        Pacioli.println("<html>");
-        Pacioli.println("<head>");
-        Pacioli.println("<title>%s</title>", file.module);
-        Pacioli.println("</head>");
-        Pacioli.println("<body>");
-
-        // Generate a general section about the module
-        Pacioli.println("<h1>Module %s</h1>", file.module);
-        Pacioli.println("<p>Interface for the %s module</p>", file.module);
-        Pacioli.println("<small>Version %s, %s</small>", version, ZonedDateTime.now());
-
-        // Print the types for the values and the function in a synopsis section
-        Pacioli.println("<h2>Synopsis</h2>");
-        Pacioli.println("<pre>");
-        for (ValueInfo info : valuesToShow) {
-            Pacioli.println("%s ::", info.name());
-            Pacioli.print(" %s;", info.getType().deval().pretty());
-        }
-        if (valuesToShow.size() > 0) {
-            Pacioli.print("\n");
-        }
-        for (ValueInfo info : functionToShow) {
-            Pacioli.println("%s ::", info.name());
-            Pacioli.print(" %s;", info.getType().deval().pretty());
-        }
-        Pacioli.println("</pre>");
-
-        // Print details for the values
-        Pacioli.println("<h2>Values</h2>");
-        if (valuesToShow.size() == 0) {
-            Pacioli.println("n/a");
-        } else {
-            Pacioli.println("<dl>");
-            for (ValueInfo info : valuesToShow) {
-                Pacioli.println("<dt><code>%s</code></dt>", info.name());
-                Pacioli.println("<dd>");
-                Pacioli.println("<pre>::");
-                Pacioli.print(" %s</pre>", info.getType().deval().pretty());
-                for (String part : info.getDocuParts()) {
-                    Pacioli.println("\n<p>%s</p>\n", part);
-                }
-                Pacioli.println("</dd>");
-            }
-            Pacioli.println("</dl>");
-        }
-
-        // Print details for the functions
-        Pacioli.println("<h2>Functions</h2>");
-        Pacioli.println("<dl>");
-        for (ValueInfo info : functionToShow) {
-            LambdaNode body = (LambdaNode) info.getDefinition().get().body;
-            String args = String.format("(%s)", body.argsString(""));
-            Pacioli.println("<dt><code>%s%s</code></dt>", info.name(), args);
-            Pacioli.println("<dd>");
-            Pacioli.println("<pre>::");
-            Pacioli.print(" %s</pre>", info.getType().deval().pretty());
-            for (String part : info.getDocuParts()) {
-                Pacioli.println("\n<p>%s</p>\n", part);
-            }
-            Pacioli.println("</dd>");
-
-        }
-        Pacioli.println("</dl>");
-
-        // Finish the html
-        Pacioli.println("</body>");
-        Pacioli.println("</html>");
+        generator.generate();
     }
 
     // -------------------------------------------------------------------------

@@ -24,6 +24,8 @@ import pacioli.CompilationSettings.Target;
 import pacioli.ast.ImportNode;
 import pacioli.ast.IncludeNode;
 import pacioli.ast.ProgramNode;
+import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.LambdaNode;
 import pacioli.parser.Parser;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
@@ -210,6 +212,27 @@ public class Project {
             includes.add(x.getFile());
         });
         bundle.printAPI(includes, version);
+    }
+
+    /**
+     * Hack to generate API for base. In base there are no definitions.
+     * 
+     * TODO: come up with a hack for the function parameters. Just generate a, b, c,
+     * ... of sufficient length? Project.load(file, libs).generateBaseAPI("dev"); //
+     * 
+     * @param version
+     * @throws Exception
+     */
+    public void generateBaseAPI(String version) throws Exception {
+        Progam program = Progam.load(PacioliFile.findLibrary("base", libs).get());
+        DocumentationGenerator generator = new DocumentationGenerator("base", version);
+        for (ValueInfo info : program.values.allInfos()) {
+            if (info.isPublic()) {
+                generator.addFunction(info.name(), List.of(), info.getDeclaredType().get().pretty(),
+                        info.getDocu().orElse(""));
+            }
+        }
+        generator.generate();
     }
 
     /**

@@ -364,6 +364,8 @@ public class Pacioli {
 
         try {
             Project.load(file, libs).generateAPI("dev"); // TODO: version, see above
+            // Hack to generate API for base:
+            // Project.load(file, libs).generateBaseAPI("dev");
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
         }
