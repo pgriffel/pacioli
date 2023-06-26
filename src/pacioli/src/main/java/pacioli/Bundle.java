@@ -2,9 +2,11 @@ package pacioli;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,6 +15,7 @@ import java.util.stream.Collectors;
 import pacioli.CompilationSettings.Target;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.expression.LambdaNode;
 import pacioli.compilers.JSCompiler;
 import pacioli.compilers.MATLABCompiler;
 import pacioli.compilers.MVMCompiler;
@@ -286,14 +289,38 @@ public class Bundle {
         }
     }
 
-    void printAPI(boolean rewriteTypes, boolean includePrivate, boolean showDocs, List<File> includes)
-            throws PacioliException {
+    /**
+     * Generates a html page with documentation for the bundle's module.
+     * 
+     * @param includes A filter. Only code in the includes is included.
+     * @param version  A description of the module's version that is added to the
+     *                 output
+     * @throws PacioliException
+     */
+    void printAPI(List<File> includes, String version) throws PacioliException {
 
+        // Get all infos from the value table and sort them alphbetically
         List<ValueInfo> infos = new ArrayList<>();
         valueTable.allNames().forEach(name -> infos.add(valueTable.lookup(name)));
-        // List<String> names = valueTable.allNames();
         Collections.sort(infos, (first, second) -> first.name().compareTo(second.name()));
 
+        // Split the infos to show into values and functions
+        List<ValueInfo> valuesToShow = new ArrayList<>();
+        List<ValueInfo> functionToShow = new ArrayList<>();
+        for (ValueInfo info : infos) {
+            if (info.isPublic()
+                    && includes.contains(info.getLocation().getFile())
+                    && info.getDefinition().isPresent()
+                    && info.isUserDefined()) {
+                if (info.getDefinition().get().body instanceof LambdaNode) {
+                    functionToShow.add(info);
+                } else {
+                    valuesToShow.add(info);
+                }
+            }
+        }
+
+        // Generate the general HTML headers
         Pacioli.println("<!DOCTYPE html>");
         Pacioli.println("<html>");
         Pacioli.println("<head>");
@@ -301,51 +328,69 @@ public class Bundle {
         Pacioli.println("</head>");
         Pacioli.println("<body>");
 
-        Pacioli.println("<pre>");
+        // Generate a general section about the module
+        Pacioli.println("<h1>Module %s</h1>", file.module);
+        Pacioli.println("<p>Interface for the %s module</p>", file.module);
+        Pacioli.println("<small>Version %s, %s</small>", version, ZonedDateTime.now());
 
-        for (ValueInfo info : infos) {
-            // ValueInfo info = valueTable.lookup(value);
-            // boolean fromProgram = info.generic().getModule().equals(file.getModule());
-            boolean fromProgram = includes.contains(info.getLocation().getFile());
-            if ((includePrivate || info.isPublic()) && (fromProgram) && info.getDefinition().isPresent()
-                    && info.isUserDefined()) {
-                Pacioli.println("%s ::", info.name());
-                if (rewriteTypes) {
-                    Pacioli.print(" %s;", info.inferredType().deval().pretty());
-                } else {
-                    Pacioli.print(" %s;", info.getType().deval().pretty());
-                }
-            }
+        // Print the types for the values and the function in a synopsis section
+        Pacioli.println("<h2>Synopsis</h2>");
+        Pacioli.println("<pre>");
+        for (ValueInfo info : valuesToShow) {
+            Pacioli.println("%s ::", info.name());
+            Pacioli.print(" %s;", info.getType().deval().pretty());
+        }
+        if (valuesToShow.size() > 0) {
+            Pacioli.print("\n");
+        }
+        for (ValueInfo info : functionToShow) {
+            Pacioli.println("%s ::", info.name());
+            Pacioli.print(" %s;", info.getType().deval().pretty());
         }
         Pacioli.println("</pre>");
-        for (ValueInfo info : infos) {
-            // boolean fromProgram = info.generic().getModule().equals(file.getModule());
-            boolean fromProgram = includes.contains(info.getLocation().getFile());
-            if ((includePrivate || info.isPublic()) && (fromProgram) && info.getDefinition().isPresent()
-                    && info.isUserDefined()) {
-                Pacioli.println("<dt>%s</dt>", info.name());
+
+        // Print details for the values
+        Pacioli.println("<h2>Values</h2>");
+        if (valuesToShow.size() == 0) {
+            Pacioli.println("n/a");
+        } else {
+            Pacioli.println("<dl>");
+            for (ValueInfo info : valuesToShow) {
+                Pacioli.println("<dt><code>%s</code></dt>", info.name());
                 Pacioli.println("<dd>");
                 Pacioli.println("<pre>::");
-                if (rewriteTypes) {
-                    Pacioli.print(" %s</pre>", info.inferredType().deval().pretty());
-                } else {
-                    Pacioli.print(" %s</pre>", info.getType().deval().pretty());
-                }
-                if (showDocs) {
-                    if (info.getDocu().isPresent()) {
-                        Pacioli.println("\n<p>%s</p>\n", info.getDocu().get());
-                    } else {
-                        Pacioli.print("\n");
-                    }
+                Pacioli.print(" %s</pre>", info.getType().deval().pretty());
+                for (String part : info.getDocuParts()) {
+                    Pacioli.println("\n<p>%s</p>\n", part);
                 }
                 Pacioli.println("</dd>");
             }
+            Pacioli.println("</dl>");
+        }
+
+        // Print details for the functions
+        Pacioli.println("<h2>Functions</h2>");
+        Pacioli.println("<dl>");
+        for (ValueInfo info : functionToShow) {
+            LambdaNode body = (LambdaNode) info.getDefinition().get().body;
+            String args = String.format("(%s)", body.argsString(""));
+            Pacioli.println("<dt><code>%s%s</code></dt>", info.name(), args);
+            Pacioli.println("<dd>");
+            Pacioli.println("<pre>::");
+            Pacioli.print(" %s</pre>", info.getType().deval().pretty());
+            for (String part : info.getDocuParts()) {
+                Pacioli.println("\n<p>%s</p>\n", part);
+            }
+            Pacioli.println("</dd>");
+
         }
         Pacioli.println("</dl>");
 
+        // Finish the html
         Pacioli.println("</body>");
         Pacioli.println("</html>");
     }
+
     // -------------------------------------------------------------------------
     // Topological Order of Definitions
     // -------------------------------------------------------------------------

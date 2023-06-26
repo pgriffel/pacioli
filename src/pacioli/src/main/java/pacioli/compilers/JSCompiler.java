@@ -56,7 +56,7 @@ public class JSCompiler implements SymbolTableVisitor {
             out.newlineDown();
             out.write("}");
             out.newline();
-            out.format("Pacioli.b_%s = function (%s) {", info.globalName(), code.argsString());
+            out.format("Pacioli.b_%s = function (%s) {", info.globalName(), code.argsString("lcl_"));
             out.newlineUp();
             out.format("return ");
             code.expression.compileToJS(out, settings, true);
@@ -64,7 +64,7 @@ public class JSCompiler implements SymbolTableVisitor {
             out.newlineDown();
             out.format("}");
             out.newline();
-            out.format("Pacioli.%s = function (%s) {", info.globalName(), code.argsString());
+            out.format("Pacioli.%s = function (%s) {", info.globalName(), code.argsString("lcl_"));
             out.newlineUp();
             out.format("return ");
             code.expression.compileToJS(out, settings, false);
@@ -83,9 +83,9 @@ public class JSCompiler implements SymbolTableVisitor {
                     info.globalName(),
                     info.getType().reduce(i -> true).compileToJS());
 
-
             // out.newline();
-            // out.format("Pacioli.b_%s = function (%s) {", info.globalName(), code.argsString());
+            // out.format("Pacioli.b_%s = function (%s) {", info.globalName(),
+            // code.argsString());
             // out.newlineUp();
             // out.format("return ");
             // code.expression.compileToJS(out, settings, true);
@@ -93,7 +93,7 @@ public class JSCompiler implements SymbolTableVisitor {
             // out.newlineDown();
             // out.format("}");
             out.newline();
-            out.format("Pacioli.%s = function (%s) {", info.globalName(), code.argsString());
+            out.format("Pacioli.%s = function (%s) {", info.globalName(), code.argsString("lcl_"));
             out.newlineUp();
             out.format("return ");
             code.expression.compileToJS(out, settings, false);
@@ -112,7 +112,8 @@ public class JSCompiler implements SymbolTableVisitor {
                     info.globalName());
             transformedBody.compileToJS(out, settings, false);
             out.format(";\n}\n");
-            // out.format("Pacioli.compute_b_%s = function () {\n  return ", info.globalName());
+            // out.format("Pacioli.compute_b_%s = function () {\n return ",
+            // info.globalName());
             // transformedBody.compileToJS(out, settings, true);
             // out.format(";\n}\n");
         }
@@ -196,8 +197,8 @@ public class JSCompiler implements SymbolTableVisitor {
             unitTexts.add("'" + entry.key.getName() + "': " + TypeBase.compileUnitToJS(number.unit()));
         }
 
-        String globalName = //info.globalName();//setInfo.globalName();
-        String.format("vbase_%s_%s", setInfo.generic().getModule(), info.name().replace("!", "_"));
+        String globalName = // info.globalName();//setInfo.globalName();
+                String.format("vbase_%s_%s", setInfo.generic().getModule(), info.name().replace("!", "_"));
         String args = Utils.intercalate(", ", unitTexts);
 
         out.format("Pacioli.compute_%s = function () { return {units: { %s }}};\n", globalName, args);

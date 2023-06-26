@@ -266,7 +266,7 @@ public class Pacioli {
                     displayError("No files to read.");
                 }
                 for (String file : files) {
-                    apiCommand(file, libs, rewriteTypes, includePrivate);
+                    apiCommand(file, libs);
                 }
             } else if (command.equals("graph") || command.equals("symbols")) {
                 debugCommand(command, files, libs);
@@ -338,10 +338,7 @@ public class Pacioli {
         log("Displaying types for file '%s'\n", file.getFile());
 
         try {
-            Project project = Project.load(file, libs);
-
-            // Progam program = Progam.load(file, Phase.TYPED);
-            project.printTypes(rewriteTypes, includePrivate, false);
+            Project.load(file, libs).printTypes(rewriteTypes, includePrivate, true);
 
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
@@ -349,10 +346,10 @@ public class Pacioli {
 
     }
 
-    private static void apiCommand(String fileName, List<File> libs, boolean rewriteTypes, boolean includePrivate)
+    private static void apiCommand(String fileName, List<File> libs)
             throws Exception {
 
-        Integer version = 0; // todo
+        Integer version = 0; // TODO, see below
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
 
         if (!optionalFile.isPresent()) {
@@ -365,14 +362,8 @@ public class Pacioli {
 
         PacioliFile file = optionalFile.get();
 
-        // log("Generating api for file '%s'\n", file.getFile());
-
         try {
-            Project project = Project.load(file, libs);
-
-            // Progam program = Progam.load(file, Phase.TYPED);
-            project.printTypes(rewriteTypes, false, true);
-
+            Project.load(file, libs).generateAPI("dev"); // TODO: version, see above
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
         }

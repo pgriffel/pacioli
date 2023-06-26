@@ -1,8 +1,10 @@
 package pacioli.symboltable;
 
+import java.util.List;
 import java.util.Optional;
 
 import pacioli.Location;
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.PacioliFile;
 import pacioli.ast.definition.ValueDefinition;
@@ -92,6 +94,15 @@ public class ValueInfo extends AbstractSymbolInfo {
 
     public Optional<String> getDocu() {
         return docu;
+    }
+
+    public List<String> getDocuParts() {
+        if (docu.isPresent()) {
+            String[] parts = docu.get().split("\\r?\\n\s*\\r?\\n");
+            return List.of(parts);
+        } else {
+            return List.of();
+        }
     }
 
     public void setDocu(String docu) {

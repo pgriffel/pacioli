@@ -51,12 +51,12 @@ public class LambdaNode extends AbstractExpressionNode {
         table = old.table;
     }
 
-    public String argsString() {
+    public String argsString(String prefix) {
         List<String> args = new ArrayList<String>();
         for (String arg : arguments) {
-            args.add("lcl_" + arg + "");
+            args.add(prefix + arg + "");
         }
-        return Utils.intercalate(",", args);
+        return Utils.intercalate(", ", args);
     }
 
     @Override

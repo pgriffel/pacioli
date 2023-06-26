@@ -198,20 +198,18 @@ public class Project {
         return dstPath;
     }
 
-    public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws Exception {
-
+    public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDoc) throws Exception {
         Bundle bundle = loadBundle();
+        bundle.printTypes(rewriteTypes, includePrivate, showDoc);
+    }
 
-        if (showDocs) {
-            List<File> includes = new ArrayList<>();
-            includeTree(file).forEach(x -> {
-                includes.add(x.getFile());
-            });
-            bundle.printAPI(rewriteTypes, includePrivate, showDocs, includes);
-        } else {
-            bundle.printTypes(rewriteTypes, includePrivate, showDocs);
-        }
-
+    public void generateAPI(String version) throws Exception {
+        Bundle bundle = loadBundle();
+        List<File> includes = new ArrayList<>();
+        includeTree(file).forEach(x -> {
+            includes.add(x.getFile());
+        });
+        bundle.printAPI(includes, version);
     }
 
     /**
