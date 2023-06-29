@@ -1,6 +1,7 @@
 package pacioli;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -297,10 +298,12 @@ public class Bundle {
      * @param version  A description of the module's version that is added to the
      *                 output
      * @throws PacioliException
+     * @throws IOException
      */
-    void printAPI(List<File> includes, String version) throws PacioliException {
+    void printAPI(List<File> includes, String version) throws PacioliException, IOException {
 
-        DocumentationGenerator generator = new DocumentationGenerator(file.module, version);
+        PrintWriter writer = new PrintWriter(System.out);
+        DocumentationGenerator generator = new DocumentationGenerator(writer, file.module, version);
 
         for (String name : valueTable.allNames()) {
             ValueInfo info = valueTable.lookup(name);

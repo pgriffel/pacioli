@@ -20,7 +20,9 @@
  */
 package pacioli;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -61,6 +63,7 @@ public class Pacioli {
         public static boolean dumpOnMVMError = true;
         public static boolean logGeneratingCode = false;
         public static boolean showModifiedFiles = false;
+        public static boolean wrapTypes = false;
     }
 
     // User settings for log messages. See the various methods for printing and
@@ -268,6 +271,13 @@ public class Pacioli {
                 for (String file : files) {
                     apiCommand(file, libs);
                 }
+            } else if (command.equals("baseapi")) {
+                if (files.isEmpty()) {
+                    displayError("No files to read.");
+                }
+                for (String file : files) {
+                    baseApiCommand(file, libs);
+                }
             } else if (command.equals("graph") || command.equals("symbols")) {
                 debugCommand(command, files, libs);
             } else if (command.equals("help")) {
@@ -364,12 +374,15 @@ public class Pacioli {
 
         try {
             Project.load(file, libs).generateAPI("dev"); // TODO: version, see above
-            // Hack to generate API for base:
-            // Project.load(file, libs).generateBaseAPI("dev");
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
         }
 
+    }
+
+    private static void baseApiCommand(String dirName, List<File> libs)
+            throws Exception {
+        new PrimitivesDocumentation(dirName, libs).generate();
     }
 
     private static void cleanCommand(String fileName, List<File> libs, CompilationSettings settings)

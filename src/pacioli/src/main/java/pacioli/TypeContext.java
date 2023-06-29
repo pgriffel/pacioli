@@ -132,8 +132,8 @@ public class TypeContext extends AbstractPrintable {
     public void printPretty(PrintWriter out) {
         String quant = quantified("for_type", typeVars) + quantified("for_index", indexVars)
                 + quantified("for_unit", unitVars);
-        out.print(quant);        
-        if (quant.length() > 30) {
+        out.print(quant);
+        if (quant.length() > 30 && Pacioli.Options.wrapTypes) {
             out.println();
             out.print("    ");
         }

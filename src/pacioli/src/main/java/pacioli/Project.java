@@ -31,6 +31,10 @@ import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.ValueInfo;
+import pacioli.types.ast.FunctionTypeNode;
+import pacioli.types.ast.SchemaNode;
+import pacioli.types.ast.TypeApplicationNode;
+import pacioli.types.ast.TypeNode;
 
 /**
  * The Project class's purpose is to compile and bundle a file with all its
@@ -215,27 +219,6 @@ public class Project {
     }
 
     /**
-     * Hack to generate API for base. In base there are no definitions.
-     * 
-     * TODO: come up with a hack for the function parameters. Just generate a, b, c,
-     * ... of sufficient length? Project.load(file, libs).generateBaseAPI("dev"); //
-     * 
-     * @param version
-     * @throws Exception
-     */
-    public void generateBaseAPI(String version) throws Exception {
-        Progam program = Progam.load(PacioliFile.findLibrary("base", libs).get());
-        DocumentationGenerator generator = new DocumentationGenerator("base", version);
-        for (ValueInfo info : program.values.allInfos()) {
-            if (info.isPublic()) {
-                generator.addFunction(info.name(), List.of(), info.getDeclaredType().get().pretty(),
-                        info.getDocu().orElse(""));
-            }
-        }
-        generator.generate();
-    }
-
-    /**
      * Print the project graph. For debugging.
      */
     public void printInfo() {
@@ -383,12 +366,13 @@ public class Project {
                 // Locate the imports. Add the base lib unless this is the base lib. Add the
                 // standard lib unless this is the base lib or the standard lib
                 ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>(findImports(programNode, libs));
-                if (!current.equals(base)) {
+                boolean isBase = current.getFile().toPath().startsWith(base.getFile().getParentFile().toPath());
+                boolean isStandard = current.getFile().toPath().startsWith(standard.getFile().getParentFile().toPath());
+                if (!isBase) {
                     allLibs.add(base);
                 }
                 // if (!current.equals(standard) && !current.equals(base)) {
-                if (!current.getFile().toPath().startsWith(standard.getFile().getParentFile().toPath())
-                        && !current.equals(base)) {
+                if (!isStandard && !isBase) {
                     allLibs.add(standard);
                 }
 

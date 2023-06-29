@@ -1,5 +1,7 @@
 package pacioli;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,8 +26,9 @@ import pacioli.types.PacioliType;
 public class DocumentationGenerator {
 
     // Info for the entire module
-    private String module;
-    private String version;
+    private final String module;
+    private final String version;
+    private final Writer writer;
 
     // Info per value/function
     Map<String, String> typeTable = new HashMap<>();
@@ -39,9 +42,10 @@ public class DocumentationGenerator {
     // Constructors
     // -------------------------------------------------------------------------
 
-    public DocumentationGenerator(String module, String version) {
+    public DocumentationGenerator(Writer writer, String module, String version) {
         this.module = module;
         this.version = version;
+        this.writer = writer;
     }
 
     public void addValue(String name, PacioliType type, String documentation) {
@@ -96,6 +100,11 @@ public class DocumentationGenerator {
         return Utils.intercalate(", ", argumentsTable.get(name));
     }
 
+    private void println(String string, Object... args) throws IOException {
+        writer.write(String.format(string, args));
+        writer.write("\n");
+    }
+
     /**
      * Generates a html page with documentation for the bundle's module.
      * 
@@ -103,8 +112,9 @@ public class DocumentationGenerator {
      * @param version  A description of the module's version that is added to the
      *                 output
      * @throws PacioliException
+     * @throws IOException
      */
-    void generate() throws PacioliException {
+    void generate() throws PacioliException, IOException {
 
         List<String> vals = new ArrayList<String>(values);
         Collections.sort(vals);
@@ -113,73 +123,69 @@ public class DocumentationGenerator {
         Collections.sort(funs);
 
         // Generate the general HTML headers
-        Pacioli.println("<!DOCTYPE html>");
-        Pacioli.println("<html>");
-        Pacioli.println("<head>");
-        Pacioli.println("<title>%s</title>", module);
-        Pacioli.println("</head>");
-        Pacioli.println("<body>");
+        println("<!DOCTYPE html>");
+        println("<html>");
+        println("<head>");
+        println("<title>%s</title>", module);
+        println("</head>");
+        println("<body>");
 
         // Generate a general section about the module
-        Pacioli.println("<h1>Module %s</h1>", module);
-        Pacioli.println("<p>Interface for the %s module</p>", module);
-        Pacioli.println("<small>Version %s, %s</small>", version, ZonedDateTime.now());
+        println("<h1>Module %s</h1>", module);
+        println("<p>Interface for the %s module</p>", module);
+        println("<small>Version %s, %s</small>", version, ZonedDateTime.now());
 
         // Print the types for the values and the function in a synopsis section
-        Pacioli.println("<h2>Synopsis</h2>");
-        Pacioli.println("<pre>");
+        println("<h2>Synopsis</h2>");
+        println("<pre>");
         for (String value : vals) {
-            Pacioli.println("%s ::", value);
-            Pacioli.print(" %s;", typeTable.get(value));
+            println("<a href=\"#%s\">%s</a> :: %s", value, value, typeTable.get(value));
         }
         if (values.size() > 0) {
-            Pacioli.print("\n");
+            println("");
         }
         for (String function : funs) {
-            Pacioli.println("%s ::", function);
-            Pacioli.print(" %s;", typeTable.get(function));
+            println("<a href=\"#%s\">%s</a> :: %s", function, function, typeTable.get(function));
         }
-        Pacioli.println("</pre>");
+        println("</pre>");
 
         // Print details for the values
-        Pacioli.println("<h2>Values</h2>");
+        println("<h2>Values</h2>");
         if (values.size() == 0) {
-            Pacioli.println("n/a");
+            println("n/a");
         } else {
-            Pacioli.println("<dl>");
+            println("<dl>");
             for (String value : vals) {
-                Pacioli.println("<dt><code>%s</code></dt>", value);
-                Pacioli.println("<dd>");
-                Pacioli.println("<pre>::");
-                Pacioli.print(" %s</pre>", typeTable.get(value));
+                println("<dt id=\"%s\"><code>%s</code></dt>", value, value);
+                println("<dd>");
+                println("<pre>:: %s</pre>", typeTable.get(value));
                 for (String part : getDocuParts(value)) {
-                    Pacioli.println("\n<p>%s</p>\n", part);
+                    println("\n<p>%s</p>\n", part);
                 }
-                Pacioli.println("</dd>");
+                println("</dd>");
             }
-            Pacioli.println("</dl>");
+            println("</dl>");
         }
 
         // Print details for the functions
-        Pacioli.println("<h2>Functions</h2>");
-        Pacioli.println("<dl>");
+        println("<h2>Functions</h2>");
+        println("<dl>");
         for (String function : funs) {
             String args = String.format("(%s)", argsString(function));
-            Pacioli.println("<dt><code>%s%s</code></dt>", function, args);
-            Pacioli.println("<dd>");
-            Pacioli.println("<pre>::");
-            Pacioli.print(" %s</pre>", getType(function));
+            println("<dt id=\"%s\"><code>%s%s</code></dt>", function, function, args);
+            println("<dd>");
+            println("<pre>:: %s</pre>", getType(function));
             for (String part : getDocuParts(function)) {
-                Pacioli.println("\n<p>%s</p>\n", part);
+                println("\n<p>%s</p>\n", part);
             }
-            Pacioli.println("</dd>");
+            println("</dd>");
 
         }
-        Pacioli.println("</dl>");
+        println("</dl>");
 
         // Finish the html
-        Pacioli.println("</body>");
-        Pacioli.println("</html>");
+        println("</body>");
+        println("</html>");
     }
 
 }
