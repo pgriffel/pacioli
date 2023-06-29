@@ -17,10 +17,10 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-include system;
 include string;
 include list;
 include matrix;
+include io;
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -29,6 +29,15 @@ include matrix;
 declare export pi :: 1;
 
 define pi = 3.141592653589793;
+
+# ------------------------------------------------------------------------------
+# System time
+# ------------------------------------------------------------------------------
+
+declare export now :: () -> milli:second;
+
+define now() =
+    _system_time() * |milli:second|;
 
 # ------------------------------------------------------------------------------
 # Percentages and Fractions
@@ -46,52 +55,6 @@ define from_percentage(x) = x '/.' percent_conv;
 
 define fraction(x, y) = to_percentage(x / y);
 
-# ------------------------------------------------------------------------------
-# File IO
-# ------------------------------------------------------------------------------
-
-declare export file_writeln :: (File, String) -> Void;
-declare export file_newline :: (File) -> Void;
-
-doc file_writeln
-    "Writes a string to a file, followed by a newline.";
-
-define file_writeln(file, text) = 
-    begin
-        file_write(file, text);
-        file_write(file, "\n");
-    end;
-
-doc file_newline
-    "Writes a newline to a file.";
-
-define file_newline(file) = 
-    file_write(file, "\n");
-
-# ------------------------------------------------------------------------------
-# String formatting
-# ------------------------------------------------------------------------------
-
-declare export int2str :: for_index D, E: for_unit a, D!b, E!c:
-    (a*D!b per E!c, a*D!b per E!c) -> String;
-
-define int2str(x, unit) =
-    num2string(x, 0, unit);
-
-# ------------------------------------------------------------------------------
-# Radian functons
-# ------------------------------------------------------------------------------
-
-declare export asin, acos, atan ::
-  for_index P,Q: (P! per Q!) -> radian * P! per Q!;
-
-declare export atan2 ::
-  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> radian * P! per Q!;
-
-define asin(x) = |radian| '.*' _asin(x);
-define acos(x) = |radian| '.*' _acos(x);
-define atan(x) = |radian| '.*' _atan(x);
-define atan2(x, y) = |radian| '.*' _atan2(x, y);
 
 # ------------------------------------------------------------------------------
 # Approximate equality

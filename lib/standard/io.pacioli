@@ -18,10 +18,23 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # ------------------------------------------------------------------------------
-# System time
+# File IO
 # ------------------------------------------------------------------------------
 
-declare export now :: () -> milli:second;
+declare export file_writeln :: (File, String) -> Void;
+declare export file_newline :: (File) -> Void;
 
-define now() =
-    _system_time() * |milli:second|;
+doc file_writeln
+    "Writes a string to a file, followed by a newline.";
+
+define file_writeln(file, text) = 
+    begin
+        file_write(file, text);
+        file_write(file, "\n");
+    end;
+
+doc file_newline
+    "Writes a newline to a file.";
+
+define file_newline(file) = 
+    file_write(file, "\n");

@@ -17,92 +17,40 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-include string;
-include list;
-include array;
-include matrix;
-include io;
-include system;
-
 # ----------------------------------------------------------------------------
-# Units
-#
-# The SI units are defined here to make them available in the standard 
-# library. The SI library gives extensions.
+# System functions
 # ----------------------------------------------------------------------------
 
-defunit metre "m";
-defunit gram "g";
-defunit second "s";
-defunit ampere "A";
-defunit kelvin "K";
-defunit mole "mol";
-defunit candela "cd";
-
-# ----------------------------------------------------------------------------
-# General primitives
-# ----------------------------------------------------------------------------
- 
-doc tuple
-    "Creates a tuple from the arguments.";
-
-declare export tuple :: for_type t: t -> t;
+declare export _three_question_marks :: for_type t: () -> t;
 
 # ----------------------------------------------------------------------------
 
-doc apply
-    "Applies a function to a tuple of arguments.";
-
-declare export apply :: for_type s,t: (s -> t, s) -> t;
+declare export _skip :: () -> Void;
 
 # ----------------------------------------------------------------------------
 
-doc identity
-    "The identity function. Just returns its single argument.";
+doc _system_time
+    "Number of milliseconds since some starting point.";
 
-declare export identity :: for_type t: (t) -> t;
-
-# ----------------------------------------------------------------------------
-
-doc type_of
-    "One of 'string', 'matrix' and 'generic'.";
-
-declare export type_of :: for_type t: (t) -> Identifier;
+declare export _system_time :: () -> 1;
 
 # ----------------------------------------------------------------------------
 
-doc equal
-    "Are the given values equal?";
-
-declare export equal :: for_type t: (t, t) -> Boole;
+declare export _asin :: for_index P,Q: (P! per Q!) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
 
-doc not_equal
-    "Shorthand for <code>not(equal(...))</code>.";
-
-declare export not_equal :: for_type t: (t, t) -> Boole;
+declare export _acos :: for_index P,Q: (P! per Q!) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
 
-doc not
-    "Logical complement";
-
-declare export not :: (Boole) -> Boole;
+declare export _atan :: for_index P,Q: (P! per Q!) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
 
-doc error
-    "Signals an error.";
-
-declare export error :: for_type t: (String) -> t;
+declare export _atan2 ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
-# Maybe
-# ----------------------------------------------------------------------------
 
-declare export just :: for_type t: (t) -> Maybe(t);
-
-declare export nothing :: for_type t: () -> Maybe(t);
-
-declare export is_nothing :: for_type t: (Maybe(t)) -> Boole;
+declare export _add_mut :: for_type a: (List(a), a) -> List(a);

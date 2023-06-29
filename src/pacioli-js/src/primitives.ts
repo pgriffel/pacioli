@@ -133,7 +133,7 @@ export function lib_base_base_not(boole: boolean) {
   return !boole;
 }
 
-export function lib_base_base__skip() {
+export function lib_base_system__skip() {
   return nothing;
 }
 
@@ -211,12 +211,12 @@ export function lib_base_base_equal(x: any, y: any) {
   }
 }
 
-export function lib_base_base_print(x: any) {
+export function lib_base_io_print(x: any) {
   printValue(x);
   return nothing;
 }
 
-export function lib_base_base_is_zero(x: any) {
+export function lib_base_matrix_is_zero(x: any) {
   var values = getCOONumbers(x)[2];
   for (var i = 0; i < values.length; i++) {
     if (values[i] != 0) return false;
@@ -224,19 +224,19 @@ export function lib_base_base_is_zero(x: any) {
   return true;
 }
 
-export function compute_lib_base_base__() {
+export function compute_lib_base_matrix__() {
   return createCoordinates([]);
 }
 
-export function lib_base_base_unit_factor(_x: any) {
+export function lib_base_matrix_unit_factor(_x: any) {
   return oneNumbers(1, 1);
 }
 
-export function lib_base_base_magnitude(x: any) {
+export function lib_base_matrix_magnitude(x: any) {
   return x;
 }
 
-export function lib_base_base_row(x: any, coord: any) {
+export function lib_base_matrix_row(x: any, coord: any) {
   var row = coord.position;
   var matrix = zeroNumbers(1, x.nrColumns);
   var numbers = getCOONumbers(x);
@@ -251,11 +251,11 @@ export function lib_base_base_row(x: any, coord: any) {
   return matrix;
 }
 
-export function lib_base_base_row_unit(x: any) {
+export function lib_base_matrix_row_unit(x: any) {
   return oneNumbers(x.nrRows, 1);
 }
 
-export function lib_base_base_row_domain(matrix: any) {
+export function lib_base_matrix_row_domain(matrix: any) {
   var n = matrix.nrRows;
   var domain = new Array(n);
   for (var i = 0; i < n; i++) {
@@ -264,14 +264,14 @@ export function lib_base_base_row_domain(matrix: any) {
   return tagKind(domain, "list");
 }
 
-export function lib_base_base_column(x: any, coord: any) {
-  // todo: reconsider this and the lib_base_base_row implementation
-  return lib_base_base_transpose(
-    lib_base_base_row(lib_base_base_transpose(x), coord)
+export function lib_base_matrix_column(x: any, coord: any) {
+  // todo: reconsider this and the lib_base_matrix_row implementation
+  return lib_base_matrix_transpose(
+    lib_base_matrix_row(lib_base_matrix_transpose(x), coord)
   );
 }
 
-export function lib_base_base_column_domain(matrix: any) {
+export function lib_base_matrix_column_domain(matrix: any) {
   var n = matrix.nrColumns;
   var domain = new Array(n);
   for (var i = 0; i < n; i++) {
@@ -280,19 +280,19 @@ export function lib_base_base_column_domain(matrix: any) {
   return tagKind(domain, "list");
 }
 
-export function lib_base_base_column_unit(x: any) {
+export function lib_base_matrix_column_unit(x: any) {
   return oneNumbers(x.nrColumns, 1);
 }
 
-export function lib_base_base_get_num(matrix: any, i: any, j: any) {
+export function lib_base_matrix_get_num(matrix: any, i: any, j: any) {
   return get(matrix, i.position, j.position);
 }
 
-export function lib_base_base_get(matrix: any, i: any, j: any) {
+export function lib_base_matrix_get(matrix: any, i: any, j: any) {
   return get(matrix, i.position, j.position);
 }
 
-export function lib_base_base_make_matrix(tuples: any[]) {
+export function lib_base_matrix_make_matrix(tuples: any[]) {
   var first = tuples[0];
   var numbers = zeroNumbers(first[0].size, first[1].size);
   for (var i = 0; i < tuples.length; i++) {
@@ -302,25 +302,25 @@ export function lib_base_base_make_matrix(tuples: any[]) {
   return numbers;
 }
 
-export function lib_base_base_support(x: any) {
+export function lib_base_matrix_support(x: any) {
   return unaryNumbers(x, function (_val: number) {
     return 1;
   });
 }
 
-export function lib_base_base_positive_support(x: any) {
+export function lib_base_matrix_positive_support(x: any) {
   return unaryNumbers(x, function (val: number) {
     return 0 < val ? 1 : 0;
   });
 }
 
-export function lib_base_base_negative_support(x: any) {
+export function lib_base_matrix_negative_support(x: any) {
   return unaryNumbers(x, function (val: number) {
     return val < 0 ? 1 : 0;
   });
 }
 
-export function lib_base_base_top(cnt: any, x: any) {
+export function lib_base_matrix_top(cnt: any, x: any) {
   var n = getNumber(cnt, 0, 0);
 
   if (n === 0) {
@@ -362,7 +362,7 @@ export function lib_base_base_top(cnt: any, x: any) {
   return matrix;
 }
 
-export function lib_base_base_bottom(cnt: any, x: any) {
+export function lib_base_matrix_bottom(cnt: any, x: any) {
   var n = getNumber(cnt, 0, 0);
 
   if (n === 0) {
@@ -404,7 +404,7 @@ export function lib_base_base_bottom(cnt: any, x: any) {
   return matrix;
 }
 
-export function lib_base_base_left_identity(x: any) {
+export function lib_base_matrix_left_identity(x: any) {
   var numbers = zeroNumbers(x.nrRows, x.nrRows);
   for (var i = 0; i < x.nrRows; i++) {
     set(numbers, i, i, 1);
@@ -412,7 +412,7 @@ export function lib_base_base_left_identity(x: any) {
   return numbers;
 }
 
-export function lib_base_base_right_identity(x: any) {
+export function lib_base_matrix_right_identity(x: any) {
   var numbers = zeroNumbers(x.nrColumns, x.nrColumns);
   for (var i = 0; i < x.nrColumns; i++) {
     set(numbers, i, i, 1);
@@ -420,13 +420,13 @@ export function lib_base_base_right_identity(x: any) {
   return numbers;
 }
 
-export function lib_base_base_reciprocal(x: any) {
+export function lib_base_matrix_reciprocal(x: any) {
   return unaryNumbers(x, function (val: number) {
     return val == 0 ? 0 : 1 / val;
   });
 }
 
-export function lib_base_base_transpose(x: any) {
+export function lib_base_matrix_transpose(x: any) {
   var result = zeroNumbers(x.nrColumns, x.nrRows);
   var numbers = getCOONumbers(x);
   var rows = numbers[0];
@@ -438,15 +438,15 @@ export function lib_base_base_transpose(x: any) {
   return result;
 }
 
-export function lib_base_base_dim_inv(x: any) {
-  return lib_base_base_transpose(lib_base_base_reciprocal(x));
+export function lib_base_matrix_dim_inv(x: any) {
+  return lib_base_matrix_transpose(lib_base_matrix_reciprocal(x));
 }
 
-export function lib_base_base_dim_div(x: any, y: any) {
-  return lib_base_base_mmult(x, lib_base_base_dim_inv(y));
+export function lib_base_matrix_dim_div(x: any, y: any) {
+  return lib_base_matrix_mmult(x, lib_base_matrix_dim_inv(y));
 }
 
-export function lib_base_base_mmult(x: any, y: any) {
+export function lib_base_matrix_mmult(x: any, y: any) {
   return tagNumbers(
     ccsDot(getCCSNumbers(x), getCCSNumbers(y)),
     x.nrRows,
@@ -455,7 +455,7 @@ export function lib_base_base_mmult(x: any, y: any) {
   );
 }
 
-export function lib_base_base_multiply(x: any, y: any) {
+export function lib_base_matrix_multiply(x: any, y: any) {
   if (x.storage === 13) {
     return tagNumbers(
       ccsmul(getCCSNumbers(x), getCCSNumbers(y)),
@@ -470,7 +470,7 @@ export function lib_base_base_multiply(x: any, y: any) {
   }
 }
 
-// Pacioli.lib_base_base_kronecker = function (x,y) {
+// Pacioli.lib_base_matrix_kronecker = function (x,y) {
 //     alert("is this used?")
 //     var xm = x.length
 //     var ym = y.length
@@ -493,13 +493,13 @@ export function lib_base_base_multiply(x: any, y: any) {
 //     return matrix;
 // }
 
-export function lib_base_base_divide(x: any, y: any) {
+export function lib_base_matrix_divide(x: any, y: any) {
   return elementWiseNumbers(x, y, function (a: number, b: number) {
     return b !== 0 ? a / b : 0;
   });
 }
 
-export function lib_base_base_gcd(x: any, y: any) {
+export function lib_base_matrix_gcd(x: any, y: any) {
   return elementWiseNumbers(x, y, function (a: number, b: number) {
     if (a < 0) a = -a;
     if (b < 0) b = -b;
@@ -519,7 +519,7 @@ export function lib_base_base_gcd(x: any, y: any) {
   });
 }
 
-export function lib_base_base_sum(x: any, y: any) {
+export function lib_base_matrix_sum(x: any, y: any) {
   if (x.storage === 13) {
     return tagNumbers(
       ccsadd(getCCSNumbers(x), getCCSNumbers(y)),
@@ -534,7 +534,7 @@ export function lib_base_base_sum(x: any, y: any) {
   }
 }
 
-export function lib_base_base_minus(x: any, y: any) {
+export function lib_base_matrix_minus(x: any, y: any) {
   //return Pacioli.elementWiseNumbers(x, y, function(a, b) { return a-b})
   if (x.storage === 13) {
     return tagNumbers(
@@ -550,31 +550,31 @@ export function lib_base_base_minus(x: any, y: any) {
   }
 }
 
-export function lib_base_base_negative(x: any) {
+export function lib_base_matrix_negative(x: any) {
   return unaryNumbers(x, function (val: number) {
     return -val;
   });
 }
 
-export function lib_base_base_scale(x: any, y: any) {
+export function lib_base_matrix_scale(x: any, y: any) {
   var factor = getNumber(x, 0, 0);
   return unaryNumbers(y, function (val: any) {
     return factor * val;
   });
 }
 
-export function lib_base_base_rscale(x: any, y: any) {
+export function lib_base_matrix_rscale(x: any, y: any) {
   var factor = getNumber(y, 0, 0);
   return unaryNumbers(x, function (val: any) {
     return factor * val;
   });
 }
 
-export function lib_base_base_scale_down(x: any, y: any) {
-  return lib_base_base_scale(lib_base_base_reciprocal(y), x);
+export function lib_base_matrix_scale_down(x: any, y: any) {
+  return lib_base_matrix_scale(lib_base_matrix_reciprocal(y), x);
 }
 
-export function lib_base_base_total(x: any) {
+export function lib_base_matrix_total(x: any) {
   var values = getCOONumbers(x)[2];
   var total = 0;
   for (var i = 0; i < values.length; i++) {
@@ -585,7 +585,7 @@ export function lib_base_base_total(x: any) {
   return result;
 }
 
-export function lib_base_base_mod(x: any, y: any) {
+export function lib_base_matrix_mod(x: any, y: any) {
   return tagNumbers(
     mod(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
@@ -594,7 +594,7 @@ export function lib_base_base_mod(x: any, y: any) {
   );
 }
 
-export function lib_base_base_div(x: any, y: any) {
+export function lib_base_matrix_div(x: any, y: any) {
   return tagNumbers(
     div(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
@@ -603,7 +603,7 @@ export function lib_base_base_div(x: any, y: any) {
   );
 }
 
-export function lib_base_base_max(x: any, y: any) {
+export function lib_base_matrix_max(x: any, y: any) {
   return tagNumbers(
     max(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
@@ -612,7 +612,7 @@ export function lib_base_base_max(x: any, y: any) {
   );
 }
 
-export function lib_base_base_min(x: any, y: any) {
+export function lib_base_matrix_min(x: any, y: any) {
   return tagNumbers(
     min(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
@@ -621,31 +621,31 @@ export function lib_base_base_min(x: any, y: any) {
   );
 }
 
-export function lib_base_base_sin(x: any) {
+export function lib_base_matrix_sin(x: any) {
   return tagNumbers(sin(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function lib_base_base_cos(x: any) {
+export function lib_base_matrix_cos(x: any) {
   return tagNumbers(cos(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function lib_base_base_tan(x: any) {
+export function lib_base_matrix_tan(x: any) {
   return tagNumbers(tan(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function lib_base_base__asin(x: any) {
+export function lib_base_system__asin(x: any) {
   return tagNumbers(asin(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function lib_base_base__acos(x: any) {
+export function lib_base_system__acos(x: any) {
   return tagNumbers(acos(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function lib_base_base__atan(x: any) {
+export function lib_base_system__atan(x: any) {
   return tagNumbers(atan(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function lib_base_base__atan2(x: any, y: any) {
+export function lib_base_system__atan2(x: any, y: any) {
   return tagNumbers(
     atan2(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
@@ -654,53 +654,53 @@ export function lib_base_base__atan2(x: any, y: any) {
   );
 }
 
-export function lib_base_base_abs(x: any) {
+export function lib_base_matrix_abs(x: any) {
   return unaryNumbers(x, function (val: number) {
     return Math.abs(val);
   });
 }
 
-export function lib_base_base_mexpt(x: any, y: any): any {
+export function lib_base_matrix_mexpt(x: any, y: any): any {
   var n = getNumber(y, 0, 0);
   if (n === 0) {
-    return lib_base_base_left_identity(x);
+    return lib_base_matrix_left_identity(x);
   } else if (n === 1) {
     return x;
   } else if (n < 0) {
-    return lib_base_base_mexpt(
-      lib_base_base_solve(x, lib_base_base_left_identity(x)),
-      lib_base_base_negative(y)
+    return lib_base_matrix_mexpt(
+      lib_base_matrix_solve(x, lib_base_matrix_left_identity(x)),
+      lib_base_matrix_negative(y)
     );
   } else {
     var result = x;
     for (var i = 1; i < n; i++) {
-      result = lib_base_base_mmult(result, x);
+      result = lib_base_matrix_mmult(result, x);
     }
     return result;
   }
 }
 
-export function lib_base_base_expt(x: any, y: any) {
+export function lib_base_matrix_expt(x: any, y: any) {
   var n = getNumber(y, 0, 0);
   return tagNumbers(pow(getFullNumbers(x), n), x.nrRows, x.nrColumns, 0);
 }
 
-export function lib_base_base_log(x: any, y: any) {
-  return lib_base_base_divide(
+export function lib_base_matrix_log(x: any, y: any) {
+  return lib_base_matrix_divide(
     tagNumbers(log(getFullNumbers(x)), x.nrRows, x.nrColumns, 0),
     tagNumbers(log(getFullNumbers(y)), x.nrRows, x.nrColumns, 0)
   );
 }
 
-export function lib_base_base_exp(x: any) {
+export function lib_base_matrix_exp(x: any) {
   return tagNumbers(exp(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function lib_base_base_ln(x: any) {
+export function lib_base_matrix_ln(x: any) {
   return tagNumbers(log(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function lib_base_base_less(x: any, y: any) {
+export function lib_base_matrix_less(x: any, y: any) {
   return !findNonZero(
     x,
     y,
@@ -711,7 +711,7 @@ export function lib_base_base_less(x: any, y: any) {
   ); //=== null
 }
 
-export function lib_base_base_less_eq(x: any, y: any) {
+export function lib_base_matrix_less_eq(x: any, y: any) {
   return !findNonZero(
     x,
     y,
@@ -722,7 +722,7 @@ export function lib_base_base_less_eq(x: any, y: any) {
   ); //=== null
 }
 
-export function lib_base_base_greater(x: any, y: any) {
+export function lib_base_matrix_greater(x: any, y: any) {
   return !findNonZero(
     x,
     y,
@@ -733,7 +733,7 @@ export function lib_base_base_greater(x: any, y: any) {
   ); //=== null
 }
 
-export function lib_base_base_greater_eq(x: any, y: any) {
+export function lib_base_matrix_greater_eq(x: any, y: any) {
   return !findNonZero(
     x,
     y,
@@ -744,23 +744,23 @@ export function lib_base_base_greater_eq(x: any, y: any) {
   ); //=== null
 }
 
-export function lib_base_base_sqrt(x: any) {
+export function lib_base_matrix_sqrt(x: any) {
   return unaryNumbers(x, function (val: number) {
     return Math.sqrt(val);
   });
 }
 
-export function lib_base_base_solve(x: any, _ignored: any) {
+export function lib_base_matrix_solve(x: any, _ignored: any) {
   // https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse
   // Maybe use svd to compute pseudo-inverse?
   return tagNumbers(inv(getFullNumbers(x)), x.nrColumns, x.nrRows, 0);
 }
 
-export function lib_base_base_random() {
+export function lib_base_matrix_random() {
   return tagNumbers([[Math.random()]], 1, 1, 0);
 }
 
-export function lib_base_base_ranking(x: any) {
+export function lib_base_matrix_ranking(x: any) {
   var result = zeroNumbers(x.nrRows, x.nrColumns);
   var numbers = getCOONumbers(x);
   var rows = numbers[0];
@@ -782,7 +782,7 @@ export function lib_base_base_ranking(x: any) {
   return result;
 }
 
-export function lib_base_base_mapnz(fun: any, x: any) {
+export function lib_base_list_mapnz(fun: any, x: any) {
   var result = zeroNumbers(x.nrRows, x.nrColumns);
   var numbers = getCOONumbers(x);
   var rows = numbers[0];
@@ -801,7 +801,7 @@ export function lib_base_base_mapnz(fun: any, x: any) {
   return result;
 }
 
-export function lib_base_base_zip(x: any, y: any) {
+export function lib_base_list_zip(x: any, y: any) {
   var list = new Array(Math.min(x.length, y.length));
   for (var i = 0; i < list.length; i++) {
     list[i] = [x[i], y[i]];
@@ -809,7 +809,7 @@ export function lib_base_base_zip(x: any, y: any) {
   return tagKind(list, "list");
 }
 
-export function lib_base_base_map_list(fun: any, items: any) {
+export function lib_base_list_map_list(fun: any, items: any) {
   var list = new Array(items.length);
   for (var i = 0; i < items.length; i++) {
     list[i] = fun(items[i]);
@@ -817,20 +817,20 @@ export function lib_base_base_map_list(fun: any, items: any) {
   return tagKind(list, "list");
 }
 
-export function lib_base_base__add_mut(list: any, item: PacioliValue) {
+export function lib_base_system__add_mut(list: any, item: PacioliValue) {
   (list as PacioliValue[]).push(item);
   return list;
 }
 
-export function lib_base_base_append(x: any, y: any) {
+export function lib_base_list_append(x: any, y: any) {
   return tagKind(x.concat(y), "list");
 }
 
-export function lib_base_base_reverse(x: any) {
+export function lib_base_list_reverse(x: any) {
   return tagKind(x.slice(0).reverse(), "list");
 }
 
-export function lib_base_base_tail(x: any) {
+export function lib_base_list_tail(x: any) {
   var array = new Array(x.length - 1);
   for (var i = 0; i < array.length; i++) {
     array[i] = x[i + 1];
@@ -838,15 +838,15 @@ export function lib_base_base_tail(x: any) {
   return tagKind(array, "list");
 }
 
-export function lib_base_base_singleton_list(x: any) {
+export function lib_base_list_singleton_list(x: any) {
   return tagKind([x], "list");
 }
 
-export function lib_base_base_nth(x: any, y: any) {
+export function lib_base_list_nth(x: any, y: any) {
   return y[getNumber(x, 0, 0)];
 }
 
-export function lib_base_base_naturals(num: any) {
+export function lib_base_list_naturals(num: any) {
   var n = getNumber(num, 0, 0);
   var list = new Array(n);
   for (var i = 0; i < n; i++) {
@@ -855,7 +855,7 @@ export function lib_base_base_naturals(num: any) {
   return tagKind(list, "list");
 }
 
-export function lib_base_base_loop_list(
+export function lib_base_list_loop_list(
   init: PacioliValue,
   fun: PacioliFunction,
   list: PacioliValue[]
@@ -867,15 +867,15 @@ export function lib_base_base_loop_list(
   return accu;
 }
 
-export function lib_base_base_list_size(x: any) {
+export function lib_base_list_list_size(x: any) {
   return initialNumbers(1, 1, [[0, 0, x.length]]);
 }
 
-export function lib_base_base_head(x: any) {
+export function lib_base_list_head(x: any) {
   return x[0];
 }
 
-export function lib_base_base_fold_list(fun: any, list: any) {
+export function lib_base_list_fold_list(fun: any, list: any) {
   if (list.length == 0) {
     throw new Error("Cannot fold an empty list");
   }
@@ -886,7 +886,7 @@ export function lib_base_base_fold_list(fun: any, list: any) {
   return accu;
 }
 
-export function lib_base_base_sort_list(list: any, fun: any) {
+export function lib_base_list_sort_list(list: any, fun: any) {
   return tagKind(
     list.slice(0).sort(function (a: any, b: any) {
       if (lib_base_base_apply(fun, [a, b])) return -1;
@@ -897,15 +897,15 @@ export function lib_base_base_sort_list(list: any, fun: any) {
   );
 }
 
-export function lib_base_base_cons(item: any, list: any) {
-  return lib_base_base_append(lib_base_base_singleton_list(item), list);
+export function lib_base_list_cons(item: any, list: any) {
+  return lib_base_list_append(lib_base_list_singleton_list(item), list);
 }
 
-export function lib_base_base_empty_list() {
+export function lib_base_list_empty_list() {
   return tagKind([], "list");
 }
 
-export function lib_base_base_format(formatter: any, ...args: any[]) {
+export function lib_base_string_format(formatter: any, ...args: any[]) {
   // Quick and dirty format implementation. Does not handle escaped percentages. So
   // format("\%s %s", "foo") gives "\foo %s" instead of "%s foo"
   let output = formatter;
@@ -917,16 +917,16 @@ export function lib_base_base_format(formatter: any, ...args: any[]) {
 
 let NR_DECIMALS = 2;
 
-export function lib_base_base_nr_decimals() {
+export function lib_base_io_nr_decimals() {
   return initialNumbers(1, 1, [[0, 0, NR_DECIMALS]]);
 }
 
-export function lib_base_base_set_nr_decimals(num: any) {
+export function lib_base_io_set_nr_decimals(num: any) {
   NR_DECIMALS = getNumber(num, 0, 0);
   return nothing;
 }
 
-export function lib_base_base_num2string(num: any, decimals: any, unit: any) {
+export function lib_base_string_num2string(num: any, decimals: any, unit: any) {
   const shape = unit.shape;
   if (shape === undefined) {
     throw Error("shape undefined");
@@ -935,7 +935,7 @@ export function lib_base_base_num2string(num: any, decimals: any, unit: any) {
   return matrix.toDecimal(getNumber(decimals, 0, 0));
 }
 
-export function lib_base_base_num2str(num: any, unit: any) {
+export function lib_base_string_num2str(num: any, unit: any) {
   const shape = unit.shape;
   if (shape === undefined) {
     throw Error("shape undefined");
@@ -944,47 +944,47 @@ export function lib_base_base_num2str(num: any, unit: any) {
   return matrix.toDecimal(NR_DECIMALS);
 }
 
-export function lib_base_base_concatenate(x: any, y: any) {
+export function lib_base_string_concatenate(x: any, y: any) {
   return x.concat(y);
 }
 
-export function lib_base_base_split_string(x: any, y: any) {
+export function lib_base_string_split_string(x: any, y: any) {
   return tagKind(x.split(y), "list");
 }
 
-export function lib_base_base_pad_left(x: any, n: any, sub: any) {
+export function lib_base_string_pad_left(x: any, n: any, sub: any) {
   return x.padStart(getNumber(n, 0, 0), sub);
 }
 
-export function lib_base_base_pad_right(x: any, n: any, sub: any) {
+export function lib_base_string_pad_right(x: any, n: any, sub: any) {
   return x.padEnd(getNumber(n, 0, 0), sub);
 }
 
-export function lib_base_base_trim(x: any) {
+export function lib_base_string_trim(x: any) {
   return x.trim();
 }
 
-export function lib_base_base_parse_num(x: any) {
+export function lib_base_string_parse_num(x: any) {
   return initialNumbers(1, 1, [[0, 0, Number(x)]]);
 }
 
-export function lib_base_base__system_time() {
+export function lib_base_system__system_time() {
   return initialNumbers(1, 1, [[0, 0, Date.now()]]);
 }
 
-export function lib_base_base_make_array(n: any) {
+export function lib_base_array_make_array(n: any) {
   return tagKind(new Array(getNumber(n, 0, 0)), "list"); // TODO: make 'array' kind
 }
 
-export function lib_base_base_array_get(arr: any, pos: any) {
+export function lib_base_array_array_get(arr: any, pos: any) {
   return arr[getNumber(pos, 0, 0)];
 }
 
-export function lib_base_base_array_put(arr: any, pos: any, val: any) {
+export function lib_base_array_array_put(arr: any, pos: any, val: any) {
   arr[getNumber(pos, 0, 0)] = val;
 }
 
-export function lib_base_base_array_size(arr: any) {
+export function lib_base_array_array_size(arr: any) {
   return initialNumbers(1, 1, [[0, 0, arr.length]]);
 }
 

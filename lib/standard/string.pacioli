@@ -27,3 +27,14 @@ define intercalate(items, seperator) =
   if items = [] then "" else
     fold_list((x, y) -> concatenate(x, concatenate(seperator, y)), items)
   end;
+
+
+# ------------------------------------------------------------------------------
+# String formatting
+# ------------------------------------------------------------------------------
+
+declare export int2str :: for_index D, E: for_unit a, D!b, E!c:
+    (a*D!b per E!c, a*D!b per E!c) -> String;
+
+define int2str(x, unit) =
+    num2string(x, 0, unit);
