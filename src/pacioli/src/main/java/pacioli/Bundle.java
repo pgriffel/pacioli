@@ -322,6 +322,7 @@ public class Bundle {
         }
 
         generator.generate();
+        writer.close();
     }
 
     // -------------------------------------------------------------------------

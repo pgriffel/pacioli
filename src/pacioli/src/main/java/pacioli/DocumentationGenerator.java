@@ -114,6 +114,79 @@ public class DocumentationGenerator {
      * @throws PacioliException
      * @throws IOException
      */
+    void generateMarkdown() throws PacioliException, IOException {
+
+        List<String> vals = new ArrayList<String>(values);
+        Collections.sort(vals);
+
+        List<String> funs = new ArrayList<String>(functions);
+        Collections.sort(funs);
+
+        // Generate a general section about the module
+        println("# Module %s", module);
+        println("Interface for the %s module", module);
+        println("");
+        println("Version %s, %s", version, ZonedDateTime.now());
+
+        // Print the types for the values and the function in a synopsis section
+        println("## Synopsis");
+        println("");
+        for (String value : vals) {
+            println("%s :: %s", value, typeTable.get(value));
+        }
+        if (values.size() > 0) {
+            println("");
+        }
+        for (String function : funs) {
+            println("%s :: %s", function, typeTable.get(function));
+        }
+        println("");
+
+        // Print details for the values
+        println("## Values");
+        if (values.size() == 0) {
+            println("n/a");
+        } else {
+            println("");
+            for (String value : vals) {
+                println("### %s", value);
+                println("");
+                println(":: %s", typeTable.get(value));
+                for (String part : getDocuParts(value)) {
+                    println("\n%s\n", part);
+                }
+                println("");
+            }
+            println("");
+        }
+
+        // Print details for the functions
+        println("## Functions");
+        println("");
+        for (String function : funs) {
+            String args = String.format("(%s)", argsString(function));
+            println("### %s%s", function, args);
+            println("");
+            println(":: %s", getType(function));
+            for (String part : getDocuParts(function)) {
+                println("\n%s\n", part);
+            }
+            println("");
+
+        }
+        println("");
+
+    }
+
+    /**
+     * Generates a html page with documentation for the bundle's module.
+     * 
+     * @param includes A filter. Only code in the includes is included.
+     * @param version  A description of the module's version that is added to the
+     *                 output
+     * @throws PacioliException
+     * @throws IOException
+     */
     void generate() throws PacioliException, IOException {
 
         List<String> vals = new ArrayList<String>(values);
