@@ -65,14 +65,35 @@ define test(description, body) =
 
 # ------------------------------------------------------------------------------
 
+doc test_only
+    "Creates a test, just like function <code>test</code>, but marks it as 'only'.
+    
+    When at least one test is marked as 'only' then function <code>run_test_suites</code>
+    will only run the marked tests and skip all others.";
+
 define test_only(description, body) =
   tuple(description , body, true);
+
+# ------------------------------------------------------------------------------
+
+doc test_description
+    "A test's description";
 
 define test_description(test) = 
   let (description, _, _) = test in description end;
 
+# ------------------------------------------------------------------------------
+
+doc test_is_only
+    "Is the test marked as 'only'.";
+
 define test_is_only(test) = 
   let (_, _, is_only) = test in is_only end;
+
+# ------------------------------------------------------------------------------
+
+doc run_test
+    "Executes the test.";
 
 define run_test(test) = 
   let (_, body, _) = test in body() end;
@@ -90,7 +111,7 @@ doc test_suite
 
     Example:
     <pre>
-    define function_naturals_suite = test_suite(\"Function 'naturals'\", [
+    define naturals_suite = test_suite(\"Function 'naturals'\", [
         test(\"should produce the empty list for 0\", () ->
             naturals(0) = []
         ),
@@ -105,17 +126,44 @@ define test_suite(description, tests) =
 
 # ------------------------------------------------------------------------------
 
+doc test_suite_only
+    "Is the test suite marked as 'only'.";
+
 define test_suite_only(description, tests) = 
     tuple(description, tests, true);
+
+# ------------------------------------------------------------------------------
+
+doc suite_description
+    "A test suite's description.";
 
 define suite_description(suite) = 
   let (description, _, _) = suite in description end;
 
+# ------------------------------------------------------------------------------
+
+doc suite_tests
+    "All tests in a test suite.";
+
 define suite_tests(suite) = 
   let (_, tests, _) = suite in tests end;
 
+# ------------------------------------------------------------------------------
+
+doc suite_is_only
+    "Is the test suite marked as 'only'";
+
 define suite_is_only(suite) = 
   let (_, _, is_only) = suite in is_only end;
+
+# ------------------------------------------------------------------------------
+
+doc run_test_suites
+    "Runs all tests from a list of test suites. Prints output to the terminal.
+    Returns the result as triple (nr_tests, nr_failures, nr_skipped).
+
+    When at least one of the tests is marked as 'only' then it will only run the
+    marked tests and skip all others.";
 
 define run_test_suites(suites) =
   begin
@@ -177,9 +225,12 @@ define run_test_suites(suites) =
 declare run_test_suite :: (TestSuite) -> Tuple(1, 1, 1);
 declare skipped_message :: (1) -> String;
 
+doc run_test_suite
+    "Runs all tests for a test suite. Prints output to the terminal. Returns the
+    result as triple (nr_tests, nr_failures, nr_skipped).
 
-# Runs a test suite. Prints output to the terminal. Returns the result as
-# triple (nr_tests, nr_failures, nr_skipped).
+    When at least one of the tests is marked as 'only' then it will only run
+    the marked tests and skip all others.";
 
 define run_test_suite(suite) =
   let

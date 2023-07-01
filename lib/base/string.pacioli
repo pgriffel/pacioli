@@ -21,7 +21,16 @@
 # Strings
 # ----------------------------------------------------------------------------
 
+doc string_compare
+    "Alphanumerical ordering of strings. Returns -1 if x comes before y, returns 1
+    if x comes after y and returns 0 if x equals y.";
+
 declare export string_compare :: (String, String) -> 1;
+
+# ----------------------------------------------------------------------------
+
+doc concatenate
+    "A string that is the concatenation of the given strings.";
 
 declare export concatenate :: (String, String) -> String;
 
@@ -36,6 +45,10 @@ doc split_string
 declare export split_string :: (String, String) -> List(String);
 
 # ----------------------------------------------------------------------------
+
+doc trim
+    "Copy of the given string with any whitespace removed from the start and 
+    from the end.";
 
 declare export trim :: (String) -> String;
 

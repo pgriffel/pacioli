@@ -79,7 +79,7 @@ declare export equal :: for_type t: (t, t) -> Boole;
 # ----------------------------------------------------------------------------
 
 doc not_equal
-    "Shorthand for <code>not(equal(...))</code>.";
+    "Shorthand for <code>not(equal(x, y))</code>.";
 
 declare export not_equal :: for_type t: (t, t) -> Boole;
 

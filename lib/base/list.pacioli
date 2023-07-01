@@ -21,34 +21,119 @@
 # Lists
 # ----------------------------------------------------------------------------
 
-declare export empty_list :: for_type a: () ->  List(a);
+doc empty_list
+    "Constructs an empty list.";
+    
+declare export empty_list :: for_type t: () ->  List(t);
 
-declare export singleton_list :: for_type a: (a) -> List(a);
+# ----------------------------------------------------------------------------
 
-declare export head :: for_type a: (List(a)) -> a;
+doc singleton_list
+    "A list containing the given item.";
+    
+declare export singleton_list :: for_type t: (t) -> List(t);
 
-declare export nth :: for_type a: (1, List(a)) -> a;
+# ----------------------------------------------------------------------------
 
-declare export tail :: for_type a: (List(a)) -> List(a);
+doc head
+    "The head element of the list (the last consed value).
 
-declare export list_size :: for_type a: (List(a)) -> 1;
+    It is an error if the list is empty.";
+    
+declare export head :: for_type t: (List(t)) -> t;
 
-declare export cons :: for_type a: (a, List(a)) -> List(a);
+# ----------------------------------------------------------------------------
 
-declare export append :: for_type a: (List(a), List(a)) -> List(a);
+doc nth
+    "The nth element of the list.
 
-declare export loop_list :: for_type a,b: (a, (a, b) -> a, List(b)) -> a;
+    It is an error if the index is out of bounds.";
+    
+declare export nth :: for_type t: (1, List(t)) -> t;
 
-declare export fold_list :: for_type a: ((a, a) -> a, List(a)) -> a;
+# ----------------------------------------------------------------------------
 
-declare export zip :: for_type a,b: (List(a), List(b)) -> List(Tuple(a, b));
+doc tail
+    "Copy of the list without the head element.";
+    
+declare export tail :: for_type t: (List(t)) -> List(t);
 
+# ----------------------------------------------------------------------------
+
+doc list_size
+    "The number of elements in the list.";
+    
+declare export list_size :: for_type t: (List(t)) -> 1;
+
+# ----------------------------------------------------------------------------
+
+doc cons
+    "Addes an element to the head of the list.";
+    
+declare export cons :: for_type t: (t, List(t)) -> List(t);
+
+# ----------------------------------------------------------------------------
+
+doc append
+    "A list that is the concatenation of the two given lists.";
+    
+declare export append :: for_type t: (List(t), List(t)) -> List(t);
+
+# ----------------------------------------------------------------------------
+
+doc loop_list
+    "Calls the given accumulator function for each element of the list and the
+    accumulated value. Starts with the initial value.";
+    
+declare export loop_list :: for_type a,t: (a, (a, t) -> a, List(t)) -> a;
+
+# ----------------------------------------------------------------------------
+
+doc fold_list
+    "Folds the list with the given function.";
+    
+declare export fold_list :: for_type t: ((t, t) -> t, List(t)) -> t;
+
+# ----------------------------------------------------------------------------
+
+doc zip
+    "Turns a pair of lists into a list of pairs. Each element from the first
+    list is coupled with the corresponding element from the second list.";
+    
+declare export zip :: for_type s,t: (List(s), List(t)) -> List(Tuple(s, t));
+
+# ----------------------------------------------------------------------------
+
+doc naturals
+    "The first x naturals numbers.";
+    
 declare export naturals :: (1) -> List(1);
 
-declare export map_list :: for_type a,b: ((a) -> b, List(a)) -> List(b);
+# ----------------------------------------------------------------------------
 
-declare export reverse :: for_type a: (List(a)) -> List(a);
+doc map_list
+    "Applies the given function to each element of a list.";
+    
+declare export map_list :: for_type s,t: ((s) -> t, List(s)) -> List(t);
 
-declare export sort_list :: for_type a: (List(a), (a, a) -> Boole) -> List(a);
+# ----------------------------------------------------------------------------
 
-declare export contains :: for_type a: (List(a), a) -> Boole;
+doc reverse
+    "The list in reversed order.";
+    
+declare export reverse :: for_type t: (List(t)) -> List(t);
+
+# ----------------------------------------------------------------------------
+
+doc sort_list
+    "Sorts the list with the given order. The order function must return negative, 0
+    or positive to indicate less, equal or greater.";
+    
+declare export sort_list :: for_type t: (List(t), (t, t) -> 1) -> List(t);
+
+# ----------------------------------------------------------------------------
+
+doc contains
+    "Checks if the element is member of the list.";
+    
+declare export contains :: for_type t: (List(t), t) -> Boole;

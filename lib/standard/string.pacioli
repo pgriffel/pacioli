@@ -23,6 +23,12 @@
 
 declare export intercalate :: (List(String()), String()) -> String();
 
+doc intercalate
+    "Contatenates all strings with the seperator between them all.
+    
+    For example <code>intercalate([\"a\", \"bb\", \"ccc\"], \"++\")</code> is
+    <code>\"a++bb++ccc\"</code>";
+
 define intercalate(items, seperator) =
   if items = [] then "" else
     fold_list((x, y) -> concatenate(x, concatenate(seperator, y)), items)
@@ -32,6 +38,9 @@ define intercalate(items, seperator) =
 # ------------------------------------------------------------------------------
 # String formatting
 # ------------------------------------------------------------------------------
+
+doc int2str
+    "Shorthand for <code>num2string(x, 0, unit)</code>";
 
 declare export int2str :: for_index D, E: for_unit a, D!b, E!c:
     (a*D!b per E!c, a*D!b per E!c) -> String;

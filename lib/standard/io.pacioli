@@ -24,6 +24,8 @@
 declare export file_writeln :: (File, String) -> Void;
 declare export file_newline :: (File) -> Void;
 
+# ------------------------------------------------------------------------------
+
 doc file_writeln
     "Writes a string to a file, followed by a newline.";
 
@@ -32,6 +34,8 @@ define file_writeln(file, text) =
         file_write(file, text);
         file_write(file, "\n");
     end;
+
+# ------------------------------------------------------------------------------
 
 doc file_newline
     "Writes a newline to a file.";

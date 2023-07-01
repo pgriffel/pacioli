@@ -21,14 +21,25 @@
 # Lists
 # ------------------------------------------------------------------------------
 
-declare export combis :: for_type a: (List(a)) -> List(Tuple(a, a));
+declare export combis :: for_type t: (List(t)) -> List(Tuple(t, t));
 declare export flatten :: for_type t: (List(List(t))) -> List(t);
-declare export scanl1 :: for_type a, b: ((a, a) -> a, List(a)) -> List(a);
-declare export scanl :: for_type a, b: ((b, a) -> b, b, List(a)) -> List(b);
-declare export zip_with :: for_type a,b,c: ((a, b) -> c, List(a), List(b)) -> List(c);
-declare export unzip :: for_type a, b: (List(Tuple(a, b))) -> Tuple(List(a), List(b));
+declare export scanl1 :: for_type t: ((t, t) -> t, List(t)) -> List(t);
+declare export scanl :: for_type s,t: ((t, s) -> t, t, List(s)) -> List(t);
+declare export zip_with :: for_type s,t,u: ((s, t) -> u, List(s), List(t)) -> List(u);
+declare export unzip :: for_type s, t: (List(Tuple(s, t))) -> Tuple(List(s), List(t));
 declare export remove_nth :: for_type t: (1, List(t)) -> List(t);
 
+# ------------------------------------------------------------------------------
+
+doc combis
+    "A list of pairs containing all combinations of elements from the two given
+    lists. 
+
+    For example <code>combis([1,2,3])</code> contains the elements
+    <code>(1,2)</code>, <code>(1,3)</code> and <code>(2,3)</code>.
+
+    The order is undefined.";
+    
 define combis(list) =
     let accumulator(accu, x) =
         let (result, tails) = accu in
@@ -38,15 +49,35 @@ define combis(list) =
         let (result, _) = loop_list(tuple([], list), accumulator, list) in result end
     end;
 
+# ------------------------------------------------------------------------------
+
+doc flatten
+    "Turns a list of lists into a list. All lists are appened.";
+    
 define flatten(xss) =
     [x | xs <- xss, x <- xs];
 
+# ------------------------------------------------------------------------------
+
+doc unzip
+    "Turns a list of pairs into a pair of lists.";
+    
 define unzip(xs) = 
     tuple([a | (a, _) <- xs], [b | (_, b) <- xs]);
 
+# ------------------------------------------------------------------------------
+
+doc scanl1
+    "";
+    
 define scanl1(f, acc) = 
     scanl(f, head(acc), tail(acc));
 
+# ------------------------------------------------------------------------------
+
+doc scanl
+    "";
+    
 define scanl(f, x, acc) =
     if acc = [] then
         [x]
@@ -54,9 +85,20 @@ define scanl(f, x, acc) =
         cons(x, scanl(f, f(x, head(acc)), tail(acc)))
     end;
 
+# ------------------------------------------------------------------------------
+
+doc zip_with
+    "Applies the given function to corresponding pairs of elements from the
+    two given lists.";
+    
 define zip_with(f, xs, ys) = 
     map_list((pair) -> apply(f, pair), zip(xs, ys));
 
+# ------------------------------------------------------------------------------
+
+doc remove_nth
+    "Copy of the given list with the n-th element removed.";
+    
 define remove_nth(n, list) =
   begin
       result := [];
