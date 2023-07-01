@@ -122,6 +122,7 @@ export {
   lib_base_matrix_greater,
   lib_base_matrix_greater_eq,
   lib_base_list_head,
+  lib_base_matrix_index_less,
   lib_base_matrix_is_zero,
   lib_base_matrix_left_identity,
   lib_base_matrix_less,

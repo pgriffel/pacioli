@@ -83,7 +83,7 @@ define approximates_to(decs) =
 # Comparison
 # ----------------------------------------------------------------------------
 
-declare export compare :: (1, 1) -> 1;
+declare export compare :: for_unit a: (a, a) -> 1;
 
 define compare(x, y) =
     if x < y then

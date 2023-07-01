@@ -264,6 +264,10 @@ export function lib_base_matrix_row_domain(matrix: any) {
   return tagKind(domain, "list");
 }
 
+export function lib_base_matrix_index_less(x: any, y: any) {
+  return x.position < y.position;
+}
+
 export function lib_base_matrix_column(x: any, coord: any) {
   // todo: reconsider this and the lib_base_matrix_row implementation
   return lib_base_matrix_transpose(
@@ -889,9 +893,7 @@ export function lib_base_list_fold_list(fun: any, list: any) {
 export function lib_base_list_sort_list(list: any, fun: any) {
   return tagKind(
     list.slice(0).sort(function (a: any, b: any) {
-      if (lib_base_base_apply(fun, [a, b])) return -1;
-      if (lib_base_base_apply(fun, [b, a])) return 1;
-      return 0;
+      return getNumber(lib_base_base_apply(fun, [a, b]), 0, 0);
     }),
     "list"
   );

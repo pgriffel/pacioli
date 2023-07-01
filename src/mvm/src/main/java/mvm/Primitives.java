@@ -134,7 +134,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("base_skip") {
+        storePrimitive(store, new Primitive("system__skip") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 // return null;
                 return new Matrix(-1);
@@ -863,18 +863,8 @@ public class Primitives {
                         try {
                             args.set(0, o1);
                             args.set(1, o2);
-                            Boole result1 = (Boole) fun.apply(args);
-                            args.set(0, o2);
-                            args.set(1, o1);
-                            Boole result2 = (Boole) fun.apply(args);
-                            if (!result1.positive() && result2.positive()) {
-                                return 1;
-                            } else if (result1.positive() && !result2.positive()) {
-                                return -1;
-                            } else {
-                                return 0;
-                            }
-
+                            Matrix n = (Matrix) fun.apply(args);
+                            return (int) n.SingletonNumber();
                         } catch (MVMException ex) {
                             throw new RuntimeException(ex);
                         }

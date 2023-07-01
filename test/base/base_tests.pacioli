@@ -135,16 +135,14 @@ define comprehensions_suite = test_suite("Comprehension", [
 
 define sort_suite = test_suite("Function sort", [
     
-    test("should sort ascending",
-         () ->
-            sort_list([1, 9, 3, 2, 5], less) = [1, 2, 3, 5, 9]
-         ),
-         
-    test("should sort decending",
-         () ->
-             sort_list([1, 9, 3, 2, 5], greater) = [9, 5, 3, 2, 1]
-         )
-    ]);
+    test("should sort ascending", () ->
+        sort_list([1, 9, 3, 2, 5], (x, y) -> x - y) = [1, 2, 3, 5, 9]
+    ),
+            
+    test("should sort decending", () ->
+        sort_list([1, 9, 3, 2, 5], (x, y) -> y - x) = [9, 5, 3, 2, 1]
+    )
+]);
 
 # ------------------------------------------------------------------------------
 # Function reverse
@@ -229,42 +227,35 @@ define top_suite = test_suite("Function top", [
 
 define bottom_suite = test_suite("Function bottom", [
     
-    test("should do nothing for a zero vector",
-         () ->
-            bottom(3, test_vec(0, 0, 0, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
-         ),
+    test("should do nothing for a zero vector", () ->
+        bottom(3, test_vec(0, 0, 0, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
+    ),
    
-    test("should do nothing for a vector with one entry",
-         () ->
-            bottom(3, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 1, 0, 0, 0)
-         ),
+    test("should do nothing for a vector with one entry", () ->
+        bottom(3, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 1, 0, 0, 0)
+    ),
    
-    test("should be zero for a vector with one entry and bottom 0",
-         () ->
-            bottom(0, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
-         ),
+    test("should be zero for a vector with one entry and bottom 0", () ->
+        bottom(0, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
+    ),
    
-    test("should get bottom 2 a vector with more entries",
-         () ->
-            bottom(2, test_vec(0, 2, 1, 4, 6, 5)) = test_vec(0, 2, 1, 0, 0, 0)
-         ),
+    test("should get bottom 2 a vector with more entries", () ->
+        bottom(2, test_vec(0, 2, 1, 4, 6, 5)) = test_vec(0, 2, 1, 0, 0, 0)
+    ),
    
-    test("should get bottom 2 a vector with entries with ties",
-         () ->
-            bottom(2, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 0, 0, 0)
-         ),
+    test("should get bottom 2 a vector with entries with ties", () ->
+        bottom(2, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 0, 0, 0)
+    ),
    
-    test("should get bottom 3 a vector with entries with ties",
-         () ->
-            bottom(3, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 5, 0, 0)
-         ),
+    test("should get bottom 3 a vector with entries with ties", () ->
+        bottom(3, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 5, 0, 0)
+    ),
    
-    test("should get bottom 4 a vector with entries with ties",
-         () ->
-            bottom(4, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 5, 0, 5)
-         )
+    test("should get bottom 4 a vector with entries with ties", () ->
+        bottom(4, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 5, 0, 5)
+    )
 
-   ]);
+]);
 
 # ------------------------------------------------------------------------------
 # Function ranking

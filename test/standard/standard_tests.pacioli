@@ -8,7 +8,8 @@ define standard_suites = [
    scanl1_suite,
    zip_with_suite,
    flatten_suite,
-   is_zero_suite
+   is_zero_suite,
+   sort_index_suite
 ];
 
 run_test_suites(standard_suites); 
@@ -109,5 +110,17 @@ define is_zero_suite = test_suite("Function is_zero", [
 
     test("should be true for zero metre * Foo!unit vector", () ->
         is_zero(0 '.*' foo)
+    )
+]);
+
+
+define sort_index_suite = test_suite("sort_list", [
+       
+    test("should sort indices ascending", () ->
+        sort_list(row_domain(foo), compare_index) = [Foo@foo, Foo@bar, Foo@baz]
+    ),
+
+    test("should sort indices descending", () ->
+        sort_list(row_domain(foo), (x, y) -> -1 * compare_index(x, y)) = [Foo@baz, Foo@bar, Foo@foo]
     )
 ]);

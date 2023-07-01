@@ -38,7 +38,9 @@ declare export _ :: Index();
 # ----------------------------------------------------------------------------
 
 doc index_less
-    "Order on indices. Is alphabetical.";
+    "Order on indices.
+    
+    Is the order of the indices in the index set definition.";
 
 declare export index_less :: for_index P: (P, P) -> Boole;
 
