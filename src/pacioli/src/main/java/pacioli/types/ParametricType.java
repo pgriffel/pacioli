@@ -22,7 +22,6 @@
 package pacioli.types;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +30,6 @@ import java.util.Set;
 import pacioli.ConstraintSet;
 import pacioli.Location;
 import pacioli.PacioliException;
-import pacioli.Substitution;
 import pacioli.Utils;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.symboltable.TypeInfo;

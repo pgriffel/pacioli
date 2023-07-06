@@ -1,7 +1,6 @@
 package pacioli.types;
 
 import pacioli.Printable;
-import pacioli.Substitution;
 import pacioli.symboltable.SymbolInfo;
 
 public interface Var extends Printable, TypeBase {

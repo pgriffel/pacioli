@@ -32,7 +32,6 @@ import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.types.TypeObject;
 import pacioli.types.TypeBase;
-import pacioli.types.Unifiable;
 import pacioli.types.Var;
 import pacioli.types.matrix.MatrixType;
 import uom.Fraction;
@@ -52,7 +51,7 @@ public class ConstraintSet extends AbstractPrintable {
     private final List<UnitConstraint> unitConstaints = new ArrayList<UnitConstraint>();
     private final List<NModeConstraint> nModeConstaints = new ArrayList<NModeConstraint>();
 
-    class EqualityConstraint implements Unifiable<TypeObject> {
+    class EqualityConstraint {
 
         public final TypeObject lhs;
         public final TypeObject rhs;
@@ -63,41 +62,9 @@ public class ConstraintSet extends AbstractPrintable {
             this.rhs = rhs;
             this.reason = reason;
         }
-
-        @Override
-        public Set<Var> typeVars() {
-            Set<Var> vars = lhs.typeVars();
-            vars.addAll(rhs.typeVars());
-            return vars;
-        }
-
-        @Override
-        public Unifiable<TypeObject> applySubstitution(Substitution subs) {
-            return new EqualityConstraint(lhs.applySubstitution(subs), rhs.applySubstitution(subs), reason);
-        }
-
-        @Override
-        public ConstraintSet unificationConstraints(Unifiable<TypeObject> other) throws PacioliException {
-            throw new RuntimeException("Should this be just a type method?");
-        }
-
-        @Override
-        public Substitution unify(Unifiable<TypeObject> other) throws PacioliException {
-            throw new RuntimeException("Should this be just a type method?");
-        }
-
-        @Override
-        public Unifiable<TypeObject> reduce() {
-            throw new RuntimeException("Should this be just a type method?");
-        }
-
-        @Override
-        public List<Unit<TypeBase>> simplificationParts() {
-            throw new RuntimeException("Should this be just a type method?");
-        }
     }
 
-    class InstanceConstraint implements Unifiable<TypeObject> {
+    class InstanceConstraint {
 
         public final TypeObject lhs;
         public final TypeObject rhs;
@@ -113,7 +80,6 @@ public class ConstraintSet extends AbstractPrintable {
 
         // Note that typeVars() is not freeVars(). TODO: use freeVars here or create
         // a new method that properly handles freeVars.
-        @Override
         public Set<Var> typeVars() {
             Set<Var> vars = lhs.typeVars();
             vars.addAll(rhs.typeVars());
@@ -121,8 +87,7 @@ public class ConstraintSet extends AbstractPrintable {
             return vars;
         }
 
-        @Override
-        public Unifiable<TypeObject> applySubstitution(Substitution subs) {
+        public InstanceConstraint applySubstitution(Substitution subs) {
             Set<Var> newFreeVars = new HashSet<Var>();
             for (Var freeVar : freeVars) {
                 TypeObject freeVarType = subs.apply((TypeObject) freeVar); // freeVar.applySubstitution(subs);
@@ -135,26 +100,6 @@ public class ConstraintSet extends AbstractPrintable {
                     rhs.applySubstitution(subs),
                     newFreeVars,
                     reason);
-        }
-
-        @Override
-        public ConstraintSet unificationConstraints(Unifiable<TypeObject> other) throws PacioliException {
-            throw new RuntimeException("Should this be just a type method?");
-        }
-
-        @Override
-        public Substitution unify(Unifiable<TypeObject> other) throws PacioliException {
-            throw new RuntimeException("Should this be just a type method?");
-        }
-
-        @Override
-        public Unifiable<TypeObject> reduce() {
-            throw new RuntimeException("Should this be just a type method?");
-        }
-
-        @Override
-        public List<Unit<TypeBase>> simplificationParts() {
-            throw new RuntimeException("Should this be just a type method?");
         }
     }
 
@@ -171,7 +116,7 @@ public class ConstraintSet extends AbstractPrintable {
         }
     }
 
-    class NModeConstraint implements Unifiable<TypeObject> {
+    class NModeConstraint {
 
         public final TypeObject resultType;
         public final TypeObject tensorType;
@@ -190,7 +135,6 @@ public class ConstraintSet extends AbstractPrintable {
             this.reason = reason;
         }
 
-        @Override
         public Set<Var> typeVars() {
             Set<Var> vars = resultType.typeVars();
             vars.addAll(tensorType.typeVars());
@@ -198,8 +142,7 @@ public class ConstraintSet extends AbstractPrintable {
             return vars;
         }
 
-        @Override
-        public Unifiable<TypeObject> applySubstitution(Substitution subs) {
+        public NModeConstraint applySubstitution(Substitution subs) {
             return new NModeConstraint(
                     resultType.applySubstitution(subs),
                     tensorType.applySubstitution(subs),
@@ -207,26 +150,6 @@ public class ConstraintSet extends AbstractPrintable {
                     matrixType.applySubstitution(subs),
                     node,
                     reason);
-        }
-
-        @Override
-        public ConstraintSet unificationConstraints(Unifiable<TypeObject> other) throws PacioliException {
-            throw new RuntimeException("Should this be just a type method?");
-        }
-
-        @Override
-        public Substitution unify(Unifiable<TypeObject> other) throws PacioliException {
-            throw new RuntimeException("Should this be just a type method?");
-        }
-
-        @Override
-        public Unifiable<TypeObject> reduce() {
-            throw new RuntimeException("Should this be just a type method?");
-        }
-
-        @Override
-        public List<Unit<TypeBase>> simplificationParts() {
-            throw new RuntimeException("Should this be just a type method?");
         }
     }
 
@@ -445,7 +368,7 @@ public class ConstraintSet extends AbstractPrintable {
                 Set<Var> active = new HashSet<Var>();
 
                 for (InstanceConstraint con : todoInsts) {
-                    InstanceConstraint constraint = (InstanceConstraint) mgu.apply(con);
+                    InstanceConstraint constraint = con.applySubstitution(mgu); // (InstanceConstraint) mgu.apply(con);
                     active.addAll(constraint.lhs.typeVars());
                     HashSet<Var> copy = new HashSet<Var>(constraint.rhs.typeVars());
                     copy.retainAll(constraint.freeVars);
@@ -465,7 +388,7 @@ public class ConstraintSet extends AbstractPrintable {
                 int i = 0;
                 while (i < todoInsts.size() && chosenConstraint == null) {
 
-                    constraint = (InstanceConstraint) mgu.apply(todoInsts.get(i));
+                    constraint = (InstanceConstraint) todoInsts.get(i).applySubstitution(mgu); // mgu.apply(todoInsts.get(i));
 
                     // if (verbose) {
                     // Pacioli.logln3("constraint (k=%s, todoIns=%s) %s <: %s",

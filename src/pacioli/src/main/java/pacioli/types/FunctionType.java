@@ -27,7 +27,6 @@ import java.util.Set;
 
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
-import pacioli.Substitution;
 
 public class FunctionType extends AbstractType {
 

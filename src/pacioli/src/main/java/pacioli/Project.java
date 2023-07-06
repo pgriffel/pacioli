@@ -24,17 +24,11 @@ import pacioli.CompilationSettings.Target;
 import pacioli.ast.ImportNode;
 import pacioli.ast.IncludeNode;
 import pacioli.ast.ProgramNode;
-import pacioli.ast.expression.ExpressionNode;
-import pacioli.ast.expression.LambdaNode;
 import pacioli.parser.Parser;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.ValueInfo;
-import pacioli.types.ast.FunctionTypeNode;
-import pacioli.types.ast.SchemaNode;
-import pacioli.types.ast.TypeApplicationNode;
-import pacioli.types.ast.TypeNode;
 
 /**
  * The Project class's purpose is to compile and bundle a file with all its
