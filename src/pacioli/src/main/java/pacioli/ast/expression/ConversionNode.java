@@ -5,7 +5,7 @@ import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
 
@@ -17,10 +17,10 @@ public class ConversionNode extends AbstractExpressionNode {
     // Set during resolve. Needed to determine indices during code generation.
     public MatrixDimension rowDim;
     public MatrixDimension columnDim;
-    
+
     // Is this used?
     private MatrixTypeNode bang;
-    public PacioliType type;
+    public TypeObject type;
 
     public ConversionNode(Location location, TypeNode typeNode) {
         super(location);
@@ -32,7 +32,7 @@ public class ConversionNode extends AbstractExpressionNode {
         this.typeNode = old.typeNode;
     }
 
-    private ConversionNode(Location location, TypeNode typeNode, MatrixTypeNode bang, PacioliType type) {
+    private ConversionNode(Location location, TypeNode typeNode, MatrixTypeNode bang, TypeObject type) {
         super(location);
         this.typeNode = typeNode;
         this.bang = bang;
@@ -45,16 +45,16 @@ public class ConversionNode extends AbstractExpressionNode {
         copy.columnDim = columnDim;
         return copy;
     }
-    
+
     public MatrixType evalType() throws PacioliException {
-        PacioliType type = typeNode.evalType();
+        TypeObject type = typeNode.evalType();
         if (type instanceof MatrixType) {
             return (MatrixType) type;
         } else {
             throw new PacioliException(typeNode.getLocation(), "Expected a matrix type");
         }
     }
-    
+
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);

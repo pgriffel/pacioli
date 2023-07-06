@@ -31,10 +31,10 @@ import pacioli.Substitution;
 
 public class FunctionType extends AbstractType {
 
-    public final PacioliType domain;
-    public final PacioliType range;
+    public final TypeObject domain;
+    public final TypeObject range;
 
-    public FunctionType(PacioliType domain, PacioliType range) {
+    public FunctionType(TypeObject domain, TypeObject range) {
         this.domain = domain;
         this.range = range;
     }
@@ -59,7 +59,7 @@ public class FunctionType extends AbstractType {
     }
 
     @Override
-    public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
+    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         FunctionType otherType = (FunctionType) other;
         ConstraintSet constraints = new ConstraintSet();
         constraints.addConstraint(domain, otherType.domain, String.format("Function domain's types must match"));
@@ -70,11 +70,6 @@ public class FunctionType extends AbstractType {
     @Override
     public String description() {
         return "function type";
-    }
-
-    @Override
-    public PacioliType applySubstitution(Substitution subs) {
-        return new FunctionType(domain.applySubstitution(subs), range.applySubstitution(subs));
     }
 
     @Override

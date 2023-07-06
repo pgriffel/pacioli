@@ -52,7 +52,7 @@ import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.symboltable.ValueInfo;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
@@ -391,7 +391,7 @@ public class PrintVisitor implements Visitor {
             if (node.table != null) {
                 ValueInfo info = node.table.lookup(arg);
                 write(":");
-                Optional<PacioliType> type = info.inferredType;
+                Optional<TypeObject> type = info.inferredType;
                 if (type.isPresent()) {
                     write(type.get().pretty());
                 } else {

@@ -6,7 +6,7 @@ import java.util.Stack;
 
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
 import pacioli.types.Schema;
@@ -23,19 +23,18 @@ import uom.Unit;
 public class SimplificationParts implements TypeVisitor {
 
     private Stack<List<Unit<TypeBase>>> nodeStack = new Stack<List<Unit<TypeBase>>>();
-    
 
-    public List<Unit<TypeBase>> partsAccept(PacioliType child) {
+    public List<Unit<TypeBase>> partsAccept(TypeObject child) {
         // Pacioli.logln("accept: %s", child.getClass());
         child.accept(this);
         return nodeStack.pop();
     }
-    
+
     public void returnParts(List<Unit<TypeBase>> value) {
         // Pacioli.logln("return: %s", value.getClass());
         nodeStack.push(value);
     }
-    
+
     @Override
     public void visit(FunctionType type) {
         List<Unit<TypeBase>> all = new ArrayList<Unit<TypeBase>>();
@@ -57,7 +56,7 @@ public class SimplificationParts implements TypeVisitor {
     }
 
     @Override
-    public void visit(IndexType type) {       
+    public void visit(IndexType type) {
         returnParts(partsAccept(type.indexSet));
     }
 
@@ -73,7 +72,7 @@ public class SimplificationParts implements TypeVisitor {
         }
         returnParts(parts);
     }
-    
+
     public static List<Unit<TypeBase>> unitVars(Unit<TypeBase> unit) {
         List<Unit<TypeBase>> all = new ArrayList<Unit<TypeBase>>();
         for (TypeBase base : unit.bases()) {
@@ -92,7 +91,7 @@ public class SimplificationParts implements TypeVisitor {
     @Override
     public void visit(ParametricType type) {
         List<Unit<TypeBase>> all = new ArrayList<Unit<TypeBase>>();
-        for (PacioliType arg : type.args) {
+        for (TypeObject arg : type.args) {
             all.addAll(partsAccept(arg));
         }
         returnParts(all);

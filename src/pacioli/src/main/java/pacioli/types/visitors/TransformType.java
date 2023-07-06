@@ -3,9 +3,6 @@ package pacioli.types.visitors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-import java.util.function.Function;
-
-import pacioli.PacioliException;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
 import pacioli.types.TypeObject;
@@ -18,15 +15,12 @@ import pacioli.types.VectorUnitVar;
 import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
-import pacioli.symboltable.TypeInfo;
 
-public class ReduceTypes implements TypeVisitor {
+public class TransformType implements TypeVisitor {
 
     private Stack<TypeObject> nodeStack = new Stack<TypeObject>();
-    Function<? super TypeInfo, ? extends Boolean> reduceCallback;
 
-    public ReduceTypes(Function<? super TypeInfo, ? extends Boolean> reduceCallback) {
-        this.reduceCallback = reduceCallback;
+    public TransformType() {
     }
 
     public TypeObject typeNodeAccept(TypeObject child) {
@@ -35,7 +29,7 @@ public class ReduceTypes implements TypeVisitor {
         return nodeStack.pop();
     }
 
-    public void returnTypeNode(TypeObject value) {
+    protected void returnTypeNode(TypeObject value) {
         // Pacioli.logln("return: %s", value.getClass());
         nodeStack.push(value);
     }
@@ -59,43 +53,39 @@ public class ReduceTypes implements TypeVisitor {
 
     @Override
     public void visit(IndexType type) {
-        returnTypeNode(typeNodeAccept(type.indexSet));
+        returnTypeNode(new IndexType(typeNodeAccept(type.indexSet)));
     }
 
     @Override
     public void visit(MatrixType type) {
-        returnTypeNode(type);
+        returnTypeNode(
+                new MatrixType(
+                        type.factor, // typeNodeAccept(type.factor),
+                        (IndexType) typeNodeAccept(type.rowDimension),
+                        type.rowUnit, // typeNodeAccept(type.rowUnit),
+                        (IndexType) typeNodeAccept(type.columnDimension),
+                        // typeNodeAccept(type.columnUnit)
+                        type.columnUnit));
     }
 
     @Override
     public void visit(IndexSetVar type) {
         returnTypeNode(type);
+        // return subs.apply((TypeObject) this);
     }
 
     @Override
     public void visit(ParametricType type) {
-        List<TypeObject> items = new ArrayList<TypeObject>();
+        List<TypeObject> items = new ArrayList<>();
         for (TypeObject arg : type.args) {
-            items.add(typeNodeAccept(arg));
+            // TODO error on cast error!?
+            items.add((TypeObject) typeNodeAccept(arg));
         }
-        try {
-            ParametricType opType = new ParametricType(type.location, type.info, type.definition, items);
-            boolean reduce = type.definition.isPresent() && reduceCallback.apply(type.info);
-            // Pacioli.log("Reduce for %s = %s %s", type.name, reduce,
-            // type.info.generic().getModule());
-            if (!reduce) {
-                returnTypeNode(opType);
-            } else {
-                returnTypeNode(type.definition.get().constaint().reduce(opType).reduce(reduceCallback));
-            }
-        } catch (PacioliException e) {
-            throw new RuntimeException("Type error", e);
-        }
-    }
-
-    @Override
-    public void visit(ScalarUnitVar type) {
-        returnTypeNode(type);
+        ParametricType opType = new ParametricType(type.location, type.info,
+                type.definition,
+                // (Operator) typeNodeAccept(type.op)
+                items);
+        returnTypeNode(opType);
     }
 
     @Override
@@ -104,8 +94,15 @@ public class ReduceTypes implements TypeVisitor {
     }
 
     @Override
+    public void visit(ScalarUnitVar type) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
     public void visit(VectorUnitVar type) {
-        returnTypeNode(type);
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
 }

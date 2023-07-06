@@ -32,9 +32,9 @@ import pacioli.TypeContext;
 public class Schema extends AbstractType {
 
     public final Set<Var> variables;
-    public final PacioliType type;
+    public final TypeObject type;
 
-    public Schema(Set<Var> context, PacioliType type) {
+    public Schema(Set<Var> context, TypeObject type) {
         this.variables = context;
         this.type = type;
     }
@@ -45,9 +45,9 @@ public class Schema extends AbstractType {
         type.printPretty(out);
 
     }
-    
+
     public TypeContext newContext() {
-        return(new TypeContext(variables));
+        return (new TypeContext(variables));
     }
 
     @Override
@@ -61,7 +61,7 @@ public class Schema extends AbstractType {
     }
 
     @Override
-    public PacioliType instantiate() {
+    public TypeObject instantiate() {
         Substitution map = new Substitution();
         for (Var var : variables) {
             map = map.compose(new Substitution(var, var.fresh()));
@@ -75,14 +75,7 @@ public class Schema extends AbstractType {
     }
 
     @Override
-    public PacioliType applySubstitution(Substitution subs) {
-        Substitution reduced = new Substitution(subs);
-        reduced.removeAll(variables);
-        return new Schema(variables, type.applySubstitution(reduced));
-    }
-
-    @Override
-    public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
+    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -91,7 +84,7 @@ public class Schema extends AbstractType {
         visitor.visit(this);
     }
 
-    public PacioliType getType() {
+    public TypeObject getType() {
         return type;
     }
 }

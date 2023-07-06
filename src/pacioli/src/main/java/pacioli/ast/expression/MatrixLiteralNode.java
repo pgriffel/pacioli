@@ -15,7 +15,7 @@ import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.Utils;
 import pacioli.ast.Visitor;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
 
@@ -58,18 +58,18 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
             out.printf("%s -> %s", Utils.intercalate(", ", keys()), value);
         }
     }
-    
+
     /**
      * Combines a ValueDecl with the matrix position of the value. Only
      * applicable to closed types. For types whose size is not known at
      * compile time this needs to be done at runtime.
      *
      */
-    public static class PositionedValueDecl  {
+    public static class PositionedValueDecl {
         public Integer row;
         public Integer column;
         public ValueDecl valueDecl;
-        
+
         public PositionedValueDecl(Integer row, Integer column, ValueDecl decl) {
             this.row = row;
             this.column = column;
@@ -92,7 +92,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
         this.rowDim = old.rowDim;
         this.columnDim = old.columnDim;
     }
-    
+
     public MatrixLiteralNode withTypeNode(TypeNode typeNode) {
         MatrixLiteralNode copy = new MatrixLiteralNode(getLocation(), typeNode, pairs);
         copy.rowDim = rowDim;
@@ -106,9 +106,9 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
         copy.columnDim = columnDim;
         return copy;
     }
-    
+
     public MatrixType evalType() throws PacioliException {
-        PacioliType type = typeNode.evalType();
+        TypeObject type = typeNode.evalType();
         if (type instanceof MatrixType) {
             return (MatrixType) type;
         } else {
@@ -122,8 +122,8 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
     }
 
     public List<PositionedValueDecl> positionedValueDecls() {
-        
-        List<PositionedValueDecl> decls = new ArrayList<PositionedValueDecl>(); 
+
+        List<PositionedValueDecl> decls = new ArrayList<PositionedValueDecl>();
 
         // The matrix type's row and column dimension should have been set
         // during resolving

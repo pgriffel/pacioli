@@ -3,7 +3,7 @@ package pacioli.types.visitors;
 import pacioli.Printer;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
 import pacioli.types.Schema;
@@ -110,7 +110,7 @@ public class JSGenerator implements TypeVisitor {
             // out.write("new Pacioli.Type('coordinate', ");
             out.write("new Pacioli.GenericType('Coordinates', [");
             String sep = "";
-            for (PacioliType arg : type.args) {
+            for (TypeObject arg : type.args) {
                 out.write(sep);
                 // out.write(arg.compileToJS());
                 arg.accept(this);
@@ -122,7 +122,7 @@ public class JSGenerator implements TypeVisitor {
             out.write("new Pacioli.GenericType(");
             out.write("'List', [");
             String sep = "";
-            for (PacioliType arg : type.args) {
+            for (TypeObject arg : type.args) {
                 out.write(sep);
                 // out.write(arg.compileToJS());
                 arg.accept(this);
@@ -134,7 +134,7 @@ public class JSGenerator implements TypeVisitor {
             out.write("new Pacioli.GenericType(");
             out.write("'Array', [");
             String sep = "";
-            for (PacioliType arg : type.args) {
+            for (TypeObject arg : type.args) {
                 out.write(sep);
                 // out.write(arg.compileToJS());
                 arg.accept(this);
@@ -146,7 +146,7 @@ public class JSGenerator implements TypeVisitor {
             out.write("new Pacioli.Type(");
             out.write("\"reference\", ");
             String sep = "";
-            for (PacioliType arg : type.args) {
+            for (TypeObject arg : type.args) {
                 out.write(sep);
                 // out.write(arg.compileToJS());
                 arg.accept(this);
@@ -157,7 +157,7 @@ public class JSGenerator implements TypeVisitor {
             out.write("new Pacioli.GenericType(");
             out.write("\"Tuple\", [");
             String sep = "";
-            for (PacioliType arg : type.args) {
+            for (TypeObject arg : type.args) {
                 out.write(sep);
                 // out.write(arg.compileToJS());
                 arg.accept(this);

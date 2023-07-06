@@ -38,12 +38,12 @@ import pacioli.symboltable.TypeInfo;
 
 public class ParametricType extends AbstractType {
 
-    public final List<PacioliType> args;
+    public final List<TypeObject> args;
     public final TypeInfo info;
     public final Location location;
     public final Optional<TypeDefinition> definition;
 
-    public ParametricType(Location location, TypeInfo info, List<PacioliType> args) {
+    public ParametricType(Location location, TypeInfo info, List<TypeObject> args) {
         this.info = info;
         this.args = args;
         this.definition = Optional.empty();
@@ -51,7 +51,7 @@ public class ParametricType extends AbstractType {
     }
 
     public ParametricType(Location location, TypeInfo info, Optional<TypeDefinition> definition,
-            List<PacioliType> args) {
+            List<TypeObject> args) {
         this.info = info;
         this.args = args;
         this.definition = definition;
@@ -79,14 +79,14 @@ public class ParametricType extends AbstractType {
     @Override
     public Set<String> unitVecVarCompoundNames() {
         Set<String> all = new LinkedHashSet<String>();
-        for (PacioliType type : args) {
+        for (TypeObject type : args) {
             all.addAll(type.unitVecVarCompoundNames());
         }
         return all;
     }
 
     @Override
-    public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
+    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         ParametricType otherType = (ParametricType) other;
         if (!getName().equals(otherType.getName())) {
             throw new PacioliException("Types '%s and '%s' differ", getName(), otherType.getName());
@@ -106,16 +106,6 @@ public class ParametricType extends AbstractType {
     @Override
     public String description() {
         return getName() + " type";
-    }
-
-    @Override
-    public PacioliType applySubstitution(Substitution subs) {
-        List<PacioliType> items = new ArrayList<PacioliType>();
-        for (PacioliType type : args) {
-            items.add(type.applySubstitution(subs));
-        }
-        // return new ParametricType(name, definition, items);
-        return new ParametricType(location, info, definition, items);
     }
 
     @Override

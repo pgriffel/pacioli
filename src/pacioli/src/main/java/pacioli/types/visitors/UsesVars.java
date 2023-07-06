@@ -6,7 +6,7 @@ import java.util.Stack;
 
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
 import pacioli.types.Schema;
@@ -23,19 +23,18 @@ import uom.Unit;
 public class UsesVars implements TypeVisitor {
 
     private Stack<Set<Var>> nodeStack = new Stack<Set<Var>>();
-    
 
-    public Set<Var> varSetAccept(PacioliType child) {
+    public Set<Var> varSetAccept(TypeObject child) {
         // Pacioli.logln("accept: %s", child.getClass());
         child.accept(this);
         return nodeStack.pop();
     }
-    
+
     public void returnTypeNode(Set<Var> value) {
         // Pacioli.logln("return: %s", value.getClass());
         nodeStack.push(value);
     }
-    
+
     @Override
     public void visit(FunctionType type) {
         Set<Var> all = new LinkedHashSet<Var>();
@@ -57,7 +56,7 @@ public class UsesVars implements TypeVisitor {
     }
 
     @Override
-    public void visit(IndexType type) {       
+    public void visit(IndexType type) {
         Set<Var> vars = new LinkedHashSet<Var>();
         if (type.isVar()) {
             vars.add((Var) type.indexSet);
@@ -79,7 +78,7 @@ public class UsesVars implements TypeVisitor {
         all.addAll(varSetAccept(type.columnDimension));
         returnTypeNode(all);
     }
-    
+
     public static Set<Var> unitVars(Unit<TypeBase> unit) {
         Set<Var> all = new LinkedHashSet<Var>();
         for (TypeBase base : unit.bases()) {
@@ -100,7 +99,7 @@ public class UsesVars implements TypeVisitor {
     @Override
     public void visit(ParametricType type) {
         Set<Var> all = new LinkedHashSet<Var>();
-        for (PacioliType arg : type.args) {
+        for (TypeObject arg : type.args) {
             all.addAll(varSetAccept(arg));
         }
         returnTypeNode(all);

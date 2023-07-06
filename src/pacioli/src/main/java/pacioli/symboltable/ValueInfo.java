@@ -9,7 +9,7 @@ import pacioli.PacioliException;
 import pacioli.PacioliFile;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.types.FunctionType;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.Schema;
 import pacioli.types.ast.TypeNode;
 
@@ -21,13 +21,13 @@ public class ValueInfo extends AbstractSymbolInfo {
 
     public record ResolvedValueInfo(ParsedValueInfo parsed, boolean isRef) {
 
-        TypedValueInfo withType(PacioliType type) {
+        TypedValueInfo withType(TypeObject type) {
             return new TypedValueInfo(this, type);
         }
 
     }
 
-    public record TypedValueInfo(ResolvedValueInfo resolved, PacioliType type) {
+    public record TypedValueInfo(ResolvedValueInfo resolved, TypeObject type) {
 
     }
 
@@ -41,7 +41,7 @@ public class ValueInfo extends AbstractSymbolInfo {
     private Optional<Boolean> isRef = Optional.of(false);
 
     // Set during type inference
-    public Optional<PacioliType> inferredType = Optional.empty();
+    public Optional<TypeObject> inferredType = Optional.empty();
     private boolean isPublic;
 
     public ValueInfo(String name, PacioliFile file, Boolean isGlobal, Boolean isMonomorphic,
@@ -121,7 +121,7 @@ public class ValueInfo extends AbstractSymbolInfo {
         this.isRef = Optional.of(isRef);
     }
 
-    public PacioliType getType() {
+    public TypeObject getType() {
         if (declaredType.isPresent()) {
             return declaredType.get().evalType();
         } else if (inferredType.isPresent()) {
@@ -132,7 +132,7 @@ public class ValueInfo extends AbstractSymbolInfo {
         }
     }
 
-    public PacioliType inferredType() {
+    public TypeObject inferredType() {
         if (inferredType.isPresent()) {
             return inferredType.get();
         } else {
@@ -146,7 +146,7 @@ public class ValueInfo extends AbstractSymbolInfo {
         return schema.type instanceof FunctionType;
     }
 
-    public void setinferredType(PacioliType type) {
+    public void setinferredType(TypeObject type) {
         this.inferredType = Optional.of(type);
     }
 

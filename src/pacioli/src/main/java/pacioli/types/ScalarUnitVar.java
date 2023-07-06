@@ -34,13 +34,13 @@ import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolTable;
 import uom.BaseUnit;
 
-public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Var {
+public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, Var {
 
     private final String name;
     public final Optional<ScalarBaseInfo> info;
 
     // Constructors
-    
+
     public ScalarUnitVar(ScalarBaseInfo info) {
         name = info.name();
         this.info = Optional.of(info);
@@ -52,11 +52,11 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
 
     @Override
-    public PacioliType fresh() {
+    public TypeObject fresh() {
         return new ScalarUnitVar(SymbolTable.freshVarName());
     }
 
-    public PacioliType rename(String name) {
+    public TypeObject rename(String name) {
         return new ScalarUnitVar(name);
     }
 
@@ -85,7 +85,7 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
 
     // Pretty printing
-    
+
     @Override
     public void printPretty(PrintWriter out) {
         out.print(pretty());
@@ -101,7 +101,7 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     @Override
     public ScalarBaseInfo getInfo() {
         if (info.isPresent()) {
-            return info.get(); 
+            return info.get();
         } else {
             throw new RuntimeException(String.format("No info present for fresh scalar unit variable %s", name));
         }
@@ -109,25 +109,25 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     @Override
     public Boolean isFresh() {
-       return !info.isPresent();
+        return !info.isPresent();
     }
-    
+
     @Override
     public String description() {
         return "scalar unit variable";
     }
-    
+
     // Visiting visitors
 
     @Override
     public void accept(TypeVisitor visitor) {
         visitor.visit(this);
     }
-    
-    // To move to visitors 
+
+    // To move to visitors
 
     @Override
-    public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
+    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -138,12 +138,7 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
     }
 
     @Override
-    public PacioliType applySubstitution(Substitution subs) {
-        return subs.apply((PacioliType) this);
-    }
-
-    @Override
-    public Substitution unify(PacioliType other) throws PacioliException {
+    public Substitution unify(TypeObject other) throws PacioliException {
         if (equals(other)) {
             return new Substitution();
         } else {
@@ -153,12 +148,12 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements PacioliType, Va
 
     @Override
     public String compileToJS() {
-        //return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
+        // return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
         return "Pacioli.unitFromVarName('_" + this.pretty() + "_')";
     }
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        return PacioliType.super.compileToMVM(settings);
+        return TypeObject.super.compileToMVM(settings);
     }
 }

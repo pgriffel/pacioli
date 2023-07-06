@@ -8,7 +8,7 @@ import pacioli.Location;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
 import pacioli.types.Schema;
@@ -34,7 +34,7 @@ public class Devaluator implements TypeVisitor {
 
     private Stack<TypeNode> nodeStack = new Stack<TypeNode>();
 
-    public TypeNode typeNodeAccept(PacioliType child) {
+    public TypeNode typeNodeAccept(TypeObject child) {
         // Pacioli.logln("accept: %s", child.getClass());
         child.accept(this);
         return nodeStack.pop();
@@ -151,7 +151,7 @@ public class Devaluator implements TypeVisitor {
     @Override
     public void visit(ParametricType type) {
         List<TypeNode> args = new ArrayList<TypeNode>();
-        for (PacioliType x : type.args) {
+        for (TypeObject x : type.args) {
             args.add(typeNodeAccept(x));
         }
         // throw new RuntimeException("todo: " + type.getClass());

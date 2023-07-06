@@ -12,7 +12,7 @@ import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.AbstractType;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVisitor;
 
@@ -33,7 +33,7 @@ public class IndexList extends AbstractType {
         indexSets = Arrays.asList(indexSet);
         indexSetInfos = Arrays.asList(indexSetInfo);
     }
-    
+
     public IndexList() {
         this.indexSets = new ArrayList<TypeIdentifier>();
         this.indexSetInfos = new ArrayList<IndexSetInfo>();
@@ -58,11 +58,11 @@ public class IndexList extends AbstractType {
 
     @Override
     public String toString() {
-        //return String.format("%s%s", super.toString(), indexSets);
+        // return String.format("%s%s", super.toString(), indexSets);
         StringBuilder builder = new StringBuilder();
         builder.append("[");
         String pre = "";
-        for (TypeIdentifier id: indexSets) {
+        for (TypeIdentifier id : indexSets) {
             builder.append(pre);
             builder.append(id.name);
             pre = ", ";
@@ -86,7 +86,7 @@ public class IndexList extends AbstractType {
     public IndexSetInfo nthIndexSetInfo(int n) {
         return indexSetInfos.get(n);
     }
-    
+
     @Override
     public void printPretty(PrintWriter out) {
         out.print("[");
@@ -105,17 +105,12 @@ public class IndexList extends AbstractType {
     }
 
     @Override
-    public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
+    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         if (!equals(other)) {
             throw new PacioliException("Dimensions not equal.");
         } else {
             return new ConstraintSet();
         }
-    }
-
-    @Override
-    public PacioliType applySubstitution(Substitution subs) {
-        return this;
     }
 
     IndexList kronecker(IndexList other) {

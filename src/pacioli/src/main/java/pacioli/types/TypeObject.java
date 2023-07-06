@@ -41,6 +41,7 @@ import pacioli.types.visitors.Devaluator;
 import pacioli.types.visitors.JSGenerator;
 import pacioli.types.visitors.ReduceTypes;
 import pacioli.types.visitors.SimplificationParts;
+import pacioli.types.visitors.SubstituteVisitor;
 import pacioli.types.visitors.UsesVars;
 import uom.Fraction;
 import uom.Unit;
@@ -48,28 +49,31 @@ import uom.Unit;
 /**
  * A PacioliType is the semantic counterpart of a TypeNode.
  * 
- * Type equality, unification, etc. is defined on PacioliTypes and not on TypeNodes.
+ * Type equality, unification, etc. is defined on PacioliTypes and not on
+ * TypeNodes.
  * 
  * Use eval and deval to switch between the two type representations.
  *
  */
-public interface PacioliType extends Printable {
+public interface TypeObject extends Printable {
 
     public String description();
-    
+
     public void accept(TypeVisitor visitor);
 
     public default Set<Var> typeVars() {
         return new UsesVars().varSetAccept(this);
     };
 
-    public PacioliType applySubstitution(Substitution subs);
+    default public TypeObject applySubstitution(Substitution subs) {
+        return new SubstituteVisitor(subs).typeNodeAccept(this);
+    };
 
-    public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException;
+    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException;
 
-    public Substitution unify(PacioliType other) throws PacioliException;
-    
-    public default PacioliType reduce(Function<? super TypeInfo, ? extends Boolean> reduceCallback) {
+    public Substitution unify(TypeObject other) throws PacioliException;
+
+    public default TypeObject reduce(Function<? super TypeInfo, ? extends Boolean> reduceCallback) {
         return new ReduceTypes(reduceCallback).typeNodeAccept(this);
     };
 
@@ -77,7 +81,7 @@ public interface PacioliType extends Printable {
         return new SimplificationParts().partsAccept(this);
     };
 
-    public default PacioliType simplify() {
+    public default TypeObject simplify() {
         Substitution mgu = new Substitution();
         List<Unit<TypeBase>> parts = simplificationParts();
         Set<Var> ignore = new HashSet<Var>();
@@ -91,65 +95,65 @@ public interface PacioliType extends Printable {
             }
             mgu = simplified.compose(mgu);
         }
-        PacioliType result = applySubstitution(mgu);
+        TypeObject result = applySubstitution(mgu);
         return result;
     }
 
-    public default boolean isInstanceOf(PacioliType other) {
+    public default boolean isInstanceOf(TypeObject other) {
         return isInstanceOf(this, other);
     }
 
-    public static boolean isInstanceOf(PacioliType x, PacioliType y) {
+    public static boolean isInstanceOf(TypeObject x, TypeObject y) {
         try {
-            PacioliType sub = x.fresh();
-            PacioliType sup = y.fresh();
-            PacioliType unified = unified(sub, sup);
+            TypeObject sub = x.fresh();
+            TypeObject sup = y.fresh();
+            TypeObject unified = unified(sub, sup);
             return alphaEqual(sub, unified);
         } catch (PacioliException ex) {
             System.out.println(ex);
             return false;
         }
     }
-    
-    public static PacioliType unified(PacioliType x, PacioliType y) throws PacioliException {
+
+    public static TypeObject unified(TypeObject x, TypeObject y) throws PacioliException {
         return x.unify(y).apply(x);
     }
 
-    public static boolean alphaEqual(PacioliType x, PacioliType y) throws PacioliException {
+    public static boolean alphaEqual(TypeObject x, TypeObject y) throws PacioliException {
         return x.fresh().simplify().unify(y.simplify()).isInjective();
     }
-    
-    public default PacioliType instantiate() {
+
+    public default TypeObject instantiate() {
         return this;
     }
 
     public default Schema generalize(Set<Var> context) {
-        PacioliType unfresh = this;
-        //PacioliType unfresh = unfresh();
+        TypeObject unfresh = this;
+        // PacioliType unfresh = unfresh();
         Set<Var> vars = new HashSet<Var>();
-        for (Var var: unfresh.typeVars()) {
+        for (Var var : unfresh.typeVars()) {
             if (!context.contains(var)) {
                 vars.add(var);
             }
         }
         return new Schema(vars, unfresh);
     }
-    
+
     public default Schema generalize() {
         return generalize(new HashSet<Var>());
-//        PacioliType unfresh = unfresh();
-//        return new Schema(unfresh.typeVars(), unfresh);
+        // PacioliType unfresh = unfresh();
+        // return new Schema(unfresh.typeVars(), unfresh);
     }
 
-    public PacioliType fresh();
-    
-    public default PacioliType unfresh() {
+    public TypeObject fresh();
+
+    public default TypeObject unfresh() {
 
         // Replace all type variables by type variables named a, b, c, d, ...
         Substitution map = new Substitution();
         int character = 97; // character a
         for (Var var : typeVars()) {
-            //TypeVar var = (TypeVar) gvar; //fixme 
+            // TypeVar var = (TypeVar) gvar; //fixme
             if (var instanceof VectorUnitVar) {
                 char ch = (char) character++;
                 map = map.compose(new Substitution(var, var.rename(String.format("%s!%s", ch, ch))));
@@ -157,13 +161,13 @@ public interface PacioliType extends Printable {
                 map = map.compose(new Substitution(var, var.rename(String.format("%s", (char) character++))));
             }
         }
-        PacioliType unfreshType = applySubstitution(map);
+        TypeObject unfreshType = applySubstitution(map);
 
         // Replace all unit vector variables by its name prefixed by the index set name.
         map = new Substitution();
         for (String name : unfreshType.unitVecVarCompoundNames()) {
             String[] parts = name.split("!");
-            assert(parts.length == 2);
+            assert (parts.length == 2);
             if (parts.length == 2) {
                 Var var1 = new VectorUnitVar(parts[1] + "!" + parts[1]);
                 Var var2 = new VectorUnitVar(name);
@@ -173,7 +177,7 @@ public interface PacioliType extends Printable {
         return unfreshType.applySubstitution(map);
 
     }
-    
+
     public default TypeNode deval() {
         return new Devaluator().typeNodeAccept(this);
     }
@@ -183,11 +187,11 @@ public interface PacioliType extends Printable {
         this.accept(new JSGenerator(new Printer(new PrintWriter(outputStream))));
         return outputStream.toString();
     };
-    
+
     public default String compileToMVM(CompilationSettings settings) {
-        return deval().compileToMVM(new CompilationSettings());                
+        return deval().compileToMVM(new CompilationSettings());
     }
-    
+
     // Hack to print proper compound unit vector in schema's
     public Set<String> unitVecVarCompoundNames();
 

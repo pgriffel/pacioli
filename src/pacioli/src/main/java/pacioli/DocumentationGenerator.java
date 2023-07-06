@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 
 /**
  * A Program corresponds to a Pacioli file and is the unit of compilation.
@@ -48,7 +48,7 @@ public class DocumentationGenerator {
         this.writer = writer;
     }
 
-    public void addValue(String name, PacioliType type, String documentation) {
+    public void addValue(String name, TypeObject type, String documentation) {
         if (argumentsTable.containsKey(name)) {
             throw new RuntimeException(String.format("Cannot add value %s, it is already added as function", name));
         }
@@ -66,7 +66,7 @@ public class DocumentationGenerator {
         values.add(name);
     }
 
-    public void addFunction(String name, List<String> arguments, PacioliType type, String documentation) {
+    public void addFunction(String name, List<String> arguments, TypeObject type, String documentation) {
         if (argumentsTable.containsKey(name)) {
             throw new RuntimeException(String.format("Cannot add function %s, it is already added", name));
         }

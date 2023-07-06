@@ -4,14 +4,14 @@ import pacioli.Location;
 import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 
 public class Toplevel extends AbstractDefinition {
 
     public ExpressionNode body;
-    
+
     // Set during type inference
-    public PacioliType type;
+    public TypeObject type;
 
     public Toplevel(Location location, ExpressionNode body) {
         super(location);

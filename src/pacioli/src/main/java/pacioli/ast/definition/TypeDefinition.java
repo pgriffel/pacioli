@@ -31,7 +31,7 @@ import pacioli.TypeConstraint;
 import pacioli.TypeContext;
 import pacioli.ast.Visitor;
 import pacioli.symboltable.TypeInfo;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.TypeApplicationNode;
@@ -61,7 +61,7 @@ public class TypeDefinition extends AbstractDefinition {
             // TypeApplicationNode app = resolvedLhs;
             TypeApplicationNode app = (TypeApplicationNode) lhs;
 
-            List<PacioliType> types = new ArrayList<PacioliType>();
+            List<TypeObject> types = new ArrayList<TypeObject>();
             for (TypeNode arg : app.getArgs()) {
                 if (arg instanceof TypeIdentifierNode) {
                     types.add(arg.evalType());
@@ -74,9 +74,9 @@ public class TypeDefinition extends AbstractDefinition {
             }
 
             // PacioliType lhsType = new ParametricType(app.getName(), types);
-            PacioliType lhsType = new ParametricType(app.getLocation(), (TypeInfo) app.op.info, types);
+            TypeObject lhsType = new ParametricType(app.getLocation(), (TypeInfo) app.op.info, types);
 
-            PacioliType rhsType = rhs.evalType();
+            TypeObject rhsType = rhs.evalType();
             // PacioliType rhsType = resolvedRhs.evalType(true);
             if (lhsType instanceof ParametricType) {
                 constraint = new TypeConstraint(app, rhsType);

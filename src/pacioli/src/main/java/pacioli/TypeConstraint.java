@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import pacioli.types.IndexSetVar;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.Var;
 import pacioli.types.VectorUnitVar;
@@ -40,14 +40,14 @@ import pacioli.types.matrix.MatrixType;
 public class TypeConstraint extends AbstractPrintable {
 
     private final TypeApplicationNode lhs;
-    private final PacioliType rhs;
+    private final TypeObject rhs;
 
-    public TypeConstraint(TypeApplicationNode lhs, PacioliType rhs) {
+    public TypeConstraint(TypeApplicationNode lhs, TypeObject rhs) {
         this.lhs = lhs;
         this.rhs = rhs;
     }
 
-    public PacioliType reduce(ParametricType type) throws PacioliException {
+    public TypeObject reduce(ParametricType type) throws PacioliException {
         if (lhs.getArgs().size() != type.args.size()) {
             throw new PacioliException(type.location, "Type function %s expects %s arguments but found %s",
                     type.getName(),
@@ -56,9 +56,9 @@ public class TypeConstraint extends AbstractPrintable {
         Map<Var, Object> map = new HashMap<Var, Object>();
         for (int i = 0; i < lhs.getArgs().size(); i++) {
             TypeNode var = lhs.getArgs().get(i);
-            PacioliType arg = type.args.get(i);
+            TypeObject arg = type.args.get(i);
             if (var instanceof TypeIdentifierNode) {
-                PacioliType varType = var.evalType();
+                TypeObject varType = var.evalType();
                 if (varType instanceof Var) {
                     map.put((Var) varType, arg);
                 } else if (varType instanceof IndexType) {

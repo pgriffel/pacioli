@@ -34,13 +34,13 @@ import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.SymbolTable;
 import uom.BaseUnit;
 
-public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var {
+public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
 
     private final String name;
     public final Optional<IndexSetInfo> info;
 
     // Constructors
-    
+
     public IndexSetVar(IndexSetInfo info) {
         name = info.name();
         this.info = Optional.of(info);
@@ -50,16 +50,16 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
         this.name = name;
         this.info = Optional.empty();
     }
-    
+
     @Override
-    public PacioliType fresh() {
+    public TypeObject fresh() {
         return new IndexSetVar(SymbolTable.freshVarName());
     }
 
-    public PacioliType rename(String name) {
+    public TypeObject rename(String name) {
         return new IndexSetVar(name);
     }
-    
+
     // Equality
 
     @Override
@@ -78,7 +78,7 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
         IndexSetVar otherVar = (IndexSetVar) other;
         return name.equals(otherVar.name);
     }
-    
+
     @Override
     public String toString() {
         return "'" + name + "'";
@@ -88,13 +88,12 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
         return name;
     }
 
-    
     // Properties
-    
+
     @Override
     public IndexSetInfo getInfo() {
         if (info.isPresent()) {
-            return info.get(); 
+            return info.get();
         } else {
             throw new RuntimeException(String.format("No info present for fresh index set variable %s", name));
         }
@@ -102,16 +101,16 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
 
     @Override
     public Boolean isFresh() {
-       return !info.isPresent();
+        return !info.isPresent();
     }
-    
+
     @Override
     public String description() {
         return "index variable";
     }
 
     // Pretty printing
-    
+
     @Override
     public void printPretty(PrintWriter out) {
         out.print(pretty());
@@ -134,27 +133,22 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
     public void accept(TypeVisitor visitor) {
         visitor.visit(this);
     }
-    
+
     // Should be visitors
 
     @Override
-    public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
+    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");
     }
-    
+
     @Override
     public Set<String> unitVecVarCompoundNames() {
         return new LinkedHashSet<String>();
     }
 
     @Override
-    public PacioliType applySubstitution(Substitution subs) {
-        return subs.apply((PacioliType) this);
-    }
-
-    @Override
-    public Substitution unify(PacioliType other) throws PacioliException {
+    public Substitution unify(TypeObject other) throws PacioliException {
         if (equals(other)) {
             return new Substitution();
         } else {
@@ -169,7 +163,7 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements PacioliType, Var 
 
     @Override
     public String compileToMVM(CompilationSettings settings) {
-        return PacioliType.super.compileToMVM(settings);
+        return TypeObject.super.compileToMVM(settings);
     }
 
 }

@@ -25,7 +25,7 @@ import mvm.values.matrix.MatrixDimension;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.ast.Visitor;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
 
@@ -38,14 +38,14 @@ public class MatrixTypeNode extends AbstractExpressionNode {
 
     public MatrixTypeNode(Location location, TypeNode typeNode) {
         super(location);
-        assert(typeNode != null);
+        assert (typeNode != null);
         this.typeNode = typeNode;
         this.rowDim = null;
         this.columnDim = null;
     }
 
     public MatrixType evalType() throws PacioliException {
-        PacioliType type = typeNode.evalType();
+        TypeObject type = typeNode.evalType();
         if (type instanceof MatrixType) {
             return (MatrixType) type;
         } else {

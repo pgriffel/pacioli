@@ -43,7 +43,7 @@ import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.FunctionType;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVar;
@@ -71,18 +71,18 @@ public class TypeInference extends IdentityVisitor {
     }
 
     private ParametricType newVoidType() {
-        return new ParametricType(null, findInfo("Void"), new ArrayList<PacioliType>());
+        return new ParametricType(null, findInfo("Void"), new ArrayList<TypeObject>());
     }
 
     private ParametricType newBooleType() {
-        return new ParametricType(null, findInfo("Boole"), new ArrayList<PacioliType>());
+        return new ParametricType(null, findInfo("Boole"), new ArrayList<TypeObject>());
     }
 
     private ParametricType newStringType() {
-        return new ParametricType(null, findInfo("String"), new ArrayList<PacioliType>());
+        return new ParametricType(null, findInfo("String"), new ArrayList<TypeObject>());
     }
 
-    private ParametricType newTupleType(List<PacioliType> args) {
+    private ParametricType newTupleType(List<TypeObject> args) {
         return new ParametricType(null, findInfo("Tuple"), args);
     }
 
@@ -104,12 +104,12 @@ public class TypeInference extends IdentityVisitor {
 
         // Create the result typing. Its type is a variable
         // After unification the type variable will be the desired type.
-        PacioliType resultType = new TypeVar();
+        TypeObject resultType = new TypeVar();
         Typing typing = new Typing(resultType);
 
         // Infer the argument's typings. Keep the types and
         // add the contraints to the result typing.
-        List<PacioliType> argTypes = new ArrayList<PacioliType>();
+        List<TypeObject> argTypes = new ArrayList<TypeObject>();
         for (ExpressionNode arg : node.arguments) {
             Typing argTyping = typingAccept(arg);
             argTypes.add(argTyping.getType());
@@ -168,7 +168,7 @@ public class TypeInference extends IdentityVisitor {
                     ExpressionNode tensorNode = node.arguments.get(0);
                     try {
                         Typing tensorTyping = typingAccept(tensorNode);
-                        PacioliType tensorPacioliType = tensorTyping.solve(false);
+                        TypeObject tensorPacioliType = tensorTyping.solve(false);
                         tensorType = (MatrixType) tensorPacioliType;
                     } catch (Exception ex) {
                         throw new PacioliException(tensorNode.getLocation(),
@@ -179,7 +179,7 @@ public class TypeInference extends IdentityVisitor {
                     // Try to get the type of the matrix parameter
                     try {
                         Typing matrixTyping = typingAccept(node.arguments.get(2));
-                        PacioliType matrixPacioliType = matrixTyping.solve(false);
+                        TypeObject matrixPacioliType = matrixTyping.solve(false);
                         matrixType = (MatrixType) matrixPacioliType;
                     } catch (Exception ex) {
                         throw new PacioliException(node.arguments.get(2).getLocation(),
@@ -223,7 +223,7 @@ public class TypeInference extends IdentityVisitor {
 
             // Create a function type from the argument types to the type variable
             // that was put in the result type.
-            PacioliType funType = new FunctionType(newTupleType(argTypes), resultType);
+            TypeObject funType = new FunctionType(newTupleType(argTypes), resultType);
 
             // Add the unification contraint that function type must equal the derived
             // function type.
@@ -331,7 +331,7 @@ public class TypeInference extends IdentityVisitor {
         typing.addConstraintsAndAssumptions(posTyping);
         typing.addConstraintsAndAssumptions(negTyping);
 
-        PacioliType voidType = newVoidType();
+        TypeObject voidType = newVoidType();
 
         typing.addConstraint(testTyping.getType(), newBooleType(), String
                 .format("While infering the type of\n%s\nthe test of an if must be Boolean", node.sourceDescription()));
@@ -365,13 +365,13 @@ public class TypeInference extends IdentityVisitor {
     public void visit(LambdaNode node) {
 
         // A list for the argument types
-        List<PacioliType> argTypes = new ArrayList<PacioliType>();
+        List<TypeObject> argTypes = new ArrayList<TypeObject>();
 
         for (String arg : node.arguments) {
 
             // Create the type variable and add it to the list
             String freshName = node.table.freshSymbolName();
-            PacioliType freshType = new TypeVar(freshName);
+            TypeObject freshType = new TypeVar(freshName);
             argTypes.add(freshType);
 
             // Also store the type in the lambda's symbol table
@@ -414,14 +414,14 @@ public class TypeInference extends IdentityVisitor {
 
         for (ValueInfo inf : Node.freeVars(node, node.table)) {
             if (inf.isMonomorphic) {
-                PacioliType varType = inf.inferredType.get();
+                TypeObject varType = inf.inferredType.get();
                 assert (varType instanceof TypeVar);
                 freeVars.add((TypeVar) varType);
             }
         }
 
         // This typing collects the constraints from the bindings
-        PacioliType tmpType = new TypeVar();
+        TypeObject tmpType = new TypeVar();
         Typing tmpTyping = new Typing(tmpType);
 
         List<String> vars = new ArrayList<String>();
@@ -488,7 +488,7 @@ public class TypeInference extends IdentityVisitor {
     public void visit(MatrixLiteralNode node) {
 
         // Evaluate the node's type node
-        PacioliType type = node.typeNode.evalType();
+        TypeObject type = node.typeNode.evalType();
 
         assert (type != null);
 
@@ -500,7 +500,7 @@ public class TypeInference extends IdentityVisitor {
     public void visit(MatrixTypeNode node) {
 
         // Evaluate the node's type node
-        PacioliType type = node.typeNode.evalType();
+        TypeObject type = node.typeNode.evalType();
 
         assert (type != null);
 
@@ -516,7 +516,7 @@ public class TypeInference extends IdentityVisitor {
 
     @Override
     public void visit(ReturnNode node) {
-        PacioliType voidType = newVoidType();
+        TypeObject voidType = newVoidType();
         Typing valueTyping = typingAccept(node.value);
         Typing typing = new Typing(voidType);
         typing.addConstraintsAndAssumptions(valueTyping);
@@ -527,7 +527,7 @@ public class TypeInference extends IdentityVisitor {
 
     @Override
     public void visit(SequenceNode node) {
-        PacioliType voidType = newVoidType();
+        TypeObject voidType = newVoidType();
         Typing typing = new Typing(voidType);
         for (ExpressionNode item : node.items) {
             Typing itemTyping = typingAccept(item);
@@ -546,13 +546,13 @@ public class TypeInference extends IdentityVisitor {
             info.setinferredType(new TypeVar());
         }
 
-        PacioliType resultType = new TypeVar();
+        TypeObject resultType = new TypeVar();
 
         // ValueInfo resultInfo = node.table.lookup("result");
         ValueInfo resultInfo = node.resultInfo;
         resultInfo.setinferredType(resultType);
 
-        PacioliType voidType = newVoidType();
+        TypeObject voidType = newVoidType();
         Typing typing = new Typing(resultType);
 
         Typing itemTyping = typingAccept(node.body);
@@ -592,13 +592,13 @@ public class TypeInference extends IdentityVisitor {
     @Override
     public void visit(TupleAssignmentNode node) {
 
-        List<PacioliType> varTypes = new ArrayList<PacioliType>();
+        List<TypeObject> varTypes = new ArrayList<TypeObject>();
         for (IdentifierNode var : node.vars) {
             varTypes.add(var.getInfo().inferredType());
         }
-        PacioliType tupleType = newTupleType(varTypes);
+        TypeObject tupleType = newTupleType(varTypes);
 
-        PacioliType voidType = newVoidType();
+        TypeObject voidType = newVoidType();
         Typing tupleTyping = typingAccept(node.tuple);
         Typing typing = new Typing(voidType);
         typing.addConstraintsAndAssumptions(tupleTyping);

@@ -19,7 +19,7 @@ import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
 import pacioli.types.Schema;
@@ -49,33 +49,33 @@ import uom.Unit;
 
 public class TypeEvaluator extends IdentityVisitor {
 
-    private Stack<PacioliType> typeStack;
+    private Stack<TypeObject> typeStack;
 
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
 
     public TypeEvaluator() {
-        typeStack = new Stack<PacioliType>();
+        typeStack = new Stack<TypeObject>();
     }
 
     // -------------------------------------------------------------------------
     // Accept and return methods
     // -------------------------------------------------------------------------
 
-    public PacioliType typeAccept(TypeNode child) {
+    public TypeObject typeAccept(TypeNode child) {
         child.accept(this);
         return typeStack.pop();
     }
 
     public MatrixType matrixTypeAccept(TypeNode child) {
         child.accept(this);
-        PacioliType type = typeStack.pop();
+        TypeObject type = typeStack.pop();
         assert (type instanceof MatrixType);
         return (MatrixType) type;
     }
 
-    public void returnType(PacioliType value) {
+    public void returnType(TypeObject value) {
         typeStack.push(value);
     }
 
@@ -146,7 +146,7 @@ public class TypeEvaluator extends IdentityVisitor {
     public void visit(TypeApplicationNode node) {
 
         // Evaluate the arguments
-        List<PacioliType> types = new ArrayList<PacioliType>();
+        List<TypeObject> types = new ArrayList<TypeObject>();
         for (TypeNode arg : node.args) {
             types.add(typeAccept(arg));
         }
@@ -176,7 +176,7 @@ public class TypeEvaluator extends IdentityVisitor {
                 List<TypeIdentifier> names = new ArrayList<TypeIdentifier>();
                 List<IndexSetInfo> infos = new ArrayList<IndexSetInfo>();
                 for (int i = 0; i < types.size(); i++) {
-                    PacioliType type = types.get(i);
+                    TypeObject type = types.get(i);
                     assert (type instanceof TypeVar || type instanceof MatrixType);
                     if (type instanceof MatrixType) {
                         assert (node.args.get(i) instanceof TypeIdentifierNode);
@@ -197,7 +197,7 @@ public class TypeEvaluator extends IdentityVisitor {
         }
     }
 
-    private void handleParametric(TypeApplicationNode node, List<PacioliType> types) {
+    private void handleParametric(TypeApplicationNode node, List<TypeObject> types) {
 
         Optional<? extends Definition> definition = node.op.info.getDefinition();
 
@@ -252,7 +252,7 @@ public class TypeEvaluator extends IdentityVisitor {
             returnType(new IndexType(id, indexSetInfo));
         } else if (info instanceof TypeInfo) {
             TypeApplicationNode app = new TypeApplicationNode(node.getLocation(), node, new LinkedList<TypeNode>());
-            this.handleParametric(app, new ArrayList<PacioliType>());
+            this.handleParametric(app, new ArrayList<TypeObject>());
         } else {
             assert (info instanceof ScalarBaseInfo);
             returnType(new MatrixType(new ScalarBase((ScalarBaseInfo) info)));

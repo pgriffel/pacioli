@@ -22,7 +22,7 @@ import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.ast.TypeNode;
 import pacioli.visitors.LiftStatements;
 import pacioli.visitors.TransformConversions;
@@ -301,9 +301,9 @@ public class Progam extends AbstractPrintable {
 
             if (!isExternal(info) && declared.isPresent() && info.inferredType.isPresent()) {
 
-                PacioliType declaredType = declared.get().evalType().instantiate()
+                TypeObject declaredType = declared.get().evalType().instantiate()
                         .reduce(i -> i.generic().getModule().equals(file.getModule()));
-                PacioliType inferredType = info.inferredType().instantiate();
+                TypeObject inferredType = info.inferredType().instantiate();
 
                 Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,
                         "Checking inferred type\n  %s\nagainst declared type\n  %s",
@@ -361,9 +361,9 @@ public class Progam extends AbstractPrintable {
      * @param discovered
      * @param finished
      * @param verbose
-     *            Determines whether log calls are made or not, independently
-     *            from any global log setting. Allows the caller to filter
-     *            logging per definition.
+     *                   Determines whether log calls are made or not, independently
+     *                   from any global log setting. Allows the caller to filter
+     *                   logging per definition.
      */
     private void inferValueDefinitionType(ValueInfo info, Set<SymbolInfo> discovered, Set<SymbolInfo> finished,
             Boolean verbose) {
@@ -385,7 +385,7 @@ public class Progam extends AbstractPrintable {
                         typing.pretty());
 
                 try {
-                    PacioliType solved = typing.solve(Pacioli.Options.logTypeInferenceDetails).unfresh();
+                    TypeObject solved = typing.solve(Pacioli.Options.logTypeInferenceDetails).unfresh();
                     if (verbose) {
                         Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "\nSolved type of %s is %s", info.name(),
                                 solved.pretty());
@@ -417,7 +417,7 @@ public class Progam extends AbstractPrintable {
         }
         Integer count = 1;
         for (Toplevel toplevel : toplevels) {
-            PacioliType type = toplevel.type;
+            TypeObject type = toplevel.type;
             Pacioli.println("\nToplevel %s :: %s", count++, type.unfresh().deval().pretty());
         }
     }

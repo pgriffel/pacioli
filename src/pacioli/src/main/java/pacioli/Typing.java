@@ -28,31 +28,31 @@ import java.util.Map;
 import java.util.Set;
 
 import pacioli.ast.expression.ApplicationNode;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.TypeVar;
 import pacioli.types.Var;
 
 public class Typing extends AbstractPrintable {
 
-    private final PacioliType type;
+    private final TypeObject type;
     private final ConstraintSet constraints;
     private final Map<String, Set<TypeVar>> assumptions = new HashMap<String, Set<TypeVar>>();
 
-    public Typing(PacioliType type) {
+    public Typing(TypeObject type) {
         this.type = type;
         this.constraints = new ConstraintSet();
     }
 
-    public void addConstraint(PacioliType lhs, PacioliType rhs, String text) {
+    public void addConstraint(TypeObject lhs, TypeObject rhs, String text) {
         constraints.addConstraint(lhs, rhs, text);
     }
 
-    public void addNModeConstraint(PacioliType resultType, PacioliType tensorType, Integer integer,
-            PacioliType matrixType, ApplicationNode node, String text) {
+    public void addNModeConstraint(TypeObject resultType, TypeObject tensorType, Integer integer,
+            TypeObject matrixType, ApplicationNode node, String text) {
         constraints.addNModeConstraint(resultType, tensorType, integer, matrixType, node, text);
     }
 
-    public void addInstanceConstraint(PacioliType lhs, PacioliType rhs, Set<Var> freeVars, String text) {
+    public void addInstanceConstraint(TypeObject lhs, TypeObject rhs, Set<Var> freeVars, String text) {
         constraints.addInstanceConstraint(lhs, rhs, freeVars, text);
     }
 
@@ -60,11 +60,11 @@ public class Typing extends AbstractPrintable {
         addConstraints(other);
         addAssumptions(other);
     }
-    
+
     public void addConstraints(Typing other) {
         constraints.addConstraints(other.constraints);
     }
-    
+
     public void addAssumption(String name, TypeVar var) {
         Set<TypeVar> set;
         set = assumptions.get(name);
@@ -74,16 +74,16 @@ public class Typing extends AbstractPrintable {
         }
         set.add(var);
     }
-    
+
     public void addAssumptions(Typing other) {
-        for (String key: other.assumptions.keySet()) {
-            for (TypeVar var: other.assumptions.get(key)) {
+        for (String key : other.assumptions.keySet()) {
+            for (TypeVar var : other.assumptions.get(key)) {
                 addAssumption(key, var);
             }
         }
     }
-    
-    public PacioliType getType() {
+
+    public TypeObject getType() {
         return type;
     }
 
@@ -93,8 +93,8 @@ public class Typing extends AbstractPrintable {
         out.print(" with\n");
         constraints.printPretty(out);
         out.print("assuming");
-        for (String key: assumptions.keySet()) {
-            for (TypeVar var: assumptions.get(key)) {
+        for (String key : assumptions.keySet()) {
+            for (TypeVar var : assumptions.get(key)) {
                 out.print("\n  ");
                 out.print(key);
                 out.print(" :: ");
@@ -103,19 +103,19 @@ public class Typing extends AbstractPrintable {
         }
     }
 
-    public PacioliType solve(Boolean verbose) throws PacioliException {
+    public TypeObject solve(Boolean verbose) throws PacioliException {
         return constraints.solve(verbose).apply(type);
     }
 
     public Set<String> assumedNames() {
         return assumptions.keySet();
     }
-    
+
     public Set<TypeVar> assumptions(String name) {
         Set<TypeVar> set = assumptions.get(name);
         if (set == null) {
             return new HashSet<TypeVar>();
-        } else  {
+        } else {
             return set;
         }
     }

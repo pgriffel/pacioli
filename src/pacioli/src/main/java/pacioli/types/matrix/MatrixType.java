@@ -32,7 +32,7 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.types.AbstractType;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeVisitor;
 import pacioli.types.VectorUnitVar;
@@ -50,7 +50,8 @@ public class MatrixType extends AbstractType {
     public final Unit<TypeBase> rowUnit;
     public final Unit<TypeBase> columnUnit;
 
-    private MatrixType(Unit<TypeBase> factor, IndexType rowDimension, Unit<TypeBase> rowUnit, IndexType columnDimension, Unit<TypeBase> columnUnit) {
+    public MatrixType(Unit<TypeBase> factor, IndexType rowDimension, Unit<TypeBase> rowUnit, IndexType columnDimension,
+            Unit<TypeBase> columnUnit) {
         this.factor = factor;
         this.rowDimension = rowDimension;
         this.rowUnit = rowUnit;
@@ -82,7 +83,6 @@ public class MatrixType extends AbstractType {
         this.columnUnit = TypeBase.ONE;
     }
 
-    
     @Override
     public int hashCode() {
         return factor.hashCode();
@@ -104,7 +104,7 @@ public class MatrixType extends AbstractType {
 
     @Override
     public String toString() {
-        return String.format("<%s, %s, %s, %s, %s>", //super.toString(), 
+        return String.format("<%s, %s, %s, %s, %s>", // super.toString(),
                 factor, rowDimension, rowUnit, columnDimension,
                 columnUnit);
     }
@@ -112,10 +112,9 @@ public class MatrixType extends AbstractType {
     @Override
     public void printPretty(PrintWriter out) {
         deval().printPretty(out);
-        //out.print(toString());
+        // out.print(toString());
     }
 
-    
     public Unit<TypeBase> getFactor() {
         return factor;
     }
@@ -157,8 +156,8 @@ public class MatrixType extends AbstractType {
     }
 
     public boolean joinable(MatrixType other) {
-        return columnDimension.equals(other.rowDimension) && 
-               columnUnit.equals(other.rowUnit);
+        return columnDimension.equals(other.rowDimension) &&
+                columnUnit.equals(other.rowUnit);
     }
 
     public MatrixType join(MatrixType other) {
@@ -199,7 +198,8 @@ public class MatrixType extends AbstractType {
                     public Unit<TypeBase> map(TypeBase base) {
                         assert (base instanceof VectorBase);
                         VectorBase bangBase = (VectorBase) base;
-                        return (Unit<TypeBase>) ((bangBase.position == columns.get(tmp)) ? bangBase.move(tmp) : TypeBase.ONE);
+                        return (Unit<TypeBase>) ((bangBase.position == columns.get(tmp)) ? bangBase.move(tmp)
+                                : TypeBase.ONE);
                     }
                 });
             }
@@ -220,30 +220,31 @@ public class MatrixType extends AbstractType {
         MatrixType newType = new MatrixType(factor);
 
         MatrixType tmp = factorless();
-        
+
         // Add the dimension below n unchanged
         for (int i = 0; i < n; i++) {
             newType = newType.kronecker(tmp.project(Arrays.asList(i)));
         }
-        
+
         // Transform the n-th dimension and add it
         MatrixType projected = tmp.project(Arrays.asList(n));
         if (!transform.joinable(projected)) {
             throw new RuntimeException(
                     String.format("Invalid transformation in nmode product: cannot multiply %s and %s",
-                                  transform.pretty(),
-                                  tmp.project(Arrays.asList(n)).pretty()));
-        };
+                            transform.pretty(),
+                            tmp.project(Arrays.asList(n)).pretty()));
+        }
+        ;
         newType = newType.kronecker(transform.join(projected));
-        
+
         // Add the dimension above n unchanged
         for (int i = n + 1; i < rowDimension.width(); i++) {
             newType = newType.kronecker(tmp.project(Arrays.asList(i)));
         }
-        
+
         return newType;
     }
-    
+
     public boolean singleton() {
         if (rowDimension.isVar() || columnDimension.isVar()) {
             return false;
@@ -291,16 +292,16 @@ public class MatrixType extends AbstractType {
             for (TypeBase base : unit.bases()) {
                 assert (base instanceof VectorUnitVar);
                 VectorUnitVar vbase = (VectorUnitVar) base;
-                //Pacioli.logln("Adding %s ! %s", dimension.varName(), vbase.unitPart());
+                // Pacioli.logln("Adding %s ! %s", dimension.varName(), vbase.unitPart());
                 names.add(dimension.varName() + "!" + vbase.unitPart());
-                //names.add(base.pretty());
+                // names.add(base.pretty());
             }
         }
         return names;
     }
-    
+
     @Override
-    public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
+    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         MatrixType otherType = (MatrixType) other;
         ConstraintSet constraints = new ConstraintSet();
         constraints.addUnitConstraint(factor, otherType.factor, "Matrix factors must match");
@@ -315,14 +316,7 @@ public class MatrixType extends AbstractType {
     public String description() {
         return "matrix type";
     }
-    
-    @Override
-    public PacioliType applySubstitution(Substitution subs) {
-        return new MatrixType(subs.apply(factor), (IndexType) rowDimension.applySubstitution(subs), subs.apply(rowUnit),
-                (IndexType) columnDimension.applySubstitution(subs), subs.apply(columnUnit));
 
-    }
-   
     public TypeNode devalDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
         if (dimension.isVar()) {
             VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimension, 0);
@@ -333,15 +327,15 @@ public class MatrixType extends AbstractType {
             for (int i = 0; i < dimType.width(); i++) {
                 IndexType ty = dimType.project(Arrays.asList(i));
                 VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
-                Unit<TypeBase> filtered = unit;    
-                //Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
-                
+                Unit<TypeBase> filtered = unit;
+                // Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
+
                 TypeNode devaluated = filtered.fold(unitDevaluator);
                 if (i == 0) {
                     node = devaluated;
                 } else {
                     node = new TypeKroneckerNode(node.getLocation().join(devaluated.getLocation()), node, devaluated);
-                }            
+                }
             }
             return node;
         }

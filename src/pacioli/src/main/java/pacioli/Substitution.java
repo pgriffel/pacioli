@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.TypeBase;
 import pacioli.types.Unifiable;
 import pacioli.types.Var;
@@ -39,23 +39,24 @@ import uom.UnitMap;
 
 public class Substitution extends AbstractPrintable {
 
-    // Map van strings van maken. Dan is geen equality op Vars nodig en kun je ze collecten in een set etc.
+    // Map van strings van maken. Dan is geen equality op Vars nodig en kun je ze
+    // collecten in een set etc.
     private final Map<Var, Object> map;
 
     public Substitution() {
         map = new HashMap<Var, Object>();
     }
 
-    public Substitution(Var var, PacioliType type) {
+    public Substitution(Var var, TypeObject type) {
         map = new HashMap<Var, Object>();
         this.map.put(var, type);
     }
-    
+
     public Substitution(Var var, Unit<TypeBase> unit) {
         map = new HashMap<Var, Object>();
         this.map.put(var, unit);
     }
-    
+
     public Substitution(Var var, Var other) {
         map = new HashMap<Var, Object>();
         this.map.put(var, other);
@@ -68,25 +69,36 @@ public class Substitution extends AbstractPrintable {
     Substitution(Map<Var, Object> map) {
         this.map = map;
     }
-    
+
     public Boolean contains(Var var) {
         return map.containsKey(var);
     }
-/*
-    public Unit<TypeBase> apply(Unit<TypeBase> unit) {
-        return unit.map(new UnitMap<TypeBase>() {
-            public Unit<TypeBase> map(TypeBase base) {
-                if (base instanceof Var && map.containsKey((Var) base)) {
-                    Object obj = map.get((Var) base);
-                    assert (obj instanceof Unit);
-                    return (Unit<TypeBase>) obj;
-                } else {
-                    return (Unit<TypeBase>) base;
-                }
-            }
-        });
-    }*/
-    
+    /*
+     * public Unit<TypeBase> apply(Unit<TypeBase> unit) {
+     * return unit.map(new UnitMap<TypeBase>() {
+     * public Unit<TypeBase> map(TypeBase base) {
+     * if (base instanceof Var && map.containsKey((Var) base)) {
+     * Object obj = map.get((Var) base);
+     * assert (obj instanceof Unit);
+     * return (Unit<TypeBase>) obj;
+     * } else {
+     * return (Unit<TypeBase>) base;
+     * }
+     * }
+     * });
+     * }
+     */
+
+    // public <B> Unit<B> apply(Var var) {
+    // if (map.containsKey(var)) {
+    // Object obj = map.get(var);
+    // assert (obj instanceof TypeObject);
+    // return (TypeObject) obj;
+    // } else {
+    // return type;
+    // }
+    // }
+
     public <B> Unit<B> apply(Unit<B> unit) {
         return unit.map(new UnitMap<B>() {
             public Unit<B> map(B base) {
@@ -101,12 +113,12 @@ public class Substitution extends AbstractPrintable {
         });
     }
 
-    public PacioliType apply(PacioliType type) {
+    public TypeObject apply(TypeObject type) {
         if (type instanceof Var) {
             if (map.containsKey((Var) type)) {
                 Object obj = map.get((Var) type);
-                assert (obj instanceof PacioliType);
-                return (PacioliType) obj;
+                assert (obj instanceof TypeObject);
+                return (TypeObject) obj;
             } else {
                 return type;
             }
@@ -114,12 +126,12 @@ public class Substitution extends AbstractPrintable {
             return type.applySubstitution(this);
         }
     }
-    
+
     public Unifiable apply(Unifiable type) {
         if (type instanceof Var) {
             if (map.containsKey((Var) type)) {
                 Object obj = map.get((Var) type);
-                assert (obj instanceof PacioliType);
+                assert (obj instanceof TypeObject);
                 return (Unifiable) obj;
             } else {
                 return type;
@@ -146,8 +158,8 @@ public class Substitution extends AbstractPrintable {
         }
         for (Var var : other.map.keySet()) {
             Object obj = other.map.get(var);
-            if (obj instanceof PacioliType) {
-                tmp.put(var, apply((PacioliType) obj));
+            if (obj instanceof TypeObject) {
+                tmp.put(var, apply((TypeObject) obj));
             } else {
                 tmp.put(var, apply((Unit) obj));
             }

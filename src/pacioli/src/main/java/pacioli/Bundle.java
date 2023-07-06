@@ -31,7 +31,7 @@ import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.visitors.CodeGenerator;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.MVMGenerator;
@@ -285,7 +285,7 @@ public class Bundle {
         Integer count = 1;
         Pacioli.print("\n");
         for (Toplevel toplevel : toplevels) {
-            PacioliType type = toplevel.type;
+            TypeObject type = toplevel.type;
             Pacioli.println("Toplevel %s ::", count++);
             Pacioli.print(" %s", type.unfresh().deval().pretty());
         }

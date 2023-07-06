@@ -25,10 +25,10 @@ import pacioli.AbstractPrintable;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 
-public abstract class AbstractType extends AbstractPrintable implements PacioliType {
-        
+public abstract class AbstractType extends AbstractPrintable implements TypeObject {
+
     @Override
-    public Substitution unify(PacioliType other) throws PacioliException {
+    public Substitution unify(TypeObject other) throws PacioliException {
 
         if (equals(other)) {
             return new Substitution();
@@ -46,7 +46,7 @@ public abstract class AbstractType extends AbstractPrintable implements PacioliT
     }
 
     @Override
-    public PacioliType fresh() {
+    public TypeObject fresh() {
         Substitution map = new Substitution();
         for (Var var : typeVars()) {
             map = map.compose(new Substitution(var, var.fresh()));

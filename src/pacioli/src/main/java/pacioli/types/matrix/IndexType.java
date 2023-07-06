@@ -12,19 +12,19 @@ import pacioli.Substitution;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.AbstractType;
 import pacioli.types.IndexSetVar;
-import pacioli.types.PacioliType;
+import pacioli.types.TypeObject;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVisitor;
 import pacioli.types.Var;
 
 public class IndexType extends AbstractType {
 
-    public final PacioliType indexSet;
+    public final TypeObject indexSet;
 
     public IndexType(List<TypeIdentifier> indexSets, List<IndexSetInfo> indexSetInfos) {
         this.indexSet = new IndexList(indexSets, indexSetInfos);
     }
-  
+
     public IndexType(TypeIdentifier indexSet, IndexSetInfo indexSetInfo) {
         this.indexSet = new IndexList(Arrays.asList(indexSet), Arrays.asList(indexSetInfo));
     }
@@ -37,21 +37,21 @@ public class IndexType extends AbstractType {
         indexSet = typeVar;
     }
 
-    private IndexType(PacioliType type) {
+    public IndexType(TypeObject type) {
         if (!(type instanceof Var || type instanceof IndexList)) {
             throw new RuntimeException(String.format("Expected index list of var"));
         }
         indexSet = type;
     }
 
-    public PacioliType getIndexSet() {
+    public TypeObject getIndexSet() {
         return indexSet;
     }
 
     public boolean isVar() {
         return indexSet instanceof Var;
     }
-    
+
     public IndexSetVar getVar() {
         return (IndexSetVar) indexSet;
     }
@@ -87,7 +87,7 @@ public class IndexType extends AbstractType {
 
     @Override
     public String toString() {
-        //return String.format("%s%s", super.toString(), indexSet);
+        // return String.format("%s%s", super.toString(), indexSet);
         return indexSet.toString();
     }
 
@@ -114,7 +114,7 @@ public class IndexType extends AbstractType {
             return indexList().nthIndexSet(n);
         }
     }
-    
+
     public IndexSetInfo nthIndexSetInfo(int n) {
         if (isVar()) {
             throw new RuntimeException("Method not available for an index variable");
@@ -136,16 +136,11 @@ public class IndexType extends AbstractType {
     }
 
     @Override
-    public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
+    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         IndexType otherType = (IndexType) other;
         ConstraintSet constraints = new ConstraintSet();
         constraints.addConstraint(indexSet, otherType.indexSet, "Index Set must be equal");
         return constraints;
-    }
-
-    @Override
-    public PacioliType applySubstitution(Substitution subs) {
-        return new IndexType(indexSet.applySubstitution(subs));
     }
 
     IndexType kronecker(IndexType other) {
