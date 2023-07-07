@@ -64,7 +64,31 @@ public interface TypeObject extends Printable {
 
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException;
 
-    public Substitution unify(TypeObject other) throws PacioliException;
+    // public Substitution unify(TypeObject other) throws PacioliException;
+
+    // Duplicate of AbstractPrintable.pretty
+    public default String pretty() {
+        StringWriter out = new StringWriter();
+        printPretty(new PrintWriter(out));
+        return out.toString();
+    }
+
+    public default Substitution unify(TypeObject other) throws PacioliException {
+
+        if (equals(other)) {
+            return new Substitution();
+        }
+
+        if (other instanceof Var) {
+            return new Substitution((Var) other, this);
+        }
+
+        if (getClass().equals(other.getClass())) {
+            return unificationConstraints(other).solve(false);
+        } else {
+            throw new PacioliException("Cannot unify a %s and a %s", description(), other.description());
+        }
+    }
 
     // public TypeObject fresh();
     public default TypeObject fresh() {

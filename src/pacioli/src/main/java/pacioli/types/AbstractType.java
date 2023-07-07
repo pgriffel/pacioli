@@ -21,28 +21,6 @@
 
 package pacioli.types;
 
-import pacioli.AbstractPrintable;
-import pacioli.PacioliException;
-import pacioli.Substitution;
-
-public abstract class AbstractType extends AbstractPrintable implements TypeObject {
-
-    @Override
-    public Substitution unify(TypeObject other) throws PacioliException {
-
-        if (equals(other)) {
-            return new Substitution();
-        }
-
-        if (other instanceof Var) {
-            return new Substitution((Var) other, this);
-        }
-
-        if (getClass().equals(other.getClass())) {
-            return unificationConstraints(other).solve(false);
-        } else {
-            throw new PacioliException("Cannot unify a %s and a %s", description(), other.description());
-        }
-    }
+public abstract class AbstractType implements TypeObject {
 
 }
