@@ -176,7 +176,8 @@ public class JSGenerator implements TypeVisitor {
 
     @Override
     public void visit(TypeVar type) {
-        out.write(type.asJS());
+        // out.write(type.asJS());
+        out.write("Pacioli.typeFromVarName('_" + type.pretty() + "_')");
     }
 
     @Override

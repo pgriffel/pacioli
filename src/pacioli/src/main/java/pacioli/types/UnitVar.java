@@ -1,9 +1,8 @@
 package pacioli.types;
 
-import pacioli.Printable;
 import pacioli.symboltable.SymbolInfo;
 
-public interface Var extends Printable {
+public interface UnitVar extends Var, TypeBase {
 
     TypeObject fresh();
 

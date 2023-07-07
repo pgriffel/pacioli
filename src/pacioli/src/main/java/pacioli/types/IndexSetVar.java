@@ -149,16 +149,16 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
     // }
     // }
 
-    @Override
-    public String asJS() {
-        // return "'_" + this.pretty() + "_'";
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+    // @Override
+    // public String asJS() {
+    // // return "'_" + this.pretty() + "_'";
+    // throw new UnsupportedOperationException("Not supported yet.");
+    // }
 
-    @Override
-    public String asMVM(CompilationSettings settings) {
-        throw new UnsupportedOperationException("Not supported yet.");
-        // return TypeObject.super.compileToMVM(settings);
-    }
+    // @Override
+    // public String asMVM(CompilationSettings settings) {
+    // throw new UnsupportedOperationException("Not supported yet.");
+    // // return TypeObject.super.compileToMVM(settings);
+    // }
 
 }

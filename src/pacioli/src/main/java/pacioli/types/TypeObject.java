@@ -137,13 +137,13 @@ public interface TypeObject extends Printable {
     public default TypeObject simplify() {
         Substitution mgu = new Substitution();
         List<Unit<TypeBase>> parts = simplificationParts();
-        Set<Var> ignore = new HashSet<Var>();
+        Set<UnitVar> ignore = new HashSet<>();
         for (int i = 0; i < parts.size(); i++) {
             Unit<TypeBase> part = mgu.apply(parts.get(i));
             Substitution simplified = unitSimplify(part, ignore);
             for (TypeBase base : simplified.apply(part).bases()) {
                 if (base instanceof Var) {
-                    ignore.add((Var) base);
+                    ignore.add((UnitVar) base);
                 }
             }
             mgu = simplified.compose(mgu);
@@ -253,13 +253,13 @@ public interface TypeObject extends Printable {
         return new VectorVarNames().acceptTypeObject(this);
     };
 
-    public static Substitution unitSimplify(Unit<TypeBase> unit, Set<Var> ignore) {
+    public static Substitution unitSimplify(Unit<TypeBase> unit, Set<UnitVar> ignore) {
 
         List<TypeBase> varBases = new ArrayList<TypeBase>();
         List<TypeBase> fixedBases = new ArrayList<TypeBase>();
 
         for (TypeBase base : unit.bases()) {
-            if (base instanceof Var && !ignore.contains((Var) base)) {
+            if (base instanceof UnitVar && !ignore.contains((Var) base)) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);
@@ -271,10 +271,10 @@ public interface TypeObject extends Printable {
             return new Substitution();
         }
 
-        Var minVar = (Var) varBases.get(0);
+        UnitVar minVar = (UnitVar) varBases.get(0);
         for (TypeBase var : varBases) {
             if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
-                minVar = (Var) var;
+                minVar = (UnitVar) var;
             }
         }
         assert (unit.power(minVar).isInt());
@@ -287,7 +287,7 @@ public interface TypeObject extends Printable {
 
         if (varBases.size() == 1) {
 
-            Var var = (Var) varBases.get(0);
+            UnitVar var = (UnitVar) varBases.get(0);
             assert (unit.power(var).isInt());
             int power = unit.power(var).intValue();
             // Unit residu = Unit.ONE.multiply(unit.factor());

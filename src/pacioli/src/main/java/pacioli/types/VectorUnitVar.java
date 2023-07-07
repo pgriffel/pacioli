@@ -34,7 +34,7 @@ import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.VectorBaseInfo;
 import uom.BaseUnit;
 
-public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Var {
+public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, UnitVar {
 
     private final String name;
     private Optional<VectorBaseInfo> info;

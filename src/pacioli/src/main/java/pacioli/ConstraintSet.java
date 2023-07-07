@@ -31,6 +31,7 @@ import java.util.Set;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.types.TypeObject;
+import pacioli.types.UnitVar;
 import pacioli.types.TypeBase;
 import pacioli.types.Var;
 import pacioli.types.matrix.MatrixType;
@@ -478,7 +479,7 @@ public class ConstraintSet extends AbstractPrintable {
         List<TypeBase> fixedBases = new ArrayList<TypeBase>();
 
         for (TypeBase base : unit.bases()) {
-            if (base instanceof Var) {
+            if (base instanceof UnitVar) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);
@@ -496,7 +497,7 @@ public class ConstraintSet extends AbstractPrintable {
 
         if (varBases.size() == 1) {
 
-            Var var = (Var) varBases.get(0);
+            UnitVar var = (UnitVar) varBases.get(0);
             assert (unit.power(var).isInt());
             int power = unit.power(var).intValue();
             Unit<TypeBase> residu = TypeBase.ONE;
@@ -513,10 +514,10 @@ public class ConstraintSet extends AbstractPrintable {
             return new Substitution(var, residu);
         }
 
-        Var minVar = (Var) varBases.get(0);
+        UnitVar minVar = (UnitVar) varBases.get(0);
         for (TypeBase var : varBases) {
             if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
-                minVar = (Var) var;
+                minVar = (UnitVar) var;
             }
         }
 

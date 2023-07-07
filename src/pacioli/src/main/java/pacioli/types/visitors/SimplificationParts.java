@@ -13,6 +13,7 @@ import pacioli.types.Schema;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeVar;
 import pacioli.types.TypeVisitor;
+import pacioli.types.UnitVar;
 import pacioli.types.Var;
 import pacioli.types.VectorUnitVar;
 import pacioli.types.matrix.IndexList;
@@ -45,9 +46,16 @@ public class SimplificationParts implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        List<Unit<TypeBase>> freeVars = new ArrayList<Unit<TypeBase>>(type.type.typeVars());
-        freeVars.removeAll(type.variables);
-        returnParts(freeVars);
+        List<Unit<TypeBase>> freeVars2 = new ArrayList<>();
+        // List<Var> freeVars = new ArrayList<>(type.type.typeVars());
+        for (Var var : type.type.typeVars()) {
+            UnitVar unitVar = (UnitVar) var;
+            if (!type.variables.contains(unitVar)) {
+                freeVars2.add(unitVar);
+            }
+        }
+        // freeVars.removeAll(type.variables);
+        returnParts(freeVars2);
     }
 
     @Override
@@ -76,8 +84,8 @@ public class SimplificationParts implements TypeVisitor {
     public static List<Unit<TypeBase>> unitVars(Unit<TypeBase> unit) {
         List<Unit<TypeBase>> all = new ArrayList<Unit<TypeBase>>();
         for (TypeBase base : unit.bases()) {
-            if (base instanceof Var) {
-                all.add((Var) base);
+            if (base instanceof UnitVar) {
+                all.add((UnitVar) base);
             }
         }
         return all;

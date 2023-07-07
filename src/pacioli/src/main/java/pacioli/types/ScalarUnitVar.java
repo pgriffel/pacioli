@@ -31,7 +31,7 @@ import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolTable;
 import uom.BaseUnit;
 
-public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, Var {
+public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, UnitVar {
 
     private final String name;
     public final Optional<ScalarBaseInfo> info;
