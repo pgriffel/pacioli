@@ -58,34 +58,64 @@ import uom.Unit;
  */
 public interface TypeObject extends Printable {
 
-    public String description();
+    public default Set<Var> typeVars() {
+        return new UsesVars().varSetAccept(this);
+    };
 
-    public void accept(TypeVisitor visitor);
+    public default TypeObject applySubstitution(Substitution subs) {
+        return new SubstituteVisitor(subs).typeNodeAccept(this);
+    };
 
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException;
 
-    // Duplicate of AbstractPrintable.pretty
-    public default String pretty() {
-        StringWriter out = new StringWriter();
-        printPretty(new PrintWriter(out));
-        return out.toString();
-    }
-
     public default Substitution unify(TypeObject other) throws PacioliException {
+        return unify(this, other);
+    };
 
-        if (equals(other)) {
+    // public default Substitution unify(TypeObject other) throws PacioliException {
+
+    // if (equals(other)) {
+    // return new Substitution();
+    // }
+
+    // if (other instanceof Var) {
+    // return new Substitution((Var) other, this);
+    // }
+
+    // if (getClass().equals(other.getClass())) {
+    // return unificationConstraints(other).solve(false);
+    // } else {
+    // throw new PacioliException("Cannot unify a %s and a %s", description(),
+    // other.description());
+    // }
+    // }
+    public static Substitution unify(TypeObject x, TypeObject y) throws PacioliException {
+        if (x.equals(y)) {
             return new Substitution();
         }
 
-        if (other instanceof Var) {
-            return new Substitution((Var) other, this);
+        if (x instanceof Var) {
+            return new Substitution((Var) x, y);
         }
 
-        if (getClass().equals(other.getClass())) {
-            return unificationConstraints(other).solve(false);
-        } else {
-            throw new PacioliException("Cannot unify a %s and a %s", description(), other.description());
+        if (y instanceof Var) {
+            return new Substitution((Var) y, x);
         }
+
+        if (x.getClass().equals(y.getClass())) {
+            return x.unificationConstraints(y).solve(false);
+        } else {
+            throw new PacioliException("Cannot unify a %s and a %s", x.description(), y.description());
+        }
+    };
+
+    public static TypeObject unified(TypeObject x, TypeObject y) throws PacioliException {
+        // return x.unify(y).apply(x);
+        return x.applySubstitution(x.unify(y));
+    }
+
+    public default TypeObject instantiate() {
+        return this;
     }
 
     public default TypeObject fresh() {
@@ -95,14 +125,6 @@ public interface TypeObject extends Printable {
         }
         return applySubstitution(map);
     }
-
-    public default Set<Var> typeVars() {
-        return new UsesVars().varSetAccept(this);
-    };
-
-    public default TypeObject applySubstitution(Substitution subs) {
-        return new SubstituteVisitor(subs).typeNodeAccept(this);
-    };
 
     public default TypeObject reduce(Function<? super TypeInfo, ? extends Boolean> reduceCallback) {
         return new ReduceTypes(reduceCallback).typeNodeAccept(this);
@@ -118,7 +140,7 @@ public interface TypeObject extends Printable {
         Set<Var> ignore = new HashSet<Var>();
         for (int i = 0; i < parts.size(); i++) {
             Unit<TypeBase> part = mgu.apply(parts.get(i));
-            Substitution simplified = Unifiable.unitSimplify(part, ignore);
+            Substitution simplified = unitSimplify(part, ignore);
             for (TypeBase base : simplified.apply(part).bases()) {
                 if (base instanceof Var) {
                     ignore.add((Var) base);
@@ -146,16 +168,8 @@ public interface TypeObject extends Printable {
         }
     }
 
-    public static TypeObject unified(TypeObject x, TypeObject y) throws PacioliException {
-        return x.unify(y).apply(x);
-    }
-
     public static boolean alphaEqual(TypeObject x, TypeObject y) throws PacioliException {
         return x.fresh().simplify().unify(y.simplify()).isInjective();
-    }
-
-    public default TypeObject instantiate() {
-        return this;
     }
 
     public default Schema generalize(Set<Var> context) {
@@ -209,6 +223,17 @@ public interface TypeObject extends Printable {
 
     }
 
+    public String description();
+
+    public void accept(TypeVisitor visitor);
+
+    // Duplicate of AbstractPrintable.pretty
+    public default String pretty() {
+        StringWriter out = new StringWriter();
+        printPretty(new PrintWriter(out));
+        return out.toString();
+    }
+
     public default TypeNode deval() {
         return new Devaluator().typeNodeAccept(this);
     }
@@ -228,4 +253,64 @@ public interface TypeObject extends Printable {
         return new VectorVarNames().acceptTypeObject(this);
     };
 
+    public static Substitution unitSimplify(Unit<TypeBase> unit, Set<Var> ignore) {
+
+        List<TypeBase> varBases = new ArrayList<TypeBase>();
+        List<TypeBase> fixedBases = new ArrayList<TypeBase>();
+
+        for (TypeBase base : unit.bases()) {
+            if (base instanceof Var && !ignore.contains((Var) base)) {
+                varBases.add(base);
+            } else {
+                fixedBases.add(base);
+            }
+
+        }
+
+        if (varBases.isEmpty()) {
+            return new Substitution();
+        }
+
+        Var minVar = (Var) varBases.get(0);
+        for (TypeBase var : varBases) {
+            if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
+                minVar = (Var) var;
+            }
+        }
+        assert (unit.power(minVar).isInt());
+        Fraction minPower = unit.power(minVar);
+
+        if (minPower.signum() < 0) {
+            Substitution tmp = new Substitution(minVar, minVar.reciprocal());
+            return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
+        }
+
+        if (varBases.size() == 1) {
+
+            Var var = (Var) varBases.get(0);
+            assert (unit.power(var).isInt());
+            int power = unit.power(var).intValue();
+            // Unit residu = Unit.ONE.multiply(unit.factor());
+            Unit<TypeBase> residu = TypeBase.ONE;
+
+            for (TypeBase fixed : fixedBases) {
+                assert (unit.power(fixed).isInt());
+                int fixedPower = unit.power(fixed).intValue();
+                residu = residu.multiply(fixed.raise(new Fraction(-fixedPower / power)));
+            }
+
+            return new Substitution(var, var.multiply(residu));
+        }
+
+        Unit<TypeBase> rest = (Unit<TypeBase>) TypeBase.ONE;
+        for (TypeBase var : unit.bases()) {
+            if (!var.equals(minVar)) {
+                assert (unit.power(var).isInt());
+                rest = rest.multiply(var.raise(unit.power(var).div(minPower).floor().negate()));
+            }
+        }
+
+        Substitution tmp = new Substitution(minVar, minVar.multiply(rest));
+        return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
+    }
 }

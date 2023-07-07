@@ -3,13 +3,9 @@ package pacioli.types.matrix;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
-import pacioli.Substitution;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.AbstractType;
 import pacioli.types.TypeObject;

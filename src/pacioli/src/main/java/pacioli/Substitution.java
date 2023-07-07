@@ -31,7 +31,6 @@ import java.util.Set;
 
 import pacioli.types.TypeObject;
 import pacioli.types.TypeBase;
-import pacioli.types.Unifiable;
 import pacioli.types.Var;
 import uom.PowerProduct;
 import uom.Unit;

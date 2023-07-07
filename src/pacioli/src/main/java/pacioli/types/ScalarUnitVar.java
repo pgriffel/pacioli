@@ -129,14 +129,14 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, Var
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    @Override
-    public Substitution unify(TypeObject other) throws PacioliException {
-        if (equals(other)) {
-            return new Substitution();
-        } else {
-            return new Substitution(this, other);
-        }
-    }
+    // @Override
+    // public Substitution unify(TypeObject other) throws PacioliException {
+    // if (equals(other)) {
+    // return new Substitution();
+    // } else {
+    // return new Substitution(this, other);
+    // }
+    // }
 
     @Override
     public String compileToJS() {

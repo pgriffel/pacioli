@@ -6,13 +6,13 @@ import uom.PowerProduct;
 import uom.Unit;
 
 public interface TypeBase extends Base<TypeBase> {
-    
+
     public final static Unit<TypeBase> ONE = new PowerProduct<TypeBase>();
-    
+
     public String compileToJS();
 
     public String compileToMVM(CompilationSettings settings);
-    
+
     public static String compileUnitToJS(Unit<TypeBase> unit) {
         String product = "";
         int n = 0;
@@ -31,6 +31,7 @@ public interface TypeBase extends Base<TypeBase> {
 
     /**
      * Compiles to uom-ts definition format. Replaces compileUnitToJS above.
+     * 
      * @param unit
      * @return
      */
