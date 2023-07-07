@@ -22,9 +22,6 @@
 package pacioli.types;
 
 import java.io.PrintWriter;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 
@@ -39,6 +36,16 @@ public class FunctionType extends AbstractType {
     }
 
     @Override
+    public String description() {
+        return "function type";
+    }
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     public void printPretty(PrintWriter out) {
         if (domain instanceof ParametricType && ((ParametricType) domain).getName().equals("Tuple")) {
             out.print(((ParametricType) domain).pprintArgs());
@@ -50,30 +57,12 @@ public class FunctionType extends AbstractType {
     }
 
     @Override
-    public Set<String> unitVecVarCompoundNames() {
-        Set<String> all = new LinkedHashSet<String>();
-        all.addAll(domain.unitVecVarCompoundNames());
-        all.addAll(range.unitVecVarCompoundNames());
-        return all;
-    }
-
-    @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         FunctionType otherType = (FunctionType) other;
         ConstraintSet constraints = new ConstraintSet();
         constraints.addConstraint(domain, otherType.domain, String.format("Function domain's types must match"));
         constraints.addConstraint(range, otherType.range, String.format("Function range's type must match"));
         return constraints;
-    }
-
-    @Override
-    public String description() {
-        return "function type";
-    }
-
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
     }
 
 }

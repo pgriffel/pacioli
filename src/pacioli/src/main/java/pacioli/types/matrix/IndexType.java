@@ -130,10 +130,10 @@ public class IndexType extends AbstractType {
         out.print(")");
     }
 
-    @Override
-    public Set<String> unitVecVarCompoundNames() {
-        return new LinkedHashSet<String>();
-    }
+    // @Override
+    // public Set<String> unitVecVarCompoundNames() {
+    // return new LinkedHashSet<String>();
+    // }
 
     @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {

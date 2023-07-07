@@ -137,11 +137,6 @@ public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
     // The remainder should be moved to visitors
 
     @Override
-    public Set<String> unitVecVarCompoundNames() {
-        return new LinkedHashSet<String>();
-    }
-
-    @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");

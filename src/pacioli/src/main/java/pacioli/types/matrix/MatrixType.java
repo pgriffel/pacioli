@@ -278,27 +278,28 @@ public class MatrixType extends AbstractType {
                 columnUnit.raise(power));
     }
 
-    @Override
-    public Set<String> unitVecVarCompoundNames() {
-        Set<String> names = new LinkedHashSet<String>();
-        names.addAll(dimensionUnitVecVarCompoundNames(rowDimension, rowUnit));
-        names.addAll(dimensionUnitVecVarCompoundNames(columnDimension, columnUnit));
-        return names;
-    }
+    // @Override
+    // public Set<String> unitVecVarCompoundNames() {
+    // Set<String> names = new LinkedHashSet<String>();
+    // names.addAll(dimensionUnitVecVarCompoundNames(rowDimension, rowUnit));
+    // names.addAll(dimensionUnitVecVarCompoundNames(columnDimension, columnUnit));
+    // return names;
+    // }
 
-    public Set<String> dimensionUnitVecVarCompoundNames(IndexType dimension, Unit<TypeBase> unit) {
-        Set<String> names = new HashSet<String>();
-        if (dimension.isVar()) {
-            for (TypeBase base : unit.bases()) {
-                assert (base instanceof VectorUnitVar);
-                VectorUnitVar vbase = (VectorUnitVar) base;
-                // Pacioli.logln("Adding %s ! %s", dimension.varName(), vbase.unitPart());
-                names.add(dimension.varName() + "!" + vbase.unitPart());
-                // names.add(base.pretty());
-            }
-        }
-        return names;
-    }
+    // public Set<String> dimensionUnitVecVarCompoundNames(IndexType dimension,
+    // Unit<TypeBase> unit) {
+    // Set<String> names = new HashSet<String>();
+    // if (dimension.isVar()) {
+    // for (TypeBase base : unit.bases()) {
+    // assert (base instanceof VectorUnitVar);
+    // VectorUnitVar vbase = (VectorUnitVar) base;
+    // // Pacioli.logln("Adding %s ! %s", dimension.varName(), vbase.unitPart());
+    // names.add(dimension.varName() + "!" + vbase.unitPart());
+    // // names.add(base.pretty());
+    // }
+    // }
+    // return names;
+    // }
 
     @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {

@@ -22,9 +22,7 @@
 package pacioli.types;
 
 import java.io.PrintWriter;
-import java.util.LinkedHashSet;
 import java.util.Optional;
-import java.util.Set;
 
 import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
@@ -140,11 +138,6 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Set<String> unitVecVarCompoundNames() {
-        return new LinkedHashSet<String>();
     }
 
     @Override

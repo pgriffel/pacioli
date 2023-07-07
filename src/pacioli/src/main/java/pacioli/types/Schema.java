@@ -56,11 +56,6 @@ public class Schema extends AbstractType {
     }
 
     @Override
-    public Set<String> unitVecVarCompoundNames() {
-        return type.unitVecVarCompoundNames();
-    }
-
-    @Override
     public TypeObject instantiate() {
         Substitution map = new Substitution();
         for (Var var : variables) {

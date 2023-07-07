@@ -133,10 +133,10 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Var
 
     // To move to visitors
 
-    @Override
-    public Set<String> unitVecVarCompoundNames() {
-        return new LinkedHashSet<String>();
-    }
+    // @Override
+    // public Set<String> unitVecVarCompoundNames() {
+    // return new LinkedHashSet<String>();
+    // }
 
     @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {

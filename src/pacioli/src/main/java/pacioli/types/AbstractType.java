@@ -45,13 +45,4 @@ public abstract class AbstractType extends AbstractPrintable implements TypeObje
         }
     }
 
-    @Override
-    public TypeObject fresh() {
-        Substitution map = new Substitution();
-        for (Var var : typeVars()) {
-            map = map.compose(new Substitution(var, var.fresh()));
-        }
-        return applySubstitution(map);
-    }
-
 }

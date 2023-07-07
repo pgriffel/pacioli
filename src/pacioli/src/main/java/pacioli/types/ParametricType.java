@@ -22,11 +22,8 @@
 package pacioli.types;
 
 import java.io.PrintWriter;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-
 import pacioli.ConstraintSet;
 import pacioli.Location;
 import pacioli.PacioliException;
@@ -56,8 +53,18 @@ public class ParametricType extends AbstractType {
         this.location = location;
     }
 
+    @Override
+    public String description() {
+        return getName() + " type";
+    }
+
     public String getName() {
         return info.name();
+    }
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
     }
 
     public String pprintArgs() {
@@ -72,15 +79,6 @@ public class ParametricType extends AbstractType {
     public void printPretty(PrintWriter out) {
         out.print(getName());
         out.print(pprintArgs());
-    }
-
-    @Override
-    public Set<String> unitVecVarCompoundNames() {
-        Set<String> all = new LinkedHashSet<String>();
-        for (TypeObject type : args) {
-            all.addAll(type.unitVecVarCompoundNames());
-        }
-        return all;
     }
 
     @Override
@@ -101,13 +99,4 @@ public class ParametricType extends AbstractType {
         return constraints;
     }
 
-    @Override
-    public String description() {
-        return getName() + " type";
-    }
-
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
-    }
 }

@@ -37,6 +37,7 @@ import pacioli.Printer;
 import pacioli.Substitution;
 import pacioli.symboltable.TypeInfo;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.visitors.VectorVarNames;
 import pacioli.types.visitors.Devaluator;
 import pacioli.types.visitors.JSGenerator;
 import pacioli.types.visitors.ReduceTypes;
@@ -61,17 +62,26 @@ public interface TypeObject extends Printable {
 
     public void accept(TypeVisitor visitor);
 
+    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException;
+
+    public Substitution unify(TypeObject other) throws PacioliException;
+
+    // public TypeObject fresh();
+    public default TypeObject fresh() {
+        Substitution map = new Substitution();
+        for (Var var : typeVars()) {
+            map = map.compose(new Substitution(var, var.fresh()));
+        }
+        return applySubstitution(map);
+    }
+
     public default Set<Var> typeVars() {
         return new UsesVars().varSetAccept(this);
     };
 
-    default public TypeObject applySubstitution(Substitution subs) {
+    public default TypeObject applySubstitution(Substitution subs) {
         return new SubstituteVisitor(subs).typeNodeAccept(this);
     };
-
-    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException;
-
-    public Substitution unify(TypeObject other) throws PacioliException;
 
     public default TypeObject reduce(Function<? super TypeInfo, ? extends Boolean> reduceCallback) {
         return new ReduceTypes(reduceCallback).typeNodeAccept(this);
@@ -145,8 +155,6 @@ public interface TypeObject extends Printable {
         // return new Schema(unfresh.typeVars(), unfresh);
     }
 
-    public TypeObject fresh();
-
     public default TypeObject unfresh() {
 
         // Replace all type variables by type variables named a, b, c, d, ...
@@ -165,7 +173,9 @@ public interface TypeObject extends Printable {
 
         // Replace all unit vector variables by its name prefixed by the index set name.
         map = new Substitution();
-        for (String name : unfreshType.unitVecVarCompoundNames()) {
+        Set<String> names = new VectorVarNames().acceptTypeObject(unfreshType);
+        // Set<String> names = unfreshType.unitVecVarCompoundNames();
+        for (String name : names) {
             String[] parts = name.split("!");
             assert (parts.length == 2);
             if (parts.length == 2) {
@@ -193,7 +203,9 @@ public interface TypeObject extends Printable {
     }
 
     // Hack to print proper compound unit vector in schema's
-    public Set<String> unitVecVarCompoundNames();
+    default public Set<String> unitVecVarCompoundNames() {
+        return new VectorVarNames().acceptTypeObject(this);
+    };
 
     public static Substitution unitSimplify(Unit<TypeBase> unit, Set<Var> ignore) {
 
