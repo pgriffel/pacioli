@@ -37,10 +37,11 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
     public final TypeIdentifier unitName;
     public final int position;
 
-    public VectorBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position, VectorBaseInfo vectorUnitInfo) {
+    public VectorBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position,
+            VectorBaseInfo vectorUnitInfo) {
         assert (!unitName.name.contains("!"));
         assert (!indexSetName.home.isEmpty());
-        assert(vectorUnitInfo.name().contains("!"));
+        assert (vectorUnitInfo.name().contains("!"));
         this.indexSetName = indexSetName;
         this.unitName = unitName;
         this.position = position;
@@ -78,8 +79,8 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
     public String pretty() {
-        //return indexSetName.name + "!" + unitName.name;
-        assert(vectorUnitInfo.name().equals(indexSetName.name + "!" + unitName.name));
+        // return indexSetName.name + "!" + unitName.name;
+        assert (vectorUnitInfo.name().equals(indexSetName.name + "!" + unitName.name));
         return vectorUnitInfo.name();
     }
 
@@ -120,18 +121,20 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
     @Override
-    public String compileToJS() {
-        // return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit", indexSetName.home, indexSetName.name,
-        //         unitName.home, unitName.name);
-        return String.format("Pacioli.unitVectorType('%s', '%s_%s', %s)", indexSetName.home, indexSetName.name, this.unitName.name, position);
+    public String asJS() {
+        // return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit",
+        // indexSetName.home, indexSetName.name,
+        // unitName.home, unitName.name);
+        return String.format("Pacioli.unitVectorType('%s', '%s_%s', %s)", indexSetName.home, indexSetName.name,
+                this.unitName.name, position);
     }
 
     @Override
-    public String compileToMVM(CompilationSettings settings) {
+    public String asMVM(CompilationSettings settings) {
         String unitName = this.unitName.name;
         return String.format("bang_shape(\"index_%s_%s\", \"%s\")",
                 indexSetName.home, indexSetName.name,
-                unitName.isEmpty() ? "" : String.format("%s!%s" , indexSetName.name, unitName));
+                unitName.isEmpty() ? "" : String.format("%s!%s", indexSetName.name, unitName));
     }
 
 }

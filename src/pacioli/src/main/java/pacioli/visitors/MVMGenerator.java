@@ -67,18 +67,17 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out = printWriter;
         this.settings = settings;
     }
-    
+
     // Unit compilation
     public static String compileUnitToMVM(Unit<TypeBase> unit) {
         return unit.fold(new UnitMVMCompiler());
     }
-    
-    
+
     static class UnitMVMCompiler implements UnitFold<TypeBase, String> {
 
         @Override
-        public String map(TypeBase base) {    
-            return base.compileToMVM(null);
+        public String map(TypeBase base) {
+            return base.asMVM(null);
         }
 
         @Override
@@ -96,7 +95,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             return "unit(\"\")";
         }
     }
-    
+
     // Visitors
 
     @Override
@@ -109,12 +108,12 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(ApplicationNode node) {
-        
+
         out.mark();
-        
+
         // Fixme
         if (settings.isDebugOn() && node.function instanceof IdentifierNode) {
-        //if (false && node.function instanceof IdentifierNode) {
+            // if (false && node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
             String stackText = id.getName();
             String fullText = node.getLocation().description();
@@ -141,16 +140,16 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     private String escapeString(String in) {
         // Quick fix for the debug option for string literals
-        //return in.replaceAll("\"", "\\\\\"");
+        // return in.replaceAll("\"", "\\\\\"");
 
         return in.replace("\\", "\\\\")
-        .replace("\t", "\\t")
-        .replace("\b", "\\b")
-        .replace("\n", "\\n")
-        .replace("\r", "\\r")
-        .replace("\f", "\\f")
-        //.replace("\'", "\\'")
-        .replace("\"", "\\\"");
+                .replace("\t", "\\t")
+                .replace("\b", "\\b")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\f", "\\f")
+                // .replace("\'", "\\'")
+                .replace("\"", "\\\"");
     }
 
     @Override
@@ -187,13 +186,15 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(IdentifierNode node) {
-        
+
         ValueInfo info = node.getInfo();
-        
-        //String prefix = settings.isDebugOn() && node.debugable() ? "debug_" : "global_";
-        //String full = info.isGlobal() ? prefix + info.generic().module + "_" + node.name : node.name;
-        String full = info.isGlobal() ? ValueInfo.global(info.generic().getModule() , node.getName() ) : node.getName();
-        
+
+        // String prefix = settings.isDebugOn() && node.debugable() ? "debug_" :
+        // "global_";
+        // String full = info.isGlobal() ? prefix + info.generic().module + "_" +
+        // node.name : node.name;
+        String full = info.isGlobal() ? ValueInfo.global(info.generic().getModule(), node.getName()) : node.getName();
+
         if (node.getInfo().isRef()) {
             out.format("application(var(\"%s\"), var(\"%s\"))", ValueInfo.global("lib_base_base", "_ref_get"), full);
         } else {
@@ -221,7 +222,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
                 out.write(", ");
             }
             IndexSetInfo info = node.getInfo(i);
-            //out.write("\"" + info.definition.globalName() + "\"");
+            // out.write("\"" + info.definition.globalName() + "\"");
             out.write("\"" + info.globalName() + "\"");
             out.write(", ");
             out.write("\"" + node.keys.get(i) + "\"");
@@ -246,14 +247,14 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(MatrixLiteralNode node) {
-        
+
         // Write the opening of the literal
         out.write("literal_matrix(");
         out.print(node.typeNode.evalType().compileToMVM(settings));
         out.write(", ");
 
-        // Write the elements. 
-        for (MatrixLiteralNode.PositionedValueDecl decl: node.positionedValueDecls()) {
+        // Write the elements.
+        for (MatrixLiteralNode.PositionedValueDecl decl : node.positionedValueDecls()) {
             out.format(" %s %s \"%s\",", decl.row, decl.column, decl.valueDecl.value);
         }
 
@@ -287,22 +288,22 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(SequenceNode node) {
-        
+
         if (node.items.isEmpty()) {
             throw new RuntimeException("todo: MVM generator for empty sequence");
         } else {
             Integer n = node.items.size();
             out.mark();
-            for (int i = 0; i < n-1; i++) {
+            for (int i = 0; i < n - 1; i++) {
                 out.format("application(var(\"%s\"), ", ValueInfo.global("lib_base_base", "_seq"));
                 out.newlineUp();
                 node.items.get(i).accept(this);
                 out.print(", ");
                 out.newline();
-                
+
             }
-            node.items.get(n-1).accept(this);
-            for (int i = 0; i < n-1; i++) {
+            node.items.get(n - 1).accept(this);
+            for (int i = 0; i < n - 1; i++) {
                 out.print(")");
             }
             out.unmark();
@@ -311,13 +312,12 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(StatementNode node) {
-        
+
         out.mark();
-        
+
         // Find all assigned variables
         Set<IdentifierNode> assignedVariables = node.body.locallyAssignedVariables();
-        
-        
+
         List<String> args = new ArrayList<String>();
         List<IdentifierNode> ids = new ArrayList<IdentifierNode>();
         for (IdentifierNode id : assignedVariables) {
@@ -330,50 +330,50 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
         // A lambda to bind the result place and the assigned variables places
         out.print("application(lambda (");
-        
+
         // Write the result lambda param
         out.print("\"result\"");
-        
+
         // Write the other lambda params
         for (IdentifierNode id : ids) {
-            assert(id.getInfo() != null);
+            assert (id.getInfo() != null);
             out.print(", ");
             out.print("\"");
             out.print(id.getName());
             out.print("\"");
         }
         out.print(")");
-        
+
         out.newlineUp();
-        
+
         // A catch to get the result
         out.format("application(var(\"%s\"),", ValueInfo.global("lib_base_base", "_catch_result"));
-        
+
         out.newlineUp();
-        
+
         // Catch expect a lambda
         out.print("lambda ()");
-        
+
         out.newlineUp();
-        
+
         // The body
         node.body.accept(this);
         out.print(",");
-        
+
         out.newline();
 
         // Catch's second argument is the place name
         out.print("var(\"result\")");
-        
+
         // Close the catch application
         out.print("), ");
-        
+
         out.newlineDown();
-        
+
         // The initial result place
         out.format("application(var(\"%s\"))", ValueInfo.global("lib_base_base", "_empty_ref"));
 
-        for (IdentifierNode id : ids) { 
+        for (IdentifierNode id : ids) {
             out.print(", ");
             if (node.shadowed.contains(id.getName())) {
                 if (node.shadowed.lookup(id.getName()).isRef()) {
@@ -390,11 +390,11 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             } else {
                 out.format("application(var(\"%s\"))", ValueInfo.global("lib_base_base", "_empty_ref"));
             }
-        }        
-        
+        }
+
         // Close the lambda application
         out.print(")");
-        
+
         out.unmark();
     }
 
@@ -405,13 +405,13 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(TupleAssignmentNode node) {
-        
+
         // Some tuple properties
         List<IdentifierNode> vars = node.vars;
         Integer size = vars.size();
-        
+
         assert (0 < size); // het 'skip' statement als 0
-        
+
         // Create a list of fresh names for the assigned names
         final List<String> names = new ArrayList<String>();
         for (IdentifierNode id : vars) {
@@ -419,51 +419,54 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         }
         final List<String> freshNames = SymbolTable.freshNames(names);
 
-        // Create an application of apply to a lambda with two arguments: 
-        // the fresh names and the tuple. The freshnames get bound to the 
-        // tuple elements and are used in the lambda body to assign the 
+        // Create an application of apply to a lambda with two arguments:
+        // the fresh names and the tuple. The freshnames get bound to the
+        // tuple elements and are used in the lambda body to assign the
         // variables. The lambda body is a sequence of these assignments.
         out.mark();
         out.format("application(var(\"%s\"), lambda (", ValueInfo.global("lib_base_base", "apply"));
-        
+
         // The lambda arguments
         Boolean first = true;
-        for (String name: freshNames) {
-            if (!first) out.print(", ");
+        for (String name : freshNames) {
+            if (!first)
+                out.print(", ");
             out.print("\"");
             out.print(name);
             out.print("\"");
             first = false;
         }
         out.print(")");
-        
+
         out.newlineUp();
-        
+
         // The sequence of assignments
         for (int i = 0; i < size; i++) {
-            if (i < size-1) out.format("application(var(\"%s\"), ", ValueInfo.global("lib_base_base", "_seq"));
+            if (i < size - 1)
+                out.format("application(var(\"%s\"), ", ValueInfo.global("lib_base_base", "_seq"));
             out.format("application(var(\"%s\"), var(\"", ValueInfo.global("lib_base_base", "_ref_set"));
             out.print(names.get(i));
             out.print("\"), var(\"");
             out.print(freshNames.get(i));
             out.print("\"))");
-            if (i < size-1) out.print(",");
+            if (i < size - 1)
+                out.print(",");
             out.newline();
         }
-        
+
         // Close the sequences
-        for (int i = 0; i < size-1; i++) {
+        for (int i = 0; i < size - 1; i++) {
             out.print(")");
         }
-        
+
         out.print(", ");
         node.tuple.accept(this);
-        
+
         // Close the apply
         out.print(")");
-        
+
         out.unmark();
-        
+
     }
 
     @Override
@@ -482,54 +485,48 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.print(")");
         out.unmark();
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 
     @Override
     public void visit(BangTypeNode node) {
         out.write("bang_shape(\"");
-        //node.indexSet.accept(this);
+        // node.indexSet.accept(this);
         out.write(node.indexSet.info.globalName());
         out.write("\", \"");
         if (node.unit.isPresent()) {
-            //out.write(node.indexSet.info.name());
-            //out.write("!");
+            // out.write(node.indexSet.info.name());
+            // out.write("!");
             out.write(node.unit.get().info.name());
-            //node.unit.get().accept(this);
+            // node.unit.get().accept(this);
         }
         out.write("\")");
     }
 
     @Override
     public void visit(FunctionTypeNode node) {
-        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        if (true)
+            throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
         node.domain.accept(this);
         node.range.accept(this);
     }
 
     @Override
     public void visit(NumberTypeNode node) {
-        //if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
-        //out.write(node.number);
+        // if (true) throw new RuntimeException(String.format("to mvm generate: %s",
+        // node.getClass()));
+        // out.write(node.number);
         out.write("scalar_shape(unit(\"\"))");
     }
 
     @Override
     public void visit(SchemaNode node) {
-        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        if (true)
+            throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
     }
 
     @Override
     public void visit(TypeApplicationNode node) {
-        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        if (true)
+            throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
         node.op.accept(this);
         for (TypeNode arg : node.args) {
             arg.accept(this);
@@ -539,15 +536,16 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(TypeIdentifierNode node) {
         out.write("scalar_shape(unit(\"");
-        //out.write("\"");
+        // out.write("\"");
         out.write(node.getName());
         out.write("\"))");
-        //out.write("\"");
+        // out.write("\"");
     }
 
     @Override
     public void visit(TypePowerNode node) {
-        //if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        // if (true) throw new RuntimeException(String.format("to mvm generate: %s",
+        // node.getClass()));
         out.format("shape_expt(");
         node.base.accept(this);
         out.format(", ");
@@ -557,7 +555,8 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(PrefixUnitTypeNode node) {
-        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        if (true)
+            throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
     }
 
     @Override
@@ -576,11 +575,12 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.write(", ");
         node.right.accept(this);
         out.write(")");
-/*
-        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
-        node.left.accept(this);
-        node.right.accept(this);
-*/        
+        /*
+         * if (true) throw new RuntimeException(String.format("to mvm generate: %s",
+         * node.getClass()));
+         * node.left.accept(this);
+         * node.right.accept(this);
+         */
     }
 
     @Override
@@ -603,27 +603,30 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(NumberUnitNode node) {
-        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        if (true)
+            throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
     }
 
     @Override
     public void visit(UnitIdentifierNode node) {
-        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        if (true)
+            throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
     }
 
     @Override
     public void visit(UnitOperationNode node) {
-        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        if (true)
+            throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
         node.left.accept(this);
         node.right.accept(this);
     }
 
     @Override
     public void visit(UnitPowerNode node) {
-        if (true) throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+        if (true)
+            throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
         node.base.accept(this);
     }
-
 
     @Override
     public void visit(LetNode node) {

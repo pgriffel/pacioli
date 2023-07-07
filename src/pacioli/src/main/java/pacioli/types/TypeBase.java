@@ -9,16 +9,16 @@ public interface TypeBase extends Base<TypeBase> {
 
     public final static Unit<TypeBase> ONE = new PowerProduct<TypeBase>();
 
-    public String compileToJS();
+    public String asJS();
 
-    public String compileToMVM(CompilationSettings settings);
+    public String asMVM(CompilationSettings settings);
 
     public static String compileUnitToJS(Unit<TypeBase> unit) {
         String product = "";
         int n = 0;
         for (TypeBase base : unit.bases()) {
             TypeBase typeBase = (TypeBase) base;
-            String baseText = typeBase.compileToJS() + ".expt(" + unit.power(base) + ")";
+            String baseText = typeBase.asJS() + ".expt(" + unit.power(base) + ")";
             product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
             n++;
         }
@@ -40,7 +40,7 @@ public interface TypeBase extends Base<TypeBase> {
         int n = 0;
         for (TypeBase base : unit.bases()) {
             TypeBase typeBase = (TypeBase) base;
-            String baseText = typeBase.compileToJS() + ".expt(" + unit.power(base) + ")";
+            String baseText = typeBase.asJS() + ".expt(" + unit.power(base) + ")";
             product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
             n++;
         }

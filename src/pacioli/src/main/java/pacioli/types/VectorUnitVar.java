@@ -154,12 +154,12 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Var
     // }
 
     @Override
-    public String compileToJS() {
+    public String asJS() {
         return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
     }
 
     @Override
-    public String compileToMVM(CompilationSettings settings) {
+    public String asMVM(CompilationSettings settings) {
         return TypeObject.super.compileToMVM(settings);
     }
 

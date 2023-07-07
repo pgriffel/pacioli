@@ -171,16 +171,16 @@ public class JSGenerator implements TypeVisitor {
 
     @Override
     public void visit(ScalarUnitVar type) {
-        out.write(type.compileToJS());
+        out.write(type.asJS());
     }
 
     @Override
     public void visit(TypeVar type) {
-        out.write(type.compileToJS());
+        out.write(type.asJS());
     }
 
     @Override
     public void visit(VectorUnitVar type) {
-        out.write(type.compileToJS());
+        out.write(type.asJS());
     }
 }

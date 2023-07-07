@@ -33,22 +33,22 @@ import uom.DimensionedNumber;
 import uom.PowerProduct;
 import uom.Unit;
 
-public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {    
+public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
 
     private final Optional<String> prefix;
     private final String text;
-    
+
     private final ScalarBaseInfo info;
 
     public ScalarBase(ScalarBaseInfo info) {
-        assert(info != null);
+        assert (info != null);
         this.prefix = Optional.empty();
         this.text = info.name();
         this.info = info;
     }
 
     public ScalarBase(String prefix, ScalarBaseInfo info) {
-        assert(info != null);
+        assert (info != null);
         this.prefix = Optional.of(prefix);
         this.text = info.name();
         this.info = info;
@@ -91,7 +91,7 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
             } else {
                 throw new RuntimeException("todo: unit prefix" + prefix.get());
             }
-            //return new ScalarBase(text).multiply(fac);
+            // return new ScalarBase(text).multiply(fac);
         }
         Optional<UnitDefinition> def = info.getDefinition();
         if (def.isPresent()) {
@@ -99,10 +99,10 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
             if (dimNum != null) {
                 return def.get().evalBody().multiply(fac);
             }
-        } 
+        }
         return new ScalarBase(info).multiply(fac);
     }
-    
+
     private String prefixText() {
         return (prefix.isPresent()) ? prefix.get() + ":" : "";
     }
@@ -118,14 +118,14 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
     @Override
-    public String compileToJS() {
+    public String asJS() {
         return prefix.isPresent()
-               ? String.format("Pacioli.unitType('%s', '%s')", prefix.get(), text)
-               : String.format("Pacioli.unitType('%s')", text);
+                ? String.format("Pacioli.unitType('%s', '%s')", prefix.get(), text)
+                : String.format("Pacioli.unitType('%s')", text);
     }
 
     @Override
-    public String compileToMVM(CompilationSettings settings) {
+    public String asMVM(CompilationSettings settings) {
         if (prefix.isPresent()) {
             return "scaled_unit(\"" + prefix.get() + "\", \"" + text + "\")";
         } else {
