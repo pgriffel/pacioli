@@ -44,7 +44,7 @@ public interface Unifiable<B> {
     public ConstraintSet unificationConstraints(Unifiable<B> other) throws PacioliException;
 
     public Substitution unify(Unifiable<B> other) throws PacioliException;
-    
+
     public Unifiable<B> reduce();
 
     public List<Unit<TypeBase>> simplificationParts();
@@ -82,15 +82,16 @@ public interface Unifiable<B> {
             return false;
         }
     }
-    
+
     public static <B> Unifiable<B> unified(Unifiable<B> x, Unifiable<B> y) throws PacioliException {
-        return x.unify(y).apply(x);
+        // return x.unify(y).apply(x);
+        return x.applySubstitution(x.unify(y));
     }
 
     public static <B> boolean alphaEqual(Unifiable<B> x, Unifiable<B> y) throws PacioliException {
         return x.fresh().simplify().unify(y.simplify()).isInjective();
     }
-    
+
     public default Unifiable<B> instantiate() {
         return this;
     }
@@ -102,7 +103,7 @@ public interface Unifiable<B> {
         }
         return applySubstitution(map);
     }
-    
+
     public static Substitution unitSimplify(Unit<TypeBase> unit, Set<Var> ignore) {
 
         List<TypeBase> varBases = new ArrayList<TypeBase>();

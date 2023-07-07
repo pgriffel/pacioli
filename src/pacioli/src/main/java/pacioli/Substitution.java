@@ -127,19 +127,19 @@ public class Substitution extends AbstractPrintable {
         }
     }
 
-    public Unifiable apply(Unifiable type) {
-        if (type instanceof Var) {
-            if (map.containsKey((Var) type)) {
-                Object obj = map.get((Var) type);
-                assert (obj instanceof TypeObject);
-                return (Unifiable) obj;
-            } else {
-                return type;
-            }
-        } else {
-            return type.applySubstitution(this);
-        }
-    }
+    // public Unifiable apply(Unifiable type) {
+    // if (type instanceof Var) {
+    // if (map.containsKey((Var) type)) {
+    // Object obj = map.get((Var) type);
+    // assert (obj instanceof TypeObject);
+    // return (Unifiable) obj;
+    // } else {
+    // return type;
+    // }
+    // } else {
+    // return type.applySubstitution(this);
+    // }
+    // }
 
     public void removeAll(Set<Var> vars) {
         for (Var var : vars) {
