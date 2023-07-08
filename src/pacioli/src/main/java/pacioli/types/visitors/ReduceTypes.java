@@ -8,6 +8,8 @@ import java.util.function.Function;
 import pacioli.PacioliException;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
+import pacioli.types.OperatorConst;
+import pacioli.types.OperatorVar;
 import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
@@ -79,7 +81,7 @@ public class ReduceTypes implements TypeVisitor {
             items.add(typeNodeAccept(arg));
         }
         try {
-            ParametricType opType = new ParametricType(type.location, type.info, type.definition, items);
+            ParametricType opType = new ParametricType(type.location, type.info, type.definition, type.op, items);
             boolean reduce = type.definition.isPresent() && reduceCallback.apply(type.info);
             // Pacioli.log("Reduce for %s = %s %s", type.name, reduce,
             // type.info.generic().getModule());
@@ -105,6 +107,16 @@ public class ReduceTypes implements TypeVisitor {
 
     @Override
     public void visit(VectorUnitVar type) {
+        returnTypeNode(type);
+    }
+
+    @Override
+    public void visit(OperatorConst type) {
+        returnTypeNode(type);
+    }
+
+    @Override
+    public void visit(OperatorVar type) {
         returnTypeNode(type);
     }
 

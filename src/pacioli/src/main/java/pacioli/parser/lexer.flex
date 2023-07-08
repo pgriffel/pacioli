@@ -111,6 +111,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "for_type"        { return symbol("for_type",FORTYPE); }
   "for_index"       { return symbol("for_index",FORINDEX); }
   "for_unit"        { return symbol("for_unit",FORUNIT); }
+  "for_op"          { return symbol("for_op",FOROP); }
 
   /* literals */
   {Natural}         { return symbol("Natural", NATURAL, yytext()); }

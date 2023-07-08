@@ -19,6 +19,8 @@ import pacioli.symboltable.TypeInfo;
 import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
+import pacioli.types.Operator;
+import pacioli.types.OperatorConst;
 import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
@@ -200,13 +202,14 @@ public class TypeEvaluator extends IdentityVisitor {
     private void handleParametric(TypeApplicationNode node, List<TypeObject> types) {
 
         Optional<? extends Definition> definition = node.op.info.getDefinition();
-
+        ParametricType paramType = (ParametricType) typeAccept(node.op);
+        Operator opType = paramType.op;
         if (!definition.isPresent()) {
             if (!(node.op.info instanceof TypeInfo)) {
                 throw new RuntimeException("Expected type info",
                         new PacioliException(node.getLocation(), "Invalid info"));
             }
-            returnType(new ParametricType(node.getLocation(), (TypeInfo) node.op.info, types));
+            returnType(new ParametricType(node.getLocation(), (TypeInfo) node.op.info, opType, types));
         } else {
             assert (definition.get() instanceof TypeDefinition);
             TypeDefinition typeDefinition = (TypeDefinition) definition.get();
@@ -214,7 +217,7 @@ public class TypeEvaluator extends IdentityVisitor {
             // TypeInfo info = new TypeInfo(typeInfo.name(), null, typeInfo.isGlobal(),
             // node.getLocation());
             returnType(new ParametricType(node.getLocation(), (TypeInfo) node.op.info, Optional.of(typeDefinition),
-                    types));
+                    opType, types));
         }
     }
 
@@ -251,8 +254,15 @@ public class TypeEvaluator extends IdentityVisitor {
             TypeIdentifier id = new TypeIdentifier(indexSetInfo.generic().getModule(), node.getName());
             returnType(new IndexType(id, indexSetInfo));
         } else if (info instanceof TypeInfo) {
+            // TypeApplicationNode app = new TypeApplicationNode(node.getLocation(), node,
+            // new LinkedList<TypeNode>());
+            // this.handleParametric(app, new ArrayList<TypeObject>());
             TypeApplicationNode app = new TypeApplicationNode(node.getLocation(), node, new LinkedList<TypeNode>());
-            this.handleParametric(app, new ArrayList<TypeObject>());
+            TypeIdentifier typeId = new TypeIdentifier(info.generic().getModule(), node.getName());
+            OperatorConst id = new OperatorConst(typeId);
+            // this.handleParametric(app, new ArrayList<PacioliType>());
+            returnType(new ParametricType(node.getLocation(), (TypeInfo) info, ((TypeInfo) info).getDefinition(),
+                    id, new ArrayList<TypeObject>()));
         } else {
             assert (info instanceof ScalarBaseInfo);
             returnType(new MatrixType(new ScalarBase((ScalarBaseInfo) info)));

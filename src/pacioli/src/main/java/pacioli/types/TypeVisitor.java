@@ -5,7 +5,7 @@ import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 
 public interface TypeVisitor {
-    
+
     void visit(FunctionType type);
 
     void visit(Schema type);
@@ -25,4 +25,8 @@ public interface TypeVisitor {
     void visit(TypeVar type);
 
     void visit(VectorUnitVar type);
+
+    void visit(OperatorConst operatorConst);
+
+    void visit(OperatorVar operatorVar);
 }

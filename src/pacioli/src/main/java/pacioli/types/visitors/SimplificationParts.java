@@ -6,6 +6,8 @@ import java.util.Stack;
 
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
+import pacioli.types.OperatorConst;
+import pacioli.types.OperatorVar;
 import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
@@ -117,6 +119,16 @@ public class SimplificationParts implements TypeVisitor {
 
     @Override
     public void visit(VectorUnitVar type) {
+        returnParts(new ArrayList<Unit<TypeBase>>());
+    }
+
+    @Override
+    public void visit(OperatorConst operatorConst) {
+        returnParts(new ArrayList<Unit<TypeBase>>());
+    }
+
+    @Override
+    public void visit(OperatorVar operatorVar) {
         returnParts(new ArrayList<Unit<TypeBase>>());
     }
 

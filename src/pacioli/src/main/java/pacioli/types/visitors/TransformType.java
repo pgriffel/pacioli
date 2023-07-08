@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.Stack;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
+import pacioli.types.Operator;
+import pacioli.types.OperatorConst;
+import pacioli.types.OperatorVar;
 import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
@@ -83,7 +86,7 @@ public class TransformType implements TypeVisitor {
         }
         ParametricType opType = new ParametricType(type.location, type.info,
                 type.definition,
-                // (Operator) typeNodeAccept(type.op)
+                (Operator) typeNodeAccept(type.op),
                 items);
         returnTypeNode(opType);
     }
@@ -103,6 +106,16 @@ public class TransformType implements TypeVisitor {
     public void visit(VectorUnitVar type) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public void visit(OperatorConst type) {
+        returnTypeNode(type);
+    }
+
+    @Override
+    public void visit(OperatorVar type) {
+        returnTypeNode(type);
     }
 
 }

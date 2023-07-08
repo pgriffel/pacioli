@@ -8,6 +8,8 @@ import pacioli.Location;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
+import pacioli.types.OperatorConst;
+import pacioli.types.OperatorVar;
 import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
@@ -178,6 +180,18 @@ public class Devaluator implements TypeVisitor {
     @Override
     public void visit(VectorUnitVar type) {
         throw new RuntimeException("todo: " + type.getClass());
+    }
+
+    @Override
+    public void visit(OperatorConst operatorConst) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public void visit(OperatorVar operatorVar) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
 }

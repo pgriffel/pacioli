@@ -32,7 +32,9 @@ import pacioli.TypeContext;
 import pacioli.ast.Visitor;
 import pacioli.symboltable.TypeInfo;
 import pacioli.types.TypeObject;
+import pacioli.types.OperatorConst;
 import pacioli.types.ParametricType;
+import pacioli.types.TypeIdentifier;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeIdentifierNode;
@@ -74,7 +76,8 @@ public class TypeDefinition extends AbstractDefinition {
             }
 
             // PacioliType lhsType = new ParametricType(app.getName(), types);
-            TypeObject lhsType = new ParametricType(app.getLocation(), (TypeInfo) app.op.info, types);
+            TypeObject lhsType = new ParametricType(app.getLocation(), (TypeInfo) app.op.info,
+                    new OperatorConst(new TypeIdentifier(app.op.info.generic().getModule(), app.op.getName())), types);
 
             TypeObject rhsType = rhs.evalType();
             // PacioliType rhsType = resolvedRhs.evalType(true);

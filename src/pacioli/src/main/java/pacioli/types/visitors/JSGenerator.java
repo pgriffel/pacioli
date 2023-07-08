@@ -3,6 +3,8 @@ package pacioli.types.visitors;
 import pacioli.Printer;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
+import pacioli.types.OperatorConst;
+import pacioli.types.OperatorVar;
 import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
@@ -183,5 +185,17 @@ public class JSGenerator implements TypeVisitor {
     @Override
     public void visit(VectorUnitVar type) {
         out.write(type.asJS());
+    }
+
+    @Override
+    public void visit(OperatorConst operatorConst) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public void visit(OperatorVar operatorVar) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 }

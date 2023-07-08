@@ -5,6 +5,8 @@ import java.util.Stack;
 
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
+import pacioli.types.OperatorConst;
+import pacioli.types.OperatorVar;
 import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
@@ -110,6 +112,16 @@ public class Collector<T> implements TypeVisitor {
 
     @Override
     public void visit(VectorUnitVar type) {
+        returnParts(empty);
+    }
+
+    @Override
+    public void visit(OperatorConst operatorConst) {
+        returnParts(empty);
+    }
+
+    @Override
+    public void visit(OperatorVar operatorVar) {
         returnParts(empty);
     }
 

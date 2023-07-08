@@ -6,6 +6,8 @@ import java.util.Stack;
 
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
+import pacioli.types.OperatorConst;
+import pacioli.types.OperatorVar;
 import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
@@ -121,6 +123,19 @@ public class UsesVars implements TypeVisitor {
 
     @Override
     public void visit(VectorUnitVar type) {
+        Set<Var> vars = new LinkedHashSet<Var>();
+        vars.add(type);
+        returnTypeNode(vars);
+    }
+
+    @Override
+    public void visit(OperatorConst type) {
+        Set<Var> vars = new LinkedHashSet<Var>();
+        returnTypeNode(vars);
+    }
+
+    @Override
+    public void visit(OperatorVar type) {
         Set<Var> vars = new LinkedHashSet<Var>();
         vars.add(type);
         returnTypeNode(vars);

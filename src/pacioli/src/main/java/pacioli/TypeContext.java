@@ -38,11 +38,13 @@ public class TypeContext extends AbstractPrintable {
     public final List<String> typeVars;
     public final List<String> unitVars;
     public final List<String> indexVars;
+    public final List<String> opVars;
 
     public TypeContext() {
         typeVars = new ArrayList<String>();
         unitVars = new ArrayList<String>();
         indexVars = new ArrayList<String>();
+        opVars = new ArrayList<String>();
     }
 
     public Set<Var> typeVars() {
@@ -67,6 +69,7 @@ public class TypeContext extends AbstractPrintable {
         typeVars = new ArrayList<String>();
         unitVars = new ArrayList<String>();
         indexVars = new ArrayList<String>();
+        opVars = new ArrayList<String>();
         for (Var genericVar : vars) {
             if (genericVar instanceof IndexSetVar) {
                 indexVars.add(genericVar.pretty());
@@ -108,6 +111,10 @@ public class TypeContext extends AbstractPrintable {
 
     public void addIndexVar(String var) {
         indexVars.add(var);
+    }
+
+    public void addOpVar(String var) {
+        opVars.add(var);
     }
 
     public void addTypeVars(List<String> vars) {

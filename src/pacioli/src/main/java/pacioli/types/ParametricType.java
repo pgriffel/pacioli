@@ -33,12 +33,14 @@ import pacioli.symboltable.TypeInfo;
 
 public class ParametricType extends AbstractType {
 
+    public final Operator op;
     public final List<TypeObject> args;
     public final TypeInfo info;
     public final Location location;
     public final Optional<TypeDefinition> definition;
 
-    public ParametricType(Location location, TypeInfo info, List<TypeObject> args) {
+    public ParametricType(Location location, TypeInfo info, Operator op, List<TypeObject> args) {
+        this.op = op;
         this.info = info;
         this.args = args;
         this.definition = Optional.empty();
@@ -46,7 +48,8 @@ public class ParametricType extends AbstractType {
     }
 
     public ParametricType(Location location, TypeInfo info, Optional<TypeDefinition> definition,
-            List<TypeObject> args) {
+            Operator op, List<TypeObject> args) {
+        this.op = op;
         this.info = info;
         this.args = args;
         this.definition = definition;
@@ -84,14 +87,16 @@ public class ParametricType extends AbstractType {
     @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         ParametricType otherType = (ParametricType) other;
-        if (!getName().equals(otherType.getName())) {
-            throw new PacioliException("Types '%s and '%s' differ", getName(), otherType.getName());
-        }
+        // if (!getName().equals(otherType.getName())) {
+        // throw new PacioliException("Types '%s and '%s' differ", getName(),
+        // otherType.getName());
+        // }
         if (args.size() != otherType.args.size()) {
             throw new PacioliException("Number of arguments for '%s and '%s' differ", this.pretty(),
                     otherType.pretty());
         }
         ConstraintSet constraints = new ConstraintSet();
+        constraints.addConstraint(op, otherType.op, String.format("Type operator must match"));
         for (int i = 0; i < args.size(); i++) {
             constraints.addConstraint(args.get(i), otherType.args.get(i),
                     String.format("%s arugment %s must match", getName(), i + 1));
