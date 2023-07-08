@@ -35,7 +35,7 @@ import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.Printer;
 import pacioli.Substitution;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.ParametricInfo;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.visitors.VectorVarNames;
 import pacioli.types.visitors.Devaluator;
@@ -126,7 +126,7 @@ public interface TypeObject extends Printable {
         return applySubstitution(map);
     }
 
-    public default TypeObject reduce(Function<? super TypeInfo, ? extends Boolean> reduceCallback) {
+    public default TypeObject reduce(Function<? super ParametricInfo, ? extends Boolean> reduceCallback) {
         return new ReduceTypes(reduceCallback).typeNodeAccept(this);
     };
 

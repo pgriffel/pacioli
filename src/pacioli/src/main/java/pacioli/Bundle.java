@@ -25,7 +25,7 @@ import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.ParametricInfo;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
@@ -110,7 +110,7 @@ public class Bundle {
         PacioliFile file = PacioliFile.requireLibrary("base", libs);
         for (String type : ResolveVisitor.builtinTypes) {
             GenericInfo generic = new GenericInfo(type, file, true, new Location());
-            typeTable.put(type, new TypeInfo(generic));
+            typeTable.put(type, new ParametricInfo(generic));
         }
         GenericInfo generic = new GenericInfo("nmode", file, true, new Location());
         ValueInfo nmodeInfo = new ValueInfo(generic, false, true);

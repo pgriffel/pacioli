@@ -2,19 +2,18 @@ package pacioli.symboltable;
 
 import java.util.Optional;
 
-
 import pacioli.Location;
 import pacioli.PacioliFile;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.types.ast.TypeNode;
 
-public final class TypeInfo extends AbstractSymbolInfo implements TypeSymbolInfo {
+public final class ParametricInfo extends AbstractSymbolInfo implements TypeSymbolInfo {
 
-    public TypeInfo (String name, PacioliFile file, Boolean isGlobal, Location location) {
+    public ParametricInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
         super(new GenericInfo(name, file, isGlobal, location));
     }
-    
-    public TypeInfo(GenericInfo generic) {
+
+    public ParametricInfo(GenericInfo generic) {
         super(generic);
     }
 
@@ -28,11 +27,12 @@ public final class TypeInfo extends AbstractSymbolInfo implements TypeSymbolInfo
     public void accept(SymbolTableVisitor visitor) {
         visitor.visit(this);
     }
-    
+
     @Override
     public String globalName() {
-        //throw new RuntimeException("todo");
-        // TODO: check this name with the name used by the compiler. This was added just for logging.
+        // throw new RuntimeException("todo");
+        // TODO: check this name with the name used by the compiler. This was added just
+        // for logging.
         // return String.format("type_%s", name());
         return String.format("%s_%s", generic().getModule().replace("-", "_"), name());
     }
@@ -41,7 +41,7 @@ public final class TypeInfo extends AbstractSymbolInfo implements TypeSymbolInfo
     public Optional<TypeDefinition> getDefinition() {
         return definition;
     }
-    
+
     public void setDefinition(TypeDefinition definition) {
         this.definition = Optional.of(definition);
     }

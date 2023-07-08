@@ -46,7 +46,7 @@ import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.ParametricInfo;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
@@ -499,7 +499,10 @@ public class ResolveVisitor extends IdentityVisitor {
 
         // Add info records for all variables
         for (String arg : context.typeVars) {
-            table.put(arg, new TypeInfo(arg, file, false, location));
+            table.put(arg, new ParametricInfo(arg, file, false, location));
+        }
+        for (String arg : context.opVars) {
+            table.put(arg, new ParametricInfo(arg, file, false, location));
         }
         for (String arg : context.indexVars) {
             table.put(arg, new IndexSetInfo(arg, file, false, location));
@@ -539,7 +542,7 @@ public class ResolveVisitor extends IdentityVisitor {
         }
 
         // See what kind of info it is
-        Boolean isType = typeInfo instanceof TypeInfo;
+        Boolean isType = typeInfo instanceof ParametricInfo;
         Boolean isUnit = typeInfo instanceof UnitInfo;
         Boolean isIndexSet = typeInfo instanceof IndexSetInfo;
 

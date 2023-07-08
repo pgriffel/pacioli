@@ -28,7 +28,7 @@ import pacioli.Location;
 import pacioli.Progam;
 import pacioli.Typing;
 import pacioli.ast.AbstractNode;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.ParametricInfo;
 import pacioli.visitors.AssignedVariablesVisitor;
 import pacioli.visitors.TypeInference;
 
@@ -40,13 +40,13 @@ public abstract class AbstractExpressionNode extends AbstractNode implements Exp
 
     @Override
     public Typing inferTyping(Progam prog) {
-        HashMap<String, TypeInfo> defaultTypes = new HashMap<String, TypeInfo>();
-        
-        defaultTypes.put("Void", (TypeInfo) prog.typess.lookup("Void"));
-        defaultTypes.put("Tuple", (TypeInfo) prog.typess.lookup("Tuple"));
-        defaultTypes.put("String", (TypeInfo) prog.typess.lookup("String"));
-        defaultTypes.put("Boole", (TypeInfo) prog.typess.lookup("Boole"));
-        
+        HashMap<String, ParametricInfo> defaultTypes = new HashMap<String, ParametricInfo>();
+
+        defaultTypes.put("Void", (ParametricInfo) prog.typess.lookup("Void"));
+        defaultTypes.put("Tuple", (ParametricInfo) prog.typess.lookup("Tuple"));
+        defaultTypes.put("String", (ParametricInfo) prog.typess.lookup("String"));
+        defaultTypes.put("Boole", (ParametricInfo) prog.typess.lookup("Boole"));
+
         TypeInference visitor = new TypeInference(defaultTypes, prog.file);
         return visitor.typingAccept(this);
     }

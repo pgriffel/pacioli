@@ -30,7 +30,7 @@ import pacioli.Progam;
 import pacioli.TypeConstraint;
 import pacioli.TypeContext;
 import pacioli.ast.Visitor;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.ParametricInfo;
 import pacioli.types.TypeObject;
 import pacioli.types.OperatorConst;
 import pacioli.types.ParametricType;
@@ -76,7 +76,7 @@ public class TypeDefinition extends AbstractDefinition {
             }
 
             // PacioliType lhsType = new ParametricType(app.getName(), types);
-            TypeObject lhsType = new ParametricType(app.getLocation(), (TypeInfo) app.op.info,
+            TypeObject lhsType = new ParametricType(app.getLocation(), (ParametricInfo) app.op.info,
                     new OperatorConst(new TypeIdentifier(app.op.info.generic().getModule(), app.op.getName())), types);
 
             TypeObject rhsType = rhs.evalType();
@@ -111,7 +111,7 @@ public class TypeDefinition extends AbstractDefinition {
     public void addToProgr(Progam program) throws PacioliException {
         // Pacioli.logln("Adding type %s to %s %s", this.localName(), program.getFile(),
         // rhs);
-        TypeInfo info = new TypeInfo(localName(), program.file, true, getLocation());
+        ParametricInfo info = new ParametricInfo(localName(), program.file, true, getLocation());
         info.typeAST = rhs;
         info.setDefinition(this);
         program.addInfo(info);

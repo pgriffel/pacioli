@@ -18,7 +18,8 @@ import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.TypeVarInfo;
+import pacioli.symboltable.ParametricInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.TypeBase;
@@ -58,12 +59,9 @@ public class MVMCompiler implements SymbolTableVisitor {
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling index set %s", info.globalName());
 
         assert (info.getDefinition().isPresent());
-        
+
         IndexSetDefinition definition = info.getDefinition().get();
 
-
-
-        
         if (definition.isDynamic()) {
             out.format("indexset \"%s\" \"%s\" ", info.globalName(), info.getDefinition().get().localName());
             info.getDefinition().get().getBody().accept(new MVMGenerator(out, settings));
@@ -74,13 +72,13 @@ public class MVMCompiler implements SymbolTableVisitor {
                 quotedItems.add(String.format("\"%s\"", item));
             }
             out.format("indexset \"%s\" \"%s\" list(%s);\n", info.globalName(), info.getDefinition().get().localName(),
-                Utils.intercalate(",", quotedItems));
+                    Utils.intercalate(",", quotedItems));
         }
 
     }
 
     @Override
-    public void visit(TypeInfo info) {
+    public void visit(ParametricInfo info) {
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling type %s", info.globalName());
     }
 
@@ -130,6 +128,11 @@ public class MVMCompiler implements SymbolTableVisitor {
     @Override
     public void visit(AliasInfo info) {
         throw new RuntimeException("Cannot compile an alias. It must have been substituted by now.");
+    }
+
+    @Override
+    public void visit(TypeVarInfo info) {
+        Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling type %s", info.globalName());
     }
 
 }

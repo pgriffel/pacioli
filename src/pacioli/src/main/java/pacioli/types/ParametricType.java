@@ -29,17 +29,17 @@ import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Utils;
 import pacioli.ast.definition.TypeDefinition;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.ParametricInfo;
 
 public class ParametricType extends AbstractType {
 
     public final Operator op;
     public final List<TypeObject> args;
-    public final TypeInfo info;
+    public final ParametricInfo info;
     public final Location location;
     public final Optional<TypeDefinition> definition;
 
-    public ParametricType(Location location, TypeInfo info, Operator op, List<TypeObject> args) {
+    public ParametricType(Location location, ParametricInfo info, Operator op, List<TypeObject> args) {
         this.op = op;
         this.info = info;
         this.args = args;
@@ -47,7 +47,7 @@ public class ParametricType extends AbstractType {
         this.location = location;
     }
 
-    public ParametricType(Location location, TypeInfo info, Optional<TypeDefinition> definition,
+    public ParametricType(Location location, ParametricInfo info, Optional<TypeDefinition> definition,
             Operator op, List<TypeObject> args) {
         this.op = op;
         this.info = info;

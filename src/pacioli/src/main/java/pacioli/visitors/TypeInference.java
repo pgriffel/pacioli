@@ -40,7 +40,7 @@ import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
 import pacioli.symboltable.IndexSetInfo;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.ParametricInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.FunctionType;
 import pacioli.types.OperatorConst;
@@ -55,16 +55,16 @@ import pacioli.types.matrix.MatrixType;
 public class TypeInference extends IdentityVisitor {
 
     private Stack<Typing> typingStack = new Stack<Typing>();
-    private HashMap<String, TypeInfo> defaultTypes;
+    private HashMap<String, ParametricInfo> defaultTypes;
     private PacioliFile file;
 
-    public TypeInference(HashMap<String, TypeInfo> defaultTypes, PacioliFile file) {
+    public TypeInference(HashMap<String, ParametricInfo> defaultTypes, PacioliFile file) {
         this.defaultTypes = defaultTypes;
         this.file = file;
     }
 
-    private TypeInfo findInfo(String name) {
-        TypeInfo type = defaultTypes.get(name);
+    private ParametricInfo findInfo(String name) {
+        ParametricInfo type = defaultTypes.get(name);
         if (type == null) {
             throw new RuntimeException("Unknown type: " + name);
         }

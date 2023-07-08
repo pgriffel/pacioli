@@ -20,14 +20,14 @@ import pacioli.types.VectorUnitVar;
 import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.ParametricInfo;
 
 public class ReduceTypes implements TypeVisitor {
 
     private Stack<TypeObject> nodeStack = new Stack<TypeObject>();
-    Function<? super TypeInfo, ? extends Boolean> reduceCallback;
+    Function<? super ParametricInfo, ? extends Boolean> reduceCallback;
 
-    public ReduceTypes(Function<? super TypeInfo, ? extends Boolean> reduceCallback) {
+    public ReduceTypes(Function<? super ParametricInfo, ? extends Boolean> reduceCallback) {
         this.reduceCallback = reduceCallback;
     }
 

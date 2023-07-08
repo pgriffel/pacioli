@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.types.IndexSetVar;
+import pacioli.types.OperatorVar;
 import pacioli.types.ScalarUnitVar;
 import pacioli.types.TypeVar;
 import pacioli.types.Var;
@@ -51,6 +52,9 @@ public class TypeContext extends AbstractPrintable {
         Set<Var> vars = new LinkedHashSet<Var>();
         for (String name : typeVars) {
             vars.add(new TypeVar(name));
+        }
+        for (String name : opVars) {
+            vars.add(new OperatorVar(name));
         }
         for (String name : indexVars) {
             vars.add(new IndexSetVar(name));
@@ -77,6 +81,8 @@ public class TypeContext extends AbstractPrintable {
                 unitVars.add(genericVar.pretty());
             } else if (genericVar instanceof TypeVar) {
                 typeVars.add(genericVar.pretty());
+            } else if (genericVar instanceof OperatorVar) {
+                opVars.add(genericVar.pretty());
             } else {
                 throw new RuntimeException("Unknown quantifier: " + genericVar.getClass());
             }
@@ -95,10 +101,15 @@ public class TypeContext extends AbstractPrintable {
         return indexVars.contains(var);
     }
 
+    public boolean containsOpVar(String var) {
+        return opVars.contains(var);
+    }
+
     public void addAll(TypeContext context) {
         addTypeVars(context.typeVars);
         addUnitVars(context.unitVars);
         addIndexVars(context.indexVars);
+        addOpVars(context.opVars);
     }
 
     public void addTypeVar(String var) {
@@ -135,9 +146,17 @@ public class TypeContext extends AbstractPrintable {
         }
     }
 
+    public void addOpVars(List<String> vars) {
+        for (String var : vars) {
+            opVars.add(var);
+        }
+    }
+
     @Override
     public void printPretty(PrintWriter out) {
-        String quant = quantified("for_type", typeVars) + quantified("for_index", indexVars)
+        String quant = quantified("for_op", opVars)
+                + quantified("for_type", typeVars)
+                + quantified("for_index", indexVars)
                 + quantified("for_unit", unitVars);
         out.print(quant);
         if (quant.length() > 30 && Pacioli.Options.wrapTypes) {

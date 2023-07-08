@@ -16,7 +16,8 @@ import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.TypeVarInfo;
+import pacioli.symboltable.ParametricInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorBaseInfo;
 import pacioli.visitors.PythonGenerator;
@@ -113,7 +114,12 @@ public class PythonCompiler implements SymbolTableVisitor {
     }
 
     @Override
-    public void visit(TypeInfo info) {
+    public void visit(TypeVarInfo typeVarInfo) {
+        throw new RuntimeException("Cannot compile a type definition.");
+    }
+
+    @Override
+    public void visit(ParametricInfo info) {
         throw new RuntimeException("Cannot compile a type definition.");
     }
 
@@ -542,4 +548,5 @@ public class PythonCompiler implements SymbolTableVisitor {
             "def glbl_numpy_iris_knn_predict(classifier, data):\n" +
             "    return classifier.predict(np.reshape(data, [1, data.shape[0]]))\n" +
             "\n";
+
 }

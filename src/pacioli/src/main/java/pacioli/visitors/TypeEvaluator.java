@@ -15,7 +15,7 @@ import pacioli.ast.definition.TypeDefinition;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolInfo;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.ParametricInfo;
 import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
@@ -205,19 +205,20 @@ public class TypeEvaluator extends IdentityVisitor {
         ParametricType paramType = (ParametricType) typeAccept(node.op);
         Operator opType = paramType.op;
         if (!definition.isPresent()) {
-            if (!(node.op.info instanceof TypeInfo)) {
+            if (!(node.op.info instanceof ParametricInfo)) {
                 throw new RuntimeException("Expected type info",
                         new PacioliException(node.getLocation(), "Invalid info"));
             }
-            returnType(new ParametricType(node.getLocation(), (TypeInfo) node.op.info, opType, types));
+            returnType(new ParametricType(node.getLocation(), (ParametricInfo) node.op.info, opType, types));
         } else {
             assert (definition.get() instanceof TypeDefinition);
             TypeDefinition typeDefinition = (TypeDefinition) definition.get();
             // TypeInfo typeInfo = (TypeInfo) node.op.info;
             // TypeInfo info = new TypeInfo(typeInfo.name(), null, typeInfo.isGlobal(),
             // node.getLocation());
-            returnType(new ParametricType(node.getLocation(), (TypeInfo) node.op.info, Optional.of(typeDefinition),
-                    opType, types));
+            returnType(
+                    new ParametricType(node.getLocation(), (ParametricInfo) node.op.info, Optional.of(typeDefinition),
+                            opType, types));
         }
     }
 
@@ -233,8 +234,8 @@ public class TypeEvaluator extends IdentityVisitor {
         if (!info.isGlobal()) {
 
             // Create a type for each different kind of type variable
-            if (info instanceof TypeInfo) {
-                returnType(new TypeVar((TypeInfo) info));
+            if (info instanceof ParametricInfo) {
+                returnType(new TypeVar((ParametricInfo) info));
             } else if (info instanceof ScalarBaseInfo) {
                 returnType(new MatrixType(new ScalarUnitVar((ScalarBaseInfo) info)));
             } else if (info instanceof VectorBaseInfo) {
@@ -253,7 +254,7 @@ public class TypeEvaluator extends IdentityVisitor {
             IndexSetInfo indexSetInfo = (IndexSetInfo) info;
             TypeIdentifier id = new TypeIdentifier(indexSetInfo.generic().getModule(), node.getName());
             returnType(new IndexType(id, indexSetInfo));
-        } else if (info instanceof TypeInfo) {
+        } else if (info instanceof ParametricInfo) {
             // TypeApplicationNode app = new TypeApplicationNode(node.getLocation(), node,
             // new LinkedList<TypeNode>());
             // this.handleParametric(app, new ArrayList<TypeObject>());
@@ -261,7 +262,8 @@ public class TypeEvaluator extends IdentityVisitor {
             TypeIdentifier typeId = new TypeIdentifier(info.generic().getModule(), node.getName());
             OperatorConst id = new OperatorConst(typeId);
             // this.handleParametric(app, new ArrayList<PacioliType>());
-            returnType(new ParametricType(node.getLocation(), (TypeInfo) info, ((TypeInfo) info).getDefinition(),
+            returnType(new ParametricType(node.getLocation(), (ParametricInfo) info,
+                    ((ParametricInfo) info).getDefinition(),
                     id, new ArrayList<TypeObject>()));
         } else {
             assert (info instanceof ScalarBaseInfo);

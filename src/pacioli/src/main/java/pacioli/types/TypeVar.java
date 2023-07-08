@@ -31,17 +31,17 @@ import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Substitution;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.ParametricInfo;
 import uom.BaseUnit;
 
 public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
 
     private final String name;
-    private final Optional<TypeInfo> info;
+    private final Optional<ParametricInfo> info;
 
     // Constructors
 
-    public TypeVar(TypeInfo info) {
+    public TypeVar(ParametricInfo info) {
         name = info.name();
         this.info = Optional.of(info);
     }
@@ -114,7 +114,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
     }
 
     @Override
-    public TypeInfo getInfo() {
+    public ParametricInfo getInfo() {
         if (info.isPresent()) {
             return info.get();
         } else {

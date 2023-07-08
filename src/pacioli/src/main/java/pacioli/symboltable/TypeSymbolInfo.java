@@ -1,4 +1,4 @@
 package pacioli.symboltable;
 
-public sealed interface TypeSymbolInfo extends SymbolInfo permits TypeInfo, UnitInfo, IndexSetInfo  {
+public sealed interface TypeSymbolInfo extends SymbolInfo permits ParametricInfo, UnitInfo, IndexSetInfo, TypeVarInfo {
 }

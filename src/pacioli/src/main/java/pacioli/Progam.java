@@ -18,7 +18,7 @@ import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.ParametricInfo;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
@@ -200,7 +200,7 @@ public class Progam extends AbstractPrintable {
             }
         }
         for (TypeSymbolInfo nfo : typess.allInfos()) {
-            if (nfo instanceof TypeInfo) {
+            if (nfo instanceof ParametricInfo) {
                 boolean fromProgram = nfo.generic().getModule().equals(file.getModule());
                 if (fromProgram && nfo.getDefinition().isPresent()) {
                     Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving type %s", nfo.globalName());

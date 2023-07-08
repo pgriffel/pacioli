@@ -19,7 +19,8 @@ import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.symboltable.TypeInfo;
+import pacioli.symboltable.TypeVarInfo;
+import pacioli.symboltable.ParametricInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.TypeBase;
@@ -151,7 +152,7 @@ public class JSCompiler implements SymbolTableVisitor {
     }
 
     @Override
-    public void visit(TypeInfo info) {
+    public void visit(ParametricInfo info) {
         throw new RuntimeException("Cannot compile a type definition.");
     }
 
@@ -207,6 +208,11 @@ public class JSCompiler implements SymbolTableVisitor {
     @Override
     public void visit(AliasInfo info) {
         throw new RuntimeException("Cannot compile an alias. It must have been substituted by now.");
+    }
+
+    @Override
+    public void visit(TypeVarInfo info) {
+        throw new RuntimeException("Cannot compile a type definition.");
     }
 
 }
