@@ -112,6 +112,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "for_index"       { return symbol("for_index",FORINDEX); }
   "for_unit"        { return symbol("for_unit",FORUNIT); }
   "for_op"          { return symbol("for_op",FOROP); }
+  "where"           { return symbol("where",WHERE); }
 
   /* literals */
   {Natural}         { return symbol("Natural", NATURAL, yytext()); }

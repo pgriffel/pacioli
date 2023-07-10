@@ -321,7 +321,7 @@ terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK
 terminal PLUS, MULT, DIV, MOD, MMULT, HAT, NEG, LEFTDIV, MDIV, MEXPT, MLEFTDIV;
 terminal RSCALEDOWN, RSCALE, LSCALEDOWN, LSCALE, TRANS, DIMINV, RECI;
 terminal EQL, NEQ, EQUIV, LE, GT, LEQ, GTQ, AND, OR, IMPLIES, FOLLOWSFROM;
-terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING, QUESTIONMARKS;
+terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING, QUESTIONMARKS, WHERE;
 
 
 non terminal ProgramNode             program;
@@ -351,6 +351,7 @@ non terminal List<ExpressionNode>    statements;
 non terminal SequenceNode            sequence;
 non terminal ExpressionNode          statement, stm_if_tail;
 non terminal                         quali;
+non terminal List<TypeNode>          classcondition, conditions;
 
 precedence right TO;
 precedence nonassoc  EQUIV, FOLLOWSFROM, IMPLIES;
@@ -748,27 +749,37 @@ part ::=
 //------------------------------------------------------------------------------
 
 schema ::=
-    FORTYPE:f ids:ids COLON schema:s                {: TypeContext context = s.context;
+    FORTYPE:f ids:ids classcondition COLON schema:s                {: TypeContext context = s.context;
                                                        for (IdentifierNode id: ids) {
               		                                   context.addTypeVar(id.getName());
                                                        }
                                                        RESULT = new SchemaNode(makeLoc(fxleft, sxright), context , s.type); :}
-  | FORINDEX:f ids:ids COLON schema:s               {: TypeContext context = s.context;
+  | FORINDEX:f ids:ids classcondition COLON schema:s               {: TypeContext context = s.context;
                                                        for (IdentifierNode id: ids) {
               		                                   context.addIndexVar(id.getName());
                                                        }
                                                        RESULT = new SchemaNode(makeLoc(fxleft, sxright), context , s.type); :}
-  | FORUNIT:f vars:vs COLON schema:s                {: TypeContext context = s.context;
+  | FORUNIT:f vars:vs classcondition COLON schema:s                {: TypeContext context = s.context;
                                                        for (String v: vs) {
               		                                   context.addUnitVar(v);
                                                        }
                                                        RESULT = new SchemaNode(makeLoc(fxleft, sxright), context , s.type); :}
-  | FOROP:f vars:vs COLON schema:s                  {: TypeContext context = s.context;
+  | FOROP:f vars:vs classcondition COLON schema:s                  {: TypeContext context = s.context;
                                                        for (String v: vs) {
               		                                   context.addOpVar(v);
                                                        }
                                                        RESULT = new SchemaNode(makeLoc(fxleft, sxright), context , s.type); :}
   | type:t                                          {: RESULT = new SchemaNode(makeLoc(txleft, txright), new TypeContext(), t); :}
+  ;
+
+classcondition ::=
+    WHERE conditions:cs                             {: RESULT = List.of(); :}
+  |                                                 {: RESULT = List.of(); :}
+  ;
+  
+conditions ::=
+    conditions:cs AND typeid:id idlist:ts         {: RESULT = List.of(); :}
+  | typeid:id idlist:ts                           {: RESULT = List.of(); :}
   ;
 
 vars ::= 

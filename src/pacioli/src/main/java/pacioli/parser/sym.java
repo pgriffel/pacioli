@@ -59,6 +59,7 @@ public interface sym {
   public static final int RSCALEDOWN = 58;
   public static final int EOF = 0;
   public static final int SEMICOLON = 37;
+  public static final int WHERE = 82;
   public static final int RPAR = 41;
   public static final int DOC = 12;
   public static final int DEFMATRIX = 9;
@@ -172,7 +173,8 @@ public interface sym {
   "DECIMAL",
   "IDENTIFIER",
   "STRING",
-  "QUESTIONMARKS"
+  "QUESTIONMARKS",
+  "WHERE"
   };
 }
 
