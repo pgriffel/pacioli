@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Stack;
 import java.util.function.Function;
 
+import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
@@ -81,13 +82,15 @@ public class ReduceTypes implements TypeVisitor {
             items.add(typeNodeAccept(arg));
         }
         try {
-            ParametricType opType = new ParametricType(type.location, type.info, type.definition, type.op, items);
-            boolean reduce = type.definition.isPresent() && reduceCallback.apply(type.info);
+            ParametricType opType = new ParametricType(type.location, type.definition, type.op, items);
+            boolean reduce = type.definition.isPresent() && reduceCallback.apply(type.op.getInfo());
             // Pacioli.log("Reduce for %s = %s %s", type.name, reduce,
             // type.info.generic().getModule());
             if (!reduce) {
                 returnTypeNode(opType);
             } else {
+                TypeObject reduced = type.definition.get().constaint().reduce(opType).reduce(reduceCallback);
+                Pacioli.logIf(Pacioli.Options.showTypeReductions, "Reduced %s to %s", type.pretty(), reduced.pretty());
                 returnTypeNode(type.definition.get().constaint().reduce(opType).reduce(reduceCallback));
             }
         } catch (PacioliException e) {

@@ -2,6 +2,8 @@ package pacioli.types.visitors;
 
 import pacioli.Substitution;
 import pacioli.types.IndexSetVar;
+import pacioli.types.OperatorVar;
+import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
 import pacioli.types.Schema;
 import pacioli.types.TypeObject;
@@ -44,6 +46,16 @@ public class SubstituteVisitor extends TransformType {
     @Override
     public void visit(TypeVar type) {
         returnTypeNode(substitution.apply((TypeObject) type));
+    }
+
+    @Override
+    public void visit(OperatorVar type) {
+        TypeObject substituted = substitution.apply((TypeObject) type);
+        if (substituted instanceof ParametricType) {
+            returnTypeNode(substitution.apply((TypeObject) type));
+        } else {
+            returnTypeNode(substituted);
+        }
     }
 
     @Override

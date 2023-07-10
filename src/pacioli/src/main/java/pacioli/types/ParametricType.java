@@ -35,22 +35,22 @@ public class ParametricType extends AbstractType {
 
     public final Operator op;
     public final List<TypeObject> args;
-    public final ParametricInfo info;
+    // public final ParametricInfo info;
     public final Location location;
     public final Optional<TypeDefinition> definition;
 
-    public ParametricType(Location location, ParametricInfo info, Operator op, List<TypeObject> args) {
+    public ParametricType(Location location, Operator op, List<TypeObject> args) {
         this.op = op;
-        this.info = info;
+        // this.info = info;
         this.args = args;
         this.definition = Optional.empty();
         this.location = location;
     }
 
-    public ParametricType(Location location, ParametricInfo info, Optional<TypeDefinition> definition,
+    public ParametricType(Location location, Optional<TypeDefinition> definition,
             Operator op, List<TypeObject> args) {
         this.op = op;
-        this.info = info;
+        // this.info = info;
         this.args = args;
         this.definition = definition;
         this.location = location;
@@ -62,7 +62,7 @@ public class ParametricType extends AbstractType {
     }
 
     public String getName() {
-        return info.name();
+        return op.getName();
     }
 
     @Override

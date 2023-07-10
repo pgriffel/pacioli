@@ -72,22 +72,22 @@ public class TypeInference extends IdentityVisitor {
     }
 
     private ParametricType newVoidType() {
-        return new ParametricType(null, findInfo("Void"), new OperatorConst(new TypeIdentifier("base", "Void")),
+        return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "Void"), findInfo("Void")),
                 new ArrayList<TypeObject>());
     }
 
     private ParametricType newBooleType() {
-        return new ParametricType(null, findInfo("Boole"), new OperatorConst(new TypeIdentifier("base", "Boole")),
+        return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "Boole"), findInfo("Boole")),
                 new ArrayList<TypeObject>());
     }
 
     private ParametricType newStringType() {
-        return new ParametricType(null, findInfo("String"), new OperatorConst(new TypeIdentifier("base", "String")),
+        return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "String"), findInfo("String")),
                 new ArrayList<TypeObject>());
     }
 
     private ParametricType newTupleType(List<TypeObject> args) {
-        return new ParametricType(null, findInfo("Tuple"), new OperatorConst(new TypeIdentifier("base", "Tuple")),
+        return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "Tuple"), findInfo("Tuple")),
                 args);
     }
 

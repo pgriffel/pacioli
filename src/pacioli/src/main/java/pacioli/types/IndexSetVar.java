@@ -117,7 +117,7 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
     @Override
     public String pretty() {
         // should be done in unfresh
-        if (!name.isEmpty()) {
+        if (false && !name.isEmpty()) {
             String first = name.substring(0, 1);
             return first.toUpperCase() + name.substring(1);
         } else {

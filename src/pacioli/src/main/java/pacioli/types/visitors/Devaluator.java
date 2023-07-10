@@ -158,7 +158,8 @@ public class Devaluator implements TypeVisitor {
         }
         // throw new RuntimeException("todo: " + type.getClass());
         returnTypeNode(new TypeApplicationNode(new Location(),
-                new TypeIdentifierNode(type.location, type.info.name()),
+                // new TypeIdentifierNode(type.location, type.op.getInfo().name()),
+                (TypeIdentifierNode) typeNodeAccept(type.op),
                 args));
     }
 
@@ -183,15 +184,17 @@ public class Devaluator implements TypeVisitor {
     }
 
     @Override
-    public void visit(OperatorConst operatorConst) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public void visit(OperatorConst type) {
+        returnTypeNode(new TypeIdentifierNode(new Location(), type.getName(), type.getInfo()));
     }
 
     @Override
-    public void visit(OperatorVar operatorVar) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public void visit(OperatorVar type) {
+        if (type.isFresh()) {
+            returnTypeNode(new TypeIdentifierNode(new Location(), type.getName()));
+        } else {
+            returnTypeNode(new TypeIdentifierNode(new Location(), type.getName(), type.getInfo()));
+        }
     }
 
 }

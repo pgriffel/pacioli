@@ -33,6 +33,7 @@ import pacioli.ast.expression.ApplicationNode;
 import pacioli.types.TypeObject;
 import pacioli.types.UnitVar;
 import pacioli.types.OperatorConst;
+import pacioli.types.OperatorVar;
 import pacioli.types.TypeBase;
 import pacioli.types.Var;
 import pacioli.types.matrix.MatrixType;
@@ -164,7 +165,7 @@ public class ConstraintSet extends AbstractPrintable {
         if (lhsVar || rhsVar || lhs.getClass().equals(rhs.getClass())) {
             this.equalityConstaints.add(new EqualityConstraint(lhs, rhs, text));
         } else {
-            throw new RuntimeException(
+            throw new PacioliException(
                     String.format("Cannot unify class %s and class %s", lhs.getClass(), rhs.getClass()));
         }
     }
@@ -223,10 +224,6 @@ public class ConstraintSet extends AbstractPrintable {
                     constraint.dimension,
                     constraint.matrixType.pretty());
         }
-    }
-
-    public Substitution solve() throws PacioliException {
-        return solve(false);
     }
 
     public Substitution solve(Boolean verbose) throws PacioliException {

@@ -55,7 +55,7 @@ public class VisitType implements TypeVisitor {
 
     @Override
     public void visit(ParametricType type) {
-        // type.op.accept(this);
+        type.op.accept(this);
         for (TypeObject arg : type.args) {
             arg.accept(this);
         }
@@ -85,8 +85,8 @@ public class VisitType implements TypeVisitor {
 
     @Override
     public void visit(OperatorVar operatorVar) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+        // // TODO Auto-generated method stub
+        // throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
 }

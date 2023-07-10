@@ -84,7 +84,7 @@ public class TransformType implements TypeVisitor {
             // TODO error on cast error!?
             items.add((TypeObject) typeNodeAccept(arg));
         }
-        ParametricType opType = new ParametricType(type.location, type.info,
+        ParametricType opType = new ParametricType(type.location,
                 type.definition,
                 (Operator) typeNodeAccept(type.op),
                 items);

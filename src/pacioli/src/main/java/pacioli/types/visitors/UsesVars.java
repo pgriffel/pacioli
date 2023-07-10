@@ -101,6 +101,7 @@ public class UsesVars implements TypeVisitor {
     @Override
     public void visit(ParametricType type) {
         Set<Var> all = new LinkedHashSet<Var>();
+        all.addAll(varSetAccept(type.op));
         for (TypeObject arg : type.args) {
             all.addAll(varSetAccept(arg));
         }

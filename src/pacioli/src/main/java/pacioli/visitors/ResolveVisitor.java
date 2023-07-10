@@ -48,6 +48,7 @@ import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.ParametricInfo;
 import pacioli.symboltable.TypeSymbolInfo;
+import pacioli.symboltable.TypeVarInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorBaseInfo;
@@ -499,7 +500,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
         // Add info records for all variables
         for (String arg : context.typeVars) {
-            table.put(arg, new ParametricInfo(arg, file, false, location));
+            table.put(arg, new TypeVarInfo(arg, file, false, location));
         }
         for (String arg : context.opVars) {
             table.put(arg, new ParametricInfo(arg, file, false, location));
@@ -542,29 +543,37 @@ public class ResolveVisitor extends IdentityVisitor {
         }
 
         // See what kind of info it is
-        Boolean isType = typeInfo instanceof ParametricInfo;
-        Boolean isUnit = typeInfo instanceof UnitInfo;
-        Boolean isIndexSet = typeInfo instanceof IndexSetInfo;
+        // Boolean isTypeVar = typeInfo instanceof TypeVarInfo;
+        // Boolean isParametric = typeInfo instanceof ParametricInfo;
+        // Boolean isUnit = typeInfo instanceof UnitInfo;
+        // Boolean isIndexSet = typeInfo instanceof IndexSetInfo;
 
-        // Check for ambiguities and store the info in the node
-        if (isType) {
-            if (isUnit || isIndexSet) {
-                visitorThrow(node.getLocation(), "Type variable '" + name + "' ambiguous");
-            }
-            node.info = typeInfo;
-        } else if (isUnit) {
-            if (isType || isIndexSet) {
-                visitorThrow(node.getLocation(), "Type variable '" + name + "' ambiguous");
-            }
-            node.info = typeInfo;
-        } else if (isIndexSet) {
-            if (isType || isUnit) {
-                visitorThrow(node.getLocation(), "Type variable '" + name + "' ambiguous");
-            }
-            node.info = typeInfo;
-        } else {
-            visitorThrow(node.getLocation(), "huh");
-        }
+        node.info = typeInfo;
+
+        // // Check for ambiguities and store the info in the node
+        // if (isTypeVar) {
+        // if (isUnit || isIndexSet) {
+        // visitorThrow(node.getLocation(), "Type variable '" + name + "' ambiguous");
+        // }
+        // node.info = typeInfo;
+        // } else if (isParametric) {
+        // if (isTypeVar || isIndexSet) {
+        // visitorThrow(node.getLocation(), "Type variable '" + name + "' ambiguous");
+        // }
+        // node.info = typeInfo;
+        // } else if (isUnit) {
+        // if (isTypeVar || isIndexSet) {
+        // visitorThrow(node.getLocation(), "Type variable '" + name + "' ambiguous");
+        // }
+        // node.info = typeInfo;
+        // } else if (isIndexSet) {
+        // if (isTypeVar || isUnit) {
+        // visitorThrow(node.getLocation(), "Type variable '" + name + "' ambiguous");
+        // }
+        // node.info = typeInfo;
+        // } else {
+        // visitorThrow(node.getLocation(), "huh");
+        // }
     }
 
     /*

@@ -24,9 +24,13 @@ package pacioli;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import pacioli.types.IndexSetVar;
+import pacioli.types.OperatorConst;
+import pacioli.types.OperatorVar;
 import pacioli.types.TypeObject;
+import pacioli.types.TypeVar;
 import pacioli.types.ParametricType;
 import pacioli.types.Var;
 import pacioli.types.VectorUnitVar;
@@ -48,6 +52,8 @@ public class TypeConstraint extends AbstractPrintable {
     }
 
     public TypeObject reduce(ParametricType type) throws PacioliException {
+        Pacioli.logIf(Pacioli.Options.showTypeReductions, "Reducing %s with %s and %s",
+                lhs.pretty(), rhs.pretty(), type.pretty());
         if (lhs.getArgs().size() != type.args.size()) {
             throw new PacioliException(type.location, "Type function %s expects %s arguments but found %s",
                     type.getName(),
@@ -59,8 +65,15 @@ public class TypeConstraint extends AbstractPrintable {
             TypeObject arg = type.args.get(i);
             if (var instanceof TypeIdentifierNode) {
                 TypeObject varType = var.evalType();
-                if (varType instanceof Var) {
+                if (varType instanceof OperatorVar) {
+                    if (arg instanceof ParametricType) {
+                        map.put((Var) varType, ((ParametricType) arg).op);
+                    } else {
+                        map.put((Var) varType, arg);
+                    }
+                } else if (varType instanceof Var) {
                     map.put((Var) varType, arg);
+
                 } else if (varType instanceof IndexType) {
                     if (arg instanceof IndexType) {
                         map.put((Var) ((IndexType) varType).getIndexSet(), ((IndexType) arg).getIndexSet());
@@ -94,6 +107,10 @@ public class TypeConstraint extends AbstractPrintable {
                 throw new PacioliException(var.getLocation(),
                         "Type definitions's parameter should be a variable or a unitvec %s");
             }
+        }
+        for (Entry<Var, Object> entry : map.entrySet()) {
+            Pacioli.logIf(Pacioli.Options.showTypeReductions, "  reduce: %s -> %s",
+                    entry.getKey().pretty(), entry.getValue());
         }
         return rhs.applySubstitution(new Substitution(map));
     }

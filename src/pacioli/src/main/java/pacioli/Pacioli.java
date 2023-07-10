@@ -58,6 +58,7 @@ public class Pacioli {
         public static boolean showIncludeSearches = false;
         public static boolean logTypeInference = false;
         public static boolean logTypeInferenceDetails = false;
+        public static boolean showTypeReductions = false;
         public static boolean dumpOnMVMError = true;
         public static boolean logGeneratingCode = false;
         public static boolean showModifiedFiles = false;
