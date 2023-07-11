@@ -40,6 +40,7 @@ import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.unit.*;
 import pacioli.types.ast.*;
 import pacioli.TypeContext;
+import pacioli.symboltable.SymbolTable;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 
 parser code {:
@@ -314,7 +315,7 @@ parser code {:
 
 
 terminal INCLUDE, IMPORT;
-terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DOC, EXPORT, PUBLIC;
+terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC, EXPORT, PUBLIC;
 terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, DO, ASSIGN, EXCL, TO, FROM;
 terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, FOROP, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
@@ -340,6 +341,7 @@ non terminal List<UnitDecl>          unitvec, unitvec_parts;
 non terminal List<ValueDecl>         matrix_parts, matrix;
 non terminal TypeNode                type, matrix_type, dim_type;
 non terminal SchemaNode              schema;
+non terminal TypeContext             vardecls;
 non terminal List<TypeNode>          types, typelist;
 non terminal String                  var;
 non terminal List<String>            vars;
@@ -352,6 +354,8 @@ non terminal SequenceNode            sequence;
 non terminal ExpressionNode          statement, stm_if_tail;
 non terminal                         quali;
 non terminal List<TypeNode>          classcondition, conditions;
+non terminal List<MultiDeclaration>  classmembers;
+non terminal List<MultiDeclaration>  classmemberdefs;
 
 precedence right TO;
 precedence nonassoc  EQUIV, FOLLOWSFROM, IMPLIES;
@@ -437,6 +441,8 @@ command ::=
  | DOC:d id:id STRING:s                            {: pacioli.Location loc = makeLoc(dxleft, sxright);
                                                        RESULT = new Documentation(loc, id, new StringNode(s, makeLoc(sxleft, sxright))); :}
  | expr:e                                           {: RESULT = new Toplevel(e.getLocation(), e); :}
+ | DEFCLASS id:id typelist:ids vardecls:v classmembers:e                                           {: RESULT = new Documentation(id.getLocation(), new IdentifierNode(SymbolTable.freshVarName(), id.getLocation()), new StringNode("", id.getLocation())); :}
+ | DEFINSTANCE id:id typelist:ids vardecls:v classmemberdefs:e                                           {: RESULT = new Documentation(id.getLocation(), new IdentifierNode(SymbolTable.freshVarName(), id.getLocation()), new StringNode("", id.getLocation())); :}
  ;
 
 quali ::=  
@@ -444,6 +450,16 @@ quali ::=
  | PUBLIC {: RESULT = true; :}
  | /* empty */
  ;
+
+classmembers ::=
+    ids:ids DBLCLN schema:s COMMA classmembers:ms          {: RESULT = List.of(); :}
+    | ids:ids DBLCLN schema:s                      {: RESULT = List.of(); :}
+    ;
+
+classmemberdefs ::=
+    id:id idlist:ids EQL expr:e COMMA classmemberdefs:ms          {: RESULT = List.of(); :}
+    | id:id idlist:ids EQL expr:e                      {: RESULT = List.of(); :}
+    ;
 
 //------------------------------------------------------------------------------
 // Include path
@@ -749,27 +765,30 @@ part ::=
 //------------------------------------------------------------------------------
 
 schema ::=
-    FORTYPE:f ids:ids classcondition COLON schema:s                {: TypeContext context = s.context;
-                                                       for (IdentifierNode id: ids) {
-              		                                   context.addTypeVar(id.getName());
-                                                       }
-                                                       RESULT = new SchemaNode(makeLoc(fxleft, sxright), context , s.type); :}
-  | FORINDEX:f ids:ids classcondition COLON schema:s               {: TypeContext context = s.context;
-                                                       for (IdentifierNode id: ids) {
-              		                                   context.addIndexVar(id.getName());
-                                                       }
-                                                       RESULT = new SchemaNode(makeLoc(fxleft, sxright), context , s.type); :}
-  | FORUNIT:f vars:vs classcondition COLON schema:s                {: TypeContext context = s.context;
-                                                       for (String v: vs) {
-              		                                   context.addUnitVar(v);
-                                                       }
-                                                       RESULT = new SchemaNode(makeLoc(fxleft, sxright), context , s.type); :}
-  | FOROP:f vars:vs classcondition COLON schema:s                  {: TypeContext context = s.context;
-                                                       for (String v: vs) {
-              		                                   context.addOpVar(v);
-                                                       }
-                                                       RESULT = new SchemaNode(makeLoc(fxleft, sxright), context , s.type); :}
-  | type:t                                          {: RESULT = new SchemaNode(makeLoc(txleft, txright), new TypeContext(), t); :}
+    vardecls:c type:t                               {: RESULT = new SchemaNode(makeLoc(txleft, txright), c, t); :};
+
+vardecls ::=
+    FORTYPE:f ids:ids classcondition COLON vardecls:s  {:  TypeContext context = s;
+                                                            for (IdentifierNode id: ids) {
+              		                                            context.addTypeVar(id.getName());
+                                                            }
+                                                            RESULT = context; :}
+  | FORINDEX:f ids:ids classcondition COLON vardecls:s {:  TypeContext context = s;
+                                                            for (IdentifierNode id: ids) {
+              		                                            context.addIndexVar(id.getName());
+                                                            }
+                                                            RESULT = context; :}
+  | FORUNIT:f vars:vs classcondition COLON vardecls:s  {:  TypeContext context = s;
+                                                            for (String v: vs) {
+              		                                            context.addUnitVar(v);
+                                                            }
+                                                            RESULT = context; :}
+  | FOROP:f ids:vs classcondition COLON vardecls:s    {:  TypeContext context = s;
+                                                            for (IdentifierNode id: vs) {
+              		                                          context.addOpVar(id.getName());
+                                                            }
+                                                            RESULT = context; :}
+  |                                                     {:  RESULT = new TypeContext(); :}
   ;
 
 classcondition ::=
