@@ -10,6 +10,7 @@ import pacioli.ast.Node;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.AliasDefinition;
+import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Documentation;
@@ -21,6 +22,7 @@ import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.ast.definition.ValueEquation;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
@@ -686,5 +688,17 @@ public class PrintVisitor implements Visitor {
     public void visit(Documentation docu) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public void visit(ClassDefinition classDefinition) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public void accept(ValueEquation valueEquation) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'accept'");
     }
 }

@@ -16,6 +16,7 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.symboltable.AliasInfo;
+import pacioli.symboltable.ClassInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolTableVisitor;
@@ -213,6 +214,12 @@ public class JSCompiler implements SymbolTableVisitor {
     @Override
     public void visit(TypeVarInfo info) {
         throw new RuntimeException("Cannot compile a type definition.");
+    }
+
+    @Override
+    public void visit(ClassInfo classInfo) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
 }

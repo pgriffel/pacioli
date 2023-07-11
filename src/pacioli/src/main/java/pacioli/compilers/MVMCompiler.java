@@ -15,6 +15,7 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.symboltable.AliasInfo;
+import pacioli.symboltable.ClassInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolTableVisitor;
@@ -133,6 +134,12 @@ public class MVMCompiler implements SymbolTableVisitor {
     @Override
     public void visit(TypeVarInfo info) {
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling type %s", info.globalName());
+    }
+
+    @Override
+    public void visit(ClassInfo classInfo) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
 }

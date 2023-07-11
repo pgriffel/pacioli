@@ -1,6 +1,7 @@
 package pacioli.ast;
 
 import pacioli.ast.definition.AliasDefinition;
+import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
@@ -10,6 +11,7 @@ import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.ast.definition.ValueEquation;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
@@ -155,4 +157,8 @@ public interface Visitor {
     void visit(IdListNode node);
 
     void visit(Documentation docu);
+
+    void visit(ClassDefinition classDefinition);
+
+    void accept(ValueEquation valueEquation);
 }

@@ -12,6 +12,7 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.symboltable.AliasInfo;
+import pacioli.symboltable.ClassInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolInfo;
@@ -565,6 +566,12 @@ public class MATLABCompiler implements SymbolTableVisitor {
             "\n" +
 
             "";
+
+    @Override
+    public void visit(ClassInfo classInfo) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
 
     // -------------------------------------------------------------------------
     // Matlab primitives

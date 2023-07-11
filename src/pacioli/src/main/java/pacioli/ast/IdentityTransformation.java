@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Stack;
 
 import pacioli.ast.definition.AliasDefinition;
+import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Documentation;
@@ -15,6 +16,7 @@ import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.ast.definition.ValueEquation;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
@@ -179,6 +181,15 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(ValueDefinition node) {
         returnNode(node.transform(expAccept(node.body)));
+    }
+
+    @Override
+    public void visit(ClassDefinition node) {
+        List<ValueEquation> members = new ArrayList<>();
+        for (ValueEquation member : node.members) {
+            members.add((ValueEquation) nodeAccept(member));
+        }
+        returnNode(new ClassDefinition(node.getLocation(), (SchemaNode) expAccept(node.definedClass), members));
     }
 
     @Override
@@ -424,6 +435,11 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(Documentation node) {
         returnNode(node.transform(expAccept(node.body)));
+    }
+
+    @Override
+    public void accept(ValueEquation node) {
+        returnNode(new ValueEquation(node.getLocation(), (IdentifierNode) nodeAccept(node.id), expAccept(node.body)));
     }
 
 }

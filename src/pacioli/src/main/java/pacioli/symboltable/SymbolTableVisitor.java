@@ -15,4 +15,6 @@ public interface SymbolTableVisitor {
     void visit(AliasInfo info);
 
     void visit(TypeVarInfo typeVarInfo);
+
+    void visit(ClassInfo classInfo);
 }

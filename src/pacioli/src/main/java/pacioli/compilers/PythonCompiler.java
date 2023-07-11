@@ -12,6 +12,7 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.symboltable.AliasInfo;
+import pacioli.symboltable.ClassInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolInfo;
@@ -548,5 +549,11 @@ public class PythonCompiler implements SymbolTableVisitor {
             "def glbl_numpy_iris_knn_predict(classifier, data):\n" +
             "    return classifier.predict(np.reshape(data, [1, data.shape[0]]))\n" +
             "\n";
+
+    @Override
+    public void visit(ClassInfo classInfo) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
 
 }

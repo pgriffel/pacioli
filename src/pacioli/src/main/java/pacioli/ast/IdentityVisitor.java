@@ -1,8 +1,12 @@
 package pacioli.ast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.ast.definition.AliasDefinition;
+import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Documentation;
@@ -14,6 +18,7 @@ import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.ast.definition.ValueEquation;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
@@ -139,6 +144,14 @@ public class IdentityVisitor implements Visitor {
     @Override
     public void visit(ValueDefinition node) {
         node.body.accept(this);
+    }
+
+    @Override
+    public void visit(ClassDefinition node) {
+        node.definedClass.accept(this);
+        for (ValueEquation member : node.members) {
+            member.accept(this);
+        }
     }
 
     @Override
@@ -361,6 +374,12 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(Documentation node) {
+        node.body.accept(this);
+    }
+
+    @Override
+    public void accept(ValueEquation node) {
+        node.id.accept(this);
         node.body.accept(this);
     }
 }
