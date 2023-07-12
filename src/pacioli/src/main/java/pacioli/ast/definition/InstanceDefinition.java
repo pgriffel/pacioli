@@ -27,10 +27,18 @@ import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Progam;
 import pacioli.ast.Visitor;
+import pacioli.types.ParametricType;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
 
-public class ClassDefinition extends AbstractDefinition {
+/**
+ * AST node for a class instance definition.
+ * 
+ * The InstanceDefinition is not a Pacioli definition because it does not
+ * end up in the symbol table. The name would clash with the class name.
+ * Instead the instances are part of the class (and visited via the class).
+ */
+public class InstanceDefinition extends AbstractDefinition {
 
     /**
      * Contains the type class type and the quantified variables with possible
@@ -41,17 +49,16 @@ public class ClassDefinition extends AbstractDefinition {
     /**
      * The overloaded functions
      */
-    public final List<TypeAssertion> members;
+    public final List<ValueEquation> members;
 
-    public ClassDefinition(Location location, SchemaNode definedClass, List<TypeAssertion> members) {
+    public InstanceDefinition(Location location, SchemaNode definedClass, List<ValueEquation> members) {
         super(location);
         this.definedClass = definedClass;
         this.members = members;
     }
 
-    @Override
-    public String localName() {
-        return ((TypeApplicationNode) definedClass.type).getName();
+    public String getName() {
+        return ((ParametricType) definedClass.type).getName();
     }
 
     @Override
@@ -59,11 +66,12 @@ public class ClassDefinition extends AbstractDefinition {
         visitor.visit(this);
     }
 
-    @Override
     public void addToProgr(Progam program) throws PacioliException {
-        // program.typess.put(localName(), new ClassInfo(this, program.file,
-        // getLocation()));
+    }
 
+    @Override
+    public String localName() {
+        return ((TypeApplicationNode) definedClass.type).getName();
     }
 
 }

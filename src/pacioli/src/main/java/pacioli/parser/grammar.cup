@@ -354,8 +354,10 @@ non terminal SequenceNode            sequence;
 non terminal ExpressionNode          statement, stm_if_tail;
 non terminal                         quali;
 non terminal List<TypeNode>          classcondition, conditions;
-non terminal List<MultiDeclaration>  classmembers;
-non terminal List<MultiDeclaration>  classmemberdefs;
+non terminal List<TypeAssertion>     classmembers;
+non terminal List<ValueEquation>     classmemberdefs;
+non terminal ValueEquation           valueeq;
+non terminal TypeAssertion           typeassertion;
 
 precedence right TO;
 precedence nonassoc  EQUIV, FOLLOWSFROM, IMPLIES;
@@ -441,8 +443,8 @@ command ::=
  | DOC:d id:id STRING:s                            {: pacioli.Location loc = makeLoc(dxleft, sxright);
                                                        RESULT = new Documentation(loc, id, new StringNode(s, makeLoc(sxleft, sxright))); :}
  | expr:e                                           {: RESULT = new Toplevel(e.getLocation(), e); :}
- | DEFCLASS id:id typelist:ids vardecls:v classmembers:e                                           {: RESULT = new Documentation(id.getLocation(), new IdentifierNode(SymbolTable.freshVarName(), id.getLocation()), new StringNode("", id.getLocation())); :}
- | DEFINSTANCE id:id typelist:ids vardecls:v classmemberdefs:e                                           {: RESULT = new Documentation(id.getLocation(), new IdentifierNode(SymbolTable.freshVarName(), id.getLocation()), new StringNode("", id.getLocation())); :}
+ | DEFCLASS typeid:id typelist:ids vardecls:v classmembers:e    {: RESULT = new ClassDefinition(id.getLocation(), new SchemaNode(id.getLocation(), v, new TypeApplicationNode(id.getLocation(), id, ids)), e); :}
+ | DEFINSTANCE typeid:id typelist:ids vardecls:v classmemberdefs:e  {: RESULT = new InstanceDefinition(id.getLocation(), new SchemaNode(id.getLocation(), v, new TypeApplicationNode(id.getLocation(), id, ids)), e); :}
  ;
 
 quali ::=  
@@ -452,14 +454,25 @@ quali ::=
  ;
 
 classmembers ::=
-    ids:ids DBLCLN schema:s COMMA classmembers:ms          {: RESULT = List.of(); :}
-    | ids:ids DBLCLN schema:s                      {: RESULT = List.of(); :}
+    classmembers:ms COMMA typeassertion:tas          {: ms.add(tas); RESULT = ms; :}
+    | typeassertion:tas                              {: RESULT = new ArrayList<TypeAssertion>(); RESULT.add(tas); :}
     ;
 
 classmemberdefs ::=
-    id:id idlist:ids EQL expr:e COMMA classmemberdefs:ms          {: RESULT = List.of(); :}
-    | id:id idlist:ids EQL expr:e                      {: RESULT = List.of(); :}
+      classmemberdefs:ms COMMA valueeq:eq               {: ms.add(eq); RESULT = ms; :}
+    | valueeq:eq                                        {: RESULT = new ArrayList<ValueEquation>(); RESULT.add(eq); :}
     ;
+
+typeassertion ::=
+  ids:ids DBLCLN schema:s                          {: RESULT = new TypeAssertion(makeLoc(idsxleft, sxright), ids, s); :}
+  ;
+
+valueeq ::= 
+   id:id EQL expr:e                                {: RESULT = new ValueEquation(makeLoc(idxleft, exright), id, e); :}
+ | id:id idlist:ids EQL expr:e                     {: ExpressionNode function = new LambdaNode(freshUnderscores(idNames(ids)), e, makeLoc(idxleft, exright));
+                                                      RESULT = new ValueEquation(makeLoc(idxleft, exright), id, function); :}
+;
+
 
 //------------------------------------------------------------------------------
 // Include path

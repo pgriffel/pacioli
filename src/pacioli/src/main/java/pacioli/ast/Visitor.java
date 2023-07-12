@@ -5,8 +5,10 @@ import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
@@ -161,4 +163,8 @@ public interface Visitor {
     void visit(ClassDefinition classDefinition);
 
     void accept(ValueEquation valueEquation);
+
+    void visit(InstanceDefinition instanceDefinition);
+
+    void accept(TypeAssertion typeAssertion);
 }

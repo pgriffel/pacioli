@@ -10,8 +10,10 @@ import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
@@ -185,11 +187,20 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(ClassDefinition node) {
+        List<TypeAssertion> members = new ArrayList<>();
+        for (TypeAssertion member : node.members) {
+            members.add((TypeAssertion) nodeAccept(member));
+        }
+        returnNode(new ClassDefinition(node.getLocation(), (SchemaNode) nodeAccept(node.definedClass), members));
+    }
+
+    @Override
+    public void visit(InstanceDefinition node) {
         List<ValueEquation> members = new ArrayList<>();
         for (ValueEquation member : node.members) {
             members.add((ValueEquation) nodeAccept(member));
         }
-        returnNode(new ClassDefinition(node.getLocation(), (SchemaNode) expAccept(node.definedClass), members));
+        returnNode(new InstanceDefinition(node.getLocation(), (SchemaNode) nodeAccept(node.definedClass), members));
     }
 
     @Override
@@ -440,6 +451,17 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void accept(ValueEquation node) {
         returnNode(new ValueEquation(node.getLocation(), (IdentifierNode) nodeAccept(node.id), expAccept(node.body)));
+    }
+
+    @Override
+    public void accept(TypeAssertion node) {
+        List<IdentifierNode> ids = new ArrayList<>();
+        for (IdentifierNode id : node.ids) {
+            Node visited = nodeAccept(id);
+            assert (visited instanceof IdentifierNode);
+            ids.add((IdentifierNode) id);
+        }
+        returnNode(new TypeAssertion(node.getLocation(), ids, (SchemaNode) nodeAccept(node.body)));
     }
 
 }

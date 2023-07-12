@@ -1,0 +1,231 @@
+
+# https://www.cs.tufts.edu/comp/150PLD/Notes/TypeClasses.pdf
+
+# ------------------------------------------------------------------------------
+# Example 1 - Overload equal for strings and numbers
+# ------------------------------------------------------------------------------
+
+# Type class definition
+
+defclass Eq(t) for_type t:
+   equal :: (t, t) -> Boole;
+
+deftype for_type t: EqDict(t) = Tuple((t, t) -> Boole);
+
+declare make_Eq_dict :: for_type t: ((t, t) -> Boole) -> EqDict(t);
+declare dict_equal :: for_type t: (EqDict(t), t, t) -> Boole;
+
+define make_Eq_dict(x) = tuple(x);
+define dict_equal(dict, x, y) = let (eq) = dict in eq(x, y) end;
+
+
+# Type instances for num and string
+
+definstance Eq(a) for_unit a:
+   equal(x, y) = x = y;
+
+definstance Eq(String)
+   equal(x, y) = string_equal(x, y);
+
+declare num_equal_dict :: for_unit a: () -> EqDict(a);
+declare string_equal_dict :: () -> EqDict(String);
+
+define num_equal_dict() = make_Eq_dict((x, y) -> x = y);
+define string_equal_dict() = make_Eq_dict((x, y) -> x = y);
+
+
+# Examples
+
+dict_equal(num_equal_dict(), 1 + 1, 1);
+dict_equal(num_equal_dict(), 1 + 1, 2);
+dict_equal(string_equal_dict(), "foo", "foo");
+dict_equal(string_equal_dict(), "foo", "bar");
+
+
+# A test function
+
+# declare my_test :: for_type t where Eq(t): (t, t) -> String;
+
+declare my_test :: for_type t where Eq(t):
+    (EqDict(t), t, t) -> String;
+
+define my_test(dict, x, y) =
+  if dict_equal(dict, x, y) then "equal" else "not equal" end;
+
+my_test(string_equal_dict(), "foo", "bar");
+my_test(num_equal_dict(), 1, 1);
+
+# ------------------------------------------------------------------------------
+# Example 2 - Overload sum and scale for strings and numbers
+# ------------------------------------------------------------------------------
+
+# Type class definition
+
+defclass Num(t) for_type t:
+    sum :: (t, t) -> t,
+    scale :: (1, t) -> t;
+
+deftype for_type t: NumDict(t) = Tuple((t, t) -> t, (1, t) -> t);
+
+declare make_num_dict :: for_type t: ((t, t) -> t, (1, t) -> t) -> NumDict(t);
+declare dict_scale :: for_type t: (NumDict(t), 1, t) -> t;
+declare dict_sum :: for_type t: (NumDict(t), t, t) -> t;
+
+define make_num_dict(sum, mult) = tuple(sum, mult);
+define dict_sum(dict, x, y) = let (sum, _) = dict in sum(x, y) end;
+define dict_scale(dict, x, y) = let (_, mult) = dict in mult(x, y) end;
+
+
+# Type class instances for string and num
+
+definstance Num(a) for_unit a:
+    sum(x, y) = x + y,
+    scale(x, y) = x * y;
+
+definstance Num(String)
+    sum(x, y) = concatenate(x, y),
+    scale(x, y) = repeat(concatenate, x, y);
+
+declare string_num_dict :: () -> NumDict(String);
+declare num_num_dict :: for_unit a: () -> NumDict(a);
+
+define string_num_dict() = make_num_dict((x, y) -> concatenate(x, y), (x, y) -> repeat(concatenate, x, y));
+define num_num_dict() = make_num_dict((x, y) -> x + y, (x, y) -> x * y);
+
+declare repeat :: for_type t: ((t, t) -> t, 1, t) -> t;
+
+define repeat(fun, n, x) = 
+    if n = 1 then x else fun(repeat(fun, n-1, x), x) end;
+
+
+# Examples
+
+dict_sum(num_num_dict(), 43, 12);
+dict_sum(num_num_dict(), 43*|metre|, 12*|metre|);
+dict_sum(string_num_dict(), "foo", "bar");
+dict_scale(string_num_dict(), 4, "bar");
+
+
+# Test function
+
+# declare my_test2 :: for_type t where Num(t): (t, t) -> t;
+
+declare my_test2 :: for_type t where Num(t): (NumDict(t), t, t) -> t;
+
+define my_test2(dict, x, y) =
+  dict_sum(dict, dict_sum(dict, x, x), dict_sum(dict, y, y));
+
+my_test2(string_num_dict(), "foo", "bar");
+my_test2(num_num_dict(), 2, 3);
+
+# ------------------------------------------------------------------------------
+# Complication 1 - Extend examples to generic type: List
+# ------------------------------------------------------------------------------
+
+# Eq
+
+definstance Eq(List(t)) for_type t where Eq(t):
+    equal(xs, ys) = list_equal(xs, ys);
+
+# declare list_equal :: for_type t where Eq(t): (List(t), List(t)) -> Boole
+
+declare list_equal_dict :: for_type t: (EqDict(t)) -> EqDict(List(t));
+
+define list_equal_dict(dict) = 
+    make_Eq_dict((x, y) -> 
+        list_size(x) = list_size(y) and
+        all[dict_equal(dict, nth(i, x), nth(i, y)) | i <- naturals(list_size(x))]);
+
+# Examples
+
+my_test(list_equal_dict(num_equal_dict()), [1, 2], [1, 1 + 1]);
+my_test(list_equal_dict(num_equal_dict()), [1, 2], [1, 1 + 2]);
+
+
+# Num
+
+definstance Num(List(t)) for_type t where Num(t):
+    sum(xs, ys) = append(xs, ys),
+    scale(c, xs) = repeat(append, c, xs);
+
+declare list_num_dict :: for_type t: (NumDict(t)) -> NumDict(List(t));
+
+define list_num_dict(dict) =
+    make_num_dict(append, (x, y) -> repeat(append, x, y));
+
+# Examples
+
+my_test2(list_num_dict(num_num_dict()), [1, 2], [1, 1 + 1]);
+my_test2(list_num_dict(num_num_dict()), [1, 2], [1, 1 + 2]);
+
+dict_scale(list_num_dict(string_num_dict()), 3, ["bar", "foo"]);
+
+dict_scale(list_num_dict(list_num_dict(string_num_dict())), 3, [["bar", "foo"], ["bar", "baz"]]);
+
+# ------------------------------------------------------------------------------
+# Complication 2 - Abstract over type function: map
+# ------------------------------------------------------------------------------
+
+# The dictionary definition
+
+defclass Map(s, v, T) for_op T: for_type s, v:
+     map :: ((s) -> v, T(s)) -> T(v);
+
+deftype for_op T: for_type s,v: MapDict(s,v,T) = Tuple(((s) -> v, T(s)) -> T(v));
+
+declare make_map_dict :: for_op T: for_type s,v: (((s) -> v, T(s)) -> T(v)) -> MapDict(s,v,T);
+declare dict_map :: for_op T: for_type s,v: (MapDict(s,v,T), (s) -> v, T(s)) -> T(v);
+
+define make_map_dict(x) = tuple(x);
+define dict_map(dict, f, x) = let (map) = dict in map(f, x) end;
+
+
+# Instances for list and pair
+
+definstance Map(s, v, List) for_type s, v: 
+     map(fun, xs) = map_list(fun, xs);
+
+definstance Map(s, v, Pair) for_type s, v: 
+     map(fun, pair) = make_pair(fun(pair_left(pair)), fun(pair_right(pair)));
+
+declare list_map_dict :: for_type s,v: () -> MapDict(s,v,List);
+declare pair_map_dict :: for_type s,v: () -> MapDict(s,v,Pair);
+
+define list_map_dict() = make_map_dict((fun, list) -> map_list(fun, list));
+define pair_map_dict() = make_map_dict((fun, pair) -> make_pair(fun(pair_left(pair)), fun(pair_right(pair))));
+
+
+# examples
+
+dict_map(list_map_dict(), (x) -> x*x, [1,2,3]);
+
+let 
+    x = dict_map(list_map_dict(), (x) -> x*x, [1,2,3]),
+    y = dict_map(list_map_dict(), (x) -> x, ["1","2","3"])
+in
+    tuple(x, y)
+end;
+
+# Should fail:
+#dict_map(pair_map_dict(), (x) -> x*x, [1,2,3]);
+
+dict_map(pair_map_dict(), (x) -> x*x+12, make_pair(1, 3));
+
+
+# Test function
+
+# declare my_test3 :: for_type t where Num(t): for_op X: where Map(t,t,X): (X(t)) -> X(t);
+#  or
+# declare my_test3 :: for_type t: for_op X: where Num(t) and Map(t,t,X): (X(t)) -> X(t);
+
+declare my_test3 :: for_type t where Num(t): for_op X where Map(t, t, X): 
+    (MapDict(t, t, X), NumDict(t), X(t)) -> X(t);
+
+define my_test3(dict1, dict2, container) = 
+  dict_map(dict1, (x) -> dict_sum(dict2, x, x), container);
+
+my_test3(pair_map_dict(), num_num_dict(), make_pair(1, 3));
+
+my_test3(list_map_dict(), num_num_dict(), [1,2,3]);
+
+my_test3(pair_map_dict(), string_num_dict(), make_pair("1", "3"));

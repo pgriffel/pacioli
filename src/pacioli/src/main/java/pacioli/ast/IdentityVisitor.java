@@ -11,8 +11,10 @@ import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
@@ -148,6 +150,14 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(ClassDefinition node) {
+        node.definedClass.accept(this);
+        for (TypeAssertion member : node.members) {
+            member.accept(this);
+        }
+    }
+
+    @Override
+    public void visit(InstanceDefinition node) {
         node.definedClass.accept(this);
         for (ValueEquation member : node.members) {
             member.accept(this);
@@ -380,6 +390,14 @@ public class IdentityVisitor implements Visitor {
     @Override
     public void accept(ValueEquation node) {
         node.id.accept(this);
+        node.body.accept(this);
+    }
+
+    @Override
+    public void accept(TypeAssertion node) {
+        for (IdentifierNode id : node.ids) {
+            id.accept(this);
+        }
         node.body.accept(this);
     }
 }

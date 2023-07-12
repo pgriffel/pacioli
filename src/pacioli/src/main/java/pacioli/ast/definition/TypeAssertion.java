@@ -24,46 +24,25 @@ package pacioli.ast.definition;
 import java.util.List;
 
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
+import pacioli.ast.expression.IdentifierNode;
 import pacioli.types.ast.SchemaNode;
-import pacioli.types.ast.TypeApplicationNode;
 
-public class ClassDefinition extends AbstractDefinition {
+public class TypeAssertion extends AbstractNode {
 
-    /**
-     * Contains the type class type and the quantified variables with possible
-     * conditions
-     */
-    public final SchemaNode definedClass;
+    public final List<IdentifierNode> ids;
+    public final SchemaNode body;
 
-    /**
-     * The overloaded functions
-     */
-    public final List<TypeAssertion> members;
-
-    public ClassDefinition(Location location, SchemaNode definedClass, List<TypeAssertion> members) {
+    public TypeAssertion(Location location, List<IdentifierNode> ids, SchemaNode body) {
         super(location);
-        this.definedClass = definedClass;
-        this.members = members;
-    }
-
-    @Override
-    public String localName() {
-        return ((TypeApplicationNode) definedClass.type).getName();
+        this.ids = ids;
+        this.body = body;
     }
 
     @Override
     public void accept(Visitor visitor) {
-        visitor.visit(this);
-    }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        // program.typess.put(localName(), new ClassInfo(this, program.file,
-        // getLocation()));
-
+        visitor.accept(this);
     }
 
 }

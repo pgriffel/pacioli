@@ -15,8 +15,10 @@ import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
@@ -691,14 +693,68 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(ClassDefinition classDefinition) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public void visit(ClassDefinition node) {
+        out.print("defclass ");
+        node.definedClass.type.accept(this);
+        out.print(" ");
+        node.definedClass.context.printPretty(out.out);
+
+        out.newlineUp();
+        Boolean first = true;
+        for (TypeAssertion member : node.members) {
+            if (first) {
+                first = false;
+            } else {
+                out.write(",");
+                out.newline();
+            }
+            member.accept(this);
+        }
+        write(";");
+        out.newlineDown();
     }
 
     @Override
-    public void accept(ValueEquation valueEquation) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'accept'");
+    public void accept(ValueEquation node) {
+        node.id.accept(this);
+        out.write(" = ");
+        node.body.accept(this);
+    }
+
+    @Override
+    public void visit(InstanceDefinition node) {
+        out.print("definstance ");
+        node.definedClass.type.accept(this);
+        out.print(" ");
+        node.definedClass.context.printPretty(out.out);
+
+        Boolean first = true;
+        out.newlineUp();
+        for (ValueEquation member : node.members) {
+            if (first) {
+                first = false;
+            } else {
+                out.write(",");
+                out.newline();
+            }
+            member.accept(this);
+        }
+        write(";");
+        out.newlineDown();
+    }
+
+    @Override
+    public void accept(TypeAssertion node) {
+        Boolean first = true;
+        for (IdentifierNode id : node.ids) {
+            if (first) {
+                first = false;
+            } else {
+                out.write(",");
+            }
+            id.accept(this);
+        }
+        out.write(" :: ");
+        node.body.accept(this);
     }
 }

@@ -4,16 +4,21 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import pacioli.ast.ProgramNode;
+import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.parser.Parser;
+import pacioli.symboltable.ClassInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
@@ -22,6 +27,7 @@ import pacioli.symboltable.ParametricInfo;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.ClassInfo.Builder;
 import pacioli.types.TypeObject;
 import pacioli.types.ast.TypeNode;
 import pacioli.visitors.LiftStatements;
@@ -132,10 +138,44 @@ public class Progam extends AbstractPrintable {
 
         Pacioli.trace("Filling tables for %s", this.file.getModule());
 
+        Map<String, ClassInfo.Builder> classTable = new HashMap<>();
+
+        // First pass, don't add class instances and ...
         for (Definition def : program.definitions) {
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.localName(),
                     file.getModule(), file.getFile());
-            def.addToProgr(this);
+            if (def instanceof ClassDefinition d) {
+                ClassInfo.Builder classDef = ClassInfo.builder().file(file).definition(d);
+                classTable.put(def.localName(), classDef);
+            } else if (def instanceof InstanceDefinition) {
+            } else {
+                def.addToProgr(this);
+            }
+        }
+
+        // Second pass, add class instances and ...
+        for (Definition def : program.definitions) {
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.localName(),
+                    file.getModule(), file.getFile());
+            if (def instanceof InstanceDefinition inst) {
+                ClassInfo.Builder builder = classTable.get(def.localName());
+                if (builder == null) {
+                    throw new PacioliException(def.getLocation(), "No class found for instance %s", def.localName());
+                }
+                builder.instance(inst);
+            }
+        }
+
+        for (ClassInfo.Builder builder : classTable.values()) {
+            ClassInfo info = builder.build();
+            Pacioli.log("\n%s", info.definition.pretty());
+            Pacioli.log("with %s instances", info.instances.size());
+            for (InstanceDefinition def : info.instances) {
+                Pacioli.log("\n%s", def.pretty());
+            }
+
+            addInfo(info);
+
         }
     }
 
