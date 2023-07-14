@@ -58,6 +58,7 @@ import pacioli.ast.unit.UnitPowerNode;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.TypeObject;
 import pacioli.types.ast.BangTypeNode;
+import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
 import pacioli.types.ast.PrefixUnitTypeNode;
@@ -532,7 +533,10 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(SchemaNode node) {
-        node.context.printPretty(out.out);
+        for (ContextNode contextNode : node.contextNodes) {
+            contextNode.accept(this);
+            out.write(" ");
+        }
         node.type.accept(this);
     }
 
@@ -697,7 +701,7 @@ public class PrintVisitor implements Visitor {
         out.print("defclass ");
         node.definedClass.type.accept(this);
         out.print(" ");
-        node.definedClass.context.printPretty(out.out);
+        node.definedClass.createContext().printPretty(out.out);
 
         out.newlineUp();
         Boolean first = true;
@@ -726,7 +730,7 @@ public class PrintVisitor implements Visitor {
         out.print("definstance ");
         node.definedClass.type.accept(this);
         out.print(" ");
-        node.definedClass.context.printPretty(out.out);
+        node.definedClass.createContext().printPretty(out.out);
 
         Boolean first = true;
         out.newlineUp();
@@ -756,5 +760,20 @@ public class PrintVisitor implements Visitor {
         }
         out.write(" :: ");
         node.body.accept(this);
+    }
+
+    @Override
+    public void accept(ContextNode node) {
+        out.write(node.kind.pretty());
+        out.write(" ");
+        out.writeCommaSeparated(node.ids, x -> {
+            x.accept(this);
+        });
+        if (!node.conditions.isEmpty()) {
+            out.write(" where ");
+        }
+        out.writeCommaSeparated(node.conditions, x -> x.accept(this));
+        out.write(":");
+
     }
 }

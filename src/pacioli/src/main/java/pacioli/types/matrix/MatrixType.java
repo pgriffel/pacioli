@@ -112,7 +112,6 @@ public class MatrixType extends AbstractType {
     @Override
     public void printPretty(PrintWriter out) {
         deval().printPretty(out);
-        // out.print(toString());
     }
 
     public Unit<TypeBase> getFactor() {

@@ -50,6 +50,7 @@ import pacioli.ast.unit.UnitNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.types.ast.BangTypeNode;
+import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
 import pacioli.types.ast.PrefixUnitTypeNode;
@@ -462,6 +463,12 @@ public class IdentityTransformation implements Visitor {
             ids.add((IdentifierNode) id);
         }
         returnNode(new TypeAssertion(node.getLocation(), ids, (SchemaNode) nodeAccept(node.body)));
+    }
+
+    @Override
+    public void accept(ContextNode contextNode) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'accept'");
     }
 
 }

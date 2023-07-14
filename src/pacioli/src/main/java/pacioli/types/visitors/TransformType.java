@@ -46,7 +46,7 @@ public class TransformType implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        returnTypeNode(new Schema(type.variables, typeNodeAccept(type.type)));
+        returnTypeNode(new Schema(type.variables, typeNodeAccept(type.type), type.contextNodes));
     }
 
     @Override

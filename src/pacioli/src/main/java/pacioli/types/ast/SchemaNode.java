@@ -21,26 +21,57 @@
 
 package pacioli.types.ast;
 
+import java.util.List;
+
 import pacioli.Location;
 import pacioli.TypeContext;
 import pacioli.ast.Visitor;
+import pacioli.ast.expression.IdentifierNode;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeSymbolInfo;
 
 public class SchemaNode extends AbstractTypeNode {
 
-    public final TypeContext context;
+    // public final TypeContext context;
+    public final List<ContextNode> contextNodes;
     public final TypeNode type;
     public SymbolTable<TypeSymbolInfo> table;
 
-    public SchemaNode(Location location, TypeContext context, TypeNode type) {
+    public SchemaNode(Location location, List<ContextNode> contextNodes, TypeNode type) {
         super(location);
-        this.context = context;
+        this.contextNodes = contextNodes;
         this.type = type;
     }
 
     public SchemaNode transform(TypeNode type) {
-        return new SchemaNode(getLocation(), context, type);
+        return new SchemaNode(getLocation(), contextNodes, type);
+    }
+
+    public TypeContext createContext() {
+        TypeContext context = new TypeContext();
+        for (ContextNode cn : contextNodes) {
+            for (TypeIdentifierNode id : cn.ids) {
+                switch (cn.kind) {
+                    case TYPE: {
+                        context.addTypeVar(id.getName());
+                        break;
+                    }
+                    case INDEX: {
+                        context.addIndexVar(id.getName());
+                        break;
+                    }
+                    case UNIT: {
+                        context.addUnitVar(id.getName());
+                        break;
+                    }
+                    case OP: {
+                        context.addOpVar(id.getName());
+                        break;
+                    }
+                }
+            }
+        }
+        return context;
     }
 
     @Override

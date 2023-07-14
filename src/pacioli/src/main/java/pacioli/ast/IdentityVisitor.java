@@ -51,6 +51,7 @@ import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.types.ast.BangTypeNode;
+import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
 import pacioli.types.ast.PrefixUnitTypeNode;
@@ -399,5 +400,11 @@ public class IdentityVisitor implements Visitor {
             id.accept(this);
         }
         node.body.accept(this);
+    }
+
+    @Override
+    public void accept(ContextNode contextNode) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'accept'");
     }
 }

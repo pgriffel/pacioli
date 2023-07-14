@@ -32,7 +32,32 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 
     // An identifier can be one of three kinds
     public enum Kind {
-        TYPE, UNIT, INDEX
+        TYPE {
+            @Override
+            public String pretty() {
+                return "for_type";
+            }
+        },
+        UNIT {
+            @Override
+            public String pretty() {
+                return "for_unit";
+            }
+        },
+        INDEX {
+            @Override
+            public String pretty() {
+                return "for_index";
+            }
+        },
+        OP {
+            @Override
+            public String pretty() {
+                return "for_op";
+            }
+        };
+
+        abstract public String pretty();
     }
 
     // From construction during parsing

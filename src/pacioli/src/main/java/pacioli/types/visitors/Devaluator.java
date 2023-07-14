@@ -32,6 +32,8 @@ import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.ScalarUnitDeval;
 
+// To be removed. Requires finishing PrettyPrinter. And compileToMVM also 
+// needs rewriting.
 public class Devaluator implements TypeVisitor {
 
     private Stack<TypeNode> nodeStack = new Stack<TypeNode>();
@@ -56,7 +58,7 @@ public class Devaluator implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        returnTypeNode(new SchemaNode(new Location(), type.newContext(), typeNodeAccept(type.getType())));
+        returnTypeNode(new SchemaNode(new Location(), type.contextNodes, typeNodeAccept(type.getType())));
     }
 
     @Override

@@ -37,7 +37,7 @@ import uom.BaseUnit;
 public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, UnitVar {
 
     private final String name;
-    private Optional<VectorBaseInfo> info;
+    public Optional<VectorBaseInfo> info;
 
     // Constructors
 
@@ -121,6 +121,10 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
 
     @Override
     public String pretty() {
+        return name;
+    }
+
+    public String getName() {
         return name;
     }
 

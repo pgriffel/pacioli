@@ -38,7 +38,7 @@ import uom.BaseUnit;
 public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
 
     private final String name;
-    private final Optional<TypeVarInfo> info;
+    public final Optional<TypeVarInfo> info;
 
     // Constructors
 

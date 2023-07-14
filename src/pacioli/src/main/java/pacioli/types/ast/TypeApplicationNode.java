@@ -31,7 +31,7 @@ public class TypeApplicationNode extends AbstractTypeNode {
     public final TypeIdentifierNode op;
     public final List<TypeNode> args;
 
-    public TypeApplicationNode(Location location, TypeIdentifierNode name, List<TypeNode> args) {
+    public TypeApplicationNode(Location location, TypeIdentifierNode name, final List<TypeNode> args) {
         super(location);
         this.op = name;
         this.args = args;

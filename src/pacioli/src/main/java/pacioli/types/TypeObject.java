@@ -40,6 +40,7 @@ import pacioli.types.ast.TypeNode;
 import pacioli.types.visitors.VectorVarNames;
 import pacioli.types.visitors.Devaluator;
 import pacioli.types.visitors.JSGenerator;
+import pacioli.types.visitors.PrettyPrinter;
 import pacioli.types.visitors.ReduceTypes;
 import pacioli.types.visitors.SimplificationParts;
 import pacioli.types.visitors.SubstituteVisitor;
@@ -181,7 +182,7 @@ public interface TypeObject extends Printable {
                 vars.add(var);
             }
         }
-        return new Schema(vars, unfresh);
+        return new Schema(vars, unfresh, List.of());
     }
 
     public default Schema generalize() {
@@ -234,9 +235,21 @@ public interface TypeObject extends Printable {
         return out.toString();
     }
 
+    // Could be used if PrettyPrinter is finished. This is required
+    // for removing Devaluator.
+
+    // @Override
+    // public default void printPretty(PrintWriter out) {
+    // this.accept(new PrettyPrinter(new Printer(out)));
+    // }
+
     public default TypeNode deval() {
         return new Devaluator().typeNodeAccept(this);
     }
+
+    // public default TypeObject deval() {
+    // return this;
+    // }
 
     public default String compileToJS() {
         StringWriter outputStream = new StringWriter();

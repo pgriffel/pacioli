@@ -487,7 +487,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(SchemaNode node) {
-        pushTypeContext(node.context, node.getLocation());
+        pushTypeContext(node.createContext(), node.getLocation());
         node.table = typeTables.peek();
         node.type.accept(this);
         typeTables.pop();

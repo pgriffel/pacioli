@@ -143,7 +143,7 @@ public class TypeEvaluator extends IdentityVisitor {
 
     @Override
     public void visit(SchemaNode node) {
-        returnType(new Schema(node.context.typeVars(), typeAccept(node.type)));
+        returnType(new Schema(node.createContext().typeVars(), typeAccept(node.type), node.contextNodes));
     }
 
     @Override

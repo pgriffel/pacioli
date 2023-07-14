@@ -46,7 +46,7 @@ public class SchemaTest {
         ParametricType parametric = new ParametricType(new Location(),
                 // new ParametricInfo("Bar", null, true, new Location()), Optional.empty(),
                 new OperatorVar("dummy"), List.of());
-        Schema schema = new Schema(Set.of(new OperatorVar("dummy")), parametric);
+        Schema schema = new Schema(Set.of(new OperatorVar("dummy")), parametric, List.of());
         TypeObject instantiated = schema.instantiate();
         assertInstanceOf(ParametricType.class, instantiated);
         ParametricType instantiatedParametric = (ParametricType) instantiated;

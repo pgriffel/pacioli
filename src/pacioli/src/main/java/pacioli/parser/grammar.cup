@@ -42,6 +42,7 @@ import pacioli.types.ast.*;
 import pacioli.TypeContext;
 import pacioli.symboltable.SymbolTable;
 import java_cup.runtime.ComplexSymbolFactory.Location;
+import pacioli.types.ast.TypeIdentifierNode.Kind;
 
 parser code {:
 
@@ -334,6 +335,7 @@ non terminal List<ExpressionNode>    exprs, exprlist;
 non terminal IdentifierNode          id, name;
 non terminal TypeIdentifierNode      typeid;
 non terminal List<IdentifierNode>    ids, names, idlist, idlist_tail;
+non terminal List<TypeIdentifierNode>        typeids, typeidlist, typeidlist_tail;
 non terminal UnitNode                dimnum, unit, unit_term;
 non terminal String                  unsigned, number, integer;
 non terminal StringNode              path;
@@ -341,10 +343,10 @@ non terminal List<UnitDecl>          unitvec, unitvec_parts;
 non terminal List<ValueDecl>         matrix_parts, matrix;
 non terminal TypeNode                type, matrix_type, dim_type;
 non terminal SchemaNode              schema;
-non terminal TypeContext             vardecls;
+non terminal List<ContextNode>               vardecls;
 non terminal List<TypeNode>          types, typelist;
-non terminal String                  var;
-non terminal List<String>            vars;
+non terminal TypeIdentifierNode                  var;
+non terminal List<TypeIdentifierNode>        vars;
 non terminal KeyNode                 indexkey;
 non terminal ExpressionNode          comprehension;
 non terminal List<Object>            parts;
@@ -353,11 +355,12 @@ non terminal List<ExpressionNode>    statements;
 non terminal SequenceNode            sequence;
 non terminal ExpressionNode          statement, stm_if_tail;
 non terminal                         quali;
-non terminal List<TypeNode>          classcondition, conditions;
-non terminal List<TypeAssertion>     classmembers;
-non terminal List<ValueEquation>     classmemberdefs;
-non terminal ValueEquation           valueeq;
-non terminal TypeAssertion           typeassertion;
+non terminal List<TypeApplicationNode>       classcondition, conditions;
+non terminal TypeApplicationNode             condition;
+non terminal List<TypeAssertion>             classmembers;
+non terminal List<ValueEquation>             classmemberdefs;
+non terminal ValueEquation                   valueeq;
+non terminal TypeAssertion                   typeassertion;
 
 precedence right TO;
 precedence nonassoc  EQUIV, FOLLOWSFROM, IMPLIES;
@@ -419,7 +422,7 @@ command ::=
 //                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, list); :}
  | DEFINDEX:d id:id EQL expr:e                      {: RESULT = new IndexSetDefinition(makeLoc(dxleft, exright), id, e); :}
 
- | DEFTYPE:d schema:s EQL type:t                    {: RESULT = new TypeDefinition(makeLoc(dxleft, txright), s.context, s.type, t); :}
+ | DEFTYPE:d schema:s EQL type:t                    {: RESULT = new TypeDefinition(makeLoc(dxleft, txright), s.createContext(), s.type, t); :}
  | DEFALIAS:d id:id EQL unit:u                      {: RESULT = new AliasDefinition(makeLoc(dxleft, uxright), id, u); :}
  | DEFUNIT:d typeid:id EXCL typeid:n EQL unitvec:ps {: /* Todo: remove hashmap and use pair list directly in UnitVectorDefinition */
                                                        java.util.Map<String, UnitNode> unitVector = new HashMap<String, UnitNode>();
@@ -551,6 +554,21 @@ idlist_tail ::=
   ;
 
 typeid ::= IDENTIFIER:id                            {: RESULT = new TypeIdentifierNode(makeLoc(idxleft, idxright), id); :};
+
+typeids ::= 
+    typeid:id                                           {: RESULT = new LinkedList<TypeIdentifierNode>(); RESULT.add(id); :}
+  | typeids:ids COMMA typeid:id                             {: ids.add(id); RESULT = ids; :}
+  ;
+
+typeidlist ::= 
+    LPAR RPAR                                       {: RESULT = new LinkedList<TypeIdentifierNode>(); :}
+  | LPAR typeidlist_tail:ids                            {: RESULT = ids; :}
+  ;
+
+typeidlist_tail ::= 
+    typeid:id RPAR                                      {: RESULT = new LinkedList<TypeIdentifierNode>(); RESULT.add(id); :}
+  | typeid:id COMMA typeidlist_tail:ids                     {: ids.add(0, id); RESULT = ids; :}
+  ;
   
 name ::= 
    id:id                                            {: RESULT = id; :}
@@ -781,47 +799,43 @@ schema ::=
     vardecls:c type:t                               {: RESULT = new SchemaNode(makeLoc(txleft, txright), c, t); :};
 
 vardecls ::=
-    FORTYPE:f ids:ids classcondition COLON vardecls:s  {:  TypeContext context = s;
-                                                            for (IdentifierNode id: ids) {
-              		                                            context.addTypeVar(id.getName());
-                                                            }
-                                                            RESULT = context; :}
-  | FORINDEX:f ids:ids classcondition COLON vardecls:s {:  TypeContext context = s;
-                                                            for (IdentifierNode id: ids) {
-              		                                            context.addIndexVar(id.getName());
-                                                            }
-                                                            RESULT = context; :}
-  | FORUNIT:f vars:vs classcondition COLON vardecls:s  {:  TypeContext context = s;
-                                                            for (String v: vs) {
-              		                                            context.addUnitVar(v);
-                                                            }
-                                                            RESULT = context; :}
-  | FOROP:f ids:vs classcondition COLON vardecls:s    {:  TypeContext context = s;
-                                                            for (IdentifierNode id: vs) {
-              		                                          context.addOpVar(id.getName());
-                                                            }
-                                                            RESULT = context; :}
-  |                                                     {:  RESULT = new TypeContext(); :}
+    FORTYPE:f typeids:ids classcondition:cs COLON vardecls:s  {: s.add(new ContextNode(Kind.TYPE, ids, cs));
+                                                            RESULT = s; :}
+  | FORINDEX:f typeids:ids classcondition:cs COLON vardecls:s {:  s.add(new ContextNode(Kind.INDEX, ids, cs));
+                                                            RESULT = s; :}
+  | FORUNIT:f vars:vs classcondition:cs COLON vardecls:s  {:  s.add(new ContextNode(Kind.UNIT, vs, cs));
+                                                            RESULT = s; :}
+  | FOROP:f typeids:vs classcondition:cs COLON vardecls:s    {: s.add(new ContextNode(Kind.OP, vs, cs));
+                                                            RESULT = s; :}
+  |                                                     {:  RESULT = new ArrayList<ContextNode>(); :}
   ;
 
 classcondition ::=
-    WHERE conditions:cs                             {: RESULT = List.of(); :}
-  |                                                 {: RESULT = List.of(); :}
+    WHERE conditions:cs                             {: RESULT = cs; :}
+  |                                                 {: RESULT = new ArrayList<TypeApplicationNode>(); :}
   ;
   
 conditions ::=
-    conditions:cs AND typeid:id idlist:ts         {: RESULT = List.of(); :}
-  | typeid:id idlist:ts                           {: RESULT = List.of(); :}
+    conditions:cs AND condition:c                   {: cs.add(c); :}
+  | condition:c                                     {: RESULT = new ArrayList<TypeApplicationNode>(); RESULT.add(c); :}
+  ;
+
+condition ::=
+    typeid:id typeidlist:ts                           {: List<TypeNode> nodes= new ArrayList<>();
+                                                         for (TypeIdentifierNode typeid: ts) {
+                                                            nodes.add(typeid);
+                                                         }
+                                                         RESULT = new TypeApplicationNode(makeLoc(idxleft, tsxright), id, nodes); :}
   ;
 
 vars ::= 
-   var:v                                            {: RESULT = new LinkedList<String>(Arrays.asList(v)); :}
+   var:v                                            {: RESULT = new LinkedList<TypeIdentifierNode>(); RESULT.add(v); :}
  | vars:vs COMMA var:v                              {: vs.add(v); RESULT = vs; :}
  ;
 
 var ::= 
-   id:id                                            {: RESULT = id.getName(); :}
- | id:idx EXCL id:id                                {: RESULT = idx.getName() + "!" + id.getName(); :}
+   typeid:id                                        {: RESULT = id; :}
+ | typeid:idx EXCL typeid:id                                {: RESULT = new TypeIdentifierNode(makeLoc(idxxleft, idxright), idx.getName() + "!" + id.getName());  :}
  ;
 
 types ::= 
