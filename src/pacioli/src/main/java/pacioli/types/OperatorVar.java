@@ -30,21 +30,13 @@ WHETHER
 
 package pacioli.types;
 
-import java.io.PrintWriter;
-import java.util.LinkedHashSet;
 import java.util.Optional;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
-import pacioli.Substitution;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.ParametricInfo;
 
 public record OperatorVar(String name, Optional<ParametricInfo> info) implements Operator, Var {
-
-    // Constructors
 
     public OperatorVar(ParametricInfo info) {
         this(info.name(), Optional.of(info));
@@ -59,16 +51,29 @@ public record OperatorVar(String name, Optional<ParametricInfo> info) implements
     }
 
     @Override
+    public OperatorVar rename(String name) {
+        return new OperatorVar(name);
+    }
+
+    @Override
     public OperatorVar fresh() {
         return new OperatorVar(SymbolTable.freshVarName());
     }
 
     @Override
-    public OperatorVar rename(String name) {
-        return new OperatorVar(name);
+    public String description() {
+        return "type variable";
     }
 
-    // Equality
+    @Override
+    public String toString() {
+        return "<ovar " + name + ">";
+    }
+
+    @Override
+    public Boolean isFresh() {
+        return !info.isPresent();
+    }
 
     @Override
     public int hashCode() {
@@ -87,32 +92,8 @@ public record OperatorVar(String name, Optional<ParametricInfo> info) implements
         return name.equals(otherVar.name);
     }
 
-    // Pretty printing
-
-    @Override
-    public void printPretty(PrintWriter out) {
-        out.print(pretty());
-    }
-
-    @Override
-    public String pretty() {
-        if (false && !name.isEmpty()) {
-            String first = name.substring(0, 1);
-            return first.toUpperCase() + name.substring(1);
-        } else {
-            return name;
-        }
-    }
-
-    // Properties
-
     public String getName() {
         return name;
-    }
-
-    @Override
-    public String description() {
-        return "type variable";
     }
 
     @Override
@@ -123,13 +104,6 @@ public record OperatorVar(String name, Optional<ParametricInfo> info) implements
             throw new RuntimeException(String.format("No info present for fresh type variable %s", name));
         }
     }
-
-    @Override
-    public Boolean isFresh() {
-        return !info.isPresent();
-    }
-
-    // Visiting visitors
 
     @Override
     public void accept(TypeVisitor visitor) {

@@ -21,21 +21,14 @@
 
 package pacioli.types.matrix;
 
-import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
-import pacioli.Substitution;
 import pacioli.types.AbstractType;
 import pacioli.types.TypeObject;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeVisitor;
-import pacioli.types.VectorUnitVar;
 import pacioli.types.ast.TypeKroneckerNode;
 import pacioli.types.ast.TypeNode;
 import uom.Fraction;
@@ -84,6 +77,17 @@ public class MatrixType extends AbstractType {
     }
 
     @Override
+    public String description() {
+        return "matrix type";
+    }
+
+    @Override
+    public String toString() {
+        return String.format("<Matrix %s, %s, %s, %s, %s>",
+                factor, rowDimension, rowUnit, columnDimension, columnUnit);
+    }
+
+    @Override
     public int hashCode() {
         return factor.hashCode();
     }
@@ -103,15 +107,8 @@ public class MatrixType extends AbstractType {
     }
 
     @Override
-    public String toString() {
-        return String.format("<%s, %s, %s, %s, %s>", // super.toString(),
-                factor, rowDimension, rowUnit, columnDimension,
-                columnUnit);
-    }
-
-    @Override
-    public void printPretty(PrintWriter out) {
-        deval().printPretty(out);
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
     }
 
     public Unit<TypeBase> getFactor() {
@@ -277,29 +274,6 @@ public class MatrixType extends AbstractType {
                 columnUnit.raise(power));
     }
 
-    // @Override
-    // public Set<String> unitVecVarCompoundNames() {
-    // Set<String> names = new LinkedHashSet<String>();
-    // names.addAll(dimensionUnitVecVarCompoundNames(rowDimension, rowUnit));
-    // names.addAll(dimensionUnitVecVarCompoundNames(columnDimension, columnUnit));
-    // return names;
-    // }
-
-    // public Set<String> dimensionUnitVecVarCompoundNames(IndexType dimension,
-    // Unit<TypeBase> unit) {
-    // Set<String> names = new HashSet<String>();
-    // if (dimension.isVar()) {
-    // for (TypeBase base : unit.bases()) {
-    // assert (base instanceof VectorUnitVar);
-    // VectorUnitVar vbase = (VectorUnitVar) base;
-    // // Pacioli.logln("Adding %s ! %s", dimension.varName(), vbase.unitPart());
-    // names.add(dimension.varName() + "!" + vbase.unitPart());
-    // // names.add(base.pretty());
-    // }
-    // }
-    // return names;
-    // }
-
     @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         MatrixType otherType = (MatrixType) other;
@@ -312,11 +286,6 @@ public class MatrixType extends AbstractType {
         return constraints;
     }
 
-    @Override
-    public String description() {
-        return "matrix type";
-    }
-
     public TypeNode devalDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
         if (dimension.isVar()) {
             VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimension, 0);
@@ -325,7 +294,7 @@ public class MatrixType extends AbstractType {
             final IndexType dimType = (IndexType) dimension;
             TypeNode node = null;
             for (int i = 0; i < dimType.width(); i++) {
-                IndexType ty = dimType.project(Arrays.asList(i));
+                // IndexType ty = dimType.project(Arrays.asList(i));
                 VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
                 Unit<TypeBase> filtered = unit;
                 // Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
@@ -341,8 +310,4 @@ public class MatrixType extends AbstractType {
         }
     }
 
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
-    }
 }

@@ -21,15 +21,5 @@
 
 package pacioli;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 public abstract class AbstractPrintable implements Printable {
-
-    @Override
-    public String pretty() {
-        StringWriter out = new StringWriter();
-        printPretty(new PrintWriter(out));
-        return out.toString();
-    }
 }

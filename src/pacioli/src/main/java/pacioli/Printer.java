@@ -4,11 +4,8 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Stack;
 import java.util.function.Consumer;
-import java.util.function.Function;
-
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
-import pacioli.symboltable.ParametricInfo;
 
 public class Printer {
 

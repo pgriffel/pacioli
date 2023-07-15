@@ -1,6 +1,5 @@
 package pacioli.types.matrix;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,7 +12,7 @@ import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVisitor;
 
 /*
- *  Not really a type, but otherwise it cannot be put in a substitution. Make a Unifiable interface.
+ *  Not really a type, but otherwise it cannot be put in a substitution.
  */
 public class IndexList extends AbstractType {
 
@@ -36,6 +35,32 @@ public class IndexList extends AbstractType {
     }
 
     @Override
+    public String description() {
+        return "index list";
+    }
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("<index");
+        String pre = " ";
+        for (TypeIdentifier id : indexSets) {
+            builder.append(pre);
+            builder.append("'");
+            builder.append(id.name);
+            builder.append("'");
+            pre = ", ";
+        }
+        builder.append(">");
+        return builder.toString();
+    }
+
+    @Override
     public int hashCode() {
         return indexSets.hashCode();
     }
@@ -50,21 +75,6 @@ public class IndexList extends AbstractType {
         }
         IndexList otherDimension = (IndexList) other;
         return indexSets.equals(otherDimension.indexSets);
-    }
-
-    @Override
-    public String toString() {
-        // return String.format("%s%s", super.toString(), indexSets);
-        StringBuilder builder = new StringBuilder();
-        builder.append("[");
-        String pre = "";
-        for (TypeIdentifier id : indexSets) {
-            builder.append(pre);
-            builder.append(id.name);
-            pre = ", ";
-        }
-        builder.append("]");
-        return builder.toString();
     }
 
     public List<TypeIdentifier> getIndexSets() {
@@ -82,23 +92,6 @@ public class IndexList extends AbstractType {
     public IndexSetInfo nthIndexSetInfo(int n) {
         return indexSetInfos.get(n);
     }
-
-    @Override
-    public void printPretty(PrintWriter out) {
-        out.print("[");
-        String sep = "";
-        for (TypeIdentifier id : indexSets) {
-            out.print(sep);
-            out.print(id.name);
-            sep = ", ";
-        }
-        out.print("]");
-    }
-
-    // @Override
-    // public Set<String> unitVecVarCompoundNames() {
-    // return new LinkedHashSet<String>();
-    // }
 
     @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
@@ -129,13 +122,4 @@ public class IndexList extends AbstractType {
         return new IndexList(sets, infos);
     }
 
-    @Override
-    public String description() {
-        return "index list";
-    }
-
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
-    }
 }

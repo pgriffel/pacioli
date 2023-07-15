@@ -4,6 +4,8 @@ import pacioli.symboltable.SymbolInfo;
 
 public interface UnitVar extends Var, TypeBase {
 
+    public String pretty();
+
     TypeObject fresh();
 
     TypeObject rename(String format);

@@ -21,27 +21,22 @@
 
 package pacioli.types;
 
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.Optional;
 import pacioli.ConstraintSet;
 import pacioli.Location;
 import pacioli.PacioliException;
-import pacioli.Utils;
 import pacioli.ast.definition.TypeDefinition;
-import pacioli.symboltable.ParametricInfo;
 
 public class ParametricType extends AbstractType {
 
     public final Operator op;
     public final List<TypeObject> args;
-    // public final ParametricInfo info;
     public final Location location;
     public final Optional<TypeDefinition> definition;
 
     public ParametricType(Location location, Operator op, List<TypeObject> args) {
         this.op = op;
-        // this.info = info;
         this.args = args;
         this.definition = Optional.empty();
         this.location = location;
@@ -50,7 +45,6 @@ public class ParametricType extends AbstractType {
     public ParametricType(Location location, Optional<TypeDefinition> definition,
             Operator op, List<TypeObject> args) {
         this.op = op;
-        // this.info = info;
         this.args = args;
         this.definition = definition;
         this.location = location;
@@ -66,31 +60,18 @@ public class ParametricType extends AbstractType {
     }
 
     @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
-    }
-
-    public String pprintArgs() {
-        if (args.size() == 0) {
-            return Utils.intercalateText(", ", args);
-        } else {
-            return "(" + Utils.intercalateText(", ", args) + ")";
-        }
+    public String toString() {
+        return String.format("<Type '%s' %s>", op.getName(), args);
     }
 
     @Override
-    public void printPretty(PrintWriter out) {
-        out.print(getName());
-        out.print(pprintArgs());
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
     }
 
     @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         ParametricType otherType = (ParametricType) other;
-        // if (!getName().equals(otherType.getName())) {
-        // throw new PacioliException("Types '%s and '%s' differ", getName(),
-        // otherType.getName());
-        // }
         if (args.size() != otherType.args.size()) {
             throw new PacioliException("Number of arguments for '%s and '%s' differ", this.pretty(),
                     otherType.pretty());

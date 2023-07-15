@@ -24,10 +24,8 @@ package pacioli.types;
 import java.io.PrintWriter;
 import java.util.Optional;
 
-import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
-import pacioli.Substitution;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.SymbolTable;
 import uom.BaseUnit;
@@ -79,7 +77,7 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
 
     @Override
     public String toString() {
-        return "'" + name + "'";
+        return "<ivar " + name + ">";
     }
 
     public String getName() {
@@ -116,13 +114,7 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
 
     @Override
     public String pretty() {
-        // should be done in unfresh
-        if (false && !name.isEmpty()) {
-            String first = name.substring(0, 1);
-            return first.toUpperCase() + name.substring(1);
-        } else {
-            return name;
-        }
+        return name;
     }
 
     // Visiting visitors

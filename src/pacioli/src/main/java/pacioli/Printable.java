@@ -22,10 +22,15 @@
 package pacioli;
 
 import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public interface Printable {
 
-    public String pretty();
+    default public String pretty() {
+        StringWriter out = new StringWriter();
+        printPretty(new PrintWriter(out));
+        return out.toString();
+    }
 
     public void printPretty(PrintWriter out);
 }

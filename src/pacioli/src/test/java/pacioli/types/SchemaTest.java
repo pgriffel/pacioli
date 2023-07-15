@@ -26,21 +26,20 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
 import pacioli.Location;
-import pacioli.symboltable.ParametricInfo;
 
 public class SchemaTest {
 
     @Test
     public void shouldInstantiate() {
-        ParametricType body = new ParametricType(new Location(), // new ParametricInfo("Foo", null, true, new
-                                                                 // Location()),
-                Optional.empty(), new OperatorVar("var"), List.of());
+        // ParametricType body = new ParametricType(new Location(), // new
+        // ParametricInfo("Foo", null, true, new
+        // // Location()),
+        // Optional.empty(), new OperatorVar("var"), List.of());
         // TypeDefinition def = new TypeDefinition(null, null, null, null)
 
         ParametricType parametric = new ParametricType(new Location(),

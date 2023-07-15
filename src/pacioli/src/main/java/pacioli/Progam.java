@@ -27,7 +27,6 @@ import pacioli.symboltable.ParametricInfo;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
-import pacioli.symboltable.ClassInfo.Builder;
 import pacioli.types.TypeObject;
 import pacioli.types.ast.TypeNode;
 import pacioli.visitors.LiftStatements;

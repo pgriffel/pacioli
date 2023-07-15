@@ -59,6 +59,30 @@ import uom.Unit;
  */
 public interface TypeObject extends Printable {
 
+    public String description();
+
+    public void accept(TypeVisitor visitor);
+
+    // // Duplicate of AbstractPrintable.pretty
+    // public default String pretty() {
+    // StringWriter out = new StringWriter();
+    // printPretty(new PrintWriter(out));
+    // return out.toString();
+    // }
+
+    // Could be used if PrettyPrinter is finished. This is required
+    // for removing Devaluator.
+
+    @Override
+    public default void printPretty(PrintWriter out) {
+        this.accept(new PrettyPrinter(new Printer(out)));
+    }
+
+    // TODO: remove
+    public default TypeNode deval() {
+        return new Devaluator().typeNodeAccept(this);
+    }
+
     public default Set<Var> typeVars() {
         return new UsesVars().varSetAccept(this);
     };
@@ -73,23 +97,6 @@ public interface TypeObject extends Printable {
         return unify(this, other);
     };
 
-    // public default Substitution unify(TypeObject other) throws PacioliException {
-
-    // if (equals(other)) {
-    // return new Substitution();
-    // }
-
-    // if (other instanceof Var) {
-    // return new Substitution((Var) other, this);
-    // }
-
-    // if (getClass().equals(other.getClass())) {
-    // return unificationConstraints(other).solve(false);
-    // } else {
-    // throw new PacioliException("Cannot unify a %s and a %s", description(),
-    // other.description());
-    // }
-    // }
     public static Substitution unify(TypeObject x, TypeObject y) throws PacioliException {
         if (x.equals(y)) {
             return new Substitution();
@@ -111,7 +118,6 @@ public interface TypeObject extends Printable {
     };
 
     public static TypeObject unified(TypeObject x, TypeObject y) throws PacioliException {
-        // return x.unify(y).apply(x);
         return x.applySubstitution(x.unify(y));
     }
 
@@ -174,21 +180,18 @@ public interface TypeObject extends Printable {
     }
 
     public default Schema generalize(Set<Var> context) {
-        TypeObject unfresh = this;
-        // PacioliType unfresh = unfresh();
         Set<Var> vars = new HashSet<Var>();
-        for (Var var : unfresh.typeVars()) {
+        for (Var var : typeVars()) {
             if (!context.contains(var)) {
                 vars.add(var);
             }
         }
-        return new Schema(vars, unfresh, List.of());
+        // TODO: conditions in the schema are currenlty lost
+        return new Schema(vars, this, List.of());
     }
 
     public default Schema generalize() {
         return generalize(new HashSet<Var>());
-        // PacioliType unfresh = unfresh();
-        // return new Schema(unfresh.typeVars(), unfresh);
     }
 
     public default TypeObject unfresh() {
@@ -223,33 +226,6 @@ public interface TypeObject extends Printable {
         return unfreshType.applySubstitution(map);
 
     }
-
-    public String description();
-
-    public void accept(TypeVisitor visitor);
-
-    // Duplicate of AbstractPrintable.pretty
-    public default String pretty() {
-        StringWriter out = new StringWriter();
-        printPretty(new PrintWriter(out));
-        return out.toString();
-    }
-
-    // Could be used if PrettyPrinter is finished. This is required
-    // for removing Devaluator.
-
-    // @Override
-    // public default void printPretty(PrintWriter out) {
-    // this.accept(new PrettyPrinter(new Printer(out)));
-    // }
-
-    public default TypeNode deval() {
-        return new Devaluator().typeNodeAccept(this);
-    }
-
-    // public default TypeObject deval() {
-    // return this;
-    // }
 
     public default String compileToJS() {
         StringWriter outputStream = new StringWriter();

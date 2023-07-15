@@ -108,22 +108,6 @@ public class PrintVisitor implements Visitor {
         out.newlineDown();
     }
 
-    /*
-     * PrintWriter out;
-     * private Stack<Integer> indentationStack;
-     * Integer indentation = 0;
-     * Integer offset = 0;
-     * final Integer delta = 4;
-     * 
-     * public void format(String string, Object... args) {
-     * out.format(string, args);
-     * }
-     * 
-     * protected void write(String text) {
-     * out.print(text);
-     * offset += text.length();
-     * }
-     */
     protected void writeCommaSeparated(List<? extends Node> nodes) {
         Boolean sep = false;
         for (Node node : nodes) {
@@ -136,41 +120,6 @@ public class PrintVisitor implements Visitor {
         }
     }
 
-    /*
-     * protected void mark() {
-     * indentationStack.push(indentation);
-     * indentation = offset;
-     * //offset =
-     * }
-     * 
-     * protected void unmark() {
-     * indentation = indentationStack.pop();
-     * //offset =
-     * }
-     * 
-     * protected void newline() {
-     * out.format("\n");
-     * for (int i = 0; i < indentation; i++) {
-     * out.print(" ");
-     * }
-     * offset = indentation;
-     * }
-     * 
-     * protected void newlineUp() {
-     * indentation += delta;
-     * newline();
-     * }
-     * 
-     * protected void newlineDown() {
-     * indentation -= delta;
-     * newline();
-     * }
-     * 
-     * public PrintVisitor(PrintWriter printWriter) {
-     * indentationStack = new Stack<Integer>();
-     * out = printWriter;
-     * }
-     */
     @Override
     public void visit(ProgramNode node) {
         for (IncludeNode include : node.includes) {
@@ -535,7 +484,7 @@ public class PrintVisitor implements Visitor {
     public void visit(SchemaNode node) {
         for (ContextNode contextNode : node.contextNodes) {
             contextNode.accept(this);
-            out.write(" ");
+            out.write(": ");
         }
         node.type.accept(this);
     }
@@ -773,7 +722,6 @@ public class PrintVisitor implements Visitor {
             out.write(" where ");
         }
         out.writeCommaSeparated(node.conditions, x -> x.accept(this));
-        out.write(":");
 
     }
 }

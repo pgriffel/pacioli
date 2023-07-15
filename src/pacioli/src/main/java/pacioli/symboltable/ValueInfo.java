@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import pacioli.Location;
-import pacioli.Pacioli;
 import pacioli.PacioliException;
 import pacioli.PacioliFile;
 import pacioli.ast.definition.ValueDefinition;

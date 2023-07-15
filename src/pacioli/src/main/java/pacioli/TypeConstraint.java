@@ -27,10 +27,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import pacioli.types.IndexSetVar;
-import pacioli.types.OperatorConst;
 import pacioli.types.OperatorVar;
 import pacioli.types.TypeObject;
-import pacioli.types.TypeVar;
 import pacioli.types.ParametricType;
 import pacioli.types.Var;
 import pacioli.types.VectorUnitVar;

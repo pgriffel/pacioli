@@ -21,7 +21,6 @@
 
 package pacioli.types;
 
-import java.io.PrintWriter;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 
@@ -41,19 +40,13 @@ public class FunctionType extends AbstractType {
     }
 
     @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
+    public String toString() {
+        return String.format("<Function %s -> %s>", domain, range);
     }
 
     @Override
-    public void printPretty(PrintWriter out) {
-        if (domain instanceof ParametricType && ((ParametricType) domain).getName().equals("Tuple")) {
-            out.print(((ParametricType) domain).pprintArgs());
-        } else {
-            domain.printPretty(out);
-        }
-        out.print(" -> ");
-        range.printPretty(out);
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
     }
 
     @Override

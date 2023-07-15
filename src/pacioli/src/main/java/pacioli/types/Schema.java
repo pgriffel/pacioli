@@ -21,18 +21,14 @@
 
 package pacioli.types;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import pacioli.ConstraintSet;
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.Substitution;
-import pacioli.TypeContext;
-import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.TypeIdentifierNode;
@@ -51,14 +47,22 @@ public class Schema extends AbstractType {
     }
 
     @Override
-    public void printPretty(PrintWriter out) {
-        newContext().printPretty(out);
-        type.printPretty(out);
-
+    public String description() {
+        return "schema";
     }
 
-    public TypeContext newContext() {
-        return (new TypeContext(variables));
+    @Override
+    public String toString() {
+        return String.format("<Schema %s %s>", variables, type);
+    }
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    public TypeObject getType() {
+        return type;
     }
 
     /**
@@ -74,32 +78,23 @@ public class Schema extends AbstractType {
             SymbolInfo sinfo;
             Location location;
             Kind kind;
-            // TypeIdentifierNode id = new
-            // TypeIdentifierNode(genericVar.getInfo().getLocation(), genericVar.pretty(),
-            // genericVar.getInfo());
             if (genericVar instanceof IndexSetVar v) {
-                // Optional<IndexSetInfo> info = v.info;
                 sinfo = v.info.orElse(null);
                 location = v.info.map(x -> x.getLocation()).orElse(new Location());
                 kind = Kind.INDEX;
-                // contextNodes.add(new ContextNode(Kind.INDEX, List.of(id), List.of()));
             } else if (genericVar instanceof ScalarUnitVar v) {
-                // contextNodes.add(new ContextNode(Kind.UNIT, List.of(id), List.of()));
                 sinfo = v.info.orElse(null);
                 location = v.info.map(x -> x.getLocation()).orElse(new Location());
                 kind = Kind.UNIT;
             } else if (genericVar instanceof VectorUnitVar v) {
-                // contextNodes.add(new ContextNode(Kind.UNIT, List.of(id), List.of()));
                 sinfo = v.info.orElse(null);
                 location = v.info.map(x -> x.getLocation()).orElse(new Location());
                 kind = Kind.UNIT;
             } else if (genericVar instanceof TypeVar v) {
-                // contextNodes.add(new ContextNode(Kind.TYPE, List.of(id), List.of()));
                 sinfo = v.info.orElse(null);
                 location = v.info.map(x -> x.getLocation()).orElse(new Location());
                 kind = Kind.TYPE;
             } else if (genericVar instanceof OperatorVar v) {
-                // contextNodes.add(new ContextNode(Kind.OP, List.of(id), List.of()));
                 sinfo = v.info().orElse(null);
                 location = v.info().map(x -> x.getLocation()).orElse(new Location());
                 kind = Kind.OP;
@@ -111,11 +106,6 @@ public class Schema extends AbstractType {
         }
 
         return contextNodes;
-    }
-
-    @Override
-    public String description() {
-        return "schema";
     }
 
     @Override
@@ -137,12 +127,4 @@ public class Schema extends AbstractType {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
-    }
-
-    public TypeObject getType() {
-        return type;
-    }
 }

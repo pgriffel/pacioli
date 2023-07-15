@@ -83,7 +83,7 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
 
     @Override
     public String toString() {
-        return "'" + name + "'";
+        return "<uvar " + name + ">";
     }
 
     // Properties

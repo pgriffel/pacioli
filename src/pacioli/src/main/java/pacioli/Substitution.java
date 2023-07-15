@@ -72,31 +72,6 @@ public class Substitution extends AbstractPrintable {
     public Boolean contains(Var var) {
         return map.containsKey(var);
     }
-    /*
-     * public Unit<TypeBase> apply(Unit<TypeBase> unit) {
-     * return unit.map(new UnitMap<TypeBase>() {
-     * public Unit<TypeBase> map(TypeBase base) {
-     * if (base instanceof Var && map.containsKey((Var) base)) {
-     * Object obj = map.get((Var) base);
-     * assert (obj instanceof Unit);
-     * return (Unit<TypeBase>) obj;
-     * } else {
-     * return (Unit<TypeBase>) base;
-     * }
-     * }
-     * });
-     * }
-     */
-
-    // public <B> Unit<B> apply(Var var) {
-    // if (map.containsKey(var)) {
-    // Object obj = map.get(var);
-    // assert (obj instanceof TypeObject);
-    // return (TypeObject) obj;
-    // } else {
-    // return type;
-    // }
-    // }
 
     public <B> Unit<B> apply(Unit<B> unit) {
         return unit.map(new UnitMap<B>() {
@@ -125,20 +100,6 @@ public class Substitution extends AbstractPrintable {
             return type.applySubstitution(this);
         }
     }
-
-    // public Unifiable apply(Unifiable type) {
-    // if (type instanceof Var) {
-    // if (map.containsKey((Var) type)) {
-    // Object obj = map.get((Var) type);
-    // assert (obj instanceof TypeObject);
-    // return (Unifiable) obj;
-    // } else {
-    // return type;
-    // }
-    // } else {
-    // return type.applySubstitution(this);
-    // }
-    // }
 
     public void removeAll(Set<Var> vars) {
         for (Var var : vars) {

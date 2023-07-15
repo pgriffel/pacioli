@@ -21,18 +21,11 @@
 
 package pacioli.types;
 
-import java.io.PrintWriter;
-import java.util.LinkedHashSet;
 import java.util.Optional;
-import java.util.Set;
-
-import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
-import pacioli.Substitution;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeVarInfo;
-import pacioli.symboltable.ParametricInfo;
 import uom.BaseUnit;
 
 public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
@@ -88,26 +81,13 @@ public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
 
     @Override
     public String toString() {
-        return String.format("[Typevar name=%s]", name);
-    }
-    // Pretty printing
-
-    @Override
-    public void printPretty(PrintWriter out) {
-        out.print(pretty());
+        return String.format("<tvar %s>", name);
     }
 
     @Override
     public String pretty() {
-        if (false && !name.isEmpty()) {
-            String first = name.substring(0, 1);
-            return first.toUpperCase() + name.substring(1);
-        } else {
-            return name;
-        }
+        return name;
     }
-
-    // Properties
 
     public String getName() {
         return name;
@@ -132,38 +112,14 @@ public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
         return !info.isPresent();
     }
 
-    // Visiting visitors
-
     @Override
     public void accept(TypeVisitor visitor) {
         visitor.visit(this);
     }
-
-    // The remainder should be moved to visitors
 
     @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
-    // @Override
-    // public Substitution unify(TypeObject other) throws PacioliException {
-    // if (equals(other)) {
-    // return new Substitution();
-    // } else {
-    // return new Substitution(this, other);
-    // }
-    // }
-
-    // @Override
-    // public String asJS() {
-    // // return "'_" + this.pretty() + "_'";
-    // return "Pacioli.typeFromVarName('_" + this.pretty() + "_')";
-    // }
-
-    // @Override
-    // public String asMVM(CompilationSettings settings) {
-    // return TypeObject.super.compileToMVM(settings);
-    // }
 }

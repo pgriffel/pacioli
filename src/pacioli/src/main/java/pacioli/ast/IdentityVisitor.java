@@ -1,8 +1,5 @@
 package pacioli.ast;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.ast.definition.AliasDefinition;

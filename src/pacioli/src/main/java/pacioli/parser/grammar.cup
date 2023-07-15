@@ -39,9 +39,6 @@ import pacioli.ast.expression.*;
 import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.unit.*;
 import pacioli.types.ast.*;
-import pacioli.TypeContext;
-import pacioli.symboltable.SymbolTable;
-import java_cup.runtime.ComplexSymbolFactory.Location;
 import pacioli.types.ast.TypeIdentifierNode.Kind;
 
 parser code {:

@@ -1,14 +1,9 @@
 package pacioli.types.matrix;
 
-import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
-
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
-import pacioli.Substitution;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.AbstractType;
 import pacioli.types.IndexSetVar;
@@ -69,6 +64,21 @@ public class IndexType extends AbstractType {
     }
 
     @Override
+    public String description() {
+        return "index type";
+    }
+
+    @Override
+    public String toString() {
+        return "<idx " + indexSet.toString() + ">";
+    }
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    @Override
     public int hashCode() {
         return indexSet.hashCode();
     }
@@ -83,12 +93,6 @@ public class IndexType extends AbstractType {
         }
         IndexType otherType = (IndexType) other;
         return indexSet.equals(otherType.indexSet);
-    }
-
-    @Override
-    public String toString() {
-        // return String.format("%s%s", super.toString(), indexSet);
-        return indexSet.toString();
     }
 
     public List<TypeIdentifier> getIndexSets() {
@@ -124,18 +128,6 @@ public class IndexType extends AbstractType {
     }
 
     @Override
-    public void printPretty(PrintWriter out) {
-        out.print("Index(");
-        indexSet.printPretty(out);
-        out.print(")");
-    }
-
-    // @Override
-    // public Set<String> unitVecVarCompoundNames() {
-    // return new LinkedHashSet<String>();
-    // }
-
-    @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         IndexType otherType = (IndexType) other;
         ConstraintSet constraints = new ConstraintSet();
@@ -159,13 +151,4 @@ public class IndexType extends AbstractType {
         }
     }
 
-    @Override
-    public String description() {
-        return "index type";
-    }
-
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
-    }
 }

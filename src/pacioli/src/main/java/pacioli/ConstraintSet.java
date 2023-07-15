@@ -32,8 +32,6 @@ import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.types.TypeObject;
 import pacioli.types.UnitVar;
-import pacioli.types.OperatorConst;
-import pacioli.types.OperatorVar;
 import pacioli.types.TypeBase;
 import pacioli.types.Var;
 import pacioli.types.matrix.MatrixType;

@@ -26,13 +26,11 @@ import java.util.List;
 import pacioli.Location;
 import pacioli.TypeContext;
 import pacioli.ast.Visitor;
-import pacioli.ast.expression.IdentifierNode;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeSymbolInfo;
 
 public class SchemaNode extends AbstractTypeNode {
 
-    // public final TypeContext context;
     public final List<ContextNode> contextNodes;
     public final TypeNode type;
     public SymbolTable<TypeSymbolInfo> table;

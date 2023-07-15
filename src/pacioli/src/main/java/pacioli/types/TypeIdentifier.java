@@ -14,6 +14,11 @@ public class TypeIdentifier {
     }
 
     @Override
+    public String toString() {
+        return String.format("'%s'", name);
+    }
+
+    @Override
     public int hashCode() {
         return name.hashCode();
     }

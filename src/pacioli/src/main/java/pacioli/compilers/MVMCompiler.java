@@ -11,8 +11,6 @@ import pacioli.Utils;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
-import pacioli.ast.expression.ExpressionNode;
-import pacioli.ast.expression.StringNode;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.ClassInfo;

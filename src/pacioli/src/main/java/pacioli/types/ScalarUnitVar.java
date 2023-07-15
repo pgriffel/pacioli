@@ -26,7 +26,6 @@ import java.util.Optional;
 import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
-import pacioli.Substitution;
 import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolTable;
 import uom.BaseUnit;
@@ -78,7 +77,7 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
 
     @Override
     public String toString() {
-        return "'" + name + "'";
+        return "<uvar " + name + ">";
     }
 
     // Pretty printing
