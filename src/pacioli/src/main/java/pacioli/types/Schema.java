@@ -102,7 +102,7 @@ public class Schema extends AbstractType {
                 throw new RuntimeException("Unknown quantifier: " + genericVar.getClass());
             }
             TypeIdentifierNode id = new TypeIdentifierNode(location, genericVar.pretty(), sinfo);
-            contextNodes.add(new ContextNode(kind, List.of(id), List.of()));
+            contextNodes.add(new ContextNode(location, kind, List.of(id), List.of()));
         }
 
         return contextNodes;

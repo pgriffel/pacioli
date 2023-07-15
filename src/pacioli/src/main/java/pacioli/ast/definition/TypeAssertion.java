@@ -24,12 +24,12 @@ package pacioli.ast.definition;
 import java.util.List;
 
 import pacioli.Location;
-import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.types.ast.AbstractTypeNode;
 import pacioli.types.ast.SchemaNode;
 
-public class TypeAssertion extends AbstractNode {
+public class TypeAssertion extends AbstractTypeNode {
 
     public final List<IdentifierNode> ids;
     public final SchemaNode body;

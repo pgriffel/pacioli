@@ -21,6 +21,8 @@
 
 package pacioli.ast;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,6 +36,14 @@ import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.ValueInfo;
+import pacioli.visitors.DesugarVisitor;
+import pacioli.visitors.JSGenerator;
+import pacioli.visitors.LiftStatements;
+import pacioli.visitors.MVMGenerator;
+import pacioli.visitors.MatlabGenerator;
+import pacioli.visitors.PrintVisitor;
+import pacioli.visitors.ResolveVisitor;
+import pacioli.visitors.UsesVisitor;
 
 public interface Node extends Printable {
 
@@ -41,30 +51,83 @@ public interface Node extends Printable {
 
     public void accept(Visitor visitor);
 
-    public Set<SymbolInfo> uses();
+    /**
+     * Prints a nice human readable representation of the node to the given
+     * writer. Calls the PrintVisitor.
+     */
+    default public void printPretty(PrintWriter out) {
+        this.accept(new PrintVisitor(new Printer(out)));
+    };
 
-    public Node desugar();
+    /**
+     * Desugars a node by calling the DesugarVisitor.
+     * 
+     * @return A copy of node with all syntactice sugar replaced
+     */
+    default public Node desugar() {
+        return new DesugarVisitor().nodeAccept(this);
+    }
 
-    public void resolve(PacioliFile file, PacioliTable pacioliTable);
+    /**
+     * Resolves all identifiers in a node by calling the ResolveVisitor. Resolving
+     * means attaching the right SymbolInfo to each identifier.
+     * 
+     * TODO: is the file needed?
+     * 
+     * @param file         The file from which the node was loaded.
+     * @param pacioliTable A table with the available identifiers to match each
+     *                     identifiers againts
+     */
+    default public void resolve(PacioliFile file, PacioliTable pacioliTable) {
+        accept(new ResolveVisitor(file, pacioliTable));
+    }
 
-    public Node liftStatements(Progam prog, PacioliTable pacioliTable);
+    /**
+     * All used identifiers. Calls the UsesVisitor. Returns the info for each
+     * identifier.
+     * 
+     * The node must have been resolved.
+     * 
+     * @return The info for each used identifier
+     */
+    default public Set<SymbolInfo> uses() {
+        return new UsesVisitor().idsAccept(this);
+    }
 
-    public String compileToMVM(CompilationSettings settings);
+    default public Node liftStatements(Progam prog, PacioliTable pacioliTable) {
+        return new LiftStatements(prog, pacioliTable).nodeAccept(this);
+    }
 
-    public String compileToJS(CompilationSettings settings, boolean boxed);
+    default public String compileToMVM(CompilationSettings settings) {
+        StringWriter outputStream = new StringWriter();
+        accept(new MVMGenerator(new Printer(new PrintWriter(outputStream)), settings));
+        return outputStream.toString();
+    }
 
-    public void compileToJS(Printer writer, CompilationSettings settings, boolean boxed);
+    default public String compileToJS(CompilationSettings settings, boolean boxed) {
+        StringWriter outputStream = new StringWriter();
+        this.accept(new JSGenerator(new Printer(new PrintWriter(outputStream)), settings, boxed));
+        return outputStream.toString();
+    }
 
-    public String compileToMATLAB(CompilationSettings settings);
+    default public void compileToJS(Printer writer, CompilationSettings settings, boolean boxed) {
+        this.accept(new JSGenerator(writer, settings, boxed));
+    }
+
+    default public String compileToMATLAB(CompilationSettings settings) {
+        StringWriter outputStream = new StringWriter();
+        this.accept(new MatlabGenerator(new Printer(new PrintWriter(outputStream)), settings));
+        return outputStream.toString();
+    }
 
     /**
      * For the nodes that bind variables (Let, Lambda and Statement). These
      * nodes have a symbol table.
      * 
      * @param node
-     *            A Let, Lambda or Statement node
+     *              A Let, Lambda or Statement node
      * @param table
-     *            The node's table
+     *              The node's table
      * @return The free variables in the node's body (vars bound by the
      *         node are not in the result, only vars bound higher up that
      *         are not global and are used in the body).

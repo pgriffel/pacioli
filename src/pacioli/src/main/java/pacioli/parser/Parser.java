@@ -4089,7 +4089,7 @@ class CUP$Parser$actions {
 		Location sxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location sxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		List<ContextNode> s = (List<ContextNode>)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 s.add(new ContextNode(Kind.TYPE, ids, cs));
+		 s.add(new ContextNode(makeLoc(fxleft, sxright), Kind.TYPE, ids, cs));
                                                             RESULT = s; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("vardecls",37, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
@@ -4111,7 +4111,7 @@ class CUP$Parser$actions {
 		Location sxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location sxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		List<ContextNode> s = (List<ContextNode>)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		  s.add(new ContextNode(Kind.INDEX, ids, cs));
+		  s.add(new ContextNode(makeLoc(fxleft, sxright), Kind.INDEX, ids, cs));
                                                             RESULT = s; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("vardecls",37, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
@@ -4133,7 +4133,7 @@ class CUP$Parser$actions {
 		Location sxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location sxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		List<ContextNode> s = (List<ContextNode>)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		  s.add(new ContextNode(Kind.UNIT, vs, cs));
+		  s.add(new ContextNode(makeLoc(fxleft, sxright), Kind.UNIT, vs, cs));
                                                             RESULT = s; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("vardecls",37, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
@@ -4155,7 +4155,7 @@ class CUP$Parser$actions {
 		Location sxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location sxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		List<ContextNode> s = (List<ContextNode>)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 s.add(new ContextNode(Kind.OP, vs, cs));
+		 s.add(new ContextNode(makeLoc(fxleft, sxright), Kind.OP, vs, cs));
                                                             RESULT = s; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("vardecls",37, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }

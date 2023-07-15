@@ -21,16 +21,33 @@
 
 package pacioli.ast.expression;
 
+import java.util.HashMap;
 import java.util.Set;
 
 import pacioli.Progam;
 import pacioli.Typing;
 import pacioli.ast.Node;
+import pacioli.symboltable.ParametricInfo;
+import pacioli.visitors.AssignedVariablesVisitor;
+import pacioli.visitors.TypeInference;
 
 public interface ExpressionNode extends Node {
 
-    public Typing inferTyping(Progam prog);
+    default public Typing inferTyping(Progam prog) {
+        HashMap<String, ParametricInfo> defaultTypes = new HashMap<String, ParametricInfo>();
 
-    public Set<IdentifierNode> locallyAssignedVariables();
+        defaultTypes.put("Void", (ParametricInfo) prog.typess.lookup("Void"));
+        defaultTypes.put("Tuple", (ParametricInfo) prog.typess.lookup("Tuple"));
+        defaultTypes.put("String", (ParametricInfo) prog.typess.lookup("String"));
+        defaultTypes.put("Boole", (ParametricInfo) prog.typess.lookup("Boole"));
+
+        TypeInference visitor = new TypeInference(defaultTypes, prog.file);
+        return visitor.typingAccept(this);
+    }
+
+    default public Set<IdentifierNode> locallyAssignedVariables() {
+        AssignedVariablesVisitor visitor = new AssignedVariablesVisitor();
+        return visitor.idsAccept(this);
+    }
 
 }

@@ -796,13 +796,13 @@ schema ::=
     vardecls:c type:t                               {: RESULT = new SchemaNode(makeLoc(txleft, txright), c, t); :};
 
 vardecls ::=
-    FORTYPE:f typeids:ids classcondition:cs COLON vardecls:s  {: s.add(new ContextNode(Kind.TYPE, ids, cs));
+    FORTYPE:f typeids:ids classcondition:cs COLON vardecls:s  {: s.add(new ContextNode(makeLoc(fxleft, sxright), Kind.TYPE, ids, cs));
                                                             RESULT = s; :}
-  | FORINDEX:f typeids:ids classcondition:cs COLON vardecls:s {:  s.add(new ContextNode(Kind.INDEX, ids, cs));
+  | FORINDEX:f typeids:ids classcondition:cs COLON vardecls:s {:  s.add(new ContextNode(makeLoc(fxleft, sxright), Kind.INDEX, ids, cs));
                                                             RESULT = s; :}
-  | FORUNIT:f vars:vs classcondition:cs COLON vardecls:s  {:  s.add(new ContextNode(Kind.UNIT, vs, cs));
+  | FORUNIT:f vars:vs classcondition:cs COLON vardecls:s  {:  s.add(new ContextNode(makeLoc(fxleft, sxright), Kind.UNIT, vs, cs));
                                                             RESULT = s; :}
-  | FOROP:f typeids:vs classcondition:cs COLON vardecls:s    {: s.add(new ContextNode(Kind.OP, vs, cs));
+  | FOROP:f typeids:vs classcondition:cs COLON vardecls:s    {: s.add(new ContextNode(makeLoc(fxleft, sxright), Kind.OP, vs, cs));
                                                             RESULT = s; :}
   |                                                     {:  RESULT = new ArrayList<ContextNode>(); :}
   ;

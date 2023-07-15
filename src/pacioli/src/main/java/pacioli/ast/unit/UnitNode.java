@@ -2,10 +2,13 @@ package pacioli.ast.unit;
 
 import pacioli.ast.Node;
 import pacioli.types.TypeBase;
+import pacioli.visitors.UnitEvaluator;
 import uom.DimensionedNumber;
 
 public interface UnitNode extends Node {
 
-    public DimensionedNumber<TypeBase> evalUnit();
-
+    default public DimensionedNumber<TypeBase> evalUnit() {
+        UnitEvaluator visitor = new UnitEvaluator();
+        return visitor.unitAccept(this);
+    }
 }

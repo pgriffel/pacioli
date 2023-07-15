@@ -2,6 +2,7 @@ package pacioli.types.ast;
 
 import java.util.List;
 
+import pacioli.Location;
 import pacioli.ast.Visitor;
 
 public class ContextNode extends AbstractTypeNode {
@@ -10,8 +11,9 @@ public class ContextNode extends AbstractTypeNode {
     public final List<TypeIdentifierNode> ids;
     public final List<TypeApplicationNode> conditions;
 
-    public ContextNode(TypeIdentifierNode.Kind kind, List<TypeIdentifierNode> ids,
+    public ContextNode(Location location, TypeIdentifierNode.Kind kind, List<TypeIdentifierNode> ids,
             List<TypeApplicationNode> conditions) {
+        super(location);
         this.kind = kind;
         this.ids = ids;
         this.conditions = conditions;
