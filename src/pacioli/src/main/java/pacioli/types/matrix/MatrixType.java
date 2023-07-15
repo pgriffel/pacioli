@@ -31,6 +31,7 @@ import pacioli.types.TypeBase;
 import pacioli.types.TypeVisitor;
 import pacioli.types.ast.TypeKroneckerNode;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.visitors.PrettyPrinter.UnitPrinter;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitMap;
@@ -304,6 +305,35 @@ public class MatrixType extends AbstractType {
                     node = devaluated;
                 } else {
                     node = new TypeKroneckerNode(node.getLocation().join(devaluated.getLocation()), node, devaluated);
+                }
+            }
+            return node;
+        }
+    }
+
+    public String prettyDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
+        if (dimension.isVar()) {
+            UnitPrinter unitDevaluator = new UnitPrinter();
+
+            String devaluated = unit.pretty();
+            devaluated = devaluated.equals("1") ? dimension.getVar().pretty() + "!" : devaluated;
+            return devaluated;
+
+        } else {
+            final IndexType dimType = (IndexType) dimension;
+            String node = "";
+            for (int i = 0; i < dimType.width(); i++) {
+                // IndexType ty = dimType.project(Arrays.asList(i));
+                VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
+                Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
+
+                String idx = dimType.nthIndexSet(i).name;
+                String devaluated = filtered.pretty();
+                devaluated = devaluated.equals("1") ? idx + "!" : devaluated;
+                if (i == 0) {
+                    node = devaluated;
+                } else {
+                    node = node + " % " + devaluated;
                 }
             }
             return node;

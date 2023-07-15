@@ -89,7 +89,7 @@ public class Devaluator implements TypeVisitor {
         List<TypeNode> ids = new ArrayList<TypeNode>();
 
         if (type.isVar()) {
-            ids.add(typeNodeAccept(type.getVar()));
+            ids.add(typeNodeAccept((IndexSetVar) type.getVar()));
         } else {
             for (int n = 0; n < type.width(); n++) {
                 TypeIdentifier id = type.nthIndexSet(n);

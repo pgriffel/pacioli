@@ -99,13 +99,15 @@ public class PrettyPrinter implements TypeVisitor {
         // throw new RuntimeException("todo: " + type.getClass());
 
         // Use a general rewriter to simplify. See deval van scalar and vector units
-        TypeNode factorNode = type.factor.fold(new ScalarUnitDeval(new Location()));
-        TypeNode left = type.devalDimensionUnitPair(type.rowDimension, type.rowUnit);
-        TypeNode right = type.devalDimensionUnitPair(type.columnDimension, type.columnUnit);
+        // TypeNode factorNode = type.factor.fold(new ScalarUnitDeval(new Location()));
+        String left = type.prettyDimensionUnitPair(type.rowDimension, type.rowUnit);
+        String right = type.prettyDimensionUnitPair(type.columnDimension, type.columnUnit);
+
+        String factorString = type.factor.pretty(); // .fold(new UnitPrinter());
 
         // return unit.fold(new UnitMVMCompiler());
 
-        out.write(type.toString());
+        out.format("%s*%s per %s", factorString, left, right);
 
         // if (left == null && right == null) {
         // out.write(factorNode.toString());
@@ -182,11 +184,11 @@ public class PrettyPrinter implements TypeVisitor {
         out.write(type.name());
     }
 
-    static class UnitPrinter implements UnitFold<TypeBase, String> {
+    static public class UnitPrinter implements UnitFold<TypeBase, String> {
 
         @Override
         public String map(TypeBase base) {
-            return base.asMVM(null);
+            return base.pretty();
         }
 
         @Override

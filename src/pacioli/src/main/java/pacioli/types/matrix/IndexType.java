@@ -47,8 +47,12 @@ public class IndexType extends AbstractType {
         return indexSet instanceof Var;
     }
 
-    public IndexSetVar getVar() {
-        return (IndexSetVar) indexSet;
+    /**
+     * TODO: Check: Is not always an IndexSetVar. Substitution can replace it with a
+     * typevar! This happens with the delta function in the standard lib.
+     */
+    public Var getVar() {
+        return (Var) indexSet;
     }
 
     public String varName() {
