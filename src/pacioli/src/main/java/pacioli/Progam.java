@@ -159,7 +159,6 @@ public class Progam extends AbstractPrintable {
             if (def instanceof ClassDefinition d) {
                 ClassInfo.Builder classDef = ClassInfo.builder().file(file).definition(d);
                 classTable.put(def.localName(), classDef);
-            } else if (def instanceof InstanceDefinition) {
             } else if (def instanceof AliasDefinition alias) {
                 AliasInfo info = new AliasInfo(def.localName(), file, def.getLocation());
                 info.definition = alias;
@@ -219,8 +218,6 @@ public class Progam extends AbstractPrintable {
                         .isGlobal(true)
                         .isMonomorphic(false)
                         .location(def.getLocation());
-            } else {
-                def.addToProgr(this);
             }
         }
 

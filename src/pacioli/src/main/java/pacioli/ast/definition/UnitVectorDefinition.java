@@ -24,12 +24,9 @@ package pacioli.ast.definition;
 import java.util.List;
 
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
-import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.ast.TypeIdentifierNode;
 
 public class UnitVectorDefinition extends AbstractDefinition {
@@ -66,15 +63,4 @@ public class UnitVectorDefinition extends AbstractDefinition {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        throw new UnsupportedOperationException("See program");
-        // VectorBaseInfo info = new VectorBaseInfo(localName(), program.file, true,
-        // getLocation());
-        // info.setDefinition(this);
-        // info.setItems(items);
-        // program.addInfo(info);
-    }
-
 }

@@ -22,14 +22,11 @@
 package pacioli.ast.definition;
 
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
-import pacioli.symboltable.ValueInfo;
 
 public class ValueDefinition extends AbstractDefinition {
 
@@ -73,31 +70,4 @@ public class ValueDefinition extends AbstractDefinition {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        throw new UnsupportedOperationException("See program");
-
-        // String name = localName();
-
-        // ValueInfo oldInfo = program.values.lookup(name);
-        // if (oldInfo != null) {
-        // // It seems we already found a declaration for this name. Check that there is
-        // no
-        // // definition yet and add this one.
-        // if (oldInfo.getDefinition().isEmpty()) {
-        // oldInfo.setDefinition(this);
-        // } else {
-        // throw new PacioliException(getLocation(), "Duplicate definition for %s",
-        // name);
-        // }
-        // } else {
-        // ValueInfo info = new ValueInfo(name, program.file, true, false,
-        // getLocation(), false);
-        // info.setDefinition(this);
-        // program.values.put(name, info);
-        // }
-
-    }
-
 }

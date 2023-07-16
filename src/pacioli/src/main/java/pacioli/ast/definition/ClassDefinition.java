@@ -24,8 +24,6 @@ package pacioli.ast.definition;
 import java.util.List;
 
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
@@ -58,13 +56,4 @@ public class ClassDefinition extends AbstractDefinition {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        throw new UnsupportedOperationException("See program");
-        // program.typess.put(localName(), new ClassInfo(this, program.file,
-        // getLocation()));
-
-    }
-
 }

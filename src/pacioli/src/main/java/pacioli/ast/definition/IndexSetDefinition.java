@@ -25,12 +25,9 @@ import java.util.List;
 
 import mvm.values.matrix.IndexSet;
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.symboltable.IndexSetInfo;
 
 public class IndexSetDefinition extends AbstractDefinition {
 
@@ -64,16 +61,6 @@ public class IndexSetDefinition extends AbstractDefinition {
             throw new RuntimeException("Cannot access index set body, index has a static body.");
         }
         return body;
-    }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        throw new UnsupportedOperationException("See program");
-        // IndexSetInfo info = new IndexSetInfo(localName(), program.file, true,
-        // getLocation());
-        // info.setDefinition(this);
-        // program.addInfo(info);
-
     }
 
     public IndexSet getIndexSet() {

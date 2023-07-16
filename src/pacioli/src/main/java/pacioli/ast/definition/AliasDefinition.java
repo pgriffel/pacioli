@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 
 import pacioli.Location;
 import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
@@ -40,13 +39,4 @@ public class AliasDefinition extends AbstractDefinition {
         }
         return number.unit();
     }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        throw new UnsupportedOperationException("See program");
-        // AliasInfo info = new AliasInfo(localName(), program.file, getLocation());
-        // info.definition = this;
-        // program.addInfo(info);
-    }
-
 }

@@ -26,7 +26,6 @@ import java.util.List;
 
 import pacioli.Location;
 import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.TypeConstraint;
 import pacioli.TypeContext;
 import pacioli.ast.Visitor;
@@ -108,18 +107,4 @@ public class TypeDefinition extends AbstractDefinition {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        throw new UnsupportedOperationException("See program");
-        // // Pacioli.logln("Adding type %s to %s %s", this.localName(),
-        // program.getFile(),
-        // // rhs);
-        // ParametricInfo info = new ParametricInfo(localName(), program.file, true,
-        // getLocation());
-        // info.typeAST = rhs;
-        // info.setDefinition(this);
-        // program.addInfo(info);
-    }
-
 }

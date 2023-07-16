@@ -38,17 +38,6 @@ public class MultiDeclaration extends AbstractDefinition {
         throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
     }
 
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        /*        // obsolete?!
-        for (IdentifierNode id : ids) {
-            Declaration declaration = new Declaration(getLocation(), id, node);
-            declaration.addToProgr(program);
-        }*/
-        throw new RuntimeException(
-                "Cannot add a multi declaration to a program. It should have been desugared into single declarations.");
-    }
-
     public boolean isPublic() {
         return isPublic;
     }

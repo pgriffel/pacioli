@@ -24,12 +24,9 @@ package pacioli.ast.definition;
 import java.util.Optional;
 
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
-import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 
@@ -53,10 +50,6 @@ public class UnitDefinition extends AbstractDefinition {
         this.body = Optional.of(body);
     }
 
-    public String getName() {
-        return id.getName();
-    }
-
     public String getSymbol() {
         return symbol;
     }
@@ -74,15 +67,5 @@ public class UnitDefinition extends AbstractDefinition {
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
-    }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        throw new UnsupportedOperationException("See program");
-        // ScalarBaseInfo info = new ScalarBaseInfo(localName(), program.file, true,
-        // getLocation());
-        // info.setDefinition(this);
-        // info.symbol = symbol;
-        // program.addInfo(info);
     }
 }

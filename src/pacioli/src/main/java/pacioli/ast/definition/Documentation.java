@@ -22,14 +22,10 @@
 package pacioli.ast.definition;
 
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.expression.StringNode;
-import pacioli.symboltable.ValueInfo;
 
 public class Documentation extends AbstractDefinition {
 
@@ -55,31 +51,4 @@ public class Documentation extends AbstractDefinition {
     public Node transform(ExpressionNode body) {
         return new Documentation(getLocation(), id, body);
     }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        throw new UnsupportedOperationException("See program");
-        // String name = localName();
-        // ValueInfo oldInfo = program.values.lookup(name);
-
-        // if (oldInfo != null) {
-        // // It seems we already found a definition for this name. Check that there is
-        // no
-        // // declaration yet and add this one.
-        // if (oldInfo.getDocu().isEmpty()) {
-        // StringNode node = (StringNode) body;
-        // oldInfo.setDocu(node.valueString());
-        // } else {
-        // throw new PacioliException(body.getLocation(), "Duplicate docu for %s",
-        // name);
-        // }
-        // } else {
-        // ValueInfo info = new ValueInfo(name, program.file, true, false,
-        // getLocation(), true);
-        // StringNode node = (StringNode) body;
-        // info.setDocu(node.valueString());
-        // program.values.put(name, info);
-        // }
-    }
-
 }

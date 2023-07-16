@@ -1,11 +1,8 @@
 package pacioli.ast.definition;
 
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.symboltable.ValueInfo;
 import pacioli.types.ast.TypeNode;
 
 public class Declaration extends AbstractDefinition {
@@ -33,30 +30,6 @@ public class Declaration extends AbstractDefinition {
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
-    }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        throw new UnsupportedOperationException("See program");
-        // String name = localName();
-        // ValueInfo oldInfo = program.values.lookup(name);
-
-        // if (oldInfo != null) {
-        // // It seems we already found a definition for this name. Check that there is
-        // no
-        // // declaration yet and add this one.
-        // if (oldInfo.getDeclaredType().isEmpty()) {
-        // oldInfo.setDeclaredType(typeNode);
-        // } else {
-        // throw new PacioliException(typeNode.getLocation(), "Duplicate type
-        // declaration for %s", name);
-        // }
-        // } else {
-        // ValueInfo info = new ValueInfo(name, program.file, true, false,
-        // getLocation(), isPublic);
-        // info.setDeclaredType(typeNode);
-        // program.values.put(name, info);
-        // }
     }
 
     public boolean isPublic() {

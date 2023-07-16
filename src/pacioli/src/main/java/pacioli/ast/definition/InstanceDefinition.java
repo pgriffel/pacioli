@@ -24,10 +24,7 @@ package pacioli.ast.definition;
 import java.util.List;
 
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
-import pacioli.types.ParametricType;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
 
@@ -57,17 +54,9 @@ public class InstanceDefinition extends AbstractDefinition {
         this.members = members;
     }
 
-    public String getName() {
-        return ((ParametricType) definedClass.type).getName();
-    }
-
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
-    }
-
-    public void addToProgr(Progam program) throws PacioliException {
-        throw new UnsupportedOperationException("See program");
     }
 
     @Override
