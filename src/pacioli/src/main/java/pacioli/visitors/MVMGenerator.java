@@ -77,7 +77,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
         @Override
         public String map(TypeBase base) {
-            return base.asMVM(null);
+            return base.asMVMUnit(null);
         }
 
         @Override

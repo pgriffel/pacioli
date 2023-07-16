@@ -23,15 +23,17 @@ package pacioli.types.matrix;
 
 import java.util.Arrays;
 import java.util.List;
+
+import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.types.AbstractType;
 import pacioli.types.TypeObject;
 import pacioli.types.TypeBase;
+import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVisitor;
 import pacioli.types.ast.TypeKroneckerNode;
 import pacioli.types.ast.TypeNode;
-import pacioli.types.visitors.PrettyPrinter.UnitPrinter;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitMap;
@@ -332,6 +334,39 @@ public class MatrixType extends AbstractType {
                     node = devaluated;
                 } else {
                     node = node + " % " + devaluated;
+                }
+            }
+            return node;
+        }
+    }
+
+    public String asMVMDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit, CompilationSettings settings) {
+        if (dimension.isVar()) {
+            throw new UnsupportedOperationException("Is this used?");
+            // String devaluated = TypeBase.compileUnitToMVM(unit, settings); //
+            // unit.pretty();
+            // devaluated = devaluated.equals("") ? dimension.getVar().pretty() + "!" :
+            // devaluated;
+            // return devaluated;
+
+        } else {
+            final IndexType dimType = (IndexType) dimension;
+            String node = "";
+            for (int i = 0; i < dimType.width(); i++) {
+                // IndexType ty = dimType.project(Arrays.asList(i));
+                // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
+                Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
+
+                TypeIdentifier idx = dimType.nthIndexSet(i);
+
+                String devaluated = TypeBase.compileUnitToMVM(filtered, settings);
+                devaluated = filtered.pretty().equals("1")
+                        ? String.format("bang_shape(\"index_%s_%s\", \"\")", idx.home, idx.name)
+                        : devaluated;
+                if (i == 0) {
+                    node = devaluated;
+                } else {
+                    node = String.format("shape_binop(\"kronecker\", %s, %s)", node, devaluated);
                 }
             }
             return node;

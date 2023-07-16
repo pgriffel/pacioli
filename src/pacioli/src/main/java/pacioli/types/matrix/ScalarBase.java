@@ -125,11 +125,20 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
     @Override
-    public String asMVM(CompilationSettings settings) {
+    public String asMVMUnit(CompilationSettings settings) {
         if (prefix.isPresent()) {
             return "scaled_unit(\"" + prefix.get() + "\", \"" + text + "\")";
         } else {
             return "unit(\"" + text + "\")";
+        }
+    }
+
+    @Override
+    public String asMVMShape(CompilationSettings settings) {
+        if (prefix.isPresent()) {
+            return "scalar_shape(scaled_unit(\"" + prefix.get() + "\", \"" + text + "\"))";
+        } else {
+            return "scalar_shape(unit(\"" + text + "\"))";
         }
     }
 }

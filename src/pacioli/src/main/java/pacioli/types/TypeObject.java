@@ -37,9 +37,11 @@ import pacioli.Printer;
 import pacioli.Substitution;
 import pacioli.symboltable.ParametricInfo;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.matrix.MatrixType;
 import pacioli.types.visitors.VectorVarNames;
 import pacioli.types.visitors.Devaluator;
 import pacioli.types.visitors.JSGenerator;
+import pacioli.types.visitors.MVMGenerator;
 import pacioli.types.visitors.PrettyPrinter;
 import pacioli.types.visitors.ReduceTypes;
 import pacioli.types.visitors.SimplificationParts;
@@ -203,6 +205,7 @@ public interface TypeObject extends Printable {
             // TypeVar var = (TypeVar) gvar; //fixme
             if (var instanceof VectorUnitVar) {
                 char ch = (char) character++;
+                // Results in weird types like b!b. Is that okay?
                 map = map.compose(new Substitution(var, var.rename(String.format("%s!%s", ch, ch))));
             } else {
                 map = map.compose(new Substitution(var, var.rename(String.format("%s", (char) character++))));
@@ -234,7 +237,16 @@ public interface TypeObject extends Printable {
     };
 
     public default String compileToMVM(CompilationSettings settings) {
-        return deval().compileToMVM(new CompilationSettings());
+        if (!(this instanceof MatrixType))
+            throw new UnsupportedOperationException("yo");
+        if (false) {
+            return deval().compileToMVM(new CompilationSettings());
+        } else {
+            StringWriter outputStream = new StringWriter();
+            this.accept(new MVMGenerator(new Printer(new PrintWriter(outputStream)),
+                    settings));
+            return outputStream.toString();
+        }
     }
 
     // Hack to print proper compound unit vector in schema's

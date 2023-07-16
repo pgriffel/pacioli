@@ -207,6 +207,7 @@ public class PrettyPrinter implements TypeVisitor {
         out.write(type.name());
     }
 
+    // Not used. Replace pretty printing in UoM with this?
     static public class UnitPrinter implements UnitFold<TypeBase, String> {
 
         @Override

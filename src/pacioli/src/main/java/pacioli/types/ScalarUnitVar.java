@@ -148,7 +148,12 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
     }
 
     @Override
-    public String asMVM(CompilationSettings settings) {
+    public String asMVMUnit(CompilationSettings settings) {
+        return TypeObject.super.compileToMVM(settings);
+    }
+
+    @Override
+    public String asMVMShape(CompilationSettings settings) {
         return TypeObject.super.compileToMVM(settings);
     }
 }

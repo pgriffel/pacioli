@@ -133,7 +133,17 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
     @Override
-    public String asMVM(CompilationSettings settings) {
+    public String asMVMUnit(CompilationSettings settings) {
+        throw new UnsupportedOperationException("Is this used");
+        // String unitName = this.unitName.name;
+        // return String.format("bang_shape(\"index_%s_%s\", \"%s\")",
+        // indexSetName.home, indexSetName.name,
+        // unitName.isEmpty() ? "" : String.format("%s!%s", indexSetName.name,
+        // unitName));
+    }
+
+    @Override
+    public String asMVMShape(CompilationSettings settings) {
         String unitName = this.unitName.name;
         return String.format("bang_shape(\"index_%s_%s\", \"%s\")",
                 indexSetName.home, indexSetName.name,
