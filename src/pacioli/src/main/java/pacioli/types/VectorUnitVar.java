@@ -22,14 +22,10 @@
 package pacioli.types;
 
 import java.io.PrintWriter;
-import java.util.LinkedHashSet;
 import java.util.Optional;
-import java.util.Set;
-
 import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;
 import pacioli.PacioliException;
-import pacioli.Substitution;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.VectorBaseInfo;
 import uom.BaseUnit;
@@ -114,10 +110,10 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
 
     // Pretty printing
 
-    @Override
-    public void printPretty(PrintWriter out) {
-        out.print(pretty());
-    }
+    // @Override
+    // public void printPretty(PrintWriter out) {
+    // out.print(pretty());
+    // }
 
     @Override
     public String pretty() {
@@ -135,27 +131,11 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
         visitor.visit(this);
     }
 
-    // To move to visitors
-
-    // @Override
-    // public Set<String> unitVecVarCompoundNames() {
-    // return new LinkedHashSet<String>();
-    // }
-
     @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
-    // @Override
-    // public Substitution unify(TypeObject other) throws PacioliException {
-    // if (equals(other)) {
-    // return new Substitution();
-    // } else {
-    // return new Substitution(this, other);
-    // }
-    // }
 
     @Override
     public String asJS() {

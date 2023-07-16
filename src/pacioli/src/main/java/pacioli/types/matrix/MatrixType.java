@@ -313,8 +313,6 @@ public class MatrixType extends AbstractType {
 
     public String prettyDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
         if (dimension.isVar()) {
-            UnitPrinter unitDevaluator = new UnitPrinter();
-
             String devaluated = unit.pretty();
             devaluated = devaluated.equals("1") ? dimension.getVar().pretty() + "!" : devaluated;
             return devaluated;
@@ -324,7 +322,7 @@ public class MatrixType extends AbstractType {
             String node = "";
             for (int i = 0; i < dimType.width(); i++) {
                 // IndexType ty = dimType.project(Arrays.asList(i));
-                VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
+                // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
                 Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
 
                 String idx = dimType.nthIndexSet(i).name;

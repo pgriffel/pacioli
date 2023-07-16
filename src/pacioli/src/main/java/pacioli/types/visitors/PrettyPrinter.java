@@ -100,14 +100,37 @@ public class PrettyPrinter implements TypeVisitor {
 
         // Use a general rewriter to simplify. See deval van scalar and vector units
         // TypeNode factorNode = type.factor.fold(new ScalarUnitDeval(new Location()));
+
+        // Empty string or something
         String left = type.prettyDimensionUnitPair(type.rowDimension, type.rowUnit);
         String right = type.prettyDimensionUnitPair(type.columnDimension, type.columnUnit);
 
+        // 1 or something
         String factorString = type.factor.pretty(); // .fold(new UnitPrinter());
+
+        boolean hasFactor = !factorString.equals("1");
+        boolean hasLeft = !left.isEmpty();
+        boolean hasRight = !right.isEmpty();
 
         // return unit.fold(new UnitMVMCompiler());
 
-        out.format("%s*%s per %s", factorString, left, right);
+        if (hasFactor && hasLeft && hasRight) {
+            out.format("%s*%s per %s", factorString, left, right);
+        } else if (hasFactor && hasLeft) {
+            out.format("%s*%s", factorString, left);
+        } else if (hasFactor && hasRight) {
+            out.format("%s per %s", factorString, right);
+        } else if (hasFactor) {
+            out.format("%s", factorString);
+        } else if (hasLeft && hasRight) {
+            out.format("%s per %s", left, right);
+        } else if (hasLeft) {
+            out.format("%s", left);
+        } else if (hasRight) {
+            out.format("%s", right);
+        } else {
+            out.write("1");
+        }
 
         // if (left == null && right == null) {
         // out.write(factorNode.toString());

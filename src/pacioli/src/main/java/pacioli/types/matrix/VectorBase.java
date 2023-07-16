@@ -102,7 +102,10 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
                         return TypeBase.ONE;
                     }
                 } else {
-                    throw new RuntimeException("kroneckerNth is for row and column units only");
+                    // We must be called with a unit variable. Ignore that to get pretty printing
+                    // working.
+                    return base;
+                    // throw new RuntimeException("kroneckerNth is for row and column units only");
                 }
             }
         });
