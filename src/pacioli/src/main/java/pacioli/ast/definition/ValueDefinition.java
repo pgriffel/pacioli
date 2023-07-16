@@ -76,23 +76,27 @@ public class ValueDefinition extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
+        throw new UnsupportedOperationException("See program");
 
-        String name = localName();
+        // String name = localName();
 
-        ValueInfo oldInfo = program.values.lookup(name);
-        if (oldInfo != null) {
-            // It seems we already found a declaration for this name. Check that there is no
-            // definition yet and add this one.
-            if (oldInfo.getDefinition().isEmpty()) {
-                oldInfo.setDefinition(this);
-            } else {
-                throw new PacioliException(getLocation(), "Duplicate definition for %s", name);
-            }
-        } else {
-            ValueInfo info = new ValueInfo(name, program.file, true, false, getLocation(), false);
-            info.setDefinition(this);
-            program.values.put(name, info);
-        }
+        // ValueInfo oldInfo = program.values.lookup(name);
+        // if (oldInfo != null) {
+        // // It seems we already found a declaration for this name. Check that there is
+        // no
+        // // definition yet and add this one.
+        // if (oldInfo.getDefinition().isEmpty()) {
+        // oldInfo.setDefinition(this);
+        // } else {
+        // throw new PacioliException(getLocation(), "Duplicate definition for %s",
+        // name);
+        // }
+        // } else {
+        // ValueInfo info = new ValueInfo(name, program.file, true, false,
+        // getLocation(), false);
+        // info.setDefinition(this);
+        // program.values.put(name, info);
+        // }
 
     }
 

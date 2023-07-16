@@ -156,4 +156,76 @@ public class ValueInfo extends AbstractSymbolInfo {
     public boolean isUserDefined() {
         return definition.orElseThrow(() -> new RuntimeException("Must be resolved")).isUserDefined;
     }
+
+    public static class Builder {
+        public String name;
+        public PacioliFile file;
+        public Boolean isGlobal;
+        public Boolean isMonomorphic;
+        public Location location;
+        public boolean isPublic;
+        public ValueDefinition definition;
+        public TypeNode declaredType;
+        public String docu;
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder file(PacioliFile file) {
+            this.file = file;
+            return this;
+        }
+
+        public Builder isGlobal(Boolean isGlobal) {
+            this.isGlobal = isGlobal;
+            return this;
+        }
+
+        public Builder isMonomorphic(Boolean isMonomorphic) {
+            this.isMonomorphic = isMonomorphic;
+            return this;
+        }
+
+        public Builder location(Location location) {
+            this.location = location;
+            return this;
+        }
+
+        public Builder isPublic(boolean isPublic) {
+            this.isPublic = isPublic;
+            return this;
+        }
+
+        public Builder definition(ValueDefinition definition) {
+            this.definition = definition;
+            return this;
+        }
+
+        public Builder declaredType(TypeNode declaredType) {
+            this.declaredType = declaredType;
+            return this;
+        }
+
+        public Builder docu(String docu) {
+            this.docu = docu;
+            return this;
+        }
+
+        public ValueInfo build() {
+            ValueInfo info = new ValueInfo(name, file, isGlobal, isMonomorphic, location, isPublic);
+            if (declaredType != null)
+                info.setDeclaredType(declaredType);
+            if (docu != null)
+                info.setDocu(docu);
+            if (definition != null)
+                info.setDefinition(definition);
+            return info;
+        }
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
 }

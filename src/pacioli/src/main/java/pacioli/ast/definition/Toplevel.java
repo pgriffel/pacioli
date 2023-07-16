@@ -30,7 +30,10 @@ public class Toplevel extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) {
-        program.addToplevel(this);
+        // program.addToplevel(this);
+        throw new UnsupportedOperationException("See program");
+        // throw new UnsupportedOperationException("See program");
+
     }
 
 }

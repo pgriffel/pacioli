@@ -37,24 +37,28 @@ public class Declaration extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
+        throw new UnsupportedOperationException("See program");
+        // String name = localName();
+        // ValueInfo oldInfo = program.values.lookup(name);
 
-        String name = localName();
-        ValueInfo oldInfo = program.values.lookup(name);
-
-        if (oldInfo != null) {
-            // It seems we already found a definition for this name. Check that there is no
-            // declaration yet and add this one.
-            if (oldInfo.getDeclaredType().isEmpty()) {
-                oldInfo.setDeclaredType(typeNode);
-            } else {
-                throw new PacioliException(typeNode.getLocation(), "Duplicate type declaration for %s", name);
-            }
-        } else {
-            ValueInfo info = new ValueInfo(name, program.file, true, false, getLocation(), isPublic);
-            info.setDeclaredType(typeNode);
-            program.values.put(name, info);
-        }
+        // if (oldInfo != null) {
+        // // It seems we already found a definition for this name. Check that there is
+        // no
+        // // declaration yet and add this one.
+        // if (oldInfo.getDeclaredType().isEmpty()) {
+        // oldInfo.setDeclaredType(typeNode);
+        // } else {
+        // throw new PacioliException(typeNode.getLocation(), "Duplicate type
+        // declaration for %s", name);
+        // }
+        // } else {
+        // ValueInfo info = new ValueInfo(name, program.file, true, false,
+        // getLocation(), isPublic);
+        // info.setDeclaredType(typeNode);
+        // program.values.put(name, info);
+        // }
     }
+
     public boolean isPublic() {
         return isPublic;
     }

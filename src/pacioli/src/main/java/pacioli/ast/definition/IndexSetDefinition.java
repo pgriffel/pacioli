@@ -68,10 +68,12 @@ public class IndexSetDefinition extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
-        IndexSetInfo info = new IndexSetInfo(localName(), program.file, true, getLocation());
-        info.setDefinition(this);
-        program.addInfo(info);
-        
+        throw new UnsupportedOperationException("See program");
+        // IndexSetInfo info = new IndexSetInfo(localName(), program.file, true,
+        // getLocation());
+        // info.setDefinition(this);
+        // program.addInfo(info);
+
     }
 
     public IndexSet getIndexSet() {

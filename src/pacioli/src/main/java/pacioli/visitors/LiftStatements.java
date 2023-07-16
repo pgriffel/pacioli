@@ -20,26 +20,32 @@ import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.ValueInfo;
 
 /**
- * Lifts every statement from every definition into a separate definition to ensure that
+ * Lifts every statement from every definition into a separate definition to
+ * ensure that
  * statements are always toplevel.
  * 
- * Introduced for statements in MATLAB. A function with a toplevel statements is compiled
- * to a procedure (a function that allows assignments and returns). Lambdas in MATLAB
+ * Introduced for statements in MATLAB. A function with a toplevel statements is
+ * compiled
+ * to a procedure (a function that allows assignments and returns). Lambdas in
+ * MATLAB
  * cannot be procedures.
  * 
- * It requires a resolved program, because it depends on the usedLocals visitor. This visitor
- * requires a resolved program to filter the globals. 
+ * It requires a resolved program, because it depends on the usedLocals visitor.
+ * This visitor
+ * requires a resolved program to filter the globals.
  * 
- * It does not return a properly resolved program. The caller has to resolve the result.
- * Lifting statements before resolving would eliminate resolving twice, but would make
- * finding the used locals harder.   
+ * It does not return a properly resolved program. The caller has to resolve the
+ * result.
+ * Lifting statements before resolving would eliminate resolving twice, but
+ * would make
+ * finding the used locals harder.
  */
 public class LiftStatements extends IdentityTransformation {
 
     Progam prog;
     List<ValueDefinition> blocks = new ArrayList<ValueDefinition>();
     private PacioliTable pacioliTable;
-    
+
     public class Lifted {
         public ExpressionNode expression;
         public List<ValueDefinition> statements;
@@ -49,44 +55,43 @@ public class LiftStatements extends IdentityTransformation {
         this.prog = progam;
         this.pacioliTable = pacioliTable;
     }
-    
+
     // Assumes resolved, does not produce result version:
-    
+
     public void visit(StatementNode node) {
 
         Location nodeLocation = node.getLocation();
-        
+
         // Lift the body's statements
         ExpressionNode rec = new StatementNode(nodeLocation, (SequenceNode) expAccept(node.body));
-        
+
         // FIXME. Problem with nested statements in loop.pacioli
-        //Pacioli.logln("RESOLVING IN LIFTS:\n%s", node.pretty());
-        //Pacioli.logln("RESOLVING IN LIFTS:\n%s", rec.pretty());
-        
-        
+        // Pacioli.logln("RESOLVING IN LIFTS:\n%s", node.pretty());
+        // Pacioli.logln("RESOLVING IN LIFTS:\n%s", rec.pretty());
+
         // TODO:
         rec.resolve(prog.file, pacioliTable);
-        
-//        // Determine the used local ids
-//        Set<SymbolInfo> uses = new HashSet<SymbolInfo>();
-//        for (SymbolInfo info: node.uses()) {
-//            if (!info.isGlobal()) {
-//                uses.add(info);
-//            }
-//        }
-//        
-//        // Determine the ids in scope that are used
-//        Set<ValueInfo> localsInScope = new HashSet<ValueInfo>();
-//        for (ValueInfo info: node.table.parent.allInfos()) {
-//            if (!info.isGlobal() && uses.contains(info)) {
-//                localsInScope.add(info);
-//            }
-//        }
-//        
-        //Set<ValueInfo> localsInScope = Node.freeVars(node, node.table);
+
+        // // Determine the used local ids
+        // Set<SymbolInfo> uses = new HashSet<SymbolInfo>();
+        // for (SymbolInfo info: node.uses()) {
+        // if (!info.isGlobal()) {
+        // uses.add(info);
+        // }
+        // }
+        //
+        // // Determine the ids in scope that are used
+        // Set<ValueInfo> localsInScope = new HashSet<ValueInfo>();
+        // for (ValueInfo info: node.table.parent.allInfos()) {
+        // if (!info.isGlobal() && uses.contains(info)) {
+        // localsInScope.add(info);
+        // }
+        // }
+        //
+        // Set<ValueInfo> localsInScope = Node.freeVars(node, node.table);
         Set<ValueInfo> localsInScope = Node.freeVars(rec, node.table);
-        
-        // Build an arg list for the helper to create. Create an 
+
+        // Build an arg list for the helper to create. Create an
         // identifier for each used id.
         List<String> args = new ArrayList<String>();
         List<ExpressionNode> argIds = new ArrayList<ExpressionNode>();
@@ -100,18 +105,22 @@ public class LiftStatements extends IdentityTransformation {
         }
 
         // A fresh id for the helper function
-        String liftedName = node.table.freshSymbolName(); 
+        String liftedName = node.table.freshSymbolName();
         IdentifierNode fresh = new IdentifierNode(liftedName, nodeLocation);
 
         // Define a helper function for the lifted body
         LambdaNode lambda = new LambdaNode(args, rec, nodeLocation);
         ValueDefinition vd = new ValueDefinition(nodeLocation, fresh, lambda, false);
         try {
-            vd.addToProgr(prog);
+            ValueInfo info = new ValueInfo(vd.localName(), prog.file, true, false,
+                    nodeLocation, false);
+            info.setDefinition(vd);
+            // vd.addToProgr(prog);
+            prog.values.put(vd.localName(), info);
         } catch (PacioliException e) {
             throw new RuntimeException("Cannot add lifted statement to program", e);
         }
-        
+
         // Return an application of the helper to the identifiers
         returnNode(new ApplicationNode(fresh, argIds, nodeLocation));
     }

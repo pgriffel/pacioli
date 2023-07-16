@@ -61,6 +61,7 @@ public class ClassDefinition extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
+        throw new UnsupportedOperationException("See program");
         // program.typess.put(localName(), new ClassInfo(this, program.file,
         // getLocation()));
 

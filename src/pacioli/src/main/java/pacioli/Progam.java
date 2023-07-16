@@ -11,22 +11,34 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import pacioli.ast.ProgramNode;
+import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.ClassDefinition;
+import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.Documentation;
+import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.TypeDefinition;
+import pacioli.ast.definition.UnitDefinition;
+import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.StringNode;
 import pacioli.parser.Parser;
+import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.ClassInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.ParametricInfo;
+import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.ValueInfo.Builder;
+import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.TypeObject;
 import pacioli.types.ast.TypeNode;
 import pacioli.visitors.LiftStatements;
@@ -138,6 +150,7 @@ public class Progam extends AbstractPrintable {
         Pacioli.trace("Filling tables for %s", this.file.getModule());
 
         Map<String, ClassInfo.Builder> classTable = new HashMap<>();
+        Map<String, ValueInfo.Builder> valueTable = new HashMap<>();
 
         // First pass, don't add class instances and ...
         for (Definition def : program.definitions) {
@@ -147,6 +160,65 @@ public class Progam extends AbstractPrintable {
                 ClassInfo.Builder classDef = ClassInfo.builder().file(file).definition(d);
                 classTable.put(def.localName(), classDef);
             } else if (def instanceof InstanceDefinition) {
+            } else if (def instanceof AliasDefinition alias) {
+                AliasInfo info = new AliasInfo(def.localName(), file, def.getLocation());
+                info.definition = alias;
+                addInfo(info);
+            } else if (def instanceof IndexSetDefinition indexSet) {
+                IndexSetInfo info = new IndexSetInfo(def.localName(), file, true, def.getLocation());
+                info.setDefinition(indexSet);
+                addInfo(info);
+            } else if (def instanceof Toplevel top) {
+                addToplevel(top);
+            } else if (def instanceof TypeDefinition typeDef) {
+                ParametricInfo info = new ParametricInfo(def.localName(), file, true, def.getLocation());
+                info.typeAST = typeDef.rhs;
+                info.setDefinition(typeDef);
+                addInfo(info);
+            } else if (def instanceof UnitDefinition unitDef) {
+                ScalarBaseInfo info = new ScalarBaseInfo(def.localName(), file, true, def.getLocation());
+                info.setDefinition(unitDef);
+                info.symbol = unitDef.symbol;
+                addInfo(info);
+            } else if (def instanceof UnitVectorDefinition vecDef) {
+                VectorBaseInfo info = new VectorBaseInfo(def.localName(), file, true, def.getLocation());
+                info.setDefinition(vecDef);
+                info.setItems(vecDef.items);
+                addInfo(info);
+            } else if (def instanceof Declaration decl) {
+                ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable,
+                        def.localName());
+                if (builder.declaredType != null) {
+                    throw new PacioliException(def.getLocation(), "Duplicate type declaration for %s",
+                            def.localName());
+                }
+                builder
+                        .name(def.localName())
+                        .file(file)
+                        .isGlobal(true)
+                        .declaredType(decl.typeNode)
+                        .isPublic(decl.isPublic());
+            } else if (def instanceof Documentation doc) {
+                ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable,
+                        def.localName());
+                if (builder.docu != null) {
+                    throw new PacioliException(def.getLocation(), "Duplicate docu for %s", def.localName());
+                }
+                builder
+                        .name(def.localName())
+                        .file(file)
+                        .isGlobal(true)
+                        .docu(((StringNode) doc.body).valueString());
+            } else if (def instanceof ValueDefinition val) {
+                ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable,
+                        def.localName());
+                builder
+                        .definition(val)
+                        .name(def.localName())
+                        .file(file)
+                        .isGlobal(true)
+                        .isMonomorphic(false)
+                        .location(def.getLocation());
             } else {
                 def.addToProgr(this);
             }
@@ -172,10 +244,22 @@ public class Progam extends AbstractPrintable {
             for (InstanceDefinition def : info.instances) {
                 Pacioli.log("\n%s", def.pretty());
             }
-
             addInfo(info);
-
         }
+
+        for (ValueInfo.Builder builder : valueTable.values()) {
+            ValueInfo info = builder.build();
+            addInfo(info);
+        }
+    }
+
+    private ValueInfo.Builder ensureValueInfoBuilder(Map<String, ValueInfo.Builder> valueTable, String name) {
+        ValueInfo.Builder builder = valueTable.get(name);
+        if (builder == null) {
+            builder = ValueInfo.builder();
+            valueTable.put(name, builder);
+        }
+        return builder;
     }
 
     public void addInfo(TypeSymbolInfo info) throws PacioliException {

@@ -78,9 +78,11 @@ public class UnitDefinition extends AbstractDefinition {
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
-        ScalarBaseInfo info = new ScalarBaseInfo(localName(), program.file, true, getLocation());
-        info.setDefinition(this);
-        info.symbol = symbol;
-        program.addInfo(info);
+        throw new UnsupportedOperationException("See program");
+        // ScalarBaseInfo info = new ScalarBaseInfo(localName(), program.file, true,
+        // getLocation());
+        // info.setDefinition(this);
+        // info.symbol = symbol;
+        // program.addInfo(info);
     }
 }

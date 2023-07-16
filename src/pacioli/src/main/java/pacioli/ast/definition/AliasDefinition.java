@@ -8,7 +8,6 @@ import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
-import pacioli.symboltable.AliasInfo;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 import uom.Unit;
@@ -37,16 +36,17 @@ public class AliasDefinition extends AbstractDefinition {
     public Unit<TypeBase> evalBody() {
         DimensionedNumber<TypeBase> number = unit.evalUnit();
         if (!number.factor().equals(BigDecimal.ONE)) {
-            throw new PacioliException(getLocation(),  "Unexpected number in unit alias");
+            throw new PacioliException(getLocation(), "Unexpected number in unit alias");
         }
         return number.unit();
     }
 
     @Override
     public void addToProgr(Progam program) throws PacioliException {
-        AliasInfo info = new AliasInfo(localName(), program.file, getLocation());
-        info.definition = this;
-        program.addInfo(info);
+        throw new UnsupportedOperationException("See program");
+        // AliasInfo info = new AliasInfo(localName(), program.file, getLocation());
+        // info.definition = this;
+        // program.addInfo(info);
     }
 
 }

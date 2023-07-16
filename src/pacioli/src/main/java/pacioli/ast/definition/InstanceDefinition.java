@@ -67,6 +67,7 @@ public class InstanceDefinition extends AbstractDefinition {
     }
 
     public void addToProgr(Progam program) throws PacioliException {
+        throw new UnsupportedOperationException("See program");
     }
 
     @Override
