@@ -14,24 +14,24 @@ public final class IndexSetInfo extends AbstractSymbolInfo implements TypeSymbol
     public void accept(SymbolTableVisitor visitor) {
         visitor.visit(this);
     }
-    
+
     public IndexSetInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
-        super(new GenericInfo(name, file, isGlobal, location));
+        super(new GeneralInfo(name, file, isGlobal, location));
     }
-    
-    public IndexSetInfo(GenericInfo generic) {
+
+    public IndexSetInfo(GeneralInfo generic) {
         super(generic);
     };
-    
+
     @Override
     public Optional<IndexSetDefinition> getDefinition() {
         return definition;
     }
-    
+
     public void setDefinition(IndexSetDefinition definition) {
         this.definition = Optional.of(definition);
     }
-    
+
     @Override
     public String globalName() {
         return String.format("index_%s_%s", generic().getModule(), name());

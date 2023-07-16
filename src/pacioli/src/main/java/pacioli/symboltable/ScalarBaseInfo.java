@@ -10,12 +10,12 @@ public final class ScalarBaseInfo extends UnitInfo {
 
     public String symbol;
     private Optional<UnitDefinition> definition = Optional.empty();
-    
+
     public ScalarBaseInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
-        super(new GenericInfo(name, file, isGlobal, location));
+        super(new GeneralInfo(name, file, isGlobal, location));
     }
-    
-    public ScalarBaseInfo(GenericInfo generic) {
+
+    public ScalarBaseInfo(GeneralInfo generic) {
         super(generic);
     }
 
@@ -23,7 +23,7 @@ public final class ScalarBaseInfo extends UnitInfo {
     public void accept(SymbolTableVisitor visitor) {
         visitor.visit(this);
     }
-    
+
     @Override
     public String globalName() {
         return String.format("sbase_%s", name());
@@ -33,11 +33,11 @@ public final class ScalarBaseInfo extends UnitInfo {
     public Optional<UnitDefinition> getDefinition() {
         return definition;
     }
-    
+
     public void setDefinition(UnitDefinition definition) {
         this.definition = Optional.of(definition);
     }
-    
+
     public Boolean isAlias() {
         return false;
     }

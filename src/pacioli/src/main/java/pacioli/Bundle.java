@@ -20,7 +20,7 @@ import pacioli.compilers.JSCompiler;
 import pacioli.compilers.MATLABCompiler;
 import pacioli.compilers.MVMCompiler;
 import pacioli.compilers.PythonCompiler;
-import pacioli.symboltable.GenericInfo;
+import pacioli.symboltable.GeneralInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
@@ -109,10 +109,10 @@ public class Bundle {
     public void addPrimitiveTypes() {
         PacioliFile file = PacioliFile.requireLibrary("base", libs);
         for (String type : ResolveVisitor.builtinTypes) {
-            GenericInfo generic = new GenericInfo(type, file, true, new Location());
+            GeneralInfo generic = new GeneralInfo(type, file, true, new Location());
             typeTable.put(type, new ParametricInfo(generic));
         }
-        GenericInfo generic = new GenericInfo("nmode", file, true, new Location());
+        GeneralInfo generic = new GeneralInfo("nmode", file, true, new Location());
         ValueInfo nmodeInfo = new ValueInfo(generic, false, true);
         valueTable.put("nmode", nmodeInfo);
     }

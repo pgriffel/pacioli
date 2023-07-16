@@ -7,7 +7,7 @@ import pacioli.ast.definition.Definition;
 
 public interface SymbolInfo {
 
-    GenericInfo generic();
+    GeneralInfo generic();
 
     Optional<? extends Definition> getDefinition();
 
@@ -16,7 +16,7 @@ public interface SymbolInfo {
     String globalName();
 
     Boolean isGlobal();
-    
+
     Location getLocation();
 
     void accept(SymbolTableVisitor visitor);

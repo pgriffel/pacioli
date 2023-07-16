@@ -45,12 +45,12 @@ public class ValueInfo extends AbstractSymbolInfo {
 
     public ValueInfo(String name, PacioliFile file, Boolean isGlobal, Boolean isMonomorphic,
             Location location, boolean isPublic) {
-        super(new GenericInfo(name, file, isGlobal, location));
+        super(new GeneralInfo(name, file, isGlobal, location));
         this.isMonomorphic = isMonomorphic;
         this.isPublic = isPublic;
     }
 
-    public ValueInfo(GenericInfo generic, Boolean isMonomorphic, boolean isPublic) {
+    public ValueInfo(GeneralInfo generic, Boolean isMonomorphic, boolean isPublic) {
         super(generic);
         this.isMonomorphic = isMonomorphic;
         this.isPublic = isPublic;

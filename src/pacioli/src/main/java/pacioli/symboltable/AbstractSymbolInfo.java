@@ -3,18 +3,18 @@ package pacioli.symboltable;
 import pacioli.Location;
 
 public abstract class AbstractSymbolInfo implements SymbolInfo {
-    
-    private GenericInfo generic;
-        
-    public AbstractSymbolInfo(GenericInfo generic) {
+
+    private GeneralInfo generic;
+
+    public AbstractSymbolInfo(GeneralInfo generic) {
         this.generic = generic;
     };
 
     @Override
-    public GenericInfo generic() {
+    public GeneralInfo generic() {
         return generic;
     }
-    
+
     @Override
     public String name() {
         return generic().name;

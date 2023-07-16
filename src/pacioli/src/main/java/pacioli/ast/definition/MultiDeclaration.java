@@ -4,8 +4,6 @@ import java.util.List;
 
 import pacioli.CompilationSettings;
 import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.types.ast.TypeNode;

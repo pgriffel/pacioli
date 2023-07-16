@@ -9,25 +9,25 @@ import pacioli.ast.definition.AliasDefinition;
 public final class AliasInfo extends UnitInfo {
 
     public AliasDefinition definition;
-    
+
     public AliasInfo(String name, PacioliFile file, Location location) {
-        super(new GenericInfo(name, file, true, location));
-        
+        super(new GeneralInfo(name, file, true, location));
+
     }
-    
-    public AliasInfo(GenericInfo generic) {
+
+    public AliasInfo(GeneralInfo generic) {
         super(generic);
     }
 
     public Boolean isAlias() {
         return true;
     }
-    
+
     @Override
     public void accept(SymbolTableVisitor visitor) {
         visitor.visit(this);
     }
-    
+
     @Override
     public String globalName() {
         return String.format("unit_%s", name());

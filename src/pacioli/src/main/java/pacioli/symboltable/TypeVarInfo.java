@@ -10,10 +10,10 @@ import pacioli.types.ast.TypeNode;
 public final class TypeVarInfo extends AbstractSymbolInfo implements TypeSymbolInfo {
 
     public TypeVarInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
-        super(new GenericInfo(name, file, isGlobal, location));
+        super(new GeneralInfo(name, file, isGlobal, location));
     }
 
-    public TypeVarInfo(GenericInfo generic) {
+    public TypeVarInfo(GeneralInfo generic) {
         super(generic);
     }
 
