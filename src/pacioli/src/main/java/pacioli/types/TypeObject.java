@@ -63,25 +63,10 @@ public interface TypeObject extends Printable {
 
     public void accept(TypeVisitor visitor);
 
-    // // Duplicate of AbstractPrintable.pretty
-    // public default String pretty() {
-    // StringWriter out = new StringWriter();
-    // printPretty(new PrintWriter(out));
-    // return out.toString();
-    // }
-
-    // Could be used if PrettyPrinter is finished. This is required
-    // for removing Devaluator.
-
     @Override
     public default void printPretty(PrintWriter out) {
         this.accept(new PrettyPrinter(new Printer(out)));
     }
-
-    // // TODO: remove
-    // public default TypeNode deval() {
-    // return new Devaluator().typeNodeAccept(this);
-    // }
 
     public default Set<Var> typeVars() {
         return new UsesVars().varSetAccept(this);
@@ -250,6 +235,7 @@ public interface TypeObject extends Printable {
         return new VectorVarNames().acceptTypeObject(this);
     };
 
+    // UNITTODO
     public static Substitution unitSimplify(Unit<TypeBase> unit, Set<UnitVar> ignore) {
 
         List<TypeBase> varBases = new ArrayList<TypeBase>();

@@ -1,6 +1,5 @@
 package pacioli.types.visitors;
 
-import pacioli.Location;
 import pacioli.Printer;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
@@ -15,7 +14,6 @@ import pacioli.types.TypeVar;
 import pacioli.types.TypeVisitor;
 import pacioli.types.VectorUnitVar;
 import pacioli.types.ast.ContextNode;
-import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
@@ -35,10 +33,6 @@ public class PrettyPrinter implements TypeVisitor {
 
     @Override
     public void visit(FunctionType type) {
-        // TypeNode dom = type.domain.deval();
-        // TypeNode ran = type.range.deval();
-        // returnTypeNode(new
-        // FunctionTypeNode(dom.getLocation().join(ran.getLocation()), dom, ran));
         if (type.domain instanceof ParametricType p && p.op.getName().equals("Tuple")) {
             out.write("(");
             out.writeCommaSeparated(p.args, x -> x.accept(this));
@@ -68,7 +62,7 @@ public class PrettyPrinter implements TypeVisitor {
     public void visit(IndexList type) {
 
         // This must be an parameric "Index" type, otherwise it would be handled
-        // by the deval of a matrix type.
+        // by the matrix type.
 
         out.print("[");
         String sep = "";
@@ -83,10 +77,8 @@ public class PrettyPrinter implements TypeVisitor {
     @Override
     public void visit(IndexType type) {
 
-        // throw new RuntimeException("deval of index list should be handled by the
-        // matrix type");
         // // This must be an parameric "Index" type, otherwise it would be handled
-        // // by the deval of a matrix type.
+        // // by the matrix type.
 
         out.print("Index(");
         type.indexSet.accept(this);
@@ -95,23 +87,17 @@ public class PrettyPrinter implements TypeVisitor {
 
     @Override
     public void visit(MatrixType type) {
-        // throw new RuntimeException("todo: " + type.getClass());
-
-        // Use a general rewriter to simplify. See deval van scalar and vector units
-        // TypeNode factorNode = type.factor.fold(new ScalarUnitDeval(new Location()));
 
         // Empty string or something
         String left = type.prettyDimensionUnitPair(type.rowDimension, type.rowUnit);
         String right = type.prettyDimensionUnitPair(type.columnDimension, type.columnUnit);
 
         // 1 or something
-        String factorString = type.factor.pretty(); // .fold(new UnitPrinter());
+        String factorString = type.factor.pretty();
 
         boolean hasFactor = !factorString.equals("1");
         boolean hasLeft = !left.isEmpty();
         boolean hasRight = !right.isEmpty();
-
-        // return unit.fold(new UnitMVMCompiler());
 
         if (hasFactor && hasLeft && hasRight) {
             out.format("%s*%s per %s", factorString, left, right);
@@ -130,38 +116,6 @@ public class PrettyPrinter implements TypeVisitor {
         } else {
             out.write("1");
         }
-
-        // if (left == null && right == null) {
-        // out.write(factorNode.toString());
-        // } else if (left == null) {
-        // TypeNode rightNode;
-        // Location location;
-        // if (type.factor.equals(TypeBase.ONE)) {
-        // location = right.getLocation();
-        // rightNode = right;
-        // } else {
-        // location = factorNode.getLocation().join(right.getLocation());
-        // rightNode = new TypeMultiplyNode(location, factorNode, right);
-        // }
-        // returnTypeNode(new TypePerNode(location, new NumberTypeNode(location, "1"),
-        // rightNode));
-        // } else if (right == null) {
-        // if (type.factor.equals(TypeBase.ONE)) {
-        // returnTypeNode(left);
-        // } else {
-        // Location location = left.getLocation().join(factorNode.getLocation());
-        // returnTypeNode(new TypeMultiplyNode(location, factorNode, left));
-        // }
-        // } else {
-        // Location perLocation = left.getLocation().join(right.getLocation());
-        // TypePerNode perNode = new TypePerNode(perLocation, left, right);
-        // if (type.factor.equals(TypeBase.ONE)) {
-        // returnTypeNode(perNode);
-        // } else {
-        // Location location = factorNode.getLocation().join(perLocation);
-        // returnTypeNode(new TypeMultiplyNode(location, factorNode, perNode));
-        // }
-        // }
     }
 
     @Override
@@ -206,7 +160,7 @@ public class PrettyPrinter implements TypeVisitor {
         out.write(type.name());
     }
 
-    // Not used. Replace pretty printing in UoM with this?
+    // UNITTODO Not used. Replace pretty printing in UoM with this?
     static public class UnitPrinter implements UnitFold<TypeBase, String> {
 
         @Override

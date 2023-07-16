@@ -132,25 +132,4 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    // @Override
-    // public Substitution unify(TypeObject other) throws PacioliException {
-    // if (equals(other)) {
-    // return new Substitution();
-    // } else {
-    // return new Substitution(this, other);
-    // }
-    // }
-
-    // @Override
-    // public String asJS() {
-    // // return "'_" + this.pretty() + "_'";
-    // throw new UnsupportedOperationException("Not supported yet.");
-    // }
-
-    // @Override
-    // public String asMVM(CompilationSettings settings) {
-    // throw new UnsupportedOperationException("Not supported yet.");
-    // // return TypeObject.super.compileToMVM(settings);
-    // }
-
 }

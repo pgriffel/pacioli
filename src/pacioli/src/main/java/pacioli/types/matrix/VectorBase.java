@@ -92,6 +92,7 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
         return new VectorBase(indexSetName, unitName, offset, vectorUnitInfo);
     }
 
+    // UNITTODO
     public static Unit<TypeBase> kroneckerNth(Unit<TypeBase> unit, final int index) {
         return unit.map(new UnitMap<TypeBase>() {
             public Unit<TypeBase> map(TypeBase base) {
@@ -111,6 +112,7 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
         });
     }
 
+    // UNITTODO
     public static Unit<TypeBase> shiftUnit(Unit<TypeBase> unit, final int offset) {
         return unit.map(new UnitMap<TypeBase>() {
             public Unit<TypeBase> map(TypeBase base) {

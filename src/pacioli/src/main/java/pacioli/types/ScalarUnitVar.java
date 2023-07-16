@@ -132,15 +132,6 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    // @Override
-    // public Substitution unify(TypeObject other) throws PacioliException {
-    // if (equals(other)) {
-    // return new Substitution();
-    // } else {
-    // return new Substitution(this, other);
-    // }
-    // }
-
     @Override
     public String asJS() {
         // return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";

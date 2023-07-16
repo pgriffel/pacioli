@@ -108,13 +108,6 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
         return !info.isPresent();
     }
 
-    // Pretty printing
-
-    // @Override
-    // public void printPretty(PrintWriter out) {
-    // out.print(pretty());
-    // }
-
     @Override
     public String pretty() {
         return name;

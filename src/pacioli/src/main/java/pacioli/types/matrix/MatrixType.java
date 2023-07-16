@@ -189,6 +189,7 @@ public class MatrixType extends AbstractType {
 
             IndexType rowType = (IndexType) rowDimension;
 
+            // UNITTODO
             // Can kroneckerNth from MatrixBase or VectorBase be used here?
             Unit<TypeBase> unit = TypeBase.ONE;
             for (int i = 0; i < columns.size(); i++) {
@@ -289,34 +290,7 @@ public class MatrixType extends AbstractType {
         return constraints;
     }
 
-    // public TypeNode devalDimensionUnitPair(final IndexType dimension,
-    // Unit<TypeBase> unit) {
-    // if (dimension.isVar()) {
-    // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimension, 0);
-    // return unit.fold(unitDevaluator);
-    // } else {
-    // final IndexType dimType = (IndexType) dimension;
-    // TypeNode node = null;
-    // for (int i = 0; i < dimType.width(); i++) {
-    // // IndexType ty = dimType.project(Arrays.asList(i));
-    // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
-    // Unit<TypeBase> filtered = unit;
-    // // Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit,
-    // i);
-
-    // TypeNode devaluated = filtered.fold(unitDevaluator);
-    // if (i == 0) {
-    // node = devaluated;
-    // } else {
-    // node = new
-    // TypeKroneckerNode(node.getLocation().join(devaluated.getLocation()), node,
-    // devaluated);
-    // }
-    // }
-    // return node;
-    // }
-    // }
-
+    // UNITTODO
     public String prettyDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
         if (dimension.isVar()) {
             String devaluated = unit.pretty();
@@ -344,6 +318,7 @@ public class MatrixType extends AbstractType {
         }
     }
 
+    // UNITTODO
     public String asMVMDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit, CompilationSettings settings) {
         if (dimension.isVar()) {
             throw new UnsupportedOperationException("Is this used?");
