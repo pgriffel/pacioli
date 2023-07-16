@@ -44,7 +44,6 @@ public class TypeDefinition extends AbstractDefinition {
     public final TypeContext context;
     public final TypeNode lhs;
     public final TypeNode rhs;
-    private TypeConstraint constraint;
 
     public TypeDefinition(Location location, TypeContext context, TypeNode lhs, TypeNode rhs) {
         super(location);
@@ -53,14 +52,28 @@ public class TypeDefinition extends AbstractDefinition {
         this.rhs = rhs;
     }
 
+    @Override
+    public String getName() {
+        if (lhs instanceof TypeApplicationNode node) {
+            return node.getName();
+        } else {
+            throw new RuntimeException("Expected a TypeApplicationNode");
+        }
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
+    }
+
     public TypeConstraint constaint() throws PacioliException {
+
+        TypeConstraint constraint;
 
         TypeContext totalContext = new TypeContext();
         totalContext.addAll(this.context);
 
-        if (lhs instanceof TypeApplicationNode) {
-            // TypeApplicationNode app = resolvedLhs;
-            TypeApplicationNode app = (TypeApplicationNode) lhs;
+        if (lhs instanceof TypeApplicationNode app) {
 
             List<TypeObject> types = new ArrayList<TypeObject>();
             for (TypeNode arg : app.getArgs()) {
@@ -74,14 +87,12 @@ public class TypeDefinition extends AbstractDefinition {
                 }
             }
 
-            // PacioliType lhsType = new ParametricType(app.getName(), types);
             TypeObject lhsType = new ParametricType(app.getLocation(),
                     new OperatorConst(new TypeIdentifier(app.op.info.generalInfo().getModule(), app.op.getName()),
                             (ParametricInfo) app.op.info),
                     types);
 
             TypeObject rhsType = rhs.evalType();
-            // PacioliType rhsType = resolvedRhs.evalType(true);
             if (lhsType instanceof ParametricType) {
                 constraint = new TypeConstraint(app, rhsType);
             } else {
@@ -95,16 +106,5 @@ public class TypeDefinition extends AbstractDefinition {
         assert (constraint != null);
 
         return constraint;
-    }
-
-    @Override
-    public String getName() {
-        assert (lhs instanceof TypeApplicationNode);
-        return ((TypeApplicationNode) lhs).getName();
-    }
-
-    @Override
-    public void accept(Visitor visitor) {
-        visitor.visit(this);
     }
 }

@@ -31,9 +31,10 @@ import pacioli.ast.expression.LambdaNode;
 public class ValueDefinition extends AbstractDefinition {
 
     public final IdentifierNode id;
+    public final boolean isUserDefined;
+
+    // Overwritten by LiftStatements
     public ExpressionNode body;
-    public boolean isUserDefined;
-    private String docu;
 
     public ValueDefinition(Location location, IdentifierNode id, ExpressionNode body, boolean isUserDefined) {
         super(location);
@@ -61,10 +62,6 @@ public class ValueDefinition extends AbstractDefinition {
     public String getName() {
         return id.getName();
     }
-
-    public String docu() {
-        return docu;
-    };
 
     @Override
     public void accept(Visitor visitor) {

@@ -195,7 +195,7 @@ public class Progam extends AbstractPrintable {
                         .file(file)
                         .isGlobal(true)
                         .declaredType(decl.typeNode)
-                        .isPublic(decl.isPublic());
+                        .isPublic(decl.isPublic);
             } else if (def instanceof Documentation doc) {
                 ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable,
                         def.getName());

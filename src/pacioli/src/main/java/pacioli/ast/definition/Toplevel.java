@@ -7,7 +7,7 @@ import pacioli.types.TypeObject;
 
 public class Toplevel extends AbstractDefinition {
 
-    public ExpressionNode body;
+    public final ExpressionNode body;
 
     // Set during type inference
     public TypeObject type;

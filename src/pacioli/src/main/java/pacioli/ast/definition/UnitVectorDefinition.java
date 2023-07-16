@@ -37,8 +37,8 @@ public class UnitVectorDefinition extends AbstractDefinition {
 
     public static class UnitDecl {
 
-        public IdentifierNode key;
-        public UnitNode value;
+        public final IdentifierNode key;
+        public final UnitNode value;
 
         public UnitDecl(IdentifierNode key, UnitNode value) {
             this.key = key;

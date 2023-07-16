@@ -10,9 +10,9 @@ import pacioli.types.ast.TypeNode;
 
 public class MultiDeclaration extends AbstractDefinition {
 
-    public List<IdentifierNode> ids;
-    public TypeNode node;
-    private boolean isPublic;
+    public final List<IdentifierNode> ids;
+    public final TypeNode node;
+    public final boolean isPublic;
 
     public MultiDeclaration(Location location, List<IdentifierNode> ids, TypeNode node, boolean isPublic) {
         super(location);
@@ -34,9 +34,5 @@ public class MultiDeclaration extends AbstractDefinition {
     @Override
     public String compileToMVM(CompilationSettings settings) {
         throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
-    }
-
-    public boolean isPublic() {
-        return isPublic;
     }
 }

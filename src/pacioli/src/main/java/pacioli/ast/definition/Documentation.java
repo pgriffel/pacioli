@@ -30,7 +30,7 @@ import pacioli.ast.expression.IdentifierNode;
 public class Documentation extends AbstractDefinition {
 
     public final IdentifierNode id;
-    public ExpressionNode body;
+    public final ExpressionNode body;
 
     public Documentation(Location location, IdentifierNode id, ExpressionNode body) {
         super(location);

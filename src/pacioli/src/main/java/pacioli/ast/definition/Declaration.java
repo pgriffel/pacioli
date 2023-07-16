@@ -9,7 +9,7 @@ public class Declaration extends AbstractDefinition {
 
     public final IdentifierNode id;
     public final TypeNode typeNode;
-    private boolean isPublic;
+    public final boolean isPublic;
 
     public Declaration(Location location, IdentifierNode id, TypeNode typeNode, boolean isPublic) {
         super(location);
@@ -30,9 +30,5 @@ public class Declaration extends AbstractDefinition {
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
-    }
-
-    public boolean isPublic() {
-        return isPublic;
     }
 }

@@ -50,10 +50,6 @@ public class UnitDefinition extends AbstractDefinition {
         this.body = Optional.of(body);
     }
 
-    public String getSymbol() {
-        return symbol;
-    }
-
     // Make Optional or exception!!!
     public DimensionedNumber<TypeBase> evalBody() {
         return body.isPresent() ? body.get().evalUnit() : null;
