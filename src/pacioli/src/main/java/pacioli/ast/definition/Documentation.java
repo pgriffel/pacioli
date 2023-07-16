@@ -39,7 +39,7 @@ public class Documentation extends AbstractDefinition {
     }
 
     @Override
-    public String localName() {
+    public String getName() {
         return id.getName();
     }
 

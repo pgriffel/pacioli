@@ -22,7 +22,7 @@ public class MultiDeclaration extends AbstractDefinition {
     }
 
     @Override
-    public String localName() {
+    public String getName() {
         throw new RuntimeException("Cannot do that on a multi declaration. Can only addToProgram");
     }
 

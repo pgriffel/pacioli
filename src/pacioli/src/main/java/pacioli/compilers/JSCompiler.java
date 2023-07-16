@@ -134,7 +134,7 @@ public class JSCompiler implements SymbolTableVisitor {
             out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', '%s', ",
                     info.globalName(),
                     info.globalName(),
-                    definition.localName());
+                    definition.getName());
             definition.getBody().compileToJS(out, settings, false);
             out.format(")}\n");
         } else {
@@ -146,7 +146,7 @@ public class JSCompiler implements SymbolTableVisitor {
             out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', '%s', [ %s ])}\n",
                     info.globalName(),
                     info.globalName(),
-                    definition.localName(),
+                    definition.getName(),
                     Utils.intercalate(",", quotedItems));
         }
 

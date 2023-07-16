@@ -58,7 +58,7 @@ public class ValueDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String localName() {
+    public String getName() {
         return id.getName();
     }
 

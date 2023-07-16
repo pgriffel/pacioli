@@ -64,11 +64,11 @@ public class IndexSetDefinition extends AbstractDefinition {
     }
 
     public IndexSet getIndexSet() {
-        return new IndexSet(localName(), getItems());
+        return new IndexSet(getName(), getItems());
     }
 
     @Override
-    public String localName() {
+    public String getName() {
         return id.getName();
     }
 

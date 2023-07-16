@@ -62,7 +62,7 @@ public class MVMCompiler implements SymbolTableVisitor {
         IndexSetDefinition definition = info.getDefinition().get();
 
         if (definition.isDynamic()) {
-            out.format("indexset \"%s\" \"%s\" ", info.globalName(), info.getDefinition().get().localName());
+            out.format("indexset \"%s\" \"%s\" ", info.globalName(), info.getDefinition().get().getName());
             info.getDefinition().get().getBody().accept(new MVMGenerator(out, settings));
             out.format(";\n");
         } else {
@@ -70,7 +70,7 @@ public class MVMCompiler implements SymbolTableVisitor {
             for (String item : definition.getItems()) {
                 quotedItems.add(String.format("\"%s\"", item));
             }
-            out.format("indexset \"%s\" \"%s\" list(%s);\n", info.globalName(), info.getDefinition().get().localName(),
+            out.format("indexset \"%s\" \"%s\" list(%s);\n", info.globalName(), info.getDefinition().get().getName(),
                     Utils.intercalate(",", quotedItems));
         }
 

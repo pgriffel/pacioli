@@ -161,7 +161,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(Declaration node) {
-        out.format("declare %s :: ", node.localName());
+        out.format("declare %s :: ", node.getName());
         newline();
         write("    ");
         node.typeNode.accept(this);
@@ -216,7 +216,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(UnitVectorDefinition node) {
-        format("defunit %s = {", node.localName());
+        format("defunit %s = {", node.getName());
         newlineUp();
         Boolean sep = false;
         for (UnitDecl entry : node.items) {

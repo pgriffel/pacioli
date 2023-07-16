@@ -60,7 +60,7 @@ public class UnitDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String localName() {
+    public String getName() {
         return id.getName();
     }
 

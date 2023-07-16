@@ -18,7 +18,7 @@ public final class ClassInfo extends AbstractSymbolInfo implements TypeSymbolInf
             ClassDefinition definition,
             PacioliFile file,
             List<InstanceDefinition> instances) {
-        super(new GeneralInfo(definition.localName(), file, true, definition.getLocation()));
+        super(new GeneralInfo(definition.getName(), file, true, definition.getLocation()));
         this.definition = definition;
         this.file = file;
         this.instances = instances;

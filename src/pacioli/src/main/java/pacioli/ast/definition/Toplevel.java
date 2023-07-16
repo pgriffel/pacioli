@@ -18,7 +18,7 @@ public class Toplevel extends AbstractDefinition {
     }
 
     @Override
-    public String localName() {
+    public String getName() {
         return null;
     }
 

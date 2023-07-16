@@ -24,5 +24,5 @@ package pacioli.ast.definition;
 import pacioli.ast.Node;
 
 public interface Definition extends Node {
-    public String localName();
+    public String getName();
 }

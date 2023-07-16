@@ -98,7 +98,7 @@ public class TypeDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String localName() {
+    public String getName() {
         assert (lhs instanceof TypeApplicationNode);
         return ((TypeApplicationNode) lhs).getName();
     }

@@ -112,11 +112,11 @@ public class LiftStatements extends IdentityTransformation {
         LambdaNode lambda = new LambdaNode(args, rec, nodeLocation);
         ValueDefinition vd = new ValueDefinition(nodeLocation, fresh, lambda, false);
         try {
-            ValueInfo info = new ValueInfo(vd.localName(), prog.file, true, false,
+            ValueInfo info = new ValueInfo(vd.getName(), prog.file, true, false,
                     nodeLocation, false);
             info.setDefinition(vd);
             // vd.addToProgr(prog);
-            prog.values.put(vd.localName(), info);
+            prog.values.put(vd.getName(), info);
         } catch (PacioliException e) {
             throw new RuntimeException("Cannot add lifted statement to program", e);
         }

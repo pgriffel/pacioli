@@ -153,66 +153,66 @@ public class Progam extends AbstractPrintable {
 
         // First pass, don't add class instances and ...
         for (Definition def : program.definitions) {
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.localName(),
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
                     file.getModule(), file.getFile());
             if (def instanceof ClassDefinition d) {
                 ClassInfo.Builder classDef = ClassInfo.builder().file(file).definition(d);
-                classTable.put(def.localName(), classDef);
+                classTable.put(def.getName(), classDef);
             } else if (def instanceof AliasDefinition alias) {
-                AliasInfo info = new AliasInfo(def.localName(), file, def.getLocation());
+                AliasInfo info = new AliasInfo(def.getName(), file, def.getLocation());
                 info.definition = alias;
                 addInfo(info);
             } else if (def instanceof IndexSetDefinition indexSet) {
-                IndexSetInfo info = new IndexSetInfo(def.localName(), file, true, def.getLocation());
+                IndexSetInfo info = new IndexSetInfo(def.getName(), file, true, def.getLocation());
                 info.setDefinition(indexSet);
                 addInfo(info);
             } else if (def instanceof Toplevel top) {
                 addToplevel(top);
             } else if (def instanceof TypeDefinition typeDef) {
-                ParametricInfo info = new ParametricInfo(def.localName(), file, true, def.getLocation());
+                ParametricInfo info = new ParametricInfo(def.getName(), file, true, def.getLocation());
                 info.typeAST = typeDef.rhs;
                 info.setDefinition(typeDef);
                 addInfo(info);
             } else if (def instanceof UnitDefinition unitDef) {
-                ScalarBaseInfo info = new ScalarBaseInfo(def.localName(), file, true, def.getLocation());
+                ScalarBaseInfo info = new ScalarBaseInfo(def.getName(), file, true, def.getLocation());
                 info.setDefinition(unitDef);
                 info.symbol = unitDef.symbol;
                 addInfo(info);
             } else if (def instanceof UnitVectorDefinition vecDef) {
-                VectorBaseInfo info = new VectorBaseInfo(def.localName(), file, true, def.getLocation());
+                VectorBaseInfo info = new VectorBaseInfo(def.getName(), file, true, def.getLocation());
                 info.setDefinition(vecDef);
                 info.setItems(vecDef.items);
                 addInfo(info);
             } else if (def instanceof Declaration decl) {
                 ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable,
-                        def.localName());
+                        def.getName());
                 if (builder.declaredType != null) {
                     throw new PacioliException(def.getLocation(), "Duplicate type declaration for %s",
-                            def.localName());
+                            def.getName());
                 }
                 builder
-                        .name(def.localName())
+                        .name(def.getName())
                         .file(file)
                         .isGlobal(true)
                         .declaredType(decl.typeNode)
                         .isPublic(decl.isPublic());
             } else if (def instanceof Documentation doc) {
                 ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable,
-                        def.localName());
+                        def.getName());
                 if (builder.docu != null) {
-                    throw new PacioliException(def.getLocation(), "Duplicate docu for %s", def.localName());
+                    throw new PacioliException(def.getLocation(), "Duplicate docu for %s", def.getName());
                 }
                 builder
-                        .name(def.localName())
+                        .name(def.getName())
                         .file(file)
                         .isGlobal(true)
                         .docu(((StringNode) doc.body).valueString());
             } else if (def instanceof ValueDefinition val) {
                 ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable,
-                        def.localName());
+                        def.getName());
                 builder
                         .definition(val)
-                        .name(def.localName())
+                        .name(def.getName())
                         .file(file)
                         .isGlobal(true)
                         .isMonomorphic(false)
@@ -222,12 +222,12 @@ public class Progam extends AbstractPrintable {
 
         // Second pass, add class instances and ...
         for (Definition def : program.definitions) {
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.localName(),
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
                     file.getModule(), file.getFile());
             if (def instanceof InstanceDefinition inst) {
-                ClassInfo.Builder builder = classTable.get(def.localName());
+                ClassInfo.Builder builder = classTable.get(def.getName());
                 if (builder == null) {
-                    throw new PacioliException(def.getLocation(), "No class found for instance %s", def.localName());
+                    throw new PacioliException(def.getLocation(), "No class found for instance %s", def.getName());
                 }
                 builder.instance(inst);
             }
@@ -343,7 +343,7 @@ public class Progam extends AbstractPrintable {
             }
         }
         for (Toplevel definition : toplevels) {
-            Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving toplevel %s", definition.localName());
+            Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving toplevel %s", definition.getName());
             definition.resolve(file, env);
         }
         values.parent = null;

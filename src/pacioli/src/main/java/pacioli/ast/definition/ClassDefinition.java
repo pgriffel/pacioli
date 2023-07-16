@@ -48,7 +48,7 @@ public class ClassDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String localName() {
+    public String getName() {
         return ((TypeApplicationNode) definedClass.type).getName();
     }
 
