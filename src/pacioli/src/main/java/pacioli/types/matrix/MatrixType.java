@@ -32,8 +32,6 @@ import pacioli.types.TypeObject;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVisitor;
-import pacioli.types.ast.TypeKroneckerNode;
-import pacioli.types.ast.TypeNode;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitMap;

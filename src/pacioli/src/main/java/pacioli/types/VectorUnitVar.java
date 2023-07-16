@@ -21,7 +21,6 @@
 
 package pacioli.types;
 
-import java.io.PrintWriter;
 import java.util.Optional;
 import pacioli.CompilationSettings;
 import pacioli.ConstraintSet;

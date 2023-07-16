@@ -37,7 +37,6 @@ import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
-import pacioli.symboltable.ValueInfo.Builder;
 import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.TypeObject;
 import pacioli.types.ast.TypeNode;

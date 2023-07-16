@@ -1,7 +1,6 @@
 package pacioli.types.visitors;
 
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 import pacioli.types.TypeBase;
@@ -13,43 +12,34 @@ import uom.Unit;
 
 public class VectorVarNames extends Collector<String> {
 
-    // private Stack<Set<String>> nodeStack = new Stack<>();
-
     public VectorVarNames() {
         super(new HashSet<>());
 
     }
 
     public Set<String> acceptTypeObject(TypeObject child) {
-        // Pacioli.logln("accept: %s", child.getClass());
-        child.accept(this);
-        return (Set<String>) nodeStack.pop();
-    }
-
-    public void returnParts(Set<String> value) {
-        // Pacioli.logln("return: %s", value.getClass());
-        nodeStack.push(value);
+        return (Set<String>) super.acceptTypeObject(child);
     }
 
     @Override
     public void visit(MatrixType type) {
-        Set<String> names = new LinkedHashSet<String>();
-        names.addAll(dimensionUnitVecVarCompoundNames(type.rowDimension,
-                type.rowUnit));
-        names.addAll(dimensionUnitVecVarCompoundNames(type.columnDimension,
-                type.columnUnit));
-        returnParts(names);
+        for (String name : unitVecVarNames(type.rowDimension, type.rowUnit)) {
+            addItem(name);
+        }
+        for (String name : unitVecVarNames(type.columnDimension, type.columnUnit)) {
+            addItem(name);
+        }
     }
 
-    public Set<String> dimensionUnitVecVarCompoundNames(IndexType dimension, Unit<TypeBase> unit) {
+    private Set<String> unitVecVarNames(IndexType dimension, Unit<TypeBase> unit) {
         Set<String> names = new HashSet<String>();
         if (dimension.isVar()) {
             for (TypeBase base : unit.bases()) {
-                assert (base instanceof VectorUnitVar);
-                VectorUnitVar vbase = (VectorUnitVar) base;
-                // Pacioli.logln("Adding %s ! %s", dimension.varName(), vbase.unitPart());
-                names.add(dimension.varName() + "!" + vbase.unitPart());
-                // names.add(base.pretty());
+                if (base instanceof VectorUnitVar vbase) {
+                    names.add(dimension.varName() + "!" + vbase.unitPart());
+                } else {
+                    throw new RuntimeException("Expected a VectorUnitVar");
+                }
             }
         }
         return names;
