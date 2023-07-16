@@ -19,7 +19,6 @@ import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.ScalarUnitDeval;
 import uom.Fraction;
 import uom.UnitFold;
 

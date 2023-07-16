@@ -52,7 +52,7 @@ public class DocumentationGenerator {
         if (argumentsTable.containsKey(name)) {
             throw new RuntimeException(String.format("Cannot add value %s, it is already added as function", name));
         }
-        typeTable.put(name, type.deval().pretty());
+        typeTable.put(name, type.pretty());
         documentationTable.put(name, documentation);
         values.add(name);
     }
@@ -70,7 +70,7 @@ public class DocumentationGenerator {
         if (argumentsTable.containsKey(name)) {
             throw new RuntimeException(String.format("Cannot add function %s, it is already added", name));
         }
-        typeTable.put(name, type.deval().pretty());
+        typeTable.put(name, type.pretty());
         documentationTable.put(name, documentation);
         argumentsTable.put(name, arguments);
         functions.add(name);

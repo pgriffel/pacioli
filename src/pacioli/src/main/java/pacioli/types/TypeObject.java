@@ -36,10 +36,8 @@ import pacioli.Printable;
 import pacioli.Printer;
 import pacioli.Substitution;
 import pacioli.symboltable.ParametricInfo;
-import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.visitors.VectorVarNames;
-import pacioli.types.visitors.Devaluator;
 import pacioli.types.visitors.JSGenerator;
 import pacioli.types.visitors.MVMGenerator;
 import pacioli.types.visitors.PrettyPrinter;
@@ -80,10 +78,10 @@ public interface TypeObject extends Printable {
         this.accept(new PrettyPrinter(new Printer(out)));
     }
 
-    // TODO: remove
-    public default TypeNode deval() {
-        return new Devaluator().typeNodeAccept(this);
-    }
+    // // TODO: remove
+    // public default TypeNode deval() {
+    // return new Devaluator().typeNodeAccept(this);
+    // }
 
     public default Set<Var> typeVars() {
         return new UsesVars().varSetAccept(this);
@@ -237,16 +235,14 @@ public interface TypeObject extends Printable {
     };
 
     public default String compileToMVM(CompilationSettings settings) {
+        // Currently only the matrix type is compiled. This is just enough
+        // to get shapes in the MVM.
         if (!(this instanceof MatrixType))
             throw new UnsupportedOperationException("yo");
-        if (false) {
-            return deval().compileToMVM(new CompilationSettings());
-        } else {
-            StringWriter outputStream = new StringWriter();
-            this.accept(new MVMGenerator(new Printer(new PrintWriter(outputStream)),
-                    settings));
-            return outputStream.toString();
-        }
+        StringWriter outputStream = new StringWriter();
+        this.accept(new MVMGenerator(new Printer(new PrintWriter(outputStream)),
+                settings));
+        return outputStream.toString();
     }
 
     // Hack to print proper compound unit vector in schema's

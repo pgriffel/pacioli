@@ -353,8 +353,8 @@ public class Progam extends AbstractPrintable {
                             new PacioliException(info.getLocation(),
                                     String.format(
                                             "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
-                                            declaredType.unfresh().deval().pretty(),
-                                            inferredType.unfresh().deval().pretty())));
+                                            declaredType.unfresh().pretty(),
+                                            inferredType.unfresh().pretty())));
                 }
             }
 
@@ -451,13 +451,13 @@ public class Progam extends AbstractPrintable {
         for (String value : names) {
             ValueInfo info = values.lookup(value);
             if (!isExternal(info) && info.getDefinition().isPresent()) {
-                Pacioli.println("\n%s :: %s;", info.name(), info.inferredType().deval().pretty());
+                Pacioli.println("\n%s :: %s;", info.name(), info.inferredType().pretty());
             }
         }
         Integer count = 1;
         for (Toplevel toplevel : toplevels) {
             TypeObject type = toplevel.type;
-            Pacioli.println("\nToplevel %s :: %s", count++, type.unfresh().deval().pretty());
+            Pacioli.println("\nToplevel %s :: %s", count++, type.unfresh().pretty());
         }
     }
 

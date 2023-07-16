@@ -266,15 +266,13 @@ public class Bundle {
                     && info.isUserDefined()) {
                 Pacioli.println("%s ::", info.name());
                 if (rewriteTypes) {
-                    Pacioli.print(" %s;", info.inferredType().deval().pretty());
+                    Pacioli.print(" %s;", info.inferredType().pretty());
                 } else {
-                    Pacioli.print(" %s;", info.getType().deval().pretty());
+                    Pacioli.print(" %s;", info.getType().pretty());
                 }
                 if (showDocs) {
                     if (info.getDocu().isPresent()) {
                         Pacioli.println("\n    %s\n", info.getDocu().get());
-                    } else {
-                        Pacioli.print("\n");
                     }
                 }
             }
@@ -285,7 +283,7 @@ public class Bundle {
         for (Toplevel toplevel : toplevels) {
             TypeObject type = toplevel.type;
             Pacioli.println("Toplevel %s ::", count++);
-            Pacioli.print(" %s", type.unfresh().deval().pretty());
+            Pacioli.print(" %s", type.unfresh().pretty());
         }
     }
 

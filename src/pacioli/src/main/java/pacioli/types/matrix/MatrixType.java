@@ -289,29 +289,33 @@ public class MatrixType extends AbstractType {
         return constraints;
     }
 
-    public TypeNode devalDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
-        if (dimension.isVar()) {
-            VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimension, 0);
-            return unit.fold(unitDevaluator);
-        } else {
-            final IndexType dimType = (IndexType) dimension;
-            TypeNode node = null;
-            for (int i = 0; i < dimType.width(); i++) {
-                // IndexType ty = dimType.project(Arrays.asList(i));
-                VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
-                Unit<TypeBase> filtered = unit;
-                // Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
+    // public TypeNode devalDimensionUnitPair(final IndexType dimension,
+    // Unit<TypeBase> unit) {
+    // if (dimension.isVar()) {
+    // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimension, 0);
+    // return unit.fold(unitDevaluator);
+    // } else {
+    // final IndexType dimType = (IndexType) dimension;
+    // TypeNode node = null;
+    // for (int i = 0; i < dimType.width(); i++) {
+    // // IndexType ty = dimType.project(Arrays.asList(i));
+    // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
+    // Unit<TypeBase> filtered = unit;
+    // // Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit,
+    // i);
 
-                TypeNode devaluated = filtered.fold(unitDevaluator);
-                if (i == 0) {
-                    node = devaluated;
-                } else {
-                    node = new TypeKroneckerNode(node.getLocation().join(devaluated.getLocation()), node, devaluated);
-                }
-            }
-            return node;
-        }
-    }
+    // TypeNode devaluated = filtered.fold(unitDevaluator);
+    // if (i == 0) {
+    // node = devaluated;
+    // } else {
+    // node = new
+    // TypeKroneckerNode(node.getLocation().join(devaluated.getLocation()), node,
+    // devaluated);
+    // }
+    // }
+    // return node;
+    // }
+    // }
 
     public String prettyDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
         if (dimension.isVar()) {
