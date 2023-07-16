@@ -31,7 +31,7 @@ public final class ClassInfo extends AbstractSymbolInfo implements TypeSymbolInf
 
     @Override
     public String globalName() {
-        return global(generic().getModule(), name());
+        return global(generalInfo().getModule(), name());
     }
 
     public static String global(String module, String name) {

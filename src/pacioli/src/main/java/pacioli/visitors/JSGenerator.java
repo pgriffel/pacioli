@@ -178,7 +178,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         // String prefix = settings.debug() && node.debugable() ? "debug_" : "global_";
         String fun = boxed ? "bfetchValue" : "fetchValue";
         String full = info.isGlobal()
-                ? "Pacioli." + fun + "('" + info.generic().getModule() + "', '" + node.getName() + "')"
+                ? "Pacioli." + fun + "('" + info.generalInfo().getModule() + "', '" + node.getName() + "')"
                 : "lcl_" + node.getName();
 
         if (node.getInfo().isRef()) {
@@ -285,7 +285,8 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
             // // Obsolete code
             // // throw new PacioliException(node.getLocation(), " huh %s", type.pretty());
-            // out.print("Pacioli.oneNumbers(" + node.rowDim.size() + ", " + node.columnDim.size() + ")");
+            // out.print("Pacioli.oneNumbers(" + node.rowDim.size() + ", " +
+            // node.columnDim.size() + ")");
         }
     }
 

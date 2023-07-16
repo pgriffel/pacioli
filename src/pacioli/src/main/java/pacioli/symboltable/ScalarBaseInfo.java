@@ -15,8 +15,8 @@ public final class ScalarBaseInfo extends UnitInfo {
         super(new GeneralInfo(name, file, isGlobal, location));
     }
 
-    public ScalarBaseInfo(GeneralInfo generic) {
-        super(generic);
+    public ScalarBaseInfo(GeneralInfo info) {
+        super(info);
     }
 
     @Override

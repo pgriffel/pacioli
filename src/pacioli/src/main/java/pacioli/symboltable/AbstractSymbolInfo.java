@@ -4,29 +4,29 @@ import pacioli.Location;
 
 public abstract class AbstractSymbolInfo implements SymbolInfo {
 
-    private GeneralInfo generic;
+    private GeneralInfo general;
 
-    public AbstractSymbolInfo(GeneralInfo generic) {
-        this.generic = generic;
+    public AbstractSymbolInfo(GeneralInfo general) {
+        this.general = general;
     };
 
     @Override
-    public GeneralInfo generic() {
-        return generic;
+    public GeneralInfo generalInfo() {
+        return general;
     }
 
     @Override
     public String name() {
-        return generic().name;
+        return generalInfo().name;
     }
 
     @Override
     public Location getLocation() {
-        return generic.location();
+        return general.location();
     }
 
     @Override
     public Boolean isGlobal() {
-        return generic.isGlobal();
+        return general.isGlobal();
     }
 }

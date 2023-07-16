@@ -72,16 +72,16 @@ public class Bundle {
             Collection<String> includedModules) {
         SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>();
         valueTable.allInfos().forEach(info -> {
-            if (info.isPublic() && importedModules.contains(info.generic().getModule())) {
+            if (info.isPublic() && importedModules.contains(info.generalInfo().getModule())) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Importing %s", info.name());
                 table.put(info.name(), info);
             }
-            if (includedModules.contains(info.generic().getModule())) {
+            if (includedModules.contains(info.generalInfo().getModule())) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Including %s", info.name());
                 table.put(info.name(), info);
             }
-            if (!(info.isPublic() && importedModules.contains(info.generic().getModule())) &&
-                    !includedModules.contains(info.generic().getModule())) {
+            if (!(info.isPublic() && importedModules.contains(info.generalInfo().getModule())) &&
+                    !includedModules.contains(info.generalInfo().getModule())) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Skipping %s", info.name());
             }
         });
@@ -92,7 +92,7 @@ public class Bundle {
             Collection<String> includedModules) {
         SymbolTable<TypeSymbolInfo> table = new SymbolTable<TypeSymbolInfo>();
         typeTable.allInfos().forEach(info -> {
-            String infoModule = info.generic().getModule();
+            String infoModule = info.generalInfo().getModule();
             if (importedModules.contains(infoModule) || includedModules.contains(infoModule)) {
                 Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(),
                         info.name());
@@ -109,11 +109,11 @@ public class Bundle {
     public void addPrimitiveTypes() {
         PacioliFile file = PacioliFile.requireLibrary("base", libs);
         for (String type : ResolveVisitor.builtinTypes) {
-            GeneralInfo generic = new GeneralInfo(type, file, true, new Location());
-            typeTable.put(type, new ParametricInfo(generic));
+            GeneralInfo info = new GeneralInfo(type, file, true, new Location());
+            typeTable.put(type, new ParametricInfo(info));
         }
-        GeneralInfo generic = new GeneralInfo("nmode", file, true, new Location());
-        ValueInfo nmodeInfo = new ValueInfo(generic, false, true);
+        GeneralInfo info = new GeneralInfo("nmode", file, true, new Location());
+        ValueInfo nmodeInfo = new ValueInfo(info, false, true);
         valueTable.put("nmode", nmodeInfo);
     }
 
@@ -261,7 +261,7 @@ public class Bundle {
 
         for (String value : names) {
             ValueInfo info = valueTable.lookup(value);
-            boolean fromProgram = info.generic().getModule().equals(file.getModule());
+            boolean fromProgram = info.generalInfo().getModule().equals(file.getModule());
             if ((includePrivate || info.isPublic()) && fromProgram && info.getDefinition().isPresent()
                     && info.isUserDefined()) {
                 Pacioli.println("%s ::", info.name());

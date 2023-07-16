@@ -50,8 +50,8 @@ public class ValueInfo extends AbstractSymbolInfo {
         this.isPublic = isPublic;
     }
 
-    public ValueInfo(GeneralInfo generic, Boolean isMonomorphic, boolean isPublic) {
-        super(generic);
+    public ValueInfo(GeneralInfo info, Boolean isMonomorphic, boolean isPublic) {
+        super(info);
         this.isMonomorphic = isMonomorphic;
         this.isPublic = isPublic;
     }
@@ -63,7 +63,7 @@ public class ValueInfo extends AbstractSymbolInfo {
 
     @Override
     public String globalName() {
-        return global(generic().getModule(), name());
+        return global(generalInfo().getModule(), name());
     }
 
     public static String global(String module, String name) {

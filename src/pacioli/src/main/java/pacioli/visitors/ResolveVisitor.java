@@ -85,12 +85,7 @@ public class ResolveVisitor extends IdentityVisitor {
         valueTables.push(pacioliTable.values());
         this.file = file;
     }
-    /*
-     * GenericInfo newGenericInfo(String name, Boolean isGlobal, Location location)
-     * {
-     * return new GenericInfo(name, module, isGlobal, location);
-     * }
-     */
+
     // -------------------------------------------------------------------------
     // Visitors
     // -------------------------------------------------------------------------

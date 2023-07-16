@@ -690,7 +690,7 @@ public class Pacioli {
         List<ValueInfo> allInfos = program.values.allInfos();
         List<String> names = new ArrayList<String>();
         for (ValueInfo info : allInfos) {
-            if (info.generic().getModule().equals("base")) {
+            if (info.generalInfo().getModule().equals("base")) {
                 names.add(info.globalName());
             }
         }

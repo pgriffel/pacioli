@@ -13,8 +13,8 @@ public final class TypeVarInfo extends AbstractSymbolInfo implements TypeSymbolI
         super(new GeneralInfo(name, file, isGlobal, location));
     }
 
-    public TypeVarInfo(GeneralInfo generic) {
-        super(generic);
+    public TypeVarInfo(GeneralInfo info) {
+        super(info);
     }
 
     private Optional<TypeDefinition> definition = Optional.empty();
@@ -34,7 +34,7 @@ public final class TypeVarInfo extends AbstractSymbolInfo implements TypeSymbolI
         // TODO: check this name with the name used by the compiler. This was added just
         // for logging.
         // return String.format("type_%s", name());
-        return String.format("%s_%s", generic().getModule().replace("-", "_"), name());
+        return String.format("%s_%s", generalInfo().getModule().replace("-", "_"), name());
     }
 
     @Override

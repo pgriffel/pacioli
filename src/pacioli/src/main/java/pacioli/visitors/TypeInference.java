@@ -310,7 +310,7 @@ public class TypeInference extends IdentityVisitor {
             if (node.getInfo().getDeclaredType().isPresent()) {
                 returnNode(new Typing(
                         node.getInfo().getDeclaredType().get().evalType().instantiate()
-                                .reduce(i -> i.generic().getModule().equals(file.getModule()))));
+                                .reduce(i -> i.generalInfo().getModule().equals(file.getModule()))));
             } else {
                 returnNode(new Typing(node.getInfo().inferredType().instantiate()));
             }
@@ -358,7 +358,7 @@ public class TypeInference extends IdentityVisitor {
         List<IndexSetInfo> typeInfos = new ArrayList<IndexSetInfo>();
         for (int i = 0; i < node.indexSets.size(); i++) {
             IndexSetInfo info = node.getInfo(i);
-            typeIds.add(new TypeIdentifier(info.generic().getModule(), node.indexSets.get(i)));
+            typeIds.add(new TypeIdentifier(info.generalInfo().getModule(), node.indexSets.get(i)));
             typeInfos.add(info);
         }
 

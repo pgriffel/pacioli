@@ -23,8 +23,8 @@ public final class VectorBaseInfo extends UnitInfo {
         assert (name.contains("!"));
     }
 
-    public VectorBaseInfo(GeneralInfo generic) {
-        super(generic);
+    public VectorBaseInfo(GeneralInfo info) {
+        super(info);
     }
 
     public void setItems(List<UnitDecl> items) {

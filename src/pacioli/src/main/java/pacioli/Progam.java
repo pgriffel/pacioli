@@ -87,7 +87,7 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
 
     Boolean isExternal(SymbolInfo info) {
-        return !info.generic().getFile().equals(getFile());
+        return !info.generalInfo().getFile().equals(getFile());
     }
 
     public String getModule() {
@@ -301,7 +301,7 @@ public class Progam extends AbstractPrintable {
         PacioliTable env = new PacioliTable(values, typess);
         for (TypeSymbolInfo nfo : typess.allInfos()) {
             if (nfo instanceof IndexSetInfo) {
-                boolean fromProgram = nfo.generic().getModule().equals(file.getModule());
+                boolean fromProgram = nfo.generalInfo().getModule().equals(file.getModule());
                 if (fromProgram && nfo.getDefinition().isPresent()) {
                     Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving index set %s", nfo.globalName());
                     nfo.getDefinition().get().resolve(file, env);
@@ -309,7 +309,7 @@ public class Progam extends AbstractPrintable {
             }
         }
         for (TypeSymbolInfo nfo : typess.allInfos()) {
-            boolean fromProgram = nfo.generic().getModule().equals(file.getModule());
+            boolean fromProgram = nfo.generalInfo().getModule().equals(file.getModule());
             if (nfo instanceof UnitInfo) {
                 Optional<? extends Definition> definition = nfo.getDefinition();
                 assert (definition.isPresent());
@@ -321,7 +321,7 @@ public class Progam extends AbstractPrintable {
         }
         for (TypeSymbolInfo nfo : typess.allInfos()) {
             if (nfo instanceof ParametricInfo) {
-                boolean fromProgram = nfo.generic().getModule().equals(file.getModule());
+                boolean fromProgram = nfo.generalInfo().getModule().equals(file.getModule());
                 if (fromProgram && nfo.getDefinition().isPresent()) {
                     Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving type %s", nfo.globalName());
                     nfo.getDefinition().get().resolve(file, env);
@@ -330,7 +330,7 @@ public class Progam extends AbstractPrintable {
         }
 
         for (ValueInfo nfo : values.allInfos()) {
-            boolean fromProgram = nfo.generic().getModule().equals(file.getModule());
+            boolean fromProgram = nfo.generalInfo().getModule().equals(file.getModule());
             if (fromProgram) {
                 if (nfo.getDefinition().isPresent()) {
                     Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving value or function %s",
@@ -422,7 +422,7 @@ public class Progam extends AbstractPrintable {
             if (!isExternal(info) && declared.isPresent() && info.inferredType.isPresent()) {
 
                 TypeObject declaredType = declared.get().evalType().instantiate()
-                        .reduce(i -> i.generic().getModule().equals(file.getModule()));
+                        .reduce(i -> i.generalInfo().getModule().equals(file.getModule()));
                 TypeObject inferredType = info.inferredType().instantiate();
 
                 Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,
@@ -576,10 +576,10 @@ public class Progam extends AbstractPrintable {
             Optional<? extends Definition> def = info.getDefinition();
             Pacioli.println("%-25s %-25s %-10s %-10s %-50s",
                     info.name(),
-                    info.generic().getModule(),
+                    info.generalInfo().getModule(),
                     // info.isExternal(info) ? " " : "local",
                     info.isGlobal() ? "glb" : "lcl",
-                    info.generic().getFile() == null ? "" : isExternal(info), // "", //info.generic().getFile(),
+                    info.generalInfo().getFile() == null ? "" : isExternal(info),
                     def.isPresent() ? "has def" : "No definition");
         }
         Pacioli.println("End table");

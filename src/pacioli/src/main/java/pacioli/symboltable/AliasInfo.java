@@ -15,8 +15,8 @@ public final class AliasInfo extends UnitInfo {
 
     }
 
-    public AliasInfo(GeneralInfo generic) {
-        super(generic);
+    public AliasInfo(GeneralInfo info) {
+        super(info);
     }
 
     public Boolean isAlias() {

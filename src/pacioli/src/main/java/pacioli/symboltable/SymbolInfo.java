@@ -7,7 +7,7 @@ import pacioli.ast.definition.Definition;
 
 public interface SymbolInfo {
 
-    GeneralInfo generic();
+    GeneralInfo generalInfo();
 
     Optional<? extends Definition> getDefinition();
 

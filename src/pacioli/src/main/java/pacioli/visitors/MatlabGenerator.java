@@ -50,20 +50,16 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     CompilationSettings settings;
 
     private static int counter;
-    
-    
+
     public MatlabGenerator(Printer printWriter, CompilationSettings settings) {
         out = printWriter;
         this.settings = settings;
     }
 
-    
     private static String freshName() {
         return "fresh_" + counter++;
     }
 
-    
-    
     @Override
     public void visit(ApplicationNode node) {
         // Is this if necessary?
@@ -107,18 +103,18 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ConversionNode node) {
         throw new RuntimeException("No dynamic conversions in MATLAB",
-                new PacioliException(node.getLocation(),  "The type %s is not closed", node.typeNode.pretty()));
+                new PacioliException(node.getLocation(), "The type %s is not closed", node.typeNode.pretty()));
     }
 
     @Override
     public void visit(IdentifierNode node) {
         if (node.isGlobal()) {
             if (false) {
-            out.write("fetch_global(\"");
-            out.write(node.getInfo().generic().getModule().toLowerCase());
-            out.write("\", \"");
-            out.write(node.getName().toLowerCase());
-            out.write("\")");
+                out.write("fetch_global(\"");
+                out.write(node.getInfo().generalInfo().getModule().toLowerCase());
+                out.write("\", \"");
+                out.write(node.getName().toLowerCase());
+                out.write("\")");
             } else {
                 if (node.getInfo().isFunction()) {
                     out.write("@");
@@ -126,7 +122,7 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
                 // Note that this expects proper ordering of global values.
                 // Other targets generate a function and fetch mechanism.
                 // Fix old code above that did this!
-                out.write(node. getInfo().globalName().toLowerCase());
+                out.write(node.getInfo().globalName().toLowerCase());
             }
         } else {
             out.write(node.getName().toLowerCase());
@@ -158,7 +154,7 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(LambdaNode node) {
         List<String> args = new ArrayList<String>();
-        for (String arg: node.arguments) {
+        for (String arg : node.arguments) {
             args.add(arg.toLowerCase());
         }
         out.write("(@(");
@@ -170,16 +166,15 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(MatrixLiteralNode node) {
-        
+
         int nrRows = node.rowDim.size();
         int nrColumns = node.columnDim.size();
 
-        
         String[][] valueArray = new String[nrRows][nrColumns];
-        for (MatrixLiteralNode.PositionedValueDecl decl: node.positionedValueDecls()) {
+        for (MatrixLiteralNode.PositionedValueDecl decl : node.positionedValueDecls()) {
             valueArray[decl.row][decl.column] = decl.valueDecl.value;
         }
-        
+
         String matrix = "[";
         String sep = "";
 
@@ -214,8 +209,8 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     public void visit(ProjectionNode node) {
         out.format("%s", node.getClass());
         // old (wrong) code
-        //return String.format("(@(%s) %s)", numString(), body.compileToMATLAB());
-        
+        // return String.format("(@(%s) %s)", numString(), body.compileToMATLAB());
+
     }
 
     @Override
@@ -224,7 +219,7 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
         node.value.accept(this);
         out.newline();
         out.write("return");
-        
+
     }
 
     @Override
@@ -239,7 +234,7 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(StatementNode node) {
         node.body.accept(this);
-        
+
     }
 
     @Override
@@ -268,103 +263,103 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
         node.body.accept(this);
         out.newlineDown();
         out.write("endwhile");
-        
+
     }
 
     @Override
     public void visit(BangTypeNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(FunctionTypeNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(NumberTypeNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(SchemaNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(TypeApplicationNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(TypeIdentifierNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(TypePowerNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(PrefixUnitTypeNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(TypeMultiplyNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(TypeDivideNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(TypeKroneckerNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(TypePerNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(NumberUnitNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(UnitIdentifierNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(UnitOperationNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override
     public void visit(UnitPowerNode node) {
         out.format("%s", node.getClass());
-        
+
     }
 
     @Override

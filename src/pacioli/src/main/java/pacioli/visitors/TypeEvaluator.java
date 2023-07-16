@@ -103,7 +103,7 @@ public class TypeEvaluator extends IdentityVisitor {
         if (!indexInfo.isGlobal()) {
             indexType = new IndexType(new IndexSetVar(indexInfo));
         } else {
-            indexType = new IndexType(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName), indexInfo);
+            indexType = new IndexType(new TypeIdentifier(indexInfo.generalInfo().getModule(), indexSetName), indexInfo);
         }
 
         // Create the row unit if it exists, otherwise the unit is 1.
@@ -120,8 +120,8 @@ public class TypeEvaluator extends IdentityVisitor {
                 rowUnit = new VectorUnitVar(unitInfo);
             } else {
                 String unitName = node.unitVecName();
-                rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generic().getModule(), indexSetName),
-                        new TypeIdentifier(unitInfo.generic().getModule(), unitName), 0, unitInfo);
+                rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generalInfo().getModule(), indexSetName),
+                        new TypeIdentifier(unitInfo.generalInfo().getModule(), unitName), 0, unitInfo);
             }
         }
 
@@ -186,7 +186,7 @@ public class TypeEvaluator extends IdentityVisitor {
                         assert (node.args.get(i) instanceof TypeIdentifierNode);
                         TypeIdentifierNode idNode = (TypeIdentifierNode) node.args.get(i);
                         IndexSetInfo info = (IndexSetInfo) idNode.info;
-                        TypeIdentifier id = new TypeIdentifier(info.generic().getModule(), idNode.getName());
+                        TypeIdentifier id = new TypeIdentifier(info.generalInfo().getModule(), idNode.getName());
                         names.add(id);
                         infos.add(info);
                     } else {
@@ -258,14 +258,14 @@ public class TypeEvaluator extends IdentityVisitor {
             // throw new RuntimeException("fixme");
         } else if (info instanceof IndexSetInfo) {
             IndexSetInfo indexSetInfo = (IndexSetInfo) info;
-            TypeIdentifier id = new TypeIdentifier(indexSetInfo.generic().getModule(), node.getName());
+            TypeIdentifier id = new TypeIdentifier(indexSetInfo.generalInfo().getModule(), node.getName());
             returnType(new IndexType(id, indexSetInfo));
         } else if (info instanceof ParametricInfo) {
             // TypeApplicationNode app = new TypeApplicationNode(node.getLocation(), node,
             // new LinkedList<TypeNode>());
             // this.handleParametric(app, new ArrayList<TypeObject>());
             TypeApplicationNode app = new TypeApplicationNode(node.getLocation(), node, new LinkedList<TypeNode>());
-            TypeIdentifier typeId = new TypeIdentifier(info.generic().getModule(), node.getName());
+            TypeIdentifier typeId = new TypeIdentifier(info.generalInfo().getModule(), node.getName());
             OperatorConst id = new OperatorConst(typeId, (ParametricInfo) info);
             // this.handleParametric(app, new ArrayList<PacioliType>());
             returnType(new ParametricType(node.getLocation(),

@@ -3,8 +3,8 @@ package pacioli.symboltable;
 public sealed abstract class UnitInfo extends AbstractSymbolInfo implements TypeSymbolInfo
         permits VectorBaseInfo, ScalarBaseInfo, AliasInfo {
 
-    public UnitInfo(GeneralInfo generic) {
-        super(generic);
+    public UnitInfo(GeneralInfo info) {
+        super(info);
     }
 
     @Override

@@ -76,7 +76,7 @@ public class TypeDefinition extends AbstractDefinition {
 
             // PacioliType lhsType = new ParametricType(app.getName(), types);
             TypeObject lhsType = new ParametricType(app.getLocation(),
-                    new OperatorConst(new TypeIdentifier(app.op.info.generic().getModule(), app.op.getName()),
+                    new OperatorConst(new TypeIdentifier(app.op.info.generalInfo().getModule(), app.op.getName()),
                             (ParametricInfo) app.op.info),
                     types);
 

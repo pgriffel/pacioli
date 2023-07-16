@@ -200,7 +200,7 @@ public class JSCompiler implements SymbolTableVisitor {
         }
 
         String globalName = // info.globalName();//setInfo.globalName();
-                String.format("vbase_%s_%s", setInfo.generic().getModule(), info.name().replace("!", "_"));
+                String.format("vbase_%s_%s", setInfo.generalInfo().getModule(), info.name().replace("!", "_"));
         String args = Utils.intercalate(", ", unitTexts);
 
         out.format("Pacioli.compute_%s = function () { return {units: { %s }}};\n", globalName, args);

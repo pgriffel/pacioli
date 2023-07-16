@@ -19,8 +19,8 @@ public final class IndexSetInfo extends AbstractSymbolInfo implements TypeSymbol
         super(new GeneralInfo(name, file, isGlobal, location));
     }
 
-    public IndexSetInfo(GeneralInfo generic) {
-        super(generic);
+    public IndexSetInfo(GeneralInfo info) {
+        super(info);
     };
 
     @Override
@@ -34,6 +34,6 @@ public final class IndexSetInfo extends AbstractSymbolInfo implements TypeSymbol
 
     @Override
     public String globalName() {
-        return String.format("index_%s_%s", generic().getModule(), name());
+        return String.format("index_%s_%s", generalInfo().getModule(), name());
     }
 }

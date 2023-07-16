@@ -13,8 +13,8 @@ public final class ParametricInfo extends AbstractSymbolInfo implements TypeSymb
         super(new GeneralInfo(name, file, isGlobal, location));
     }
 
-    public ParametricInfo(GeneralInfo generic) {
-        super(generic);
+    public ParametricInfo(GeneralInfo info) {
+        super(info);
     }
 
     private Optional<TypeDefinition> definition = Optional.empty();
@@ -34,7 +34,7 @@ public final class ParametricInfo extends AbstractSymbolInfo implements TypeSymb
         // TODO: check this name with the name used by the compiler. This was added just
         // for logging.
         // return String.format("type_%s", name());
-        return String.format("%s_%s", generic().getModule().replace("-", "_"), name());
+        return String.format("%s_%s", generalInfo().getModule().replace("-", "_"), name());
     }
 
     @Override

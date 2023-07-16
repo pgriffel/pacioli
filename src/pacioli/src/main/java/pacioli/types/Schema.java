@@ -74,34 +74,34 @@ public class Schema extends AbstractType {
      */
     public List<ContextNode> contextNodes() {
         List<ContextNode> contextNodes = new ArrayList<>();
-        for (Var genericVar : variables) {
+        for (Var var : variables) {
             SymbolInfo sinfo;
             Location location;
             Kind kind;
-            if (genericVar instanceof IndexSetVar v) {
+            if (var instanceof IndexSetVar v) {
                 sinfo = v.info.orElse(null);
                 location = v.info.map(x -> x.getLocation()).orElse(new Location());
                 kind = Kind.INDEX;
-            } else if (genericVar instanceof ScalarUnitVar v) {
+            } else if (var instanceof ScalarUnitVar v) {
                 sinfo = v.info.orElse(null);
                 location = v.info.map(x -> x.getLocation()).orElse(new Location());
                 kind = Kind.UNIT;
-            } else if (genericVar instanceof VectorUnitVar v) {
+            } else if (var instanceof VectorUnitVar v) {
                 sinfo = v.info.orElse(null);
                 location = v.info.map(x -> x.getLocation()).orElse(new Location());
                 kind = Kind.UNIT;
-            } else if (genericVar instanceof TypeVar v) {
+            } else if (var instanceof TypeVar v) {
                 sinfo = v.info.orElse(null);
                 location = v.info.map(x -> x.getLocation()).orElse(new Location());
                 kind = Kind.TYPE;
-            } else if (genericVar instanceof OperatorVar v) {
+            } else if (var instanceof OperatorVar v) {
                 sinfo = v.info().orElse(null);
                 location = v.info().map(x -> x.getLocation()).orElse(new Location());
                 kind = Kind.OP;
             } else {
-                throw new RuntimeException("Unknown quantifier: " + genericVar.getClass());
+                throw new RuntimeException("Unknown quantifier: " + var.getClass());
             }
-            TypeIdentifierNode id = new TypeIdentifierNode(location, genericVar.pretty(), sinfo);
+            TypeIdentifierNode id = new TypeIdentifierNode(location, var.pretty(), sinfo);
             contextNodes.add(new ContextNode(location, kind, List.of(id), List.of()));
         }
 
