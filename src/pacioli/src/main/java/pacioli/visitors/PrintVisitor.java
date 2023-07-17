@@ -122,13 +122,20 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(ProgramNode node) {
-        for (IncludeNode include : node.includes) {
-            write("include \"");
-            include.accept(this);
-            write("\";");
+        for (ImportNode importNode : node.imports) {
+            importNode.accept(this);
             newline();
         }
-        newline();
+        if (node.imports.size() > 0) {
+            newline();
+        }
+        for (IncludeNode include : node.includes) {
+            include.accept(this);
+            newline();
+        }
+        if (node.includes.size() > 0) {
+            newline();
+        }
         for (Definition def : node.definitions) {
             def.accept(this);
             newline();
@@ -138,16 +145,12 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(IncludeNode node) {
-        write("include ");
-        node.name.accept(this);
-        write(";");
+        format("include %s;", node.name.valueString());
     }
 
     @Override
     public void visit(ImportNode node) {
-        write("import ");
-        node.name.accept(this);
-        write(";");
+        format("import %s;", node.name.valueString());
     }
 
     @Override
@@ -248,19 +251,29 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(ApplicationNode node) {
+
+        boolean wrap = node.countNodes() > 10;
+        // Write the function name
         node.function.accept(this);
+
+        // Write the arguments
         write("(");
+
         mark();
+
         Boolean first = true;
         for (ExpressionNode argument : node.arguments) {
             if (!first) {
                 write(", ");
-                newline();
+                if (wrap) {
+                    newline();
+                }
             }
             argument.accept(this);
             first = false;
         }
         write(")");
+
         unmark();
     }
 
@@ -273,24 +286,37 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(BranchNode node) {
+
         mark();
+
+        // Write the if ... then line
         write("if ");
         node.test.accept(this);
         write(" then");
+
         newlineUp();
+
+        // Write the positive branch
         node.positive.accept(this);
+
         newlineDown();
         write("else");
         newlineUp();
+
+        // Write the negative branch
         node.negative.accept(this);
+
         newlineDown();
-        write(" end");
+
+        write("end");
+
         unmark();
     }
 
     @Override
     public void visit(ConstNode node) {
-        out.format("const(\"%s\")", node.valueString());
+        // out.format("const(\"%s\")", node.valueString());
+        out.write(node.valueString());
     }
 
     @Override
@@ -335,6 +361,8 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(LambdaNode node) {
+        boolean wrap = node.countNodes() > 10;
+        mark();
         write("(");
         Boolean first = true;
         for (String arg : node.arguments) {
@@ -356,10 +384,14 @@ public class PrintVisitor implements Visitor {
 
             first = false;
         }
-        out.format(") -> ");
-        newlineUp();
+        out.write(") -> ");
+
+        if (wrap) {
+            newlineUp();
+        }
         node.expression.accept(this);
-        newlineDown();
+        // newlineDown();
+        unmark();
     }
 
     @Override
@@ -580,20 +612,30 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(LetNode node) {
+
         write("let ");
+
+        newlineUp();
+
         boolean first = true;
         for (BindingNode binding : node.binding) {
             if (!first) {
                 write(",");
+                newline();
             } else {
                 first = false;
             }
             binding.accept(this);
         }
+
+        newlineDown();
         write("in");
         newlineUp();
+
         node.body.accept(this);
+
         newlineDown();
+
         write("end");
     }
 
@@ -620,8 +662,13 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(LetFunctionBindingNode node) {
+
+        // Write the function name
         out.write(node.name);
+
         write("(");
+
+        // Write the function parameters
         Boolean first = true;
         for (String arg : node.args) {
             if (!first)
@@ -629,7 +676,10 @@ public class PrintVisitor implements Visitor {
             first = false;
             out.write(arg);
         }
+
         write(") = ");
+
+        // Write the function body
         node.body.accept(this);
     }
 
@@ -647,16 +697,19 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(ClassDefinition node) {
+
+        // Print the class definition itself
         out.print("defclass ");
         node.definedClass.type.accept(this);
         out.print(" ");
-        // node.definedClass.createContext().printPretty(out.out);
         for (ContextNode contextNode : node.definedClass.contextNodes) {
             contextNode.accept(this);
             out.write(": ");
         }
 
         out.newlineUp();
+
+        // Print the members (indented)
         Boolean first = true;
         for (TypeAssertion member : node.members) {
             if (first) {
@@ -668,6 +721,7 @@ public class PrintVisitor implements Visitor {
             member.accept(this);
         }
         write(";");
+
         out.newlineDown();
     }
 
@@ -680,17 +734,20 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(InstanceDefinition node) {
+
+        // Print the instance definition itself
         out.print("definstance ");
         node.definedClass.type.accept(this);
         out.print(" ");
-        // node.definedClass.createContext().printPretty(out.out);
         for (ContextNode contextNode : node.definedClass.contextNodes) {
             contextNode.accept(this);
             out.write(": ");
         }
 
-        Boolean first = true;
         out.newlineUp();
+
+        // Print the members (indented)
+        Boolean first = true;
         for (ValueEquation member : node.members) {
             if (first) {
                 first = false;
@@ -701,11 +758,14 @@ public class PrintVisitor implements Visitor {
             member.accept(this);
         }
         write(";");
+
         out.newlineDown();
     }
 
     @Override
     public void accept(TypeAssertion node) {
+
+        // Print the identifier(s)
         Boolean first = true;
         for (IdentifierNode id : node.ids) {
             if (first) {
@@ -715,17 +775,27 @@ public class PrintVisitor implements Visitor {
             }
             id.accept(this);
         }
+
         out.write(" :: ");
+
+        // Print the type
         node.body.accept(this);
     }
 
     @Override
     public void accept(ContextNode node) {
+
+        // Print the quantifiers (for_type, etc.)
         out.write(node.kind.pretty());
+
         out.write(" ");
+
+        // Write the ids
         out.writeCommaSeparated(node.ids, x -> {
             x.accept(this);
         });
+
+        // Write the conditions, if any
         if (!node.conditions.isEmpty()) {
             out.write(" where ");
         }

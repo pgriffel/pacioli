@@ -36,6 +36,7 @@ import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.ValueInfo;
+import pacioli.visitors.CountNodes;
 import pacioli.visitors.DesugarVisitor;
 import pacioli.visitors.JSGenerator;
 import pacioli.visitors.LiftStatements;
@@ -154,4 +155,7 @@ public interface Node extends Printable {
         return localsInScope;
     }
 
+    default public int countNodes() {
+        return new CountNodes().accept(this);
+    }
 }

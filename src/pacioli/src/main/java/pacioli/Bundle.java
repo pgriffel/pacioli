@@ -38,14 +38,8 @@ import pacioli.visitors.PythonGenerator;
 import pacioli.visitors.ResolveVisitor;
 
 /**
- * A Program corresponds to a Pacioli file and is the unit of compilation.
- * 
- * A Program contains the AST and the symboltables for the Pacioli code in
- * a file. It can be constructed by loading a PacioliFile.
- * 
- * Once a program has been loaded it can be used to generate code, display
- * types, etc.
- *
+ * A bundle aggregates the definitions from all Pacioli files in a project. It
+ * keeps symboltables for values and types collected from all project files.
  */
 public class Bundle {
 

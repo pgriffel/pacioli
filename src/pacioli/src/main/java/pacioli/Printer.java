@@ -21,7 +21,9 @@ public class Printer {
     }
 
     public void format(String string, Object... args) {
-        out.format(string, args);
+        String text = String.format(string, args);
+        out.print(text);
+        offset += text.length();
     }
 
     public void print(String text) {

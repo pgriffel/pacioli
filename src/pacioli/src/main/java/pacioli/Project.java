@@ -32,7 +32,8 @@ import pacioli.symboltable.ValueInfo;
 
 /**
  * The Project class's purpose is to compile and bundle a file with all its
- * includes and dependencies.
+ * includes and dependencies. It finds all directly and indirectly dependent
+ * files and builds a Bundle from all definitions in them.
  */
 public class Project {
 

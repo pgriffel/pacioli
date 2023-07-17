@@ -233,15 +233,15 @@ public class Progam extends AbstractPrintable {
             }
         }
 
-        for (ClassInfo.Builder builder : classTable.values()) {
-            ClassInfo info = builder.build();
-            Pacioli.log("\n%s", info.definition.pretty());
-            Pacioli.log("with %s instances", info.instances.size());
-            for (InstanceDefinition def : info.instances) {
-                Pacioli.log("\n%s", def.pretty());
-            }
-            addInfo(info);
-        }
+        // for (ClassInfo.Builder builder : classTable.values()) {
+        // ClassInfo info = builder.build();
+        // Pacioli.log("\n%s", info.definition.pretty());
+        // Pacioli.log("with %s instances", info.instances.size());
+        // for (InstanceDefinition def : info.instances) {
+        // Pacioli.log("\n%s", def.pretty());
+        // }
+        // addInfo(info);
+        // }
 
         for (ValueInfo.Builder builder : valueTable.values()) {
             ValueInfo info = builder.build();
@@ -258,7 +258,7 @@ public class Progam extends AbstractPrintable {
         return builder;
     }
 
-    public void addInfo(TypeSymbolInfo info) throws PacioliException {
+    private void addInfo(TypeSymbolInfo info) throws PacioliException {
         String name = info.name();
         if (typess.contains(name)) {
             throw new PacioliException(info.getLocation(), "Duplicate type set name: " + name);
@@ -267,7 +267,7 @@ public class Progam extends AbstractPrintable {
         }
     }
 
-    public void addInfo(ValueInfo info) throws PacioliException {
+    private void addInfo(ValueInfo info) throws PacioliException {
         String name = info.name();
         if (values.contains(name)) {
             throw new PacioliException(info.getLocation(), "Duplicate name: " + name);
@@ -276,7 +276,7 @@ public class Progam extends AbstractPrintable {
         }
     }
 
-    public void addToplevel(Toplevel toplevel) {
+    private void addToplevel(Toplevel toplevel) {
         toplevels.add(toplevel);
     }
 
