@@ -650,7 +650,11 @@ public class PrintVisitor implements Visitor {
         out.print("defclass ");
         node.definedClass.type.accept(this);
         out.print(" ");
-        node.definedClass.createContext().printPretty(out.out);
+        // node.definedClass.createContext().printPretty(out.out);
+        for (ContextNode contextNode : node.definedClass.contextNodes) {
+            contextNode.accept(this);
+            out.write(": ");
+        }
 
         out.newlineUp();
         Boolean first = true;
@@ -679,7 +683,11 @@ public class PrintVisitor implements Visitor {
         out.print("definstance ");
         node.definedClass.type.accept(this);
         out.print(" ");
-        node.definedClass.createContext().printPretty(out.out);
+        // node.definedClass.createContext().printPretty(out.out);
+        for (ContextNode contextNode : node.definedClass.contextNodes) {
+            contextNode.accept(this);
+            out.write(": ");
+        }
 
         Boolean first = true;
         out.newlineUp();
