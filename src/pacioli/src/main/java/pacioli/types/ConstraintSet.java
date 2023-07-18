@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli;
+package pacioli.types;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -28,12 +28,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import pacioli.AbstractPrintable;
+import pacioli.Pacioli;
+import pacioli.PacioliException;
+import pacioli.Utils;
+import pacioli.Pacioli.Options;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
-import pacioli.types.TypeObject;
-import pacioli.types.UnitVar;
-import pacioli.types.TypeBase;
-import pacioli.types.Var;
 import pacioli.types.matrix.MatrixType;
 import uom.Fraction;
 import uom.Unit;

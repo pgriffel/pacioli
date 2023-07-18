@@ -30,11 +30,9 @@ import java.util.Set;
 import java.util.function.Function;
 
 import pacioli.CompilationSettings;
-import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.Printable;
 import pacioli.Printer;
-import pacioli.Substitution;
 import pacioli.symboltable.ParametricInfo;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.visitors.VectorVarNames;

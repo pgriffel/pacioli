@@ -25,9 +25,9 @@ import java.util.HashMap;
 import java.util.Set;
 
 import pacioli.Progam;
-import pacioli.Typing;
 import pacioli.ast.Node;
 import pacioli.symboltable.ParametricInfo;
+import pacioli.types.Typing;
 import pacioli.visitors.AssignedVariablesVisitor;
 import pacioli.visitors.TypeInference;
 

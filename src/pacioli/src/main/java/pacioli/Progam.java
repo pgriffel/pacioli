@@ -19,11 +19,13 @@ import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.parser.Parser;
 import pacioli.symboltable.AliasInfo;
@@ -39,6 +41,8 @@ import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.TypeObject;
+import pacioli.types.Typing;
+import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeNode;
 import pacioli.visitors.LiftStatements;
 import pacioli.visitors.TransformConversions;
@@ -233,15 +237,27 @@ public class Progam extends AbstractPrintable {
             }
         }
 
-        // for (ClassInfo.Builder builder : classTable.values()) {
-        // ClassInfo info = builder.build();
-        // Pacioli.log("\n%s", info.definition.pretty());
-        // Pacioli.log("with %s instances", info.instances.size());
-        // for (InstanceDefinition def : info.instances) {
-        // Pacioli.log("\n%s", def.pretty());
-        // }
-        // addInfo(info);
-        // }
+        for (ClassInfo.Builder builder : classTable.values()) {
+            ClassInfo info = builder.build();
+            // Pacioli.log("\n%s", info.definition.pretty());
+            // Pacioli.log("with %s instances", info.instances.size());
+            // for (InstanceDefinition def : info.instances) {
+            // Pacioli.log("\n%s", def.pretty());
+            // }
+            addInfo(info);
+            for (TypeAssertion member : info.definition.members) {
+                for (IdentifierNode id : member.ids) {
+
+                    ValueInfo valueInfo = new ValueInfo(id.getName(), file, true, false,
+                            member.getLocation(), true);
+                    SchemaNode schema = new SchemaNode(info.definition.definedClass.getLocation(),
+                            info.definition.definedClass.contextNodes, member.body.type);
+                    valueInfo.setDeclaredType(schema);
+                    Pacioli.log("YO %s :: %s", id.getName(), schema.pretty());
+                    addInfo(valueInfo);
+                }
+            }
+        }
 
         for (ValueInfo.Builder builder : valueTable.values()) {
             ValueInfo info = builder.build();

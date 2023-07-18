@@ -24,10 +24,10 @@ package pacioli.types.ast;
 import java.util.List;
 
 import pacioli.Location;
-import pacioli.TypeContext;
 import pacioli.ast.Visitor;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeSymbolInfo;
+import pacioli.types.TypeContext;
 
 public class SchemaNode extends AbstractTypeNode {
 

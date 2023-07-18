@@ -1,11 +1,11 @@
 package pacioli.types.visitors;
 
-import pacioli.Substitution;
 import pacioli.types.IndexSetVar;
 import pacioli.types.OperatorVar;
 import pacioli.types.ParametricType;
 import pacioli.types.ScalarUnitVar;
 import pacioli.types.Schema;
+import pacioli.types.Substitution;
 import pacioli.types.TypeObject;
 import pacioli.types.TypeVar;
 import pacioli.types.VectorUnitVar;

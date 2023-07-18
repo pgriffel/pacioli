@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli;
+package pacioli.types;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -27,12 +27,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import pacioli.types.IndexSetVar;
-import pacioli.types.OperatorVar;
-import pacioli.types.ScalarUnitVar;
-import pacioli.types.TypeVar;
-import pacioli.types.Var;
-import pacioli.types.VectorUnitVar;
+import pacioli.AbstractPrintable;
+import pacioli.Pacioli;
+import pacioli.Utils;
 
 public class TypeContext extends AbstractPrintable {
 

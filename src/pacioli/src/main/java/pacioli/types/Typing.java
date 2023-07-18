@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli;
+package pacioli.types;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -27,10 +27,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import pacioli.AbstractPrintable;
+import pacioli.PacioliException;
 import pacioli.ast.expression.ApplicationNode;
-import pacioli.types.TypeObject;
-import pacioli.types.TypeVar;
-import pacioli.types.Var;
 
 public class Typing extends AbstractPrintable {
 

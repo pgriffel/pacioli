@@ -26,13 +26,13 @@ import java.util.List;
 
 import pacioli.Location;
 import pacioli.PacioliException;
-import pacioli.TypeConstraint;
-import pacioli.TypeContext;
+import pacioli.ast.TypeConstraint;
 import pacioli.ast.Visitor;
 import pacioli.symboltable.ParametricInfo;
 import pacioli.types.TypeObject;
 import pacioli.types.OperatorConst;
 import pacioli.types.ParametricType;
+import pacioli.types.TypeContext;
 import pacioli.types.TypeIdentifier;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.TypeApplicationNode;

@@ -31,7 +31,7 @@ WHETHER
 package pacioli.types;
 
 import java.util.Optional;
-import pacioli.ConstraintSet;
+
 import pacioli.PacioliException;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.ParametricInfo;

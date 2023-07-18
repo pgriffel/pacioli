@@ -19,17 +19,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli;
+package pacioli.ast;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import pacioli.AbstractPrintable;
+import pacioli.Pacioli;
+import pacioli.PacioliException;
+import pacioli.Pacioli.Options;
 import pacioli.types.IndexSetVar;
 import pacioli.types.OperatorVar;
 import pacioli.types.TypeObject;
 import pacioli.types.ParametricType;
+import pacioli.types.Substitution;
 import pacioli.types.Var;
 import pacioli.types.VectorUnitVar;
 import pacioli.types.ast.BangTypeNode;

@@ -1,8 +1,10 @@
-package pacioli;
+package pacioli.ast;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+
+import pacioli.AbstractPrintable;
 
 public class ValueContext extends AbstractPrintable {
 

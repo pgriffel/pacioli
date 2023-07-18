@@ -23,7 +23,7 @@ package pacioli.types;
 
 import java.util.List;
 import java.util.Optional;
-import pacioli.ConstraintSet;
+
 import pacioli.Location;
 import pacioli.PacioliException;
 import pacioli.ast.definition.TypeDefinition;

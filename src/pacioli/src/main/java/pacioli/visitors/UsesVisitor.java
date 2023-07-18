@@ -13,7 +13,7 @@ import pacioli.symboltable.SymbolInfo;
 import pacioli.types.ast.TypeIdentifierNode;
 
 public class UsesVisitor extends IdentityVisitor {
-    
+
     Set<SymbolInfo> infos = new HashSet<SymbolInfo>();
 
     public Set<SymbolInfo> idsAccept(Node node) {
@@ -30,10 +30,12 @@ public class UsesVisitor extends IdentityVisitor {
 
     @Override
     public void visit(IdentifierNode node) {
-        if (node.getName().equals("nmode") || node.getInfo().getDefinition().isPresent() || node.getInfo().getDeclaredType().isPresent() || !node.getInfo().isGlobal()) {        
+        if (node.getName().equals("nmode") || node.getInfo().getDefinition().isPresent()
+                || node.getInfo().getDeclaredType().isPresent() || !node.getInfo().isGlobal()) {
             infos.add(node.getInfo());
         } else {
-            throw new RuntimeException("Visit error", new PacioliException(node.getLocation(), "%s unknown", node.getName()));
+            throw new RuntimeException("Visit error", new PacioliException(node.getLocation(),
+                    "Definition or declaration missing for '%s'", node.getName()));
         }
     }
 
@@ -47,7 +49,7 @@ public class UsesVisitor extends IdentityVisitor {
     @Override
     public void visit(StatementNode node) {
         node.body.accept(this);
-        for (SymbolInfo info: node.shadowed.allInfos()) {
+        for (SymbolInfo info : node.shadowed.allInfos()) {
             infos.add(info);
         }
     }

@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli;
+package pacioli.types;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -29,9 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import pacioli.types.TypeObject;
-import pacioli.types.TypeBase;
-import pacioli.types.Var;
+import pacioli.AbstractPrintable;
+import pacioli.Printable;
+import pacioli.Utils;
 import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitMap;
@@ -65,7 +65,7 @@ public class Substitution extends AbstractPrintable {
         map = new HashMap<Var, Object>(other.map);
     }
 
-    Substitution(Map<Var, Object> map) {
+    public Substitution(Map<Var, Object> map) {
         this.map = map;
     }
 

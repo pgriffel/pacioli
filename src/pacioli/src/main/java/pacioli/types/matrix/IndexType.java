@@ -2,10 +2,11 @@ package pacioli.types.matrix;
 
 import java.util.Arrays;
 import java.util.List;
-import pacioli.ConstraintSet;
+
 import pacioli.PacioliException;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.AbstractType;
+import pacioli.types.ConstraintSet;
 import pacioli.types.IndexSetVar;
 import pacioli.types.TypeObject;
 import pacioli.types.TypeIdentifier;

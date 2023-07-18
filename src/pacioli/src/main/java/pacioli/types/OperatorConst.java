@@ -1,6 +1,5 @@
 package pacioli.types;
 
-import pacioli.ConstraintSet;
 import pacioli.PacioliException;
 import pacioli.symboltable.ParametricInfo;
 
