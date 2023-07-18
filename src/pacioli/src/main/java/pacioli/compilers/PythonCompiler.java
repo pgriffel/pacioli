@@ -8,6 +8,7 @@ import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.StatementNode;
+import pacioli.ast.visitors.PythonGenerator;
 import pacioli.misc.CompilationSettings;
 import pacioli.misc.Printer;
 import pacioli.misc.Utils;
@@ -21,7 +22,6 @@ import pacioli.symboltable.TypeVarInfo;
 import pacioli.symboltable.ParametricInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorBaseInfo;
-import pacioli.visitors.PythonGenerator;
 
 public class PythonCompiler implements SymbolTableVisitor {
 

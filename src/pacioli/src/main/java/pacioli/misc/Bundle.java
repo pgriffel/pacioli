@@ -17,6 +17,12 @@ import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
+import pacioli.ast.visitors.CodeGenerator;
+import pacioli.ast.visitors.JSGenerator;
+import pacioli.ast.visitors.MVMGenerator;
+import pacioli.ast.visitors.MatlabGenerator;
+import pacioli.ast.visitors.PythonGenerator;
+import pacioli.ast.visitors.ResolveVisitor;
 import pacioli.compilers.JSCompiler;
 import pacioli.compilers.MATLABCompiler;
 import pacioli.compilers.MVMCompiler;
@@ -32,12 +38,6 @@ import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.TypeObject;
-import pacioli.visitors.CodeGenerator;
-import pacioli.visitors.JSGenerator;
-import pacioli.visitors.MVMGenerator;
-import pacioli.visitors.MatlabGenerator;
-import pacioli.visitors.PythonGenerator;
-import pacioli.visitors.ResolveVisitor;
 
 /**
  * A bundle aggregates the definitions from all Pacioli files in a project. It

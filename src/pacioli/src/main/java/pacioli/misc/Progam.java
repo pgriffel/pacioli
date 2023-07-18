@@ -30,6 +30,8 @@ import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StringNode;
+import pacioli.ast.visitors.LiftStatements;
+import pacioli.ast.visitors.TransformConversions;
 import pacioli.parser.Parser;
 import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.ClassInfo;
@@ -47,8 +49,6 @@ import pacioli.types.TypeObject;
 import pacioli.types.Typing;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeNode;
-import pacioli.visitors.LiftStatements;
-import pacioli.visitors.TransformConversions;
 
 /**
  * A Program corresponds to a Pacioli file.

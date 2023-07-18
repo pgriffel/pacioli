@@ -1,4 +1,4 @@
-package pacioli.visitors;
+package pacioli.ast.visitors;
 
 import java.util.List;
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package pacioli.visitors;
+package pacioli.ast.visitors;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -41,10 +41,10 @@ public class AssignedVariablesVisitor extends IdentityVisitor {
     public void visit(AssignmentNode node) {
         typeStack.peek().add(node.var);
     }
-    
+
     @Override
     public void visit(TupleAssignmentNode node) {
-        for (IdentifierNode var: node.vars) {
+        for (IdentifierNode var : node.vars) {
             typeStack.peek().add(var);
         }
     }

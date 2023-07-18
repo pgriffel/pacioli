@@ -1,4 +1,4 @@
-package pacioli.visitors;
+package pacioli.ast.visitors;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +31,7 @@ import pacioli.ast.unit.UnitPowerNode;
 import pacioli.misc.CompilationSettings;
 import pacioli.misc.PacioliException;
 import pacioli.misc.Printer;
+import pacioli.symboltable.ValueInfo;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
@@ -44,14 +45,14 @@ import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 
-public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
+public class PythonGenerator extends IdentityVisitor implements CodeGenerator {
 
     Printer out;
     CompilationSettings settings;
 
     private static int counter;
 
-    public MatlabGenerator(Printer printWriter, CompilationSettings settings) {
+    public PythonGenerator(Printer printWriter, CompilationSettings settings) {
         out = printWriter;
         this.settings = settings;
     }
@@ -62,20 +63,24 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(ApplicationNode node) {
-        // Is this if necessary?
-        if (node.function instanceof IdentifierNode) {
-            IdentifierNode id = (IdentifierNode) node.function;
-            if (id.isGlobal()) {
-                out.write(id.getInfo().globalName().toLowerCase());
+        if (node.hasName("nmode")) {
+            ValueInfo info = node.getId().getInfo();
+            out.write(info.globalName().toLowerCase());
+            out.write("(");
+            out.writeCommaSeparated(node.arguments, this);
+            out.write(",");
+            out.format("%s", node.nmodeShape);
+            out.write(")");
+        } else {
+            if (node.isGlobal()) {
+                out.write(node.getId().getInfo().globalName().toLowerCase());
             } else {
                 node.function.accept(this);
             }
-        } else {
-            node.function.accept(this);
+            out.write("(");
+            out.writeCommaSeparated(node.arguments, this);
+            out.write(")");
         }
-        out.write("(");
-        out.writeCommaSeparated(node.arguments, this);
-        out.write(")");
     }
 
     @Override
@@ -86,18 +91,31 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(BranchNode node) {
-        out.write("_if(");
-        node.test.accept(this);
-        out.write(", @() ");
+        // out.write("_if(");
+        // node.test.accept(this);
+        // out.write(", lambda : ");
+        // node.positive.accept(this);
+        // out.write(", lambda : ");
+        // node.negative.accept(this);
+        // out.format(")");
+        out.write("(");
         node.positive.accept(this);
-        out.write(", @() ");
+        out.write(" if ");
+        node.test.accept(this);
+        out.write(" else ");
         node.negative.accept(this);
         out.format(")");
     }
 
     @Override
     public void visit(ConstNode node) {
-        out.format("%s", node.valueString());
+        if (node.valueString().equals("true")) {
+            out.format("%s", "True");
+        } else if (node.valueString().equals("false")) {
+            out.format("%s", "False");
+        } else {
+            out.format("np.array([[%s]])", node.valueString());
+        }
     }
 
     @Override
@@ -109,19 +127,11 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(IdentifierNode node) {
         if (node.isGlobal()) {
-            if (false) {
+            if (!node.getInfo().isFunction()) {
                 out.write("fetch_global(\"");
-                out.write(node.getInfo().generalInfo().getModule().toLowerCase());
-                out.write("\", \"");
-                out.write(node.getName().toLowerCase());
+                out.write(node.getInfo().globalName().toLowerCase());
                 out.write("\")");
             } else {
-                if (node.getInfo().isFunction()) {
-                    out.write("@");
-                }
-                // Note that this expects proper ordering of global values.
-                // Other targets generate a function and fetch mechanism.
-                // Fix old code above that did this!
                 out.write(node.getInfo().globalName().toLowerCase());
             }
         } else {
@@ -133,22 +143,22 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     public void visit(IfStatementNode node) {
         out.write("if (");
         node.test.accept(this);
-        out.write(") ");
+        out.write("): ");
         out.newlineUp();
         node.positive.accept(this);
-        out.write(";");
+        out.write("");
         out.newlineDown();
-        out.write("else");
+        out.write("else:");
         out.newlineUp();
         node.negative.accept(this);
-        out.write(";");
+        out.write("");
         out.newlineDown();
-        out.write("endif");
+        // out.write("endif");
     }
 
     @Override
     public void visit(KeyNode node) {
-        out.format("{%s,%s}", node.position(), node.size());
+        out.format("(%s,%s)", node.position(), node.size());
     }
 
     @Override
@@ -157,9 +167,9 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
         for (String arg : node.arguments) {
             args.add(arg.toLowerCase());
         }
-        out.write("(@(");
+        out.write("(lambda ");
         out.writeStringsCommaSeparated(args, this);
-        out.write(")");
+        out.write(": ");
         node.expression.accept(this);
         out.format(")");
     }
@@ -175,14 +185,14 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
             valueArray[decl.row][decl.column] = decl.valueDecl.value;
         }
 
-        String matrix = "[";
+        String matrix = "np.array([";
         String sep = "";
 
         for (int i = 0; i < nrRows; i++) {
 
             matrix += sep + "";
 
-            String sep2 = "";
+            String sep2 = "[";
             for (int j = 0; j < nrColumns; j++) {
 
                 String num = valueArray[i][j];
@@ -193,16 +203,16 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
                 matrix += sep2 + num;
                 sep2 = ",";
             }
-            matrix += "";
-            sep = ";";
+            matrix += "]";
+            sep = ",";
         }
-        matrix += "]";
+        matrix += "])";
         out.write(matrix);
     }
 
     @Override
     public void visit(MatrixTypeNode node) {
-        out.format("ones(%s, %s)", node.rowDim.size(), node.columnDim.size());
+        out.format("np.ones([%s, %s])", node.rowDim.size(), node.columnDim.size());
     }
 
     @Override
@@ -215,10 +225,10 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnNode node) {
-        out.write("result = ");
+        out.write("return ");
         node.value.accept(this);
         out.newline();
-        out.write("return");
+        // out.write("return");
 
     }
 
@@ -226,7 +236,7 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     public void visit(SequenceNode node) {
         for (ExpressionNode item : node.items) {
             item.accept(this);
-            out.write(";");
+            // out.write(";");
             out.newline();
         }
     }
@@ -247,10 +257,10 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
         String tmpVar = freshName();
         out.format("%s = ", tmpVar);
         node.tuple.accept(this);
-        int i = 1;
+        int i = 0;
         for (IdentifierNode var : node.vars) {
             out.newline();
-            out.format("%s = %s{%s}", var.getName(), tmpVar, i++);
+            out.format("%s = %s[%s]", var.getName(), tmpVar, i++);
         }
     }
 
@@ -258,11 +268,11 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     public void visit(WhileNode node) {
         out.write("while (");
         node.test.accept(this);
-        out.write(")");
+        out.write("):");
         out.newlineUp();
         node.body.accept(this);
         out.newlineDown();
-        out.write("endwhile");
+        // out.write("endwhile");
 
     }
 
@@ -366,4 +376,5 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     public void visit(LetNode node) {
         node.asApplication().accept(this);
     }
+
 }

@@ -26,6 +26,15 @@ import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Set;
 
+import pacioli.ast.visitors.CountNodes;
+import pacioli.ast.visitors.DesugarVisitor;
+import pacioli.ast.visitors.JSGenerator;
+import pacioli.ast.visitors.LiftStatements;
+import pacioli.ast.visitors.MVMGenerator;
+import pacioli.ast.visitors.MatlabGenerator;
+import pacioli.ast.visitors.PrintVisitor;
+import pacioli.ast.visitors.ResolveVisitor;
+import pacioli.ast.visitors.UsesVisitor;
 import pacioli.misc.CompilationSettings;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;
@@ -36,15 +45,6 @@ import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.ValueInfo;
-import pacioli.visitors.CountNodes;
-import pacioli.visitors.DesugarVisitor;
-import pacioli.visitors.JSGenerator;
-import pacioli.visitors.LiftStatements;
-import pacioli.visitors.MVMGenerator;
-import pacioli.visitors.MatlabGenerator;
-import pacioli.visitors.PrintVisitor;
-import pacioli.visitors.ResolveVisitor;
-import pacioli.visitors.UsesVisitor;
 
 public interface Node extends Printable {
 

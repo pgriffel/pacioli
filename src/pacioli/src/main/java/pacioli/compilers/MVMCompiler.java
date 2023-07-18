@@ -8,6 +8,7 @@ import pacioli.Pacioli;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
+import pacioli.ast.visitors.MVMGenerator;
 import pacioli.misc.CompilationSettings;
 import pacioli.misc.Printer;
 import pacioli.misc.Utils;
@@ -22,7 +23,6 @@ import pacioli.symboltable.ParametricInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.TypeBase;
-import pacioli.visitors.MVMGenerator;
 import uom.DimensionedNumber;
 
 public class MVMCompiler implements SymbolTableVisitor {

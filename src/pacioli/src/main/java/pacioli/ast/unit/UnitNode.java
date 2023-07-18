@@ -1,8 +1,8 @@
 package pacioli.ast.unit;
 
 import pacioli.ast.Node;
+import pacioli.ast.visitors.UnitEvaluator;
 import pacioli.types.TypeBase;
-import pacioli.visitors.UnitEvaluator;
 import uom.DimensionedNumber;
 
 public interface UnitNode extends Node {

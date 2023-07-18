@@ -25,11 +25,11 @@ import java.util.HashMap;
 import java.util.Set;
 
 import pacioli.ast.Node;
+import pacioli.ast.visitors.AssignedVariablesVisitor;
+import pacioli.ast.visitors.TypeInference;
 import pacioli.misc.Progam;
 import pacioli.symboltable.ParametricInfo;
 import pacioli.types.Typing;
-import pacioli.visitors.AssignedVariablesVisitor;
-import pacioli.visitors.TypeInference;
 
 public interface ExpressionNode extends Node {
 
