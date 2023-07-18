@@ -30,7 +30,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import pacioli.Location;
+import pacioli.misc.Location;
 
 public class SchemaTest {
 

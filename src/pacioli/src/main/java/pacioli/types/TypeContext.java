@@ -27,9 +27,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import pacioli.AbstractPrintable;
 import pacioli.Pacioli;
-import pacioli.Utils;
+import pacioli.misc.AbstractPrintable;
+import pacioli.misc.Utils;
 
 public class TypeContext extends AbstractPrintable {
 

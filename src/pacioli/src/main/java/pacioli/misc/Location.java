@@ -19,35 +19,36 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli;
+package pacioli.misc;
 
 import java.io.File;
 import java.io.IOException;
 
-
 /**
- * A location is a range in a file. A position is a location with an equal range start and end.
+ * A location is a range in a file. A position is a location with an equal range
+ * start and end.
  *
  */
 public class Location {
 
     private final File file;
-    
+
     private final Integer fromLine;
     private final Integer fromColumn;
     private final Integer fromOffset;
-    
+
     private final Integer toLine;
     private final Integer toColumn;
     private final Integer toOffset;
 
     /**
      * Constructs a Location that represents a position in a file. Join two position
-     * locations to create a range. It is the caller's responsibility that the numbers
+     * locations to create a range. It is the caller's responsibility that the
+     * numbers
      * for this constructor are consistent and denote a real file position.
      * 
-     * @param file The file
-     * @param line Zero based line of the position in the file
+     * @param file   The file
+     * @param line   Zero based line of the position in the file
      * @param column Zero based offset on the line of the position in the file
      * @param offset Zero based position in the file
      */
@@ -60,7 +61,7 @@ public class Location {
         this.toLine = null;
         this.toColumn = null;
     }
-    
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -131,7 +132,7 @@ public class Location {
         this.toLine = line;
         this.toColumn = column;
     }
-    
+
     private Location(File file, int fromLine, int fromColumn, int fromOffset, int toLine, int toColumn, int toOffset) {
         this.file = file;
         this.fromOffset = fromOffset;
@@ -141,14 +142,15 @@ public class Location {
         this.toLine = toLine;
         this.toColumn = toColumn;
     }
-    
+
     /**
      * The 'union' of two locations.
      * 
      * Throws a runtime error when the locations are not from the same file.
      * 
      * @param other A location
-     * @return A location with a range from the smallest start to the larget end of the two locations.
+     * @return A location with a range from the smallest start to the larget end of
+     *         the two locations.
      */
     public Location join(Location other) {
         if (file == null) {
@@ -159,12 +161,12 @@ public class Location {
             Location smallestFrom = (this.fromOffset < other.fromOffset) ? this : other;
             Location largestTo = (this.toOffset < other.toOffset) ? other : this;
             return new Location(file, smallestFrom.fromLine, smallestFrom.fromColumn, smallestFrom.fromOffset,
-                                      largestTo.toLine, largestTo.toColumn, largestTo.toOffset);
+                    largestTo.toLine, largestTo.toColumn, largestTo.toOffset);
         } else {
             throw new RuntimeException("Cannot join locations from different sources");
         }
     }
-    
+
     public File getFile() {
         return file;
     }
@@ -182,7 +184,7 @@ public class Location {
         if (file == null) {
             return "No location info";
         }
-        
+
         String source;
         try {
             source = Utils.readFile(file);
@@ -194,7 +196,7 @@ public class Location {
 
         int start = fromOffset - fromColumn;
         int end = fromOffset;
-        
+
         while (end < source.length() && source.charAt(end) != '\n') {
             end++;
         }

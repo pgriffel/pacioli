@@ -3,12 +3,12 @@ package pacioli.visitors;
 import java.util.HashSet;
 import java.util.Set;
 
-import pacioli.PacioliException;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.unit.UnitIdentifierNode;
+import pacioli.misc.PacioliException;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.types.ast.TypeIdentifierNode;
 

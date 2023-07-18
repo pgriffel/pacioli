@@ -21,7 +21,7 @@
 
 package pacioli.types;
 
-import pacioli.PacioliException;
+import pacioli.misc.PacioliException;
 
 public class FunctionType extends AbstractType {
 

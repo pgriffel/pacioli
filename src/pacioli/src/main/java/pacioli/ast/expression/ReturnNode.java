@@ -21,9 +21,9 @@
 
 package pacioli.ast.expression;
 
-import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliException;
 import pacioli.symboltable.ValueInfo;
 
 public class ReturnNode extends AbstractExpressionNode {

@@ -24,10 +24,10 @@ package pacioli.ast.definition;
 import java.util.ArrayList;
 import java.util.List;
 
-import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.ast.TypeConstraint;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliException;
 import pacioli.symboltable.ParametricInfo;
 import pacioli.types.TypeObject;
 import pacioli.types.OperatorConst;

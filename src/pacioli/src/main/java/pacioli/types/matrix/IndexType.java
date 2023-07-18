@@ -3,7 +3,7 @@ package pacioli.types.matrix;
 import java.util.Arrays;
 import java.util.List;
 
-import pacioli.PacioliException;
+import pacioli.misc.PacioliException;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.types.AbstractType;
 import pacioli.types.ConstraintSet;

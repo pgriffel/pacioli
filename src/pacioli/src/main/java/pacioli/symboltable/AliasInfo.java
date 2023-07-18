@@ -2,9 +2,9 @@ package pacioli.symboltable;
 
 import java.util.Optional;
 
-import pacioli.Location;
-import pacioli.PacioliFile;
 import pacioli.ast.definition.AliasDefinition;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliFile;
 
 public final class AliasInfo extends UnitInfo {
 

@@ -1,4 +1,4 @@
-package pacioli;
+package pacioli.misc;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -20,10 +20,12 @@ import org.jgrapht.graph.EdgeReversedGraph;
 import org.jgrapht.traverse.DepthFirstIterator;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
-import pacioli.CompilationSettings.Target;
+import pacioli.Pacioli;
+import pacioli.Pacioli.Options;
 import pacioli.ast.ImportNode;
 import pacioli.ast.IncludeNode;
 import pacioli.ast.ProgramNode;
+import pacioli.misc.CompilationSettings.Target;
 import pacioli.parser.Parser;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
@@ -100,7 +102,7 @@ public class Project {
      * 
      * @return The root file.
      */
-    PacioliFile root() {
+    public PacioliFile root() {
         Optional<PacioliFile> optionalFile = graph.vertexSet().stream().findAny();
         if (optionalFile.isPresent()) {
             PacioliFile file = optionalFile.get();

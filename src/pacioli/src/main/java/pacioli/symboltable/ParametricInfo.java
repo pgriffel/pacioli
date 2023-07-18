@@ -2,9 +2,9 @@ package pacioli.symboltable;
 
 import java.util.Optional;
 
-import pacioli.Location;
-import pacioli.PacioliFile;
 import pacioli.ast.definition.TypeDefinition;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliFile;
 import pacioli.types.ast.TypeNode;
 
 public final class ParametricInfo extends AbstractSymbolInfo implements TypeSymbolInfo {

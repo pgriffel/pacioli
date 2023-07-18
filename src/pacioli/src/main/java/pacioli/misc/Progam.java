@@ -1,4 +1,4 @@
-package pacioli;
+package pacioli.misc;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import pacioli.Pacioli;
+import pacioli.Pacioli.Options;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.ClassDefinition;
@@ -79,7 +82,7 @@ public class Progam extends AbstractPrintable {
         this.file = file;
     }
 
-    static Progam load(PacioliFile file) throws Exception {
+    public static Progam load(PacioliFile file) throws Exception {
         Progam program = new Progam(file);
         program.loadTill();
         return program;
@@ -539,7 +542,7 @@ public class Progam extends AbstractPrintable {
         }
     }
 
-    void printTypes() throws PacioliException {
+    public void printTypes() throws PacioliException {
 
         List<String> names = values.allNames();
         Collections.sort(names);
@@ -583,7 +586,7 @@ public class Progam extends AbstractPrintable {
         }
     }
 
-    void printSymbolTable(SymbolTable<? extends SymbolInfo> table, String header) {
+    public void printSymbolTable(SymbolTable<? extends SymbolInfo> table, String header) {
         Pacioli.println("Begin %s table", header);
         List<? extends SymbolInfo> infos = table.allInfos();
         infos.sort((SymbolInfo x, SymbolInfo y) -> x.name().compareTo(y.name()));

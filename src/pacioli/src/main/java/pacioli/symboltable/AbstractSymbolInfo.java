@@ -1,6 +1,6 @@
 package pacioli.symboltable;
 
-import pacioli.Location;
+import pacioli.misc.Location;
 
 public abstract class AbstractSymbolInfo implements SymbolInfo {
 

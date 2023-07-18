@@ -21,10 +21,10 @@
 
 package pacioli.types.ast;
 
-import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.unit.NumberUnitNode;
+import pacioli.misc.Location;
 
 public class TypePowerNode extends AbstractTypeNode {
 

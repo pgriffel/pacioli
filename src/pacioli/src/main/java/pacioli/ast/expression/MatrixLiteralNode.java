@@ -9,12 +9,12 @@ import java.util.Map;
 import java.util.Set;
 
 import mvm.values.matrix.MatrixDimension;
-import pacioli.AbstractPrintable;
-import pacioli.Location;
 import pacioli.Pacioli;
-import pacioli.PacioliException;
-import pacioli.Utils;
 import pacioli.ast.Visitor;
+import pacioli.misc.AbstractPrintable;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliException;
+import pacioli.misc.Utils;
 import pacioli.types.TypeObject;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;

@@ -21,8 +21,8 @@
 
 package pacioli.types.ast;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
 
 public class FunctionTypeNode extends AbstractTypeNode {
 

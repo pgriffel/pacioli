@@ -32,8 +32,8 @@ package pacioli.types;
 
 import java.util.Optional;
 
-import pacioli.PacioliException;
 import pacioli.symboltable.SymbolTable;
+import pacioli.misc.PacioliException;
 import pacioli.symboltable.ParametricInfo;
 
 public record OperatorVar(String name, Optional<ParametricInfo> info) implements Operator, Var {

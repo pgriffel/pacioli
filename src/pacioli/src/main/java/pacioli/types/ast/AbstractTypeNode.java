@@ -21,8 +21,8 @@
 
 package pacioli.types.ast;
 
-import pacioli.Location;
 import pacioli.ast.AbstractNode;
+import pacioli.misc.Location;
 
 public abstract class AbstractTypeNode extends AbstractNode implements TypeNode {
 

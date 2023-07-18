@@ -1,7 +1,5 @@
 package pacioli.ast;
 
-import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Declaration;
@@ -47,6 +45,8 @@ import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliException;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.FunctionTypeNode;

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.ast.Node;
-import pacioli.PacioliException;
 import pacioli.ast.IdentityTransformation;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.Declaration;
@@ -12,6 +11,7 @@ import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.misc.PacioliException;
 
 public class DesugarVisitor extends IdentityTransformation {
 

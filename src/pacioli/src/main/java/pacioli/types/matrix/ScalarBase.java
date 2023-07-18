@@ -24,8 +24,8 @@ package pacioli.types.matrix;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import pacioli.CompilationSettings;
 import pacioli.ast.definition.UnitDefinition;
+import pacioli.misc.CompilationSettings;
 import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.types.TypeBase;
 import uom.BaseUnit;

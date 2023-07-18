@@ -21,7 +21,7 @@
 
 package pacioli.types.matrix;
 
-import pacioli.CompilationSettings;
+import pacioli.misc.CompilationSettings;
 import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;

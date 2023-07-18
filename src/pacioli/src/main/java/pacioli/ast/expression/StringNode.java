@@ -1,7 +1,7 @@
 package pacioli.ast.expression;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
 
 public class StringNode extends AbstractExpressionNode {
 

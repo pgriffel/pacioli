@@ -21,7 +21,7 @@
 
 package pacioli.ast;
 
-import pacioli.Location;
+import pacioli.misc.Location;
 
 public abstract class AbstractNode implements Node {
 

@@ -2,9 +2,9 @@ package pacioli.symboltable;
 
 import java.util.Optional;
 
-import pacioli.Location;
-import pacioli.PacioliFile;
 import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliFile;
 
 public final class IndexSetInfo extends AbstractSymbolInfo implements TypeSymbolInfo {
 

@@ -21,9 +21,9 @@
 
 package pacioli.ast.expression;
 
-import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
 
 public class LetBindingNode extends AbstractExpressionNode implements LetNode.BindingNode {
 

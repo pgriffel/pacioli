@@ -2,8 +2,8 @@ package pacioli.types.ast;
 
 import java.util.List;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
 
 public class ContextNode extends AbstractTypeNode {
 

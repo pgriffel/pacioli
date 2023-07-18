@@ -1,8 +1,8 @@
 package pacioli.ast.expression;
 
-import pacioli.Location;
 import pacioli.ast.ValueContext;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.ValueInfo;
 

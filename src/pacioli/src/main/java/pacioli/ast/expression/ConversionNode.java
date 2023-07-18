@@ -1,10 +1,10 @@
 package pacioli.ast.expression;
 
 import mvm.values.matrix.MatrixDimension;
-import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliException;
 import pacioli.types.TypeObject;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;

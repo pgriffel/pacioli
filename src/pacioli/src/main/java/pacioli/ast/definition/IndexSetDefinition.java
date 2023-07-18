@@ -24,10 +24,10 @@ package pacioli.ast.definition;
 import java.util.List;
 
 import mvm.values.matrix.IndexSet;
-import pacioli.Location;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.misc.Location;
 
 public class IndexSetDefinition extends AbstractDefinition {
 

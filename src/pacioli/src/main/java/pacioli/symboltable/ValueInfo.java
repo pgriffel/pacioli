@@ -3,10 +3,10 @@ package pacioli.symboltable;
 import java.util.List;
 import java.util.Optional;
 
-import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.PacioliFile;
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliException;
+import pacioli.misc.PacioliFile;
 import pacioli.types.FunctionType;
 import pacioli.types.TypeObject;
 import pacioli.types.Schema;

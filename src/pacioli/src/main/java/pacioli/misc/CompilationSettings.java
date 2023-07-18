@@ -19,68 +19,70 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli;
+package pacioli.misc;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CompilationSettings {
 
-    public enum Target {MVM, JS, MATLAB, PYTHON};
-    
+    public enum Target {
+        MVM, JS, MATLAB, PYTHON
+    };
+
     private Target target = Target.MVM;
     private boolean debug = false;
     private boolean traceAll = false;
     private List<String> toTrace = new ArrayList<String>();
     private String kind = "bundle";
-    
+
     public CompilationSettings() {
     }
 
     public Target getTarget() {
         return target;
     }
-    
+
     public void setTarget(Target target) {
         this.target = target;
     }
-    
+
     public String getKind() {
         return kind;
     }
-    
+
     public void setKind(String kind) {
         this.kind = kind;
     }
-    
-    public void setDebug(Boolean on) { 
+
+    public void setDebug(Boolean on) {
         debug = on;
     };
-    
-    public void toggleDebug() { 
+
+    public void toggleDebug() {
         debug = !debug;
     };
-    
+
     public boolean isDebugOn() {
         return debug;
     }
-    
-    public void setTraceAll(Boolean on) { 
+
+    public void setTraceAll(Boolean on) {
         traceAll = on;
     };
-    
-    public void toggleTraceAll() { 
+
+    public void toggleTraceAll() {
         traceAll = !traceAll;
     };
-    
+
     public boolean isTraceAllOn() {
         return traceAll;
     }
-    
+
     public void traceName(String name) {
         toTrace.add(name);
     }
-    
+
     public boolean isTracing(String name) {
         return traceAll || toTrace.contains(name);
     }

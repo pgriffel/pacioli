@@ -23,16 +23,16 @@ package pacioli.ast.expression;
 
 import java.util.Optional;
 
-import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliException;
 import pacioli.symboltable.ValueInfo;
 
 public class IdentifierNode extends AbstractExpressionNode {
 
     private final String name;
     private Optional<ValueInfo> info = Optional.empty();
-    
+
     public IdentifierNode(String name, Location location) {
         super(location);
         this.name = name;
@@ -41,23 +41,24 @@ public class IdentifierNode extends AbstractExpressionNode {
     public String getName() {
         return name;
     }
-    
+
     public Boolean isResolved() {
         return info.isPresent();
     }
-    
+
     public Boolean hasInfo() {
         return info.isPresent();
     }
-    
+
     public ValueInfo getInfo() {
         if (info.isPresent()) {
             return info.get();
         } else {
-            throw new RuntimeException("Cannot get info, identifier has not been resolved.", new PacioliException(getLocation(), "id=%s", getName()));
+            throw new RuntimeException("Cannot get info, identifier has not been resolved.",
+                    new PacioliException(getLocation(), "id=%s", getName()));
         }
     }
-    
+
     public void setInfo(ValueInfo info) {
         this.info = Optional.of(info);
     }

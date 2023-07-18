@@ -2,10 +2,10 @@ package pacioli.ast.definition;
 
 import java.util.List;
 
-import pacioli.CompilationSettings;
-import pacioli.Location;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.misc.CompilationSettings;
+import pacioli.misc.Location;
 import pacioli.types.ast.TypeNode;
 
 public class MultiDeclaration extends AbstractDefinition {

@@ -23,8 +23,8 @@ package pacioli.ast.definition;
 
 import java.util.List;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
 

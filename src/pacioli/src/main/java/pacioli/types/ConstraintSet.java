@@ -28,13 +28,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import pacioli.AbstractPrintable;
 import pacioli.Pacioli;
-import pacioli.PacioliException;
-import pacioli.Utils;
 import pacioli.Pacioli.Options;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
+import pacioli.misc.AbstractPrintable;
+import pacioli.misc.PacioliException;
+import pacioli.misc.Utils;
 import pacioli.types.matrix.MatrixType;
 import uom.Fraction;
 import uom.Unit;

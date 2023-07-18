@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import pacioli.PacioliFile;
 import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.InstanceDefinition;
+import pacioli.misc.PacioliFile;
 
 public final class ClassInfo extends AbstractSymbolInfo implements TypeSymbolInfo {
 

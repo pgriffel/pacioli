@@ -2,15 +2,15 @@ package pacioli.ast.unit;
 
 import java.util.Optional;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
 import pacioli.symboltable.UnitInfo;
 
 public class UnitIdentifierNode extends AbstractUnitNode {
 
     private final String name;
     private final Optional<String> prefix;
-    
+
     public UnitInfo info;
 
     public UnitIdentifierNode(Location location, String name) {
@@ -28,11 +28,11 @@ public class UnitIdentifierNode extends AbstractUnitNode {
     public String getName() {
         return name;
     }
-    
+
     public Optional<String> getPrefix() {
         return prefix;
     }
-    
+
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);

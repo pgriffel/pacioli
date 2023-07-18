@@ -4,13 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import pacioli.CompilationSettings;
 import pacioli.Pacioli;
-import pacioli.Printer;
-import pacioli.Utils;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
+import pacioli.misc.CompilationSettings;
+import pacioli.misc.Printer;
+import pacioli.misc.Utils;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.ClassInfo;

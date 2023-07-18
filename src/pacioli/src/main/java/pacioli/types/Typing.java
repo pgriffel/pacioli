@@ -27,9 +27,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import pacioli.AbstractPrintable;
-import pacioli.PacioliException;
 import pacioli.ast.expression.ApplicationNode;
+import pacioli.misc.AbstractPrintable;
+import pacioli.misc.PacioliException;
 
 public class Typing extends AbstractPrintable {
 

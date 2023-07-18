@@ -1,4 +1,4 @@
-package pacioli;
+package pacioli.misc;
 
 import java.io.PrintWriter;
 import java.util.List;

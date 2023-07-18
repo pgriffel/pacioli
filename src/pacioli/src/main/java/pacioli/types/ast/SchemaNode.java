@@ -23,8 +23,8 @@ package pacioli.types.ast;
 
 import java.util.List;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.types.TypeContext;

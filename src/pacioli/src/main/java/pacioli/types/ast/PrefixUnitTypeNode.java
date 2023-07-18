@@ -1,7 +1,7 @@
 package pacioli.types.ast;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
 
 public class PrefixUnitTypeNode extends AbstractTypeNode {
 
@@ -13,7 +13,7 @@ public class PrefixUnitTypeNode extends AbstractTypeNode {
         this.prefix = prefix;
         this.unit = unit;
     }
-    
+
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);

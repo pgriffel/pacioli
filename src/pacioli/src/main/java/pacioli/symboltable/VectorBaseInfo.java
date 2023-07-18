@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import pacioli.Location;
-import pacioli.PacioliFile;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliFile;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 

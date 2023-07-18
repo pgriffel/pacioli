@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli;
+package pacioli.misc;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Utils {
-
 
     public static String intercalate(String seperator, List<String> strings) {
         StringBuilder builder = new StringBuilder();

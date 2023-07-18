@@ -1,4 +1,4 @@
-package pacioli;
+package pacioli.misc;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -7,6 +7,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
+import pacioli.Pacioli;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.symboltable.ValueInfo;
@@ -20,12 +21,12 @@ public class PrimitivesDocumentation {
     private final String dirName;
     private final List<File> libs;
 
-    PrimitivesDocumentation(String dirName, List<File> libs) {
+    public PrimitivesDocumentation(String dirName, List<File> libs) {
         this.dirName = dirName;
         this.libs = libs;
     }
 
-    void generate() throws Exception {
+    public void generate() throws Exception {
 
         Pacioli.log("dirName = %s, libs= %s", dirName, libs);
 

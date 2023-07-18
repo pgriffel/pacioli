@@ -26,10 +26,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import pacioli.AbstractPrintable;
 import pacioli.Pacioli;
-import pacioli.PacioliException;
 import pacioli.Pacioli.Options;
+import pacioli.misc.AbstractPrintable;
+import pacioli.misc.PacioliException;
 import pacioli.types.IndexSetVar;
 import pacioli.types.OperatorVar;
 import pacioli.types.TypeObject;

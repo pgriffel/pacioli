@@ -2,9 +2,9 @@ package pacioli.symboltable;
 
 import java.util.Optional;
 
-import pacioli.Location;
-import pacioli.PacioliFile;
 import pacioli.ast.definition.UnitDefinition;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliFile;
 
 public final class ScalarBaseInfo extends UnitInfo {
 

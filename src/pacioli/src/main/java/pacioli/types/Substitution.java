@@ -29,9 +29,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import pacioli.AbstractPrintable;
-import pacioli.Printable;
-import pacioli.Utils;
+import pacioli.misc.AbstractPrintable;
+import pacioli.misc.Printable;
+import pacioli.misc.Utils;
 import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitMap;

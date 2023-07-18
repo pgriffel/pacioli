@@ -37,8 +37,14 @@ import org.apache.commons.io.FilenameUtils;
 
 import mvm.MVMException;
 import mvm.Machine;
-import pacioli.CompilationSettings.Target;
 import pacioli.ast.ProgramNode;
+import pacioli.misc.CompilationSettings;
+import pacioli.misc.PacioliException;
+import pacioli.misc.PacioliFile;
+import pacioli.misc.PrimitivesDocumentation;
+import pacioli.misc.Progam;
+import pacioli.misc.Project;
+import pacioli.misc.CompilationSettings.Target;
 import pacioli.parser.Parser;
 import pacioli.symboltable.ValueInfo;
 

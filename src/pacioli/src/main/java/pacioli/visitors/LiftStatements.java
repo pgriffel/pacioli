@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.IdentityTransformation;
 import pacioli.ast.Node;
 import pacioli.ast.definition.ValueDefinition;
@@ -16,6 +13,9 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliException;
+import pacioli.misc.Progam;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.ValueInfo;
 

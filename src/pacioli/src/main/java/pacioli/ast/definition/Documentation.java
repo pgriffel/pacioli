@@ -21,11 +21,11 @@
 
 package pacioli.ast.definition;
 
-import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.misc.Location;
 
 public class Documentation extends AbstractDefinition {
 

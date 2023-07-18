@@ -2,11 +2,11 @@ package pacioli.ast.definition;
 
 import java.math.BigDecimal;
 
-import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliException;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 import uom.Unit;

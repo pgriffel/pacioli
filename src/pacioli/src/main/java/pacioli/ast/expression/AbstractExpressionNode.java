@@ -21,8 +21,8 @@
 
 package pacioli.ast.expression;
 
-import pacioli.Location;
 import pacioli.ast.AbstractNode;
+import pacioli.misc.Location;
 
 public abstract class AbstractExpressionNode extends AbstractNode implements ExpressionNode {
 

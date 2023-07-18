@@ -24,9 +24,9 @@ package pacioli.ast.expression;
 import java.util.ArrayList;
 import java.util.List;
 
-import pacioli.Location;
-import pacioli.Utils;
 import pacioli.ast.Visitor;
+import pacioli.misc.Location;
+import pacioli.misc.Utils;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.ValueInfo;
 

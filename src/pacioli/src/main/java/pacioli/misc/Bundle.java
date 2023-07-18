@@ -1,4 +1,4 @@
-package pacioli;
+package pacioli.misc;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +11,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import pacioli.CompilationSettings.Target;
+import pacioli.Pacioli;
+import pacioli.Pacioli.Options;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.expression.ExpressionNode;
@@ -20,6 +21,7 @@ import pacioli.compilers.JSCompiler;
 import pacioli.compilers.MATLABCompiler;
 import pacioli.compilers.MVMCompiler;
 import pacioli.compilers.PythonCompiler;
+import pacioli.misc.CompilationSettings.Target;
 import pacioli.symboltable.GeneralInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.SymbolInfo;
@@ -263,6 +265,12 @@ public class Bundle {
                     Pacioli.print(" %s;", info.inferredType().pretty());
                 } else {
                     Pacioli.print(" %s;", info.getType().pretty());
+                }
+                Pacioli.println("%s ::", info.name());
+                if (rewriteTypes) {
+                    Pacioli.print(" %s;", info.inferredType().toString());
+                } else {
+                    Pacioli.print(" %s;", info.getType().toString());
                 }
                 if (showDocs) {
                     if (info.getDocu().isPresent()) {

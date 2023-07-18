@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 
-import pacioli.PacioliException;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.TypeDefinition;
+import pacioli.misc.PacioliException;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolInfo;

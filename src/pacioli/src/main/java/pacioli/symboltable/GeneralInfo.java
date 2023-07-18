@@ -2,8 +2,8 @@ package pacioli.symboltable;
 
 import java.io.File;
 
-import pacioli.Location;
-import pacioli.PacioliFile;
+import pacioli.misc.Location;
+import pacioli.misc.PacioliFile;
 
 public class GeneralInfo {
 

@@ -6,7 +6,7 @@ import java.util.Stack;
 import java.util.function.Function;
 
 import pacioli.Pacioli;
-import pacioli.PacioliException;
+import pacioli.misc.PacioliException;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
 import pacioli.types.OperatorConst;
