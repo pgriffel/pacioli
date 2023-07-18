@@ -1,3 +1,4 @@
+import geometry;
 
 # https://www.cs.tufts.edu/comp/150PLD/Notes/TypeClasses.pdf
 
@@ -8,7 +9,7 @@
 # Type class definition
 
 defclass Eq(t) for_type t:
-   equal :: (t, t) -> Boole;
+   gen_equal :: (t, t) -> Boole;
 
 deftype for_type t: EqDict(t) = Tuple((t, t) -> Boole);
 
@@ -22,10 +23,10 @@ define dict_equal(dict, x, y) = let (eq) = dict in eq(x, y) end;
 # Type instances for num and string
 
 definstance Eq(a) for_unit a:
-   equal(x, y) = x = y;
+   gen_equal(x, y) = x = y;
 
 definstance Eq(String)
-   equal(x, y) = string_equal(x, y);
+   gen_equal(x, y) = string_equal(x, y);
 
 declare num_equal_dict :: for_unit a: () -> EqDict(a);
 declare string_equal_dict :: () -> EqDict(String);
@@ -62,8 +63,8 @@ my_test(num_equal_dict(), 1, 1);
 # Type class definition
 
 defclass Num(t) for_type t:
-    sum :: (t, t) -> t,
-    scale :: (1, t) -> t;
+    gen_sum :: (t, t) -> t,
+    gen_scale :: (1, t) -> t;
 
 deftype for_type t: NumDict(t) = Tuple((t, t) -> t, (1, t) -> t);
 
@@ -79,12 +80,12 @@ define dict_scale(dict, x, y) = let (_, mult) = dict in mult(x, y) end;
 # Type class instances for string and num
 
 definstance Num(a) for_unit a:
-    sum(x, y) = x + y,
-    scale(x, y) = x * y;
+    gen_sum(x, y) = x + y,
+    gen_scale(x, y) = x * y;
 
 definstance Num(String)
-    sum(x, y) = concatenate(x, y),
-    scale(x, y) = repeat(concatenate, x, y);
+    gen_sum(x, y) = concatenate(x, y),
+    gen_scale(x, y) = repeat(concatenate, x, y);
 
 declare string_num_dict :: () -> NumDict(String);
 declare num_num_dict :: for_unit a: () -> NumDict(a);
@@ -125,7 +126,7 @@ my_test2(num_num_dict(), 2, 3);
 # Eq
 
 definstance Eq(List(t)) for_type t where Eq(t):
-    equal(xs, ys) = list_equal(xs, ys);
+    gen_equal(xs, ys) = list_equal(xs, ys);
 
 # declare list_equal :: for_type t where Eq(t): (List(t), List(t)) -> Boole
 
@@ -145,8 +146,8 @@ my_test(list_equal_dict(num_equal_dict()), [1, 2], [1, 1 + 2]);
 # Num
 
 definstance Num(List(t)) for_type t where Num(t):
-    sum(xs, ys) = append(xs, ys),
-    scale(c, xs) = repeat(append, c, xs);
+    gen_sum(xs, ys) = append(xs, ys),
+    gen_scale(c, xs) = repeat(append, c, xs);
 
 declare list_num_dict :: for_type t: (NumDict(t)) -> NumDict(List(t));
 
@@ -168,8 +169,8 @@ dict_scale(list_num_dict(list_num_dict(string_num_dict())), 3, [["bar", "foo"], 
 
 # The dictionary definition
 
-defclass Map(s, v, T) for_op T: for_type s, v:
-     map :: ((s) -> v, T(s)) -> T(v);
+defclass Map(s, t, X) for_op X: for_type s, t:
+     map :: ((s) -> t, X(s)) -> X(t);
 
 deftype for_op T: for_type s,v: MapDict(s,v,T) = Tuple(((s) -> v, T(s)) -> T(v));
 
@@ -182,15 +183,24 @@ define dict_map(dict, f, x) = let (map) = dict in map(f, x) end;
 
 # Instances for list and pair
 
+deftype for_unit a: Mat(a) = a * Geom2! per Geom2!;
+
+definstance Map(s, v, Mat) for_unit s, v: 
+     map(fun, xs) = map_list(fun, xs);
+
+
 definstance Map(s, v, List) for_type s, v: 
      map(fun, xs) = map_list(fun, xs);
 
 definstance Map(s, v, Pair) for_type s, v: 
      map(fun, pair) = make_pair(fun(pair_left(pair)), fun(pair_right(pair)));
 
+declare unit_map_dict :: for_unit s,v: () -> MapDict(s,v,List);
+
 declare list_map_dict :: for_type s,v: () -> MapDict(s,v,List);
 declare pair_map_dict :: for_type s,v: () -> MapDict(s,v,Pair);
 
+define unit_map_dict() = make_map_dict((fun, list) -> map_list(fun, list));
 define list_map_dict() = make_map_dict((fun, list) -> map_list(fun, list));
 define pair_map_dict() = make_map_dict((fun, pair) -> make_pair(fun(pair_left(pair)), fun(pair_right(pair))));
 
@@ -198,12 +208,13 @@ define pair_map_dict() = make_map_dict((fun, pair) -> make_pair(fun(pair_left(pa
 # examples
 
 dict_map(list_map_dict(), (x) -> x*x, [1,2,3]);
-
+dict_map(unit_map_dict(), (x) -> x*x, [1,2,3]);
 let 
+    xx = dict_map(unit_map_dict(), (x) -> x*x, [1,2,3]),
     x = dict_map(list_map_dict(), (x) -> x*x, [1,2,3]),
     y = dict_map(list_map_dict(), (x) -> x, ["1","2","3"])
 in
-    tuple(x, y)
+    tuple(xx, x, y)
 end;
 
 # Should fail:
@@ -229,3 +240,18 @@ my_test3(pair_map_dict(), num_num_dict(), make_pair(1, 3));
 my_test3(list_map_dict(), num_num_dict(), [1,2,3]);
 
 my_test3(pair_map_dict(), string_num_dict(), make_pair("1", "3"));
+
+
+map((x) -> x*x+12, make_pair(1, 3));
+map((x) -> x*x* |metre|, make_pair(1, 3));
+
+map((x) -> gen_sum(x,x)+12, make_pair(1, 3));
+
+gen_sum("foo", "bar");
+gen_sum(["foo"], ["bar"]);
+
+define my_test4(x) = 
+    gen_sum(x, x);
+
+my_test4(1);
+my_test4("1");
