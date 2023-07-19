@@ -50,6 +50,7 @@ import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.TypeVarInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.ValueInfo.Builder;
 import pacioli.symboltable.VectorBaseInfo;
 import pacioli.types.TypeContext;
 import pacioli.types.TypeIdentifier;
@@ -168,8 +169,18 @@ public class ResolveVisitor extends IdentityVisitor {
         // Create a symbol info record for each lambda parameter and store it in the
         // table
         for (String arg : node.arguments) {
-            ValueInfo info = new ValueInfo(arg, file, false, true, node.getLocation(), false);
-            node.table.put(arg, info);
+            // TODO: check that definition is left empty is okay
+            Builder builder = ValueInfo.builder()
+                    .name(arg)
+                    .file(file)
+                    .isGlobal(false)
+                    .isMonomorphic(true)
+                    .location(node.getLocation())
+                    .isPublic(false);
+            // ValueInfo info = new ValueInfo(arg, file, false, true, node.getLocation(),
+            // false, Optional.empty(),
+            // Optional.empty(), Optional.empty());
+            node.table.put(arg, builder.build());
         }
 
         // Push the symboltable on the stack and resolve the body
@@ -387,8 +398,15 @@ public class ResolveVisitor extends IdentityVisitor {
 
             // Create a value info record for the mutable (IsRef == true) variable
             if (info == null) {
-                info = new ValueInfo(id.getName(), file, false, false, id.getLocation(), false);
-                info.setIsRef(true);
+                info = ValueInfo.builder()
+                        .name(id.getName())
+                        .file(file)
+                        .isGlobal(false)
+                        .isMonomorphic(false)
+                        .location(id.getLocation())
+                        .isPublic(false)
+                        .isRef(true)
+                        .build();
 
                 // If it shadows another value then remember that for initialization in
                 // generated code
@@ -409,7 +427,18 @@ public class ResolveVisitor extends IdentityVisitor {
         }
 
         // Create an info record for the result and put it in the symbol table
-        ValueInfo info = new ValueInfo(resultName, file, false, false, node.getLocation(), false);
+
+        ValueInfo info = ValueInfo.builder()
+                .name(resultName)
+                .file(file)
+                .isGlobal(false)
+                .isMonomorphic(false)
+                .location(node.getLocation())
+                .isPublic(false)
+                .build();
+        // ValueInfo info = new ValueInfo(resultName, file, false, false,
+        // node.getLocation(), false, Optional.empty(),
+        // Optional.empty(), Optional.empty());
         node.table.put(resultName, info);
         node.resultInfo = info;
 
@@ -621,7 +650,18 @@ public class ResolveVisitor extends IdentityVisitor {
             assert (binding instanceof LetBindingNode);
             LetBindingNode functionBinding = (LetBindingNode) binding;
             String arg = functionBinding.var;
-            ValueInfo info = new ValueInfo(arg, file, false, false, node.getLocation(), false);
+
+            ValueInfo info = ValueInfo.builder()
+                    .name(arg)
+                    .file(file)
+                    .isGlobal(false)
+                    .isMonomorphic(false)
+                    .location(node.getLocation())
+                    .isPublic(false)
+                    .build();
+            // ValueInfo info = new ValueInfo(arg, file, false, false, node.getLocation(),
+            // false, Optional.empty(),
+            // Optional.empty(), Optional.empty());
 
             // todo: set the definition!!!!!!!
             // Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");

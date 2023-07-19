@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import pacioli.Pacioli;
-import pacioli.Pacioli.Options;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.ClassDefinition;
@@ -251,11 +250,19 @@ public class Progam extends AbstractPrintable {
             for (TypeAssertion member : info.definition.members) {
                 for (IdentifierNode id : member.ids) {
 
-                    ValueInfo valueInfo = new ValueInfo(id.getName(), file, true, false,
-                            member.getLocation(), true);
+                    // TODO: check empty body
                     SchemaNode schema = new SchemaNode(info.definition.definedClass.getLocation(),
                             info.definition.definedClass.contextNodes, member.body.type);
-                    valueInfo.setDeclaredType(schema);
+                    ValueInfo valueInfo = ValueInfo.builder()
+                            .name(id.getName())
+                            .file(file)
+                            .isGlobal(true)
+                            .isMonomorphic(false)
+                            .location(member.getLocation())
+                            .isPublic(true)
+                            .typeClass(info)
+                            .declaredType(schema)
+                            .build();
                     Pacioli.log("YO %s :: %s", id.getName(), schema.pretty());
                     addInfo(valueInfo);
                 }

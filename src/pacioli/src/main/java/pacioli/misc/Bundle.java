@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -108,8 +109,14 @@ public class Bundle {
             GeneralInfo info = new GeneralInfo(type, file, true, new Location());
             typeTable.put(type, new ParametricInfo(info));
         }
-        GeneralInfo info = new GeneralInfo("nmode", file, true, new Location());
-        ValueInfo nmodeInfo = new ValueInfo(info, false, true);
+        ValueInfo nmodeInfo = ValueInfo.builder()
+                .name("nmode")
+                .file(file)
+                .isGlobal(true)
+                .isMonomorphic(false)
+                .location(new Location())
+                .isPublic(true)
+                .build();
         valueTable.put("nmode", nmodeInfo);
     }
 

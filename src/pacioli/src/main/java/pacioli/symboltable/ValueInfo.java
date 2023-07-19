@@ -14,46 +14,39 @@ import pacioli.types.ast.TypeNode;
 
 public class ValueInfo extends AbstractSymbolInfo {
 
-    public record ParsedValueInfo(ValueDefinition definition) {
-
-    }
-
-    public record ResolvedValueInfo(ParsedValueInfo parsed, boolean isRef) {
-
-        TypedValueInfo withType(TypeObject type) {
-            return new TypedValueInfo(this, type);
-        }
-
-    }
-
-    public record TypedValueInfo(ResolvedValueInfo resolved, TypeObject type) {
-
-    }
-
-    // Set during parsing
-    private Optional<ValueDefinition> definition = Optional.empty();
-    private Optional<TypeNode> declaredType = Optional.empty();
-    private Optional<String> docu = Optional.empty();
+    public final Optional<ClassInfo> typeClass;
     public final Boolean isMonomorphic;
-
-    // Set during resolving
-    private Optional<Boolean> isRef = Optional.of(false);
+    private final boolean isPublic;
+    private final Optional<ValueDefinition> definition;
+    private final Optional<TypeNode> declaredType;
+    private final Optional<String> docu;
+    private final Optional<Boolean> isRef;
 
     // Set during type inference
-    public Optional<TypeObject> inferredType = Optional.empty();
-    private boolean isPublic;
+    public Optional<TypeObject> inferredType;
 
-    public ValueInfo(String name, PacioliFile file, Boolean isGlobal, Boolean isMonomorphic,
-            Location location, boolean isPublic) {
+    public ValueInfo(
+            String name,
+            PacioliFile file,
+            Boolean isGlobal,
+            Boolean isMonomorphic,
+            Location location,
+            boolean isPublic,
+            Optional<Boolean> isRef,
+            Optional<ValueDefinition> definition,
+            Optional<ClassInfo> typeClass,
+            Optional<TypeNode> declaredType,
+            Optional<TypeObject> inferredType,
+            Optional<String> docu) {
         super(new GeneralInfo(name, file, isGlobal, location));
         this.isMonomorphic = isMonomorphic;
         this.isPublic = isPublic;
-    }
-
-    public ValueInfo(GeneralInfo info, Boolean isMonomorphic, boolean isPublic) {
-        super(info);
-        this.isMonomorphic = isMonomorphic;
-        this.isPublic = isPublic;
+        this.definition = definition;
+        this.typeClass = typeClass;
+        this.declaredType = declaredType;
+        this.isRef = isRef;
+        this.inferredType = inferredType;
+        this.docu = docu;
     }
 
     @Override
@@ -75,20 +68,8 @@ public class ValueInfo extends AbstractSymbolInfo {
         return definition;
     }
 
-    public Optional<ValueDefinition> getValueDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(ValueDefinition definition) {
-        this.definition = Optional.of(definition);
-    }
-
     public Optional<TypeNode> getDeclaredType() {
         return declaredType;
-    }
-
-    public void setDeclaredType(TypeNode declaredType) {
-        this.declaredType = Optional.of(declaredType);
     }
 
     public Optional<String> getDocu() {
@@ -104,20 +85,12 @@ public class ValueInfo extends AbstractSymbolInfo {
         }
     }
 
-    public void setDocu(String docu) {
-        this.docu = Optional.of(docu);
-    }
-
     public Boolean isRef() {
         if (isRef.isPresent()) {
             return isRef.get();
         } else {
             throw new RuntimeException("No isRef value, ValueInfo must have been resolved");
         }
-    }
-
-    public void setIsRef(Boolean isRef) {
-        this.isRef = Optional.of(isRef);
     }
 
     public TypeObject getType() {
@@ -154,7 +127,11 @@ public class ValueInfo extends AbstractSymbolInfo {
     }
 
     public boolean isUserDefined() {
-        return definition.orElseThrow(() -> new RuntimeException("Must be resolved")).isUserDefined;
+        return definition.map(def -> def.isUserDefined).orElse(false);
+    }
+
+    public boolean isOverloaded() {
+        return !this.typeClass.isEmpty();
     }
 
     public static class Builder {
@@ -164,9 +141,12 @@ public class ValueInfo extends AbstractSymbolInfo {
         public Boolean isMonomorphic;
         public Location location;
         public boolean isPublic;
+        public boolean isRef;
         public ValueDefinition definition;
         public TypeNode declaredType;
+        public TypeObject inferredType;
         public String docu;
+        public ClassInfo typeClass;
 
         public Builder name(String name) {
             this.name = name;
@@ -213,15 +193,30 @@ public class ValueInfo extends AbstractSymbolInfo {
             return this;
         }
 
+        public Builder isRef(boolean isRef) {
+            this.isRef = isRef;
+            return this;
+        }
+
+        public Builder typeClass(ClassInfo typeClass) {
+            this.typeClass = typeClass;
+            return this;
+        }
+
         public ValueInfo build() {
-            ValueInfo info = new ValueInfo(name, file, isGlobal, isMonomorphic, location, isPublic);
-            if (declaredType != null)
-                info.setDeclaredType(declaredType);
-            if (docu != null)
-                info.setDocu(docu);
-            if (definition != null)
-                info.setDefinition(definition);
-            return info;
+            return new ValueInfo(
+                    name,
+                    file,
+                    isGlobal,
+                    isMonomorphic,
+                    location,
+                    isPublic,
+                    Optional.ofNullable(isRef),
+                    Optional.ofNullable(definition),
+                    Optional.ofNullable(typeClass),
+                    Optional.ofNullable(declaredType),
+                    Optional.ofNullable(inferredType),
+                    Optional.ofNullable(docu));
         }
     }
 
