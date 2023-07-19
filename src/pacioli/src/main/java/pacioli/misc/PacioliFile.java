@@ -31,7 +31,6 @@ import java.util.Optional;
 import org.apache.commons.io.FilenameUtils;
 
 import pacioli.Pacioli;
-import pacioli.Pacioli.Options;
 import pacioli.misc.CompilationSettings.Target;
 
 /**

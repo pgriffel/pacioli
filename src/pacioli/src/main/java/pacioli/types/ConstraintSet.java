@@ -29,7 +29,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import pacioli.Pacioli;
-import pacioli.Pacioli.Options;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.misc.AbstractPrintable;

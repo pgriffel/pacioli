@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import pacioli.Pacioli;
-import pacioli.Pacioli.Options;
 import pacioli.misc.AbstractPrintable;
 import pacioli.misc.PacioliException;
 import pacioli.types.IndexSetVar;
