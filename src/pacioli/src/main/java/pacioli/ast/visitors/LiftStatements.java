@@ -21,38 +21,27 @@ import pacioli.symboltable.ValueInfo;
 
 /**
  * Lifts every statement from every definition into a separate definition to
- * ensure that
- * statements are always toplevel.
+ * ensure that statements are always toplevel.
  * 
  * Introduced for statements in MATLAB. A function with a toplevel statements is
- * compiled
- * to a procedure (a function that allows assignments and returns). Lambdas in
- * MATLAB
- * cannot be procedures.
+ * compiled to a procedure (a function that allows assignments and returns).
+ * Lambdas in MATLAB cannot be procedures.
  * 
  * It requires a resolved program, because it depends on the usedLocals visitor.
- * This visitor
- * requires a resolved program to filter the globals.
  * 
- * It does not return a properly resolved program. The caller has to resolve the
- * result.
+ * This visitor requires a resolved program to filter the globals. It does not
+ * return a properly resolved program. The caller has to resolve the result.
+ * 
  * Lifting statements before resolving would eliminate resolving twice, but
- * would make
- * finding the used locals harder.
+ * would make finding the used locals harder.
  */
 public class LiftStatements extends IdentityTransformation {
 
-    Progam prog;
-    List<ValueDefinition> blocks = new ArrayList<ValueDefinition>();
-    private PacioliTable pacioliTable;
-
-    public class Lifted {
-        public ExpressionNode expression;
-        public List<ValueDefinition> statements;
-    }
+    final private Progam program;
+    final private PacioliTable pacioliTable;
 
     public LiftStatements(Progam progam, PacioliTable pacioliTable) {
-        this.prog = progam;
+        this.program = progam;
         this.pacioliTable = pacioliTable;
     }
 
@@ -70,7 +59,7 @@ public class LiftStatements extends IdentityTransformation {
         // Pacioli.logln("RESOLVING IN LIFTS:\n%s", rec.pretty());
 
         // TODO:
-        rec.resolve(prog.file, pacioliTable);
+        rec.resolve(program.file, pacioliTable);
 
         // // Determine the used local ids
         // Set<SymbolInfo> uses = new HashSet<SymbolInfo>();
@@ -114,7 +103,7 @@ public class LiftStatements extends IdentityTransformation {
         try {
             ValueInfo info = ValueInfo.builder()
                     .name(vd.getName())
-                    .file(prog.file)
+                    .file(program.file)
                     .isGlobal(true)
                     .isMonomorphic(false)
                     .location(nodeLocation)
@@ -122,7 +111,7 @@ public class LiftStatements extends IdentityTransformation {
                     .definition(vd)
                     .build();
 
-            prog.values.put(vd.getName(), info);
+            program.values.put(vd.getName(), info);
         } catch (PacioliException e) {
             throw new RuntimeException("Cannot add lifted statement to program", e);
         }

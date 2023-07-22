@@ -105,6 +105,10 @@ public interface Node extends Printable {
         return new LiftStatements(prog, pacioliTable).nodeAccept(this);
     }
 
+    default public <N extends Node> N liftStatements(Progam prog, PacioliTable pacioliTable, Class<N> targetClass) {
+        return targetClass.cast(liftStatements(prog, pacioliTable));
+    }
+
     default public String compileToMVM(CompilationSettings settings) {
         StringWriter outputStream = new StringWriter();
         accept(new MVMGenerator(new Printer(new PrintWriter(outputStream)), settings));

@@ -150,8 +150,8 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
 
     public void rewriteOverloads(PacioliTable symbolTable) throws PacioliException {
-        Pacioli.trace("Rewriting overloads %s", this.file.getModule());
-        Pacioli.log("Rewriting overloads %s", this.file.getModule());
+        Pacioli.trace("Rewriting overloads for file %s", this.file.getModule());
+        Pacioli.log("Rewriting overloads for file %s", this.file.getModule());
         programNode.rewriteOverloads();
     }
 
@@ -268,7 +268,7 @@ public class Progam extends AbstractPrintable {
                         .typeClass(info)
                         .declaredType(schema)
                         .build();
-                Pacioli.log("YO %s :: %s", memberName, schema.pretty());
+                Pacioli.log("Found overloaded function %s :: %s", memberName, schema.pretty());
                 addInfo(valueInfo);
             }
         }
@@ -411,8 +411,7 @@ public class Progam extends AbstractPrintable {
         for (ValueInfo info : values.allInfos()) {
             if (info.getDefinition().isPresent() && !isExternal(info)) {
                 ValueDefinition definition = info.getDefinition().get();
-                ExpressionNode newBody = new LiftStatements(this, pacioliTable).expAccept(definition.body);
-                definition.body = newBody;
+                definition.body = definition.body.liftStatements(this, pacioliTable, ExpressionNode.class);
 
             }
         }
