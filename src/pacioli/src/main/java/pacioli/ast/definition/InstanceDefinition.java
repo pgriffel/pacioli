@@ -25,7 +25,7 @@ import java.util.List;
 
 import pacioli.ast.Visitor;
 import pacioli.misc.Location;
-import pacioli.types.ast.SchemaNode;
+import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.TypeApplicationNode;
 
 /**
@@ -38,19 +38,28 @@ import pacioli.types.ast.TypeApplicationNode;
 public class InstanceDefinition extends AbstractDefinition {
 
     /**
-     * Contains the type class type and the quantified variables with possible
-     * conditions
+     * The type of the type instance
      */
-    public final SchemaNode definedClass;
+    public final TypeApplicationNode type;
 
     /**
-     * The overloaded functions
+     * The quantified variables of the type instance. Possibly contain conditions.
+     */
+    public final List<ContextNode> contextNodes;
+
+    /**
+     * The overloaded function implementations
      */
     public final List<ValueEquation> members;
 
-    public InstanceDefinition(Location location, SchemaNode definedClass, List<ValueEquation> members) {
+    public InstanceDefinition(
+            Location location,
+            TypeApplicationNode type,
+            List<ContextNode> contextNodes,
+            List<ValueEquation> members) {
         super(location);
-        this.definedClass = definedClass;
+        this.type = type;
+        this.contextNodes = contextNodes;
         this.members = members;
     }
 
@@ -61,7 +70,7 @@ public class InstanceDefinition extends AbstractDefinition {
 
     @Override
     public String getName() {
-        return ((TypeApplicationNode) definedClass.type).getName();
+        return type.op.getName();
     }
 
 }

@@ -54,8 +54,9 @@ public class IdentifierNode extends AbstractExpressionNode {
         if (info.isPresent()) {
             return info.get();
         } else {
-            throw new RuntimeException("Cannot get info, identifier has not been resolved.",
-                    new PacioliException(getLocation(), "id=%s", getName()));
+            throw new RuntimeException(
+                    new PacioliException(getLocation(), "Cannot get info, identifier '%s' has not been resolved.",
+                            name));
         }
     }
 
@@ -67,7 +68,9 @@ public class IdentifierNode extends AbstractExpressionNode {
         if (info.isPresent()) {
             return info.get().isGlobal();
         } else {
-            throw new RuntimeException("Cannot get info, identifier has not been resolved.");
+            throw new RuntimeException(
+                    new PacioliException(getLocation(), "Cannot get info, identifier '%s' has not been resolved.",
+                            name));
         }
     }
 

@@ -21,13 +21,12 @@ import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.Toplevel;
-import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.ast.definition.ValueEquation;
 import pacioli.ast.expression.ExpressionNode;
-import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.visitors.LiftStatements;
 import pacioli.ast.visitors.TransformConversions;
@@ -65,7 +64,7 @@ public class Progam extends AbstractPrintable {
     public final PacioliFile file;
 
     // Added as first step of loading
-    ProgramNode program;
+    ProgramNode programNode;
 
     // Fill during loading
     public SymbolTable<TypeSymbolInfo> typess = new SymbolTable<TypeSymbolInfo>();
@@ -120,7 +119,7 @@ public class Progam extends AbstractPrintable {
 
         Pacioli.logIf(Pacioli.Options.showFileLoads, "Loading file %s", file.getFile());
 
-        program = Parser.parseFile(this.file.getFile());
+        programNode = Parser.parseFile(this.file.getFile());
 
         desugar();
         fillTables();
@@ -135,6 +134,7 @@ public class Progam extends AbstractPrintable {
         resolve(environment);
         transformConversions();
         inferTypes(environment);
+        rewriteOverloads(environment);
     }
 
     // -------------------------------------------------------------------------
@@ -143,7 +143,16 @@ public class Progam extends AbstractPrintable {
 
     public void desugar() throws PacioliException {
         Pacioli.trace("Desugaring %s", this.file.getModule());
-        program = (ProgramNode) program.desugar();
+        programNode = (ProgramNode) programNode.desugar();
+    }
+    // -------------------------------------------------------------------------
+    // Rewriting overloads
+    // -------------------------------------------------------------------------
+
+    public void rewriteOverloads(PacioliTable symbolTable) throws PacioliException {
+        Pacioli.trace("Rewriting overloads %s", this.file.getModule());
+        Pacioli.log("Rewriting overloads %s", this.file.getModule());
+        programNode.rewriteOverloads();
     }
 
     // -------------------------------------------------------------------------
@@ -158,7 +167,7 @@ public class Progam extends AbstractPrintable {
         Map<String, ValueInfo.Builder> valueTable = new HashMap<>();
 
         // First pass, don't add class instances and ...
-        for (Definition def : program.definitions) {
+        for (Definition def : programNode.definitions) {
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
                     file.getModule(), file.getFile());
             if (def instanceof ClassDefinition d) {
@@ -227,7 +236,7 @@ public class Progam extends AbstractPrintable {
         }
 
         // Second pass, add class instances and ...
-        for (Definition def : program.definitions) {
+        for (Definition def : programNode.definitions) {
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
                     file.getModule(), file.getFile());
             if (def instanceof InstanceDefinition inst) {
@@ -247,25 +256,20 @@ public class Progam extends AbstractPrintable {
             // Pacioli.log("\n%s", def.pretty());
             // }
             addInfo(info);
-            for (TypeAssertion member : info.definition.members) {
-                for (IdentifierNode id : member.ids) {
-
-                    // TODO: check empty body
-                    SchemaNode schema = new SchemaNode(info.definition.definedClass.getLocation(),
-                            info.definition.definedClass.contextNodes, member.body.type);
-                    ValueInfo valueInfo = ValueInfo.builder()
-                            .name(id.getName())
-                            .file(file)
-                            .isGlobal(true)
-                            .isMonomorphic(false)
-                            .location(member.getLocation())
-                            .isPublic(true)
-                            .typeClass(info)
-                            .declaredType(schema)
-                            .build();
-                    Pacioli.log("YO %s :: %s", id.getName(), schema.pretty());
-                    addInfo(valueInfo);
-                }
+            for (String memberName : info.definition.memberNames()) {
+                SchemaNode schema = info.definition.memberSchemaNode(memberName);
+                ValueInfo valueInfo = ValueInfo.builder()
+                        .name(memberName)
+                        .file(file)
+                        .isGlobal(true)
+                        .isMonomorphic(false)
+                        .location(info.definition.getLocation())
+                        .isPublic(true)
+                        .typeClass(info)
+                        .declaredType(schema)
+                        .build();
+                Pacioli.log("YO %s :: %s", memberName, schema.pretty());
+                addInfo(valueInfo);
             }
         }
 
@@ -341,6 +345,26 @@ public class Progam extends AbstractPrintable {
                 if (fromProgram && definition.isPresent()) {
                     Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving unit %s", nfo.globalName());
                     definition.get().resolve(file, env);
+                }
+            }
+        }
+        for (TypeSymbolInfo nfo : typess.allInfos()) {
+            boolean fromProgram = nfo.generalInfo().getModule().equals(file.getModule());
+            if (nfo instanceof ClassInfo classInfo) {
+
+                // Resolve the class definition itself
+                Optional<? extends Definition> definition = nfo.getDefinition();
+                assert (definition.isPresent());
+                if (fromProgram && definition.isPresent()) {
+                    Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving class %s", nfo.globalName());
+                    definition.get().resolve(file, env);
+                }
+
+                // Resolve all class instances
+                for (InstanceDefinition instance : classInfo.instances) {
+                    for (ValueEquation member : instance.members) {
+                        member.body.resolve(file, env);
+                    }
                 }
             }
         }

@@ -34,6 +34,7 @@ import pacioli.ast.visitors.MVMGenerator;
 import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.PrintVisitor;
 import pacioli.ast.visitors.ResolveVisitor;
+import pacioli.ast.visitors.RewriteOverloads;
 import pacioli.ast.visitors.UsesVisitor;
 import pacioli.misc.CompilationSettings;
 import pacioli.misc.Location;
@@ -67,6 +68,11 @@ public interface Node extends Printable {
      */
     default public Node desugar() {
         return new DesugarVisitor().nodeAccept(this);
+    }
+
+    default public void rewriteOverloads() {
+        // return new RewriteOverloads().accept(this);
+        accept(new RewriteOverloads());
     }
 
     /**

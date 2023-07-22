@@ -148,7 +148,10 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(ClassDefinition node) {
-        node.definedClass.accept(this);
+        node.type.accept(this);
+        for (ContextNode contextNode : node.contextNodes) {
+            contextNode.accept(this);
+        }
         for (TypeAssertion member : node.members) {
             member.accept(this);
         }
@@ -156,7 +159,10 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(InstanceDefinition node) {
-        node.definedClass.accept(this);
+        node.type.accept(this);
+        for (ContextNode contextNode : node.contextNodes) {
+            contextNode.accept(this);
+        }
         for (ValueEquation member : node.members) {
             member.accept(this);
         }
@@ -393,15 +399,20 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void accept(TypeAssertion node) {
-        for (IdentifierNode id : node.ids) {
-            id.accept(this);
+        node.id.accept(this);
+        node.type.accept(this);
+        for (ContextNode contextNode : node.contextNodes) {
+            contextNode.accept(this);
         }
-        node.body.accept(this);
     }
 
     @Override
-    public void accept(ContextNode contextNode) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'accept'");
+    public void accept(ContextNode node) {
+        for (TypeIdentifierNode id : node.ids) {
+            id.accept(this);
+        }
+        for (TypeApplicationNode condition : node.conditions) {
+            condition.accept(this);
+        }
     }
 }

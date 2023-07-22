@@ -30,7 +30,7 @@ import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java_cup.runtime.Symbol;
-import pacioli.PacioliException;
+import pacioli.misc.PacioliException;
 import pacioli.ast.*;
 import pacioli.ast.definition.*;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
@@ -50,7 +50,7 @@ parser code {:
        from CUP's syntax_error to CUP's report_fatal_error
        function. */
     String errorMessage;
-    pacioli.Location errorLocation;
+    pacioli.misc.Location errorLocation;
 
    /* Public interface */
     public Parser(Lexer lex, ComplexSymbolFactory sf, File file) {
@@ -88,9 +88,9 @@ parser code {:
     }
 
    /* Utility functions for the grammar rules */
-    private pacioli.Location makeLoc(Location from, Location to) {
-        pacioli.Location pacioliFrom = new pacioli.Location(file, from.getLine(), from.getColumn(), from.getOffset());
-        pacioli.Location pacioliTo = new pacioli.Location(file, to.getLine(), to.getColumn(), to.getOffset());
+    private pacioli.misc.Location makeLoc(Location from, Location to) {
+        pacioli.misc.Location pacioliFrom = new pacioli.misc.Location(file, from.getLine(), from.getColumn(), from.getOffset());
+        pacioli.misc.Location pacioliTo = new pacioli.misc.Location(file, to.getLine(), to.getColumn(), to.getOffset());
         return pacioliFrom.join(pacioliTo);
     }
 
@@ -102,7 +102,7 @@ parser code {:
         return names;
     }
 
-    private ValueDefinition functionDefinition(pacioli.Location loc, IdentifierNode id, List<IdentifierNode> args, ExpressionNode body) {
+    private ValueDefinition functionDefinition(pacioli.misc.Location loc, IdentifierNode id, List<IdentifierNode> args, ExpressionNode body) {
         ExpressionNode function = new LambdaNode(freshUnderscores(idNames(args)), body, loc);
         return new ValueDefinition(loc, id, function);
     }
@@ -130,7 +130,7 @@ parser code {:
     }
 
     private static ExpressionNode binop(String name, ExpressionNode left, ExpressionNode right) {
-        pacioli.Location loc = left.getLocation().join(right.getLocation());
+        pacioli.misc.Location loc = left.getLocation().join(right.getLocation());
         List<ExpressionNode> args = new ArrayList<ExpressionNode>();
         args.add(left);
         args.add(right);
@@ -138,7 +138,7 @@ parser code {:
     }
 
     private static ExpressionNode desugarExp(String op, ExpressionNode base, String power,
-        pacioli.Location loc, boolean swapSign) {
+        pacioli.misc.Location loc, boolean swapSign) {
       
           int pow = Integer.parseInt(power);
           
@@ -152,7 +152,7 @@ parser code {:
         return desugarExpHelper(op, bas, (pow < 0) ? -pow : pow, loc);
     }
 
-    private static ExpressionNode desugarExpHelper(String op, ExpressionNode base, int power, pacioli.Location loc) {
+    private static ExpressionNode desugarExpHelper(String op, ExpressionNode base, int power, pacioli.misc.Location loc) {
 
         if (power == 0) {
         List<ExpressionNode> args = new ArrayList<ExpressionNode>();
@@ -177,7 +177,7 @@ parser code {:
         }
     }
 
-    private static ExpressionNode singleop(String name, ExpressionNode exp, pacioli.Location loc) {
+    private static ExpressionNode singleop(String name, ExpressionNode exp, pacioli.misc.Location loc) {
         List<ExpressionNode> args = new ArrayList<ExpressionNode>();
         args.add(exp);
         return new ApplicationNode(new IdentifierNode(name, loc), args, loc);
@@ -219,7 +219,7 @@ parser code {:
         }
     }
 
-    private static ExpressionNode desugarComprehension(pacioli.Location loc, ExpressionNode e, List<Object> ps) throws PacioliException {
+    private static ExpressionNode desugarComprehension(pacioli.misc.Location loc, ExpressionNode e, List<Object> ps) throws PacioliException {
 
         String accuName = freshName("_c_accu");
         String tupName = freshName("_c_tup");
@@ -232,7 +232,7 @@ parser code {:
             Object part = ps.get(i);
             if (part instanceof GeneratorClause) {
                 GeneratorClause clause = (GeneratorClause) part;
-                pacioli.Location loc2 = clause.list.getLocation();
+                pacioli.misc.Location loc2 = clause.list.getLocation();
                 body = new ApplicationNode(
                                 new IdentifierNode("loop_list",loc2),
                                 Arrays.asList((ExpressionNode) new IdentifierNode(accuName, loc2),
@@ -240,7 +240,7 @@ parser code {:
                                 loc2);
             } else if (part instanceof TupleGeneratorClause) {
                 TupleGeneratorClause clause = (TupleGeneratorClause) part;
-                pacioli.Location loc2 = clause.list.getLocation();
+                pacioli.misc.Location loc2 = clause.list.getLocation();
 
                 List<String> args = new ArrayList<String>();
                 for (IdentifierNode var : clause.ids) {
@@ -288,9 +288,9 @@ parser code {:
         return new ApplicationNode(lambda, Arrays.asList(emptyList), loc);
     }
 
-    private static ExpressionNode desugarFoldComprehension(pacioli.Location loc, IdentifierNode op, ExpressionNode e, List<Object> ps) throws PacioliException {
-        pacioli.Location eLoc = e.getLocation();
-        pacioli.Location opLoc = op.getLocation();
+    private static ExpressionNode desugarFoldComprehension(pacioli.misc.Location loc, IdentifierNode op, ExpressionNode e, List<Object> ps) throws PacioliException {
+        pacioli.misc.Location eLoc = e.getLocation();
+        pacioli.misc.Location opLoc = op.getLocation();
         ExpressionNode body = desugarComprehension(loc, e, ps);
         if (op.getName().equals("sum")) {
             return new ApplicationNode((ExpressionNode) new IdentifierNode("list_sum", eLoc), Arrays.asList(body), opLoc);
@@ -338,7 +338,7 @@ non terminal String                  unsigned, number, integer;
 non terminal StringNode              path;
 non terminal List<UnitDecl>          unitvec, unitvec_parts;
 non terminal List<ValueDecl>         matrix_parts, matrix;
-non terminal TypeNode                type, matrix_type, dim_type;
+non terminal TypeNode                type, type_app, function_type, matrix_type, dim_type;
 non terminal SchemaNode              schema;
 non terminal List<ContextNode>               vardecls;
 non terminal List<TypeNode>          types, typelist;
@@ -354,10 +354,9 @@ non terminal ExpressionNode          statement, stm_if_tail;
 non terminal                         quali;
 non terminal List<TypeApplicationNode>       classcondition, conditions;
 non terminal TypeApplicationNode             condition;
-non terminal List<TypeAssertion>             classmembers;
+non terminal List<TypeAssertion>             classmembers, typeassertion;
 non terminal List<ValueEquation>             classmemberdefs;
 non terminal ValueEquation                   valueeq;
-non terminal TypeAssertion                   typeassertion;
 
 precedence right TO;
 precedence nonassoc  EQUIV, FOLLOWSFROM, IMPLIES;
@@ -386,7 +385,7 @@ program ::=
                                                                imports.add((ImportNode) node);
                                                            }
                                                        }
-                                                       RESULT = new ProgramNode(new pacioli.Location(file, 0, 0, 0), includes, imports, c); :};
+                                                       RESULT = new ProgramNode(new pacioli.misc.Location(file, 0, 0, 0), includes, imports, c); :};
 
 includes ::=  
    includes:is INCLUDE path:p SEMICOLON             {: is.add(new IncludeNode(makeLoc(pxleft, pxright), p)); RESULT = is; :}
@@ -407,7 +406,7 @@ command ::=
                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, idxright), id, names); :}
 | DEFINDEX:d id:id EQL LBRC names:ids RBRC:p       {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
 //| DEFINDEX:d id:id EQL LBRC names:ids RBRC:p       {: 
-//                                                        pacioli.Location loc = makeLoc(dxleft, pxright);
+//                                                        pacioli.misc.Location loc = makeLoc(dxleft, pxright);
 //                                                        
 //                                                        ExpressionNode list = new ApplicationNode(new IdentifierNode("empty_list", loc), new ArrayList<ExpressionNode>(), loc);
 //                                                        for (ExpressionNode item : ids) {
@@ -419,6 +418,8 @@ command ::=
 //                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, list); :}
  | DEFINDEX:d id:id EQL expr:e                      {: RESULT = new IndexSetDefinition(makeLoc(dxleft, exright), id, e); :}
 
+// Hier geen schema gebruiken!? Als het niet een schema is die in resolving een table vult, maar een handige truc om de type en de vars te krijgen
+// dan wegwerken.
  | DEFTYPE:d schema:s EQL type:t                    {: RESULT = new TypeDefinition(makeLoc(dxleft, txright), s.createContext(), s.type, t); :}
  | DEFALIAS:d id:id EQL unit:u                      {: RESULT = new AliasDefinition(makeLoc(dxleft, uxright), id, u); :}
  | DEFUNIT:d typeid:id EXCL typeid:n EQL unitvec:ps {: /* Todo: remove hashmap and use pair list directly in UnitVectorDefinition */
@@ -437,14 +438,14 @@ command ::=
                                                        ExpressionNode body = new MatrixLiteralNode(makeLoc(mxleft, mxright), s, m);
                                                        //ExpressionNode body = new MatrixLiteralNode(makeLoc(mxleft, mxright), s, stringPairs);
                                                        RESULT = new ValueDefinition(makeLoc(dxleft, mxright), id, body); :}
- | DEFCONV:d id:id DBLCLN type:t                    {: pacioli.Location loc = makeLoc(dxleft, txright);
+ | DEFCONV:d id:id DBLCLN type:t                    {: pacioli.misc.Location loc = makeLoc(dxleft, txright);
                                                        ExpressionNode conv = new ConversionNode(loc, t);
                                                        RESULT = new ValueDefinition(loc, id, conv); :}
- | DOC:d id:id STRING:s                            {: pacioli.Location loc = makeLoc(dxleft, sxright);
+ | DOC:d id:id STRING:s                            {: pacioli.misc.Location loc = makeLoc(dxleft, sxright);
                                                        RESULT = new Documentation(loc, id, new StringNode(s, makeLoc(sxleft, sxright))); :}
  | expr:e                                           {: RESULT = new Toplevel(e.getLocation(), e); :}
- | DEFCLASS typeid:id typelist:ids vardecls:v classmembers:e    {: RESULT = new ClassDefinition(id.getLocation(), new SchemaNode(id.getLocation(), v, new TypeApplicationNode(id.getLocation(), id, ids)), e); :}
- | DEFINSTANCE typeid:id typelist:ids vardecls:v classmemberdefs:e  {: RESULT = new InstanceDefinition(id.getLocation(), new SchemaNode(id.getLocation(), v, new TypeApplicationNode(id.getLocation(), id, ids)), e); :}
+ | DEFCLASS typeid:id typelist:ids vardecls:v classmembers:e        {: RESULT = new ClassDefinition(id.getLocation(), new TypeApplicationNode(id.getLocation(), id, ids), v, e); :}
+ | DEFINSTANCE typeid:id typelist:ids vardecls:v classmemberdefs:e  {: RESULT = new InstanceDefinition(id.getLocation(), new TypeApplicationNode(id.getLocation(), id, ids), v, e); :}
  ;
 
 quali ::=  
@@ -454,8 +455,8 @@ quali ::=
  ;
 
 classmembers ::=
-    classmembers:ms COMMA typeassertion:tas          {: ms.add(tas); RESULT = ms; :}
-    | typeassertion:tas                              {: RESULT = new ArrayList<TypeAssertion>(); RESULT.add(tas); :}
+    classmembers:ms COMMA typeassertion:tas          {: ms.addAll(tas); RESULT = ms; :}
+    | typeassertion:tas                              {: RESULT = tas; :}
     ;
 
 classmemberdefs ::=
@@ -464,7 +465,10 @@ classmemberdefs ::=
     ;
 
 typeassertion ::=
-  ids:ids DBLCLN schema:s                          {: RESULT = new TypeAssertion(makeLoc(idsxleft, sxright), ids, s); :}
+  ids:ids DBLCLN vardecls:c type:t                 {: RESULT = new ArrayList<TypeAssertion>(); 
+                                                      for (IdentifierNode id: ids) {
+                                                          RESULT.add(new TypeAssertion(makeLoc(idsxleft, txright), id, c, t));
+                                                      } :}
   ;
 
 valueeq ::= 
@@ -631,14 +635,14 @@ expr_no_id ::=
  | expr:e1 NEQ expr:e2                              {: RESULT = binop("not_equal", e1, e2); :}
  | expr:e1 LE expr:e2                               {: RESULT = binop("less", e1, e2); :}
  | expr:e1 GT expr:e2                               {: RESULT = binop("greater", e1, e2); :}
- | expr:e1 FOLLOWSFROM expr:e2                      {: pacioli.Location loc = makeLoc(e1xleft, e2xright);
+ | expr:e1 FOLLOWSFROM expr:e2                      {: pacioli.misc.Location loc = makeLoc(e1xleft, e2xright);
                                                        RESULT = new BranchNode(e2, e1, new ConstNode("true", loc), loc); :}
- | expr:e1 IMPLIES expr:e2                          {: pacioli.Location loc = makeLoc(e1xleft, e2xright);
+ | expr:e1 IMPLIES expr:e2                          {: pacioli.misc.Location loc = makeLoc(e1xleft, e2xright);
                                                        RESULT = new BranchNode(e1, e2, new ConstNode("true", loc), loc); :}
  | expr:e1 EQUIV expr:e2                            {: RESULT = binop("equiv", e1, e2); :}
- | expr:e1 AND expr:e2                              {: pacioli.Location loc = makeLoc(e1xleft, e2xright);
+ | expr:e1 AND expr:e2                              {: pacioli.misc.Location loc = makeLoc(e1xleft, e2xright);
                                                        RESULT = new BranchNode(e1, e2, new ConstNode("false", loc), loc); :}
- | expr:e1 OR expr:e2                               {: pacioli.Location loc = makeLoc(e1xleft, e2xright);
+ | expr:e1 OR expr:e2                               {: pacioli.misc.Location loc = makeLoc(e1xleft, e2xright);
                                                        RESULT = new BranchNode(e1, new ConstNode("true", loc), e2, loc); :}
  | expr:fun exprlist:args                             {: RESULT = new ApplicationNode(fun, args, makeLoc(funxleft, argsxright)); :}
  | idlist:ids TO expr:b                             {: RESULT = new LambdaNode(freshUnderscores(idNames(ids)), b, makeLoc(idsxleft, bxright)); :}
@@ -683,12 +687,12 @@ lettail ::=
                                                        BindingNode binding = new LetBindingNode(makeLoc(idxleft, exright), args.get(0), e);
                                                        RESULT = new LetNode(Arrays.asList(binding), r, makeLoc(idxleft, rxright)); :}
  | idlist:ids EQL expr:e letrest:r                  {: List<String> args = freshUnderscores(idNames(ids));
-                                                       pacioli.Location loc = makeLoc(idsxleft, rxright);
+                                                       pacioli.misc.Location loc = makeLoc(idsxleft, rxright);
                                                        ExpressionNode fun = new LambdaNode(args, r, r.getLocation());
                                                        RESULT = new ApplicationNode(new IdentifierNode("apply", e.getLocation()), Arrays.asList(fun, e), loc); :}
  | id:id idlist:ids EQL expr:e letrest:r            {: //List<String> rArgs = freshUnderscores(Arrays.asList(id.getName()));
                                                        List<String> eArgs = freshUnderscores(idNames(ids)); // remove fresh underscors
-                                                       pacioli.Location loc = makeLoc(idxleft, rxright);
+                                                       pacioli.misc.Location loc = makeLoc(idxleft, rxright);
                                                        ExpressionNode eFun = new LambdaNode(eArgs, e, e.getLocation());
                                                        BindingNode binding = new LetBindingNode(makeLoc(idsxleft, exright), id.getName(), eFun);
                                                        RESULT = new LetNode(Arrays.asList(binding), r, loc); :}
@@ -716,21 +720,21 @@ statement ::=
     id:id ASSIGN expr:e SEMICOLON:s                 {: RESULT = new AssignmentNode(makeLoc(idxleft, sxright), id, e); :}
   | idlist:ids ASSIGN expr:e SEMICOLON:s            {: RESULT = new TupleAssignmentNode(makeLoc(idsxleft, sxright), ids, e); :}
   | id:id exprlist:es SEMICOLON:s                   {: RESULT = new ApplicationNode(id, es, makeLoc(idxleft, sxright)); :}
-  | RETURN:r expr:e SEMICOLON:s                     {: pacioli.Location loc = makeLoc(rxleft, sxright);
+  | RETURN:r expr:e SEMICOLON:s                     {: pacioli.misc.Location loc = makeLoc(rxleft, sxright);
                                                        RESULT = new ReturnNode(loc, e); :}
-  | RETURN:r SEMICOLON:s                            {: pacioli.Location loc = makeLoc(rxleft, sxright);
+  | RETURN:r SEMICOLON:s                            {: pacioli.misc.Location loc = makeLoc(rxleft, sxright);
                                                        RESULT = new ReturnNode(loc, new IdentifierNode("nothing", loc)); :}
   | WHILE:w expr:e DO sequence:s END:n              {: RESULT = new WhileNode(makeLoc(wxleft, nxright), e, s); :}
 
-  | IF:i expr:e THEN sequence:s stm_if_tail:t       {: pacioli.Location loc = makeLoc(ixleft, txright);
+  | IF:i expr:e THEN sequence:s stm_if_tail:t       {: pacioli.misc.Location loc = makeLoc(ixleft, txright);
                                                        RESULT = new IfStatementNode(loc, e, s, t); :}
  ;
 
 stm_if_tail ::= 
-   ELSEIF:l expr:e THEN sequence:s stm_if_tail:t   {: pacioli.Location loc = makeLoc(lxleft, txright);
+   ELSEIF:l expr:e THEN sequence:s stm_if_tail:t   {: pacioli.misc.Location loc = makeLoc(lxleft, txright);
                                                        RESULT = new IfStatementNode(loc, e, s, t); :}
  | ELSE:l sequence:s END:e                         {: RESULT = s; :}
- | END:e                                            {: pacioli.Location loc = makeLoc(exleft, exright);
+ | END:e                                            {: pacioli.misc.Location loc = makeLoc(exleft, exright);
                                                        RESULT = new ApplicationNode(new IdentifierNode("_skip", loc), new ArrayList<ExpressionNode>(), loc); :}
  ;
 
@@ -739,9 +743,9 @@ stm_if_tail ::=
 //------------------------------------------------------------------------------
 
 listlit ::= 
-   LBRACK:l RBRACK:r                                {: pacioli.Location loc = makeLoc(lxleft, rxright);
+   LBRACK:l RBRACK:r                                {: pacioli.misc.Location loc = makeLoc(lxleft, rxright);
                                                        RESULT = new ApplicationNode(new IdentifierNode("empty_list", loc), new ArrayList<ExpressionNode>(), loc); :}
- | LBRACK:l exprs:es RBRACK:r                       {: pacioli.Location loc = makeLoc(lxleft, rxright);
+ | LBRACK:l exprs:es RBRACK:r                       {: pacioli.misc.Location loc = makeLoc(lxleft, rxright);
                                                        ExpressionNode list = new ApplicationNode(new IdentifierNode("empty_list", loc), new ArrayList<ExpressionNode>(), loc);
                                                        for (ExpressionNode item : es) {
                                                            List<ExpressionNode> tup = new ArrayList<ExpressionNode>();
@@ -753,9 +757,9 @@ listlit ::=
  ;
 
 comprehension ::= 
-   LBRACK:l expr:e PIPE parts:ps RBRACK:r           {: pacioli.Location loc = makeLoc(lxleft, rxright);
+   LBRACK:l expr:e PIPE parts:ps RBRACK:r           {: pacioli.misc.Location loc = makeLoc(lxleft, rxright);
                                                        RESULT = desugarComprehension(loc, e, ps); :}
- | id:id LBRACK expr:e PIPE parts:ps RBRACK:r       {: pacioli.Location loc = makeLoc(idxleft, rxright);
+ | id:id LBRACK expr:e PIPE parts:ps RBRACK:r       {: pacioli.misc.Location loc = makeLoc(idxleft, rxright);
                                                        RESULT = desugarFoldComprehension(loc, id, e, ps); :}
  ;
 
@@ -846,12 +850,20 @@ typelist ::=
   ;
 
 type ::=
+   function_type:fun                                {: RESULT = fun; :}
+ | type_app:app                                     {: RESULT = app; :}
+ | matrix_type:x                                    {: RESULT = x; :}
+ ;
+
+
+type_app ::=
+   typeid:id typelist:ts                            {: RESULT = new TypeApplicationNode(makeLoc(idxleft, tsxright), id, ts); :};
+
+function_type ::=
    typelist:as TO type:b                            {: TypeNode domain = new TypeApplicationNode(makeLoc(asxleft, bxright), 
                                                                             new TypeIdentifierNode(makeLoc(asxleft, asxright), "Tuple"), as);
                                                        RESULT = new FunctionTypeNode(makeLoc(asxleft, bxright), domain, b); :}
  | typeid:a TO type:b                               {: RESULT = new FunctionTypeNode(makeLoc(axleft, bxright), a, b); :}
- | typeid:id typelist:ts                            {: RESULT = new TypeApplicationNode(makeLoc(idxleft, tsxright), id, ts); :}
- | matrix_type:x                                    {: RESULT = x; :}
  ;
 
 matrix_type ::=

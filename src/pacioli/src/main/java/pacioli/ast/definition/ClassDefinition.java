@@ -21,35 +21,81 @@
 
 package pacioli.ast.definition;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import pacioli.ast.Visitor;
 import pacioli.misc.Location;
+import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
 
 public class ClassDefinition extends AbstractDefinition {
 
     /**
-     * Contains the type class type and the quantified variables with possible
-     * conditions
+     * The type of the type class
      */
-    public final SchemaNode definedClass;
+    public final TypeApplicationNode type;
 
     /**
-     * The overloaded functions
+     * The quantified variables of the typeclass. Possibly contain conditions.
+     */
+    public final List<ContextNode> contextNodes;
+
+    /**
+     * The overloaded function types
      */
     public final List<TypeAssertion> members;
 
-    public ClassDefinition(Location location, SchemaNode definedClass, List<TypeAssertion> members) {
+    /**
+     * SchemaNode per member. These SchemaNodes are set during resolving.
+     */
+    private Map<String, SchemaNode> memberSchemas;
+
+    public ClassDefinition(
+            Location location,
+            TypeApplicationNode type,
+            List<ContextNode> contextNodes,
+            List<TypeAssertion> members) {
         super(location);
-        this.definedClass = definedClass;
+        this.type = type;
+        this.contextNodes = contextNodes;
         this.members = members;
+        this.memberSchemas = new HashMap<>();
+
+        // Create a schema for each overloaded function
+        for (TypeAssertion assertion : members) {
+            List<ContextNode> combinedContextNodes = new ArrayList<>();
+            combinedContextNodes.addAll(this.contextNodes);
+            combinedContextNodes.addAll(assertion.contextNodes);
+            this.memberSchemas.put(
+                    assertion.id.getName(),
+                    new SchemaNode(assertion.getLocation(), combinedContextNodes, assertion.type));
+        }
     }
 
     @Override
     public String getName() {
-        return ((TypeApplicationNode) definedClass.type).getName();
+        return type.op.getName();
+    }
+
+    public List<String> memberNames() {
+        List<String> names = new ArrayList<>();
+        for (TypeAssertion assertion : members) {
+            names.add(assertion.id.getName());
+        }
+        return names;
+    }
+
+    public SchemaNode memberSchemaNode(String name) {
+        SchemaNode node = memberSchemas.get(name);
+        if (node == null) {
+            throw new RuntimeException(String.format("Class member %s not found", name));
+        } else {
+            return node;
+        }
     }
 
     @Override

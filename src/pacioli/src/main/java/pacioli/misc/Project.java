@@ -289,7 +289,7 @@ public class Project {
         ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>();
         allLibs.add(PacioliFile.requireLibrary("base", libs));
         allLibs.add(PacioliFile.requireLibrary("standard", libs));
-        for (PacioliFile pacioliFile : findImports(program.program, libs)) {
+        for (PacioliFile pacioliFile : findImports(program.programNode, libs)) {
             allLibs.add(pacioliFile);
         }
 
@@ -309,7 +309,7 @@ public class Project {
         List<String> modules = new ArrayList<String>();
 
         // Locate all included files and collect the module names
-        for (PacioliFile include : findIncludes(program.file, program.program)) {
+        for (PacioliFile include : findIncludes(program.file, program.programNode)) {
             modules.add(include.getModule());
         }
 

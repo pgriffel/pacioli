@@ -188,20 +188,31 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(ClassDefinition node) {
+        List<ContextNode> contextNodes = new ArrayList<>();
+        for (ContextNode contextNode : node.contextNodes) {
+            contextNodes.add((ContextNode) nodeAccept(contextNode));
+        }
         List<TypeAssertion> members = new ArrayList<>();
         for (TypeAssertion member : node.members) {
             members.add((TypeAssertion) nodeAccept(member));
         }
-        returnNode(new ClassDefinition(node.getLocation(), (SchemaNode) nodeAccept(node.definedClass), members));
+        returnNode(new ClassDefinition(node.getLocation(), (TypeApplicationNode) nodeAccept(node.type), contextNodes,
+                members));
     }
 
     @Override
     public void visit(InstanceDefinition node) {
+        List<ContextNode> contextNodes = new ArrayList<>();
+        for (ContextNode contextNode : node.contextNodes) {
+            contextNodes.add((ContextNode) nodeAccept(contextNode));
+        }
         List<ValueEquation> members = new ArrayList<>();
         for (ValueEquation member : node.members) {
             members.add((ValueEquation) nodeAccept(member));
         }
-        returnNode(new InstanceDefinition(node.getLocation(), (SchemaNode) nodeAccept(node.definedClass), members));
+        returnNode(
+                new InstanceDefinition(node.getLocation(), (TypeApplicationNode) nodeAccept(node.type), contextNodes,
+                        members));
     }
 
     @Override
@@ -456,19 +467,38 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void accept(TypeAssertion node) {
-        List<IdentifierNode> ids = new ArrayList<>();
-        for (IdentifierNode id : node.ids) {
-            Node visited = nodeAccept(id);
-            assert (visited instanceof IdentifierNode);
-            ids.add((IdentifierNode) id);
+
+        // Visit the id
+        IdentifierNode id = (IdentifierNode) nodeAccept(node.id);
+
+        // Visit the type variables
+        List<ContextNode> contextNodes = new ArrayList<>();
+        for (ContextNode contextNode : node.contextNodes) {
+            contextNodes.add((ContextNode) nodeAccept(contextNode));
         }
-        returnNode(new TypeAssertion(node.getLocation(), ids, (SchemaNode) nodeAccept(node.body)));
+
+        // Visit the type
+        TypeNode type = (TypeNode) nodeAccept(node.type);
+
+        // Create the transformed node
+        returnNode(new TypeAssertion(node.getLocation(), id, contextNodes, type));
     }
 
     @Override
-    public void accept(ContextNode contextNode) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'accept'");
+    public void accept(ContextNode node) {
+        List<TypeIdentifierNode> ids = new ArrayList<>();
+        for (TypeIdentifierNode id : node.ids) {
+            Node visited = nodeAccept(id);
+            assert (visited instanceof TypeIdentifierNode);
+            ids.add((TypeIdentifierNode) visited);
+        }
+        List<TypeApplicationNode> conditions = new ArrayList<>();
+        for (TypeApplicationNode condition : node.conditions) {
+            Node visited = nodeAccept(condition);
+            assert (visited instanceof TypeApplicationNode);
+            conditions.add((TypeApplicationNode) visited);
+        }
+        returnNode(new ContextNode(node.getLocation(), node.kind, ids, conditions));
     }
 
 }

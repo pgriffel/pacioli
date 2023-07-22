@@ -700,13 +700,11 @@ public class PrintVisitor implements Visitor {
 
         // Print the class definition itself
         out.print("defclass ");
-        node.definedClass.type.accept(this);
-        out.print(" ");
-        for (ContextNode contextNode : node.definedClass.contextNodes) {
+        node.type.accept(this);
+        for (ContextNode contextNode : node.contextNodes) {
             contextNode.accept(this);
             out.write(": ");
         }
-
         out.newlineUp();
 
         // Print the members (indented)
@@ -737,9 +735,9 @@ public class PrintVisitor implements Visitor {
 
         // Print the instance definition itself
         out.print("definstance ");
-        node.definedClass.type.accept(this);
+        node.type.accept(this);
         out.print(" ");
-        for (ContextNode contextNode : node.definedClass.contextNodes) {
+        for (ContextNode contextNode : node.contextNodes) {
             contextNode.accept(this);
             out.write(": ");
         }
@@ -765,21 +763,17 @@ public class PrintVisitor implements Visitor {
     @Override
     public void accept(TypeAssertion node) {
 
-        // Print the identifier(s)
-        Boolean first = true;
-        for (IdentifierNode id : node.ids) {
-            if (first) {
-                first = false;
-            } else {
-                out.write(",");
-            }
-            id.accept(this);
-        }
+        // Print the identifier
+        node.id.accept(this);
 
         out.write(" :: ");
 
         // Print the type
-        node.body.accept(this);
+        for (ContextNode contextNode : node.contextNodes) {
+            contextNode.accept(this);
+            out.write(": ");
+        }
+        node.type.accept(this);
     }
 
     @Override

@@ -27,17 +27,24 @@ import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.misc.Location;
 import pacioli.types.ast.AbstractTypeNode;
-import pacioli.types.ast.SchemaNode;
+import pacioli.types.ast.ContextNode;
+import pacioli.types.ast.TypeNode;
 
 public class TypeAssertion extends AbstractTypeNode {
 
-    public final List<IdentifierNode> ids;
-    public final SchemaNode body;
+    public final IdentifierNode id;
+    public final List<ContextNode> contextNodes;
+    public final TypeNode type;
 
-    public TypeAssertion(Location location, List<IdentifierNode> ids, SchemaNode body) {
+    public TypeAssertion(
+            Location location,
+            IdentifierNode id,
+            List<ContextNode> contextNodes,
+            TypeNode type) {
         super(location);
-        this.ids = ids;
-        this.body = body;
+        this.id = id;
+        this.contextNodes = contextNodes;
+        this.type = type;
     }
 
     @Override

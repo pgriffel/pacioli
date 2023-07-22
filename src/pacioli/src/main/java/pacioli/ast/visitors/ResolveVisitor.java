@@ -11,8 +11,10 @@ import mvm.values.matrix.IndexSet;
 import mvm.values.matrix.MatrixDimension;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.definition.AliasDefinition;
+import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
@@ -161,6 +163,23 @@ public class ResolveVisitor extends IdentityVisitor {
         node.body.accept(this);
     }
 
+    @Override
+    public void visit(ClassDefinition node) {
+        for (String memberName : node.memberNames()) {
+            SchemaNode schemaNode = node.memberSchemaNode(memberName);
+            pushTypeContext(schemaNode.createContext(), node.getLocation());
+            schemaNode.table = typeTables.peek();
+            schemaNode.type.accept(this);
+            typeTables.pop();
+        }
+    }
+
+    @Override
+    public void visit(InstanceDefinition node) {
+        throw new UnsupportedOperationException(
+                "Resolving class instances is part of type class resolving. This should not be called.");
+    }
+
     public void visit(LambdaNode node) {
 
         // Create the node's symbol table
@@ -177,9 +196,6 @@ public class ResolveVisitor extends IdentityVisitor {
                     .isMonomorphic(true)
                     .location(node.getLocation())
                     .isPublic(false);
-            // ValueInfo info = new ValueInfo(arg, file, false, true, node.getLocation(),
-            // false, Optional.empty(),
-            // Optional.empty(), Optional.empty());
             node.table.put(arg, builder.build());
         }
 
@@ -427,7 +443,6 @@ public class ResolveVisitor extends IdentityVisitor {
         }
 
         // Create an info record for the result and put it in the symbol table
-
         ValueInfo info = ValueInfo.builder()
                 .name(resultName)
                 .file(file)
@@ -436,9 +451,6 @@ public class ResolveVisitor extends IdentityVisitor {
                 .location(node.getLocation())
                 .isPublic(false)
                 .build();
-        // ValueInfo info = new ValueInfo(resultName, file, false, false,
-        // node.getLocation(), false, Optional.empty(),
-        // Optional.empty(), Optional.empty());
         node.table.put(resultName, info);
         node.resultInfo = info;
 
@@ -566,38 +578,7 @@ public class ResolveVisitor extends IdentityVisitor {
             visitorThrow(node.getLocation(), "Type identifier %s unknown", name);
         }
 
-        // See what kind of info it is
-        // Boolean isTypeVar = typeInfo instanceof TypeVarInfo;
-        // Boolean isParametric = typeInfo instanceof ParametricInfo;
-        // Boolean isUnit = typeInfo instanceof UnitInfo;
-        // Boolean isIndexSet = typeInfo instanceof IndexSetInfo;
-
         node.info = typeInfo;
-
-        // // Check for ambiguities and store the info in the node
-        // if (isTypeVar) {
-        // if (isUnit || isIndexSet) {
-        // visitorThrow(node.getLocation(), "Type variable '" + name + "' ambiguous");
-        // }
-        // node.info = typeInfo;
-        // } else if (isParametric) {
-        // if (isTypeVar || isIndexSet) {
-        // visitorThrow(node.getLocation(), "Type variable '" + name + "' ambiguous");
-        // }
-        // node.info = typeInfo;
-        // } else if (isUnit) {
-        // if (isTypeVar || isIndexSet) {
-        // visitorThrow(node.getLocation(), "Type variable '" + name + "' ambiguous");
-        // }
-        // node.info = typeInfo;
-        // } else if (isIndexSet) {
-        // if (isTypeVar || isUnit) {
-        // visitorThrow(node.getLocation(), "Type variable '" + name + "' ambiguous");
-        // }
-        // node.info = typeInfo;
-        // } else {
-        // visitorThrow(node.getLocation(), "huh");
-        // }
     }
 
     /*
@@ -659,9 +640,6 @@ public class ResolveVisitor extends IdentityVisitor {
                     .location(node.getLocation())
                     .isPublic(false)
                     .build();
-            // ValueInfo info = new ValueInfo(arg, file, false, false, node.getLocation(),
-            // false, Optional.empty(),
-            // Optional.empty(), Optional.empty());
 
             // todo: set the definition!!!!!!!
             // Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");
