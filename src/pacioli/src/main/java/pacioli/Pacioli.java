@@ -65,6 +65,7 @@ public class Pacioli {
         public static boolean logTypeInference = false;
         public static boolean logTypeInferenceDetails = false;
         public static boolean showTypeReductions = false;
+        public static boolean showClassRewriting = true;
         public static boolean dumpOnMVMError = true;
         public static boolean logGeneratingCode = false;
         public static boolean showModifiedFiles = false;
@@ -491,17 +492,9 @@ public class Pacioli {
             try {
                 Project project = Project.load(file, libs);
                 project.printInfo();
-
-                Progam program = Progam.load(file);
-                // todo: load rest
-
-                program.printSymbolTable(program.values, "Values");
-                // program.printSymbolTable(program.types, "Values");
-                // logln("%s", program.pretty());
-                // program.printTypes();
-
+                project.printSymbolTables();
             } catch (IOException e) {
-                println("\nError: cannot symbol tables in file '%s':\n\n%s", fileName, e);
+                println("\nError while printing info and symbol tables for file '%s':\n\n%s", fileName, e);
             }
         }
 
@@ -538,7 +531,7 @@ public class Pacioli {
         println("   run           runs a pacioli file");
         println("   compile       compiles a pacioli file");
         println("   interpret     interprets an mvm file compiled earlier from a pacioli file");
-        println("   types         displays infered types for a pacioli file or library");
+        println("   types         displays inferred types for a pacioli file or library");
         println("   info          displays information about this compiler and installation");
         println("   help          displays this help information");
         println("\n");

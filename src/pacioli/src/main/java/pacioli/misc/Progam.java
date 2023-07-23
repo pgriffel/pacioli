@@ -21,19 +21,21 @@ import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.definition.ValueEquation;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StringNode;
-import pacioli.ast.visitors.LiftStatements;
 import pacioli.ast.visitors.TransformConversions;
 import pacioli.parser.Parser;
 import pacioli.symboltable.AliasInfo;
 import pacioli.symboltable.ClassInfo;
 import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.InstanceInfo;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
@@ -131,6 +133,7 @@ public class Progam extends AbstractPrintable {
         // definitions, but produces non resolved definitions.
         resolve(environment);
         liftStatements(environment);
+        rewriteClasses(environment);
         resolve(environment);
         transformConversions();
         inferTypes(environment);
@@ -151,7 +154,6 @@ public class Progam extends AbstractPrintable {
 
     public void rewriteOverloads(PacioliTable symbolTable) throws PacioliException {
         Pacioli.trace("Rewriting overloads for file %s", this.file.getModule());
-        Pacioli.log("Rewriting overloads for file %s", this.file.getModule());
         programNode.rewriteOverloads();
     }
 
@@ -199,39 +201,31 @@ public class Progam extends AbstractPrintable {
                 info.setItems(vecDef.items);
                 addInfo(info);
             } else if (def instanceof Declaration decl) {
-                ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable,
-                        def.getName());
+                ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable, def.getName());
                 if (builder.declaredType != null) {
                     throw new PacioliException(def.getLocation(), "Duplicate type declaration for %s",
                             def.getName());
                 }
                 builder
                         .name(def.getName())
+                        .location(def.getLocation())
+                        .isMonomorphic(false)
                         .file(file)
                         .isGlobal(true)
                         .declaredType(decl.typeNode)
                         .isPublic(decl.isPublic);
             } else if (def instanceof Documentation doc) {
-                ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable,
-                        def.getName());
+                ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable, def.getName());
                 if (builder.docu != null) {
                     throw new PacioliException(def.getLocation(), "Duplicate docu for %s", def.getName());
                 }
                 builder
                         .name(def.getName())
+                        .location(def.getLocation())
+                        .isMonomorphic(false)
                         .file(file)
                         .isGlobal(true)
                         .docu(((StringNode) doc.body).valueString());
-            } else if (def instanceof ValueDefinition val) {
-                ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable,
-                        def.getName());
-                builder
-                        .definition(val)
-                        .name(def.getName())
-                        .file(file)
-                        .isGlobal(true)
-                        .isMonomorphic(false)
-                        .location(def.getLocation());
             }
         }
 
@@ -244,7 +238,26 @@ public class Progam extends AbstractPrintable {
                 if (builder == null) {
                     throw new PacioliException(def.getLocation(), "No class found for instance %s", def.getName());
                 }
-                builder.instance(inst);
+                builder.instance(new InstanceInfo(inst, file));
+            } else if (def instanceof ValueDefinition val) {
+
+                ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable, def.getName());
+
+                // Don't overwrite the public/private flag from the declaration above.
+                if (builder.isPublic == null) {
+                    builder.isPublic(false);
+                }
+
+                // This overwrites any properties set by the declaration or documentation above.
+                // This is desirable for the location. We prefer the definition location,
+                // otherwise we get the declaration or documentation location.
+                builder
+                        .definition(val)
+                        .name(def.getName())
+                        .file(file)
+                        .isGlobal(true)
+                        .isMonomorphic(false)
+                        .location(def.getLocation());
             }
         }
 
@@ -268,7 +281,8 @@ public class Progam extends AbstractPrintable {
                         .typeClass(info)
                         .declaredType(schema)
                         .build();
-                Pacioli.log("Found overloaded function %s :: %s", memberName, schema.pretty());
+                Pacioli.logIf(Pacioli.Options.showClassRewriting,
+                        "Found overloaded function %s :: %s", memberName, schema.pretty());
                 addInfo(valueInfo);
             }
         }
@@ -361,8 +375,8 @@ public class Progam extends AbstractPrintable {
                 }
 
                 // Resolve all class instances
-                for (InstanceDefinition instance : classInfo.instances) {
-                    for (ValueEquation member : instance.members) {
+                for (InstanceInfo instanceInfo : classInfo.instances) {
+                    for (ValueEquation member : instanceInfo.definition.members) {
                         member.body.resolve(file, env);
                     }
                 }
@@ -398,6 +412,70 @@ public class Progam extends AbstractPrintable {
         }
         values.parent = null;
         typess.parent = null;
+    }
+
+    // -------------------------------------------------------------------------
+    // Rewriting classes
+    // -------------------------------------------------------------------------
+
+    public void rewriteClasses(PacioliTable pacioliTable) throws Exception {
+
+        Pacioli.trace("Rewriting classes in file %s", this.file.getModule());
+
+        for (TypeSymbolInfo nfo : typess.allInfos()) {
+            boolean fromProgram = nfo.generalInfo().getModule().equals(file.getModule());
+            if (nfo instanceof ClassInfo classInfo) {
+
+                // Rewrite the class definition itself
+                Optional<? extends Definition> definition = nfo.getDefinition();
+                assert (definition.isPresent());
+                if (fromProgram && definition.isPresent()) {
+                    Pacioli.logIf(Pacioli.Options.showClassRewriting,
+                            "Rewriting class %s in file %s", nfo.globalName(), this.file.getModule());
+
+                    // Create class type definition
+
+                    // Create class constructor type declaration
+
+                    // Create a type declaration for each class member
+                    for (TypeAssertion member : classInfo.definition.members) {
+                        Pacioli.logIf(Pacioli.Options.showClassRewriting,
+                                "declare %s :: %s", member.id.getName(), member.type.pretty());
+                    }
+                }
+
+                // Rewrite all class instances
+                for (InstanceInfo instanceInfo : classInfo.instances) {
+                    Pacioli.logIf(Pacioli.Options.showClassRewriting,
+                            "Rewriting instance %s in file %s", instanceInfo.toString(), this.file.getModule());
+
+                    // Create a declaration and definition. Both are a tuple with an element for
+                    // each overloaded function instance
+                    for (ValueEquation member : instanceInfo.definition.members) {
+                        String name = String.format("%s_%s", instanceInfo.uniquePrefix, member.id.getName());
+                        Pacioli.logIf(Pacioli.Options.showClassRewriting,
+                                "define %s = %s", member.id.getName(), member.body.pretty());
+                        Pacioli.logIf(Pacioli.Options.showClassRewriting,
+                                "define %s = %s", member.id.getName(), member.body.toString());
+                        IdentifierNode fresh = new IdentifierNode(name, member.id.getLocation());
+
+                        // Define a helper function for the lifted body
+                        ValueDefinition vd = new ValueDefinition(member.getLocation(), fresh, member.body, false);
+                        ValueInfo info = ValueInfo.builder()
+                                .name(name)
+                                .file(classInfo.file)
+                                .isGlobal(true)
+                                .isMonomorphic(false)
+                                .location(classInfo.getLocation())
+                                .isPublic(false)
+                                .definition(vd)
+                                .build();
+
+                        addInfo(info);
+                    }
+                }
+            }
+        }
     }
 
     // -------------------------------------------------------------------------

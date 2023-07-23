@@ -200,6 +200,11 @@ public class Project {
         return dstPath;
     }
 
+    public void printSymbolTables() throws Exception {
+        Bundle bundle = loadBundle();
+        bundle.printSymbolTables();
+    }
+
     public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDoc) throws Exception {
         Bundle bundle = loadBundle();
         bundle.printTypes(rewriteTypes, includePrivate, showDoc);

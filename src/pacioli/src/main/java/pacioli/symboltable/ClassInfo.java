@@ -12,12 +12,12 @@ public final class ClassInfo extends AbstractSymbolInfo implements TypeSymbolInf
 
     public final ClassDefinition definition;
     public final PacioliFile file;
-    public final List<InstanceDefinition> instances;
+    public final List<InstanceInfo> instances;
 
     public ClassInfo(
             ClassDefinition definition,
             PacioliFile file,
-            List<InstanceDefinition> instances) {
+            List<InstanceInfo> instances) {
         super(new GeneralInfo(definition.getName(), file, true, definition.getLocation()));
         this.definition = definition;
         this.file = file;
@@ -50,7 +50,7 @@ public final class ClassInfo extends AbstractSymbolInfo implements TypeSymbolInf
     public static class Builder {
         private ClassDefinition definition;
         private PacioliFile file;
-        public List<InstanceDefinition> instances = new ArrayList<>();
+        public List<InstanceInfo> instances = new ArrayList<>();
 
         public Builder definition(ClassDefinition definition) {
             this.definition = definition;
@@ -62,7 +62,7 @@ public final class ClassInfo extends AbstractSymbolInfo implements TypeSymbolInf
             return this;
         }
 
-        public Builder instance(InstanceDefinition def) {
+        public Builder instance(InstanceInfo def) {
             this.instances.add(def);
             return this;
         }

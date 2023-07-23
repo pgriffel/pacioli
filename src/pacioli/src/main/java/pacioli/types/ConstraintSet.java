@@ -338,7 +338,7 @@ public class ConstraintSet extends AbstractPrintable {
 
                     // Call MatrixType nmode on the found types and require that the
                     // result equals the outcome
-                    // String message = String.format("During inference %s\nthe infered type must
+                    // String message = String.format("During inference %s\nthe inferred type must
                     // follow the nmode rules",
                     // node.sourceDescription());
 

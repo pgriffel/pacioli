@@ -51,6 +51,11 @@ public class LambdaNode extends AbstractExpressionNode {
         table = old.table;
     }
 
+    @Override
+    public String toString() {
+        return String.format("<Lambda %s %s>", arguments, expression.toString());
+    }
+
     public String argsString(String prefix) {
         List<String> args = new ArrayList<String>();
         for (String arg : arguments) {

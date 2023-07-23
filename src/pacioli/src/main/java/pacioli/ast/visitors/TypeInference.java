@@ -143,7 +143,7 @@ public class TypeInference extends IdentityVisitor {
                             "Second argument of nmode must be a number");
                 }
 
-                String message = String.format("During inference %s\nthe infered type must follow the nmode rules",
+                String message = String.format("During inference %s\nthe inferred type must follow the nmode rules",
                         node.sourceDescription());
 
                 typing.addNModeConstraint(resultType,
@@ -208,7 +208,7 @@ public class TypeInference extends IdentityVisitor {
 
                     // Call MatrixType nmode on the found types and require that the
                     // result equals the outcome
-                    String message = String.format("During inference %s\nthe infered type must follow the nmode rules",
+                    String message = String.format("During inference %s\nthe inferred type must follow the nmode rules",
                             node.sourceDescription());
                     typing.addConstraint(tensorType.nmode(n, matrixType), resultType, message);
 
@@ -232,7 +232,7 @@ public class TypeInference extends IdentityVisitor {
 
             // Add the unification contraint that function type must equal the derived
             // function type.
-            String message = String.format("During inference %s\nthe infered type must match known types",
+            String message = String.format("During inference %s\nthe inferred type must match known types",
                     node.sourceDescription());
             typing.addConstraint(funType, funTyping.getType(), message);
 
@@ -418,7 +418,7 @@ public class TypeInference extends IdentityVisitor {
         Set<Var> freeVars = new HashSet<Var>();
 
         for (ValueInfo inf : Node.freeVars(node, node.table)) {
-            if (inf.isMonomorphic) {
+            if (inf.isMonomorphic()) {
                 TypeObject varType = inf.inferredType.get();
                 assert (varType instanceof TypeVar);
                 freeVars.add((TypeVar) varType);
@@ -573,7 +573,7 @@ public class TypeInference extends IdentityVisitor {
             if (localNames.contains(name)) {
                 for (TypeVar var : itemTyping.assumptions(name)) {
                     String message = String.format(
-                            "During inference %s\nthe infered parameter type must match the argument",
+                            "During inference %s\nthe inferred parameter type must match the argument",
                             info.getLocation().description());
                     typing.addConstraint(var, info.inferredType(), message);
                 }

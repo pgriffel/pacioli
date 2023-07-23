@@ -14,29 +14,30 @@ import pacioli.types.ast.TypeNode;
 
 public class ValueInfo extends AbstractSymbolInfo {
 
-    public final Optional<ClassInfo> typeClass;
-    public final Boolean isMonomorphic;
-    private final boolean isPublic;
+    private final boolean isMonomorphic;
+    private final boolean isPublic; // visibility noemen en enum maken
+    private final boolean isRef;
+
     private final Optional<ValueDefinition> definition;
     private final Optional<TypeNode> declaredType;
+    private final Optional<ClassInfo> typeClass;
     private final Optional<String> docu;
-    private final Optional<Boolean> isRef;
 
     // Set during type inference
-    public Optional<TypeObject> inferredType;
+    // TODO: make private. This will clear up the need for the throws below
+    public Optional<TypeObject> inferredType = Optional.empty();
 
     public ValueInfo(
             String name,
             PacioliFile file,
-            Boolean isGlobal,
-            Boolean isMonomorphic,
+            boolean isGlobal,
+            boolean isMonomorphic,
             Location location,
             boolean isPublic,
-            Optional<Boolean> isRef,
+            boolean isRef,
             Optional<ValueDefinition> definition,
             Optional<ClassInfo> typeClass,
             Optional<TypeNode> declaredType,
-            Optional<TypeObject> inferredType,
             Optional<String> docu) {
         super(new GeneralInfo(name, file, isGlobal, location));
         this.isMonomorphic = isMonomorphic;
@@ -45,7 +46,6 @@ public class ValueInfo extends AbstractSymbolInfo {
         this.typeClass = typeClass;
         this.declaredType = declaredType;
         this.isRef = isRef;
-        this.inferredType = inferredType;
         this.docu = docu;
     }
 
@@ -68,8 +68,16 @@ public class ValueInfo extends AbstractSymbolInfo {
         return definition;
     }
 
+    public boolean isMonomorphic() {
+        return isMonomorphic;
+    }
+
     public Optional<TypeNode> getDeclaredType() {
         return declaredType;
+    }
+
+    public Optional<ClassInfo> typeClass() {
+        return typeClass;
     }
 
     public Optional<String> getDocu() {
@@ -85,12 +93,8 @@ public class ValueInfo extends AbstractSymbolInfo {
         }
     }
 
-    public Boolean isRef() {
-        if (isRef.isPresent()) {
-            return isRef.get();
-        } else {
-            throw new RuntimeException("No isRef value, ValueInfo must have been resolved");
-        }
+    public boolean isRef() {
+        return isRef;
     }
 
     public TypeObject getType() {
@@ -140,11 +144,10 @@ public class ValueInfo extends AbstractSymbolInfo {
         public Boolean isGlobal;
         public Boolean isMonomorphic;
         public Location location;
-        public boolean isPublic;
-        public boolean isRef;
+        public Boolean isPublic;
+        public boolean isRef = false;
         public ValueDefinition definition;
         public TypeNode declaredType;
-        public TypeObject inferredType;
         public String docu;
         public ClassInfo typeClass;
 
@@ -204,6 +207,14 @@ public class ValueInfo extends AbstractSymbolInfo {
         }
 
         public ValueInfo build() {
+            if (name == null ||
+                    file == null ||
+                    isGlobal == null ||
+                    isMonomorphic == null ||
+                    location == null ||
+                    isPublic == null) {
+                throw new RuntimeException("Field missing");
+            }
             return new ValueInfo(
                     name,
                     file,
@@ -211,11 +222,10 @@ public class ValueInfo extends AbstractSymbolInfo {
                     isMonomorphic,
                     location,
                     isPublic,
-                    Optional.ofNullable(isRef),
+                    isRef,
                     Optional.ofNullable(definition),
                     Optional.ofNullable(typeClass),
                     Optional.ofNullable(declaredType),
-                    Optional.ofNullable(inferredType),
                     Optional.ofNullable(docu));
         }
     }

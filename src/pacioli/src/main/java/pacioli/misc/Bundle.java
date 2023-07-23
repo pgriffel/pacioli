@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,7 @@ import pacioli.compilers.MATLABCompiler;
 import pacioli.compilers.MVMCompiler;
 import pacioli.compilers.PythonCompiler;
 import pacioli.misc.CompilationSettings.Target;
+import pacioli.symboltable.ClassInfo;
 import pacioli.symboltable.GeneralInfo;
 import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.SymbolInfo;
@@ -326,6 +328,64 @@ public class Bundle {
 
         generator.generate();
         writer.close();
+    }
+
+    void printSymbolTables() {
+
+        List<String> allTypeNames = typeTable.allNames();
+        allTypeNames.sort((a, b) -> a.compareToIgnoreCase(b));
+
+        // Print the parametric types
+        Pacioli.println("\n%-25s %-25s", "Type", "Module");
+        for (String name : allTypeNames) {
+            TypeSymbolInfo typeInfo = typeTable.lookup(name);
+            if (typeInfo instanceof ParametricInfo info) {
+                Pacioli.println("%-25s %-25s", info.name(), info.generalInfo().getModule());
+            }
+        }
+
+        // Print the type classes
+        Pacioli.println("\n%-25s %-25s %-25s", "Class", "Module", "Instances");
+        for (String name : allTypeNames) {
+            TypeSymbolInfo typeInfo = typeTable.lookup(name);
+            if (typeInfo instanceof ClassInfo info) {
+                Pacioli.println("%-25s %-25s %-25s", info.name(), info.generalInfo().getModule(),
+                        info.instances.size());
+            }
+        }
+
+        // Print the values
+        Pacioli.println("\n%-25s %-25s %-10s %-10s %-10s %-10s %-10s %-10s %-50s",
+                "Value",
+                "Module",
+                "Scope",
+                "Visibility",
+                "Overloaded",
+                "Def",
+                "Declared",
+                "Inferred",
+                "Type");
+
+        List<String> allNames = valueTable.allNames();
+        allNames.sort((a, b) -> a.compareToIgnoreCase(b));
+
+        for (String name : allNames) {
+
+            ValueInfo info = valueTable.lookup(name);
+            Optional<? extends Definition> def = info.getDefinition();
+
+            Pacioli.println("%-25s %-25s %-10s %-10s %-10s %-10s %-10s %-10s %-50s",
+                    info.name(),
+                    info.generalInfo().getModule(),
+                    info.isGlobal() ? "global" : "local",
+                    info.isPublic() ? "public" : "private",
+                    info.typeClass().isPresent() ? "overload" : "single",
+                    def.isPresent() ? "has def" : "no def",
+                    info.getDeclaredType().isPresent() ? "decl" : "no decl",
+                    info.inferredType.isPresent() ? "inferred" : "no type",
+                    info.inferredType.map(x -> x.pretty()).orElse("N/A"));
+        }
+
     }
 
     // -------------------------------------------------------------------------
