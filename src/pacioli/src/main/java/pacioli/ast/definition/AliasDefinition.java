@@ -2,6 +2,7 @@ package pacioli.ast.definition;
 
 import java.math.BigDecimal;
 
+import pacioli.Pacioli;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
@@ -36,6 +37,8 @@ public class AliasDefinition extends AbstractDefinition {
         DimensionedNumber<TypeBase> number = unit.evalUnit();
         if (!number.factor().equals(BigDecimal.ONE)) {
             throw new PacioliException(getLocation(), "Unexpected number in unit alias");
+            // Pacioli.warn("Unexpected number in unit alias %s: %s", id.getName(),
+            // number.factor());
         }
         return number.unit();
     }

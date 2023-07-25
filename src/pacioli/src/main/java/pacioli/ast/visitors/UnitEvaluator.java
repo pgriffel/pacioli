@@ -69,7 +69,7 @@ public class UnitEvaluator extends IdentityVisitor {
         if ("*".equals(node.operator)) {
             returnNode(left.multiply(right));
         } else if ("/".equals(node.operator)) {
-            returnNode(left.multiply(right.reciprocal()));
+            returnNode(left.divide(right));
         } else {
             visitorThrow(node.getLocation(), "Unit operator %s unknown", node.operator);
         }
