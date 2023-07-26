@@ -31,11 +31,7 @@ public final class ClassInfo extends AbstractSymbolInfo implements TypeSymbolInf
 
     @Override
     public String globalName() {
-        return global(generalInfo().getModule(), name());
-    }
-
-    public static String global(String module, String name) {
-        return String.format("%s_%s", module.replace("-", "_"), name);
+        return String.format("%s_%s", generalInfo().getModule(), name());
     }
 
     @Override

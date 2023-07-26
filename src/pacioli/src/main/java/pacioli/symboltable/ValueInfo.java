@@ -56,11 +56,11 @@ public class ValueInfo extends AbstractSymbolInfo {
 
     @Override
     public String globalName() {
-        return global(generalInfo().getModule(), name());
+        return String.format("%s_%s", generalInfo().getModule(), name());
     }
 
     public static String global(String module, String name) {
-        return String.format("%s_%s", module.replace("-", "_"), name);
+        return String.format("%s_%s", module, name);
     }
 
     @Override

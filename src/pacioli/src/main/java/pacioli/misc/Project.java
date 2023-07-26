@@ -205,6 +205,11 @@ public class Project {
         bundle.printSymbolTables();
     }
 
+    public void printCode(boolean rewriteTypes, boolean includePrivate, boolean showDoc) throws Exception {
+        Bundle bundle = loadBundle();
+        bundle.printCode(rewriteTypes, includePrivate, showDoc);
+    }
+
     public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDoc) throws Exception {
         Bundle bundle = loadBundle();
         bundle.printTypes(rewriteTypes, includePrivate, showDoc);

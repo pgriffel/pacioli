@@ -21,11 +21,15 @@
 
 package pacioli.ast.definition;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.ast.Visitor;
+import pacioli.ast.expression.ExpressionNode;
 import pacioli.misc.Location;
+import pacioli.misc.PacioliException;
 import pacioli.types.ast.ContextNode;
+import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
 
 /**
@@ -73,4 +77,20 @@ public class InstanceDefinition extends AbstractDefinition {
         return type.op.getName();
     }
 
+    public List<String> memberNames() {
+        List<String> names = new ArrayList<>();
+        for (ValueEquation assertion : members) {
+            names.add(assertion.id.getName());
+        }
+        return names;
+    }
+
+    public ExpressionNode memberBody(String name) {
+        for (ValueEquation assertion : members) {
+            if (assertion.id.getName().equals(name)) {
+                return assertion.body;
+            }
+        }
+        throw new PacioliException(getLocation(), String.format("Instance member %s not found", name));
+    }
 }

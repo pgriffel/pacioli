@@ -10,15 +10,13 @@ import pacioli.misc.PacioliFile;
  */
 public final class InstanceInfo extends AbstractSymbolInfo {
 
-    private static int counter = 0;
-
     public final InstanceDefinition definition;
-    public final String uniquePrefix = String.format("inst_%s", counter++);
 
     public InstanceInfo(
             InstanceDefinition definition,
-            PacioliFile file) {
-        super(new GeneralInfo(definition.getName(), file, true, definition.getLocation()));
+            PacioliFile file,
+            String uniqueSuffix) {
+        super(new GeneralInfo(definition.getName() + uniqueSuffix, file, true, definition.getLocation()));
         this.definition = definition;
     }
 
@@ -30,11 +28,7 @@ public final class InstanceInfo extends AbstractSymbolInfo {
 
     @Override
     public String globalName() {
-        return global(generalInfo().getModule(), name());
-    }
-
-    public static String global(String module, String name) {
-        return String.format("%s_%s", module.replace("-", "_"), name);
+        return String.format("%s_%s", generalInfo().getModule(), name());
     }
 
     @Override

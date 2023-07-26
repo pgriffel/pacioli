@@ -257,6 +257,29 @@ public class Bundle {
 
     }
 
+    void printCode(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws PacioliException {
+
+        List<String> names = valueTable.allNames();
+        Collections.sort(names);
+
+        for (String value : names) {
+            ValueInfo info = valueTable.lookup(value);
+            boolean fromProgram = info.generalInfo().getModule().equals(file.getModule());
+            if (fromProgram && info.getDefinition().isPresent() && (true || info.isUserDefined())) {
+                // Pacioli.println("%s =", info.name());
+                Pacioli.print("\n\n%s;", info.getDefinition().get().pretty());
+            }
+        }
+
+        Integer count = 1;
+        Pacioli.print("\n");
+        for (Toplevel toplevel : toplevels) {
+            TypeObject type = toplevel.type;
+            Pacioli.println("Toplevel %s ::", count++);
+            Pacioli.print(" %s", type.unfresh().pretty());
+        }
+    }
+
     void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws PacioliException {
 
         List<String> names = valueTable.allNames();
@@ -355,7 +378,7 @@ public class Bundle {
         }
 
         // Print the values
-        Pacioli.println("\n%-25s %-25s %-10s %-10s %-10s %-10s %-10s %-10s %-50s",
+        Pacioli.println("\n%-25s %-25s %-10s %-10s %-10s %-10s %-10s %-10s %-30s",
                 "Value",
                 "Module",
                 "Scope",
@@ -374,7 +397,7 @@ public class Bundle {
             ValueInfo info = valueTable.lookup(name);
             Optional<? extends Definition> def = info.getDefinition();
 
-            Pacioli.println("%-25s %-25s %-10s %-10s %-10s %-10s %-10s %-10s %-50s",
+            Pacioli.println("%-25s %-25s %-10s %-10s %-10s %-10s %-10s %-10s %-30s",
                     info.name(),
                     info.generalInfo().getModule(),
                     info.isGlobal() ? "global" : "local",

@@ -27,8 +27,10 @@ import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.definition.ValueEquation;
+import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.visitors.TransformConversions;
 import pacioli.parser.Parser;
@@ -72,6 +74,12 @@ public class Progam extends AbstractPrintable {
     public SymbolTable<TypeSymbolInfo> typess = new SymbolTable<TypeSymbolInfo>();
     public SymbolTable<ValueInfo> values = new SymbolTable<ValueInfo>();
     public List<Toplevel> toplevels = new ArrayList<Toplevel>();
+
+    private static int classInstanceCounter = 0;
+
+    private String genclassInstanceName() {
+        return String.format("_inst_%s", classInstanceCounter++);
+    }
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -238,7 +246,7 @@ public class Progam extends AbstractPrintable {
                 if (builder == null) {
                     throw new PacioliException(def.getLocation(), "No class found for instance %s", def.getName());
                 }
-                builder.instance(new InstanceInfo(inst, file));
+                builder.instance(new InstanceInfo(inst, file, genclassInstanceName()));
             } else if (def instanceof ValueDefinition val) {
 
                 ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable, def.getName());
@@ -422,58 +430,107 @@ public class Progam extends AbstractPrintable {
 
         Pacioli.trace("Rewriting classes in file %s", this.file.getModule());
 
-        for (TypeSymbolInfo nfo : typess.allInfos()) {
-            boolean fromProgram = nfo.generalInfo().getModule().equals(file.getModule());
-            if (nfo instanceof ClassInfo classInfo) {
+        for (TypeSymbolInfo typeInfo : typess.allInfos()) {
+            if (typeInfo instanceof ClassInfo classInfo) {
+                rewriteClass(classInfo);
+            }
+        }
+    }
 
-                // Rewrite the class definition itself
-                Optional<? extends Definition> definition = nfo.getDefinition();
-                assert (definition.isPresent());
-                if (fromProgram && definition.isPresent()) {
-                    Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                            "Rewriting class %s in file %s", nfo.globalName(), this.file.getModule());
+    private void rewriteClass(ClassInfo classInfo) {
 
-                    // Create class type definition
+        // Get some class properties
+        ClassDefinition definition = classInfo.definition;
+        Location classLocation = definition.getLocation();
+        IdentifierNode classConstructorId = new IdentifierNode(String.format("make_%s", classInfo.globalName()),
+                classLocation);
 
-                    // Create class constructor type declaration
+        // Rewrite the class definition itself if it is from this program
+        if (classInfo.generalInfo().getModule().equals(file.getModule())) {
+            Pacioli.logIf(Pacioli.Options.showClassRewriting,
+                    "Rewriting class %s in file %s", classInfo.globalName(), this.file.getModule());
 
-                    // Create a type declaration for each class member
-                    for (TypeAssertion member : classInfo.definition.members) {
-                        Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                                "declare %s :: %s", member.id.getName(), member.type.pretty());
-                    }
+            // Collect the type and a fresh argument id for each class member
+            List<ExpressionNode> args = new ArrayList<>();
+            List<String> argNames = new ArrayList<>();
+            for (TypeAssertion member : classInfo.definition.members) {
+                Pacioli.logIf(Pacioli.Options.showClassRewriting,
+                        "declare %s :: %s", member.id.getName(), member.type.pretty());
+                IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(), classLocation);
+                argNames.add(id.getName());
+                args.add(id);
+            }
+
+            // Create class type definition
+
+            // Create class constructor type declaration
+
+            // Create class constructor
+            LambdaNode constructor = new LambdaNode(
+                    argNames,
+                    new ApplicationNode(new IdentifierNode("tuple", classLocation), args, definition.getLocation()),
+                    definition.getLocation());
+
+            ValueDefinition vd = new ValueDefinition(
+                    classLocation,
+                    classConstructorId,
+                    constructor,
+                    true);
+
+            ValueInfo info = ValueInfo.builder()
+                    .name(classConstructorId.getName())
+                    .file(classInfo.file)
+                    .isGlobal(true)
+                    .isMonomorphic(false)
+                    .location(classInfo.getLocation())
+                    .isPublic(false)
+                    .definition(vd)
+                    .build();
+
+            addInfo(info);
+
+        }
+
+        // Rewrite all class instances if it is from this program
+        for (InstanceInfo instanceInfo : classInfo.instances) {
+            if (instanceInfo.generalInfo().getModule().equals(file.getModule())) {
+
+                Location instanceLocation = instanceInfo.getLocation();
+
+                Pacioli.logIf(Pacioli.Options.showClassRewriting,
+                        "Rewriting instance %s in file %s", instanceInfo.toString(), this.file.getModule());
+
+                // Create a declaration and definition. Both are a tuple with an element for
+                // each overloaded function instance
+                List<ExpressionNode> bodies = new ArrayList<>();
+                for (String name : classInfo.definition.memberNames()) {
+                    bodies.add(instanceInfo.definition.memberBody(name));
                 }
 
-                // Rewrite all class instances
-                for (InstanceInfo instanceInfo : classInfo.instances) {
-                    Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                            "Rewriting instance %s in file %s", instanceInfo.toString(), this.file.getModule());
+                // Create tuple
+                ApplicationNode tuple = new ApplicationNode(classConstructorId, bodies, instanceLocation);
+                Pacioli.logIf(Pacioli.Options.showClassRewriting,
+                        "define %s = %s", instanceInfo.globalName(), tuple.pretty());
 
-                    // Create a declaration and definition. Both are a tuple with an element for
-                    // each overloaded function instance
-                    for (ValueEquation member : instanceInfo.definition.members) {
-                        String name = String.format("%s_%s", instanceInfo.uniquePrefix, member.id.getName());
-                        Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                                "define %s = %s", member.id.getName(), member.body.pretty());
-                        Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                                "define %s = %s", member.id.getName(), member.body.toString());
-                        IdentifierNode fresh = new IdentifierNode(name, member.id.getLocation());
+                IdentifierNode instanceId = new IdentifierNode(instanceInfo.globalName(), instanceLocation);
 
-                        // Define a helper function for the lifted body
-                        ValueDefinition vd = new ValueDefinition(member.getLocation(), fresh, member.body, false);
-                        ValueInfo info = ValueInfo.builder()
-                                .name(name)
-                                .file(classInfo.file)
-                                .isGlobal(true)
-                                .isMonomorphic(false)
-                                .location(classInfo.getLocation())
-                                .isPublic(false)
-                                .definition(vd)
-                                .build();
+                // Define a helper function for the instance
+                ValueDefinition vd = new ValueDefinition(
+                        instanceInfo.getLocation(),
+                        instanceId,
+                        tuple,
+                        false);
+                ValueInfo info = ValueInfo.builder()
+                        .name(instanceInfo.globalName())
+                        .file(classInfo.file)
+                        .isGlobal(true)
+                        .isMonomorphic(false)
+                        .location(classInfo.getLocation())
+                        .isPublic(false)
+                        .definition(vd)
+                        .build();
 
-                        addInfo(info);
-                    }
-                }
+                addInfo(info);
             }
         }
     }

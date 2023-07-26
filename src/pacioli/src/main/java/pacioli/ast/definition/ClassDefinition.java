@@ -65,7 +65,8 @@ public class ClassDefinition extends AbstractDefinition {
         this.members = members;
         this.memberSchemas = new HashMap<>();
 
-        // Create a schema for each overloaded function
+        // Create a schema for each overloaded function. This schema is mutated
+        // during resolving.
         for (TypeAssertion assertion : members) {
             List<ContextNode> combinedContextNodes = new ArrayList<>();
             combinedContextNodes.addAll(this.contextNodes);
