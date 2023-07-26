@@ -31,7 +31,7 @@ public class DimensionedNumber<B> {
     private final BigDecimal factor;
 
     public DimensionedNumber() {
-        //unit = Unit.ONE;
+        // unit = Unit.ONE;
         unit = new PowerProduct<B>();
         factor = BigDecimal.ONE;
     }
@@ -42,7 +42,7 @@ public class DimensionedNumber<B> {
     }
 
     public DimensionedNumber(BigDecimal factor) {
-        //unit = Unit.ONE;
+        // unit = Unit.ONE;
         unit = new PowerProduct<B>();
         this.factor = factor;
     }
@@ -91,6 +91,10 @@ public class DimensionedNumber<B> {
 
     public DimensionedNumber<B> multiply(DimensionedNumber<B> other) {
         return new DimensionedNumber<B>(other.factor.multiply(factor), other.unit.multiply(unit));
+    }
+
+    public DimensionedNumber<B> divide(DimensionedNumber<B> other) {
+        return new DimensionedNumber<B>(other.factor.divide(factor), other.unit.multiply(unit.reciprocal()));
     }
 
     public DimensionedNumber<B> raise(Fraction power) {
