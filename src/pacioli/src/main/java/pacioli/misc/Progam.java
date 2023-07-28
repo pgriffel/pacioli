@@ -100,20 +100,16 @@ public class Progam extends AbstractPrintable {
     // Properties
     // -------------------------------------------------------------------------
 
-    Boolean isExternal(SymbolInfo info) {
-        return !info.generalInfo().getFile().equals(getFile());
-    }
-
     public String getModule() {
-        return file.getModule();
+        return this.file.getModule();
     }
 
     public File getFile() {
-        return file.getFile();
+        return this.file.getFile();
     }
 
     public Boolean isLibrary() {
-        return file.isLibrary();
+        return this.file.isLibrary();
     }
 
     // -------------------------------------------------------------------------
@@ -127,7 +123,7 @@ public class Progam extends AbstractPrintable {
      */
     private void loadTill() throws Exception {
 
-        Pacioli.logIf(Pacioli.Options.showFileLoads, "Loading file %s", file.getFile());
+        Pacioli.logIf(Pacioli.Options.showFileLoads, "Loading file %s", this.file.getFile());
 
         programNode = Parser.parseFile(this.file.getFile());
 
@@ -218,7 +214,7 @@ public class Progam extends AbstractPrintable {
                         .name(def.getName())
                         .location(def.getLocation())
                         .isMonomorphic(false)
-                        .file(file)
+                        .file(this.file)
                         .isGlobal(true)
                         .declaredType(decl.typeNode)
                         .isPublic(decl.isPublic);
@@ -231,7 +227,7 @@ public class Progam extends AbstractPrintable {
                         .name(def.getName())
                         .location(def.getLocation())
                         .isMonomorphic(false)
-                        .file(file)
+                        .file(this.file)
                         .isGlobal(true)
                         .docu(((StringNode) doc.body).valueString());
             }
@@ -262,7 +258,7 @@ public class Progam extends AbstractPrintable {
                 builder
                         .definition(val)
                         .name(def.getName())
-                        .file(file)
+                        .file(this.file)
                         .isGlobal(true)
                         .isMonomorphic(false)
                         .location(def.getLocation());
@@ -281,7 +277,7 @@ public class Progam extends AbstractPrintable {
                 SchemaNode schema = info.definition.memberSchemaNode(memberName);
                 ValueInfo valueInfo = ValueInfo.builder()
                         .name(memberName)
-                        .file(file)
+                        .file(this.file)
                         .isGlobal(true)
                         .isMonomorphic(false)
                         .location(info.definition.getLocation())
@@ -349,74 +345,59 @@ public class Progam extends AbstractPrintable {
 
         values.parent = symbolTable.values();
         typess.parent = symbolTable.types();
+
         PacioliTable env = new PacioliTable(values, typess);
-        for (TypeSymbolInfo nfo : typess.allInfos()) {
-            if (nfo instanceof IndexSetInfo) {
-                boolean fromProgram = nfo.generalInfo().getModule().equals(file.getModule());
-                if (fromProgram && nfo.getDefinition().isPresent()) {
-                    Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving index set %s", nfo.globalName());
-                    nfo.getDefinition().get().resolve(file, env);
-                }
+        List<TypeSymbolInfo> localTypeInfos = typess.allInfos(info -> info.isFromFile(this.file));
+
+        for (TypeSymbolInfo nfo : localTypeInfos) {
+            if (nfo instanceof IndexSetInfo && nfo.getDefinition().isPresent()) {
+                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving index set %s", nfo.globalName());
+                nfo.getDefinition().get().resolve(this.file, env);
             }
         }
-        for (TypeSymbolInfo nfo : typess.allInfos()) {
-            boolean fromProgram = nfo.generalInfo().getModule().equals(file.getModule());
-            if (nfo instanceof UnitInfo) {
-                Optional<? extends Definition> definition = nfo.getDefinition();
-                assert (definition.isPresent());
-                if (fromProgram && definition.isPresent()) {
-                    Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving unit %s", nfo.globalName());
-                    definition.get().resolve(file, env);
-                }
+        for (TypeSymbolInfo nfo : localTypeInfos) {
+            if (nfo instanceof UnitInfo && nfo.getDefinition().isPresent()) {
+                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving unit %s", nfo.globalName());
+                nfo.getDefinition().get().resolve(this.file, env);
             }
         }
-        for (TypeSymbolInfo nfo : typess.allInfos()) {
-            boolean fromProgram = nfo.generalInfo().getModule().equals(file.getModule());
+        for (TypeSymbolInfo nfo : localTypeInfos) {
             if (nfo instanceof ClassInfo classInfo) {
 
                 // Resolve the class definition itself
-                Optional<? extends Definition> definition = nfo.getDefinition();
-                assert (definition.isPresent());
-                if (fromProgram && definition.isPresent()) {
-                    Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving class %s", nfo.globalName());
-                    definition.get().resolve(file, env);
-                }
+                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving class %s", nfo.globalName());
+                nfo.getDefinition().get().resolve(this.file, env);
 
                 // Resolve all class instances
                 for (InstanceInfo instanceInfo : classInfo.instances) {
                     for (ValueEquation member : instanceInfo.definition.members) {
-                        member.body.resolve(file, env);
+                        member.body.resolve(this.file, env);
                     }
                 }
             }
         }
-        for (TypeSymbolInfo nfo : typess.allInfos()) {
-            if (nfo instanceof ParametricInfo) {
-                boolean fromProgram = nfo.generalInfo().getModule().equals(file.getModule());
-                if (fromProgram && nfo.getDefinition().isPresent()) {
-                    Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving type %s", nfo.globalName());
-                    nfo.getDefinition().get().resolve(file, env);
-                }
+        for (TypeSymbolInfo nfo : localTypeInfos) {
+            if (nfo instanceof ParametricInfo && nfo.getDefinition().isPresent()) {
+                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving type %s", nfo.globalName());
+                nfo.getDefinition().get().resolve(this.file, env);
             }
         }
 
-        for (ValueInfo nfo : values.allInfos()) {
-            boolean fromProgram = nfo.generalInfo().getModule().equals(file.getModule());
-            if (fromProgram) {
-                if (nfo.getDefinition().isPresent()) {
-                    Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving value or function %s",
-                            nfo.globalName());
-                    nfo.getDefinition().get().resolve(file, env);
-                }
-                if (nfo.getDeclaredType().isPresent()) {
-                    Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving declaration %s", nfo.globalName());
-                    nfo.getDeclaredType().get().resolve(file, env);
-                }
+        for (ValueInfo nfo : values.allInfos(info -> info.isFromFile(this.file))) {
+            if (nfo.getDefinition().isPresent()) {
+                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving value or function %s",
+                        nfo.globalName());
+                nfo.getDefinition().get().resolve(this.file, env);
             }
+            if (nfo.getDeclaredType().isPresent()) {
+                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving declaration %s", nfo.globalName());
+                nfo.getDeclaredType().get().resolve(this.file, env);
+            }
+
         }
         for (Toplevel definition : toplevels) {
             Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving toplevel %s", definition.getName());
-            definition.resolve(file, env);
+            definition.resolve(this.file, env);
         }
         values.parent = null;
         typess.parent = null;
@@ -431,69 +412,77 @@ public class Progam extends AbstractPrintable {
         Pacioli.trace("Rewriting classes in file %s", this.file.getModule());
 
         for (TypeSymbolInfo typeInfo : typess.allInfos()) {
-            if (typeInfo instanceof ClassInfo classInfo) {
+            if (typeInfo.isFromFile(this.file) && typeInfo instanceof ClassInfo classInfo) {
                 rewriteClass(classInfo);
             }
         }
     }
 
+    /**
+     * Creates definitions for the class and its instances and adds them to the
+     * symbol table (not to the parsed program node).
+     * 
+     * @param classInfo
+     */
     private void rewriteClass(ClassInfo classInfo) {
 
         // Get some class properties
         ClassDefinition definition = classInfo.definition;
         Location classLocation = definition.getLocation();
-        IdentifierNode classConstructorId = new IdentifierNode(String.format("make_%s", classInfo.globalName()),
-                classLocation);
+        String classConstructorName = String.format("make_%s", classInfo.globalName());
+        IdentifierNode classConstructorId = new IdentifierNode(classConstructorName, classLocation);
 
         // Rewrite the class definition itself if it is from this program
-        if (classInfo.generalInfo().getModule().equals(file.getModule())) {
+        Pacioli.logIf(Pacioli.Options.showClassRewriting,
+                "Rewriting class %s in file %s", classInfo.globalName(), this.file.getModule());
+
+        // Collect the type and a fresh argument id for each class member
+        List<ExpressionNode> args = new ArrayList<>();
+        List<String> argNames = new ArrayList<>();
+        for (TypeAssertion member : classInfo.definition.members) {
             Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                    "Rewriting class %s in file %s", classInfo.globalName(), this.file.getModule());
-
-            // Collect the type and a fresh argument id for each class member
-            List<ExpressionNode> args = new ArrayList<>();
-            List<String> argNames = new ArrayList<>();
-            for (TypeAssertion member : classInfo.definition.members) {
-                Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                        "declare %s :: %s", member.id.getName(), member.type.pretty());
-                IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(), classLocation);
-                argNames.add(id.getName());
-                args.add(id);
-            }
-
-            // Create class type definition
-
-            // Create class constructor type declaration
-
-            // Create class constructor
-            LambdaNode constructor = new LambdaNode(
-                    argNames,
-                    new ApplicationNode(new IdentifierNode("tuple", classLocation), args, definition.getLocation()),
-                    definition.getLocation());
-
-            ValueDefinition vd = new ValueDefinition(
-                    classLocation,
-                    classConstructorId,
-                    constructor,
-                    true);
-
-            ValueInfo info = ValueInfo.builder()
-                    .name(classConstructorId.getName())
-                    .file(classInfo.file)
-                    .isGlobal(true)
-                    .isMonomorphic(false)
-                    .location(classInfo.getLocation())
-                    .isPublic(false)
-                    .definition(vd)
-                    .build();
-
-            addInfo(info);
-
+                    "declare %s :: %s", member.id.getName(), member.type.pretty());
+            IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(), classLocation);
+            argNames.add(id.getName());
+            args.add(id);
         }
+
+        // Create class type definition
+        TypeDefinition TypeDefinition = new TypeDefinition(classLocation, null, null, null);
+
+        // ParametricInfo parametricInfo = new ParametricInfo()
+
+        // addInfo(parametricInfo);
+
+        // Create class constructor type declaration
+
+        // Create class constructor
+        LambdaNode constructor = new LambdaNode(
+                argNames,
+                new ApplicationNode(new IdentifierNode("tuple", classLocation), args, definition.getLocation()),
+                definition.getLocation());
+
+        ValueDefinition constructorDefinition = new ValueDefinition(
+                classLocation,
+                classConstructorId,
+                constructor,
+                true);
+
+        ValueInfo constructorInfo = ValueInfo.builder()
+                .name(classConstructorId.getName())
+                .file(classInfo.file)
+                .isGlobal(true)
+                .isMonomorphic(false)
+                .location(classInfo.getLocation())
+                .isPublic(false)
+                .definition(constructorDefinition)
+                .build();
+
+        addInfo(constructorInfo);
 
         // Rewrite all class instances if it is from this program
         for (InstanceInfo instanceInfo : classInfo.instances) {
-            if (instanceInfo.generalInfo().getModule().equals(file.getModule())) {
+            if (instanceInfo.generalInfo().getModule().equals(this.file.getModule())) {
 
                 Location instanceLocation = instanceInfo.getLocation();
 
@@ -544,7 +533,7 @@ public class Progam extends AbstractPrintable {
         Pacioli.trace("Lifting value statements %s", this.file.getModule());
 
         for (ValueInfo info : values.allInfos()) {
-            if (info.getDefinition().isPresent() && !isExternal(info)) {
+            if (info.getDefinition().isPresent() && info.isFromFile(this.file)) {
                 ValueDefinition definition = info.getDefinition().get();
                 definition.body = definition.body.liftStatements(this, pacioliTable, ExpressionNode.class);
 
@@ -561,7 +550,7 @@ public class Progam extends AbstractPrintable {
         Pacioli.trace("Transforming conversions %s", this.file.getModule());
 
         for (ValueInfo info : values.allInfos()) {
-            if (info.getDefinition().isPresent() && !isExternal(info)) {
+            if (info.getDefinition().isPresent() && info.isFromFile(this.file)) {
                 ValueDefinition definition = info.getDefinition().get();
                 ExpressionNode newBody = new TransformConversions().expAccept(definition.body);
                 definition.body = newBody;
@@ -590,7 +579,7 @@ public class Progam extends AbstractPrintable {
         for (String value : names) {
             ValueInfo info = values.lookup(value);
 
-            if (!isExternal(info) && info.getDefinition().isPresent()) {
+            if (info.isFromFile(this.file) && info.getDefinition().isPresent()) {
 
                 Pacioli.logIf(Pacioli.Options.logTypeInference, "Infering type of %s", value);
 
@@ -602,10 +591,10 @@ public class Progam extends AbstractPrintable {
 
             Optional<TypeNode> declared = info.getDeclaredType();
 
-            if (!isExternal(info) && declared.isPresent() && info.inferredType.isPresent()) {
+            if (info.isFromFile(this.file) && declared.isPresent() && info.inferredType.isPresent()) {
 
                 TypeObject declaredType = declared.get().evalType().instantiate()
-                        .reduce(i -> i.generalInfo().getModule().equals(file.getModule()));
+                        .reduce(i -> i.generalInfo().getModule().equals(this.file.getModule()));
                 TypeObject inferredType = info.inferredType().instantiate();
 
                 Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,
@@ -646,7 +635,7 @@ public class Progam extends AbstractPrintable {
             Boolean verbose) {
         for (SymbolInfo pre : definition.uses()) {
             if (pre.isGlobal() && pre instanceof ValueInfo) {
-                if (!isExternal(pre) && pre.getDefinition().isPresent()) {
+                if (pre.isFromFile(this.file) && pre.getDefinition().isPresent()) {
                     inferValueDefinitionType((ValueInfo) pre, discovered, finished, verbose);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
@@ -714,7 +703,7 @@ public class Progam extends AbstractPrintable {
 
         for (String value : names) {
             ValueInfo info = values.lookup(value);
-            if (!isExternal(info) && info.getDefinition().isPresent()) {
+            if (info.isFromFile(this.file) && info.getDefinition().isPresent()) {
                 Pacioli.println("\n%s :: %s;", info.name(), info.inferredType().pretty());
             }
         }
@@ -743,7 +732,7 @@ public class Progam extends AbstractPrintable {
         }
 
         for (ValueInfo info : values.allInfos()) {
-            if (info.getDefinition().isPresent() && !isExternal(info)) {
+            if (info.getDefinition().isPresent() && info.isFromFile(this.file)) {
                 out.println();
                 info.getDefinition().get().printPretty(out);
                 out.println();
@@ -762,7 +751,7 @@ public class Progam extends AbstractPrintable {
                     info.generalInfo().getModule(),
                     // info.isExternal(info) ? " " : "local",
                     info.isGlobal() ? "glb" : "lcl",
-                    info.generalInfo().getFile() == null ? "" : isExternal(info),
+                    info.generalInfo().getFile() == null ? "" : !info.isFromFile(this.file),
                     def.isPresent() ? "has def" : "No definition");
         }
         Pacioli.println("End table");

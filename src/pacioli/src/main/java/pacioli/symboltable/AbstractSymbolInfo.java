@@ -1,6 +1,7 @@
 package pacioli.symboltable;
 
 import pacioli.misc.Location;
+import pacioli.misc.PacioliFile;
 
 public abstract class AbstractSymbolInfo implements SymbolInfo {
 
@@ -28,5 +29,10 @@ public abstract class AbstractSymbolInfo implements SymbolInfo {
     @Override
     public Boolean isGlobal() {
         return general.isGlobal();
+    }
+
+    @Override
+    public boolean isFromFile(PacioliFile file) {
+        return generalInfo().getModule().equals(file.getModule());
     }
 }

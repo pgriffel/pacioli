@@ -127,7 +127,7 @@ public class Bundle {
     void load(Progam other, boolean includeToplevels) throws Exception {
         // See duplicate code in Progam
         other.values.allInfos().forEach(info -> {
-            if (!other.isExternal(info)) {
+            if (info.isFromFile(other.file)) {
                 Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s",
                         info.globalName());
                 if (valueTable.contains(info.globalName())) {
@@ -140,7 +140,7 @@ public class Bundle {
             }
         });
         other.typess.allInfos().forEach(info -> {
-            if (!other.isExternal(info)) {
+            if (info.isFromFile(other.file)) {
                 Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s",
                         info.globalName(), info.name());
                 if (typeTable.contains(info.globalName())) {

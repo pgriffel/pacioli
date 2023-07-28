@@ -822,11 +822,11 @@ conditions ::=
   ;
 
 condition ::=
-    typeid:id typeidlist:ts                           {: List<TypeNode> nodes= new ArrayList<>();
-                                                         for (TypeIdentifierNode typeid: ts) {
-                                                            nodes.add(typeid);
-                                                         }
-                                                         RESULT = new TypeApplicationNode(makeLoc(idxleft, tsxright), id, nodes); :}
+    typeid:id typelist:ts                           {: List<TypeNode> nodes= new ArrayList<>();
+                                                         //for (TypeIdentifierNode typeid: ts) {
+                                                          //  nodes.add(typeid);
+                                                        // }
+                                                         RESULT = new TypeApplicationNode(makeLoc(idxleft, tsxright), id, ts); :}
   ;
 
 vars ::= 
