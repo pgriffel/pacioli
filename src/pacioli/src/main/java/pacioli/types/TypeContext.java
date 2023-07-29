@@ -30,6 +30,8 @@ import java.util.Set;
 import pacioli.Pacioli;
 import pacioli.misc.AbstractPrintable;
 import pacioli.misc.Utils;
+import pacioli.types.ast.ContextNode;
+import pacioli.types.ast.TypeIdentifierNode;
 
 public class TypeContext extends AbstractPrintable {
 
@@ -171,5 +173,32 @@ public class TypeContext extends AbstractPrintable {
         } else {
             return "";
         }
+    }
+
+    public static TypeContext fromContextNodes(List<ContextNode> contextNodes) {
+        TypeContext context = new TypeContext();
+        for (ContextNode cn : contextNodes) {
+            for (TypeIdentifierNode id : cn.ids) {
+                switch (cn.kind) {
+                    case TYPE: {
+                        context.addTypeVar(id.getName());
+                        break;
+                    }
+                    case INDEX: {
+                        context.addIndexVar(id.getName());
+                        break;
+                    }
+                    case UNIT: {
+                        context.addUnitVar(id.getName());
+                        break;
+                    }
+                    case OP: {
+                        context.addOpVar(id.getName());
+                        break;
+                    }
+                }
+            }
+        }
+        return context;
     }
 }

@@ -46,30 +46,7 @@ public class SchemaNode extends AbstractTypeNode {
     }
 
     public TypeContext createContext() {
-        TypeContext context = new TypeContext();
-        for (ContextNode cn : contextNodes) {
-            for (TypeIdentifierNode id : cn.ids) {
-                switch (cn.kind) {
-                    case TYPE: {
-                        context.addTypeVar(id.getName());
-                        break;
-                    }
-                    case INDEX: {
-                        context.addIndexVar(id.getName());
-                        break;
-                    }
-                    case UNIT: {
-                        context.addUnitVar(id.getName());
-                        break;
-                    }
-                    case OP: {
-                        context.addOpVar(id.getName());
-                        break;
-                    }
-                }
-            }
-        }
-        return context;
+        return TypeContext.fromContextNodes(this.contextNodes);
     }
 
     @Override

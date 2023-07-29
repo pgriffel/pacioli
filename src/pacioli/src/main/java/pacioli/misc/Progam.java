@@ -47,9 +47,14 @@ import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorBaseInfo;
+import pacioli.types.FunctionType;
+import pacioli.types.TypeContext;
 import pacioli.types.TypeObject;
 import pacioli.types.Typing;
+import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.SchemaNode;
+import pacioli.types.ast.TypeApplicationNode;
+import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeNode;
 
 /**
@@ -332,6 +337,14 @@ public class Progam extends AbstractPrintable {
     // Resolving
     // -------------------------------------------------------------------------
 
+    /**
+     * Sets the info field on relevant AST nodes.
+     * 
+     * This operations modifies the AST.
+     * 
+     * @param symbolTable
+     * @throws Exception
+     */
     public void resolve(PacioliTable symbolTable) throws Exception {
 
         Pacioli.trace("Resolving %s", this.file.getModule());
@@ -407,11 +420,22 @@ public class Progam extends AbstractPrintable {
     // Rewriting classes
     // -------------------------------------------------------------------------
 
+    /**
+     * Desugars the type classes. Creates types and functions for the type class
+     * and instance definitions. These are added to the symbol table directly
+     * and not to the program's AST.
+     * 
+     * The program must have been resolved.
+     * 
+     * @param pacioliTable
+     * @throws Exception
+     */
     public void rewriteClasses(PacioliTable pacioliTable) throws Exception {
 
         Pacioli.trace("Rewriting classes in file %s", this.file.getModule());
 
         for (TypeSymbolInfo typeInfo : typess.allInfos()) {
+            // TODO from file is wrong
             if (typeInfo.isFromFile(this.file) && typeInfo instanceof ClassInfo classInfo) {
                 rewriteClass(classInfo);
             }
@@ -434,27 +458,36 @@ public class Progam extends AbstractPrintable {
 
         // Rewrite the class definition itself if it is from this program
         Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                "Rewriting class %s in file %s", classInfo.globalName(), this.file.getModule());
+                "Rewriting class %s in module %s", classInfo.globalName(), this.file.getModule());
 
         // Collect the type and a fresh argument id for each class member
         List<ExpressionNode> args = new ArrayList<>();
         List<String> argNames = new ArrayList<>();
+        List<TypeNode> memberTypes = new ArrayList<>();
         for (TypeAssertion member : classInfo.definition.members) {
-            Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                    "declare %s :: %s", member.id.getName(), member.type.pretty());
             IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(), classLocation);
             argNames.add(id.getName());
             args.add(id);
+            memberTypes.add(member.type);
         }
 
+        // Idem for inherited members
+        // TODO
+
         // Create class type definition
-        TypeDefinition TypeDefinition = new TypeDefinition(classLocation, null, null, null);
+        TypeContext typeContext = TypeContext.fromContextNodes(definition.contextNodes);
+        TypeNode lhs = definition.type;
+        TypeIdentifierNode tupleId = new TypeIdentifierNode(new Location(), "Tuple");
+        TypeNode rhs = new TypeApplicationNode(classLocation, tupleId, memberTypes);
+        TypeDefinition typeDefinition = new TypeDefinition(classLocation, typeContext, lhs, rhs);
+
+        // Create class constructor type declaration
+        FunctionTypeNode constructorType = new FunctionTypeNode(classLocation, rhs, definition.type);
+        Declaration constructorDeclaration = new Declaration(classLocation, classConstructorId, constructorType, true);
 
         // ParametricInfo parametricInfo = new ParametricInfo()
 
         // addInfo(parametricInfo);
-
-        // Create class constructor type declaration
 
         // Create class constructor
         LambdaNode constructor = new LambdaNode(
@@ -466,7 +499,7 @@ public class Progam extends AbstractPrintable {
                 classLocation,
                 classConstructorId,
                 constructor,
-                true);
+                false);
 
         ValueInfo constructorInfo = ValueInfo.builder()
                 .name(classConstructorId.getName())
@@ -478,16 +511,19 @@ public class Progam extends AbstractPrintable {
                 .definition(constructorDefinition)
                 .build();
 
+        Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nGenerated definitions for class %s:\n",
+                classInfo.name());
+        Pacioli.logIf(Pacioli.Options.showClassRewriting, "%s\n", typeDefinition.pretty());
+        Pacioli.logIf(Pacioli.Options.showClassRewriting, "%s\n", constructorDeclaration.pretty());
+        Pacioli.logIf(Pacioli.Options.showClassRewriting, "%s\n", constructorDefinition.pretty());
+
         addInfo(constructorInfo);
 
         // Rewrite all class instances if it is from this program
         for (InstanceInfo instanceInfo : classInfo.instances) {
-            if (instanceInfo.generalInfo().getModule().equals(this.file.getModule())) {
+            if (instanceInfo.isFromFile(this.file)) {
 
                 Location instanceLocation = instanceInfo.getLocation();
-
-                Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                        "Rewriting instance %s in file %s", instanceInfo.toString(), this.file.getModule());
 
                 // Create a declaration and definition. Both are a tuple with an element for
                 // each overloaded function instance
@@ -498,8 +534,6 @@ public class Progam extends AbstractPrintable {
 
                 // Create tuple
                 ApplicationNode tuple = new ApplicationNode(classConstructorId, bodies, instanceLocation);
-                Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                        "define %s = %s", instanceInfo.globalName(), tuple.pretty());
 
                 IdentifierNode instanceId = new IdentifierNode(instanceInfo.globalName(), instanceLocation);
 
@@ -518,6 +552,8 @@ public class Progam extends AbstractPrintable {
                         .isPublic(false)
                         .definition(vd)
                         .build();
+
+                Pacioli.logIf(Pacioli.Options.showClassRewriting, "%s\n", vd.pretty());
 
                 addInfo(info);
             }
