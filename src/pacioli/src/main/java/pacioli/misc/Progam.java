@@ -51,6 +51,7 @@ import pacioli.types.FunctionType;
 import pacioli.types.TypeContext;
 import pacioli.types.TypeObject;
 import pacioli.types.Typing;
+import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
@@ -454,6 +455,7 @@ public class Progam extends AbstractPrintable {
         ClassDefinition definition = classInfo.definition;
         Location classLocation = definition.getLocation();
         String classConstructorName = String.format("make_%s", classInfo.globalName());
+        String classTypeName = String.format("%sDictttt", definition.getName());
         IdentifierNode classConstructorId = new IdentifierNode(classConstructorName, classLocation);
 
         // Rewrite the class definition itself if it is from this program
@@ -476,14 +478,19 @@ public class Progam extends AbstractPrintable {
 
         // Create class type definition
         TypeContext typeContext = TypeContext.fromContextNodes(definition.contextNodes);
-        TypeNode lhs = definition.type;
+        ParametricInfo typeInfo = new ParametricInfo(classTypeName, this.file, true, classLocation);
+        TypeNode lhs = new TypeApplicationNode(definition.type.getLocation(),
+                new TypeIdentifierNode(classLocation, classTypeName, typeInfo),
+                definition.type.args); // definition.type;
         TypeIdentifierNode tupleId = new TypeIdentifierNode(new Location(), "Tuple");
         TypeNode rhs = new TypeApplicationNode(classLocation, tupleId, memberTypes);
         TypeDefinition typeDefinition = new TypeDefinition(classLocation, typeContext, lhs, rhs);
+        typeInfo.setDefinition(typeDefinition);
 
         // Create class constructor type declaration
-        FunctionTypeNode constructorType = new FunctionTypeNode(classLocation, rhs, definition.type);
-        Declaration constructorDeclaration = new Declaration(classLocation, classConstructorId, constructorType, true);
+        FunctionTypeNode constructorType = new FunctionTypeNode(classLocation, rhs, lhs);
+        SchemaNode consructorSchema = new SchemaNode(classLocation, definition.contextNodes, constructorType);
+        Declaration constructorDeclaration = new Declaration(classLocation, classConstructorId, consructorSchema, true);
 
         // ParametricInfo parametricInfo = new ParametricInfo()
 
@@ -509,6 +516,7 @@ public class Progam extends AbstractPrintable {
                 .location(classInfo.getLocation())
                 .isPublic(false)
                 .definition(constructorDefinition)
+                .declaredType(consructorSchema)
                 .build();
 
         Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nGenerated definitions for class %s:\n",
@@ -518,6 +526,7 @@ public class Progam extends AbstractPrintable {
         Pacioli.logIf(Pacioli.Options.showClassRewriting, "%s\n", constructorDefinition.pretty());
 
         addInfo(constructorInfo);
+        addInfo(typeInfo);
 
         // Rewrite all class instances if it is from this program
         for (InstanceInfo instanceInfo : classInfo.instances) {
@@ -533,7 +542,15 @@ public class Progam extends AbstractPrintable {
                 }
 
                 // Create tuple
+
                 ApplicationNode tuple = new ApplicationNode(classConstructorId, bodies, instanceLocation);
+                List<String> arg = new ArrayList<>();
+                for (ContextNode yo : instanceInfo.definition.contextNodes) {
+                    for (TypeApplicationNode condition : yo.conditions) {
+                        arg.add(condition.getName());
+                    }
+                }
+                LambdaNode instanceBody = new LambdaNode(arg, tuple, instanceInfo.getLocation());
 
                 IdentifierNode instanceId = new IdentifierNode(instanceInfo.globalName(), instanceLocation);
 
@@ -541,7 +558,7 @@ public class Progam extends AbstractPrintable {
                 ValueDefinition vd = new ValueDefinition(
                         instanceInfo.getLocation(),
                         instanceId,
-                        tuple,
+                        instanceBody,
                         false);
                 ValueInfo info = ValueInfo.builder()
                         .name(instanceInfo.globalName())
@@ -630,7 +647,7 @@ public class Progam extends AbstractPrintable {
             if (info.isFromFile(this.file) && declared.isPresent() && info.inferredType.isPresent()) {
 
                 TypeObject declaredType = declared.get().evalType().instantiate()
-                        .reduce(i -> i.generalInfo().getModule().equals(this.file.getModule()));
+                        .reduce(i -> i.isFromFile(this.file));
                 TypeObject inferredType = info.inferredType().instantiate();
 
                 Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,

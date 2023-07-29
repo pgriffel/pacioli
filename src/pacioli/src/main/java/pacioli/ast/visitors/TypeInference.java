@@ -25,7 +25,6 @@ import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetNode.BindingNode;
-import pacioli.misc.Location;
 import pacioli.misc.PacioliException;
 import pacioli.misc.PacioliFile;
 import pacioli.ast.expression.LetTupleBindingNode;
@@ -64,7 +63,7 @@ public class TypeInference extends IdentityVisitor {
     }
 
     private ParametricInfo findInfo(String name) {
-        ParametricInfo type = defaultTypes.get(name);
+        ParametricInfo type = this.defaultTypes.get(name);
         if (type == null) {
             throw new RuntimeException("Unknown type: " + name);
         }
@@ -93,11 +92,11 @@ public class TypeInference extends IdentityVisitor {
 
     public Typing typingAccept(Node node) {
         node.accept(this);
-        return typingStack.pop();
+        return this.typingStack.pop();
     }
 
     private void returnNode(Typing value) {
-        typingStack.push(value);
+        this.typingStack.push(value);
     }
 
     private void na() {
@@ -310,7 +309,7 @@ public class TypeInference extends IdentityVisitor {
             if (node.getInfo().getDeclaredType().isPresent()) {
                 returnNode(new Typing(
                         node.getInfo().getDeclaredType().get().evalType().instantiate()
-                                .reduce(i -> i.generalInfo().getModule().equals(file.getModule()))));
+                                .reduce(i -> i.isFromFile(this.file))));
             } else {
                 returnNode(new Typing(node.getInfo().inferredType().instantiate()));
             }

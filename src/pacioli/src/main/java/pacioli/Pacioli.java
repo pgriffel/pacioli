@@ -355,7 +355,7 @@ public class Pacioli {
 
         try {
             Project.load(file, libs).printTypes(rewriteTypes, includePrivate, true);
-            Project.load(file, libs).printCode(rewriteTypes, includePrivate, true);
+            // Project.load(file, libs).printCode(rewriteTypes, includePrivate, true);
 
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
