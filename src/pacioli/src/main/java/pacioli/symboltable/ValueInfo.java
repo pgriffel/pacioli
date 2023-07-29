@@ -104,7 +104,7 @@ public class ValueInfo extends AbstractSymbolInfo {
             return inferredType.get();
         } else {
             throw new RuntimeException("No type info",
-                    new PacioliException(getLocation(), "no inferred or declared type"));
+                    new PacioliException(getLocation(), "no inferred or declared type for %s", name()));
         }
     }
 
