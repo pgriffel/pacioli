@@ -489,7 +489,8 @@ public class Progam extends AbstractPrintable {
 
         // Create class constructor type declaration
         FunctionTypeNode constructorType = new FunctionTypeNode(classLocation, rhs, lhs);
-        SchemaNode consructorSchema = new SchemaNode(classLocation, definition.contextNodes, constructorType);
+        SchemaNode consructorSchema = new SchemaNode(classLocation, definition.contextNodesWithoutConditions(),
+                constructorType);
         Declaration constructorDeclaration = new Declaration(classLocation, classConstructorId, consructorSchema, true);
 
         // ParametricInfo parametricInfo = new ParametricInfo()

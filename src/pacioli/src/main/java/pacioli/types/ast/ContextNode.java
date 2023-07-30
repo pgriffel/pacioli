@@ -1,5 +1,6 @@
 package pacioli.types.ast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.ast.Visitor;
@@ -22,5 +23,9 @@ public class ContextNode extends AbstractTypeNode {
     @Override
     public void accept(Visitor visitor) {
         visitor.accept(this);
+    }
+
+    public ContextNode withoutConditions() {
+        return new ContextNode(getLocation(), this.kind, this.ids, new ArrayList<>());
     }
 }

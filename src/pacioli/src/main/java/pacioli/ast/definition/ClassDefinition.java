@@ -69,7 +69,7 @@ public class ClassDefinition extends AbstractDefinition {
         // during resolving.
         for (TypeAssertion assertion : members) {
             List<ContextNode> combinedContextNodes = new ArrayList<>();
-            combinedContextNodes.addAll(this.contextNodes);
+            combinedContextNodes.addAll(this.contextNodesWithoutConditions());
             combinedContextNodes.addAll(assertion.contextNodes);
             this.memberSchemas.put(
                     assertion.id.getName(),
@@ -80,6 +80,11 @@ public class ClassDefinition extends AbstractDefinition {
     @Override
     public String getName() {
         return type.op.getName();
+    }
+
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
     }
 
     public List<String> memberNames() {
@@ -99,8 +104,11 @@ public class ClassDefinition extends AbstractDefinition {
         }
     }
 
-    @Override
-    public void accept(Visitor visitor) {
-        visitor.visit(this);
+    public List<ContextNode> contextNodesWithoutConditions() {
+        List<ContextNode> stripped = new ArrayList<>();
+        for (ContextNode node : this.contextNodes) {
+            stripped.add(node.withoutConditions());
+        }
+        return stripped;
     }
 }
