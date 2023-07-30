@@ -436,8 +436,7 @@ public class Progam extends AbstractPrintable {
         Pacioli.trace("Rewriting classes in file %s", this.file.getModule());
 
         for (TypeSymbolInfo typeInfo : typess.allInfos()) {
-            // TODO from file is wrong
-            if (typeInfo.isFromFile(this.file) && typeInfo instanceof ClassInfo classInfo) {
+            if (typeInfo instanceof ClassInfo classInfo) {
                 rewriteClass(classInfo);
             }
         }
@@ -451,83 +450,133 @@ public class Progam extends AbstractPrintable {
      */
     private void rewriteClass(ClassInfo classInfo) {
 
+        Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nRewriting class %s in module %s",
+                classInfo.globalName(), this.file.getModule());
+
         // Get some class properties
-        ClassDefinition definition = classInfo.definition;
-        Location classLocation = definition.getLocation();
+        ClassDefinition classDefinition = classInfo.definition;
+        Location classLocation = classDefinition.getLocation();
         String classConstructorName = String.format("make_%s", classInfo.globalName());
-        String classTypeName = String.format("%sDictttt", definition.getName());
+        String classTypeName = String.format("%sDictttt", classDefinition.getName());
         IdentifierNode classConstructorId = new IdentifierNode(classConstructorName, classLocation);
 
         // Rewrite the class definition itself if it is from this program
-        Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                "Rewriting class %s in module %s", classInfo.globalName(), this.file.getModule());
+        if (classInfo.isFromFile(this.file)) {
 
-        // Collect the type and a fresh argument id for each class member
-        List<ExpressionNode> args = new ArrayList<>();
-        List<String> argNames = new ArrayList<>();
-        List<TypeNode> memberTypes = new ArrayList<>();
-        for (TypeAssertion member : classInfo.definition.members) {
-            IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(), classLocation);
-            argNames.add(id.getName());
-            args.add(id);
-            memberTypes.add(member.type);
+            // Collect the type and a fresh argument id for each class member
+            List<ExpressionNode> args = new ArrayList<>();
+            List<String> argNames = new ArrayList<>();
+            List<TypeNode> memberTypes = new ArrayList<>();
+            for (TypeAssertion member : classInfo.definition.members) {
+                IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(), classLocation);
+                argNames.add(id.getName());
+                args.add(id);
+                memberTypes.add(member.type);
+            }
+
+            // Idem for inherited members
+            // TODO
+
+            // Create class type definition
+            TypeContext typeContext = TypeContext.fromContextNodes(classDefinition.contextNodes);
+            ParametricInfo typeInfo = new ParametricInfo(classTypeName, this.file, true, classLocation);
+            TypeNode lhs = new TypeApplicationNode(
+                    classDefinition.type.getLocation(),
+                    new TypeIdentifierNode(classLocation, classTypeName, typeInfo),
+                    classDefinition.type.args);
+            TypeIdentifierNode tupleId = new TypeIdentifierNode(new Location(), "Tuple");
+            TypeNode rhs = new TypeApplicationNode(classLocation, tupleId, memberTypes);
+            TypeDefinition typeDefinition = new TypeDefinition(classLocation, typeContext, lhs, rhs);
+            typeInfo.setDefinition(typeDefinition);
+
+            // Create class constructor type declaration
+            FunctionTypeNode constructorType = new FunctionTypeNode(classLocation, rhs, lhs);
+            SchemaNode consructorSchema = new SchemaNode(classLocation, classDefinition.contextNodesWithoutConditions(),
+                    constructorType);
+            Declaration constructorDeclaration = new Declaration(classLocation, classConstructorId, consructorSchema,
+                    true);
+
+            // Create class constructor
+            LambdaNode constructor = new LambdaNode(
+                    argNames,
+                    new ApplicationNode(new IdentifierNode("tuple", classLocation), args, classLocation),
+                    classLocation);
+            ValueDefinition constructorDefinition = new ValueDefinition(
+                    classLocation,
+                    classConstructorId,
+                    constructor,
+                    false);
+            ValueInfo constructorInfo = ValueInfo.builder()
+                    .name(classConstructorId.getName())
+                    .file(classInfo.file)
+                    .isGlobal(true)
+                    .isMonomorphic(false)
+                    .location(classInfo.getLocation())
+                    .isPublic(false)
+                    .definition(constructorDefinition)
+                    .declaredType(consructorSchema)
+                    .build();
+
+            Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nGenerated definitions for class %s:",
+                    classInfo.name());
+            Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", typeDefinition.pretty());
+            Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", constructorDeclaration.pretty());
+            Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", constructorDefinition.pretty());
+
+            addInfo(constructorInfo);
+            addInfo(typeInfo);
+
+            // Create a function for each member
+            for (TypeAssertion member : classInfo.definition.members) {
+
+                Location memberLocation = member.getLocation();
+
+                if (member.type instanceof FunctionTypeNode funType) {
+
+                    // Create a Declaration for the member
+                    IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(), classLocation);
+                    argNames.add(id.getName());
+                    args.add(id);
+                    memberTypes.add(member.type);
+
+                    FunctionTypeNode memberType = funType; // new FunctionTypeNode(memberLocation, rhs, lhs);
+                    SchemaNode memberSchema = new SchemaNode(
+                            memberLocation,
+                            classDefinition.contextNodesWithoutConditions(),
+                            memberType);
+                    Declaration memberDeclaration = new Declaration(
+                            memberLocation,
+                            member.id,
+                            memberSchema,
+                            true);
+
+                    // Create a ValueDefinition for the member
+                    LambdaNode genFun = new LambdaNode(
+                            argNames,
+                            new ApplicationNode(new IdentifierNode("tuple", classLocation), args,
+                                    classDefinition.getLocation()),
+                            memberLocation);
+                    ValueDefinition memberDefinition = new ValueDefinition(
+                            memberLocation,
+                            member.id,
+                            genFun,
+                            false);
+
+                    Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", memberDeclaration.pretty());
+                    Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", memberDefinition.pretty());
+
+                } else {
+                    throw new PacioliException(memberLocation, "Type %s of class %s member %s is not a function type",
+                            member.type.pretty(),
+                            classInfo.name(),
+                            member.id.getName());
+                }
+
+            }
         }
 
-        // Idem for inherited members
-        // TODO
-
-        // Create class type definition
-        TypeContext typeContext = TypeContext.fromContextNodes(definition.contextNodes);
-        ParametricInfo typeInfo = new ParametricInfo(classTypeName, this.file, true, classLocation);
-        TypeNode lhs = new TypeApplicationNode(definition.type.getLocation(),
-                new TypeIdentifierNode(classLocation, classTypeName, typeInfo),
-                definition.type.args); // definition.type;
-        TypeIdentifierNode tupleId = new TypeIdentifierNode(new Location(), "Tuple");
-        TypeNode rhs = new TypeApplicationNode(classLocation, tupleId, memberTypes);
-        TypeDefinition typeDefinition = new TypeDefinition(classLocation, typeContext, lhs, rhs);
-        typeInfo.setDefinition(typeDefinition);
-
-        // Create class constructor type declaration
-        FunctionTypeNode constructorType = new FunctionTypeNode(classLocation, rhs, lhs);
-        SchemaNode consructorSchema = new SchemaNode(classLocation, definition.contextNodesWithoutConditions(),
-                constructorType);
-        Declaration constructorDeclaration = new Declaration(classLocation, classConstructorId, consructorSchema, true);
-
-        // ParametricInfo parametricInfo = new ParametricInfo()
-
-        // addInfo(parametricInfo);
-
-        // Create class constructor
-        LambdaNode constructor = new LambdaNode(
-                argNames,
-                new ApplicationNode(new IdentifierNode("tuple", classLocation), args, definition.getLocation()),
-                definition.getLocation());
-
-        ValueDefinition constructorDefinition = new ValueDefinition(
-                classLocation,
-                classConstructorId,
-                constructor,
-                false);
-
-        ValueInfo constructorInfo = ValueInfo.builder()
-                .name(classConstructorId.getName())
-                .file(classInfo.file)
-                .isGlobal(true)
-                .isMonomorphic(false)
-                .location(classInfo.getLocation())
-                .isPublic(false)
-                .definition(constructorDefinition)
-                .declaredType(consructorSchema)
-                .build();
-
-        Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nGenerated definitions for class %s:\n",
+        Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nGenerated definitions for class %s instances:",
                 classInfo.name());
-        Pacioli.logIf(Pacioli.Options.showClassRewriting, "%s\n", typeDefinition.pretty());
-        Pacioli.logIf(Pacioli.Options.showClassRewriting, "%s\n", constructorDeclaration.pretty());
-        Pacioli.logIf(Pacioli.Options.showClassRewriting, "%s\n", constructorDefinition.pretty());
-
-        addInfo(constructorInfo);
-        addInfo(typeInfo);
 
         // Rewrite all class instances if it is from this program
         for (InstanceInfo instanceInfo : classInfo.instances) {
@@ -571,7 +620,7 @@ public class Progam extends AbstractPrintable {
                         .definition(vd)
                         .build();
 
-                Pacioli.logIf(Pacioli.Options.showClassRewriting, "%s\n", vd.pretty());
+                Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", vd.pretty());
 
                 addInfo(info);
             }
