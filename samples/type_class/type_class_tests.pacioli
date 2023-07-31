@@ -1,0 +1,40 @@
+import testing;
+import si;
+
+include type_class;
+
+# ------------------------------------------------------------------------------
+# Test suites
+# ------------------------------------------------------------------------------
+
+declare type_class_suites :: List(TestSuite);
+
+define type_class_suites = [
+   basic_suite
+];
+
+run_test_suites(type_class_suites); 
+
+# ------------------------------------------------------------------------------
+# basic_suite
+# ------------------------------------------------------------------------------
+
+define basic_suite = test_suite("Type class", [
+    
+   test("should work for scalars with _", () ->
+      not(gen_equal(1 + 1, 1))
+   ),
+      
+   test("should work for vectors with _", () ->
+      gen_equal(1 + 1, 2)
+   ),
+      
+   test("should work for transposed vectors with _", () ->
+      gen_equal("foo", "foo")
+   ),
+     
+   test("should work for transposed vectors with _", () ->
+      not(gen_equal("foo", "bar"))
+   )
+]);
+
