@@ -3,7 +3,6 @@ package pacioli.misc;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,7 +31,6 @@ import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
-import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.StringNode;
@@ -51,7 +49,6 @@ import pacioli.symboltable.TypeSymbolInfo;
 import pacioli.symboltable.UnitInfo;
 import pacioli.symboltable.ValueInfo;
 import pacioli.symboltable.VectorBaseInfo;
-import pacioli.types.FunctionType;
 import pacioli.types.TypeContext;
 import pacioli.types.TypeObject;
 import pacioli.types.Typing;
@@ -139,7 +136,7 @@ public class Progam extends AbstractPrintable {
 
         desugar();
         fillTables();
-        rewriteClasses(null);
+        rewriteClasses();
 
     }
 
@@ -176,69 +173,6 @@ public class Progam extends AbstractPrintable {
     // Filling symbol tables
     // -------------------------------------------------------------------------
 
-    /**
-     * Traverses all type class and type instance definitions and desugars them.
-     * 
-     * It only adds infos to the symbol table, the progam AST is not updated.
-     * 
-     * @throws Exception
-     */
-    private void fillTablesForClasses() throws Exception {
-
-        Pacioli.trace("Filling tables for %s", this.file.getModule());
-
-        Map<String, ClassInfo.Builder> classTable = new HashMap<>();
-
-        // First pass, don't add class instances and ...
-        for (Definition def : programNode.definitions) {
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
-                    file.getModule(), file.getFile());
-            if (def instanceof ClassDefinition d) {
-                ClassInfo.Builder classDef = ClassInfo.builder().file(file).definition(d);
-                classTable.put(def.getName(), classDef);
-            }
-        }
-
-        // Second pass, add class instances and ...
-        for (Definition def : programNode.definitions) {
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
-                    file.getModule(), file.getFile());
-            if (def instanceof InstanceDefinition inst) {
-                ClassInfo.Builder builder = classTable.get(def.getName());
-                if (builder == null) {
-                    throw new PacioliException(def.getLocation(), "No class found for instance %s", def.getName());
-                }
-                builder.instance(new InstanceInfo(inst, file, genclassInstanceName()));
-            }
-        }
-
-        for (ClassInfo.Builder builder : classTable.values()) {
-            ClassInfo info = builder.build();
-            // Pacioli.log("\n%s", info.definition.pretty());
-            // Pacioli.log("with %s instances", info.instances.size());
-            // for (InstanceDefinition def : info.instances) {
-            // Pacioli.log("\n%s", def.pretty());
-            // }
-            addInfo(info);
-            // for (String memberName : info.definition.memberNames()) {
-            // SchemaNode schema = info.definition.memberSchemaNode(memberName);
-            // ValueInfo valueInfo = ValueInfo.builder()
-            // .name(memberName)
-            // .file(this.file)
-            // .isGlobal(true)
-            // .isMonomorphic(false)
-            // .location(info.definition.getLocation())
-            // .isPublic(true)
-            // .typeClass(info)
-            // .declaredType(schema)
-            // .build();
-            // Pacioli.logIf(Pacioli.Options.showClassRewriting,
-            // "Found overloaded function %s :: %s", memberName, schema.pretty());
-            // addInfo(valueInfo);
-            // }
-        }
-    }
-
     private void fillTables() throws Exception {
 
         Pacioli.trace("Filling tables for %s", this.file.getModule());
@@ -246,10 +180,12 @@ public class Progam extends AbstractPrintable {
         Map<String, ClassInfo.Builder> classTable = new HashMap<>();
         Map<String, ValueInfo.Builder> valueTable = new HashMap<>();
 
-        // First pass, don't add class instances and ...
+        // First pass, don't do class instances and value definitions
         for (Definition def : programNode.definitions) {
+
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
                     file.getModule(), file.getFile());
+
             if (def instanceof ClassDefinition d) {
                 ClassInfo.Builder classDef = ClassInfo.builder().file(file).definition(d);
                 classTable.put(def.getName(), classDef);
@@ -307,7 +243,7 @@ public class Progam extends AbstractPrintable {
             }
         }
 
-        // Second pass, add class instances and ...
+        // Second pass, do class instances and value definitions.
         for (Definition def : programNode.definitions) {
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
                     file.getModule(), file.getFile());
@@ -328,7 +264,7 @@ public class Progam extends AbstractPrintable {
 
                 // This overwrites any properties set by the declaration or documentation above.
                 // This is desirable for the location. We prefer the definition location,
-                // otherwise we get the declaration or documentation location.
+                // otherwise we get the declaration or documentation location in messages.
                 builder
                         .definition(val)
                         .name(def.getName())
@@ -340,34 +276,11 @@ public class Progam extends AbstractPrintable {
         }
 
         for (ClassInfo.Builder builder : classTable.values()) {
-            ClassInfo info = builder.build();
-            // Pacioli.log("\n%s", info.definition.pretty());
-            // Pacioli.log("with %s instances", info.instances.size());
-            // for (InstanceDefinition def : info.instances) {
-            // Pacioli.log("\n%s", def.pretty());
-            // }
-            addInfo(info);
-            // for (String memberName : info.definition.memberNames()) {
-            // SchemaNode schema = info.definition.memberSchemaNode(memberName);
-            // ValueInfo valueInfo = ValueInfo.builder()
-            // .name(memberName)
-            // .file(this.file)
-            // .isGlobal(true)
-            // .isMonomorphic(false)
-            // .location(info.definition.getLocation())
-            // .isPublic(true)
-            // .typeClass(info)
-            // .declaredType(schema)
-            // .build();
-            // Pacioli.logIf(Pacioli.Options.showClassRewriting,
-            // "Found overloaded function %s :: %s", memberName, schema.pretty());
-            // addInfo(valueInfo);
-            // }
+            addInfo(builder.build());
         }
 
         for (ValueInfo.Builder builder : valueTable.values()) {
-            ValueInfo info = builder.build();
-            addInfo(info);
+            addInfo(builder.build());
         }
     }
 
@@ -500,7 +413,7 @@ public class Progam extends AbstractPrintable {
      * @param pacioliTable
      * @throws Exception
      */
-    public void rewriteClasses(PacioliTable pacioliTable) throws Exception {
+    public void rewriteClasses() throws Exception {
 
         Pacioli.trace("Rewriting classes in file %s", this.file.getModule());
 
