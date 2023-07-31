@@ -3,6 +3,7 @@ package pacioli.misc;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +32,9 @@ import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
+import pacioli.ast.expression.LetBindingNode;
+import pacioli.ast.expression.LetNode;
+import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.visitors.TransformConversions;
 import pacioli.parser.Parser;
@@ -135,6 +139,8 @@ public class Progam extends AbstractPrintable {
 
         desugar();
         fillTables();
+        rewriteClasses(null);
+
     }
 
     public void loadRest(PacioliTable environment) throws Exception {
@@ -143,7 +149,6 @@ public class Progam extends AbstractPrintable {
         // definitions, but produces non resolved definitions.
         resolve(environment);
         liftStatements(environment);
-        rewriteClasses(environment);
         resolve(environment);
         transformConversions();
         inferTypes(environment);
@@ -170,6 +175,69 @@ public class Progam extends AbstractPrintable {
     // -------------------------------------------------------------------------
     // Filling symbol tables
     // -------------------------------------------------------------------------
+
+    /**
+     * Traverses all type class and type instance definitions and desugars them.
+     * 
+     * It only adds infos to the symbol table, the progam AST is not updated.
+     * 
+     * @throws Exception
+     */
+    private void fillTablesForClasses() throws Exception {
+
+        Pacioli.trace("Filling tables for %s", this.file.getModule());
+
+        Map<String, ClassInfo.Builder> classTable = new HashMap<>();
+
+        // First pass, don't add class instances and ...
+        for (Definition def : programNode.definitions) {
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
+                    file.getModule(), file.getFile());
+            if (def instanceof ClassDefinition d) {
+                ClassInfo.Builder classDef = ClassInfo.builder().file(file).definition(d);
+                classTable.put(def.getName(), classDef);
+            }
+        }
+
+        // Second pass, add class instances and ...
+        for (Definition def : programNode.definitions) {
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
+                    file.getModule(), file.getFile());
+            if (def instanceof InstanceDefinition inst) {
+                ClassInfo.Builder builder = classTable.get(def.getName());
+                if (builder == null) {
+                    throw new PacioliException(def.getLocation(), "No class found for instance %s", def.getName());
+                }
+                builder.instance(new InstanceInfo(inst, file, genclassInstanceName()));
+            }
+        }
+
+        for (ClassInfo.Builder builder : classTable.values()) {
+            ClassInfo info = builder.build();
+            // Pacioli.log("\n%s", info.definition.pretty());
+            // Pacioli.log("with %s instances", info.instances.size());
+            // for (InstanceDefinition def : info.instances) {
+            // Pacioli.log("\n%s", def.pretty());
+            // }
+            addInfo(info);
+            // for (String memberName : info.definition.memberNames()) {
+            // SchemaNode schema = info.definition.memberSchemaNode(memberName);
+            // ValueInfo valueInfo = ValueInfo.builder()
+            // .name(memberName)
+            // .file(this.file)
+            // .isGlobal(true)
+            // .isMonomorphic(false)
+            // .location(info.definition.getLocation())
+            // .isPublic(true)
+            // .typeClass(info)
+            // .declaredType(schema)
+            // .build();
+            // Pacioli.logIf(Pacioli.Options.showClassRewriting,
+            // "Found overloaded function %s :: %s", memberName, schema.pretty());
+            // addInfo(valueInfo);
+            // }
+        }
+    }
 
     private void fillTables() throws Exception {
 
@@ -279,22 +347,22 @@ public class Progam extends AbstractPrintable {
             // Pacioli.log("\n%s", def.pretty());
             // }
             addInfo(info);
-            for (String memberName : info.definition.memberNames()) {
-                SchemaNode schema = info.definition.memberSchemaNode(memberName);
-                ValueInfo valueInfo = ValueInfo.builder()
-                        .name(memberName)
-                        .file(this.file)
-                        .isGlobal(true)
-                        .isMonomorphic(false)
-                        .location(info.definition.getLocation())
-                        .isPublic(true)
-                        .typeClass(info)
-                        .declaredType(schema)
-                        .build();
-                Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                        "Found overloaded function %s :: %s", memberName, schema.pretty());
-                addInfo(valueInfo);
-            }
+            // for (String memberName : info.definition.memberNames()) {
+            // SchemaNode schema = info.definition.memberSchemaNode(memberName);
+            // ValueInfo valueInfo = ValueInfo.builder()
+            // .name(memberName)
+            // .file(this.file)
+            // .isGlobal(true)
+            // .isMonomorphic(false)
+            // .location(info.definition.getLocation())
+            // .isPublic(true)
+            // .typeClass(info)
+            // .declaredType(schema)
+            // .build();
+            // Pacioli.logIf(Pacioli.Options.showClassRewriting,
+            // "Found overloaded function %s :: %s", memberName, schema.pretty());
+            // addInfo(valueInfo);
+            // }
         }
 
         for (ValueInfo.Builder builder : valueTable.values()) {
@@ -324,7 +392,8 @@ public class Progam extends AbstractPrintable {
     private void addInfo(ValueInfo info) throws PacioliException {
         String name = info.name();
         if (values.contains(name)) {
-            throw new PacioliException(info.getLocation(), "Duplicate name: " + name);
+            throw new PacioliException(info.getLocation(),
+                    "Duplicate name: " + name + values.lookup(name).getLocation().description());
         } else {
             values.put(name, info);
         }
@@ -511,7 +580,7 @@ public class Progam extends AbstractPrintable {
                     .file(classInfo.file)
                     .isGlobal(true)
                     .isMonomorphic(false)
-                    .location(classInfo.getLocation())
+                    .location(classLocation)
                     .isPublic(false)
                     .definition(constructorDefinition)
                     .declaredType(consructorSchema)
@@ -526,20 +595,36 @@ public class Progam extends AbstractPrintable {
             addInfo(constructorInfo);
             addInfo(typeInfo);
 
+            int counter = 0;
+
             // Create a function for each member
             for (TypeAssertion member : classInfo.definition.members) {
 
                 Location memberLocation = member.getLocation();
 
-                if (member.type instanceof FunctionTypeNode funType) {
+                if (member.type instanceof FunctionTypeNode funType &&
+                        funType.domain instanceof TypeApplicationNode domain &&
+                        domain.op.getName().equals("Tuple")) {
 
                     // Create a Declaration for the member
-                    IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(), classLocation);
-                    argNames.add(id.getName());
-                    args.add(id);
-                    memberTypes.add(member.type);
+                    // IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(),
+                    // classLocation);
 
-                    FunctionTypeNode memberType = funType; // new FunctionTypeNode(memberLocation, rhs, lhs);
+                    List<ExpressionNode> memberArgNames = new ArrayList<>();
+                    List<String> memberDictAndArgNames = new ArrayList<>();
+                    String dictVar = SymbolTable.freshVarName();
+                    memberDictAndArgNames.add(dictVar);
+                    for (TypeNode arg : domain.args) {
+                        String freshName = SymbolTable.freshVarName();
+                        memberArgNames.add(new IdentifierNode(freshName, memberLocation));
+                        memberDictAndArgNames.add(freshName);
+                    }
+
+                    List<TypeNode> typeArgs = new ArrayList<>();
+                    typeArgs.add(lhs);
+                    typeArgs.addAll(domain.args);
+                    TypeApplicationNode dom = new TypeApplicationNode(domain.getLocation(), domain.op, typeArgs);
+                    FunctionTypeNode memberType = new FunctionTypeNode(memberLocation, dom, funType.range);
                     SchemaNode memberSchema = new SchemaNode(
                             memberLocation,
                             classDefinition.contextNodesWithoutConditions(),
@@ -551,19 +636,43 @@ public class Progam extends AbstractPrintable {
                             true);
 
                     // Create a ValueDefinition for the member
+                    // ExpressionNode fun = new LambdaNode(args, r, r.getLocation());
+                    // RESULT = new ApplicationNode(
+                    // new IdentifierNode("apply",
+                    // e.getLocation()),
+                    // Arrays.asList(fun, e), loc);
+
                     LambdaNode genFun = new LambdaNode(
-                            argNames,
-                            new ApplicationNode(new IdentifierNode("tuple", classLocation), args,
-                                    classDefinition.getLocation()),
+                            memberDictAndArgNames,
+                            new LetNode(
+                                    List.of(new LetTupleBindingNode(memberLocation, argNames,
+                                            new IdentifierNode(dictVar, memberLocation))),
+                                    new ApplicationNode(new IdentifierNode(argNames.get(counter), memberLocation),
+                                            memberArgNames,
+                                            memberLocation),
+                                    memberLocation),
                             memberLocation);
                     ValueDefinition memberDefinition = new ValueDefinition(
                             memberLocation,
                             member.id,
-                            genFun,
+                            (ExpressionNode) genFun.desugar(),
                             false);
+                    ValueInfo memberInfo = ValueInfo.builder()
+                            .name(member.id.getName())
+                            .file(classInfo.file)
+                            .isGlobal(true)
+                            .isMonomorphic(false)
+                            .location(classLocation)
+                            .isPublic(true)
+                            .definition(memberDefinition)
+                            .declaredType(memberSchema)
+                            .build();
 
                     Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", memberDeclaration.pretty());
                     Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", memberDefinition.pretty());
+
+                    addInfo(memberInfo);
+                    counter++;
 
                 } else {
                     throw new PacioliException(memberLocation, "Type %s of class %s member %s is not a function type",
