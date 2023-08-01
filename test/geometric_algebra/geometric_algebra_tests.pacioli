@@ -19,7 +19,7 @@ run_test_suites(geometric_algebra_suites);
 # Convenience utilities
 # ------------------------------------------------------------------------------
 
-declare mv :: (String) -> MultiVector(metre, Geom3!);
+declare mv :: (String) -> MultiVector(1, 1, Geom3!);
 
 define mv(input) = parse_mv(input);
 
