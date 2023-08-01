@@ -22,19 +22,19 @@ run_test_suites(type_class_suites);
 define basic_suite = test_suite("Type class", [
     
    test("should work for scalars with _", () ->
-      not(gen_equal(1 + 1, 1))
+      not(is_equal(1 + 1, 1))
    ),
       
    test("should work for vectors with _", () ->
-      gen_equal(1 + 1, 2)
+      is_equal(1 + 1, 2)
    ),
       
    test("should work for transposed vectors with _", () ->
-      gen_equal("foo", "foo")
+      is_equal("foo", "foo")
    ),
      
    test("should work for transposed vectors with _", () ->
-      not(gen_equal("foo", "bar"))
+      not(is_equal("foo", "bar"))
    )
 ]);
 
