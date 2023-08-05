@@ -31,6 +31,7 @@ import pacioli.misc.CompilationSettings.Target;
 import pacioli.symboltable.ClassInfo;
 import pacioli.symboltable.GeneralInfo;
 import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;
@@ -124,31 +125,29 @@ public class Bundle {
         return new Bundle(file, libs);
     }
 
-    void load(Progam other, boolean includeToplevels) throws Exception {
+    void load(PacioliTable other, boolean includeToplevels) throws Exception {
         // See duplicate code in Progam
-        other.values.allInfos().forEach(info -> {
-            if (info.isFromFile(other.file)) {
-                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s",
-                        info.globalName());
-                if (valueTable.contains(info.globalName())) {
-                    throw new PacioliException(info.getLocation(), "Duplicate name: %s, %s %s",
-                            info.globalName(),
-                            valueTable.lookup(info.globalName()).getLocation().equals(info.getLocation()),
-                            valueTable.lookup(info.globalName()).getLocation().description());
-                }
-                valueTable.put(info.globalName(), info);
+        other.values.localInfos().forEach(info -> {
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s",
+                    info.globalName());
+            if (valueTable.contains(info.globalName())) {
+                throw new PacioliException(info.getLocation(), "Duplicate name: %s, %s %s",
+                        info.globalName(),
+                        valueTable.lookup(info.globalName()).getLocation().equals(info.getLocation()),
+                        valueTable.lookup(info.globalName()).getLocation().description());
             }
+            valueTable.put(info.globalName(), info);
+
         });
-        other.typess.allInfos().forEach(info -> {
-            if (info.isFromFile(other.file)) {
-                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s",
-                        info.globalName(), info.name());
-                if (typeTable.contains(info.globalName())) {
-                    throw new PacioliException(info.getLocation(), "Duplicate name: %s %s", info.globalName(),
-                            typeTable.lookup(info.globalName()).getLocation().description());
-                }
-                typeTable.put(info.globalName(), info);
+        other.types.localInfos().forEach(info -> {
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s",
+                    info.globalName(), info.name());
+            if (typeTable.contains(info.globalName())) {
+                throw new PacioliException(info.getLocation(), "Duplicate name: %s %s", info.globalName(),
+                        typeTable.lookup(info.globalName()).getLocation().description());
             }
+            typeTable.put(info.globalName(), info);
+
         });
         if (includeToplevels) {
             other.toplevels.forEach(topLevel -> {

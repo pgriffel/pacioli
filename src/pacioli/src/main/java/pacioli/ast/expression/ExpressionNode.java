@@ -27,21 +27,22 @@ import java.util.Set;
 import pacioli.ast.Node;
 import pacioli.ast.visitors.AssignedVariablesVisitor;
 import pacioli.ast.visitors.TypeInference;
-import pacioli.misc.Progam;
+import pacioli.misc.PacioliFile;
+import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.ParametricInfo;
 import pacioli.types.Typing;
 
 public interface ExpressionNode extends Node {
 
-    default public Typing inferTyping(Progam prog) {
+    default public Typing inferTyping(PacioliTable prog, PacioliFile file) {
         HashMap<String, ParametricInfo> defaultTypes = new HashMap<String, ParametricInfo>();
 
-        defaultTypes.put("Void", (ParametricInfo) prog.typess.lookup("Void"));
-        defaultTypes.put("Tuple", (ParametricInfo) prog.typess.lookup("Tuple"));
-        defaultTypes.put("String", (ParametricInfo) prog.typess.lookup("String"));
-        defaultTypes.put("Boole", (ParametricInfo) prog.typess.lookup("Boole"));
+        defaultTypes.put("Void", (ParametricInfo) prog.types.lookup("Void"));
+        defaultTypes.put("Tuple", (ParametricInfo) prog.types.lookup("Tuple"));
+        defaultTypes.put("String", (ParametricInfo) prog.types.lookup("String"));
+        defaultTypes.put("Boole", (ParametricInfo) prog.types.lookup("Boole"));
 
-        TypeInference visitor = new TypeInference(defaultTypes, prog.file);
+        TypeInference visitor = new TypeInference(defaultTypes, file);
         return visitor.typingAccept(this);
     }
 

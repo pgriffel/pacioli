@@ -15,6 +15,7 @@ import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliException;
+import pacioli.misc.PacioliFile;
 import pacioli.misc.Progam;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.ValueInfo;
@@ -37,12 +38,15 @@ import pacioli.symboltable.ValueInfo;
  */
 public class LiftStatements extends IdentityTransformation {
 
-    final private Progam program;
-    final private PacioliTable pacioliTable;
+    // final private Progam program;
+    final private PacioliFile file;
+    final private PacioliTable program;
+    final private PacioliTable environment;
 
-    public LiftStatements(Progam progam, PacioliTable pacioliTable) {
-        this.program = progam;
-        this.pacioliTable = pacioliTable;
+    public LiftStatements(PacioliFile file, PacioliTable program, PacioliTable env) {
+        this.file = file;
+        this.program = program;
+        this.environment = env;
     }
 
     // Assumes resolved, does not produce result version:
@@ -59,7 +63,7 @@ public class LiftStatements extends IdentityTransformation {
         // Pacioli.logln("RESOLVING IN LIFTS:\n%s", rec.pretty());
 
         // TODO:
-        rec.resolve(program.file, pacioliTable);
+        rec.resolve(this.file, this.environment);
 
         // // Determine the used local ids
         // Set<SymbolInfo> uses = new HashSet<SymbolInfo>();
@@ -103,7 +107,7 @@ public class LiftStatements extends IdentityTransformation {
         try {
             ValueInfo info = ValueInfo.builder()
                     .name(vd.getName())
-                    .file(program.file)
+                    .file(this.file)
                     .isGlobal(true)
                     .isMonomorphic(false)
                     .location(nodeLocation)

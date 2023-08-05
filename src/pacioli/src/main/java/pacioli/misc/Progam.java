@@ -75,12 +75,13 @@ public class Progam extends AbstractPrintable {
     public final PacioliFile file;
 
     // Added as first step of loading
-    ProgramNode programNode;
+    // ProgramNode programNode;
 
     // Fill during loading
-    public SymbolTable<TypeSymbolInfo> typess = new SymbolTable<TypeSymbolInfo>();
-    public SymbolTable<ValueInfo> values = new SymbolTable<ValueInfo>();
-    public List<Toplevel> toplevels = new ArrayList<Toplevel>();
+    // public SymbolTable<TypeSymbolInfo> typess = new
+    // SymbolTable<TypeSymbolInfo>();
+    // public SymbolTable<ValueInfo> values = new SymbolTable<ValueInfo>();
+    // public List<Toplevel> toplevels = new ArrayList<Toplevel>();
 
     private static int classInstanceCounter = 0;
 
@@ -92,15 +93,9 @@ public class Progam extends AbstractPrintable {
     // Constructors
     // -------------------------------------------------------------------------
 
-    private Progam(PacioliFile file) {
+    public Progam(PacioliFile file) {
         assert (file != null);
         this.file = file;
-    }
-
-    public static Progam load(PacioliFile file) throws Exception {
-        Progam program = new Progam(file);
-        program.loadTill();
-        return program;
     }
 
     // -------------------------------------------------------------------------
@@ -123,59 +118,71 @@ public class Progam extends AbstractPrintable {
     // Loading
     // -------------------------------------------------------------------------
 
+    public static PacioliTable load(PacioliFile file) throws Exception {
+        Progam program = new Progam(file);
+        return program.loadTill();
+    }
+
     /**
      * Loads the program from file.
      * 
+     * @return
+     * 
      * @throws Exception
      */
-    private void loadTill() throws Exception {
+    private PacioliTable loadTill() throws Exception {
 
         Pacioli.logIf(Pacioli.Options.showFileLoads, "Loading file %s", this.file.getFile());
 
-        programNode = Parser.parseFile(this.file.getFile());
+        ProgramNode programNode = Parser.parseFile(this.file.getFile());
 
-        desugar();
-        fillTables();
-        rewriteClasses();
+        programNode = desugar(programNode);
+        PacioliTable env = fillTables(programNode);
+        rewriteClasses(env);
+
+        return env;
 
     }
 
-    public void loadRest(PacioliTable environment) throws Exception {
+    public void loadRest(PacioliTable prog, PacioliTable environment) throws Exception {
 
         // Note that method liftValueInfoStatements requires resolved
         // definitions, but produces non resolved definitions.
-        resolve(environment);
-        liftStatements(environment);
-        resolve(environment);
-        transformConversions();
-        inferTypes(environment);
-        rewriteOverloads(environment);
+        resolve(prog, environment);
+        liftStatements(prog, environment);
+        resolve(prog, environment); // hier env.parent ?
+        transformConversions(prog);
+        inferTypes(prog, environment);
+        // rewriteOverloads(environment);
     }
 
     // -------------------------------------------------------------------------
     // Desugaring
     // -------------------------------------------------------------------------
 
-    public void desugar() throws PacioliException {
+    public ProgramNode desugar(ProgramNode programNode) throws PacioliException {
         Pacioli.trace("Desugaring %s", this.file.getModule());
-        programNode = (ProgramNode) programNode.desugar();
+        return (ProgramNode) programNode.desugar();
     }
     // -------------------------------------------------------------------------
     // Rewriting overloads
     // -------------------------------------------------------------------------
 
-    public void rewriteOverloads(PacioliTable symbolTable) throws PacioliException {
-        Pacioli.trace("Rewriting overloads for file %s", this.file.getModule());
-        programNode.rewriteOverloads();
-    }
+    // public void rewriteOverloads(PacioliTable symbolTable) throws
+    // PacioliException {
+    // Pacioli.trace("Rewriting overloads for file %s", this.file.getModule());
+    // programNode.rewriteOverloads();
+    // }
 
     // -------------------------------------------------------------------------
     // Filling symbol tables
     // -------------------------------------------------------------------------
 
-    private void fillTables() throws Exception {
+    private PacioliTable fillTables(ProgramNode programNode) throws Exception {
 
         Pacioli.trace("Filling tables for %s", this.file.getModule());
+
+        PacioliTable env = PacioliTable.initial();
 
         Map<String, ClassInfo.Builder> classTable = new HashMap<>();
         Map<String, ValueInfo.Builder> valueTable = new HashMap<>();
@@ -192,28 +199,28 @@ public class Progam extends AbstractPrintable {
             } else if (def instanceof AliasDefinition alias) {
                 AliasInfo info = new AliasInfo(def.getName(), file, def.getLocation());
                 info.definition = alias;
-                addInfo(info);
+                env.addInfo(info);
             } else if (def instanceof IndexSetDefinition indexSet) {
                 IndexSetInfo info = new IndexSetInfo(def.getName(), file, true, def.getLocation());
                 info.setDefinition(indexSet);
-                addInfo(info);
+                env.addInfo(info);
             } else if (def instanceof Toplevel top) {
-                addToplevel(top);
+                env.addToplevel(top);
             } else if (def instanceof TypeDefinition typeDef) {
                 ParametricInfo info = new ParametricInfo(def.getName(), file, true, def.getLocation());
                 info.typeAST = typeDef.rhs;
                 info.setDefinition(typeDef);
-                addInfo(info);
+                env.addInfo(info);
             } else if (def instanceof UnitDefinition unitDef) {
                 ScalarBaseInfo info = new ScalarBaseInfo(def.getName(), file, true, def.getLocation());
                 info.setDefinition(unitDef);
                 info.symbol = unitDef.symbol;
-                addInfo(info);
+                env.addInfo(info);
             } else if (def instanceof UnitVectorDefinition vecDef) {
                 VectorBaseInfo info = new VectorBaseInfo(def.getName(), file, true, def.getLocation());
                 info.setDefinition(vecDef);
                 info.setItems(vecDef.items);
-                addInfo(info);
+                env.addInfo(info);
             } else if (def instanceof Declaration decl) {
                 ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable, def.getName());
                 if (builder.declaredType != null) {
@@ -276,12 +283,14 @@ public class Progam extends AbstractPrintable {
         }
 
         for (ClassInfo.Builder builder : classTable.values()) {
-            addInfo(builder.build());
+            env.addInfo(builder.build());
         }
 
         for (ValueInfo.Builder builder : valueTable.values()) {
-            addInfo(builder.build());
+            env.addInfo(builder.build());
         }
+
+        return env;
     }
 
     private ValueInfo.Builder ensureValueInfoBuilder(Map<String, ValueInfo.Builder> valueTable, String name) {
@@ -293,28 +302,29 @@ public class Progam extends AbstractPrintable {
         return builder;
     }
 
-    private void addInfo(TypeSymbolInfo info) throws PacioliException {
-        String name = info.name();
-        if (typess.contains(name)) {
-            throw new PacioliException(info.getLocation(), "Duplicate type set name: " + name);
-        } else {
-            typess.put(name, info);
-        }
-    }
+    // private void addInfo(TypeSymbolInfo info) throws PacioliException {
+    // String name = info.name();
+    // if (typess.contains(name)) {
+    // throw new PacioliException(info.getLocation(), "Duplicate type set name: " +
+    // name);
+    // } else {
+    // typess.put(name, info);
+    // }
+    // }
 
-    private void addInfo(ValueInfo info) throws PacioliException {
-        String name = info.name();
-        if (values.contains(name)) {
-            throw new PacioliException(info.getLocation(),
-                    "Duplicate name: " + name + values.lookup(name).getLocation().description());
-        } else {
-            values.put(name, info);
-        }
-    }
+    // private void addInfo(ValueInfo info) throws PacioliException {
+    // String name = info.name();
+    // if (values.contains(name)) {
+    // throw new PacioliException(info.getLocation(),
+    // "Duplicate name: " + name + values.lookup(name).getLocation().description());
+    // } else {
+    // values.put(name, info);
+    // }
+    // }
 
-    private void addToplevel(Toplevel toplevel) {
-        toplevels.add(toplevel);
-    }
+    // private void addToplevel(Toplevel toplevel) {
+    // toplevels.add(toplevel);
+    // }
 
     // -------------------------------------------------------------------------
     // Resolving
@@ -328,22 +338,29 @@ public class Progam extends AbstractPrintable {
      * @param symbolTable
      * @throws Exception
      */
-    public void resolve(PacioliTable symbolTable) throws Exception {
+    public void resolve(PacioliTable prog, PacioliTable symbolTable) throws Exception {
 
         Pacioli.trace("Resolving %s", this.file.getModule());
 
-        if (values.parent != null) {
-            throw new RuntimeException(String.format("Expected null parent in %s", this.file));
-        }
-        if (typess.parent != null) {
-            throw new RuntimeException(String.format("Expected null parent in %s", this.file));
-        }
+        // if (values.parent != null) {
+        // throw new RuntimeException(String.format("Expected null parent in %s",
+        // this.file));
+        // }
+        // if (typess.parent != null) {
+        // throw new RuntimeException(String.format("Expected null parent in %s",
+        // this.file));
+        // }
 
-        values.parent = symbolTable.values();
-        typess.parent = symbolTable.types();
+        // freshTable.values.parent = symbolTable.values();
+        // freshTable.typess.parent = symbolTable.types();
 
-        PacioliTable env = new PacioliTable(values, typess);
-        List<TypeSymbolInfo> localTypeInfos = typess.allInfos(info -> info.isFromFile(this.file));
+        // PacioliTable env = new PacioliTable(values, typess);
+
+        PacioliTable env = prog; // .pushNew();
+
+        env.setParent(symbolTable);
+
+        List<TypeSymbolInfo> localTypeInfos = env.types.allInfos(info -> info.isFromFile(this.file));
 
         for (TypeSymbolInfo nfo : localTypeInfos) {
             if (nfo instanceof IndexSetInfo && nfo.getDefinition().isPresent()) {
@@ -379,7 +396,7 @@ public class Progam extends AbstractPrintable {
             }
         }
 
-        for (ValueInfo nfo : values.allInfos(info -> info.isFromFile(this.file))) {
+        for (ValueInfo nfo : env.values.allInfos(info -> info.isFromFile(this.file))) {
             if (nfo.getDefinition().isPresent()) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving value or function %s",
                         nfo.globalName());
@@ -391,12 +408,13 @@ public class Progam extends AbstractPrintable {
             }
 
         }
-        for (Toplevel definition : toplevels) {
+        for (Toplevel definition : prog.toplevels) {
             Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving toplevel %s", definition.getName());
             definition.resolve(this.file, env);
         }
-        values.parent = null;
-        typess.parent = null;
+        // values.parent = null;
+        // typess.parent = null;
+        env.popParent();
     }
 
     // -------------------------------------------------------------------------
@@ -413,11 +431,11 @@ public class Progam extends AbstractPrintable {
      * @param pacioliTable
      * @throws Exception
      */
-    public void rewriteClasses() throws Exception {
+    public void rewriteClasses(PacioliTable env) throws Exception {
 
         Pacioli.trace("Rewriting classes in file %s", this.file.getModule());
 
-        for (TypeSymbolInfo typeInfo : typess.allInfos()) {
+        for (TypeSymbolInfo typeInfo : env.types.allInfos()) {
             if (typeInfo instanceof ClassInfo classInfo) {
                 rewriteClass(classInfo);
             }
@@ -430,10 +448,12 @@ public class Progam extends AbstractPrintable {
      * 
      * @param classInfo
      */
-    private void rewriteClass(ClassInfo classInfo) {
+    private PacioliTable rewriteClass(ClassInfo classInfo) {
 
         Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nRewriting class %s in module %s",
                 classInfo.globalName(), this.file.getModule());
+
+        PacioliTable env = PacioliTable.initial();
 
         // Get some class properties
         ClassDefinition classDefinition = classInfo.definition;
@@ -505,8 +525,8 @@ public class Progam extends AbstractPrintable {
             Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", constructorDeclaration.pretty());
             Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", constructorDefinition.pretty());
 
-            addInfo(constructorInfo);
-            addInfo(typeInfo);
+            env.addInfo(constructorInfo);
+            env.addInfo(typeInfo);
 
             int counter = 0;
 
@@ -584,7 +604,7 @@ public class Progam extends AbstractPrintable {
                     Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", memberDeclaration.pretty());
                     Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", memberDefinition.pretty());
 
-                    addInfo(memberInfo);
+                    env.addInfo(memberInfo);
                     counter++;
 
                 } else {
@@ -644,23 +664,25 @@ public class Progam extends AbstractPrintable {
 
                 Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", vd.pretty());
 
-                addInfo(info);
+                env.addInfo(info);
             }
         }
+
+        return env;
     }
 
     // -------------------------------------------------------------------------
     // Lifting statements
     // -------------------------------------------------------------------------
 
-    public void liftStatements(PacioliTable pacioliTable) throws Exception {
+    public void liftStatements(PacioliTable program, PacioliTable env) throws Exception {
 
         Pacioli.trace("Lifting value statements %s", this.file.getModule());
 
-        for (ValueInfo info : values.allInfos()) {
+        for (ValueInfo info : program.values.allInfos()) {
             if (info.getDefinition().isPresent() && info.isFromFile(this.file)) {
                 ValueDefinition definition = info.getDefinition().get();
-                definition.body = definition.body.liftStatements(this, pacioliTable, ExpressionNode.class);
+                definition.body = definition.body.liftStatements(this.file, program, env, ExpressionNode.class);
 
             }
         }
@@ -670,11 +692,11 @@ public class Progam extends AbstractPrintable {
     // Transforming conversions
     // -------------------------------------------------------------------------
 
-    public void transformConversions() {
+    public void transformConversions(PacioliTable pacioliTable) {
 
         Pacioli.trace("Transforming conversions %s", this.file.getModule());
 
-        for (ValueInfo info : values.allInfos()) {
+        for (ValueInfo info : pacioliTable.values.allInfos()) {
             if (info.getDefinition().isPresent() && info.isFromFile(this.file)) {
                 ValueDefinition definition = info.getDefinition().get();
                 ExpressionNode newBody = new TransformConversions().expAccept(definition.body);
@@ -688,27 +710,30 @@ public class Progam extends AbstractPrintable {
     // Type inference
     // -------------------------------------------------------------------------
 
-    public void inferTypes(PacioliTable environment) {
+    public void inferTypes(PacioliTable prog, PacioliTable env) {
 
         Pacioli.trace("Infering types in %s", this.file.getModule());
 
-        values.parent = environment.values();
-        typess.parent = environment.types();
+        // values.parent = environment.values();
+        // typess.parent = environment.types();
+
+        prog.setParent(env);
+        PacioliTable environment = prog;
 
         Set<SymbolInfo> discovered = new HashSet<SymbolInfo>();
         Set<SymbolInfo> finished = new HashSet<SymbolInfo>();
 
-        List<String> names = values.allNames();
+        List<String> names = environment.values.allNames();
         Collections.sort(names);
 
         for (String value : names) {
-            ValueInfo info = values.lookup(value);
+            ValueInfo info = environment.values.lookup(value);
 
             if (info.isFromFile(this.file) && info.getDefinition().isPresent()) {
 
                 Pacioli.logIf(Pacioli.Options.logTypeInference, "Infering type of %s", value);
 
-                inferValueDefinitionType(info, discovered, finished, Pacioli.Options.logTypeInference);
+                inferValueDefinitionType(info, discovered, finished, Pacioli.Options.logTypeInference, environment);
 
                 Pacioli.logIf(Pacioli.Options.logTypeInference, "%s :: %s;", info.name(),
                         info.inferredType.get().pretty());
@@ -738,13 +763,13 @@ public class Progam extends AbstractPrintable {
 
         }
         int i = 0;
-        for (Toplevel toplevel : toplevels) {
+        for (Toplevel toplevel : environment.toplevels) {
 
-            inferUsedTypes(toplevel, discovered, finished, true);
+            inferUsedTypes(toplevel, discovered, finished, true, environment);
 
             Pacioli.logIf(Pacioli.Options.logTypeInference, "Inferring typing of toplevel %s", i);
 
-            Typing typing = toplevel.body.inferTyping(this);
+            Typing typing = toplevel.body.inferTyping(environment, this.file);
             Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "Typing of toplevel %s is %s", i, typing.pretty());
 
             toplevel.type = typing.solve(!isLibrary()).simplify();
@@ -757,11 +782,11 @@ public class Progam extends AbstractPrintable {
     }
 
     private void inferUsedTypes(Definition definition, Set<SymbolInfo> discovered, Set<SymbolInfo> finished,
-            Boolean verbose) {
+            Boolean verbose, PacioliTable env) {
         for (SymbolInfo pre : definition.uses()) {
             if (pre.isGlobal() && pre instanceof ValueInfo) {
                 if (pre.isFromFile(this.file) && pre.getDefinition().isPresent()) {
-                    inferValueDefinitionType((ValueInfo) pre, discovered, finished, verbose);
+                    inferValueDefinitionType((ValueInfo) pre, discovered, finished, verbose, env);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
                     if (!vinfo.getDeclaredType().isPresent() && !vinfo.name().equals("nmode")) {
@@ -781,22 +806,23 @@ public class Progam extends AbstractPrintable {
      *                   Determines whether log calls are made or not, independently
      *                   from any global log setting. Allows the caller to filter
      *                   logging per definition.
+     * @param env
      */
     private void inferValueDefinitionType(ValueInfo info, Set<SymbolInfo> discovered, Set<SymbolInfo> finished,
-            Boolean verbose) {
+            Boolean verbose, PacioliTable env) {
 
         if (!finished.contains(info)) {
             if (discovered.contains(info)) {
                 // Pacioli.warn("Cycle in definition of %s", info.name());
             } else {
                 discovered.add(info);
-                inferUsedTypes(info.getDefinition().get(), discovered, finished, verbose);
+                inferUsedTypes(info.getDefinition().get(), discovered, finished, verbose, env);
 
                 ValueDefinition def = info.getDefinition().get();
 
                 Pacioli.logIf(Pacioli.Options.logTypeInference, "Infering typing of %s", info.name());
 
-                Typing typing = def.body.inferTyping(this);
+                Typing typing = def.body.inferTyping(env, this.file);
 
                 Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "Inferred typing of %s is %s", info.name(),
                         typing.pretty());
@@ -821,23 +847,23 @@ public class Progam extends AbstractPrintable {
         }
     }
 
-    public void printTypes() throws PacioliException {
+    // public void printTypes() throws PacioliException {
 
-        List<String> names = values.allNames();
-        Collections.sort(names);
+    // List<String> names = values.allNames();
+    // Collections.sort(names);
 
-        for (String value : names) {
-            ValueInfo info = values.lookup(value);
-            if (info.isFromFile(this.file) && info.getDefinition().isPresent()) {
-                Pacioli.println("\n%s :: %s;", info.name(), info.inferredType().pretty());
-            }
-        }
-        Integer count = 1;
-        for (Toplevel toplevel : toplevels) {
-            TypeObject type = toplevel.type;
-            Pacioli.println("\nToplevel %s :: %s", count++, type.unfresh().pretty());
-        }
-    }
+    // for (String value : names) {
+    // ValueInfo info = values.lookup(value);
+    // if (info.isFromFile(this.file) && info.getDefinition().isPresent()) {
+    // Pacioli.println("\n%s :: %s;", info.name(), info.inferredType().pretty());
+    // }
+    // }
+    // Integer count = 1;
+    // for (Toplevel toplevel : toplevels) {
+    // TypeObject type = toplevel.type;
+    // Pacioli.println("\nToplevel %s :: %s", count++, type.unfresh().pretty());
+    // }
+    // }
 
     // -------------------------------------------------------------------------
     // Pretty printing
@@ -846,23 +872,25 @@ public class Progam extends AbstractPrintable {
     @Override
     public void printPretty(PrintWriter out) {
 
-        // Print raw AST variant
-        // program.printPretty(out);
+        // // Print raw AST variant
+        // // program.printPretty(out);
 
-        // Print parsed code variant
-        for (TypeSymbolInfo info : typess.allInfos()) {
-            out.println();
-            info.getDefinition().get().printPretty(out);
-            out.println();
-        }
+        // // Print parsed code variant
+        // for (TypeSymbolInfo info : typess.allInfos()) {
+        // out.println();
+        // info.getDefinition().get().printPretty(out);
+        // out.println();
+        // }
 
-        for (ValueInfo info : values.allInfos()) {
-            if (info.getDefinition().isPresent() && info.isFromFile(this.file)) {
-                out.println();
-                info.getDefinition().get().printPretty(out);
-                out.println();
-            }
-        }
+        // for (ValueInfo info : values.allInfos()) {
+        // if (info.getDefinition().isPresent() && info.isFromFile(this.file)) {
+        // out.println();
+        // info.getDefinition().get().printPretty(out);
+        // out.println();
+        // }
+        // }
+
+        out.println("FIX printPretty on Program");
     }
 
     public void printSymbolTable(SymbolTable<? extends SymbolInfo> table, String header) {

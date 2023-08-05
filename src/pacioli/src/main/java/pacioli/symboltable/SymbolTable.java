@@ -91,6 +91,14 @@ public class SymbolTable<R extends SymbolInfo> {
         return names;
     }
 
+    public List<R> localInfos() {
+        List<R> values = new ArrayList<>();
+        for (R value : table.values()) {
+            values.add(value);
+        }
+        return values;
+    }
+
     public SymbolTable<R> addAll(SymbolTable<? extends R> it) {
         for (String name : it.table.keySet()) {
             if (table.containsKey(name)) {

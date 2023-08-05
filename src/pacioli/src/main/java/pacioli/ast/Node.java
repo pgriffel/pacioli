@@ -85,8 +85,8 @@ public interface Node extends Printable {
      * @param pacioliTable A table with the available identifiers to match each
      *                     identifiers againts
      */
-    default public void resolve(PacioliFile file, PacioliTable pacioliTable) {
-        accept(new ResolveVisitor(file, pacioliTable));
+    default public void resolve(PacioliFile file, PacioliTable environment) {
+        accept(new ResolveVisitor(file, environment));
     }
 
     /**
@@ -101,12 +101,13 @@ public interface Node extends Printable {
         return new UsesVisitor().idsAccept(this);
     }
 
-    default public Node liftStatements(Progam prog, PacioliTable pacioliTable) {
-        return new LiftStatements(prog, pacioliTable).nodeAccept(this);
+    default public Node liftStatements(PacioliFile file, PacioliTable prog, PacioliTable env) {
+        return new LiftStatements(file, prog, env).nodeAccept(this);
     }
 
-    default public <N extends Node> N liftStatements(Progam prog, PacioliTable pacioliTable, Class<N> targetClass) {
-        return targetClass.cast(liftStatements(prog, pacioliTable));
+    default public <N extends Node> N liftStatements(PacioliFile file, PacioliTable program, PacioliTable env,
+            Class<N> targetClass) {
+        return targetClass.cast(liftStatements(file, program, env));
     }
 
     default public String compileToMVM(CompilationSettings settings) {

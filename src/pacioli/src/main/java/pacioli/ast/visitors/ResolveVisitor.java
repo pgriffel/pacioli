@@ -82,10 +82,10 @@ public class ResolveVisitor extends IdentityVisitor {
     // Constructor
     // -------------------------------------------------------------------------
 
-    public ResolveVisitor(PacioliFile file, PacioliTable pacioliTable) {
+    public ResolveVisitor(PacioliFile file, PacioliTable env) {
         statementResult = new Stack<String>();
-        typeTables.push(pacioliTable.types());
-        valueTables.push(pacioliTable.values());
+        typeTables.push(env.types);
+        valueTables.push(env.values);
         this.file = file;
     }
 

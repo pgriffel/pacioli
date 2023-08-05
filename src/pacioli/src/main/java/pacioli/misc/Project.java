@@ -270,19 +270,23 @@ public class Project {
 
         for (PacioliFile current : orderedFiles()) {
 
-            Progam program = Progam.load(current);
+            ProgramNode programNode = Parser.parseFile(current.getFile());
+
+            PacioliTable program = Progam.load(current);
 
             // Filter the bundle's total symbol tables for the directly used modules of the
             // program
-            List<String> importedModules = importedModules(program);
-            List<String> includedModules = includedModules(program);
+            List<String> importedModules = importedModules(programNode);
+            List<String> includedModules = includedModules(current, programNode);
             Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Imported modules = %s", importedModules);
             Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Included modules = %s", includedModules);
             SymbolTable<ValueInfo> vTable = bundle.programValueTable(importedModules, includedModules);
             SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(importedModules, includedModules);
 
             // Analyse the code given the imported and included infos
-            program.loadRest(new PacioliTable(vTable, tTable));
+            PacioliTable env = PacioliTable.initialFrom(vTable, tTable);
+            Progam prog = new Progam(current);
+            prog.loadRest(program, env);
 
             // Add the program's info's to the bundle's total symbol tables
             bundle.load(program, current.equals(file));
@@ -291,7 +295,7 @@ public class Project {
         return bundle;
     }
 
-    private List<String> importedModules(Progam program) {
+    private List<String> importedModules(ProgramNode programNode) {
 
         List<String> modules = new ArrayList<String>();
 
@@ -299,7 +303,7 @@ public class Project {
         ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>();
         allLibs.add(PacioliFile.requireLibrary("base", libs));
         allLibs.add(PacioliFile.requireLibrary("standard", libs));
-        for (PacioliFile pacioliFile : findImports(program.programNode, libs)) {
+        for (PacioliFile pacioliFile : findImports(programNode, libs)) {
             allLibs.add(pacioliFile);
         }
 
@@ -314,12 +318,12 @@ public class Project {
         return modules;
     }
 
-    private List<String> includedModules(Progam program) {
+    private List<String> includedModules(PacioliFile file, ProgramNode programNode) {
 
         List<String> modules = new ArrayList<String>();
 
         // Locate all included files and collect the module names
-        for (PacioliFile include : findIncludes(program.file, program.programNode)) {
+        for (PacioliFile include : findIncludes(file, programNode)) {
             modules.add(include.getModule());
         }
 
