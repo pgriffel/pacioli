@@ -282,18 +282,9 @@ public class Bundle {
             boolean fromProgram = info.generalInfo().getModule().equals(file.getModule());
             if ((includePrivate || info.isPublic()) && fromProgram && info.getDefinition().isPresent()
                     && info.isUserDefined()) {
-                Pacioli.println("%s ::", info.name());
-                if (rewriteTypes) {
-                    Pacioli.print(" %s;", info.inferredType().pretty());
-                } else {
-                    Pacioli.print(" %s;", info.getType().pretty());
-                }
-                Pacioli.println("%s ::", info.name());
-                if (rewriteTypes) {
-                    Pacioli.print(" %s;", info.inferredType().toString());
-                } else {
-                    Pacioli.print(" %s;", info.getType().toString());
-                }
+                TypeObject type = rewriteTypes ? info.inferredType() : info.getType();
+                String text = Pacioli.Options.printTypesAsString ? type.toString() : type.pretty();
+                Pacioli.println("%s :: %s", info.name(), text);
                 if (showDocs) {
                     if (info.getDocu().isPresent()) {
                         Pacioli.println("\n    %s\n", info.getDocu().get());

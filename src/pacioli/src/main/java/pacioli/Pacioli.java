@@ -27,7 +27,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.io.FilenameUtils;
@@ -39,11 +38,9 @@ import pacioli.misc.CompilationSettings;
 import pacioli.misc.PacioliException;
 import pacioli.misc.PacioliFile;
 import pacioli.misc.PrimitivesDocumentation;
-import pacioli.misc.Progam;
 import pacioli.misc.Project;
 import pacioli.misc.CompilationSettings.Target;
 import pacioli.parser.Parser;
-import pacioli.symboltable.PacioliTable;
 
 /**
  * The main entry point of the compiler.
@@ -66,6 +63,7 @@ public class Pacioli {
         public static boolean dumpOnMVMError = true;
         public static boolean logGeneratingCode = false;
         public static boolean showModifiedFiles = false;
+        public static boolean printTypesAsString = false;
         public static boolean wrapTypes = false;
     }
 
@@ -349,8 +347,7 @@ public class Pacioli {
         log("Displaying types for file '%s'\n", file.getFile());
 
         try {
-            Project.load(file, libs).printTypes(rewriteTypes, includePrivate, true);
-            // Project.load(file, libs).printCode(rewriteTypes, includePrivate, true);
+            Project.load(file, libs).printTypes(rewriteTypes, includePrivate, false);
 
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
