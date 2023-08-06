@@ -10,6 +10,7 @@ import java.util.List;
 import pacioli.Pacioli;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
+import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.ValueInfo;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.SchemaNode;
@@ -58,7 +59,7 @@ public class PrimitivesDocumentation {
         if (base) {
             File theFile = new File(libs.get(0), "base/" + module + ".pacioli");
             PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", "irrelevant", true);
-            Progam program = Progam.load(pacioliFile);
+            PacioliTable program = Progam.load(pacioliFile);
             for (ValueInfo info : program.values.allInfos()) {
                 infos.add(info);
             }
@@ -67,7 +68,7 @@ public class PrimitivesDocumentation {
         if (standard) {
             File theFile = new File(libs.get(0), "standard/" + module + ".pacioli");
             PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", "irrelevant", true);
-            Progam program = Progam.load(pacioliFile);
+            PacioliTable program = Progam.load(pacioliFile);
             for (ValueInfo info : program.values.allInfos()) {
                 infos.add(info);
             }
