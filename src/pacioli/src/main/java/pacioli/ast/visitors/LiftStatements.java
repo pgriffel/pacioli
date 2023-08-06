@@ -16,7 +16,6 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliException;
 import pacioli.misc.PacioliFile;
-import pacioli.misc.Progam;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.ValueInfo;
 

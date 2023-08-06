@@ -71,17 +71,7 @@ import pacioli.types.ast.TypeNode;
  */
 public class Progam extends AbstractPrintable {
 
-    // Added during construction
     public final PacioliFile file;
-
-    // Added as first step of loading
-    // ProgramNode programNode;
-
-    // Fill during loading
-    // public SymbolTable<TypeSymbolInfo> typess = new
-    // SymbolTable<TypeSymbolInfo>();
-    // public SymbolTable<ValueInfo> values = new SymbolTable<ValueInfo>();
-    // public List<Toplevel> toplevels = new ArrayList<Toplevel>();
 
     private static int classInstanceCounter = 0;
 

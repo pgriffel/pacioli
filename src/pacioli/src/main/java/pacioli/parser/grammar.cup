@@ -817,7 +817,7 @@ classcondition ::=
   ;
   
 conditions ::=
-    conditions:cs AND condition:c                   {: cs.add(c); :}
+    conditions:cs AND condition:c                   {: RESULT = cs; cs.add(c); :}
   | condition:c                                     {: RESULT = new ArrayList<TypeApplicationNode>(); RESULT.add(c); :}
   ;
 

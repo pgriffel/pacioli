@@ -4208,7 +4208,7 @@ class CUP$Parser$actions {
 		Location cxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location cxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		TypeApplicationNode c = (TypeApplicationNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 cs.add(c); 
+		 RESULT = cs; cs.add(c); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("conditions",54, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

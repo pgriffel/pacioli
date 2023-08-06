@@ -41,7 +41,6 @@ import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;
 import pacioli.misc.Printable;
 import pacioli.misc.Printer;
-import pacioli.misc.Progam;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
