@@ -79,7 +79,7 @@ define azimuth(vec) = atan2(inner(vec, d_y), inner(vec, d_x));
 # Cross Product
 # ----------------------------------------------------------------------------
 
-declare export cross :: for_unit a: (a*Geom3!, a*Geom3!) -> a^2*Geom3!;
+declare export cross :: for_unit a,b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!;
 declare export cross_sqrt :: for_unit a: (a*Geom3!, a*Geom3!) -> a*Geom3!;
 
 define cross(v,w) =
