@@ -240,14 +240,21 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(ValueDefinition node) {
-        mark();
-        write("define ");
-        node.id.accept(this);
-        write(" =");
-        newlineUp();
-        node.body.accept(this);
-        write(";");
-        unmark();
+        if (node.body instanceof MatrixLiteralNode lit) {
+            mark();
+            write("defmatrix");
+            node.body.accept(this);
+            unmark();
+        } else {
+            mark();
+            write("define ");
+            node.id.accept(this);
+            write(" =");
+            newlineUp();
+            node.body.accept(this);
+            write(";");
+            unmark();
+        }
     }
 
     @Override
@@ -395,16 +402,36 @@ public class PrintVisitor implements Visitor {
         unmark();
     }
 
+    /**
+     * Only occurs as body of a ValueDefinition. See the special handling in the
+     * printing there.
+     */
     @Override
     public void visit(MatrixLiteralNode node) {
-        String sep = "{";
+        // Setting
+        boolean wrap = true;
+
         write(" :: ");
         node.typeNode.accept(this);
         write(" = ");
+        boolean first = true;
         for (ValueDecl pair : node.pairs) {
-            write(sep);
+            if (first) {
+                first = false;
+                write("{");
+                if (wrap) {
+                    newlineUp();
+                }
+            } else {
+                write(",");
+                if (wrap) {
+                    newline();
+                }
+            }
             write(pair.pretty());
-            sep = ", ";
+        }
+        if (wrap) {
+            newlineDown();
         }
         out.print("}");
     }

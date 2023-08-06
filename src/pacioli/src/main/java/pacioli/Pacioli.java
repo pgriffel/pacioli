@@ -28,11 +28,8 @@ import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-
 import org.apache.commons.io.FilenameUtils;
 
 import mvm.MVMException;
@@ -46,7 +43,7 @@ import pacioli.misc.Progam;
 import pacioli.misc.Project;
 import pacioli.misc.CompilationSettings.Target;
 import pacioli.parser.Parser;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.PacioliTable;
 
 /**
  * The main entry point of the compiler.
@@ -288,8 +285,6 @@ public class Pacioli {
                 debugCommand(command, files, libs);
             } else if (command.equals("help")) {
                 helpCommand();
-            } else if (command.equals("test")) {
-                testCommand(libs, settings);
             } else if (command.equals("info")) {
                 infoCommand(libs);
             } else {
@@ -330,8 +325,8 @@ public class Pacioli {
             throw new PacioliException("Cannot desugar: file '%s' does not exist.", fileName);
         } else {
             log("Desugaring file '%s'", file);
-            Progam program = Progam.load(file.get());
-            println("%s", program.pretty());
+            Project project = Project.load(file.get(), libs);
+            project.printCode(false, true, false);
         }
     }
 
@@ -550,100 +545,6 @@ public class Pacioli {
         println("   -warnings     toggles compiler warnings on or off");
     }
 
-    private static void testCommand(List<File> libs, CompilationSettings settings) throws Exception {
-
-        checkPrimitives(libs);
-
-        String dir = "E:/code/private/pacioli-samples/";
-
-        List<String> samples = Arrays.asList(
-                "abstract-resource/abstract-resource.pacioli",
-                "adt/adt.pacioli",
-                "adt/adt_use.pacioli",
-                "alias/alias.pacioli",
-                "apply_mag/apply_mag.pacioli",
-                // "biglist/biglist.pacioli", // okay but slow
-                // "blas/blas.pacioli", // experiment
-                "blocks/blocks.pacioli",
-                "bom/bom.pacioli",
-                "commodity/commodity.pacioli",
-                "convolution/convolution.pacioli",
-                "dice/dice.pacioli",
-                "do/do.pacioli",
-                "empty/empty.pacioli",
-                "envelope/envelope.pacioli",
-                "fourier-motzkin/fourier_motzkin.pacioli",
-                "fourier-motzkin/quad.pacioli",
-                "gcd/gcd.pacioli",
-                "gcd/gcd_test.pacioli",
-                // "geom/geom.pacioli", // experiment with type app in type literal
-                "good/good.pacioli",
-                "grass/grass.pacioli",
-                "hello_world/hello_world.pacioli",
-                // "holtzman/holtzman.pacioli", // obsolete
-                "indexing/indexing.pacioli",
-                "intro/intro.pacioli",
-                "kirchhof/kirchhof.pacioli",
-                "klein/klein.pacioli",
-                "krylov/krylov.pacioli",
-                // "loop/loop.pacioli", // Problem resolving and lifting nested statements!!!
-                "magic/magic.pacioli",
-                "math/math.pacioli",
-                "minijava/minijava.pacioli",
-                "net/net.pacioli",
-                // "oops/oops.pacioli",
-                "power/power.pacioli",
-                "precedence/precedence.pacioli",
-                "queue/queue.pacioli",
-                "random/random.pacioli",
-                "resource/resource.pacioli",
-                "runtime_types/runtime_types.pacioli",
-                "series/series.pacioli",
-                "service/service.pacioli",
-                // "shock_tube/shock_tube.pacioli", // works, but slow
-                // "soda/soda.pacioli", // obsolete
-                "solver/solver.pacioli",
-                // "statement/statement.pacioli",
-                // "test/test.pacioli",
-                "shells/shells.pacioli",
-                "numpy/numpy_test.pacioli");
-
-        // samples = Arrays.asList("inference/inference.pacioli");
-
-        for (String sample : samples) {
-            println(sample);
-            println("--------------------------------------------------------------------------------");
-            try {
-                String fileName = dir + sample;
-
-                Integer version = 0;
-                Optional<PacioliFile> file = PacioliFile.get(fileName, version);
-                assert (file.isPresent());
-                Project project = Project.load(file.get(), libs);
-
-                // project.printInfo();
-                // settings.setTarget(Target.PYTHON);
-                // project.bundle(settings);
-
-                settings.setTarget(Target.MVM);
-                project.bundle(settings);
-
-                Path binName = project.bundlePath(Target.MVM);
-
-                // todo: load rest
-                Progam.load(project.root()).printTypes();
-                ;
-                log("Running file %s", binName);
-                interpretMVMText(binName.toFile(), libs);
-
-            } catch (IOException e) {
-                println("\nError in sample '%s':\n\n%s", sample, e);
-            }
-
-            println("--------------------------------------------------------------------------------");
-        }
-    }
-
     /*
      * Helpers
      */
@@ -685,40 +586,40 @@ public class Pacioli {
 
     private static void checkPrimitives(List<File> libs) throws Exception {
 
-        PacioliFile libFile = PacioliFile.requireLibrary("base", libs);
-        Progam program = Progam.load(libFile);
-        List<ValueInfo> allInfos = program.values.allInfos();
-        List<String> names = new ArrayList<String>();
-        for (ValueInfo info : allInfos) {
-            if (info.generalInfo().getModule().equals("base")) {
-                names.add(info.globalName());
-            }
-        }
+        // PacioliFile libFile = PacioliFile.requireLibrary("base", libs);
+        // Progam program = Progam.load(libFile);
+        // List<ValueInfo> allInfos = program.values.allInfos();
+        // List<String> names = new ArrayList<String>();
+        // for (ValueInfo info : allInfos) {
+        // if (info.generalInfo().getModule().equals("base")) {
+        // names.add(info.globalName());
+        // }
+        // }
 
-        Machine vm = new Machine();
-        vm.init();
-        Set<String> keys = vm.store.keySet();
-        List<String> keyList = new ArrayList<String>(keys);
+        // Machine vm = new Machine();
+        // vm.init();
+        // Set<String> keys = vm.store.keySet();
+        // List<String> keyList = new ArrayList<String>(keys);
 
-        List<String> keyListCopy = new ArrayList<String>(keyList);
-        keyList.removeAll(names);
+        // List<String> keyListCopy = new ArrayList<String>(keyList);
+        // keyList.removeAll(names);
 
-        names.removeAll(keyListCopy);
+        // names.removeAll(keyListCopy);
 
-        Collections.sort(names);
-        Collections.sort(keyList);
+        // Collections.sort(names);
+        // Collections.sort(keyList);
 
-        println("\nMissing in base.pacioli:");
-        for (String key : keyList) {
-            println("%s", key);
-        }
+        // println("\nMissing in base.pacioli:");
+        // for (String key : keyList) {
+        // println("%s", key);
+        // }
 
-        println("\nMissing in machine:");
-        for (String key : names) {
-            println("%s", key);
-        }
+        // println("\nMissing in machine:");
+        // for (String key : names) {
+        // println("%s", key);
+        // }
 
-        log("\nDone");
+        // log("\nDone");
     }
 
     /**
