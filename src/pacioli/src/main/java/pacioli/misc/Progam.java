@@ -172,7 +172,7 @@ public class Progam extends AbstractPrintable {
 
         Pacioli.trace("Filling tables for %s", this.file.getModule());
 
-        PacioliTable env = PacioliTable.initial();
+        PacioliTable env = PacioliTable.empty();
 
         Map<String, ClassInfo.Builder> classTable = new HashMap<>();
         Map<String, ValueInfo.Builder> valueTable = new HashMap<>();
@@ -443,7 +443,7 @@ public class Progam extends AbstractPrintable {
         Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nRewriting class %s in module %s",
                 classInfo.globalName(), this.file.getModule());
 
-        PacioliTable env = PacioliTable.initial();
+        PacioliTable env = PacioliTable.empty();
 
         // Get some class properties
         ClassDefinition classDefinition = classInfo.definition;

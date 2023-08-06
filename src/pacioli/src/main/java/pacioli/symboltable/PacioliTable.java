@@ -21,13 +21,13 @@ public class PacioliTable {
         this.toplevels = toplevels;
     }
 
-    public static PacioliTable initialFrom(
+    public static PacioliTable initial(
             SymbolTable<ValueInfo> values,
             SymbolTable<TypeSymbolInfo> types) {
         return new PacioliTable(values, types, new ArrayList<>());
     }
 
-    public static PacioliTable initial() {
+    public static PacioliTable empty() {
         return new PacioliTable(new SymbolTable<ValueInfo>(), new SymbolTable<TypeSymbolInfo>(), new ArrayList<>());
     }
 

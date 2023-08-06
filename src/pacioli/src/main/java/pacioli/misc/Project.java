@@ -284,7 +284,7 @@ public class Project {
             SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(importedModules, includedModules);
 
             // Analyse the code given the imported and included infos
-            PacioliTable env = PacioliTable.initialFrom(vTable, tTable);
+            PacioliTable env = PacioliTable.initial(vTable, tTable);
             Progam prog = new Progam(current);
             prog.loadRest(program, env);
 
