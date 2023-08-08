@@ -83,12 +83,11 @@ definstance Eq(List(t)) for_type t where Eq(t):
 declare list_equal :: for_type t where Eq(t): (List(t), List(t)) -> Boole;
 
 define list_equal(xs, ys) =
-    if list_size(xs) = 0 and list_size(ys) = 0 then
-        true
-    else if list_size(xs) = 0 or list_size(ys) = 0 then
-        false
+    if xs = [] or ys = [] then
+        xs = [] and ys = []
     else
-        is_equal(head(xs), head(ys)) and list_equal(tail(xs), tail(ys))
+        is_equal(head(xs), head(ys)) and
+        list_equal(tail(xs), tail(ys))
     end;
 
 # Num

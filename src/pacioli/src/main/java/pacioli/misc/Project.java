@@ -1,9 +1,6 @@
 package pacioli.misc;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -159,7 +156,7 @@ public class Project {
         return iter;
     }
 
-    Iterable<PacioliFile> includeTree(PacioliFile root) {
+    public Iterable<PacioliFile> includeTree(PacioliFile root) {
         AsSubgraph<PacioliFile, DefaultEdge> includesOnly = new AsSubgraph<PacioliFile, DefaultEdge>(graph,
                 graph.vertexSet(), graph.edgeSet().stream().filter(edge -> graph.getEdgeSource(edge).isInclude())
                         .collect(Collectors.toSet()));
@@ -171,57 +168,6 @@ public class Project {
             }
         };
         return iter;
-    }
-
-    /**
-     * Create a bundle from the project files.
-     * 
-     * @param settings
-     *                 Compiler settings
-     * @return The path where the bundle was saved.
-     * @throws Exception
-     */
-    public Path bundle(CompilationSettings settings) throws Exception {
-
-        Path dstPath = bundlePath(settings.getTarget());
-
-        Pacioli.log("Creating bundle for file '%s'", file);
-
-        Bundle bundle = loadBundle();
-
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())))) {
-
-            bundle.generateCode(writer, settings);
-
-        }
-
-        Pacioli.log("Created bundle '%s'", dstPath);
-
-        return dstPath;
-    }
-
-    public void printSymbolTables() throws Exception {
-        Bundle bundle = loadBundle();
-        bundle.printSymbolTables();
-    }
-
-    public void printCode(boolean rewriteTypes, boolean includePrivate, boolean showDoc) throws Exception {
-        Bundle bundle = loadBundle();
-        bundle.printCode(rewriteTypes, includePrivate, showDoc);
-    }
-
-    public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDoc) throws Exception {
-        Bundle bundle = loadBundle();
-        bundle.printTypes(rewriteTypes, includePrivate, showDoc);
-    }
-
-    public void generateAPI(String version) throws Exception {
-        Bundle bundle = loadBundle();
-        List<File> includes = new ArrayList<>();
-        includeTree(file).forEach(x -> {
-            includes.add(x.getFile());
-        });
-        bundle.printAPI(includes, version);
     }
 
     /**
@@ -262,7 +208,7 @@ public class Project {
         Pacioli.println("\n");
     }
 
-    private Bundle loadBundle() throws Exception {
+    public Bundle loadBundle() throws Exception {
 
         Bundle bundle = Bundle.empty(file, libs);
 

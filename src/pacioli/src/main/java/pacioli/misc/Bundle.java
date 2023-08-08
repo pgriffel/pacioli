@@ -252,7 +252,7 @@ public class Bundle {
 
     }
 
-    void printCode(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws PacioliException {
+    public void printCode(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws PacioliException {
 
         List<String> names = environment.values.allNames();
         Collections.sort(names);
@@ -272,7 +272,7 @@ public class Bundle {
         }
     }
 
-    void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws PacioliException {
+    public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws PacioliException {
 
         List<String> names = environment.values.allNames();
         Collections.sort(names);
@@ -311,7 +311,7 @@ public class Bundle {
      * @throws PacioliException
      * @throws IOException
      */
-    void printAPI(List<File> includes, String version) throws PacioliException, IOException {
+    public void printAPI(List<File> includes, String version) throws PacioliException, IOException {
 
         PrintWriter writer = new PrintWriter(System.out);
         DocumentationGenerator generator = new DocumentationGenerator(writer, file.module, version);
@@ -336,7 +336,7 @@ public class Bundle {
         writer.close();
     }
 
-    void printSymbolTables() {
+    public void printSymbolTables() {
 
         List<String> allTypeNames = environment.types.allNames();
         allTypeNames.sort((a, b) -> a.compareToIgnoreCase(b));

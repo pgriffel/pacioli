@@ -495,7 +495,7 @@ public class Progam {
                     List<String> memberDictAndArgNames = new ArrayList<>();
                     String dictVar = SymbolTable.freshVarName();
                     memberDictAndArgNames.add(dictVar);
-                    for (TypeNode arg : domain.args) {
+                    for (int i = 0; i < domain.args.size(); i++) {
                         String freshName = SymbolTable.freshVarName();
                         memberArgNames.add(new IdentifierNode(freshName, memberLocation));
                         memberDictAndArgNames.add(freshName);

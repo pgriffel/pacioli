@@ -20,7 +20,9 @@
  */
 package pacioli;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -34,6 +36,7 @@ import org.apache.commons.io.FilenameUtils;
 import mvm.MVMException;
 import mvm.Machine;
 import pacioli.ast.ProgramNode;
+import pacioli.misc.Bundle;
 import pacioli.misc.CompilationSettings;
 import pacioli.misc.PacioliException;
 import pacioli.misc.PacioliFile;
@@ -324,7 +327,7 @@ public class Pacioli {
         } else {
             log("Desugaring file '%s'", file);
             Project project = Project.load(file.get(), libs);
-            project.printCode(false, true, false);
+            project.loadBundle().printCode(false, true, false);
         }
     }
 
@@ -347,7 +350,7 @@ public class Pacioli {
         log("Displaying types for file '%s'\n", file.getFile());
 
         try {
-            Project.load(file, libs).printTypes(rewriteTypes, includePrivate, false);
+            Project.load(file, libs).loadBundle().printTypes(rewriteTypes, includePrivate, false);
 
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
@@ -372,7 +375,13 @@ public class Pacioli {
         PacioliFile file = optionalFile.get();
 
         try {
-            Project.load(file, libs).generateAPI("dev"); // TODO: version, see above
+            Project project = Project.load(file, libs);
+            List<File> includes = new ArrayList<>();
+            project.includeTree(file).forEach(x -> {
+                includes.add(x.getFile());
+            });
+            project.loadBundle().printAPI(includes, "dev"); // TODO: version, see above
+
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
         }
@@ -401,8 +410,9 @@ public class Pacioli {
         } else {
             PacioliFile file = optionalFile.get();
             if (kind.equals("bundle")) {
+                log("Creating bundle for file '%s'", file);
                 Project project = Project.load(file, libs);
-                project.bundle(settings);
+                bundle(project, settings);
             } else if (kind.equals("single")) {
                 compile(file, libs, settings);
             } else if (kind.equals("recursive")) {
@@ -451,7 +461,7 @@ public class Pacioli {
                     Pacioli.logIf(Pacioli.Options.showModifiedFiles, "    %s", modified.getFile());
                 }
                 log("Compiling file '%s'", file.get().getFile());
-                project.bundle(settings);
+                bundle(project, settings);
             }
             Path mvmFile = project.bundlePath(Target.MVM);
             log("Running mvm file '%s'\n", mvmFile);
@@ -485,7 +495,7 @@ public class Pacioli {
             try {
                 Project project = Project.load(file, libs);
                 project.printInfo();
-                project.printSymbolTables();
+                project.loadBundle().printSymbolTables();
             } catch (IOException e) {
                 println("\nError while printing info and symbol tables for file '%s':\n\n%s", fileName, e);
             }
@@ -546,6 +556,29 @@ public class Pacioli {
      * Helpers
      */
 
+    /**
+     * Create a bundle from the project files.
+     * 
+     * @param settings
+     *                 Compiler settings
+     * @return The path where the bundle was saved.
+     * @throws Exception
+     */
+    private static Path bundle(Project project, CompilationSettings settings) throws Exception {
+
+        Path dstPath = project.bundlePath(settings.getTarget());
+
+        Bundle bundle = project.loadBundle();
+
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())))) {
+
+            bundle.generateCode(writer, settings);
+
+        }
+
+        return dstPath;
+    }
+
     public static void compile(PacioliFile file, List<File> libs, CompilationSettings settings) throws Exception {
 
         log("Compiling file '%s'", file);
@@ -581,43 +614,43 @@ public class Pacioli {
         }
     }
 
-    private static void checkPrimitives(List<File> libs) throws Exception {
+    // private static void checkPrimitives(List<File> libs) throws Exception {
 
-        // PacioliFile libFile = PacioliFile.requireLibrary("base", libs);
-        // Progam program = Progam.load(libFile);
-        // List<ValueInfo> allInfos = program.values.allInfos();
-        // List<String> names = new ArrayList<String>();
-        // for (ValueInfo info : allInfos) {
-        // if (info.generalInfo().getModule().equals("base")) {
-        // names.add(info.globalName());
-        // }
-        // }
+    // PacioliFile libFile = PacioliFile.requireLibrary("base", libs);
+    // Progam program = Progam.load(libFile);
+    // List<ValueInfo> allInfos = program.values.allInfos();
+    // List<String> names = new ArrayList<String>();
+    // for (ValueInfo info : allInfos) {
+    // if (info.generalInfo().getModule().equals("base")) {
+    // names.add(info.globalName());
+    // }
+    // }
 
-        // Machine vm = new Machine();
-        // vm.init();
-        // Set<String> keys = vm.store.keySet();
-        // List<String> keyList = new ArrayList<String>(keys);
+    // Machine vm = new Machine();
+    // vm.init();
+    // Set<String> keys = vm.store.keySet();
+    // List<String> keyList = new ArrayList<String>(keys);
 
-        // List<String> keyListCopy = new ArrayList<String>(keyList);
-        // keyList.removeAll(names);
+    // List<String> keyListCopy = new ArrayList<String>(keyList);
+    // keyList.removeAll(names);
 
-        // names.removeAll(keyListCopy);
+    // names.removeAll(keyListCopy);
 
-        // Collections.sort(names);
-        // Collections.sort(keyList);
+    // Collections.sort(names);
+    // Collections.sort(keyList);
 
-        // println("\nMissing in base.pacioli:");
-        // for (String key : keyList) {
-        // println("%s", key);
-        // }
+    // println("\nMissing in base.pacioli:");
+    // for (String key : keyList) {
+    // println("%s", key);
+    // }
 
-        // println("\nMissing in machine:");
-        // for (String key : names) {
-        // println("%s", key);
-        // }
+    // println("\nMissing in machine:");
+    // for (String key : names) {
+    // println("%s", key);
+    // }
 
-        // log("\nDone");
-    }
+    // log("\nDone");
+    // }
 
     /**
      * Primitive for user output. Used by println, log, logIf, trace and warn.
