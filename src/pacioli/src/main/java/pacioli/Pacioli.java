@@ -384,7 +384,7 @@ public class Pacioli {
             project.loadBundle().printAPI(includes, "dev"); // TODO: version, see above
 
         } catch (IOException e) {
-            println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
+            println("\nError: cannot generate api for file '%s':\n\n%s", fileName, e);
         }
 
     }

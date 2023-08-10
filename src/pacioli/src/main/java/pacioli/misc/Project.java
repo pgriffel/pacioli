@@ -214,16 +214,16 @@ public class Project {
         for (PacioliFile current : orderedFiles()) {
 
             // Parse the file
-            Program ast = Program.load(current).desugar();
+            Program program = Program.load(current).desugar();
 
             // Filter the bundle's total symbol tables for the directly used modules of the
             // program
             PacioliTable env = bundle.visibleInfos(
-                    importedModules(ast.ast),
-                    includedModules(current, ast.ast));
+                    importedModules(program.ast),
+                    includedModules(current, program.ast));
 
             // Analyze the code and add the result to the bundle
-            bundle.load(ast.analyze(env), current.equals(file));
+            bundle.load(program.analyze(env), current.equals(file));
         }
 
         return bundle;
