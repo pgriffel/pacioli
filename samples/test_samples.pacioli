@@ -10,8 +10,6 @@ include shock_tube/shock_tube_tests;
 include net/net_tests;
 include numpy/numpy_tests;
 
-# Experiment
-import include_test;
 
 run_test_suites(all_suites);
 
