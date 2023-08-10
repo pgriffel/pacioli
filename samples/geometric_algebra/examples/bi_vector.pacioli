@@ -1,0 +1,100 @@
+import geometry;
+import geometric_algebra;
+import graphics;
+ 
+# ------------------------------------------------------------------------------
+# Scene 1
+# ------------------------------------------------------------------------------
+
+define scene1(vx, vy, vz, wx, wy, wz, wireframe) =
+    let
+        scene = empty_scene("Experiment with rendering a bi-vector plane. Use the last parameter to toggle the wireframe"),
+        x = make_multivector([make_term(vx, e1), make_term(vy, e2), make_term(vz, e3)]),
+        y = make_multivector([make_term(wx, e1), make_term(wy, e2), make_term(wz, e3)]),
+        origin = 1 * |metre| '.*' space_vec(5,5,5),
+        vx = |metre| '.*' mv2vec(x),
+        vy = |metre| '.*' mv2vec(y),
+        mesh = mesh_move(bi_vector_mesh(x, y), origin),
+        vecs = [
+            make_arrow(origin, vx, "blue"),
+            make_arrow(origin + vx, vy, "red")
+        ]
+    in
+        add_meshes([tuple(mesh, wireframe != 0)], add_arrows(vecs, scene))
+    end;
+
+define bi_vector_mesh(x, y) = 
+    let
+        vx = mv2vec(x),
+        vy = mv2vec(y),
+        vertices = [
+            space_vec(0,0,0),
+            vx,
+            vy,
+            vx + vy
+        ],
+        faces = [face(0,1,3), face(0,3,2)]
+    in
+        make_mesh([vertex(|metre| '.*' x, "lightgreen") | x <- vertices], faces)
+    end;
+
+# ------------------------------------------------------------------------------
+# Scene 2
+# ------------------------------------------------------------------------------
+ 
+define scene2(a) =
+    let
+        scene = empty_scene("Experiment with bi-vectors. The red and the blue bi-vectors are the same. Both equal bi-vector 3e<sub>12</sub> + 4e<sub>13</sub> + 2e<sub>23</sub>. Leo p.34. The parameter toggles the wireframe"),
+        v1 = |metre| '.*' space_vec(2, 1, 0),
+        v2 = |metre| '.*' space_vec(-3, 0, 2),
+        w1 = |metre| '.*' space_vec(4, 2, 0),
+        w2 = |metre| '.*' space_vec(-1.5, 0, 1),
+        o1 = |metre| '.*' space_vec(0,0,0),
+        o2 = |metre| '.*' space_vec(0,0,0)
+    in
+        add_bi_vectors([tuple(o1, v1, v2, "blue"), tuple(o2, w1, w2, "red")], scene, a = 0)
+    end;
+ 
+declare add_bi_vectors :: for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!, String)), Scene(a), Boole) -> Scene(a);
+
+define add_bi_vectors(bi_vectors, scene, wireframe) =
+    let
+        (meshes, arrow_pairs) = unzip([bi_vector_mesh_and_arrows(o, v1, v2, c) | (o, v1, v2, c) <- bi_vectors]),
+        arrows = [v | (a, b) <- arrow_pairs, v <- [a, b]]
+    in 
+        add_meshes([tuple(m, wireframe) | m <- meshes], add_arrows(arrows, scene))
+    end;
+
+declare bi_vector_mesh_and_arrows :: for_unit a:
+    (a*Geom3!, a*Geom3!, a*Geom3!, String) -> Tuple(Mesh(a), Tuple(Arrow(a), Arrow(a)));
+
+define bi_vector_mesh_and_arrows(origin, v1, v2, color) = 
+    tuple(bi_vector_mesh2(origin, v1, v2), tuple(make_arrow(origin, v1, color), make_arrow(origin + v1, v2, color)));
+
+declare bi_vector_mesh2 :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> Mesh(a);
+
+define bi_vector_mesh2(origin, v1, v2) = 
+    let
+        vertices = [origin, origin + v1, origin + v2, origin + v1 + v2],
+        faces = [face(0,1,3), face(0,3,2)]
+    in
+        make_mesh([vertex(1 '.*' x, "lightgreen") | x <- vertices], faces)
+    end;
+   
+# ------------------------------------------------------------------------------
+# Check
+# ------------------------------------------------------------------------------
+
+let
+    v1 = |metre| '.*' space_vec(2, 1, 0),
+    v2 = |metre| '.*' space_vec(-3, 0, 2),
+    w1 = |metre| '.*' space_vec(4, 2, 0),
+    w2 = |metre| '.*' space_vec(-1.5, 0, 1),
+    o1 = outer_product(vec2mv(v1), vec2mv(v2)),
+    o2 = outer_product(vec2mv(w1), vec2mv(w2))
+in
+    # The same bi-vector produced by different vector pairs.
+    tuple(multivector2string(o1), multivector2string(o2))
+end;
+ 
+# TODO? Leo p69 (en p70 item 3)

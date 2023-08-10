@@ -1,0 +1,344 @@
+import geometry;
+include term_layer;
+
+# ----------------------------------------------------------------------------------------
+# MultiVector utilities layer
+#
+# MultiVector is simply represented as a list of terms.
+
+# Example: the list [make_term(5,e0), (3,e2)] represents the
+# Multivector of two Terms: The resulting MultiVector is usually
+# written as "5 + 3e2", but the addition "+" notation is not used in
+# its representation.
+
+# compare_term compares and orders 2 Terms returning the Ordering
+# @@@ term_weight part is not used
+# @@@Uitzoeken: from compare_term in Haskell code: --Comparison by grade then number.
+# Should be better for projecting and filtering
+
+# remove_zeros
+#   Removes blades with weight zero
+# ----------------------------------------------------------------------------------------
+
+declare remove_zeros :: for_index I: for_unit a: (MultiVector(a, I!)) -> MultiVector(a, I!);
+declare simplify :: for_index I: for_unit a: (MultiVector(a, I!)) -> MultiVector(a, I!);
+declare multivector_merge :: for_index I: for_unit a: (MultiVector(a, I!), MultiVector(a, I!)) -> MultiVector(a, I!);
+declare multivector_product :: for_index I: for_unit a,b: (MultiVector(a, I!), MultiVector(b, I!), Boole) -> MultiVector(a*b, I!);
+
+deftype for_index I: for_unit a: MultiVector(a, I!) = List(Term(a, I!));
+
+
+define remove_zeros(mv) =
+  [term | term <- mv, magnitude(term_weight(term)) != 0];
+
+define simplify(mv) =
+  remove_zeros(simplify_aux(mv));
+
+declare simplify_aux :: for_index I: for_unit a: (MultiVector(a, I!)) -> MultiVector(a, I!);
+
+define simplify_aux(mv) =
+    let
+        l = list_size(mv)
+    in
+        if l = 0 then
+            []
+        else if l = 1 then
+            mv
+        else
+            let
+                x = head(mv),
+                y = head(tail(mv)),
+                rest = tail(tail(mv))
+            in
+                if compare_term(x, y) = 0 then
+                    simplify_aux(cons(make_term(term_weight(x) + term_weight(y), term_base_blade(x)), rest))
+                else
+                    cons(x, simplify_aux(cons(y, rest)))
+                end
+            end
+        end
+    end;
+
+define multivector_merge(mv1, mv2) =
+    if mv1 = [] then
+        mv2
+    else if mv2 = [] then
+        mv1
+    else if compare_term(head(mv1), head(mv2)) = -1 then
+        cons(head(mv1), multivector_merge(tail(mv1), mv2))
+    else
+        cons(head(mv2), multivector_merge(mv1, tail(mv2)))
+    end;
+
+define multivector_product(mv1, mv2, no_common) =
+    let res = [term_product(x, y, no_common) | x <- mv1, y <- mv2] in
+        simplify(sort_list(res, compare_term))
+    end;
+
+# ----------------------------------------------------------------------------------------
+# MultiVector export functional layer
+#
+# multivector_from_scalar
+#   Create a Multivector from a scalar
+#
+# multivector_even
+#   Keep even elements
+#
+# multivector_odd
+#   Keep odd elements
+#
+# multivector_filter
+#   Filter on cofficient
+#
+# multivector_bar
+#   p.519 grade involution?(+-+-+-+- pattern)
+#
+# ----------------------------------------------------------------------------------------
+
+declare export make_multivector:: for_index I: for_unit a: (List(Term(a, I!))) -> MultiVector(a, I!);
+declare multivector_from_scalar :: for_index I: for_unit a: (1) -> MultiVector(I!, a);
+
+declare export
+    multivector_add:: for_index I: for_unit a: (MultiVector(a, I!), MultiVector(a, I!)) -> MultiVector(a, I!);
+
+declare export
+    geometric_product :: for_index I: for_unit a,b: (MultiVector(a, I!), MultiVector(b, I!)) -> MultiVector(a*b, I!);
+
+declare export
+    outer_product :: for_index I: for_unit a,b: (MultiVector(a, I!), MultiVector(b, I!)) -> MultiVector(a*b, I!);
+
+# inner_product specialises into 4 specific types
+declare export 
+    left_contraction,
+    right_contraction,
+    hestenes_inner_product,
+    modified_hestenes_inner_product :: for_index I: for_unit a,b: (MultiVector(a, I!), MultiVector(b, I!)) -> MultiVector(a*b, I!);
+
+declare export
+    multivector_reverse,
+    multivector_negate,
+    multivector_bar,
+    multivector_even,
+    multivector_odd :: for_index I: for_unit a: (MultiVector(a, I!)) -> MultiVector(a, I!);
+
+declare export multivector_inverse :: for_index I: for_unit a: (MultiVector(a, I!)) -> MultiVector(a^-1, I!);
+
+declare export multivector_filter :: for_index I: for_unit a: ((a) -> Boole, MultiVector(a, I!)) -> MultiVector(a, I!);
+declare export project_grade :: for_index I: for_unit a: (MultiVector(a, I!), 1) -> MultiVector(a, I!);
+declare export scalar_part :: for_index I: for_unit a: (MultiVector(a, I!)) -> a;
+
+define make_multivector(terms) = terms;
+
+define multivector_add(mv1, mv2) =
+    simplify(multivector_merge(mv1, mv2));
+    
+define multivector_reverse(mv) =
+    [term_reverse(term) | term <- mv];
+
+define multivector_inverse(mv) =
+    [term_inverse(term) | term <- mv];
+
+define multivector_negate(mv) =
+    [scale_term(-1, term) | term <- mv];
+
+define multivector_bar(mv) =
+    [term_bar(term) | term <- mv];
+
+define multivector_even(mv) =
+    [term | term <- mv, mod(term_grade(term), 2) = 0];
+
+define multivector_odd(mv) =
+    [term | term <- mv, mod(term_grade(term), 2) = 1];
+
+define multivector_filter(f, mv) =
+    [term | term <- mv, f(term_weight(term))];
+
+#define multivector_from_scalar(x) =
+#    [make_term(x, scalar_base_blade())];
+
+define project_grade(mv, i) =
+    [term | term <- mv, term_grade(term) = i];
+
+define scalar_part(mv) =
+    let term = head(mv) in
+        if is_scalar_base_blade(term_base_blade(term)) then
+            term_weight(term)
+        else
+            0 * term_weight(term)
+        end
+    end;
+
+define geometric_product(mv1, mv2) =
+    multivector_product(mv1, mv2, false);
+
+define outer_product(mv1, mv2) =
+    multivector_product(mv1, mv2, true);
+
+define left_contraction(mv1, mv2) = 
+    let res = [term_inner_product(x, y, left_contraction_predicate) | x <- mv1, y <- mv2] in
+        # @@@ TODO: check if sort_list is needed, Leo's ip function in 
+        # https://geometricalgebra.org/ga_ref_impl/subspace/basis/Multivector.java.html#ip
+        # doesn't do this.
+        simplify(sort_list(res, compare_term))
+    end;
+
+define right_contraction(mv1, mv2) = 
+    let res = [term_inner_product(x, y, right_contraction_predicate) | x <- mv1, y <- mv2] in
+        # @@@ TODO: check if sort_list is needed, Leo's ip function in 
+        # https://geometricalgebra.org/ga_ref_impl/subspace/basis/Multivector.java.html#ip
+        # doesn't do this.
+        simplify(sort_list(res, compare_term))
+    end;
+
+define hestenes_inner_product(mv1, mv2) = 
+    let res = [term_inner_product(x, y, hestenes_inner_product_predicate) | x <- mv1, y <- mv2] in
+        # @@@ TODO: check if sort_list is needed, Leo's ip function in 
+        # https://geometricalgebra.org/ga_ref_impl/subspace/basis/Multivector.java.html#ip
+        # doesn't do this.
+        simplify(sort_list(res, compare_term))
+    end;
+
+define modified_hestenes_inner_product(mv1, mv2) = 
+    let res = [term_inner_product(x, y, modified_inner_product_predicate) | x <- mv1, y <- mv2] in
+        # @@@ TODO: check if sort_list is needed, Leo's ip function in 
+        # https://geometricalgebra.org/ga_ref_impl/subspace/basis/Multivector.java.html#ip
+        # doesn't do this.
+        simplify(sort_list(res, compare_term))
+    end;
+
+# 
+declare left_contraction_predicate,
+        right_contraction_predicate,
+        hestenes_inner_product_predicate,
+        modified_inner_product_predicate :: for_index I: for_unit a: (1, 1, Term(a, I!)) -> Boole;
+
+define left_contraction_predicate(grade1, grade2, t) =
+    grade1 <= grade2 and term_grade(t) = grade2 - grade1;
+
+define right_contraction_predicate(grade1, grade2, t) =
+    grade2 <= grade1 and term_grade(t) = grade1 - grade2;
+
+define hestenes_inner_product_predicate(grade1, grade2, t) =
+    grade1 != 0 and grade2 != 0 and modified_inner_product_predicate(grade1, grade2, t);
+
+define modified_inner_product_predicate(grade1, grade2, t) =
+    abs(grade1 - grade2) = term_grade(t);
+
+# ------------------------------------------------------------------------------
+# Operator tables
+# ------------------------------------------------------------------------------
+
+declare table :: for_index I: for_unit a,b: 
+    (List(Term(a, I!)), List(Term(b, I!)),
+     (MultiVector(a, I!), MultiVector(b, I!)) -> MultiVector(a*b, I!),
+     String) -> String;
+
+define table(terms_a, terms_b, f, name) =
+    let
+        width = 6,
+        blades_a = [term_base_blade(t) | t <- terms_a],
+        blades_b = [term_base_blade(t) | t <- terms_b],
+        weight_x = 1 * unit(term_weight(nth(0, terms_a))),
+        weight_y = 1 * unit(term_weight(nth(0, terms_b))),
+        nr_blades_a = list_size(blades_a),
+        nr_blades_b = list_size(blades_b),
+        entry(blade_x, blade_y) =
+            multivector2string(
+                f(make_multivector([make_term(weight_x, blade_x)]),
+                  make_multivector([make_term(weight_y, blade_y)]))),
+        sorted_a = sort_list(blades_a, (x, y) -> blade_grade(x) - blade_grade(y)),
+        sorted_b = sort_list(blades_b, (x, y) -> blade_grade(x) - blade_grade(y)),
+        gridline = concat[symbol |
+                             len := (width + 2) * (nr_blades_a + 1),
+                             i <- naturals(len),
+                             symbol := if i <= width then " "
+                                       else if mod(i + 1, width + 2) = 0 then "+"
+                                       else "-"
+                                       end]
+    in
+        format("\n%s%s\n%s%s",
+            pad_left(name, width, " "),
+            concat[pad_left(base_blade_name(x), width + 2, " ") | x <- sorted_a ],
+            concat[row | x <- sorted_a,
+                         row := format("%s\n%s%s |\n",
+                                  gridline,
+                                  pad_left(base_blade_name(x), width, " "),
+                                  concat[format(" |%s", pad_left(entry(x, y), width, " ")) | y <- sorted_b])],
+            gridline)
+    end;
+
+# ------------------------------------------------------------------------------
+# Formatted output
+# ------------------------------------------------------------------------------
+
+declare export multivector2string :: for_index I: for_unit a: (MultiVector(a, I!)) -> String;
+
+define multivector2string(mv) =
+    if mv = [] then
+        num2str(0, |1|)
+    else
+        #intercalate([concatenate(let w = term_weight(term) in if w = 1 then "" else if w = -1 then "-" else num2str(w, |1|) end end, let t = term_base_blade(term) in if t = e0 then "" else base_blade_name(t) end end) | term <- mv], " + ")
+        intercalate([term2string(term) | term <- mv], " + ")
+    end;
+
+declare term2string :: for_index I: for_unit a: (Term(a, I!)) -> String;
+
+define term2string(term) =
+    let
+        w = term_weight(term),
+        b = term_base_blade(term),
+        is_scalar = is_scalar_base_blade(b)
+    in
+        concatenate(
+            if w = unit(w) and not(is_scalar) then "" else if w = -unit(w) and not(is_scalar) then "-" else num2str(magnitude(w), |1|) end,
+            if is_scalar then "" else base_blade_name(b) end)
+    end;
+
+# ------------------------------------------------------------------------------
+# Quick and dirty multivector parser
+#
+# Some shortcomings:
+# - No proper error handling
+# - Does not handle locale (, vs .)
+# - Subtraction must be written as addition with a negative, e.g. 2 + -3e1 and
+#   1 + -e1 are valid, but 2 - 3e1 and 2 - e1 are not valid
+# ------------------------------------------------------------------------------
+
+declare export parse_multivector ::
+    for_index I: for_unit a: ((String) -> Term(a, I!), String) -> MultiVector(a, I!);
+
+define parse_multivector(parse_base_blade, input) =
+  simplify(sort_list([parse_term(parse_base_blade, x) | x <- split_string(input, "+")],
+                     compare_term));
+
+declare parse_term ::
+    for_index I: for_unit a: ((String) -> Term(a, I!), String) -> Term(a, I!);
+
+define parse_term(parse_base_blade, input) =
+    let
+        parts = split_string(input, "e")
+    in
+        if list_size(parts) = 1
+            then scale_term(parse_num(nth(0, parts)), parse_base_blade("0"))
+        else
+            let
+                first = trim(nth(0, parts)),
+                second = trim(nth(1, parts))
+            in
+                scale_term(
+                    if first = "" then 1 else if first = "-" then -1 else parse_num(first) end,
+                    parse_base_blade(second))
+            end
+        end
+    end;
+
+# mv2vec
+# ------------------------------------------------------------------------------
+
+declare export mv2vec :: for_index C: for_unit a: (MultiVector(a, C!)) -> a*C!;
+
+define mv2vec(mv) =
+  sum[term2vec(t) | t <- mv, blade_grade(term_base_blade(t)) = 1];
+
+define term2vec(term) =
+  term_weight(term) '.*' nth(0, base_blade_vectors(term_base_blade(term)));

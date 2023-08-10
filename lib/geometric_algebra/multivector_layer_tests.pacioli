@@ -1,0 +1,55 @@
+import testing;
+include term_layer;
+include multivector_layer;
+include geometric_algebra;  # Remove this downstream include!!!
+
+run_test_suites(multivector_layer_suites);
+
+declare multivector_layer_suites :: List(TestSuite);
+
+define multivector_layer_suites = [
+    multivector_utilities_suite
+];
+
+# ------------------------------------------------------------------------------
+# Multivector utilities layer
+# ------------------------------------------------------------------------------
+
+define multivector_utilities_suite = test_suite("Multivector utilities", [
+
+    test("should remove-zeros on empty list", () ->
+        remove_zeros(make_multivector([])) = make_multivector([])
+    ),
+
+    test("should remove-zeros on list with a zero term", () ->
+        remove_zeros(make_multivector([make_term(0, e1), make_term(1, e2)])) =
+            make_multivector([make_term(1, e2)])
+    ),
+
+    test("should not remove-zeros on list without zero terms", () ->
+        remove_zeros(make_multivector([make_term(1, e1), make_term(1, e2)])) =
+            make_multivector([make_term(1, e1), make_term(1, e2)])
+    ),
+
+    test("should simplify zero terms", () ->
+        simplify(make_multivector([make_term(0,e1), make_term(3,e2)])) =
+            make_multivector([make_term(3,e2)]) 
+    ),
+
+    test("should simplify a singleton correctly", () ->
+        simplify(make_multivector([make_term(3,e2)])) = make_multivector([make_term(3,e2)])
+    ),
+
+    test("should simplify the right term", () ->
+        simplify(make_multivector([make_term(5,e0), make_term(3,e2)])) =
+            make_multivector([make_term(5,e0), make_term(3,e2)]) and
+        simplify(make_multivector([make_term(5,e1), make_term(3,e2)])) =
+            make_multivector([make_term(5,e1), make_term(3,e2)]) and
+        simplify(make_multivector([make_term(5,e2), make_term(3,e2)])) =
+            make_multivector([make_term(8,e2)]) and
+        simplify(make_multivector([make_term(5,e3), make_term(3,e2)])) =
+            make_multivector([make_term(5,e3), make_term(3,e2)]) and
+        simplify(make_multivector([make_term(5,e12), make_term(3,e2)])) =
+            make_multivector([make_term(5,e12), make_term(3,e2)])
+    )
+]);

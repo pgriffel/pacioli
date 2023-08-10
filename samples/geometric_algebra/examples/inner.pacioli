@@ -1,0 +1,40 @@
+import geometry;
+import geometric_algebra;
+import graphics;
+
+# ------------------------------------------------------------------------------
+# The rendered scene
+# ------------------------------------------------------------------------------
+
+define the_scene(a, b, c, x, y, z) =
+    let
+        scene = empty_scene("Shows projections with inner products. Extension of example <a href=\"#outer_cos_sin_the_scene\">outer_cos_sin</a>. Give <i>x</i>, <i>y</i> and <i>z</i> of vectors as parameters"),
+        v1 = |metre| '.*' space_vec(a, b, c),
+        v2 = |metre| '.*' space_vec(x, y, z),
+        (p1, p2) = projections(v1, v2),
+        arrows = [
+            origin_arrow(v1, "red"), 
+            origin_arrow(v2, "blue"),
+            origin_arrow(p1, "#FFAAAA"),
+            origin_arrow(p2, "#AAAAFF")
+        ],
+        lines = [
+            make_line(v1, p1),
+            make_line(v2, p2)
+        ]
+    in
+        add_paths(lines, add_arrows(arrows, scene))
+    end;
+
+
+# Returns two vectors, the projection of v1 on v2 and the projection of v2 on v1.
+
+define projections(v1, v2) =
+    let
+        in12 = inner(v1, v2),
+        in11 = inner(v1, v1),
+        in22 = inner(v2, v2)
+    in
+        tuple(in12 / in22 '.*' v2, in12 / in11 '.*' v1)
+    end;
+
