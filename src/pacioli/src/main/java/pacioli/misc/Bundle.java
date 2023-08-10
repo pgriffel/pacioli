@@ -28,17 +28,17 @@ import pacioli.compilers.MATLABCompiler;
 import pacioli.compilers.MVMCompiler;
 import pacioli.compilers.PythonCompiler;
 import pacioli.misc.CompilationSettings.Target;
-import pacioli.symboltable.ClassInfo;
-import pacioli.symboltable.GeneralInfo;
-import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.PacioliTable;
-import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.symboltable.ParametricInfo;
-import pacioli.symboltable.TypeSymbolInfo;
-import pacioli.symboltable.UnitInfo;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.ClassInfo;
+import pacioli.symboltable.info.GeneralInfo;
+import pacioli.symboltable.info.IndexSetInfo;
+import pacioli.symboltable.info.ParametricInfo;
+import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.TypeSymbolInfo;
+import pacioli.symboltable.info.UnitInfo;
+import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.TypeObject;
 
 /**

@@ -5,6 +5,8 @@ import java.util.List;
 
 import pacioli.ast.definition.Toplevel;
 import pacioli.misc.PacioliException;
+import pacioli.symboltable.info.TypeSymbolInfo;
+import pacioli.symboltable.info.ValueInfo;
 
 public class PacioliTable {
 

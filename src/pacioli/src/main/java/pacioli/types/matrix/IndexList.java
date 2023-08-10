@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import pacioli.misc.PacioliException;
-import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.types.AbstractType;
 import pacioli.types.ConstraintSet;
 import pacioli.types.TypeObject;

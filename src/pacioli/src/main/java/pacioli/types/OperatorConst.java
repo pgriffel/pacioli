@@ -1,7 +1,7 @@
 package pacioli.types;
 
 import pacioli.misc.PacioliException;
-import pacioli.symboltable.ParametricInfo;
+import pacioli.symboltable.info.ParametricInfo;
 
 // Const
 public record OperatorConst(TypeIdentifier id, ParametricInfo info) implements Operator {

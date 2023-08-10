@@ -31,7 +31,7 @@ import pacioli.ast.unit.UnitPowerNode;
 import pacioli.misc.CompilationSettings;
 import pacioli.misc.PacioliException;
 import pacioli.misc.Printer;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;

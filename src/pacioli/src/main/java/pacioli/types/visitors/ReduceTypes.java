@@ -7,6 +7,7 @@ import java.util.function.Function;
 
 import pacioli.Pacioli;
 import pacioli.misc.PacioliException;
+import pacioli.symboltable.info.ParametricInfo;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
 import pacioli.types.OperatorConst;
@@ -21,7 +22,6 @@ import pacioli.types.VectorUnitVar;
 import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
-import pacioli.symboltable.ParametricInfo;
 
 public class ReduceTypes implements TypeVisitor {
 

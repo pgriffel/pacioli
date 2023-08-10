@@ -17,7 +17,7 @@ import pacioli.misc.Location;
 import pacioli.misc.PacioliException;
 import pacioli.misc.PacioliFile;
 import pacioli.symboltable.PacioliTable;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.ValueInfo;
 
 /**
  * Lifts every statement from every definition into a separate definition to

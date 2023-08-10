@@ -4,7 +4,7 @@ import pacioli.ast.ValueContext;
 import pacioli.ast.Visitor;
 import pacioli.misc.Location;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.ValueInfo;
 
 public class StatementNode extends AbstractExpressionNode {
 

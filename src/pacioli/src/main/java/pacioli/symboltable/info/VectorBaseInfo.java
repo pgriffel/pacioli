@@ -1,4 +1,4 @@
-package pacioli.symboltable;
+package pacioli.symboltable.info;
 
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +9,7 @@ import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;
+import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 

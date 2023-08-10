@@ -26,7 +26,7 @@ import java.util.List;
 
 import pacioli.ast.Visitor;
 import pacioli.misc.Location;
-import pacioli.symboltable.SymbolInfo;
+import pacioli.symboltable.info.SymbolInfo;
 
 public class TypeIdentifierNode extends AbstractTypeNode {
 

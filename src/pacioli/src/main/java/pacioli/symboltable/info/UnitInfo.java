@@ -1,4 +1,4 @@
-package pacioli.symboltable;
+package pacioli.symboltable.info;
 
 public sealed abstract class UnitInfo extends AbstractSymbolInfo implements TypeSymbolInfo
         permits VectorBaseInfo, ScalarBaseInfo, AliasInfo {

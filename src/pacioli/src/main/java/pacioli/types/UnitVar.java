@@ -1,6 +1,6 @@
 package pacioli.types;
 
-import pacioli.symboltable.SymbolInfo;
+import pacioli.symboltable.info.SymbolInfo;
 
 public interface UnitVar extends Var, TypeBase {
 

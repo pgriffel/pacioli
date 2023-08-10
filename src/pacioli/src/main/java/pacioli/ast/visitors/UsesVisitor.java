@@ -9,7 +9,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.misc.PacioliException;
-import pacioli.symboltable.SymbolInfo;
+import pacioli.symboltable.info.SymbolInfo;
 import pacioli.types.ast.TypeIdentifierNode;
 
 public class UsesVisitor extends IdentityVisitor {

@@ -42,9 +42,9 @@ import pacioli.misc.PacioliFile;
 import pacioli.misc.Printable;
 import pacioli.misc.Printer;
 import pacioli.symboltable.PacioliTable;
-import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.ValueInfo;
 
 public interface Node extends Printable {
 

@@ -1,4 +1,4 @@
-package pacioli.symboltable;
+package pacioli.symboltable.info;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,7 @@ import java.util.Optional;
 import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.InstanceDefinition;
 import pacioli.misc.PacioliFile;
+import pacioli.symboltable.SymbolTableVisitor;
 
 public final class ClassInfo extends AbstractSymbolInfo implements TypeSymbolInfo {
 

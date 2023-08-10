@@ -26,8 +26,8 @@ import java.util.Optional;
 
 import pacioli.misc.CompilationSettings;
 import pacioli.misc.PacioliException;
-import pacioli.symboltable.ScalarBaseInfo;
 import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.info.ScalarBaseInfo;
 import uom.BaseUnit;
 
 public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, UnitVar {

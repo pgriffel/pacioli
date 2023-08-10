@@ -26,7 +26,7 @@ import java.util.Optional;
 import pacioli.ast.Visitor;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliException;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.ValueInfo;
 
 public class IdentifierNode extends AbstractExpressionNode {
 

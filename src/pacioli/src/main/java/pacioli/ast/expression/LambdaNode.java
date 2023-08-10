@@ -28,7 +28,7 @@ import pacioli.ast.Visitor;
 import pacioli.misc.Location;
 import pacioli.misc.Utils;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.ValueInfo;
 
 public class LambdaNode extends AbstractExpressionNode {
 

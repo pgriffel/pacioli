@@ -33,7 +33,7 @@ import pacioli.misc.CompilationSettings;
 import pacioli.misc.PacioliException;
 import pacioli.misc.Printable;
 import pacioli.misc.Printer;
-import pacioli.symboltable.ParametricInfo;
+import pacioli.symboltable.info.ParametricInfo;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.visitors.VectorVarNames;
 import pacioli.types.visitors.JSGenerator;

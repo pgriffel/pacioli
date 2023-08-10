@@ -25,8 +25,8 @@ import java.io.PrintWriter;
 import java.util.Optional;
 
 import pacioli.misc.PacioliException;
-import pacioli.symboltable.IndexSetInfo;
 import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.info.IndexSetInfo;
 import uom.BaseUnit;
 
 public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {

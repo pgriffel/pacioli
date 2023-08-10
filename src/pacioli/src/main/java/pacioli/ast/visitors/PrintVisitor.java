@@ -55,7 +55,7 @@ import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.misc.Printer;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.TypeObject;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.ContextNode;

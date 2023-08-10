@@ -26,7 +26,7 @@ import java.util.Optional;
 import pacioli.misc.CompilationSettings;
 import pacioli.misc.PacioliException;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.VectorBaseInfo;
+import pacioli.symboltable.info.VectorBaseInfo;
 import uom.BaseUnit;
 
 public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, UnitVar {

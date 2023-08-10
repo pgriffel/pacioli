@@ -11,7 +11,7 @@ import pacioli.Pacioli;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.symboltable.PacioliTable;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;

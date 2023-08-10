@@ -22,7 +22,7 @@
 package pacioli.types.matrix;
 
 import pacioli.misc.CompilationSettings;
-import pacioli.symboltable.VectorBaseInfo;
+import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.types.TypeBase;
 import pacioli.types.TypeIdentifier;
 import uom.BaseUnit;

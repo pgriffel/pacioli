@@ -1,4 +1,4 @@
-package pacioli.symboltable;
+package pacioli.symboltable.info;
 
 import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;

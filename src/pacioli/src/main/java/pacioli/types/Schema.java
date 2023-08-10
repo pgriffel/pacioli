@@ -27,7 +27,7 @@ import java.util.Set;
 
 import pacioli.misc.Location;
 import pacioli.misc.PacioliException;
-import pacioli.symboltable.SymbolInfo;
+import pacioli.symboltable.info.SymbolInfo;
 import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeIdentifierNode.Kind;

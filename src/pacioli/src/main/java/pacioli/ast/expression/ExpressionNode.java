@@ -29,7 +29,7 @@ import pacioli.ast.visitors.AssignedVariablesVisitor;
 import pacioli.ast.visitors.TypeInference;
 import pacioli.misc.PacioliFile;
 import pacioli.symboltable.PacioliTable;
-import pacioli.symboltable.ParametricInfo;
+import pacioli.symboltable.info.ParametricInfo;
 import pacioli.types.Typing;
 
 public interface ExpressionNode extends Node {

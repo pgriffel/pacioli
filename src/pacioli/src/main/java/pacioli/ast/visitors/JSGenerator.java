@@ -30,7 +30,7 @@ import pacioli.misc.PacioliException;
 import pacioli.misc.Printer;
 import pacioli.misc.Utils;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.matrix.MatrixType;
 
 public class JSGenerator extends PrintVisitor implements CodeGenerator {

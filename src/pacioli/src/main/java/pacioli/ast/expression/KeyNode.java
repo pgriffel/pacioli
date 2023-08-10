@@ -30,7 +30,7 @@ import pacioli.ast.Visitor;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliException;
-import pacioli.symboltable.IndexSetInfo;
+import pacioli.symboltable.info.IndexSetInfo;
 
 public class KeyNode extends AbstractExpressionNode {
 

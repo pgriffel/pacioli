@@ -1,4 +1,4 @@
-package pacioli.symboltable;
+package pacioli.symboltable.info;
 
 import java.util.List;
 import java.util.Optional;
@@ -7,6 +7,7 @@ import pacioli.ast.definition.ValueDefinition;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliException;
 import pacioli.misc.PacioliFile;
+import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.types.FunctionType;
 import pacioli.types.TypeObject;
 import pacioli.types.Schema;

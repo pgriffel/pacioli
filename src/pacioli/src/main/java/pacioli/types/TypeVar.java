@@ -25,7 +25,7 @@ import java.util.Optional;
 
 import pacioli.misc.PacioliException;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.TypeVarInfo;
+import pacioli.symboltable.info.TypeVarInfo;
 import uom.BaseUnit;
 
 public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {

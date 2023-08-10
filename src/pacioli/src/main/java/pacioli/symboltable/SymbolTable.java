@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import pacioli.Pacioli;
+import pacioli.symboltable.info.SymbolInfo;
 
 public class SymbolTable<R extends SymbolInfo> {
 

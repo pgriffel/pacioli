@@ -12,16 +12,16 @@ import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.misc.CompilationSettings;
 import pacioli.misc.Printer;
 import pacioli.misc.Utils;
-import pacioli.symboltable.AliasInfo;
-import pacioli.symboltable.ClassInfo;
-import pacioli.symboltable.IndexSetInfo;
-import pacioli.symboltable.ScalarBaseInfo;
-import pacioli.symboltable.SymbolInfo;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.symboltable.TypeVarInfo;
-import pacioli.symboltable.ParametricInfo;
-import pacioli.symboltable.ValueInfo;
-import pacioli.symboltable.VectorBaseInfo;
+import pacioli.symboltable.info.AliasInfo;
+import pacioli.symboltable.info.ClassInfo;
+import pacioli.symboltable.info.IndexSetInfo;
+import pacioli.symboltable.info.ParametricInfo;
+import pacioli.symboltable.info.ScalarBaseInfo;
+import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.TypeVarInfo;
+import pacioli.symboltable.info.ValueInfo;
+import pacioli.symboltable.info.VectorBaseInfo;
 
 public class MATLABCompiler implements SymbolTableVisitor {
 
