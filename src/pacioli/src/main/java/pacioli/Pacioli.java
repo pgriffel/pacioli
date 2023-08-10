@@ -41,6 +41,7 @@ import pacioli.misc.CompilationSettings;
 import pacioli.misc.PacioliException;
 import pacioli.misc.PacioliFile;
 import pacioli.misc.PrimitivesDocumentation;
+import pacioli.misc.Program;
 import pacioli.misc.Project;
 import pacioli.misc.CompilationSettings.Target;
 import pacioli.parser.Parser;
@@ -311,8 +312,8 @@ public class Pacioli {
         } else {
             PacioliFile file = optionalFile.get();
             log("Parsing file '%s'", file);
-            ProgramNode program = Parser.parseFile(file.getFile());
-            println("%s", program.pretty());
+            Program program = Program.load(file);
+            println("%s", program.ast.pretty());
         }
     }
 
@@ -326,8 +327,8 @@ public class Pacioli {
             throw new PacioliException("Cannot desugar: file '%s' does not exist.", fileName);
         } else {
             log("Desugaring file '%s'", file);
-            Project project = Project.load(file.get(), libs);
-            project.loadBundle().printCode(false, true, false);
+            Program program = Program.load(file.get());
+            println("%s", program.desugar().ast.pretty());
         }
     }
 
