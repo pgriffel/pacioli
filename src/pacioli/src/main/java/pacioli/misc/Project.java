@@ -32,10 +32,6 @@ import pacioli.symboltable.PacioliTable;
  */
 public class Project {
 
-    public static Path bundlePath(File file, Target target) {
-        return Paths.get(FilenameUtils.removeExtension(file.getPath()) + "." + PacioliFile.targetFileExtension(target));
-    }
-
     private final PacioliFile file;
     private final List<File> libs;
     private final DefaultDirectedGraph<PacioliFile, DefaultEdge> graph;
@@ -69,7 +65,8 @@ public class Project {
      * @return The path corresponding with the target
      */
     public Path bundlePath(Target target) {
-        return bundlePath(file.getFile(), target);
+        return Paths.get(FilenameUtils.removeExtension(this.file.getFile().getPath()) + "."
+                + PacioliFile.targetFileExtension(target));
     }
 
     /**
