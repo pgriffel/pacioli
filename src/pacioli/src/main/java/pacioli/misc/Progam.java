@@ -1,6 +1,5 @@
 package pacioli.misc;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,98 +60,63 @@ import pacioli.types.ast.TypeNode;
 /**
  * A Program corresponds to a Pacioli file.
  * 
- * A Program contains the AST and the symboltables for the Pacioli code in
- * a file. It can be constructed by loading a PacioliFile.
+ * A Program contains the AST for the Pacioli code in a file. It can be
+ * constructed by loading a PacioliFile.
  * 
  * Once a program has been loaded it can be used to resolve identifiers, infer
- * types, etc.
+ * types, etc. The result is a symbol table with info for all identifiers.
  *
  */
 public class Progam {
 
     public final PacioliFile file;
 
-    private static int classInstanceCounter = 0;
+    public final ProgramNode ast;
 
-    private String genclassInstanceName() {
-        return String.format("_inst_%s", classInstanceCounter++);
-    }
-
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public Progam(PacioliFile file) {
+    private Progam(PacioliFile file, ProgramNode ast) {
         assert (file != null);
         this.file = file;
-    }
-
-    // -------------------------------------------------------------------------
-    // Properties
-    // -------------------------------------------------------------------------
-
-    public String getModule() {
-        return this.file.getModule();
-    }
-
-    public File getFile() {
-        return this.file.getFile();
-    }
-
-    public Boolean isLibrary() {
-        return this.file.isLibrary();
+        this.ast = ast;
     }
 
     // -------------------------------------------------------------------------
     // Loading
     // -------------------------------------------------------------------------
 
-    public static PacioliTable load(PacioliFile file) throws Exception {
-        Progam program = new Progam(file);
-        return program.loadTill();
-    }
-
-    /**
-     * Loads the program from file.
-     * 
-     * @return
-     * 
-     * @throws Exception
-     */
-    private PacioliTable loadTill() throws Exception {
-
-        Pacioli.logIf(Pacioli.Options.showFileLoads, "Loading file %s", this.file.getFile());
-
-        ProgramNode programNode = Parser.parseFile(this.file.getFile());
-
-        programNode = desugar(programNode);
-        PacioliTable env = fillTables(programNode);
-        rewriteClasses(env);
-
-        return env;
-
-    }
-
-    public void loadRest(PacioliTable prog, PacioliTable environment) throws Exception {
-
-        // Note that method liftValueInfoStatements requires resolved
-        // definitions, but produces non resolved definitions.
-        resolve(prog, environment);
-        liftStatements(prog, environment);
-        resolve(prog, environment); // hier env.parent ?
-        transformConversions(prog);
-        inferTypes(prog, environment);
-        // rewriteOverloads(environment);
+    public static Progam load(PacioliFile file) throws Exception {
+        ProgramNode ast = Parser.parseFile(file.getFile());
+        return new Progam(file, ast);
     }
 
     // -------------------------------------------------------------------------
     // Desugaring
     // -------------------------------------------------------------------------
 
-    public ProgramNode desugar(ProgramNode programNode) throws PacioliException {
-        Pacioli.trace("Desugaring %s", this.file.getModule());
-        return (ProgramNode) programNode.desugar();
+    public Progam desugar() throws PacioliException {
+        ProgramNode desugared = (ProgramNode) this.ast.desugar();
+        return new Progam(this.file, desugared);
     }
+
+    // -------------------------------------------------------------------------
+    // Building symbol tables
+    // -------------------------------------------------------------------------
+
+    public PacioliTable generateInfos() throws Exception {
+        PacioliTable prog = fillTables(this.ast);
+        rewriteClasses(prog);
+        return prog;
+    }
+
+    public PacioliTable analyze(PacioliTable environment) throws Exception {
+        PacioliTable prog = this.generateInfos();
+        resolve(prog, environment);
+        liftStatements(prog, environment);
+        resolve(prog, environment);
+        transformConversions(prog);
+        inferTypes(prog, environment);
+        return prog;
+    }
+
     // -------------------------------------------------------------------------
     // Rewriting overloads
     // -------------------------------------------------------------------------
@@ -303,7 +267,7 @@ public class Progam {
      * @param symbolTable
      * @throws Exception
      */
-    public void resolve(PacioliTable prog, PacioliTable symbolTable) throws Exception {
+    private void resolve(PacioliTable prog, PacioliTable symbolTable) throws Exception {
 
         Pacioli.trace("Resolving %s", this.file.getModule());
 
@@ -379,7 +343,7 @@ public class Progam {
      * @param pacioliTable
      * @throws Exception
      */
-    public void rewriteClasses(PacioliTable env) throws Exception {
+    private void rewriteClasses(PacioliTable env) throws Exception {
 
         Pacioli.trace("Rewriting classes in file %s", this.file.getModule());
 
@@ -617,7 +581,7 @@ public class Progam {
     // Lifting statements
     // -------------------------------------------------------------------------
 
-    public void liftStatements(PacioliTable program, PacioliTable env) throws Exception {
+    private void liftStatements(PacioliTable program, PacioliTable env) throws Exception {
 
         Pacioli.trace("Lifting value statements %s", this.file.getModule());
 
@@ -634,7 +598,7 @@ public class Progam {
     // Transforming conversions
     // -------------------------------------------------------------------------
 
-    public void transformConversions(PacioliTable pacioliTable) {
+    private void transformConversions(PacioliTable pacioliTable) {
 
         Pacioli.trace("Transforming conversions %s", this.file.getModule());
 
@@ -652,7 +616,7 @@ public class Progam {
     // Type inference
     // -------------------------------------------------------------------------
 
-    public void inferTypes(PacioliTable prog, PacioliTable env) {
+    private void inferTypes(PacioliTable prog, PacioliTable env) {
 
         Pacioli.trace("Infering types in %s", this.file.getModule());
 
@@ -714,7 +678,7 @@ public class Progam {
             Typing typing = toplevel.body.inferTyping(environment, this.file);
             Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "Typing of toplevel %s is %s", i, typing.pretty());
 
-            toplevel.type = typing.solve(!isLibrary()).simplify();
+            toplevel.type = typing.solve(!this.file.isLibrary()).simplify();
             Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "Type of toplevel %s is %s", i,
                     toplevel.type.pretty());
 
@@ -790,22 +754,12 @@ public class Progam {
     }
 
     // -------------------------------------------------------------------------
-    // Symbol table printing
+    // Fresh class instance names
     // -------------------------------------------------------------------------
 
-    public void printSymbolTable(SymbolTable<? extends SymbolInfo> table, String header) {
-        Pacioli.println("Begin %s table", header);
-        List<? extends SymbolInfo> infos = table.allInfos();
-        infos.sort((SymbolInfo x, SymbolInfo y) -> x.name().compareTo(y.name()));
-        for (SymbolInfo info : infos) {
-            Optional<? extends Definition> def = info.getDefinition();
-            Pacioli.println("%-25s %-25s %-10s %-10s %-50s",
-                    info.name(),
-                    info.generalInfo().getModule(),
-                    info.isGlobal() ? "glb" : "lcl",
-                    info.generalInfo().getFile() == null ? "" : !info.isFromFile(this.file),
-                    def.isPresent() ? "has def" : "No definition");
-        }
-        Pacioli.println("End table");
+    private static int classInstanceCounter = 0;
+
+    private String genclassInstanceName() {
+        return String.format("_inst_%s", classInstanceCounter++);
     }
 }

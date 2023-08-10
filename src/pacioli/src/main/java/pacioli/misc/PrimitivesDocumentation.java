@@ -59,7 +59,7 @@ public class PrimitivesDocumentation {
         if (base) {
             File theFile = new File(libs.get(0), "base/" + module + ".pacioli");
             PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", "irrelevant", true);
-            PacioliTable program = Progam.load(pacioliFile);
+            PacioliTable program = Progam.load(pacioliFile).desugar().generateInfos();
             for (ValueInfo info : program.values.allInfos()) {
                 infos.add(info);
             }
@@ -68,7 +68,7 @@ public class PrimitivesDocumentation {
         if (standard) {
             File theFile = new File(libs.get(0), "standard/" + module + ".pacioli");
             PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", "irrelevant", true);
-            PacioliTable program = Progam.load(pacioliFile);
+            PacioliTable program = Progam.load(pacioliFile).desugar().generateInfos();
             for (ValueInfo info : program.values.allInfos()) {
                 infos.add(info);
             }

@@ -24,9 +24,6 @@ import pacioli.ast.ProgramNode;
 import pacioli.misc.CompilationSettings.Target;
 import pacioli.parser.Parser;
 import pacioli.symboltable.PacioliTable;
-import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.TypeSymbolInfo;
-import pacioli.symboltable.ValueInfo;
 
 /**
  * The Project class's purpose is to compile and bundle a file with all its
@@ -216,26 +213,17 @@ public class Project {
 
         for (PacioliFile current : orderedFiles()) {
 
-            ProgramNode programNode = Parser.parseFile(current.getFile());
-
-            PacioliTable program = Progam.load(current);
+            // Parse the file
+            Progam ast = Progam.load(current).desugar();
 
             // Filter the bundle's total symbol tables for the directly used modules of the
             // program
-            List<String> importedModules = importedModules(programNode);
-            List<String> includedModules = includedModules(current, programNode);
-            Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Imported modules = %s", importedModules);
-            Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Included modules = %s", includedModules);
-            SymbolTable<ValueInfo> vTable = bundle.programValueTable(importedModules, includedModules);
-            SymbolTable<TypeSymbolInfo> tTable = bundle.programTypeTable(importedModules, includedModules);
+            PacioliTable env = bundle.visibleInfos(
+                    importedModules(ast.ast),
+                    includedModules(current, ast.ast));
 
-            // Analyse the code given the imported and included infos
-            PacioliTable env = PacioliTable.initial(vTable, tTable);
-            Progam prog = new Progam(current);
-            prog.loadRest(program, env);
-
-            // Add the program's info's to the bundle's total symbol tables
-            bundle.load(program, current.equals(file));
+            // Analyze the code and add the result to the bundle
+            bundle.load(ast.analyze(env), current.equals(file));
         }
 
         return bundle;
