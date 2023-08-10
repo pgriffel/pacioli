@@ -67,13 +67,13 @@ import pacioli.types.ast.TypeNode;
  * types, etc. The result is a symbol table with info for all identifiers.
  *
  */
-public class Progam {
+public class Program {
 
     public final PacioliFile file;
 
     public final ProgramNode ast;
 
-    private Progam(PacioliFile file, ProgramNode ast) {
+    private Program(PacioliFile file, ProgramNode ast) {
         assert (file != null);
         this.file = file;
         this.ast = ast;
@@ -83,18 +83,18 @@ public class Progam {
     // Loading
     // -------------------------------------------------------------------------
 
-    public static Progam load(PacioliFile file) throws Exception {
+    public static Program load(PacioliFile file) throws Exception {
         ProgramNode ast = Parser.parseFile(file.getFile());
-        return new Progam(file, ast);
+        return new Program(file, ast);
     }
 
     // -------------------------------------------------------------------------
     // Desugaring
     // -------------------------------------------------------------------------
 
-    public Progam desugar() throws PacioliException {
+    public Program desugar() throws PacioliException {
         ProgramNode desugared = (ProgramNode) this.ast.desugar();
-        return new Progam(this.file, desugared);
+        return new Program(this.file, desugared);
     }
 
     // -------------------------------------------------------------------------

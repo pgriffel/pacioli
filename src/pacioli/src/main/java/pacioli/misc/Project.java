@@ -214,7 +214,7 @@ public class Project {
         for (PacioliFile current : orderedFiles()) {
 
             // Parse the file
-            Progam ast = Progam.load(current).desugar();
+            Program ast = Program.load(current).desugar();
 
             // Filter the bundle's total symbol tables for the directly used modules of the
             // program
