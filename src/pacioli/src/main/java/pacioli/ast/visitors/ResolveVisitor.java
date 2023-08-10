@@ -2,7 +2,6 @@ package pacioli.ast.visitors;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Stack;
@@ -73,10 +72,6 @@ public class ResolveVisitor extends IdentityVisitor {
     private Stack<String> statementResult;
 
     private PacioliFile file;
-
-    public static final List<String> builtinTypes = new ArrayList<String>(
-            Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier", "Maybe",
-                    "Array", "File"));
 
     // -------------------------------------------------------------------------
     // Constructor

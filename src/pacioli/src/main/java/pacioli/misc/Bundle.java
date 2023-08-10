@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -46,6 +47,20 @@ import pacioli.types.TypeObject;
  * keeps symboltables for values and types collected from all project files.
  */
 public class Bundle {
+
+    public static final List<String> PRIMITIVE_TYPES = List.of(
+            "Tuple",
+            "List",
+            "Index",
+            "Boole",
+            "Void",
+            "Ref",
+            "String",
+            "Report",
+            "Identifier",
+            "Maybe",
+            "Array",
+            "File");
 
     private final PacioliFile file;
     private final List<File> libs;
@@ -108,7 +123,7 @@ public class Bundle {
 
     public void addPrimitiveTypes() {
         PacioliFile file = PacioliFile.requireLibrary("base", libs);
-        for (String type : ResolveVisitor.builtinTypes) {
+        for (String type : PRIMITIVE_TYPES) {
             GeneralInfo info = new GeneralInfo(type, file, true, new Location());
             environment.types.put(type, new ParametricInfo(info));
         }

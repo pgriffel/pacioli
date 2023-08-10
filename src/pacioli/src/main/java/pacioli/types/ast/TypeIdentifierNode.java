@@ -20,10 +20,6 @@
  */
 package pacioli.types.ast;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import pacioli.ast.Visitor;
 import pacioli.misc.Location;
 import pacioli.symboltable.info.SymbolInfo;
@@ -66,11 +62,6 @@ public class TypeIdentifierNode extends AbstractTypeNode {
 
     // Set during resolving
     public SymbolInfo info;
-
-    // Duplicate
-    public static final List<String> builtinTypes = new ArrayList<String>(
-            Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier", "Array",
-                    "File"));
 
     public TypeIdentifierNode(Location location, String name) {
         super(location);
