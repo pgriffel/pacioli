@@ -36,16 +36,6 @@ public class PacioliTable {
         types.addAll(pacioliTable.types);
     }
 
-    // public PacioliTable pushNew() {
-    // SymbolTable<ValueInfo> values = new SymbolTable<ValueInfo>();
-    // SymbolTable<TypeSymbolInfo> types = new SymbolTable<TypeSymbolInfo>();
-
-    // values.parent = this.values;
-    // types.parent = this.types;
-
-    // return new PacioliTable(values, types, new ArrayList<>());
-    // }
-
     public void setParent(PacioliTable symbolTable) {
         if (values.parent != null) {
             throw new RuntimeException(String.format("Expected null parent"));

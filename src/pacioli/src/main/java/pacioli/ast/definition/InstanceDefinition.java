@@ -29,7 +29,6 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliException;
 import pacioli.types.ast.ContextNode;
-import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
 
 /**

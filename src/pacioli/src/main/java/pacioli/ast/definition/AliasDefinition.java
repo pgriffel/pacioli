@@ -2,7 +2,6 @@ package pacioli.ast.definition;
 
 import java.math.BigDecimal;
 
-import pacioli.Pacioli;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;

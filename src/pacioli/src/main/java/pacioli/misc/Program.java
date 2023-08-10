@@ -102,19 +102,19 @@ public class Program {
     // -------------------------------------------------------------------------
 
     public PacioliTable generateInfos() throws Exception {
-        PacioliTable prog = fillTables(this.ast);
-        rewriteClasses(prog);
-        return prog;
+        PacioliTable infos = fillTables();
+        rewriteClasses(infos);
+        return infos;
     }
 
     public PacioliTable analyze(PacioliTable environment) throws Exception {
-        PacioliTable prog = this.generateInfos();
-        resolve(prog, environment);
-        liftStatements(prog, environment);
-        resolve(prog, environment);
-        transformConversions(prog);
-        inferTypes(prog, environment);
-        return prog;
+        PacioliTable infos = this.generateInfos();
+        resolve(infos, environment);
+        liftStatements(infos, environment);
+        resolve(infos, environment);
+        transformConversions(infos);
+        inferTypes(infos, environment);
+        return infos;
     }
 
     // -------------------------------------------------------------------------
@@ -131,7 +131,7 @@ public class Program {
     // Filling symbol tables
     // -------------------------------------------------------------------------
 
-    private PacioliTable fillTables(ProgramNode programNode) throws Exception {
+    private PacioliTable fillTables() throws Exception {
 
         Pacioli.trace("Filling tables for %s", this.file.getModule());
 
@@ -141,7 +141,7 @@ public class Program {
         Map<String, ValueInfo.Builder> valueTable = new HashMap<>();
 
         // First pass, don't do class instances and value definitions
-        for (Definition def : programNode.definitions) {
+        for (Definition def : this.ast.definitions) {
 
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
                     file.getModule(), file.getFile());
@@ -204,7 +204,7 @@ public class Program {
         }
 
         // Second pass, do class instances and value definitions.
-        for (Definition def : programNode.definitions) {
+        for (Definition def : this.ast.definitions) {
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
                     file.getModule(), file.getFile());
             if (def instanceof InstanceDefinition inst) {
@@ -264,14 +264,14 @@ public class Program {
      * 
      * This operations modifies the AST.
      * 
-     * @param symbolTable
+     * @param environment
      * @throws Exception
      */
-    private void resolve(PacioliTable prog, PacioliTable symbolTable) throws Exception {
+    private void resolve(PacioliTable prog, PacioliTable environment) throws Exception {
 
         Pacioli.trace("Resolving %s", this.file.getModule());
 
-        prog.setParent(symbolTable);
+        prog.setParent(environment);
 
         List<TypeSymbolInfo> localTypeInfos = prog.types.allInfos(info -> info.isFromFile(this.file));
 
