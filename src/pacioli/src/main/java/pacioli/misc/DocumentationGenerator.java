@@ -38,6 +38,12 @@ public class DocumentationGenerator {
     Set<String> functions = new HashSet<>();
     Set<String> values = new HashSet<>();
 
+    // Info for type definitions
+    Map<String, String> typeDocs = new HashMap<>();
+    Map<String, String> typeLHS = new HashMap<>();
+    Map<String, String> typeRHS = new HashMap<>();
+    Map<String, String> typeDecl = new HashMap<>();
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -86,12 +92,27 @@ public class DocumentationGenerator {
         functions.add(name);
     }
 
+    public void addType(String name, String vars, String lhs, String rhs, String documentation) {
+        if (typeDocs.containsKey(name)) {
+            throw new RuntimeException(String.format("Cannot add type %s, it is already added", name));
+        }
+        typeDecl.put(name, vars);
+        typeLHS.put(name, lhs);
+        typeRHS.put(name, rhs);
+        typeDocs.put(name, documentation);
+    }
+
     private String getType(String name) {
         return typeTable.get(name);
     }
 
     private List<String> getDocuParts(String name) {
         String docu = documentationTable.get(name);
+        String[] parts = docu.split("\\r?\\n\s*\\r?\\n");
+        return List.of(parts);
+    }
+
+    private static List<String> docuParts(String docu) {
         String[] parts = docu.split("\\r?\\n\s*\\r?\\n");
         return List.of(parts);
     }
@@ -221,6 +242,25 @@ public class DocumentationGenerator {
             println("<a href=\"#%s\">%s</a> :: %s", function, function, typeTable.get(function));
         }
         println("</pre>");
+
+        // Print details for the types
+        println("<h2>Types</h2>");
+        if (typeDocs.size() == 0) {
+            println("n/a");
+        } else {
+            println("<dl>");
+            for (String value : typeDocs.keySet()) {
+                println("<dt id=\"%s\"><code>%s</code></dt>",
+                        value, value);
+                println("<dd>");
+                println("<pre>%s%s = %s</pre>", typeDecl.get(value), typeLHS.get(value), typeRHS.get(value));
+                for (String part : docuParts(typeDocs.get(value))) {
+                    println("\n<p>%s</p>\n", part);
+                }
+                println("</dd>");
+            }
+            println("</dl>");
+        }
 
         // Print details for the values
         println("<h2>Values</h2>");

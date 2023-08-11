@@ -22,7 +22,6 @@ public class ValueInfo extends AbstractSymbolInfo {
     private final Optional<ValueDefinition> definition;
     private final Optional<TypeNode> declaredType;
     private final Optional<ClassInfo> typeClass;
-    private final Optional<String> docu;
 
     // Set during type inference
     // TODO: make private. This will clear up the need for the throws below
@@ -38,8 +37,7 @@ public class ValueInfo extends AbstractSymbolInfo {
             boolean isRef,
             Optional<ValueDefinition> definition,
             Optional<ClassInfo> typeClass,
-            Optional<TypeNode> declaredType,
-            Optional<String> docu) {
+            Optional<TypeNode> declaredType) {
         super(new GeneralInfo(name, file, isGlobal, location));
         this.isMonomorphic = isMonomorphic;
         this.isPublic = isPublic;
@@ -47,7 +45,6 @@ public class ValueInfo extends AbstractSymbolInfo {
         this.typeClass = typeClass;
         this.declaredType = declaredType;
         this.isRef = isRef;
-        this.docu = docu;
     }
 
     @Override
@@ -81,13 +78,13 @@ public class ValueInfo extends AbstractSymbolInfo {
         return typeClass;
     }
 
-    public Optional<String> getDocu() {
-        return docu;
-    }
+    // public Optional<String> getDocu() {
+    // return docu;
+    // }
 
     public List<String> getDocuParts() {
-        if (docu.isPresent()) {
-            String[] parts = docu.get().split("\\r?\\n\s*\\r?\\n");
+        if (this.generalInfo().getDocumentation().isPresent()) {
+            String[] parts = this.generalInfo().getDocumentation().get().split("\\r?\\n\s*\\r?\\n");
             return List.of(parts);
         } else {
             return List.of();
@@ -149,7 +146,6 @@ public class ValueInfo extends AbstractSymbolInfo {
         public boolean isRef = false;
         public ValueDefinition definition;
         public TypeNode declaredType;
-        public String docu;
         public ClassInfo typeClass;
 
         public Builder name(String name) {
@@ -192,11 +188,6 @@ public class ValueInfo extends AbstractSymbolInfo {
             return this;
         }
 
-        public Builder docu(String docu) {
-            this.docu = docu;
-            return this;
-        }
-
         public Builder isRef(boolean isRef) {
             this.isRef = isRef;
             return this;
@@ -226,8 +217,7 @@ public class ValueInfo extends AbstractSymbolInfo {
                     isRef,
                     Optional.ofNullable(definition),
                     Optional.ofNullable(typeClass),
-                    Optional.ofNullable(declaredType),
-                    Optional.ofNullable(docu));
+                    Optional.ofNullable(declaredType));
         }
     }
 

@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import pacioli.Pacioli;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.visitors.CodeGenerator;
@@ -305,8 +306,8 @@ public class Bundle {
                 String text = Pacioli.Options.printTypesAsString ? type.toString() : type.pretty();
                 Pacioli.println("%s :: %s", info.name(), text);
                 if (showDocs) {
-                    if (info.getDocu().isPresent()) {
-                        Pacioli.println("\n    %s\n", info.getDocu().get());
+                    if (info.generalInfo().getDocumentation().isPresent()) {
+                        Pacioli.println("\n    %s\n", info.generalInfo().getDocumentation().get());
                     }
                 }
             }
@@ -344,9 +345,24 @@ public class Bundle {
                 ExpressionNode body = info.getDefinition().get().body;
                 if (body instanceof LambdaNode) {
                     LambdaNode lambda = (LambdaNode) body;
-                    generator.addFunction(info.name(), lambda.arguments, info.getType(), info.getDocu().orElse(""));
+                    generator.addFunction(info.name(), lambda.arguments, info.getType(),
+                            info.generalInfo().getDocumentation().orElse(""));
                 } else {
-                    generator.addValue(info.name(), info.getType(), info.getDocu().orElse(""));
+                    generator.addValue(info.name(), info.getType(), info.generalInfo().getDocumentation().orElse(""));
+                }
+            }
+        }
+
+        for (String name : environment.types.allNames()) {
+            TypeSymbolInfo info = environment.types.lookup(name);
+            if (includes.contains(info.getLocation().getFile())
+                    && info.getDefinition().isPresent()) {
+                if (info instanceof ParametricInfo def) {
+                    generator.addType(info.name(),
+                            def.getDefinition().get().context.pretty(),
+                            def.getDefinition().get().lhs.pretty(),
+                            def.getDefinition().get().rhs.pretty(),
+                            info.generalInfo().getDocumentation().orElse("n/a"));
                 }
             }
         }

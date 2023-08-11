@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.sound.sampled.AudioFileFormat.Type;
+
 import pacioli.Pacioli;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.AliasDefinition;
@@ -143,37 +145,34 @@ public class Program {
         // First pass, don't do class instances and value definitions
         for (Definition def : this.ast.definitions) {
 
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
-                    file.getModule(), file.getFile());
-
             if (def instanceof ClassDefinition d) {
                 ClassInfo.Builder classDef = ClassInfo.builder().file(file).definition(d);
                 classTable.put(def.getName(), classDef);
             } else if (def instanceof AliasDefinition alias) {
                 AliasInfo info = new AliasInfo(def.getName(), file, def.getLocation());
                 info.definition = alias;
-                env.addInfo(info);
+                addInfo(env, info);
             } else if (def instanceof IndexSetDefinition indexSet) {
                 IndexSetInfo info = new IndexSetInfo(def.getName(), file, true, def.getLocation());
                 info.setDefinition(indexSet);
-                env.addInfo(info);
+                addInfo(env, info);
             } else if (def instanceof Toplevel top) {
                 env.addToplevel(top);
             } else if (def instanceof TypeDefinition typeDef) {
                 ParametricInfo info = new ParametricInfo(def.getName(), file, true, def.getLocation());
                 info.typeAST = typeDef.rhs;
                 info.setDefinition(typeDef);
-                env.addInfo(info);
+                addInfo(env, info);
             } else if (def instanceof UnitDefinition unitDef) {
                 ScalarBaseInfo info = new ScalarBaseInfo(def.getName(), file, true, def.getLocation());
                 info.setDefinition(unitDef);
                 info.symbol = unitDef.symbol;
-                env.addInfo(info);
+                addInfo(env, info);
             } else if (def instanceof UnitVectorDefinition vecDef) {
                 VectorBaseInfo info = new VectorBaseInfo(def.getName(), file, true, def.getLocation());
                 info.setDefinition(vecDef);
                 info.setItems(vecDef.items);
-                env.addInfo(info);
+                addInfo(env, info);
             } else if (def instanceof Declaration decl) {
                 ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable, def.getName());
                 if (builder.declaredType != null) {
@@ -188,18 +187,6 @@ public class Program {
                         .isGlobal(true)
                         .declaredType(decl.typeNode)
                         .isPublic(decl.isPublic);
-            } else if (def instanceof Documentation doc) {
-                ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable, def.getName());
-                if (builder.docu != null) {
-                    throw new PacioliException(def.getLocation(), "Duplicate docu for %s", def.getName());
-                }
-                builder
-                        .name(def.getName())
-                        .location(def.getLocation())
-                        .isMonomorphic(false)
-                        .file(this.file)
-                        .isGlobal(true)
-                        .docu(((StringNode) doc.body).valueString());
             }
         }
 
@@ -222,9 +209,9 @@ public class Program {
                     builder.isPublic(false);
                 }
 
-                // This overwrites any properties set by the declaration or documentation above.
-                // This is desirable for the location. We prefer the definition location,
-                // otherwise we get the declaration or documentation location in messages.
+                // This overwrites any properties set by the declaration above. This is
+                // desirable for the location. We prefer the definition location, otherwise we
+                // get the declaration location in messages.
                 builder
                         .definition(val)
                         .name(def.getName())
@@ -236,14 +223,90 @@ public class Program {
         }
 
         for (ClassInfo.Builder builder : classTable.values()) {
-            env.addInfo(builder.build());
+            addInfo(env, builder.build());
         }
 
         for (ValueInfo.Builder builder : valueTable.values()) {
-            env.addInfo(builder.build());
+            addInfo(env, builder.build());
+        }
+
+        // Add documentation
+        for (Definition def : this.ast.definitions) {
+
+            if (def instanceof Documentation doc) {
+
+                String name = doc.getName();
+
+                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions,
+                        "Adding documentation for %s to %s from file %s",
+                        name, file.getModule(), file.getFile());
+
+                // See if the doc identifier refers to a value and/or a type
+                boolean valueExists = env.values.contains(name);
+                boolean typeExists = env.types.contains(name);
+
+                // Determine the doc kind. Resolve possible ambiguities
+                String kind;
+                if (valueExists && typeExists && doc.getKind().isEmpty()) {
+                    throw new PacioliException(def.getLocation(),
+                            "Ambiguous doc string. Please change to \n\n  doc value %s \"...\" \n\nor to \n\n  doc type %s \"...\"",
+                            name, name);
+                } else if (doc.getKind().isPresent()) {
+                    kind = doc.getKind().get().getName();
+                    if (!(kind.equals("value") || kind.equals("type"))) {
+                        throw new PacioliException(def.getLocation(),
+                                "Unknown doc qualifier: %s. Please change to 'value' or 'type'",
+                                kind);
+                    }
+                } else if (valueExists) {
+                    kind = "value";
+                } else if (typeExists) {
+                    kind = "type";
+                } else {
+                    throw new PacioliException(def.getLocation(),
+                            "Unknown doc string identifier. Name %s does not refer to a value or a type.",
+                            name, name);
+                }
+
+                // Find the proper info and set the documentation
+                String docu = ((StringNode) doc.body).valueString();
+                if (kind.equals("value")) {
+                    if (!valueExists) {
+                        throw new PacioliException(def.getLocation(),
+                                "Unknown doc string identifier. Name %s does not refer to a value.",
+                                name, name);
+                    }
+                    ValueInfo valueInfo = env.values.lookup(doc.getName());
+                    valueInfo.generalInfo().setDocumentation(docu);
+                } else {
+                    if (!typeExists) {
+                        throw new PacioliException(def.getLocation(),
+                                "Unknown doc string identifier. Name %s does not refer to a type.",
+                                name, name);
+                    }
+                    TypeSymbolInfo typeInfo = env.types.lookup(doc.getName());
+                    typeInfo.generalInfo().setDocumentation(docu);
+                }
+            }
         }
 
         return env;
+    }
+
+    private void addInfo(PacioliTable environment, ValueInfo info) {
+
+        Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s to %s from file %s",
+                info.name(), file.getModule(), file.getFile());
+
+        environment.addInfo(info);
+    }
+
+    private void addInfo(PacioliTable environment, TypeSymbolInfo info) {
+
+        Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s to %s from file %s",
+                info.name(), file.getModule(), file.getFile());
+
+        environment.addInfo(info);
     }
 
     private ValueInfo.Builder ensureValueInfoBuilder(Map<String, ValueInfo.Builder> valueTable, String name) {

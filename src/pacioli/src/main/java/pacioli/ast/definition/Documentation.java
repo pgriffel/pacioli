@@ -21,6 +21,8 @@
 
 package pacioli.ast.definition;
 
+import java.util.Optional;
+
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
@@ -30,11 +32,20 @@ import pacioli.misc.Location;
 public class Documentation extends AbstractDefinition {
 
     public final IdentifierNode id;
+    private final IdentifierNode kind;
     public final ExpressionNode body;
+
+    public Documentation(Location location, IdentifierNode id, IdentifierNode kind, ExpressionNode body) {
+        super(location);
+        this.id = id;
+        this.kind = kind;
+        this.body = body;
+    }
 
     public Documentation(Location location, IdentifierNode id, ExpressionNode body) {
         super(location);
         this.id = id;
+        this.kind = null;
         this.body = body;
     }
 
@@ -49,6 +60,10 @@ public class Documentation extends AbstractDefinition {
     }
 
     public Node transform(ExpressionNode body) {
-        return new Documentation(getLocation(), id, body);
+        return new Documentation(getLocation(), id, kind, body);
+    }
+
+    public Optional<IdentifierNode> getKind() {
+        return Optional.ofNullable(this.kind);
     }
 }

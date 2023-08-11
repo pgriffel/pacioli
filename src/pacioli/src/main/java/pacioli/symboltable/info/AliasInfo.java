@@ -36,6 +36,6 @@ public final class AliasInfo extends UnitInfo {
 
     @Override
     public Optional<AliasDefinition> getDefinition() {
-        return Optional.of(definition);
+        return Optional.ofNullable(definition);
     }
 }
