@@ -30,12 +30,44 @@ import pacioli.symboltable.info.ValueInfo;
 
 public class IdentifierNode extends AbstractExpressionNode {
 
+    public enum Kind {
+        VALUE, TYPE
+    };
+
     private final String name;
+    private final Kind kind;
+
     private Optional<ValueInfo> info = Optional.empty();
+
+    private IdentifierNode(String name, Kind kind, Location location) {
+        super(location);
+        this.name = name;
+        this.kind = kind;
+    }
 
     public IdentifierNode(String name, Location location) {
         super(location);
         this.name = name;
+        this.kind = null;
+    }
+
+    public IdentifierNode withKind(IdentifierNode id) {
+        Kind kind;
+        if (id.name.equals("value")) {
+            kind = Kind.VALUE;
+        } else if (id.name.equals("type")) {
+            kind = Kind.TYPE;
+        } else {
+            throw new PacioliException(id.getLocation(), "Invalid qualifier: %s. Please change to 'value' or 'type'",
+                    id.name);
+        }
+        IdentifierNode node = new IdentifierNode(this.name, kind, this.getLocation());
+        node.info = this.info;
+        return node;
+    }
+
+    public Optional<Kind> kind() {
+        return Optional.ofNullable(this.kind);
     }
 
     public String getName() {

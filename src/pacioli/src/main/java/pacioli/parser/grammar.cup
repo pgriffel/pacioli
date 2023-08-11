@@ -331,7 +331,7 @@ non terminal ExpressionNode          expr, expr_no_id, if_tail, lettail, letrest
 non terminal List<ExpressionNode>    exprs, exprlist;
 non terminal IdentifierNode          id, name;
 non terminal TypeIdentifierNode      typeid;
-non terminal List<IdentifierNode>    ids, names, idlist, idlist_tail;
+non terminal List<IdentifierNode>    ids, names, idlist, idlist_tail, exports;
 non terminal List<TypeIdentifierNode>        typeids, typeidlist, typeidlist_tail;
 non terminal UnitNode                dimnum, unit, unit_term;
 non terminal String                  unsigned, number, integer;
@@ -378,11 +378,14 @@ precedence left LPAR;
 program ::=  
    includes:i commands:c                            {: List<IncludeNode> includes = new ArrayList<IncludeNode>();
                                                        List<ImportNode> imports = new ArrayList<ImportNode>();
+                                                       List<ExportNode> exports = new ArrayList<ExportNode>();
                                                        for (Node node : i) {
-                                                           if (node instanceof IncludeNode) {
-                                                               includes.add((IncludeNode) node);
+                                                           if (node instanceof IncludeNode incl) {
+                                                               includes.add(incl);
+                                                           } else if (node instanceof ImportNode imp) {
+                                                               imports.add(imp);
                                                            } else {
-                                                               imports.add((ImportNode) node);
+                                                               exports.add((ExportNode) node);
                                                            }
                                                        }
                                                        RESULT = new ProgramNode(new pacioli.misc.Location(file, 0, 0, 0), includes, imports, c); :};
@@ -390,9 +393,17 @@ program ::=
 includes ::=  
    includes:is INCLUDE path:p SEMICOLON             {: is.add(new IncludeNode(makeLoc(pxleft, pxright), p)); RESULT = is; :}
  | includes:is IMPORT path:p SEMICOLON              {: is.add(new ImportNode(makeLoc(pxleft, pxright), p)); RESULT = is; :}
+ | includes:is EXPORT exports:es SEMICOLON          {: is.add(new ExportNode(makeLoc(esxleft, esxright), es)); RESULT = is; :}
  | /* empty includes */                             {: RESULT = new ArrayList<Node>(); :}
  ;
- 
+
+exports ::=
+    exports:es COMMA id:id                          {: RESULT = es; es.add(id); :}
+  | exports:es COMMA id:kind id:id                  {: RESULT = es; es.add(id.withKind(kind)); :}
+  | id:id                                           {: RESULT = new ArrayList<>(); RESULT.add(id); :}
+  | id:kind id:id                                   {: RESULT = new ArrayList<>(); RESULT.add(id.withKind(kind)); :}
+  ;
+
 commands ::=  
    commands:cs command:c SEMICOLON                  {: cs.add(c); RESULT = cs; :}
  | /* empty */                                      {: RESULT = new LinkedList<Definition>(); :}

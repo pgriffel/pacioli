@@ -3,6 +3,7 @@ package pacioli.ast.visitors;
 import java.util.List;
 import java.util.Optional;
 
+import pacioli.ast.ExportNode;
 import pacioli.ast.ImportNode;
 import pacioli.ast.IncludeNode;
 import pacioli.ast.Node;
@@ -151,6 +152,18 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(ImportNode node) {
         format("import %s;", node.name.valueString());
+    }
+
+    @Override
+    public void visit(ExportNode node) {
+        format("export");
+        String sep = " ";
+        for (IdentifierNode id : node.identifiers) {
+            format(sep);
+            id.accept(this);
+            sep = ", ";
+        }
+        format(";");
     }
 
     @Override

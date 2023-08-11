@@ -140,6 +140,11 @@ public class IdentityTransformation implements Visitor {
     }
 
     @Override
+    public void visit(ExportNode node) {
+        returnNode(node);
+    }
+
+    @Override
     public void visit(AliasDefinition node) {
         returnNode(node);
     }

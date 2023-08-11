@@ -91,6 +91,10 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
+    public void visit(ExportNode node) {
+    }
+
+    @Override
     public void visit(AliasDefinition node) {
         // Pacioli.log("Alias");
         node.id.accept(this);

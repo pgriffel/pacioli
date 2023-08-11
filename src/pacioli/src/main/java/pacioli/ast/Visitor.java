@@ -63,6 +63,8 @@ public interface Visitor {
 
     void visit(ImportNode node);
 
+    void visit(ExportNode node);
+
     void visit(AliasDefinition node);
 
     void visit(Declaration node);
