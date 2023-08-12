@@ -221,7 +221,7 @@ public class Program {
             }
         }
 
-        boolean exportHack = true;
+        boolean exportHack = false;
         Pacioli.logIf(exportHack, "export");
         for (Definition def : this.ast.definitions) {
             if (def instanceof Declaration inst) {
@@ -243,11 +243,6 @@ public class Program {
 
                 ValueInfo.Builder builder = ensureValueInfoBuilder(valueBuilders, def.getName());
 
-                // Don't overwrite the public/private flag from the declaration above.
-                if (builder.isPublic == null) {
-                    builder.isPublic(false);
-                }
-
                 // This overwrites any properties set by the declaration above. This is
                 // desirable for the location. We prefer the definition location, otherwise we
                 // get the declaration location in messages.
@@ -257,6 +252,7 @@ public class Program {
                         .file(this.file)
                         .isGlobal(true)
                         .isMonomorphic(false)
+                        .isPublic(false)
                         .location(def.getLocation());
             }
         }
@@ -278,54 +274,15 @@ public class Program {
                     // See if the doc identifier refers to a value and/or a type
                     boolean valueExists = valueBuilders.containsKey(name);
                     boolean typeExists = typeBuilders.containsKey(name);
-                    // boolean typeExists = env.types.contains(name);
 
                     // Determine the doc kind. Resolve possible ambiguities
-                    IdentifierNode.Kind kind;
-                    if (valueExists && typeExists && id.kind().isEmpty()) {
-                        throw new PacioliException(def.getLocation(),
-                                "Ambiguous export. Please change to \n\n  value %s \n\nor to \n\n  type %s",
-                                name, name);
-                    } else if (id.kind().isPresent()) {
-                        kind = id.kind().get();
-                    } else if (valueExists) {
-                        kind = IdentifierNode.Kind.VALUE;
-                    } else if (typeExists) {
-                        kind = IdentifierNode.Kind.TYPE;
-                    } else {
-                        throw new PacioliException(def.getLocation(),
-                                "Exported identifier unknown. Name '%s' does not refer to a value or a type.",
-                                name, name);
-                    }
+                    IdentifierNode.Kind kind = determineKind(id, valueExists, typeExists);
 
                     // Find the proper info and set the documentation
                     if (kind.equals(IdentifierNode.Kind.VALUE)) {
-                        if (!valueExists) {
-                            throw new PacioliException(def.getLocation(),
-                                    "Exported identifier unknown. Name '%s' does not refer to a value.",
-                                    name, name);
-                        }
-                        ValueInfo.Builder builder = valueBuilders.get(name);
-                        builder.isPublic(true);
-                        // ValueInfo valueInfo = env.values.lookup(name);
-                        // valueInfo.generalInfo().setDocumentation(docu);
+                        valueBuilders.get(name).isPublic(true);
                     } else {
-                        if (!typeExists) {
-                            throw new PacioliException(def.getLocation(),
-                                    "Exported identifier unknown. Name '%s' does not refer to a type.",
-                                    name, name);
-                        }
-                        // InfoBuilder<? extends TypeSymbolInfo> builder = typeBuilders.get(name);
-                        // AbstractInfoBuilder<? extends InfoBuilder<? extends TypeSymbolInfo>, ?
-                        // extends TypeSymbolInfo> builder = typeBuilders
-                        // .get(name);
-                        InfoBuilder<?, ? extends TypeInfo> builder = typeBuilders.get(name);
-                        if (builder instanceof AliasInfo.Builder bld) {
-                            Pacioli.log("SETTING ISPUB %s", bld.build().name());
-                        } else {
-                            Pacioli.log("NOT SETTING ISPUB %s", builder.build().name());
-                        }
-                        builder.isPublic(true);
+                        typeBuilders.get(name).isPublic(true);
                     }
                 }
             }
@@ -426,6 +383,42 @@ public class Program {
         return builder;
     }
 
+    private IdentifierNode.Kind determineKind(IdentifierNode id, boolean valueExists, boolean typeExists) {
+
+        String name = id.getName();
+        Location location = id.getLocation();
+
+        IdentifierNode.Kind kind;
+        if (valueExists && typeExists && id.kind().isEmpty()) {
+            throw new PacioliException(location,
+                    "Ambiguous export. Please change to \n\n  value %s \n\nor to \n\n  type %s",
+                    name, name);
+        } else if (id.kind().isPresent()) {
+            kind = id.kind().get();
+            if (kind.equals(IdentifierNode.Kind.VALUE)) {
+                if (!valueExists) {
+                    throw new PacioliException(location,
+                            "Exported identifier unknown. Name '%s' does not refer to a value.",
+                            name, name);
+                }
+            } else {
+                if (!typeExists) {
+                    throw new PacioliException(location,
+                            "Exported identifier unknown. Name '%s' does not refer to a type.",
+                            name, name);
+                }
+            }
+        } else if (valueExists) {
+            kind = IdentifierNode.Kind.VALUE;
+        } else if (typeExists) {
+            kind = IdentifierNode.Kind.TYPE;
+        } else {
+            throw new PacioliException(location,
+                    "Exported identifier unknown. Name '%s' does not refer to a value or a type.",
+                    name, name);
+        }
+        return kind;
+    }
     // -------------------------------------------------------------------------
     // Resolving
     // -------------------------------------------------------------------------
