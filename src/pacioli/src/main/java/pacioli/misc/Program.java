@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.sound.sampled.AudioFileFormat.Type;
-
 import pacioli.Pacioli;
 import pacioli.ast.ExportNode;
 import pacioli.ast.ProgramNode;
@@ -35,11 +33,11 @@ import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.StringNode;
+import pacioli.ast.expression.IdentifierNode.Kind;
 import pacioli.ast.visitors.TransformConversions;
 import pacioli.parser.Parser;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.info.GeneralBuilder;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ClassInfo;
 import pacioli.symboltable.info.IndexSetInfo;
@@ -52,7 +50,6 @@ import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
-import pacioli.symboltable.info.ScalarBaseInfo.Builder;
 import pacioli.types.TypeContext;
 import pacioli.types.TypeObject;
 import pacioli.types.Typing;
@@ -141,10 +138,11 @@ public class Program {
 
         Pacioli.trace("Filling tables for %s", this.file.getModule());
 
+        // Create a new table to fill
         PacioliTable env = PacioliTable.empty();
 
-        // Make a map from identifiers to symbol info builders for the value and the
-        // type namespaces.
+        // Make a map from identifiers to symbol info builders for the value
+        // namespace and for the type namespace.
         Map<String, ValueInfo.Builder> valueBuilders = new HashMap<>();
         Map<String, InfoBuilder<?, ? extends TypeInfo>> typeBuilders = new HashMap<>();
 
@@ -231,8 +229,6 @@ public class Program {
 
         // Second pass, do class instances and value definitions.
         for (Definition def : this.ast.definitions) {
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
-                    file.getModule(), file.getFile());
             if (def instanceof InstanceDefinition inst) {
                 ClassInfo.Builder builder = (ClassInfo.Builder) typeBuilders.get(def.getName());
                 if (builder == null) {
@@ -240,13 +236,10 @@ public class Program {
                 }
                 builder.instance(new InstanceInfo(inst, file, genclassInstanceName()));
             } else if (def instanceof ValueDefinition val) {
-
-                ValueInfo.Builder builder = ensureValueInfoBuilder(valueBuilders, def.getName());
-
                 // This overwrites any properties set by the declaration above. This is
                 // desirable for the location. We prefer the definition location, otherwise we
                 // get the declaration location in messages.
-                builder
+                ensureValueInfoBuilder(valueBuilders, def.getName())
                         .definition(val)
                         .name(def.getName())
                         .file(this.file)
@@ -257,42 +250,26 @@ public class Program {
             }
         }
 
-        // Set public flag
-        for (ExportNode def : this.ast.exports) {
+        // Set the isPublic flag for exported identifiers
+        for (ExportNode exportNode : this.ast.exports) {
 
-            ExportNode exportNode = def;
-            if (true) { // (def instanceof ExportNode exportNode) {
+            for (IdentifierNode id : exportNode.identifiers) {
 
-                for (IdentifierNode id : exportNode.identifiers) {
+                String name = id.getName();
 
-                    String name = id.getName();
+                // Determine the identifier kind. Resolve possible ambiguities
+                boolean valueExists = valueBuilders.containsKey(name);
+                boolean typeExists = typeBuilders.containsKey(name);
+                IdentifierNode.Kind kind = id.determineKind(valueExists, typeExists);
 
-                    Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions,
-                            "Setting public flag for %s to %s from file %s",
-                            name, file.getModule(), file.getFile());
-
-                    // See if the doc identifier refers to a value and/or a type
-                    boolean valueExists = valueBuilders.containsKey(name);
-                    boolean typeExists = typeBuilders.containsKey(name);
-
-                    // Determine the doc kind. Resolve possible ambiguities
-                    IdentifierNode.Kind kind = determineKind(id, valueExists, typeExists);
-
-                    // Find the proper info and set the documentation
-                    if (kind.equals(IdentifierNode.Kind.VALUE)) {
-                        valueBuilders.get(name).isPublic(true);
-                    } else {
-                        typeBuilders.get(name).isPublic(true);
-                    }
+                // Find the proper info and set the documentation
+                if (kind.equals(IdentifierNode.Kind.VALUE)) {
+                    valueBuilders.get(name).isPublic(true);
+                } else {
+                    typeBuilders.get(name).isPublic(true);
                 }
             }
-        }
-        for (ValueInfo.Builder builder : valueBuilders.values()) {
-            addInfo(env, builder.build());
-        }
 
-        for (InfoBuilder<?, ? extends TypeInfo> typBuilder : typeBuilders.values()) {
-            addInfo(env, typBuilder.build());
         }
 
         // Add documentation
@@ -302,57 +279,29 @@ public class Program {
 
                 String name = doc.getName();
 
-                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions,
-                        "Adding documentation for %s to %s from file %s",
-                        name, file.getModule(), file.getFile());
-
-                // See if the doc identifier refers to a value and/or a type
-                boolean valueExists = env.values.contains(name);
-                boolean typeExists = env.types.contains(name);
-
                 // Determine the doc kind. Resolve possible ambiguities
-                String kind;
-                if (valueExists && typeExists && doc.getKind().isEmpty()) {
-                    throw new PacioliException(def.getLocation(),
-                            "Ambiguous doc string. Please change to \n\n  doc value %s \"...\" \n\nor to \n\n  doc type %s \"...\"",
-                            name, name);
-                } else if (doc.getKind().isPresent()) {
-                    kind = doc.getKind().get().getName();
-                    if (!(kind.equals("value") || kind.equals("type"))) {
-                        throw new PacioliException(def.getLocation(),
-                                "Unknown doc qualifier: %s. Please change to 'value' or 'type'",
-                                kind);
-                    }
-                } else if (valueExists) {
-                    kind = "value";
-                } else if (typeExists) {
-                    kind = "type";
-                } else {
-                    throw new PacioliException(def.getLocation(),
-                            "Unknown doc string identifier. Name %s does not refer to a value or a type.",
-                            name, name);
-                }
+                boolean valueExists = valueBuilders.containsKey(name);
+                boolean typeExists = typeBuilders.containsKey(name);
+                Kind kind = doc.id.determineKind(valueExists, typeExists);
 
                 // Find the proper info and set the documentation
                 String docu = ((StringNode) doc.body).valueString();
-                if (kind.equals("value")) {
-                    if (!valueExists) {
-                        throw new PacioliException(def.getLocation(),
-                                "Unknown doc string identifier. Name %s does not refer to a value.",
-                                name, name);
-                    }
-                    ValueInfo valueInfo = env.values.lookup(name);
-                    valueInfo.generalInfo().setDocumentation(docu);
+                if (kind.equals(IdentifierNode.Kind.VALUE)) {
+                    valueBuilders.get(name).documentation(docu);
                 } else {
-                    if (!typeExists) {
-                        throw new PacioliException(def.getLocation(),
-                                "Unknown doc string identifier. Name %s does not refer to a type.",
-                                name, name);
-                    }
-                    TypeInfo typeInfo = env.types.lookup(name);
-                    typeInfo.generalInfo().setDocumentation(docu);
+                    typeBuilders.get(name).documentation(docu);
                 }
             }
+        }
+
+        // Build the value infos and add them to the table
+        for (ValueInfo.Builder builder : valueBuilders.values()) {
+            addInfo(env, builder.build());
+        }
+
+        // Build the types infos and add them to the table
+        for (InfoBuilder<?, ? extends TypeInfo> typBuilder : typeBuilders.values()) {
+            addInfo(env, typBuilder.build());
         }
 
         return env;
@@ -383,42 +332,6 @@ public class Program {
         return builder;
     }
 
-    private IdentifierNode.Kind determineKind(IdentifierNode id, boolean valueExists, boolean typeExists) {
-
-        String name = id.getName();
-        Location location = id.getLocation();
-
-        IdentifierNode.Kind kind;
-        if (valueExists && typeExists && id.kind().isEmpty()) {
-            throw new PacioliException(location,
-                    "Ambiguous export. Please change to \n\n  value %s \n\nor to \n\n  type %s",
-                    name, name);
-        } else if (id.kind().isPresent()) {
-            kind = id.kind().get();
-            if (kind.equals(IdentifierNode.Kind.VALUE)) {
-                if (!valueExists) {
-                    throw new PacioliException(location,
-                            "Exported identifier unknown. Name '%s' does not refer to a value.",
-                            name, name);
-                }
-            } else {
-                if (!typeExists) {
-                    throw new PacioliException(location,
-                            "Exported identifier unknown. Name '%s' does not refer to a type.",
-                            name, name);
-                }
-            }
-        } else if (valueExists) {
-            kind = IdentifierNode.Kind.VALUE;
-        } else if (typeExists) {
-            kind = IdentifierNode.Kind.TYPE;
-        } else {
-            throw new PacioliException(location,
-                    "Exported identifier unknown. Name '%s' does not refer to a value or a type.",
-                    name, name);
-        }
-        return kind;
-    }
     // -------------------------------------------------------------------------
     // Resolving
     // -------------------------------------------------------------------------

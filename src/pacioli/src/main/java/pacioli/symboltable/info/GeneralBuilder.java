@@ -9,6 +9,7 @@ public abstract class GeneralBuilder<S, T> implements InfoBuilder<S, T> {
     private PacioliFile file;
     private Boolean isGlobal;
     private Location location;
+    private String documentation;
     private boolean isPublic;
 
     protected abstract S self();
@@ -33,6 +34,11 @@ public abstract class GeneralBuilder<S, T> implements InfoBuilder<S, T> {
         return self();
     }
 
+    public S documentation(String documentation) {
+        this.documentation = documentation;
+        return self();
+    }
+
     public S isPublic(boolean isPublic) {
         this.isPublic = isPublic;
         return self();
@@ -45,6 +51,6 @@ public abstract class GeneralBuilder<S, T> implements InfoBuilder<S, T> {
                 location == null) {
             throw new RuntimeException("Field missing");
         }
-        return new GeneralInfo(name, file, isGlobal, location);
+        return new GeneralInfo(name, file, isGlobal, location, documentation);
     }
 }

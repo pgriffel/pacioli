@@ -12,7 +12,16 @@ public class GeneralInfo {
     public final PacioliFile file;
     private final Location location;
     private final Boolean isGlobal;
-    private String documentation;
+    private final String documentation;
+
+    public GeneralInfo(String name, PacioliFile file, Boolean isGlobal, Location location, String documentation) {
+        assert (location != null);
+        this.name = name;
+        this.file = file;
+        this.isGlobal = isGlobal;
+        this.location = location;
+        this.documentation = documentation;
+    }
 
     public GeneralInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
         assert (location != null);
@@ -20,6 +29,7 @@ public class GeneralInfo {
         this.file = file;
         this.isGlobal = isGlobal;
         this.location = location;
+        this.documentation = null;
     }
 
     public Location location() {
@@ -42,11 +52,11 @@ public class GeneralInfo {
         return !isGlobal;
     }
 
-    public void setDocumentation(String documentation) {
-        this.documentation = documentation;
+    public GeneralInfo withDocumentation(String documentation) {
+        return new GeneralInfo(this.name, this.file, this.isGlobal, this.location, documentation);
     }
 
-    public Optional<String> getDocumentation() {
+    public Optional<String> documentation() {
         return Optional.ofNullable(this.documentation);
     }
 }

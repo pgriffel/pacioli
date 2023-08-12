@@ -3,18 +3,11 @@ package pacioli.symboltable.info;
 import java.util.Optional;
 
 import pacioli.ast.definition.AliasDefinition;
-import pacioli.misc.Location;
-import pacioli.misc.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 
 public final class AliasInfo extends UnitInfo {
 
     public AliasDefinition definition;
-
-    public AliasInfo(String name, PacioliFile file, Location location) {
-        super(new GeneralInfo(name, file, true, location));
-
-    }
 
     public AliasInfo(GeneralInfo info) {
         super(info);

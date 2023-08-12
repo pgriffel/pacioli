@@ -2233,7 +2233,7 @@ class CUP$Parser$actions {
 		Location sxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		String s = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		 pacioli.misc.Location loc = makeLoc(dxleft, sxright);
-                                                       RESULT = new Documentation(loc, id, kind, new StringNode(s, makeLoc(sxleft, sxright))); 
+                                                       RESULT = new Documentation(loc, id.withKind(kind), new StringNode(s, makeLoc(sxleft, sxright))); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("command",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

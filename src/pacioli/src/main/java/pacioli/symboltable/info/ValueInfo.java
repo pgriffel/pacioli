@@ -74,8 +74,8 @@ public class ValueInfo extends AbstractSymbolInfo {
     }
 
     public List<String> getDocuParts() {
-        if (this.generalInfo().getDocumentation().isPresent()) {
-            String[] parts = this.generalInfo().getDocumentation().get().split("\\r?\\n\s*\\r?\\n");
+        if (this.generalInfo().documentation().isPresent()) {
+            String[] parts = this.generalInfo().documentation().get().split("\\r?\\n\s*\\r?\\n");
             return List.of(parts);
         } else {
             return List.of();

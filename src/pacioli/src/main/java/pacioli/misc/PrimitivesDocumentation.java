@@ -107,11 +107,11 @@ public class PrimitivesDocumentation {
                     }
 
                     generator.addFunction(info.name(), args, type.pretty(),
-                            info.generalInfo().getDocumentation().orElse(""));
+                            info.generalInfo().documentation().orElse(""));
 
                 } else {
 
-                    generator.addValue(info.name(), type.pretty(), info.generalInfo().getDocumentation().orElse(""));
+                    generator.addValue(info.name(), type.pretty(), info.generalInfo().documentation().orElse(""));
 
                 }
             }

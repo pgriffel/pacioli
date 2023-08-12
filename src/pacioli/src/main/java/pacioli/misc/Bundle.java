@@ -306,8 +306,8 @@ public class Bundle {
                 String text = Pacioli.Options.printTypesAsString ? type.toString() : type.pretty();
                 Pacioli.println("%s :: %s", info.name(), text);
                 if (showDocs) {
-                    if (info.generalInfo().getDocumentation().isPresent()) {
-                        Pacioli.println("\n    %s\n", info.generalInfo().getDocumentation().get());
+                    if (info.generalInfo().documentation().isPresent()) {
+                        Pacioli.println("\n    %s\n", info.generalInfo().documentation().get());
                     }
                 }
             }
@@ -346,9 +346,9 @@ public class Bundle {
                 if (body instanceof LambdaNode) {
                     LambdaNode lambda = (LambdaNode) body;
                     generator.addFunction(info.name(), lambda.arguments, info.getType(),
-                            info.generalInfo().getDocumentation().orElse(""));
+                            info.generalInfo().documentation().orElse(""));
                 } else {
-                    generator.addValue(info.name(), info.getType(), info.generalInfo().getDocumentation().orElse(""));
+                    generator.addValue(info.name(), info.getType(), info.generalInfo().documentation().orElse(""));
                 }
             }
         }
@@ -362,7 +362,7 @@ public class Bundle {
                             def.getDefinition().get().context.pretty(),
                             def.getDefinition().get().lhs.pretty(),
                             def.getDefinition().get().rhs.pretty(),
-                            info.generalInfo().getDocumentation().orElse("n/a"));
+                            info.generalInfo().documentation().orElse("n/a"));
                 }
             }
         }
