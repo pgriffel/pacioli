@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.misc.Location;
@@ -67,5 +68,41 @@ public final class VectorBaseInfo extends UnitInfo {
 
     public void setDefinition(UnitVectorDefinition definition) {
         this.definition = Optional.of(definition);
+    }
+
+    public static class Builder extends GeneralBuilder<Builder, VectorBaseInfo> {
+
+        private UnitVectorDefinition definition;
+        private List<UnitDecl> items;
+
+        @Override
+        protected Builder self() {
+            return this;
+        }
+
+        public Builder definition(UnitVectorDefinition definition) {
+            this.definition = definition;
+            return this;
+        }
+
+        public Builder items(List<UnitDecl> items) {
+            this.items = items;
+            return this;
+        }
+
+        @Override
+        public VectorBaseInfo build() {
+            // if (definition == null || file == null || instances == null) {
+            // throw new RuntimeException("Class info incomplete");
+            // }
+            VectorBaseInfo info = new VectorBaseInfo(this.buildGeneralInfo());
+            info.definition = Optional.ofNullable(this.definition);
+            info.setItems(this.items);
+            return info;
+        }
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 }

@@ -2,7 +2,6 @@ package pacioli.symboltable.info;
 
 import java.util.Optional;
 
-import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;

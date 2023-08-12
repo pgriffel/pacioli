@@ -136,7 +136,7 @@ public class ValueInfo extends AbstractSymbolInfo {
         return !this.typeClass.isEmpty();
     }
 
-    public static class Builder {
+    public static class Builder extends GeneralBuilder<Builder, ValueInfo> {
         public String name;
         public PacioliFile file;
         public Boolean isGlobal;
@@ -150,6 +150,11 @@ public class ValueInfo extends AbstractSymbolInfo {
 
         public Builder name(String name) {
             this.name = name;
+            return this;
+        }
+
+        @Override
+        protected Builder self() {
             return this;
         }
 

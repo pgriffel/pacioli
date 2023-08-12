@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;

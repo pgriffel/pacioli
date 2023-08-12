@@ -42,4 +42,40 @@ public final class ScalarBaseInfo extends UnitInfo {
     public Boolean isAlias() {
         return false;
     }
+
+    public static class Builder extends GeneralBuilder<Builder, ScalarBaseInfo> {
+
+        private UnitDefinition definition;
+        public String symbol;
+
+        @Override
+        protected Builder self() {
+            return this;
+        }
+
+        public Builder definition(UnitDefinition definition) {
+            this.definition = definition;
+            return this;
+        }
+
+        public Builder symbol(String symbol) {
+            this.symbol = symbol;
+            return this;
+        }
+
+        @Override
+        public ScalarBaseInfo build() {
+            // if (definition == null || file == null || instances == null) {
+            // throw new RuntimeException("Class info incomplete");
+            // }
+            ScalarBaseInfo info = new ScalarBaseInfo(this.buildGeneralInfo());
+            info.symbol = this.symbol;
+            info.definition = Optional.ofNullable(this.definition);
+            return info;
+        }
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
 }

@@ -52,6 +52,7 @@ import pacioli.symboltable.info.TypeSymbolInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
+import pacioli.symboltable.info.ScalarBaseInfo.Builder;
 import pacioli.types.TypeContext;
 import pacioli.types.TypeObject;
 import pacioli.types.Typing;
@@ -146,6 +147,9 @@ public class Program {
         // HashMap<>();
         // Map<String, AbstractInfoBuilder<? extends InfoBuilder<? extends
         // TypeSymbolInfo>, ? extends TypeSymbolInfo>> typeBuilders = new HashMap<>();
+
+        // Make a map from identifiers to symbol info for the value and the type
+        // namespaces.
         Map<String, InfoBuilder<?, ? extends TypeSymbolInfo>> typeBuilders = new HashMap<>();
 
         Map<String, ClassInfo.Builder> classTable = new HashMap<>();
@@ -165,16 +169,17 @@ public class Program {
                 // builder.generalBuilder().file(file).name(def.getName()).isGlobal(true).location(def.getLocation());
                 builder.file(file).isGlobal(true).location(def.getLocation());
                 typeBuilders.put(def.getName(), builder);
-                AliasInfo info = new AliasInfo(def.getName(), file, def.getLocation());
-                info.definition = alias;
+                // AliasInfo info = new AliasInfo(def.getName(), file, def.getLocation());
+                // info.definition = alias;
                 // addInfo(env, info);
             } else if (def instanceof IndexSetDefinition indexSet) {
                 IndexSetInfo.Builder builder = IndexSetInfo.builder();
                 typeBuilders.put(def.getName(), builder);
                 builder.file(file).name(def.getName()).isGlobal(true).location(def.getLocation());
                 builder.definition(indexSet);
-                IndexSetInfo info = new IndexSetInfo(def.getName(), file, true, def.getLocation());
-                info.setDefinition(indexSet);
+                // IndexSetInfo info = new IndexSetInfo(def.getName(), file, true,
+                // def.getLocation());
+                // info.setDefinition(indexSet);
                 // addInfo(env, info);
             } else if (def instanceof Toplevel top) {
                 env.addToplevel(top);
@@ -186,20 +191,39 @@ public class Program {
                 builder.definition(typeDef);
                 builder.typeAST(typeDef.rhs);
 
-                ParametricInfo info = new ParametricInfo(def.getName(), file, true, def.getLocation());
-                info.typeAST = typeDef.rhs;
-                info.setDefinition(typeDef);
+                // ParametricInfo info = new ParametricInfo(def.getName(), file, true,
+                // def.getLocation());
+                // info.typeAST = typeDef.rhs;
+                // info.setDefinition(typeDef);
                 // addInfo(env, info);
             } else if (def instanceof UnitDefinition unitDef) {
-                ScalarBaseInfo info = new ScalarBaseInfo(def.getName(), file, true, def.getLocation());
-                info.setDefinition(unitDef);
-                info.symbol = unitDef.symbol;
-                addInfo(env, info);
+                ScalarBaseInfo.Builder builder = ScalarBaseInfo.builder();
+                typeBuilders.put(def.getName(), builder);
+                builder.name(def.getName())
+                        .file(file)
+                        .isGlobal(true)
+                        .location(def.getLocation())
+                        .symbol(unitDef.symbol)
+                        .definition(unitDef);
+                // ScalarBaseInfo info = new ScalarBaseInfo(def.getName(), file, true,
+                // def.getLocation());
+                // info.setDefinition(unitDef);
+                // info.symbol = unitDef.symbol;
+                // addInfo(env, info);
             } else if (def instanceof UnitVectorDefinition vecDef) {
-                VectorBaseInfo info = new VectorBaseInfo(def.getName(), file, true, def.getLocation());
-                info.setDefinition(vecDef);
-                info.setItems(vecDef.items);
-                addInfo(env, info);
+                VectorBaseInfo.Builder builder = VectorBaseInfo.builder();
+                typeBuilders.put(def.getName(), builder);
+                builder.name(def.getName())
+                        .file(file)
+                        .isGlobal(true)
+                        .location(def.getLocation())
+                        .items(vecDef.items)
+                        .definition(vecDef);
+                // VectorBaseInfo info = new VectorBaseInfo(def.getName(), file, true,
+                // def.getLocation());
+                // info.setDefinition(vecDef);
+                // info.setItems(vecDef.items);
+                // addInfo(env, info);
             } else if (def instanceof Declaration decl) {
                 ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable, def.getName());
                 if (builder.declaredType != null) {
