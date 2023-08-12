@@ -2,6 +2,7 @@ package pacioli.symboltable.info;
 
 import java.util.Optional;
 
+import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;
@@ -10,6 +11,12 @@ import pacioli.types.ast.TypeNode;
 
 public final class ParametricInfo extends AbstractSymbolInfo implements TypeSymbolInfo {
 
+    private Optional<TypeDefinition> definition = Optional.empty();
+    public TypeNode typeAST;
+    public Boolean isIndexSetId;
+    public Boolean isUnitId;
+    public Boolean isVar;
+
     public ParametricInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
         super(new GeneralInfo(name, file, isGlobal, location));
     }
@@ -17,12 +24,6 @@ public final class ParametricInfo extends AbstractSymbolInfo implements TypeSymb
     public ParametricInfo(GeneralInfo info) {
         super(info);
     }
-
-    private Optional<TypeDefinition> definition = Optional.empty();
-    public TypeNode typeAST;
-    public Boolean isIndexSetId;
-    public Boolean isUnitId;
-    public Boolean isVar;
 
     @Override
     public void accept(SymbolTableVisitor visitor) {
@@ -45,5 +46,41 @@ public final class ParametricInfo extends AbstractSymbolInfo implements TypeSymb
 
     public void setDefinition(TypeDefinition definition) {
         this.definition = Optional.of(definition);
+    }
+
+    public static class Builder extends GeneralBuilder<Builder, ParametricInfo> {
+
+        private TypeDefinition definition;
+        private TypeNode typeAST;
+
+        @Override
+        protected Builder self() {
+            return this;
+        }
+
+        public Builder definition(TypeDefinition definition) {
+            this.definition = definition;
+            return this;
+        }
+
+        public Builder typeAST(TypeNode typeAST) {
+            this.typeAST = typeAST;
+            return this;
+        }
+
+        @Override
+        public ParametricInfo build() {
+            // if (definition == null || file == null || instances == null) {
+            // throw new RuntimeException("Class info incomplete");
+            // }
+            ParametricInfo info = new ParametricInfo(this.buildGeneralInfo());
+            info.typeAST = this.typeAST;
+            info.definition = Optional.ofNullable(this.definition);
+            return info;
+        }
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 }

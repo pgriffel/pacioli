@@ -38,4 +38,31 @@ public final class AliasInfo extends UnitInfo {
     public Optional<AliasDefinition> getDefinition() {
         return Optional.ofNullable(definition);
     }
+
+    public static class Builder extends GeneralBuilder<Builder, AliasInfo> {
+
+        private AliasDefinition definition;
+
+        public Builder definition(AliasDefinition definition) {
+            this.definition = definition;
+            return this;
+        }
+
+        @Override
+        protected Builder self() {
+            return this;
+        }
+
+        @Override
+        public AliasInfo build() {
+            AliasInfo info = new AliasInfo(this.buildGeneralInfo());
+            info.definition = definition;
+            return info;
+        }
+
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
 }

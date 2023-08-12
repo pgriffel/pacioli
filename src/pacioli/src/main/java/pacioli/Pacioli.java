@@ -35,7 +35,6 @@ import org.apache.commons.io.FilenameUtils;
 
 import mvm.MVMException;
 import mvm.Machine;
-import pacioli.ast.ProgramNode;
 import pacioli.misc.Bundle;
 import pacioli.misc.CompilationSettings;
 import pacioli.misc.PacioliException;
@@ -44,7 +43,6 @@ import pacioli.misc.PrimitivesDocumentation;
 import pacioli.misc.Program;
 import pacioli.misc.Project;
 import pacioli.misc.CompilationSettings.Target;
-import pacioli.parser.Parser;
 
 /**
  * The main entry point of the compiler.

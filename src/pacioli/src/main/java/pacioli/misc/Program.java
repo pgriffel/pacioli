@@ -12,6 +12,7 @@ import java.util.Set;
 import javax.sound.sampled.AudioFileFormat.Type;
 
 import pacioli.Pacioli;
+import pacioli.ast.ExportNode;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.ClassDefinition;
@@ -38,9 +39,11 @@ import pacioli.ast.visitors.TransformConversions;
 import pacioli.parser.Parser;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.info.GeneralBuilder;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ClassInfo;
 import pacioli.symboltable.info.IndexSetInfo;
+import pacioli.symboltable.info.InfoBuilder;
 import pacioli.symboltable.info.InstanceInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ScalarBaseInfo;
@@ -139,8 +142,16 @@ public class Program {
 
         PacioliTable env = PacioliTable.empty();
 
+        // Map<String, InfoBuilder<? extends TypeSymbolInfo>> typeBuilders = new
+        // HashMap<>();
+        // Map<String, AbstractInfoBuilder<? extends InfoBuilder<? extends
+        // TypeSymbolInfo>, ? extends TypeSymbolInfo>> typeBuilders = new HashMap<>();
+        Map<String, InfoBuilder<?, ? extends TypeSymbolInfo>> typeBuilders = new HashMap<>();
+
         Map<String, ClassInfo.Builder> classTable = new HashMap<>();
         Map<String, ValueInfo.Builder> valueTable = new HashMap<>();
+
+        Set<String> exportedValues = new HashSet<>();
 
         // First pass, don't do class instances and value definitions
         for (Definition def : this.ast.definitions) {
@@ -149,20 +160,36 @@ public class Program {
                 ClassInfo.Builder classDef = ClassInfo.builder().file(file).definition(d);
                 classTable.put(def.getName(), classDef);
             } else if (def instanceof AliasDefinition alias) {
+                AliasInfo.Builder builder = AliasInfo.builder();
+                builder.name(def.getName()).definition(alias);
+                // builder.generalBuilder().file(file).name(def.getName()).isGlobal(true).location(def.getLocation());
+                builder.file(file).isGlobal(true).location(def.getLocation());
+                typeBuilders.put(def.getName(), builder);
                 AliasInfo info = new AliasInfo(def.getName(), file, def.getLocation());
                 info.definition = alias;
-                addInfo(env, info);
+                // addInfo(env, info);
             } else if (def instanceof IndexSetDefinition indexSet) {
+                IndexSetInfo.Builder builder = IndexSetInfo.builder();
+                typeBuilders.put(def.getName(), builder);
+                builder.file(file).name(def.getName()).isGlobal(true).location(def.getLocation());
+                builder.definition(indexSet);
                 IndexSetInfo info = new IndexSetInfo(def.getName(), file, true, def.getLocation());
                 info.setDefinition(indexSet);
-                addInfo(env, info);
+                // addInfo(env, info);
             } else if (def instanceof Toplevel top) {
                 env.addToplevel(top);
             } else if (def instanceof TypeDefinition typeDef) {
+
+                ParametricInfo.Builder builder = ParametricInfo.builder();
+                typeBuilders.put(def.getName(), builder);
+                builder.file(file).name(def.getName()).isGlobal(true).location(def.getLocation());
+                builder.definition(typeDef);
+                builder.typeAST(typeDef.rhs);
+
                 ParametricInfo info = new ParametricInfo(def.getName(), file, true, def.getLocation());
                 info.typeAST = typeDef.rhs;
                 info.setDefinition(typeDef);
-                addInfo(env, info);
+                // addInfo(env, info);
             } else if (def instanceof UnitDefinition unitDef) {
                 ScalarBaseInfo info = new ScalarBaseInfo(def.getName(), file, true, def.getLocation());
                 info.setDefinition(unitDef);
@@ -230,6 +257,10 @@ public class Program {
             addInfo(env, builder.build());
         }
 
+        for (InfoBuilder<?, ? extends TypeSymbolInfo> typBuilder : typeBuilders.values()) {
+            addInfo(env, typBuilder.build());
+        }
+
         // Add documentation
         for (Definition def : this.ast.definitions) {
 
@@ -276,7 +307,7 @@ public class Program {
                                 "Unknown doc string identifier. Name %s does not refer to a value.",
                                 name, name);
                     }
-                    ValueInfo valueInfo = env.values.lookup(doc.getName());
+                    ValueInfo valueInfo = env.values.lookup(name);
                     valueInfo.generalInfo().setDocumentation(docu);
                 } else {
                     if (!typeExists) {
@@ -284,8 +315,76 @@ public class Program {
                                 "Unknown doc string identifier. Name %s does not refer to a type.",
                                 name, name);
                     }
-                    TypeSymbolInfo typeInfo = env.types.lookup(doc.getName());
+                    TypeSymbolInfo typeInfo = env.types.lookup(name);
                     typeInfo.generalInfo().setDocumentation(docu);
+                }
+            }
+        }
+
+        // Set public flag
+        for (ExportNode def : this.ast.exports) {
+
+            ExportNode exportNode = def;
+            if (true) { // (def instanceof ExportNode exportNode) {
+
+                for (IdentifierNode id : exportNode.identifiers) {
+
+                    String name = id.getName();
+
+                    Pacioli.logIf(true || Pacioli.Options.showSymbolTableAdditions,
+                            "Setting public flag for %s to %s from file %s",
+                            name, file.getModule(), file.getFile());
+
+                    // See if the doc identifier refers to a value and/or a type
+                    boolean valueExists = env.values.contains(name);
+                    boolean typeExists = typeBuilders.containsKey(name);
+                    // boolean typeExists = env.types.contains(name);
+
+                    // Determine the doc kind. Resolve possible ambiguities
+                    IdentifierNode.Kind kind;
+                    if (valueExists && typeExists && id.kind().isEmpty()) {
+                        throw new PacioliException(def.getLocation(),
+                                "Ambiguous export. Please change to \n\n  value %s \n\nor to \n\n  type %s",
+                                name, name);
+                    } else if (id.kind().isPresent()) {
+                        kind = id.kind().get();
+                    } else if (valueExists) {
+                        kind = IdentifierNode.Kind.VALUE;
+                    } else if (typeExists) {
+                        kind = IdentifierNode.Kind.TYPE;
+                    } else {
+                        throw new PacioliException(def.getLocation(),
+                                "Exported identifier unknown. Name '%s' does not refer to a value or a type.",
+                                name, name);
+                    }
+
+                    // Find the proper info and set the documentation
+                    if (kind.equals(IdentifierNode.Kind.VALUE)) {
+                        if (!valueExists) {
+                            throw new PacioliException(def.getLocation(),
+                                    "Exported identifier unknown. Name '%s' does not refer to a value.",
+                                    name, name);
+                        }
+                        // ValueInfo valueInfo = env.values.lookup(name);
+                        // valueInfo.generalInfo().setDocumentation(docu);
+                    } else {
+                        if (!typeExists) {
+                            throw new PacioliException(def.getLocation(),
+                                    "Exported identifier unknown. Name '%s' does not refer to a type.",
+                                    name, name);
+                        }
+                        // InfoBuilder<? extends TypeSymbolInfo> builder = typeBuilders.get(name);
+                        // AbstractInfoBuilder<? extends InfoBuilder<? extends TypeSymbolInfo>, ?
+                        // extends TypeSymbolInfo> builder = typeBuilders
+                        // .get(name);
+                        InfoBuilder<?, ? extends TypeSymbolInfo> builder = typeBuilders.get(name);
+                        if (builder instanceof AliasInfo.Builder bld) {
+                            Pacioli.log("SETTING ISPUB %s", bld.build().name());
+                        } else {
+                            Pacioli.log("NOT SETTING ISPUB %s", builder.build().name());
+                        }
+                        builder.isPublic(true);
+                    }
                 }
             }
         }
