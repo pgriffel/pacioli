@@ -188,32 +188,22 @@ public class Program {
                 typeBuilders.put(def.getName(), builder);
             } else if (def instanceof UnitDefinition unitDef) {
                 ScalarBaseInfo.Builder builder = ScalarBaseInfo.builder();
-                typeBuilders.put(def.getName(), builder);
                 builder.name(def.getName())
                         .file(file)
                         .isGlobal(true)
                         .location(def.getLocation())
                         .symbol(unitDef.symbol)
                         .definition(unitDef);
-                // ScalarBaseInfo info = new ScalarBaseInfo(def.getName(), file, true,
-                // def.getLocation());
-                // info.setDefinition(unitDef);
-                // info.symbol = unitDef.symbol;
-                // addInfo(env, info);
+                typeBuilders.put(def.getName(), builder);
             } else if (def instanceof UnitVectorDefinition vecDef) {
                 VectorBaseInfo.Builder builder = VectorBaseInfo.builder();
-                typeBuilders.put(def.getName(), builder);
                 builder.name(def.getName())
                         .file(file)
                         .isGlobal(true)
                         .location(def.getLocation())
                         .items(vecDef.items)
                         .definition(vecDef);
-                // VectorBaseInfo info = new VectorBaseInfo(def.getName(), file, true,
-                // def.getLocation());
-                // info.setDefinition(vecDef);
-                // info.setItems(vecDef.items);
-                // addInfo(env, info);
+                typeBuilders.put(def.getName(), builder);
             } else if (def instanceof Declaration decl) {
                 ValueInfo.Builder builder = ensureValueInfoBuilder(valueBuilders, def.getName());
                 if (builder.declaredType != null) {
@@ -228,6 +218,14 @@ public class Program {
                         .isGlobal(true)
                         .declaredType(decl.typeNode)
                         .isPublic(decl.isPublic);
+            }
+        }
+
+        boolean exportHack = true;
+        Pacioli.logIf(exportHack, "export");
+        for (Definition def : this.ast.definitions) {
+            if (def instanceof Declaration inst) {
+                Pacioli.logIf(exportHack && inst.isPublic, "    %s,", inst.getName());
             }
         }
 
@@ -263,10 +261,75 @@ public class Program {
             }
         }
 
-        // for (ClassInfo.Builder builder : classTable.values()) {
-        // addInfo(env, builder.build());
-        // }
+        // Set public flag
+        for (ExportNode def : this.ast.exports) {
 
+            ExportNode exportNode = def;
+            if (true) { // (def instanceof ExportNode exportNode) {
+
+                for (IdentifierNode id : exportNode.identifiers) {
+
+                    String name = id.getName();
+
+                    Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions,
+                            "Setting public flag for %s to %s from file %s",
+                            name, file.getModule(), file.getFile());
+
+                    // See if the doc identifier refers to a value and/or a type
+                    boolean valueExists = valueBuilders.containsKey(name);
+                    boolean typeExists = typeBuilders.containsKey(name);
+                    // boolean typeExists = env.types.contains(name);
+
+                    // Determine the doc kind. Resolve possible ambiguities
+                    IdentifierNode.Kind kind;
+                    if (valueExists && typeExists && id.kind().isEmpty()) {
+                        throw new PacioliException(def.getLocation(),
+                                "Ambiguous export. Please change to \n\n  value %s \n\nor to \n\n  type %s",
+                                name, name);
+                    } else if (id.kind().isPresent()) {
+                        kind = id.kind().get();
+                    } else if (valueExists) {
+                        kind = IdentifierNode.Kind.VALUE;
+                    } else if (typeExists) {
+                        kind = IdentifierNode.Kind.TYPE;
+                    } else {
+                        throw new PacioliException(def.getLocation(),
+                                "Exported identifier unknown. Name '%s' does not refer to a value or a type.",
+                                name, name);
+                    }
+
+                    // Find the proper info and set the documentation
+                    if (kind.equals(IdentifierNode.Kind.VALUE)) {
+                        if (!valueExists) {
+                            throw new PacioliException(def.getLocation(),
+                                    "Exported identifier unknown. Name '%s' does not refer to a value.",
+                                    name, name);
+                        }
+                        ValueInfo.Builder builder = valueBuilders.get(name);
+                        builder.isPublic(true);
+                        // ValueInfo valueInfo = env.values.lookup(name);
+                        // valueInfo.generalInfo().setDocumentation(docu);
+                    } else {
+                        if (!typeExists) {
+                            throw new PacioliException(def.getLocation(),
+                                    "Exported identifier unknown. Name '%s' does not refer to a type.",
+                                    name, name);
+                        }
+                        // InfoBuilder<? extends TypeSymbolInfo> builder = typeBuilders.get(name);
+                        // AbstractInfoBuilder<? extends InfoBuilder<? extends TypeSymbolInfo>, ?
+                        // extends TypeSymbolInfo> builder = typeBuilders
+                        // .get(name);
+                        InfoBuilder<?, ? extends TypeInfo> builder = typeBuilders.get(name);
+                        if (builder instanceof AliasInfo.Builder bld) {
+                            Pacioli.log("SETTING ISPUB %s", bld.build().name());
+                        } else {
+                            Pacioli.log("NOT SETTING ISPUB %s", builder.build().name());
+                        }
+                        builder.isPublic(true);
+                    }
+                }
+            }
+        }
         for (ValueInfo.Builder builder : valueBuilders.values()) {
             addInfo(env, builder.build());
         }
@@ -331,74 +394,6 @@ public class Program {
                     }
                     TypeInfo typeInfo = env.types.lookup(name);
                     typeInfo.generalInfo().setDocumentation(docu);
-                }
-            }
-        }
-
-        // Set public flag
-        for (ExportNode def : this.ast.exports) {
-
-            ExportNode exportNode = def;
-            if (true) { // (def instanceof ExportNode exportNode) {
-
-                for (IdentifierNode id : exportNode.identifiers) {
-
-                    String name = id.getName();
-
-                    Pacioli.logIf(true || Pacioli.Options.showSymbolTableAdditions,
-                            "Setting public flag for %s to %s from file %s",
-                            name, file.getModule(), file.getFile());
-
-                    // See if the doc identifier refers to a value and/or a type
-                    boolean valueExists = env.values.contains(name);
-                    boolean typeExists = typeBuilders.containsKey(name);
-                    // boolean typeExists = env.types.contains(name);
-
-                    // Determine the doc kind. Resolve possible ambiguities
-                    IdentifierNode.Kind kind;
-                    if (valueExists && typeExists && id.kind().isEmpty()) {
-                        throw new PacioliException(def.getLocation(),
-                                "Ambiguous export. Please change to \n\n  value %s \n\nor to \n\n  type %s",
-                                name, name);
-                    } else if (id.kind().isPresent()) {
-                        kind = id.kind().get();
-                    } else if (valueExists) {
-                        kind = IdentifierNode.Kind.VALUE;
-                    } else if (typeExists) {
-                        kind = IdentifierNode.Kind.TYPE;
-                    } else {
-                        throw new PacioliException(def.getLocation(),
-                                "Exported identifier unknown. Name '%s' does not refer to a value or a type.",
-                                name, name);
-                    }
-
-                    // Find the proper info and set the documentation
-                    if (kind.equals(IdentifierNode.Kind.VALUE)) {
-                        if (!valueExists) {
-                            throw new PacioliException(def.getLocation(),
-                                    "Exported identifier unknown. Name '%s' does not refer to a value.",
-                                    name, name);
-                        }
-                        // ValueInfo valueInfo = env.values.lookup(name);
-                        // valueInfo.generalInfo().setDocumentation(docu);
-                    } else {
-                        if (!typeExists) {
-                            throw new PacioliException(def.getLocation(),
-                                    "Exported identifier unknown. Name '%s' does not refer to a type.",
-                                    name, name);
-                        }
-                        // InfoBuilder<? extends TypeSymbolInfo> builder = typeBuilders.get(name);
-                        // AbstractInfoBuilder<? extends InfoBuilder<? extends TypeSymbolInfo>, ?
-                        // extends TypeSymbolInfo> builder = typeBuilders
-                        // .get(name);
-                        InfoBuilder<?, ? extends TypeInfo> builder = typeBuilders.get(name);
-                        if (builder instanceof AliasInfo.Builder bld) {
-                            Pacioli.log("SETTING ISPUB %s", bld.build().name());
-                        } else {
-                            Pacioli.log("NOT SETTING ISPUB %s", builder.build().name());
-                        }
-                        builder.isPublic(true);
-                    }
                 }
             }
         }
