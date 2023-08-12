@@ -24,13 +24,13 @@ public class UsesVisitor extends IdentityVisitor {
     @Override
     public void visit(TypeIdentifierNode node) {
         assert (node.info != null);
-        assert (node.info.getDefinition().isPresent());
+        assert (node.info.definition().isPresent());
         infos.add(node.info);
     }
 
     @Override
     public void visit(IdentifierNode node) {
-        if (node.getName().equals("nmode") || node.getInfo().getDefinition().isPresent()
+        if (node.getName().equals("nmode") || node.getInfo().definition().isPresent()
                 || node.getInfo().getDeclaredType().isPresent() || !node.getInfo().isGlobal()) {
             infos.add(node.getInfo());
         } else {
@@ -42,7 +42,7 @@ public class UsesVisitor extends IdentityVisitor {
     @Override
     public void visit(UnitIdentifierNode node) {
         assert (node.info != null);
-        assert (node.info.getDefinition().isPresent());
+        assert (node.info.definition().isPresent());
         infos.add(node.info);
     }
 

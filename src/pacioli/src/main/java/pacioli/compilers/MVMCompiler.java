@@ -39,13 +39,13 @@ public class MVMCompiler implements SymbolTableVisitor {
     public void visit(ValueInfo info) {
 
         // Infos without definition are filtered by the caller
-        assert (info.getDefinition().isPresent());
+        assert (info.definition().isPresent());
 
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling value %s", info.globalName());
 
         out.format("store \"%s\" ", info.globalName());
         out.newlineUp();
-        ValueDefinition def = info.getDefinition().get();
+        ValueDefinition def = info.definition().get();
         def.body.accept(new MVMGenerator(out, settings));
         out.print(";");
         out.newlineDown();
@@ -57,20 +57,20 @@ public class MVMCompiler implements SymbolTableVisitor {
 
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling index set %s", info.globalName());
 
-        assert (info.getDefinition().isPresent());
+        assert (info.definition().isPresent());
 
-        IndexSetDefinition definition = info.getDefinition().get();
+        IndexSetDefinition definition = info.definition().get();
 
         if (definition.isDynamic()) {
-            out.format("indexset \"%s\" \"%s\" ", info.globalName(), info.getDefinition().get().getName());
-            info.getDefinition().get().getBody().accept(new MVMGenerator(out, settings));
+            out.format("indexset \"%s\" \"%s\" ", info.globalName(), info.definition().get().getName());
+            info.definition().get().getBody().accept(new MVMGenerator(out, settings));
             out.format(";\n");
         } else {
             List<String> quotedItems = new ArrayList<String>();
             for (String item : definition.getItems()) {
                 quotedItems.add(String.format("\"%s\"", item));
             }
-            out.format("indexset \"%s\" \"%s\" list(%s);\n", info.globalName(), info.getDefinition().get().getName(),
+            out.format("indexset \"%s\" \"%s\" list(%s);\n", info.globalName(), info.definition().get().getName(),
                     Utils.intercalate(",", quotedItems));
         }
 
@@ -84,7 +84,7 @@ public class MVMCompiler implements SymbolTableVisitor {
     @Override
     public void visit(ScalarBaseInfo info) {
 
-        Optional<UnitDefinition> definition = info.getDefinition();
+        Optional<UnitDefinition> definition = info.definition();
 
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling unit %s", info.globalName());
 
@@ -108,9 +108,9 @@ public class MVMCompiler implements SymbolTableVisitor {
 
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling vector unit %s", info.globalName());
 
-        assert (info.getDefinition().isPresent());
+        assert (info.definition().isPresent());
 
-        IndexSetInfo setInfo = (IndexSetInfo) info.getDefinition().get().indexSetNode.info;
+        IndexSetInfo setInfo = (IndexSetInfo) info.definition().get().indexSetNode.info;
         List<String> unitTexts = new ArrayList<String>();
         // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
         for (UnitDecl entry : info.getItems()) {

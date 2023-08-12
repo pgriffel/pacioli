@@ -61,7 +61,7 @@ public final class VectorBaseInfo extends UnitInfo {
     }
 
     @Override
-    public Optional<UnitVectorDefinition> getDefinition() {
+    public Optional<UnitVectorDefinition> definition() {
         return definition;
     }
 

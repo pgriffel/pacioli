@@ -60,7 +60,7 @@ public class PacioliTable {
     public void addInfo(TypeInfo info) throws PacioliException {
         String name = info.name();
         if (types.contains(name)) {
-            throw new PacioliException(info.getLocation(), "Duplicate type set name: " + name);
+            throw new PacioliException(info.location(), "Duplicate type set name: " + name);
         } else {
             types.put(name, info);
         }
@@ -69,8 +69,8 @@ public class PacioliTable {
     public void addInfo(ValueInfo info) throws PacioliException {
         String name = info.name();
         if (values.contains(name)) {
-            throw new PacioliException(info.getLocation(),
-                    "Duplicate name: " + name + values.lookup(name).getLocation().description());
+            throw new PacioliException(info.location(),
+                    "Duplicate name: " + name + values.lookup(name).location().description());
         } else {
             values.put(name, info);
         }

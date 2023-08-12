@@ -224,8 +224,8 @@ public class ResolveVisitor extends IdentityVisitor {
 
         if (node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
-            if (id.getInfo().getDefinition().isPresent()) {
-                ValueDefinition def = (ValueDefinition) id.getInfo().getDefinition().get();
+            if (id.getInfo().definition().isPresent()) {
+                ValueDefinition def = (ValueDefinition) id.getInfo().definition().get();
                 if (def.body instanceof LambdaNode) {
                     LambdaNode lambda = (LambdaNode) def.body;
                     if (lambda.arguments.size() != node.arguments.size()) {
@@ -283,12 +283,12 @@ public class ResolveVisitor extends IdentityVisitor {
                 if (symbolInfo instanceof IndexSetInfo) {
                     IndexSetInfo indexSetInfo = (IndexSetInfo) symbolInfo;
                     assert (indexSetInfo != null); // exception throwen
-                    assert (indexSetInfo.getDefinition().isPresent());
-                    if (indexSetInfo.getDefinition().get().isDynamic()) {
+                    assert (indexSetInfo.definition().isPresent());
+                    if (indexSetInfo.definition().get().isDynamic()) {
                         // Hack to handle dynamic index sets
                         return null;
                     }
-                    sets.add(indexSetInfo.getDefinition().get().getIndexSet());
+                    sets.add(indexSetInfo.definition().get().getIndexSet());
                 } else {
                     throw new RuntimeException(String.format("%s", id.name));
                 }

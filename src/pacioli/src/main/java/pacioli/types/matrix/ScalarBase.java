@@ -93,7 +93,7 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
             }
             // return new ScalarBase(text).multiply(fac);
         }
-        Optional<UnitDefinition> def = info.getDefinition();
+        Optional<UnitDefinition> def = info.definition();
         if (def.isPresent()) {
             DimensionedNumber<TypeBase> dimNum = def.get().evalBody();
             if (dimNum != null) {

@@ -39,7 +39,7 @@ public final class TypeVarInfo extends AbstractSymbolInfo implements TypeInfo {
     }
 
     @Override
-    public Optional<TypeDefinition> getDefinition() {
+    public Optional<TypeDefinition> definition() {
         return definition;
     }
 

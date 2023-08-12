@@ -48,7 +48,7 @@ public class UnitEvaluator extends IdentityVisitor {
     @Override
     public void visit(UnitIdentifierNode node) {
         if (node.info instanceof AliasInfo) {
-            AliasDefinition def = (AliasDefinition) node.info.getDefinition().get();
+            AliasDefinition def = (AliasDefinition) node.info.definition().get();
             returnNode(unitAccept(def.unit));
         } else {
             ScalarBaseInfo sinfo = (ScalarBaseInfo) node.info;

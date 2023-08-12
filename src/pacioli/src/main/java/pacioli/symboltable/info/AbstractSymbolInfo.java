@@ -22,7 +22,7 @@ public abstract class AbstractSymbolInfo implements SymbolInfo {
     }
 
     @Override
-    public Location getLocation() {
+    public Location location() {
         return general.location();
     }
 

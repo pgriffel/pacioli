@@ -11,15 +11,15 @@ public interface SymbolInfo {
 
     GeneralInfo generalInfo();
 
-    Optional<? extends Definition> getDefinition();
-
     String name();
 
     String globalName();
 
     Boolean isGlobal();
 
-    Location getLocation();
+    Location location();
+
+    Optional<? extends Definition> definition();
 
     void accept(SymbolTableVisitor visitor);
 

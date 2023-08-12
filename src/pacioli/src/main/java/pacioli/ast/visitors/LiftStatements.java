@@ -90,7 +90,7 @@ public class LiftStatements extends IdentityTransformation {
         for (ValueInfo var : localsInScope) {
             String name = var.name();
             if (!args.contains(name)) {
-                IdentifierNode idNode = new IdentifierNode(name, var.getLocation());
+                IdentifierNode idNode = new IdentifierNode(name, var.location());
                 args.add(name);
                 argIds.add(idNode);
             }

@@ -85,8 +85,8 @@ public class PrimitivesDocumentation {
 
                     // Get the arguments from the function definition if it exists. This
                     // should work for the standard lib
-                    if (info.getDefinition().isPresent()) {
-                        ExpressionNode body = info.getDefinition().get().body;
+                    if (info.definition().isPresent()) {
+                        ExpressionNode body = info.definition().get().body;
                         if (body instanceof LambdaNode) {
                             LambdaNode lambda = (LambdaNode) body;
                             args = lambda.arguments;

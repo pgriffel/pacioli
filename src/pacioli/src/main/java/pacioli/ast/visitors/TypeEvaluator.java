@@ -203,7 +203,7 @@ public class TypeEvaluator extends IdentityVisitor {
 
     private void handleParametric(TypeApplicationNode node, List<TypeObject> types) {
 
-        Optional<? extends Definition> definition = node.op.info.getDefinition();
+        Optional<? extends Definition> definition = node.op.info.definition();
         TypeObject opObject = typeAccept(node.op);
         if (!(opObject instanceof ParametricType || opObject instanceof OperatorVar)) {
             throw new PacioliException(node.getLocation(), "Oeps");
@@ -234,7 +234,7 @@ public class TypeEvaluator extends IdentityVisitor {
         assert (info != null);
 
         // If it is local then it is a variable.
-        Optional<? extends Definition> definition = info.getDefinition();
+        Optional<? extends Definition> definition = info.definition();
         if (!info.isGlobal()) {
 
             // Create a type for each different kind of type variable
@@ -269,7 +269,7 @@ public class TypeEvaluator extends IdentityVisitor {
             OperatorConst id = new OperatorConst(typeId, (ParametricInfo) info);
             // this.handleParametric(app, new ArrayList<PacioliType>());
             returnType(new ParametricType(node.getLocation(),
-                    ((ParametricInfo) info).getDefinition(),
+                    ((ParametricInfo) info).definition(),
                     id, new ArrayList<TypeObject>()));
         } else {
             assert (info instanceof ScalarBaseInfo);

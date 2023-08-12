@@ -37,11 +37,11 @@ public class MATLABCompiler implements SymbolTableVisitor {
     public void visit(ValueInfo info) {
 
         // Infos without definition are filtered by the caller
-        assert (info.getDefinition().isPresent());
+        assert (info.definition().isPresent());
 
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling value %s", info.globalName());
 
-        ValueDefinition definition = info.getDefinition().get();
+        ValueDefinition definition = info.definition().get();
         ExpressionNode transformed = definition.body;
         if (transformed instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformed;
@@ -122,7 +122,7 @@ public class MATLABCompiler implements SymbolTableVisitor {
     @Override
     public void visit(VectorBaseInfo info) {
 
-        assert (info.getDefinition().isPresent());
+        assert (info.definition().isPresent());
 
     }
 

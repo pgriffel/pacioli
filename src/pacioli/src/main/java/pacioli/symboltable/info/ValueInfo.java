@@ -57,7 +57,7 @@ public class ValueInfo extends AbstractSymbolInfo {
     }
 
     @Override
-    public Optional<ValueDefinition> getDefinition() {
+    public Optional<ValueDefinition> definition() {
         return definition;
     }
 
@@ -93,7 +93,7 @@ public class ValueInfo extends AbstractSymbolInfo {
             return inferredType.get();
         } else {
             throw new RuntimeException("No type info",
-                    new PacioliException(getLocation(), "no inferred or declared type for %s", name()));
+                    new PacioliException(location(), "no inferred or declared type for %s", name()));
         }
     }
 
@@ -102,7 +102,7 @@ public class ValueInfo extends AbstractSymbolInfo {
             return inferredType.get();
         } else {
             throw new RuntimeException("No type info (did you mean getType() instead of inferredType()?)",
-                    new PacioliException(getLocation(), "no inferred type for %s ", name()));
+                    new PacioliException(location(), "no inferred type for %s ", name()));
         }
     }
 

@@ -27,7 +27,7 @@ public final class IndexSetInfo extends AbstractSymbolInfo implements TypeInfo {
     }
 
     @Override
-    public Optional<IndexSetDefinition> getDefinition() {
+    public Optional<IndexSetDefinition> definition() {
         return definition;
     }
 

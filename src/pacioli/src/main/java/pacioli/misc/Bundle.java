@@ -147,10 +147,10 @@ public class Bundle {
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s",
                     info.globalName());
             if (environment.values.contains(info.globalName())) {
-                throw new PacioliException(info.getLocation(), "Duplicate name: %s, %s %s",
+                throw new PacioliException(info.location(), "Duplicate name: %s, %s %s",
                         info.globalName(),
-                        environment.values.lookup(info.globalName()).getLocation().equals(info.getLocation()),
-                        environment.values.lookup(info.globalName()).getLocation().description());
+                        environment.values.lookup(info.globalName()).location().equals(info.location()),
+                        environment.values.lookup(info.globalName()).location().description());
             }
             environment.values.put(info.globalName(), info);
 
@@ -159,8 +159,8 @@ public class Bundle {
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s",
                     info.globalName(), info.name());
             if (environment.types.contains(info.globalName())) {
-                throw new PacioliException(info.getLocation(), "Duplicate name: %s %s", info.globalName(),
-                        environment.types.lookup(info.globalName()).getLocation().description());
+                throw new PacioliException(info.location(), "Duplicate name: %s %s", info.globalName(),
+                        environment.types.lookup(info.globalName()).location().description());
             }
             environment.types.put(info.globalName(), info);
 
@@ -217,7 +217,7 @@ public class Bundle {
         for (TypeInfo info : environment.types.allInfos()) {
 
             if (info instanceof IndexSetInfo) {
-                assert (info.getDefinition().isPresent());
+                assert (info.definition().isPresent());
                 infosToCompile.add(info);
             }
 
@@ -231,8 +231,8 @@ public class Bundle {
 
         // Collect all functions and values from the value table
         for (ValueInfo info : environment.values.allInfos()) {
-            if (info.getDefinition().isPresent()) {
-                if (info.getDefinition().get().isFunction()) {
+            if (info.definition().isPresent()) {
+                if (info.definition().get().isFunction()) {
                     functionsToCompile.add(info);
                 } else {
                     infosToCompile.add(info);
@@ -280,9 +280,9 @@ public class Bundle {
         for (String value : names) {
             ValueInfo info = environment.values.lookup(value);
             boolean fromProgram = info.generalInfo().getModule().equals(file.getModule());
-            if (fromProgram && info.getDefinition().isPresent() && (true || info.isUserDefined())) {
+            if (fromProgram && info.definition().isPresent() && (true || info.isUserDefined())) {
                 // Pacioli.println("%s =", info.name());
-                Pacioli.print("\n\n%s;", info.getDefinition().get().pretty());
+                Pacioli.print("\n\n%s;", info.definition().get().pretty());
             }
         }
 
@@ -300,7 +300,7 @@ public class Bundle {
         for (String value : names) {
             ValueInfo info = environment.values.lookup(value);
             boolean fromProgram = info.generalInfo().getModule().equals(file.getModule());
-            if ((includePrivate || info.isPublic()) && fromProgram && info.getDefinition().isPresent()
+            if ((includePrivate || info.isPublic()) && fromProgram && info.definition().isPresent()
                     && info.isUserDefined()) {
                 TypeObject type = rewriteTypes ? info.inferredType() : info.getType();
                 String text = Pacioli.Options.printTypesAsString ? type.toString() : type.pretty();
@@ -339,10 +339,10 @@ public class Bundle {
         for (String name : environment.values.allNames()) {
             ValueInfo info = environment.values.lookup(name);
             if (info.isPublic()
-                    && includes.contains(info.getLocation().getFile())
-                    && info.getDefinition().isPresent()
+                    && includes.contains(info.location().getFile())
+                    && info.definition().isPresent()
                     && info.isUserDefined()) {
-                ExpressionNode body = info.getDefinition().get().body;
+                ExpressionNode body = info.definition().get().body;
                 if (body instanceof LambdaNode) {
                     LambdaNode lambda = (LambdaNode) body;
                     generator.addFunction(info.name(), lambda.arguments, info.getType(),
@@ -355,13 +355,13 @@ public class Bundle {
 
         for (String name : environment.types.allNames()) {
             TypeInfo info = environment.types.lookup(name);
-            if (includes.contains(info.getLocation().getFile())
-                    && info.getDefinition().isPresent()) {
+            if (includes.contains(info.location().getFile())
+                    && info.definition().isPresent()) {
                 if (info instanceof ParametricInfo def) {
                     generator.addType(info.name(),
-                            def.getDefinition().get().context.pretty(),
-                            def.getDefinition().get().lhs.pretty(),
-                            def.getDefinition().get().rhs.pretty(),
+                            def.definition().get().context.pretty(),
+                            def.definition().get().lhs.pretty(),
+                            def.definition().get().rhs.pretty(),
                             info.generalInfo().documentation().orElse("n/a"));
                 }
             }
@@ -413,7 +413,7 @@ public class Bundle {
         for (String name : allNames) {
 
             ValueInfo info = environment.values.lookup(name);
-            Optional<? extends Definition> def = info.getDefinition();
+            Optional<? extends Definition> def = info.definition();
 
             Pacioli.println("%-25s %-25s %-10s %-10s %-10s %-10s %-10s %-10s %-30s",
                     info.name(),
@@ -449,8 +449,8 @@ public class Bundle {
     static <T extends SymbolInfo> void insertInfo(T info, List<T> definitions, Set<T> discovered, Set<T> finished,
             Collection<String> all) throws PacioliException {
 
-        assert (info.getDefinition().isPresent());
-        Definition def = info.getDefinition().get();
+        assert (info.definition().isPresent());
+        Definition def = info.definition().get();
 
         if (!finished.contains(info)) {
 
@@ -461,7 +461,7 @@ public class Bundle {
             // Pacioli.log("uses %s %s %s", info.globalName(), info.getClass(), def.uses());
             for (SymbolInfo other : def.uses()) {
 
-                if ((all.contains(other.globalName())) && other.getDefinition().isPresent()) {
+                if ((all.contains(other.globalName())) && other.definition().isPresent()) {
                     insertInfo((T) other, definitions, discovered, finished, all);
                 }
             }

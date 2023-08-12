@@ -41,11 +41,11 @@ public class JSCompiler implements SymbolTableVisitor {
     public void visit(ValueInfo info) {
 
         // Infos without definition are filtered by the caller
-        assert (info.getDefinition().isPresent());
+        assert (info.definition().isPresent());
 
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling value %s", info.globalName());
 
-        ValueDefinition definition = info.getDefinition().get();
+        ValueDefinition definition = info.definition().get();
         ExpressionNode transformedBody = definition.body;
         if (false && transformedBody instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformedBody;
@@ -126,9 +126,9 @@ public class JSCompiler implements SymbolTableVisitor {
 
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling index set %s", info.globalName());
 
-        assert (info.getDefinition().isPresent());
+        assert (info.definition().isPresent());
 
-        IndexSetDefinition definition = info.getDefinition().get();
+        IndexSetDefinition definition = info.definition().get();
 
         if (definition.isDynamic()) {
             out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', '%s', ",
@@ -162,7 +162,7 @@ public class JSCompiler implements SymbolTableVisitor {
 
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling unit %s", info.globalName());
 
-        Optional<UnitDefinition> optionalDefinition = info.getDefinition();
+        Optional<UnitDefinition> optionalDefinition = info.definition();
 
         if (optionalDefinition.isPresent()) {
             Optional<UnitNode> optionalBody = optionalDefinition.get().body;
@@ -186,11 +186,11 @@ public class JSCompiler implements SymbolTableVisitor {
     @Override
     public void visit(VectorBaseInfo info) {
 
-        assert (info.getDefinition().isPresent());
+        assert (info.definition().isPresent());
 
         Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling vector unit %s", info.globalName());
 
-        IndexSetInfo setInfo = (IndexSetInfo) info.getDefinition().get().indexSetNode.info;
+        IndexSetInfo setInfo = (IndexSetInfo) info.definition().get().indexSetNode.info;
         List<String> unitTexts = new ArrayList<String>();
 
         for (UnitDecl entry : info.getItems()) {

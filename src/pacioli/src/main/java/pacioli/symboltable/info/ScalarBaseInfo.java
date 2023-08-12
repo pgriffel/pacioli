@@ -31,7 +31,7 @@ public final class ScalarBaseInfo extends UnitInfo {
     }
 
     @Override
-    public Optional<UnitDefinition> getDefinition() {
+    public Optional<UnitDefinition> definition() {
         return definition;
     }
 

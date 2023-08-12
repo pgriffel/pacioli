@@ -78,23 +78,23 @@ public class Schema extends AbstractType {
             Kind kind;
             if (var instanceof IndexSetVar v) {
                 sinfo = v.info.orElse(null);
-                location = v.info.map(x -> x.getLocation()).orElse(new Location());
+                location = v.info.map(x -> x.location()).orElse(new Location());
                 kind = Kind.INDEX;
             } else if (var instanceof ScalarUnitVar v) {
                 sinfo = v.info.orElse(null);
-                location = v.info.map(x -> x.getLocation()).orElse(new Location());
+                location = v.info.map(x -> x.location()).orElse(new Location());
                 kind = Kind.UNIT;
             } else if (var instanceof VectorUnitVar v) {
                 sinfo = v.info.orElse(null);
-                location = v.info.map(x -> x.getLocation()).orElse(new Location());
+                location = v.info.map(x -> x.location()).orElse(new Location());
                 kind = Kind.UNIT;
             } else if (var instanceof TypeVar v) {
                 sinfo = v.info.orElse(null);
-                location = v.info.map(x -> x.getLocation()).orElse(new Location());
+                location = v.info.map(x -> x.location()).orElse(new Location());
                 kind = Kind.TYPE;
             } else if (var instanceof OperatorVar v) {
                 sinfo = v.info().orElse(null);
-                location = v.info().map(x -> x.getLocation()).orElse(new Location());
+                location = v.info().map(x -> x.location()).orElse(new Location());
                 kind = Kind.OP;
             } else {
                 throw new RuntimeException("Unknown quantifier: " + var.getClass());

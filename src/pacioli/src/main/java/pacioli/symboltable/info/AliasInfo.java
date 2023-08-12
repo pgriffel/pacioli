@@ -7,10 +7,11 @@ import pacioli.symboltable.SymbolTableVisitor;
 
 public final class AliasInfo extends UnitInfo {
 
-    public AliasDefinition definition;
+    private final AliasDefinition definition;
 
-    public AliasInfo(GeneralInfo info) {
+    public AliasInfo(GeneralInfo info, AliasDefinition definition) {
         super(info);
+        this.definition = definition;
     }
 
     public Boolean isAlias() {
@@ -28,7 +29,7 @@ public final class AliasInfo extends UnitInfo {
     }
 
     @Override
-    public Optional<AliasDefinition> getDefinition() {
+    public Optional<AliasDefinition> definition() {
         return Optional.ofNullable(definition);
     }
 
@@ -48,9 +49,7 @@ public final class AliasInfo extends UnitInfo {
 
         @Override
         public AliasInfo build() {
-            AliasInfo info = new AliasInfo(this.buildGeneralInfo());
-            info.definition = definition;
-            return info;
+            return new AliasInfo(this.buildGeneralInfo(), definition);
         }
 
     }

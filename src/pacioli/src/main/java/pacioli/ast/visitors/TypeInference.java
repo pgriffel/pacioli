@@ -193,7 +193,7 @@ public class TypeInference extends IdentityVisitor {
                     // Determine the shape of the row dimension
                     List<Integer> shape = new ArrayList<Integer>();
                     for (int i = 0; i < tensorType.rowDimension.width(); i++) {
-                        Optional<IndexSetDefinition> def = tensorType.rowDimension.nthIndexSetInfo(i).getDefinition();
+                        Optional<IndexSetDefinition> def = tensorType.rowDimension.nthIndexSetInfo(i).definition();
                         if (def.isPresent()) {
                             shape.add(def.get().getItems().size());
                         } else {
@@ -573,7 +573,7 @@ public class TypeInference extends IdentityVisitor {
                 for (TypeVar var : itemTyping.assumptions(name)) {
                     String message = String.format(
                             "During inference %s\nthe inferred parameter type must match the argument",
-                            info.getLocation().description());
+                            info.location().description());
                     typing.addConstraint(var, info.inferredType(), message);
                 }
             } else {

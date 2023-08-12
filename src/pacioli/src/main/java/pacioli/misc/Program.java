@@ -353,15 +353,15 @@ public class Program {
         List<TypeInfo> localTypeInfos = prog.types.allInfos(info -> info.isFromFile(this.file));
 
         for (TypeInfo nfo : localTypeInfos) {
-            if (nfo instanceof IndexSetInfo && nfo.getDefinition().isPresent()) {
+            if (nfo instanceof IndexSetInfo && nfo.definition().isPresent()) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving index set %s", nfo.globalName());
-                nfo.getDefinition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(this.file, prog);
             }
         }
         for (TypeInfo nfo : localTypeInfos) {
-            if (nfo instanceof UnitInfo && nfo.getDefinition().isPresent()) {
+            if (nfo instanceof UnitInfo && nfo.definition().isPresent()) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving unit %s", nfo.globalName());
-                nfo.getDefinition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(this.file, prog);
             }
         }
         for (TypeInfo nfo : localTypeInfos) {
@@ -369,7 +369,7 @@ public class Program {
 
                 // Resolve the class definition itself
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving class %s", nfo.globalName());
-                nfo.getDefinition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(this.file, prog);
 
                 // Resolve all class instances
                 for (InstanceInfo instanceInfo : classInfo.instances) {
@@ -380,17 +380,17 @@ public class Program {
             }
         }
         for (TypeInfo nfo : localTypeInfos) {
-            if (nfo instanceof ParametricInfo && nfo.getDefinition().isPresent()) {
+            if (nfo instanceof ParametricInfo && nfo.definition().isPresent()) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving type %s", nfo.globalName());
-                nfo.getDefinition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(this.file, prog);
             }
         }
 
         for (ValueInfo nfo : prog.values.allInfos(info -> info.isFromFile(this.file))) {
-            if (nfo.getDefinition().isPresent()) {
+            if (nfo.definition().isPresent()) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving value or function %s",
                         nfo.globalName());
-                nfo.getDefinition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(this.file, prog);
             }
             if (nfo.getDeclaredType().isPresent()) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving declaration %s", nfo.globalName());
@@ -607,7 +607,7 @@ public class Program {
         for (InstanceInfo instanceInfo : classInfo.instances) {
             if (instanceInfo.isFromFile(this.file)) {
 
-                Location instanceLocation = instanceInfo.getLocation();
+                Location instanceLocation = instanceInfo.location();
 
                 // Create a declaration and definition. Both are a tuple with an element for
                 // each overloaded function instance
@@ -625,13 +625,13 @@ public class Program {
                         arg.add(condition.getName());
                     }
                 }
-                LambdaNode instanceBody = new LambdaNode(arg, tuple, instanceInfo.getLocation());
+                LambdaNode instanceBody = new LambdaNode(arg, tuple, instanceInfo.location());
 
                 IdentifierNode instanceId = new IdentifierNode(instanceInfo.globalName(), instanceLocation);
 
                 // Define a helper function for the instance
                 ValueDefinition vd = new ValueDefinition(
-                        instanceInfo.getLocation(),
+                        instanceInfo.location(),
                         instanceId,
                         instanceBody,
                         false);
@@ -640,7 +640,7 @@ public class Program {
                         .file(classInfo.generalInfo().file)
                         .isGlobal(true)
                         .isMonomorphic(false)
-                        .location(classInfo.getLocation())
+                        .location(classInfo.location())
                         .isPublic(false)
                         .definition(vd)
                         .build();
@@ -663,8 +663,8 @@ public class Program {
         Pacioli.trace("Lifting value statements %s", this.file.getModule());
 
         for (ValueInfo info : program.values.allInfos()) {
-            if (info.getDefinition().isPresent() && info.isFromFile(this.file)) {
-                ValueDefinition definition = info.getDefinition().get();
+            if (info.definition().isPresent() && info.isFromFile(this.file)) {
+                ValueDefinition definition = info.definition().get();
                 definition.body = definition.body.liftStatements(this.file, program, env, ExpressionNode.class);
 
             }
@@ -680,8 +680,8 @@ public class Program {
         Pacioli.trace("Transforming conversions %s", this.file.getModule());
 
         for (ValueInfo info : pacioliTable.values.allInfos()) {
-            if (info.getDefinition().isPresent() && info.isFromFile(this.file)) {
-                ValueDefinition definition = info.getDefinition().get();
+            if (info.definition().isPresent() && info.isFromFile(this.file)) {
+                ValueDefinition definition = info.definition().get();
                 ExpressionNode newBody = new TransformConversions().expAccept(definition.body);
                 definition.body = newBody;
 
@@ -712,7 +712,7 @@ public class Program {
         for (String value : names) {
             ValueInfo info = environment.values.lookup(value);
 
-            if (info.isFromFile(this.file) && info.getDefinition().isPresent()) {
+            if (info.isFromFile(this.file) && info.definition().isPresent()) {
 
                 Pacioli.logIf(Pacioli.Options.logTypeInference, "Infering type of %s", value);
 
@@ -736,7 +736,7 @@ public class Program {
 
                 if (!declaredType.isInstanceOf(inferredType)) {
                     throw new RuntimeException("Type error",
-                            new PacioliException(info.getLocation(),
+                            new PacioliException(info.location(),
                                     String.format(
                                             "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
                                             declaredType.unfresh().pretty(),
@@ -768,13 +768,13 @@ public class Program {
             Boolean verbose, PacioliTable env) {
         for (SymbolInfo pre : definition.uses()) {
             if (pre.isGlobal() && pre instanceof ValueInfo) {
-                if (pre.isFromFile(this.file) && pre.getDefinition().isPresent()) {
+                if (pre.isFromFile(this.file) && pre.definition().isPresent()) {
                     inferValueDefinitionType((ValueInfo) pre, discovered, finished, verbose, env);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
                     if (!vinfo.getDeclaredType().isPresent() && !vinfo.name().equals("nmode")) {
                         throw new RuntimeException("Type error",
-                                new PacioliException(pre.getLocation(), "No type declared for %s", pre.name()));
+                                new PacioliException(pre.location(), "No type declared for %s", pre.name()));
                     }
                 }
             }
@@ -799,9 +799,9 @@ public class Program {
                 // Pacioli.warn("Cycle in definition of %s", info.name());
             } else {
                 discovered.add(info);
-                inferUsedTypes(info.getDefinition().get(), discovered, finished, verbose, env);
+                inferUsedTypes(info.definition().get(), discovered, finished, verbose, env);
 
-                ValueDefinition def = info.getDefinition().get();
+                ValueDefinition def = info.definition().get();
 
                 Pacioli.logIf(Pacioli.Options.logTypeInference, "Infering typing of %s", info.name());
 

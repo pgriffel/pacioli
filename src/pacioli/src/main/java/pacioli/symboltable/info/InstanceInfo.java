@@ -33,7 +33,7 @@ public final class InstanceInfo extends AbstractSymbolInfo {
     }
 
     @Override
-    public Optional<InstanceDefinition> getDefinition() {
+    public Optional<InstanceDefinition> definition() {
         return Optional.of(definition);
     }
 }

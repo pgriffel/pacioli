@@ -33,7 +33,7 @@ public final class ClassInfo extends AbstractSymbolInfo implements TypeInfo {
     }
 
     @Override
-    public Optional<ClassDefinition> getDefinition() {
+    public Optional<ClassDefinition> definition() {
         return Optional.of(definition);
     }
 
@@ -44,7 +44,6 @@ public final class ClassInfo extends AbstractSymbolInfo implements TypeInfo {
     public static class Builder extends GeneralBuilder<Builder, ClassInfo> {
 
         private ClassDefinition definition;
-        // private PacioliFile file;
         public List<InstanceInfo> instances = new ArrayList<>();
 
         @Override
@@ -56,11 +55,6 @@ public final class ClassInfo extends AbstractSymbolInfo implements TypeInfo {
             this.definition = definition;
             return this;
         }
-
-        // public Builder file(PacioliFile file) {
-        // this.file = file;
-        // return this;
-        // }
 
         public Builder instance(InstanceInfo def) {
             this.instances.add(def);
