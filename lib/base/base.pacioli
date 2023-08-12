@@ -31,6 +31,19 @@ include system;
 # library. The SI library gives extensions.
 # ----------------------------------------------------------------------------
 
+export
+    tuple,
+    apply,
+    identity,
+    type_of,
+    equal,
+    not_equal,
+    not,
+    error,
+    just,
+    nothing,
+    is_nothing;
+
 defunit metre "m";
 defunit gram "g";
 defunit second "s";
@@ -46,63 +59,63 @@ defunit candela "cd";
 doc tuple
     "Creates a tuple from the arguments.";
 
-declare export tuple :: for_type t: t -> t;
+declare tuple :: for_type t: t -> t;
 
 # ----------------------------------------------------------------------------
 
 doc apply
     "Applies a function to a tuple of arguments.";
 
-declare export apply :: for_type s,t: (s -> t, s) -> t;
+declare apply :: for_type s,t: (s -> t, s) -> t;
 
 # ----------------------------------------------------------------------------
 
 doc identity
     "The identity function. Just returns its single argument.";
 
-declare export identity :: for_type t: (t) -> t;
+declare identity :: for_type t: (t) -> t;
 
 # ----------------------------------------------------------------------------
 
 doc type_of
     "One of 'string', 'matrix' and 'generic'.";
 
-declare export type_of :: for_type t: (t) -> Identifier;
+declare type_of :: for_type t: (t) -> Identifier;
 
 # ----------------------------------------------------------------------------
 
 doc equal
     "Are the given values equal?";
 
-declare export equal :: for_type t: (t, t) -> Boole;
+declare equal :: for_type t: (t, t) -> Boole;
 
 # ----------------------------------------------------------------------------
 
 doc not_equal
     "Shorthand for <code>not(equal(x, y))</code>.";
 
-declare export not_equal :: for_type t: (t, t) -> Boole;
+declare not_equal :: for_type t: (t, t) -> Boole;
 
 # ----------------------------------------------------------------------------
 
 doc not
     "Logical complement";
 
-declare export not :: (Boole) -> Boole;
+declare not :: (Boole) -> Boole;
 
 # ----------------------------------------------------------------------------
 
 doc error
     "Signals an error.";
 
-declare export error :: for_type t: (String) -> t;
+declare error :: for_type t: (String) -> t;
 
 # ----------------------------------------------------------------------------
 # Maybe
 # ----------------------------------------------------------------------------
 
-declare export just :: for_type t: (t) -> Maybe(t);
+declare just :: for_type t: (t) -> Maybe(t);
 
-declare export nothing :: for_type t: () -> Maybe(t);
+declare nothing :: for_type t: () -> Maybe(t);
 
-declare export is_nothing :: for_type t: (Maybe(t)) -> Boole;
+declare is_nothing :: for_type t: (Maybe(t)) -> Boole;

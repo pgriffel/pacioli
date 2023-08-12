@@ -22,11 +22,28 @@ include list;
 include matrix;
 include io;
 
+export
+    pi,
+    now,
+    to_percentage,
+    from_percentage,
+    approximates,
+    approximates_to,
+    compare,
+    list_count,
+    list_concat,
+    list_sum,
+    list_min,
+    list_max,
+    list_gcd,
+    list_all,
+    list_some;
+
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
 
-declare export pi :: 1;
+declare pi :: 1;
 
 define pi = 3.141592653589793;
 
@@ -34,7 +51,7 @@ define pi = 3.141592653589793;
 # System time
 # ------------------------------------------------------------------------------
 
-declare export now :: () -> milli:second;
+declare now :: () -> milli:second;
 
 define now() =
     _system_time() * |milli:second|;
@@ -47,8 +64,8 @@ defunit percent "%" = 0.01;
 
 defconv percent_conv :: percent;
 
-declare export to_percentage :: for_index D,E: (D! per E!) -> percent*D! per E!;
-declare export from_percentage :: for_index D,E: (percent*D! per E!) -> D! per E!;
+declare to_percentage :: for_index D,E: (D! per E!) -> percent*D! per E!;
+declare from_percentage :: for_index D,E: (percent*D! per E!) -> D! per E!;
 
 define to_percentage(x) = percent_conv '.*' x;
 define from_percentage(x) = x '/.' percent_conv;
@@ -62,10 +79,10 @@ define fraction(x, y) = to_percentage(x / y);
 
 defunit decimals "decs";
 
-declare export approximates :: for_index I, J: for_unit a, I!u, J!v:
+declare approximates :: for_index I, J: for_unit a, I!u, J!v:
     (a*I!u per J!v, a*I!u per J!v, decimals) -> Boole;
 
-declare export approximates_to :: for_index I, J: for_unit a, I!u, J!v:
+declare approximates_to :: for_index I, J: for_unit a, I!u, J!v:
     (decimals) -> (a*I!u per J!v, a*I!u per J!v) -> Boole;
 
 define approximates(x, y, decs) =
@@ -83,7 +100,7 @@ define approximates_to(decs) =
 # Comparison
 # ----------------------------------------------------------------------------
 
-declare export compare :: for_unit a: (a, a) -> 1;
+declare compare :: for_unit a: (a, a) -> 1;
 
 define compare(x, y) =
     if x < y then
@@ -98,17 +115,17 @@ define compare(x, y) =
 # Primitives for Comprehensions (todo: implement properly)
 # ------------------------------------------------------------------------------
 
-declare export list_count :: (List(Boole())) -> 1;
+declare list_count :: (List(Boole())) -> 1;
 
-declare export list_concat :: (List(String())) -> String();
+declare list_concat :: (List(String())) -> String();
 
-declare export list_sum, list_min, list_max :: 
+declare list_sum, list_min, list_max :: 
   for_index P, Q: for_unit a, P!u, Q!v: (List(a*P!u per Q!v)) -> a*P!u per Q!v;
 
-declare export list_gcd :: 
+declare list_gcd :: 
   for_index P, Q: for_unit a, P!u, Q!v: (List(P! per Q!)) -> P! per Q!;
 
-declare export list_all, list_some :: (List(Boole())) -> Boole();
+declare list_all, list_some :: (List(Boole())) -> Boole();
 
 
 define list_count(xs) = list_size([x | x <- xs, x]);

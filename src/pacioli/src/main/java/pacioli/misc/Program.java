@@ -217,7 +217,7 @@ public class Program {
                         .file(this.file)
                         .isGlobal(true)
                         .declaredType(decl.typeNode)
-                        .isPublic(decl.isPublic);
+                        .isPublic(false);
             }
         }
 

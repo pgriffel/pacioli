@@ -1,16 +1,25 @@
+# ------------------------------------------------------------------------------
+# MultiVector functional layer - instances for applications
+# ------------------------------------------------------------------------------
+
 import geometry;
 include term_layer;
 include multivector_layer;
+include blade;
 
-# ----------------------------------------------------------------------------------------
-# MultiVector export functional layer - instances for applications
-#
-# Mapping from symbol representation to vector representation
+export
+    e0, e1, e12, e123, e13, e2, e23, e3,
+    f0, f1, f12, f2,
+    parse_base_blade,
+    parse_mv,
+    vec2mv;
+
+# ------------------------------------------------------------------------------
+# Mapping from symbol representation     to vector representation
 #
 # Symbols for the 3D base blades and its representations as numbers
 # Needed for testeing the Representation conversions
-#
-# ----------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 #
 # Outer product ^ units:
@@ -53,8 +62,8 @@ include multivector_layer;
 # 
 
 # TODO: separate aliases for term_weight AND term_base_blade
-defalias unit_2D = metre;
-defalias unit_3D = metre;
+defalias unit_2D = 1;
+defalias unit_3D = 1;
 
 define blades_2D = 
     let 
@@ -115,14 +124,14 @@ table(terms_2D, terms_2D, modified_hestenes_inner_product, "M");
 # Blades used in geometric_algebra_tests.pacioli
 # ------------------------------------------------------------------------------
 
-declare export e0 :: BaseBlade(1, Geom3!);
-declare export e1 :: BaseBlade(1, Geom3!);
-declare export e2 :: BaseBlade(1, Geom3!);
-declare export e12 :: BaseBlade(1, Geom3!);
-declare export e3 :: BaseBlade(1, Geom3!);
-declare export e13 :: BaseBlade(1, Geom3!);
-declare export e23 :: BaseBlade(1, Geom3!);
-declare export e123 :: BaseBlade(1, Geom3!);
+declare e0 :: BaseBlade(1, Geom3!);
+declare e1 :: BaseBlade(1, Geom3!);
+declare e2 :: BaseBlade(1, Geom3!);
+declare e12 :: BaseBlade(1, Geom3!);
+declare e3 :: BaseBlade(1, Geom3!);
+declare e13 :: BaseBlade(1, Geom3!);
+declare e23 :: BaseBlade(1, Geom3!);
+declare e123 :: BaseBlade(1, Geom3!);
 
 define e0 = nth(0, blades_3D);
 define e1 = nth(1, blades_3D);
@@ -133,10 +142,10 @@ define e13 = nth(5, blades_3D);
 define e23 = nth(6, blades_3D);
 define e123 = nth(7, blades_3D);
 
-declare export f0 :: BaseBlade(1, Geom2!);
-declare export f1 :: BaseBlade(1, Geom2!);
-declare export f2 :: BaseBlade(1, Geom2!);
-declare export f12 :: BaseBlade(1, Geom2!);
+declare f0 :: BaseBlade(1, Geom2!);
+declare f1 :: BaseBlade(1, Geom2!);
+declare f2 :: BaseBlade(1, Geom2!);
+declare f12 :: BaseBlade(1, Geom2!);
 
 define f0 = nth(0, blades_2D);
 define f1 = nth(1, blades_2D);
@@ -144,11 +153,11 @@ define f2 = nth(2, blades_2D);
 define f12 = nth(3, blades_2D);
 
 
-declare export parse_mv :: (String) -> MultiVector(unit_3D, Geom3!);
+declare parse_mv :: (String) -> MultiVector(unit_3D, Geom3!);
 
 define parse_mv(x) = parse_multivector(parse_base_blade, x);
 
-declare export parse_base_blade :: (String) -> Term(unit_3D, Geom3!);
+declare parse_base_blade :: (String) -> Term(unit_3D, Geom3!);
 
 # TODO: parse_base_blade is 3D specific, should also handle 2D
 define parse_base_blade(input) =
@@ -171,10 +180,11 @@ define parse_base_blade(input) =
     else error(concatenate("Unexpected base blade in input: e", input))
     end;
 
+# ------------------------------------------------------------------------------
 # vec2mv
 # ------------------------------------------------------------------------------
 
-declare export vec2mv :: for_unit a: (a * Geom3!) -> MultiVector(a, Geom3!);
+declare vec2mv :: for_unit a: (a * Geom3!) -> MultiVector(a, Geom3!);
 
 define vec2mv(vec) =
     let u = unit_factor(vec) in

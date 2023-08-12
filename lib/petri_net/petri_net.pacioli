@@ -1,0 +1,147 @@
+import fourier_motzkin;
+
+export
+    make_petri_net,
+    marked_petri_net,
+    petri_pre,
+    petri_post,
+    petri_flow,
+    petri_marking,
+    petri_unit,
+    place_unit,
+    transition_unit,
+    fire_petri_net,
+    petri_net_enabled,
+    petri_subnet,
+    semi_flows;
+
+# ------------------------------------------------------------------------------
+# Signature
+# ------------------------------------------------------------------------------
+
+deftype
+  for_index P,T:
+    for_unit P!u:
+      PetriNet(P!u, T!) = Tuple(P!u per T!, P!u per T!, P!u);
+
+declare make_petri_net ::
+  for_index P,T:
+    for_unit P!u:
+      (P!u per T!, P!u per T!) -> PetriNet(P!u, T!);
+
+declare marked_petri_net ::
+  for_index P,T:
+    for_unit P!u:
+      (P!u per T!, P!u per T!, P!u) -> PetriNet(P!u, T!);
+
+declare petri_pre, petri_post, petri_flow ::
+  for_index P,T:
+    for_unit P!u:
+      (PetriNet(P!u, T!)) -> P!u per T!;
+
+declare petri_marking ::
+  for_index P,T:
+    for_unit P!u:
+      (PetriNet(P!u, T!)) -> P!u;
+
+declare petri_unit ::
+  for_index P,T:
+    for_unit P!u:
+      (PetriNet(P!u, T!)) -> P!u per T!;
+
+declare place_unit ::
+  for_index P,T:
+    for_unit mon, P!u:
+      (PetriNet(P!u, T!)) -> P!u;
+
+declare transition_unit ::
+  for_index P,T:
+    for_unit mon, P!u:
+      (PetriNet(P!u, T!)) -> T!;
+
+declare fire_petri_net ::
+  for_index P,T:
+    for_unit P!u:
+      (PetriNet(P!u, T!), T!) -> PetriNet(P!u, T!);
+
+declare petri_net_enabled ::
+  for_index P,T:
+    for_unit P!u:
+      (PetriNet(P!u, T!), T!) -> Boole();
+
+declare petri_subnet ::
+  for_index P,T:
+    for_unit P!u:
+      (PetriNet(P!u, T!), T!) -> PetriNet(P!u, T!);
+
+declare semi_flows ::
+  for_index P,T:
+    for_unit P!u:
+      (PetriNet(P!u, T!)) -> List(T!);
+
+# ------------------------------------------------------------------------------
+# Implementation
+# ------------------------------------------------------------------------------
+
+define marked_petri_net(pre, post, marking) =
+  tuple(pre, post, marking);
+
+define make_petri_net(pre, post) =
+  marked_petri_net(pre, post, 0 '.*' row_unit(pre));
+
+define petri_pre(net) =
+  let (f, _, _) = net in f end;
+
+define petri_post(net) =
+  let (_, b, _) = net in b end;
+
+define petri_marking(net) =
+  let (_, _, m) = net in m end;
+
+define petri_flow(net) =
+  petri_post(net) - petri_pre(net);
+
+# ------------------------------------------------------------------------------
+# Units of Measurement
+# ------------------------------------------------------------------------------
+
+define petri_unit(net) =
+  unit(petri_pre(net));
+
+define place_unit(net) =
+  row_unit(petri_pre(net));
+
+define transition_unit(net) =
+  column_unit(petri_pre(net));
+
+# ------------------------------------------------------------------------------
+# Behaviour
+# ------------------------------------------------------------------------------
+
+define petri_net_enabled(net, amount) =
+  petri_pre(net) '*' amount <= petri_marking(net);
+
+define fire_petri_net(net, amount) =
+  marked_petri_net(petri_pre(net),
+                   petri_post(net),
+                   petri_marking(net) + petri_flow(net) '*' amount);
+
+# ------------------------------------------------------------------------------
+# Subnet
+# ------------------------------------------------------------------------------
+
+define petri_subnet(net, transition_mask) =
+  let
+    matrix_mask = magnitude(place_unit(net)) per transition_mask
+  in
+    marked_petri_net(matrix_mask * petri_pre(net),
+                     matrix_mask * petri_post(net),
+                     petri_marking(net))
+  end;
+
+# ------------------------------------------------------------------------------
+# Semi-flows
+# ------------------------------------------------------------------------------
+
+define semi_flows(net) =
+  fourier_motzkin(petri_flow(net));

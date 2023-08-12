@@ -17,40 +17,50 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+export
+    _three_question_marks,
+    _skip,
+    _system_time,
+    _asin,
+    _acos,
+    _atan,
+    _atan2,
+    _add_mut;
+
 # ----------------------------------------------------------------------------
 # System functions
 # ----------------------------------------------------------------------------
 
-declare export _three_question_marks :: for_type t: () -> t;
+declare _three_question_marks :: for_type t: () -> t;
 
 # ----------------------------------------------------------------------------
 
-declare export _skip :: () -> Void;
+declare _skip :: () -> Void;
 
 # ----------------------------------------------------------------------------
 
 doc _system_time
     "Number of milliseconds since some starting point.";
 
-declare export _system_time :: () -> 1;
+declare _system_time :: () -> 1;
 
 # ----------------------------------------------------------------------------
 
-declare export _asin :: for_index P,Q: (P! per Q!) -> P! per Q!;
+declare _asin :: for_index P,Q: (P! per Q!) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
 
-declare export _acos :: for_index P,Q: (P! per Q!) -> P! per Q!;
+declare _acos :: for_index P,Q: (P! per Q!) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
 
-declare export _atan :: for_index P,Q: (P! per Q!) -> P! per Q!;
+declare _atan :: for_index P,Q: (P! per Q!) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
 
-declare export _atan2 ::
+declare _atan2 ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
 
-declare export _add_mut :: for_type a: (List(a), a) -> List(a);
+declare _add_mut :: for_type a: (List(a), a) -> List(a);

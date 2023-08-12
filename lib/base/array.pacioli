@@ -17,6 +17,12 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+export
+    make_array,
+    array_get,
+    array_put,
+    array_size;
+
 # ----------------------------------------------------------------------------
 # Array
 # ----------------------------------------------------------------------------
@@ -24,7 +30,7 @@
 doc make_array
     "Constructs an array of the asked size.";
 
-declare export make_array :: for_type t: (1) -> Array(t);
+declare make_array :: for_type t: (1) -> Array(t);
 
 # ----------------------------------------------------------------------------
 
@@ -34,18 +40,18 @@ doc array_get
     It is an error if the index is out of bounds or no item was stored
     previously.";
 
-declare export array_get :: for_type t: (Array(t), 1) -> t;
+declare array_get :: for_type t: (Array(t), 1) -> t;
 
 # ----------------------------------------------------------------------------
 
 doc array_put
     "Stores an item in the array at the asked position.";
 
-declare export array_put :: for_type t: (Array(t), 1, t) -> Void;
+declare array_put :: for_type t: (Array(t), 1, t) -> Void;
 
 # ----------------------------------------------------------------------------
 
 doc array_size
     "The size of the array that was given at construction.";
 
-declare export array_size :: for_type t: (Array(t)) -> 1;
+declare array_size :: for_type t: (Array(t)) -> 1;

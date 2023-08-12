@@ -17,17 +17,26 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+export
+    flatten,
+    combis,
+    scanl1,
+    scanl,
+    zip_with,
+    unzip,
+    remove_nth;
+
 # ------------------------------------------------------------------------------
 # Lists
 # ------------------------------------------------------------------------------
 
-declare export combis :: for_type t: (List(t)) -> List(Tuple(t, t));
-declare export flatten :: for_type t: (List(List(t))) -> List(t);
-declare export scanl1 :: for_type t: ((t, t) -> t, List(t)) -> List(t);
-declare export scanl :: for_type s,t: ((t, s) -> t, t, List(s)) -> List(t);
-declare export zip_with :: for_type s,t,u: ((s, t) -> u, List(s), List(t)) -> List(u);
-declare export unzip :: for_type s, t: (List(Tuple(s, t))) -> Tuple(List(s), List(t));
-declare export remove_nth :: for_type t: (1, List(t)) -> List(t);
+declare combis :: for_type t: (List(t)) -> List(Tuple(t, t));
+declare flatten :: for_type t: (List(List(t))) -> List(t);
+declare scanl1 :: for_type t: ((t, t) -> t, List(t)) -> List(t);
+declare scanl :: for_type s,t: ((t, s) -> t, t, List(s)) -> List(t);
+declare zip_with :: for_type s,t,u: ((s, t) -> u, List(s), List(t)) -> List(u);
+declare unzip :: for_type s, t: (List(Tuple(s, t))) -> Tuple(List(s), List(t));
+declare remove_nth :: for_type t: (1, List(t)) -> List(t);
 
 # ------------------------------------------------------------------------------
 

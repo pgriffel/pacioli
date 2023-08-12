@@ -17,6 +17,13 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+export
+    set_nr_decimals,
+    nr_decimals,
+    with_output_file,
+    file_write,
+    print;
+
 # ----------------------------------------------------------------------------
 # Number of decimals
 # ----------------------------------------------------------------------------
@@ -26,7 +33,7 @@ doc set_nr_decimals
     
     This is a global effect.";
 
-declare export set_nr_decimals :: (1) -> Void;
+declare set_nr_decimals :: (1) -> Void;
 
 # ----------------------------------------------------------------------------
 
@@ -35,7 +42,7 @@ doc nr_decimals
     
     See <code>set_nr_decimals</code>";
 
-declare export nr_decimals :: () -> 1;
+declare nr_decimals :: () -> 1;
 
 # ----------------------------------------------------------------------------
 # File IO
@@ -45,7 +52,7 @@ doc with_output_file
     "Opens a file for writing and calls the callback with a handle to
     the file";
     
-declare export with_output_file :: (String, (File) -> Void) -> Void;
+declare with_output_file :: (String, (File) -> Void) -> Void;
 
 # ----------------------------------------------------------------------------
 
@@ -53,7 +60,7 @@ doc file_write
     "Write a string to a file. Use <code>with_output_file</code> to get a file
     handle.";
 
-declare export file_write :: (File, String) -> Void;
+declare file_write :: (File, String) -> Void;
 
 # ----------------------------------------------------------------------------
 # Terminal IO
@@ -62,4 +69,4 @@ declare export file_write :: (File, String) -> Void;
 doc print
     "Writes a string to standard output.";
 
-declare export print :: (String) -> Void;
+declare print :: (String) -> Void;

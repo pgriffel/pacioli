@@ -1,0 +1,290 @@
+# ------------------------------------------------------------------------------
+# 3D graphics
+# ------------------------------------------------------------------------------
+
+import geometry;
+
+export
+    empty_scene,
+    add_arrows,
+    add_meshes,
+    add_paths,
+    make_path,
+    make_line,
+    make_mesh,
+    mesh_move,
+    cube_mesh,
+    vertex,
+    face,
+    make_arrow,
+    origin_arrow;
+
+# ------------------------------------------------------------------------------
+# Building a scene
+# ------------------------------------------------------------------------------
+
+doc Scene
+    "A scene contains vectors, meshes and paths and can be displayed in
+    a browser.";
+
+deftype for_unit a:
+    Scene(a) = Tuple(
+                String,
+                List(Arrow(a)),
+                List(Tuple(Mesh(a), Boole)),
+                List(Path(a)));
+
+# ------------------------------------------------------------------------------
+
+doc empty_scene
+    "Constructs a scene.
+    
+    The argument is a description of the scene that can be used as a caption.";
+
+declare empty_scene ::
+    for_unit a: (String) -> Scene(a);
+
+define empty_scene(description) =
+    tuple(description, [], [], []);
+
+# ------------------------------------------------------------------------------
+
+doc add_arrows
+    "Adds arrows to a scene";
+
+declare add_arrows ::
+    for_unit a: (List(Arrow(a)), Scene(a)) -> Scene(a);
+
+define add_arrows(vs, scene) =
+    let (description, vectors, meshes, paths) = scene in
+        tuple(description, append(vs, vectors), meshes, paths)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc add_meshes
+    "Adds meshes to a scene";
+
+declare add_meshes ::
+    for_unit a: (List(Tuple(Mesh(a), Boole)), Scene(a)) -> Scene(a);
+
+define add_meshes(ms, scene) =
+    let (description, vectors, meshes, paths) = scene in
+        tuple(description, vectors, append(ms, meshes), paths)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc add_paths
+    "Adds paths to a scene";
+
+declare add_paths ::
+    for_unit a: (List(Path(a)), Scene(a)) -> Scene(a);
+
+define add_paths(ps, scene) =
+    let (description, vectors, meshes, paths) = scene in
+        tuple(description, vectors, meshes, append(ps, paths))
+    end;
+
+# ------------------------------------------------------------------------------
+# Path
+# ------------------------------------------------------------------------------
+
+doc Path
+    "A series of lines between succesive points. The points are given by the
+    list of vectors.";
+
+deftype for_unit a:
+    Path(a) = List(a * Geom3!);
+
+# ------------------------------------------------------------------------------
+
+doc make_path
+    "Constructs a Path";
+
+declare make_path ::
+    for_unit a: (List(a * Geom3!)) -> Path(a);
+
+define make_path(vecs) =
+    vecs;
+
+# ------------------------------------------------------------------------------
+
+doc make_line
+    "A line between two points. Each point is indicated by a vector.";
+
+declare make_line ::
+    for_unit a: (a * Geom3!, a * Geom3!) -> Path(a);
+
+define make_line(v0, v1) =
+    make_path([v0, v1]);
+
+# ------------------------------------------------------------------------------
+# Mesh
+# ------------------------------------------------------------------------------
+
+doc Mesh
+    "A 3D shape composed from faces and vertices.";
+
+deftype for_unit a:
+    Mesh(a) = Tuple(List(Tuple(a*Geom3!, String)), List(Tuple(1, 1, 1)));
+
+doc Vertex
+    "A point in a mesh";
+
+deftype for_unit a:
+    Vertex(a) = Tuple(a*Geom3!, String);
+
+doc Face
+    "A suface between a mesh's vertices.";
+
+deftype 
+    Face() = Tuple(1, 1, 1);
+
+# ------------------------------------------------------------------------------
+
+doc vertex
+    "Creates a mesh vertex. Expects x, y and z coordinates and a color.";
+
+declare vertex :: for_unit a: (a * Geom3!, String) -> Vertex(a);
+
+define vertex(vec, color) =
+    tuple(vec, color);
+
+# ------------------------------------------------------------------------------
+
+doc face
+    "Creates a mesh face. Each argument is the index of a vertex. The mesh must
+    contains sufficient vertices";
+
+declare face :: (1, 1, 1) -> Face;
+
+define face(i, j, k) =
+    tuple(i, j, k);
+
+# ------------------------------------------------------------------------------
+
+doc make_mesh
+    "Creates a mesh from vertices and faces";
+
+declare make_mesh :: for_unit a: (List(Vertex(a)), List(Face)) -> Mesh(a);
+
+define make_mesh(vertices, faces) = 
+    tuple(vertices, faces);
+
+# ------------------------------------------------------------------------------
+
+doc cube_mesh
+    "Creates a cube mesh, a mesh with lengths of 'size' positioned at the origin.";
+
+declare cube_mesh :: for_unit a: (a) -> Mesh(a);
+
+define cube_mesh(size) =
+    let
+        c = "lightgreen",
+        vertices = [vertex(space_vec(0,0,0),c),
+                    vertex(space_vec(1,0,0),c),
+                    vertex(space_vec(1,0,1),c),
+                    vertex(space_vec(0,0,1),c),
+                    vertex(space_vec(0,1,0),c),
+                    vertex(space_vec(1,1,0),c),
+                    vertex(space_vec(1,1,1),c),
+                    vertex(space_vec(0,1,1),c)],
+        faces = [
+            face(0,2,1),
+            face(0,3,2),                 
+            face(4,5,6),                                
+            face(4,6,7),                                                
+            face(0,5,4),                
+            face(0,1,5),                                                                
+            face(1,6,5),                
+            face(1,2,6),                
+            face(2,7,6),                
+            face(2,3,7),
+            face(3,4,7), 
+            face(3,0,4)
+        ]
+    in
+        tuple([tuple(size '.*' x, c) | (x, c) <- vertices], faces)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc mesh_move
+    "Moves a mesh by offset 'vec'";
+
+declare mesh_move :: for_unit a: (Mesh(a), a*Geom3!) -> Mesh(a);
+
+define mesh_move(mesh, vec) =
+    let (vertices, faces) = mesh in
+        tuple([tuple(x + vec, c) | (x, c) <- vertices], faces)
+    end;
+
+# ------------------------------------------------------------------------------
+# Arrow
+# ------------------------------------------------------------------------------
+
+doc Arrow
+    "An arrow is a tuple (origin, vector, color). It is a colored line segment from 
+    origin to origin + vector with an arrowhead at the end.";
+
+deftype for_unit a:
+    Arrow(a) = Tuple(a*Geom3!, a*Geom3!, String);
+
+# ------------------------------------------------------------------------------
+
+doc make_arrow
+    "Creates an arrow between two points.";
+
+declare make_arrow ::
+    for_unit a: (a*Geom3!, a*Geom3!, String) -> Arrow(a);
+
+define make_arrow(from, to, color) =
+    tuple(from, to, color);
+
+# ------------------------------------------------------------------------------
+
+doc origin_arrow
+    "Creates an arrow from the origin to some point.";
+
+declare origin_arrow :: for_unit a: (a*Geom3!, String) -> Arrow(a);
+
+define origin_arrow(vector, color) =
+    make_arrow(0 '.*' vector, vector, color);
+
+# ------------------------------------------------------------------------------
+# Parallelogram
+# ------------------------------------------------------------------------------
+
+doc Parallelogram
+    "A parallelogram is a tuple (vector1, vector2, color). It is a colored area 
+    spanned by the two vectors.
+
+    Unused at the moment";
+
+deftype for_unit a:
+    Parallelogram(a) = Tuple(a*Geom3!, a*Geom3!, String);
+
+# ------------------------------------------------------------------------------
+
+doc make_parallelogram
+    "A colored parallelogram spanned by vector1 and vector2";
+
+declare make_parallelogram ::
+    for_unit a: (a*Geom3!, a*Geom3!, String) -> Parallelogram(a);
+
+define make_parallelogram(vector1, vector2, color) =
+    tuple(vector1, vector2, color);
+
+# ------------------------------------------------------------------------------
+
+doc move_parallelogram
+    "Change the parallelogram's position by delta";
+    
+declare move_parallelogram :: 
+    for_unit a: (Parallelogram(a), a*Geom3!) -> Parallelogram(a);
+
+define move_parallelogram(parallelogram, delta) =
+    let (v1, v2, color) = parallelogram in
+        make_parallelogram(v1 + delta, v2 + delta, color)
+    end;

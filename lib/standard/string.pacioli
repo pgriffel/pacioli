@@ -17,17 +17,21 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+export
+    intercalate,
+    int2str;
+
 # ----------------------------------------------------------------------------
 # String
 # ----------------------------------------------------------------------------
-
-declare export intercalate :: (List(String()), String()) -> String();
 
 doc intercalate
     "Contatenates all strings with the seperator between them all.
     
     For example <code>intercalate([\"a\", \"bb\", \"ccc\"], \"++\")</code> is
     <code>\"a++bb++ccc\"</code>";
+
+declare intercalate :: (List(String), String) -> String;
 
 define intercalate(items, seperator) =
   if items = [] then "" else
@@ -42,7 +46,7 @@ define intercalate(items, seperator) =
 doc int2str
     "Shorthand for <code>num2string(x, 0, unit)</code>";
 
-declare export int2str :: for_index D, E: for_unit a, D!b, E!c:
+declare int2str :: for_index D, E: for_unit a, D!b, E!c:
     (a*D!b per E!c, a*D!b per E!c) -> String;
 
 define int2str(x, unit) =
