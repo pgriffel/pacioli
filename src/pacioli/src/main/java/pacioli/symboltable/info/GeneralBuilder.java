@@ -39,6 +39,12 @@ public abstract class GeneralBuilder<S, T> implements InfoBuilder<S, T> {
     }
 
     GeneralInfo buildGeneralInfo() {
+        if (name == null ||
+                file == null ||
+                isGlobal == null ||
+                location == null) {
+            throw new RuntimeException("Field missing");
+        }
         return new GeneralInfo(name, file, isGlobal, location);
     }
 }

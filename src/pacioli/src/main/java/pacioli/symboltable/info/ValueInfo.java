@@ -4,9 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import pacioli.ast.definition.ValueDefinition;
-import pacioli.misc.Location;
 import pacioli.misc.PacioliException;
-import pacioli.misc.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.types.FunctionType;
 import pacioli.types.TypeObject;
@@ -28,17 +26,14 @@ public class ValueInfo extends AbstractSymbolInfo {
     public Optional<TypeObject> inferredType = Optional.empty();
 
     public ValueInfo(
-            String name,
-            PacioliFile file,
-            boolean isGlobal,
+            GeneralInfo info,
             boolean isMonomorphic,
-            Location location,
             boolean isPublic,
             boolean isRef,
             Optional<ValueDefinition> definition,
             Optional<ClassInfo> typeClass,
             Optional<TypeNode> declaredType) {
-        super(new GeneralInfo(name, file, isGlobal, location));
+        super(info);
         this.isMonomorphic = isMonomorphic;
         this.isPublic = isPublic;
         this.definition = definition;
@@ -77,10 +72,6 @@ public class ValueInfo extends AbstractSymbolInfo {
     public Optional<ClassInfo> typeClass() {
         return typeClass;
     }
-
-    // public Optional<String> getDocu() {
-    // return docu;
-    // }
 
     public List<String> getDocuParts() {
         if (this.generalInfo().getDocumentation().isPresent()) {
@@ -137,44 +128,21 @@ public class ValueInfo extends AbstractSymbolInfo {
     }
 
     public static class Builder extends GeneralBuilder<Builder, ValueInfo> {
-        public String name;
-        public PacioliFile file;
-        public Boolean isGlobal;
+
         public Boolean isMonomorphic;
-        public Location location;
         public Boolean isPublic;
         public boolean isRef = false;
         public ValueDefinition definition;
         public TypeNode declaredType;
         public ClassInfo typeClass;
 
-        public Builder name(String name) {
-            this.name = name;
-            return this;
-        }
-
         @Override
         protected Builder self() {
             return this;
         }
 
-        public Builder file(PacioliFile file) {
-            this.file = file;
-            return this;
-        }
-
-        public Builder isGlobal(Boolean isGlobal) {
-            this.isGlobal = isGlobal;
-            return this;
-        }
-
         public Builder isMonomorphic(Boolean isMonomorphic) {
             this.isMonomorphic = isMonomorphic;
-            return this;
-        }
-
-        public Builder location(Location location) {
-            this.location = location;
             return this;
         }
 
@@ -204,20 +172,13 @@ public class ValueInfo extends AbstractSymbolInfo {
         }
 
         public ValueInfo build() {
-            if (name == null ||
-                    file == null ||
-                    isGlobal == null ||
-                    isMonomorphic == null ||
-                    location == null ||
+            if (isMonomorphic == null ||
                     isPublic == null) {
                 throw new RuntimeException("Field missing");
             }
             return new ValueInfo(
-                    name,
-                    file,
-                    isGlobal,
+                    this.buildGeneralInfo(),
                     isMonomorphic,
-                    location,
                     isPublic,
                     isRef,
                     Optional.ofNullable(definition),
