@@ -8,15 +8,21 @@ import pacioli.misc.Location;
 
 public class ProgramNode extends AbstractNode {
 
-    public List<IncludeNode> includes;
-    public List<ImportNode> imports;
-    public List<Definition> definitions;
+    public final List<IncludeNode> includes;
+    public final List<ImportNode> imports;
+    public final List<ExportNode> exports;
+    public final List<Definition> definitions;
 
-    public ProgramNode(Location location, List<IncludeNode> includes, List<ImportNode> imports,
+    public ProgramNode(
+            Location location,
+            List<IncludeNode> includes,
+            List<ImportNode> imports,
+            List<ExportNode> exports,
             List<Definition> definitions) {
         super(location);
         this.includes = includes;
         this.imports = imports;
+        this.exports = exports;
         this.definitions = definitions;
     }
 
@@ -24,11 +30,13 @@ public class ProgramNode extends AbstractNode {
         super(location);
         this.includes = new ArrayList<IncludeNode>();
         this.imports = new ArrayList<ImportNode>();
+        this.exports = new ArrayList<ExportNode>();
         this.definitions = new ArrayList<Definition>();
     }
 
-    public void addDefinition(Definition definition) {
-        definitions.add(definition);
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
     }
 
     public void addInclude(IncludeNode node) {
@@ -39,8 +47,12 @@ public class ProgramNode extends AbstractNode {
         imports.add(node);
     }
 
-    @Override
-    public void accept(Visitor visitor) {
-        visitor.visit(this);
+    public void addExport(ExportNode node) {
+        exports.add(node);
     }
+
+    public void addDefinition(Definition definition) {
+        definitions.add(definition);
+    }
+
 }

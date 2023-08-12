@@ -77,6 +77,9 @@ public class IdentityVisitor implements Visitor {
         for (ImportNode importNode : node.imports) {
             importNode.accept(this);
         }
+        for (ExportNode exportNode : node.exports) {
+            exportNode.accept(this);
+        }
         for (Definition def : node.definitions) {
             def.accept(this);
         }

@@ -388,7 +388,7 @@ program ::=
                                                                exports.add((ExportNode) node);
                                                            }
                                                        }
-                                                       RESULT = new ProgramNode(new pacioli.misc.Location(file, 0, 0, 0), includes, imports, c); :};
+                                                       RESULT = new ProgramNode(new pacioli.misc.Location(file, 0, 0, 0), includes, imports, exports, c); :};
 
 includes ::=  
    includes:is INCLUDE path:p SEMICOLON             {: is.add(new IncludeNode(makeLoc(pxleft, pxright), p)); RESULT = is; :}

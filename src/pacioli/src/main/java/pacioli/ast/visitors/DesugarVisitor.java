@@ -55,7 +55,7 @@ public class DesugarVisitor extends IdentityTransformation {
             desugared.add((Definition) desugaredNode);
         }
 
-        returnNode(new ProgramNode(node.getLocation(), node.includes, node.imports, desugared));
+        returnNode(new ProgramNode(node.getLocation(), node.includes, node.imports, node.exports, desugared));
     }
 
     public void visit(IdListNode node) {

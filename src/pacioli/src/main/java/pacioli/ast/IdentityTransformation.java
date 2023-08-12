@@ -104,15 +104,20 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(ProgramNode program) {
 
-        List<IncludeNode> includes = new ArrayList<IncludeNode>();
-        List<ImportNode> imports = new ArrayList<ImportNode>();
-        List<Definition> defs = new ArrayList<Definition>();
+        List<IncludeNode> includes = new ArrayList<>();
+        List<ImportNode> imports = new ArrayList<>();
+        List<ExportNode> exports = new ArrayList<>();
+        List<Definition> defs = new ArrayList<>();
 
         for (IncludeNode def : program.includes) {
             Node node = nodeAccept(def);
             assert (node instanceof IncludeNode);
             includes.add((IncludeNode) node);
-
+        }
+        for (IncludeNode def : program.includes) {
+            Node node = nodeAccept(def);
+            assert (node instanceof IncludeNode);
+            includes.add((IncludeNode) node);
         }
         for (Definition def : program.definitions) {
             Node node = nodeAccept(def);
@@ -126,7 +131,7 @@ public class IdentityTransformation implements Visitor {
             defs.add((Definition) node);
 
         }
-        returnNode(new ProgramNode(null, includes, imports, defs));
+        returnNode(new ProgramNode(null, includes, imports, exports, defs));
     }
 
     @Override

@@ -1776,7 +1776,7 @@ class CUP$Parser$actions {
                                                                exports.add((ExportNode) node);
                                                            }
                                                        }
-                                                       RESULT = new ProgramNode(new pacioli.misc.Location(file, 0, 0, 0), includes, imports, c); 
+                                                       RESULT = new ProgramNode(new pacioli.misc.Location(file, 0, 0, 0), includes, imports, exports, c); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("program",0, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

@@ -137,6 +137,13 @@ public class PrintVisitor implements Visitor {
         if (node.includes.size() > 0) {
             newline();
         }
+        for (ExportNode exportNode : node.exports) {
+            exportNode.accept(this);
+            newline();
+        }
+        if (node.exports.size() > 0) {
+            newline();
+        }
         for (Definition def : node.definitions) {
             def.accept(this);
             newline();
