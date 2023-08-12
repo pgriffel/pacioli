@@ -6,22 +6,19 @@ import java.util.Optional;
 
 import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.InstanceDefinition;
-import pacioli.misc.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 
-public final class ClassInfo extends AbstractSymbolInfo implements TypeSymbolInfo {
+public final class ClassInfo extends AbstractSymbolInfo implements TypeInfo {
 
     public final ClassDefinition definition;
-    public final PacioliFile file;
     public final List<InstanceInfo> instances;
 
     public ClassInfo(
+            GeneralInfo info,
             ClassDefinition definition,
-            PacioliFile file,
             List<InstanceInfo> instances) {
-        super(new GeneralInfo(definition.getName(), file, true, definition.getLocation()));
+        super(info);
         this.definition = definition;
-        this.file = file;
         this.instances = instances;
     }
 
@@ -44,20 +41,26 @@ public final class ClassInfo extends AbstractSymbolInfo implements TypeSymbolInf
         System.out.println("Adding MEMBEr");
     }
 
-    public static class Builder {
+    public static class Builder extends GeneralBuilder<Builder, ClassInfo> {
+
         private ClassDefinition definition;
-        private PacioliFile file;
+        // private PacioliFile file;
         public List<InstanceInfo> instances = new ArrayList<>();
+
+        @Override
+        protected Builder self() {
+            return this;
+        }
 
         public Builder definition(ClassDefinition definition) {
             this.definition = definition;
             return this;
         }
 
-        public Builder file(PacioliFile file) {
-            this.file = file;
-            return this;
-        }
+        // public Builder file(PacioliFile file) {
+        // this.file = file;
+        // return this;
+        // }
 
         public Builder instance(InstanceInfo def) {
             this.instances.add(def);
@@ -65,10 +68,10 @@ public final class ClassInfo extends AbstractSymbolInfo implements TypeSymbolInf
         }
 
         public ClassInfo build() {
-            if (definition == null || file == null || instances == null) {
+            if (definition == null || instances == null) {
                 throw new RuntimeException("Class info incomplete");
             }
-            return new ClassInfo(definition, file, instances);
+            return new ClassInfo(buildGeneralInfo(), definition, instances);
         }
 
     }

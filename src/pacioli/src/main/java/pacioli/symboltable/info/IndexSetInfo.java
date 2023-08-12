@@ -9,7 +9,7 @@ import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 
-public final class IndexSetInfo extends AbstractSymbolInfo implements TypeSymbolInfo {
+public final class IndexSetInfo extends AbstractSymbolInfo implements TypeInfo {
 
     private Optional<IndexSetDefinition> definition = Optional.empty();
 

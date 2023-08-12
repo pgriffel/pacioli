@@ -26,14 +26,14 @@ import java.util.List;
 import pacioli.ast.Visitor;
 import pacioli.misc.Location;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.info.TypeSymbolInfo;
+import pacioli.symboltable.info.TypeInfo;
 import pacioli.types.TypeContext;
 
 public class SchemaNode extends AbstractTypeNode {
 
     public final List<ContextNode> contextNodes;
     public final TypeNode type;
-    public SymbolTable<TypeSymbolInfo> table;
+    public SymbolTable<TypeInfo> table;
 
     public SchemaNode(Location location, List<ContextNode> contextNodes, TypeNode type) {
         super(location);

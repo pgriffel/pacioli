@@ -8,7 +8,7 @@ import pacioli.misc.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.types.ast.TypeNode;
 
-public final class ParametricInfo extends AbstractSymbolInfo implements TypeSymbolInfo {
+public final class ParametricInfo extends AbstractSymbolInfo implements TypeInfo {
 
     private Optional<TypeDefinition> definition = Optional.empty();
     public TypeNode typeAST;

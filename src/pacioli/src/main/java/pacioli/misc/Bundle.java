@@ -36,7 +36,7 @@ import pacioli.symboltable.info.GeneralInfo;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.SymbolInfo;
-import pacioli.symboltable.info.TypeSymbolInfo;
+import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.TypeObject;
@@ -101,10 +101,10 @@ public class Bundle {
         return table;
     }
 
-    private SymbolTable<TypeSymbolInfo> programTypeTable(
+    private SymbolTable<TypeInfo> programTypeTable(
             Collection<String> importedModules,
             Collection<String> includedModules) {
-        SymbolTable<TypeSymbolInfo> table = new SymbolTable<TypeSymbolInfo>();
+        SymbolTable<TypeInfo> table = new SymbolTable<TypeInfo>();
         environment.types.allInfos().forEach(info -> {
             String infoModule = info.generalInfo().getModule();
             if (importedModules.contains(infoModule) || includedModules.contains(infoModule)) {
@@ -214,7 +214,7 @@ public class Bundle {
         List<SymbolInfo> infosToCompile = new ArrayList<>();
 
         // Collect the index sets and the units from the type table
-        for (TypeSymbolInfo info : environment.types.allInfos()) {
+        for (TypeInfo info : environment.types.allInfos()) {
 
             if (info instanceof IndexSetInfo) {
                 assert (info.getDefinition().isPresent());
@@ -354,7 +354,7 @@ public class Bundle {
         }
 
         for (String name : environment.types.allNames()) {
-            TypeSymbolInfo info = environment.types.lookup(name);
+            TypeInfo info = environment.types.lookup(name);
             if (includes.contains(info.getLocation().getFile())
                     && info.getDefinition().isPresent()) {
                 if (info instanceof ParametricInfo def) {
@@ -379,7 +379,7 @@ public class Bundle {
         // Print the parametric types
         Pacioli.println("\n%-25s %-25s", "Type", "Module");
         for (String name : allTypeNames) {
-            TypeSymbolInfo typeInfo = environment.types.lookup(name);
+            TypeInfo typeInfo = environment.types.lookup(name);
             if (typeInfo instanceof ParametricInfo info) {
                 Pacioli.println("%-25s %-25s", info.name(), info.generalInfo().getModule());
             }
@@ -388,7 +388,7 @@ public class Bundle {
         // Print the type classes
         Pacioli.println("\n%-25s %-25s %-25s", "Class", "Module", "Instances");
         for (String name : allTypeNames) {
-            TypeSymbolInfo typeInfo = environment.types.lookup(name);
+            TypeInfo typeInfo = environment.types.lookup(name);
             if (typeInfo instanceof ClassInfo info) {
                 Pacioli.println("%-25s %-25s %-25s", info.name(), info.generalInfo().getModule(),
                         info.instances.size());

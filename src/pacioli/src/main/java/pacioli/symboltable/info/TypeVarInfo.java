@@ -8,7 +8,7 @@ import pacioli.misc.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.types.ast.TypeNode;
 
-public final class TypeVarInfo extends AbstractSymbolInfo implements TypeSymbolInfo {
+public final class TypeVarInfo extends AbstractSymbolInfo implements TypeInfo {
 
     public TypeVarInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
         super(new GeneralInfo(name, file, isGlobal, location));

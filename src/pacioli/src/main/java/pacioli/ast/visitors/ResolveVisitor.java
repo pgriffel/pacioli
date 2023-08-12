@@ -47,7 +47,7 @@ import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ScalarBaseInfo;
 import pacioli.symboltable.info.SymbolInfo;
-import pacioli.symboltable.info.TypeSymbolInfo;
+import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
@@ -66,7 +66,7 @@ import pacioli.types.matrix.MatrixType;
 public class ResolveVisitor extends IdentityVisitor {
 
     // private Progam prog;
-    private Deque<SymbolTable<TypeSymbolInfo>> typeTables = new ArrayDeque<SymbolTable<TypeSymbolInfo>>();
+    private Deque<SymbolTable<TypeInfo>> typeTables = new ArrayDeque<SymbolTable<TypeInfo>>();
     private Deque<SymbolTable<ValueInfo>> valueTables = new ArrayDeque<SymbolTable<ValueInfo>>();
 
     private Stack<String> statementResult;
@@ -261,7 +261,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
         List<IndexSetInfo> infoList = new ArrayList<IndexSetInfo>();
         for (String name : node.indexSets) {
-            TypeSymbolInfo symbolInfo = typeTables.peek().lookup(name);
+            TypeInfo symbolInfo = typeTables.peek().lookup(name);
             if (symbolInfo instanceof IndexSetInfo) {
                 IndexSetInfo info = (IndexSetInfo) symbolInfo;
                 infoList.add(info);
@@ -279,7 +279,7 @@ public class ResolveVisitor extends IdentityVisitor {
         } else {
             List<IndexSet> sets = new ArrayList<IndexSet>();
             for (TypeIdentifier id : dimType.getIndexSets()) {
-                TypeSymbolInfo symbolInfo = typeTables.peek().lookup(id.name);
+                TypeInfo symbolInfo = typeTables.peek().lookup(id.name);
                 if (symbolInfo instanceof IndexSetInfo) {
                     IndexSetInfo indexSetInfo = (IndexSetInfo) symbolInfo;
                     assert (indexSetInfo != null); // exception throwen
@@ -527,7 +527,7 @@ public class ResolveVisitor extends IdentityVisitor {
     private void pushTypeContext(TypeContext context, Location location) {
 
         // Create the node's symbol table
-        SymbolTable<TypeSymbolInfo> table = new SymbolTable<TypeSymbolInfo>(typeTables.peek());
+        SymbolTable<TypeInfo> table = new SymbolTable<TypeInfo>(typeTables.peek());
 
         // Add info records for all variables
         for (String arg : context.typeVars) {
@@ -604,7 +604,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(UnitIdentifierNode node) {
-        TypeSymbolInfo symbolInfo = typeTables.peek().lookup(node.getName());
+        TypeInfo symbolInfo = typeTables.peek().lookup(node.getName());
         UnitInfo unitInfo = (UnitInfo) symbolInfo;
         if (unitInfo == null) {
             throw new RuntimeException("Name error",

@@ -9,7 +9,7 @@ import pacioli.misc.PacioliFile;
 public class GeneralInfo {
 
     public final String name;
-    private final PacioliFile file;
+    public final PacioliFile file;
     private final Location location;
     private final Boolean isGlobal;
     private String documentation;

@@ -48,7 +48,7 @@ import pacioli.symboltable.info.InstanceInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ScalarBaseInfo;
 import pacioli.symboltable.info.SymbolInfo;
-import pacioli.symboltable.info.TypeSymbolInfo;
+import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
@@ -143,59 +143,49 @@ public class Program {
 
         PacioliTable env = PacioliTable.empty();
 
-        // Map<String, InfoBuilder<? extends TypeSymbolInfo>> typeBuilders = new
-        // HashMap<>();
-        // Map<String, AbstractInfoBuilder<? extends InfoBuilder<? extends
-        // TypeSymbolInfo>, ? extends TypeSymbolInfo>> typeBuilders = new HashMap<>();
-
-        // Make a map from identifiers to symbol info for the value and the type
-        // namespaces.
-        Map<String, InfoBuilder<?, ? extends TypeSymbolInfo>> typeBuilders = new HashMap<>();
-
-        Map<String, ClassInfo.Builder> classTable = new HashMap<>();
-        Map<String, ValueInfo.Builder> valueTable = new HashMap<>();
-
-        Set<String> exportedValues = new HashSet<>();
+        // Make a map from identifiers to symbol info builders for the value and the
+        // type namespaces.
+        Map<String, ValueInfo.Builder> valueBuilders = new HashMap<>();
+        Map<String, InfoBuilder<?, ? extends TypeInfo>> typeBuilders = new HashMap<>();
 
         // First pass, don't do class instances and value definitions
         for (Definition def : this.ast.definitions) {
 
             if (def instanceof ClassDefinition d) {
-                ClassInfo.Builder classDef = ClassInfo.builder().file(file).definition(d);
-                classTable.put(def.getName(), classDef);
+                ClassInfo.Builder builder = ClassInfo.builder();
+                builder.name(def.getName())
+                        .file(file)
+                        .definition(d)
+                        .isGlobal(true)
+                        .location(def.getLocation());
+                typeBuilders.put(def.getName(), builder);
             } else if (def instanceof AliasDefinition alias) {
                 AliasInfo.Builder builder = AliasInfo.builder();
-                builder.name(def.getName()).definition(alias);
-                // builder.generalBuilder().file(file).name(def.getName()).isGlobal(true).location(def.getLocation());
-                builder.file(file).isGlobal(true).location(def.getLocation());
+                builder.name(def.getName())
+                        .definition(alias)
+                        .file(file)
+                        .isGlobal(true)
+                        .location(def.getLocation());
                 typeBuilders.put(def.getName(), builder);
-                // AliasInfo info = new AliasInfo(def.getName(), file, def.getLocation());
-                // info.definition = alias;
-                // addInfo(env, info);
             } else if (def instanceof IndexSetDefinition indexSet) {
                 IndexSetInfo.Builder builder = IndexSetInfo.builder();
+                builder.name(def.getName())
+                        .file(file)
+                        .isGlobal(true)
+                        .location(def.getLocation())
+                        .definition(indexSet);
                 typeBuilders.put(def.getName(), builder);
-                builder.file(file).name(def.getName()).isGlobal(true).location(def.getLocation());
-                builder.definition(indexSet);
-                // IndexSetInfo info = new IndexSetInfo(def.getName(), file, true,
-                // def.getLocation());
-                // info.setDefinition(indexSet);
-                // addInfo(env, info);
             } else if (def instanceof Toplevel top) {
                 env.addToplevel(top);
             } else if (def instanceof TypeDefinition typeDef) {
-
                 ParametricInfo.Builder builder = ParametricInfo.builder();
+                builder.name(def.getName())
+                        .file(file)
+                        .isGlobal(true)
+                        .location(def.getLocation())
+                        .definition(typeDef)
+                        .typeAST(typeDef.rhs);
                 typeBuilders.put(def.getName(), builder);
-                builder.file(file).name(def.getName()).isGlobal(true).location(def.getLocation());
-                builder.definition(typeDef);
-                builder.typeAST(typeDef.rhs);
-
-                // ParametricInfo info = new ParametricInfo(def.getName(), file, true,
-                // def.getLocation());
-                // info.typeAST = typeDef.rhs;
-                // info.setDefinition(typeDef);
-                // addInfo(env, info);
             } else if (def instanceof UnitDefinition unitDef) {
                 ScalarBaseInfo.Builder builder = ScalarBaseInfo.builder();
                 typeBuilders.put(def.getName(), builder);
@@ -225,7 +215,7 @@ public class Program {
                 // info.setItems(vecDef.items);
                 // addInfo(env, info);
             } else if (def instanceof Declaration decl) {
-                ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable, def.getName());
+                ValueInfo.Builder builder = ensureValueInfoBuilder(valueBuilders, def.getName());
                 if (builder.declaredType != null) {
                     throw new PacioliException(def.getLocation(), "Duplicate type declaration for %s",
                             def.getName());
@@ -246,14 +236,14 @@ public class Program {
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding %s to %s from file %s", def.getName(),
                     file.getModule(), file.getFile());
             if (def instanceof InstanceDefinition inst) {
-                ClassInfo.Builder builder = classTable.get(def.getName());
+                ClassInfo.Builder builder = (ClassInfo.Builder) typeBuilders.get(def.getName());
                 if (builder == null) {
                     throw new PacioliException(def.getLocation(), "No class found for instance %s", def.getName());
                 }
                 builder.instance(new InstanceInfo(inst, file, genclassInstanceName()));
             } else if (def instanceof ValueDefinition val) {
 
-                ValueInfo.Builder builder = ensureValueInfoBuilder(valueTable, def.getName());
+                ValueInfo.Builder builder = ensureValueInfoBuilder(valueBuilders, def.getName());
 
                 // Don't overwrite the public/private flag from the declaration above.
                 if (builder.isPublic == null) {
@@ -273,15 +263,15 @@ public class Program {
             }
         }
 
-        for (ClassInfo.Builder builder : classTable.values()) {
+        // for (ClassInfo.Builder builder : classTable.values()) {
+        // addInfo(env, builder.build());
+        // }
+
+        for (ValueInfo.Builder builder : valueBuilders.values()) {
             addInfo(env, builder.build());
         }
 
-        for (ValueInfo.Builder builder : valueTable.values()) {
-            addInfo(env, builder.build());
-        }
-
-        for (InfoBuilder<?, ? extends TypeSymbolInfo> typBuilder : typeBuilders.values()) {
+        for (InfoBuilder<?, ? extends TypeInfo> typBuilder : typeBuilders.values()) {
             addInfo(env, typBuilder.build());
         }
 
@@ -339,7 +329,7 @@ public class Program {
                                 "Unknown doc string identifier. Name %s does not refer to a type.",
                                 name, name);
                     }
-                    TypeSymbolInfo typeInfo = env.types.lookup(name);
+                    TypeInfo typeInfo = env.types.lookup(name);
                     typeInfo.generalInfo().setDocumentation(docu);
                 }
             }
@@ -401,7 +391,7 @@ public class Program {
                         // AbstractInfoBuilder<? extends InfoBuilder<? extends TypeSymbolInfo>, ?
                         // extends TypeSymbolInfo> builder = typeBuilders
                         // .get(name);
-                        InfoBuilder<?, ? extends TypeSymbolInfo> builder = typeBuilders.get(name);
+                        InfoBuilder<?, ? extends TypeInfo> builder = typeBuilders.get(name);
                         if (builder instanceof AliasInfo.Builder bld) {
                             Pacioli.log("SETTING ISPUB %s", bld.build().name());
                         } else {
@@ -424,7 +414,7 @@ public class Program {
         environment.addInfo(info);
     }
 
-    private void addInfo(PacioliTable environment, TypeSymbolInfo info) {
+    private void addInfo(PacioliTable environment, TypeInfo info) {
 
         Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s to %s from file %s",
                 info.name(), file.getModule(), file.getFile());
@@ -459,21 +449,21 @@ public class Program {
 
         prog.setParent(environment);
 
-        List<TypeSymbolInfo> localTypeInfos = prog.types.allInfos(info -> info.isFromFile(this.file));
+        List<TypeInfo> localTypeInfos = prog.types.allInfos(info -> info.isFromFile(this.file));
 
-        for (TypeSymbolInfo nfo : localTypeInfos) {
+        for (TypeInfo nfo : localTypeInfos) {
             if (nfo instanceof IndexSetInfo && nfo.getDefinition().isPresent()) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving index set %s", nfo.globalName());
                 nfo.getDefinition().get().resolve(this.file, prog);
             }
         }
-        for (TypeSymbolInfo nfo : localTypeInfos) {
+        for (TypeInfo nfo : localTypeInfos) {
             if (nfo instanceof UnitInfo && nfo.getDefinition().isPresent()) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving unit %s", nfo.globalName());
                 nfo.getDefinition().get().resolve(this.file, prog);
             }
         }
-        for (TypeSymbolInfo nfo : localTypeInfos) {
+        for (TypeInfo nfo : localTypeInfos) {
             if (nfo instanceof ClassInfo classInfo) {
 
                 // Resolve the class definition itself
@@ -488,7 +478,7 @@ public class Program {
                 }
             }
         }
-        for (TypeSymbolInfo nfo : localTypeInfos) {
+        for (TypeInfo nfo : localTypeInfos) {
             if (nfo instanceof ParametricInfo && nfo.getDefinition().isPresent()) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving type %s", nfo.globalName());
                 nfo.getDefinition().get().resolve(this.file, prog);
@@ -533,7 +523,7 @@ public class Program {
 
         Pacioli.trace("Rewriting classes in file %s", this.file.getModule());
 
-        for (TypeSymbolInfo typeInfo : env.types.allInfos()) {
+        for (TypeInfo typeInfo : env.types.allInfos()) {
             if (typeInfo instanceof ClassInfo classInfo) {
                 rewriteClass(classInfo);
             }
@@ -608,7 +598,7 @@ public class Program {
                     false);
             ValueInfo constructorInfo = ValueInfo.builder()
                     .name(classConstructorId.getName())
-                    .file(classInfo.file)
+                    .file(classInfo.generalInfo().file)
                     .isGlobal(true)
                     .isMonomorphic(false)
                     .location(classLocation)
@@ -684,7 +674,7 @@ public class Program {
                             false);
                     ValueInfo memberInfo = ValueInfo.builder()
                             .name(member.id.getName())
-                            .file(classInfo.file)
+                            .file(classInfo.generalInfo().file)
                             .isGlobal(true)
                             .isMonomorphic(false)
                             .location(classLocation)
@@ -746,7 +736,7 @@ public class Program {
                         false);
                 ValueInfo info = ValueInfo.builder()
                         .name(instanceInfo.globalName())
-                        .file(classInfo.file)
+                        .file(classInfo.generalInfo().file)
                         .isGlobal(true)
                         .isMonomorphic(false)
                         .location(classInfo.getLocation())
