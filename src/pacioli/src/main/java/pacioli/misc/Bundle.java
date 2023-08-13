@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import pacioli.Pacioli;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
@@ -363,6 +364,9 @@ public class Bundle {
                             def.definition().get().lhs.pretty(),
                             def.definition().get().rhs.pretty(),
                             info.generalInfo().documentation().orElse("n/a"));
+                }
+                if (info instanceof IndexSetInfo def) {
+                    generator.addIndexSet(info.name(), info.generalInfo().documentation().orElse("n/a"));
                 }
             }
         }

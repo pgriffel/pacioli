@@ -46,6 +46,12 @@ export
 # 3D Space
 # ----------------------------------------------------------------------------
 
+doc Geom2
+    "Index set for a 2D geometric space. Defined as the set <code>{x, y}</code>.";
+
+doc Geom3
+    "Index set for a 3D geometric space. Defined as the set <code>{x, y, z}</code>.";
+
 defindex Geom2 = {x, y};
 defindex Geom3 = {x, y, z};
 

@@ -44,6 +44,9 @@ public class DocumentationGenerator {
     Map<String, String> typeRHS = new HashMap<>();
     Map<String, String> typeDecl = new HashMap<>();
 
+    // Info for index sets
+    Map<String, String> indexSetDocs = new HashMap<>();
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -90,6 +93,13 @@ public class DocumentationGenerator {
         documentationTable.put(name, documentation);
         argumentsTable.put(name, arguments);
         functions.add(name);
+    }
+
+    public void addIndexSet(String name, String documentation) {
+        if (typeDocs.containsKey(name)) {
+            throw new RuntimeException(String.format("Cannot add type %s, it is already added", name));
+        }
+        indexSetDocs.put(name, documentation);
     }
 
     public void addType(String name, String vars, String lhs, String rhs, String documentation) {
@@ -243,11 +253,25 @@ public class DocumentationGenerator {
         }
         println("</pre>");
 
+        // Print details for the index sets
+        if (indexSetDocs.size() > 0) {
+            println("<h2>Index sets</h2>");
+            println("<dl>");
+            for (String value : indexSetDocs.keySet()) {
+                println("<dt id=\"%s\"><code>%s</code></dt>",
+                        value, value);
+                println("<dd>");
+                for (String part : docuParts(indexSetDocs.get(value))) {
+                    println("\n<p>%s</p>\n", part);
+                }
+                println("</dd>");
+            }
+            println("</dl>");
+        }
+
         // Print details for the types
-        println("<h2>Types</h2>");
-        if (typeDocs.size() == 0) {
-            println("n/a");
-        } else {
+        if (typeDocs.size() > 0) {
+            println("<h2>Types</h2>");
             println("<dl>");
             for (String value : typeDocs.keySet()) {
                 println("<dt id=\"%s\"><code>%s</code></dt>",
@@ -263,10 +287,8 @@ public class DocumentationGenerator {
         }
 
         // Print details for the values
-        println("<h2>Values</h2>");
-        if (values.size() == 0) {
-            println("n/a");
-        } else {
+        if (values.size() > 0) {
+            println("<h2>Values</h2>");
             println("<dl>");
             for (String value : vals) {
                 println("<dt id=\"%s\"><code>%s</code></dt>", value, value);
@@ -281,20 +303,22 @@ public class DocumentationGenerator {
         }
 
         // Print details for the functions
-        println("<h2>Functions</h2>");
-        println("<dl>");
-        for (String function : funs) {
-            String args = String.format("(%s)", argsString(function));
-            println("<dt id=\"%s\"><code>%s%s</code></dt>", function, function, args);
-            println("<dd>");
-            println("<pre>:: %s</pre>", lookupType(function));
-            for (String part : getDocuParts(function)) {
-                println("\n<p>%s</p>\n", part);
-            }
-            println("</dd>");
+        if (funs.size() > 0) {
+            println("<h2>Functions</h2>");
+            println("<dl>");
+            for (String function : funs) {
+                String args = String.format("(%s)", argsString(function));
+                println("<dt id=\"%s\"><code>%s%s</code></dt>", function, function, args);
+                println("<dd>");
+                println("<pre>:: %s</pre>", lookupType(function));
+                for (String part : getDocuParts(function)) {
+                    println("\n<p>%s</p>\n", part);
+                }
+                println("</dd>");
 
+            }
+            println("</dl>");
         }
-        println("</dl>");
 
         // Finish the html
         println("</body>");
