@@ -23,31 +23,34 @@ package pacioli.types;
 
 import java.util.Optional;
 
+import javax.swing.text.html.Option;
+
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeVarInfo;
 import uom.BaseUnit;
 
 public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
 
     private final String name;
-    public final Optional<TypeVarInfo> info;
+    public final TypeVarInfo info;
 
     // Constructors
 
     public TypeVar(TypeVarInfo info) {
         name = info.name();
-        this.info = Optional.of(info);
+        this.info = info;
     }
 
     public TypeVar() {
         name = SymbolTable.freshVarName();
-        this.info = Optional.empty();
+        this.info = null;
     }
 
     public TypeVar(String name) {
         this.name = name;
-        this.info = Optional.empty();
+        this.info = null;
     }
 
     @Override
@@ -99,17 +102,13 @@ public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
     }
 
     @Override
-    public TypeVarInfo info() {
-        if (info.isPresent()) {
-            return info.get();
-        } else {
-            throw new RuntimeException(String.format("No info present for fresh type variable %s", name));
-        }
+    public Optional<? extends Info> info() {
+        return Optional.ofNullable(this.info);
     }
 
     @Override
     public Boolean isFresh() {
-        return !info.isPresent();
+        return this.info == null;
     }
 
     @Override

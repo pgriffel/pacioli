@@ -40,8 +40,8 @@ public class UsesVars implements TypeVisitor {
     @Override
     public void visit(FunctionType type) {
         Set<Var> all = new LinkedHashSet<Var>();
-        all.addAll(varSetAccept(type.domain));
-        all.addAll(varSetAccept(type.range));
+        all.addAll(varSetAccept(type.domain()));
+        all.addAll(varSetAccept(type.range()));
         returnTypeNode(all);
     }
 

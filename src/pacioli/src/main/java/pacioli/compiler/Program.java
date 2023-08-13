@@ -72,14 +72,26 @@ import pacioli.types.ast.TypeNode;
  */
 public class Program {
 
-    public final PacioliFile file;
+    private final PacioliFile file;
 
-    public final ProgramNode ast;
+    private final ProgramNode ast;
 
     private Program(PacioliFile file, ProgramNode ast) {
         assert (file != null);
         this.file = file;
         this.ast = ast;
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters
+    // -------------------------------------------------------------------------
+
+    public PacioliFile file() {
+        return file;
+    }
+
+    public ProgramNode ast() {
+        return ast;
     }
 
     // -------------------------------------------------------------------------
@@ -346,7 +358,7 @@ public class Program {
 
         prog.setParent(environment);
 
-        List<TypeInfo> localTypeInfos = prog.types.allInfos(info -> info.isFromFile(this.file));
+        List<TypeInfo> localTypeInfos = prog.types().allInfos(info -> info.isFromFile(this.file));
 
         for (TypeInfo nfo : localTypeInfos) {
             if (nfo instanceof IndexSetInfo && nfo.definition().isPresent()) {
@@ -382,7 +394,7 @@ public class Program {
             }
         }
 
-        for (ValueInfo nfo : prog.values.allInfos(info -> info.isFromFile(this.file))) {
+        for (ValueInfo nfo : prog.values().allInfos(info -> info.isFromFile(this.file))) {
             if (nfo.definition().isPresent()) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving value or function %s",
                         nfo.globalName());
@@ -394,7 +406,7 @@ public class Program {
             }
 
         }
-        for (Toplevel definition : prog.toplevels) {
+        for (Toplevel definition : prog.toplevels()) {
             Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving toplevel %s", definition.name());
             definition.resolve(this.file, prog);
         }
@@ -420,7 +432,7 @@ public class Program {
 
         Pacioli.trace("Rewriting classes in file %s", this.file.module());
 
-        for (TypeInfo typeInfo : env.types.allInfos()) {
+        for (TypeInfo typeInfo : env.types().allInfos()) {
             if (typeInfo instanceof ClassInfo classInfo) {
                 rewriteClass(classInfo);
             }
@@ -503,7 +515,7 @@ public class Program {
                     false);
             ValueInfo constructorInfo = ValueInfo.builder()
                     .name(classConstructorId.name())
-                    .file(classInfo.generalInfo().file)
+                    .file(classInfo.generalInfo().file())
                     .isGlobal(true)
                     .isMonomorphic(false)
                     .location(classLocation)
@@ -579,7 +591,7 @@ public class Program {
                             false);
                     ValueInfo memberInfo = ValueInfo.builder()
                             .name(member.id.name())
-                            .file(classInfo.generalInfo().file)
+                            .file(classInfo.generalInfo().file())
                             .isGlobal(true)
                             .isMonomorphic(false)
                             .location(classLocation)
@@ -641,7 +653,7 @@ public class Program {
                         false);
                 ValueInfo info = ValueInfo.builder()
                         .name(instanceInfo.globalName())
-                        .file(classInfo.generalInfo().file)
+                        .file(classInfo.generalInfo().file())
                         .isGlobal(true)
                         .isMonomorphic(false)
                         .location(classInfo.location())
@@ -666,7 +678,7 @@ public class Program {
 
         Pacioli.trace("Lifting value statements %s", this.file.module());
 
-        for (ValueInfo info : program.values.allInfos()) {
+        for (ValueInfo info : program.values().allInfos()) {
             if (info.definition().isPresent() && info.isFromFile(this.file)) {
                 ValueDefinition definition = info.definition().get();
                 definition.body = definition.body.liftStatements(this.file, program, env, ExpressionNode.class);
@@ -683,7 +695,7 @@ public class Program {
 
         Pacioli.trace("Transforming conversions %s", this.file.module());
 
-        for (ValueInfo info : pacioliTable.values.allInfos()) {
+        for (ValueInfo info : pacioliTable.values().allInfos()) {
             if (info.definition().isPresent() && info.isFromFile(this.file)) {
                 ValueDefinition definition = info.definition().get();
                 ExpressionNode newBody = new TransformConversions().expAccept(definition.body);
@@ -710,11 +722,11 @@ public class Program {
         Set<Info> discovered = new HashSet<Info>();
         Set<Info> finished = new HashSet<Info>();
 
-        List<String> names = environment.values.allNames();
+        List<String> names = environment.values().allNames();
         Collections.sort(names);
 
         for (String value : names) {
-            ValueInfo info = environment.values.lookup(value);
+            ValueInfo info = environment.values().lookup(value);
 
             if (info.isFromFile(this.file) && info.definition().isPresent()) {
 
@@ -750,7 +762,7 @@ public class Program {
 
         }
         int i = 0;
-        for (Toplevel toplevel : environment.toplevels) {
+        for (Toplevel toplevel : environment.toplevels()) {
 
             inferUsedTypes(toplevel, discovered, finished, true, environment);
 

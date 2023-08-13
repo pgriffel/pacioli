@@ -30,11 +30,21 @@ WHETHER
 
 package pacioli.types;
 
+import java.util.Optional;
+
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ParametricInfo;
 
-public record OperatorVar(String name, ParametricInfo info) implements Operator, Var {
+public final class OperatorVar implements Operator, Var {
+
+    private final String name;
+    private final ParametricInfo info;
+
+    public OperatorVar(String name, ParametricInfo info) {
+        this.name = name;
+        this.info = info;
+    }
 
     public OperatorVar(ParametricInfo info) {
         this(info.name(), info);
@@ -95,13 +105,8 @@ public record OperatorVar(String name, ParametricInfo info) implements Operator,
         return name;
     }
 
-    @Override
-    public ParametricInfo info() {
-        if (info != null) {
-            return info;
-        } else {
-            throw new RuntimeException(String.format("No info present for fresh type variable %s", name));
-        }
+    public Optional<ParametricInfo> info() {
+        return Optional.ofNullable(this.info);
     }
 
     @Override

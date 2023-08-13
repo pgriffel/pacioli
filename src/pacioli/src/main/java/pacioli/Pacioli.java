@@ -311,7 +311,7 @@ public class Pacioli {
             PacioliFile file = optionalFile.get();
             log("Parsing file '%s'", file);
             Program program = Program.load(file);
-            println("%s", program.ast.pretty());
+            println("%s", program.ast().pretty());
         }
     }
 
@@ -326,7 +326,7 @@ public class Pacioli {
         } else {
             log("Desugaring file '%s'", file);
             Program program = Program.load(file.get());
-            println("%s", program.desugar().ast.pretty());
+            println("%s", program.desugar().ast().pretty());
         }
     }
 

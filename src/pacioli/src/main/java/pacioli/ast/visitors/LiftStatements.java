@@ -114,7 +114,7 @@ public class LiftStatements extends IdentityTransformation {
                     .definition(vd)
                     .build();
 
-            program.values.put(vd.name(), info);
+            program.values().put(vd.name(), info);
         } catch (PacioliException e) {
             throw new RuntimeException("Cannot add lifted statement to program", e);
         }

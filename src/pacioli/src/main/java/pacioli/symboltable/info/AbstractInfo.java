@@ -18,7 +18,7 @@ public abstract class AbstractInfo implements Info {
 
     @Override
     public String name() {
-        return generalInfo().name;
+        return generalInfo().name();
     }
 
     @Override

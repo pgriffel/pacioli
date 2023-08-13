@@ -82,7 +82,7 @@ public class Bundle {
             Collection<String> importedModules,
             Collection<String> includedModules) {
         SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>();
-        environment.values.allInfos().forEach(info -> {
+        environment.values().allInfos().forEach(info -> {
             if (info.isPublic() && importedModules.contains(info.generalInfo().module())) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Importing %s", info.name());
                 table.put(info.name(), info);
@@ -103,7 +103,7 @@ public class Bundle {
             Collection<String> importedModules,
             Collection<String> includedModules) {
         SymbolTable<TypeInfo> table = new SymbolTable<TypeInfo>();
-        environment.types.allInfos().forEach(info -> {
+        environment.types().allInfos().forEach(info -> {
             String infoModule = info.generalInfo().module();
             if ((info.isPublic() || info instanceof UnitInfo) && importedModules.contains(infoModule)
                     || includedModules.contains(infoModule)) {
@@ -124,7 +124,7 @@ public class Bundle {
         for (String type : PRIMITIVE_TYPES) {
             // GeneralInfo info = new GeneralInfo(type, file, true, new Location());
             // environment.types.put(type, new ParametricInfo(info));
-            environment.types.put(type, new ParametricInfo(type, file, true, true, new Location()));
+            environment.types().put(type, new ParametricInfo(type, file, true, true, new Location()));
         }
         ValueInfo nmodeInfo = ValueInfo.builder()
                 .name("nmode")
@@ -134,7 +134,7 @@ public class Bundle {
                 .location(new Location())
                 .isPublic(true)
                 .build();
-        environment.values.put("nmode", nmodeInfo);
+        environment.values().put("nmode", nmodeInfo);
     }
 
     static Bundle empty(PacioliFile file, List<File> libs) {
@@ -143,31 +143,31 @@ public class Bundle {
 
     void load(PacioliTable other, boolean includeToplevels) throws Exception {
         // See duplicate code in Progam
-        other.values.localInfos().forEach(info -> {
+        other.values().localInfos().forEach(info -> {
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s",
                     info.globalName());
-            if (environment.values.contains(info.globalName())) {
+            if (environment.values().contains(info.globalName())) {
                 throw new PacioliException(info.location(), "Duplicate name: %s, %s %s",
                         info.globalName(),
-                        environment.values.lookup(info.globalName()).location().equals(info.location()),
-                        environment.values.lookup(info.globalName()).location().description());
+                        environment.values().lookup(info.globalName()).location().equals(info.location()),
+                        environment.values().lookup(info.globalName()).location().description());
             }
-            environment.values.put(info.globalName(), info);
+            environment.values().put(info.globalName(), info);
 
         });
-        other.types.localInfos().forEach(info -> {
+        other.types().localInfos().forEach(info -> {
             Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s",
                     info.globalName(), info.name());
-            if (environment.types.contains(info.globalName())) {
+            if (environment.types().contains(info.globalName())) {
                 throw new PacioliException(info.location(), "Duplicate name: %s %s", info.globalName(),
-                        environment.types.lookup(info.globalName()).location().description());
+                        environment.types().lookup(info.globalName()).location().description());
             }
-            environment.types.put(info.globalName(), info);
+            environment.types().put(info.globalName(), info);
 
         });
         if (includeToplevels) {
-            other.toplevels.forEach(topLevel -> {
-                environment.toplevels.add(topLevel);
+            other.toplevels().forEach(topLevel -> {
+                environment.toplevels().add(topLevel);
             });
         }
     }
@@ -214,7 +214,7 @@ public class Bundle {
         List<Info> infosToCompile = new ArrayList<>();
 
         // Collect the index sets and the units from the type table
-        for (TypeInfo info : environment.types.allInfos()) {
+        for (TypeInfo info : environment.types().allInfos()) {
 
             if (info instanceof IndexSetInfo) {
                 assert (info.definition().isPresent());
@@ -230,7 +230,7 @@ public class Bundle {
         }
 
         // Collect all functions and values from the value table
-        for (ValueInfo info : environment.values.allInfos()) {
+        for (ValueInfo info : environment.values().allInfos()) {
             if (info.definition().isPresent()) {
                 if (info.definition().get().isFunction()) {
                     functionsToCompile.add(info);
@@ -252,7 +252,7 @@ public class Bundle {
         }
 
         // Generate code for the toplevels
-        for (Toplevel def : environment.toplevels) {
+        for (Toplevel def : environment.toplevels()) {
             if (def.location().file().equals(file.fsFile())) {
                 if (settings.target() == Target.MVM ||
                         settings.target() == Target.MATLAB) {
@@ -274,11 +274,11 @@ public class Bundle {
 
     public void printCode(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws PacioliException {
 
-        List<String> names = environment.values.allNames();
+        List<String> names = environment.values().allNames();
         Collections.sort(names);
 
         for (String value : names) {
-            ValueInfo info = environment.values.lookup(value);
+            ValueInfo info = environment.values().lookup(value);
             boolean fromProgram = info.generalInfo().module().equals(file.module());
             if (fromProgram && info.definition().isPresent() && (true || info.isUserDefined())) {
                 // Pacioli.println("%s =", info.name());
@@ -287,18 +287,18 @@ public class Bundle {
         }
 
         Pacioli.print("\n");
-        for (Toplevel toplevel : environment.toplevels) {
+        for (Toplevel toplevel : environment.toplevels()) {
             Pacioli.print("\n%s;\n", toplevel.body.pretty());
         }
     }
 
     public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws PacioliException {
 
-        List<String> names = environment.values.allNames();
+        List<String> names = environment.values().allNames();
         Collections.sort(names);
 
         for (String value : names) {
-            ValueInfo info = environment.values.lookup(value);
+            ValueInfo info = environment.values().lookup(value);
             boolean fromProgram = info.generalInfo().module().equals(file.module());
             if ((includePrivate || info.isPublic()) && fromProgram && info.definition().isPresent()
                     && info.isUserDefined()) {
@@ -315,7 +315,7 @@ public class Bundle {
 
         Integer count = 1;
         Pacioli.print("\n");
-        for (Toplevel toplevel : environment.toplevels) {
+        for (Toplevel toplevel : environment.toplevels()) {
             TypeObject type = toplevel.type;
             Pacioli.println("Toplevel %s ::", count++);
             Pacioli.print(" %s", type.unfresh().pretty());
@@ -334,10 +334,10 @@ public class Bundle {
     public void printAPI(List<File> includes, String version) throws PacioliException, IOException {
 
         PrintWriter writer = new PrintWriter(System.out);
-        DocumentationGenerator generator = new DocumentationGenerator(writer, file.module, version);
+        DocumentationGenerator generator = new DocumentationGenerator(writer, file.module(), version);
 
-        for (String name : environment.values.allNames()) {
-            ValueInfo info = environment.values.lookup(name);
+        for (String name : environment.values().allNames()) {
+            ValueInfo info = environment.values().lookup(name);
             if (info.isPublic()
                     && includes.contains(info.location().file())
                     && info.definition().isPresent()
@@ -353,8 +353,8 @@ public class Bundle {
             }
         }
 
-        for (String name : environment.types.allNames()) {
-            TypeInfo info = environment.types.lookup(name);
+        for (String name : environment.types().allNames()) {
+            TypeInfo info = environment.types().lookup(name);
             if (includes.contains(info.location().file())
                     && info.definition().isPresent() && info.isPublic()) {
                 if (info instanceof ParametricInfo def) {
@@ -376,13 +376,13 @@ public class Bundle {
 
     public void printSymbolTables() {
 
-        List<String> allTypeNames = environment.types.allNames();
+        List<String> allTypeNames = environment.types().allNames();
         allTypeNames.sort((a, b) -> a.compareToIgnoreCase(b));
 
         // Print the parametric types
         Pacioli.println("\n%-25s %-25s", "Type", "Module");
         for (String name : allTypeNames) {
-            TypeInfo typeInfo = environment.types.lookup(name);
+            TypeInfo typeInfo = environment.types().lookup(name);
             if (typeInfo instanceof ParametricInfo info) {
                 Pacioli.println("%-25s %-25s", info.name(), info.generalInfo().module());
             }
@@ -391,7 +391,7 @@ public class Bundle {
         // Print the type classes
         Pacioli.println("\n%-25s %-25s %-25s", "Class", "Module", "Instances");
         for (String name : allTypeNames) {
-            TypeInfo typeInfo = environment.types.lookup(name);
+            TypeInfo typeInfo = environment.types().lookup(name);
             if (typeInfo instanceof ClassInfo info) {
                 Pacioli.println("%-25s %-25s %-25s", info.name(), info.generalInfo().module(),
                         info.instances().size());
@@ -410,12 +410,12 @@ public class Bundle {
                 "Inferred",
                 "Type");
 
-        List<String> allNames = environment.values.allNames();
+        List<String> allNames = environment.values().allNames();
         allNames.sort((a, b) -> a.compareToIgnoreCase(b));
 
         for (String name : allNames) {
 
-            ValueInfo info = environment.values.lookup(name);
+            ValueInfo info = environment.values().lookup(name);
             Optional<? extends Definition> def = info.definition();
 
             Pacioli.println("%-25s %-25s %-10s %-10s %-10s %-10s %-10s %-10s %-30s",

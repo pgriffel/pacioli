@@ -33,18 +33,18 @@ import uom.BaseUnit;
 public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, UnitVar {
 
     private final String name;
-    public final Optional<ScalarBaseInfo> info;
+    private final ScalarBaseInfo info;
 
     // Constructors
 
     public ScalarUnitVar(ScalarBaseInfo info) {
         name = info.name();
-        this.info = Optional.of(info);
+        this.info = info;
     }
 
     public ScalarUnitVar(String name) {
         this.name = name;
-        this.info = Optional.empty();
+        this.info = null;
     }
 
     @Override
@@ -99,17 +99,13 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
     // Properties
 
     @Override
-    public ScalarBaseInfo info() {
-        if (info.isPresent()) {
-            return info.get();
-        } else {
-            throw new RuntimeException(String.format("No info present for fresh scalar unit variable %s", name));
-        }
+    public Optional<ScalarBaseInfo> info() {
+        return Optional.ofNullable(this.info);
     }
 
     @Override
     public Boolean isFresh() {
-        return !info.isPresent();
+        return info == null;
     }
 
     @Override

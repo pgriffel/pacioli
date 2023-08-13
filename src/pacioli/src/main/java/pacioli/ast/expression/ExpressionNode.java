@@ -37,10 +37,10 @@ public interface ExpressionNode extends Node {
     default public Typing inferTyping(PacioliTable prog, PacioliFile file) {
         HashMap<String, ParametricInfo> defaultTypes = new HashMap<String, ParametricInfo>();
 
-        defaultTypes.put("Void", (ParametricInfo) prog.types.lookup("Void"));
-        defaultTypes.put("Tuple", (ParametricInfo) prog.types.lookup("Tuple"));
-        defaultTypes.put("String", (ParametricInfo) prog.types.lookup("String"));
-        defaultTypes.put("Boole", (ParametricInfo) prog.types.lookup("Boole"));
+        defaultTypes.put("Void", (ParametricInfo) prog.types().lookup("Void"));
+        defaultTypes.put("Tuple", (ParametricInfo) prog.types().lookup("Tuple"));
+        defaultTypes.put("String", (ParametricInfo) prog.types().lookup("String"));
+        defaultTypes.put("Boole", (ParametricInfo) prog.types().lookup("Boole"));
 
         TypeInference visitor = new TypeInference(defaultTypes, file);
         return visitor.typingAccept(this);

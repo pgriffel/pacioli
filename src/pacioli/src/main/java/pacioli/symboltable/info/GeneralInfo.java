@@ -8,8 +8,8 @@ import pacioli.compiler.PacioliFile;
 
 public class GeneralInfo {
 
-    public final String name;
-    public final PacioliFile file;
+    private final String name;
+    private final PacioliFile file;
     private final Location location;
     private final boolean isGlobal;
     private final boolean isPublic;
@@ -36,11 +36,19 @@ public class GeneralInfo {
         this.documentation = null;
     }
 
+    public String name() {
+        return name;
+    }
+
+    public PacioliFile file() {
+        return file;
+    }
+
     public Location location() {
         return location;
     }
 
-    public File file() {
+    public File fsFile() {
         return file.fsFile();
     }
 

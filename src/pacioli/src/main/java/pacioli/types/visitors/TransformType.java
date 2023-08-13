@@ -39,8 +39,8 @@ public class TransformType implements TypeVisitor {
 
     @Override
     public void visit(FunctionType type) {
-        TypeObject domainType = typeNodeAccept(type.domain);
-        TypeObject rangeType = typeNodeAccept(type.range);
+        TypeObject domainType = typeNodeAccept(type.domain());
+        TypeObject rangeType = typeNodeAccept(type.range());
         returnTypeNode(new FunctionType(domainType, rangeType));
     }
 

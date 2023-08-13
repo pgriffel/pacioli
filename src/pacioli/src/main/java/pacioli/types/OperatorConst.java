@@ -1,10 +1,20 @@
 package pacioli.types;
 
+import java.util.Optional;
+
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.ParametricInfo;
 
 // Const
-public record OperatorConst(TypeIdentifier id, ParametricInfo info) implements Operator {
+public final class OperatorConst implements Operator {
+
+    private final TypeIdentifier id;
+    private final ParametricInfo info;
+
+    public OperatorConst(TypeIdentifier id, ParametricInfo info) {
+        this.id = id;
+        this.info = info;
+    }
 
     @Override
     public String description() {
@@ -27,8 +37,8 @@ public record OperatorConst(TypeIdentifier id, ParametricInfo info) implements O
     }
 
     @Override
-    public ParametricInfo info() {
-        return info;
+    public Optional<ParametricInfo> info() {
+        return Optional.ofNullable(this.info);
     }
 
     @Override

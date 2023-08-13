@@ -32,18 +32,18 @@ import uom.BaseUnit;
 public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
 
     private final String name;
-    public final Optional<IndexSetInfo> info;
+    private final IndexSetInfo info;
 
     // Constructors
 
     public IndexSetVar(IndexSetInfo info) {
         name = info.name();
-        this.info = Optional.of(info);
+        this.info = info;
     }
 
     public IndexSetVar(String name) {
         this.name = name;
-        this.info = Optional.empty();
+        this.info = null;
     }
 
     @Override
@@ -86,17 +86,13 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
     // Properties
 
     @Override
-    public IndexSetInfo info() {
-        if (info.isPresent()) {
-            return info.get();
-        } else {
-            throw new RuntimeException(String.format("No info present for fresh index set variable %s", name));
-        }
+    public Optional<IndexSetInfo> info() {
+        return Optional.ofNullable(this.info);
     }
 
     @Override
     public Boolean isFresh() {
-        return !info.isPresent();
+        return info == null;
     }
 
     @Override

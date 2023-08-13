@@ -25,12 +25,20 @@ import pacioli.compiler.PacioliException;
 
 public class FunctionType extends AbstractType {
 
-    public final TypeObject domain;
-    public final TypeObject range;
+    private final TypeObject domain;
+    private final TypeObject range;
 
     public FunctionType(TypeObject domain, TypeObject range) {
         this.domain = domain;
         this.range = range;
+    }
+
+    public TypeObject domain() {
+        return domain;
+    }
+
+    public TypeObject range() {
+        return range;
     }
 
     @Override

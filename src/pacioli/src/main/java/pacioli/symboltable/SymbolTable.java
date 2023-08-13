@@ -12,8 +12,7 @@ import pacioli.symboltable.info.Info;
 public class SymbolTable<R extends Info> {
 
     private final Map<String, R> table = new HashMap<String, R>();
-    // public final SymbolTable<R> parent;
-    public SymbolTable<R> parent;
+    private SymbolTable<R> parent;
 
     private static int counter;
 
@@ -22,6 +21,14 @@ public class SymbolTable<R extends Info> {
     }
 
     public SymbolTable(SymbolTable<R> parent) {
+        this.parent = parent;
+    }
+
+    public SymbolTable<R> parent() {
+        return parent;
+    }
+
+    public void setParent(SymbolTable<R> parent) {
         this.parent = parent;
     }
 

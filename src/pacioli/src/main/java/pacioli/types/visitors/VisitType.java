@@ -22,8 +22,8 @@ public class VisitType implements TypeVisitor {
 
     @Override
     public void visit(FunctionType type) {
-        type.domain.accept(this);
-        type.range.accept(this);
+        type.domain().accept(this);
+        type.range().accept(this);
     }
 
     @Override

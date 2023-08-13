@@ -41,8 +41,8 @@ public class SimplificationParts implements TypeVisitor {
     @Override
     public void visit(FunctionType type) {
         List<Unit<TypeBase>> all = new ArrayList<Unit<TypeBase>>();
-        all.addAll(partsAccept(type.domain));
-        all.addAll(partsAccept(type.range));
+        all.addAll(partsAccept(type.domain()));
+        all.addAll(partsAccept(type.range()));
         returnParts(all);
     }
 

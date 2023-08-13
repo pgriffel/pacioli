@@ -1,5 +1,7 @@
 package pacioli.types;
 
+import java.util.Optional;
+
 import pacioli.symboltable.info.Info;
 
 public interface UnitVar extends Var, TypeBase {
@@ -25,5 +27,5 @@ public interface UnitVar extends Var, TypeBase {
      * 
      * @return The info for the variable
      */
-    Info info();
+    Optional<? extends Info> info();
 }

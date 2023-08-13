@@ -26,26 +26,27 @@ import java.util.Optional;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.VectorBaseInfo;
 import uom.BaseUnit;
 
 public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, UnitVar {
 
     private final String name;
-    public Optional<VectorBaseInfo> info;
+    public VectorBaseInfo info;
 
     // Constructors
 
     public VectorUnitVar(VectorBaseInfo info) {
         name = info.name();
         assert (name.contains("!"));
-        this.info = Optional.of(info);
+        this.info = info;
     }
 
     public VectorUnitVar(String name) {
         this.name = name;
         assert (name.contains("!"));
-        this.info = Optional.empty();
+        this.info = null;
     }
 
     @Override
@@ -89,12 +90,8 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
     }
 
     @Override
-    public VectorBaseInfo info() {
-        if (info.isPresent()) {
-            return info.get();
-        } else {
-            throw new RuntimeException(String.format("No info present for fresh vector unit variable %s", name));
-        }
+    public Optional<? extends Info> info() {
+        return Optional.ofNullable(this.info);
     }
 
     @Override
@@ -104,7 +101,7 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
 
     @Override
     public Boolean isFresh() {
-        return !info.isPresent();
+        return this.info == null;
     }
 
     @Override

@@ -40,8 +40,8 @@ import pacioli.compiler.CompilationSettings.Target;
 public class PacioliFile extends AbstractPrintable {
 
     private final File fsFile;
-    public final String modulePath;
-    public final String module;
+    private final String modulePath;
+    private final String moduleName;
     private final Integer version;
     private final Boolean isInclude;
     private final Boolean isLibrary;
@@ -51,12 +51,17 @@ public class PacioliFile extends AbstractPrintable {
      * They determine the
      * module and check that the file exists.
      */
-    private PacioliFile(File file, String modulePath, String module, Integer version, Boolean isInclude,
+    private PacioliFile(
+            File file,
+            String modulePath,
+            String moduleName,
+            Integer version,
+            Boolean isInclude,
             Boolean isLibrary) {
-        assert (!module.contains("."));
+        assert (!moduleName.contains("."));
         this.fsFile = file.getAbsoluteFile();
         this.modulePath = modulePath;
-        this.module = module;
+        this.moduleName = moduleName;
         this.version = version;
         this.isInclude = isInclude;
         this.isLibrary = isLibrary;
@@ -94,7 +99,7 @@ public class PacioliFile extends AbstractPrintable {
     }
 
     public String module() {
-        return modulePath.isEmpty() ? module : modulePath + "_" + module;
+        return modulePath.isEmpty() ? moduleName : modulePath + "_" + moduleName;
     }
 
     public Integer version() {
@@ -156,33 +161,6 @@ public class PacioliFile extends AbstractPrintable {
         }
     }
 
-    // public static PacioliFile findInclude(Path baseDir, PacioliFile file, String
-    // name) {
-    // File include = new File(file.getFile().getParentFile(), name + ".pacioli");
-
-    // Path includePath = Paths.get(include.getPath());
-    // Path relative = baseDir.relativize(includePath);
-
-    // if (include.exists()) {
-    // //String module = file.getModule() + "/" + name;
-    // String module = FilenameUtils.removeExtension(relative.toString());
-
-    // // This replace fixes the problem that baseDir points to the wrong file.
-    // // It should be the enclosing non-include file. It is however the project
-    // // base dir. The result is that ..//.. etc appears in the path. This
-    // // replace is a quick and dirty fix for that.
-    // module = module.replaceAll("\\.", "_");
-
-    // module = module.replaceAll("_", "_x");
-    // module = module.replaceAll("\\\\", "_y");
-    // module = module.replaceAll("/", "_z");
-
-    // return new PacioliFile(include, "", module, 0, true, file.isLibrary);
-    // } else {
-    // return null;
-    // }
-    // }
-
     public static PacioliFile requireLibrary(String name, List<File> libs) {
         Optional<PacioliFile> library = findLibrary(name, libs);
         if (library.isPresent()) {
@@ -243,7 +221,7 @@ public class PacioliFile extends AbstractPrintable {
         return String.format("%s %s %s v%s (%s)",
                 isLibrary ? "library" : "program",
                 isInclude ? "include" : "file",
-                module,
+                moduleName,
                 version,
                 fsFile);
     }
@@ -263,11 +241,5 @@ public class PacioliFile extends AbstractPrintable {
         }
         PacioliFile otherPacioliFile = (PacioliFile) other;
         return this.fsFile.equals(otherPacioliFile.fsFile);
-    }
-
-    public boolean isSystemLibrary(String name) {
-        // TODO: check that it is really a library. Check that filename points to lib
-        // directory!
-        return this.module.equals(name);
     }
 }

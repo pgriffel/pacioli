@@ -28,9 +28,9 @@ public class JSGenerator implements TypeVisitor {
     @Override
     public void visit(FunctionType type) {
         out.write("new Pacioli.FunctionType(");
-        type.domain.accept(this);
+        type.domain().accept(this);
         out.write(", ");
-        type.range.accept(this);
+        type.range().accept(this);
         out.write(")");
     }
 

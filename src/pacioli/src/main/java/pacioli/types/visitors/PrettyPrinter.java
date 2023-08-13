@@ -33,15 +33,15 @@ public class PrettyPrinter implements TypeVisitor {
 
     @Override
     public void visit(FunctionType type) {
-        if (type.domain instanceof ParametricType p && p.op.name().equals("Tuple")) {
+        if (type.domain() instanceof ParametricType p && p.op.name().equals("Tuple")) {
             out.write("(");
             out.writeCommaSeparated(p.args, x -> x.accept(this));
             out.write(")");
         } else {
-            type.domain.accept(this);
+            type.domain().accept(this);
         }
         out.write(" -> ");
-        type.range.accept(this);
+        type.range().accept(this);
     }
 
     @Override

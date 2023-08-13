@@ -45,8 +45,8 @@ public class ReduceTypes implements TypeVisitor {
 
     @Override
     public void visit(FunctionType type) {
-        TypeObject domainType = typeNodeAccept(type.domain);
-        TypeObject rangeType = typeNodeAccept(type.range);
+        TypeObject domainType = typeNodeAccept(type.domain());
+        TypeObject rangeType = typeNodeAccept(type.range());
         returnTypeNode(new FunctionType(domainType, rangeType));
     }
 
@@ -83,7 +83,7 @@ public class ReduceTypes implements TypeVisitor {
         }
         try {
             ParametricType opType = new ParametricType(type.location, type.definition, type.op, items);
-            boolean reduce = type.definition.isPresent() && reduceCallback.apply(type.op.info());
+            boolean reduce = type.definition.isPresent() && reduceCallback.apply(type.op.info().get());
             if (!reduce) {
                 returnTypeNode(opType);
             } else {

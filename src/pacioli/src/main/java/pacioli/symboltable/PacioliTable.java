@@ -10,9 +10,9 @@ import pacioli.symboltable.info.ValueInfo;
 
 public class PacioliTable {
 
-    public final SymbolTable<ValueInfo> values;
-    public final SymbolTable<TypeInfo> types;
-    public final List<Toplevel> toplevels;
+    private final SymbolTable<ValueInfo> values;
+    private final SymbolTable<TypeInfo> types;
+    private final List<Toplevel> toplevels;
 
     private PacioliTable(
             SymbolTable<ValueInfo> values,
@@ -33,27 +33,39 @@ public class PacioliTable {
         return new PacioliTable(new SymbolTable<ValueInfo>(), new SymbolTable<TypeInfo>(), new ArrayList<>());
     }
 
+    public SymbolTable<ValueInfo> values() {
+        return values;
+    }
+
+    public SymbolTable<TypeInfo> types() {
+        return types;
+    }
+
+    public List<Toplevel> toplevels() {
+        return toplevels;
+    }
+
     public void addAll(PacioliTable pacioliTable) {
         values.addAll(pacioliTable.values);
         types.addAll(pacioliTable.types);
     }
 
     public void setParent(PacioliTable symbolTable) {
-        if (values.parent != null) {
+        if (values.parent() != null) {
             throw new RuntimeException(String.format("Expected null parent"));
         }
-        if (types.parent != null) {
+        if (types.parent() != null) {
             throw new RuntimeException(String.format("Expected null parent"));
         }
 
-        values.parent = symbolTable.values;
-        types.parent = symbolTable.types;
+        values.setParent(symbolTable.values());
+        types.setParent(symbolTable.types());
     }
 
     public PacioliTable popParent() {
         PacioliTable top = new PacioliTable(this.values, this.types, this.toplevels);
-        this.values.parent = null;
-        this.types.parent = null;
+        this.values.setParent(null);
+        this.types.setParent(null);
         return top;
     }
 

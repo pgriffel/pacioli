@@ -1,5 +1,7 @@
 package pacioli.types;
 
+import java.util.Optional;
+
 import pacioli.compiler.Printable;
 import pacioli.symboltable.info.Info;
 
@@ -19,10 +21,9 @@ public interface Var extends Printable {
     Boolean isFresh();
 
     /**
-     * A variable's info if it exists. If not it is a fresh variable and an error
-     * is thrown. See isFresh().
+     * A variable's info if it exists. See isFresh().
      * 
      * @return The info for the variable
      */
-    Info info();
+    Optional<? extends Info> info();
 }

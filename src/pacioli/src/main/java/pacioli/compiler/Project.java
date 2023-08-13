@@ -216,8 +216,8 @@ public class Project {
             // Filter the bundle's total symbol tables for the directly used modules of the
             // program
             PacioliTable env = bundle.visibleInfos(
-                    importedModules(program.ast),
-                    includedModules(current, program.ast));
+                    importedModules(program.ast()),
+                    includedModules(current, program.ast()));
 
             // Analyze the code and add the result to the bundle
             bundle.load(program.analyze(env), current.equals(file));
