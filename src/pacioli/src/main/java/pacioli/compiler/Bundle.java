@@ -74,11 +74,11 @@ public class Bundle {
 
     public PacioliTable visibleInfos(List<String> importedModules, List<String> includedModules) {
         return PacioliTable.initial(
-                programValueTable(importedModules, includedModules),
-                programTypeTable(importedModules, includedModules));
+                visibleValueInfos(importedModules, includedModules),
+                visibleTypeInfos(importedModules, includedModules));
     }
 
-    private SymbolTable<ValueInfo> programValueTable(
+    private SymbolTable<ValueInfo> visibleValueInfos(
             Collection<String> importedModules,
             Collection<String> includedModules) {
         SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>();
@@ -99,7 +99,7 @@ public class Bundle {
         return table;
     }
 
-    private SymbolTable<TypeInfo> programTypeTable(
+    private SymbolTable<TypeInfo> visibleTypeInfos(
             Collection<String> importedModules,
             Collection<String> includedModules) {
         SymbolTable<TypeInfo> table = new SymbolTable<TypeInfo>();
