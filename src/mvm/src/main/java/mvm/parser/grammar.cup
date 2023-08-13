@@ -140,7 +140,7 @@ non terminal ShapeNode               shape;
 program ::=  
    requires:r commands:c                              {: Program prog = new Program(); 
                                                          for(Identifier req: r) {
-                                                             prog.addRequire(req.getName());
+                                                             prog.addRequire(req.name());
                                                          };
                                                          for(Instruction inst: c) {
                                                              prog.addInstruction(inst);
@@ -180,7 +180,7 @@ command ::=
 
 path ::= 
     IDENT:id                                           {: RESULT = new Identifier(id); :}
- |  path:p DIV IDENT:i                                 {: RESULT = new Identifier(p.getName() + "/" + i); :}
+ |  path:p DIV IDENT:i                                 {: RESULT = new Identifier(p.name() + "/" + i); :}
  ;
 
 //------------------------------------------------------------------------------

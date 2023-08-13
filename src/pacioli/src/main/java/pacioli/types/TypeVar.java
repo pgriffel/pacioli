@@ -89,7 +89,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
         return name;
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 
@@ -99,7 +99,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
     }
 
     @Override
-    public TypeVarInfo getInfo() {
+    public TypeVarInfo info() {
         if (info.isPresent()) {
             return info.get();
         } else {

@@ -31,7 +31,7 @@ public class TransformConversions extends IdentityTransformation {
 
     public void visit(ConversionNode node) {
 
-        Location location = node.getLocation();
+        Location location = node.location();
 
         MatrixType type = (MatrixType) node.typeNode.evalType();
 
@@ -39,7 +39,7 @@ public class TransformConversions extends IdentityTransformation {
 
         if (!type.rowDimension.equals(type.columnDimension)) {
             throw new RuntimeException("Invalid conversion",
-                    new PacioliException(node.getLocation(), "Row and column dimension not the same"));
+                    new PacioliException(node.location(), "Row and column dimension not the same"));
         }
 
         Boolean closedType = true;
@@ -93,10 +93,10 @@ public class TransformConversions extends IdentityTransformation {
 
                 List<IdentifierNode> key = new ArrayList<IdentifierNode>();
                 for (String item : items) {
-                    key.add(new IdentifierNode(item, node.getLocation()));
+                    key.add(new IdentifierNode(item, node.location()));
                 }
                 for (String item : items) {
-                    key.add(new IdentifierNode(item, node.getLocation()));
+                    key.add(new IdentifierNode(item, node.location()));
                 }
 
                 String value = flat.reciprocal().factor().toPlainString();

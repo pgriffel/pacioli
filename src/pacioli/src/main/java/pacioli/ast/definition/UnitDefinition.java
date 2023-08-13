@@ -56,8 +56,8 @@ public class UnitDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String getName() {
-        return id.getName();
+    public String name() {
+        return id.name();
     }
 
     @Override

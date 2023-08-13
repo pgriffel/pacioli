@@ -19,12 +19,12 @@ public class Declaration extends AbstractDefinition {
     }
 
     public Declaration transform(TypeNode node) {
-        return new Declaration(getLocation(), id, node, isPublic);
+        return new Declaration(location(), id, node, isPublic);
     }
 
     @Override
-    public String getName() {
-        return id.getName();
+    public String name() {
+        return id.name();
     }
 
     @Override

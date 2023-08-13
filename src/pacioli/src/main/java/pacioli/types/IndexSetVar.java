@@ -79,14 +79,14 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
         return "<ivar " + name + ">";
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 
     // Properties
 
     @Override
-    public IndexSetInfo getInfo() {
+    public IndexSetInfo info() {
         if (info.isPresent()) {
             return info.get();
         } else {

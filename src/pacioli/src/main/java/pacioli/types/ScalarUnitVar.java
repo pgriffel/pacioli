@@ -92,14 +92,14 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
         return name;
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 
     // Properties
 
     @Override
-    public ScalarBaseInfo getInfo() {
+    public ScalarBaseInfo info() {
         if (info.isPresent()) {
             return info.get();
         } else {

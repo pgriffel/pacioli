@@ -116,7 +116,7 @@ public class TypeInference extends IdentityVisitor {
         List<TypeObject> argTypes = new ArrayList<TypeObject>();
         for (ExpressionNode arg : node.arguments) {
             Typing argTyping = typingAccept(arg);
-            argTypes.add(argTyping.getType());
+            argTypes.add(argTyping.type());
             typing.addConstraintsAndAssumptions(argTyping);
         }
 
@@ -126,7 +126,7 @@ public class TypeInference extends IdentityVisitor {
             if (true) {
                 if (node.arguments.size() != 3) {
 
-                    throw new PacioliException(node.getLocation(),
+                    throw new PacioliException(node.location(),
                             "N-mode got %s arguments, expects 3 (a tensor, an integer and a matrix)",
                             node.arguments.size());
                 }
@@ -138,7 +138,7 @@ public class TypeInference extends IdentityVisitor {
                     ConstNode nNode = (ConstNode) node.arguments.get(1);
                     n = new Integer(nNode.valueString());
                 } catch (Exception ex) {
-                    throw new PacioliException(node.arguments.get(1).getLocation(),
+                    throw new PacioliException(node.arguments.get(1).location(),
                             "Second argument of nmode must be a number");
                 }
 
@@ -164,7 +164,7 @@ public class TypeInference extends IdentityVisitor {
                         ConstNode nNode = (ConstNode) node.arguments.get(1);
                         n = new Integer(nNode.valueString());
                     } catch (Exception ex) {
-                        throw new PacioliException(node.arguments.get(1).getLocation(),
+                        throw new PacioliException(node.arguments.get(1).location(),
                                 "Second argument of nmode must be a number");
                     }
 
@@ -175,7 +175,7 @@ public class TypeInference extends IdentityVisitor {
                         TypeObject tensorPacioliType = tensorTyping.solve(false);
                         tensorType = (MatrixType) tensorPacioliType;
                     } catch (Exception ex) {
-                        throw new PacioliException(tensorNode.getLocation(),
+                        throw new PacioliException(tensorNode.location(),
                                 "First argument of nmode must have a valid matrix type: %s",
                                 ex.getMessage());
                     }
@@ -186,7 +186,7 @@ public class TypeInference extends IdentityVisitor {
                         TypeObject matrixPacioliType = matrixTyping.solve(false);
                         matrixType = (MatrixType) matrixPacioliType;
                     } catch (Exception ex) {
-                        throw new PacioliException(node.arguments.get(2).getLocation(),
+                        throw new PacioliException(node.arguments.get(2).location(),
                                 "Third argument of nmode must be a valid matrix type");
                     }
 
@@ -195,9 +195,9 @@ public class TypeInference extends IdentityVisitor {
                     for (int i = 0; i < tensorType.rowDimension.width(); i++) {
                         Optional<IndexSetDefinition> def = tensorType.rowDimension.nthIndexSetInfo(i).definition();
                         if (def.isPresent()) {
-                            shape.add(def.get().getItems().size());
+                            shape.add(def.get().items().size());
                         } else {
-                            new PacioliException(node.arguments.get(0).getLocation(),
+                            new PacioliException(node.arguments.get(0).location(),
                                     "Index set %s has no known size", i);
                         }
                     }
@@ -215,7 +215,7 @@ public class TypeInference extends IdentityVisitor {
                     throw new RuntimeException("Invalid nmode application", ex);
                 } catch (Exception ex) {
                     throw new RuntimeException("Invalid nmode application",
-                            new PacioliException(node.getLocation(), ex.getMessage()));
+                            new PacioliException(node.location(), ex.getMessage()));
                 }
             }
         } else {
@@ -233,7 +233,7 @@ public class TypeInference extends IdentityVisitor {
             // function type.
             String message = String.format("During inference %s\nthe inferred type must match known types",
                     node.sourceDescription());
-            typing.addConstraint(funType, funTyping.getType(), message);
+            typing.addConstraint(funType, funTyping.type(), message);
 
         }
 
@@ -247,7 +247,7 @@ public class TypeInference extends IdentityVisitor {
         Typing valueTyping = typingAccept(node.value);
         Typing typing = new Typing(newVoidType());
         typing.addConstraintsAndAssumptions(valueTyping);
-        typing.addConstraint(node.var.getInfo().localType(), valueTyping.getType(),
+        typing.addConstraint(node.var.info().localType(), valueTyping.type(),
                 "assigned variable must have proper type");
         returnNode(typing);
     }
@@ -261,7 +261,7 @@ public class TypeInference extends IdentityVisitor {
         Typing negTyping = typingAccept(node.negative);
 
         // Create a typing for the branch using the positive part's type
-        Typing typing = new Typing(posTyping.getType());
+        Typing typing = new Typing(posTyping.type());
 
         // Add the contstraints from the parts to the branch's typing
         typing.addConstraintsAndAssumptions(testTyping);
@@ -269,12 +269,12 @@ public class TypeInference extends IdentityVisitor {
         typing.addConstraintsAndAssumptions(negTyping);
 
         // Add the constraint that the test must be Boolean
-        typing.addConstraint(testTyping.getType(), newBooleType(), String
+        typing.addConstraint(testTyping.type(), newBooleType(), String
                 .format("While infering the type of\n%s\nthe test of an if must be Boolean", node.sourceDescription()));
 
         // Add the constraint that the positive and the negative branch must have the
         // same type
-        typing.addConstraint(posTyping.getType(), negTyping.getType(),
+        typing.addConstraint(posTyping.type(), negTyping.type(),
                 String.format("While infering the type of\n%s\nthe branches of an if must have the same type",
                         node.sourceDescription()));
 
@@ -302,21 +302,21 @@ public class TypeInference extends IdentityVisitor {
     @Override
     public void visit(IdentifierNode node) {
 
-        ValueInfo info = node.getInfo();
+        ValueInfo info = node.info();
 
         if (info.isGlobal()) {
             // Move instantiate to proper place.
-            if (node.getInfo().declaredType().isPresent()) {
+            if (node.info().declaredType().isPresent()) {
                 returnNode(new Typing(
-                        node.getInfo().declaredType().get().evalType().instantiate()
+                        node.info().declaredType().get().evalType().instantiate()
                                 .reduce(i -> i.isFromFile(this.file))));
             } else {
-                returnNode(new Typing(node.getInfo().localType().instantiate()));
+                returnNode(new Typing(node.info().localType().instantiate()));
             }
         } else {
             TypeVar var = new TypeVar();
             Typing typing = new Typing(var);
-            typing.addAssumption(node.getName(), var);
+            typing.addAssumption(node.name(), var);
             returnNode(typing);
         }
 
@@ -329,7 +329,7 @@ public class TypeInference extends IdentityVisitor {
         Typing posTyping = typingAccept(node.positive);
         Typing negTyping = typingAccept(node.negative);
 
-        Typing typing = new Typing(posTyping.getType());
+        Typing typing = new Typing(posTyping.type());
 
         typing.addConstraintsAndAssumptions(testTyping);
         typing.addConstraintsAndAssumptions(posTyping);
@@ -337,12 +337,12 @@ public class TypeInference extends IdentityVisitor {
 
         TypeObject voidType = newVoidType();
 
-        typing.addConstraint(testTyping.getType(), newBooleType(), String
+        typing.addConstraint(testTyping.type(), newBooleType(), String
                 .format("While infering the type of\n%s\nthe test of an if must be Boolean", node.sourceDescription()));
-        typing.addConstraint(posTyping.getType(), voidType,
+        typing.addConstraint(posTyping.type(), voidType,
                 String.format("While infering the type of\n%s\nthe then branche of an if must be a statement",
                         node.sourceDescription()));
-        typing.addConstraint(negTyping.getType(), voidType,
+        typing.addConstraint(negTyping.type(), voidType,
                 String.format("While infering the type of\n%s\nthe else branche of an if must be a statement",
                         node.sourceDescription()));
 
@@ -357,7 +357,7 @@ public class TypeInference extends IdentityVisitor {
         List<IndexSetInfo> typeInfos = new ArrayList<IndexSetInfo>();
         for (int i = 0; i < node.indexSets.size(); i++) {
             IndexSetInfo info = node.getInfo(i);
-            typeIds.add(new TypeIdentifier(info.generalInfo().getModule(), node.indexSets.get(i)));
+            typeIds.add(new TypeIdentifier(info.generalInfo().module(), node.indexSets.get(i)));
             typeInfos.add(info);
         }
 
@@ -389,7 +389,7 @@ public class TypeInference extends IdentityVisitor {
 
         // Create a typing for the lambda and add the constraints from the body's
         // inference
-        Typing typing = new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.getType()));
+        Typing typing = new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.type()));
         typing.addConstraints(bodyTyping);
 
         for (String name : bodyTyping.assumedNames()) {
@@ -439,13 +439,13 @@ public class TypeInference extends IdentityVisitor {
             Typing bindingTyping = typingAccept(letBinding);
             tmpTyping.addConstraintsAndAssumptions(bindingTyping);
             ValueInfo info = node.table.lookup(letBinding.var);
-            info.setinferredType(bindingTyping.getType());
+            info.setinferredType(bindingTyping.type());
         }
 
         // Infer the body's typing
         Typing bodyTyping = typingAccept(node.body);
 
-        Typing resultTyping = new Typing(bodyTyping.getType());
+        Typing resultTyping = new Typing(bodyTyping.type());
 
         // Could also add a constraint that resultType equals bodyType. See
         // what gives better debug messages.
@@ -524,7 +524,7 @@ public class TypeInference extends IdentityVisitor {
         Typing valueTyping = typingAccept(node.value);
         Typing typing = new Typing(voidType);
         typing.addConstraintsAndAssumptions(valueTyping);
-        typing.addConstraint(node.resultInfo.localType(), valueTyping.getType(),
+        typing.addConstraint(node.resultInfo.localType(), valueTyping.type(),
                 "the types of returned values must agree");
         returnNode(typing);
     }
@@ -535,7 +535,7 @@ public class TypeInference extends IdentityVisitor {
         Typing typing = new Typing(voidType);
         for (ExpressionNode item : node.items) {
             Typing itemTyping = typingAccept(item);
-            typing.addConstraint(voidType, itemTyping.getType(), "A statement must have type Void()");
+            typing.addConstraint(voidType, itemTyping.type(), "A statement must have type Void()");
             typing.addConstraintsAndAssumptions(itemTyping);
         }
         returnNode(typing);
@@ -563,7 +563,7 @@ public class TypeInference extends IdentityVisitor {
 
         String stMessage = String.format("During inference %s\na statement must have type Void()",
                 node.sourceDescription());
-        typing.addConstraint(voidType, itemTyping.getType(), stMessage);
+        typing.addConstraint(voidType, itemTyping.type(), stMessage);
         // typing.addConstraintsAndAssumptions(itemTyping);
         typing.addConstraints(itemTyping);
 
@@ -598,7 +598,7 @@ public class TypeInference extends IdentityVisitor {
 
         List<TypeObject> varTypes = new ArrayList<TypeObject>();
         for (IdentifierNode var : node.vars) {
-            varTypes.add(var.getInfo().localType());
+            varTypes.add(var.info().localType());
         }
         TypeObject tupleType = newTupleType(varTypes);
 
@@ -606,7 +606,7 @@ public class TypeInference extends IdentityVisitor {
         Typing tupleTyping = typingAccept(node.tuple);
         Typing typing = new Typing(voidType);
         typing.addConstraintsAndAssumptions(tupleTyping);
-        typing.addConstraint(tupleType, tupleTyping.getType(),
+        typing.addConstraint(tupleType, tupleTyping.type(),
                 "assigned variable must have proper type");
         returnNode(typing);
     }
@@ -619,9 +619,9 @@ public class TypeInference extends IdentityVisitor {
         Typing typing = new Typing(newVoidType());
         typing.addConstraintsAndAssumptions(testTyping);
         typing.addConstraintsAndAssumptions(bodyTyping);
-        typing.addConstraint(testTyping.getType(), newBooleType(),
+        typing.addConstraint(testTyping.type(), newBooleType(),
                 "the test of a while must be boolean");
-        typing.addConstraint(bodyTyping.getType(), newVoidType(),
+        typing.addConstraint(bodyTyping.type(), newVoidType(),
                 "the body of a while must be a statement");
         returnNode(typing);
 

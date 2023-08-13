@@ -34,7 +34,7 @@ public class ConstNode extends AbstractExpressionNode {
     }
 
     public ConstNode(ConstNode old) {
-        super(old.getLocation());
+        super(old.location());
         this.value = old.value;
     }
 

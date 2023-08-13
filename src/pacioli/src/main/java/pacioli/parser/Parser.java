@@ -1516,7 +1516,7 @@ public class Parser extends java_cup.runtime.lr_parser {
     private static List<String> idNames(List<IdentifierNode> ids) {
         List<String> names = new ArrayList<String>();
         for (IdentifierNode id: ids) {
-            names.add(id.getName());
+            names.add(id.name());
         }
         return names;
     }
@@ -1549,7 +1549,7 @@ public class Parser extends java_cup.runtime.lr_parser {
     }
 
     private static ExpressionNode binop(String name, ExpressionNode left, ExpressionNode right) {
-        pacioli.misc.Location loc = left.getLocation().join(right.getLocation());
+        pacioli.misc.Location loc = left.location().join(right.location());
         List<ExpressionNode> args = new ArrayList<ExpressionNode>();
         args.add(left);
         args.add(right);
@@ -1643,27 +1643,27 @@ public class Parser extends java_cup.runtime.lr_parser {
         String accuName = freshName("_c_accu");
         String tupName = freshName("_c_tup");
 
-        ExpressionNode addMut = new IdentifierNode("_add_mut", e.getLocation());
-        ExpressionNode accu = new IdentifierNode(accuName, e.getLocation());
-        ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), e.getLocation());
-
+        ExpressionNode addMut = new IdentifierNode("_add_mut", e.location());
+        ExpressionNode accu = new IdentifierNode(accuName, e.location());
+        ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), e.location());
+ 
         for (int i = ps.size() - 1; 0 <= i; i--) {
             Object part = ps.get(i);
             if (part instanceof GeneratorClause) {
                 GeneratorClause clause = (GeneratorClause) part;
-                pacioli.misc.Location loc2 = clause.list.getLocation();
+                pacioli.misc.Location loc2 = clause.list.location();
                 body = new ApplicationNode(
                                 new IdentifierNode("loop_list",loc2),
                                 Arrays.asList((ExpressionNode) new IdentifierNode(accuName, loc2),
-                                              new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.getName())), body, loc2), clause.list),
+                                              new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.name())), body, loc2), clause.list),
                                 loc2);
             } else if (part instanceof TupleGeneratorClause) {
                 TupleGeneratorClause clause = (TupleGeneratorClause) part;
-                pacioli.misc.Location loc2 = clause.list.getLocation();
+                pacioli.misc.Location loc2 = clause.list.location();
 
                 List<String> args = new ArrayList<String>();
                 for (IdentifierNode var : clause.ids) {
-                    args.add(var.getName());
+                    args.add(var.name());
                 }
 
                 ExpressionNode apply = new IdentifierNode("apply", loc2);
@@ -1678,20 +1678,20 @@ public class Parser extends java_cup.runtime.lr_parser {
             } else if (part instanceof AssignmentClause) {
                 AssignmentClause clause = (AssignmentClause) part;
 
-                body = new ApplicationNode(new LambdaNode(freshUnderscores(Arrays.asList(clause.id.getName())), body, body.getLocation()), Arrays.asList(clause.value), clause.value.getLocation());
+                body = new ApplicationNode(new LambdaNode(freshUnderscores(Arrays.asList(clause.id.name())), body, body.location()), Arrays.asList(clause.value), clause.value.location());
             } else if (part instanceof TupleAssignmentClause) {
 
                 TupleAssignmentClause clause = (TupleAssignmentClause) part;
 
                 List<String> args = new ArrayList<String>();
                 for (IdentifierNode var : clause.ids) {
-                    args.add(var.getName());
+                    args.add(var.name());
                 }
 
                 ExpressionNode apply = new IdentifierNode("apply", loc);
                 ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc);
 
-                body = new ApplicationNode(apply, Arrays.asList(restLambda, clause.value), clause.value.getLocation());
+                body = new ApplicationNode(apply, Arrays.asList(restLambda, clause.value), clause.value.location());
             } else if (part instanceof ExpressionNode) {
                 ExpressionNode clause = (ExpressionNode) part;
                 body = new BranchNode(clause, body, new IdentifierNode(accuName, loc), loc);
@@ -1708,23 +1708,23 @@ public class Parser extends java_cup.runtime.lr_parser {
     }
 
     private static ExpressionNode desugarFoldComprehension(pacioli.misc.Location loc, IdentifierNode op, ExpressionNode e, List<Object> ps) throws PacioliException {
-        pacioli.misc.Location eLoc = e.getLocation();
-        pacioli.misc.Location opLoc = op.getLocation();
+        pacioli.misc.Location eLoc = e.location(); 
+        pacioli.misc.Location opLoc = op.location();
         ExpressionNode body = desugarComprehension(loc, e, ps);
-        if (op.getName().equals("sum")) {
+        if (op.name().equals("sum")) {
             return new ApplicationNode((ExpressionNode) new IdentifierNode("list_sum", eLoc), Arrays.asList(body), opLoc);
-        } else if (op.getName().equals("count")) {
+        } else if (op.name().equals("count")) {
             return new ApplicationNode((ExpressionNode) new IdentifierNode("list_count", eLoc), Arrays.asList(body), opLoc);
-        } else if (op.getName().equals("all")) {
+        } else if (op.name().equals("all")) {
             return new ApplicationNode((ExpressionNode) new IdentifierNode("list_all", eLoc), Arrays.asList(body), opLoc);
-        } else if (op.getName().equals("some")) {
+        } else if (op.name().equals("some")) {
             return new ApplicationNode((ExpressionNode) new IdentifierNode("list_some", eLoc), Arrays.asList(body), opLoc);
-        } else if (op.getName().equals("gcd")) {
+        } else if (op.name().equals("gcd")) {
             return new ApplicationNode((ExpressionNode) new IdentifierNode("list_gcd", eLoc), Arrays.asList(body), opLoc);
-        } else if (op.getName().equals("concat")) {
+        } else if (op.name().equals("concat")) {
             return new ApplicationNode((ExpressionNode) new IdentifierNode("list_concat", eLoc), Arrays.asList(body), opLoc);
         } else {
-            throw new PacioliException(op.getLocation(), "Comprehension operator '%s' unknown", op.getName());
+            throw new PacioliException(op.location(), "Comprehension operator '%s' unknown", op.name());
         }
     }
 
@@ -2103,7 +2103,7 @@ class CUP$Parser$actions {
 		 /* Todo: remove hashmap and use pair list directly in UnitVectorDefinition */
                                                        java.util.Map<String, UnitNode> unitVector = new HashMap<String, UnitNode>();
                                                        for (UnitDecl pair: ps) {
-                                                           unitVector.put(pair.key.getName(), pair.value);
+                                                           unitVector.put(pair.key.name(), pair.value);
                                                        }
                                                        RESULT = new UnitVectorDefinition(makeLoc(dxleft, psxright), id, n, ps); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("command",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-5)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
@@ -2245,7 +2245,7 @@ class CUP$Parser$actions {
 		Location exleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location exright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		ExpressionNode e = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new Toplevel(e.getLocation(), e); 
+		 RESULT = new Toplevel(e.location(), e); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("command",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -2266,7 +2266,7 @@ class CUP$Parser$actions {
 		Location exleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location exright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		List<TypeAssertion> e = (List<TypeAssertion>)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new ClassDefinition(id.getLocation(), new TypeApplicationNode(id.getLocation(), id, ids), v, e); 
+		 RESULT = new ClassDefinition(id.location(), new TypeApplicationNode(id.location(), id, ids), v, e); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("command",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -2287,7 +2287,7 @@ class CUP$Parser$actions {
 		Location exleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location exright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		List<ValueEquation> e = (List<ValueEquation>)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new InstanceDefinition(id.getLocation(), new TypeApplicationNode(id.getLocation(), id, ids), v, e); 
+		 RESULT = new InstanceDefinition(id.location(), new TypeApplicationNode(id.location(), id, ids), v, e); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("command",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -3660,7 +3660,7 @@ class CUP$Parser$actions {
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new KeyNode(idx.getName(), id.getName(), makeLoc(idxxleft, idxright)); 
+		 RESULT = new KeyNode(idx.name(), id.name(), makeLoc(idxxleft, idxright)); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("indexkey",45, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -3678,7 +3678,7 @@ class CUP$Parser$actions {
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 KeyNode node = new KeyNode(idx.getName(), id.getName(), makeLoc(idxxleft, idxright));
+		 KeyNode node = new KeyNode(idx.name(), id.name(), makeLoc(idxxleft, idxright));
                                                        RESULT = k.merge(node); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("indexkey",45, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
@@ -3697,7 +3697,7 @@ class CUP$Parser$actions {
 		Location rxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location rxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		ExpressionNode r = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 List<String> args = freshUnderscores(Arrays.asList(id.getName()));  // remove fresh underscors
+		 List<String> args = freshUnderscores(Arrays.asList(id.name()));  // remove fresh underscors
                                                        BindingNode binding = new LetBindingNode(makeLoc(idxleft, exright), args.get(0), e);
                                                        RESULT = new LetNode(Arrays.asList(binding), r, makeLoc(idxleft, rxright)); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("lettail",7, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
@@ -3719,8 +3719,8 @@ class CUP$Parser$actions {
 		ExpressionNode r = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		 List<String> args = freshUnderscores(idNames(ids));
                                                        pacioli.misc.Location loc = makeLoc(idsxleft, rxright);
-                                                       ExpressionNode fun = new LambdaNode(args, r, r.getLocation());
-                                                       RESULT = new ApplicationNode(new IdentifierNode("apply", e.getLocation()), Arrays.asList(fun, e), loc); 
+                                                       ExpressionNode fun = new LambdaNode(args, r, r.location());
+                                                       RESULT = new ApplicationNode(new IdentifierNode("apply", e.location()), Arrays.asList(fun, e), loc); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("lettail",7, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -3741,11 +3741,11 @@ class CUP$Parser$actions {
 		Location rxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location rxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		ExpressionNode r = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 //List<String> rArgs = freshUnderscores(Arrays.asList(id.getName()));
+		 //List<String> rArgs = freshUnderscores(Arrays.asList(id.name()));
                                                        List<String> eArgs = freshUnderscores(idNames(ids)); // remove fresh underscors
                                                        pacioli.misc.Location loc = makeLoc(idxleft, rxright);
-                                                       ExpressionNode eFun = new LambdaNode(eArgs, e, e.getLocation());
-                                                       BindingNode binding = new LetBindingNode(makeLoc(idsxleft, exright), id.getName(), eFun);
+                                                       ExpressionNode eFun = new LambdaNode(eArgs, e, e.location());
+                                                       BindingNode binding = new LetBindingNode(makeLoc(idsxleft, exright), id.name(), eFun);
                                                        RESULT = new LetNode(Arrays.asList(binding), r, loc); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("lettail",7, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
@@ -4034,7 +4034,7 @@ class CUP$Parser$actions {
                                                            List<ExpressionNode> tup = new ArrayList<ExpressionNode>();
                                                            tup.add(list);
                                                            tup.add(item);
-                                                           list = new ApplicationNode(new IdentifierNode("_add_mut", loc), tup, item.getLocation());
+                                                           list = new ApplicationNode(new IdentifierNode("_add_mut", loc), tup, item.location());
                                                        }
                                                        RESULT = list; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("listlit",9, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
@@ -4148,7 +4148,7 @@ class CUP$Parser$actions {
                                                         } else if (g instanceof IdentifierNode) {
                                                             RESULT = new GeneratorClause((IdentifierNode) g, e);
                                                         } else {
-                                                            errorLocation = g.getLocation();
+                                                            errorLocation = g.location();
                                                             errorMessage = "Expected a variable or tuple";
                                                             report_fatal_error("Fixme: this string is not used? How to throw an error here?", g);
                                                         }
@@ -4172,7 +4172,7 @@ class CUP$Parser$actions {
                                                         } else if (g instanceof IdentifierNode) {
                                                             RESULT = new AssignmentClause((IdentifierNode) g, e);
                                                         } else {
-                                                            errorLocation = g.getLocation();
+                                                            errorLocation = g.location();
                                                             errorMessage = "Expected a variable or tuple";
                                                             report_fatal_error("Fixme: this string is not used? How to throw an error here?", g);
                                                         } 
@@ -4409,7 +4409,7 @@ class CUP$Parser$actions {
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		TypeIdentifierNode id = (TypeIdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new TypeIdentifierNode(makeLoc(idxxleft, idxright), idx.getName() + "!" + id.getName());  
+		 RESULT = new TypeIdentifierNode(makeLoc(idxxleft, idxright), idx.name() + "!" + id.name());  
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("var",43, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -4781,7 +4781,7 @@ class CUP$Parser$actions {
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new UnitIdentifierNode(id.getLocation(), id.getName()); 
+		 RESULT = new UnitIdentifierNode(id.location(), id.name()); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("unit_term",25, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -4796,7 +4796,7 @@ class CUP$Parser$actions {
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new UnitIdentifierNode(pre.getLocation().join(id.getLocation()), pre.getName(), id.getName()); 
+		 RESULT = new UnitIdentifierNode(pre.location().join(id.location()), pre.name(), id.name()); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("unit_term",25, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

@@ -28,14 +28,14 @@ public class AliasDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String getName() {
-        return id.getName();
+    public String name() {
+        return id.name();
     }
 
     public Unit<TypeBase> evalBody() {
         DimensionedNumber<TypeBase> number = unit.evalUnit();
         if (!number.factor().equals(BigDecimal.ONE)) {
-            throw new PacioliException(getLocation(), "Unexpected number in unit alias");
+            throw new PacioliException(location(), "Unexpected number in unit alias");
             // Pacioli.warn("Unexpected number in unit alias %s: %s", id.getName(),
             // number.factor());
         }

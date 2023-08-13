@@ -42,7 +42,7 @@ public class SchemaNode extends AbstractTypeNode {
     }
 
     public SchemaNode transform(TypeNode type) {
-        return new SchemaNode(getLocation(), contextNodes, type);
+        return new SchemaNode(location(), contextNodes, type);
     }
 
     public TypeContext createContext() {

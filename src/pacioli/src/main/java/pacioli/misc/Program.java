@@ -50,7 +50,6 @@ import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
-import pacioli.symboltable.info.ValueInfo.Builder;
 import pacioli.types.TypeContext;
 import pacioli.types.TypeObject;
 import pacioli.types.Typing;
@@ -88,7 +87,7 @@ public class Program {
     // -------------------------------------------------------------------------
 
     public static Program load(PacioliFile file) throws Exception {
-        ProgramNode ast = Parser.parseFile(file.getFile());
+        ProgramNode ast = Parser.parseFile(file.fsFile());
         return new Program(file, ast);
     }
 
@@ -137,7 +136,7 @@ public class Program {
 
     private PacioliTable fillTables() throws Exception {
 
-        Pacioli.trace("Filling tables for %s", this.file.getModule());
+        Pacioli.trace("Filling tables for %s", this.file.module());
 
         // Create a new table to fill
         PacioliTable env = PacioliTable.empty();
@@ -152,65 +151,65 @@ public class Program {
 
             if (def instanceof ClassDefinition d) {
                 ClassInfo.Builder builder = ClassInfo.builder();
-                builder.name(def.getName())
+                builder.name(def.name())
                         .file(file)
                         .definition(d)
                         .isGlobal(true)
-                        .location(def.getLocation());
-                typeBuilders.put(def.getName(), builder);
+                        .location(def.location());
+                typeBuilders.put(def.name(), builder);
             } else if (def instanceof AliasDefinition alias) {
                 AliasInfo.Builder builder = AliasInfo.builder();
-                builder.name(def.getName())
+                builder.name(def.name())
                         .definition(alias)
                         .file(file)
                         .isGlobal(true)
-                        .location(def.getLocation());
-                typeBuilders.put(def.getName(), builder);
+                        .location(def.location());
+                typeBuilders.put(def.name(), builder);
             } else if (def instanceof IndexSetDefinition indexSet) {
                 IndexSetInfo.Builder builder = IndexSetInfo.builder();
-                builder.name(def.getName())
+                builder.name(def.name())
                         .file(file)
                         .isGlobal(true)
-                        .location(def.getLocation())
+                        .location(def.location())
                         .definition(indexSet);
-                typeBuilders.put(def.getName(), builder);
+                typeBuilders.put(def.name(), builder);
             } else if (def instanceof Toplevel top) {
                 env.addToplevel(top);
             } else if (def instanceof TypeDefinition typeDef) {
                 ParametricInfo.Builder builder = ParametricInfo.builder();
-                builder.name(def.getName())
+                builder.name(def.name())
                         .file(file)
                         .isGlobal(true)
-                        .location(def.getLocation())
+                        .location(def.location())
                         .definition(typeDef);
-                typeBuilders.put(def.getName(), builder);
+                typeBuilders.put(def.name(), builder);
             } else if (def instanceof UnitDefinition unitDef) {
                 ScalarBaseInfo.Builder builder = ScalarBaseInfo.builder();
-                builder.name(def.getName())
+                builder.name(def.name())
                         .file(file)
                         .isGlobal(true)
-                        .location(def.getLocation())
+                        .location(def.location())
                         .symbol(unitDef.symbol)
                         .definition(unitDef);
-                typeBuilders.put(def.getName(), builder);
+                typeBuilders.put(def.name(), builder);
             } else if (def instanceof UnitVectorDefinition vecDef) {
                 VectorBaseInfo.Builder builder = VectorBaseInfo.builder();
-                builder.name(def.getName())
+                builder.name(def.name())
                         .file(file)
                         .isGlobal(true)
-                        .location(def.getLocation())
+                        .location(def.location())
                         .items(vecDef.items)
                         .definition(vecDef);
-                typeBuilders.put(def.getName(), builder);
+                typeBuilders.put(def.name(), builder);
             } else if (def instanceof Declaration decl) {
-                ValueInfo.Builder builder = ensureValueInfoBuilder(valueBuilders, def.getName());
+                ValueInfo.Builder builder = ensureValueInfoBuilder(valueBuilders, def.name());
                 if (builder.declaredType != null) {
-                    throw new PacioliException(def.getLocation(), "Duplicate type declaration for %s",
-                            def.getName());
+                    throw new PacioliException(def.location(), "Duplicate type declaration for %s",
+                            def.name());
                 }
                 builder
-                        .name(def.getName())
-                        .location(def.getLocation())
+                        .name(def.name())
+                        .location(def.location())
                         .isMonomorphic(false)
                         .file(this.file)
                         .isGlobal(true)
@@ -223,37 +222,37 @@ public class Program {
         Pacioli.logIf(exportHack, "export");
         for (Definition def : this.ast.definitions) {
             if (def instanceof Declaration inst) {
-                Pacioli.logIf(exportHack && inst.isPublic, "    %s,", inst.getName());
+                Pacioli.logIf(exportHack && inst.isPublic, "    %s,", inst.name());
             }
         }
 
         // Second pass, do class instances and value definitions.
         for (Definition def : this.ast.definitions) {
             if (def instanceof InstanceDefinition inst) {
-                ClassInfo.Builder builder = (ClassInfo.Builder) typeBuilders.get(def.getName());
+                ClassInfo.Builder builder = (ClassInfo.Builder) typeBuilders.get(def.name());
                 if (builder == null) {
-                    throw new PacioliException(def.getLocation(), "No class found for instance %s", def.getName());
+                    throw new PacioliException(def.location(), "No class found for instance %s", def.name());
                 }
                 builder.instance(new InstanceInfo(inst, file, genclassInstanceName()));
             } else if (def instanceof ValueDefinition val) {
                 // This overwrites any properties set by the declaration above. This is
                 // desirable for the location. We prefer the definition location, otherwise we
                 // get the declaration location in messages.
-                ValueInfo.Builder builder = ensureValueInfoBuilder(valueBuilders, def.getName());
+                ValueInfo.Builder builder = ensureValueInfoBuilder(valueBuilders, def.name());
                 if (builder.definition != null) {
-                    throw new PacioliException(def.getLocation(),
+                    throw new PacioliException(def.location(),
                             "Duplicate definition for '%s'. It is already defined in %s.",
-                            def.getName(),
-                            builder.definition.getLocation().description());
+                            def.name(),
+                            builder.definition.location().description());
                 }
                 builder
                         .definition(val)
-                        .name(def.getName())
+                        .name(def.name())
                         .file(this.file)
                         .isGlobal(true)
                         .isMonomorphic(false)
                         .isPublic(false)
-                        .location(def.getLocation());
+                        .location(def.location());
             }
         }
 
@@ -262,7 +261,7 @@ public class Program {
 
             for (IdentifierNode id : exportNode.identifiers) {
 
-                String name = id.getName();
+                String name = id.name();
 
                 // Determine the identifier kind. Resolve possible ambiguities
                 boolean valueExists = valueBuilders.containsKey(name);
@@ -284,7 +283,7 @@ public class Program {
 
             if (def instanceof Documentation doc) {
 
-                String name = doc.getName();
+                String name = doc.name();
 
                 // Determine the doc kind. Resolve possible ambiguities
                 boolean valueExists = valueBuilders.containsKey(name);
@@ -317,7 +316,7 @@ public class Program {
     private void addInfo(PacioliTable environment, ValueInfo info) {
 
         Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s to %s from file %s",
-                info.name(), file.getModule(), file.getFile());
+                info.name(), file.module(), file.fsFile());
 
         environment.addInfo(info);
     }
@@ -325,7 +324,7 @@ public class Program {
     private void addInfo(PacioliTable environment, TypeInfo info) {
 
         Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s to %s from file %s",
-                info.name(), file.getModule(), file.getFile());
+                info.name(), file.module(), file.fsFile());
 
         environment.addInfo(info);
     }
@@ -353,7 +352,7 @@ public class Program {
      */
     private void resolve(PacioliTable prog, PacioliTable environment) throws Exception {
 
-        Pacioli.trace("Resolving %s", this.file.getModule());
+        Pacioli.trace("Resolving %s", this.file.module());
 
         prog.setParent(environment);
 
@@ -406,7 +405,7 @@ public class Program {
 
         }
         for (Toplevel definition : prog.toplevels) {
-            Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving toplevel %s", definition.getName());
+            Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving toplevel %s", definition.name());
             definition.resolve(this.file, prog);
         }
 
@@ -429,7 +428,7 @@ public class Program {
      */
     private void rewriteClasses(PacioliTable env) throws Exception {
 
-        Pacioli.trace("Rewriting classes in file %s", this.file.getModule());
+        Pacioli.trace("Rewriting classes in file %s", this.file.module());
 
         for (TypeInfo typeInfo : env.types.allInfos()) {
             if (typeInfo instanceof ClassInfo classInfo) {
@@ -447,15 +446,15 @@ public class Program {
     private PacioliTable rewriteClass(ClassInfo classInfo) {
 
         Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nRewriting class %s in module %s",
-                classInfo.globalName(), this.file.getModule());
+                classInfo.globalName(), this.file.module());
 
         PacioliTable env = PacioliTable.empty();
 
         // Get some class properties
         ClassDefinition classDefinition = classInfo.definition().get();
-        Location classLocation = classDefinition.getLocation();
+        Location classLocation = classDefinition.location();
         String classConstructorName = String.format("make_%s", classInfo.globalName());
-        String classTypeName = String.format("%sDictttt", classDefinition.getName());
+        String classTypeName = String.format("%sDictttt", classDefinition.name());
         IdentifierNode classConstructorId = new IdentifierNode(classConstructorName, classLocation);
 
         // Rewrite the class definition itself if it is from this program
@@ -467,7 +466,7 @@ public class Program {
             List<TypeNode> memberTypes = new ArrayList<>();
             for (TypeAssertion member : classInfo.definition().get().members) {
                 IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(), classLocation);
-                argNames.add(id.getName());
+                argNames.add(id.name());
                 args.add(id);
                 memberTypes.add(member.type);
             }
@@ -480,7 +479,7 @@ public class Program {
 
             TypeIdentifierNode id = new TypeIdentifierNode(classLocation, classTypeName);
             TypeNode lhs = new TypeApplicationNode(
-                    classDefinition.type.getLocation(),
+                    classDefinition.type.location(),
                     id,
                     classDefinition.type.args);
             TypeIdentifierNode tupleId = new TypeIdentifierNode(new Location(), "Tuple");
@@ -513,7 +512,7 @@ public class Program {
                     constructor,
                     false);
             ValueInfo constructorInfo = ValueInfo.builder()
-                    .name(classConstructorId.getName())
+                    .name(classConstructorId.name())
                     .file(classInfo.generalInfo().file)
                     .isGlobal(true)
                     .isMonomorphic(false)
@@ -537,11 +536,11 @@ public class Program {
             // Create a function for each member
             for (TypeAssertion member : classInfo.definition().get().members) {
 
-                Location memberLocation = member.getLocation();
+                Location memberLocation = member.location();
 
                 if (member.type instanceof FunctionTypeNode funType &&
                         funType.domain instanceof TypeApplicationNode domain &&
-                        domain.op.getName().equals("Tuple")) {
+                        domain.op.name().equals("Tuple")) {
 
                     // Create a Declaration for the member
                     // IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(),
@@ -560,7 +559,7 @@ public class Program {
                     List<TypeNode> typeArgs = new ArrayList<>();
                     typeArgs.add(lhs);
                     typeArgs.addAll(domain.args);
-                    TypeApplicationNode dom = new TypeApplicationNode(domain.getLocation(), domain.op, typeArgs);
+                    TypeApplicationNode dom = new TypeApplicationNode(domain.location(), domain.op, typeArgs);
                     FunctionTypeNode memberType = new FunctionTypeNode(memberLocation, dom, funType.range);
                     SchemaNode memberSchema = new SchemaNode(
                             memberLocation,
@@ -589,7 +588,7 @@ public class Program {
                             (ExpressionNode) genFun.desugar(),
                             false);
                     ValueInfo memberInfo = ValueInfo.builder()
-                            .name(member.id.getName())
+                            .name(member.id.name())
                             .file(classInfo.generalInfo().file)
                             .isGlobal(true)
                             .isMonomorphic(false)
@@ -609,7 +608,7 @@ public class Program {
                     throw new PacioliException(memberLocation, "Type %s of class %s member %s is not a function type",
                             member.type.pretty(),
                             classInfo.name(),
-                            member.id.getName());
+                            member.id.name());
                 }
 
             }
@@ -637,7 +636,7 @@ public class Program {
                 List<String> arg = new ArrayList<>();
                 for (ContextNode yo : instanceInfo.definition().get().contextNodes) {
                     for (TypeApplicationNode condition : yo.conditions) {
-                        arg.add(condition.getName());
+                        arg.add(condition.name());
                     }
                 }
                 LambdaNode instanceBody = new LambdaNode(arg, tuple, instanceInfo.location());
@@ -675,7 +674,7 @@ public class Program {
 
     private void liftStatements(PacioliTable program, PacioliTable env) throws Exception {
 
-        Pacioli.trace("Lifting value statements %s", this.file.getModule());
+        Pacioli.trace("Lifting value statements %s", this.file.module());
 
         for (ValueInfo info : program.values.allInfos()) {
             if (info.definition().isPresent() && info.isFromFile(this.file)) {
@@ -692,7 +691,7 @@ public class Program {
 
     private void transformConversions(PacioliTable pacioliTable) {
 
-        Pacioli.trace("Transforming conversions %s", this.file.getModule());
+        Pacioli.trace("Transforming conversions %s", this.file.module());
 
         for (ValueInfo info : pacioliTable.values.allInfos()) {
             if (info.definition().isPresent() && info.isFromFile(this.file)) {
@@ -710,7 +709,7 @@ public class Program {
 
     private void inferTypes(PacioliTable prog, PacioliTable env) {
 
-        Pacioli.trace("Infering types in %s", this.file.getModule());
+        Pacioli.trace("Infering types in %s", this.file.module());
 
         // values.parent = environment.values();
         // typess.parent = environment.types();

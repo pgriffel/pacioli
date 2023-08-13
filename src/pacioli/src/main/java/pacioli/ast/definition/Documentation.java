@@ -42,8 +42,8 @@ public class Documentation extends AbstractDefinition {
     }
 
     @Override
-    public String getName() {
-        return id.getName();
+    public String name() {
+        return id.name();
     }
 
     @Override
@@ -52,10 +52,10 @@ public class Documentation extends AbstractDefinition {
     }
 
     public Node transform(ExpressionNode body) {
-        return new Documentation(getLocation(), id, body);
+        return new Documentation(location(), id, body);
     }
 
-    public Optional<Kind> getKind() {
+    public Optional<Kind> kind() {
         return this.id.kind();
     }
 }

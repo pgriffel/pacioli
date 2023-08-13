@@ -51,14 +51,16 @@ public class Environment {
         next = null;
     }
 
-/*    public Environment(List<String> arguments, Environment env) {
-        store = new HashMap<String, PacioliValue>();
-        code = new HashMap<String, Expression>();
-        for (String key: arguments) {
-            store.put(key, env.store.get(key));
-        }
-        next = null;
-    }*/
+    /*
+     * public Environment(List<String> arguments, Environment env) {
+     * store = new HashMap<String, PacioliValue>();
+     * code = new HashMap<String, Expression>();
+     * for (String key: arguments) {
+     * store.put(key, env.store.get(key));
+     * }
+     * next = null;
+     * }
+     */
 
     public Environment(List<String> arguments, List<PacioliValue> params) {
         store = new HashMap<String, PacioliValue>();
@@ -73,21 +75,20 @@ public class Environment {
         if (store.containsKey(name)) {
             return store.get(name);
         } else if (code.containsKey(name)) {
-        	store.put(name, code.get(name).eval(this));
-        	return store.get(name);
-        } else if (next == null) {	
-        	throw new MVMException("variable '%s' unknown", name);
+            store.put(name, code.get(name).eval(this));
+            return store.get(name);
+        } else if (next == null) {
+            throw new MVMException("variable '%s' unknown", name);
         } else {
-        	return next.lookup(name);
+            return next.lookup(name);
         }
-    }		
-
+    }
 
     public Environment pushUnto(Environment environment) {
         if (next == null) {
             next = environment;
             if (environment.machine != null) {
-            	machine = environment.machine; 
+                machine = environment.machine;
             }
             return this;
         } else {
@@ -122,9 +123,9 @@ public class Environment {
     }
 
     public void putDebug(String module, String name, PacioliValue primitive) {
-        //put("debug_" + module.toLowerCase() + "_" + name, primitive);
+        // put("debug_" + module.toLowerCase() + "_" + name, primitive);
     }
-    
+
     public void putCode(String name, Expression exp) {
         code.put(name, exp);
         /*
@@ -134,8 +135,8 @@ public class Environment {
     }
 
     public Set<String> keySet() {
-        //Set<String> keys = store.keySet();
-        Set<String> keys = new HashSet<String>(); 
+        // Set<String> keys = store.keySet();
+        Set<String> keys = new HashSet<String>();
         keys.addAll(store.keySet());
         keys.addAll(code.keySet());
         if (next != null) {
@@ -144,7 +145,7 @@ public class Environment {
         return keys;
     }
 
-    public Machine getMachine() {
+    public Machine machine() {
         if (machine == null) {
             throw new RuntimeException("zou niet mogen gebeuren");
         }

@@ -46,7 +46,7 @@ public class KeyNode extends AbstractExpressionNode {
     }
 
     public KeyNode(KeyNode old) {
-        super(old.getLocation());
+        super(old.location());
         indexSets = old.indexSets;
         keys = old.keys;
     }
@@ -71,7 +71,7 @@ public class KeyNode extends AbstractExpressionNode {
         List<String> mergedIndexSets = new ArrayList<String>(indexSets);
         List<String> mergedKeys = new ArrayList<String>(keys);
 
-        Location mergedLocation = getLocation().join(other.getLocation());
+        Location mergedLocation = location().join(other.location());
 
         mergedIndexSets.addAll(other.indexSets);
         mergedKeys.addAll(other.keys);
@@ -79,7 +79,7 @@ public class KeyNode extends AbstractExpressionNode {
         return new KeyNode(mergedLocation, mergedIndexSets, mergedKeys);
     }
 
-    public List<IndexSetInfo> getInfos() {
+    public List<IndexSetInfo> infos() {
         if (infos.isPresent()) {
             return infos.get();
         } else {
@@ -88,7 +88,7 @@ public class KeyNode extends AbstractExpressionNode {
     }
 
     public IndexSetInfo getInfo(Integer index) {
-        return getInfos().get(index);
+        return infos().get(index);
     }
 
     public void setInfos(List<IndexSetInfo> infos) {
@@ -106,7 +106,7 @@ public class KeyNode extends AbstractExpressionNode {
 
         Optional<IndexSetDefinition> definition = getInfo(index).definition();
         assert (definition.isPresent());
-        List<String> items = definition.get().getItems();
+        List<String> items = definition.get().items();
 
         for (int i = 0; i < items.size(); i++) {
             if (items.get(i).equals(key)) {
@@ -115,13 +115,13 @@ public class KeyNode extends AbstractExpressionNode {
         }
         // throw new RuntimeException("Key not found", new
         // PacioliException(getLocation(), "index = %s", index));
-        throw new PacioliException(getLocation(), "Key %s not found", index);
+        throw new PacioliException(location(), "Key %s not found", index);
     }
 
     public Integer size(Integer index) {
         Optional<IndexSetDefinition> definition = getInfo(index).definition();
         assert (definition.isPresent());
-        return definition.get().getItems().size();
+        return definition.get().items().size();
     }
 
     public Integer position() {

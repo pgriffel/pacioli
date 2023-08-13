@@ -78,7 +78,7 @@ public class IndexList extends AbstractType {
         return indexSets.equals(otherDimension.indexSets);
     }
 
-    public List<TypeIdentifier> getIndexSets() {
+    public List<TypeIdentifier> indexSets() {
         return indexSets;
     }
 
@@ -106,7 +106,7 @@ public class IndexList extends AbstractType {
     IndexList kronecker(IndexList other) {
         List<TypeIdentifier> sets = new ArrayList<TypeIdentifier>();
         sets.addAll(indexSets);
-        sets.addAll(other.getIndexSets());
+        sets.addAll(other.indexSets());
         List<IndexSetInfo> infos = new ArrayList<IndexSetInfo>();
         infos.addAll(indexSetInfos);
         infos.addAll(other.indexSetInfos);

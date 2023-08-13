@@ -103,7 +103,7 @@ public class ResolveVisitor extends IdentityVisitor {
     @Override
     public void visit(IndexSetDefinition node) {
         if (node.isDynamic()) {
-            node.getBody().accept(this);
+            node.body().accept(this);
         }
     }
 
@@ -115,14 +115,14 @@ public class ResolveVisitor extends IdentityVisitor {
     @Override
     public void visit(TypeDefinition node) {
 
-        pushTypeContext(node.context, node.getLocation());
+        pushTypeContext(node.context, node.location());
 
         // throw new RuntimeException("todo ");
         // Pacioli.logln("NOT VISITING TYPE DEF %s", node.getLocation().description());
         if (node.lhs instanceof TypeApplicationNode) {
             TypeApplicationNode app = (TypeApplicationNode) node.lhs;
             // List<TypeNode> types = new ArrayList<TypeNode>();
-            for (TypeNode arg : app.getArgs()) {
+            for (TypeNode arg : app.arguments()) {
                 // types.add(arg.resolved(dictionary, this.context));
                 arg.accept(this);
             }
@@ -130,7 +130,7 @@ public class ResolveVisitor extends IdentityVisitor {
             // resolvedLhs = new TypeApplicationNode(getLocation(), app.getOperator(),
             // types);
         } else {
-            visitorThrow(node.getLocation(), "Left side of typedef is not a type function: %s", node.lhs.pretty());
+            visitorThrow(node.location(), "Left side of typedef is not a type function: %s", node.lhs.pretty());
         }
         // node.lhs.accept(this);
         node.rhs.accept(this);
@@ -162,7 +162,7 @@ public class ResolveVisitor extends IdentityVisitor {
     public void visit(ClassDefinition node) {
         for (String memberName : node.memberNames()) {
             SchemaNode schemaNode = node.memberSchemaNode(memberName);
-            pushTypeContext(schemaNode.createContext(), node.getLocation());
+            pushTypeContext(schemaNode.createContext(), node.location());
             schemaNode.table = typeTables.peek();
             schemaNode.type.accept(this);
             typeTables.pop();
@@ -189,7 +189,7 @@ public class ResolveVisitor extends IdentityVisitor {
                     .file(file)
                     .isGlobal(false)
                     .isMonomorphic(true)
-                    .location(node.getLocation())
+                    .location(node.location())
                     .isPublic(false);
             node.table.put(arg, builder.build());
         }
@@ -204,12 +204,12 @@ public class ResolveVisitor extends IdentityVisitor {
     public void visit(IdentifierNode node) {
 
         // Lookup the info record
-        ValueInfo info = valueTables.peek().lookup(node.getName());
+        ValueInfo info = valueTables.peek().lookup(node.name());
 
         // Check that it exists
         if (info == null) {
             if (!node.isResolved()) {
-                visitorThrow(node.getLocation(), "Identifier '%s' unknown", node.getName());
+                visitorThrow(node.location(), "Identifier '%s' unknown", node.name());
             }
         } else {
             // Store the record in the identifier
@@ -224,13 +224,13 @@ public class ResolveVisitor extends IdentityVisitor {
 
         if (node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
-            if (id.getInfo().definition().isPresent()) {
-                ValueDefinition def = (ValueDefinition) id.getInfo().definition().get();
+            if (id.info().definition().isPresent()) {
+                ValueDefinition def = (ValueDefinition) id.info().definition().get();
                 if (def.body instanceof LambdaNode) {
                     LambdaNode lambda = (LambdaNode) def.body;
                     if (lambda.arguments.size() != node.arguments.size()) {
                         throw new RuntimeException("Cannot resolve",
-                                new PacioliException(node.getLocation(),
+                                new PacioliException(node.location(),
                                         "Number of arguments %s do not match required %s",
                                         node.arguments.size(),
                                         lambda.arguments.size()));
@@ -248,7 +248,7 @@ public class ResolveVisitor extends IdentityVisitor {
     public void visit(AssignmentNode node) {
 
         // Find the info. It should have been created in a statement node.
-        ValueInfo info = valueTables.peek().lookup(node.var.getName());
+        ValueInfo info = valueTables.peek().lookup(node.var.name());
         assert (info != null);
 
         // Store the info in the variable and resolve the value
@@ -288,7 +288,7 @@ public class ResolveVisitor extends IdentityVisitor {
                         // Hack to handle dynamic index sets
                         return null;
                     }
-                    sets.add(indexSetInfo.definition().get().getIndexSet());
+                    sets.add(indexSetInfo.definition().get().indexSet());
                 } else {
                     throw new RuntimeException(String.format("%s", id.name));
                 }
@@ -343,7 +343,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
         // Check that the dimensions exist
         if (node.rowDim == null || node.columnDim == null) {
-            visitorThrow(node.typeNode.getLocation(), "Expected a closed matrix type");
+            visitorThrow(node.typeNode.location(), "Expected a closed matrix type");
         }
     }
 
@@ -367,7 +367,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
         // Check that the dimensions exist
         if (node.rowDim == null || node.columnDim == null) {
-            visitorThrow(node.typeNode.getLocation(), "Expected a closed matrix type");
+            visitorThrow(node.typeNode.location(), "Expected a closed matrix type");
         }
     }
 
@@ -405,23 +405,23 @@ public class ResolveVisitor extends IdentityVisitor {
         // Find all assigned variables
         for (IdentifierNode id : node.body.locallyAssignedVariables()) {
 
-            ValueInfo info = node.table.lookupLocally(id.getName());
+            ValueInfo info = node.table.lookupLocally(id.name());
 
             // Create a value info record for the mutable (IsRef == true) variable
             if (info == null) {
                 info = ValueInfo.builder()
-                        .name(id.getName())
+                        .name(id.name())
                         .file(file)
                         .isGlobal(false)
                         .isMonomorphic(false)
-                        .location(id.getLocation())
+                        .location(id.location())
                         .isPublic(false)
                         .isRef(true)
                         .build();
 
                 // If it shadows another value then remember that for initialization in
                 // generated code
-                ValueInfo shadowedInfo = valueTables.peek().lookup(id.getName());
+                ValueInfo shadowedInfo = valueTables.peek().lookup(id.name());
                 // TODO: fix shadowing. The test !shadowedInfo.isGlobal() below prevents a
                 // shadowing issue with names
                 // like rows and pi in fourier_motzkin. Turn off uncertainQuickSolution and run
@@ -429,11 +429,11 @@ public class ResolveVisitor extends IdentityVisitor {
                 // to reproduce the error.
                 boolean uncertainQuickSolution = true;
                 if (shadowedInfo != null && (uncertainQuickSolution && !shadowedInfo.isGlobal())) {
-                    node.shadowed.put(id.getName(), shadowedInfo);
+                    node.shadowed.put(id.name(), shadowedInfo);
                 }
 
                 // Put the info in the symbol table
-                node.table.put(id.getName(), info);
+                node.table.put(id.name(), info);
             }
         }
 
@@ -443,7 +443,7 @@ public class ResolveVisitor extends IdentityVisitor {
                 .file(file)
                 .isGlobal(false)
                 .isMonomorphic(false)
-                .location(node.getLocation())
+                .location(node.location())
                 .isPublic(false)
                 .build();
         node.table.put(resultName, info);
@@ -469,7 +469,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
         // Find the info. It should have been created in a statement node.
         for (IdentifierNode var : node.vars) {
-            ValueInfo info = valueTables.peek().lookup(var.getName());
+            ValueInfo info = valueTables.peek().lookup(var.name());
             assert (info != null);
 
             // Store the info in the variable and resolve the value
@@ -500,7 +500,7 @@ public class ResolveVisitor extends IdentityVisitor {
         Info indexSetInfo = typeTables.peek().lookup(node.indexSetName());
         if (indexSetInfo == null) {
             throw new RuntimeException("Name error",
-                    new PacioliException(node.getLocation(), "Index set %s unknown", node.indexSetName()));
+                    new PacioliException(node.location(), "Index set %s unknown", node.indexSetName()));
         }
         node.indexSet.info = indexSetInfo;
 
@@ -510,7 +510,7 @@ public class ResolveVisitor extends IdentityVisitor {
             Info unitInfo = typeTables.peek().lookup(fullName);
             if (unitInfo == null) {
                 throw new RuntimeException("Name error",
-                        new PacioliException(node.getLocation(), "Vector unit %s unknown", fullName));
+                        new PacioliException(node.location(), "Vector unit %s unknown", fullName));
             }
             node.unit.get().info = unitInfo;
         }
@@ -518,7 +518,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(SchemaNode node) {
-        pushTypeContext(node.createContext(), node.getLocation());
+        pushTypeContext(node.createContext(), node.location());
         node.table = typeTables.peek();
         node.type.accept(this);
         typeTables.pop();
@@ -565,12 +565,12 @@ public class ResolveVisitor extends IdentityVisitor {
     public void visit(TypeIdentifierNode node) {
 
         // Find the node's name
-        String name = node.getName();
+        String name = node.name();
 
         // Lookup the name in the symbol table stack and check it's existence
         Info typeInfo = typeTables.peek().lookup(name);
         if (typeInfo == null) {
-            visitorThrow(node.getLocation(), "Type identifier %s unknown", name);
+            visitorThrow(node.location(), "Type identifier %s unknown", name);
         }
 
         node.info = typeInfo;
@@ -604,11 +604,11 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(UnitIdentifierNode node) {
-        TypeInfo symbolInfo = typeTables.peek().lookup(node.getName());
+        TypeInfo symbolInfo = typeTables.peek().lookup(node.name());
         UnitInfo unitInfo = (UnitInfo) symbolInfo;
         if (unitInfo == null) {
             throw new RuntimeException("Name error",
-                    new PacioliException(node.getLocation(), "unit %s unknown", node.getName()));
+                    new PacioliException(node.location(), "unit %s unknown", node.name()));
         }
         node.info = unitInfo;
     }
@@ -632,7 +632,7 @@ public class ResolveVisitor extends IdentityVisitor {
                     .file(file)
                     .isGlobal(false)
                     .isMonomorphic(false)
-                    .location(node.getLocation())
+                    .location(node.location())
                     .isPublic(false)
                     .build();
 

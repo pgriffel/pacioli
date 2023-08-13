@@ -85,7 +85,7 @@ public class Pacioli {
         try {
             handleArgs(args);
         } catch (PacioliException ex) {
-            println("\nPacioli error:\n\n%s\n", ex.getLocatedMessage());
+            println("\nPacioli error:\n\n%s\n", ex.messageWithLocation());
         } catch (RuntimeException ex) {
             if (ex.getCause() == null) {
                 println("\nUnexpected error:\n\n");
@@ -94,7 +94,7 @@ public class Pacioli {
                 Throwable cause = ex.getCause();
                 if (cause instanceof PacioliException) {
                     println("\nPacioli error:\n\n%s\n\n%s\n", ex.getLocalizedMessage(),
-                            ((PacioliException) cause).getLocatedMessage());
+                            ((PacioliException) cause).messageWithLocation());
                 } else if (cause instanceof MVMException) {
                     println("\nMVM error:\n\n%s\n", cause.getMessage());
                 } else {
@@ -346,7 +346,7 @@ public class Pacioli {
 
         PacioliFile file = optionalFile.get();
 
-        log("Displaying types for file '%s'\n", file.getFile());
+        log("Displaying types for file '%s'\n", file.fsFile());
 
         try {
             Project.load(file, libs).loadBundle().printTypes(rewriteTypes, includePrivate, false);
@@ -377,7 +377,7 @@ public class Pacioli {
             Project project = Project.load(file, libs);
             List<File> includes = new ArrayList<>();
             project.includeTree(file).forEach(x -> {
-                includes.add(x.getFile());
+                includes.add(x.fsFile());
             });
             project.loadBundle().printAPI(includes, "dev"); // TODO: version, see above
 
@@ -402,7 +402,7 @@ public class Pacioli {
 
         Integer version = 0;
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
-        String kind = settings.getKind();
+        String kind = settings.kind();
 
         if (!optionalFile.isPresent()) {
             throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);
@@ -453,13 +453,13 @@ public class Pacioli {
         try {
             Project project = Project.load(file.get(), libs);
 
-            List<PacioliFile> modifiedFiles = project.modifiedFiles(settings.getTarget());
+            List<PacioliFile> modifiedFiles = project.modifiedFiles(settings.target());
             if (modifiedFiles.size() > 0) {
                 Pacioli.logIf(Pacioli.Options.showModifiedFiles, "Found modified files");
                 for (PacioliFile modified : modifiedFiles) {
-                    Pacioli.logIf(Pacioli.Options.showModifiedFiles, "    %s", modified.getFile());
+                    Pacioli.logIf(Pacioli.Options.showModifiedFiles, "    %s", modified.fsFile());
                 }
-                log("Compiling file '%s'", file.get().getFile());
+                log("Compiling file '%s'", file.get().fsFile());
                 bundle(project, settings);
             }
             Path mvmFile = project.bundlePath(Target.MVM);
@@ -467,7 +467,7 @@ public class Pacioli {
             interpretMVMText(mvmFile.toFile(), libs);
 
         } catch (IOException e) {
-            throw new PacioliException("Cannot run file '%s':\n\n%s", file.get().getFile().getPath(), e);
+            throw new PacioliException("Cannot run file '%s':\n\n%s", file.get().fsFile().getPath(), e);
         }
     }
 
@@ -489,7 +489,7 @@ public class Pacioli {
 
             PacioliFile file = optionalFile.get();
 
-            log("Displaying symbol tables for file '%s'", file.getFile());
+            log("Displaying symbol tables for file '%s'", file.fsFile());
 
             try {
                 Project project = Project.load(file, libs);
@@ -565,7 +565,7 @@ public class Pacioli {
      */
     private static Path bundle(Project project, CompilationSettings settings) throws Exception {
 
-        Path dstPath = project.bundlePath(settings.getTarget());
+        Path dstPath = project.bundlePath(settings.target());
 
         Bundle bundle = project.loadBundle();
 

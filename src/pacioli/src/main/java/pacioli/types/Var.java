@@ -24,5 +24,5 @@ public interface Var extends Printable {
      * 
      * @return The info for the variable
      */
-    Info getInfo();
+    Info info();
 }

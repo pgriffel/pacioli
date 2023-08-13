@@ -30,12 +30,12 @@ public class UsesVisitor extends IdentityVisitor {
 
     @Override
     public void visit(IdentifierNode node) {
-        if (node.getName().equals("nmode") || node.getInfo().definition().isPresent()
-                || node.getInfo().declaredType().isPresent() || !node.getInfo().isGlobal()) {
-            infos.add(node.getInfo());
+        if (node.name().equals("nmode") || node.info().definition().isPresent()
+                || node.info().declaredType().isPresent() || !node.info().isGlobal()) {
+            infos.add(node.info());
         } else {
-            throw new RuntimeException("Visit error", new PacioliException(node.getLocation(),
-                    "Definition or declaration missing for '%s'", node.getName()));
+            throw new RuntimeException("Visit error", new PacioliException(node.location(),
+                    "Definition or declaration missing for '%s'", node.name()));
         }
     }
 

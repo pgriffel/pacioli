@@ -89,7 +89,7 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
     }
 
     @Override
-    public VectorBaseInfo getInfo() {
+    public VectorBaseInfo info() {
         if (info.isPresent()) {
             return info.get();
         } else {
@@ -112,7 +112,7 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
         return name;
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 

@@ -78,7 +78,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         this.info = info;
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 

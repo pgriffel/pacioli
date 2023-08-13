@@ -59,7 +59,7 @@ public class Schema extends AbstractType {
         visitor.visit(this);
     }
 
-    public TypeObject getType() {
+    public TypeObject type() {
         return type;
     }
 
@@ -93,8 +93,8 @@ public class Schema extends AbstractType {
                 location = v.info.map(x -> x.location()).orElse(new Location());
                 kind = Kind.TYPE;
             } else if (var instanceof OperatorVar v) {
-                sinfo = v.info().orElse(null);
-                location = v.info().map(x -> x.location()).orElse(new Location());
+                sinfo = v.info();
+                location = v.info().location();
                 kind = Kind.OP;
             } else {
                 throw new RuntimeException("Unknown quantifier: " + var.getClass());

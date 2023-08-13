@@ -65,7 +65,7 @@ public class Project {
      * @return The path corresponding with the target
      */
     public Path bundlePath(Target target) {
-        return Paths.get(FilenameUtils.removeExtension(this.file.getFile().getPath()) + "."
+        return Paths.get(FilenameUtils.removeExtension(this.file.fsFile().getPath()) + "."
                 + PacioliFile.targetFileExtension(target));
     }
 
@@ -80,7 +80,7 @@ public class Project {
     public List<PacioliFile> modifiedFiles(Target target) {
         List<PacioliFile> files = new ArrayList<>();
         for (PacioliFile file : graph.vertexSet()) {
-            if (file.getFile().lastModified() > bundlePath(target).toFile().lastModified()) {
+            if (file.fsFile().lastModified() > bundlePath(target).toFile().lastModified()) {
                 files.add(file);
             }
         }
@@ -182,13 +182,13 @@ public class Project {
         Pacioli.println("\nLibrary dependencies:");
         for (PacioliFile node : graph.vertexSet().stream()
                 .collect(Collectors.filtering(x -> x.isLibrary() && !x.isInclude(), Collectors.toSet()))) {
-            Pacioli.println("%-40s %-40s", node.getModule(), node.getFile());
+            Pacioli.println("%-40s %-40s", node.module(), node.fsFile());
             Iterator<PacioliFile> iterator = new DepthFirstIterator<PacioliFile, DefaultEdge>(
                     new EdgeReversedGraph<PacioliFile, DefaultEdge>(includesOnly), node);
             while (iterator.hasNext()) {
                 PacioliFile file = iterator.next();
-                Pacioli.println("- %-40s %-10s %-10s", file.getModule(), file.isLibrary() ? "lib" : "usr",
-                        file.getFile());
+                Pacioli.println("- %-40s %-10s %-10s", file.module(), file.isLibrary() ? "lib" : "usr",
+                        file.fsFile());
 
             }
             Pacioli.println("\n");
@@ -196,7 +196,7 @@ public class Project {
 
         Pacioli.println("\nProject files depth first:");
         orderedFiles().forEach(file -> {
-            Pacioli.println("- %-40s %-10s %-10s", file.getModule(), file.isLibrary() ? "lib" : "usr", file.getFile());
+            Pacioli.println("- %-40s %-10s %-10s", file.module(), file.isLibrary() ? "lib" : "usr", file.fsFile());
         });
 
         Pacioli.println("\n");
@@ -242,7 +242,7 @@ public class Project {
         for (PacioliFile lib : graph.vertexSet().stream()
                 .collect(Collectors.filtering(x -> allLibs.contains(x), Collectors.toSet()))) {
             for (PacioliFile file : includeTree(lib)) {
-                modules.add(file.getModule());
+                modules.add(file.module());
             }
         }
 
@@ -255,7 +255,7 @@ public class Project {
 
         // Locate all included files and collect the module names
         for (PacioliFile include : findIncludes(file, programNode)) {
-            modules.add(include.getModule());
+            modules.add(include.module());
         }
 
         return modules;
@@ -297,7 +297,7 @@ public class Project {
             if (!done.contains(current)) {
 
                 // Load the current file
-                ProgramNode programNode = Parser.parseFile(current.getFile());
+                ProgramNode programNode = Parser.parseFile(current.fsFile());
 
                 // Add the current file to the graph if not already found by some include
                 if (!graph.containsVertex(current)) {
@@ -307,8 +307,8 @@ public class Project {
                 // Locate the imports. Add the base lib unless this is the base lib. Add the
                 // standard lib unless this is the base lib or the standard lib
                 ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>(findImports(programNode, libs));
-                boolean isBase = current.getFile().toPath().startsWith(base.getFile().getParentFile().toPath());
-                boolean isStandard = current.getFile().toPath().startsWith(standard.getFile().getParentFile().toPath());
+                boolean isBase = current.fsFile().toPath().startsWith(base.fsFile().getParentFile().toPath());
+                boolean isStandard = current.fsFile().toPath().startsWith(standard.fsFile().getParentFile().toPath());
                 if (!isBase) {
                     allLibs.add(base);
                 }
@@ -374,7 +374,7 @@ public class Project {
             String name = node.name.valueString();
             Optional<PacioliFile> library = PacioliFile.findLibrary(name, libs);
             if (!library.isPresent()) {
-                throw new PacioliException(node.getLocation(),
+                throw new PacioliException(node.location(),
                         "Import '%s' not found in directories %s",
                         name, libs);
             } else {
@@ -399,7 +399,7 @@ public class Project {
             String name = node.name.valueString();
             Optional<PacioliFile> pacioliFile = file.findInclude(name);
             if (!pacioliFile.isPresent()) {
-                throw new PacioliException(node.getLocation(),
+                throw new PacioliException(node.location(),
                         "Include '%s' for file '%s' not found",
                         name, file);
             } else {

@@ -8,11 +8,11 @@ public class RewriteOverloads extends IdentityVisitor {
 
     public void visit(ApplicationNode node) {
         if (node.hasId()) {
-            if (node.getId().getInfo().typeClass().isPresent()) {
+            if (node.id().info().typeClass().isPresent()) {
                 Pacioli.logIf(Pacioli.Options.showClassRewriting,
-                        "Rewriting call to overloaded function %s of class %s. Type is %s", node.getId().getName(),
-                        node.getId().getInfo().typeClass().get().name(),
-                        node.getId().getInfo().publicType().pretty());
+                        "Rewriting call to overloaded function %s of class %s. Type is %s", node.id().name(),
+                        node.id().info().typeClass().get().name(),
+                        node.id().info().publicType().pretty());
             }
         }
         // returnNode(node);

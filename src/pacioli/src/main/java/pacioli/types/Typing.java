@@ -82,7 +82,7 @@ public class Typing extends AbstractPrintable {
         }
     }
 
-    public TypeObject getType() {
+    public TypeObject type() {
         return type;
     }
 

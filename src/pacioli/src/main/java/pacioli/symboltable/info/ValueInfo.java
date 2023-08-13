@@ -44,7 +44,7 @@ public class ValueInfo extends AbstractInfo {
 
     @Override
     public String globalName() {
-        return String.format("%s_%s", generalInfo().getModule(), name());
+        return String.format("%s_%s", generalInfo().module(), name());
     }
 
     public static String global(String module, String name) {

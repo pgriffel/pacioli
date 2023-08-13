@@ -36,7 +36,7 @@ public class FunctionTypeNode extends AbstractTypeNode {
     }
 
     public FunctionTypeNode transform(TypeNode domain, TypeNode range) {
-        return new FunctionTypeNode(getLocation(), domain, range);
+        return new FunctionTypeNode(location(), domain, range);
     }
 
     @Override

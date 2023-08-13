@@ -39,7 +39,7 @@ public class CompilationSettings {
     public CompilationSettings() {
     }
 
-    public Target getTarget() {
+    public Target target() {
         return target;
     }
 
@@ -47,7 +47,7 @@ public class CompilationSettings {
         this.target = target;
     }
 
-    public String getKind() {
+    public String kind() {
         return kind;
     }
 

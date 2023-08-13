@@ -173,7 +173,7 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(Toplevel node) {
         // returnNode(node);
-        returnNode(new Toplevel(node.getLocation(), expAccept(node.body)));
+        returnNode(new Toplevel(node.location(), expAccept(node.body)));
     }
 
     @Override
@@ -206,7 +206,7 @@ public class IdentityTransformation implements Visitor {
         for (TypeAssertion member : node.members) {
             members.add((TypeAssertion) nodeAccept(member));
         }
-        returnNode(new ClassDefinition(node.getLocation(), (TypeApplicationNode) nodeAccept(node.type), contextNodes,
+        returnNode(new ClassDefinition(node.location(), (TypeApplicationNode) nodeAccept(node.type), contextNodes,
                 members));
     }
 
@@ -221,7 +221,7 @@ public class IdentityTransformation implements Visitor {
             members.add((ValueEquation) nodeAccept(member));
         }
         returnNode(
-                new InstanceDefinition(node.getLocation(), (TypeApplicationNode) nodeAccept(node.type), contextNodes,
+                new InstanceDefinition(node.location(), (TypeApplicationNode) nodeAccept(node.type), contextNodes,
                         members));
     }
 
@@ -293,7 +293,7 @@ public class IdentityTransformation implements Visitor {
         // returnNode(node);
         TypeNode yo = typeAccept(node.typeNode);
         assert (yo != null);
-        MatrixTypeNode copy = new MatrixTypeNode(node.getLocation(), typeAccept(node.typeNode));
+        MatrixTypeNode copy = new MatrixTypeNode(node.location(), typeAccept(node.typeNode));
         copy.rowDim = node.rowDim;
         copy.columnDim = node.columnDim;
         returnNode(copy);
@@ -462,7 +462,7 @@ public class IdentityTransformation implements Visitor {
             assert (visited instanceof IdentifierNode);
             ids.add((IdentifierNode) id);
         }
-        returnNode(new IdListNode(node.getLocation(), ids));
+        returnNode(new IdListNode(node.location(), ids));
     }
 
     @Override
@@ -472,7 +472,7 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void accept(ValueEquation node) {
-        returnNode(new ValueEquation(node.getLocation(), (IdentifierNode) nodeAccept(node.id), expAccept(node.body)));
+        returnNode(new ValueEquation(node.location(), (IdentifierNode) nodeAccept(node.id), expAccept(node.body)));
     }
 
     @Override
@@ -491,7 +491,7 @@ public class IdentityTransformation implements Visitor {
         TypeNode type = (TypeNode) nodeAccept(node.type);
 
         // Create the transformed node
-        returnNode(new TypeAssertion(node.getLocation(), id, contextNodes, type));
+        returnNode(new TypeAssertion(node.location(), id, contextNodes, type));
     }
 
     @Override
@@ -508,7 +508,7 @@ public class IdentityTransformation implements Visitor {
             assert (visited instanceof TypeApplicationNode);
             conditions.add((TypeApplicationNode) visited);
         }
-        returnNode(new ContextNode(node.getLocation(), node.kind, ids, conditions));
+        returnNode(new ContextNode(node.location(), node.kind, ids, conditions));
     }
 
 }

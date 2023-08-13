@@ -39,7 +39,7 @@ import pacioli.misc.CompilationSettings.Target;
  */
 public class PacioliFile extends AbstractPrintable {
 
-    private final File file;
+    private final File fsFile;
     public final String modulePath;
     public final String module;
     private final Integer version;
@@ -54,7 +54,7 @@ public class PacioliFile extends AbstractPrintable {
     private PacioliFile(File file, String modulePath, String module, Integer version, Boolean isInclude,
             Boolean isLibrary) {
         assert (!module.contains("."));
-        this.file = file.getAbsoluteFile();
+        this.fsFile = file.getAbsoluteFile();
         this.modulePath = modulePath;
         this.module = module;
         this.version = version;
@@ -93,16 +93,16 @@ public class PacioliFile extends AbstractPrintable {
         return get(new File(file), version);
     }
 
-    public String getModule() {
+    public String module() {
         return modulePath.isEmpty() ? module : modulePath + "_" + module;
     }
 
-    public Integer getVersion() {
+    public Integer version() {
         return version;
     }
 
-    public File getFile() {
-        return file;
+    public File fsFile() {
+        return fsFile;
     }
 
     public Boolean isInclude() {
@@ -132,7 +132,7 @@ public class PacioliFile extends AbstractPrintable {
             Arrays.asList("base", "standard"));
 
     public Optional<PacioliFile> findInclude(String name) {
-        File include = new File(file.getParentFile(), name + ".pacioli");
+        File include = new File(fsFile.getParentFile(), name + ".pacioli");
 
         if (include.exists()) {
             String[] parts = name.split("/");
@@ -245,12 +245,12 @@ public class PacioliFile extends AbstractPrintable {
                 isInclude ? "include" : "file",
                 module,
                 version,
-                file);
+                fsFile);
     }
 
     @Override
     public int hashCode() {
-        return file.hashCode();
+        return fsFile.hashCode();
     }
 
     @Override
@@ -262,7 +262,7 @@ public class PacioliFile extends AbstractPrintable {
             return false;
         }
         PacioliFile otherPacioliFile = (PacioliFile) other;
-        return this.file.equals(otherPacioliFile.file);
+        return this.fsFile.equals(otherPacioliFile.fsFile);
     }
 
     public boolean isSystemLibrary(String name) {

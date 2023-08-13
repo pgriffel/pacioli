@@ -40,7 +40,7 @@ public class IndexType extends AbstractType {
         indexSet = type;
     }
 
-    public TypeObject getIndexSet() {
+    public TypeObject indexSet() {
         return indexSet;
     }
 
@@ -104,7 +104,7 @@ public class IndexType extends AbstractType {
         if (isVar()) {
             throw new RuntimeException("Method not available for an index variable");
         } else {
-            return indexList().getIndexSets();
+            return indexList().indexSets();
         }
     }
 

@@ -33,7 +33,7 @@ public abstract class AbstractNode implements Node {
     }
 
     @Override
-    public Location getLocation() {
+    public Location location() {
         return location;
     }
 

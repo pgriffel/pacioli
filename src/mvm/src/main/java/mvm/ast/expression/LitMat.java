@@ -26,7 +26,7 @@ public class LitMat extends AbstractPrintable implements Expression {
 
     @Override
     public PacioliValue eval(Environment environment) throws MVMException {
-        Matrix matrix = new Matrix(shape.eval(environment.getMachine()));
+        Matrix matrix = new Matrix(shape.eval(environment.machine()));
         for (int i = 0; i < values.size(); i++) {
             Integer r = Integer.parseInt(rows.get(i));
             Integer c = Integer.parseInt(columns.get(i));

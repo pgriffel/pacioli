@@ -28,7 +28,7 @@ public class ConversionNode extends AbstractExpressionNode {
     }
 
     public ConversionNode(ConversionNode old) {
-        super(old.getLocation());
+        super(old.location());
         this.typeNode = old.typeNode;
     }
 
@@ -40,7 +40,7 @@ public class ConversionNode extends AbstractExpressionNode {
     }
 
     public Node transform(TypeNode typeNode) {
-        ConversionNode copy = new ConversionNode(getLocation(), typeNode, bang, type);
+        ConversionNode copy = new ConversionNode(location(), typeNode, bang, type);
         copy.rowDim = rowDim;
         copy.columnDim = columnDim;
         return copy;
@@ -51,7 +51,7 @@ public class ConversionNode extends AbstractExpressionNode {
         if (type instanceof MatrixType) {
             return (MatrixType) type;
         } else {
-            throw new PacioliException(typeNode.getLocation(), "Expected a matrix type");
+            throw new PacioliException(typeNode.location(), "Expected a matrix type");
         }
     }
 

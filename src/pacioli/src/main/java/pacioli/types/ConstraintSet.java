@@ -308,7 +308,7 @@ public class ConstraintSet extends AbstractPrintable {
                     try {
                         tensorType = (MatrixType) tensor;
                     } catch (Exception ex) {
-                        throw new PacioliException(node.getLocation(),
+                        throw new PacioliException(node.location(),
                                 "First argument of nmode must have a valid matrix type: %s",
                                 ex.getMessage());
                     }
@@ -317,7 +317,7 @@ public class ConstraintSet extends AbstractPrintable {
                     try {
                         matrixType = (MatrixType) matrix;
                     } catch (Exception ex) {
-                        throw new PacioliException(node.arguments.get(2).getLocation(),
+                        throw new PacioliException(node.arguments.get(2).location(),
                                 "Third argument of nmode must be a valid matrix type");
                     }
 
@@ -326,9 +326,9 @@ public class ConstraintSet extends AbstractPrintable {
                     for (int i = 0; i < tensorType.rowDimension.width(); i++) {
                         Optional<IndexSetDefinition> def = tensorType.rowDimension.nthIndexSetInfo(i).definition();
                         if (def.isPresent()) {
-                            shape.add(def.get().getItems().size());
+                            shape.add(def.get().items().size());
                         } else {
-                            new PacioliException(node.arguments.get(0).getLocation(),
+                            new PacioliException(node.arguments.get(0).location(),
                                     "Index set %s has no known size", i);
                         }
                     }

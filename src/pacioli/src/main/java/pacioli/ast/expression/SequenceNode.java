@@ -36,7 +36,7 @@ public class SequenceNode extends AbstractExpressionNode {
     }
 
     public SequenceNode transform(List<ExpressionNode> items) {
-        return new SequenceNode(getLocation(), items);
+        return new SequenceNode(location(), items);
     }
 
     @Override

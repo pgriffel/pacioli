@@ -16,7 +16,7 @@ public class TypePerNode extends AbstractTypeNode {
     }
 
     public Node transform(TypeNode left, TypeNode right) {
-        return new TypePerNode(getLocation(), left, right);
+        return new TypePerNode(location(), left, right);
     }
 
     @Override

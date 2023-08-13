@@ -83,16 +83,16 @@ public class Bundle {
             Collection<String> includedModules) {
         SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>();
         environment.values.allInfos().forEach(info -> {
-            if (info.isPublic() && importedModules.contains(info.generalInfo().getModule())) {
+            if (info.isPublic() && importedModules.contains(info.generalInfo().module())) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Importing %s", info.name());
                 table.put(info.name(), info);
             }
-            if (includedModules.contains(info.generalInfo().getModule())) {
+            if (includedModules.contains(info.generalInfo().module())) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Including %s", info.name());
                 table.put(info.name(), info);
             }
-            if (!(info.isPublic() && importedModules.contains(info.generalInfo().getModule())) &&
-                    !includedModules.contains(info.generalInfo().getModule())) {
+            if (!(info.isPublic() && importedModules.contains(info.generalInfo().module())) &&
+                    !includedModules.contains(info.generalInfo().module())) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Skipping %s", info.name());
             }
         });
@@ -104,7 +104,7 @@ public class Bundle {
             Collection<String> includedModules) {
         SymbolTable<TypeInfo> table = new SymbolTable<TypeInfo>();
         environment.types.allInfos().forEach(info -> {
-            String infoModule = info.generalInfo().getModule();
+            String infoModule = info.generalInfo().module();
             if ((info.isPublic() || info instanceof UnitInfo) && importedModules.contains(infoModule)
                     || includedModules.contains(infoModule)) {
                 Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(),
@@ -174,14 +174,14 @@ public class Bundle {
 
     public void generateCode(PrintWriter writer, CompilationSettings settings) {
 
-        Pacioli.trace("Generating code for %s", this.file.getModule());
+        Pacioli.trace("Generating code for %s", this.file.module());
 
         // Declare a compiler (symbol table visitor) instance
         Printer printer = new Printer(writer);
         SymbolTableVisitor compiler;
         CodeGenerator gen;
 
-        switch (settings.getTarget()) {
+        switch (settings.target()) {
             case JS:
                 gen = new JSGenerator(new Printer(writer), settings, false);
                 compiler = new JSCompiler(printer, settings);
@@ -253,14 +253,14 @@ public class Bundle {
 
         // Generate code for the toplevels
         for (Toplevel def : environment.toplevels) {
-            if (def.getLocation().getFile().equals(file.getFile())) {
-                if (settings.getTarget() == Target.MVM ||
-                        settings.getTarget() == Target.MATLAB) {
+            if (def.location().file().equals(file.fsFile())) {
+                if (settings.target() == Target.MVM ||
+                        settings.target() == Target.MATLAB) {
                     printer.newline();
                     def.accept(gen);
                     printer.newline();
                 }
-                if (settings.getTarget() == Target.PYTHON) {
+                if (settings.target() == Target.PYTHON) {
                     printer.newline();
                     printer.write("glbl_base_print(");
                     def.accept(gen);
@@ -279,7 +279,7 @@ public class Bundle {
 
         for (String value : names) {
             ValueInfo info = environment.values.lookup(value);
-            boolean fromProgram = info.generalInfo().getModule().equals(file.getModule());
+            boolean fromProgram = info.generalInfo().module().equals(file.module());
             if (fromProgram && info.definition().isPresent() && (true || info.isUserDefined())) {
                 // Pacioli.println("%s =", info.name());
                 Pacioli.print("\n\n%s;", info.definition().get().pretty());
@@ -299,7 +299,7 @@ public class Bundle {
 
         for (String value : names) {
             ValueInfo info = environment.values.lookup(value);
-            boolean fromProgram = info.generalInfo().getModule().equals(file.getModule());
+            boolean fromProgram = info.generalInfo().module().equals(file.module());
             if ((includePrivate || info.isPublic()) && fromProgram && info.definition().isPresent()
                     && info.isUserDefined()) {
                 TypeObject type = rewriteTypes ? info.localType() : info.publicType();
@@ -339,7 +339,7 @@ public class Bundle {
         for (String name : environment.values.allNames()) {
             ValueInfo info = environment.values.lookup(name);
             if (info.isPublic()
-                    && includes.contains(info.location().getFile())
+                    && includes.contains(info.location().file())
                     && info.definition().isPresent()
                     && info.isUserDefined()) {
                 ExpressionNode body = info.definition().get().body;
@@ -355,7 +355,7 @@ public class Bundle {
 
         for (String name : environment.types.allNames()) {
             TypeInfo info = environment.types.lookup(name);
-            if (includes.contains(info.location().getFile())
+            if (includes.contains(info.location().file())
                     && info.definition().isPresent() && info.isPublic()) {
                 if (info instanceof ParametricInfo def) {
                     generator.addType(info.name(),
@@ -381,7 +381,7 @@ public class Bundle {
         for (String name : allTypeNames) {
             TypeInfo typeInfo = environment.types.lookup(name);
             if (typeInfo instanceof ParametricInfo info) {
-                Pacioli.println("%-25s %-25s", info.name(), info.generalInfo().getModule());
+                Pacioli.println("%-25s %-25s", info.name(), info.generalInfo().module());
             }
         }
 
@@ -390,7 +390,7 @@ public class Bundle {
         for (String name : allTypeNames) {
             TypeInfo typeInfo = environment.types.lookup(name);
             if (typeInfo instanceof ClassInfo info) {
-                Pacioli.println("%-25s %-25s %-25s", info.name(), info.generalInfo().getModule(),
+                Pacioli.println("%-25s %-25s %-25s", info.name(), info.generalInfo().module(),
                         info.instances().size());
             }
         }
@@ -417,7 +417,7 @@ public class Bundle {
 
             Pacioli.println("%-25s %-25s %-10s %-10s %-10s %-10s %-10s %-10s %-30s",
                     info.name(),
-                    info.generalInfo().getModule(),
+                    info.generalInfo().module(),
                     info.isGlobal() ? "global" : "local",
                     info.isPublic() ? "public" : "private",
                     info.typeClass().isPresent() ? "overload" : "single",
@@ -455,7 +455,7 @@ public class Bundle {
         if (!finished.contains(info)) {
 
             if (discovered.contains(info)) {
-                throw new PacioliException(def.getLocation(), "Cycle in definition " + info.name());
+                throw new PacioliException(def.location(), "Cycle in definition " + info.name());
             }
             discovered.add(info);
             // Pacioli.log("uses %s %s %s", info.globalName(), info.getClass(), def.uses());

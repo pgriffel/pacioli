@@ -33,7 +33,7 @@ public final class VectorBaseInfo extends UnitInfo {
         this.items = items;
         this.units = new HashMap<String, UnitDecl>();
         for (UnitDecl decl : items) {
-            units.put(decl.key.getName(), decl);
+            units.put(decl.key.name(), decl);
         }
     }
 

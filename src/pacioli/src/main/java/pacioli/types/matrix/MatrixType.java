@@ -112,7 +112,7 @@ public class MatrixType extends AbstractType {
         visitor.visit(this);
     }
 
-    public Unit<TypeBase> getFactor() {
+    public Unit<TypeBase> factor() {
         return factor;
     }
 

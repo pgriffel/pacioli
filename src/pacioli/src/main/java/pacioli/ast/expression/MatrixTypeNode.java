@@ -49,7 +49,7 @@ public class MatrixTypeNode extends AbstractExpressionNode {
         if (type instanceof MatrixType) {
             return (MatrixType) type;
         } else {
-            throw new PacioliException(typeNode.getLocation(), "Expected a matrix type");
+            throw new PacioliException(typeNode.location(), "Expected a matrix type");
         }
     }
 

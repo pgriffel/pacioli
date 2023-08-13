@@ -43,13 +43,13 @@ public class JSGenerator implements TypeVisitor {
     public void visit(IndexList type) {
         out.write("new Pacioli.IndexType([");
         String pre = "";
-        for (int i = 0; i < type.getIndexSets().size(); i++) {
+        for (int i = 0; i < type.indexSets().size(); i++) {
             out.write(pre);
             // out.write("Pacioli.fetchIndex('");
             out.write("'");
-            out.write(type.getIndexSets().get(i).home);
+            out.write(type.indexSets().get(i).home);
             out.write("_");
-            out.write(type.getIndexSets().get(i).name);
+            out.write(type.indexSets().get(i).name);
             // out.write("')");
             out.write("'");
             pre = ", ";
@@ -97,7 +97,7 @@ public class JSGenerator implements TypeVisitor {
 
     @Override
     public void visit(ParametricType type) {
-        String name = type.getName();
+        String name = type.name();
         if (name.equals("Boole")) {
             out.write("new Pacioli.GenericType('Boole', [])");
         } else if (name.equals("String")) {

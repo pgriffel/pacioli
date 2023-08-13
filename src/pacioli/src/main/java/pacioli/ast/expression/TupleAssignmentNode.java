@@ -38,7 +38,7 @@ public class TupleAssignmentNode extends AbstractExpressionNode {
     }
 
     public TupleAssignmentNode(TupleAssignmentNode node, ExpressionNode tuple) {
-        super(node.getLocation());
+        super(node.location());
         this.vars = node.vars;
         this.tuple = tuple;
     }

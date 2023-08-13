@@ -26,6 +26,6 @@ public class ContextNode extends AbstractTypeNode {
     }
 
     public ContextNode withoutConditions() {
-        return new ContextNode(getLocation(), this.kind, this.ids, new ArrayList<>());
+        return new ContextNode(location(), this.kind, this.ids, new ArrayList<>());
     }
 }

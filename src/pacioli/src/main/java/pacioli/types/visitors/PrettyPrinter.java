@@ -33,7 +33,7 @@ public class PrettyPrinter implements TypeVisitor {
 
     @Override
     public void visit(FunctionType type) {
-        if (type.domain instanceof ParametricType p && p.op.getName().equals("Tuple")) {
+        if (type.domain instanceof ParametricType p && p.op.name().equals("Tuple")) {
             out.write("(");
             out.writeCommaSeparated(p.args, x -> x.accept(this));
             out.write(")");
@@ -66,7 +66,7 @@ public class PrettyPrinter implements TypeVisitor {
 
         out.print("[");
         String sep = "";
-        for (TypeIdentifier id : type.getIndexSets()) {
+        for (TypeIdentifier id : type.indexSets()) {
             out.print(sep);
             out.print(id.name);
             sep = ", ";
@@ -132,27 +132,27 @@ public class PrettyPrinter implements TypeVisitor {
 
     @Override
     public void visit(IndexSetVar type) {
-        out.write(type.getName());
+        out.write(type.name());
     }
 
     @Override
     public void visit(ScalarUnitVar type) {
-        out.write(type.getName());
+        out.write(type.name());
     }
 
     @Override
     public void visit(TypeVar type) {
-        out.write(type.getName());
+        out.write(type.name());
     }
 
     @Override
     public void visit(VectorUnitVar type) {
-        out.write(type.getName());
+        out.write(type.name());
     }
 
     @Override
     public void visit(OperatorConst type) {
-        out.print(type.getName());
+        out.print(type.name());
     }
 
     @Override

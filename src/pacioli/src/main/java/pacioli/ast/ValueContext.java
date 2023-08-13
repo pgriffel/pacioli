@@ -65,7 +65,7 @@ public class ValueContext extends AbstractPrintable {
         refVars.add(var);
     }
 
-    public String getStatementResult() {
+    public String statementResult() {
         return statementResult;
     }
 

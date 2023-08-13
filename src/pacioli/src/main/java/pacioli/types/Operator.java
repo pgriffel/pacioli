@@ -4,7 +4,7 @@ import pacioli.symboltable.info.ParametricInfo;
 
 public sealed interface Operator extends TypeObject permits OperatorConst, OperatorVar {
 
-    String getName();
+    String name();
 
-    ParametricInfo getInfo();
+    ParametricInfo info();
 }

@@ -39,7 +39,7 @@ public class DesugarVisitor extends IdentityTransformation {
             if (def instanceof MultiDeclaration) {
                 MultiDeclaration decl = (MultiDeclaration) def;
                 for (IdentifierNode id : decl.ids) {
-                    noMultis.add(new Declaration(decl.getLocation(), id, decl.node, decl.isPublic));
+                    noMultis.add(new Declaration(decl.location(), id, decl.node, decl.isPublic));
                 }
             } else {
                 noMultis.add(def);
@@ -55,14 +55,14 @@ public class DesugarVisitor extends IdentityTransformation {
             desugared.add((Definition) desugaredNode);
         }
 
-        returnNode(new ProgramNode(node.getLocation(), node.includes, node.imports, node.exports, desugared));
+        returnNode(new ProgramNode(node.location(), node.includes, node.imports, node.exports, desugared));
     }
 
     public void visit(IdListNode node) {
         if (node.ids.size() == 1 && node.ids.get(0) instanceof IdentifierNode) {
             returnNode(node.ids.get(0));
         } else {
-            throw new RuntimeException("Visit error", new PacioliException(node.getLocation(),
+            throw new RuntimeException("Visit error", new PacioliException(node.location(),
                     "Didn't expect tuple destructuring here. Did you mean tuple(...)? Destructuring a tuple is only possible in a let or comprehension, or by applying a function to the tuple."));
         }
     }
@@ -81,20 +81,20 @@ public class DesugarVisitor extends IdentityTransformation {
 
         if (binding instanceof LetTupleBindingNode tup) {
             // The grammar already desugars this, but it is created somewhere else
-            ExpressionNode fun = new LambdaNode(tup.vars, desugaredBody, tup.getLocation());
+            ExpressionNode fun = new LambdaNode(tup.vars, desugaredBody, tup.location());
             returnNode(new ApplicationNode(
-                    new IdentifierNode("apply", tup.getLocation()),
+                    new IdentifierNode("apply", tup.location()),
                     Arrays.asList(fun, (ExpressionNode) nodeAccept(tup.value)),
-                    tup.getLocation()));
+                    tup.location()));
         } else if (binding instanceof LetFunctionBindingNode) {
             // The grammar already desugars this
             throw new RuntimeException("TODO: desugar function let");
         } else if (binding instanceof LetBindingNode bind) {
             LetBindingNode desugaredBinding = new LetBindingNode(
-                    binding.getLocation(),
+                    binding.location(),
                     bind.var,
                     (ExpressionNode) nodeAccept(bind.value));
-            returnNode(new LetNode(Arrays.asList(desugaredBinding), desugaredBody, node.getLocation()));
+            returnNode(new LetNode(Arrays.asList(desugaredBinding), desugaredBody, node.location()));
         } else {
             throw new RuntimeException("Unexpected binding");
         }

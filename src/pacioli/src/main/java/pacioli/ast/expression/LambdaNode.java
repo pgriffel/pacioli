@@ -45,7 +45,7 @@ public class LambdaNode extends AbstractExpressionNode {
     }
 
     public LambdaNode(LambdaNode old, ExpressionNode body) {
-        super(old.getLocation());
+        super(old.location());
         arguments = old.arguments;
         expression = body;
         table = old.table;

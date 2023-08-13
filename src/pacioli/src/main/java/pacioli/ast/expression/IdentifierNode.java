@@ -59,10 +59,10 @@ public class IdentifierNode extends AbstractExpressionNode {
         } else if (id.name.equals("type")) {
             kind = Kind.TYPE;
         } else {
-            throw new PacioliException(id.getLocation(), "Invalid qualifier: %s. Please change to 'value' or 'type'",
+            throw new PacioliException(id.location(), "Invalid qualifier: %s. Please change to 'value' or 'type'",
                     id.name);
         }
-        IdentifierNode node = new IdentifierNode(this.name, kind, this.getLocation());
+        IdentifierNode node = new IdentifierNode(this.name, kind, this.location());
         node.info = this.info;
         return node;
     }
@@ -71,7 +71,7 @@ public class IdentifierNode extends AbstractExpressionNode {
         return Optional.ofNullable(this.kind);
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 
@@ -83,12 +83,12 @@ public class IdentifierNode extends AbstractExpressionNode {
         return this.info != null;
     }
 
-    public ValueInfo getInfo() {
+    public ValueInfo info() {
         if (this.info != null) {
             return this.info;
         } else {
             throw new RuntimeException(
-                    new PacioliException(getLocation(), "Cannot get info, identifier '%s' has not been resolved.",
+                    new PacioliException(location(), "Cannot get info, identifier '%s' has not been resolved.",
                             name));
         }
     }
@@ -102,7 +102,7 @@ public class IdentifierNode extends AbstractExpressionNode {
             return info.isGlobal();
         } else {
             throw new RuntimeException(
-                    new PacioliException(getLocation(), "Cannot get info, identifier '%s' has not been resolved.",
+                    new PacioliException(location(), "Cannot get info, identifier '%s' has not been resolved.",
                             name));
         }
     }
@@ -114,8 +114,8 @@ public class IdentifierNode extends AbstractExpressionNode {
 
     public Kind determineKind(boolean valueExists, boolean typeExists) {
 
-        String name = this.getName();
-        Location location = this.getLocation();
+        String name = this.name();
+        Location location = this.location();
 
         IdentifierNode.Kind kind;
         if (valueExists && typeExists && this.kind().isEmpty()) {

@@ -41,7 +41,7 @@ public class ApplicationNode extends AbstractExpressionNode {
     }
 
     public ApplicationNode(ApplicationNode old, ExpressionNode fun, List<ExpressionNode> args) {
-        super(old.getLocation());
+        super(old.location());
         function = fun;
         arguments = args;
     }
@@ -55,7 +55,7 @@ public class ApplicationNode extends AbstractExpressionNode {
         return function instanceof IdentifierNode;
     }
 
-    public IdentifierNode getId() {
+    public IdentifierNode id() {
         if (function instanceof IdentifierNode) {
             return (IdentifierNode) function;
         } else {
@@ -66,7 +66,7 @@ public class ApplicationNode extends AbstractExpressionNode {
     public Boolean hasName(String name) {
         if (function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) function;
-            return id.getName().equals(name);
+            return id.name().equals(name);
         } else {
             return false;
         }

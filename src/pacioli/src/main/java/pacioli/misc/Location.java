@@ -167,7 +167,7 @@ public class Location {
         }
     }
 
-    public File getFile() {
+    public File file() {
         return file;
     }
 

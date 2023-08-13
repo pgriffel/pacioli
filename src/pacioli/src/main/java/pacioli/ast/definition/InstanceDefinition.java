@@ -72,24 +72,24 @@ public class InstanceDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String getName() {
-        return type.op.getName();
+    public String name() {
+        return type.op.name();
     }
 
     public List<String> memberNames() {
         List<String> names = new ArrayList<>();
         for (ValueEquation assertion : members) {
-            names.add(assertion.id.getName());
+            names.add(assertion.id.name());
         }
         return names;
     }
 
     public ExpressionNode memberBody(String name) {
         for (ValueEquation assertion : members) {
-            if (assertion.id.getName().equals(name)) {
+            if (assertion.id.name().equals(name)) {
                 return assertion.body;
             }
         }
-        throw new PacioliException(getLocation(), String.format("Instance member %s not found", name));
+        throw new PacioliException(location(), String.format("Instance member %s not found", name));
     }
 }

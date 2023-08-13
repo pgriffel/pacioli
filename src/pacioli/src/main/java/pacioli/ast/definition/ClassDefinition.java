@@ -72,14 +72,14 @@ public class ClassDefinition extends AbstractDefinition {
             combinedContextNodes.addAll(this.contextNodesWithoutConditions());
             combinedContextNodes.addAll(assertion.contextNodes);
             this.memberSchemas.put(
-                    assertion.id.getName(),
-                    new SchemaNode(assertion.getLocation(), combinedContextNodes, assertion.type));
+                    assertion.id.name(),
+                    new SchemaNode(assertion.location(), combinedContextNodes, assertion.type));
         }
     }
 
     @Override
-    public String getName() {
-        return type.op.getName();
+    public String name() {
+        return type.op.name();
     }
 
     @Override
@@ -90,7 +90,7 @@ public class ClassDefinition extends AbstractDefinition {
     public List<String> memberNames() {
         List<String> names = new ArrayList<>();
         for (TypeAssertion assertion : members) {
-            names.add(assertion.id.getName());
+            names.add(assertion.id.name());
         }
         return names;
     }

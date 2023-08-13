@@ -43,11 +43,11 @@ public class ReturnNode extends AbstractExpressionNode {
     }
 
     public ExpressionNode transform(ExpressionNode value) {
-        return new ReturnNode(getLocation(), value, resultPlace);
+        return new ReturnNode(location(), value, resultPlace);
     }
 
     public ExpressionNode resolve(ExpressionNode value, IdentifierNode resultPlace) throws PacioliException {
-        return new ReturnNode(getLocation(), value, resultPlace);
+        return new ReturnNode(location(), value, resultPlace);
     }
 
     public ReturnNode(Location location, ExpressionNode value, IdentifierNode resultPlace) {

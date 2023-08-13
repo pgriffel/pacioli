@@ -428,7 +428,7 @@ class CUP$Parser$actions {
 		List<Instruction> c = (List<Instruction>)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		 Program prog = new Program(); 
                                                          for(Identifier req: r) {
-                                                             prog.addRequire(req.getName());
+                                                             prog.addRequire(req.name());
                                                          };
                                                          for(Instruction inst: c) {
                                                              prog.addInstruction(inst);
@@ -645,7 +645,7 @@ class CUP$Parser$actions {
 		int ileft = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).left;
 		int iright = ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()).right;
 		String i = (String)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new Identifier(p.getName() + "/" + i); 
+		 RESULT = new Identifier(p.name() + "/" + i); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("path",7, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

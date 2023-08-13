@@ -51,7 +51,7 @@ public class ValueDefinition extends AbstractDefinition {
     }
 
     public Node transform(ExpressionNode body) {
-        return new ValueDefinition(getLocation(), id, body, isUserDefined);
+        return new ValueDefinition(location(), id, body, isUserDefined);
     }
 
     public boolean isFunction() {
@@ -59,8 +59,8 @@ public class ValueDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String getName() {
-        return id.getName();
+    public String name() {
+        return id.name();
     }
 
     @Override

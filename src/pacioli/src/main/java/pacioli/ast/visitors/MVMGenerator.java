@@ -116,9 +116,9 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         if (settings.isDebugOn() && node.function instanceof IdentifierNode) {
             // if (false && node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
-            String stackText = id.getName();
-            String fullText = node.getLocation().description();
-            boolean traceOn = settings.isTracing(id.getName());
+            String stackText = id.name();
+            String fullText = node.location().description();
+            boolean traceOn = settings.isTracing(id.name());
             out.format("application_debug(\"%s\", \"%s\", \"%s\", ", escapeString(stackText), escapeString(fullText),
                     traceOn);
             id.accept(this);
@@ -156,7 +156,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(AssignmentNode node) {
         out.format("application(var(\"%s\"), var(\"", ValueInfo.global("lib_base_base", "_ref_set"));
-        out.print(node.var.getName());
+        out.print(node.var.name());
         out.print("\"), ");
         node.value.accept(this);
         out.print(")");
@@ -188,12 +188,12 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(IdentifierNode node) {
 
-        ValueInfo info = node.getInfo();
+        ValueInfo info = node.info();
 
-        String full = info.isGlobal() ? ValueInfo.global(info.generalInfo().getModule(), node.getName())
-                : node.getName();
+        String full = info.isGlobal() ? ValueInfo.global(info.generalInfo().module(), node.name())
+                : node.name();
 
-        if (node.getInfo().isRef()) {
+        if (node.info().isRef()) {
             out.format("application(var(\"%s\"), var(\"%s\"))", ValueInfo.global("lib_base_base", "_ref_get"), full);
         } else {
             out.format("var(\"%s\")", full);
@@ -319,7 +319,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         List<String> args = new ArrayList<String>();
         List<IdentifierNode> ids = new ArrayList<IdentifierNode>();
         for (IdentifierNode id : assignedVariables) {
-            String name = id.getName();
+            String name = id.name();
             if (!args.contains(name)) {
                 args.add(name);
                 ids.add(id);
@@ -334,10 +334,10 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
         // Write the other lambda params
         for (IdentifierNode id : ids) {
-            assert (id.getInfo() != null);
+            assert (id.info() != null);
             out.print(", ");
             out.print("\"");
-            out.print(id.getName());
+            out.print(id.name());
             out.print("\"");
         }
         out.print(")");
@@ -373,16 +373,16 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
         for (IdentifierNode id : ids) {
             out.print(", ");
-            if (node.shadowed.contains(id.getName())) {
-                if (node.shadowed.lookup(id.getName()).isRef()) {
+            if (node.shadowed.contains(id.name())) {
+                if (node.shadowed.lookup(id.name()).isRef()) {
                     out.format("application(var(\"%s\"), application(var(\"%s\"), var(\"",
                             ValueInfo.global("lib_base_base", "_new_ref"),
                             ValueInfo.global("lib_base_base", "_ref_get"));
-                    out.print(id.getName());
+                    out.print(id.name());
                     out.print("\")))");
                 } else {
                     out.format("application(var(\"%s\"), var(\"", ValueInfo.global("lib_base_base", "_new_ref"));
-                    out.print(id.getName());
+                    out.print(id.name());
                     out.print("\"))");
                 }
             } else {
@@ -413,7 +413,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         // Create a list of fresh names for the assigned names
         final List<String> names = new ArrayList<String>();
         for (IdentifierNode id : vars) {
-            names.add(id.getName());
+            names.add(id.name());
         }
         final List<String> freshNames = SymbolTable.freshNames(names);
 
@@ -535,7 +535,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     public void visit(TypeIdentifierNode node) {
         out.write("scalar_shape(unit(\"");
         // out.write("\"");
-        out.write(node.getName());
+        out.write(node.name());
         out.write("\"))");
         // out.write("\"");
     }

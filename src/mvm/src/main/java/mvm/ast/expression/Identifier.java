@@ -35,7 +35,7 @@ public class Identifier extends AbstractPrintable implements Expression {
         this.name = name;
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 

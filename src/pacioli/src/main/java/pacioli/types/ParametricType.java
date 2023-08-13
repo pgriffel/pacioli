@@ -52,16 +52,16 @@ public class ParametricType extends AbstractType {
 
     @Override
     public String description() {
-        return getName() + " type";
+        return name() + " type";
     }
 
-    public String getName() {
-        return op.getName();
+    public String name() {
+        return op.name();
     }
 
     @Override
     public String toString() {
-        return String.format("<Type '%s' %s>", op.getName(), args);
+        return String.format("<Type '%s' %s>", op.name(), args);
     }
 
     @Override
@@ -80,7 +80,7 @@ public class ParametricType extends AbstractType {
         constraints.addConstraint(op, otherType.op, String.format("Type operator must match"));
         for (int i = 0; i < args.size(); i++) {
             constraints.addConstraint(args.get(i), otherType.args.get(i),
-                    String.format("%s arugment %s must match", getName(), i + 1));
+                    String.format("%s arugment %s must match", name(), i + 1));
         }
         return constraints;
     }

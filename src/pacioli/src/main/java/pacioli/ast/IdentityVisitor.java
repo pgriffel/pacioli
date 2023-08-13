@@ -112,7 +112,7 @@ public class IdentityVisitor implements Visitor {
     @Override
     public void visit(IndexSetDefinition indexSetDefinition) {
         if (indexSetDefinition.isDynamic()) {
-            indexSetDefinition.getBody().accept(this);
+            indexSetDefinition.body().accept(this);
         }
     }
 

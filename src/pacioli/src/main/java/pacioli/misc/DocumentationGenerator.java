@@ -102,7 +102,7 @@ public class DocumentationGenerator {
         typeDocs.put(name, documentation);
     }
 
-    private String getType(String name) {
+    private String lookupType(String name) {
         return typeTable.get(name);
     }
 
@@ -188,7 +188,7 @@ public class DocumentationGenerator {
             String args = String.format("(%s)", argsString(function));
             println("### %s%s", function, args);
             println("");
-            println(":: %s", getType(function));
+            println(":: %s", lookupType(function));
             for (String part : getDocuParts(function)) {
                 println("\n%s\n", part);
             }
@@ -287,7 +287,7 @@ public class DocumentationGenerator {
             String args = String.format("(%s)", argsString(function));
             println("<dt id=\"%s\"><code>%s%s</code></dt>", function, function, args);
             println("<dd>");
-            println("<pre>:: %s</pre>", getType(function));
+            println("<pre>:: %s</pre>", lookupType(function));
             for (String part : getDocuParts(function)) {
                 println("\n<p>%s</p>\n", part);
             }

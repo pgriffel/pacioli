@@ -33,7 +33,7 @@ public final class IndexSetInfo extends AbstractInfo implements TypeInfo {
 
     @Override
     public String globalName() {
-        return String.format("index_%s_%s", generalInfo().getModule(), name());
+        return String.format("index_%s_%s", generalInfo().module(), name());
     }
 
     public static class Builder extends GeneralBuilder<Builder, IndexSetInfo> {

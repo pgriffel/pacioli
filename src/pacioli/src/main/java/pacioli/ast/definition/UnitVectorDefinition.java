@@ -55,8 +55,8 @@ public class UnitVectorDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String getName() {
-        return indexSetNode.getName() + "!" + unitNode.getName();
+    public String name() {
+        return indexSetNode.name() + "!" + unitNode.name();
     }
 
     @Override

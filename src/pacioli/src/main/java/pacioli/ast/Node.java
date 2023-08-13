@@ -48,7 +48,7 @@ import pacioli.symboltable.info.ValueInfo;
 
 public interface Node extends Printable {
 
-    public Location getLocation();
+    public Location location();
 
     public void accept(Visitor visitor);
 

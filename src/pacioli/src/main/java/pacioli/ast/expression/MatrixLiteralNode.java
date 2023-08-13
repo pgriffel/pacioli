@@ -48,7 +48,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
         public List<String> keys() {
             List<String> keys = new ArrayList<String>();
             for (IdentifierNode id : key) {
-                keys.add(id.getName());
+                keys.add(id.name());
             }
             return keys;
         }
@@ -86,7 +86,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
     }
 
     public MatrixLiteralNode(MatrixLiteralNode old) {
-        super(old.getLocation());
+        super(old.location());
         this.typeNode = old.typeNode;
         this.pairs = old.pairs;
         this.rowDim = old.rowDim;
@@ -94,14 +94,14 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
     }
 
     public MatrixLiteralNode withTypeNode(TypeNode typeNode) {
-        MatrixLiteralNode copy = new MatrixLiteralNode(getLocation(), typeNode, pairs);
+        MatrixLiteralNode copy = new MatrixLiteralNode(location(), typeNode, pairs);
         copy.rowDim = rowDim;
         copy.columnDim = columnDim;
         return copy;
     }
 
     public MatrixLiteralNode withPairs(List<ValueDecl> pairs) {
-        MatrixLiteralNode copy = new MatrixLiteralNode(getLocation(), typeNode, pairs);
+        MatrixLiteralNode copy = new MatrixLiteralNode(location(), typeNode, pairs);
         copy.rowDim = rowDim;
         copy.columnDim = columnDim;
         return copy;
@@ -112,7 +112,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
         if (type instanceof MatrixType) {
             return (MatrixType) type;
         } else {
-            throw new PacioliException(typeNode.getLocation(), "Expected a matrix type");
+            throw new PacioliException(typeNode.location(), "Expected a matrix type");
         }
     }
 
@@ -129,7 +129,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
         // during resolving
         assert (rowDim != null && columnDim != null);
         if (rowDim == null || columnDim == null) {
-            throw new PacioliException(getLocation(), "Not resolved");
+            throw new PacioliException(location(), "Not resolved");
         }
 
         // Write the elements. Table check stores all found indices to check for
@@ -148,7 +148,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
             if (check.containsKey(rowPos)) {
                 if (check.get(rowPos).contains(columnPos)) {
                     if (!locationReported) {
-                        Pacioli.warn("In %s", getLocation().description());
+                        Pacioli.warn("In %s", location().description());
                         locationReported = true;
                     }
                     Pacioli.warn("Duplicate: %s %s", rowDim.ElementAt(rowPos), columnDim.ElementAt(columnPos));

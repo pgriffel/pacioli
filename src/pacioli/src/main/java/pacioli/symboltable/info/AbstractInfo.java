@@ -38,6 +38,6 @@ public abstract class AbstractInfo implements Info {
 
     @Override
     public boolean isFromFile(PacioliFile file) {
-        return generalInfo().getModule().equals(file.getModule());
+        return generalInfo().module().equals(file.module());
     }
 }

@@ -40,12 +40,12 @@ public class GeneralInfo {
         return location;
     }
 
-    public File getFile() {
-        return file.getFile();
+    public File file() {
+        return file.fsFile();
     }
 
-    public String getModule() {
-        return file.getModule();
+    public String module() {
+        return file.module();
     }
 
     public boolean isGlobal() {

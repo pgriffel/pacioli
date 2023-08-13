@@ -184,7 +184,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(Declaration node) {
-        out.format("declare %s :: ", node.getName());
+        out.format("declare %s :: ", node.name());
         newline();
         write("    ");
         node.typeNode.accept(this);
@@ -240,7 +240,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(UnitVectorDefinition node) {
-        format("defunit %s = {", node.getName());
+        format("defunit %s = {", node.name());
         newlineUp();
         Boolean sep = false;
         for (UnitDecl entry : node.items) {
@@ -354,7 +354,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(IdentifierNode identifierNode) {
-        write(identifierNode.getName());
+        write(identifierNode.name());
     }
 
     @Override
@@ -537,14 +537,14 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(BangTypeNode node) {
-        out.format("%s!%s", node.indexSet.getName(), node.unitVecName());
+        out.format("%s!%s", node.indexSet.name(), node.unitVecName());
     }
 
     @Override
     public void visit(FunctionTypeNode node) {
 
         if (node.domain instanceof TypeApplicationNode
-                && ((TypeApplicationNode) node.domain).op.getName().equals("Tuple")) {
+                && ((TypeApplicationNode) node.domain).op.name().equals("Tuple")) {
             out.write("(");
             out.writeCommaSeparated(((TypeApplicationNode) node.domain).args, this);
             out.write(")");
@@ -583,7 +583,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(TypeIdentifierNode node) {
-        write(node.getName());
+        write(node.name());
     }
 
     @Override
@@ -635,12 +635,12 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(UnitIdentifierNode node) {
-        if (!node.getPrefix().isPresent()) {
-            write(node.getName());
+        if (!node.prefix().isPresent()) {
+            write(node.name());
         } else {
-            write(node.getPrefix().get());
+            write(node.prefix().get());
             write(":");
-            write(node.getName());
+            write(node.name());
         }
     }
 

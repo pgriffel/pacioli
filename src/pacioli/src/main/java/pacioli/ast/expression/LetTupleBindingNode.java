@@ -44,7 +44,7 @@ public class LetTupleBindingNode extends AbstractExpressionNode implements LetNo
     }
 
     public Node transform(ExpressionNode value) {
-        return new LetTupleBindingNode(getLocation(), vars, value);
+        return new LetTupleBindingNode(location(), vars, value);
     }
 
 }

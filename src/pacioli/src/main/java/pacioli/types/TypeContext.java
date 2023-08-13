@@ -181,19 +181,19 @@ public class TypeContext extends AbstractPrintable {
             for (TypeIdentifierNode id : cn.ids) {
                 switch (cn.kind) {
                     case TYPE: {
-                        context.addTypeVar(id.getName());
+                        context.addTypeVar(id.name());
                         break;
                     }
                     case INDEX: {
-                        context.addIndexVar(id.getName());
+                        context.addIndexVar(id.name());
                         break;
                     }
                     case UNIT: {
-                        context.addUnitVar(id.getName());
+                        context.addUnitVar(id.name());
                         break;
                     }
                     case OP: {
-                        context.addOpVar(id.getName());
+                        context.addOpVar(id.name());
                         break;
                     }
                 }

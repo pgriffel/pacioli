@@ -162,7 +162,7 @@ public class Primitives {
         storePrimitive(store, new Primitive("base__ref_get") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Reference ref = (Reference) params.get(0);
-                return ref.getValue();
+                return ref.value();
             }
         });
 
@@ -211,7 +211,7 @@ public class Primitives {
                     body.apply(new ArrayList<PacioliValue>());
                     return null;
                 } catch (ControlTransfer ex) {
-                    return place.getValue();
+                    return place.value();
                 }
             }
         });
@@ -252,7 +252,7 @@ public class Primitives {
         storePrimitive(store, new Primitive("matrix_unit_factor") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix matrix = (Matrix) params.get(0);
-                return new Matrix(matrix.shape.getFactor());
+                return new Matrix(matrix.shape.factor());
             }
         });
 
@@ -306,7 +306,7 @@ public class Primitives {
                         throw new MVMException("argument to function 'matrix' is not a list of tuples");
                     }
 
-                    MatrixShape type = new MatrixShape(value.shape.getFactor(), rowKey.dimension(),
+                    MatrixShape type = new MatrixShape(value.shape.factor(), rowKey.dimension(),
                             columnKey.dimension());
                     Matrix matrix = new Matrix(type);
 
@@ -1259,6 +1259,6 @@ public class Primitives {
     }
 
     private static void storePrimitive(Environment store, Primitive primitive) {
-        storeBaseValue(store, primitive.getName(), primitive);
+        storeBaseValue(store, primitive.name(), primitive);
     }
 }

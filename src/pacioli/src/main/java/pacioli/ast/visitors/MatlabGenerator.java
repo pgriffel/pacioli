@@ -66,7 +66,7 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
         if (node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
             if (id.isGlobal()) {
-                out.write(id.getInfo().globalName().toLowerCase());
+                out.write(id.info().globalName().toLowerCase());
             } else {
                 node.function.accept(this);
             }
@@ -80,7 +80,7 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(AssignmentNode node) {
-        out.format("%s = ", node.var.getName());
+        out.format("%s = ", node.var.name());
         node.value.accept(this);
     }
 
@@ -103,7 +103,7 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ConversionNode node) {
         throw new RuntimeException("No dynamic conversions in MATLAB",
-                new PacioliException(node.getLocation(), "The type %s is not closed", node.typeNode.pretty()));
+                new PacioliException(node.location(), "The type %s is not closed", node.typeNode.pretty()));
     }
 
     @Override
@@ -111,21 +111,21 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
         if (node.isGlobal()) {
             if (false) {
                 out.write("fetch_global(\"");
-                out.write(node.getInfo().generalInfo().getModule().toLowerCase());
+                out.write(node.info().generalInfo().module().toLowerCase());
                 out.write("\", \"");
-                out.write(node.getName().toLowerCase());
+                out.write(node.name().toLowerCase());
                 out.write("\")");
             } else {
-                if (node.getInfo().isFunction()) {
+                if (node.info().isFunction()) {
                     out.write("@");
                 }
                 // Note that this expects proper ordering of global values.
                 // Other targets generate a function and fetch mechanism.
                 // Fix old code above that did this!
-                out.write(node.getInfo().globalName().toLowerCase());
+                out.write(node.info().globalName().toLowerCase());
             }
         } else {
-            out.write(node.getName().toLowerCase());
+            out.write(node.name().toLowerCase());
         }
     }
 
@@ -250,7 +250,7 @@ public class MatlabGenerator extends IdentityVisitor implements CodeGenerator {
         int i = 1;
         for (IdentifierNode var : node.vars) {
             out.newline();
-            out.format("%s = %s{%s}", var.getName(), tmpVar, i++);
+            out.format("%s = %s{%s}", var.name(), tmpVar, i++);
         }
     }
 

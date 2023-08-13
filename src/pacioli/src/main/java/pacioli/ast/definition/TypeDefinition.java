@@ -53,9 +53,9 @@ public class TypeDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String getName() {
+    public String name() {
         if (lhs instanceof TypeApplicationNode node) {
-            return node.getName();
+            return node.name();
         } else {
             throw new RuntimeException("Expected a TypeApplicationNode");
         }
@@ -76,19 +76,19 @@ public class TypeDefinition extends AbstractDefinition {
         if (lhs instanceof TypeApplicationNode app) {
 
             List<TypeObject> types = new ArrayList<TypeObject>();
-            for (TypeNode arg : app.getArgs()) {
+            for (TypeNode arg : app.arguments()) {
                 if (arg instanceof TypeIdentifierNode) {
                     types.add(arg.evalType());
                 } else if (arg instanceof BangTypeNode) {
                     types.add(arg.evalType());
                 } else {
-                    throw new PacioliException(arg.getLocation(),
+                    throw new PacioliException(arg.location(),
                             "Type definition's lhs must be a unit variable or vector %s", arg.getClass());
                 }
             }
 
-            TypeObject lhsType = new ParametricType(app.getLocation(),
-                    new OperatorConst(new TypeIdentifier(app.op.info.generalInfo().getModule(), app.op.getName()),
+            TypeObject lhsType = new ParametricType(app.location(),
+                    new OperatorConst(new TypeIdentifier(app.op.info.generalInfo().module(), app.op.name()),
                             (ParametricInfo) app.op.info),
                     types);
 
@@ -96,11 +96,11 @@ public class TypeDefinition extends AbstractDefinition {
             if (lhsType instanceof ParametricType) {
                 constraint = new TypeConstraint(app, rhsType);
             } else {
-                throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s",
+                throw new PacioliException(location(), "Left side of typedef is not a type function: %s",
                         lhsType.pretty());
             }
         } else {
-            throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s", lhs.pretty());
+            throw new PacioliException(location(), "Left side of typedef is not a type function: %s", lhs.pretty());
         }
 
         assert (constraint != null);

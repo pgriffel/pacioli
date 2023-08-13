@@ -209,7 +209,7 @@ public class Matrix extends AbstractPacioliValue {
     }
 
     private Unit<MatrixBase> unitAt(int i, int j) {
-        return shape.getFactor().multiply(getUnit(rowDimension(), shape.rowUnit, i)
+        return shape.factor().multiply(getUnit(rowDimension(), shape.rowUnit, i)
                 .multiply(getUnit(columnDimension(), shape.columnUnit, j).reciprocal()));
     }
 
@@ -770,7 +770,7 @@ public class Matrix extends AbstractPacioliValue {
     }
 
     public Matrix total() {
-        Matrix matrix = new Matrix(shape.getFactor());
+        Matrix matrix = new Matrix(shape.factor());
         double sum = 0;
         for (int i = 0; i < nrRows(); i++) {
             for (int j = 0; j < nrColumns(); j++) {
@@ -1016,7 +1016,7 @@ public class Matrix extends AbstractPacioliValue {
 
             List<PacioliValue> items = new ArrayList<PacioliValue>();
 
-            Matrix matrixS = new Matrix(shape.getFactor());
+            Matrix matrixS = new Matrix(shape.factor());
             Matrix matrixU = new Matrix(shape.rowUnits());
             Matrix matrixV = new Matrix(shape.columnUnits().reciprocal());
 
@@ -1055,7 +1055,7 @@ public class Matrix extends AbstractPacioliValue {
 
             List<PacioliValue> items = new ArrayList<PacioliValue>();
 
-            Matrix matrixS = new Matrix(shape.getFactor());
+            Matrix matrixS = new Matrix(shape.factor());
             Matrix matrixU = new Matrix(shape.rowUnits());
             Matrix matrixV = new Matrix(shape.columnUnits());
 

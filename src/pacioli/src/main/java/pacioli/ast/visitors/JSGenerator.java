@@ -54,9 +54,9 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         mark();
         if (false && node.function instanceof IdentifierNode) {
             IdentifierNode id = (IdentifierNode) node.function;
-            String stackText = id.getName();
-            String fullText = node.getLocation().description();
-            boolean traceOn = settings.isTracing(id.getName());
+            String stackText = id.name();
+            String fullText = node.location().description();
+            boolean traceOn = settings.isTracing(id.name());
             out.format("application_debug(\"%s\", \"%s\", \"%s\", ", escapeString(stackText), escapeString(fullText),
                     traceOn);
             id.accept(this);
@@ -66,7 +66,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         } else {
 
             if (node.function instanceof IdentifierNode && ((IdentifierNode) node.function).isGlobal()) {
-                String fullName = ((IdentifierNode) node.function).getInfo().globalName();
+                String fullName = ((IdentifierNode) node.function).info().globalName();
                 if (!boxed ||
                         fullName.equals(ValueInfo.global("base_base", "empty_list")) ||
                         fullName.equals(ValueInfo.global("base_base", "loop_list")) ||
@@ -135,7 +135,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(AssignmentNode node) {
         out.format("Pacioli.%s(", ValueInfo.global("lib_base_base", "_ref_set"));
-        out.print("lcl_" + node.var.getName());
+        out.print("lcl_" + node.var.name());
         out.print(", ");
         node.value.accept(this);
         out.print(")");
@@ -174,14 +174,14 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(IdentifierNode node) {
-        ValueInfo info = node.getInfo();
+        ValueInfo info = node.info();
         // String prefix = settings.debug() && node.debugable() ? "debug_" : "global_";
         String fun = boxed ? "bfetchValue" : "fetchValue";
         String full = info.isGlobal()
-                ? "Pacioli." + fun + "('" + info.generalInfo().getModule() + "', '" + node.getName() + "')"
-                : "lcl_" + node.getName();
+                ? "Pacioli." + fun + "('" + info.generalInfo().module() + "', '" + node.name() + "')"
+                : "lcl_" + node.name();
 
-        if (node.getInfo().isRef()) {
+        if (node.info().isRef()) {
             out.format("Pacioli.%s(%s)", ValueInfo.global("lib_base_base", "_ref_get"), full);
         } else {
             out.format("%s", full);
@@ -350,7 +350,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         // Write the other lambda params
         for (IdentifierNode id : assignedVariables) {
             write(", ");
-            write("lcl_" + id.getName());
+            write("lcl_" + id.name());
         }
         write(") {");
 
@@ -387,17 +387,17 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         for (IdentifierNode id : assignedVariables) {
             write(", ");
 
-            if (node.shadowed.contains(id.getName())) {
-                if (node.shadowed.lookup(id.getName()).isRef()) {
+            if (node.shadowed.contains(id.name())) {
+                if (node.shadowed.lookup(id.name()).isRef()) {
                     format("Pacioli.%s(Pacioli.%s(",
                             ValueInfo.global("lib_base_base", "_new_ref"),
                             ValueInfo.global("lib_base_base", "_ref_get"));
-                    write("lcl_" + id.getName());
+                    write("lcl_" + id.name());
                     // id.accept(this);
                     write("))");
                 } else {
                     format("Pacioli.%s(", ValueInfo.global("lib_base_base", "_new_ref"));
-                    write("lcl_" + id.getName());
+                    write("lcl_" + id.name());
                     // id.accept(this);
                     write(")");
                 }
@@ -433,7 +433,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         // Create a list of fresh names for the assigned names
         final List<String> names = new ArrayList<String>();
         for (IdentifierNode id : vars) {
-            names.add(id.getName());
+            names.add(id.name());
         }
         final List<String> freshNames = SymbolTable.freshNames(names);
 

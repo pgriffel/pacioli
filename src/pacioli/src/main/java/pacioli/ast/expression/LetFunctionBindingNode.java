@@ -50,7 +50,7 @@ public class LetFunctionBindingNode extends AbstractExpressionNode implements Le
     }
 
     public Node transform(ExpressionNode body) {
-        return new LetFunctionBindingNode(getLocation(), name, args, body);
+        return new LetFunctionBindingNode(location(), name, args, body);
     }
 
 }

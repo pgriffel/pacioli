@@ -25,5 +25,5 @@ public interface UnitVar extends Var, TypeBase {
      * 
      * @return The info for the variable
      */
-    Info getInfo();
+    Info info();
 }

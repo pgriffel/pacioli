@@ -49,27 +49,27 @@ public class IndexSetDefinition extends AbstractDefinition {
         this.body = body;
     }
 
-    public List<String> getItems() {
+    public List<String> items() {
         if (items == null) {
             throw new RuntimeException("Cannot access index set items, index set is dynamic.");
         }
         return items;
     }
 
-    public ExpressionNode getBody() {
+    public ExpressionNode body() {
         if (body == null) {
             throw new RuntimeException("Cannot access index set body, index has a static body.");
         }
         return body;
     }
 
-    public IndexSet getIndexSet() {
-        return new IndexSet(getName(), getItems());
+    public IndexSet indexSet() {
+        return new IndexSet(name(), items());
     }
 
     @Override
-    public String getName() {
-        return id.getName();
+    public String name() {
+        return id.name();
     }
 
     @Override

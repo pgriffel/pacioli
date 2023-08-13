@@ -17,7 +17,7 @@ public final class InstanceInfo extends AbstractInfo {
             InstanceDefinition definition,
             PacioliFile file,
             String uniqueSuffix) {
-        super(new GeneralInfo(definition.getName() + uniqueSuffix, file, true, true, definition.getLocation()));
+        super(new GeneralInfo(definition.name() + uniqueSuffix, file, true, true, definition.location()));
         this.definition = definition;
     }
 
@@ -29,7 +29,7 @@ public final class InstanceInfo extends AbstractInfo {
 
     @Override
     public String globalName() {
-        return String.format("%s_%s", generalInfo().getModule(), name());
+        return String.format("%s_%s", generalInfo().module(), name());
     }
 
     @Override

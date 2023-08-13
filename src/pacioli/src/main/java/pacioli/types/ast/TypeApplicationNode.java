@@ -38,18 +38,18 @@ public class TypeApplicationNode extends AbstractTypeNode {
     }
 
     public TypeNode transform(TypeIdentifierNode name, List<TypeNode> args) {
-        return new TypeApplicationNode(getLocation(), name, args);
+        return new TypeApplicationNode(location(), name, args);
     }
 
-    public TypeIdentifierNode getOperator() {
+    public TypeIdentifierNode operator() {
         return op;
     }
 
-    public String getName() {
-        return op.getName();
+    public String name() {
+        return op.name();
     }
 
-    public List<TypeNode> getArgs() {
+    public List<TypeNode> arguments() {
         return args;
     }
 

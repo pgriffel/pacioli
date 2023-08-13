@@ -58,7 +58,7 @@ public class LetNode extends AbstractExpressionNode {
     }
 
     public Node transform(List<BindingNode> bindings, ExpressionNode body) {
-        LetNode node = new LetNode(bindings, body, getLocation());
+        LetNode node = new LetNode(bindings, body, location());
         node.table = table;
         return node;
     }
@@ -74,10 +74,10 @@ public class LetNode extends AbstractExpressionNode {
             args.add(letBinding.value);
         }
 
-        LambdaNode fun = new LambdaNode(argsNames, body, body.getLocation());
+        LambdaNode fun = new LambdaNode(argsNames, body, body.location());
         fun.table = table;
 
-        return new ApplicationNode(fun, args, getLocation());
+        return new ApplicationNode(fun, args, location());
     }
 
 }

@@ -62,15 +62,15 @@ public class MVMCompiler implements SymbolTableVisitor {
         IndexSetDefinition definition = info.definition().get();
 
         if (definition.isDynamic()) {
-            out.format("indexset \"%s\" \"%s\" ", info.globalName(), info.definition().get().getName());
-            info.definition().get().getBody().accept(new MVMGenerator(out, settings));
+            out.format("indexset \"%s\" \"%s\" ", info.globalName(), info.definition().get().name());
+            info.definition().get().body().accept(new MVMGenerator(out, settings));
             out.format(";\n");
         } else {
             List<String> quotedItems = new ArrayList<String>();
-            for (String item : definition.getItems()) {
+            for (String item : definition.items()) {
                 quotedItems.add(String.format("\"%s\"", item));
             }
-            out.format("indexset \"%s\" \"%s\" list(%s);\n", info.globalName(), info.definition().get().getName(),
+            out.format("indexset \"%s\" \"%s\" list(%s);\n", info.globalName(), info.definition().get().name(),
                     Utils.intercalate(",", quotedItems));
         }
 
@@ -116,7 +116,7 @@ public class MVMCompiler implements SymbolTableVisitor {
         for (UnitDecl entry : info.items()) {
             DimensionedNumber<TypeBase> number = entry.value.evalUnit();
             // todo: take number.factor() into account!?
-            unitTexts.add("\"" + entry.key.getName() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));
+            unitTexts.add("\"" + entry.key.name() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));
         }
         String globalName = setInfo.globalName();
         String name = info.name();

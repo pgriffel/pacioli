@@ -30,28 +30,27 @@ WHETHER
 
 package pacioli.types;
 
-import java.util.Optional;
-
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.misc.PacioliException;
 
-public record OperatorVar(String name, Optional<ParametricInfo> info) implements Operator, Var {
+public record OperatorVar(String name, ParametricInfo info) implements Operator, Var {
 
     public OperatorVar(ParametricInfo info) {
-        this(info.name(), Optional.of(info));
+        this(info.name(), info);
     }
 
     public OperatorVar() {
-        this(SymbolTable.freshVarName(), Optional.empty());
+        this(SymbolTable.freshVarName(), null);
     }
 
     public OperatorVar(String name) {
-        this(name, Optional.empty());
+        this(name, null);
     }
 
     @Override
     public OperatorVar rename(String name) {
+        // TODO: Don't copy info?
         return new OperatorVar(name);
     }
 
@@ -72,7 +71,7 @@ public record OperatorVar(String name, Optional<ParametricInfo> info) implements
 
     @Override
     public Boolean isFresh() {
-        return !info.isPresent();
+        return info == null;
     }
 
     @Override
@@ -92,14 +91,14 @@ public record OperatorVar(String name, Optional<ParametricInfo> info) implements
         return name.equals(otherVar.name);
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 
     @Override
-    public ParametricInfo getInfo() {
-        if (info.isPresent()) {
-            return info.get();
+    public ParametricInfo info() {
+        if (info != null) {
+            return info;
         } else {
             throw new RuntimeException(String.format("No info present for fresh type variable %s", name));
         }

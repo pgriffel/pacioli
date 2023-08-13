@@ -29,7 +29,7 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
 
     @Override
     public String globalName() {
-        return String.format("%s_%s", generalInfo().getModule(), name());
+        return String.format("%s_%s", generalInfo().module(), name());
     }
 
     @Override

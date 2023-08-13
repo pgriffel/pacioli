@@ -29,7 +29,7 @@ public final class TypeVarInfo extends AbstractInfo implements TypeInfo {
         // TODO: check this name with the name used by the compiler. This was added just
         // for logging.
         // return String.format("type_%s", name());
-        return String.format("%s_%s", generalInfo().getModule().replace("-", "_"), name());
+        return String.format("%s_%s", generalInfo().module().replace("-", "_"), name());
     }
 
     @Override

@@ -38,7 +38,7 @@ public class IfStatementNode extends AbstractExpressionNode {
     }
 
     public IfStatementNode(IfStatementNode old, ExpressionNode test, ExpressionNode pos, ExpressionNode neg) {
-        super(old.getLocation());
+        super(old.location());
         this.test = test;
         this.positive = pos;
         this.negative = neg;

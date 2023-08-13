@@ -36,7 +36,7 @@ public class AssignmentNode extends AbstractExpressionNode {
     }
 
     public AssignmentNode(AssignmentNode old, ExpressionNode value) {
-        super(old.getLocation());
+        super(old.location());
         this.var = old.var;
         this.value = value;
     }

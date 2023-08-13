@@ -35,11 +35,11 @@ public class PacioliException extends RuntimeException {
         this.location = location;
     }
 
-    public Location getLocation() {
+    public Location location() {
         return location;
     }
 
-    public String getLocatedMessage() {
+    public String messageWithLocation() {
         if (location == null) {
             return getLocalizedMessage();
         } else {

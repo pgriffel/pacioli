@@ -64,7 +64,7 @@ public class PythonGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ApplicationNode node) {
         if (node.hasName("nmode")) {
-            ValueInfo info = node.getId().getInfo();
+            ValueInfo info = node.id().info();
             out.write(info.globalName().toLowerCase());
             out.write("(");
             out.writeCommaSeparated(node.arguments, this);
@@ -73,7 +73,7 @@ public class PythonGenerator extends IdentityVisitor implements CodeGenerator {
             out.write(")");
         } else {
             if (node.isGlobal()) {
-                out.write(node.getId().getInfo().globalName().toLowerCase());
+                out.write(node.id().info().globalName().toLowerCase());
             } else {
                 node.function.accept(this);
             }
@@ -85,7 +85,7 @@ public class PythonGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(AssignmentNode node) {
-        out.format("%s = ", node.var.getName());
+        out.format("%s = ", node.var.name());
         node.value.accept(this);
     }
 
@@ -121,21 +121,21 @@ public class PythonGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ConversionNode node) {
         throw new RuntimeException("No dynamic conversions in MATLAB",
-                new PacioliException(node.getLocation(), "The type %s is not closed", node.typeNode.pretty()));
+                new PacioliException(node.location(), "The type %s is not closed", node.typeNode.pretty()));
     }
 
     @Override
     public void visit(IdentifierNode node) {
         if (node.isGlobal()) {
-            if (!node.getInfo().isFunction()) {
+            if (!node.info().isFunction()) {
                 out.write("fetch_global(\"");
-                out.write(node.getInfo().globalName().toLowerCase());
+                out.write(node.info().globalName().toLowerCase());
                 out.write("\")");
             } else {
-                out.write(node.getInfo().globalName().toLowerCase());
+                out.write(node.info().globalName().toLowerCase());
             }
         } else {
-            out.write(node.getName().toLowerCase());
+            out.write(node.name().toLowerCase());
         }
     }
 
@@ -260,7 +260,7 @@ public class PythonGenerator extends IdentityVisitor implements CodeGenerator {
         int i = 0;
         for (IdentifierNode var : node.vars) {
             out.newline();
-            out.format("%s = %s[%s]", var.getName(), tmpVar, i++);
+            out.format("%s = %s[%s]", var.name(), tmpVar, i++);
         }
     }
 

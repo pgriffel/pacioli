@@ -22,12 +22,12 @@ public record OperatorConst(TypeIdentifier id, ParametricInfo info) implements O
     }
 
     @Override
-    public String getName() {
+    public String name() {
         return id.name;
     }
 
     @Override
-    public ParametricInfo getInfo() {
+    public ParametricInfo info() {
         return info;
     }
 

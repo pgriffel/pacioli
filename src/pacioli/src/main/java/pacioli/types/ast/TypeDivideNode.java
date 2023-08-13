@@ -16,7 +16,7 @@ public class TypeDivideNode extends AbstractTypeNode {
     }
 
     public Node transform(TypeNode left, TypeNode right) {
-        return new TypeDivideNode(getLocation(), left, right);
+        return new TypeDivideNode(location(), left, right);
     }
 
     @Override

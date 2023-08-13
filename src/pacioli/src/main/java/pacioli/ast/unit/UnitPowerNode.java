@@ -16,7 +16,7 @@ public class UnitPowerNode extends AbstractUnitNode {
     }
 
     public Node transform(UnitNode base) {
-        return new UnitPowerNode(getLocation(), base, power);
+        return new UnitPowerNode(location(), base, power);
     }
 
     @Override

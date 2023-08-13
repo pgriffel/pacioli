@@ -103,7 +103,7 @@ public class TypeEvaluator extends IdentityVisitor {
         if (!indexInfo.isGlobal()) {
             indexType = new IndexType(new IndexSetVar(indexInfo));
         } else {
-            indexType = new IndexType(new TypeIdentifier(indexInfo.generalInfo().getModule(), indexSetName), indexInfo);
+            indexType = new IndexType(new TypeIdentifier(indexInfo.generalInfo().module(), indexSetName), indexInfo);
         }
 
         // Create the row unit if it exists, otherwise the unit is 1.
@@ -120,8 +120,8 @@ public class TypeEvaluator extends IdentityVisitor {
                 rowUnit = new VectorUnitVar(unitInfo);
             } else {
                 String unitName = node.unitVecName();
-                rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generalInfo().getModule(), indexSetName),
-                        new TypeIdentifier(unitInfo.generalInfo().getModule(), unitName), 0, unitInfo);
+                rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generalInfo().module(), indexSetName),
+                        new TypeIdentifier(unitInfo.generalInfo().module(), unitName), 0, unitInfo);
             }
         }
 
@@ -136,7 +136,7 @@ public class TypeEvaluator extends IdentityVisitor {
     @Override
     public void visit(NumberTypeNode node) {
         if (!new BigDecimal(node.number).equals(BigDecimal.ONE)) {
-            visitorThrow(node.getLocation(), "Didn't expect number, just a 1");
+            visitorThrow(node.location(), "Didn't expect number, just a 1");
         }
         returnType(new MatrixType(TypeBase.ONE));
     }
@@ -156,7 +156,7 @@ public class TypeEvaluator extends IdentityVisitor {
         }
 
         // The Index type is special
-        if (node.getName().equals("Index")) {
+        if (node.name().equals("Index")) {
             if (types.size() == 0) {
                 List<TypeIdentifier> names = new ArrayList<TypeIdentifier>();
                 List<IndexSetInfo> infos = new ArrayList<IndexSetInfo>();
@@ -165,7 +165,7 @@ public class TypeEvaluator extends IdentityVisitor {
 
                 if (types.size() != 1) {
                     throw new RuntimeException("Invalid index type",
-                            new PacioliException(node.getLocation(), "Invalid nr arguments: %s", types.size()));
+                            new PacioliException(node.location(), "Invalid nr arguments: %s", types.size()));
                 }
 
                 // It is an index variable. Just return the var.
@@ -186,11 +186,11 @@ public class TypeEvaluator extends IdentityVisitor {
                         assert (node.args.get(i) instanceof TypeIdentifierNode);
                         TypeIdentifierNode idNode = (TypeIdentifierNode) node.args.get(i);
                         IndexSetInfo info = (IndexSetInfo) idNode.info;
-                        TypeIdentifier id = new TypeIdentifier(info.generalInfo().getModule(), idNode.getName());
+                        TypeIdentifier id = new TypeIdentifier(info.generalInfo().module(), idNode.name());
                         names.add(id);
                         infos.add(info);
                     } else {
-                        throw new RuntimeException(new PacioliException(node.getLocation(),
+                        throw new RuntimeException(new PacioliException(node.location(),
                                 "Index set expected but found '%s'", type.pretty()));
                     }
                 }
@@ -206,15 +206,15 @@ public class TypeEvaluator extends IdentityVisitor {
         Optional<? extends Definition> definition = node.op.info.definition();
         TypeObject opObject = typeAccept(node.op);
         if (!(opObject instanceof ParametricType || opObject instanceof OperatorVar)) {
-            throw new PacioliException(node.getLocation(), "Oeps");
+            throw new PacioliException(node.location(), "Oeps");
         }
         Operator opType = opObject instanceof OperatorVar ? (OperatorVar) opObject : (((ParametricType) opObject).op);
         if (!definition.isPresent()) {
             if (!(node.op.info instanceof ParametricInfo)) {
                 throw new RuntimeException("Expected type info",
-                        new PacioliException(node.getLocation(), "Invalid info"));
+                        new PacioliException(node.location(), "Invalid info"));
             }
-            returnType(new ParametricType(node.getLocation(), opType, types));
+            returnType(new ParametricType(node.location(), opType, types));
         } else {
             assert (definition.get() instanceof TypeDefinition);
             TypeDefinition typeDefinition = (TypeDefinition) definition.get();
@@ -222,7 +222,7 @@ public class TypeEvaluator extends IdentityVisitor {
             // TypeInfo info = new TypeInfo(typeInfo.name(), null, typeInfo.isGlobal(),
             // node.getLocation());
             returnType(
-                    new ParametricType(node.getLocation(), Optional.of(typeDefinition), opType, types));
+                    new ParametricType(node.location(), Optional.of(typeDefinition), opType, types));
         }
     }
 
@@ -258,17 +258,17 @@ public class TypeEvaluator extends IdentityVisitor {
             // throw new RuntimeException("fixme");
         } else if (info instanceof IndexSetInfo) {
             IndexSetInfo indexSetInfo = (IndexSetInfo) info;
-            TypeIdentifier id = new TypeIdentifier(indexSetInfo.generalInfo().getModule(), node.getName());
+            TypeIdentifier id = new TypeIdentifier(indexSetInfo.generalInfo().module(), node.name());
             returnType(new IndexType(id, indexSetInfo));
         } else if (info instanceof ParametricInfo) {
             // TypeApplicationNode app = new TypeApplicationNode(node.getLocation(), node,
             // new LinkedList<TypeNode>());
             // this.handleParametric(app, new ArrayList<TypeObject>());
-            TypeApplicationNode app = new TypeApplicationNode(node.getLocation(), node, new LinkedList<TypeNode>());
-            TypeIdentifier typeId = new TypeIdentifier(info.generalInfo().getModule(), node.getName());
+            TypeApplicationNode app = new TypeApplicationNode(node.location(), node, new LinkedList<TypeNode>());
+            TypeIdentifier typeId = new TypeIdentifier(info.generalInfo().module(), node.name());
             OperatorConst id = new OperatorConst(typeId, (ParametricInfo) info);
             // this.handleParametric(app, new ArrayList<PacioliType>());
-            returnType(new ParametricType(node.getLocation(),
+            returnType(new ParametricType(node.location(),
                     ((ParametricInfo) info).definition(),
                     id, new ArrayList<TypeObject>()));
         } else {
@@ -281,7 +281,7 @@ public class TypeEvaluator extends IdentityVisitor {
     public void visit(PrefixUnitTypeNode node) {
         // Todo: check this cast. Better let recursive visitor handle this: call
         // something like unitAccept(node.unit)
-        returnType(new MatrixType(new ScalarBase(node.prefix.getName(), (ScalarBaseInfo) node.unit.info)));
+        returnType(new MatrixType(new ScalarBase(node.prefix.name(), (ScalarBaseInfo) node.unit.info)));
     }
 
     @Override
@@ -314,7 +314,7 @@ public class TypeEvaluator extends IdentityVisitor {
             if (left.multiplyable(right)) {
                 returnType(left.multiply(right.reciprocal()));
             } else {
-                throw new RuntimeException(new PacioliException(node.getLocation(),
+                throw new RuntimeException(new PacioliException(node.location(),
                         "Cannot divide %s by %s", left.pretty(), right.pretty()));
             }
         }

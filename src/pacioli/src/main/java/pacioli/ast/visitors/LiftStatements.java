@@ -52,7 +52,7 @@ public class LiftStatements extends IdentityTransformation {
 
     public void visit(StatementNode node) {
 
-        Location nodeLocation = node.getLocation();
+        Location nodeLocation = node.location();
 
         // Lift the body's statements
         ExpressionNode rec = new StatementNode(nodeLocation, (SequenceNode) expAccept(node.body));
@@ -105,7 +105,7 @@ public class LiftStatements extends IdentityTransformation {
         ValueDefinition vd = new ValueDefinition(nodeLocation, fresh, lambda, false);
         try {
             ValueInfo info = ValueInfo.builder()
-                    .name(vd.getName())
+                    .name(vd.name())
                     .file(this.file)
                     .isGlobal(true)
                     .isMonomorphic(false)
@@ -114,7 +114,7 @@ public class LiftStatements extends IdentityTransformation {
                     .definition(vd)
                     .build();
 
-            program.values.put(vd.getName(), info);
+            program.values.put(vd.name(), info);
         } catch (PacioliException e) {
             throw new RuntimeException("Cannot add lifted statement to program", e);
         }

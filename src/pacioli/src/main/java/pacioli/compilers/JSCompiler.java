@@ -134,19 +134,19 @@ public class JSCompiler implements SymbolTableVisitor {
             out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', '%s', ",
                     info.globalName(),
                     info.globalName(),
-                    definition.getName());
-            definition.getBody().compileToJS(out, settings, false);
+                    definition.name());
+            definition.body().compileToJS(out, settings, false);
             out.format(")}\n");
         } else {
 
             List<String> quotedItems = new ArrayList<String>();
-            for (String item : definition.getItems()) {
+            for (String item : definition.items()) {
                 quotedItems.add(String.format("\"%s\"", item));
             }
             out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', '%s', [ %s ])}\n",
                     info.globalName(),
                     info.globalName(),
-                    definition.getName(),
+                    definition.name(),
                     Utils.intercalate(",", quotedItems));
         }
 
@@ -196,11 +196,11 @@ public class JSCompiler implements SymbolTableVisitor {
         for (UnitDecl entry : info.items()) {
             DimensionedNumber<TypeBase> number = entry.value.evalUnit();
             // todo: take number.factor() into account!?
-            unitTexts.add("'" + entry.key.getName() + "': " + TypeBase.compileUnitToJS(number.unit()));
+            unitTexts.add("'" + entry.key.name() + "': " + TypeBase.compileUnitToJS(number.unit()));
         }
 
         String globalName = // info.globalName();//setInfo.globalName();
-                String.format("vbase_%s_%s", setInfo.generalInfo().getModule(), info.name().replace("!", "_"));
+                String.format("vbase_%s_%s", setInfo.generalInfo().module(), info.name().replace("!", "_"));
         String args = Utils.intercalate(", ", unitTexts);
 
         out.format("Pacioli.compute_%s = function () { return {units: { %s }}};\n", globalName, args);

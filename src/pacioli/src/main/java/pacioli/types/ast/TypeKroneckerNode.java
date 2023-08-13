@@ -16,7 +16,7 @@ public class TypeKroneckerNode extends AbstractTypeNode {
     }
 
     public Node transform(TypeNode left, TypeNode right) {
-        return new TypeKroneckerNode(getLocation(), left, right);
+        return new TypeKroneckerNode(location(), left, right);
     }
 
     @Override

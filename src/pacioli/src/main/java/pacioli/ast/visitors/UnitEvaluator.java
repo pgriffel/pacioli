@@ -52,10 +52,10 @@ public class UnitEvaluator extends IdentityVisitor {
             returnNode(unitAccept(def.unit));
         } else {
             ScalarBaseInfo sinfo = (ScalarBaseInfo) node.info;
-            if (!node.getPrefix().isPresent()) {
+            if (!node.prefix().isPresent()) {
                 returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(sinfo)));
             } else {
-                returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.getPrefix().get(), sinfo)));
+                returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.prefix().get(), sinfo)));
             }
         }
     }
@@ -71,7 +71,7 @@ public class UnitEvaluator extends IdentityVisitor {
         } else if ("/".equals(node.operator)) {
             returnNode(left.divide(right));
         } else {
-            visitorThrow(node.getLocation(), "Unit operator %s unknown", node.operator);
+            visitorThrow(node.location(), "Unit operator %s unknown", node.operator);
         }
     }
 

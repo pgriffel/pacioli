@@ -26,7 +26,7 @@ public class LitKey extends AbstractPrintable implements Expression {
     @Override
     public PacioliValue eval(Environment environment) throws MVMException {
         List<IndexSet> sets = new ArrayList<IndexSet>();
-        HashMap<String, IndexSet> indexSets = environment.getMachine().indexSets;
+        HashMap<String, IndexSet> indexSets = environment.machine().indexSets;
         for (String entity : entities) {
             if (indexSets.containsKey(entity)) {
                 sets.add(indexSets.get(entity));

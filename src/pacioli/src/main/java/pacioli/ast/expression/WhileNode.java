@@ -36,7 +36,7 @@ public class WhileNode extends AbstractExpressionNode {
     }
 
     public WhileNode transform(ExpressionNode test, ExpressionNode body) {
-        return new WhileNode(getLocation(), test, body);
+        return new WhileNode(location(), test, body);
     }
 
     @Override

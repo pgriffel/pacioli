@@ -18,7 +18,7 @@ public class UnitOperationNode extends AbstractUnitNode {
     }
 
     public Node transform(UnitNode left, UnitNode right) {
-        return new UnitOperationNode(getLocation(), operator, left, right);
+        return new UnitOperationNode(location(), operator, left, right);
     }
 
     @Override

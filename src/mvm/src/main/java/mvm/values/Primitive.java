@@ -117,7 +117,7 @@ public abstract class Primitive extends AbstractPacioliValue implements Callable
         return fun.apply(temp);
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 }
