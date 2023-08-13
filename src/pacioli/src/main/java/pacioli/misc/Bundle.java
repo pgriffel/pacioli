@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 import pacioli.Pacioli;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
-import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.visitors.CodeGenerator;
@@ -32,7 +31,6 @@ import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.ClassInfo;
-import pacioli.symboltable.info.GeneralInfo;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.SymbolInfo;
@@ -107,7 +105,8 @@ public class Bundle {
         SymbolTable<TypeInfo> table = new SymbolTable<TypeInfo>();
         environment.types.allInfos().forEach(info -> {
             String infoModule = info.generalInfo().getModule();
-            if (importedModules.contains(infoModule) || includedModules.contains(infoModule)) {
+            if ((info.isPublic() || info instanceof UnitInfo) && importedModules.contains(infoModule)
+                    || includedModules.contains(infoModule)) {
                 Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(),
                         info.name());
                 table.put(info.name(), info);
@@ -357,7 +356,7 @@ public class Bundle {
         for (String name : environment.types.allNames()) {
             TypeInfo info = environment.types.lookup(name);
             if (includes.contains(info.location().getFile())
-                    && info.definition().isPresent()) {
+                    && info.definition().isPresent() && info.isPublic()) {
                 if (info instanceof ParametricInfo def) {
                     generator.addType(info.name(),
                             def.definition().get().context.pretty(),

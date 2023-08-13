@@ -5,6 +5,12 @@
 import geometry;
 
 export
+    Mesh,
+    Arrow,
+    Path,
+    Vertex,
+    Face,
+    Scene,
     empty_scene,
     add_arrows,
     add_meshes,

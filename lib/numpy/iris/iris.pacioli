@@ -7,6 +7,8 @@
 import si;
 
 export
+    Feature,
+    Target,
     numpy_iris_list,
     numpy_iris_array,
     iris_list,

@@ -18,6 +18,8 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 export
+    Geom2,
+    Geom3,
     d2x,
     d2y,
     d_x,

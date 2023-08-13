@@ -53,7 +53,7 @@ public class GeneralInfo {
     }
 
     public boolean isPublic() {
-        return isGlobal;
+        return isPublic;
     }
 
     public boolean isLocal() {

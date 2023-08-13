@@ -29,6 +29,8 @@
 # ------------------------------------------------------------------------------
 
 export
+    Test,
+    TestSuite,
     test,
     test_only,
     test_description,

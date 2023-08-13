@@ -1,6 +1,7 @@
 import fourier_motzkin;
 
 export
+    PetriNet,
     make_petri_net,
     marked_petri_net,
     petri_pre,

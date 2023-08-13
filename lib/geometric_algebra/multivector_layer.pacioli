@@ -8,6 +8,7 @@ include term_layer;
 import geometry;
 
 export
+    MultiVector,
     make_multivector,
     geometric_product,
     outer_product,

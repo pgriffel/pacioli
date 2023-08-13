@@ -65,7 +65,7 @@ public class ValueInfo extends AbstractSymbolInfo {
     }
 
     public Optional<ClassInfo> typeClass() {
-        return Optional.of(this.typeClass);
+        return Optional.ofNullable(this.typeClass);
     }
 
     public List<String> getDocuParts() {
