@@ -24,7 +24,7 @@ package pacioli.types.ast;
 import java.util.List;
 
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.TypeInfo;
 import pacioli.types.TypeContext;

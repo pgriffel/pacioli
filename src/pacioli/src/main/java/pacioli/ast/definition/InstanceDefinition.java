@@ -26,8 +26,8 @@ import java.util.List;
 
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
-import pacioli.misc.Location;
-import pacioli.misc.PacioliException;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliException;
 import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.TypeApplicationNode;
 

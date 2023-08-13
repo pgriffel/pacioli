@@ -27,7 +27,7 @@ import java.util.Set;
 import pacioli.ast.Node;
 import pacioli.ast.visitors.AssignedVariablesVisitor;
 import pacioli.ast.visitors.TypeInference;
-import pacioli.misc.PacioliFile;
+import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.types.Typing;

@@ -22,7 +22,7 @@
 package pacioli.ast.definition;
 
 import pacioli.ast.AbstractNode;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public abstract class AbstractDefinition extends AbstractNode implements Definition {
 

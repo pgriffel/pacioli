@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.ast.definition.Toplevel;
-import pacioli.misc.PacioliException;
+import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.ValueInfo;
 

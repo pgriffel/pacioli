@@ -19,31 +19,18 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli.misc;
+package pacioli.compiler;
 
-public class PacioliException extends RuntimeException {
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
-    private final Location location;
+public interface Printable {
 
-    public PacioliException(String format, Object... args) {
-        super(String.format(format, args));
-        location = null;
+    default public String pretty() {
+        StringWriter out = new StringWriter();
+        printPretty(new PrintWriter(out));
+        return out.toString();
     }
 
-    public PacioliException(Location location, String format, Object... args) {
-        super(String.format(format, args));
-        this.location = location;
-    }
-
-    public Location location() {
-        return location;
-    }
-
-    public String messageWithLocation() {
-        if (location == null) {
-            return getLocalizedMessage();
-        } else {
-            return String.format("In %s\n\n%s", location.description(), getLocalizedMessage());
-        }
-    }
+    public void printPretty(PrintWriter out);
 }

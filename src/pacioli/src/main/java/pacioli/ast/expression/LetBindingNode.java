@@ -23,7 +23,7 @@ package pacioli.ast.expression;
 
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class LetBindingNode extends AbstractExpressionNode implements LetNode.BindingNode {
 

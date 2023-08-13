@@ -2,7 +2,7 @@ package pacioli.ast.definition;
 
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 import pacioli.types.TypeObject;
 
 public class Toplevel extends AbstractDefinition {

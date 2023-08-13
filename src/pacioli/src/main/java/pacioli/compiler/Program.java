@@ -1,4 +1,4 @@
-package pacioli.misc;
+package pacioli.compiler;
 
 import java.util.ArrayList;
 import java.util.Collections;

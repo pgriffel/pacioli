@@ -18,7 +18,7 @@ import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetTupleBindingNode;
-import pacioli.misc.PacioliException;
+import pacioli.compiler.PacioliException;
 
 public class DesugarVisitor extends IdentityTransformation {
 

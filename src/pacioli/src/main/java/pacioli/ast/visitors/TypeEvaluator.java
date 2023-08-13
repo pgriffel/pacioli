@@ -11,7 +11,7 @@ import pacioli.ast.IdentityVisitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.TypeDefinition;
-import pacioli.misc.PacioliException;
+import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ScalarBaseInfo;

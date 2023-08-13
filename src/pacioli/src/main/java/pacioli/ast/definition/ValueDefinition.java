@@ -26,7 +26,7 @@ import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class ValueDefinition extends AbstractDefinition {
 

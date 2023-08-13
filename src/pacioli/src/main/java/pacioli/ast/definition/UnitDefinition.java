@@ -26,7 +26,7 @@ import java.util.Optional;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 

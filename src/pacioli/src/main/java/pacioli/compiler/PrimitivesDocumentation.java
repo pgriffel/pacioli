@@ -1,4 +1,4 @@
-package pacioli.misc;
+package pacioli.compiler;
 
 import java.io.BufferedWriter;
 import java.io.File;

@@ -29,10 +29,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
-import pacioli.misc.CompilationSettings;
-import pacioli.misc.PacioliException;
-import pacioli.misc.Printable;
-import pacioli.misc.Printer;
+import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.PacioliException;
+import pacioli.compiler.Printable;
+import pacioli.compiler.Printer;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.visitors.VectorVarNames;

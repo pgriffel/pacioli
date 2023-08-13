@@ -2,7 +2,7 @@ package pacioli.types.ast;
 
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class TypePerNode extends AbstractTypeNode {
 

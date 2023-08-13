@@ -4,8 +4,8 @@ import java.util.List;
 
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.misc.CompilationSettings;
-import pacioli.misc.Location;
+import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.Location;
 import pacioli.types.ast.TypeNode;
 
 public class MultiDeclaration extends AbstractDefinition {

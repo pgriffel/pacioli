@@ -1,4 +1,4 @@
-package pacioli.compilers;
+package pacioli.transpilers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +9,9 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.visitors.MatlabGenerator;
-import pacioli.misc.CompilationSettings;
-import pacioli.misc.Printer;
-import pacioli.misc.Utils;
+import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.Printer;
+import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ClassInfo;
@@ -23,12 +23,12 @@ import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
 
-public class MATLABCompiler implements SymbolTableVisitor {
+public class MATLABTranspiler implements SymbolTableVisitor {
 
     CompilationSettings settings;
     Printer out;
 
-    public MATLABCompiler(Printer printWriter, CompilationSettings settings) {
+    public MATLABTranspiler(Printer printWriter, CompilationSettings settings) {
         this.out = printWriter;
         this.settings = settings;
     }

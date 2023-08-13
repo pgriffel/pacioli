@@ -24,7 +24,7 @@ package pacioli.ast.definition;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 import pacioli.types.ast.AbstractTypeNode;
 
 public class ValueEquation extends AbstractTypeNode {

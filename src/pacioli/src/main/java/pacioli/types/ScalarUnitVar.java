@@ -24,8 +24,8 @@ package pacioli.types;
 import java.io.PrintWriter;
 import java.util.Optional;
 
-import pacioli.misc.CompilationSettings;
-import pacioli.misc.PacioliException;
+import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ScalarBaseInfo;
 import uom.BaseUnit;

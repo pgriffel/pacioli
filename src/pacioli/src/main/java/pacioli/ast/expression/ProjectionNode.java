@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
-import pacioli.misc.Utils;
+import pacioli.compiler.Location;
+import pacioli.compiler.Utils;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
 

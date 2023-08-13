@@ -1,7 +1,7 @@
 package pacioli.ast.unit;
 
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class NumberUnitNode extends AbstractUnitNode {
 

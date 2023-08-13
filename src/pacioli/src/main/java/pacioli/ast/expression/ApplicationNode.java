@@ -24,7 +24,7 @@ package pacioli.ast.expression;
 import java.util.List;
 
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class ApplicationNode extends AbstractExpressionNode {
 

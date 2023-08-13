@@ -24,7 +24,7 @@ package pacioli.types.ast;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.unit.NumberUnitNode;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class TypePowerNode extends AbstractTypeNode {
 

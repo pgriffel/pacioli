@@ -7,8 +7,8 @@ import java.util.Optional;
 
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
-import pacioli.misc.Location;
-import pacioli.misc.PacioliFile;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;

@@ -22,7 +22,7 @@
 package pacioli.types.ast;
 
 import pacioli.ast.AbstractNode;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public abstract class AbstractTypeNode extends AbstractNode implements TypeNode {
 

@@ -9,7 +9,7 @@ package pacioli.parser;
 import java_cup.runtime.Symbol;
 import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.Location;
-import pacioli.misc.PacioliException;
+import pacioli.compiler.PacioliException;
 
 import java.io.File;
 
@@ -538,10 +538,11 @@ public class Lexer implements java_cup.runtime.Scanner, sym {
   private void error(String message) {
     // pacioli.Location errorLocation = new pacioli.Location(file, source,
     // (int)(long)(int)(long)yychar, (int)(long)(int)(long)yychar+yylength());
-    pacioli.misc.Location from = new pacioli.misc.Location(file, yyline, yycolumn, (int) (long) (int) (long) yychar);
-    pacioli.misc.Location to = new pacioli.misc.Location(file, yyline, yycolumn + yylength(),
+    pacioli.compiler.Location from = new pacioli.compiler.Location(file, yyline, yycolumn,
+        (int) (long) (int) (long) yychar);
+    pacioli.compiler.Location to = new pacioli.compiler.Location(file, yyline, yycolumn + yylength(),
         (int) (long) (int) (long) yychar + yylength());
-    pacioli.misc.Location errorLocation = from.join(to);
+    pacioli.compiler.Location errorLocation = from.join(to);
     throw new RuntimeException("Parse error", new PacioliException(errorLocation, message));
   }
 

@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;

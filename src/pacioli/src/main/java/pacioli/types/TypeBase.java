@@ -1,6 +1,6 @@
 package pacioli.types;
 
-import pacioli.misc.CompilationSettings;
+import pacioli.compiler.CompilationSettings;
 import uom.Base;
 import uom.Fraction;
 import uom.PowerProduct;

@@ -3,7 +3,7 @@ package pacioli.ast;
 import java.util.List;
 
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class ExportNode extends AbstractNode {
 

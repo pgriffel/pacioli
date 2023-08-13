@@ -22,7 +22,7 @@
 package pacioli.types.ast;
 
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class NumberTypeNode extends AbstractTypeNode {
 

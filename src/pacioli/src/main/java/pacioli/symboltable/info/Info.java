@@ -3,8 +3,8 @@ package pacioli.symboltable.info;
 import java.util.Optional;
 
 import pacioli.ast.definition.Definition;
-import pacioli.misc.Location;
-import pacioli.misc.PacioliFile;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 
 public interface Info {

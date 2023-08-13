@@ -13,9 +13,9 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
-import pacioli.misc.Location;
-import pacioli.misc.PacioliException;
-import pacioli.misc.PacioliFile;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliException;
+import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.info.ValueInfo;
 

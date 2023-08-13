@@ -35,14 +35,14 @@ import org.apache.commons.io.FilenameUtils;
 
 import mvm.MVMException;
 import mvm.Machine;
-import pacioli.misc.Bundle;
-import pacioli.misc.CompilationSettings;
-import pacioli.misc.PacioliException;
-import pacioli.misc.PacioliFile;
-import pacioli.misc.PrimitivesDocumentation;
-import pacioli.misc.Program;
-import pacioli.misc.Project;
-import pacioli.misc.CompilationSettings.Target;
+import pacioli.compiler.Bundle;
+import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.PacioliException;
+import pacioli.compiler.PacioliFile;
+import pacioli.compiler.PrimitivesDocumentation;
+import pacioli.compiler.Program;
+import pacioli.compiler.Project;
+import pacioli.compiler.CompilationSettings.Target;
 
 /**
  * The main entry point of the compiler.

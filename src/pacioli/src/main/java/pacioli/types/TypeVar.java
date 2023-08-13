@@ -23,7 +23,7 @@ package pacioli.types;
 
 import java.util.Optional;
 
-import pacioli.misc.PacioliException;
+import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.TypeVarInfo;
 import uom.BaseUnit;

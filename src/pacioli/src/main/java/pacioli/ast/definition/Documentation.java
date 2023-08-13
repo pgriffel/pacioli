@@ -28,7 +28,7 @@ import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IdentifierNode.Kind;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class Documentation extends AbstractDefinition {
 

@@ -28,8 +28,8 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.Pacioli;
-import pacioli.misc.AbstractPrintable;
-import pacioli.misc.Utils;
+import pacioli.compiler.AbstractPrintable;
+import pacioli.compiler.Utils;
 import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.TypeIdentifierNode;
 

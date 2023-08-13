@@ -8,7 +8,7 @@ import pacioli.ast.Node;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.unit.UnitIdentifierNode;
-import pacioli.misc.PacioliException;
+import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.Info;
 import pacioli.types.ast.TypeIdentifierNode;
 

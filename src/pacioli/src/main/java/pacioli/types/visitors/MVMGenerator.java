@@ -1,7 +1,7 @@
 package pacioli.types.visitors;
 
-import pacioli.misc.CompilationSettings;
-import pacioli.misc.Printer;
+import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.Printer;
 import pacioli.types.FunctionType;
 import pacioli.types.IndexSetVar;
 import pacioli.types.OperatorConst;

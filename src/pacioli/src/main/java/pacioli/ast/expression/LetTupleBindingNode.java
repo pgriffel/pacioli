@@ -25,7 +25,7 @@ import java.util.List;
 
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class LetTupleBindingNode extends AbstractExpressionNode implements LetNode.BindingNode {
 

@@ -3,7 +3,7 @@ package pacioli.ast.unit;
 import java.util.Optional;
 
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 import pacioli.symboltable.info.UnitInfo;
 
 public class UnitIdentifierNode extends AbstractUnitNode {

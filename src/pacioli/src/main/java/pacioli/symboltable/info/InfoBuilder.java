@@ -1,7 +1,7 @@
 package pacioli.symboltable.info;
 
-import pacioli.misc.Location;
-import pacioli.misc.PacioliFile;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliFile;
 
 public interface InfoBuilder<S, T> {
 

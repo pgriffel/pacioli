@@ -21,7 +21,7 @@
 package pacioli.types.ast;
 
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 import pacioli.symboltable.info.Info;
 
 public class TypeIdentifierNode extends AbstractTypeNode {

@@ -2,7 +2,7 @@ package pacioli.ast.definition;
 
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 import pacioli.types.ast.TypeNode;
 
 public class Declaration extends AbstractDefinition {

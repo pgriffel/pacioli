@@ -24,7 +24,7 @@ package pacioli.types.ast;
 import java.util.List;
 
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class TypeApplicationNode extends AbstractTypeNode {
 

@@ -26,7 +26,7 @@ import java.util.List;
 
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ValueInfo;
 

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class ContextNode extends AbstractTypeNode {
 

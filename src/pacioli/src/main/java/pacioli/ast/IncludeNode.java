@@ -1,7 +1,7 @@
 package pacioli.ast;
 
 import pacioli.ast.expression.StringNode;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class IncludeNode extends AbstractNode {
 

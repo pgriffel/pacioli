@@ -1,4 +1,4 @@
-package pacioli.compilers;
+package pacioli.transpilers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +9,9 @@ import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.visitors.MVMGenerator;
-import pacioli.misc.CompilationSettings;
-import pacioli.misc.Printer;
-import pacioli.misc.Utils;
+import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.Printer;
+import pacioli.compiler.Utils;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.AliasInfo;
@@ -25,12 +25,12 @@ import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 
-public class MVMCompiler implements SymbolTableVisitor {
+public class MVMTranspiler implements SymbolTableVisitor {
 
     CompilationSettings settings;
     Printer out;
 
-    public MVMCompiler(Printer printWriter, CompilationSettings settings) {
+    public MVMTranspiler(Printer printWriter, CompilationSettings settings) {
         this.out = printWriter;
         this.settings = settings;
     }

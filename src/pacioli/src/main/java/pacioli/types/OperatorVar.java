@@ -30,9 +30,9 @@ WHETHER
 
 package pacioli.types;
 
+import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ParametricInfo;
-import pacioli.misc.PacioliException;
 
 public record OperatorVar(String name, ParametricInfo info) implements Operator, Var {
 

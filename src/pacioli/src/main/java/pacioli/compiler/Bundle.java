@@ -1,4 +1,4 @@
-package pacioli.misc;
+package pacioli.compiler;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,11 +22,7 @@ import pacioli.ast.visitors.JSGenerator;
 import pacioli.ast.visitors.MVMGenerator;
 import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.PythonGenerator;
-import pacioli.compilers.JSCompiler;
-import pacioli.compilers.MATLABCompiler;
-import pacioli.compilers.MVMCompiler;
-import pacioli.compilers.PythonCompiler;
-import pacioli.misc.CompilationSettings.Target;
+import pacioli.compiler.CompilationSettings.Target;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;
@@ -37,6 +33,10 @@ import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
+import pacioli.transpilers.JSTranspiler;
+import pacioli.transpilers.MATLABTranspiler;
+import pacioli.transpilers.MVMTranspiler;
+import pacioli.transpilers.PythonTranspiler;
 import pacioli.types.TypeObject;
 
 /**
@@ -184,26 +184,26 @@ public class Bundle {
         switch (settings.target()) {
             case JS:
                 gen = new JSGenerator(new Printer(writer), settings, false);
-                compiler = new JSCompiler(printer, settings);
+                compiler = new JSTranspiler(printer, settings);
                 break;
             case MATLAB:
                 gen = new MatlabGenerator(printer, settings);
-                compiler = new MATLABCompiler(printer, settings);
+                compiler = new MATLABTranspiler(printer, settings);
 
-                MATLABCompiler.writePrelude(printer);
+                MATLABTranspiler.writePrelude(printer);
 
                 break;
             case MVM:
                 gen = new MVMGenerator(printer, settings);
-                compiler = new MVMCompiler(printer, settings);
+                compiler = new MVMTranspiler(printer, settings);
 
                 break;
             case PYTHON:
 
-                PythonCompiler.writePrelude(printer);
+                PythonTranspiler.writePrelude(printer);
 
                 gen = new PythonGenerator(printer, settings);
-                compiler = new PythonCompiler(printer, settings);
+                compiler = new PythonTranspiler(printer, settings);
                 break;
             default:
                 throw new RuntimeException("Unknown target");

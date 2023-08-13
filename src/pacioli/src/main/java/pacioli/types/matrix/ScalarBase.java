@@ -25,7 +25,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import pacioli.ast.definition.UnitDefinition;
-import pacioli.misc.CompilationSettings;
+import pacioli.compiler.CompilationSettings;
 import pacioli.symboltable.info.ScalarBaseInfo;
 import pacioli.types.TypeBase;
 import uom.BaseUnit;

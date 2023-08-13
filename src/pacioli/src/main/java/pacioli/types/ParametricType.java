@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Optional;
 
 import pacioli.ast.definition.TypeDefinition;
-import pacioli.misc.Location;
-import pacioli.misc.PacioliException;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliException;
 
 public class ParametricType extends AbstractType {
 

@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli.misc;
+package pacioli.compiler;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -31,7 +31,7 @@ import java.util.Optional;
 import org.apache.commons.io.FilenameUtils;
 
 import pacioli.Pacioli;
-import pacioli.misc.CompilationSettings.Target;
+import pacioli.compiler.CompilationSettings.Target;
 
 /**
  * A wrapper around a file path that stores extra information about the file's

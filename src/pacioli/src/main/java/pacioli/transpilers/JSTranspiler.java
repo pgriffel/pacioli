@@ -1,4 +1,4 @@
-package pacioli.compilers;
+package pacioli.transpilers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,9 +12,9 @@ import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.unit.UnitNode;
-import pacioli.misc.CompilationSettings;
-import pacioli.misc.Printer;
-import pacioli.misc.Utils;
+import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.Printer;
+import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ClassInfo;
@@ -27,12 +27,12 @@ import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.types.TypeBase;
 import uom.DimensionedNumber;
 
-public class JSCompiler implements SymbolTableVisitor {
+public class JSTranspiler implements SymbolTableVisitor {
 
     CompilationSettings settings;
     Printer out;
 
-    public JSCompiler(Printer printWriter, CompilationSettings settings) {
+    public JSTranspiler(Printer printWriter, CompilationSettings settings) {
         this.out = printWriter;
         this.settings = settings;
     }
@@ -47,34 +47,40 @@ public class JSCompiler implements SymbolTableVisitor {
 
         ValueDefinition definition = info.definition().get();
         ExpressionNode transformedBody = definition.body;
-        if (false && transformedBody instanceof LambdaNode) {
-            LambdaNode code = (LambdaNode) transformedBody;
-            out.newline();
-            out.format("Pacioli.u_%s = function () {", info.globalName());
-            out.newlineUp();
-            out.format("var args = new Pacioli.GenericType('Tuple', Array.prototype.slice.call(arguments));");
-            out.format("var type = %s;", info.localType().reduce(i -> true).compileToJS());
-            out.format("return Pacioli.subs(type.to, Pacioli.matchTypes(type.from, args));");
-            out.newlineDown();
-            out.write("}");
-            out.newline();
-            out.format("Pacioli.b_%s = function (%s) {", info.globalName(), code.argsString("lcl_"));
-            out.newlineUp();
-            out.format("return ");
-            code.expression.compileToJS(out, settings, true);
-            out.format(";");
-            out.newlineDown();
-            out.format("}");
-            out.newline();
-            out.format("Pacioli.%s = function (%s) {", info.globalName(), code.argsString("lcl_"));
-            out.newlineUp();
-            out.format("return ");
-            code.expression.compileToJS(out, settings, false);
-            out.format(";");
-            out.newlineDown();
-            out.format("}");
-            out.newline();
-        } else if (transformedBody instanceof LambdaNode) {
+        // if (false && transformedBody instanceof LambdaNode) {
+        // LambdaNode code = (LambdaNode) transformedBody;
+        // out.newline();
+        // out.format("Pacioli.u_%s = function () {", info.globalName());
+        // out.newlineUp();
+        // out.format("var args = new Pacioli.GenericType('Tuple',
+        // Array.prototype.slice.call(arguments));");
+        // out.format("var type = %s;", info.localType().reduce(i ->
+        // true).compileToJS());
+        // out.format("return Pacioli.subs(type.to, Pacioli.matchTypes(type.from,
+        // args));");
+        // out.newlineDown();
+        // out.write("}");
+        // out.newline();
+        // out.format("Pacioli.b_%s = function (%s) {", info.globalName(),
+        // code.argsString("lcl_"));
+        // out.newlineUp();
+        // out.format("return ");
+        // code.expression.compileToJS(out, settings, true);
+        // out.format(";");
+        // out.newlineDown();
+        // out.format("}");
+        // out.newline();
+        // out.format("Pacioli.%s = function (%s) {", info.globalName(),
+        // code.argsString("lcl_"));
+        // out.newlineUp();
+        // out.format("return ");
+        // code.expression.compileToJS(out, settings, false);
+        // out.format(";");
+        // out.newlineDown();
+        // out.format("}");
+        // out.newline();
+        // } else
+        if (transformedBody instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformedBody;
             out.newline();
 

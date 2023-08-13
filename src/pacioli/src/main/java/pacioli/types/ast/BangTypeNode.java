@@ -24,7 +24,7 @@ package pacioli.types.ast;
 import java.util.Optional;
 
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class BangTypeNode extends AbstractTypeNode {
 

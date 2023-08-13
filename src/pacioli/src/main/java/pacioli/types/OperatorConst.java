@@ -1,6 +1,6 @@
 package pacioli.types;
 
-import pacioli.misc.PacioliException;
+import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.ParametricInfo;
 
 // Const

@@ -27,7 +27,7 @@ import mvm.values.matrix.IndexSet;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class IndexSetDefinition extends AbstractDefinition {
 

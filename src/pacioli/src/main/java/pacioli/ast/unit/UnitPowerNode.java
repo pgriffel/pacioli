@@ -2,7 +2,7 @@ package pacioli.ast.unit;
 
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class UnitPowerNode extends AbstractUnitNode {
 

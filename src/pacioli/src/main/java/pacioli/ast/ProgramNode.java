@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.ast.definition.Definition;
-import pacioli.misc.Location;
+import pacioli.compiler.Location;
 
 public class ProgramNode extends AbstractNode {
 

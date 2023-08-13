@@ -1,4 +1,4 @@
-package pacioli.misc;
+package pacioli.compiler;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -21,7 +21,7 @@ import pacioli.Pacioli;
 import pacioli.ast.ImportNode;
 import pacioli.ast.IncludeNode;
 import pacioli.ast.ProgramNode;
-import pacioli.misc.CompilationSettings.Target;
+import pacioli.compiler.CompilationSettings.Target;
 import pacioli.parser.Parser;
 import pacioli.symboltable.PacioliTable;
 

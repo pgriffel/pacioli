@@ -28,8 +28,8 @@ import java.util.Map;
 import java.util.Set;
 
 import pacioli.ast.expression.ApplicationNode;
-import pacioli.misc.AbstractPrintable;
-import pacioli.misc.PacioliException;
+import pacioli.compiler.AbstractPrintable;
+import pacioli.compiler.PacioliException;
 
 public class Typing extends AbstractPrintable {
 

@@ -24,8 +24,8 @@ package pacioli.types.matrix;
 import java.util.Arrays;
 import java.util.List;
 
-import pacioli.misc.CompilationSettings;
-import pacioli.misc.PacioliException;
+import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.PacioliException;
 import pacioli.types.AbstractType;
 import pacioli.types.ConstraintSet;
 import pacioli.types.TypeObject;

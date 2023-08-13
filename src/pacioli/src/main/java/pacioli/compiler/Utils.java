@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli.misc;
+package pacioli.compiler;
 
 import java.io.File;
 import java.io.FileInputStream;
