@@ -123,8 +123,9 @@ public class Bundle {
     public void addPrimitiveTypes() {
         PacioliFile file = PacioliFile.requireLibrary("base", libs);
         for (String type : PRIMITIVE_TYPES) {
-            GeneralInfo info = new GeneralInfo(type, file, true, new Location());
-            environment.types.put(type, new ParametricInfo(info));
+            // GeneralInfo info = new GeneralInfo(type, file, true, new Location());
+            // environment.types.put(type, new ParametricInfo(info));
+            environment.types.put(type, new ParametricInfo(type, file, true, new Location()));
         }
         ValueInfo nmodeInfo = ValueInfo.builder()
                 .name("nmode")
@@ -391,7 +392,7 @@ public class Bundle {
             TypeInfo typeInfo = environment.types.lookup(name);
             if (typeInfo instanceof ClassInfo info) {
                 Pacioli.println("%-25s %-25s %-25s", info.name(), info.generalInfo().getModule(),
-                        info.instances.size());
+                        info.instances().size());
             }
         }
 

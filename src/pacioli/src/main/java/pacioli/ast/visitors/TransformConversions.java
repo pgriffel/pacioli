@@ -61,7 +61,7 @@ public class TransformConversions extends IdentityTransformation {
                     public DimensionedNumber<TypeBase> map(TypeBase base) {
                         VectorBase vbase = (VectorBase) base;
                         String itemName = items.get(vbase.position);
-                        DimensionedNumber<TypeBase> unit = vbase.vectorUnitInfo.getUnit(itemName);
+                        DimensionedNumber<TypeBase> unit = vbase.vectorUnitInfo.lookupUnit(itemName);
                         return unit;
                     }
 

@@ -172,11 +172,11 @@ public class JSCompiler implements SymbolTableVisitor {
                 number = number.flat();
                 out.format("Pacioli.compute_%s = function () {\n", info.globalName());
                 out.format("    return {definition: new Pacioli.DimNum(%s, %s), symbol: '%s'}\n",
-                        number.factor(), TypeBase.compileUnitToJS(number.unit()), info.symbol);
+                        number.factor(), TypeBase.compileUnitToJS(number.unit()), info.symbol());
                 out.format("}\n");
             } else {
                 out.format("Pacioli.compute_%s = function () { return {symbol: '%s'}};\n",
-                        info.globalName(), info.symbol);
+                        info.globalName(), info.symbol());
             }
         } else {
             throw new RuntimeException("ScalarUnitInfo misses definition");
@@ -193,7 +193,7 @@ public class JSCompiler implements SymbolTableVisitor {
         IndexSetInfo setInfo = (IndexSetInfo) info.definition().get().indexSetNode.info;
         List<String> unitTexts = new ArrayList<String>();
 
-        for (UnitDecl entry : info.getItems()) {
+        for (UnitDecl entry : info.items()) {
             DimensionedNumber<TypeBase> number = entry.value.evalUnit();
             // todo: take number.factor() into account!?
             unitTexts.add("'" + entry.key.getName() + "': " + TypeBase.compileUnitToJS(number.unit()));

@@ -3,7 +3,7 @@ import geometric_algebra;
 
 # Leo's figure 3.4 contractions example
 # Hard coded inverse of f1^f2 => -f1^f2, TODO unit inverse?
-declare dualization_2D :: for_unit a: (MultiVector(a, 1, Geom2!)) -> MultiVector(a, 1, Geom2!);
+declare dualization_2D :: for_unit a: (MultiVector(a, Geom2!)) -> MultiVector(a, Geom2!);
 define dualization_2D(a) =
     left_contraction(a, outer_product(make_multivector([make_term(1, f2)]), make_multivector([make_term(1, f1)])));
 
@@ -14,7 +14,7 @@ multivector2string(dualization_2D(make_multivector([make_term(8, f2)])));
 multivector2string(dualization_2D(dualization_2D(make_multivector([make_term(8, f2)]))));
 
 # Leo's figure 3.5 - we take the reverse of e123 for the inverse. TODO unit inverse?
-declare dualization_3D :: for_unit a: (MultiVector(a, 1, Geom3!)) -> MultiVector(a, 1, Geom3!);
+declare dualization_3D :: for_unit a: (MultiVector(a, Geom3!)) -> MultiVector(a, Geom3!);
 define dualization_3D(a) =
     left_contraction(a, parse_mv("e321"));
 

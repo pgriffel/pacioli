@@ -11,7 +11,7 @@ import pacioli.symboltable.SymbolTableVisitor;
  */
 public final class InstanceInfo extends AbstractSymbolInfo {
 
-    public final InstanceDefinition definition;
+    private final InstanceDefinition definition;
 
     public InstanceInfo(
             InstanceDefinition definition,

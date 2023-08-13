@@ -2,10 +2,10 @@
 # MultiVector utilities layer
 # ------------------------------------------------------------------------------
 
-import geometry;
-
-include term_layer;
 include blade;
+include term_layer;
+
+import geometry;
 
 export
     make_multivector,
@@ -249,11 +249,12 @@ define scalar_part(mv) =
 # ------------------------------------------------------------------------------
 
 # inner_product specialises into 4 specific types
-declare
-    left_contraction,
-    right_contraction,
-    hestenes_inner_product,
-    modified_hestenes_inner_product :: for_index I: for_unit a,b: (MultiVector(a, I!), MultiVector(b, I!)) -> MultiVector(a*b, I!);
+declare left_contraction,
+        right_contraction,
+        hestenes_inner_product,
+        modified_hestenes_inner_product ::
+    for_index I: for_unit a,b:
+        (MultiVector(a, I!), MultiVector(b, I!)) -> MultiVector(a*b, I!);
 
 define left_contraction(mv1, mv2) = 
     let res = [term_inner_product(x, y, left_contraction_predicate) | x <- mv1, y <- mv2] in
@@ -291,7 +292,8 @@ define modified_hestenes_inner_product(mv1, mv2) =
 declare left_contraction_predicate,
         right_contraction_predicate,
         hestenes_inner_product_predicate,
-        modified_inner_product_predicate :: for_index I: for_unit a: (1, 1, Term(a, I!)) -> Boole;
+        modified_inner_product_predicate :: 
+    for_index I: for_unit a: (1, 1, Term(a, I!)) -> Boole;
 
 define left_contraction_predicate(grade1, grade2, t) =
     grade1 <= grade2 and term_grade(t) = grade2 - grade1;

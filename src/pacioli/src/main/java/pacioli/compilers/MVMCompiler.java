@@ -91,11 +91,11 @@ public class MVMCompiler implements SymbolTableVisitor {
         if (definition.isPresent()) {
 
             if (!definition.get().body.isPresent()) {
-                out.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol);
+                out.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol());
             } else {
                 DimensionedNumber<TypeBase> number = definition.get().body.get().evalUnit();
                 number = number.flat();
-                out.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol, number.factor(),
+                out.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol(), number.factor(),
                         MVMGenerator.compileUnitToMVM(number.unit()));
             }
         } else {
@@ -113,7 +113,7 @@ public class MVMCompiler implements SymbolTableVisitor {
         IndexSetInfo setInfo = (IndexSetInfo) info.definition().get().indexSetNode.info;
         List<String> unitTexts = new ArrayList<String>();
         // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
-        for (UnitDecl entry : info.getItems()) {
+        for (UnitDecl entry : info.items()) {
             DimensionedNumber<TypeBase> number = entry.value.evalUnit();
             // todo: take number.factor() into account!?
             unitTexts.add("\"" + entry.key.getName() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));

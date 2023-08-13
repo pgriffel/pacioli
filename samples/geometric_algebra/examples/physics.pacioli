@@ -113,5 +113,5 @@ define the_scene(t0, t1) =
     end;
 
 define rendered_vectors(i, color) = 
-    [origin_arrow(mv2vec(framevector(j, i * |second|)), color) | j <- naturals(3)];
+    [origin_arrow(10 '.*'mv2vec(framevector(j, i * |second|)), color) | j <- naturals(3)];
 

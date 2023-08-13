@@ -6,22 +6,19 @@ import pacioli.ast.definition.TypeDefinition;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.types.ast.TypeNode;
 
 public final class ParametricInfo extends AbstractSymbolInfo implements TypeInfo {
 
-    private Optional<TypeDefinition> definition = Optional.empty();
-    public TypeNode typeAST;
-    public Boolean isIndexSetId;
-    public Boolean isUnitId;
-    public Boolean isVar;
+    private final TypeDefinition definition;
 
     public ParametricInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
         super(new GeneralInfo(name, file, isGlobal, location));
+        this.definition = null;
     }
 
-    public ParametricInfo(GeneralInfo info) {
+    public ParametricInfo(GeneralInfo info, TypeDefinition definition) {
         super(info);
+        this.definition = definition;
     }
 
     @Override
@@ -40,17 +37,12 @@ public final class ParametricInfo extends AbstractSymbolInfo implements TypeInfo
 
     @Override
     public Optional<TypeDefinition> definition() {
-        return definition;
-    }
-
-    public void setDefinition(TypeDefinition definition) {
-        this.definition = Optional.of(definition);
+        return Optional.ofNullable(definition);
     }
 
     public static class Builder extends GeneralBuilder<Builder, ParametricInfo> {
 
         private TypeDefinition definition;
-        private TypeNode typeAST;
 
         @Override
         protected Builder self() {
@@ -62,20 +54,9 @@ public final class ParametricInfo extends AbstractSymbolInfo implements TypeInfo
             return this;
         }
 
-        public Builder typeAST(TypeNode typeAST) {
-            this.typeAST = typeAST;
-            return this;
-        }
-
         @Override
         public ParametricInfo build() {
-            // if (definition == null || file == null || instances == null) {
-            // throw new RuntimeException("Class info incomplete");
-            // }
-            ParametricInfo info = new ParametricInfo(this.buildGeneralInfo());
-            info.typeAST = this.typeAST;
-            info.definition = Optional.ofNullable(this.definition);
-            return info;
+            return new ParametricInfo(this.buildGeneralInfo(), this.definition);
         }
     }
 

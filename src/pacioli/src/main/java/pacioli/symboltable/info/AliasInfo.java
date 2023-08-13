@@ -51,7 +51,6 @@ public final class AliasInfo extends UnitInfo {
         public AliasInfo build() {
             return new AliasInfo(this.buildGeneralInfo(), definition);
         }
-
     }
 
     public static Builder builder() {

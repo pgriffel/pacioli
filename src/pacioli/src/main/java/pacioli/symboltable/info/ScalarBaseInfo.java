@@ -9,15 +9,19 @@ import pacioli.symboltable.SymbolTableVisitor;
 
 public final class ScalarBaseInfo extends UnitInfo {
 
-    public String symbol;
-    private Optional<UnitDefinition> definition = Optional.empty();
+    private final String symbol;
+    private final UnitDefinition definition;
 
-    public ScalarBaseInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
+    public ScalarBaseInfo(String name, PacioliFile file, Boolean isGlobal, Location location, String symbol) {
         super(new GeneralInfo(name, file, isGlobal, location));
+        this.symbol = symbol;
+        this.definition = null;
     }
 
-    public ScalarBaseInfo(GeneralInfo info) {
+    public ScalarBaseInfo(GeneralInfo info, String symbol, UnitDefinition definition) {
         super(info);
+        this.symbol = symbol;
+        this.definition = definition;
     }
 
     @Override
@@ -32,15 +36,15 @@ public final class ScalarBaseInfo extends UnitInfo {
 
     @Override
     public Optional<UnitDefinition> definition() {
-        return definition;
-    }
-
-    public void setDefinition(UnitDefinition definition) {
-        this.definition = Optional.of(definition);
+        return Optional.ofNullable(definition);
     }
 
     public Boolean isAlias() {
         return false;
+    }
+
+    public String symbol() {
+        return this.symbol;
     }
 
     public static class Builder extends GeneralBuilder<Builder, ScalarBaseInfo> {
@@ -65,13 +69,7 @@ public final class ScalarBaseInfo extends UnitInfo {
 
         @Override
         public ScalarBaseInfo build() {
-            // if (definition == null || file == null || instances == null) {
-            // throw new RuntimeException("Class info incomplete");
-            // }
-            ScalarBaseInfo info = new ScalarBaseInfo(this.buildGeneralInfo());
-            info.symbol = this.symbol;
-            info.definition = Optional.ofNullable(this.definition);
-            return info;
+            return new ScalarBaseInfo(this.buildGeneralInfo(), this.symbol, this.definition);
         }
     }
 

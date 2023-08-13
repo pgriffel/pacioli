@@ -10,8 +10,8 @@ import pacioli.symboltable.SymbolTableVisitor;
 
 public final class ClassInfo extends AbstractSymbolInfo implements TypeInfo {
 
-    public final ClassDefinition definition;
-    public final List<InstanceInfo> instances;
+    private final ClassDefinition definition;
+    private final List<InstanceInfo> instances;
 
     public ClassInfo(
             GeneralInfo info,
@@ -35,6 +35,10 @@ public final class ClassInfo extends AbstractSymbolInfo implements TypeInfo {
     @Override
     public Optional<ClassDefinition> definition() {
         return Optional.of(definition);
+    }
+
+    public List<InstanceInfo> instances() {
+        return this.instances;
     }
 
     public void addMember(InstanceDefinition instanceDefinition) {

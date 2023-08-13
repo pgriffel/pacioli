@@ -6,23 +6,16 @@ import pacioli.ast.definition.TypeDefinition;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.types.ast.TypeNode;
 
 public final class TypeVarInfo extends AbstractSymbolInfo implements TypeInfo {
 
-    public TypeVarInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
+    public TypeVarInfo(
+            String name,
+            PacioliFile file,
+            Boolean isGlobal,
+            Location location) {
         super(new GeneralInfo(name, file, isGlobal, location));
     }
-
-    public TypeVarInfo(GeneralInfo info) {
-        super(info);
-    }
-
-    private Optional<TypeDefinition> definition = Optional.empty();
-    public TypeNode typeAST;
-    public Boolean isIndexSetId;
-    public Boolean isUnitId;
-    public Boolean isVar;
 
     @Override
     public void accept(SymbolTableVisitor visitor) {
@@ -40,10 +33,7 @@ public final class TypeVarInfo extends AbstractSymbolInfo implements TypeInfo {
 
     @Override
     public Optional<TypeDefinition> definition() {
-        return definition;
+        return Optional.empty();
     }
 
-    public void setDefinition(TypeDefinition definition) {
-        this.definition = Optional.of(definition);
-    }
 }

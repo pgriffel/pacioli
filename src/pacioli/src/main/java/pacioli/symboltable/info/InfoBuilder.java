@@ -15,7 +15,7 @@ public interface InfoBuilder<S, T> {
 
     public S isGlobal(Boolean isGlobal);
 
-    T build();
-
     public S documentation(String docu);
+
+    T build();
 }

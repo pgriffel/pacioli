@@ -543,7 +543,7 @@ public class ResolveVisitor extends IdentityVisitor {
             if (arg.contains("!")) {
                 table.put(arg, new VectorBaseInfo(arg, file, false, location));
             } else {
-                table.put(arg, new ScalarBaseInfo(arg, file, false, location));
+                table.put(arg, new ScalarBaseInfo(arg, file, false, location, ""));
             }
 
         }

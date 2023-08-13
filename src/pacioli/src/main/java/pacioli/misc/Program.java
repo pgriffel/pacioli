@@ -181,8 +181,7 @@ public class Program {
                         .file(file)
                         .isGlobal(true)
                         .location(def.getLocation())
-                        .definition(typeDef)
-                        .typeAST(typeDef.rhs);
+                        .definition(typeDef);
                 typeBuilders.put(def.getName(), builder);
             } else if (def instanceof UnitDefinition unitDef) {
                 ScalarBaseInfo.Builder builder = ScalarBaseInfo.builder();
@@ -372,8 +371,8 @@ public class Program {
                 nfo.definition().get().resolve(this.file, prog);
 
                 // Resolve all class instances
-                for (InstanceInfo instanceInfo : classInfo.instances) {
-                    for (ValueEquation member : instanceInfo.definition.members) {
+                for (InstanceInfo instanceInfo : classInfo.instances()) {
+                    for (ValueEquation member : instanceInfo.definition().get().members) {
                         member.body.resolve(this.file, prog);
                     }
                 }
@@ -445,7 +444,7 @@ public class Program {
         PacioliTable env = PacioliTable.empty();
 
         // Get some class properties
-        ClassDefinition classDefinition = classInfo.definition;
+        ClassDefinition classDefinition = classInfo.definition().get();
         Location classLocation = classDefinition.getLocation();
         String classConstructorName = String.format("make_%s", classInfo.globalName());
         String classTypeName = String.format("%sDictttt", classDefinition.getName());
@@ -458,7 +457,7 @@ public class Program {
             List<ExpressionNode> args = new ArrayList<>();
             List<String> argNames = new ArrayList<>();
             List<TypeNode> memberTypes = new ArrayList<>();
-            for (TypeAssertion member : classInfo.definition.members) {
+            for (TypeAssertion member : classInfo.definition().get().members) {
                 IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(), classLocation);
                 argNames.add(id.getName());
                 args.add(id);
@@ -470,15 +469,23 @@ public class Program {
 
             // Create class type definition
             TypeContext typeContext = TypeContext.fromContextNodes(classDefinition.contextNodes);
-            ParametricInfo typeInfo = new ParametricInfo(classTypeName, this.file, true, classLocation);
+
+            TypeIdentifierNode id = new TypeIdentifierNode(classLocation, classTypeName);
             TypeNode lhs = new TypeApplicationNode(
                     classDefinition.type.getLocation(),
-                    new TypeIdentifierNode(classLocation, classTypeName, typeInfo),
+                    id,
                     classDefinition.type.args);
             TypeIdentifierNode tupleId = new TypeIdentifierNode(new Location(), "Tuple");
             TypeNode rhs = new TypeApplicationNode(classLocation, tupleId, memberTypes);
             TypeDefinition typeDefinition = new TypeDefinition(classLocation, typeContext, lhs, rhs);
-            typeInfo.setDefinition(typeDefinition);
+            ParametricInfo typeInfo = ParametricInfo.builder()
+                    .name(classTypeName)
+                    .file(this.file)
+                    .isGlobal(true)
+                    .location(classLocation)
+                    .definition(typeDefinition)
+                    .build();
+            id.info = typeInfo;
 
             // Create class constructor type declaration
             FunctionTypeNode constructorType = new FunctionTypeNode(classLocation, rhs, lhs);
@@ -520,7 +527,7 @@ public class Program {
             int counter = 0;
 
             // Create a function for each member
-            for (TypeAssertion member : classInfo.definition.members) {
+            for (TypeAssertion member : classInfo.definition().get().members) {
 
                 Location memberLocation = member.getLocation();
 
@@ -604,7 +611,7 @@ public class Program {
                 classInfo.name());
 
         // Rewrite all class instances if it is from this program
-        for (InstanceInfo instanceInfo : classInfo.instances) {
+        for (InstanceInfo instanceInfo : classInfo.instances()) {
             if (instanceInfo.isFromFile(this.file)) {
 
                 Location instanceLocation = instanceInfo.location();
@@ -612,15 +619,15 @@ public class Program {
                 // Create a declaration and definition. Both are a tuple with an element for
                 // each overloaded function instance
                 List<ExpressionNode> bodies = new ArrayList<>();
-                for (String name : classInfo.definition.memberNames()) {
-                    bodies.add(instanceInfo.definition.memberBody(name));
+                for (String name : classInfo.definition().get().memberNames()) {
+                    bodies.add(instanceInfo.definition().get().memberBody(name));
                 }
 
                 // Create tuple
 
                 ApplicationNode tuple = new ApplicationNode(classConstructorId, bodies, instanceLocation);
                 List<String> arg = new ArrayList<>();
-                for (ContextNode yo : instanceInfo.definition.contextNodes) {
+                for (ContextNode yo : instanceInfo.definition().get().contextNodes) {
                     for (TypeApplicationNode condition : yo.conditions) {
                         arg.add(condition.getName());
                     }

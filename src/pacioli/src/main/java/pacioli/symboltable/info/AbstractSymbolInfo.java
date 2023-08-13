@@ -5,7 +5,7 @@ import pacioli.misc.PacioliFile;
 
 public abstract class AbstractSymbolInfo implements SymbolInfo {
 
-    private GeneralInfo general;
+    private final GeneralInfo general;
 
     public AbstractSymbolInfo(GeneralInfo general) {
         this.general = general;

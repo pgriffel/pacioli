@@ -15,34 +15,33 @@ import uom.DimensionedNumber;
 
 public final class VectorBaseInfo extends UnitInfo {
 
-    private Optional<UnitVectorDefinition> definition = Optional.empty();
-    private List<UnitDecl> items;
-    private Map<String, UnitDecl> units;
+    private final UnitVectorDefinition definition;
+    private final List<UnitDecl> items;
+    private final Map<String, UnitDecl> units;
 
     public VectorBaseInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
         super(new GeneralInfo(name, file, isGlobal, location));
         assert (name.contains("!"));
+        this.definition = null;
+        this.items = null;
+        this.units = null;
     }
 
-    public VectorBaseInfo(GeneralInfo info) {
+    public VectorBaseInfo(GeneralInfo info, UnitVectorDefinition definition, List<UnitDecl> items) {
         super(info);
-    }
-
-    public void setItems(List<UnitDecl> items) {
+        this.definition = definition;
         this.items = items;
-        // units = new HashMap<String, DimensionedNumber<TypeBase>>();
-        units = new HashMap<String, UnitDecl>();
+        this.units = new HashMap<String, UnitDecl>();
         for (UnitDecl decl : items) {
-            // units.put(decl.key.getName(), decl.value.evalUnit());
             units.put(decl.key.getName(), decl);
         }
     }
 
-    public List<UnitDecl> getItems() {
+    public List<UnitDecl> items() {
         return items;
     }
 
-    public DimensionedNumber<TypeBase> getUnit(String name) {
+    public DimensionedNumber<TypeBase> lookupUnit(String name) {
         // todo: handle ignored factor!!!
         // DimensionedNumber<TypeBase> stored = units.get(name);
         // DimensionedNumber<TypeBase> stored = units.get(name).value.evalUnit();
@@ -62,11 +61,7 @@ public final class VectorBaseInfo extends UnitInfo {
 
     @Override
     public Optional<UnitVectorDefinition> definition() {
-        return definition;
-    }
-
-    public void setDefinition(UnitVectorDefinition definition) {
-        this.definition = Optional.of(definition);
+        return Optional.ofNullable(definition);
     }
 
     public static class Builder extends GeneralBuilder<Builder, VectorBaseInfo> {
@@ -91,13 +86,7 @@ public final class VectorBaseInfo extends UnitInfo {
 
         @Override
         public VectorBaseInfo build() {
-            // if (definition == null || file == null || instances == null) {
-            // throw new RuntimeException("Class info incomplete");
-            // }
-            VectorBaseInfo info = new VectorBaseInfo(this.buildGeneralInfo());
-            info.definition = Optional.ofNullable(this.definition);
-            info.setItems(this.items);
-            return info;
+            return new VectorBaseInfo(this.buildGeneralInfo(), definition, items);
         }
     }
 

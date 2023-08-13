@@ -2,9 +2,9 @@
 # Term layer: weighted Blades
 # ----------------------------------------------------------------------------
 
-import geometry;
-
 include blade;
+
+import geometry;
 
 export
     Term,

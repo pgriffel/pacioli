@@ -2,10 +2,11 @@
 # MultiVector functional layer - instances for applications
 # ------------------------------------------------------------------------------
 
-import geometry;
 include term_layer;
 include multivector_layer;
 include blade;
+
+import geometry;
 
 export
     e0, e1, e12, e123, e13, e2, e23, e3,
@@ -62,8 +63,8 @@ export
 # 
 
 # TODO: separate aliases for term_weight AND term_base_blade
-defalias unit_2D = 1;
-defalias unit_3D = 1;
+defalias unit_2D = metre;
+defalias unit_3D = metre;
 
 define blades_2D = 
     let 
