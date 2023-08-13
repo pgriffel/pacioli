@@ -1,62 +1,43 @@
 # ------------------------------------------------------------------------------
 # Test utilities
-# 
-# Example use:
-#
-#   define function_naturals_suite = test_suite("Function 'naturals'", [
-#     
-#       test("should produce the empty list for 0", () ->
-#           naturals(0) = []
-#       ),
-# 
-#       test("should produce the first 5 naturals", () ->
-#           naturals(5) = [0, 1, 2, 3, 4]
-#       )
-#       ]);
-# 
-#   run_test_suite(function_naturals_suite);
-# 
-# Expected output:
-# 
-#   Function 'naturals'
-#     should produce the empty list for 0 -> ok
-#     should produce the first 5 naturals -> ok
-#   All 2 tests succeeded
-#
-# Replace test and test_suite by variants test_only and test_suite_only to filter
-# tests.
-#
 # ------------------------------------------------------------------------------
 
 export
     Test,
     TestSuite,
     test,
-    test_only,
+    test_focus,
     test_description,
-    test_is_only,
+    is_test_focused,
     run_test,
     test_suite,
-    test_suite_only,
+    test_suite_focus,
     suite_description,
     suite_tests,
-    suite_is_only,
+    is_suite_focused,
     run_test_suites;
 
-declare test, test_only :: (String, () -> Boole) -> Test;
+declare test, test_focus :: (String, () -> Boole) -> Test;
 declare test_description :: (Test) -> String;
-declare test_is_only :: (Test) -> Boole;
+declare is_test_focused :: (Test) -> Boole;
 declare run_test :: (Test) -> Boole;
 
-declare test_suite, test_suite_only :: (String, List(Test)) -> TestSuite;
+declare test_suite, test_suite_focus :: (String, List(Test)) -> TestSuite;
 declare suite_description :: (TestSuite) -> String;
 declare suite_tests :: (TestSuite) -> List(Test);
-declare suite_is_only :: (TestSuite) -> Boole;
+declare is_suite_focused :: (TestSuite) -> Boole;
 declare run_test_suites :: (List(TestSuite)) -> Void;
 
 # ------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------
+
+doc Test
+    "A test is a tuple <code>(description, check, focused)</code>. 
+    
+    The desciption explains the test in one line. The check is the actual
+    test. The focused flag indicates whether this test is marked as 
+    'focused'.";
 
 deftype Test() = Tuple(String, () -> Boole, Boole);
 
@@ -80,13 +61,13 @@ define test(description, body) =
 
 # ------------------------------------------------------------------------------
 
-doc test_only
-    "Creates a test, just like function <code>test</code>, but marks it as 'only'.
+doc test_focus
+    "Creates a test, just like function <code>test</code>, but marks it as 'focused'.
     
-    When at least one test is marked as 'only' then function <code>run_test_suites</code>
+    When at least one test is marked as 'focused' then function <code>run_test_suites</code>
     will only run the marked tests and skip all others.";
 
-define test_only(description, body) =
+define test_focus(description, body) =
   tuple(description , body, true);
 
 # ------------------------------------------------------------------------------
@@ -99,11 +80,11 @@ define test_description(test) =
 
 # ------------------------------------------------------------------------------
 
-doc test_is_only
-    "Is the test marked as 'only'.";
+doc is_test_focused
+    "Is the test marked as 'focused'.";
 
-define test_is_only(test) = 
-  let (_, _, is_only) = test in is_only end;
+define is_test_focused(test) = 
+  let (_, _, is_focused) = test in is_focused end;
 
 # ------------------------------------------------------------------------------
 
@@ -116,6 +97,9 @@ define run_test(test) =
 # ------------------------------------------------------------------------------
 # Tests suite
 # ------------------------------------------------------------------------------
+
+doc TestSuite
+    "A test suite is a collection of tests.";
 
 deftype TestSuite() = Tuple(String, List(Test), Boole);
 
@@ -141,10 +125,11 @@ define test_suite(description, tests) =
 
 # ------------------------------------------------------------------------------
 
-doc test_suite_only
-    "Is the test suite marked as 'only'.";
+doc test_suite_focus
+    "Creates a test suite, just like function <code>test_suite</code>, but
+    marks it as 'focused'";
 
-define test_suite_only(description, tests) = 
+define test_suite_focus(description, tests) = 
     tuple(description, tests, true);
 
 # ------------------------------------------------------------------------------
@@ -165,11 +150,11 @@ define suite_tests(suite) =
 
 # ------------------------------------------------------------------------------
 
-doc suite_is_only
-    "Is the test suite marked as 'only'";
+doc is_suite_focused
+    "Is the test suite marked as 'focused'";
 
-define suite_is_only(suite) = 
-  let (_, _, is_only) = suite in is_only end;
+define is_suite_focused(suite) = 
+  let (_, _, is_focused) = suite in is_focused end;
 
 # ------------------------------------------------------------------------------
 
@@ -177,7 +162,7 @@ doc run_test_suites
     "Runs all tests from a list of test suites. Prints output to the terminal.
     Returns the result as triple (nr_tests, nr_failures, nr_skipped).
 
-    When at least one of the tests is marked as 'only' then it will only run the
+    When at least one of the tests is marked as 'focused' then it will only run the
     marked tests and skip all others.";
 
 define run_test_suites(suites) =
@@ -185,8 +170,8 @@ define run_test_suites(suites) =
     print("\nRuning test suites\n");
 
     # Determine which suites to run
-    suites_with_only := [s | s <- suites, suite_is_only(s)];
-    to_test := if suites_with_only = [] then suites else suites_with_only end;
+    suites_with_focus := [s | s <- suites, is_suite_focused(s)];
+    to_test := if suites_with_focus = [] then suites else suites_with_focus end;
     nr_skipped_suites := list_size(suites) - list_size(to_test);
 
     # Run the tests. Collect the results as a list of (description, result) pairs
@@ -244,15 +229,15 @@ doc run_test_suite
     "Runs all tests for a test suite. Prints output to the terminal. Returns the
     result as triple (nr_tests, nr_failures, nr_skipped).
 
-    When at least one of the tests is marked as 'only' then it will only run
+    When at least one of the tests is marked as 'focused' then it will focus run
     the marked tests and skip all others.";
 
 define run_test_suite(suite) =
   let
     (description, all_tests, _) = suite,
-    nr_onlys = count[test_is_only(t) | t <- all_tests],
-    tests_with_only = [t | t <- all_tests, test_is_only(t)],
-    tests = if tests_with_only = [] then all_tests else tests_with_only end,
+    nr_focuss = count[is_test_focused(t) | t <- all_tests],
+    tests_with_focus = [t | t <- all_tests, is_test_focused(t)],
+    tests = if tests_with_focus = [] then all_tests else tests_with_focus end,
     results = [ tuple(test_description(test), run_test(test)) | test <- tests ],
     nr_tests = list_size(tests),
     nr_failures = count[ not(okay) | (_, okay) <- results ],

@@ -50,7 +50,7 @@ define shells_suite = test_suite("Shells", [
         end
     ),
     
-    test_only("should have the correct body for some initial shell", () ->
+    test_focus("should have the correct body for some initial shell", () ->
         let 
             shell = run(),
             zipped = zip(shell_body_internals(shell), expected_shell)
