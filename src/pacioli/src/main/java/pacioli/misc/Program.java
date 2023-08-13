@@ -138,9 +138,6 @@ public class Program {
 
         Pacioli.trace("Filling tables for %s", this.file.module());
 
-        // Create a new table to fill
-        PacioliTable env = PacioliTable.empty();
-
         // Make a map from identifiers to symbol info builders for the value
         // namespace and for the type namespace.
         Map<String, ValueInfo.Builder> valueBuilders = new HashMap<>();
@@ -173,8 +170,6 @@ public class Program {
                         .location(def.location())
                         .definition(indexSet);
                 typeBuilders.put(def.name(), builder);
-            } else if (def instanceof Toplevel top) {
-                env.addToplevel(top);
             } else if (def instanceof TypeDefinition typeDef) {
                 ParametricInfo.Builder builder = ParametricInfo.builder();
                 builder.name(def.name())
@@ -217,14 +212,6 @@ public class Program {
                         .isGlobal(true)
                         .declaredType(decl.typeNode)
                         .isPublic(false);
-            }
-        }
-
-        boolean exportHack = false;
-        Pacioli.logIf(exportHack, "export");
-        for (Definition def : this.ast.definitions) {
-            if (def instanceof Declaration inst) {
-                Pacioli.logIf(exportHack && inst.isPublic, "    %s,", inst.name());
             }
         }
 
@@ -302,14 +289,24 @@ public class Program {
             }
         }
 
+        // Create a new table to fill
+        PacioliTable env = PacioliTable.empty();
+
         // Build the value infos and add them to the table
         for (ValueInfo.Builder builder : valueBuilders.values()) {
             addInfo(env, builder.build());
         }
 
         // Build the types infos and add them to the table
-        for (InfoBuilder<?, ? extends TypeInfo> typBuilder : typeBuilders.values()) {
-            addInfo(env, typBuilder.build());
+        for (InfoBuilder<?, ? extends TypeInfo> builder : typeBuilders.values()) {
+            addInfo(env, builder.build());
+        }
+
+        // Add toplevels
+        for (Definition def : this.ast.definitions) {
+            if (def instanceof Toplevel top) {
+                env.addToplevel(top);
+            }
         }
 
         return env;
