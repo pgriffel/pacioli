@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 
 import pacioli.Pacioli;
 import pacioli.ast.definition.Definition;
-import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;

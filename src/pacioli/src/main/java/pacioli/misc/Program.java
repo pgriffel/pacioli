@@ -204,8 +204,10 @@ public class Program {
             } else if (def instanceof Declaration decl) {
                 ValueInfo.Builder builder = ensureValueInfoBuilder(valueBuilders, def.name());
                 if (builder.declaredType != null) {
-                    throw new PacioliException(def.location(), "Duplicate type declaration for %s",
-                            def.name());
+                    throw new PacioliException(def.location(),
+                            "Duplicate type declaration for '%s'. It is already defined in %s.",
+                            def.name(),
+                            builder.declaredType.location().description());
                 }
                 builder
                         .name(def.name())
