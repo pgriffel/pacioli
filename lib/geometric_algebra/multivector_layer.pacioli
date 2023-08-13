@@ -33,6 +33,13 @@ export
 # ------------------------------------------------------------------------------
 # MultiVector
 #
+# A MultiVector is represented as a list of terms.
+#
+# Example: the list [make_term(5,e0), (3,e2)] represents the
+# Multivector of two Terms: The resulting MultiVector is usually
+# written as \"5 + 3e2\", but the addition \"+\" notation is not used in
+# its representation.
+#
 # compare_term compares and orders 2 Terms returning the Ordering
 # @@@ term_weight part is not used
 # @@@Uitzoeken: from compare_term in Haskell code: --Comparison by grade then number.
@@ -40,12 +47,8 @@ export
 # ------------------------------------------------------------------------------
 
 doc MultiVector
-    "A MultiVector is represented as a list of terms.
-
-    Example: the list [make_term(5,e0), (3,e2)] represents the
-    Multivector of two Terms: The resulting MultiVector is usually
-    written as \"5 + 3e2\", but the addition \"+\" notation is not used in
-    its representation.";
+    "A multi-vector is an element of geometric algebra. The multi-vector is build
+    from <code>a*I!</code> vectors.";
 
 deftype for_index I: for_unit a:
     MultiVector(a, I!) = List(Term(a, I!));

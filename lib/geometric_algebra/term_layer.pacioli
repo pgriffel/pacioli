@@ -21,14 +21,16 @@ export
 
 # ----------------------------------------------------------------------------
 # Term
+#
+# Term is represented using a 2-tuple (w,b) in which
+#    w represents its weight
+#    b represents the base blade number
+#
+# Examples: (5,0) represents the (weighted) blade 5e0. (3,2) represents 3e2.
 # ----------------------------------------------------------------------------
 
 doc Term
-    "Term is represented using a 2-tuple (w,b) in which
-       w represents its weight
-       b represents the base blade number
-
-    Examples: (5,0) represents the (weighted) blade 5e0. (3,2) represents 3e2.";
+    "A term in a <code>MultiVector(a, I!)</code> multivector.";
 
 deftype for_index I: for_unit a:
     Term(a, I!) = Tuple(a, BaseBlade(1, I!));

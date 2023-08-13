@@ -25,6 +25,9 @@ import pacioli.types.TypeObject;
  */
 public class DocumentationGenerator {
 
+    // Setting
+    boolean showTypeDefBody = false;
+
     // Info for the entire module
     private final String module;
     private final String version;
@@ -219,9 +222,6 @@ public class DocumentationGenerator {
      * @throws IOException
      */
     void generate() throws PacioliException, IOException {
-
-        // Setting
-        boolean showTypeDefBody = false;
 
         List<String> vals = new ArrayList<String>(values);
         Collections.sort(vals);
