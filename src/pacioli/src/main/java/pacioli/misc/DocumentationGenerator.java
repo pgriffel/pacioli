@@ -220,6 +220,9 @@ public class DocumentationGenerator {
      */
     void generate() throws PacioliException, IOException {
 
+        // Setting
+        boolean showTypeDefBody = false;
+
         List<String> vals = new ArrayList<String>(values);
         Collections.sort(vals);
 
@@ -257,11 +260,11 @@ public class DocumentationGenerator {
         if (indexSetDocs.size() > 0) {
             println("<h2>Index sets</h2>");
             println("<dl>");
-            for (String value : indexSetDocs.keySet()) {
+            for (String name : indexSetDocs.keySet()) {
                 println("<dt id=\"%s\"><code>%s</code></dt>",
-                        value, value);
+                        name, name);
                 println("<dd>");
-                for (String part : docuParts(indexSetDocs.get(value))) {
+                for (String part : docuParts(indexSetDocs.get(name))) {
                     println("\n<p>%s</p>\n", part);
                 }
                 println("</dd>");
@@ -273,12 +276,16 @@ public class DocumentationGenerator {
         if (typeDocs.size() > 0) {
             println("<h2>Types</h2>");
             println("<dl>");
-            for (String value : typeDocs.keySet()) {
+            for (String name : typeDocs.keySet()) {
                 println("<dt id=\"%s\"><code>%s</code></dt>",
-                        value, value);
+                        name, name);
                 println("<dd>");
-                println("<pre>%s%s = %s</pre>", typeDecl.get(value), typeLHS.get(value), typeRHS.get(value));
-                for (String part : docuParts(typeDocs.get(value))) {
+                if (showTypeDefBody) {
+                    println("<pre>%s%s = %s</pre>", typeDecl.get(name), typeLHS.get(name), typeRHS.get(name));
+                } else {
+                    println("<pre>%s%s</pre>", typeDecl.get(name), typeLHS.get(name));
+                }
+                for (String part : docuParts(typeDocs.get(name))) {
                     println("\n<p>%s</p>\n", part);
                 }
                 println("</dd>");
@@ -290,11 +297,11 @@ public class DocumentationGenerator {
         if (values.size() > 0) {
             println("<h2>Values</h2>");
             println("<dl>");
-            for (String value : vals) {
-                println("<dt id=\"%s\"><code>%s</code></dt>", value, value);
+            for (String name : vals) {
+                println("<dt id=\"%s\"><code>%s</code></dt>", name, name);
                 println("<dd>");
-                println("<pre>:: %s</pre>", typeTable.get(value));
-                for (String part : getDocuParts(value)) {
+                println("<pre>:: %s</pre>", typeTable.get(name));
+                for (String part : getDocuParts(name)) {
                     println("\n<p>%s</p>\n", part);
                 }
                 println("</dd>");
@@ -306,12 +313,12 @@ public class DocumentationGenerator {
         if (funs.size() > 0) {
             println("<h2>Functions</h2>");
             println("<dl>");
-            for (String function : funs) {
-                String args = String.format("(%s)", argsString(function));
-                println("<dt id=\"%s\"><code>%s%s</code></dt>", function, function, args);
+            for (String name : funs) {
+                String args = String.format("(%s)", argsString(name));
+                println("<dt id=\"%s\"><code>%s%s</code></dt>", name, name, args);
                 println("<dd>");
-                println("<pre>:: %s</pre>", lookupType(function));
-                for (String part : getDocuParts(function)) {
+                println("<pre>:: %s</pre>", lookupType(name));
+                for (String part : getDocuParts(name)) {
                     println("\n<p>%s</p>\n", part);
                 }
                 println("</dd>");

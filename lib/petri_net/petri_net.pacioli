@@ -20,6 +20,9 @@ export
 # Signature
 # ------------------------------------------------------------------------------
 
+doc PetriNet
+    "A Petri net is a vector addition system.";
+
 deftype
   for_index P,T:
     for_unit P!u:
