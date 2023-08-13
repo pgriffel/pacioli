@@ -8,10 +8,10 @@ import pacioli.compiler.Location;
 
 public class ProgramNode extends AbstractNode {
 
-    public final List<IncludeNode> includes;
-    public final List<ImportNode> imports;
-    public final List<ExportNode> exports;
-    public final List<Definition> definitions;
+    private final List<IncludeNode> includes;
+    private final List<ImportNode> imports;
+    private final List<ExportNode> exports;
+    private final List<Definition> definitions;
 
     public ProgramNode(
             Location location,
@@ -32,6 +32,22 @@ public class ProgramNode extends AbstractNode {
         this.imports = new ArrayList<ImportNode>();
         this.exports = new ArrayList<ExportNode>();
         this.definitions = new ArrayList<Definition>();
+    }
+
+    public List<IncludeNode> includes() {
+        return includes;
+    }
+
+    public List<ImportNode> imports() {
+        return imports;
+    }
+
+    public List<ExportNode> exports() {
+        return exports;
+    }
+
+    public List<Definition> definitions() {
+        return definitions;
     }
 
     @Override

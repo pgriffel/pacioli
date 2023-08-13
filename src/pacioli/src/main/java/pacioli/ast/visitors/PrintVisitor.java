@@ -123,28 +123,28 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(ProgramNode node) {
-        for (ImportNode importNode : node.imports) {
+        for (ImportNode importNode : node.imports()) {
             importNode.accept(this);
             newline();
         }
-        if (node.imports.size() > 0) {
+        if (node.imports().size() > 0) {
             newline();
         }
-        for (IncludeNode include : node.includes) {
+        for (IncludeNode include : node.includes()) {
             include.accept(this);
             newline();
         }
-        if (node.includes.size() > 0) {
+        if (node.includes().size() > 0) {
             newline();
         }
-        for (ExportNode exportNode : node.exports) {
+        for (ExportNode exportNode : node.exports()) {
             exportNode.accept(this);
             newline();
         }
-        if (node.exports.size() > 0) {
+        if (node.exports().size() > 0) {
             newline();
         }
-        for (Definition def : node.definitions) {
+        for (Definition def : node.definitions()) {
             def.accept(this);
             newline();
             newline();

@@ -144,7 +144,7 @@ public class Program {
         Map<String, InfoBuilder<?, ? extends TypeInfo>> typeBuilders = new HashMap<>();
 
         // First pass, don't do class instances and value definitions
-        for (Definition definition : this.ast.definitions) {
+        for (Definition definition : this.ast.definitions()) {
 
             if (definition instanceof ClassDefinition def) {
                 ClassInfo.Builder builder = ClassInfo.builder();
@@ -216,7 +216,7 @@ public class Program {
         }
 
         // Second pass, do class instances and value definitions.
-        for (Definition definition : this.ast.definitions) {
+        for (Definition definition : this.ast.definitions()) {
             if (definition instanceof InstanceDefinition def) {
                 ClassInfo.Builder builder = (ClassInfo.Builder) typeBuilders.get(def.name());
                 if (builder == null) {
@@ -246,7 +246,7 @@ public class Program {
         }
 
         // Set the isPublic flag for exported identifiers
-        for (ExportNode exportNode : this.ast.exports) {
+        for (ExportNode exportNode : this.ast.exports()) {
 
             for (IdentifierNode id : exportNode.identifiers) {
 
@@ -268,7 +268,7 @@ public class Program {
         }
 
         // Add documentation
-        for (Definition definition : this.ast.definitions) {
+        for (Definition definition : this.ast.definitions()) {
 
             if (definition instanceof Documentation doc) {
 
@@ -310,7 +310,7 @@ public class Program {
         }
 
         // Add toplevels
-        for (Definition def : this.ast.definitions) {
+        for (Definition def : this.ast.definitions()) {
             if (def instanceof Toplevel top) {
                 env.addToplevel(top);
             }

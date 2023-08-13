@@ -35,7 +35,7 @@ public class DesugarVisitor extends IdentityTransformation {
          */
         // Create single declarations for the multideclarations
         List<Definition> noMultis = new ArrayList<Definition>();
-        for (Definition def : node.definitions) {
+        for (Definition def : node.definitions()) {
             if (def instanceof MultiDeclaration) {
                 MultiDeclaration decl = (MultiDeclaration) def;
                 for (IdentifierNode id : decl.ids) {
@@ -55,7 +55,7 @@ public class DesugarVisitor extends IdentityTransformation {
             desugared.add((Definition) desugaredNode);
         }
 
-        returnNode(new ProgramNode(node.location(), node.includes, node.imports, node.exports, desugared));
+        returnNode(new ProgramNode(node.location(), node.includes(), node.imports(), node.exports(), desugared));
     }
 
     public void visit(IdListNode node) {

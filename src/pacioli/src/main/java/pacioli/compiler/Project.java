@@ -370,7 +370,7 @@ public class Project {
      */
     private static List<PacioliFile> findImports(ProgramNode program, List<File> libs) throws PacioliException {
         List<PacioliFile> libraries = new ArrayList<PacioliFile>();
-        for (ImportNode node : program.imports) {
+        for (ImportNode node : program.imports()) {
             String name = node.name.valueString();
             Optional<PacioliFile> library = PacioliFile.findLibrary(name, libs);
             if (!library.isPresent()) {
@@ -395,7 +395,7 @@ public class Project {
      */
     private static List<PacioliFile> findIncludes(PacioliFile file, ProgramNode program) throws PacioliException {
         List<PacioliFile> includes = new ArrayList<PacioliFile>();
-        for (IncludeNode node : program.includes) {
+        for (IncludeNode node : program.includes()) {
             String name = node.name.valueString();
             Optional<PacioliFile> pacioliFile = file.findInclude(name);
             if (!pacioliFile.isPresent()) {

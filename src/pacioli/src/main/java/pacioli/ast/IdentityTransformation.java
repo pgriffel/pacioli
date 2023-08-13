@@ -109,23 +109,23 @@ public class IdentityTransformation implements Visitor {
         List<ExportNode> exports = new ArrayList<>();
         List<Definition> defs = new ArrayList<>();
 
-        for (IncludeNode def : program.includes) {
+        for (IncludeNode def : program.includes()) {
             Node node = nodeAccept(def);
             assert (node instanceof IncludeNode);
             includes.add((IncludeNode) node);
         }
-        for (IncludeNode def : program.includes) {
+        for (IncludeNode def : program.includes()) {
             Node node = nodeAccept(def);
             assert (node instanceof IncludeNode);
             includes.add((IncludeNode) node);
         }
-        for (Definition def : program.definitions) {
+        for (Definition def : program.definitions()) {
             Node node = nodeAccept(def);
             assert (node instanceof Definition);
             defs.add((Definition) node);
 
         }
-        for (Definition def : program.definitions) {
+        for (Definition def : program.definitions()) {
             Node node = nodeAccept(def);
             assert (node instanceof Definition);
             defs.add((Definition) node);
