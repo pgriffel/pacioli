@@ -323,8 +323,8 @@ public class ConstraintSet extends AbstractPrintable {
 
                     // Determine the shape of the row dimension
                     List<Integer> shape = new ArrayList<Integer>();
-                    for (int i = 0; i < tensorType.rowDimension.width(); i++) {
-                        Optional<IndexSetDefinition> def = tensorType.rowDimension.nthIndexSetInfo(i).definition();
+                    for (int i = 0; i < tensorType.rowDimension().width(); i++) {
+                        Optional<IndexSetDefinition> def = tensorType.rowDimension().nthIndexSetInfo(i).definition();
                         if (def.isPresent()) {
                             shape.add(def.get().items().size());
                         } else {

@@ -95,7 +95,7 @@ public class TypeEvaluator extends IdentityVisitor {
         Unit<TypeBase> rowUnit;
 
         // Find index set info. The node must have been resolved.
-        IndexSetInfo indexInfo = (IndexSetInfo) node.indexSet.info;
+        IndexSetInfo indexInfo = (IndexSetInfo) node.indexSet().info;
         assert (indexInfo != null);
 
         // Create the index type. If it is a local it is a variable.
@@ -107,12 +107,12 @@ public class TypeEvaluator extends IdentityVisitor {
         }
 
         // Create the row unit if it exists, otherwise the unit is 1.
-        if (!node.unit.isPresent()) {
+        if (!node.unit().isPresent()) {
             rowUnit = TypeBase.ONE;
         } else {
 
             // Find the unit info. The node must have been resolved.
-            VectorBaseInfo unitInfo = (VectorBaseInfo) node.unit.get().info;
+            VectorBaseInfo unitInfo = (VectorBaseInfo) node.unit().get().info;
             assert (unitInfo != null);
 
             // Create the unit. If it is a local then it is a variable.
@@ -143,7 +143,7 @@ public class TypeEvaluator extends IdentityVisitor {
 
     @Override
     public void visit(SchemaNode node) {
-        returnType(new Schema(node.createContext().typeVars(), typeAccept(node.type), node.contextNodes));
+        returnType(new Schema(node.createContext().variables(), typeAccept(node.type), node.contextNodes));
     }
 
     @Override
@@ -208,7 +208,7 @@ public class TypeEvaluator extends IdentityVisitor {
         if (!(opObject instanceof ParametricType || opObject instanceof OperatorVar)) {
             throw new PacioliException(node.location(), "Oeps");
         }
-        Operator opType = opObject instanceof OperatorVar ? (OperatorVar) opObject : (((ParametricType) opObject).op);
+        Operator opType = opObject instanceof OperatorVar ? (OperatorVar) opObject : (((ParametricType) opObject).op());
         if (!definition.isPresent()) {
             if (!(node.op.info instanceof ParametricInfo)) {
                 throw new RuntimeException("Expected type info",
@@ -222,7 +222,7 @@ public class TypeEvaluator extends IdentityVisitor {
             // TypeInfo info = new TypeInfo(typeInfo.name(), null, typeInfo.isGlobal(),
             // node.getLocation());
             returnType(
-                    new ParametricType(node.location(), Optional.of(typeDefinition), opType, types));
+                    new ParametricType(node.location(), typeDefinition, opType, types));
         }
     }
 
@@ -269,7 +269,7 @@ public class TypeEvaluator extends IdentityVisitor {
             OperatorConst id = new OperatorConst(typeId, (ParametricInfo) info);
             // this.handleParametric(app, new ArrayList<PacioliType>());
             returnType(new ParametricType(node.location(),
-                    ((ParametricInfo) info).definition(),
+                    ((ParametricInfo) info).definition().orElse(null), // TODO: check orElse
                     id, new ArrayList<TypeObject>()));
         } else {
             assert (info instanceof ScalarBaseInfo);

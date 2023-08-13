@@ -488,12 +488,12 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     public void visit(BangTypeNode node) {
         out.write("bang_shape(\"");
         // node.indexSet.accept(this);
-        out.write(node.indexSet.info.globalName());
+        out.write(node.indexSet().info.globalName());
         out.write("\", \"");
-        if (node.unit.isPresent()) {
+        if (node.unit().isPresent()) {
             // out.write(node.indexSet.info.name());
             // out.write("!");
-            out.write(node.unit.get().info.name());
+            out.write(node.unit().get().info.name());
             // node.unit.get().accept(this);
         }
         out.write("\")");

@@ -52,7 +52,7 @@ public class ReduceTypes implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        returnTypeNode(new Schema(type.variables, typeNodeAccept(type.type), type.contextNodes));
+        returnTypeNode(new Schema(type.variables(), typeNodeAccept(type.type()), type.contextNodes()));
     }
 
     @Override
@@ -62,7 +62,7 @@ public class ReduceTypes implements TypeVisitor {
 
     @Override
     public void visit(IndexType type) {
-        returnTypeNode(typeNodeAccept(type.indexSet));
+        returnTypeNode(typeNodeAccept(type.indexSet()));
     }
 
     @Override
@@ -78,18 +78,19 @@ public class ReduceTypes implements TypeVisitor {
     @Override
     public void visit(ParametricType type) {
         List<TypeObject> items = new ArrayList<TypeObject>();
-        for (TypeObject arg : type.args) {
+        for (TypeObject arg : type.args()) {
             items.add(typeNodeAccept(arg));
         }
         try {
-            ParametricType opType = new ParametricType(type.location, type.definition, type.op, items);
-            boolean reduce = type.definition.isPresent() && reduceCallback.apply(type.op.info().get());
+            ParametricType opType = new ParametricType(type.location(), type.definition().orElse(null), type.op(),
+                    items); // TODO: check orElse
+            boolean reduce = type.definition().isPresent() && reduceCallback.apply(type.op().info().get());
             if (!reduce) {
                 returnTypeNode(opType);
             } else {
-                TypeObject reduced = type.definition.get().constaint().reduce(opType).reduce(reduceCallback);
+                TypeObject reduced = type.definition().get().constaint().reduce(opType).reduce(reduceCallback);
                 Pacioli.logIf(Pacioli.Options.showTypeReductions, "Reduced %s to %s", type.pretty(), reduced.pretty());
-                returnTypeNode(type.definition.get().constaint().reduce(opType).reduce(reduceCallback));
+                returnTypeNode(type.definition().get().constaint().reduce(opType).reduce(reduceCallback));
             }
         } catch (PacioliException e) {
             throw new RuntimeException("Type error", e);

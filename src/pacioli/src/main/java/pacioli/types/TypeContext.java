@@ -35,10 +35,10 @@ import pacioli.types.ast.TypeIdentifierNode;
 
 public class TypeContext extends AbstractPrintable {
 
-    public final List<String> typeVars;
-    public final List<String> unitVars;
-    public final List<String> indexVars;
-    public final List<String> opVars;
+    private final List<String> typeVars;
+    private final List<String> unitVars;
+    private final List<String> indexVars;
+    private final List<String> opVars;
 
     public TypeContext() {
         typeVars = new ArrayList<String>();
@@ -47,7 +47,7 @@ public class TypeContext extends AbstractPrintable {
         opVars = new ArrayList<String>();
     }
 
-    public Set<Var> typeVars() {
+    public Set<Var> variables() {
         Set<Var> vars = new LinkedHashSet<Var>();
         for (String name : typeVars) {
             vars.add(new TypeVar(name));
@@ -86,6 +86,22 @@ public class TypeContext extends AbstractPrintable {
                 throw new RuntimeException("Unknown quantifier: " + genericVar.getClass());
             }
         }
+    }
+
+    public List<String> typeVars() {
+        return typeVars;
+    }
+
+    public List<String> unitVars() {
+        return unitVars;
+    }
+
+    public List<String> indexVars() {
+        return indexVars;
+    }
+
+    public List<String> opVars() {
+        return opVars;
     }
 
     public boolean containsTypeVar(String var) {

@@ -35,9 +35,9 @@ public class TransformConversions extends IdentityTransformation {
 
         MatrixType type = (MatrixType) node.typeNode.evalType();
 
-        DimensionedNumber<TypeBase> typeFactor = type.factor.flat();
+        DimensionedNumber<TypeBase> typeFactor = type.factor().flat();
 
-        if (!type.rowDimension.equals(type.columnDimension)) {
+        if (!type.rowDimension().equals(type.columnDimension())) {
             throw new RuntimeException("Invalid conversion",
                     new PacioliException(node.location(), "Row and column dimension not the same"));
         }
@@ -60,8 +60,8 @@ public class TransformConversions extends IdentityTransformation {
                     @Override
                     public DimensionedNumber<TypeBase> map(TypeBase base) {
                         VectorBase vbase = (VectorBase) base;
-                        String itemName = items.get(vbase.position);
-                        DimensionedNumber<TypeBase> unit = vbase.vectorUnitInfo.lookupUnit(itemName);
+                        String itemName = items.get(vbase.position());
+                        DimensionedNumber<TypeBase> unit = vbase.vectorUnitInfo().lookupUnit(itemName);
                         return unit;
                     }
 
@@ -83,8 +83,8 @@ public class TransformConversions extends IdentityTransformation {
 
                 };
 
-                DimensionedNumber<TypeBase> rowUnit = type.rowUnit.fold(folder);
-                DimensionedNumber<TypeBase> columnsUnit = type.columnUnit.fold(folder);
+                DimensionedNumber<TypeBase> rowUnit = type.rowUnit().fold(folder);
+                DimensionedNumber<TypeBase> columnsUnit = type.columnUnit().fold(folder);
 
                 DimensionedNumber<TypeBase> div = typeFactor.multiply(rowUnit.multiply(columnsUnit.reciprocal()));
                 DimensionedNumber<TypeBase> flat = div.flat();

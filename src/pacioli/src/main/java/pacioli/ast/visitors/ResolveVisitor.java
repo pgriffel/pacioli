@@ -279,7 +279,7 @@ public class ResolveVisitor extends IdentityVisitor {
         } else {
             List<IndexSet> sets = new ArrayList<IndexSet>();
             for (TypeIdentifier id : dimType.getIndexSets()) {
-                TypeInfo symbolInfo = typeTables.peek().lookup(id.name);
+                TypeInfo symbolInfo = typeTables.peek().lookup(id.name());
                 if (symbolInfo instanceof IndexSetInfo) {
                     IndexSetInfo indexSetInfo = (IndexSetInfo) symbolInfo;
                     assert (indexSetInfo != null); // exception throwen
@@ -290,7 +290,7 @@ public class ResolveVisitor extends IdentityVisitor {
                     }
                     sets.add(indexSetInfo.definition().get().indexSet());
                 } else {
-                    throw new RuntimeException(String.format("%s", id.name));
+                    throw new RuntimeException(String.format("%s", id.name()));
                 }
             }
             return new MatrixDimension(sets);
@@ -312,8 +312,8 @@ public class ResolveVisitor extends IdentityVisitor {
         }
 
         // Store the matrix type's row and column dimension
-        node.rowDim = compileTimeMatrixDimension(matrixType.rowDimension);
-        node.columnDim = compileTimeMatrixDimension(matrixType.columnDimension);
+        node.rowDim = compileTimeMatrixDimension(matrixType.rowDimension());
+        node.columnDim = compileTimeMatrixDimension(matrixType.columnDimension());
         // node.rowDim = matrixType.rowDimension;
         // node.columnDim = matrixType.columnDimension;
 
@@ -338,8 +338,8 @@ public class ResolveVisitor extends IdentityVisitor {
         }
 
         // Store the matrix type's row and column dimension
-        node.rowDim = compileTimeMatrixDimension(matrixType.rowDimension);
-        node.columnDim = compileTimeMatrixDimension(matrixType.columnDimension);
+        node.rowDim = compileTimeMatrixDimension(matrixType.rowDimension());
+        node.columnDim = compileTimeMatrixDimension(matrixType.columnDimension());
 
         // Check that the dimensions exist
         if (node.rowDim == null || node.columnDim == null) {
@@ -362,8 +362,8 @@ public class ResolveVisitor extends IdentityVisitor {
         }
 
         // Store the matrix type's row and column dimension
-        node.rowDim = compileTimeMatrixDimension(matrixType.rowDimension);
-        node.columnDim = compileTimeMatrixDimension(matrixType.columnDimension);
+        node.rowDim = compileTimeMatrixDimension(matrixType.rowDimension());
+        node.columnDim = compileTimeMatrixDimension(matrixType.columnDimension());
 
         // Check that the dimensions exist
         if (node.rowDim == null || node.columnDim == null) {
@@ -502,9 +502,9 @@ public class ResolveVisitor extends IdentityVisitor {
             throw new RuntimeException("Name error",
                     new PacioliException(node.location(), "Index set %s unknown", node.indexSetName()));
         }
-        node.indexSet.info = indexSetInfo;
+        node.indexSet().info = indexSetInfo;
 
-        if (node.unit.isPresent()) {
+        if (node.unit().isPresent()) {
             String fullName = node.indexSetName() + "!" + node.unitVecName();
 
             Info unitInfo = typeTables.peek().lookup(fullName);
@@ -512,7 +512,7 @@ public class ResolveVisitor extends IdentityVisitor {
                 throw new RuntimeException("Name error",
                         new PacioliException(node.location(), "Vector unit %s unknown", fullName));
             }
-            node.unit.get().info = unitInfo;
+            node.unit().get().info = unitInfo;
         }
     }
 
@@ -530,16 +530,16 @@ public class ResolveVisitor extends IdentityVisitor {
         SymbolTable<TypeInfo> table = new SymbolTable<TypeInfo>(typeTables.peek());
 
         // Add info records for all variables
-        for (String arg : context.typeVars) {
+        for (String arg : context.typeVars()) {
             table.put(arg, new TypeVarInfo(arg, file, false, false, location));
         }
-        for (String arg : context.opVars) {
+        for (String arg : context.opVars()) {
             table.put(arg, new ParametricInfo(arg, file, false, false, location));
         }
-        for (String arg : context.indexVars) {
+        for (String arg : context.indexVars()) {
             table.put(arg, new IndexSetInfo(arg, file, false, false, location));
         }
-        for (String arg : context.unitVars) {
+        for (String arg : context.unitVars()) {
             if (arg.contains("!")) {
                 table.put(arg, new VectorBaseInfo(arg, file, false, false, location));
             } else {

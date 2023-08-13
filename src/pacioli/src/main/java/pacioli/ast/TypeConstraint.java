@@ -56,20 +56,20 @@ public class TypeConstraint extends AbstractPrintable {
     public TypeObject reduce(ParametricType type) throws PacioliException {
         Pacioli.logIf(Pacioli.Options.showTypeReductions, "Reducing %s with %s and %s",
                 lhs.pretty(), rhs.pretty(), type.pretty());
-        if (lhs.arguments().size() != type.args.size()) {
-            throw new PacioliException(type.location, "Type function %s expects %s arguments but found %s",
+        if (lhs.arguments().size() != type.args().size()) {
+            throw new PacioliException(type.location(), "Type function %s expects %s arguments but found %s",
                     type.name(),
-                    lhs.arguments().size(), type.args.size());
+                    lhs.arguments().size(), type.args().size());
         }
         Map<Var, Object> map = new HashMap<Var, Object>();
         for (int i = 0; i < lhs.arguments().size(); i++) {
             TypeNode var = lhs.arguments().get(i);
-            TypeObject arg = type.args.get(i);
+            TypeObject arg = type.args().get(i);
             if (var instanceof TypeIdentifierNode) {
                 TypeObject varType = var.evalType();
                 if (varType instanceof OperatorVar) {
                     if (arg instanceof ParametricType) {
-                        map.put((Var) varType, ((ParametricType) arg).op);
+                        map.put((Var) varType, ((ParametricType) arg).op());
                     } else {
                         map.put((Var) varType, arg);
                     }
@@ -98,8 +98,8 @@ public class TypeConstraint extends AbstractPrintable {
                 if (arg instanceof MatrixType) {
                     BangTypeNode bang = (BangTypeNode) var;
                     MatrixType argMat = (MatrixType) arg;
-                    map.put(new IndexSetVar(bang.indexSetName()), argMat.rowDimension.indexSet());
-                    map.put(new VectorUnitVar(bang.indexSetName() + "!" + bang.unitVecName()), argMat.rowUnit);
+                    map.put(new IndexSetVar(bang.indexSetName()), argMat.rowDimension().indexSet());
+                    map.put(new VectorUnitVar(bang.indexSetName() + "!" + bang.unitVecName()), argMat.rowUnit());
                 } else {
                     throw new PacioliException(var.location(),
                             "Type definitions's parameter is quantified as unit vector, but is given '%s'",

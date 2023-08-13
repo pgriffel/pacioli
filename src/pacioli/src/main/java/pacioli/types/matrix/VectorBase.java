@@ -32,20 +32,36 @@ import uom.UnitMap;
 
 public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
 
-    public final VectorBaseInfo vectorUnitInfo;
-    public final TypeIdentifier indexSetName;
-    public final TypeIdentifier unitName;
-    public final int position;
+    private final VectorBaseInfo vectorUnitInfo;
+    private final TypeIdentifier indexSetName;
+    private final TypeIdentifier unitName;
+    private final int position;
 
     public VectorBase(TypeIdentifier indexSetName, TypeIdentifier unitName, int position,
             VectorBaseInfo vectorUnitInfo) {
-        assert (!unitName.name.contains("!"));
-        assert (!indexSetName.home.isEmpty());
+        assert (!unitName.name().contains("!"));
+        assert (!indexSetName.home().isEmpty());
         assert (vectorUnitInfo.name().contains("!"));
         this.indexSetName = indexSetName;
         this.unitName = unitName;
         this.position = position;
         this.vectorUnitInfo = vectorUnitInfo;
+    }
+
+    public VectorBaseInfo vectorUnitInfo() {
+        return vectorUnitInfo;
+    }
+
+    public TypeIdentifier indexSetName() {
+        return indexSetName;
+    }
+
+    public TypeIdentifier unitName() {
+        return unitName;
+    }
+
+    public int position() {
+        return position;
     }
 
     @Override
@@ -80,7 +96,7 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
 
     public String pretty() {
         // return indexSetName.name + "!" + unitName.name;
-        assert (vectorUnitInfo.name().equals(indexSetName.name + "!" + unitName.name));
+        assert (vectorUnitInfo.name().equals(indexSetName.name() + "!" + unitName.name()));
         return vectorUnitInfo.name();
     }
 
@@ -130,8 +146,8 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
         // return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit",
         // indexSetName.home, indexSetName.name,
         // unitName.home, unitName.name);
-        return String.format("Pacioli.unitVectorType('%s', '%s_%s', %s)", indexSetName.home, indexSetName.name,
-                this.unitName.name, position);
+        return String.format("Pacioli.unitVectorType('%s', '%s_%s', %s)", indexSetName.home(), indexSetName.name(),
+                this.unitName.name(), position);
     }
 
     @Override
@@ -146,10 +162,10 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
 
     @Override
     public String asMVMShape(CompilationSettings settings) {
-        String unitName = this.unitName.name;
+        String unitName = this.unitName.name();
         return String.format("bang_shape(\"index_%s_%s\", \"%s\")",
-                indexSetName.home, indexSetName.name,
-                unitName.isEmpty() ? "" : String.format("%s!%s", indexSetName.name, unitName));
+                indexSetName.home(), indexSetName.name(),
+                unitName.isEmpty() ? "" : String.format("%s!%s", indexSetName.name(), unitName));
     }
 
 }

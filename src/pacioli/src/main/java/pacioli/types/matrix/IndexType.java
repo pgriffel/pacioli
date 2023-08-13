@@ -15,7 +15,7 @@ import pacioli.types.Var;
 
 public class IndexType extends AbstractType {
 
-    public final TypeObject indexSet;
+    private final TypeObject indexSet;
 
     public IndexType(List<TypeIdentifier> indexSets, List<IndexSetInfo> indexSetInfos) {
         this.indexSet = new IndexList(indexSets, indexSetInfos);

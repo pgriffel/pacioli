@@ -30,24 +30,40 @@ import pacioli.compiler.PacioliException;
 
 public class ParametricType extends AbstractType {
 
-    public final Operator op;
-    public final List<TypeObject> args;
-    public final Location location;
-    public final Optional<TypeDefinition> definition;
+    private final Operator op;
+    private final List<TypeObject> args;
+    private final Location location;
+    private final TypeDefinition definition;
 
     public ParametricType(Location location, Operator op, List<TypeObject> args) {
         this.op = op;
         this.args = args;
-        this.definition = Optional.empty();
+        this.definition = null;
         this.location = location;
     }
 
-    public ParametricType(Location location, Optional<TypeDefinition> definition,
+    public ParametricType(Location location, TypeDefinition definition,
             Operator op, List<TypeObject> args) {
         this.op = op;
         this.args = args;
         this.definition = definition;
         this.location = location;
+    }
+
+    public Operator op() {
+        return op;
+    }
+
+    public List<TypeObject> args() {
+        return args;
+    }
+
+    public Location location() {
+        return location;
+    }
+
+    public Optional<TypeDefinition> definition() {
+        return Optional.ofNullable(definition);
     }
 
     @Override

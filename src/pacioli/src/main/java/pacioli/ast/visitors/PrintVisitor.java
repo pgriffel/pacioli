@@ -537,7 +537,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(BangTypeNode node) {
-        out.format("%s!%s", node.indexSet.name(), node.unitVecName());
+        out.format("%s!%s", node.indexSet().name(), node.unitVecName());
     }
 
     @Override

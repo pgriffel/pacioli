@@ -33,9 +33,9 @@ public class PrettyPrinter implements TypeVisitor {
 
     @Override
     public void visit(FunctionType type) {
-        if (type.domain() instanceof ParametricType p && p.op.name().equals("Tuple")) {
+        if (type.domain() instanceof ParametricType p && p.op().name().equals("Tuple")) {
             out.write("(");
-            out.writeCommaSeparated(p.args, x -> x.accept(this));
+            out.writeCommaSeparated(p.args(), x -> x.accept(this));
             out.write(")");
         } else {
             type.domain().accept(this);
@@ -47,7 +47,7 @@ public class PrettyPrinter implements TypeVisitor {
     @Override
     public void visit(Schema type) {
         String sep = "";
-        for (ContextNode contextNode : type.contextNodes) {
+        for (ContextNode contextNode : type.contextNodes()) {
             // contextNode.accept(this);
             // Call pretty on AST node instead of type
             out.print(contextNode.pretty());
@@ -55,7 +55,7 @@ public class PrettyPrinter implements TypeVisitor {
             out.print(sep);
             sep = ", ";
         }
-        type.type.accept(this);
+        type.type().accept(this);
     }
 
     @Override
@@ -68,7 +68,7 @@ public class PrettyPrinter implements TypeVisitor {
         String sep = "";
         for (TypeIdentifier id : type.indexSets()) {
             out.print(sep);
-            out.print(id.name);
+            out.print(id.name());
             sep = ", ";
         }
         out.print("]");
@@ -81,7 +81,7 @@ public class PrettyPrinter implements TypeVisitor {
         // // by the matrix type.
 
         out.print("Index(");
-        type.indexSet.accept(this);
+        type.indexSet().accept(this);
         out.print(")");
     }
 
@@ -89,11 +89,11 @@ public class PrettyPrinter implements TypeVisitor {
     public void visit(MatrixType type) {
 
         // Empty string or something
-        String left = type.prettyDimensionUnitPair(type.rowDimension, type.rowUnit);
-        String right = type.prettyDimensionUnitPair(type.columnDimension, type.columnUnit);
+        String left = type.prettyDimensionUnitPair(type.rowDimension(), type.rowUnit());
+        String right = type.prettyDimensionUnitPair(type.columnDimension(), type.columnUnit());
 
         // 1 or something
-        String factorString = type.factor.pretty();
+        String factorString = type.factor().pretty();
 
         boolean hasFactor = !factorString.equals("1");
         boolean hasLeft = !left.isEmpty();
@@ -120,12 +120,12 @@ public class PrettyPrinter implements TypeVisitor {
 
     @Override
     public void visit(ParametricType type) {
-        type.op.accept(this);
-        if (!type.args.isEmpty()) {
+        type.op().accept(this);
+        if (!type.args().isEmpty()) {
             out.write("(");
         }
-        out.writeCommaSeparated(type.args, arg -> arg.accept(this));
-        if (!type.args.isEmpty()) {
+        out.writeCommaSeparated(type.args(), arg -> arg.accept(this));
+        if (!type.args().isEmpty()) {
             out.write(")");
         }
     }

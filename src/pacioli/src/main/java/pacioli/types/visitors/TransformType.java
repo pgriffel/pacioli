@@ -46,7 +46,7 @@ public class TransformType implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        returnTypeNode(new Schema(type.variables, typeNodeAccept(type.type), type.contextNodes));
+        returnTypeNode(new Schema(type.variables(), typeNodeAccept(type.type()), type.contextNodes()));
     }
 
     @Override
@@ -56,19 +56,19 @@ public class TransformType implements TypeVisitor {
 
     @Override
     public void visit(IndexType type) {
-        returnTypeNode(new IndexType(typeNodeAccept(type.indexSet)));
+        returnTypeNode(new IndexType(typeNodeAccept(type.indexSet())));
     }
 
     @Override
     public void visit(MatrixType type) {
         returnTypeNode(
                 new MatrixType(
-                        type.factor, // typeNodeAccept(type.factor),
-                        (IndexType) typeNodeAccept(type.rowDimension),
-                        type.rowUnit, // typeNodeAccept(type.rowUnit),
-                        (IndexType) typeNodeAccept(type.columnDimension),
+                        type.factor(), // typeNodeAccept(type.factor),
+                        (IndexType) typeNodeAccept(type.rowDimension()),
+                        type.rowUnit(), // typeNodeAccept(type.rowUnit),
+                        (IndexType) typeNodeAccept(type.columnDimension()),
                         // typeNodeAccept(type.columnUnit)
-                        type.columnUnit));
+                        type.columnUnit()));
     }
 
     @Override
@@ -80,13 +80,13 @@ public class TransformType implements TypeVisitor {
     @Override
     public void visit(ParametricType type) {
         List<TypeObject> items = new ArrayList<>();
-        for (TypeObject arg : type.args) {
+        for (TypeObject arg : type.args()) {
             // TODO error on cast error!?
             items.add((TypeObject) typeNodeAccept(arg));
         }
-        ParametricType opType = new ParametricType(type.location,
-                type.definition,
-                (Operator) typeNodeAccept(type.op),
+        ParametricType opType = new ParametricType(type.location(),
+                type.definition().orElse(null), // TODO: check orElse
+                (Operator) typeNodeAccept(type.op()),
                 items);
         returnTypeNode(opType);
     }

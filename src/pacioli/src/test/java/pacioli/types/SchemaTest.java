@@ -49,9 +49,9 @@ public class SchemaTest {
         TypeObject instantiated = schema.instantiate();
         assertInstanceOf(ParametricType.class, instantiated);
         ParametricType instantiatedParametric = (ParametricType) instantiated;
-        System.out.println(String.format("hi %s", instantiatedParametric.op));
+        System.out.println(String.format("hi %s", instantiatedParametric.op()));
         System.out.println(String.format("hi %s", instantiatedParametric.pretty()));
-        assertNotEquals(instantiatedParametric.op, new OperatorVar("Bar"));
-        assertEquals(instantiatedParametric.op, new OperatorVar("?0"));
+        assertNotEquals(instantiatedParametric.op(), new OperatorVar("Bar"));
+        assertEquals(instantiatedParametric.op(), new OperatorVar("?0"));
     }
 }

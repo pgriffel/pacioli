@@ -53,7 +53,7 @@ public class IndexList extends AbstractType {
         for (TypeIdentifier id : indexSets) {
             builder.append(pre);
             builder.append("'");
-            builder.append(id.name);
+            builder.append(id.name());
             builder.append("'");
             pre = ", ";
         }

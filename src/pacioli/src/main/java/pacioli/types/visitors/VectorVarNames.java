@@ -23,10 +23,10 @@ public class VectorVarNames extends Collector<String> {
 
     @Override
     public void visit(MatrixType type) {
-        for (String name : unitVecVarNames(type.rowDimension, type.rowUnit)) {
+        for (String name : unitVecVarNames(type.rowDimension(), type.rowUnit())) {
             addItem(name);
         }
-        for (String name : unitVecVarNames(type.columnDimension, type.columnUnit)) {
+        for (String name : unitVecVarNames(type.columnDimension(), type.columnUnit())) {
             addItem(name);
         }
     }

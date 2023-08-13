@@ -118,7 +118,7 @@ public class ValueInfo extends AbstractInfo {
 
     public Boolean isFunction() {
         Schema schema = (Schema) publicType();
-        return schema.type instanceof FunctionType;
+        return schema.type() instanceof FunctionType;
     }
 
     public void setinferredType(TypeObject type) {

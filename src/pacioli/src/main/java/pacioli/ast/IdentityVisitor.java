@@ -275,9 +275,9 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(BangTypeNode node) {
-        node.indexSet.accept(this);
-        if (node.unit.isPresent()) {
-            node.unit.get().accept(this);
+        node.indexSet().accept(this);
+        if (node.unit().isPresent()) {
+            node.unit().get().accept(this);
         }
     }
 

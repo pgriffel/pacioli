@@ -50,9 +50,9 @@ public class SimplificationParts implements TypeVisitor {
     public void visit(Schema type) {
         List<Unit<TypeBase>> freeVars2 = new ArrayList<>();
         // List<Var> freeVars = new ArrayList<>(type.type.typeVars());
-        for (Var var : type.type.typeVars()) {
+        for (Var var : type.type().typeVars()) {
             UnitVar unitVar = (UnitVar) var;
-            if (!type.variables.contains(unitVar)) {
+            if (!type.variables().contains(unitVar)) {
                 freeVars2.add(unitVar);
             }
         }
@@ -67,18 +67,18 @@ public class SimplificationParts implements TypeVisitor {
 
     @Override
     public void visit(IndexType type) {
-        returnParts(partsAccept(type.indexSet));
+        returnParts(partsAccept(type.indexSet()));
     }
 
     @Override
     public void visit(MatrixType type) {
         List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
-        parts.add(type.factor);
-        if (type.rowDimension.isVar() || type.rowDimension.width() > 0) {
-            parts.add(type.rowUnit);
+        parts.add(type.factor());
+        if (type.rowDimension().isVar() || type.rowDimension().width() > 0) {
+            parts.add(type.rowUnit());
         }
-        if (type.columnDimension.isVar() || type.columnDimension.width() > 0) {
-            parts.add(type.columnUnit);
+        if (type.columnDimension().isVar() || type.columnDimension().width() > 0) {
+            parts.add(type.columnUnit());
         }
         returnParts(parts);
     }
@@ -101,7 +101,7 @@ public class SimplificationParts implements TypeVisitor {
     @Override
     public void visit(ParametricType type) {
         List<Unit<TypeBase>> all = new ArrayList<Unit<TypeBase>>();
-        for (TypeObject arg : type.args) {
+        for (TypeObject arg : type.args()) {
             all.addAll(partsAccept(arg));
         }
         returnParts(all);

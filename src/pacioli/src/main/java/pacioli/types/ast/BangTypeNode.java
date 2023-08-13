@@ -28,11 +28,8 @@ import pacioli.compiler.Location;
 
 public class BangTypeNode extends AbstractTypeNode {
 
-    public final TypeIdentifierNode indexSet;
-    public final Optional<TypeIdentifierNode> unit;
-
-    // public IndexSetInfo indexSetInfo;
-    // public UnitInfo unitInfo;
+    private final TypeIdentifierNode indexSet;
+    private final Optional<TypeIdentifierNode> unit;
 
     public BangTypeNode(Location location, TypeIdentifierNode indexSet) {
         super(location);
@@ -45,6 +42,14 @@ public class BangTypeNode extends AbstractTypeNode {
         assert (!unit.name().contains("!"));
         this.indexSet = indexSet;
         this.unit = Optional.of(unit);
+    }
+
+    public TypeIdentifierNode indexSet() {
+        return indexSet;
+    }
+
+    public Optional<TypeIdentifierNode> unit() {
+        return unit;
     }
 
     public String indexSetName() {

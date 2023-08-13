@@ -34,7 +34,7 @@ public class MVMGenerator implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        type.type.accept(this);
+        type.type().accept(this);
     }
 
     @Override
@@ -44,7 +44,7 @@ public class MVMGenerator implements TypeVisitor {
 
     @Override
     public void visit(IndexType type) {
-        type.indexSet.accept(this);
+        type.indexSet().accept(this);
     }
 
     @Override
@@ -52,9 +52,9 @@ public class MVMGenerator implements TypeVisitor {
 
         // UNITTODO
 
-        String factorString = TypeBase.compileUnitToMVM(type.factor, settings);
-        String left = type.asMVMDimensionUnitPair(type.rowDimension, type.rowUnit, settings);
-        String right = type.asMVMDimensionUnitPair(type.columnDimension, type.columnUnit, settings);
+        String factorString = TypeBase.compileUnitToMVM(type.factor(), settings);
+        String left = type.asMVMDimensionUnitPair(type.rowDimension(), type.rowUnit(), settings);
+        String right = type.asMVMDimensionUnitPair(type.columnDimension(), type.columnUnit(), settings);
 
         boolean hasFactor = !factorString.isEmpty();
         boolean hasLeft = !left.isEmpty();

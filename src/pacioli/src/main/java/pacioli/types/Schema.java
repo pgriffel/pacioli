@@ -21,22 +21,17 @@
 
 package pacioli.types;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.symboltable.info.Info;
 import pacioli.types.ast.ContextNode;
-import pacioli.types.ast.TypeIdentifierNode;
-import pacioli.types.ast.TypeIdentifierNode.Kind;
 
 public class Schema extends AbstractType {
 
-    public final List<ContextNode> contextNodes;
-    public final Set<Var> variables;
-    public final TypeObject type;
+    private final List<ContextNode> contextNodes;
+    private final Set<Var> variables;
+    private final TypeObject type;
 
     public Schema(Set<Var> context, TypeObject type, List<ContextNode> contextNodes) {
         this.variables = context;
@@ -59,51 +54,16 @@ public class Schema extends AbstractType {
         visitor.visit(this);
     }
 
-    public TypeObject type() {
-        return type;
+    public List<ContextNode> contextNodes() {
+        return contextNodes;
     }
 
-    /**
-     * For now this is used. This is a refactoring of old code. The contextNodes
-     * above are passed in for pretty printing. This has to be fixed, but when
-     * the Devaluator is removed it may become irrelevant.
-     * 
-     * @return
-     */
-    public List<ContextNode> contextNodes() {
-        List<ContextNode> contextNodes = new ArrayList<>();
-        for (Var var : variables) {
-            Info sinfo;
-            Location location;
-            Kind kind;
-            if (var instanceof IndexSetVar v) {
-                sinfo = v.info().orElse(null);
-                location = v.info().map(x -> x.location()).orElse(new Location());
-                kind = Kind.INDEX;
-            } else if (var instanceof ScalarUnitVar v) {
-                sinfo = v.info().orElse(null);
-                location = v.info().map(x -> x.location()).orElse(new Location());
-                kind = Kind.UNIT;
-            } else if (var instanceof VectorUnitVar v) {
-                sinfo = v.info().orElse(null);
-                location = v.info().map(x -> x.location()).orElse(new Location());
-                kind = Kind.UNIT;
-            } else if (var instanceof TypeVar v) {
-                sinfo = v.info().orElse(null);
-                location = v.info().map(x -> x.location()).orElse(new Location());
-                kind = Kind.TYPE;
-            } else if (var instanceof OperatorVar v) {
-                sinfo = v.info().get();
-                location = v.info().get().location();
-                kind = Kind.OP;
-            } else {
-                throw new RuntimeException("Unknown quantifier: " + var.getClass());
-            }
-            TypeIdentifierNode id = new TypeIdentifierNode(location, var.pretty(), sinfo);
-            contextNodes.add(new ContextNode(location, kind, List.of(id), List.of()));
-        }
+    public Set<Var> variables() {
+        return variables;
+    }
 
-        return contextNodes;
+    public TypeObject type() {
+        return type;
     }
 
     @Override

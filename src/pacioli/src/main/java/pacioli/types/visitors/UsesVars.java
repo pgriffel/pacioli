@@ -47,8 +47,8 @@ public class UsesVars implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        Set<Var> freeVars = new LinkedHashSet<Var>(type.type.typeVars());
-        freeVars.removeAll(type.variables);
+        Set<Var> freeVars = new LinkedHashSet<Var>(type.type().typeVars());
+        freeVars.removeAll(type.variables());
         returnTypeNode(freeVars);
     }
 
@@ -61,7 +61,7 @@ public class UsesVars implements TypeVisitor {
     public void visit(IndexType type) {
         Set<Var> vars = new LinkedHashSet<Var>();
         if (type.isVar()) {
-            vars.add((Var) type.indexSet);
+            vars.add((Var) type.indexSet());
         }
         returnTypeNode(vars);
     }
@@ -69,15 +69,15 @@ public class UsesVars implements TypeVisitor {
     @Override
     public void visit(MatrixType type) {
         Set<Var> all = new LinkedHashSet<Var>();
-        all.addAll(unitVars(type.factor));
-        if (type.rowDimension.isVar() || type.rowDimension.width() > 0) {
-            all.addAll(unitVars(type.rowUnit));
+        all.addAll(unitVars(type.factor()));
+        if (type.rowDimension().isVar() || type.rowDimension().width() > 0) {
+            all.addAll(unitVars(type.rowUnit()));
         }
-        if (type.columnDimension.isVar() || type.columnDimension.width() > 0) {
-            all.addAll(unitVars(type.columnUnit));
+        if (type.columnDimension().isVar() || type.columnDimension().width() > 0) {
+            all.addAll(unitVars(type.columnUnit()));
         }
-        all.addAll(varSetAccept(type.rowDimension));
-        all.addAll(varSetAccept(type.columnDimension));
+        all.addAll(varSetAccept(type.rowDimension()));
+        all.addAll(varSetAccept(type.columnDimension()));
         returnTypeNode(all);
     }
 
@@ -101,8 +101,8 @@ public class UsesVars implements TypeVisitor {
     @Override
     public void visit(ParametricType type) {
         Set<Var> all = new LinkedHashSet<Var>();
-        all.addAll(varSetAccept(type.op));
-        for (TypeObject arg : type.args) {
+        all.addAll(varSetAccept(type.op()));
+        for (TypeObject arg : type.args()) {
             all.addAll(varSetAccept(arg));
         }
         returnTypeNode(all);

@@ -33,7 +33,7 @@ public final class OperatorConst implements Operator {
 
     @Override
     public String name() {
-        return id.name;
+        return id.name();
     }
 
     @Override
@@ -43,7 +43,7 @@ public final class OperatorConst implements Operator {
 
     @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
-        if (!id.name.equals(((OperatorConst) other).id.name)) {
+        if (!id.name().equals(((OperatorConst) other).id.name())) {
             throw new PacioliException("Type operators '%s and '%s' differ", this.pretty(),
                     other.pretty());
         }

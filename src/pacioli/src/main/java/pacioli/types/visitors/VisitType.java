@@ -28,7 +28,7 @@ public class VisitType implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        type.type.accept(this);
+        type.type().accept(this);
     }
 
     @Override
@@ -37,15 +37,15 @@ public class VisitType implements TypeVisitor {
 
     @Override
     public void visit(IndexType type) {
-        type.indexSet.accept(this);
+        type.indexSet().accept(this);
     }
 
     @Override
     public void visit(MatrixType type) {
         // type.factor.accept(this);
-        type.rowDimension.accept(this);
+        type.rowDimension().accept(this);
         // type.rowUnit.accept(this);
-        type.columnDimension.accept(this);
+        type.columnDimension().accept(this);
         // type.columnUnit.accept(this);
     }
 
@@ -55,8 +55,8 @@ public class VisitType implements TypeVisitor {
 
     @Override
     public void visit(ParametricType type) {
-        type.op.accept(this);
-        for (TypeObject arg : type.args) {
+        type.op().accept(this);
+        for (TypeObject arg : type.args()) {
             arg.accept(this);
         }
     }

@@ -38,11 +38,11 @@ import uom.UnitMap;
 
 public class MatrixType extends AbstractType {
 
-    public final Unit<TypeBase> factor;
-    public final IndexType rowDimension;
-    public final IndexType columnDimension;
-    public final Unit<TypeBase> rowUnit;
-    public final Unit<TypeBase> columnUnit;
+    private final Unit<TypeBase> factor;
+    private final IndexType rowDimension;
+    private final IndexType columnDimension;
+    private final Unit<TypeBase> rowUnit;
+    private final Unit<TypeBase> columnUnit;
 
     public MatrixType(Unit<TypeBase> factor, IndexType rowDimension, Unit<TypeBase> rowUnit, IndexType columnDimension,
             Unit<TypeBase> columnUnit) {
@@ -114,6 +114,22 @@ public class MatrixType extends AbstractType {
 
     public Unit<TypeBase> factor() {
         return factor;
+    }
+
+    public IndexType rowDimension() {
+        return rowDimension;
+    }
+
+    public IndexType columnDimension() {
+        return columnDimension;
+    }
+
+    public Unit<TypeBase> rowUnit() {
+        return rowUnit;
+    }
+
+    public Unit<TypeBase> columnUnit() {
+        return columnUnit;
     }
 
     public boolean unitSquare() {
@@ -196,7 +212,7 @@ public class MatrixType extends AbstractType {
                     public Unit<TypeBase> map(TypeBase base) {
                         assert (base instanceof VectorBase);
                         VectorBase bangBase = (VectorBase) base;
-                        return (Unit<TypeBase>) ((bangBase.position == columns.get(tmp)) ? bangBase.move(tmp)
+                        return (Unit<TypeBase>) ((bangBase.position() == columns.get(tmp)) ? bangBase.move(tmp)
                                 : TypeBase.ONE);
                     }
                 });
@@ -303,7 +319,7 @@ public class MatrixType extends AbstractType {
                 // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
                 Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
 
-                String idx = dimType.nthIndexSet(i).name;
+                String idx = dimType.nthIndexSet(i).name();
                 String devaluated = filtered.pretty();
                 devaluated = devaluated.equals("1") ? idx + "!" : devaluated;
                 if (i == 0) {
@@ -338,7 +354,7 @@ public class MatrixType extends AbstractType {
 
                 String devaluated = TypeBase.compileUnitToMVM(filtered, settings);
                 devaluated = filtered.pretty().equals("1")
-                        ? String.format("bang_shape(\"index_%s_%s\", \"\")", idx.home, idx.name)
+                        ? String.format("bang_shape(\"index_%s_%s\", \"\")", idx.home(), idx.name())
                         : devaluated;
                 if (i == 0) {
                     node = devaluated;

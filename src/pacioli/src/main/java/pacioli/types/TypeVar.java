@@ -23,8 +23,6 @@ package pacioli.types;
 
 import java.util.Optional;
 
-import javax.swing.text.html.Option;
-
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.Info;
@@ -34,7 +32,7 @@ import uom.BaseUnit;
 public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
 
     private final String name;
-    public final TypeVarInfo info;
+    private final TypeVarInfo info;
 
     // Constructors
 

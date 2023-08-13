@@ -2,8 +2,8 @@ package pacioli.types;
 
 public class TypeIdentifier {
 
-    public final String name;
-    public final String home;
+    private final String name;
+    private final String home;
 
     public TypeIdentifier(String home, String name) {
         assert (home != null);
@@ -11,6 +11,14 @@ public class TypeIdentifier {
         this.home = home;
         this.name = name;
         // assert (!name.contains("!"));
+    }
+
+    public String name() {
+        return name;
+    }
+
+    public String home() {
+        return home;
     }
 
     @Override

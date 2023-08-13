@@ -23,19 +23,19 @@ public class SubstituteVisitor extends TransformType {
     @Override
     public void visit(Schema type) {
         Substitution reduced = new Substitution(substitution);
-        reduced.removeAll(type.variables);
-        returnTypeNode(new Schema(type.variables, type.applySubstitution(reduced), type.contextNodes));
+        reduced.removeAll(type.variables());
+        returnTypeNode(new Schema(type.variables(), type.applySubstitution(reduced), type.contextNodes()));
     }
 
     @Override
     public void visit(MatrixType type) {
         returnTypeNode(
                 new MatrixType(
-                        substitution.apply(type.factor),
-                        (IndexType) typeNodeAccept(type.rowDimension),
-                        substitution.apply(type.rowUnit),
-                        (IndexType) typeNodeAccept(type.columnDimension),
-                        substitution.apply(type.columnUnit)));
+                        substitution.apply(type.factor()),
+                        (IndexType) typeNodeAccept(type.rowDimension()),
+                        substitution.apply(type.rowUnit()),
+                        (IndexType) typeNodeAccept(type.columnDimension()),
+                        substitution.apply(type.columnUnit())));
     }
 
     @Override

@@ -123,101 +123,103 @@ public class TypeInference extends IdentityVisitor {
         // The nmode product is special. It requires that the type
         // is known (no variables) because it needs to manipulate indices.
         if (node.hasName("nmode")) {
-            if (true) {
-                if (node.arguments.size() != 3) {
 
-                    throw new PacioliException(node.location(),
-                            "N-mode got %s arguments, expects 3 (a tensor, an integer and a matrix)",
-                            node.arguments.size());
-                }
+            if (node.arguments.size() != 3) {
 
-                Integer n;
-
-                // Try to get the n parameter
-                try {
-                    ConstNode nNode = (ConstNode) node.arguments.get(1);
-                    n = new Integer(nNode.valueString());
-                } catch (Exception ex) {
-                    throw new PacioliException(node.arguments.get(1).location(),
-                            "Second argument of nmode must be a number");
-                }
-
-                String message = String.format("During inference %s\nthe inferred type must follow the nmode rules",
-                        node.sourceDescription());
-
-                typing.addNModeConstraint(resultType,
-                        argTypes.get(0),
-                        n,
-                        argTypes.get(2),
-                        node,
-                        message);
-            } else {
-                try {
-
-                    // The parameters of nmode
-                    MatrixType tensorType;
-                    Integer n;
-                    MatrixType matrixType;
-
-                    // Try to get the n parameter
-                    try {
-                        ConstNode nNode = (ConstNode) node.arguments.get(1);
-                        n = new Integer(nNode.valueString());
-                    } catch (Exception ex) {
-                        throw new PacioliException(node.arguments.get(1).location(),
-                                "Second argument of nmode must be a number");
-                    }
-
-                    // Try to get the type of the tensor parameter
-                    ExpressionNode tensorNode = node.arguments.get(0);
-                    try {
-                        Typing tensorTyping = typingAccept(tensorNode);
-                        TypeObject tensorPacioliType = tensorTyping.solve(false);
-                        tensorType = (MatrixType) tensorPacioliType;
-                    } catch (Exception ex) {
-                        throw new PacioliException(tensorNode.location(),
-                                "First argument of nmode must have a valid matrix type: %s",
-                                ex.getMessage());
-                    }
-
-                    // Try to get the type of the matrix parameter
-                    try {
-                        Typing matrixTyping = typingAccept(node.arguments.get(2));
-                        TypeObject matrixPacioliType = matrixTyping.solve(false);
-                        matrixType = (MatrixType) matrixPacioliType;
-                    } catch (Exception ex) {
-                        throw new PacioliException(node.arguments.get(2).location(),
-                                "Third argument of nmode must be a valid matrix type");
-                    }
-
-                    // Determine the shape of the row dimension
-                    List<Integer> shape = new ArrayList<Integer>();
-                    for (int i = 0; i < tensorType.rowDimension.width(); i++) {
-                        Optional<IndexSetDefinition> def = tensorType.rowDimension.nthIndexSetInfo(i).definition();
-                        if (def.isPresent()) {
-                            shape.add(def.get().items().size());
-                        } else {
-                            new PacioliException(node.arguments.get(0).location(),
-                                    "Index set %s has no known size", i);
-                        }
-                    }
-
-                    // Remember the shape for the code generators
-                    node.nmodeShape = shape;
-
-                    // Call MatrixType nmode on the found types and require that the
-                    // result equals the outcome
-                    String message = String.format("During inference %s\nthe inferred type must follow the nmode rules",
-                            node.sourceDescription());
-                    typing.addConstraint(tensorType.nmode(n, matrixType), resultType, message);
-
-                } catch (PacioliException ex) {
-                    throw new RuntimeException("Invalid nmode application", ex);
-                } catch (Exception ex) {
-                    throw new RuntimeException("Invalid nmode application",
-                            new PacioliException(node.location(), ex.getMessage()));
-                }
+                throw new PacioliException(node.location(),
+                        "N-mode got %s arguments, expects 3 (a tensor, an integer and a matrix)",
+                        node.arguments.size());
             }
+
+            Integer n;
+
+            // Try to get the n parameter
+            try {
+                ConstNode nNode = (ConstNode) node.arguments.get(1);
+                n = new Integer(nNode.valueString());
+            } catch (Exception ex) {
+                throw new PacioliException(node.arguments.get(1).location(),
+                        "Second argument of nmode must be a number");
+            }
+
+            String message = String.format("During inference %s\nthe inferred type must follow the nmode rules",
+                    node.sourceDescription());
+
+            typing.addNModeConstraint(resultType,
+                    argTypes.get(0),
+                    n,
+                    argTypes.get(2),
+                    node,
+                    message);
+
+            // try {
+
+            // // The parameters of nmode
+            // MatrixType tensorType;
+            // Integer n;
+            // MatrixType matrixType;
+
+            // // Try to get the n parameter
+            // try {
+            // ConstNode nNode = (ConstNode) node.arguments.get(1);
+            // n = new Integer(nNode.valueString());
+            // } catch (Exception ex) {
+            // throw new PacioliException(node.arguments.get(1).location(),
+            // "Second argument of nmode must be a number");
+            // }
+
+            // // Try to get the type of the tensor parameter
+            // ExpressionNode tensorNode = node.arguments.get(0);
+            // try {
+            // Typing tensorTyping = typingAccept(tensorNode);
+            // TypeObject tensorPacioliType = tensorTyping.solve(false);
+            // tensorType = (MatrixType) tensorPacioliType;
+            // } catch (Exception ex) {
+            // throw new PacioliException(tensorNode.location(),
+            // "First argument of nmode must have a valid matrix type: %s",
+            // ex.getMessage());
+            // }
+
+            // // Try to get the type of the matrix parameter
+            // try {
+            // Typing matrixTyping = typingAccept(node.arguments.get(2));
+            // TypeObject matrixPacioliType = matrixTyping.solve(false);
+            // matrixType = (MatrixType) matrixPacioliType;
+            // } catch (Exception ex) {
+            // throw new PacioliException(node.arguments.get(2).location(),
+            // "Third argument of nmode must be a valid matrix type");
+            // }
+
+            // // Determine the shape of the row dimension
+            // List<Integer> shape = new ArrayList<Integer>();
+            // for (int i = 0; i < tensorType.rowDimension().width(); i++) {
+            // Optional<IndexSetDefinition> def =
+            // tensorType.rowDimension().nthIndexSetInfo(i).definition();
+            // if (def.isPresent()) {
+            // shape.add(def.get().items().size());
+            // } else {
+            // new PacioliException(node.arguments.get(0).location(),
+            // "Index set %s has no known size", i);
+            // }
+            // }
+
+            // // Remember the shape for the code generators
+            // node.nmodeShape = shape;
+
+            // // Call MatrixType nmode on the found types and require that the
+            // // result equals the outcome
+            // String message = String.format("During inference %s\nthe inferred type must
+            // follow the nmode rules",
+            // node.sourceDescription());
+            // typing.addConstraint(tensorType.nmode(n, matrixType), resultType, message);
+
+            // } catch (PacioliException ex) {
+            // throw new RuntimeException("Invalid nmode application", ex);
+            // } catch (Exception ex) {
+            // throw new RuntimeException("Invalid nmode application",
+            // new PacioliException(node.location(), ex.getMessage()));
+            // }
+
         } else {
 
             // Infer the typing of the function. Add its contraints
