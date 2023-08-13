@@ -1,7 +1,7 @@
 package pacioli.types;
 
 import pacioli.misc.Printable;
-import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.Info;
 
 public interface Var extends Printable {
 
@@ -24,5 +24,5 @@ public interface Var extends Printable {
      * 
      * @return The info for the variable
      */
-    SymbolInfo getInfo();
+    Info getInfo();
 }

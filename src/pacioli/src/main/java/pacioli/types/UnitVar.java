@@ -1,6 +1,6 @@
 package pacioli.types;
 
-import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.Info;
 
 public interface UnitVar extends Var, TypeBase {
 
@@ -25,5 +25,5 @@ public interface UnitVar extends Var, TypeBase {
      * 
      * @return The info for the variable
      */
-    SymbolInfo getInfo();
+    Info getInfo();
 }

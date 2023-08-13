@@ -7,7 +7,7 @@ import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 
-public final class ParametricInfo extends AbstractSymbolInfo implements TypeInfo {
+public final class ParametricInfo extends AbstractInfo implements TypeInfo {
 
     private final TypeDefinition definition;
 

@@ -18,7 +18,7 @@ import pacioli.symboltable.info.ClassInfo;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ScalarBaseInfo;
-import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
@@ -47,7 +47,7 @@ public class PythonCompiler implements SymbolTableVisitor {
             LambdaNode code = (LambdaNode) transformed;
 
             List<String> usedGlobals = new ArrayList<String>();
-            for (SymbolInfo usedInfo : code.uses()) {
+            for (Info usedInfo : code.uses()) {
                 if (usedInfo.isGlobal() && usedInfo instanceof ValueInfo) {
                     ValueInfo vinfo = (ValueInfo) usedInfo;
                     if (!vinfo.isFunction()) {

@@ -9,7 +9,7 @@ import pacioli.symboltable.SymbolTableVisitor;
 /**
  * Part of ClassInfo.
  */
-public final class InstanceInfo extends AbstractSymbolInfo {
+public final class InstanceInfo extends AbstractInfo {
 
     private final InstanceDefinition definition;
 

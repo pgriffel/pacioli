@@ -3,11 +3,11 @@ package pacioli.symboltable.info;
 import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;
 
-public abstract class AbstractSymbolInfo implements SymbolInfo {
+public abstract class AbstractInfo implements Info {
 
     private final GeneralInfo general;
 
-    public AbstractSymbolInfo(GeneralInfo general) {
+    public AbstractInfo(GeneralInfo general) {
         this.general = general;
     };
 

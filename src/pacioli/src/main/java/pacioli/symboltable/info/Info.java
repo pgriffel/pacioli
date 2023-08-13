@@ -7,7 +7,7 @@ import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 
-public interface SymbolInfo {
+public interface Info {
 
     GeneralInfo generalInfo();
 

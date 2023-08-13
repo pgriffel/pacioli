@@ -46,7 +46,7 @@ import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ScalarBaseInfo;
-import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.symboltable.info.UnitInfo;
@@ -497,7 +497,7 @@ public class ResolveVisitor extends IdentityVisitor {
     @Override
     public void visit(BangTypeNode node) {
 
-        SymbolInfo indexSetInfo = typeTables.peek().lookup(node.indexSetName());
+        Info indexSetInfo = typeTables.peek().lookup(node.indexSetName());
         if (indexSetInfo == null) {
             throw new RuntimeException("Name error",
                     new PacioliException(node.getLocation(), "Index set %s unknown", node.indexSetName()));
@@ -507,7 +507,7 @@ public class ResolveVisitor extends IdentityVisitor {
         if (node.unit.isPresent()) {
             String fullName = node.indexSetName() + "!" + node.unitVecName();
 
-            SymbolInfo unitInfo = typeTables.peek().lookup(fullName);
+            Info unitInfo = typeTables.peek().lookup(fullName);
             if (unitInfo == null) {
                 throw new RuntimeException("Name error",
                         new PacioliException(node.getLocation(), "Vector unit %s unknown", fullName));
@@ -568,7 +568,7 @@ public class ResolveVisitor extends IdentityVisitor {
         String name = node.getName();
 
         // Lookup the name in the symbol table stack and check it's existence
-        SymbolInfo typeInfo = typeTables.peek().lookup(name);
+        Info typeInfo = typeTables.peek().lookup(name);
         if (typeInfo == null) {
             visitorThrow(node.getLocation(), "Type identifier %s unknown", name);
         }

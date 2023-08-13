@@ -76,9 +76,9 @@ public class PrimitivesDocumentation {
 
         DocumentationGenerator generator = new DocumentationGenerator(writer, module, version);
         for (ValueInfo info : infos) {
-            if (info.isPublic() && info.getDeclaredType().isPresent()) {
+            if (info.isPublic() && info.declaredType().isPresent()) {
 
-                TypeNode type = info.getDeclaredType().get();
+                TypeNode type = info.declaredType().get();
                 if (type instanceof SchemaNode && ((SchemaNode) type).type instanceof FunctionTypeNode) {
 
                     List<String> args = null;

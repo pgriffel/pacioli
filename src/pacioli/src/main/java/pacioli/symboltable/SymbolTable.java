@@ -7,9 +7,9 @@ import java.util.Map;
 import java.util.function.Function;
 
 import pacioli.Pacioli;
-import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.Info;
 
-public class SymbolTable<R extends SymbolInfo> {
+public class SymbolTable<R extends Info> {
 
     private final Map<String, R> table = new HashMap<String, R>();
     // public final SymbolTable<R> parent;
@@ -113,7 +113,7 @@ public class SymbolTable<R extends SymbolInfo> {
     }
 
     public void accept(SymbolTableVisitor visitor) {
-        for (SymbolInfo info : table.values()) {
+        for (Info info : table.values()) {
             info.accept(visitor);
         }
     }

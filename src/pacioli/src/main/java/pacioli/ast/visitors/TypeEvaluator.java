@@ -15,7 +15,7 @@ import pacioli.misc.PacioliException;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ScalarBaseInfo;
-import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.types.FunctionType;
@@ -230,7 +230,7 @@ public class TypeEvaluator extends IdentityVisitor {
     public void visit(TypeIdentifierNode node) {
 
         // Find identifier info. The node must have been resolved.
-        SymbolInfo info = node.info;
+        Info info = node.info;
         assert (info != null);
 
         // If it is local then it is a variable.

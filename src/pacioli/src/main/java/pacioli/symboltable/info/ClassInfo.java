@@ -8,7 +8,7 @@ import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.InstanceDefinition;
 import pacioli.symboltable.SymbolTableVisitor;
 
-public final class ClassInfo extends AbstractSymbolInfo implements TypeInfo {
+public final class ClassInfo extends AbstractInfo implements TypeInfo {
 
     private final ClassDefinition definition;
     private final List<InstanceInfo> instances;

@@ -247,7 +247,7 @@ public class TypeInference extends IdentityVisitor {
         Typing valueTyping = typingAccept(node.value);
         Typing typing = new Typing(newVoidType());
         typing.addConstraintsAndAssumptions(valueTyping);
-        typing.addConstraint(node.var.getInfo().inferredTypeChecked(), valueTyping.getType(),
+        typing.addConstraint(node.var.getInfo().localType(), valueTyping.getType(),
                 "assigned variable must have proper type");
         returnNode(typing);
     }
@@ -306,12 +306,12 @@ public class TypeInference extends IdentityVisitor {
 
         if (info.isGlobal()) {
             // Move instantiate to proper place.
-            if (node.getInfo().getDeclaredType().isPresent()) {
+            if (node.getInfo().declaredType().isPresent()) {
                 returnNode(new Typing(
-                        node.getInfo().getDeclaredType().get().evalType().instantiate()
+                        node.getInfo().declaredType().get().evalType().instantiate()
                                 .reduce(i -> i.isFromFile(this.file))));
             } else {
-                returnNode(new Typing(node.getInfo().inferredTypeChecked().instantiate()));
+                returnNode(new Typing(node.getInfo().localType().instantiate()));
             }
         } else {
             TypeVar var = new TypeVar();
@@ -396,7 +396,7 @@ public class TypeInference extends IdentityVisitor {
             ValueInfo info = node.table.lookup(name);
             if (node.arguments.contains(name)) {
                 for (TypeVar var : bodyTyping.assumptions(name)) {
-                    typing.addConstraint(var, info.inferredTypeChecked(),
+                    typing.addConstraint(var, info.localType(),
                             String.format("During type inference in %s\nLambda var %s must have the proper type",
                                     node.sourceDescription(),
                                     name));
@@ -456,7 +456,7 @@ public class TypeInference extends IdentityVisitor {
             ValueInfo info = node.table.lookup(name);
             if (vars.contains(name)) {
                 for (TypeVar var : bodyTyping.assumptions(name)) {
-                    resultTyping.addInstanceConstraint(var, info.inferredTypeChecked(), freeVars,
+                    resultTyping.addInstanceConstraint(var, info.localType(), freeVars,
                             String.format("During type inference in %s\nLet var %s must have the proper type",
                                     node.sourceDescription(),
                                     name));
@@ -524,7 +524,7 @@ public class TypeInference extends IdentityVisitor {
         Typing valueTyping = typingAccept(node.value);
         Typing typing = new Typing(voidType);
         typing.addConstraintsAndAssumptions(valueTyping);
-        typing.addConstraint(node.resultInfo.inferredTypeChecked(), valueTyping.getType(),
+        typing.addConstraint(node.resultInfo.localType(), valueTyping.getType(),
                 "the types of returned values must agree");
         returnNode(typing);
     }
@@ -574,7 +574,7 @@ public class TypeInference extends IdentityVisitor {
                     String message = String.format(
                             "During inference %s\nthe inferred parameter type must match the argument",
                             info.location().description());
-                    typing.addConstraint(var, info.inferredTypeChecked(), message);
+                    typing.addConstraint(var, info.localType(), message);
                 }
             } else {
                 for (TypeVar var : itemTyping.assumptions(name)) {
@@ -598,7 +598,7 @@ public class TypeInference extends IdentityVisitor {
 
         List<TypeObject> varTypes = new ArrayList<TypeObject>();
         for (IdentifierNode var : node.vars) {
-            varTypes.add(var.getInfo().inferredTypeChecked());
+            varTypes.add(var.getInfo().localType());
         }
         TypeObject tupleType = newTupleType(varTypes);
 

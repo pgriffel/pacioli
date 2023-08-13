@@ -27,7 +27,7 @@ import java.util.Set;
 
 import pacioli.misc.Location;
 import pacioli.misc.PacioliException;
-import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.Info;
 import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeIdentifierNode.Kind;
@@ -73,7 +73,7 @@ public class Schema extends AbstractType {
     public List<ContextNode> contextNodes() {
         List<ContextNode> contextNodes = new ArrayList<>();
         for (Var var : variables) {
-            SymbolInfo sinfo;
+            Info sinfo;
             Location location;
             Kind kind;
             if (var instanceof IndexSetVar v) {

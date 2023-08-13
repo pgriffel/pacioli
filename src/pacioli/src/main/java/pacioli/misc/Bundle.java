@@ -33,7 +33,7 @@ import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.ClassInfo;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
-import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
@@ -211,7 +211,7 @@ public class Bundle {
 
         // Lists of infos we will compile below. Functions are always compiled first.
         List<ValueInfo> functionsToCompile = new ArrayList<>();
-        List<SymbolInfo> infosToCompile = new ArrayList<>();
+        List<Info> infosToCompile = new ArrayList<>();
 
         // Collect the index sets and the units from the type table
         for (TypeInfo info : environment.types.allInfos()) {
@@ -247,7 +247,7 @@ public class Bundle {
 
         // Generate code for the rest. This is done in the proper order
         infosToCompile = orderedInfos(infosToCompile);
-        for (SymbolInfo info : infosToCompile) {
+        for (Info info : infosToCompile) {
             info.accept(compiler);
         }
 
@@ -302,7 +302,7 @@ public class Bundle {
             boolean fromProgram = info.generalInfo().getModule().equals(file.getModule());
             if ((includePrivate || info.isPublic()) && fromProgram && info.definition().isPresent()
                     && info.isUserDefined()) {
-                TypeObject type = rewriteTypes ? info.inferredTypeChecked() : info.getType();
+                TypeObject type = rewriteTypes ? info.localType() : info.publicType();
                 String text = Pacioli.Options.printTypesAsString ? type.toString() : type.pretty();
                 Pacioli.println("%s :: %s", info.name(), text);
                 if (showDocs) {
@@ -345,10 +345,10 @@ public class Bundle {
                 ExpressionNode body = info.definition().get().body;
                 if (body instanceof LambdaNode) {
                     LambdaNode lambda = (LambdaNode) body;
-                    generator.addFunction(info.name(), lambda.arguments, info.getType(),
+                    generator.addFunction(info.name(), lambda.arguments, info.publicType(),
                             info.generalInfo().documentation().orElse(""));
                 } else {
-                    generator.addValue(info.name(), info.getType(), info.generalInfo().documentation().orElse(""));
+                    generator.addValue(info.name(), info.publicType(), info.generalInfo().documentation().orElse(""));
                 }
             }
         }
@@ -422,7 +422,7 @@ public class Bundle {
                     info.isPublic() ? "public" : "private",
                     info.typeClass().isPresent() ? "overload" : "single",
                     def.isPresent() ? "has def" : "no def",
-                    info.getDeclaredType().isPresent() ? "decl" : "no decl",
+                    info.declaredType().isPresent() ? "decl" : "no decl",
                     info.inferredType().isPresent() ? "inferred" : "no type",
                     info.inferredType().map(x -> x.pretty()).orElse("N/A"));
         }
@@ -433,7 +433,7 @@ public class Bundle {
     // Topological Order of Definitions
     // -------------------------------------------------------------------------
 
-    static <T extends SymbolInfo> List<T> orderedInfos(Collection<T> definitions) throws PacioliException {
+    static <T extends Info> List<T> orderedInfos(Collection<T> definitions) throws PacioliException {
 
         Set<T> discovered = new HashSet<T>();
         Set<T> finished = new HashSet<T>();
@@ -446,7 +446,7 @@ public class Bundle {
         return orderedDefinitions;
     }
 
-    static <T extends SymbolInfo> void insertInfo(T info, List<T> definitions, Set<T> discovered, Set<T> finished,
+    static <T extends Info> void insertInfo(T info, List<T> definitions, Set<T> discovered, Set<T> finished,
             Collection<String> all) throws PacioliException {
 
         assert (info.definition().isPresent());
@@ -459,7 +459,7 @@ public class Bundle {
             }
             discovered.add(info);
             // Pacioli.log("uses %s %s %s", info.globalName(), info.getClass(), def.uses());
-            for (SymbolInfo other : def.uses()) {
+            for (Info other : def.uses()) {
 
                 if ((all.contains(other.globalName())) && other.definition().isPresent()) {
                     insertInfo((T) other, definitions, discovered, finished, all);

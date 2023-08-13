@@ -7,7 +7,7 @@ import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 
-public final class TypeVarInfo extends AbstractSymbolInfo implements TypeInfo {
+public final class TypeVarInfo extends AbstractInfo implements TypeInfo {
 
     public TypeVarInfo(
             String name,

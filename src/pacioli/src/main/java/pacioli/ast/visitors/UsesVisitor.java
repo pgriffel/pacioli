@@ -9,14 +9,14 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.misc.PacioliException;
-import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.Info;
 import pacioli.types.ast.TypeIdentifierNode;
 
 public class UsesVisitor extends IdentityVisitor {
 
-    Set<SymbolInfo> infos = new HashSet<SymbolInfo>();
+    Set<Info> infos = new HashSet<Info>();
 
-    public Set<SymbolInfo> idsAccept(Node node) {
+    public Set<Info> idsAccept(Node node) {
         node.accept(this);
         return infos;
     }
@@ -31,7 +31,7 @@ public class UsesVisitor extends IdentityVisitor {
     @Override
     public void visit(IdentifierNode node) {
         if (node.getName().equals("nmode") || node.getInfo().definition().isPresent()
-                || node.getInfo().getDeclaredType().isPresent() || !node.getInfo().isGlobal()) {
+                || node.getInfo().declaredType().isPresent() || !node.getInfo().isGlobal()) {
             infos.add(node.getInfo());
         } else {
             throw new RuntimeException("Visit error", new PacioliException(node.getLocation(),
@@ -49,7 +49,7 @@ public class UsesVisitor extends IdentityVisitor {
     @Override
     public void visit(StatementNode node) {
         node.body.accept(this);
-        for (SymbolInfo info : node.shadowed.allInfos()) {
+        for (Info info : node.shadowed.allInfos()) {
             infos.add(info);
         }
     }

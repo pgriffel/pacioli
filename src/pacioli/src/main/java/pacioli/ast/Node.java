@@ -43,7 +43,7 @@ import pacioli.misc.Printable;
 import pacioli.misc.Printer;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.ValueInfo;
 
 public interface Node extends Printable {
@@ -96,7 +96,7 @@ public interface Node extends Printable {
      * 
      * @return The info for each used identifier
      */
-    default public Set<SymbolInfo> uses() {
+    default public Set<Info> uses() {
         return new UsesVisitor().idsAccept(this);
     }
 
@@ -146,8 +146,8 @@ public interface Node extends Printable {
     static public Set<ValueInfo> freeVars(Node node, SymbolTable<ValueInfo> table) {
 
         // Determine the used local ids
-        Set<SymbolInfo> uses = new HashSet<SymbolInfo>();
-        for (SymbolInfo info : node.uses()) {
+        Set<Info> uses = new HashSet<Info>();
+        for (Info info : node.uses()) {
             if (!info.isGlobal()) {
                 uses.add(info);
             }

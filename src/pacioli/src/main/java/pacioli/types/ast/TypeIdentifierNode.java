@@ -22,7 +22,7 @@ package pacioli.types.ast;
 
 import pacioli.ast.Visitor;
 import pacioli.misc.Location;
-import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.Info;
 
 public class TypeIdentifierNode extends AbstractTypeNode {
 
@@ -61,7 +61,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
     private final Kind kind;
 
     // Set during resolving
-    public SymbolInfo info;
+    public Info info;
 
     public TypeIdentifierNode(Location location, String name) {
         super(location);
@@ -70,7 +70,7 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         // assert (!name.contains("!"));
     }
 
-    public TypeIdentifierNode(Location location, String name, SymbolInfo info) {
+    public TypeIdentifierNode(Location location, String name, Info info) {
         super(location);
         this.name = name;
         this.kind = null;

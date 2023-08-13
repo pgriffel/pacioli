@@ -7,7 +7,7 @@ import pacioli.misc.Location;
 import pacioli.misc.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 
-public final class IndexSetInfo extends AbstractSymbolInfo implements TypeInfo {
+public final class IndexSetInfo extends AbstractInfo implements TypeInfo {
 
     private final IndexSetDefinition definition;
 

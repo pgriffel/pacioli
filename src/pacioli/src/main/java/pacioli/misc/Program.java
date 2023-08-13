@@ -45,7 +45,7 @@ import pacioli.symboltable.info.InfoBuilder;
 import pacioli.symboltable.info.InstanceInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ScalarBaseInfo;
-import pacioli.symboltable.info.SymbolInfo;
+import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
@@ -399,9 +399,9 @@ public class Program {
                         nfo.globalName());
                 nfo.definition().get().resolve(this.file, prog);
             }
-            if (nfo.getDeclaredType().isPresent()) {
+            if (nfo.declaredType().isPresent()) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving declaration %s", nfo.globalName());
-                nfo.getDeclaredType().get().resolve(this.file, prog);
+                nfo.declaredType().get().resolve(this.file, prog);
             }
 
         }
@@ -718,8 +718,8 @@ public class Program {
         prog.setParent(env);
         PacioliTable environment = prog;
 
-        Set<SymbolInfo> discovered = new HashSet<SymbolInfo>();
-        Set<SymbolInfo> finished = new HashSet<SymbolInfo>();
+        Set<Info> discovered = new HashSet<Info>();
+        Set<Info> finished = new HashSet<Info>();
 
         List<String> names = environment.values.allNames();
         Collections.sort(names);
@@ -737,13 +737,13 @@ public class Program {
                         info.inferredType().get().pretty());
             }
 
-            Optional<TypeNode> declared = info.getDeclaredType();
+            Optional<TypeNode> declared = info.declaredType();
 
             if (info.isFromFile(this.file) && declared.isPresent() && info.inferredType().isPresent()) {
 
                 TypeObject declaredType = declared.get().evalType().instantiate()
                         .reduce(i -> i.isFromFile(this.file));
-                TypeObject inferredType = info.inferredTypeChecked().instantiate();
+                TypeObject inferredType = info.localType().instantiate();
 
                 Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,
                         "Checking inferred type\n  %s\nagainst declared type\n  %s",
@@ -779,15 +779,15 @@ public class Program {
 
     }
 
-    private void inferUsedTypes(Definition definition, Set<SymbolInfo> discovered, Set<SymbolInfo> finished,
+    private void inferUsedTypes(Definition definition, Set<Info> discovered, Set<Info> finished,
             Boolean verbose, PacioliTable env) {
-        for (SymbolInfo pre : definition.uses()) {
+        for (Info pre : definition.uses()) {
             if (pre.isGlobal() && pre instanceof ValueInfo) {
                 if (pre.isFromFile(this.file) && pre.definition().isPresent()) {
                     inferValueDefinitionType((ValueInfo) pre, discovered, finished, verbose, env);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
-                    if (!vinfo.getDeclaredType().isPresent() && !vinfo.name().equals("nmode")) {
+                    if (!vinfo.declaredType().isPresent() && !vinfo.name().equals("nmode")) {
                         throw new RuntimeException("Type error",
                                 new PacioliException(pre.location(), "No type declared for %s", pre.name()));
                     }
@@ -806,7 +806,7 @@ public class Program {
      *                   logging per definition.
      * @param env
      */
-    private void inferValueDefinitionType(ValueInfo info, Set<SymbolInfo> discovered, Set<SymbolInfo> finished,
+    private void inferValueDefinitionType(ValueInfo info, Set<Info> discovered, Set<Info> finished,
             Boolean verbose, PacioliTable env) {
 
         if (!finished.contains(info)) {

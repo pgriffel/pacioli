@@ -11,7 +11,7 @@ import pacioli.types.TypeObject;
 import pacioli.types.Schema;
 import pacioli.types.ast.TypeNode;
 
-public class ValueInfo extends AbstractSymbolInfo {
+public class ValueInfo extends AbstractInfo {
 
     private final boolean isMonomorphic;
     private final boolean isRef;
@@ -60,8 +60,12 @@ public class ValueInfo extends AbstractSymbolInfo {
         return this.isMonomorphic;
     }
 
-    public Optional<TypeNode> getDeclaredType() {
+    public Optional<TypeNode> declaredType() {
         return Optional.ofNullable(this.declaredType);
+    }
+
+    public Optional<TypeObject> inferredType() {
+        return Optional.ofNullable(inferredType);
     }
 
     public Optional<ClassInfo> typeClass() {
@@ -81,7 +85,13 @@ public class ValueInfo extends AbstractSymbolInfo {
         return isRef;
     }
 
-    public TypeObject getType() {
+    /**
+     * The declared type if available, otherwise the inferred type. Throws an error
+     * if no type is known.
+     * 
+     * @return The declared or inferred type.
+     */
+    public TypeObject publicType() {
         if (declaredType != null) {
             return declaredType.evalType();
         } else if (inferredType != null) {
@@ -92,11 +102,12 @@ public class ValueInfo extends AbstractSymbolInfo {
         }
     }
 
-    public Optional<TypeObject> inferredType() {
-        return Optional.ofNullable(inferredType);
-    }
-
-    public TypeObject inferredTypeChecked() {
+    /**
+     * The inferred type. Throws an error if no inferred type is known.
+     * 
+     * @return The inferred type.
+     */
+    public TypeObject localType() {
         if (inferredType != null) {
             return inferredType;
         } else {
@@ -106,7 +117,7 @@ public class ValueInfo extends AbstractSymbolInfo {
     }
 
     public Boolean isFunction() {
-        Schema schema = (Schema) getType();
+        Schema schema = (Schema) publicType();
         return schema.type instanceof FunctionType;
     }
 
