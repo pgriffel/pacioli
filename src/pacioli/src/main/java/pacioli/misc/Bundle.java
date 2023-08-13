@@ -303,7 +303,7 @@ public class Bundle {
             boolean fromProgram = info.generalInfo().getModule().equals(file.getModule());
             if ((includePrivate || info.isPublic()) && fromProgram && info.definition().isPresent()
                     && info.isUserDefined()) {
-                TypeObject type = rewriteTypes ? info.inferredType() : info.getType();
+                TypeObject type = rewriteTypes ? info.inferredTypeChecked() : info.getType();
                 String text = Pacioli.Options.printTypesAsString ? type.toString() : type.pretty();
                 Pacioli.println("%s :: %s", info.name(), text);
                 if (showDocs) {
@@ -424,8 +424,8 @@ public class Bundle {
                     info.typeClass().isPresent() ? "overload" : "single",
                     def.isPresent() ? "has def" : "no def",
                     info.getDeclaredType().isPresent() ? "decl" : "no decl",
-                    info.inferredType.isPresent() ? "inferred" : "no type",
-                    info.inferredType.map(x -> x.pretty()).orElse("N/A"));
+                    info.inferredType().isPresent() ? "inferred" : "no type",
+                    info.inferredType().map(x -> x.pretty()).orElse("N/A"));
         }
 
     }

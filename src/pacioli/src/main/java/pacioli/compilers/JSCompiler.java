@@ -53,7 +53,7 @@ public class JSCompiler implements SymbolTableVisitor {
             out.format("Pacioli.u_%s = function () {", info.globalName());
             out.newlineUp();
             out.format("var args = new Pacioli.GenericType('Tuple', Array.prototype.slice.call(arguments));");
-            out.format("var type = %s;", info.inferredType().reduce(i -> true).compileToJS());
+            out.format("var type = %s;", info.inferredTypeChecked().reduce(i -> true).compileToJS());
             out.format("return Pacioli.subs(type.to, Pacioli.matchTypes(type.from, args));");
             out.newlineDown();
             out.write("}");
@@ -110,7 +110,7 @@ public class JSCompiler implements SymbolTableVisitor {
                     + "}\n"
                     + "Pacioli.compute_%s = function () {\n  return ",
                     info.globalName(),
-                    info.inferredType().reduce(i -> true).compileToJS(),
+                    info.inferredTypeChecked().reduce(i -> true).compileToJS(),
                     info.globalName());
             transformedBody.compileToJS(out, settings, false);
             out.format(";\n}\n");

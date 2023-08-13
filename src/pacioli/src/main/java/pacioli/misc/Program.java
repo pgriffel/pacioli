@@ -726,16 +726,16 @@ public class Program {
                 inferValueDefinitionType(info, discovered, finished, Pacioli.Options.logTypeInference, environment);
 
                 Pacioli.logIf(Pacioli.Options.logTypeInference, "%s :: %s;", info.name(),
-                        info.inferredType.get().pretty());
+                        info.inferredType().get().pretty());
             }
 
             Optional<TypeNode> declared = info.getDeclaredType();
 
-            if (info.isFromFile(this.file) && declared.isPresent() && info.inferredType.isPresent()) {
+            if (info.isFromFile(this.file) && declared.isPresent() && info.inferredType().isPresent()) {
 
                 TypeObject declaredType = declared.get().evalType().instantiate()
                         .reduce(i -> i.isFromFile(this.file));
-                TypeObject inferredType = info.inferredType().instantiate();
+                TypeObject inferredType = info.inferredTypeChecked().instantiate();
 
                 Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,
                         "Checking inferred type\n  %s\nagainst declared type\n  %s",

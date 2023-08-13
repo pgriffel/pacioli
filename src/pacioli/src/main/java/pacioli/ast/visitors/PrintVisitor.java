@@ -401,7 +401,7 @@ public class PrintVisitor implements Visitor {
             if (node.table != null) {
                 ValueInfo info = node.table.lookup(arg);
                 write(":");
-                Optional<TypeObject> type = info.inferredType;
+                Optional<TypeObject> type = info.inferredType();
                 if (type.isPresent()) {
                     write(type.get().pretty());
                 } else {

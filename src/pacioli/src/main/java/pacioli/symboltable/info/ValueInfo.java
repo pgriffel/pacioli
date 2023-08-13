@@ -14,28 +14,23 @@ import pacioli.types.ast.TypeNode;
 public class ValueInfo extends AbstractSymbolInfo {
 
     private final boolean isMonomorphic;
-    private final boolean isPublic; // visibility noemen en enum maken
     private final boolean isRef;
-
-    private final Optional<ValueDefinition> definition;
-    private final Optional<TypeNode> declaredType;
-    private final Optional<ClassInfo> typeClass;
+    private final ValueDefinition definition;
+    private final TypeNode declaredType;
+    private final ClassInfo typeClass;
 
     // Set during type inference
-    // TODO: make private. This will clear up the need for the throws below
-    public Optional<TypeObject> inferredType = Optional.empty();
+    private TypeObject inferredType;
 
     public ValueInfo(
             GeneralInfo info,
             boolean isMonomorphic,
-            boolean isPublic,
             boolean isRef,
-            Optional<ValueDefinition> definition,
-            Optional<ClassInfo> typeClass,
-            Optional<TypeNode> declaredType) {
+            ValueDefinition definition,
+            ClassInfo typeClass,
+            TypeNode declaredType) {
         super(info);
         this.isMonomorphic = isMonomorphic;
-        this.isPublic = isPublic;
         this.definition = definition;
         this.typeClass = typeClass;
         this.declaredType = declaredType;
@@ -58,19 +53,19 @@ public class ValueInfo extends AbstractSymbolInfo {
 
     @Override
     public Optional<ValueDefinition> definition() {
-        return definition;
+        return Optional.ofNullable(this.definition);
     }
 
     public boolean isMonomorphic() {
-        return isMonomorphic;
+        return this.isMonomorphic;
     }
 
     public Optional<TypeNode> getDeclaredType() {
-        return declaredType;
+        return Optional.ofNullable(this.declaredType);
     }
 
     public Optional<ClassInfo> typeClass() {
-        return typeClass;
+        return Optional.of(this.typeClass);
     }
 
     public List<String> getDocuParts() {
@@ -87,19 +82,23 @@ public class ValueInfo extends AbstractSymbolInfo {
     }
 
     public TypeObject getType() {
-        if (declaredType.isPresent()) {
-            return declaredType.get().evalType();
-        } else if (inferredType.isPresent()) {
-            return inferredType.get();
+        if (declaredType != null) {
+            return declaredType.evalType();
+        } else if (inferredType != null) {
+            return inferredType;
         } else {
             throw new RuntimeException("No type info",
                     new PacioliException(location(), "no inferred or declared type for %s", name()));
         }
     }
 
-    public TypeObject inferredType() {
-        if (inferredType.isPresent()) {
-            return inferredType.get();
+    public Optional<TypeObject> inferredType() {
+        return Optional.ofNullable(inferredType);
+    }
+
+    public TypeObject inferredTypeChecked() {
+        if (inferredType != null) {
+            return inferredType;
         } else {
             throw new RuntimeException("No type info (did you mean getType() instead of inferredType()?)",
                     new PacioliException(location(), "no inferred type for %s ", name()));
@@ -112,25 +111,20 @@ public class ValueInfo extends AbstractSymbolInfo {
     }
 
     public void setinferredType(TypeObject type) {
-        this.inferredType = Optional.of(type);
-    }
-
-    public boolean isPublic() {
-        return isPublic;
+        this.inferredType = type;
     }
 
     public boolean isUserDefined() {
-        return definition.map(def -> def.isUserDefined).orElse(false);
+        return this.definition != null ? this.definition.isUserDefined : false;
     }
 
     public boolean isOverloaded() {
-        return !this.typeClass.isEmpty();
+        return this.typeClass != null;
     }
 
     public static class Builder extends GeneralBuilder<Builder, ValueInfo> {
 
         public Boolean isMonomorphic;
-        public Boolean isPublic;
         public boolean isRef = false;
         public ValueDefinition definition;
         public TypeNode declaredType;
@@ -143,11 +137,6 @@ public class ValueInfo extends AbstractSymbolInfo {
 
         public Builder isMonomorphic(Boolean isMonomorphic) {
             this.isMonomorphic = isMonomorphic;
-            return this;
-        }
-
-        public Builder isPublic(boolean isPublic) {
-            this.isPublic = isPublic;
             return this;
         }
 
@@ -172,18 +161,16 @@ public class ValueInfo extends AbstractSymbolInfo {
         }
 
         public ValueInfo build() {
-            if (isMonomorphic == null ||
-                    isPublic == null) {
+            if (isMonomorphic == null) {
                 throw new RuntimeException("Field missing");
             }
             return new ValueInfo(
                     this.buildGeneralInfo(),
-                    isMonomorphic,
-                    isPublic,
-                    isRef,
-                    Optional.ofNullable(definition),
-                    Optional.ofNullable(typeClass),
-                    Optional.ofNullable(declaredType));
+                    this.isMonomorphic,
+                    this.isRef,
+                    this.definition,
+                    this.typeClass,
+                    this.declaredType);
         }
     }
 
