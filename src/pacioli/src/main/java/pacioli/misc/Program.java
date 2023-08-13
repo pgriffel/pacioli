@@ -138,70 +138,65 @@ public class Program {
 
         Pacioli.trace("Filling tables for %s", this.file.module());
 
-        // Create a new table to fill
-        PacioliTable env = PacioliTable.empty();
-
         // Make a map from identifiers to symbol info builders for the value
         // namespace and for the type namespace.
         Map<String, ValueInfo.Builder> valueBuilders = new HashMap<>();
         Map<String, InfoBuilder<?, ? extends TypeInfo>> typeBuilders = new HashMap<>();
 
         // First pass, don't do class instances and value definitions
-        for (Definition def : this.ast.definitions) {
+        for (Definition definition : this.ast.definitions) {
 
-            if (def instanceof ClassDefinition d) {
+            if (definition instanceof ClassDefinition def) {
                 ClassInfo.Builder builder = ClassInfo.builder();
                 builder.name(def.name())
                         .file(file)
-                        .definition(d)
+                        .definition(def)
                         .isGlobal(true)
                         .location(def.location());
                 typeBuilders.put(def.name(), builder);
-            } else if (def instanceof AliasDefinition alias) {
+            } else if (definition instanceof AliasDefinition def) {
                 AliasInfo.Builder builder = AliasInfo.builder();
                 builder.name(def.name())
-                        .definition(alias)
+                        .definition(def)
                         .file(file)
                         .isGlobal(true)
                         .location(def.location());
                 typeBuilders.put(def.name(), builder);
-            } else if (def instanceof IndexSetDefinition indexSet) {
+            } else if (definition instanceof IndexSetDefinition def) {
                 IndexSetInfo.Builder builder = IndexSetInfo.builder();
                 builder.name(def.name())
                         .file(file)
                         .isGlobal(true)
                         .location(def.location())
-                        .definition(indexSet);
+                        .definition(def);
                 typeBuilders.put(def.name(), builder);
-            } else if (def instanceof Toplevel top) {
-                env.addToplevel(top);
-            } else if (def instanceof TypeDefinition typeDef) {
+            } else if (definition instanceof TypeDefinition def) {
                 ParametricInfo.Builder builder = ParametricInfo.builder();
                 builder.name(def.name())
                         .file(file)
                         .isGlobal(true)
                         .location(def.location())
-                        .definition(typeDef);
+                        .definition(def);
                 typeBuilders.put(def.name(), builder);
-            } else if (def instanceof UnitDefinition unitDef) {
+            } else if (definition instanceof UnitDefinition def) {
                 ScalarBaseInfo.Builder builder = ScalarBaseInfo.builder();
                 builder.name(def.name())
                         .file(file)
                         .isGlobal(true)
                         .location(def.location())
-                        .symbol(unitDef.symbol)
-                        .definition(unitDef);
+                        .symbol(def.symbol)
+                        .definition(def);
                 typeBuilders.put(def.name(), builder);
-            } else if (def instanceof UnitVectorDefinition vecDef) {
+            } else if (definition instanceof UnitVectorDefinition def) {
                 VectorBaseInfo.Builder builder = VectorBaseInfo.builder();
                 builder.name(def.name())
                         .file(file)
                         .isGlobal(true)
                         .location(def.location())
-                        .items(vecDef.items)
-                        .definition(vecDef);
+                        .items(def.items)
+                        .definition(def);
                 typeBuilders.put(def.name(), builder);
-            } else if (def instanceof Declaration decl) {
+            } else if (definition instanceof Declaration def) {
                 ValueInfo.Builder builder = ensureValueInfoBuilder(valueBuilders, def.name());
                 if (builder.declaredType != null) {
                     throw new PacioliException(def.location(),
@@ -215,28 +210,20 @@ public class Program {
                         .isMonomorphic(false)
                         .file(this.file)
                         .isGlobal(true)
-                        .declaredType(decl.typeNode)
+                        .declaredType(def.typeNode)
                         .isPublic(false);
             }
         }
 
-        boolean exportHack = false;
-        Pacioli.logIf(exportHack, "export");
-        for (Definition def : this.ast.definitions) {
-            if (def instanceof Declaration inst) {
-                Pacioli.logIf(exportHack && inst.isPublic, "    %s,", inst.name());
-            }
-        }
-
         // Second pass, do class instances and value definitions.
-        for (Definition def : this.ast.definitions) {
-            if (def instanceof InstanceDefinition inst) {
+        for (Definition definition : this.ast.definitions) {
+            if (definition instanceof InstanceDefinition def) {
                 ClassInfo.Builder builder = (ClassInfo.Builder) typeBuilders.get(def.name());
                 if (builder == null) {
                     throw new PacioliException(def.location(), "No class found for instance %s", def.name());
                 }
-                builder.instance(new InstanceInfo(inst, file, genclassInstanceName()));
-            } else if (def instanceof ValueDefinition val) {
+                builder.instance(new InstanceInfo(def, file, genclassInstanceName()));
+            } else if (definition instanceof ValueDefinition def) {
                 // This overwrites any properties set by the declaration above. This is
                 // desirable for the location. We prefer the definition location, otherwise we
                 // get the declaration location in messages.
@@ -248,7 +235,7 @@ public class Program {
                             builder.definition.location().description());
                 }
                 builder
-                        .definition(val)
+                        .definition(def)
                         .name(def.name())
                         .file(this.file)
                         .isGlobal(true)
@@ -281,9 +268,9 @@ public class Program {
         }
 
         // Add documentation
-        for (Definition def : this.ast.definitions) {
+        for (Definition definition : this.ast.definitions) {
 
-            if (def instanceof Documentation doc) {
+            if (definition instanceof Documentation doc) {
 
                 String name = doc.name();
 
@@ -302,33 +289,34 @@ public class Program {
             }
         }
 
+        // Create a new table to fill
+        PacioliTable env = PacioliTable.empty();
+
         // Build the value infos and add them to the table
         for (ValueInfo.Builder builder : valueBuilders.values()) {
-            addInfo(env, builder.build());
+            ValueInfo info = builder.build();
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s to %s from file %s",
+                    info.name(), file.module(), file.fsFile());
+
+            env.addInfo(info);
         }
 
         // Build the types infos and add them to the table
-        for (InfoBuilder<?, ? extends TypeInfo> typBuilder : typeBuilders.values()) {
-            addInfo(env, typBuilder.build());
+        for (InfoBuilder<?, ? extends TypeInfo> builder : typeBuilders.values()) {
+            TypeInfo info = builder.build();
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s to %s from file %s",
+                    info.name(), file.module(), file.fsFile());
+            env.addInfo(info);
+        }
+
+        // Add toplevels
+        for (Definition def : this.ast.definitions) {
+            if (def instanceof Toplevel top) {
+                env.addToplevel(top);
+            }
         }
 
         return env;
-    }
-
-    private void addInfo(PacioliTable environment, ValueInfo info) {
-
-        Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s to %s from file %s",
-                info.name(), file.module(), file.fsFile());
-
-        environment.addInfo(info);
-    }
-
-    private void addInfo(PacioliTable environment, TypeInfo info) {
-
-        Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s to %s from file %s",
-                info.name(), file.module(), file.fsFile());
-
-        environment.addInfo(info);
     }
 
     private ValueInfo.Builder ensureValueInfoBuilder(Map<String, ValueInfo.Builder> valueTable, String name) {
