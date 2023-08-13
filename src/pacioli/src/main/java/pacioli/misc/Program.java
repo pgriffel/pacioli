@@ -50,6 +50,7 @@ import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
+import pacioli.symboltable.info.ValueInfo.Builder;
 import pacioli.types.TypeContext;
 import pacioli.types.TypeObject;
 import pacioli.types.Typing;
@@ -238,7 +239,14 @@ public class Program {
                 // This overwrites any properties set by the declaration above. This is
                 // desirable for the location. We prefer the definition location, otherwise we
                 // get the declaration location in messages.
-                ensureValueInfoBuilder(valueBuilders, def.getName())
+                ValueInfo.Builder builder = ensureValueInfoBuilder(valueBuilders, def.getName());
+                if (builder.definition != null) {
+                    throw new PacioliException(def.getLocation(),
+                            "Duplicate definition for '%s'. It is already defined in %s.",
+                            def.getName(),
+                            builder.definition.getLocation().description());
+                }
+                builder
                         .definition(val)
                         .name(def.getName())
                         .file(this.file)
