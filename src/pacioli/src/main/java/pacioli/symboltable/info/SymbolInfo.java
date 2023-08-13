@@ -15,7 +15,9 @@ public interface SymbolInfo {
 
     String globalName();
 
-    Boolean isGlobal();
+    boolean isGlobal();
+
+    boolean isPublic();
 
     Location location();
 

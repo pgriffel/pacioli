@@ -11,8 +11,8 @@ public final class ParametricInfo extends AbstractSymbolInfo implements TypeInfo
 
     private final TypeDefinition definition;
 
-    public ParametricInfo(String name, PacioliFile file, Boolean isGlobal, Location location) {
-        super(new GeneralInfo(name, file, isGlobal, location));
+    public ParametricInfo(String name, PacioliFile file, boolean isGlobal, boolean isPublic, Location location) {
+        super(new GeneralInfo(name, file, isGlobal, isPublic, location));
         this.definition = null;
     }
 

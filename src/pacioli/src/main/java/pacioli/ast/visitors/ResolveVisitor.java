@@ -531,19 +531,19 @@ public class ResolveVisitor extends IdentityVisitor {
 
         // Add info records for all variables
         for (String arg : context.typeVars) {
-            table.put(arg, new TypeVarInfo(arg, file, false, location));
+            table.put(arg, new TypeVarInfo(arg, file, false, false, location));
         }
         for (String arg : context.opVars) {
-            table.put(arg, new ParametricInfo(arg, file, false, location));
+            table.put(arg, new ParametricInfo(arg, file, false, false, location));
         }
         for (String arg : context.indexVars) {
-            table.put(arg, new IndexSetInfo(arg, file, false, location));
+            table.put(arg, new IndexSetInfo(arg, file, false, false, location));
         }
         for (String arg : context.unitVars) {
             if (arg.contains("!")) {
-                table.put(arg, new VectorBaseInfo(arg, file, false, location));
+                table.put(arg, new VectorBaseInfo(arg, file, false, false, location));
             } else {
-                table.put(arg, new ScalarBaseInfo(arg, file, false, location, ""));
+                table.put(arg, new ScalarBaseInfo(arg, file, false, false, location, ""));
             }
 
         }

@@ -17,7 +17,7 @@ public final class InstanceInfo extends AbstractSymbolInfo {
             InstanceDefinition definition,
             PacioliFile file,
             String uniqueSuffix) {
-        super(new GeneralInfo(definition.getName() + uniqueSuffix, file, true, definition.getLocation()));
+        super(new GeneralInfo(definition.getName() + uniqueSuffix, file, true, true, definition.getLocation()));
         this.definition = definition;
     }
 

@@ -12,9 +12,10 @@ public final class TypeVarInfo extends AbstractSymbolInfo implements TypeInfo {
     public TypeVarInfo(
             String name,
             PacioliFile file,
-            Boolean isGlobal,
+            boolean isGlobal,
+            boolean isPublic,
             Location location) {
-        super(new GeneralInfo(name, file, isGlobal, location));
+        super(new GeneralInfo(name, file, isGlobal, isPublic, location));
     }
 
     @Override

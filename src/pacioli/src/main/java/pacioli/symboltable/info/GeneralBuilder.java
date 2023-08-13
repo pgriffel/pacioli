@@ -51,6 +51,6 @@ public abstract class GeneralBuilder<S, T> implements InfoBuilder<S, T> {
                 location == null) {
             throw new RuntimeException("Field missing");
         }
-        return new GeneralInfo(name, file, isGlobal, location, documentation);
+        return new GeneralInfo(name, file, isGlobal, isPublic, location, documentation);
     }
 }

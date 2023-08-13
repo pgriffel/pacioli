@@ -125,7 +125,7 @@ public class Bundle {
         for (String type : PRIMITIVE_TYPES) {
             // GeneralInfo info = new GeneralInfo(type, file, true, new Location());
             // environment.types.put(type, new ParametricInfo(info));
-            environment.types.put(type, new ParametricInfo(type, file, true, new Location()));
+            environment.types.put(type, new ParametricInfo(type, file, true, true, new Location()));
         }
         ValueInfo nmodeInfo = ValueInfo.builder()
                 .name("nmode")

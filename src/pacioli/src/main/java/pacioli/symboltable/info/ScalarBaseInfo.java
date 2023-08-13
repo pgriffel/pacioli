@@ -12,8 +12,9 @@ public final class ScalarBaseInfo extends UnitInfo {
     private final String symbol;
     private final UnitDefinition definition;
 
-    public ScalarBaseInfo(String name, PacioliFile file, Boolean isGlobal, Location location, String symbol) {
-        super(new GeneralInfo(name, file, isGlobal, location));
+    public ScalarBaseInfo(String name, PacioliFile file, boolean isGlobal, boolean isPublic, Location location,
+            String symbol) {
+        super(new GeneralInfo(name, file, isGlobal, isPublic, location));
         this.symbol = symbol;
         this.definition = null;
     }

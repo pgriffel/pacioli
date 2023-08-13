@@ -27,8 +27,13 @@ public abstract class AbstractSymbolInfo implements SymbolInfo {
     }
 
     @Override
-    public Boolean isGlobal() {
+    public boolean isGlobal() {
         return general.isGlobal();
+    }
+
+    @Override
+    public boolean isPublic() {
+        return general.isPublic();
     }
 
     @Override
