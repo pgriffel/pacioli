@@ -19,9 +19,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli.types;
+package pacioli.types.type;
 
 import pacioli.compiler.PacioliException;
+import pacioli.types.ConstraintSet;
+import pacioli.types.TypeVisitor;
 
 public class FunctionType extends AbstractType {
 

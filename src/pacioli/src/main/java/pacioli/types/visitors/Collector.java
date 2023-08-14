@@ -3,7 +3,7 @@ package pacioli.types.visitors;
 import java.util.Collection;
 import java.util.Stack;
 
-import pacioli.types.TypeObject;
+import pacioli.types.type.TypeObject;
 
 public class Collector<T> extends VisitType {
 

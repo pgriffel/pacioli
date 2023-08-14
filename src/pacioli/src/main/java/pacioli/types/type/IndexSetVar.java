@@ -19,43 +19,42 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli.types;
+package pacioli.types.type;
 
+import java.io.PrintWriter;
 import java.util.Optional;
 
-import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.info.Info;
-import pacioli.symboltable.info.VectorBaseInfo;
+import pacioli.symboltable.info.IndexSetInfo;
+import pacioli.types.ConstraintSet;
+import pacioli.types.TypeVisitor;
 import uom.BaseUnit;
 
-public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, UnitVar {
+public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
 
     private final String name;
-    public VectorBaseInfo info;
+    private final IndexSetInfo info;
 
     // Constructors
 
-    public VectorUnitVar(VectorBaseInfo info) {
+    public IndexSetVar(IndexSetInfo info) {
         name = info.name();
-        assert (name.contains("!"));
         this.info = info;
     }
 
-    public VectorUnitVar(String name) {
+    public IndexSetVar(String name) {
         this.name = name;
-        assert (name.contains("!"));
         this.info = null;
     }
 
     @Override
     public TypeObject fresh() {
-        return new VectorUnitVar(SymbolTable.freshVarName() + "!" + SymbolTable.freshVarName());
+        return new IndexSetVar(SymbolTable.freshVarName());
     }
 
     public TypeObject rename(String name) {
-        return new VectorUnitVar(name);
+        return new IndexSetVar(name);
     }
 
     // Equality
@@ -70,46 +69,48 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
         if (other == this) {
             return true;
         }
-        if (!(other instanceof VectorUnitVar)) {
+        if (!(other instanceof IndexSetVar)) {
             return false;
         }
-        VectorUnitVar otherVar = (VectorUnitVar) other;
+        IndexSetVar otherVar = (IndexSetVar) other;
         return name.equals(otherVar.name);
     }
 
     @Override
     public String toString() {
-        return "<uvar " + name + ">";
+        return "<ivar " + name + ">";
+    }
+
+    public String name() {
+        return name;
     }
 
     // Properties
 
-    public String unitPart() {
-        String[] parts = name.split("!");
-        return parts[1];
-    }
-
     @Override
-    public Optional<? extends Info> info() {
+    public Optional<IndexSetInfo> info() {
         return Optional.ofNullable(this.info);
     }
 
     @Override
-    public String description() {
-        return "vector unit variable";
+    public Boolean isFresh() {
+        return info == null;
     }
 
     @Override
-    public Boolean isFresh() {
-        return this.info == null;
+    public String description() {
+        return "index variable";
+    }
+
+    // Pretty printing
+
+    @Override
+    public void printPretty(PrintWriter out) {
+        out.print(pretty());
     }
 
     @Override
     public String pretty() {
-        return name;
-    }
-
-    public String name() {
         return name;
     }
 
@@ -120,25 +121,12 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
         visitor.visit(this);
     }
 
+    // Should be visitors
+
     @Override
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public String asJS() {
-        return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
-    }
-
-    @Override
-    public String asMVMUnit(CompilationSettings settings) {
-        return TypeObject.super.compileToMVM(settings);
-    }
-
-    @Override
-    public String asMVMShape(CompilationSettings settings) {
-        return TypeObject.super.compileToMVM(settings);
     }
 
 }

@@ -40,16 +40,16 @@ import pacioli.ast.expression.WhileNode;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ValueInfo;
-import pacioli.types.FunctionType;
-import pacioli.types.OperatorConst;
-import pacioli.types.TypeObject;
-import pacioli.types.ParametricType;
-import pacioli.types.TypeIdentifier;
-import pacioli.types.TypeVar;
 import pacioli.types.Typing;
-import pacioli.types.Var;
 import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.FunctionType;
+import pacioli.types.type.OperatorConst;
+import pacioli.types.type.ParametricType;
+import pacioli.types.type.TypeIdentifier;
+import pacioli.types.type.TypeObject;
+import pacioli.types.type.TypeVar;
+import pacioli.types.type.Var;
 
 public class TypeInference extends IdentityVisitor {
 

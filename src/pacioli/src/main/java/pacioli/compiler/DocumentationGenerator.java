@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import pacioli.types.TypeObject;
+import pacioli.types.type.TypeObject;
 
 /**
  * A Program corresponds to a Pacioli file and is the unit of compilation.

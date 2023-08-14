@@ -51,7 +51,6 @@ import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.types.TypeContext;
-import pacioli.types.TypeObject;
 import pacioli.types.Typing;
 import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.FunctionTypeNode;
@@ -59,6 +58,7 @@ import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.type.TypeObject;
 
 /**
  * A Program corresponds to a Pacioli file.

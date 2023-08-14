@@ -26,12 +26,12 @@ import java.util.List;
 
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
-import pacioli.types.AbstractType;
 import pacioli.types.ConstraintSet;
-import pacioli.types.TypeObject;
-import pacioli.types.TypeBase;
-import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVisitor;
+import pacioli.types.type.AbstractType;
+import pacioli.types.type.TypeBase;
+import pacioli.types.type.TypeIdentifier;
+import pacioli.types.type.TypeObject;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitMap;

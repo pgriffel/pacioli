@@ -1,9 +1,11 @@
-package pacioli.types;
+package pacioli.types.type;
 
 import java.util.Optional;
 
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.ParametricInfo;
+import pacioli.types.ConstraintSet;
+import pacioli.types.TypeVisitor;
 
 // Const
 public final class OperatorConst implements Operator {

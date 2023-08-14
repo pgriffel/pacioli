@@ -15,9 +15,9 @@ import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Utils;
-import pacioli.types.TypeObject;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.TypeObject;
 
 public class MatrixLiteralNode extends AbstractExpressionNode {
 

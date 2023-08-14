@@ -29,19 +29,19 @@ import java.util.Map.Entry;
 import pacioli.Pacioli;
 import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.PacioliException;
-import pacioli.types.IndexSetVar;
-import pacioli.types.OperatorVar;
-import pacioli.types.TypeObject;
-import pacioli.types.ParametricType;
 import pacioli.types.Substitution;
-import pacioli.types.Var;
-import pacioli.types.VectorUnitVar;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.IndexSetVar;
+import pacioli.types.type.OperatorVar;
+import pacioli.types.type.ParametricType;
+import pacioli.types.type.TypeObject;
+import pacioli.types.type.Var;
+import pacioli.types.type.VectorUnitVar;
 
 public class TypeConstraint extends AbstractPrintable {
 

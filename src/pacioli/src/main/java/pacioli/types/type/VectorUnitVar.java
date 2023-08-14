@@ -19,46 +19,45 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli.types;
+package pacioli.types.type;
 
 import java.util.Optional;
 
+import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.Info;
-import pacioli.symboltable.info.TypeVarInfo;
+import pacioli.symboltable.info.VectorBaseInfo;
+import pacioli.types.ConstraintSet;
+import pacioli.types.TypeVisitor;
 import uom.BaseUnit;
 
-public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
+public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, UnitVar {
 
     private final String name;
-    private final TypeVarInfo info;
+    public VectorBaseInfo info;
 
     // Constructors
 
-    public TypeVar(TypeVarInfo info) {
+    public VectorUnitVar(VectorBaseInfo info) {
         name = info.name();
+        assert (name.contains("!"));
         this.info = info;
     }
 
-    public TypeVar() {
-        name = SymbolTable.freshVarName();
-        this.info = null;
-    }
-
-    public TypeVar(String name) {
+    public VectorUnitVar(String name) {
         this.name = name;
+        assert (name.contains("!"));
         this.info = null;
     }
 
     @Override
     public TypeObject fresh() {
-        return new TypeVar(SymbolTable.freshVarName());
+        return new VectorUnitVar(SymbolTable.freshVarName() + "!" + SymbolTable.freshVarName());
     }
 
-    @Override
     public TypeObject rename(String name) {
-        return new TypeVar(name);
+        return new VectorUnitVar(name);
     }
 
     // Equality
@@ -73,16 +72,38 @@ public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
         if (other == this) {
             return true;
         }
-        if (!(other instanceof TypeVar)) {
+        if (!(other instanceof VectorUnitVar)) {
             return false;
         }
-        TypeVar otherVar = (TypeVar) other;
+        VectorUnitVar otherVar = (VectorUnitVar) other;
         return name.equals(otherVar.name);
     }
 
     @Override
     public String toString() {
-        return String.format("<tvar %s>", name);
+        return "<uvar " + name + ">";
+    }
+
+    // Properties
+
+    public String unitPart() {
+        String[] parts = name.split("!");
+        return parts[1];
+    }
+
+    @Override
+    public Optional<? extends Info> info() {
+        return Optional.ofNullable(this.info);
+    }
+
+    @Override
+    public String description() {
+        return "vector unit variable";
+    }
+
+    @Override
+    public Boolean isFresh() {
+        return this.info == null;
     }
 
     @Override
@@ -94,20 +115,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
         return name;
     }
 
-    @Override
-    public String description() {
-        return "type variable";
-    }
-
-    @Override
-    public Optional<? extends Info> info() {
-        return Optional.ofNullable(this.info);
-    }
-
-    @Override
-    public Boolean isFresh() {
-        return this.info == null;
-    }
+    // Visiting visitors
 
     @Override
     public void accept(TypeVisitor visitor) {
@@ -119,4 +127,20 @@ public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    @Override
+    public String asJS() {
+        return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
+    }
+
+    @Override
+    public String asMVMUnit(CompilationSettings settings) {
+        return TypeObject.super.compileToMVM(settings);
+    }
+
+    @Override
+    public String asMVMShape(CompilationSettings settings) {
+        return TypeObject.super.compileToMVM(settings);
+    }
+
 }

@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli.types;
+package pacioli.types.type;
 
 import java.io.PrintWriter;
 import java.util.Optional;
@@ -28,6 +28,8 @@ import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ScalarBaseInfo;
+import pacioli.types.ConstraintSet;
+import pacioli.types.TypeVisitor;
 import uom.BaseUnit;
 
 public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, UnitVar {

@@ -12,8 +12,8 @@ import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ScalarBaseInfo;
-import pacioli.types.TypeBase;
 import pacioli.types.matrix.ScalarBase;
+import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
 import uom.Fraction;
 

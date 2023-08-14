@@ -6,11 +6,11 @@ import java.util.List;
 
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.IndexSetInfo;
-import pacioli.types.AbstractType;
 import pacioli.types.ConstraintSet;
-import pacioli.types.TypeObject;
-import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVisitor;
+import pacioli.types.type.AbstractType;
+import pacioli.types.type.TypeIdentifier;
+import pacioli.types.type.TypeObject;
 
 /*
  *  Not really a type, but otherwise it cannot be put in a substitution.

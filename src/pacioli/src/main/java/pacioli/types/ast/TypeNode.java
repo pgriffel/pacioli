@@ -23,7 +23,7 @@ package pacioli.types.ast;
 
 import pacioli.ast.Node;
 import pacioli.ast.visitors.TypeEvaluator;
-import pacioli.types.TypeObject;
+import pacioli.types.type.TypeObject;
 
 /**
  * A TypeNode is the syntactic representation of a type.

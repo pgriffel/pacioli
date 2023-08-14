@@ -19,12 +19,15 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli.types;
+package pacioli.types.type;
 
 import java.util.List;
 import java.util.Set;
 
 import pacioli.compiler.PacioliException;
+import pacioli.types.ConstraintSet;
+import pacioli.types.Substitution;
+import pacioli.types.TypeVisitor;
 import pacioli.types.ast.ContextNode;
 
 public class Schema extends AbstractType {

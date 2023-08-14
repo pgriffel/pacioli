@@ -5,13 +5,13 @@ import java.util.List;
 
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.IndexSetInfo;
-import pacioli.types.AbstractType;
 import pacioli.types.ConstraintSet;
-import pacioli.types.IndexSetVar;
-import pacioli.types.TypeObject;
-import pacioli.types.TypeIdentifier;
 import pacioli.types.TypeVisitor;
-import pacioli.types.Var;
+import pacioli.types.type.AbstractType;
+import pacioli.types.type.IndexSetVar;
+import pacioli.types.type.TypeIdentifier;
+import pacioli.types.type.TypeObject;
+import pacioli.types.type.Var;
 
 public class IndexType extends AbstractType {
 

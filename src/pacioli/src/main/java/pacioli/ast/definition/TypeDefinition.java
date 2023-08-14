@@ -29,15 +29,15 @@ import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.ParametricInfo;
-import pacioli.types.TypeObject;
-import pacioli.types.OperatorConst;
-import pacioli.types.ParametricType;
 import pacioli.types.TypeContext;
-import pacioli.types.TypeIdentifier;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.type.OperatorConst;
+import pacioli.types.type.ParametricType;
+import pacioli.types.type.TypeIdentifier;
+import pacioli.types.type.TypeObject;
 
 public class TypeDefinition extends AbstractDefinition {
 

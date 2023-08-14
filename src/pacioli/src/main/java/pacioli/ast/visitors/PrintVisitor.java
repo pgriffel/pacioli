@@ -57,7 +57,6 @@ import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.compiler.Printer;
 import pacioli.symboltable.info.ValueInfo;
-import pacioli.types.TypeObject;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.FunctionTypeNode;
@@ -71,6 +70,7 @@ import pacioli.types.ast.TypeKroneckerNode;
 import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
+import pacioli.types.type.TypeObject;
 
 public class PrintVisitor implements Visitor {
 

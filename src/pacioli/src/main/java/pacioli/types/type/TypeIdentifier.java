@@ -1,4 +1,4 @@
-package pacioli.types;
+package pacioli.types.type;
 
 public class TypeIdentifier {
 

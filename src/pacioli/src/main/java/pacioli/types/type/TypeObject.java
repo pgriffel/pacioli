@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli.types;
+package pacioli.types.type;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -34,6 +34,9 @@ import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printable;
 import pacioli.compiler.Printer;
 import pacioli.symboltable.info.ParametricInfo;
+import pacioli.types.ConstraintSet;
+import pacioli.types.Substitution;
+import pacioli.types.TypeVisitor;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.visitors.VectorVarNames;
 import pacioli.types.visitors.JSGenerator;

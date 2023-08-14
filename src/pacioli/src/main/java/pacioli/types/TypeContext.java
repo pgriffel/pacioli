@@ -32,6 +32,12 @@ import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.Utils;
 import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.TypeIdentifierNode;
+import pacioli.types.type.IndexSetVar;
+import pacioli.types.type.OperatorVar;
+import pacioli.types.type.ScalarUnitVar;
+import pacioli.types.type.TypeVar;
+import pacioli.types.type.Var;
+import pacioli.types.type.VectorUnitVar;
 
 public class TypeContext extends AbstractPrintable {
 

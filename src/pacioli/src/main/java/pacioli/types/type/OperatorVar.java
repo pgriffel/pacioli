@@ -28,13 +28,15 @@ WHETHER
 * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-package pacioli.types;
+package pacioli.types.type;
 
 import java.util.Optional;
 
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ParametricInfo;
+import pacioli.types.ConstraintSet;
+import pacioli.types.TypeVisitor;
 
 public final class OperatorVar implements Operator, Var {
 

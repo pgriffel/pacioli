@@ -54,7 +54,6 @@ import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.symboltable.info.ValueInfo.Builder;
 import pacioli.types.TypeContext;
-import pacioli.types.TypeIdentifier;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
@@ -62,6 +61,7 @@ import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.TypeIdentifier;
 
 public class ResolveVisitor extends IdentityVisitor {
 

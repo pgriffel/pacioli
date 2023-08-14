@@ -37,7 +37,7 @@ import pacioli.transpilers.JSTranspiler;
 import pacioli.transpilers.MATLABTranspiler;
 import pacioli.transpilers.MVMTranspiler;
 import pacioli.transpilers.PythonTranspiler;
-import pacioli.types.TypeObject;
+import pacioli.types.type.TypeObject;
 
 /**
  * A bundle aggregates the definitions from all Pacioli files in a project. It

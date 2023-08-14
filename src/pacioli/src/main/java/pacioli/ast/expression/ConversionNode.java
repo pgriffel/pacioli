@@ -5,9 +5,9 @@ import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.types.TypeObject;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.TypeObject;
 
 public class ConversionNode extends AbstractExpressionNode {
 

@@ -7,7 +7,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.types.TypeBase;
+import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
 import uom.Unit;
 

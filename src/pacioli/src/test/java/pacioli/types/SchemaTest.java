@@ -31,6 +31,10 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import pacioli.compiler.Location;
+import pacioli.types.type.OperatorVar;
+import pacioli.types.type.ParametricType;
+import pacioli.types.type.Schema;
+import pacioli.types.type.TypeObject;
 
 public class SchemaTest {
 

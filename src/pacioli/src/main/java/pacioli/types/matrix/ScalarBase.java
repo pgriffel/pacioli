@@ -27,7 +27,7 @@ import java.util.Optional;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.compiler.CompilationSettings;
 import pacioli.symboltable.info.ScalarBaseInfo;
-import pacioli.types.TypeBase;
+import pacioli.types.type.TypeBase;
 import uom.BaseUnit;
 import uom.DimensionedNumber;
 import uom.PowerProduct;

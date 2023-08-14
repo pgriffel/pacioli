@@ -1,4 +1,4 @@
-package pacioli.types;
+package pacioli.types.type;
 
 import pacioli.compiler.CompilationSettings;
 import uom.Base;

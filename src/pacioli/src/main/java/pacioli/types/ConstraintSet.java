@@ -35,6 +35,10 @@ import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Utils;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.TypeBase;
+import pacioli.types.type.TypeObject;
+import pacioli.types.type.UnitVar;
+import pacioli.types.type.Var;
 import uom.Fraction;
 import uom.Unit;
 

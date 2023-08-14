@@ -6,10 +6,10 @@ import java.util.Optional;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.types.FunctionType;
-import pacioli.types.TypeObject;
-import pacioli.types.Schema;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.type.FunctionType;
+import pacioli.types.type.Schema;
+import pacioli.types.type.TypeObject;
 
 public class ValueInfo extends AbstractInfo {
 

@@ -24,7 +24,7 @@ import pacioli.symboltable.info.ScalarBaseInfo;
 import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
-import pacioli.types.TypeBase;
+import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
 
 public class JSTranspiler implements SymbolTableVisitor {
