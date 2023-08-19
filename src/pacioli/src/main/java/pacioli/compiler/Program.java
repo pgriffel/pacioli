@@ -1,6 +1,5 @@
 package pacioli.compiler;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,24 +19,18 @@ import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.Toplevel;
-import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.definition.ValueEquation;
-import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.expression.LambdaNode;
-import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.IdentifierNode.Kind;
 import pacioli.ast.visitors.TransformConversions;
 import pacioli.parser.Parser;
 import pacioli.symboltable.PacioliTable;
-import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ClassInfo;
 import pacioli.symboltable.info.IndexSetInfo;
@@ -50,13 +43,7 @@ import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
-import pacioli.types.TypeContext;
 import pacioli.types.Typing;
-import pacioli.types.ast.ContextNode;
-import pacioli.types.ast.FunctionTypeNode;
-import pacioli.types.ast.SchemaNode;
-import pacioli.types.ast.TypeApplicationNode;
-import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.type.TypeObject;
 
@@ -434,7 +421,7 @@ public class Program {
 
         for (TypeInfo typeInfo : env.types().allInfos()) {
             if (typeInfo instanceof ClassInfo classInfo) {
-                rewriteClass(classInfo);
+                rewriteClass(env, classInfo);
             }
         }
     }
@@ -445,229 +432,56 @@ public class Program {
      * 
      * @param classInfo
      */
-    private PacioliTable rewriteClass(ClassInfo classInfo) {
+    private void rewriteClass(PacioliTable env, ClassInfo classInfo) {
 
         Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nRewriting class %s in module %s",
                 classInfo.globalName(), this.file.module());
 
-        PacioliTable env = PacioliTable.empty();
-
-        // Get some class properties
-        ClassDefinition classDefinition = classInfo.definition().get();
-        Location classLocation = classDefinition.location();
-        String classConstructorName = String.format("make_%s", classInfo.globalName());
-        String classTypeName = String.format("%sDictttt", classDefinition.name());
-        IdentifierNode classConstructorId = new IdentifierNode(classConstructorName, classLocation);
-
         // Rewrite the class definition itself if it is from this program
         if (classInfo.isFromFile(this.file)) {
 
-            // Collect the type and a fresh argument id for each class member
-            List<ExpressionNode> args = new ArrayList<>();
-            List<String> argNames = new ArrayList<>();
-            List<TypeNode> memberTypes = new ArrayList<>();
-            for (TypeAssertion member : classInfo.definition().get().members) {
-                IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(), classLocation);
-                argNames.add(id.name());
-                args.add(id);
-                memberTypes.add(member.type);
-            }
-
-            // Idem for inherited members
-            // TODO
-
-            // Create class type definition
-            TypeContext typeContext = TypeContext.fromContextNodes(classDefinition.contextNodes);
-
-            TypeIdentifierNode id = new TypeIdentifierNode(classLocation, classTypeName);
-            TypeNode lhs = new TypeApplicationNode(
-                    classDefinition.type.location(),
-                    id,
-                    classDefinition.type.args);
-            TypeIdentifierNode tupleId = new TypeIdentifierNode(new Location(), "Tuple");
-            TypeNode rhs = new TypeApplicationNode(classLocation, tupleId, memberTypes);
-            TypeDefinition typeDefinition = new TypeDefinition(classLocation, typeContext, lhs, rhs);
-            ParametricInfo typeInfo = ParametricInfo.builder()
-                    .name(classTypeName)
-                    .file(this.file)
-                    .isGlobal(true)
-                    .location(classLocation)
-                    .definition(typeDefinition)
-                    .build();
-            id.info = typeInfo;
-
-            // Create class constructor type declaration
-            FunctionTypeNode constructorType = new FunctionTypeNode(classLocation, rhs, lhs);
-            SchemaNode consructorSchema = new SchemaNode(classLocation, classDefinition.contextNodesWithoutConditions(),
-                    constructorType);
-            Declaration constructorDeclaration = new Declaration(classLocation, classConstructorId, consructorSchema,
-                    true);
-
             // Create class constructor
-            LambdaNode constructor = new LambdaNode(
-                    argNames,
-                    new ApplicationNode(new IdentifierNode("tuple", classLocation), args, classLocation),
-                    classLocation);
-            ValueDefinition constructorDefinition = new ValueDefinition(
-                    classLocation,
-                    classConstructorId,
-                    constructor,
-                    false);
-            ValueInfo constructorInfo = ValueInfo.builder()
-                    .name(classConstructorId.name())
-                    .file(classInfo.generalInfo().file())
-                    .isGlobal(true)
-                    .isMonomorphic(false)
-                    .location(classLocation)
-                    .isPublic(false)
-                    .definition(constructorDefinition)
-                    .declaredType(consructorSchema)
-                    .build();
+            ParametricInfo typeInfo = classInfo.generateDictionaryDefinition();
+            ValueInfo constructorInfo = classInfo.generateConstructorDefinition();
+
+            Declaration constructorDeclaration = new Declaration(
+                    classInfo.location(),
+                    constructorInfo.definition().get().id,
+                    constructorInfo.declaredType().get(),
+                    true);
 
             Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nGenerated definitions for class %s:",
                     classInfo.name());
-            Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", typeDefinition.pretty());
+
+            Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", typeInfo.definition().get().pretty());
             Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", constructorDeclaration.pretty());
-            Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", constructorDefinition.pretty());
+            Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", constructorInfo.definition().get().pretty());
 
             env.addInfo(constructorInfo);
             env.addInfo(typeInfo);
 
-            int counter = 0;
-
-            // Create a function for each member
-            for (TypeAssertion member : classInfo.definition().get().members) {
-
-                Location memberLocation = member.location();
-
-                if (member.type instanceof FunctionTypeNode funType &&
-                        funType.domain instanceof TypeApplicationNode domain &&
-                        domain.op.name().equals("Tuple")) {
-
-                    // Create a Declaration for the member
-                    // IdentifierNode id = new IdentifierNode(SymbolTable.freshVarName(),
-                    // classLocation);
-
-                    List<ExpressionNode> memberArgNames = new ArrayList<>();
-                    List<String> memberDictAndArgNames = new ArrayList<>();
-                    String dictVar = SymbolTable.freshVarName();
-                    memberDictAndArgNames.add(dictVar);
-                    for (int i = 0; i < domain.args.size(); i++) {
-                        String freshName = SymbolTable.freshVarName();
-                        memberArgNames.add(new IdentifierNode(freshName, memberLocation));
-                        memberDictAndArgNames.add(freshName);
-                    }
-
-                    List<TypeNode> typeArgs = new ArrayList<>();
-                    typeArgs.add(lhs);
-                    typeArgs.addAll(domain.args);
-                    TypeApplicationNode dom = new TypeApplicationNode(domain.location(), domain.op, typeArgs);
-                    FunctionTypeNode memberType = new FunctionTypeNode(memberLocation, dom, funType.range);
-                    SchemaNode memberSchema = new SchemaNode(
-                            memberLocation,
-                            classDefinition.contextNodesWithoutConditions(),
-                            memberType);
-                    Declaration memberDeclaration = new Declaration(
-                            memberLocation,
-                            member.id,
-                            memberSchema,
-                            true);
-
-                    // Create a ValueDefinition for the member
-                    LambdaNode genFun = new LambdaNode(
-                            memberDictAndArgNames,
-                            new LetNode(
-                                    List.of(new LetTupleBindingNode(memberLocation, argNames,
-                                            new IdentifierNode(dictVar, memberLocation))),
-                                    new ApplicationNode(new IdentifierNode(argNames.get(counter), memberLocation),
-                                            memberArgNames,
-                                            memberLocation),
-                                    memberLocation),
-                            memberLocation);
-                    ValueDefinition memberDefinition = new ValueDefinition(
-                            memberLocation,
-                            member.id,
-                            (ExpressionNode) genFun.desugar(),
-                            false);
-                    ValueInfo memberInfo = ValueInfo.builder()
-                            .name(member.id.name())
-                            .file(classInfo.generalInfo().file())
-                            .isGlobal(true)
-                            .isMonomorphic(false)
-                            .location(classLocation)
-                            .isPublic(true)
-                            .definition(memberDefinition)
-                            .declaredType(memberSchema)
-                            .build();
-
-                    Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", memberDeclaration.pretty());
-                    Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", memberDefinition.pretty());
-
-                    env.addInfo(memberInfo);
-                    counter++;
-
-                } else {
-                    throw new PacioliException(memberLocation, "Type %s of class %s member %s is not a function type",
-                            member.type.pretty(),
-                            classInfo.name(),
-                            member.id.name());
+            for (ValueInfo memberInfo : classInfo.generateMemberDefinitions()) {
+                Declaration memberDeclaration = new Declaration(
+                        memberInfo.location(),
+                        new IdentifierNode(memberInfo.name(), memberInfo.location()),
+                        memberInfo.declaredType().get(),
+                        true);
+                Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", memberDeclaration.pretty());
+                if (memberInfo.definition().isPresent()) {
+                    Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", memberInfo.definition().get().pretty());
                 }
-
+                env.addInfo(memberInfo);
             }
+
         }
 
         Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nGenerated definitions for class %s instances:",
                 classInfo.name());
 
-        // Rewrite all class instances if it is from this program
-        for (InstanceInfo instanceInfo : classInfo.instances()) {
-            if (instanceInfo.isFromFile(this.file)) {
-
-                Location instanceLocation = instanceInfo.location();
-
-                // Create a declaration and definition. Both are a tuple with an element for
-                // each overloaded function instance
-                List<ExpressionNode> bodies = new ArrayList<>();
-                for (String name : classInfo.definition().get().memberNames()) {
-                    bodies.add(instanceInfo.definition().get().memberBody(name));
-                }
-
-                // Create tuple
-
-                ApplicationNode tuple = new ApplicationNode(classConstructorId, bodies, instanceLocation);
-                List<String> arg = new ArrayList<>();
-                for (ContextNode yo : instanceInfo.definition().get().contextNodes) {
-                    for (TypeApplicationNode condition : yo.conditions) {
-                        arg.add(condition.name());
-                    }
-                }
-                LambdaNode instanceBody = new LambdaNode(arg, tuple, instanceInfo.location());
-
-                IdentifierNode instanceId = new IdentifierNode(instanceInfo.globalName(), instanceLocation);
-
-                // Define a helper function for the instance
-                ValueDefinition vd = new ValueDefinition(
-                        instanceInfo.location(),
-                        instanceId,
-                        instanceBody,
-                        false);
-                ValueInfo info = ValueInfo.builder()
-                        .name(instanceInfo.globalName())
-                        .file(classInfo.generalInfo().file())
-                        .isGlobal(true)
-                        .isMonomorphic(false)
-                        .location(classInfo.location())
-                        .isPublic(false)
-                        .definition(vd)
-                        .build();
-
-                Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", vd.pretty());
-
-                env.addInfo(info);
-            }
+        for (ValueInfo info : classInfo.generateInstanceDefinitions()) {
+            Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", info.definition().get().pretty());
+            env.addInfo(info);
         }
-
-        return env;
     }
 
     // -------------------------------------------------------------------------
