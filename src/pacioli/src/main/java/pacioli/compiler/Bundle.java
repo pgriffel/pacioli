@@ -334,7 +334,7 @@ public class Bundle {
     public void printAPI(List<File> includes, String version) throws PacioliException, IOException {
 
         PrintWriter writer = new PrintWriter(System.out);
-        DocumentationGenerator generator = new DocumentationGenerator(writer, file.module(), version);
+        DocumentationGenerator generator = new DocumentationGenerator(writer, file.moduleName(), version);
 
         for (String name : environment.values().allNames()) {
             ValueInfo info = environment.values().lookup(name);

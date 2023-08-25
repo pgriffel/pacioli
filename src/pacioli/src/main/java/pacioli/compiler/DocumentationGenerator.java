@@ -238,8 +238,8 @@ public class DocumentationGenerator {
         println("<body>");
 
         // Generate a general section about the module
-        println("<h1>Module %s</h1>", module);
-        println("<p>Interface for the %s module</p>", module);
+        println("<h1>The <code>%s</code> library</h1>", module);
+        println("<p>Interface for the <code>%s</code> library</p>", module);
         println("<small>Version %s, %s</small>", version, ZonedDateTime.now());
 
         // Print the types for the values and the function in a synopsis section
