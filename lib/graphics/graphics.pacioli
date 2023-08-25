@@ -30,8 +30,10 @@ export
 # ------------------------------------------------------------------------------
 
 doc Scene
-    "A scene contains vectors, meshes and paths and can be displayed in
-    a browser.";
+    "A scene is a geometric space that can contain vectors, meshes and paths. It 
+    is a space with vectors of type <code>a*Geom3!</code>.
+    
+    Currently it can only be displayed in a browser.";
 
 deftype for_unit a:
     Scene(a) = Tuple(
@@ -97,8 +99,8 @@ define add_paths(ps, scene) =
 # ------------------------------------------------------------------------------
 
 doc Path
-    "A series of lines between succesive points. The points are given by the
-    list of vectors.";
+    "A series of lines between succesive points. Is an element of a 
+    <code>Scene(a)</code> scene.";
 
 deftype for_unit a:
     Path(a) = List(a * Geom3!);
@@ -106,7 +108,7 @@ deftype for_unit a:
 # ------------------------------------------------------------------------------
 
 doc make_path
-    "Constructs a Path";
+    "Constructs a path from a list of points.";
 
 declare make_path ::
     for_unit a: (List(a * Geom3!)) -> Path(a);
@@ -130,13 +132,14 @@ define make_line(v0, v1) =
 # ------------------------------------------------------------------------------
 
 doc Mesh
-    "A 3D shape composed from faces and vertices.";
+    "A 3D shape composed from faces and vertices. Is an element of a 
+    <code>Scene(a)</code> scene.";
 
 deftype for_unit a:
     Mesh(a) = Tuple(List(Tuple(a*Geom3!, String)), List(Tuple(1, 1, 1)));
 
 doc Vertex
-    "A point in a mesh";
+    "A point in a <code>Mesh(a)</code> mesh.";
 
 deftype for_unit a:
     Vertex(a) = Tuple(a*Geom3!, String);
@@ -150,7 +153,8 @@ deftype
 # ------------------------------------------------------------------------------
 
 doc vertex
-    "Creates a mesh vertex. Expects x, y and z coordinates and a color.";
+    "Creates a mesh vertex. Expects x, y and z coordinates and a color. Is an 
+    element of a <code>Scene(a)</code> scene.";
 
 declare vertex :: for_unit a: (a * Geom3!, String) -> Vertex(a);
 
@@ -161,7 +165,7 @@ define vertex(vec, color) =
 
 doc face
     "Creates a mesh face. Each argument is the index of a vertex. The mesh must
-    contains sufficient vertices";
+    contains sufficient vertices.";
 
 declare face :: (1, 1, 1) -> Face;
 
@@ -231,8 +235,9 @@ define mesh_move(mesh, vec) =
 # ------------------------------------------------------------------------------
 
 doc Arrow
-    "An arrow is a tuple (origin, vector, color). It is a colored line segment from 
-    origin to origin + vector with an arrowhead at the end.";
+    "An arrow is a colored line segment from from one position to another,
+    with an arrowhead at the end. Is an element of a <code>Scene(a)</code> 
+    scene.";
 
 deftype for_unit a:
     Arrow(a) = Tuple(a*Geom3!, a*Geom3!, String);
@@ -264,7 +269,7 @@ define origin_arrow(vector, color) =
 
 doc Parallelogram
     "A parallelogram is a tuple (vector1, vector2, color). It is a colored area 
-    spanned by the two vectors.
+    spanned by the two vectors. Is an element of a <code>Scene(a)</code> scene.
 
     Unused at the moment";
 
