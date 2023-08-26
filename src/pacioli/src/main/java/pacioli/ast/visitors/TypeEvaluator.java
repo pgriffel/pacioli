@@ -2,11 +2,11 @@ package pacioli.ast.visitors;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 
+import pacioli.Pacioli;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
@@ -19,6 +19,7 @@ import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.types.ast.BangTypeNode;
+import pacioli.types.ast.ContextNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
 import pacioli.types.ast.PrefixUnitTypeNode;
@@ -41,11 +42,13 @@ import pacioli.types.type.Operator;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
+import pacioli.types.type.Quant;
 import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
+import pacioli.types.type.IsInClass;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.VectorUnitVar;
 import uom.Fraction;
@@ -143,6 +146,23 @@ public class TypeEvaluator extends IdentityVisitor {
 
     @Override
     public void visit(SchemaNode node) {
+        List<Quant> quants = new ArrayList<>();
+        for (ContextNode contextNode : node.contextNodes) {
+            for (TypeIdentifierNode id : contextNode.ids) {
+                TypeIdentifier conditionId = new TypeIdentifier("class", id.name());
+                List<IsInClass> predicates = new ArrayList<>();
+                for (TypeApplicationNode condition : contextNode.conditions) {
+                    TypeObject conditionType = typeAccept(condition);
+                    IsInClass predicate = new IsInClass(conditionId, conditionType);
+                    predicates.add(predicate);
+                }
+                quants.add(new Quant(contextNode.kind, conditionId, predicates));
+                if (predicates.size() > 0) {
+                    Pacioli.log("quant is %s", quants);
+                }
+            }
+        }
+        // Pacioli.log("quant is %s", quants);
         returnType(new Schema(node.createContext().variables(), typeAccept(node.type), node.contextNodes));
     }
 
@@ -264,7 +284,8 @@ public class TypeEvaluator extends IdentityVisitor {
             // TypeApplicationNode app = new TypeApplicationNode(node.getLocation(), node,
             // new LinkedList<TypeNode>());
             // this.handleParametric(app, new ArrayList<TypeObject>());
-            TypeApplicationNode app = new TypeApplicationNode(node.location(), node, new LinkedList<TypeNode>());
+            // TypeApplicationNode app = new TypeApplicationNode(node.location(), node, new
+            // LinkedList<TypeNode>());
             TypeIdentifier typeId = new TypeIdentifier(info.generalInfo().module(), node.name());
             OperatorConst id = new OperatorConst(typeId, (ParametricInfo) info);
             // this.handleParametric(app, new ArrayList<PacioliType>());

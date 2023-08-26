@@ -1,8 +1,8 @@
 package pacioli.types.visitors;
 
 import pacioli.compiler.Printer;
+import pacioli.types.TypeContext;
 import pacioli.types.TypeVisitor;
-import pacioli.types.ast.ContextNode;
 import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
@@ -46,15 +46,17 @@ public class PrettyPrinter implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        String sep = "";
-        for (ContextNode contextNode : type.contextNodes()) {
-            // contextNode.accept(this);
-            // Call pretty on AST node instead of type
-            out.print(contextNode.pretty());
-            sep = ": ";
-            out.print(sep);
-            sep = ", ";
-        }
+        // String sep = "";
+        // for (ContextNode contextNode : type.contextNodes()) {
+        // // contextNode.accept(this);
+        // // Call pretty on AST node instead of type
+        // out.print(contextNode.pretty());
+        // sep = ": ";
+        // out.print(sep);
+        // sep = ", ";
+        // }
+        TypeContext tc = new TypeContext(type.variables());
+        out.print(tc.pretty());
         type.type().accept(this);
     }
 
