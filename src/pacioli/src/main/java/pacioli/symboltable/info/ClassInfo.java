@@ -286,13 +286,17 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
             return this;
         }
 
+        @Override
+        public Optional<Location> definitionLocation() {
+            return Optional.ofNullable(this.definition).map(def -> def.location());
+        }
+
         public ClassInfo build() {
             if (definition == null || instances == null) {
                 throw new RuntimeException("Class info incomplete");
             }
             return new ClassInfo(buildGeneralInfo(), definition, instances);
         }
-
     }
 
     public static Builder builder() {

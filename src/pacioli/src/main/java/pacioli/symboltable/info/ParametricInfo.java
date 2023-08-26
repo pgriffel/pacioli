@@ -55,6 +55,11 @@ public final class ParametricInfo extends AbstractInfo implements TypeInfo {
         }
 
         @Override
+        public Optional<Location> definitionLocation() {
+            return Optional.ofNullable(this.definition).map(def -> def.location());
+        }
+
+        @Override
         public ParametricInfo build() {
             return new ParametricInfo(this.buildGeneralInfo(), this.definition);
         }

@@ -53,7 +53,7 @@ public class LambdaNode extends AbstractExpressionNode {
 
     @Override
     public String toString() {
-        return String.format("<Lambda %s %s>", arguments, expression.toString());
+        return "LambdaNode [arguments=" + arguments + ", expression=" + expression + "]";
     }
 
     public String argsString(String prefix) {

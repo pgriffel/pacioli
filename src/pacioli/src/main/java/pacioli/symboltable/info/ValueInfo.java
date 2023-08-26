@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.types.ast.TypeNode;
@@ -169,6 +170,11 @@ public class ValueInfo extends AbstractInfo {
         public Builder typeClass(ClassInfo typeClass) {
             this.typeClass = typeClass;
             return this;
+        }
+
+        @Override
+        public Optional<Location> definitionLocation() {
+            return Optional.ofNullable(this.definition).map(def -> def.location());
         }
 
         public ValueInfo build() {

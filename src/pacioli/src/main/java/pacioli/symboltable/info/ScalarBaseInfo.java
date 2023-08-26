@@ -69,6 +69,11 @@ public final class ScalarBaseInfo extends UnitInfo {
         }
 
         @Override
+        public Optional<Location> definitionLocation() {
+            return Optional.ofNullable(this.definition).map(def -> def.location());
+        }
+
+        @Override
         public ScalarBaseInfo build() {
             return new ScalarBaseInfo(this.buildGeneralInfo(), this.symbol, this.definition);
         }

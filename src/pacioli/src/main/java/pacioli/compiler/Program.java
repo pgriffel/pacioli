@@ -111,6 +111,7 @@ public class Program {
 
     public PacioliTable analyze(PacioliTable environment) throws Exception {
         PacioliTable infos = this.generateInfos();
+        checkForDuplicates(infos, environment);
         resolve(infos, environment);
         liftStatements(infos, environment);
         resolve(infos, environment);
@@ -152,7 +153,7 @@ public class Program {
                         .definition(def)
                         .isGlobal(true)
                         .location(def.location());
-                typeBuilders.put(def.name(), builder);
+                putTypeBuilder(typeBuilders, def.name(), builder);
             } else if (definition instanceof AliasDefinition def) {
                 AliasInfo.Builder builder = AliasInfo.builder();
                 builder.name(def.name())
@@ -160,7 +161,7 @@ public class Program {
                         .file(file)
                         .isGlobal(true)
                         .location(def.location());
-                typeBuilders.put(def.name(), builder);
+                putTypeBuilder(typeBuilders, def.name(), builder);
             } else if (definition instanceof IndexSetDefinition def) {
                 IndexSetInfo.Builder builder = IndexSetInfo.builder();
                 builder.name(def.name())
@@ -168,7 +169,7 @@ public class Program {
                         .isGlobal(true)
                         .location(def.location())
                         .definition(def);
-                typeBuilders.put(def.name(), builder);
+                putTypeBuilder(typeBuilders, def.name(), builder);
             } else if (definition instanceof TypeDefinition def) {
                 ParametricInfo.Builder builder = ParametricInfo.builder();
                 builder.name(def.name())
@@ -176,7 +177,7 @@ public class Program {
                         .isGlobal(true)
                         .location(def.location())
                         .definition(def);
-                typeBuilders.put(def.name(), builder);
+                putTypeBuilder(typeBuilders, def.name(), builder);
             } else if (definition instanceof UnitDefinition def) {
                 ScalarBaseInfo.Builder builder = ScalarBaseInfo.builder();
                 builder.name(def.name())
@@ -185,7 +186,7 @@ public class Program {
                         .location(def.location())
                         .symbol(def.symbol)
                         .definition(def);
-                typeBuilders.put(def.name(), builder);
+                putTypeBuilder(typeBuilders, def.name(), builder);
             } else if (definition instanceof UnitVectorDefinition def) {
                 VectorBaseInfo.Builder builder = VectorBaseInfo.builder();
                 builder.name(def.name())
@@ -194,7 +195,7 @@ public class Program {
                         .location(def.location())
                         .items(def.items)
                         .definition(def);
-                typeBuilders.put(def.name(), builder);
+                putTypeBuilder(typeBuilders, def.name(), builder);
             } else if (definition instanceof Declaration def) {
                 ValueInfo.Builder builder = ensureValueInfoBuilder(valueBuilders, def.name());
                 if (builder.declaredType != null) {
@@ -325,6 +326,41 @@ public class Program {
             valueTable.put(name, builder);
         }
         return builder;
+    }
+
+    private void putTypeBuilder(Map<String, InfoBuilder<?, ? extends TypeInfo>> typeBuilders, String name,
+            InfoBuilder<?, ? extends TypeInfo> builder) {
+        if (typeBuilders.containsKey(name)) {
+            throw new PacioliException(builder.definitionLocation().orElse(new Location()),
+                    "Duplicate definition for '%s'. It is already defined in %s.",
+                    name,
+                    typeBuilders.get(name).definitionLocation().orElse(new Location()).description());
+        }
+        typeBuilders.put(name, builder);
+    }
+    // -------------------------------------------------------------------------
+    // Resolving
+    // -------------------------------------------------------------------------
+
+    private void checkForDuplicates(PacioliTable prog, PacioliTable environment) throws Exception {
+
+        for (ValueInfo info : prog.values().allInfos()) {
+            if (environment.values().contains(info.name())) {
+                throw new PacioliException(info.location(),
+                        "Definition of '%s' overwrites name imported from library '%s'",
+                        info.name(), environment.values().lookup(info.name()).generalInfo().file().moduleName());
+            }
+
+        }
+
+        for (TypeInfo info : prog.types().allInfos()) {
+            if (environment.types().contains(info.name())) {
+                throw new PacioliException(info.location(),
+                        "Definition of '%s' overwrites name imported from library '%s'",
+                        info.name(), environment.types().lookup(info.name()).generalInfo().file().moduleName());
+            }
+
+        }
     }
 
     // -------------------------------------------------------------------------

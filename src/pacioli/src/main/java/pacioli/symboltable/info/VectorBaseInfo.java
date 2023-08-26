@@ -85,6 +85,11 @@ public final class VectorBaseInfo extends UnitInfo {
         }
 
         @Override
+        public Optional<Location> definitionLocation() {
+            return Optional.ofNullable(this.definition).map(def -> def.location());
+        }
+
+        @Override
         public VectorBaseInfo build() {
             return new VectorBaseInfo(this.buildGeneralInfo(), definition, items);
         }

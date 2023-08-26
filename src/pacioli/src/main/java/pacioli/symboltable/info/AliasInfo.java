@@ -3,6 +3,7 @@ package pacioli.symboltable.info;
 import java.util.Optional;
 
 import pacioli.ast.definition.AliasDefinition;
+import pacioli.compiler.Location;
 import pacioli.symboltable.SymbolTableVisitor;
 
 public final class AliasInfo extends UnitInfo {
@@ -45,6 +46,11 @@ public final class AliasInfo extends UnitInfo {
         @Override
         protected Builder self() {
             return this;
+        }
+
+        @Override
+        public Optional<Location> definitionLocation() {
+            return Optional.ofNullable(this.definition).map(def -> def.location());
         }
 
         @Override

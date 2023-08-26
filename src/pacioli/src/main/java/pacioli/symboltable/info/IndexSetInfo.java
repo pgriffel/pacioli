@@ -51,10 +51,14 @@ public final class IndexSetInfo extends AbstractInfo implements TypeInfo {
         }
 
         @Override
+        public Optional<Location> definitionLocation() {
+            return Optional.ofNullable(this.definition).map(def -> def.location());
+        }
+
+        @Override
         protected Builder self() {
             return this;
         }
-
     }
 
     public static Builder builder() {
