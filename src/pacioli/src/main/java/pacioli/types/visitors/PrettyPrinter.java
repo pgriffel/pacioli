@@ -112,7 +112,7 @@ public class PrettyPrinter implements TypeVisitor {
         } else if (hasLeft) {
             out.format("%s", left);
         } else if (hasRight) {
-            out.format("%s", right);
+            out.format("1 per %s", right);
         } else {
             out.write("1");
         }
