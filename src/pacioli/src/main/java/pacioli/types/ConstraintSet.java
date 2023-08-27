@@ -248,13 +248,13 @@ public class ConstraintSet extends AbstractPrintable {
                 TypeObject right = mgu.apply(constraint.rhs);
                 try {
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "\nUnifying %s and %s\n%s",
+                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nUnifying %s and %s\n%s",
                                 left.pretty(), right.pretty(), constraint.reason);
                     }
                     Substitution subs = left.unify(right);
                     mgu = subs.compose(mgu);
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "Result=\n%s", subs.pretty());
+                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Result=\n%s", subs.pretty());
                     }
                 } catch (PacioliException ex) {
                     throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason, left.unfresh().pretty(),
@@ -272,7 +272,7 @@ public class ConstraintSet extends AbstractPrintable {
                     Unit<TypeBase> right = mgu.apply(constraint.rhs);
 
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "\nUnifying units %s and %s\n%s",
+                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nUnifying units %s and %s\n%s",
                                 left.pretty(), right.pretty(), constraint.reason);
                     }
 
@@ -294,7 +294,7 @@ public class ConstraintSet extends AbstractPrintable {
 
                 try {
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,
+                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails,
                                 "\nUnifying %s and nmode(%s, %s, %s)\n%s",
                                 result.pretty(),
                                 tensor.pretty(),
@@ -347,7 +347,7 @@ public class ConstraintSet extends AbstractPrintable {
                     // node.sourceDescription());
 
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "\nUnifying %s and %s\n%s",
+                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nUnifying %s and %s\n%s",
                                 result.pretty(),
                                 tensorType.nmode(n, matrixType).pretty(),
                                 constraint.reason);
@@ -359,7 +359,7 @@ public class ConstraintSet extends AbstractPrintable {
 
                     mgu = subs.compose(mgu);
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "Result=\n%s", subs.pretty());
+                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Result=\n%s", subs.pretty());
                     }
                 } catch (PacioliException ex) {
                     throw new PacioliException("\n%s:\n\n%s\n =\nnmode(%s, %s, %s) \n\n%s", constraint.reason,
@@ -439,7 +439,7 @@ public class ConstraintSet extends AbstractPrintable {
                 todoInsts.remove((int) chosenConstraint);
 
                 if (verbose) {
-                    Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "\nInstance unifying %s and %s\n%s",
+                    Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nInstance unifying %s and %s\n%s",
                             constraint.lhs.pretty(), constraint.rhs.pretty(), constraint.reason);
                 }
 
@@ -455,7 +455,7 @@ public class ConstraintSet extends AbstractPrintable {
                     Substitution subs = left.unify(right);
                     mgu = subs.compose(mgu);
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "Result=\n%s", subs.pretty());
+                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Result=\n%s", subs.pretty());
                     }
                 } catch (PacioliException ex) {
                     throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason, left.unfresh().pretty(),

@@ -148,10 +148,10 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
             if (check.containsKey(rowPos)) {
                 if (check.get(rowPos).contains(columnPos)) {
                     if (!locationReported) {
-                        Pacioli.warn("In %s", location().description());
+                        Pacioli.println("In %s", location().description());
                         locationReported = true;
                     }
-                    Pacioli.warn("Duplicate: %s %s", rowDim.ElementAt(rowPos), columnDim.ElementAt(columnPos));
+                    Pacioli.println("Duplicate: %s %s", rowDim.ElementAt(rowPos), columnDim.ElementAt(columnPos));
                 } else {
                     check.get(rowPos).add(columnPos);
                 }

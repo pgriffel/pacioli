@@ -282,13 +282,13 @@ public class Bundle {
             boolean fromProgram = info.generalInfo().module().equals(file.module());
             if (fromProgram && info.definition().isPresent() && (true || info.isUserDefined())) {
                 // Pacioli.println("%s =", info.name());
-                Pacioli.print("\n\n%s;", info.definition().get().pretty());
+                Pacioli.println("%s;\n", info.definition().get().pretty());
             }
         }
 
-        Pacioli.print("\n");
+        Pacioli.println("");
         for (Toplevel toplevel : environment.toplevels()) {
-            Pacioli.print("\n%s;\n", toplevel.body.pretty());
+            Pacioli.println("%s;\n", toplevel.body.pretty());
         }
     }
 
@@ -314,7 +314,7 @@ public class Bundle {
         }
 
         Integer count = 1;
-        Pacioli.print("\n");
+        Pacioli.println("");
         for (Toplevel toplevel : environment.toplevels()) {
             TypeObject type = toplevel.type;
             Pacioli.println("Toplevel %s :: %s", count++, type.unfresh().pretty());

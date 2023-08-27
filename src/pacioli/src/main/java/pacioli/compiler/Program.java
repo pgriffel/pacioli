@@ -347,7 +347,7 @@ public class Program {
         for (ValueInfo info : prog.values().allInfos()) {
             if (environment.values().contains(info.name())) {
                 throw new PacioliException(info.location(),
-                        "Definition of '%s' overwrites name imported from library '%s'",
+                        "Definition of '%s' clashes with import from library '%s'",
                         info.name(), environment.values().lookup(info.name()).generalInfo().file().module());
             }
 
@@ -356,7 +356,7 @@ public class Program {
         for (TypeInfo info : prog.types().allInfos()) {
             if (environment.types().contains(info.name())) {
                 throw new PacioliException(info.location(),
-                        "Definition of '%s' overwrites name imported from library '%s'",
+                        "Definition of '%s' clashes with import from library '%s'",
                         info.name(), environment.types().lookup(info.name()).generalInfo().file().module());
             }
 
@@ -580,11 +580,11 @@ public class Program {
 
             if (info.isFromFile(this.file) && info.definition().isPresent()) {
 
-                Pacioli.logIf(Pacioli.Options.logTypeInference, "Infering type of %s", value);
+                Pacioli.logIf(Pacioli.Options.showTypeInference, "Infering type of %s", value);
 
-                inferValueDefinitionType(info, discovered, finished, Pacioli.Options.logTypeInference, environment);
+                inferValueDefinitionType(info, discovered, finished, Pacioli.Options.showTypeInference, environment);
 
-                Pacioli.logIf(Pacioli.Options.logTypeInference, "%s :: %s;", info.name(),
+                Pacioli.logIf(Pacioli.Options.showTypeInference, "%s :: %s;", info.name(),
                         info.inferredType().get().pretty());
             }
 
@@ -596,7 +596,7 @@ public class Program {
                         .reduce(i -> i.isFromFile(this.file));
                 TypeObject inferredType = info.localType().instantiate();
 
-                Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails,
+                Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails,
                         "Checking inferred type\n  %s\nagainst declared type\n  %s",
                         inferredType.pretty(), declaredType.pretty());
 
@@ -616,13 +616,13 @@ public class Program {
 
             inferUsedTypes(toplevel, discovered, finished, true, environment);
 
-            Pacioli.logIf(Pacioli.Options.logTypeInference, "Inferring typing of toplevel %s", i);
+            Pacioli.logIf(Pacioli.Options.showTypeInference, "Inferring typing of toplevel %s", i);
 
             Typing typing = toplevel.body.inferTyping(environment, this.file);
-            Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "Typing of toplevel %s is %s", i, typing.pretty());
+            Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Typing of toplevel %s is %s", i, typing.pretty());
 
             toplevel.type = typing.solve(!this.file.isLibrary()).simplify();
-            Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "Type of toplevel %s is %s", i,
+            Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Type of toplevel %s is %s", i,
                     toplevel.type.pretty());
 
             i++;
@@ -669,21 +669,24 @@ public class Program {
 
                 ValueDefinition def = info.definition().get();
 
-                Pacioli.logIf(Pacioli.Options.logTypeInference, "Infering typing of %s", info.name());
+                Pacioli.logIf(Pacioli.Options.showTypeInference, "Infering typing of %s", info.name());
 
                 Typing typing = def.body.inferTyping(env, this.file);
 
-                Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "Inferred typing of %s is %s", info.name(),
+                Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Inferred typing of %s is %s", info.name(),
                         typing.pretty());
 
                 try {
-                    TypeObject solved = typing.solve(Pacioli.Options.logTypeInferenceDetails).unfresh();
+                    TypeObject solved = typing.solve(Pacioli.Options.showTypeInferenceDetails).unfresh();
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "\nSolved type of %s is %s", info.name(),
+                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nSolved type of %s is %s",
+                                info.name(),
                                 solved.pretty());
-                        Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "\nSimple type of %s is %s", info.name(),
+                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nSimple type of %s is %s",
+                                info.name(),
                                 solved.simplify().pretty());
-                        Pacioli.logIf(Pacioli.Options.logTypeInferenceDetails, "\nGenerl type of %s is %s", info.name(),
+                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nGenerl type of %s is %s",
+                                info.name(),
                                 solved.simplify().generalize().pretty());
                     }
                     info.setinferredType(solved.simplify().generalize());

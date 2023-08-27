@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import pacioli.Pacioli;
 import pacioli.symboltable.info.Info;
 
 public class SymbolTable<R extends Info> {
@@ -109,11 +108,6 @@ public class SymbolTable<R extends Info> {
 
     public SymbolTable<R> addAll(SymbolTable<? extends R> it) {
         for (String name : it.table.keySet()) {
-            if (table.containsKey(name)) {
-                Pacioli.warn("Overwriting entry %s in symbol table", name);
-                // throw new RuntimeException(String.format("Overwriting entry %s in symbol
-                // table", name));
-            }
             table.put(name, it.table.get(name));
         }
         return this;

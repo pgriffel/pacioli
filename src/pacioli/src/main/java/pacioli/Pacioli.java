@@ -22,17 +22,21 @@ package pacioli;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
+import java.util.Properties;
+
 import org.apache.commons.io.FilenameUtils;
 
 import mvm.MVMException;
@@ -53,28 +57,30 @@ import pacioli.compiler.CompilationSettings.Target;
  */
 public class Pacioli {
 
-    // Internal settings for log messages. Actual values depend on verbosity.
+    // Constants
+    private static String OPTIONS_FILE = "compiler.options";
+    private static String VERSION = "v0.5.0-SNAPSHOT";
+
+    // Internal settings for log messages. Actual values depend on values in the
+    // options file.
     public static class Options {
         public static boolean trace = false;
         public static boolean showFileLoads = false;
         public static boolean showSymbolTableAdditions = false;
         public static boolean showResolvingDetails = false;
         public static boolean showIncludeSearches = false;
-        public static boolean logTypeInference = false;
-        public static boolean logTypeInferenceDetails = false;
+        public static boolean showTypeInference = false;
+        public static boolean showTypeInferenceDetails = false;
         public static boolean showTypeReductions = false;
         public static boolean showClassRewriting = true;
         public static boolean dumpOnMVMError = true;
-        public static boolean logGeneratingCode = false;
+        public static boolean showGeneratingCode = false;
         public static boolean showModifiedFiles = false;
         public static boolean printTypesAsString = false;
         public static boolean wrapTypes = false;
+        public static boolean rewriteTypes = false;
+        public static boolean includePrivate = true;
     }
-
-    // User settings for log messages. See the various methods for printing and
-    // logging.
-    private static int verbosity = 1;
-    private static boolean warnings = true;
 
     // Remember if user output is at the beginning of a line. Used when printing
     // output.
@@ -123,26 +129,15 @@ public class Pacioli {
             List<String> files = new ArrayList<String>();
             List<File> libs = new ArrayList<File>();
             CompilationSettings settings = new CompilationSettings();
-            boolean rewriteTypes = false;
-            boolean includePrivate = true;
+
+            // Load options first
+            loadOptionsFile();
 
             // Collect the command line info
             int i = 0;
             while (i != args.length) {
                 String arg = args[i++];
-                if (arg.equals("-verbosity")) {
-                    if (i < args.length) {
-                        String verbosityArg = args[i++];
-                        try {
-                            verbosity = Integer.valueOf(verbosityArg);
-                        } catch (Exception ex) {
-                            displayError(String.format("invalid verbosity number: '%s'. Ignoring verbosity option.",
-                                    verbosityArg));
-                        }
-                    } else {
-                        displayError("Expected number after -v. Ignoring verbosity option.");
-                    }
-                } else if (arg.equals("-lib")) {
+                if (arg.equals("-lib")) {
                     if (i < args.length) {
                         libs.add(new File(args[i++]));
                     } else {
@@ -180,12 +175,6 @@ public class Pacioli {
                     }
                 } else if (arg.equals("-traceall")) {
                     settings.toggleTraceAll();
-                } else if (arg.equals("-rewrite")) {
-                    rewriteTypes = !rewriteTypes;
-                } else if (arg.equals("-private")) {
-                    includePrivate = !includePrivate;
-                } else if (arg.equals("-warnings")) {
-                    warnings = !warnings;
                 } else if (arg.equals("-debug")) {
                     settings.toggleDebug();
                     ;
@@ -201,22 +190,6 @@ public class Pacioli {
                 if (!lib.isDirectory()) {
                     displayError(String.format("Library directory '%s' does not exist", lib));
                 }
-            }
-
-            // Set options given the verbosity
-            if (verbosity > 1) {
-                Options.showFileLoads = true;
-                Options.showModifiedFiles = true;
-            }
-            if (verbosity > 2) {
-                Options.trace = true;
-            }
-            if (verbosity > 3) {
-                Options.showSymbolTableAdditions = true;
-                Options.showResolvingDetails = true;
-                Options.showIncludeSearches = true;
-                Options.logTypeInference = true;
-                Options.logTypeInferenceDetails = true;
             }
 
             // Handle the command
@@ -267,7 +240,7 @@ public class Pacioli {
                     displayError("No files to read.");
                 }
                 for (String file : files) {
-                    typesCommand(file, libs, rewriteTypes, includePrivate);
+                    typesCommand(file, libs, Options.rewriteTypes, Options.includePrivate);
                 }
             } else if (command.equals("api")) {
                 if (files.isEmpty()) {
@@ -295,6 +268,56 @@ public class Pacioli {
         }
 
         log("");
+    }
+
+    private static void loadOptionsFile() {
+
+        try (FileInputStream fis = new FileInputStream(OPTIONS_FILE)) {
+            Properties prop = new Properties();
+            prop.load(fis);
+            prop.forEach((k, v) -> {
+                String key = (String) k;
+                String value = (String) v;
+                if (key.equals("trace")) {
+                    Options.trace = Boolean.parseBoolean(value);
+                } else if (key.equals("showFileLoads")) {
+                    Options.showFileLoads = Boolean.parseBoolean(value);
+                } else if (key.equals("showSymbolTableAdditions")) {
+                    Options.showSymbolTableAdditions = Boolean.parseBoolean(value);
+                } else if (key.equals("showResolvingDetails")) {
+                    Options.showResolvingDetails = Boolean.parseBoolean(value);
+                } else if (key.equals("showTypeInferenceDetails")) {
+                    Options.showTypeInferenceDetails = Boolean.parseBoolean(value);
+                } else if (key.equals("showIncludeSearches")) {
+                    Options.showIncludeSearches = Boolean.parseBoolean(value);
+                } else if (key.equals("showModifiedFiles")) {
+                    Options.showModifiedFiles = Boolean.parseBoolean(value);
+                } else if (key.equals("showGeneratingCode")) {
+                    Options.showGeneratingCode = Boolean.parseBoolean(value);
+                } else if (key.equals("showTypeInference")) {
+                    Options.showTypeInference = Boolean.parseBoolean(value);
+                } else if (key.equals("printTypesAsString")) {
+                    Options.printTypesAsString = Boolean.parseBoolean(value);
+                } else if (key.equals("showTypeReductions")) {
+                    Options.showTypeReductions = Boolean.parseBoolean(value);
+                } else if (key.equals("includePrivate")) {
+                    Options.includePrivate = Boolean.parseBoolean(value);
+                } else if (key.equals("dumpOnMVMError")) {
+                    Options.dumpOnMVMError = Boolean.parseBoolean(value);
+                } else if (key.equals("showClassRewriting")) {
+                    Options.showClassRewriting = Boolean.parseBoolean(value);
+                } else if (key.equals("rewriteTypes")) {
+                    Options.rewriteTypes = Boolean.parseBoolean(value);
+                } else {
+                    println("Skipping unknown option '%s'", key);
+                }
+            });
+        } catch (FileNotFoundException ex) {
+        } catch (IOException ex) {
+            String s = Paths.get("").toAbsolutePath().toString();
+            println("Error while loading file 'compiler.options' in directory '%s'", s);
+            println(ex.getLocalizedMessage());
+        }
     }
 
     /*
@@ -506,26 +529,40 @@ public class Pacioli {
 
     private static void infoCommand(List<File> libs) {
 
-        println("Pacioli v0.5.0-SNAPSHOT");
+        println("Pacioli %s", VERSION);
 
-        println("\nSettings");
-        println("  verbosity=%s", 1);
-        println("  warnings=%s", warnings);
-
-        println("\nLibrary paths");
+        println("\nLibrary directories are passed with the -lib option. The current library directories are:");
         for (File file : libs) {
             println("  %s", file);
-            File[] files = file.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File dir, String name) {
-                    return name.toLowerCase().endsWith(".pacioli");
-                }
-            });
-            for (File lib : files) {
+
+            File[] libraries = file.listFiles(File::isDirectory);
+            for (File lib : libraries) {
                 println("    %s", lib.getName());
             }
 
         }
+
+        String s = Paths.get("").toAbsolutePath().toString();
+        println("\nThe compiler looks for options in file 'compiler.options' in directory %s. These options are developer options to show the compiler internals. The current options are:",
+                s);
+
+        println("trace=%s", Options.trace);
+        println("showFileLoads=%s", Options.showFileLoads);
+        println("showSymbolTableAdditions=%s", Options.showSymbolTableAdditions);
+        println("showResolvingDetails=%s", Options.showResolvingDetails);
+        println("showIncludeSearches=%s", Options.showIncludeSearches);
+        println("showTypeInference=%s", Options.showTypeInference);
+        println("showTypeInferenceDetails=%s", Options.showTypeInferenceDetails);
+        println("showTypeReductions=%s", Options.showTypeReductions);
+        println("showClassRewriting=%s", Options.showClassRewriting);
+        println("dumpOnMVMError=%s", Options.dumpOnMVMError);
+        println("showGeneratingCode=%s", Options.showGeneratingCode);
+        println("showModifiedFiles=%s", Options.showModifiedFiles);
+        println("showModifiedFiles=%s", Options.showModifiedFiles);
+        println("printTypesAsString=%s", Options.printTypesAsString);
+        println("rewriteTypes=%s", Options.rewriteTypes);
+        println("includePrivate=%s", Options.includePrivate);
+
         println("\nPaul Griffioen 2013 - 2023");
     }
 
@@ -536,21 +573,18 @@ public class Pacioli {
         println("   compile       compiles a pacioli file");
         println("   interpret     interprets an mvm file compiled earlier from a pacioli file");
         println("   types         displays inferred types for a pacioli file or library");
+        println("   parse         prints the code as it is parsed");
+        println("   desugar       prints the code as it is parsed and desugared");
+        println("   api           generates documentation");
         println("   info          displays information about this compiler and installation");
         println("   help          displays this help information");
         println("\n");
         println("Options (where applicable)");
         println("   -lib X        Adds directory X to the library paths");
         println("   -target       sets the compilation target to one of 'mvm' (default) 'javascript' or 'matlab'");
-        println("   -verbosity X  sets the verbosity to X (default 1)");
-        println("                   0 - no messages");
-        println("                   1 - progress messages");
-        println("                   2 - detailed messages");
-        println("                   3 - too detailed messages");
         println("   -debug        toggles stack traces on or off");
         println("   -trace X      turns tracing on for function X");
         println("   -traceall     toggles tracing of all functions on or off");
-        println("   -warnings     toggles compiler warnings on or off");
     }
 
     /*
@@ -702,9 +736,7 @@ public class Pacioli {
      *               Format arguments
      */
     public static void log(String string, Object... args) {
-        if (verbosity > 0) {
-            println(string, args);
-        }
+        println(string, args);
     }
 
     /**
@@ -740,22 +772,6 @@ public class Pacioli {
                         + "] "
                         + string,
                 args);
-    }
-
-    /**
-     * Display a warning to the user if the warning options is on. Does not
-     * display the message if verbosity is zero.
-     * 
-     * @param string
-     *               A format string
-     * @param args
-     *               Format arguments
-     */
-    public static void warn(String string, Object... args) {
-        if (warnings) {
-            log("Warning: ");
-            log(string, args);
-        }
     }
 
     /**

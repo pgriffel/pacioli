@@ -41,7 +41,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
         // Infos without definition are filtered by the caller
         assert (info.definition().isPresent());
 
-        Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling value %s", info.globalName());
+        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling value %s", info.globalName());
 
         out.format("store \"%s\" ", info.globalName());
         out.newlineUp();
@@ -55,7 +55,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
     @Override
     public void visit(IndexSetInfo info) {
 
-        Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling index set %s", info.globalName());
+        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling index set %s", info.globalName());
 
         assert (info.definition().isPresent());
 
@@ -78,7 +78,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
 
     @Override
     public void visit(ParametricInfo info) {
-        Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling type %s", info.globalName());
+        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling type %s", info.globalName());
     }
 
     @Override
@@ -86,7 +86,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
 
         Optional<UnitDefinition> definition = info.definition();
 
-        Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling unit %s", info.globalName());
+        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling unit %s", info.globalName());
 
         if (definition.isPresent()) {
 
@@ -106,7 +106,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
     @Override
     public void visit(VectorBaseInfo info) {
 
-        Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling vector unit %s", info.globalName());
+        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling vector unit %s", info.globalName());
 
         assert (info.definition().isPresent());
 
@@ -131,7 +131,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
 
     @Override
     public void visit(TypeVarInfo info) {
-        Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling type %s", info.globalName());
+        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling type %s", info.globalName());
     }
 
     @Override

@@ -39,7 +39,7 @@ public class MATLABTranspiler implements SymbolTableVisitor {
         // Infos without definition are filtered by the caller
         assert (info.definition().isPresent());
 
-        Pacioli.logIf(Pacioli.Options.logGeneratingCode, "Compiling value %s", info.globalName());
+        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling value %s", info.globalName());
 
         ValueDefinition definition = info.definition().get();
         ExpressionNode transformed = definition.body;
