@@ -94,7 +94,7 @@ public class DimensionedNumber<B> {
     }
 
     public DimensionedNumber<B> divide(DimensionedNumber<B> other) {
-        return new DimensionedNumber<B>(other.factor.divide(factor), other.unit.multiply(unit.reciprocal()));
+        return new DimensionedNumber<B>(factor.divide(other.factor), unit.multiply(other.unit.reciprocal()));
     }
 
     public DimensionedNumber<B> raise(Fraction power) {
