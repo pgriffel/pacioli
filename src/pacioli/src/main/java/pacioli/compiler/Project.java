@@ -204,6 +204,8 @@ public class Project {
 
     public Bundle loadBundle() throws Exception {
 
+        Pacioli.trace("Loading module '%s'", this.file.moduleName());
+
         Bundle bundle = Bundle.empty(file, libs);
 
         bundle.addPrimitiveTypes();

@@ -136,7 +136,7 @@ public class Program {
 
     private PacioliTable fillTables() throws Exception {
 
-        Pacioli.trace("Filling tables for %s", this.file.module());
+        Pacioli.trace("Filling tables for module '%s'", this.file.module());
 
         // Make a map from identifiers to symbol info builders for the value
         // namespace and for the type namespace.
@@ -348,7 +348,7 @@ public class Program {
             if (environment.values().contains(info.name())) {
                 throw new PacioliException(info.location(),
                         "Definition of '%s' overwrites name imported from library '%s'",
-                        info.name(), environment.values().lookup(info.name()).generalInfo().file().moduleName());
+                        info.name(), environment.values().lookup(info.name()).generalInfo().file().module());
             }
 
         }
@@ -357,7 +357,7 @@ public class Program {
             if (environment.types().contains(info.name())) {
                 throw new PacioliException(info.location(),
                         "Definition of '%s' overwrites name imported from library '%s'",
-                        info.name(), environment.types().lookup(info.name()).generalInfo().file().moduleName());
+                        info.name(), environment.types().lookup(info.name()).generalInfo().file().module());
             }
 
         }
@@ -377,7 +377,7 @@ public class Program {
      */
     private void resolve(PacioliTable prog, PacioliTable environment) throws Exception {
 
-        Pacioli.trace("Resolving %s", this.file.module());
+        Pacioli.trace("Resolving module '%s'", this.file.module());
 
         prog.setParent(environment);
 
@@ -453,7 +453,7 @@ public class Program {
      */
     private void rewriteClasses(PacioliTable env) throws Exception {
 
-        Pacioli.trace("Rewriting classes in file %s", this.file.module());
+        Pacioli.trace("Rewriting classes in in module '%s'", this.file.module());
 
         for (TypeInfo typeInfo : env.types().allInfos()) {
             if (typeInfo instanceof ClassInfo classInfo) {
@@ -470,7 +470,7 @@ public class Program {
      */
     private void rewriteClass(PacioliTable env, ClassInfo classInfo) {
 
-        Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nRewriting class %s in module %s",
+        Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nRewriting class %s in module '%s'",
                 classInfo.globalName(), this.file.module());
 
         // Rewrite the class definition itself if it is from this program
@@ -526,7 +526,7 @@ public class Program {
 
     private void liftStatements(PacioliTable program, PacioliTable env) throws Exception {
 
-        Pacioli.trace("Lifting value statements %s", this.file.module());
+        Pacioli.trace("Lifting value statements in module '%s'", this.file.module());
 
         for (ValueInfo info : program.values().allInfos()) {
             if (info.definition().isPresent() && info.isFromFile(this.file)) {
@@ -543,7 +543,7 @@ public class Program {
 
     private void transformConversions(PacioliTable pacioliTable) {
 
-        Pacioli.trace("Transforming conversions %s", this.file.module());
+        Pacioli.trace("Transforming conversions in module '%s'", this.file.module());
 
         for (ValueInfo info : pacioliTable.values().allInfos()) {
             if (info.definition().isPresent() && info.isFromFile(this.file)) {
@@ -561,7 +561,7 @@ public class Program {
 
     private void inferTypes(PacioliTable prog, PacioliTable env) {
 
-        Pacioli.trace("Infering types in %s", this.file.module());
+        Pacioli.trace("Infering types in module '%s'", this.file.module());
 
         // values.parent = environment.values();
         // typess.parent = environment.types();

@@ -28,7 +28,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import org.apache.commons.io.FilenameUtils;
@@ -686,6 +688,8 @@ public class Pacioli {
         }
 
         print(string, args);
+        print("\n");
+        atLineStart = true;
     }
 
     /**
@@ -730,7 +734,12 @@ public class Pacioli {
      *               Format arguments
      */
     public static void trace(String string, Object... args) {
-        logIf(Options.trace, string, args);
+        logIf(Options.trace,
+                "[TRACE "
+                        + new SimpleDateFormat("HH:mm:ss.SSS").format(Calendar.getInstance().getTime())
+                        + "] "
+                        + string,
+                args);
     }
 
     /**

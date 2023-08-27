@@ -317,8 +317,7 @@ public class Bundle {
         Pacioli.print("\n");
         for (Toplevel toplevel : environment.toplevels()) {
             TypeObject type = toplevel.type;
-            Pacioli.println("Toplevel %s ::", count++);
-            Pacioli.print(" %s", type.unfresh().pretty());
+            Pacioli.println("Toplevel %s :: %s", count++, type.unfresh().pretty());
         }
     }
 
