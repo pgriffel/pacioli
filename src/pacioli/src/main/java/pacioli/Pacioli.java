@@ -72,7 +72,7 @@ public class Pacioli {
         public static boolean showTypeInference = false;
         public static boolean showTypeInferenceDetails = false;
         public static boolean showTypeReductions = false;
-        public static boolean showClassRewriting = true;
+        public static boolean showClassRewriting = false;
         public static boolean dumpOnMVMError = true;
         public static boolean showGeneratingCode = false;
         public static boolean showModifiedFiles = false;
@@ -531,7 +531,7 @@ public class Pacioli {
 
         println("Pacioli %s", VERSION);
 
-        println("\nLibrary directories are passed with the -lib option. The current library directories are:");
+        println("\nLibraries passed with the -lib option are:");
         for (File file : libs) {
             println("  %s", file);
 
@@ -543,7 +543,7 @@ public class Pacioli {
         }
 
         String s = Paths.get("").toAbsolutePath().toString();
-        println("\nThe compiler looks for options in file 'compiler.options' in directory %s. These options are developer options to show the compiler internals. The current options are:",
+        println("\nThe compiler looks for dev options in file 'compiler.options' in directory %s. The current options are:",
                 s);
 
         println("trace=%s", Options.trace);
