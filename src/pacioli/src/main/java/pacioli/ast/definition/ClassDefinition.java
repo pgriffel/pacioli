@@ -30,14 +30,14 @@ import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.SchemaNode;
-import pacioli.types.ast.TypeApplicationNode;
+import pacioli.types.ast.TypePredicateNode;
 
 public class ClassDefinition extends AbstractDefinition {
 
     /**
      * The type of the type class
      */
-    public final TypeApplicationNode type;
+    public final TypePredicateNode type;
 
     /**
      * The quantified variables of the typeclass. Possibly contain conditions.
@@ -56,7 +56,7 @@ public class ClassDefinition extends AbstractDefinition {
 
     public ClassDefinition(
             Location location,
-            TypeApplicationNode type,
+            TypePredicateNode type,
             List<QuantNode> quantNodes,
             List<TypeAssertion> members) {
         super(location);
@@ -79,7 +79,7 @@ public class ClassDefinition extends AbstractDefinition {
 
     @Override
     public String name() {
-        return type.op.name();
+        return type.id.name();
     }
 
     @Override

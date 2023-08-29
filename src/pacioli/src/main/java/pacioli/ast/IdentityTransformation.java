@@ -63,6 +63,7 @@ import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
+import pacioli.types.ast.TypePredicateNode;
 
 public class IdentityTransformation implements Visitor {
 
@@ -206,7 +207,7 @@ public class IdentityTransformation implements Visitor {
         for (TypeAssertion member : node.members) {
             members.add((TypeAssertion) nodeAccept(member));
         }
-        returnNode(new ClassDefinition(node.location(), (TypeApplicationNode) nodeAccept(node.type), quantNodes,
+        returnNode(new ClassDefinition(node.location(), (TypePredicateNode) nodeAccept(node.type), quantNodes,
                 members));
     }
 
@@ -221,7 +222,7 @@ public class IdentityTransformation implements Visitor {
             members.add((ValueEquation) nodeAccept(member));
         }
         returnNode(
-                new InstanceDefinition(node.location(), (TypeApplicationNode) nodeAccept(node.type), quantNodes,
+                new InstanceDefinition(node.location(), (TypePredicateNode) nodeAccept(node.type), quantNodes,
                         members));
     }
 
@@ -509,6 +510,15 @@ public class IdentityTransformation implements Visitor {
             conditions.add((TypeApplicationNode) visited);
         }
         returnNode(new QuantNode(node.location(), node.kind, ids, conditions));
+    }
+
+    @Override
+    public void visit(TypePredicateNode node) {
+        List<TypeNode> args = new ArrayList<TypeNode>();
+        for (TypeNode arg : node.args) {
+            args.add(typeAccept(arg));
+        }
+        returnNode(new TypePredicateNode(node.location(), node.id, args));
     }
 
 }

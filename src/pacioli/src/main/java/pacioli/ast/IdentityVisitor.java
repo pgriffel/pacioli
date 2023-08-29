@@ -61,6 +61,7 @@ import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
+import pacioli.types.ast.TypePredicateNode;
 
 public class IdentityVisitor implements Visitor {
 
@@ -420,6 +421,14 @@ public class IdentityVisitor implements Visitor {
         }
         for (TypeApplicationNode condition : node.conditions) {
             condition.accept(this);
+        }
+    }
+
+    @Override
+    public void visit(TypePredicateNode node) {
+        node.id.accept(this);
+        for (TypeNode arg : node.args) {
+            arg.accept(this);
         }
     }
 }

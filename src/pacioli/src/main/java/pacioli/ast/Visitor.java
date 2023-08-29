@@ -54,6 +54,7 @@ import pacioli.types.ast.TypeKroneckerNode;
 import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
+import pacioli.types.ast.TypePredicateNode;
 
 public interface Visitor {
 
@@ -161,15 +162,17 @@ public interface Visitor {
 
     void visit(IdListNode node);
 
-    void visit(Documentation docu);
+    void visit(Documentation node);
 
-    void visit(ClassDefinition classDefinition);
+    void visit(ClassDefinition node);
 
-    void accept(ValueEquation valueEquation);
+    void accept(ValueEquation node);
 
-    void visit(InstanceDefinition instanceDefinition);
+    void visit(InstanceDefinition node);
 
-    void accept(TypeAssertion typeAssertion);
+    void accept(TypeAssertion node);
 
-    void accept(QuantNode quantNode);
+    void accept(QuantNode node);
+
+    void visit(TypePredicateNode node);
 }

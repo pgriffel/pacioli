@@ -70,6 +70,7 @@ import pacioli.types.ast.TypeKroneckerNode;
 import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
+import pacioli.types.ast.TypePredicateNode;
 import pacioli.types.type.TypeObject;
 
 public class PrintVisitor implements Visitor {
@@ -843,5 +844,13 @@ public class PrintVisitor implements Visitor {
         }
         out.writeCommaSeparated(node.conditions, x -> x.accept(this));
 
+    }
+
+    @Override
+    public void visit(TypePredicateNode node) {
+        node.id.accept(this);
+        write("(");
+        writeCommaSeparated(node.args);
+        write(")");
     }
 }

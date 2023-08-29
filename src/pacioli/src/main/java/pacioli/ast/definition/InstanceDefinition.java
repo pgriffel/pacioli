@@ -29,7 +29,7 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.types.ast.QuantNode;
-import pacioli.types.ast.TypeApplicationNode;
+import pacioli.types.ast.TypePredicateNode;
 
 /**
  * AST node for a class instance definition.
@@ -43,7 +43,7 @@ public class InstanceDefinition extends AbstractDefinition {
     /**
      * The type of the type instance
      */
-    public final TypeApplicationNode type;
+    public final TypePredicateNode type;
 
     /**
      * The quantified variables of the type instance. Possibly contain conditions.
@@ -57,7 +57,7 @@ public class InstanceDefinition extends AbstractDefinition {
 
     public InstanceDefinition(
             Location location,
-            TypeApplicationNode type,
+            TypePredicateNode type,
             List<QuantNode> quantNodes,
             List<ValueEquation> members) {
         super(location);
@@ -73,7 +73,7 @@ public class InstanceDefinition extends AbstractDefinition {
 
     @Override
     public String name() {
-        return type.op.name();
+        return type.id.name();
     }
 
     public List<String> memberNames() {

@@ -2260,7 +2260,7 @@ class CUP$Parser$actions {
 		Location exleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location exright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		List<TypeAssertion> e = (List<TypeAssertion>)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new ClassDefinition(id.location(), new TypeApplicationNode(id.location(), id, ids), v, e); 
+		 RESULT = new ClassDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("command",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -2281,7 +2281,7 @@ class CUP$Parser$actions {
 		Location exleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location exright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		List<ValueEquation> e = (List<ValueEquation>)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new InstanceDefinition(id.location(), new TypeApplicationNode(id.location(), id, ids), v, e); 
+		 RESULT = new InstanceDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("command",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

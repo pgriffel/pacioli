@@ -457,8 +457,8 @@ command ::=
  | DOC:d id:kind id:id STRING:s                    {: pacioli.compiler.Location loc = makeLoc(dxleft, sxright);
                                                        RESULT = new Documentation(loc, id.withKind(kind), new StringNode(s, makeLoc(sxleft, sxright))); :}
  | expr:e                                           {: RESULT = new Toplevel(e.location(), e); :}
- | DEFCLASS typeid:id typelist:ids vardecls:v classmembers:e        {: RESULT = new ClassDefinition(id.location(), new TypeApplicationNode(id.location(), id, ids), v, e); :}
- | DEFINSTANCE typeid:id typelist:ids vardecls:v classmemberdefs:e  {: RESULT = new InstanceDefinition(id.location(), new TypeApplicationNode(id.location(), id, ids), v, e); :}
+ | DEFCLASS typeid:id typelist:ids vardecls:v classmembers:e        {: RESULT = new ClassDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); :}
+ | DEFINSTANCE typeid:id typelist:ids vardecls:v classmemberdefs:e  {: RESULT = new InstanceDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); :}
  ;
 
 quali ::=  
