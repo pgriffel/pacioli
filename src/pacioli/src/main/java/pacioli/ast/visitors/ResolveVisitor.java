@@ -66,13 +66,12 @@ import pacioli.types.type.TypeIdentifier;
 
 public class ResolveVisitor extends IdentityVisitor {
 
-    // private Progam prog;
-    private Deque<SymbolTable<TypeInfo>> typeTables = new ArrayDeque<SymbolTable<TypeInfo>>();
-    private Deque<SymbolTable<ValueInfo>> valueTables = new ArrayDeque<SymbolTable<ValueInfo>>();
+    private PacioliFile file;
+
+    private Deque<SymbolTable<TypeInfo>> typeTables = new ArrayDeque<>();
+    private Deque<SymbolTable<ValueInfo>> valueTables = new ArrayDeque<>();
 
     private Stack<String> statementResult;
-
-    private PacioliFile file;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -91,8 +90,6 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(AliasDefinition node) {
-        // returnNode(node.setUnit(node.unit.resolved(dictionary)));
-        // visitorThrow(node.getLocation(), "todo");
         node.unit.accept(this);
     }
 
@@ -115,25 +112,8 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(TypeDefinition node) {
-
         pushTypeContext(node.createContext(), node.location());
-
-        // throw new RuntimeException("todo ");
-        // Pacioli.logln("NOT VISITING TYPE DEF %s", node.getLocation().description());
-        if (node.lhs instanceof TypeApplicationNode) {
-            TypeApplicationNode app = (TypeApplicationNode) node.lhs;
-            // List<TypeNode> types = new ArrayList<TypeNode>();
-            for (TypeNode arg : app.arguments()) {
-                // types.add(arg.resolved(dictionary, this.context));
-                arg.accept(this);
-            }
-            node.lhs.accept(this);
-            // resolvedLhs = new TypeApplicationNode(getLocation(), app.getOperator(),
-            // types);
-        } else {
-            visitorThrow(node.location(), "Left side of typedef is not a type function: %s", node.lhs.pretty());
-        }
-        // node.lhs.accept(this);
+        node.lhs.accept(this);
         node.rhs.accept(this);
         typeTables.pop();
     }
@@ -150,7 +130,6 @@ public class ResolveVisitor extends IdentityVisitor {
         node.indexSetNode.accept(this);
         for (UnitDecl entry : node.items) {
             entry.value.accept(this);
-            ;
         }
     }
 

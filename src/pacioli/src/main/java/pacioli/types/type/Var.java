@@ -7,36 +7,6 @@ import pacioli.symboltable.info.Info;
 
 public interface Var extends Printable {
 
-    // A variable can be one of four kinds
-    public enum Kind {
-        TYPE {
-            @Override
-            public String pretty() {
-                return "for_type";
-            }
-        },
-        UNIT {
-            @Override
-            public String pretty() {
-                return "for_unit";
-            }
-        },
-        INDEX {
-            @Override
-            public String pretty() {
-                return "for_index";
-            }
-        },
-        OP {
-            @Override
-            public String pretty() {
-                return "for_op";
-            }
-        };
-
-        abstract public String pretty();
-    }
-
     TypeObject fresh();
 
     TypeObject rename(String format);

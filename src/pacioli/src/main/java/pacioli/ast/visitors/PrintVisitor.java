@@ -749,7 +749,7 @@ public class PrintVisitor implements Visitor {
 
         // Print the class definition itself
         out.print("defclass ");
-        node.type.accept(this);
+        node.predicate.accept(this);
         for (QuantNode quantNode : node.quantNodes) {
             quantNode.accept(this);
             out.write(": ");
@@ -784,7 +784,7 @@ public class PrintVisitor implements Visitor {
 
         // Print the instance definition itself
         out.print("definstance ");
-        node.type.accept(this);
+        node.predicate.accept(this);
         out.print(" ");
         for (QuantNode quantNode : node.quantNodes) {
             quantNode.accept(this);

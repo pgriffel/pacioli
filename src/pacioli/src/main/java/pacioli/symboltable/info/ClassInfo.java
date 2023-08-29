@@ -18,7 +18,6 @@ import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.types.TypeContext;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
@@ -200,9 +199,9 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
 
     private TypeApplicationNode dictTypeLHS() {
         return new TypeApplicationNode(
-                this.definition.type.location(),
+                this.definition.predicate.location(),
                 new TypeIdentifierNode(this.definition.location(), this.dictionaryName()),
-                this.definition.type.args);
+                this.definition.predicate.args);
     }
 
     private TypeApplicationNode dictTypeRHS() {

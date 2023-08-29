@@ -207,7 +207,7 @@ public class IdentityTransformation implements Visitor {
         for (TypeAssertion member : node.members) {
             members.add((TypeAssertion) nodeAccept(member));
         }
-        returnNode(new ClassDefinition(node.location(), (TypePredicateNode) nodeAccept(node.type), quantNodes,
+        returnNode(new ClassDefinition(node.location(), (TypePredicateNode) nodeAccept(node.predicate), quantNodes,
                 members));
     }
 
@@ -222,7 +222,7 @@ public class IdentityTransformation implements Visitor {
             members.add((ValueEquation) nodeAccept(member));
         }
         returnNode(
-                new InstanceDefinition(node.location(), (TypePredicateNode) nodeAccept(node.type), quantNodes,
+                new InstanceDefinition(node.location(), (TypePredicateNode) nodeAccept(node.predicate), quantNodes,
                         members));
     }
 

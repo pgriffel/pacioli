@@ -156,7 +156,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(ClassDefinition node) {
-        node.type.accept(this);
+        node.predicate.accept(this);
         for (QuantNode quantNode : node.quantNodes) {
             quantNode.accept(this);
         }
@@ -167,7 +167,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(InstanceDefinition node) {
-        node.type.accept(this);
+        node.predicate.accept(this);
         for (QuantNode quantNode : node.quantNodes) {
             quantNode.accept(this);
         }

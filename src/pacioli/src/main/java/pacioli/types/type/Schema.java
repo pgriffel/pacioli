@@ -33,7 +33,7 @@ public class Schema extends AbstractType {
 
     private final Set<Var> variables;
     private final TypeObject type;
-    public final List<TypePredicate> conditions;
+    private final List<TypePredicate> conditions;
 
     public Schema(Set<Var> context, TypeObject type, List<TypePredicate> conditions) {
         this.variables = context;
@@ -48,7 +48,7 @@ public class Schema extends AbstractType {
 
     @Override
     public String toString() {
-        return String.format("<Schema %s %s>", variables, type);
+        return "Schema [variables=" + variables + ", type=" + type + ", conditions=" + conditions + "]";
     }
 
     @Override

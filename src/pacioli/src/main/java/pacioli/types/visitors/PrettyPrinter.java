@@ -52,10 +52,10 @@ public class PrettyPrinter implements TypeVisitor {
         TypeContext tc = new TypeContext(type.variables());
         out.print(tc.pretty());
         type.type().accept(this);
-        if (type.conditions.size() > 0) {
+        if (type.conditions().size() > 0) {
             out.print(" where ");
             String sep = "";
-            for (TypePredicate cond : type.conditions) {
+            for (TypePredicate cond : type.conditions()) {
                 out.print(sep);
                 sep = " and ";
                 cond.accept(this);

@@ -43,7 +43,7 @@ public class InstanceDefinition extends AbstractDefinition {
     /**
      * The type of the type instance
      */
-    public final TypePredicateNode type;
+    public final TypePredicateNode predicate;
 
     /**
      * The quantified variables of the type instance. Possibly contain conditions.
@@ -61,7 +61,7 @@ public class InstanceDefinition extends AbstractDefinition {
             List<QuantNode> quantNodes,
             List<ValueEquation> members) {
         super(location);
-        this.type = type;
+        this.predicate = type;
         this.quantNodes = quantNodes;
         this.members = members;
     }
@@ -73,7 +73,7 @@ public class InstanceDefinition extends AbstractDefinition {
 
     @Override
     public String name() {
-        return type.id.name();
+        return predicate.id.name();
     }
 
     public List<String> memberNames() {

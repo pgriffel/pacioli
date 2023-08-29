@@ -37,7 +37,7 @@ public class ClassDefinition extends AbstractDefinition {
     /**
      * The type of the type class
      */
-    public final TypePredicateNode type;
+    public final TypePredicateNode predicate;
 
     /**
      * The quantified variables of the typeclass. Possibly contain conditions.
@@ -60,7 +60,7 @@ public class ClassDefinition extends AbstractDefinition {
             List<QuantNode> quantNodes,
             List<TypeAssertion> members) {
         super(location);
-        this.type = type;
+        this.predicate = type;
         this.quantNodes = quantNodes;
         this.members = members;
         this.memberSchemas = new HashMap<>();
@@ -79,7 +79,7 @@ public class ClassDefinition extends AbstractDefinition {
 
     @Override
     public String name() {
-        return type.id.name();
+        return predicate.id.name();
     }
 
     @Override
