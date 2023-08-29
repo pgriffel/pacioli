@@ -358,7 +358,7 @@ public class Bundle {
                     && info.definition().isPresent() && info.isPublic()) {
                 if (info instanceof ParametricInfo def) {
                     generator.addType(info.name(),
-                            def.definition().get().context.pretty(),
+                            def.definition().get().createContext().pretty(),
                             def.definition().get().lhs.pretty(),
                             def.definition().get().rhs.pretty(),
                             info.generalInfo().documentation().orElse("n/a"));

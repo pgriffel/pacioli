@@ -31,6 +31,7 @@ import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.types.TypeContext;
 import pacioli.types.ast.BangTypeNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeNode;
@@ -41,13 +42,13 @@ import pacioli.types.type.TypeObject;
 
 public class TypeDefinition extends AbstractDefinition {
 
-    public final TypeContext context;
+    public final List<QuantNode> quantNodes;
     public final TypeNode lhs;
     public final TypeNode rhs;
 
-    public TypeDefinition(Location location, TypeContext context, TypeNode lhs, TypeNode rhs) {
+    public TypeDefinition(Location location, List<QuantNode> quantNodes, TypeNode lhs, TypeNode rhs) {
         super(location);
-        this.context = context;
+        this.quantNodes = quantNodes;
         this.lhs = lhs;
         this.rhs = rhs;
     }
@@ -66,12 +67,16 @@ public class TypeDefinition extends AbstractDefinition {
         visitor.visit(this);
     }
 
+    public TypeContext createContext() {
+        return TypeContext.fromQuantNodes(quantNodes);
+    }
+
     public TypeConstraint constaint() throws PacioliException {
 
         TypeConstraint constraint;
 
         TypeContext totalContext = new TypeContext();
-        totalContext.addAll(this.context);
+        totalContext.addAll(this.createContext());
 
         if (lhs instanceof TypeApplicationNode app) {
 

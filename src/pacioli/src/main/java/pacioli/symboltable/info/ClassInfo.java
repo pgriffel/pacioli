@@ -69,7 +69,7 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
                 .location(defLocation)
                 .definition(new TypeDefinition(
                         defLocation,
-                        TypeContext.fromQuantNodes(this.definition.quantNodes),
+                        this.definition.quantNodes,
                         this.dictTypeLHS(),
                         this.dictTypeRHS()))
                 .build();

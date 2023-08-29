@@ -218,7 +218,7 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(TypeDefinition node) {
         write("deftype ");
-        write(node.context.pretty());
+        write(node.createContext().pretty());
         node.lhs.accept(this);
         write(" = ");
         newline();

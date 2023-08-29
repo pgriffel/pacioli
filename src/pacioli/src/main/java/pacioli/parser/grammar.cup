@@ -40,6 +40,7 @@ import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.unit.*;
 import pacioli.types.ast.*;
 import pacioli.types.ast.TypeIdentifierNode.Kind;
+import pacioli.types.TypeContext;
 
 parser code {:
 
@@ -325,8 +326,8 @@ terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING, QUESTIONMARKS, WH
 
 non terminal ProgramNode                     program;
 non terminal List<Node>                      includes;
-non terminal List<Definition>                commands;
-non terminal Definition                      command;
+non terminal List<Definition>                definitions;
+non terminal Definition                      definition;
 non terminal ExpressionNode                  expr, expr_no_id, if_tail, lettail, letrest, listlit, comprehension, statement, stm_if_tail;
 non terminal List<ExpressionNode>            exprs, exprlist, statements;
 non terminal IdentifierNode                  id, name;
@@ -370,7 +371,7 @@ precedence left         LPAR;
 //------------------------------------------------------------------------------
 
 program ::=  
-   includes:i commands:c                            {: List<IncludeNode> includes = new ArrayList<IncludeNode>();
+   includes:i definitions:c                         {: List<IncludeNode> includes = new ArrayList<IncludeNode>();
                                                        List<ImportNode> imports = new ArrayList<ImportNode>();
                                                        List<ExportNode> exports = new ArrayList<ExportNode>();
                                                        for (Node node : i) {
@@ -398,34 +399,21 @@ exports ::=
   | id:kind id:id                                   {: RESULT = new ArrayList<>(); RESULT.add(id.withKind(kind)); :}
   ;
 
-commands ::=  
-   commands:cs command:c SEMICOLON                  {: cs.add(c); RESULT = cs; :}
+definitions ::=  
+   definitions:cs definition:c SEMICOLON            {: cs.add(c); RESULT = cs; :}
  | /* empty */                                      {: RESULT = new LinkedList<Definition>(); :}
  ;
 
-command ::= 
+definition ::= 
    DEFINE:d id:id EQL expr:e                        {: RESULT = new ValueDefinition(makeLoc(dxleft, exright), id, e); :}
  | DEFINE:d id:id idlist:ids EQL expr:e             {: RESULT = functionDefinition(makeLoc(dxleft, exright), id, ids, e); :}
  | DECLARE:d ids:ids DBLCLN schema:s                {: RESULT = new MultiDeclaration(makeLoc(dxleft, sxright), ids, s); :}
  | DEFINDEX:d id:id                                 {: List<String> names = new ArrayList<String>();
                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, idxright), id, names); :}
-| DEFINDEX:d id:id EQL LBRC names:ids RBRC:p        {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
-//| DEFINDEX:d id:id EQL LBRC names:ids RBRC:p      {: 
-//                                                        pacioli.compiler.Location loc = makeLoc(dxleft, pxright);
-//                                                        
-//                                                        ExpressionNode list = new ApplicationNode(new IdentifierNode("empty_list", loc), new ArrayList<ExpressionNode>(), loc);
-//                                                        for (ExpressionNode item : ids) {
-//                                                           List<ExpressionNode> tup = new ArrayList<ExpressionNode>();
-//                                                           tup.add(list);
-//                                                           tup.add(new StringNode(((IdentifierNode)item).name(), item.location()));
-//                                                           list = new ApplicationNode(new IdentifierNode("_add_mut", loc), tup, item.location());
-//                                                        }
-//                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, list); :}
+ | DEFINDEX:d id:id EQL LBRC names:ids RBRC:p       {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
  | DEFINDEX:d id:id EQL expr:e                      {: RESULT = new IndexSetDefinition(makeLoc(dxleft, exright), id, e); :}
 
-// Hier geen schema gebruiken!? Als het niet een schema is die in resolving een table vult, maar een handige truc om de type en de vars te krijgen
-// dan wegwerken.
- | DEFTYPE:d schema:s EQL type:t                    {: RESULT = new TypeDefinition(makeLoc(dxleft, txright), s.createContext(), s.type, t); :}
+ | DEFTYPE:d vardecls:c type:e EQL type:t           {: RESULT = new TypeDefinition(makeLoc(dxleft, txright), c, e, t); :}
  | DEFALIAS:d id:id EQL unit:u                      {: RESULT = new AliasDefinition(makeLoc(dxleft, uxright), id, u); :}
  | DEFUNIT:d typeid:id EXCL typeid:n EQL unitvec:ps {: /* Todo: remove hashmap and use pair list directly in UnitVectorDefinition */
                                                        java.util.Map<String, UnitNode> unitVector = new HashMap<String, UnitNode>();
@@ -446,36 +434,38 @@ command ::=
  | DEFCONV:d id:id DBLCLN type:t                    {: pacioli.compiler.Location loc = makeLoc(dxleft, txright);
                                                        ExpressionNode conv = new ConversionNode(loc, t);
                                                        RESULT = new ValueDefinition(loc, id, conv); :}
- | DOC:d id:id STRING:s                            {: pacioli.compiler.Location loc = makeLoc(dxleft, sxright);
+ | DOC:d id:id STRING:s                             {: pacioli.compiler.Location loc = makeLoc(dxleft, sxright);
                                                        RESULT = new Documentation(loc, id, new StringNode(s, makeLoc(sxleft, sxright))); :}
- | DOC:d id:kind id:id STRING:s                    {: pacioli.compiler.Location loc = makeLoc(dxleft, sxright);
+ | DOC:d id:kind id:id STRING:s                     {: pacioli.compiler.Location loc = makeLoc(dxleft, sxright);
                                                        RESULT = new Documentation(loc, id.withKind(kind), new StringNode(s, makeLoc(sxleft, sxright))); :}
  | expr:e                                           {: RESULT = new Toplevel(e.location(), e); :}
- | DEFCLASS typeid:id typelist:ids vardecls:v classmembers:e        {: RESULT = new ClassDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); :}
- | DEFINSTANCE typeid:id typelist:ids vardecls:v classmemberdefs:e  {: RESULT = new InstanceDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); :}
+ | DEFCLASS typeid:id typelist:ids
+        vardecls:v classmembers:e                   {: RESULT = new ClassDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); :}
+ | DEFINSTANCE typeid:id 
+        typelist:ids vardecls:v classmemberdefs:e   {: RESULT = new InstanceDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); :}
  ;
 
 classmembers ::=
-    classmembers:ms COMMA typeassertion:tas          {: ms.addAll(tas); RESULT = ms; :}
-    | typeassertion:tas                              {: RESULT = tas; :}
+    classmembers:ms COMMA typeassertion:tas         {: ms.addAll(tas); RESULT = ms; :}
+    | typeassertion:tas                             {: RESULT = tas; :}
     ;
 
 classmemberdefs ::=
-      classmemberdefs:ms COMMA valueeq:eq               {: ms.add(eq); RESULT = ms; :}
-    | valueeq:eq                                        {: RESULT = new ArrayList<ValueEquation>(); RESULT.add(eq); :}
+      classmemberdefs:ms COMMA valueeq:eq           {: ms.add(eq); RESULT = ms; :}
+    | valueeq:eq                                    {: RESULT = new ArrayList<ValueEquation>(); RESULT.add(eq); :}
     ;
 
 typeassertion ::=
-  ids:ids DBLCLN vardecls:c type:t                 {: RESULT = new ArrayList<TypeAssertion>(); 
-                                                      for (IdentifierNode id: ids) {
+  ids:ids DBLCLN vardecls:c type:t                  {: RESULT = new ArrayList<TypeAssertion>(); 
+                                                       for (IdentifierNode id: ids) {
                                                           RESULT.add(new TypeAssertion(makeLoc(idsxleft, txright), id, c, t));
-                                                      } :}
+                                                       } :}
   ;
 
 valueeq ::= 
-   id:id EQL expr:e                                {: RESULT = new ValueEquation(makeLoc(idxleft, exright), id, e); :}
- | id:id idlist:ids EQL expr:e                     {: ExpressionNode function = new LambdaNode(freshUnderscores(idNames(ids)), e, makeLoc(idxleft, exright));
-                                                      RESULT = new ValueEquation(makeLoc(idxleft, exright), id, function); :}
+   id:id EQL expr:e                                 {: RESULT = new ValueEquation(makeLoc(idxleft, exright), id, e); :}
+ | id:id idlist:ids EQL expr:e                      {: ExpressionNode function = new LambdaNode(freshUnderscores(idNames(ids)), e, makeLoc(idxleft, exright));
+                                                       RESULT = new ValueEquation(makeLoc(idxleft, exright), id, function); :}
 ;
 
 
@@ -558,18 +548,18 @@ idlist_tail ::=
 typeid ::= IDENTIFIER:id                            {: RESULT = new TypeIdentifierNode(makeLoc(idxleft, idxright), id); :};
 
 typeids ::= 
-    typeid:id                                           {: RESULT = new LinkedList<TypeIdentifierNode>(); RESULT.add(id); :}
-  | typeids:ids COMMA typeid:id                             {: ids.add(id); RESULT = ids; :}
+    typeid:id                                       {: RESULT = new LinkedList<TypeIdentifierNode>(); RESULT.add(id); :}
+  | typeids:ids COMMA typeid:id                     {: ids.add(id); RESULT = ids; :}
   ;
 
 typeidlist ::= 
     LPAR RPAR                                       {: RESULT = new LinkedList<TypeIdentifierNode>(); :}
-  | LPAR typeidlist_tail:ids                            {: RESULT = ids; :}
+  | LPAR typeidlist_tail:ids                        {: RESULT = ids; :}
   ;
 
 typeidlist_tail ::= 
-    typeid:id RPAR                                      {: RESULT = new LinkedList<TypeIdentifierNode>(); RESULT.add(id); :}
-  | typeid:id COMMA typeidlist_tail:ids                     {: ids.add(0, id); RESULT = ids; :}
+    typeid:id RPAR                                  {: RESULT = new LinkedList<TypeIdentifierNode>(); RESULT.add(id); :}
+  | typeid:id COMMA typeidlist_tail:ids             {: ids.add(0, id); RESULT = ids; :}
   ;
   
 name ::= 
@@ -613,7 +603,7 @@ expr_no_id ::=
  | idlist:ids                                       {: RESULT = new IdListNode(makeLoc(idsxleft, idsxright), ids); :}   
  | LPAR expr_no_id:e RPAR                           {: RESULT = e; :}
  | expr:e1 NEG expr:e2                              {: RESULT = binop("minus", e1, e2); :}
- | expr:e1 HAT integer:e2                              {: RESULT = desugarExp("multiply", e1, e2, makeLoc(e1xleft, e2xright), false); :}
+ | expr:e1 HAT integer:e2                           {: RESULT = desugarExp("multiply", e1, e2, makeLoc(e1xleft, e2xright), false); :}
  | expr:e1 PER expr:e2                              {: RESULT = binop("dim_div", e1, e2); :}
  | expr:e1 EQL expr:e2                              {: RESULT = binop("equal", e1, e2); :}
  | expr:e TRANS:t                                   {: RESULT = singleop("transpose", e, makeLoc(exleft, txright)); :}
@@ -622,7 +612,7 @@ expr_no_id ::=
  | expr:e1 MULT:op expr:e2                          {: RESULT = binop("multiply", e1, e2); :}
  | expr:e1 PLUS expr:e2                             {: RESULT = binop("sum", e1, e2); :}
  | expr:e1 MMULT expr:e2                            {: RESULT = binop("mmult", e1, e2); :}
- | expr:e1 MEXPT integer:e2                            {: RESULT = desugarExp("mmult", e1, e2, makeLoc(e1xleft, e2xright), false); :}
+ | expr:e1 MEXPT integer:e2                         {: RESULT = desugarExp("mmult", e1, e2, makeLoc(e1xleft, e2xright), false); :}
  | expr:e1 DIV expr:e2                              {: RESULT = binop("divide", e1, e2); :}
  | expr:e1 MDIV expr:e2                             {: RESULT = binop("right_division", e1, e2); :}
  | expr:e1 LEFTDIV expr:e2                          {: RESULT = binop("left_divide", e1, e2); :}
@@ -645,7 +635,7 @@ expr_no_id ::=
                                                        RESULT = new BranchNode(e1, e2, new ConstNode("false", loc), loc); :}
  | expr:e1 OR expr:e2                               {: pacioli.compiler.Location loc = makeLoc(e1xleft, e2xright);
                                                        RESULT = new BranchNode(e1, new ConstNode("true", loc), e2, loc); :}
- | expr:fun exprlist:args                             {: RESULT = new ApplicationNode(fun, args, makeLoc(funxleft, argsxright)); :}
+ | expr:fun exprlist:args                           {: RESULT = new ApplicationNode(fun, args, makeLoc(funxleft, argsxright)); :}
  | idlist:ids TO expr:b                             {: RESULT = new LambdaNode(freshUnderscores(idNames(ids)), b, makeLoc(idsxleft, bxright)); :}
  | IF:i expr:c THEN expr:b if_tail:t                {: RESULT = new BranchNode(c, b, t, makeLoc(ixleft, txright)); :}
  | LET lettail:e                                    {: RESULT = e; :}
@@ -732,9 +722,9 @@ statement ::=
  ;
 
 stm_if_tail ::= 
-   ELSEIF:l expr:e THEN sequence:s stm_if_tail:t   {: pacioli.compiler.Location loc = makeLoc(lxleft, txright);
+   ELSEIF:l expr:e THEN sequence:s stm_if_tail:t    {: pacioli.compiler.Location loc = makeLoc(lxleft, txright);
                                                        RESULT = new IfStatementNode(loc, e, s, t); :}
- | ELSE:l sequence:s END:e                         {: RESULT = s; :}
+ | ELSE:l sequence:s END:e                          {: RESULT = s; :}
  | END:e                                            {: pacioli.compiler.Location loc = makeLoc(exleft, exright);
                                                        RESULT = new ApplicationNode(new IdentifierNode("_skip", loc), new ArrayList<ExpressionNode>(), loc); :}
  ;
@@ -779,8 +769,7 @@ part ::=
                                                             errorLocation = g.location();
                                                             errorMessage = "Expected a variable or tuple";
                                                             report_fatal_error("Fixme: this string is not used? How to throw an error here?", g);
-                                                        }
-                                                    :}
+                                                        } :}
  | expr:g ASSIGN expr:e                             {:  if (g instanceof IdListNode) {
                                                            RESULT = new TupleAssignmentClause(((IdListNode)g).ids, e);
                                                         } else if (g instanceof IdentifierNode) {
@@ -789,8 +778,7 @@ part ::=
                                                             errorLocation = g.location();
                                                             errorMessage = "Expected a variable or tuple";
                                                             report_fatal_error("Fixme: this string is not used? How to throw an error here?", g);
-                                                        } 
-                                                    :}
+                                                        } :}
  ;
 
 //------------------------------------------------------------------------------
@@ -801,15 +789,15 @@ schema ::=
     vardecls:c type:t                               {: RESULT = new SchemaNode(makeLoc(cxleft, txright), c, t); :};
 
 vardecls ::=
-    FORTYPE:f typeids:ids classcondition:cs COLON vardecls:s  {: s.add(new QuantNode(makeLoc(fxleft, sxright), Kind.TYPE, ids, cs));
-                                                            RESULT = s; :}
-  | FORINDEX:f typeids:ids classcondition:cs COLON vardecls:s {:  s.add(new QuantNode(makeLoc(fxleft, sxright), Kind.INDEX, ids, cs));
-                                                            RESULT = s; :}
-  | FORUNIT:f vars:vs classcondition:cs COLON vardecls:s  {:  s.add(new QuantNode(makeLoc(fxleft, sxright), Kind.UNIT, vs, cs));
-                                                            RESULT = s; :}
-  | FOROP:f typeids:vs classcondition:cs COLON vardecls:s    {: s.add(new QuantNode(makeLoc(fxleft, sxright), Kind.OP, vs, cs));
-                                                            RESULT = s; :}
-  |                                                     {:  RESULT = new ArrayList<QuantNode>(); :}
+    FORTYPE:f typeids:ids classcondition:cs COLON vardecls:s    {: s.add(new QuantNode(makeLoc(fxleft, sxright), Kind.TYPE, ids, cs));
+                                                                   RESULT = s; :}
+  | FORINDEX:f typeids:ids classcondition:cs COLON vardecls:s   {: s.add(new QuantNode(makeLoc(fxleft, sxright), Kind.INDEX, ids, cs));
+                                                                   RESULT = s; :}
+  | FORUNIT:f vars:vs classcondition:cs COLON vardecls:s        {: s.add(new QuantNode(makeLoc(fxleft, sxright), Kind.UNIT, vs, cs));
+                                                                   RESULT = s; :}
+  | FOROP:f typeids:vs classcondition:cs COLON vardecls:s       {: s.add(new QuantNode(makeLoc(fxleft, sxright), Kind.OP, vs, cs));
+                                                                   RESULT = s; :}
+  |                                                             {: RESULT = new ArrayList<QuantNode>(); :}
   ;
 
 classcondition ::=
@@ -824,10 +812,7 @@ conditions ::=
 
 condition ::=
     typeid:id typelist:ts                           {: List<TypeNode> nodes= new ArrayList<>();
-                                                         //for (TypeIdentifierNode typeid: ts) {
-                                                          //  nodes.add(typeid);
-                                                        // }
-                                                         RESULT = new TypePredicateNode(makeLoc(idxleft, tsxright), id, ts); :}
+                                                       RESULT = new TypePredicateNode(makeLoc(idxleft, tsxright), id, ts); :}
   ;
 
 vars ::= 
@@ -837,7 +822,7 @@ vars ::=
 
 var ::= 
    typeid:id                                        {: RESULT = id; :}
- | typeid:idx EXCL typeid:id                                {: RESULT = new TypeIdentifierNode(makeLoc(idxxleft, idxright), idx.name() + "!" + id.name());  :}
+ | typeid:idx EXCL typeid:id                        {: RESULT = new TypeIdentifierNode(makeLoc(idxxleft, idxright), idx.name() + "!" + id.name());  :}
  ;
 
 types ::= 

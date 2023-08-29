@@ -116,7 +116,7 @@ public class ResolveVisitor extends IdentityVisitor {
     @Override
     public void visit(TypeDefinition node) {
 
-        pushTypeContext(node.context, node.location());
+        pushTypeContext(node.createContext(), node.location());
 
         // throw new RuntimeException("todo ");
         // Pacioli.logln("NOT VISITING TYPE DEF %s", node.getLocation().description());
