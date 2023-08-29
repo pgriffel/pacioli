@@ -24,7 +24,6 @@ package pacioli.ast.definition;
 import java.util.ArrayList;
 import java.util.List;
 
-import pacioli.ast.TypeConstraint;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
@@ -33,6 +32,7 @@ import pacioli.types.TypeContext;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeApplicationNode;
+import pacioli.types.ast.TypeConstraint;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.type.OperatorConst;

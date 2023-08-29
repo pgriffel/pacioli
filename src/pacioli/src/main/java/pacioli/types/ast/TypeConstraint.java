@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli.ast;
+package pacioli.types.ast;
 
 import java.io.PrintWriter;
 import java.util.HashMap;
@@ -30,10 +30,6 @@ import pacioli.Pacioli;
 import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.PacioliException;
 import pacioli.types.Substitution;
-import pacioli.types.ast.BangTypeNode;
-import pacioli.types.ast.TypeApplicationNode;
-import pacioli.types.ast.TypeIdentifierNode;
-import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.IndexSetVar;
