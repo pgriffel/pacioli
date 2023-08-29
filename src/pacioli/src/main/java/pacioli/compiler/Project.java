@@ -43,6 +43,10 @@ public class Project {
         this.graph = graph;
     }
 
+    public File findDocFile() {
+        return this.file.findDocFile();
+    }
+
     /**
      * Constructor for a project.
      * 

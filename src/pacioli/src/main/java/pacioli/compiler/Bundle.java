@@ -3,6 +3,7 @@ package pacioli.compiler;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -330,10 +331,19 @@ public class Bundle {
      * @throws PacioliException
      * @throws IOException
      */
-    public void printAPI(List<File> includes, String version) throws PacioliException, IOException {
+    public void printAPI(List<File> includes, String version, File docFile) throws PacioliException, IOException {
 
         PrintWriter writer = new PrintWriter(System.out);
         DocumentationGenerator generator = new DocumentationGenerator(writer, file.moduleName(), version);
+
+        if (docFile.exists()) {
+            List<String> read = Files.readAllLines(docFile.toPath());
+            String total = "";
+            for (String line : read) {
+                total += line + "\n";
+            }
+            generator.setIntro(total);
+        }
 
         for (String name : environment.values().allNames()) {
             ValueInfo info = environment.values().lookup(name);

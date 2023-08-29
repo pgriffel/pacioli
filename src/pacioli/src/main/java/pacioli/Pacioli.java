@@ -405,7 +405,7 @@ public class Pacioli {
             project.includeTree(file).forEach(x -> {
                 includes.add(x.fsFile());
             });
-            project.loadBundle().printAPI(includes, "dev"); // TODO: version, see above
+            project.loadBundle().printAPI(includes, "dev", project.findDocFile()); // TODO: version, see above
 
         } catch (IOException e) {
             println("\nError: cannot generate api for file '%s':\n\n%s", fileName, e);

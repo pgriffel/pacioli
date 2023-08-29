@@ -50,6 +50,8 @@ public class DocumentationGenerator {
     // Info for index sets
     Map<String, String> indexSetDocs = new HashMap<>();
 
+    private String intro;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -239,7 +241,11 @@ public class DocumentationGenerator {
 
         // Generate a general section about the module
         println("<h1>The <code>%s</code> library</h1>", module);
-        println("<p>Interface for the <code>%s</code> library</p>", module);
+        if (this.intro != null) {
+            println(intro);
+        } else {
+            println("<p>Interface for the <code>%s</code> library</p>", module);
+        }
         println("<small>Version %s, %s</small>", version, ZonedDateTime.now());
 
         // Print the types for the values and the function in a synopsis section
@@ -330,6 +336,10 @@ public class DocumentationGenerator {
         // Finish the html
         println("</body>");
         println("</html>");
+    }
+
+    public void setIntro(String intro) {
+        this.intro = intro;
     }
 
 }

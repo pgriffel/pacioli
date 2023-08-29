@@ -140,6 +140,10 @@ public class PacioliFile extends AbstractPrintable {
     public static final List<String> defaultIncludes = new ArrayList<String>(
             Arrays.asList("base", "standard"));
 
+    public File findDocFile() {
+        return new File(fsFile.getParentFile(), "doc.html");
+    }
+
     public Optional<PacioliFile> findInclude(String name) {
         File include = new File(fsFile.getParentFile(), name + ".pacioli");
 
