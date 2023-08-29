@@ -12,13 +12,11 @@ public class MultiDeclaration extends AbstractDefinition {
 
     public final List<IdentifierNode> ids;
     public final TypeNode node;
-    public final boolean isPublic;
 
     public MultiDeclaration(Location location, List<IdentifierNode> ids, TypeNode node) {
         super(location);
         this.ids = ids;
         this.node = node;
-        this.isPublic = false; // obsolete
     }
 
     @Override

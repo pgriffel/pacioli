@@ -431,6 +431,10 @@ definition ::=
                                                        ExpressionNode body = new MatrixLiteralNode(makeLoc(mxleft, mxright), s, m);
                                                        //ExpressionNode body = new MatrixLiteralNode(makeLoc(mxleft, mxright), s, stringPairs);
                                                        RESULT = new ValueDefinition(makeLoc(dxleft, mxright), id, body); :}
+ | DEFCLASS typeid:id typelist:ids
+        vardecls:v classmembers:e                   {: RESULT = new ClassDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); :}
+ | DEFINSTANCE typeid:id 
+        typelist:ids vardecls:v classmemberdefs:e   {: RESULT = new InstanceDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); :}
  | DEFCONV:d id:id DBLCLN type:t                    {: pacioli.compiler.Location loc = makeLoc(dxleft, txright);
                                                        ExpressionNode conv = new ConversionNode(loc, t);
                                                        RESULT = new ValueDefinition(loc, id, conv); :}
@@ -439,35 +443,7 @@ definition ::=
  | DOC:d id:kind id:id STRING:s                     {: pacioli.compiler.Location loc = makeLoc(dxleft, sxright);
                                                        RESULT = new Documentation(loc, id.withKind(kind), new StringNode(s, makeLoc(sxleft, sxright))); :}
  | expr:e                                           {: RESULT = new Toplevel(e.location(), e); :}
- | DEFCLASS typeid:id typelist:ids
-        vardecls:v classmembers:e                   {: RESULT = new ClassDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); :}
- | DEFINSTANCE typeid:id 
-        typelist:ids vardecls:v classmemberdefs:e   {: RESULT = new InstanceDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); :}
  ;
-
-classmembers ::=
-    classmembers:ms COMMA typeassertion:tas         {: ms.addAll(tas); RESULT = ms; :}
-    | typeassertion:tas                             {: RESULT = tas; :}
-    ;
-
-classmemberdefs ::=
-      classmemberdefs:ms COMMA valueeq:eq           {: ms.add(eq); RESULT = ms; :}
-    | valueeq:eq                                    {: RESULT = new ArrayList<ValueEquation>(); RESULT.add(eq); :}
-    ;
-
-typeassertion ::=
-  ids:ids DBLCLN vardecls:c type:t                  {: RESULT = new ArrayList<TypeAssertion>(); 
-                                                       for (IdentifierNode id: ids) {
-                                                          RESULT.add(new TypeAssertion(makeLoc(idsxleft, txright), id, c, t));
-                                                       } :}
-  ;
-
-valueeq ::= 
-   id:id EQL expr:e                                 {: RESULT = new ValueEquation(makeLoc(idxleft, exright), id, e); :}
- | id:id idlist:ids EQL expr:e                      {: ExpressionNode function = new LambdaNode(freshUnderscores(idNames(ids)), e, makeLoc(idxleft, exright));
-                                                       RESULT = new ValueEquation(makeLoc(idxleft, exright), id, function); :}
-;
-
 
 //------------------------------------------------------------------------------
 // Include path
@@ -571,6 +547,33 @@ names ::=
     name:n                                          {: RESULT = new LinkedList<IdentifierNode>(Arrays.asList(n)); :}
   | names:ns COMMA name:n                           {: ns.add(n); RESULT = ns; :}
   ;
+
+//------------------------------------------------------------------------------
+// Class members
+//------------------------------------------------------------------------------
+
+classmembers ::=
+    classmembers:ms COMMA typeassertion:tas         {: ms.addAll(tas); RESULT = ms; :}
+    | typeassertion:tas                             {: RESULT = tas; :}
+    ;
+
+classmemberdefs ::=
+      classmemberdefs:ms COMMA valueeq:eq           {: ms.add(eq); RESULT = ms; :}
+    | valueeq:eq                                    {: RESULT = new ArrayList<ValueEquation>(); RESULT.add(eq); :}
+    ;
+
+typeassertion ::=
+  ids:ids DBLCLN vardecls:c type:t                  {: RESULT = new ArrayList<TypeAssertion>(); 
+                                                       for (IdentifierNode id: ids) {
+                                                          RESULT.add(new TypeAssertion(makeLoc(idsxleft, txright), id, c, t));
+                                                       } :}
+  ;
+
+valueeq ::= 
+   id:id EQL expr:e                                 {: RESULT = new ValueEquation(makeLoc(idxleft, exright), id, e); :}
+ | id:id idlist:ids EQL expr:e                      {: ExpressionNode function = new LambdaNode(freshUnderscores(idNames(ids)), e, makeLoc(idxleft, exright));
+                                                       RESULT = new ValueEquation(makeLoc(idxleft, exright), id, function); :}
+;
 
 //------------------------------------------------------------------------------
 // Expressions

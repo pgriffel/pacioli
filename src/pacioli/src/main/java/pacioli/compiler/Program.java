@@ -483,8 +483,7 @@ public class Program {
             Declaration constructorDeclaration = new Declaration(
                     classInfo.location(),
                     constructorInfo.definition().get().id,
-                    constructorInfo.declaredType().get(),
-                    true);
+                    constructorInfo.declaredType().get());
 
             Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n\nGenerated definitions for class %s:",
                     classInfo.name());
@@ -500,8 +499,7 @@ public class Program {
                 Declaration memberDeclaration = new Declaration(
                         memberInfo.location(),
                         new IdentifierNode(memberInfo.name(), memberInfo.location()),
-                        memberInfo.declaredType().get(),
-                        true);
+                        memberInfo.declaredType().get());
                 Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", memberDeclaration.pretty());
                 if (memberInfo.definition().isPresent()) {
                     Pacioli.logIf(Pacioli.Options.showClassRewriting, "\n%s", memberInfo.definition().get().pretty());

@@ -58,7 +58,7 @@ import pacioli.compiler.CompilationSettings.Target;
 public class Pacioli {
 
     // Constants
-    private static String OPTIONS_FILE = "compiler.options";
+    private static String OPTIONS_FILE = "debug.options";
     private static String VERSION = "v0.5.0-SNAPSHOT";
 
     // Internal settings for log messages. Actual values depend on values in the
@@ -314,8 +314,9 @@ public class Pacioli {
             });
         } catch (FileNotFoundException ex) {
         } catch (IOException ex) {
-            String s = Paths.get("").toAbsolutePath().toString();
-            println("Error while loading file 'compiler.options' in directory '%s'", s);
+            println("Error while loading file '%s' in directory '%s'",
+                    OPTIONS_FILE,
+                    Paths.get("").toAbsolutePath().toString());
             println(ex.getLocalizedMessage());
         }
     }
@@ -542,9 +543,9 @@ public class Pacioli {
 
         }
 
-        String s = Paths.get("").toAbsolutePath().toString();
-        println("\nThe compiler looks for dev options in file 'compiler.options' in directory %s. The current options are:",
-                s);
+        println("\nThe compiler looks for dev options in file '%s' in directory %s. The current options are:",
+                OPTIONS_FILE,
+                Paths.get("").toAbsolutePath().toString());
 
         println("trace=%s", Options.trace);
         println("showFileLoads=%s", Options.showFileLoads);

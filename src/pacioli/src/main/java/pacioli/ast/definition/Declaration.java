@@ -9,17 +9,15 @@ public class Declaration extends AbstractDefinition {
 
     public final IdentifierNode id;
     public final TypeNode typeNode;
-    public final boolean isPublic;
 
-    public Declaration(Location location, IdentifierNode id, TypeNode typeNode, boolean isPublic) {
+    public Declaration(Location location, IdentifierNode id, TypeNode typeNode) {
         super(location);
         this.id = id;
         this.typeNode = typeNode;
-        this.isPublic = isPublic;
     }
 
     public Declaration transform(TypeNode node) {
-        return new Declaration(location(), id, node, isPublic);
+        return new Declaration(location(), id, node);
     }
 
     @Override
