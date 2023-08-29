@@ -6,13 +6,16 @@ import java.util.List;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class ContextNode extends AbstractTypeNode {
+public class QuantNode extends AbstractTypeNode {
 
     public final TypeIdentifierNode.Kind kind;
     public final List<TypeIdentifierNode> ids;
     public final List<TypeApplicationNode> conditions;
 
-    public ContextNode(Location location, TypeIdentifierNode.Kind kind, List<TypeIdentifierNode> ids,
+    public QuantNode(
+            Location location,
+            TypeIdentifierNode.Kind kind,
+            List<TypeIdentifierNode> ids,
             List<TypeApplicationNode> conditions) {
         super(location);
         this.kind = kind;
@@ -25,7 +28,7 @@ public class ContextNode extends AbstractTypeNode {
         visitor.accept(this);
     }
 
-    public ContextNode withoutConditions() {
-        return new ContextNode(location(), this.kind, this.ids, new ArrayList<>());
+    public QuantNode withoutConditions() {
+        return new QuantNode(location(), this.kind, this.ids, new ArrayList<>());
     }
 }

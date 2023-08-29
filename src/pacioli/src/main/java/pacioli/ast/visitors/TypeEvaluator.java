@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 
-import pacioli.Pacioli;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.compiler.PacioliException;
+import pacioli.symboltable.info.ClassInfo;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ScalarBaseInfo;
@@ -19,7 +19,7 @@ import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.types.ast.BangTypeNode;
-import pacioli.types.ast.ContextNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
 import pacioli.types.ast.PrefixUnitTypeNode;
@@ -42,13 +42,12 @@ import pacioli.types.type.Operator;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
-import pacioli.types.type.Quant;
 import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
-import pacioli.types.type.IsInClass;
+import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.VectorUnitVar;
 import uom.Fraction;
@@ -146,24 +145,18 @@ public class TypeEvaluator extends IdentityVisitor {
 
     @Override
     public void visit(SchemaNode node) {
-        List<Quant> quants = new ArrayList<>();
-        for (ContextNode contextNode : node.contextNodes) {
-            for (TypeIdentifierNode id : contextNode.ids) {
-                TypeIdentifier conditionId = new TypeIdentifier("class", id.name());
-                List<IsInClass> predicates = new ArrayList<>();
-                for (TypeApplicationNode condition : contextNode.conditions) {
-                    TypeObject conditionType = typeAccept(condition);
-                    IsInClass predicate = new IsInClass(conditionId, conditionType);
-                    predicates.add(predicate);
+        List<TypePredicate> predicates = new ArrayList<>();
+        for (QuantNode quantNode : node.quantNodes) {
+            for (TypeApplicationNode condition : quantNode.conditions) {
+                List<TypeObject> argTypes = new ArrayList<>();
+                for (TypeNode arg : condition.args) {
+                    argTypes.add(typeAccept(arg));
                 }
-                quants.add(new Quant(contextNode.kind, conditionId, predicates));
-                if (predicates.size() > 0) {
-                    Pacioli.log("quant is %s", quants);
-                }
+                TypePredicate predicate = new TypePredicate((ClassInfo) condition.op.info, argTypes);
+                predicates.add(predicate);
             }
         }
-        // Pacioli.log("quant is %s", quants);
-        returnType(new Schema(node.createContext().variables(), typeAccept(node.type), node.contextNodes));
+        returnType(new Schema(node.createContext().variables(), typeAccept(node.type), predicates));
     }
 
     @Override

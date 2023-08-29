@@ -42,7 +42,7 @@ import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.types.ast.BangTypeNode;
-import pacioli.types.ast.ContextNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
 import pacioli.types.ast.PrefixUnitTypeNode;
@@ -171,5 +171,5 @@ public interface Visitor {
 
     void accept(TypeAssertion typeAssertion);
 
-    void accept(ContextNode contextNode);
+    void accept(QuantNode quantNode);
 }

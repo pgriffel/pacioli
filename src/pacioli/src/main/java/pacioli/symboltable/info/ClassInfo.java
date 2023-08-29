@@ -69,7 +69,7 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
                 .location(defLocation)
                 .definition(new TypeDefinition(
                         defLocation,
-                        TypeContext.fromContextNodes(this.definition.contextNodes),
+                        TypeContext.fromQuantNodes(this.definition.quantNodes),
                         this.dictTypeLHS(),
                         this.dictTypeRHS()))
                 .build();
@@ -100,7 +100,7 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
         builder.declaredType(
                 new SchemaNode(
                         defLocation,
-                        this.definition.contextNodesWithoutConditions(),
+                        this.definition.quantNodesWithoutConditions(),
                         new FunctionTypeNode(defLocation, this.dictTypeRHS(), this.dictTypeLHS())));
 
         return builder.build();
@@ -144,7 +144,7 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
                                 false));
 
                 // Skip for now
-                // builder.definition(null);
+                builder.definition(null);
 
                 definitions.add(builder.build());
                 counter++;
@@ -176,7 +176,7 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
 
         return new SchemaNode(
                 member.location(),
-                this.definition.contextNodesWithoutConditions(),
+                this.definition.quantNodesWithoutConditions(),
                 memberType);
     }
 

@@ -28,7 +28,7 @@ import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.types.ast.ContextNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeApplicationNode;
 
 /**
@@ -48,7 +48,7 @@ public class InstanceDefinition extends AbstractDefinition {
     /**
      * The quantified variables of the type instance. Possibly contain conditions.
      */
-    public final List<ContextNode> contextNodes;
+    public final List<QuantNode> quantNodes;
 
     /**
      * The overloaded function implementations
@@ -58,11 +58,11 @@ public class InstanceDefinition extends AbstractDefinition {
     public InstanceDefinition(
             Location location,
             TypeApplicationNode type,
-            List<ContextNode> contextNodes,
+            List<QuantNode> quantNodes,
             List<ValueEquation> members) {
         super(location);
         this.type = type;
-        this.contextNodes = contextNodes;
+        this.quantNodes = quantNodes;
         this.members = members;
     }
 

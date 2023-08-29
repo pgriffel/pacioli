@@ -50,7 +50,7 @@ import pacioli.ast.unit.UnitNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.types.ast.BangTypeNode;
-import pacioli.types.ast.ContextNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
 import pacioli.types.ast.PrefixUnitTypeNode;
@@ -198,30 +198,30 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(ClassDefinition node) {
-        List<ContextNode> contextNodes = new ArrayList<>();
-        for (ContextNode contextNode : node.contextNodes) {
-            contextNodes.add((ContextNode) nodeAccept(contextNode));
+        List<QuantNode> quantNodes = new ArrayList<>();
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNodes.add((QuantNode) nodeAccept(quantNode));
         }
         List<TypeAssertion> members = new ArrayList<>();
         for (TypeAssertion member : node.members) {
             members.add((TypeAssertion) nodeAccept(member));
         }
-        returnNode(new ClassDefinition(node.location(), (TypeApplicationNode) nodeAccept(node.type), contextNodes,
+        returnNode(new ClassDefinition(node.location(), (TypeApplicationNode) nodeAccept(node.type), quantNodes,
                 members));
     }
 
     @Override
     public void visit(InstanceDefinition node) {
-        List<ContextNode> contextNodes = new ArrayList<>();
-        for (ContextNode contextNode : node.contextNodes) {
-            contextNodes.add((ContextNode) nodeAccept(contextNode));
+        List<QuantNode> quantNodes = new ArrayList<>();
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNodes.add((QuantNode) nodeAccept(quantNode));
         }
         List<ValueEquation> members = new ArrayList<>();
         for (ValueEquation member : node.members) {
             members.add((ValueEquation) nodeAccept(member));
         }
         returnNode(
-                new InstanceDefinition(node.location(), (TypeApplicationNode) nodeAccept(node.type), contextNodes,
+                new InstanceDefinition(node.location(), (TypeApplicationNode) nodeAccept(node.type), quantNodes,
                         members));
     }
 
@@ -482,20 +482,20 @@ public class IdentityTransformation implements Visitor {
         IdentifierNode id = (IdentifierNode) nodeAccept(node.id);
 
         // Visit the type variables
-        List<ContextNode> contextNodes = new ArrayList<>();
-        for (ContextNode contextNode : node.contextNodes) {
-            contextNodes.add((ContextNode) nodeAccept(contextNode));
+        List<QuantNode> quantNodes = new ArrayList<>();
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNodes.add((QuantNode) nodeAccept(quantNode));
         }
 
         // Visit the type
         TypeNode type = (TypeNode) nodeAccept(node.type);
 
         // Create the transformed node
-        returnNode(new TypeAssertion(node.location(), id, contextNodes, type));
+        returnNode(new TypeAssertion(node.location(), id, quantNodes, type));
     }
 
     @Override
-    public void accept(ContextNode node) {
+    public void accept(QuantNode node) {
         List<TypeIdentifierNode> ids = new ArrayList<>();
         for (TypeIdentifierNode id : node.ids) {
             Node visited = nodeAccept(id);
@@ -508,7 +508,7 @@ public class IdentityTransformation implements Visitor {
             assert (visited instanceof TypeApplicationNode);
             conditions.add((TypeApplicationNode) visited);
         }
-        returnNode(new ContextNode(node.location(), node.kind, ids, conditions));
+        returnNode(new QuantNode(node.location(), node.kind, ids, conditions));
     }
 
 }

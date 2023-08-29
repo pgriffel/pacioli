@@ -28,7 +28,7 @@ import java.util.Map;
 
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
-import pacioli.types.ast.ContextNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
 
@@ -42,7 +42,7 @@ public class ClassDefinition extends AbstractDefinition {
     /**
      * The quantified variables of the typeclass. Possibly contain conditions.
      */
-    public final List<ContextNode> contextNodes;
+    public final List<QuantNode> quantNodes;
 
     /**
      * The overloaded function types
@@ -57,23 +57,23 @@ public class ClassDefinition extends AbstractDefinition {
     public ClassDefinition(
             Location location,
             TypeApplicationNode type,
-            List<ContextNode> contextNodes,
+            List<QuantNode> quantNodes,
             List<TypeAssertion> members) {
         super(location);
         this.type = type;
-        this.contextNodes = contextNodes;
+        this.quantNodes = quantNodes;
         this.members = members;
         this.memberSchemas = new HashMap<>();
 
         // Create a schema for each overloaded function. This schema is mutated
         // during resolving.
         for (TypeAssertion assertion : members) {
-            List<ContextNode> combinedContextNodes = new ArrayList<>();
-            combinedContextNodes.addAll(this.contextNodesWithoutConditions());
-            combinedContextNodes.addAll(assertion.contextNodes);
+            List<QuantNode> combinedquantNodes = new ArrayList<>();
+            combinedquantNodes.addAll(this.quantNodesWithoutConditions());
+            combinedquantNodes.addAll(assertion.quantNodes);
             this.memberSchemas.put(
                     assertion.id.name(),
-                    new SchemaNode(assertion.location(), combinedContextNodes, assertion.type));
+                    new SchemaNode(assertion.location(), combinedquantNodes, assertion.type));
         }
     }
 
@@ -104,9 +104,9 @@ public class ClassDefinition extends AbstractDefinition {
         }
     }
 
-    public List<ContextNode> contextNodesWithoutConditions() {
-        List<ContextNode> stripped = new ArrayList<>();
-        for (ContextNode node : this.contextNodes) {
+    public List<QuantNode> quantNodesWithoutConditions() {
+        List<QuantNode> stripped = new ArrayList<>();
+        for (QuantNode node : this.quantNodes) {
             stripped.add(node.withoutConditions());
         }
         return stripped;

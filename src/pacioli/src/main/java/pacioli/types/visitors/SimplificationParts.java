@@ -13,10 +13,12 @@ import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
+import pacioli.types.type.Quant;
 import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
+import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.UnitVar;
 import pacioli.types.type.Var;
@@ -130,6 +132,18 @@ public class SimplificationParts implements TypeVisitor {
     @Override
     public void visit(OperatorVar operatorVar) {
         returnParts(new ArrayList<Unit<TypeBase>>());
+    }
+
+    @Override
+    public void visit(TypePredicate typePredicate) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public void visit(Quant quant) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
 }

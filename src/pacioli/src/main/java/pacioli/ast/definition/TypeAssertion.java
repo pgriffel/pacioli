@@ -27,23 +27,23 @@ import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.compiler.Location;
 import pacioli.types.ast.AbstractTypeNode;
-import pacioli.types.ast.ContextNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeNode;
 
 public class TypeAssertion extends AbstractTypeNode {
 
     public final IdentifierNode id;
-    public final List<ContextNode> contextNodes;
+    public final List<QuantNode> quantNodes;
     public final TypeNode type;
 
     public TypeAssertion(
             Location location,
             IdentifierNode id,
-            List<ContextNode> contextNodes,
+            List<QuantNode> quantNodes,
             TypeNode type) {
         super(location);
         this.id = id;
-        this.contextNodes = contextNodes;
+        this.quantNodes = quantNodes;
         this.type = type;
     }
 

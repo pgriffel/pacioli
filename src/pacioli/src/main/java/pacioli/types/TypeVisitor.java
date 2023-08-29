@@ -8,8 +8,10 @@ import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
+import pacioli.types.type.Quant;
 import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
+import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.VectorUnitVar;
 
@@ -38,4 +40,8 @@ public interface TypeVisitor {
     void visit(OperatorConst operatorConst);
 
     void visit(OperatorVar operatorVar);
+
+    void visit(TypePredicate typePredicate);
+
+    void visit(Quant quant);
 }

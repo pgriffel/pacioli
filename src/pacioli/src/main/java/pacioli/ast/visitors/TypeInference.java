@@ -4,13 +4,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
-import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
@@ -136,7 +134,7 @@ public class TypeInference extends IdentityVisitor {
             // Try to get the n parameter
             try {
                 ConstNode nNode = (ConstNode) node.arguments.get(1);
-                n = new Integer(nNode.valueString());
+                n = Integer.valueOf(nNode.valueString());
             } catch (Exception ex) {
                 throw new PacioliException(node.arguments.get(1).location(),
                         "Second argument of nmode must be a number");

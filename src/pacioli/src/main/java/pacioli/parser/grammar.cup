@@ -312,8 +312,8 @@ parser code {:
 :};
 
 
-terminal INCLUDE, IMPORT;
-terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC, EXPORT, PUBLIC;
+terminal INCLUDE, IMPORT, EXPORT, PUBLIC;
+terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC;
 terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, DO, ASSIGN, EXCL, TO, FROM;
 terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, FOROP, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
@@ -323,52 +323,52 @@ terminal EQL, NEQ, EQUIV, LE, GT, LEQ, GTQ, AND, OR, IMPLIES, FOLLOWSFROM;
 terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING, QUESTIONMARKS, WHERE;
 
 
-non terminal ProgramNode             program;
-non terminal List<Node>              includes;
-non terminal List<Definition>        commands;
-non terminal Definition              command;
-non terminal ExpressionNode          expr, expr_no_id, if_tail, lettail, letrest, listlit;
-non terminal List<ExpressionNode>    exprs, exprlist;
-non terminal IdentifierNode          id, name;
-non terminal TypeIdentifierNode      typeid;
-non terminal List<IdentifierNode>    ids, names, idlist, idlist_tail, exports;
+non terminal ProgramNode                     program;
+non terminal List<Node>                      includes;
+non terminal List<Definition>                commands;
+non terminal Definition                      command;
+non terminal ExpressionNode                  expr, expr_no_id, if_tail, lettail, letrest, listlit;
+non terminal List<ExpressionNode>            exprs, exprlist;
+non terminal IdentifierNode                  id, name;
+non terminal TypeIdentifierNode              typeid;
+non terminal List<IdentifierNode>            ids, names, idlist, idlist_tail, exports;
 non terminal List<TypeIdentifierNode>        typeids, typeidlist, typeidlist_tail;
-non terminal UnitNode                dimnum, unit, unit_term;
-non terminal String                  unsigned, number, integer;
-non terminal StringNode              path;
-non terminal List<UnitDecl>          unitvec, unitvec_parts;
-non terminal List<ValueDecl>         matrix_parts, matrix;
-non terminal TypeNode                type, type_app, function_type, matrix_type, dim_type;
-non terminal SchemaNode              schema;
-non terminal List<ContextNode>               vardecls;
-non terminal List<TypeNode>          types, typelist;
-non terminal TypeIdentifierNode                  var;
+non terminal UnitNode                        dimnum, unit, unit_term;
+non terminal String                          unsigned, number, integer;
+non terminal StringNode                      path;
+non terminal List<UnitDecl>                  unitvec, unitvec_parts;
+non terminal List<ValueDecl>                 matrix_parts, matrix;
+non terminal TypeNode                        type, type_app, function_type, matrix_type, dim_type;
+non terminal SchemaNode                      schema;
+non terminal List<QuantNode>                 vardecls;
+non terminal List<TypeNode>                  types, typelist;
+non terminal TypeIdentifierNode              var;
 non terminal List<TypeIdentifierNode>        vars;
-non terminal KeyNode                 indexkey;
-non terminal ExpressionNode          comprehension;
-non terminal List<Object>            parts;
-non terminal Object                  part;
-non terminal List<ExpressionNode>    statements;
-non terminal SequenceNode            sequence;
-non terminal ExpressionNode          statement, stm_if_tail;
-non terminal                         quali;
+non terminal KeyNode                         indexkey;
+non terminal ExpressionNode                  comprehension;
+non terminal List<Object>                    parts;
+non terminal Object                          part;
+non terminal List<ExpressionNode>            statements;
+non terminal SequenceNode                    sequence;
+non terminal ExpressionNode                  statement, stm_if_tail;
+non terminal                                 quali;
 non terminal List<TypeApplicationNode>       classcondition, conditions;
 non terminal TypeApplicationNode             condition;
 non terminal List<TypeAssertion>             classmembers, typeassertion;
 non terminal List<ValueEquation>             classmemberdefs;
 non terminal ValueEquation                   valueeq;
 
-precedence right TO;
-precedence nonassoc  EQUIV, FOLLOWSFROM, IMPLIES;
-precedence left AND, OR;
-precedence nonassoc EQL, LEQ, GTQ, NEQ, LE, GT ;
-precedence left PLUS, NEG;
-precedence left MOD;
-precedence left MULT, MMULT, DIV, MDIV, LEFTDIV, MLEFTDIV, LSCALE, RSCALE, LSCALEDOWN, RSCALEDOWN ;
-precedence left PER;
-precedence left HAT, MEXPT;
-precedence right TRANS, RECI, DIMINV;
-precedence left LPAR;
+precedence right        TO;
+precedence nonassoc     EQUIV, FOLLOWSFROM, IMPLIES;
+precedence left         AND, OR;
+precedence nonassoc     EQL, LEQ, GTQ, NEQ, LE, GT;
+precedence left         PLUS, NEG;
+precedence left         MOD;
+precedence left         MULT, MMULT, DIV, MDIV, LEFTDIV, MLEFTDIV, LSCALE, RSCALE, LSCALEDOWN, RSCALEDOWN;
+precedence left         PER;
+precedence left         HAT, MEXPT;
+precedence right        TRANS, RECI, DIMINV;
+precedence left         LPAR;
 
 
 //------------------------------------------------------------------------------
@@ -412,11 +412,11 @@ commands ::=
 command ::= 
    DEFINE:d id:id EQL expr:e                        {: RESULT = new ValueDefinition(makeLoc(dxleft, exright), id, e); :}
  | DEFINE:d id:id idlist:ids EQL expr:e             {: RESULT = functionDefinition(makeLoc(dxleft, exright), id, ids, e); :}
- | DECLARE:d quali:q ids:ids DBLCLN schema:s          {: RESULT = new MultiDeclaration(makeLoc(dxleft, sxright), ids, s, q != null); :}
+ | DECLARE:d ids:ids DBLCLN schema:s                {: RESULT = new MultiDeclaration(makeLoc(dxleft, sxright), ids, s); :}
  | DEFINDEX:d id:id                                 {: List<String> names = new ArrayList<String>();
                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, idxright), id, names); :}
-| DEFINDEX:d id:id EQL LBRC names:ids RBRC:p       {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
-//| DEFINDEX:d id:id EQL LBRC names:ids RBRC:p       {: 
+| DEFINDEX:d id:id EQL LBRC names:ids RBRC:p        {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
+//| DEFINDEX:d id:id EQL LBRC names:ids RBRC:p      {: 
 //                                                        pacioli.compiler.Location loc = makeLoc(dxleft, pxright);
 //                                                        
 //                                                        ExpressionNode list = new ApplicationNode(new IdentifierNode("empty_list", loc), new ArrayList<ExpressionNode>(), loc);
@@ -810,18 +810,18 @@ part ::=
 //------------------------------------------------------------------------------
 
 schema ::=
-    vardecls:c type:t                               {: RESULT = new SchemaNode(makeLoc(txleft, txright), c, t); :};
+    vardecls:c type:t                               {: RESULT = new SchemaNode(makeLoc(cxleft, txright), c, t); :};
 
 vardecls ::=
-    FORTYPE:f typeids:ids classcondition:cs COLON vardecls:s  {: s.add(new ContextNode(makeLoc(fxleft, sxright), Kind.TYPE, ids, cs));
+    FORTYPE:f typeids:ids classcondition:cs COLON vardecls:s  {: s.add(new QuantNode(makeLoc(fxleft, sxright), Kind.TYPE, ids, cs));
                                                             RESULT = s; :}
-  | FORINDEX:f typeids:ids classcondition:cs COLON vardecls:s {:  s.add(new ContextNode(makeLoc(fxleft, sxright), Kind.INDEX, ids, cs));
+  | FORINDEX:f typeids:ids classcondition:cs COLON vardecls:s {:  s.add(new QuantNode(makeLoc(fxleft, sxright), Kind.INDEX, ids, cs));
                                                             RESULT = s; :}
-  | FORUNIT:f vars:vs classcondition:cs COLON vardecls:s  {:  s.add(new ContextNode(makeLoc(fxleft, sxright), Kind.UNIT, vs, cs));
+  | FORUNIT:f vars:vs classcondition:cs COLON vardecls:s  {:  s.add(new QuantNode(makeLoc(fxleft, sxright), Kind.UNIT, vs, cs));
                                                             RESULT = s; :}
-  | FOROP:f typeids:vs classcondition:cs COLON vardecls:s    {: s.add(new ContextNode(makeLoc(fxleft, sxright), Kind.OP, vs, cs));
+  | FOROP:f typeids:vs classcondition:cs COLON vardecls:s    {: s.add(new QuantNode(makeLoc(fxleft, sxright), Kind.OP, vs, cs));
                                                             RESULT = s; :}
-  |                                                     {:  RESULT = new ArrayList<ContextNode>(); :}
+  |                                                     {:  RESULT = new ArrayList<QuantNode>(); :}
   ;
 
 classcondition ::=

@@ -12,7 +12,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.types.ast.ContextNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeApplicationNode;
 
 /**
@@ -79,7 +79,7 @@ public final class InstanceInfo extends AbstractInfo {
                 bodies,
                 this.location());
         List<String> arg = new ArrayList<>();
-        for (ContextNode yo : this.definition().get().contextNodes) {
+        for (QuantNode yo : this.definition().get().quantNodes) {
             for (TypeApplicationNode condition : yo.conditions) {
                 arg.add(condition.name());
             }

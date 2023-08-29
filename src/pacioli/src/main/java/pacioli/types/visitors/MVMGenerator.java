@@ -11,9 +11,11 @@ import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
+import pacioli.types.type.Quant;
 import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
 import pacioli.types.type.TypeBase;
+import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.VectorUnitVar;
 
@@ -114,5 +116,17 @@ public class MVMGenerator implements TypeVisitor {
     @Override
     public void visit(OperatorVar operatorVar) {
         throw new UnsupportedOperationException("can only compile matrix types to MVM at the moment");
+    }
+
+    @Override
+    public void visit(TypePredicate typePredicate) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public void visit(Quant quant) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 }

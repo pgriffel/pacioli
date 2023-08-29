@@ -31,22 +31,22 @@ import pacioli.types.TypeContext;
 
 public class SchemaNode extends AbstractTypeNode {
 
-    public final List<ContextNode> contextNodes;
+    public final List<QuantNode> quantNodes;
     public final TypeNode type;
     public SymbolTable<TypeInfo> table;
 
-    public SchemaNode(Location location, List<ContextNode> contextNodes, TypeNode type) {
+    public SchemaNode(Location location, List<QuantNode> quantNodes, TypeNode type) {
         super(location);
-        this.contextNodes = contextNodes;
+        this.quantNodes = quantNodes;
         this.type = type;
     }
 
     public SchemaNode transform(TypeNode type) {
-        return new SchemaNode(location(), contextNodes, type);
+        return new SchemaNode(location(), quantNodes, type);
     }
 
     public TypeContext createContext() {
-        return TypeContext.fromContextNodes(this.contextNodes);
+        return TypeContext.fromQuantNodes(this.quantNodes);
     }
 
     @Override

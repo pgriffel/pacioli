@@ -26,6 +26,11 @@ import pacioli.symboltable.info.Info;
 
 public class TypeIdentifierNode extends AbstractTypeNode {
 
+    @Override
+    public String toString() {
+        return "TypeIdentifierNode [name=" + name + ", kind=" + kind + "]";
+    }
+
     // An identifier can be one of three kinds
     public enum Kind {
         TYPE {
@@ -70,13 +75,13 @@ public class TypeIdentifierNode extends AbstractTypeNode {
         // assert (!name.contains("!"));
     }
 
-    public TypeIdentifierNode(Location location, String name, Info info) {
-        super(location);
-        this.name = name;
-        this.kind = null;
-        assert (!name.contains("!"));
-        this.info = info;
-    }
+    // public TypeIdentifierNode(Location location, String name, Info info) {
+    // super(location);
+    // this.name = name;
+    // this.kind = null;
+    // assert (!name.contains("!"));
+    // this.info = info;
+    // }
 
     public String name() {
         return name;

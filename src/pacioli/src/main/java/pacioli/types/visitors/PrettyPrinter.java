@@ -11,10 +11,13 @@ import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
+import pacioli.types.type.Quant;
 import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeIdentifier;
+import pacioli.types.type.TypeObject;
+import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.VectorUnitVar;
 import uom.Fraction;
@@ -46,18 +49,18 @@ public class PrettyPrinter implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        // String sep = "";
-        // for (ContextNode contextNode : type.contextNodes()) {
-        // // contextNode.accept(this);
-        // // Call pretty on AST node instead of type
-        // out.print(contextNode.pretty());
-        // sep = ": ";
-        // out.print(sep);
-        // sep = ", ";
-        // }
         TypeContext tc = new TypeContext(type.variables());
         out.print(tc.pretty());
         type.type().accept(this);
+        if (type.conditions.size() > 0) {
+            out.print(" where ");
+            String sep = "";
+            for (TypePredicate cond : type.conditions) {
+                out.print(sep);
+                sep = " and ";
+                cond.accept(this);
+            }
+        }
     }
 
     @Override
@@ -184,6 +187,25 @@ public class PrettyPrinter implements TypeVisitor {
         public String one() {
             return "unit(\"\")";
         }
+    }
+
+    @Override
+    public void visit(TypePredicate type) {
+        out.print(type.id());
+        out.print("[");
+        String sep = "";
+        for (TypeObject id : type.arguments()) {
+            out.print(sep);
+            id.accept(this);
+            sep = ", ";
+        }
+        out.print("]");
+    }
+
+    @Override
+    public void visit(Quant quant) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
 }

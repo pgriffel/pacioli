@@ -30,7 +30,7 @@ import java.util.Set;
 import pacioli.Pacioli;
 import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.Utils;
-import pacioli.types.ast.ContextNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorVar;
@@ -197,9 +197,9 @@ public class TypeContext extends AbstractPrintable {
         }
     }
 
-    public static TypeContext fromContextNodes(List<ContextNode> contextNodes) {
+    public static TypeContext fromQuantNodes(List<QuantNode> quantNodes) {
         TypeContext context = new TypeContext();
-        for (ContextNode cn : contextNodes) {
+        for (QuantNode cn : quantNodes) {
             for (TypeIdentifierNode id : cn.ids) {
                 switch (cn.kind) {
                     case TYPE: {

@@ -48,7 +48,7 @@ import pacioli.ast.unit.UnitPowerNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.types.ast.BangTypeNode;
-import pacioli.types.ast.ContextNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
 import pacioli.types.ast.PrefixUnitTypeNode;
@@ -156,8 +156,8 @@ public class IdentityVisitor implements Visitor {
     @Override
     public void visit(ClassDefinition node) {
         node.type.accept(this);
-        for (ContextNode contextNode : node.contextNodes) {
-            contextNode.accept(this);
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNode.accept(this);
         }
         for (TypeAssertion member : node.members) {
             member.accept(this);
@@ -167,8 +167,8 @@ public class IdentityVisitor implements Visitor {
     @Override
     public void visit(InstanceDefinition node) {
         node.type.accept(this);
-        for (ContextNode contextNode : node.contextNodes) {
-            contextNode.accept(this);
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNode.accept(this);
         }
         for (ValueEquation member : node.members) {
             member.accept(this);
@@ -408,13 +408,13 @@ public class IdentityVisitor implements Visitor {
     public void accept(TypeAssertion node) {
         node.id.accept(this);
         node.type.accept(this);
-        for (ContextNode contextNode : node.contextNodes) {
-            contextNode.accept(this);
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNode.accept(this);
         }
     }
 
     @Override
-    public void accept(ContextNode node) {
+    public void accept(QuantNode node) {
         for (TypeIdentifierNode id : node.ids) {
             id.accept(this);
         }

@@ -28,18 +28,17 @@ import pacioli.compiler.PacioliException;
 import pacioli.types.ConstraintSet;
 import pacioli.types.Substitution;
 import pacioli.types.TypeVisitor;
-import pacioli.types.ast.ContextNode;
 
 public class Schema extends AbstractType {
 
-    private final List<ContextNode> contextNodes;
     private final Set<Var> variables;
     private final TypeObject type;
+    public final List<TypePredicate> conditions;
 
-    public Schema(Set<Var> context, TypeObject type, List<ContextNode> contextNodes) {
+    public Schema(Set<Var> context, TypeObject type, List<TypePredicate> conditions) {
         this.variables = context;
         this.type = type;
-        this.contextNodes = contextNodes;
+        this.conditions = conditions;
     }
 
     @Override
@@ -57,8 +56,8 @@ public class Schema extends AbstractType {
         visitor.visit(this);
     }
 
-    public List<ContextNode> contextNodes() {
-        return contextNodes;
+    public List<TypePredicate> conditions() {
+        return conditions;
     }
 
     public Set<Var> variables() {

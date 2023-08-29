@@ -55,6 +55,7 @@ import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.symboltable.info.ValueInfo.Builder;
 import pacioli.types.TypeContext;
 import pacioli.types.ast.BangTypeNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeIdentifierNode;
@@ -518,8 +519,12 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(SchemaNode node) {
+
         pushTypeContext(node.createContext(), node.location());
         node.table = typeTables.peek();
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNode.accept(this);
+        }
         node.type.accept(this);
         typeTables.pop();
     }

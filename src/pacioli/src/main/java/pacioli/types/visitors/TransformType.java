@@ -14,9 +14,11 @@ import pacioli.types.type.Operator;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
+import pacioli.types.type.Quant;
 import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
 import pacioli.types.type.TypeObject;
+import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.VectorUnitVar;
 
@@ -47,7 +49,7 @@ public class TransformType implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        returnTypeNode(new Schema(type.variables(), typeNodeAccept(type.type()), type.contextNodes()));
+        returnTypeNode(new Schema(type.variables(), typeNodeAccept(type.type()), type.conditions()));
     }
 
     @Override
@@ -117,6 +119,18 @@ public class TransformType implements TypeVisitor {
     @Override
     public void visit(OperatorVar type) {
         returnTypeNode(type);
+    }
+
+    @Override
+    public void visit(TypePredicate typePredicate) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public void visit(Quant quant) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
 }

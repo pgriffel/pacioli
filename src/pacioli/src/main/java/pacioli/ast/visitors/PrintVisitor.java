@@ -58,7 +58,7 @@ import pacioli.ast.unit.UnitPowerNode;
 import pacioli.compiler.Printer;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.ast.BangTypeNode;
-import pacioli.types.ast.ContextNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
 import pacioli.types.ast.PrefixUnitTypeNode;
@@ -562,8 +562,8 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(SchemaNode node) {
-        for (ContextNode contextNode : node.contextNodes) {
-            contextNode.accept(this);
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNode.accept(this);
             out.write(": ");
         }
         node.type.accept(this);
@@ -749,8 +749,8 @@ public class PrintVisitor implements Visitor {
         // Print the class definition itself
         out.print("defclass ");
         node.type.accept(this);
-        for (ContextNode contextNode : node.contextNodes) {
-            contextNode.accept(this);
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNode.accept(this);
             out.write(": ");
         }
         out.newlineUp();
@@ -785,8 +785,8 @@ public class PrintVisitor implements Visitor {
         out.print("definstance ");
         node.type.accept(this);
         out.print(" ");
-        for (ContextNode contextNode : node.contextNodes) {
-            contextNode.accept(this);
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNode.accept(this);
             out.write(": ");
         }
 
@@ -817,15 +817,15 @@ public class PrintVisitor implements Visitor {
         out.write(" :: ");
 
         // Print the type
-        for (ContextNode contextNode : node.contextNodes) {
-            contextNode.accept(this);
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNode.accept(this);
             out.write(": ");
         }
         node.type.accept(this);
     }
 
     @Override
-    public void accept(ContextNode node) {
+    public void accept(QuantNode node) {
 
         // Print the quantifiers (for_type, etc.)
         out.write(node.kind.pretty());
