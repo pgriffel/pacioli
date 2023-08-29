@@ -10,13 +10,13 @@ public class QuantNode extends AbstractTypeNode {
 
     public final TypeIdentifierNode.Kind kind;
     public final List<TypeIdentifierNode> ids;
-    public final List<TypeApplicationNode> conditions;
+    public final List<TypePredicateNode> conditions;
 
     public QuantNode(
             Location location,
             TypeIdentifierNode.Kind kind,
             List<TypeIdentifierNode> ids,
-            List<TypeApplicationNode> conditions) {
+            List<TypePredicateNode> conditions) {
         super(location);
         this.kind = kind;
         this.ids = ids;

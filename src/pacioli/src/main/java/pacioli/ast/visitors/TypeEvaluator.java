@@ -32,6 +32,7 @@ import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
+import pacioli.types.ast.TypePredicateNode;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.ScalarBase;
@@ -147,12 +148,12 @@ public class TypeEvaluator extends IdentityVisitor {
     public void visit(SchemaNode node) {
         List<TypePredicate> predicates = new ArrayList<>();
         for (QuantNode quantNode : node.quantNodes) {
-            for (TypeApplicationNode condition : quantNode.conditions) {
+            for (TypePredicateNode condition : quantNode.conditions) {
                 List<TypeObject> argTypes = new ArrayList<>();
                 for (TypeNode arg : condition.args) {
                     argTypes.add(typeAccept(arg));
                 }
-                TypePredicate predicate = new TypePredicate((ClassInfo) condition.op.info, argTypes);
+                TypePredicate predicate = new TypePredicate((ClassInfo) condition.id.info, argTypes);
                 predicates.add(predicate);
             }
         }

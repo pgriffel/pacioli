@@ -14,6 +14,7 @@ import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeApplicationNode;
+import pacioli.types.ast.TypePredicateNode;
 
 /**
  * Part of ClassInfo.
@@ -80,7 +81,7 @@ public final class InstanceInfo extends AbstractInfo {
                 this.location());
         List<String> arg = new ArrayList<>();
         for (QuantNode yo : this.definition().get().quantNodes) {
-            for (TypeApplicationNode condition : yo.conditions) {
+            for (TypePredicateNode condition : yo.conditions) {
                 arg.add(condition.name());
             }
         }

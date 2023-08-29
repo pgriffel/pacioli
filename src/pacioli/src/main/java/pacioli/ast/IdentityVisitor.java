@@ -419,7 +419,7 @@ public class IdentityVisitor implements Visitor {
         for (TypeIdentifierNode id : node.ids) {
             id.accept(this);
         }
-        for (TypeApplicationNode condition : node.conditions) {
+        for (TypePredicateNode condition : node.conditions) {
             condition.accept(this);
         }
     }

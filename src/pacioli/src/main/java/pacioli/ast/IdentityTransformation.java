@@ -503,11 +503,11 @@ public class IdentityTransformation implements Visitor {
             assert (visited instanceof TypeIdentifierNode);
             ids.add((TypeIdentifierNode) visited);
         }
-        List<TypeApplicationNode> conditions = new ArrayList<>();
-        for (TypeApplicationNode condition : node.conditions) {
+        List<TypePredicateNode> conditions = new ArrayList<>();
+        for (TypePredicateNode condition : node.conditions) {
             Node visited = nodeAccept(condition);
-            assert (visited instanceof TypeApplicationNode);
-            conditions.add((TypeApplicationNode) visited);
+            assert (visited instanceof TypePredicateNode);
+            conditions.add((TypePredicateNode) visited);
         }
         returnNode(new QuantNode(node.location(), node.kind, ids, conditions));
     }

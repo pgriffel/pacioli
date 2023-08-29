@@ -327,12 +327,12 @@ non terminal ProgramNode                     program;
 non terminal List<Node>                      includes;
 non terminal List<Definition>                commands;
 non terminal Definition                      command;
-non terminal ExpressionNode                  expr, expr_no_id, if_tail, lettail, letrest, listlit;
-non terminal List<ExpressionNode>            exprs, exprlist;
+non terminal ExpressionNode                  expr, expr_no_id, if_tail, lettail, letrest, listlit, comprehension, statement, stm_if_tail;
+non terminal List<ExpressionNode>            exprs, exprlist, statements;
 non terminal IdentifierNode                  id, name;
-non terminal TypeIdentifierNode              typeid;
+non terminal TypeIdentifierNode              typeid, var;
 non terminal List<IdentifierNode>            ids, names, idlist, idlist_tail, exports;
-non terminal List<TypeIdentifierNode>        typeids, typeidlist, typeidlist_tail;
+non terminal List<TypeIdentifierNode>        typeids, typeidlist, typeidlist_tail, vars;
 non terminal UnitNode                        dimnum, unit, unit_term;
 non terminal String                          unsigned, number, integer;
 non terminal StringNode                      path;
@@ -342,18 +342,12 @@ non terminal TypeNode                        type, type_app, function_type, matr
 non terminal SchemaNode                      schema;
 non terminal List<QuantNode>                 vardecls;
 non terminal List<TypeNode>                  types, typelist;
-non terminal TypeIdentifierNode              var;
-non terminal List<TypeIdentifierNode>        vars;
 non terminal KeyNode                         indexkey;
-non terminal ExpressionNode                  comprehension;
 non terminal List<Object>                    parts;
 non terminal Object                          part;
-non terminal List<ExpressionNode>            statements;
 non terminal SequenceNode                    sequence;
-non terminal ExpressionNode                  statement, stm_if_tail;
-non terminal                                 quali;
-non terminal List<TypeApplicationNode>       classcondition, conditions;
-non terminal TypeApplicationNode             condition;
+non terminal List<TypePredicateNode>         classcondition, conditions;
+non terminal TypePredicateNode               condition;
 non terminal List<TypeAssertion>             classmembers, typeassertion;
 non terminal List<ValueEquation>             classmemberdefs;
 non terminal ValueEquation                   valueeq;
@@ -459,12 +453,6 @@ command ::=
  | expr:e                                           {: RESULT = new Toplevel(e.location(), e); :}
  | DEFCLASS typeid:id typelist:ids vardecls:v classmembers:e        {: RESULT = new ClassDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); :}
  | DEFINSTANCE typeid:id typelist:ids vardecls:v classmemberdefs:e  {: RESULT = new InstanceDefinition(id.location(), new TypePredicateNode(id.location(), id, ids), v, e); :}
- ;
-
-quali ::=  
-   EXPORT {: RESULT = true; :}
- | PUBLIC {: RESULT = true; :}
- | /* empty */
  ;
 
 classmembers ::=
@@ -826,12 +814,12 @@ vardecls ::=
 
 classcondition ::=
     WHERE conditions:cs                             {: RESULT = cs; :}
-  |                                                 {: RESULT = new ArrayList<TypeApplicationNode>(); :}
+  |                                                 {: RESULT = new ArrayList<TypePredicateNode>(); :}
   ;
   
 conditions ::=
     conditions:cs AND condition:c                   {: RESULT = cs; cs.add(c); :}
-  | condition:c                                     {: RESULT = new ArrayList<TypeApplicationNode>(); RESULT.add(c); :}
+  | condition:c                                     {: RESULT = new ArrayList<TypePredicateNode>(); RESULT.add(c); :}
   ;
 
 condition ::=
@@ -839,7 +827,7 @@ condition ::=
                                                          //for (TypeIdentifierNode typeid: ts) {
                                                           //  nodes.add(typeid);
                                                         // }
-                                                         RESULT = new TypeApplicationNode(makeLoc(idxleft, tsxright), id, ts); :}
+                                                         RESULT = new TypePredicateNode(makeLoc(idxleft, tsxright), id, ts); :}
   ;
 
 vars ::= 
