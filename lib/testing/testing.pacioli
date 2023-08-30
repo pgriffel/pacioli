@@ -47,14 +47,7 @@ doc test
     "Creates a test. 
     
     The first argument is a description of the test case. The second argument is
-    a condition that that test must satisfy.
-
-    Example of a test for function <code>naturals</code>:
-    <pre>
-    test(\"should produce the empty list for 0\", () ->
-        naturals(0) = []
-    )
-    </pre>";
+    a condition that that test must satisfy.";
 
 define test(description, body) =
   tuple(description , body, false);
@@ -106,19 +99,7 @@ deftype TestSuite() = Tuple(String, List(Test), Boole);
 # ------------------------------------------------------------------------------
 
 doc test_suite
-    "Creates a test suite.
-
-    Example:
-    <pre>
-    define naturals_suite = test_suite(\"Function 'naturals'\", [
-        test(\"should produce the empty list for 0\", () ->
-            naturals(0) = []
-        ),
-        test(\"should produce the first 5 naturals\", () ->
-            naturals(5) = [0, 1, 2, 3, 4]
-        )
-    ]);
-    </pre>";
+    "Creates a test suite.";
 
 define test_suite(description, tests) = 
     tuple(description, tests, false);
