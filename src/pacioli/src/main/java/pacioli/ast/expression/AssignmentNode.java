@@ -21,8 +21,8 @@
 
 package pacioli.ast.expression;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 
 public class AssignmentNode extends AbstractExpressionNode {
 
@@ -36,7 +36,7 @@ public class AssignmentNode extends AbstractExpressionNode {
     }
 
     public AssignmentNode(AssignmentNode old, ExpressionNode value) {
-        super(old.getLocation());
+        super(old.location());
         this.var = old.var;
         this.value = value;
     }

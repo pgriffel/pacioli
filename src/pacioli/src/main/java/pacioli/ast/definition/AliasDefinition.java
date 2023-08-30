@@ -2,14 +2,12 @@ package pacioli.ast.definition;
 
 import java.math.BigDecimal;
 
-import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
-import pacioli.symboltable.AliasInfo;
-import pacioli.types.TypeBase;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliException;
+import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
 import uom.Unit;
 
@@ -30,23 +28,17 @@ public class AliasDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String localName() {
-        return id.getName();
+    public String name() {
+        return id.name();
     }
 
     public Unit<TypeBase> evalBody() {
         DimensionedNumber<TypeBase> number = unit.evalUnit();
         if (!number.factor().equals(BigDecimal.ONE)) {
-            throw new PacioliException(getLocation(),  "Unexpected number in unit alias");
+            throw new PacioliException(location(), "Unexpected number in unit alias");
+            // Pacioli.warn("Unexpected number in unit alias %s: %s", id.getName(),
+            // number.factor());
         }
         return number.unit();
     }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        AliasInfo info = new AliasInfo(localName(), program.getModule(), getLocation(), !program.isLibrary());
-        info.definition = this;
-        program.addInfo(info);
-    }
-
 }

@@ -23,9 +23,9 @@ package pacioli.ast.expression;
 
 import java.util.List;
 
-import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 
 public class LetTupleBindingNode extends AbstractExpressionNode implements LetNode.BindingNode {
 
@@ -44,7 +44,7 @@ public class LetTupleBindingNode extends AbstractExpressionNode implements LetNo
     }
 
     public Node transform(ExpressionNode value) {
-        return new LetTupleBindingNode(getLocation(), vars, value);
+        return new LetTupleBindingNode(location(), vars, value);
     }
 
 }

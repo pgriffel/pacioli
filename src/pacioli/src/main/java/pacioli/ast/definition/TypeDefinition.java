@@ -24,81 +24,42 @@ package pacioli.ast.definition;
 import java.util.ArrayList;
 import java.util.List;
 
-import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
-import pacioli.TypeConstraint;
-import pacioli.TypeContext;
 import pacioli.ast.Visitor;
-import pacioli.symboltable.TypeInfo;
-import pacioli.types.PacioliType;
-import pacioli.types.ParametricType;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliException;
+import pacioli.symboltable.info.ParametricInfo;
+import pacioli.types.TypeContext;
 import pacioli.types.ast.BangTypeNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeApplicationNode;
+import pacioli.types.ast.TypeConstraint;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.type.OperatorConst;
+import pacioli.types.type.ParametricType;
+import pacioli.types.type.TypeIdentifier;
+import pacioli.types.type.TypeObject;
 
 public class TypeDefinition extends AbstractDefinition {
 
-    public final TypeContext context;
+    public final List<QuantNode> quantNodes;
     public final TypeNode lhs;
     public final TypeNode rhs;
-    private TypeConstraint constraint;
 
-    public TypeDefinition(Location location, TypeContext context, TypeNode lhs, TypeNode rhs) {
+    public TypeDefinition(Location location, List<QuantNode> quantNodes, TypeNode lhs, TypeNode rhs) {
         super(location);
-        this.context = context;
+        this.quantNodes = quantNodes;
         this.lhs = lhs;
         this.rhs = rhs;
     }
 
-    public TypeConstraint constaint(boolean reduce) throws PacioliException {
-
-        TypeContext totalContext = new TypeContext();
-        totalContext.addAll(this.context);
-
-        if (lhs instanceof TypeApplicationNode) {
-            //TypeApplicationNode app = resolvedLhs;
-            TypeApplicationNode app = (TypeApplicationNode) lhs;
-
-            List<PacioliType> types = new ArrayList<PacioliType>();
-            for (TypeNode arg : app.getArgs()) {
-                if (arg instanceof TypeIdentifierNode) {
-                    types.add(arg.evalType(reduce));
-                } else if (arg instanceof BangTypeNode) {
-                    types.add(arg.evalType(reduce));
-                } else {
-                    throw new PacioliException(arg.getLocation(),
-                            "Type definition's lhs must be a unit variable or vector %s", arg.getClass());
-                }
-            }
-
-            //PacioliType lhsType = new ParametricType(app.getName(), types);
-            PacioliType lhsType = new ParametricType((TypeInfo) app.op.info, types);
-
-            PacioliType rhsType = rhs.evalType(true);
-            //PacioliType rhsType = resolvedRhs.evalType(true);
-            if (lhsType instanceof ParametricType) {
-                constraint = new TypeConstraint(app, rhsType);
-            } else {
-                throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s",
-                        lhsType.pretty());
-            }
-        } else {
-            throw new PacioliException(getLocation(), "Left side of typedef is not a type function: %s", lhs.pretty());
-        }
-
-        assert (constraint != null);
-        if (!reduce) {
-            throw new RuntimeException("todo: contraint when reduce is false");
-        }
-        return constraint;
-    }
-
     @Override
-    public String localName() {
-        assert (lhs instanceof TypeApplicationNode);
-        return ((TypeApplicationNode) lhs).getName();
+    public String name() {
+        if (lhs instanceof TypeApplicationNode node) {
+            return node.name();
+        } else {
+            throw new RuntimeException("Expected a TypeApplicationNode");
+        }
     }
 
     @Override
@@ -106,12 +67,49 @@ public class TypeDefinition extends AbstractDefinition {
         visitor.visit(this);
     }
 
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        TypeInfo info = new TypeInfo(localName(), program.getModule(), true, getLocation(), !program.isLibrary());
-        info.typeAST = rhs;
-        info.setDefinition(this);
-        program.addInfo(info);
+    public TypeContext createContext() {
+        return TypeContext.fromQuantNodes(quantNodes);
     }
 
+    public TypeConstraint constaint() throws PacioliException {
+
+        TypeConstraint constraint;
+
+        TypeContext totalContext = new TypeContext();
+        totalContext.addAll(this.createContext());
+
+        if (lhs instanceof TypeApplicationNode app) {
+
+            List<TypeObject> types = new ArrayList<TypeObject>();
+            for (TypeNode arg : app.arguments()) {
+                if (arg instanceof TypeIdentifierNode) {
+                    types.add(arg.evalType());
+                } else if (arg instanceof BangTypeNode) {
+                    types.add(arg.evalType());
+                } else {
+                    throw new PacioliException(arg.location(),
+                            "Type definition's lhs must be a unit variable or vector %s", arg.getClass());
+                }
+            }
+
+            TypeObject lhsType = new ParametricType(app.location(),
+                    new OperatorConst(new TypeIdentifier(app.op.info.generalInfo().module(), app.op.name()),
+                            (ParametricInfo) app.op.info),
+                    types);
+
+            TypeObject rhsType = rhs.evalType();
+            if (lhsType instanceof ParametricType) {
+                constraint = new TypeConstraint(app, rhsType);
+            } else {
+                throw new PacioliException(location(), "Left side of typedef is not a type function: %s",
+                        lhsType.pretty());
+            }
+        } else {
+            throw new PacioliException(location(), "Left side of typedef is not a type function: %s", lhs.pretty());
+        }
+
+        assert (constraint != null);
+
+        return constraint;
+    }
 }

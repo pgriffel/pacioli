@@ -24,31 +24,31 @@ package pacioli.types.matrix;
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import pacioli.CompilationSettings;
 import pacioli.ast.definition.UnitDefinition;
-import pacioli.symboltable.ScalarUnitInfo;
-import pacioli.types.TypeBase;
+import pacioli.compiler.CompilationSettings;
+import pacioli.symboltable.info.ScalarBaseInfo;
+import pacioli.types.type.TypeBase;
 import uom.BaseUnit;
 import uom.DimensionedNumber;
 import uom.PowerProduct;
 import uom.Unit;
 
-public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {    
+public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
 
     private final Optional<String> prefix;
     private final String text;
-    
-    private final ScalarUnitInfo info;
 
-    public ScalarBase(ScalarUnitInfo info) {
-        assert(info != null);
+    private final ScalarBaseInfo info;
+
+    public ScalarBase(ScalarBaseInfo info) {
+        assert (info != null);
         this.prefix = Optional.empty();
         this.text = info.name();
         this.info = info;
     }
 
-    public ScalarBase(String prefix, ScalarUnitInfo info) {
-        assert(info != null);
+    public ScalarBase(String prefix, ScalarBaseInfo info) {
+        assert (info != null);
         this.prefix = Optional.of(prefix);
         this.text = info.name();
         this.info = info;
@@ -91,18 +91,18 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
             } else {
                 throw new RuntimeException("todo: unit prefix" + prefix.get());
             }
-            //return new ScalarBase(text).multiply(fac);
+            // return new ScalarBase(text).multiply(fac);
         }
-        Optional<UnitDefinition> def = info.getDefinition();
+        Optional<UnitDefinition> def = info.definition();
         if (def.isPresent()) {
             DimensionedNumber<TypeBase> dimNum = def.get().evalBody();
             if (dimNum != null) {
                 return def.get().evalBody().multiply(fac);
             }
-        } 
+        }
         return new ScalarBase(info).multiply(fac);
     }
-    
+
     private String prefixText() {
         return (prefix.isPresent()) ? prefix.get() + ":" : "";
     }
@@ -118,18 +118,27 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
     @Override
-    public String compileToJS() {
+    public String asJS() {
         return prefix.isPresent()
-               ? String.format("Pacioli.unit('%s', '%s')", prefix.get(), text)
-               : String.format("Pacioli.unit('%s')", text);
+                ? String.format("Pacioli.unitType('%s', '%s')", prefix.get(), text)
+                : String.format("Pacioli.unitType('%s')", text);
     }
 
     @Override
-    public String compileToMVM(CompilationSettings settings) {
+    public String asMVMUnit(CompilationSettings settings) {
         if (prefix.isPresent()) {
             return "scaled_unit(\"" + prefix.get() + "\", \"" + text + "\")";
         } else {
             return "unit(\"" + text + "\")";
+        }
+    }
+
+    @Override
+    public String asMVMShape(CompilationSettings settings) {
+        if (prefix.isPresent()) {
+            return "scalar_shape(scaled_unit(\"" + prefix.get() + "\", \"" + text + "\"))";
+        } else {
+            return "scalar_shape(unit(\"" + text + "\"))";
         }
     }
 }

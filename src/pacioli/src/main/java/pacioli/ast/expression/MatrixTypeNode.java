@@ -22,12 +22,12 @@
 package pacioli.ast.expression;
 
 import mvm.values.matrix.MatrixDimension;
-import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.ast.Visitor;
-import pacioli.types.PacioliType;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliException;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.TypeObject;
 
 public class MatrixTypeNode extends AbstractExpressionNode {
 
@@ -38,18 +38,18 @@ public class MatrixTypeNode extends AbstractExpressionNode {
 
     public MatrixTypeNode(Location location, TypeNode typeNode) {
         super(location);
-        assert(typeNode != null);
+        assert (typeNode != null);
         this.typeNode = typeNode;
         this.rowDim = null;
         this.columnDim = null;
     }
 
-    public MatrixType evalType(Boolean reduce) throws PacioliException {
-        PacioliType type = typeNode.evalType(reduce);
+    public MatrixType evalType() throws PacioliException {
+        TypeObject type = typeNode.evalType();
         if (type instanceof MatrixType) {
             return (MatrixType) type;
         } else {
-            throw new PacioliException(typeNode.getLocation(), "Expected a matrix type");
+            throw new PacioliException(typeNode.location(), "Expected a matrix type");
         }
     }
 

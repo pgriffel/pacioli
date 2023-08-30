@@ -24,6 +24,7 @@ package mvm.values.matrix;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,6 +51,8 @@ public class Matrix extends AbstractPacioliValue {
 
     public final MatrixShape shape;
     private RealMatrix numbers;
+
+    static public int nrDecimals = 2;
 
     ////////////////////////////////////////////////////////////////////////////
     // Constructors
@@ -81,12 +84,19 @@ public class Matrix extends AbstractPacioliValue {
     @Override
     public void printText(PrintWriter out) {
 
+        DecimalFormat format = new DecimalFormat();
+        format.setMinimumIntegerDigits(1);
+        format.setMaximumFractionDigits(nrDecimals);
+        format.setMinimumFractionDigits(nrDecimals);
+        format.setGroupingUsed(false);
+
         if (rowDimension().width() == 0 && columnDimension().width() == 0) {
+            String decString = format.format(numbers.getEntry(0, 0));
             if (unitAt(0, 0).equals(MatrixBase.ONE)) {
-                out.format("%f", numbers.getEntry(0, 0));
+                out.format("%s", decString);
                 return;
             } else {
-                out.format("%f %s", numbers.getEntry(0, 0), unitAt(0, 0).pretty());
+                out.format("%s%s", decString, unitAt(0, 0).pretty());
                 return;
             }
         }
@@ -109,7 +119,7 @@ public class Matrix extends AbstractPacioliValue {
                 if (num < -0.0000000001 || 0.0000000001 < num) {
                     // if (num != 0) {
 
-                    String numString = String.format("%f", num);
+                    String numString = format.format(num);
                     numList.add(numString);
                     numWidth = Math.max(numWidth, numString.length());
 
@@ -140,7 +150,7 @@ public class Matrix extends AbstractPacioliValue {
             out.print(" ");
         }
         out.print(" ");
-        for (int i = 0; i < numWidth - 4; i++) {
+        for (int i = 0; i < numWidth + unitWidth - 3; i++) {
             out.print(" ");
         }
         out.print("Value");
@@ -199,11 +209,12 @@ public class Matrix extends AbstractPacioliValue {
     }
 
     private Unit<MatrixBase> unitAt(int i, int j) {
-        return shape.getFactor().multiply(getUnit(rowDimension(), shape.rowUnit, i)
+        return shape.factor().multiply(getUnit(rowDimension(), shape.rowUnit, i)
                 .multiply(getUnit(columnDimension(), shape.columnUnit, j).reciprocal()));
     }
 
-    private static Unit<MatrixBase> getUnit(MatrixDimension dimension, final Unit<MatrixBase> matrixUnit, int position) {
+    private static Unit<MatrixBase> getUnit(MatrixDimension dimension, final Unit<MatrixBase> matrixUnit,
+            int position) {
         final int[] positions = dimension.individualPositions(position);
         return matrixUnit.map(new UnitMap<MatrixBase>() {
             public Unit<MatrixBase> map(MatrixBase base) {
@@ -759,7 +770,7 @@ public class Matrix extends AbstractPacioliValue {
     }
 
     public Matrix total() {
-        Matrix matrix = new Matrix(shape.getFactor());
+        Matrix matrix = new Matrix(shape.factor());
         double sum = 0;
         for (int i = 0; i < nrRows(); i++) {
             for (int j = 0; j < nrColumns(); j++) {
@@ -1005,7 +1016,7 @@ public class Matrix extends AbstractPacioliValue {
 
             List<PacioliValue> items = new ArrayList<PacioliValue>();
 
-            Matrix matrixS = new Matrix(shape.getFactor());
+            Matrix matrixS = new Matrix(shape.factor());
             Matrix matrixU = new Matrix(shape.rowUnits());
             Matrix matrixV = new Matrix(shape.columnUnits().reciprocal());
 
@@ -1044,7 +1055,7 @@ public class Matrix extends AbstractPacioliValue {
 
             List<PacioliValue> items = new ArrayList<PacioliValue>();
 
-            Matrix matrixS = new Matrix(shape.getFactor());
+            Matrix matrixS = new Matrix(shape.factor());
             Matrix matrixU = new Matrix(shape.rowUnits());
             Matrix matrixV = new Matrix(shape.columnUnits());
 

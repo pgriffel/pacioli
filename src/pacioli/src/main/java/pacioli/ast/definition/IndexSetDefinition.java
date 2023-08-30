@@ -24,44 +24,61 @@ package pacioli.ast.definition;
 import java.util.List;
 
 import mvm.values.matrix.IndexSet;
-import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
+import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.symboltable.IndexSetInfo;
+import pacioli.compiler.Location;
 
 public class IndexSetDefinition extends AbstractDefinition {
 
     public final IdentifierNode id;
-    public final List<String> items;
+    private final List<String> items;
+    private final ExpressionNode body;
 
     public IndexSetDefinition(Location location, IdentifierNode id, List<String> items) {
         super(location);
         this.id = id;
         this.items = items;
+        this.body = null;
+    }
+
+    public IndexSetDefinition(Location location, IdentifierNode id, ExpressionNode body) {
+        super(location);
+        this.id = id;
+        this.items = null;
+        this.body = body;
+    }
+
+    public List<String> items() {
+        if (items == null) {
+            throw new RuntimeException("Cannot access index set items, index set is dynamic.");
+        }
+        return items;
+    }
+
+    public ExpressionNode body() {
+        if (body == null) {
+            throw new RuntimeException("Cannot access index set body, index has a static body.");
+        }
+        return body;
+    }
+
+    public IndexSet indexSet() {
+        return new IndexSet(name(), items());
     }
 
     @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        IndexSetInfo info = new IndexSetInfo(localName(), program.getModule(), true, getLocation(), !program.isLibrary());
-        info.setDefinition(this);
-        program.addInfo(info);
-        
-    }
-
-    public IndexSet getIndexSet() {
-        return new IndexSet(localName(), items);
-    }
-
-    @Override
-    public String localName() {
-        return id.getName();
+    public String name() {
+        return id.name();
     }
 
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+
+    public boolean isDynamic() {
+        return items == null;
     }
 
 }

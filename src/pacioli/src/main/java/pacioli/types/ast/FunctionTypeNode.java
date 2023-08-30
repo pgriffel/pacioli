@@ -21,8 +21,8 @@
 
 package pacioli.types.ast;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 
 public class FunctionTypeNode extends AbstractTypeNode {
 
@@ -36,7 +36,7 @@ public class FunctionTypeNode extends AbstractTypeNode {
     }
 
     public FunctionTypeNode transform(TypeNode domain, TypeNode range) {
-        return new FunctionTypeNode(getLocation(), domain, range);
+        return new FunctionTypeNode(location(), domain, range);
     }
 
     @Override

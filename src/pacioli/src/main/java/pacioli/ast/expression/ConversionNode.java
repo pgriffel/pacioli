@@ -1,13 +1,13 @@
 package pacioli.ast.expression;
 
 import mvm.values.matrix.MatrixDimension;
-import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
-import pacioli.types.PacioliType;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliException;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.TypeObject;
 
 public class ConversionNode extends AbstractExpressionNode {
 
@@ -17,10 +17,10 @@ public class ConversionNode extends AbstractExpressionNode {
     // Set during resolve. Needed to determine indices during code generation.
     public MatrixDimension rowDim;
     public MatrixDimension columnDim;
-    
+
     // Is this used?
     private MatrixTypeNode bang;
-    public PacioliType type;
+    public TypeObject type;
 
     public ConversionNode(Location location, TypeNode typeNode) {
         super(location);
@@ -28,11 +28,11 @@ public class ConversionNode extends AbstractExpressionNode {
     }
 
     public ConversionNode(ConversionNode old) {
-        super(old.getLocation());
+        super(old.location());
         this.typeNode = old.typeNode;
     }
 
-    private ConversionNode(Location location, TypeNode typeNode, MatrixTypeNode bang, PacioliType type) {
+    private ConversionNode(Location location, TypeNode typeNode, MatrixTypeNode bang, TypeObject type) {
         super(location);
         this.typeNode = typeNode;
         this.bang = bang;
@@ -40,18 +40,21 @@ public class ConversionNode extends AbstractExpressionNode {
     }
 
     public Node transform(TypeNode typeNode) {
-        return new ConversionNode(getLocation(), typeNode, bang, type);
+        ConversionNode copy = new ConversionNode(location(), typeNode, bang, type);
+        copy.rowDim = rowDim;
+        copy.columnDim = columnDim;
+        return copy;
     }
-    
-    public MatrixType evalType(Boolean reduce) throws PacioliException {
-        PacioliType type = typeNode.evalType(reduce);
+
+    public MatrixType evalType() throws PacioliException {
+        TypeObject type = typeNode.evalType();
         if (type instanceof MatrixType) {
             return (MatrixType) type;
         } else {
-            throw new PacioliException(typeNode.getLocation(), "Expected a matrix type");
+            throw new PacioliException(typeNode.location(), "Expected a matrix type");
         }
     }
-    
+
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);

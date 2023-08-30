@@ -21,10 +21,10 @@
 
 package pacioli.ast.expression;
 
-import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.ast.Visitor;
-import pacioli.symboltable.ValueInfo;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliException;
+import pacioli.symboltable.info.ValueInfo;
 
 public class ReturnNode extends AbstractExpressionNode {
 
@@ -43,11 +43,11 @@ public class ReturnNode extends AbstractExpressionNode {
     }
 
     public ExpressionNode transform(ExpressionNode value) {
-        return new ReturnNode(getLocation(), value, resultPlace);
+        return new ReturnNode(location(), value, resultPlace);
     }
 
     public ExpressionNode resolve(ExpressionNode value, IdentifierNode resultPlace) throws PacioliException {
-        return new ReturnNode(getLocation(), value, resultPlace);
+        return new ReturnNode(location(), value, resultPlace);
     }
 
     public ReturnNode(Location location, ExpressionNode value, IdentifierNode resultPlace) {

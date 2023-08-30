@@ -24,12 +24,11 @@ package pacioli.ast.expression;
 import java.util.ArrayList;
 import java.util.List;
 
-import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
-import pacioli.ast.unit.UnitPowerNode;
+import pacioli.compiler.Location;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.ValueInfo;
 
 public class LetNode extends AbstractExpressionNode {
 
@@ -38,7 +37,7 @@ public class LetNode extends AbstractExpressionNode {
 
     public interface BindingNode extends Node {
     };
-    
+
     public SymbolTable<ValueInfo> table;
 
     public LetNode(List<BindingNode> bindings, ExpressionNode body, Location location) {
@@ -47,11 +46,11 @@ public class LetNode extends AbstractExpressionNode {
         this.body = body;
     }
 
-//    public LetNode(LetNode old, ExpressionNode body) {
-//        super(old.getLocation());
-//        binding = old.binding;
-//        this.body = body;
-//    }
+    // public LetNode(LetNode old, ExpressionNode body) {
+    // super(old.getLocation());
+    // binding = old.binding;
+    // this.body = body;
+    // }
 
     @Override
     public void accept(Visitor visitor) {
@@ -59,27 +58,26 @@ public class LetNode extends AbstractExpressionNode {
     }
 
     public Node transform(List<BindingNode> bindings, ExpressionNode body) {
-        LetNode node = new LetNode(bindings, body, getLocation());
+        LetNode node = new LetNode(bindings, body, location());
         node.table = table;
         return node;
     }
-    
+
     public ApplicationNode asApplication() {
-        
+
         List<String> argsNames = new ArrayList<String>();
-        List<ExpressionNode> args = new ArrayList<ExpressionNode>();;
-        for (BindingNode binding: binding) {
+        List<ExpressionNode> args = new ArrayList<ExpressionNode>();
+        ;
+        for (BindingNode binding : binding) {
             LetBindingNode letBinding = (LetBindingNode) binding;
             argsNames.add(letBinding.var);
             args.add(letBinding.value);
         }
-        
-        
-        LambdaNode fun = new LambdaNode(argsNames, body, getLocation());
+
+        LambdaNode fun = new LambdaNode(argsNames, body, body.location());
         fun.table = table;
-        
-        
-        return new ApplicationNode(fun, args, getLocation());
+
+        return new ApplicationNode(fun, args, location());
     }
 
 }

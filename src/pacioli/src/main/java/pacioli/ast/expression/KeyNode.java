@@ -26,17 +26,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.IndexSetDefinition;
-import pacioli.symboltable.IndexSetInfo;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliException;
+import pacioli.symboltable.info.IndexSetInfo;
 
 public class KeyNode extends AbstractExpressionNode {
 
     public final List<String> indexSets;
     public final List<String> keys;
-    
+
     private Optional<List<IndexSetInfo>> infos = Optional.empty();
 
     public KeyNode(Location location) {
@@ -46,7 +46,7 @@ public class KeyNode extends AbstractExpressionNode {
     }
 
     public KeyNode(KeyNode old) {
-        super(old.getLocation());
+        super(old.location());
         indexSets = old.indexSets;
         keys = old.keys;
     }
@@ -65,64 +65,65 @@ public class KeyNode extends AbstractExpressionNode {
 
     public KeyNode merge(KeyNode other) {
 
-        assert(!infos.isPresent());
-        assert(!other.infos.isPresent());
-        
+        assert (!infos.isPresent());
+        assert (!other.infos.isPresent());
+
         List<String> mergedIndexSets = new ArrayList<String>(indexSets);
         List<String> mergedKeys = new ArrayList<String>(keys);
 
-        Location mergedLocation = getLocation().join(other.getLocation());
+        Location mergedLocation = location().join(other.location());
 
         mergedIndexSets.addAll(other.indexSets);
         mergedKeys.addAll(other.keys);
 
         return new KeyNode(mergedLocation, mergedIndexSets, mergedKeys);
     }
-    
-    public List<IndexSetInfo> getInfos() {
+
+    public List<IndexSetInfo> infos() {
         if (infos.isPresent()) {
             return infos.get();
         } else {
             throw new RuntimeException("Cannot get infos, key has not been resolved.");
         }
     }
-    
+
     public IndexSetInfo getInfo(Integer index) {
-        return getInfos().get(index);
+        return infos().get(index);
     }
-    
+
     public void setInfos(List<IndexSetInfo> infos) {
         this.infos = Optional.of(infos);
-    } 
-    
+    }
+
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-    
+
     public Integer position(Integer index) {
-        
+
         String key = keys.get(index);
-        
-        Optional<IndexSetDefinition> definition = getInfo(index).getDefinition();
-        assert(definition.isPresent());
-        List<String> items = definition.get().items;
-        
+
+        Optional<IndexSetDefinition> definition = getInfo(index).definition();
+        assert (definition.isPresent());
+        List<String> items = definition.get().items();
+
         for (int i = 0; i < items.size(); i++) {
             if (items.get(i).equals(key)) {
                 return i;
             }
         }
-        //throw new RuntimeException("Key not found", new PacioliException(getLocation(), "index = %s", index));
-        throw new PacioliException(getLocation(), "Key %s not found", index);
+        // throw new RuntimeException("Key not found", new
+        // PacioliException(getLocation(), "index = %s", index));
+        throw new PacioliException(location(), "Key %s not found", index);
     }
-    
+
     public Integer size(Integer index) {
-        Optional<IndexSetDefinition> definition = getInfo(index).getDefinition();
-        assert(definition.isPresent());
-        return definition.get().items.size();
+        Optional<IndexSetDefinition> definition = getInfo(index).definition();
+        assert (definition.isPresent());
+        return definition.get().items().size();
     }
-    
+
     public Integer position() {
         int totalSize = 1;
         int index = 0;
@@ -132,7 +133,7 @@ public class KeyNode extends AbstractExpressionNode {
         }
         return index;
     }
-    
+
     public Integer size() {
         int totalSize = 1;
         for (int i = 0; i < keys.size(); i++) {

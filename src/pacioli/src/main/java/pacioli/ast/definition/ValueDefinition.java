@@ -21,29 +21,37 @@
 
 package pacioli.ast.definition;
 
-import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
-import pacioli.symboltable.ValueInfo;
+import pacioli.compiler.Location;
 
 public class ValueDefinition extends AbstractDefinition {
 
     public final IdentifierNode id;
+    public final boolean isUserDefined;
+
+    // Overwritten by LiftStatements
     public ExpressionNode body;
+
+    public ValueDefinition(Location location, IdentifierNode id, ExpressionNode body, boolean isUserDefined) {
+        super(location);
+        this.id = id;
+        this.body = body;
+        this.isUserDefined = isUserDefined;
+    }
 
     public ValueDefinition(Location location, IdentifierNode id, ExpressionNode body) {
         super(location);
         this.id = id;
         this.body = body;
+        this.isUserDefined = true;
     }
 
     public Node transform(ExpressionNode body) {
-        return new ValueDefinition(getLocation(), id, body);
+        return new ValueDefinition(location(), id, body, isUserDefined);
     }
 
     public boolean isFunction() {
@@ -51,29 +59,12 @@ public class ValueDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String localName() {
-        return id.getName();
+    public String name() {
+        return id.name();
     }
 
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-
-        String name = localName();
-        
-        ValueInfo info = new ValueInfo(name, program.getModule(), true, false, getLocation(), !program.isLibrary());
-        info.setDefinition(this);
-        
-        ValueInfo oldInfo = program.values.lookup(name);
-        if (oldInfo != null) {
-            info = oldInfo.includeOther(info);
-        }
-            
-        program.values.put(name, info);
-    }
-
 }

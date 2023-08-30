@@ -21,8 +21,8 @@
 
 package pacioli.ast.expression;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 
 public class ConstNode extends AbstractExpressionNode {
 
@@ -34,7 +34,7 @@ public class ConstNode extends AbstractExpressionNode {
     }
 
     public ConstNode(ConstNode old) {
-        super(old.getLocation());
+        super(old.location());
         this.value = old.value;
     }
 

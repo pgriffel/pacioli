@@ -23,55 +23,129 @@ package pacioli.ast.expression;
 
 import java.util.Optional;
 
-import pacioli.Location;
-import pacioli.PacioliException;
 import pacioli.ast.Visitor;
-import pacioli.symboltable.ValueInfo;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliException;
+import pacioli.symboltable.info.ValueInfo;
 
 public class IdentifierNode extends AbstractExpressionNode {
 
+    public enum Kind {
+        VALUE, TYPE
+    };
+
     private final String name;
-    private Optional<ValueInfo> info = Optional.empty();
-    
+    private final Kind kind;
+
+    // Set during resolving
+    private ValueInfo info;
+
+    private IdentifierNode(String name, Kind kind, Location location) {
+        super(location);
+        this.name = name;
+        this.kind = kind;
+    }
+
     public IdentifierNode(String name, Location location) {
         super(location);
         this.name = name;
+        this.kind = null;
     }
 
-    public String getName() {
+    public IdentifierNode withKind(IdentifierNode id) {
+        Kind kind;
+        if (id.name.equals("value")) {
+            kind = Kind.VALUE;
+        } else if (id.name.equals("type")) {
+            kind = Kind.TYPE;
+        } else {
+            throw new PacioliException(id.location(), "Invalid qualifier: %s. Please change to 'value' or 'type'",
+                    id.name);
+        }
+        IdentifierNode node = new IdentifierNode(this.name, kind, this.location());
+        node.info = this.info;
+        return node;
+    }
+
+    public Optional<Kind> kind() {
+        return Optional.ofNullable(this.kind);
+    }
+
+    public String name() {
         return name;
     }
-    
+
     public Boolean isResolved() {
-        return info.isPresent();
+        return this.hasInfo();
     }
-    
+
     public Boolean hasInfo() {
-        return info.isPresent();
+        return this.info != null;
     }
-    
-    public ValueInfo getInfo() {
-        if (info.isPresent()) {
-            return info.get();
+
+    public ValueInfo info() {
+        if (this.info != null) {
+            return this.info;
         } else {
-            throw new RuntimeException("Cannot get info, identifier has not been resolved.", new PacioliException(getLocation(), "id=%s", getName()));
+            throw new RuntimeException(
+                    new PacioliException(location(), "Cannot get info, identifier '%s' has not been resolved.",
+                            name));
         }
     }
-    
+
     public void setInfo(ValueInfo info) {
-        this.info = Optional.of(info);
+        this.info = info;
     }
 
     public Boolean isGlobal() {
-        if (info.isPresent()) {
-            return info.get().isGlobal();
+        if (info != null) {
+            return info.isGlobal();
         } else {
-            throw new RuntimeException("Cannot get info, identifier has not been resolved.");
+            throw new RuntimeException(
+                    new PacioliException(location(), "Cannot get info, identifier '%s' has not been resolved.",
+                            name));
         }
     }
 
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+
+    public Kind determineKind(boolean valueExists, boolean typeExists) {
+
+        String name = this.name();
+        Location location = this.location();
+
+        IdentifierNode.Kind kind;
+        if (valueExists && typeExists && this.kind().isEmpty()) {
+            throw new PacioliException(location,
+                    "Ambiguous identifier. Please change to \n\n  value %s \n\nor to \n\n  type %s",
+                    name, name);
+        } else if (this.kind().isPresent()) {
+            kind = this.kind().get();
+            if (kind.equals(IdentifierNode.Kind.VALUE)) {
+                if (!valueExists) {
+                    throw new PacioliException(location,
+                            "Identifier unknown. Name '%s' does not refer to a value.",
+                            name, name);
+                }
+            } else {
+                if (!typeExists) {
+                    throw new PacioliException(location,
+                            "Identifier unknown. Name '%s' does not refer to a type.",
+                            name, name);
+                }
+            }
+        } else if (valueExists) {
+            kind = IdentifierNode.Kind.VALUE;
+        } else if (typeExists) {
+            kind = IdentifierNode.Kind.TYPE;
+        } else {
+            throw new PacioliException(location,
+                    "Identifier unknown. Name '%s' does not refer to a value or a type.",
+                    name, name);
+        }
+        return kind;
     }
 }

@@ -23,14 +23,11 @@ package pacioli.ast.definition;
 
 import java.util.Optional;
 
-import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
-import pacioli.symboltable.ScalarUnitInfo;
-import pacioli.types.TypeBase;
+import pacioli.compiler.Location;
+import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
 
 public class UnitDefinition extends AbstractDefinition {
@@ -53,34 +50,18 @@ public class UnitDefinition extends AbstractDefinition {
         this.body = Optional.of(body);
     }
 
-    public String getName() {
-        return id.getName();
-    }
-
-    public String getSymbol() {
-        return symbol;
-    }
-
     // Make Optional or exception!!!
     public DimensionedNumber<TypeBase> evalBody() {
         return body.isPresent() ? body.get().evalUnit() : null;
     }
 
     @Override
-    public String localName() {
-        return id.getName();
+    public String name() {
+        return id.name();
     }
 
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
-    }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        ScalarUnitInfo info = new ScalarUnitInfo(localName(), program.getModule(), true, getLocation(), !program.isLibrary());
-        info.setDefinition(this);
-        info.symbol = symbol;
-        program.addInfo(info);
     }
 }

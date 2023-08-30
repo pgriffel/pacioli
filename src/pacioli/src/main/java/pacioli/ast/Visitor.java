@@ -1,14 +1,19 @@
 package pacioli.ast;
 
 import pacioli.ast.definition.AliasDefinition;
+import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Declaration;
+import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.ast.definition.ValueEquation;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
@@ -37,6 +42,7 @@ import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.types.ast.BangTypeNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
 import pacioli.types.ast.PrefixUnitTypeNode;
@@ -48,14 +54,17 @@ import pacioli.types.ast.TypeKroneckerNode;
 import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
+import pacioli.types.ast.TypePredicateNode;
 
 public interface Visitor {
 
     void visit(ProgramNode node);
-    
+
     void visit(IncludeNode node);
-    
+
     void visit(ImportNode node);
+
+    void visit(ExportNode node);
 
     void visit(AliasDefinition node);
 
@@ -152,4 +161,18 @@ public interface Visitor {
     void visit(LetFunctionBindingNode node);
 
     void visit(IdListNode node);
+
+    void visit(Documentation node);
+
+    void visit(ClassDefinition node);
+
+    void accept(ValueEquation node);
+
+    void visit(InstanceDefinition node);
+
+    void accept(TypeAssertion node);
+
+    void accept(QuantNode node);
+
+    void visit(TypePredicateNode node);
 }

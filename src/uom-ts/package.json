@@ -1,0 +1,25 @@
+{
+  "name": "uom-ts",
+  "version": "0.0.1",
+  "description": "units of measurement for javascript",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "mocha --timeout 60000",
+    "build": "tsc"
+  },
+  "author": "Paul Griffioen",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.0.0",
+    "chai": "^4.3.4",
+    "fast-check": "^2.20.0",
+    "mocha": "^9.1.3",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.4"
+  }
+}

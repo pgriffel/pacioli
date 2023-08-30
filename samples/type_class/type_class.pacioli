@@ -1,0 +1,166 @@
+import geometry;
+include pair;
+
+# https://www.cs.tufts.edu/comp/150PLD/Notes/TypeClasses.pdf
+
+# ------------------------------------------------------------------------------
+# Example 1 - Overload equal for strings and numbers
+# ------------------------------------------------------------------------------
+
+
+# Type class definition
+
+defclass Eq(t) for_type t:
+   is_equal :: (t, t) -> Boole;
+
+
+# Type instances for num and string
+
+definstance Eq(a) for_unit a:
+   is_equal(x, y) = x = y;
+
+definstance Eq(String)
+   is_equal(x, y) = string_compare(x, y) = 0;
+
+
+# A test function
+
+declare my_test :: for_type t where Eq(t):
+    (t, t) -> String;
+
+define my_test(x, y) =
+  if is_equal(x, y) then "equal" else "not equal" end;
+
+# ------------------------------------------------------------------------------
+# Example 2 - Overload sum and scale for strings and numbers
+# ------------------------------------------------------------------------------
+
+
+# Type class definition
+
+defclass Num(t) for_type t:
+    gen_sum :: (t, t) -> t,
+    gen_scale :: (1, t) -> t;
+
+# Type class instances for string and num
+
+definstance Num(a) for_unit a:
+    gen_sum(x, y) = x + y,
+    gen_scale(x, y) = x * y;
+
+definstance Num(String)
+    gen_sum(x, y) = concatenate(x, y),
+    gen_scale(x, y) = if x = 0 then "" else repeat(concatenate, x, y) end;
+
+declare repeat :: for_type t: ((t, t) -> t, 1, t) -> t;
+
+define repeat(fun, n, x) = 
+    if n = 1 then x else fun(repeat(fun, n-1, x), x) end;
+
+
+# Test function
+
+declare my_test2 :: for_type t where Num(t): (t, t) -> t;
+
+define my_test2(x, y) =
+  gen_sum(gen_sum(x, x), gen_sum(y, y));
+
+declare double_test :: for_type s, t where Num(s) and Num(t): (s, t) -> Tuple(s, t);
+
+define double_test(x, y) =
+  tuple(gen_sum(x, x), gen_sum(y, y));
+
+
+# ------------------------------------------------------------------------------
+# Complication 1 - Extend examples to generic type: List
+# ------------------------------------------------------------------------------
+
+# Eq
+
+definstance Eq(List(t)) for_type t where Eq(t):
+    is_equal(xs, ys) = list_equal(xs, ys);
+
+declare list_equal :: for_type t where Eq(t): (List(t), List(t)) -> Boole;
+
+define list_equal(xs, ys) =
+    if xs = [] or ys = [] then
+        xs = [] and ys = []
+    else
+        is_equal(head(xs), head(ys)) and
+        list_equal(tail(xs), tail(ys))
+    end;
+
+# Num
+
+definstance Num(List(t)) for_type t where Num(t):
+    gen_sum(xs, ys) = append(xs, ys),
+    gen_scale(c, xs) = if c = 0 then [] else repeat(append, c, xs) end;
+
+
+# ------------------------------------------------------------------------------
+# Complication 2 - Abstract over type function: map
+# ------------------------------------------------------------------------------
+
+# The dictionary definition
+
+defclass Map(s, t, X) for_op X: for_type s, t:
+     map :: ((s) -> t, X(s)) -> X(t);
+
+
+# Instances for list and pair
+
+deftype for_unit a: Mat(a) = a * Geom2! per Geom2!;
+
+definstance Map(s, v, Mat) for_unit s, v: 
+     map(fun, xs) = map_list(fun, xs);
+
+
+definstance Map(s, v, List) for_type s, v: 
+     map(fun, xs) = map_list(fun, xs);
+
+definstance Map(s, v, Pair) for_type s, v: 
+     map(fun, pair) = make_pair(fun(pair_left(pair)), fun(pair_right(pair)));
+
+
+# Test function
+
+# declare my_test3 :: for_type t where Num(t): for_op X: where Map(t,t,X): (X(t)) -> X(t);
+#  or
+# declare my_test3 :: for_type t: for_op X: where Num(t) and Map(t,t,X): (X(t)) -> X(t);
+
+declare my_test3 :: for_type t where Num(t): for_op X where Map(t, t, X): 
+    (X(t)) -> X(t);
+
+define my_test3(container) = 
+  map((x) -> gen_sum(x, x), container);
+
+define my_test4(x) = 
+    gen_sum(x, x);
+
+define yo() = 
+  my_test4(1);
+
+# ------------------------------------------------------------------------------
+# Complication 3 - Inheritance
+# ------------------------------------------------------------------------------
+
+defclass Triple(X,r,s,t) for_op X: for_type r,s,t where Eq(X(r,s,t)):
+    first :: (X(r,s,t)) -> r,
+    second :: (X(r,s,t)) -> s,
+    third :: (X(r,s,t)) -> t;
+
+#definstance Triple(Tuple(x, y, z)) for_type x,y,z:
+
+definstance Triple(Tuple,r,s,t) for_type r,s,t:
+    first(tup) = let (a,_,_) = tup in a end,
+    second(tup) = let (_,a,_) = tup in a end,
+    third(tup) = let (_,_,a) = tup in a end;
+    #is_equal(a, b) =
+    #    let
+    #        (a0, a1, a2) = a, 
+    #        (b0, b1, b2) = b
+    #    in
+    #        is_equal(a0, b0) and
+    #        is_equal(a1, b1) and
+    #        is_equal(a2, b2)
+    #    end;

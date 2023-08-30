@@ -6,8 +6,7 @@ import java_cup.runtime.Symbol;
 import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java.io.File;
-import java.io.IOException;
-import pacioli.PacioliException;
+import pacioli.compiler.PacioliException;
 
 %%
 %public
@@ -48,10 +47,10 @@ import pacioli.PacioliException;
       return symbolFactory.newSymbol(name, sym, left, right,val);
   }
   private void error(String message) {
-    //pacioli.Location errorLocation = new pacioli.Location(file, source, (int)(long)(int)(long)yychar, (int)(long)(int)(long)yychar+yylength());
-    pacioli.Location from = new pacioli.Location(file, yyline, yycolumn, (int)(long)(int)(long)yychar);
-    pacioli.Location to = new pacioli.Location(file, yyline, yycolumn+yylength(), (int)(long)(int)(long)yychar+yylength());
-    pacioli.Location errorLocation = from.join(to);
+    //pacioli.compiler.Location errorLocation = new pacioli.compiler.Location(file, source, (int)(long)(int)(long)yychar, (int)(long)(int)(long)yychar+yylength());
+    pacioli.compiler.Location from = new pacioli.compiler.Location(file, yyline, yycolumn, (int)(long)(int)(long)yychar);
+    pacioli.compiler.Location to = new pacioli.compiler.Location(file, yyline, yycolumn+yylength(), (int)(long)(int)(long)yychar+yylength());
+    pacioli.compiler.Location errorLocation = from.join(to);
     throw new RuntimeException("Parse error", new PacioliException(errorLocation, message));
   }
 %}
@@ -106,11 +105,16 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "defmatrix"       { return symbol("defmatrix",DEFMATRIX); }
   "defalias"        { return symbol("defalias",DEFALIAS); }
   "defconv"         { return symbol("defconv",DEFCONV); }
+  "defclass"        { return symbol("defclass",DEFCLASS); }
+  "definstance"     { return symbol("definstance",DEFINSTANCE); }
+  "doc"             { return symbol("doc",DOC); }
   "public"          { return symbol("public", PUBLIC); }
+  "export"          { return symbol("export", EXPORT); }
   "for_type"        { return symbol("for_type",FORTYPE); }
   "for_index"       { return symbol("for_index",FORINDEX); }
   "for_unit"        { return symbol("for_unit",FORUNIT); }
-  "fn"              { return symbol("fn",FN); }
+  "for_op"          { return symbol("for_op",FOROP); }
+  "where"           { return symbol("where",WHERE); }
 
   /* literals */
   {Natural}         { return symbol("Natural", NATURAL, yytext()); }
@@ -167,6 +171,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "<=>"             { return symbol("equiv", EQUIV); }
   "and"             { return symbol("and", AND); }
   "or"              { return symbol("or", OR); }
+  [?][?][?]             { return symbol("questionmarks", QUESTIONMARKS); }
 
   /* names */
   {Identifier}      { return symbol("Identifier",IDENTIFIER, yytext()); }
@@ -185,7 +190,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   \\n             { string.append('\n'); }
   \\r             { string.append('\r'); }
   \\\"            { string.append('\"'); }
-  \\              { string.append('\\'); }
+  \\\\              { string.append('\\'); }
 }
 
 

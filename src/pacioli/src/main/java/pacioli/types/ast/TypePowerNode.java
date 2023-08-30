@@ -21,10 +21,10 @@
 
 package pacioli.types.ast;
 
-import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.unit.NumberUnitNode;
+import pacioli.compiler.Location;
 
 public class TypePowerNode extends AbstractTypeNode {
 
@@ -40,11 +40,11 @@ public class TypePowerNode extends AbstractTypeNode {
     public TypePowerNode(Location location, TypeNode base, NumberUnitNode power) {
         super(location);
         this.base = base;
-        this.power = new NumberTypeNode(power.getLocation(), power.pretty());
+        this.power = new NumberTypeNode(power.location(), power.pretty());
     }
 
     public Node transform(TypeNode base) {
-        return new TypePowerNode(getLocation(), base, power);
+        return new TypePowerNode(location(), base, power);
     }
 
     @Override

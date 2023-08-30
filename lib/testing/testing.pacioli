@@ -1,0 +1,259 @@
+# ------------------------------------------------------------------------------
+# Test utilities
+# ------------------------------------------------------------------------------
+
+export
+    Test,
+    TestSuite,
+    test,
+    test_focus,
+    test_description,
+    is_test_focused,
+    run_test,
+    test_suite,
+    test_suite_focus,
+    suite_description,
+    suite_tests,
+    is_suite_focused,
+    run_test_suites;
+
+declare test, test_focus :: (String, () -> Boole) -> Test;
+declare test_description :: (Test) -> String;
+declare is_test_focused :: (Test) -> Boole;
+declare run_test :: (Test) -> Boole;
+
+declare test_suite, test_suite_focus :: (String, List(Test)) -> TestSuite;
+declare suite_description :: (TestSuite) -> String;
+declare suite_tests :: (TestSuite) -> List(Test);
+declare is_suite_focused :: (TestSuite) -> Boole;
+declare run_test_suites :: (List(TestSuite)) -> Void;
+
+# ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
+
+doc Test
+    "A test is a tuple <code>(description, check, focused)</code>. 
+    
+    The desciption explains the test in one line. The check is the actual
+    test. The focused flag indicates whether this test is marked as 
+    'focused'.";
+
+deftype Test() = Tuple(String, () -> Boole, Boole);
+
+# ------------------------------------------------------------------------------
+
+doc test
+    "Creates a test. 
+    
+    The first argument is a description of the test case. The second argument is
+    a condition that that test must satisfy.";
+
+define test(description, body) =
+  tuple(description , body, false);
+
+# ------------------------------------------------------------------------------
+
+doc test_focus
+    "Creates a test, just like function <code>test</code>, but marks it as 'focused'.
+    
+    When at least one test is marked as 'focused' then function <code>run_test_suites</code>
+    will only run the marked tests and skip all others.";
+
+define test_focus(description, body) =
+  tuple(description , body, true);
+
+# ------------------------------------------------------------------------------
+
+doc test_description
+    "A test's description";
+
+define test_description(test) = 
+  let (description, _, _) = test in description end;
+
+# ------------------------------------------------------------------------------
+
+doc is_test_focused
+    "Is the test marked as 'focused'.";
+
+define is_test_focused(test) = 
+  let (_, _, is_focused) = test in is_focused end;
+
+# ------------------------------------------------------------------------------
+
+doc run_test
+    "Executes the test.";
+
+define run_test(test) = 
+  let (_, body, _) = test in body() end;
+
+# ------------------------------------------------------------------------------
+# Tests suite
+# ------------------------------------------------------------------------------
+
+doc TestSuite
+    "A test suite is a collection of tests.";
+
+deftype TestSuite() = Tuple(String, List(Test), Boole);
+
+# ------------------------------------------------------------------------------
+
+doc test_suite
+    "Creates a test suite.";
+
+define test_suite(description, tests) = 
+    tuple(description, tests, false);
+
+# ------------------------------------------------------------------------------
+
+doc test_suite_focus
+    "Creates a test suite, just like function <code>test_suite</code>, but
+    marks it as 'focused'";
+
+define test_suite_focus(description, tests) = 
+    tuple(description, tests, true);
+
+# ------------------------------------------------------------------------------
+
+doc suite_description
+    "A test suite's description.";
+
+define suite_description(suite) = 
+  let (description, _, _) = suite in description end;
+
+# ------------------------------------------------------------------------------
+
+doc suite_tests
+    "All tests in a test suite.";
+
+define suite_tests(suite) = 
+  let (_, tests, _) = suite in tests end;
+
+# ------------------------------------------------------------------------------
+
+doc is_suite_focused
+    "Is the test suite marked as 'focused'";
+
+define is_suite_focused(suite) = 
+  let (_, _, is_focused) = suite in is_focused end;
+
+# ------------------------------------------------------------------------------
+
+doc run_test_suites
+    "Runs all tests from a list of test suites. Prints output to the terminal.
+    Returns the result as triple (nr_tests, nr_failures, nr_skipped).
+
+    When at least one of the tests is marked as 'focused' then it will only run the
+    marked tests and skip all others.";
+
+define run_test_suites(suites) =
+  begin
+    print("\nRuning test suites\n");
+
+    # Determine which suites to run
+    suites_with_focus := [s | s <- suites, is_suite_focused(s)];
+    to_test := if suites_with_focus = [] then suites else suites_with_focus end;
+    nr_skipped_suites := list_size(suites) - list_size(to_test);
+
+    # Run the tests. Collect the results as a list of (description, result) pairs
+    results := [tuple(suite_description(s), run_test_suite(s)) | s <- to_test];
+
+    # Print a status message
+    print(format("\nTests finished, %s suites tested%s\n",
+      int2str(list_size(to_test), |1|),
+      skipped_message(nr_skipped_suites)));
+
+    # Print a summary of the results per suite. Also calculate totals.
+    toprint := results;
+    total_nr_tests := 0;
+    total_nr_successes := 0;
+    while toprint != [] do
+
+      # Get the result for this suite
+      (description, result) := head(toprint);
+      (nr_tests, nr_errors, nr_skipped) := result;
+      nr_successes := nr_tests - nr_errors;
+
+      # Print the result
+      print(format(" %s%s -> %s/%s success%s", 
+        if nr_successes = nr_tests then " " else "*" end,
+        description,
+        int2str(nr_successes, |1|),
+        int2str(nr_tests, |1|),
+        skipped_message(nr_skipped)));
+
+      # Update the totals
+      total_nr_tests := total_nr_tests + nr_tests;
+      total_nr_successes := total_nr_successes + nr_successes;
+
+      toprint := tail(toprint);
+    end
+
+    # Determine total number of skipped
+    total_nr_skipped := count[ true | s <- suites, t <- suite_tests(s)] - total_nr_tests;
+
+    # Print the totals
+    print(format("\nTotal tests -> %s/%s success%s",
+      int2str(total_nr_successes, |1|),
+      int2str(total_nr_tests, |1|),
+      skipped_message(total_nr_skipped)));
+  end;
+
+# ------------------------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------------------------
+
+declare run_test_suite :: (TestSuite) -> Tuple(1, 1, 1);
+declare skipped_message :: (1) -> String;
+
+doc run_test_suite
+    "Runs all tests for a test suite. Prints output to the terminal. Returns the
+    result as triple (nr_tests, nr_failures, nr_skipped).
+
+    When at least one of the tests is marked as 'focused' then it will focus run
+    the marked tests and skip all others.";
+
+define run_test_suite(suite) =
+  let
+    (description, all_tests, _) = suite,
+    nr_focuss = count[is_test_focused(t) | t <- all_tests],
+    tests_with_focus = [t | t <- all_tests, is_test_focused(t)],
+    tests = if tests_with_focus = [] then all_tests else tests_with_focus end,
+    results = [ tuple(test_description(test), run_test(test)) | test <- tests ],
+    nr_tests = list_size(tests),
+    nr_failures = count[ not(okay) | (_, okay) <- results ],
+    nr_skipped = list_size(all_tests) - nr_tests,
+    messages = [ message | (description, okay) <- results,
+                            result := if okay then "ok" else "FAIL!" end,
+                            message := format("  %s -> %s", description, result)],
+    summary = if nr_failures = 0 then
+                format("All %s tests succeeded", int2str(nr_tests, |1|))
+              else
+                format("\nTEST FAILURES!!!!!\n\n  %s of %s tests failed",
+                  int2str(nr_failures, |1|), 
+                  int2str(nr_tests, |1|))
+              end
+                      
+  in
+    begin
+      print(description);
+      todo := messages;
+      while todo != [] do
+        frst := head(todo);
+        todo := tail(todo);
+        print(frst);
+      end
+      print(format("%s%s\n", summary, skipped_message(nr_skipped)));
+      return tuple(nr_tests, nr_failures, nr_skipped);
+    end
+  end;
+
+
+# Helper to print the number of skipped tests or suites.
+
+define skipped_message(nr_skipped) =
+  if nr_skipped = 0 then
+    ""
+  else
+    format(", %s skipped", int2str(nr_skipped, |1|))
+  end;

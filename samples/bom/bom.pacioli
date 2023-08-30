@@ -1,0 +1,73 @@
+
+import si;
+
+# ----------------------------------------------------------------------------
+# Setup
+# ----------------------------------------------------------------------------
+
+defindex Product = 
+  {Butter, Flour, Pastry, Apples, Sugar, ApplePie, PieceOfPie, CrateOfApples};
+
+defunit Product!unit = {
+  Butter: gram,
+  Flour: gram, 
+  Pastry: kilo:gram, 
+  Apples: gram,
+  Sugar: gram
+};
+
+defunit Product!trade_unit = {
+  Butter: kilo:gram,
+  Flour: kilo:gram, 
+  Pastry: kilo:gram, 
+  Apples: kilo:gram,
+  CrateOfApples: 1,
+  Sugar: kilo:gram
+};
+
+defconv conv :: Product!unit per Product!trade_unit;
+
+# ----------------------------------------------------------------------------
+# Input
+# ----------------------------------------------------------------------------
+
+defmatrix amount :: Product!trade_unit = {
+  Apples -> 1000,
+  Flour ->  1500
+};
+
+defmatrix price :: dollar/Product!trade_unit = {
+  Apples -> 1.40,
+  Flour ->  0.80
+};
+
+defmatrix bom :: Product!unit per Product!unit = {
+  Apples, CrateOfApples ->  10000.00,
+  Butter, Pastry ->           360.00,
+  Flour, Pastry ->            550.00,
+  Pastry, ApplePie ->           0.40,
+  Apples, ApplePie ->         750.00,
+  Sugar, ApplePie ->          225.00,
+  Butter, ApplePie ->         115.00,
+  ApplePie, PieceOfPie ->       0.12
+};
+
+# ----------------------------------------------------------------------------
+# Computations
+# ----------------------------------------------------------------------------
+conv;
+declare trade_bom :: Product!trade_unit per Product!trade_unit;
+
+define trade_bom = conv^D '*' bom '*' conv;
+
+bom;
+
+trade_bom;
+
+closure(trade_bom);
+
+closure(trade_bom)^T;
+
+declare product_cost :: dollar/Product!trade_unit;
+
+define product_cost = closure(trade_bom)^T '*' price;

@@ -1,30 +1,26 @@
 package pacioli.types.matrix;
 
-import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
-import pacioli.ConstraintSet;
-import pacioli.PacioliException;
-import pacioli.Substitution;
-import pacioli.symboltable.IndexSetInfo;
-import pacioli.types.AbstractType;
-import pacioli.types.IndexSetVar;
-import pacioli.types.PacioliType;
-import pacioli.types.TypeIdentifier;
+import pacioli.compiler.PacioliException;
+import pacioli.symboltable.info.IndexSetInfo;
+import pacioli.types.ConstraintSet;
 import pacioli.types.TypeVisitor;
-import pacioli.types.Var;
+import pacioli.types.type.AbstractType;
+import pacioli.types.type.IndexSetVar;
+import pacioli.types.type.TypeIdentifier;
+import pacioli.types.type.TypeObject;
+import pacioli.types.type.Var;
 
 public class IndexType extends AbstractType {
 
-    public final PacioliType indexSet;
+    private final TypeObject indexSet;
 
     public IndexType(List<TypeIdentifier> indexSets, List<IndexSetInfo> indexSetInfos) {
         this.indexSet = new IndexList(indexSets, indexSetInfos);
     }
-  
+
     public IndexType(TypeIdentifier indexSet, IndexSetInfo indexSetInfo) {
         this.indexSet = new IndexList(Arrays.asList(indexSet), Arrays.asList(indexSetInfo));
     }
@@ -37,20 +33,27 @@ public class IndexType extends AbstractType {
         indexSet = typeVar;
     }
 
-    private IndexType(PacioliType type) {
+    public IndexType(TypeObject type) {
+        if (!(type instanceof Var || type instanceof IndexList)) {
+            throw new RuntimeException(String.format("Expected index list of var"));
+        }
         indexSet = type;
     }
 
-    public PacioliType getIndexSet() {
+    public TypeObject indexSet() {
         return indexSet;
     }
 
     public boolean isVar() {
         return indexSet instanceof Var;
     }
-    
-    public IndexSetVar getVar() {
-        return (IndexSetVar) indexSet;
+
+    /**
+     * TODO: Check: Is not always an IndexSetVar. Substitution can replace it with a
+     * typevar! This happens with the delta function in the standard lib.
+     */
+    public Var getVar() {
+        return (Var) indexSet;
     }
 
     public String varName() {
@@ -63,6 +66,21 @@ public class IndexType extends AbstractType {
         } else {
             return (IndexList) indexSet;
         }
+    }
+
+    @Override
+    public String description() {
+        return "index type";
+    }
+
+    @Override
+    public String toString() {
+        return "<idx " + indexSet.toString() + ">";
+    }
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
     }
 
     @Override
@@ -82,17 +100,11 @@ public class IndexType extends AbstractType {
         return indexSet.equals(otherType.indexSet);
     }
 
-    @Override
-    public String toString() {
-        //return String.format("%s%s", super.toString(), indexSet);
-        return indexSet.toString();
-    }
-
     public List<TypeIdentifier> getIndexSets() {
         if (isVar()) {
             throw new RuntimeException("Method not available for an index variable");
         } else {
-            return indexList().getIndexSets();
+            return indexList().indexSets();
         }
     }
 
@@ -111,7 +123,7 @@ public class IndexType extends AbstractType {
             return indexList().nthIndexSet(n);
         }
     }
-    
+
     public IndexSetInfo nthIndexSetInfo(int n) {
         if (isVar()) {
             throw new RuntimeException("Method not available for an index variable");
@@ -121,28 +133,11 @@ public class IndexType extends AbstractType {
     }
 
     @Override
-    public void printPretty(PrintWriter out) {
-        out.print("Index(");
-        indexSet.printPretty(out);
-        out.print(")");
-    }
-
-    @Override
-    public Set<String> unitVecVarCompoundNames() {
-        return new LinkedHashSet<String>();
-    }
-
-    @Override
-    public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
+    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         IndexType otherType = (IndexType) other;
         ConstraintSet constraints = new ConstraintSet();
         constraints.addConstraint(indexSet, otherType.indexSet, "Index Set must be equal");
         return constraints;
-    }
-
-    @Override
-    public PacioliType applySubstitution(Substitution subs) {
-        return new IndexType(indexSet.applySubstitution(subs));
     }
 
     IndexType kronecker(IndexType other) {
@@ -161,13 +156,4 @@ public class IndexType extends AbstractType {
         }
     }
 
-    @Override
-    public String description() {
-        return "index type";
-    }
-
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
-    }
 }

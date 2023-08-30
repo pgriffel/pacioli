@@ -21,9 +21,9 @@
 
 package pacioli.ast.expression;
 
-import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 
 public class LetBindingNode extends AbstractExpressionNode implements LetNode.BindingNode {
 
@@ -37,7 +37,7 @@ public class LetBindingNode extends AbstractExpressionNode implements LetNode.Bi
     }
 
     public LetBindingNode(LetBindingNode old, ExpressionNode value) {
-        super(old.getLocation());
+        super(old.location());
         this.var = old.var;
         this.value = value;
     }
@@ -48,7 +48,7 @@ public class LetBindingNode extends AbstractExpressionNode implements LetNode.Bi
     }
 
     public Node transform(ExpressionNode value) {
-        return new LetBindingNode(getLocation(), var, value);
+        return new LetBindingNode(location(), var, value);
     }
 
 }

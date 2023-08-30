@@ -21,8 +21,8 @@
 
 package pacioli.ast.expression;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 
 public class BranchNode extends AbstractExpressionNode {
 
@@ -38,7 +38,7 @@ public class BranchNode extends AbstractExpressionNode {
     }
 
     public BranchNode(BranchNode old, ExpressionNode test, ExpressionNode pos, ExpressionNode neg) {
-        super(old.getLocation());
+        super(old.location());
         this.test = test;
         this.positive = pos;
         this.negative = neg;

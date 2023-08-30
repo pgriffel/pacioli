@@ -1,11 +1,8 @@
 package pacioli.ast.definition;
 
-import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.symboltable.ValueInfo;
+import pacioli.compiler.Location;
 import pacioli.types.ast.TypeNode;
 
 public class Declaration extends AbstractDefinition {
@@ -20,33 +17,16 @@ public class Declaration extends AbstractDefinition {
     }
 
     public Declaration transform(TypeNode node) {
-        return new Declaration(getLocation(), id, node);
+        return new Declaration(location(), id, node);
     }
 
     @Override
-    public String localName() {
-        return id.getName();
+    public String name() {
+        return id.name();
     }
 
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        
-        String name = localName();
-        
-        ValueInfo info = new ValueInfo(name, program.getModule(), true, false, getLocation(), !program.isLibrary());
-        info.setDeclaredType(typeNode);
-        
-        ValueInfo oldInfo = program.values.lookup(name);
-        if (oldInfo != null) {
-            info = oldInfo.includeOther(info);
-        }
-            
-        program.values.put(name, info);
-    }
-
 }

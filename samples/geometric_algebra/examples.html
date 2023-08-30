@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset='utf-8'>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <title>Pacioli GA</title>
+    </head>
+
+    <body onload="onLoad();">
+        <div id="console"></div>
+        <div id="pacioli_hook" style=" margin: 10px"></div>
+    </body>	
+
+    <script>
+
+        // Add a [script, fun, parameters] entry for each example to this list and include its 
+        // script further below. The parameters is a list of numbers. The UI will make
+        // an input for each parameter and use the numbers as initial value. The script's
+        // scene function fun must accept the same number as arguments.
+        //
+        // Note that the space has unit metre. The scene elements must have compatible units,
+        // otherwise runtime errors will occur in the browser.
+        const examples = [
+            ["usr_bi_vector", "scene2", [0]],
+            ["usr_bi_vector", "scene1", [2, 1, 0, -3, 0, 2, 0]],
+            ["usr_inner", "the_scene", [5, 0, 5, 0, 7, 7]],
+            ["usr_outer_cos_sin", "the_scene", [3]],
+            ["usr_weird", "the_scene", []],
+            ["usr_cubes", "the_scene", []],
+            ["usr_physics", "the_scene", [0, 1]]
+        ]
+
+        function onLoad() {
+
+            // These space settings can be tweaked
+            const spaceConfig = {
+                width: 700,
+                height: 500,
+                unit: Pacioli.unit("metre"),
+                axis: true,
+                axisSize: 30,
+                verbose: false
+            }
+
+            // Locate the DOM element where we will append the examples
+            var parent = document.getElementById("pacioli_hook")
+
+            for (const [script, fun, initialParameters] of examples) {
+                
+                // Create a section in the dom with a header 
+                const headerElement = document.createElement("h2");
+                headerElement.innerText = "Example " + script + " - " + fun
+                headerElement.id = script + "_" + fun
+                parent.appendChild(headerElement);
+                
+                // Add an element for the description. The description is set in
+                // fillSpaceWithScene below.
+                const descriptionElement = document.createElement("p");
+                parent.appendChild(descriptionElement);
+                
+                // Add a Pacioli space element
+                const spaceElement = document.createElement("div");
+                parent.appendChild(spaceElement);
+                const space = new Pacioli.Space(spaceElement, spaceConfig)  
+
+                // Add the example with the initial parameter values
+                fillSpaceWithScene(space, descriptionElement, script, fun, initialParameters)
+
+                // Add inputs and a button if the parameter list is not empty
+                if (initialParameters.length > 0) {
+
+                    // Create input elements for the parameters
+                    const inputs = initialParameters.map(value => {
+                        const inputElement = document.createElement("input");
+                        inputElement.value = value
+                        return inputElement
+                    })
+                    
+                    // Add the input elements to the dom
+                    for (const input of inputs) {
+                        parent.appendChild(input);
+                    }
+
+                    // Add a button to recalculate the scene
+                    const buttonElement = document.createElement("button");
+                    buttonElement.innerText = "Go"
+                    buttonElement.onclick = () => {
+
+                        // User clicked the button. Get the input values and update the space
+                        const params = inputs.map(input => Number(input.value))
+                        fillSpaceWithScene(space, descriptionElement, script, fun, params)
+                    }
+                    parent.appendChild(buttonElement);
+                }
+            }
+        }
+        
+        function fillSpaceWithScene(space, descriptionElement, script, fun, params) {
+
+            // Compute the scene and get its elements.
+            const p = params.map(x => Pacioli.num(x))
+            const tup = Pacioli.fun(script, fun).apply(p)
+            const [description, vectors, meshes, paths] = tup
+
+            // Set the example description
+            descriptionElement.innerHTML = description.value
+
+            // Add the scene elements to the space
+            space.clear()
+            for (const [mesh, wireframe] of meshes) {
+                space.addMesh(mesh, {wireframe: wireframe.value});
+            }
+            for (const [origin, vector, color] of vectors) {
+                space.addVector(origin, vector, color)
+            }
+            for (const path of paths) {
+                space.addPath(path)
+            }
+            space.draw()
+
+        }
+
+    </script>
+
+    <script type="text/javascript" src="pacioli-0.5.0.bundle.js"></script>
+
+    <!-- Include each compiled example script here and add the examples to the list above -->
+    <script type="text/javascript" src="examples/bi_vector.js"></script>
+    <script type="text/javascript" src="examples/inner.js"></script>
+    <script type="text/javascript" src="examples/outer_cos_sin.js"></script>
+    <script type="text/javascript" src="examples/weird.js"></script>
+    <script type="text/javascript" src="examples/cubes.js"></script>
+    <script type="text/javascript" src="examples/physics.js"></script>
+
+</html>

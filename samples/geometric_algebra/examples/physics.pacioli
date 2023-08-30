@@ -1,0 +1,117 @@
+import geometry;
+import geometric_algebra;
+import graphics;
+
+declare angular_momentum :: for_index B: for_unit a, c: (MultiVector(a, B!), MultiVector(c, B!))
+    -> MultiVector(a*c, B!);
+
+declare angular_momentum_cross :: for_unit a,b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!;
+
+
+
+
+# Example position and momentum as multivectors
+define position_3D = vector3d(100 * |distance_unit|, 200 * |distance_unit|, 500 * |distance_unit|);
+define momentum_3D = vector3d(4 * |momentum_unit/second|, 2 * |momentum_unit/second|, 1 * |momentum_unit/second|);
+
+defalias distance_unit = metre;
+defalias momentum_unit = kilo:gram * metre;
+
+define angular_momentum(position, momentum) = 
+    outer_product(position, momentum);
+
+define angular_momentum_cross(position, momentum) = 
+    cross(position, momentum);
+
+
+position_3D;
+magnitude(position_3D);
+unit(position_3D);
+unit_factor(position_3D);
+
+momentum_3D;
+magnitude(momentum_3D);
+unit(momentum_3D);
+unit_factor(momentum_3D);
+
+
+
+#angular_momentum(vec2mv(position_3D), vec2mv(momentum_3D));
+
+#angular_momentum_cross(position_3D, momentum_3D);
+
+
+# Rotating frame of vectors example (Doran, p69)
+#declare framevector :: for_unit a: ((a * Geom3!), second) -> (a, Geom3!);
+
+define framevector(k, t) =
+    rotate(rotor2(t), fixedvector(k));
+
+define framevector2(k, t) =
+    rotate2(rotor(t), fixedvector(k));
+
+define rotate(rotor, mv) =
+    geometric_product(rotor, geometric_product(mv, multivector_reverse(rotor)));
+
+define rotate2(rotor, mv) =
+    geometric_product(rotor, geometric_product(mv, multivector_inverse(rotor)));
+
+
+# Open: type of the fixedvector. Assume a
+# We assume for the frame of vectors the basis vectors {e1, e2, e3}
+# declare fixedvector :: (1) -> MultiVector(a);
+
+define baseframe = [parse_mv("e1"), parse_mv("e2"), parse_mv("e1+e2+e3")];
+define fixedvector(k) = nth(k, baseframe);
+
+#define rotor_n = parse_mv("3e1 + 2e2");
+#define rotor_m = parse_mv("2e1 + 3e2");
+
+define rotor_n = make_multivector([make_term(|metre|, e1)]);
+define rotor_n2 = make_multivector([make_term(1, e1)]);
+
+
+#declare rotor :: (second) -> MultiVector(metre^2, Geom3!);
+
+define rotor(t) = 
+    let
+        a = t * 0.1 * |radian| / |second|,
+        rotor_m = make_multivector([make_term(cos(a) * |metre|, e1), make_term(sin(a) * |metre|, e2)])
+    in
+        geometric_product(rotor_n, rotor_m)
+    end;
+
+# rotor without unit metre
+define rotor2(t) = 
+    let
+        a = t * 0.1 * |radian| / |second|,
+        rotor_m = make_multivector([make_term(cos(a), e1), make_term(sin(a), e2)])
+    in
+        geometric_product(rotor_n2, rotor_m)
+    end;
+
+
+multivector2string(rotor(0 * |second|));
+multivector2string(framevector(0, 0 * |second|));
+multivector2string(rotor(1 * |second|));
+multivector2string(framevector(0, 1 * |second|));
+
+multivector2string(rotor(0 * |second|));
+multivector2string(framevector2(0, 0 * |second|));
+multivector2string(rotor(1 * |second|));
+multivector2string(framevector2(0, 1 * |second|));
+
+#framevector(0, 1 * |second|);
+
+# ------------------------------------------------------------------------------
+# The scene
+# ------------------------------------------------------------------------------
+      
+define the_scene(t0, t1) =
+    let scene = empty_scene("rotor in e1-e2") in
+        add_arrows(rendered_vectors(t1, "blue"), add_arrows(rendered_vectors(t0, "red"), scene))
+    end;
+
+define rendered_vectors(i, color) = 
+    [origin_arrow(10 '.*'mv2vec(framevector(j, i * |second|)), color) | j <- naturals(3)];
+

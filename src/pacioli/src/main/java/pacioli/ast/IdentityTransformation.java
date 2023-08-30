@@ -5,15 +5,20 @@ import java.util.List;
 import java.util.Stack;
 
 import pacioli.ast.definition.AliasDefinition;
+import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.ast.definition.ValueEquation;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
@@ -45,6 +50,7 @@ import pacioli.ast.unit.UnitNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.types.ast.BangTypeNode;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
 import pacioli.types.ast.PrefixUnitTypeNode;
@@ -57,6 +63,7 @@ import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
+import pacioli.types.ast.TypePredicateNode;
 
 public class IdentityTransformation implements Visitor {
 
@@ -97,42 +104,52 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(ProgramNode program) {
-        
-        List<IncludeNode> includes = new ArrayList<IncludeNode>();
-        List<ImportNode> imports = new ArrayList<ImportNode>();
-        List<Definition> defs = new ArrayList<Definition>();
-        
-        for (IncludeNode def : program.includes) {
+
+        List<IncludeNode> includes = new ArrayList<>();
+        List<ImportNode> imports = new ArrayList<>();
+        List<ExportNode> exports = new ArrayList<>();
+        List<Definition> defs = new ArrayList<>();
+
+        for (IncludeNode def : program.includes()) {
             Node node = nodeAccept(def);
             assert (node instanceof IncludeNode);
             includes.add((IncludeNode) node);
-
         }
-        for (Definition def : program.definitions) {
+        for (IncludeNode def : program.includes()) {
+            Node node = nodeAccept(def);
+            assert (node instanceof IncludeNode);
+            includes.add((IncludeNode) node);
+        }
+        for (Definition def : program.definitions()) {
             Node node = nodeAccept(def);
             assert (node instanceof Definition);
             defs.add((Definition) node);
 
         }
-        for (Definition def : program.definitions) {
+        for (Definition def : program.definitions()) {
             Node node = nodeAccept(def);
             assert (node instanceof Definition);
             defs.add((Definition) node);
 
         }
-        returnNode(new ProgramNode(null, includes, imports, defs));
+        returnNode(new ProgramNode(null, includes, imports, exports, defs));
     }
 
     @Override
     public void visit(IncludeNode node) {
         returnNode(node);
     }
-    
+
     @Override
     public void visit(ImportNode node) {
         returnNode(node);
     }
-    
+
+    @Override
+    public void visit(ExportNode node) {
+        returnNode(node);
+    }
+
     @Override
     public void visit(AliasDefinition node) {
         returnNode(node);
@@ -157,7 +174,7 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(Toplevel node) {
         // returnNode(node);
-        returnNode(new Toplevel(node.getLocation(), expAccept(node.body)));
+        returnNode(new Toplevel(node.location(), expAccept(node.body)));
     }
 
     @Override
@@ -178,6 +195,35 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(ValueDefinition node) {
         returnNode(node.transform(expAccept(node.body)));
+    }
+
+    @Override
+    public void visit(ClassDefinition node) {
+        List<QuantNode> quantNodes = new ArrayList<>();
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNodes.add((QuantNode) nodeAccept(quantNode));
+        }
+        List<TypeAssertion> members = new ArrayList<>();
+        for (TypeAssertion member : node.members) {
+            members.add((TypeAssertion) nodeAccept(member));
+        }
+        returnNode(new ClassDefinition(node.location(), (TypePredicateNode) nodeAccept(node.predicate), quantNodes,
+                members));
+    }
+
+    @Override
+    public void visit(InstanceDefinition node) {
+        List<QuantNode> quantNodes = new ArrayList<>();
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNodes.add((QuantNode) nodeAccept(quantNode));
+        }
+        List<ValueEquation> members = new ArrayList<>();
+        for (ValueEquation member : node.members) {
+            members.add((ValueEquation) nodeAccept(member));
+        }
+        returnNode(
+                new InstanceDefinition(node.location(), (TypePredicateNode) nodeAccept(node.predicate), quantNodes,
+                        members));
     }
 
     @Override
@@ -237,18 +283,21 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(MatrixLiteralNode node) {
         // returnValue(new MatrixLiteralNode(node));
-        //returnNode(node);
-        returnNode(new MatrixLiteralNode(node.getLocation(), typeAccept(node.typeNode), node.pairs));
+        // returnNode(node);
+        returnNode(node.withTypeNode(typeAccept(node.typeNode)));
     }
 
     @Override
     public void visit(MatrixTypeNode node) {
         // throw new RuntimeException("todo");
         // returnValue(node);
-        //returnNode(node);
+        // returnNode(node);
         TypeNode yo = typeAccept(node.typeNode);
-        assert(yo != null);
-        returnNode(new MatrixTypeNode(node.getLocation(), typeAccept(node.typeNode)));
+        assert (yo != null);
+        MatrixTypeNode copy = new MatrixTypeNode(node.location(), typeAccept(node.typeNode));
+        copy.rowDim = node.rowDim;
+        copy.columnDim = node.columnDim;
+        returnNode(copy);
     }
 
     @Override
@@ -284,10 +333,10 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(TupleAssignmentNode node) {
-        
+
         returnNode(new TupleAssignmentNode(node, expAccept(node.tuple)));
-        //returnNode(node.transform(this));        
-        //throw new RuntimeException("todo");
+        // returnNode(node.transform(this));
+        // throw new RuntimeException("todo");
     }
 
     @Override
@@ -414,7 +463,62 @@ public class IdentityTransformation implements Visitor {
             assert (visited instanceof IdentifierNode);
             ids.add((IdentifierNode) id);
         }
-        returnNode(new IdListNode(node.getLocation(), ids));
+        returnNode(new IdListNode(node.location(), ids));
+    }
+
+    @Override
+    public void visit(Documentation node) {
+        returnNode(node.transform(expAccept(node.body)));
+    }
+
+    @Override
+    public void accept(ValueEquation node) {
+        returnNode(new ValueEquation(node.location(), (IdentifierNode) nodeAccept(node.id), expAccept(node.body)));
+    }
+
+    @Override
+    public void accept(TypeAssertion node) {
+
+        // Visit the id
+        IdentifierNode id = (IdentifierNode) nodeAccept(node.id);
+
+        // Visit the type variables
+        List<QuantNode> quantNodes = new ArrayList<>();
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNodes.add((QuantNode) nodeAccept(quantNode));
+        }
+
+        // Visit the type
+        TypeNode type = (TypeNode) nodeAccept(node.type);
+
+        // Create the transformed node
+        returnNode(new TypeAssertion(node.location(), id, quantNodes, type));
+    }
+
+    @Override
+    public void accept(QuantNode node) {
+        List<TypeIdentifierNode> ids = new ArrayList<>();
+        for (TypeIdentifierNode id : node.ids) {
+            Node visited = nodeAccept(id);
+            assert (visited instanceof TypeIdentifierNode);
+            ids.add((TypeIdentifierNode) visited);
+        }
+        List<TypePredicateNode> conditions = new ArrayList<>();
+        for (TypePredicateNode condition : node.conditions) {
+            Node visited = nodeAccept(condition);
+            assert (visited instanceof TypePredicateNode);
+            conditions.add((TypePredicateNode) visited);
+        }
+        returnNode(new QuantNode(node.location(), node.kind, ids, conditions));
+    }
+
+    @Override
+    public void visit(TypePredicateNode node) {
+        List<TypeNode> args = new ArrayList<TypeNode>();
+        for (TypeNode arg : node.args) {
+            args.add(typeAccept(arg));
+        }
+        returnNode(new TypePredicateNode(node.location(), node.id, args));
     }
 
 }

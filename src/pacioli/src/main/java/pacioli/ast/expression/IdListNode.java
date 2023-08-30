@@ -23,8 +23,8 @@ package pacioli.ast.expression;
 
 import java.util.List;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 
 public class IdListNode extends AbstractExpressionNode {
 

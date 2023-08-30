@@ -21,8 +21,8 @@
 
 package pacioli.ast.expression;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 
 public class WhileNode extends AbstractExpressionNode {
 
@@ -36,7 +36,7 @@ public class WhileNode extends AbstractExpressionNode {
     }
 
     public WhileNode transform(ExpressionNode test, ExpressionNode body) {
-        return new WhileNode(getLocation(), test, body);
+        return new WhileNode(location(), test, body);
     }
 
     @Override

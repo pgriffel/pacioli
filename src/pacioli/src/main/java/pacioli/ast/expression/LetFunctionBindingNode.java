@@ -23,11 +23,11 @@ package pacioli.ast.expression;
 
 import java.util.List;
 
-import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.ValueInfo;
 
 public class LetFunctionBindingNode extends AbstractExpressionNode implements LetNode.BindingNode {
 
@@ -50,7 +50,7 @@ public class LetFunctionBindingNode extends AbstractExpressionNode implements Le
     }
 
     public Node transform(ExpressionNode body) {
-        return new LetFunctionBindingNode(getLocation(), name, args, body);
+        return new LetFunctionBindingNode(location(), name, args, body);
     }
 
 }

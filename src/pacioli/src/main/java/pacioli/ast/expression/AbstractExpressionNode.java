@@ -21,39 +21,12 @@
 
 package pacioli.ast.expression;
 
-import java.util.HashMap;
-import java.util.Set;
-
-import pacioli.Location;
-import pacioli.Progam;
-import pacioli.Typing;
 import pacioli.ast.AbstractNode;
-import pacioli.symboltable.TypeInfo;
-import pacioli.visitors.AssignedVariablesVisitor;
-import pacioli.visitors.TypeInference;
+import pacioli.compiler.Location;
 
 public abstract class AbstractExpressionNode extends AbstractNode implements ExpressionNode {
 
     public AbstractExpressionNode(Location location) {
         super(location);
-    }
-
-    @Override
-    public Typing inferTyping(Progam prog) {
-        HashMap<String, TypeInfo> defaultTypes = new HashMap<String, TypeInfo>();
-        
-        defaultTypes.put("Void", prog.types.lookup("Void"));
-        defaultTypes.put("Tuple", prog.types.lookup("Tuple"));
-        defaultTypes.put("String", prog.types.lookup("String"));
-        defaultTypes.put("Boole", prog.types.lookup("Boole"));
-        
-        TypeInference visitor = new TypeInference(defaultTypes);
-        return visitor.typingAccept(this);
-    }
-
-    @Override
-    public Set<IdentifierNode> locallyAssignedVariables() {
-        AssignedVariablesVisitor visitor = new AssignedVariablesVisitor();
-        return visitor.idsAccept(this);
     }
 }

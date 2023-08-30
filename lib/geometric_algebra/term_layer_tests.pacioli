@@ -1,0 +1,27 @@
+import testing;
+include term_layer;
+include multivector_layer;
+include geometric_algebra;
+
+run_test_suites(term_layer_suites);
+
+declare term_layer_suites :: List(TestSuite);
+
+define term_layer_suites = [
+    bit_suite
+];
+
+# ------------------------------------------------------------------------------
+# Bit layer
+# ------------------------------------------------------------------------------
+
+define bit_suite = test_suite("Blade layer", [   
+
+    test("bin2int should be inverse of int2bin", () ->
+        bin2int(int2bin(0)) = 0 and
+        bin2int(int2bin(1)) = 1 and
+        bin2int(int2bin(2)) = 2 and
+        bin2int(int2bin(3)) = 3 and
+        bin2int(int2bin(4)) = 4
+    )
+]);

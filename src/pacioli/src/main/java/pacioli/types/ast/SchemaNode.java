@@ -21,26 +21,32 @@
 
 package pacioli.types.ast;
 
-import pacioli.Location;
-import pacioli.TypeContext;
+import java.util.List;
+
 import pacioli.ast.Visitor;
-import pacioli.symboltable.SymbolInfo;
+import pacioli.compiler.Location;
 import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.info.TypeInfo;
+import pacioli.types.TypeContext;
 
 public class SchemaNode extends AbstractTypeNode {
 
-    public final TypeContext context;
+    public final List<QuantNode> quantNodes;
     public final TypeNode type;
-    public SymbolTable<SymbolInfo> table;
+    public SymbolTable<TypeInfo> table;
 
-    public SchemaNode(Location location, TypeContext context, TypeNode type) {
+    public SchemaNode(Location location, List<QuantNode> quantNodes, TypeNode type) {
         super(location);
-        this.context = context;
+        this.quantNodes = quantNodes;
         this.type = type;
     }
 
     public SchemaNode transform(TypeNode type) {
-        return new SchemaNode(getLocation(), context, type);
+        return new SchemaNode(location(), quantNodes, type);
+    }
+
+    public TypeContext createContext() {
+        return TypeContext.fromQuantNodes(this.quantNodes);
     }
 
     @Override

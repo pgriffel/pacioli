@@ -6,6 +6,17 @@
 
 import si;
 
+export
+    Feature,
+    Target,
+    numpy_iris_list,
+    numpy_iris_array,
+    iris_list,
+    iris_data,
+    iris_target,
+    knn_fit,
+    knn_predict;
+
 # ------------------------------------------------------------------------------
 # The public data and functions
 #
@@ -29,8 +40,8 @@ declare iris_list :: List(Tuple(Feature!unit, Index(Target)));
 declare iris_data :: Sample! % Feature!unit;
 declare iris_target :: Sample! % Target!;
 
-declare knn_fit :: (Sample! % Feature!unit, Sample! % Target!) -> KNNClassifier();
-declare knn_predict :: (KNNClassifier(), Feature!unit) -> Target!;
+declare knn_fit :: (Sample! % Feature!unit, Sample! % Target!) -> KNNClassifier;
+declare knn_predict :: (KNNClassifier, Feature!unit) -> Target!;
 
 # ------------------------------------------------------------------------------
 # Library sklearn

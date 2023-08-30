@@ -22,17 +22,22 @@
 package pacioli.types.ast;
 
 import pacioli.ast.Node;
-import pacioli.types.PacioliType;
+import pacioli.ast.visitors.TypeEvaluator;
+import pacioli.types.type.TypeObject;
 
 /**
  * A TypeNode is the syntactic representation of a type.
  * 
- * Type equality, unification, etc. is defined on PacioliTypes and not on TypeNodes.
+ * Type equality, unification, etc. is defined on PacioliTypes and not on
+ * TypeNodes.
  * 
  * Use eval and deval to switch between the two type representations.
  *
  */
 public interface TypeNode extends Node {
 
-    public PacioliType evalType(Boolean reduce);
+    default public TypeObject evalType() {
+        TypeEvaluator visitor = new TypeEvaluator();
+        return visitor.typeAccept(this);
+    }
 }

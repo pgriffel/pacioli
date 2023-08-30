@@ -1,17 +1,16 @@
 package pacioli.ast.definition;
 
-import pacioli.Location;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
-import pacioli.types.PacioliType;
+import pacioli.compiler.Location;
+import pacioli.types.type.TypeObject;
 
 public class Toplevel extends AbstractDefinition {
 
-    public ExpressionNode body;
-    
+    public final ExpressionNode body;
+
     // Set during type inference
-    public PacioliType type;
+    public TypeObject type;
 
     public Toplevel(Location location, ExpressionNode body) {
         super(location);
@@ -19,7 +18,7 @@ public class Toplevel extends AbstractDefinition {
     }
 
     @Override
-    public String localName() {
+    public String name() {
         return null;
     }
 
@@ -27,10 +26,4 @@ public class Toplevel extends AbstractDefinition {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
-    @Override
-    public void addToProgr(Progam program) {
-        program.addToplevel(this);
-    }
-
 }

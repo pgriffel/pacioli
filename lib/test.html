@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset='utf-8'>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <title>Test lib implementations</title>
+    </head>
+
+    <body onload="onLoad();">
+        <!-- Printed lines are collected here. -->
+        <div id="console"></div>
+    </body>	
+
+    <script>
+
+        // Add a [script, suites] entry for each test script to this list and include its 
+        // script further below. 
+        const script_suites = [
+            ["usr_test_lib_implementations", "all_suites"]
+        ]
+
+        function onLoad() {
+            const console = document.getElementById('console')
+            for (const [script, suites] of script_suites) {
+                const header = document.createElement("h2")
+                header.innerText = script
+                console.appendChild(header)
+                Pacioli.fun('lib_testing_testing', 'run_test_suites').call(Pacioli.value(script, suites))
+            }
+        }
+    </script>
+
+    <script type="text/javascript" src="pacioli-0.5.0.bundle.js"></script>
+
+    <!-- Include each compiled test script here and add the test suites to the list above -->
+    <script type="text/javascript" src="test_lib_implementations.js"></script>
+
+</html>

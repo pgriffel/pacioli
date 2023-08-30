@@ -23,33 +23,33 @@ package pacioli.types.ast;
 
 import java.util.List;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 
 public class TypeApplicationNode extends AbstractTypeNode {
 
     public final TypeIdentifierNode op;
     public final List<TypeNode> args;
 
-    public TypeApplicationNode(Location location, TypeIdentifierNode name, List<TypeNode> args) {
+    public TypeApplicationNode(Location location, TypeIdentifierNode name, final List<TypeNode> args) {
         super(location);
         this.op = name;
         this.args = args;
     }
 
     public TypeNode transform(TypeIdentifierNode name, List<TypeNode> args) {
-        return new TypeApplicationNode(getLocation(), name, args);
+        return new TypeApplicationNode(location(), name, args);
     }
 
-    public TypeIdentifierNode getOperator() {
+    public TypeIdentifierNode operator() {
         return op;
     }
 
-    public String getName() {
-        return op.getName();
+    public String name() {
+        return op.name();
     }
 
-    public List<TypeNode> getArgs() {
+    public List<TypeNode> arguments() {
         return args;
     }
 

@@ -17,193 +17,44 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+include string;
+include list;
+include matrix;
+include io;
+
+export
+    pi,
+    now,
+    to_percentage,
+    from_percentage,
+    approximates,
+    approximates_to,
+    compare,
+    list_count,
+    list_concat,
+    list_sum,
+    list_min,
+    list_max,
+    list_gcd,
+    list_all,
+    list_some;
+
 # ------------------------------------------------------------------------------
 # Constants
 # ------------------------------------------------------------------------------
 
-declare public pi :: 1;
+declare pi :: 1;
 
 define pi = 3.141592653589793;
 
 # ------------------------------------------------------------------------------
-# Algebra
+# System time
 # ------------------------------------------------------------------------------
 
-declare public inner ::
-  for_index P: for_unit a, b, P!u: (a*P!u, b*P!u^-1) -> a*b;
-  
-declare public outer ::
-  for_index P, Q: for_unit a, b, P!u, Q!v: (a*P!u, b*Q!v) -> a*b*P!u per Q!v^-1;
-  
-declare public sqr ::
-  for_index D, E: for_unit a, D!b, E!c: (a * D!b per E!c) -> a^2 * D!b^2 per E!c^2;
+declare now :: () -> milli:second;
 
-declare public cube ::
-  for_index D, E: for_unit a, D!b, E!c: (a * D!b per E!c) -> a^3 * D!b^3 per E!c^3;
-
-declare public neg ::
-  for_index D, E: for_unit a, D!b, E!c: (a * D!b per E!c) -> a * D!b per E!c;
-
-define sqr(x) = x * x;
-
-define cube(x) = x * x * x;
-
-define inner(x,y) = x^T '*' y;
-
-define outer(x,y) = x '*' y^T;
-
-define neg(x) = -1 '.*' x;
-
-# ------------------------------------------------------------------------------
-# Matrix Shape
-# ------------------------------------------------------------------------------
-
-declare public rows ::
-  for_index P,Q: for_unit a,Q!v: (a*P! per Q!v) -> List(a per Q!v);
-
-declare public columns ::
-  for_index P,Q: for_unit a,P!u: (a*P!u per Q!) -> List(a*P!u);
-
-declare public unit ::
-  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
-
-declare public delta ::
-  for_index P: (P) -> P!;
-
-declare public map_matrix ::
-  for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
-
-declare public is_zero_row ::
-  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c, D) -> Boole();
-
-declare public is_zero_column ::
-  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c, E) -> Boole();
-
-define rows(matrix) = 
-  [row(matrix,i) | i <- row_domain(matrix)];
-
-define columns(matrix) =
-  [column(matrix,j) | j <- column_domain(matrix)];
-
-define unit(mat) =
-  unit_factor(mat) '.*' row_unit(mat) per column_unit(mat);
-
-define delta(x) = 
-  make_matrix([tuple(x, _, 1)]);
-
-define basis(matrix) =
-  [delta(x) | x <- row_domain(matrix)];
-
-define map_matrix(fun, mat) = 
-  make_matrix([tuple(i, j, fun(get(mat, i, j))) | i <- row_domain(mat),
-                                                  j <- column_domain(mat)]);
-
-define is_zero_row(x, i) = is_zero(row(magnitude(x), i));
-
-define is_zero_column(x, j) = is_zero(column(magnitude(x), j));
-
-# ------------------------------------------------------------------------------
-# Bit Vectors
-# ------------------------------------------------------------------------------
-
-declare complement, positives, negatives ::
-  for_index P, Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
-
-define complement(x) = unit(x) - x;
-
-define positives(x) = x * positive_support(x);
-
-define negatives(x) = x * negative_support(x);
-
-# ------------------------------------------------------------------------------
-# Diagonal Matrices
-# ------------------------------------------------------------------------------
-
-declare public diagonal :: for_index P: for_unit a,P!u: (a*P!u) -> a*P!u per P!u;
-declare public diagonal2 :: for_index P: for_unit a,P!u: (a*P!u) -> a*P!u per P!;
-declare public diagonal3 :: for_index P: for_unit a,P!u: (a*P!u) -> P! per P!;
-
-define diagonal(x) =
-  let u = row_unit(x), units = unit_factor(x) '.*' u per u in
-    make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
-  end;
-
-define diagonal2(x) =
-  let u = unit(x), units = u per (magnitude(u)) in
-    make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
-  end;
-
-define diagonal3(x) =
-  make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]);
-
-# ------------------------------------------------------------------------------
-# Closures
-# ------------------------------------------------------------------------------
-
-declare public inverse, right_inverse ::
-  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
-
-declare public left_inverse ::
-  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
-
-declare public kleene, closure ::
-  for_index P: for_unit P!u: (P!u per P!u) -> P!u per P!u;
-
-define right_inverse(x) = solve(x, left_identity(x));
-
-define left_inverse(x) = right_inverse(x^T)^T;
-
-define inverse(x) = right_inverse(x);
-
-define kleene(x) = inverse(left_identity(x) - x);
-
-define closure(x) = kleene(x) - left_identity(x);
-
-declare public left_division :: for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*P!u per R!w) -> b*Q!v per a*R!w;
-declare public right_division :: for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*R!w per Q!v) -> a*P!u per b*R!w;
-
-define left_division(x,y) = inverse(x) '*' y;
-
-define right_division(x,y) = x '*' inverse(y);
-
-# ------------------------------------------------------------------------------
-# Lists
-# ------------------------------------------------------------------------------
-
-declare public combis :: for_type a: (List(a)) -> List(Tuple(a, a));
-declare public list_count :: (List(Boole())) -> 1;
-declare public list_concat :: (List(String())) -> String();
-
-define combis(list) =
-    let accumulator(accu, x) =
-        let (result, tails) = accu in
-            tuple(append([tuple(x,y) | y <- tail(tails)], result), tail(tails))
-        end
-    in
-        let (result, _) = loop_list(tuple([], list), accumulator, list) in result end
-    end;
-
-define list_count(xs) = list_size([x | x <- xs, x]);
-define list_concat(xs) =
-  if xs = [] then "" else fold_list(concatenate, xs) end;
-
-# ------------------------------------------------------------------------------
-# Primitives for Comprehensions (todo: implement properly)
-# ------------------------------------------------------------------------------
-
-declare public list_sum, list_min, list_max :: 
-  for_index P, Q: for_unit a, P!u, Q!v: (List(a*P!u per Q!v)) -> a*P!u per Q!v;
-
-declare public list_gcd :: 
-  for_index P, Q: for_unit a, P!u, Q!v: (List(P! per Q!)) -> P! per Q!;
-
-declare public list_all :: (List(Boole())) -> Boole();
-
-define list_sum(x) = fold_list(sum, x);
-define list_min(x) = fold_list(min, x);
-define list_max(x) = fold_list(max, x);
-define list_gcd(x) = fold_list(gcd, x);
-define list_all(x) = if x = [] then true else fold_list(fn (a,b) a and b end, x) end;
+define now() =
+    _system_time() * |milli:second|;
 
 # ------------------------------------------------------------------------------
 # Percentages and Fractions
@@ -213,8 +64,8 @@ defunit percent "%" = 0.01;
 
 defconv percent_conv :: percent;
 
-declare public to_percentage :: for_index D,E: (D! per E!) -> percent*D! per E!;
-declare public from_percentage :: for_index D,E: (percent*D! per E!) -> D! per E!;
+declare to_percentage :: for_index D,E: (D! per E!) -> percent*D! per E!;
+declare from_percentage :: for_index D,E: (percent*D! per E!) -> D! per E!;
 
 define to_percentage(x) = percent_conv '.*' x;
 define from_percentage(x) = x '/.' percent_conv;
@@ -222,25 +73,66 @@ define from_percentage(x) = x '/.' percent_conv;
 define fraction(x, y) = to_percentage(x / y);
 
 
-declare public intercalate :: (List(String()), String()) -> String();
+# ------------------------------------------------------------------------------
+# Approximate equality
+# ------------------------------------------------------------------------------
 
-define intercalate(items, seperator) =
-  if items = [] then "" else
-    fold_list(fn (x, y) concatenate(x, concatenate(seperator, y)) end, items)
-  end;
+defunit decimals "decs";
 
-declare public remove_nth :: for_type t: (1, List(t)) -> List(t);
+declare approximates :: for_index I, J: for_unit a, I!u, J!v:
+    (a*I!u per J!v, a*I!u per J!v, decimals) -> Boole;
 
-define remove_nth(n, list) =
-  begin
-      result := [];
-      i := 0;
-      size := list_size(list);
-      while i != size do
-          if i != n then
-              result := add_mut(result, nth(i, list));
-          end
-          i := i + 1;
-      end
-      return result;
-  end;
+declare approximates_to :: for_index I, J: for_unit a, I!u, J!v:
+    (decimals) -> (a*I!u per J!v, a*I!u per J!v) -> Boole;
+
+define approximates(x, y, decs) =
+    let diff = abs(x - y) in
+        magnitude(diff) <= support(diff) '/.' expt(10, magnitude(decs))
+    end;
+
+define approximates_to(decs) =
+    (x, y) ->
+        let diff = abs(x - y) in
+            magnitude(diff) <= support(diff) '/.' expt(10, magnitude(decs))
+        end;
+
+# ----------------------------------------------------------------------------
+# Comparison
+# ----------------------------------------------------------------------------
+
+declare compare :: for_unit a: (a, a) -> 1;
+
+define compare(x, y) =
+    if x < y then
+        -1
+    else if x > y then
+        1
+    else
+        0
+    end;
+
+# ------------------------------------------------------------------------------
+# Primitives for Comprehensions (todo: implement properly)
+# ------------------------------------------------------------------------------
+
+declare list_count :: (List(Boole())) -> 1;
+
+declare list_concat :: (List(String())) -> String();
+
+declare list_sum, list_min, list_max :: 
+  for_index P, Q: for_unit a, P!u, Q!v: (List(a*P!u per Q!v)) -> a*P!u per Q!v;
+
+declare list_gcd :: 
+  for_index P, Q: for_unit a, P!u, Q!v: (List(P! per Q!)) -> P! per Q!;
+
+declare list_all, list_some :: (List(Boole())) -> Boole();
+
+
+define list_count(xs) = list_size([x | x <- xs, x]);
+define list_concat(xs) = if xs = [] then "" else fold_list(concatenate, xs) end;
+define list_sum(x) = fold_list(sum, x);
+define list_min(x) = fold_list(min, x);
+define list_max(x) = fold_list(max, x);
+define list_gcd(x) = fold_list(gcd, x);
+define list_all(x) = if x = [] then true else fold_list((a, b) -> a and b, x) end;
+define list_some(x) = if x = [] then false else fold_list((a, b) -> a or b, x) end;

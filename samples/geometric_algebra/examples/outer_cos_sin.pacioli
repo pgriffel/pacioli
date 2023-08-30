@@ -1,0 +1,28 @@
+import geometry;
+import geometric_algebra;
+import graphics;
+
+# ------------------------------------------------------------------------------
+# The scene
+# ------------------------------------------------------------------------------
+      
+define the_scene(i) =
+    let scene = empty_scene("Leo p58. Give i=0,1,...24 as parameter") in
+        add_arrows(rendered_vectors(i), scene)
+    end;
+
+define rendered_vectors(i) = 
+    let
+        colored = [example(j * 2*pi*|radian| / 24) | j <- naturals(i)]
+    in
+        [ origin_arrow(|metre| '.*' v, c) | x <- colored, (v, c) <- x]
+    end;
+
+define example(a) =
+    let 
+        mv1 = make_multivector([make_term(1, e1)]),
+        #mv2 = make_multivector([make_term(0.5, e1), make_term(0.5, e2)])
+        mv2 = make_multivector([make_term(cos(a), e1), make_term(sin(a), e2)])
+    in
+        [tuple(mv2vec(mv1), "red"), tuple(mv2vec(mv2), "blue")]
+    end;

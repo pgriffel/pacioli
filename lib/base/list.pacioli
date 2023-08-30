@@ -1,0 +1,157 @@
+# Copyright (c) 2018 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+export
+    empty_list,
+    singleton_list,
+    head,
+    nth,
+    tail,
+    list_size,
+    cons,
+    append,
+    loop_list,
+    fold_list,
+    zip,
+    naturals,
+    map_list,
+    reverse,
+    sort_list,
+    contains;
+
+# ----------------------------------------------------------------------------
+# Lists
+# ----------------------------------------------------------------------------
+
+doc empty_list
+    "Constructs an empty list.";
+    
+declare empty_list :: for_type t: () ->  List(t);
+
+# ----------------------------------------------------------------------------
+
+doc singleton_list
+    "A list containing the given item.";
+    
+declare singleton_list :: for_type t: (t) -> List(t);
+
+# ----------------------------------------------------------------------------
+
+doc head
+    "The head element of the list (the last consed value).
+
+    It is an error if the list is empty.";
+    
+declare head :: for_type t: (List(t)) -> t;
+
+# ----------------------------------------------------------------------------
+
+doc nth
+    "The nth element of the list.
+
+    It is an error if the index is out of bounds.";
+    
+declare nth :: for_type t: (1, List(t)) -> t;
+
+# ----------------------------------------------------------------------------
+
+doc tail
+    "Copy of the list without the head element.";
+    
+declare tail :: for_type t: (List(t)) -> List(t);
+
+# ----------------------------------------------------------------------------
+
+doc list_size
+    "The number of elements in the list.";
+    
+declare list_size :: for_type t: (List(t)) -> 1;
+
+# ----------------------------------------------------------------------------
+
+doc cons
+    "Addes an element to the head of the list.";
+    
+declare cons :: for_type t: (t, List(t)) -> List(t);
+
+# ----------------------------------------------------------------------------
+
+doc append
+    "A list that is the concatenation of the two given lists.";
+    
+declare append :: for_type t: (List(t), List(t)) -> List(t);
+
+# ----------------------------------------------------------------------------
+
+doc loop_list
+    "Calls the given accumulator function for each element of the list and the
+    accumulated value. Starts with the initial value.";
+    
+declare loop_list :: for_type a,t: (a, (a, t) -> a, List(t)) -> a;
+
+# ----------------------------------------------------------------------------
+
+doc fold_list
+    "Folds the list with the given function.";
+    
+declare fold_list :: for_type t: ((t, t) -> t, List(t)) -> t;
+
+# ----------------------------------------------------------------------------
+
+doc zip
+    "Turns a pair of lists into a list of pairs. Each element from the first
+    list is coupled with the corresponding element from the second list.";
+    
+declare zip :: for_type s,t: (List(s), List(t)) -> List(Tuple(s, t));
+
+# ----------------------------------------------------------------------------
+
+doc naturals
+    "The first x naturals numbers.";
+    
+declare naturals :: (1) -> List(1);
+
+# ----------------------------------------------------------------------------
+
+doc map_list
+    "Applies the given function to each element of a list.";
+    
+declare map_list :: for_type s,t: ((s) -> t, List(s)) -> List(t);
+
+# ----------------------------------------------------------------------------
+
+doc reverse
+    "The list in reversed order.";
+    
+declare reverse :: for_type t: (List(t)) -> List(t);
+
+# ----------------------------------------------------------------------------
+
+doc sort_list
+    "Sorts the list with the given order. The order function must return negative, 0
+    or positive to indicate less, equal or greater.";
+    
+declare sort_list :: for_type t: (List(t), (t, t) -> 1) -> List(t);
+
+# ----------------------------------------------------------------------------
+
+doc contains
+    "Checks if the element is member of the list.";
+    
+declare contains :: for_type t: (List(t), t) -> Boole;

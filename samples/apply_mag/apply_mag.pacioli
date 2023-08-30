@@ -1,0 +1,50 @@
+# Make a function on dimensionless matrices a function on dimensioned
+# matrices. Or stated alternatively, apply a function to the magnitude
+# of a dimensioned matrix.
+
+import geometry;
+import si;
+
+declare dimmed :: for_index I, J: for_unit a, I!u, J!v:
+    ((I! per J!) -> I! per J!) -> (a*I!u per J!v) -> a*I!u per J!v;
+
+declare apply_mag :: for_index I, J: for_unit a, I!u, J!v:
+    ((I! per J!) -> I! per J!, a*I!u per J!v) -> a*I!u per J!v;
+
+define dimmed(f) =
+    (x) -> f(magnitude(x)) * unit(x);
+
+define apply_mag(f, x) =
+    dimmed(f)(x);
+
+apply_mag(
+    (a) -> space_vec(1, 2, 3) + a,
+    space_vec(1*|metre|, 1*|metre|, 1*|metre|));
+
+
+declare f :: for_index D, E: for_unit a, D!b, E!c:
+     (a*D!b per E!c) -> (a*D!b per E!c) -> (a*D!b per E!c) -> (a*D!b per E!c) -> a*D!b per E!c;
+
+declare g :: (1) -> (1) -> (1) -> (1) -> 1;
+
+declare h :: for_unit a: (a) -> (a) -> (a) -> (a) -> a;
+
+define f(a) =
+    (b) -> (c) -> (d) -> a + b + c + d;
+
+define g = 
+    (a) -> (b) -> (c) -> (d) -> 1 + a + b + c + d;
+
+define h =
+    (a) -> (b) -> (c) -> (d) -> 1 * a + b + c + d;
+
+f(1)(2)(3)(4);
+
+g(1)(2)(3)(4);
+
+h (f(1)(2)(3)(4)) (2) (3) (h(1)(2)(3)(4));
+
+h (f (1*|metre|) (2*|metre|) (3*|metre|) (4*|metre|))
+  (2*|metre|)
+  (3*|metre|)
+  (h (1*|metre|) (2*|metre|) (3*|metre|) (4*|metre|));

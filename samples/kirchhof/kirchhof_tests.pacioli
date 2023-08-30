@@ -1,0 +1,25 @@
+import si;
+import testing;
+
+include kirchhof;
+
+
+run_test_suites(kirchhof_suites);
+
+
+declare kirchhof_suites :: List(TestSuite);
+
+define kirchhof_suites = [
+    kirchhof_suite
+];
+
+
+define kirchhof_suite = test_suite("Kirchhof", [
+    test("should solve correctly", () ->
+        # Fails in js because a least norm inverse is needed
+        let (potential_decs, current_decs) = run() in
+            potential_decs > 10*|decimals| '.*' |Edge!| and
+            current_decs > 10 '.*' |decimals*Node!|
+        end
+    )
+]);

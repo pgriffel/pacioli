@@ -1,0 +1,141 @@
+# Copyright (c) 2018 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+export
+    string_compare,
+    concatenate,
+    split_string,
+    trim,
+    pad_left,
+    pad_right,
+    format,
+    parse_num,
+    num2string,
+    num2str;
+
+# ----------------------------------------------------------------------------
+# Strings
+# ----------------------------------------------------------------------------
+
+doc string_compare
+    "Alphanumerical ordering of strings. Returns -1 if x comes before y, returns 1
+    if x comes after y and returns 0 if x equals y.";
+
+declare string_compare :: (String, String) -> 1;
+
+# ----------------------------------------------------------------------------
+
+doc concatenate
+    "A string that is the concatenation of the given strings.";
+
+declare concatenate :: (String, String) -> String;
+
+# ----------------------------------------------------------------------------
+
+doc split_string
+    "Splits a string for all occurences of the second string.
+    
+    For example <code>split_string(\"x + y++ + z--\", \"+\")</code> is
+    <code>[\"x \", \" y\", \"\",  \" \", \" \", \"z--\"]</code>";
+
+declare split_string :: (String, String) -> List(String);
+
+# ----------------------------------------------------------------------------
+
+doc trim
+    "Copy of the given string with any whitespace removed from the start and 
+    from the end.";
+
+declare trim :: (String) -> String;
+
+# ----------------------------------------------------------------------------
+
+doc pad_left
+    "Adds characters to the left of a string to make it at least  as long
+    as the requested size.
+    
+    For example <code>pad_left(\"foo\", 8, \"abc\")</code> is
+    <code>\"abcabfoo\"</code>
+    
+    Returns the string unchanged if it is not smaller than the requested
+    size";
+
+declare pad_left :: (String, 1, String) -> String;
+
+# ----------------------------------------------------------------------------
+
+doc pad_right
+    "Adds characters to the right of a string to make it at least  as long
+    as the requested size.
+    
+    For example <code>pad_right(\"foo\", 8, \"abc\")</code> is
+    <code>\"fooabcab\"</code>
+    
+    Returns the string unchanged if it is not smaller than the requested
+    size";
+
+declare pad_right :: (String, 1, String) -> String;
+
+# ----------------------------------------------------------------------------
+# String interpolation
+# ----------------------------------------------------------------------------
+
+doc format
+    "Crappy string interpolation.
+    
+    All arguments must be strings. Replaces occurences of <code>%s</code> in the
+    first string by the strings in the rest of the arguments.
+    
+    This function is unsafe as the type shows. Any error is thrown at runtime.";
+
+declare format :: for_type t: t -> String;
+
+# ----------------------------------------------------------------------------
+# Number conversions
+# ----------------------------------------------------------------------------
+
+doc parse_num
+    "Reads a number from a string.";
+
+declare parse_num :: (String) -> 1;
+
+# ----------------------------------------------------------------------------
+
+doc num2string
+    "Convert a matrix to a string.
+    
+    The last argument must be a literal unit. It is converted to text at 
+    compile time.
+    
+    The second argument is the number of decimals.
+
+    For example <code>num2string(1/3*|metre|, 5, |metre|)</code> <code>\"0,33333m\"</code>";
+
+declare num2string :: for_index I, J: for_unit a, I!u, J!v:
+    (a*I!u per J!v, 1, a*I!u per J!v) -> String;
+
+# ----------------------------------------------------------------------------
+
+doc num2str
+    "Convert a matrix to a string using the current number of decimals.
+    
+    Shorthand for <code>num2string(x, nr_decimals(), y)</code>.";
+
+declare num2str :: for_index I, J: for_unit a, I!u, J!v:
+    (a*I!u per J!v, a*I!u per J!v) -> String;

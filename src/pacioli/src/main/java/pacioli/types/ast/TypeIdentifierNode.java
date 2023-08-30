@@ -20,46 +20,70 @@
  */
 package pacioli.types.ast;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import pacioli.Location;
 import pacioli.ast.Visitor;
-import pacioli.symboltable.SymbolInfo;
+import pacioli.compiler.Location;
+import pacioli.symboltable.info.Info;
 
 public class TypeIdentifierNode extends AbstractTypeNode {
 
+    @Override
+    public String toString() {
+        return "TypeIdentifierNode [name=" + name + ", kind=" + kind + "]";
+    }
+
     // An identifier can be one of three kinds
-    public enum Kind {TYPE, UNIT, INDEX}
+    public enum Kind {
+        TYPE {
+            @Override
+            public String pretty() {
+                return "for_type";
+            }
+        },
+        UNIT {
+            @Override
+            public String pretty() {
+                return "for_unit";
+            }
+        },
+        INDEX {
+            @Override
+            public String pretty() {
+                return "for_index";
+            }
+        },
+        OP {
+            @Override
+            public String pretty() {
+                return "for_op";
+            }
+        };
+
+        abstract public String pretty();
+    }
 
     // From construction during parsing
     private final String name;
     private final Kind kind;
-    
+
     // Set during resolving
-    public SymbolInfo info;
-    
-    // Duplicate
-    public static final List<String> builtinTypes = new ArrayList<String>(
-            Arrays.asList("Tuple", "List", "Index", "Boole", "Void", "Ref", "String", "Report", "Identifier"));
+    public Info info;
 
     public TypeIdentifierNode(Location location, String name) {
         super(location);
         this.name = name;
         this.kind = null;
-        //assert (!name.contains("!"));
-    }
-    
-    public TypeIdentifierNode(Location location, String name, SymbolInfo info) {
-        super(location);
-        this.name = name;
-        this.kind = null;
-        assert (!name.contains("!"));
-        this.info = info;
+        // assert (!name.contains("!"));
     }
 
-    public String getName() {
+    // public TypeIdentifierNode(Location location, String name, Info info) {
+    // super(location);
+    // this.name = name;
+    // this.kind = null;
+    // assert (!name.contains("!"));
+    // this.info = info;
+    // }
+
+    public String name() {
         return name;
     }
 

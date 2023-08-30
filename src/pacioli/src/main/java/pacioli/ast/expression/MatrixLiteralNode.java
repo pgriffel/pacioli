@@ -9,15 +9,15 @@ import java.util.Map;
 import java.util.Set;
 
 import mvm.values.matrix.MatrixDimension;
-import pacioli.AbstractPrintable;
-import pacioli.Location;
 import pacioli.Pacioli;
-import pacioli.PacioliException;
-import pacioli.Utils;
 import pacioli.ast.Visitor;
-import pacioli.types.PacioliType;
+import pacioli.compiler.AbstractPrintable;
+import pacioli.compiler.Location;
+import pacioli.compiler.PacioliException;
+import pacioli.compiler.Utils;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.TypeObject;
 
 public class MatrixLiteralNode extends AbstractExpressionNode {
 
@@ -48,7 +48,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
         public List<String> keys() {
             List<String> keys = new ArrayList<String>();
             for (IdentifierNode id : key) {
-                keys.add(id.getName());
+                keys.add(id.name());
             }
             return keys;
         }
@@ -58,18 +58,18 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
             out.printf("%s -> %s", Utils.intercalate(", ", keys()), value);
         }
     }
-    
+
     /**
      * Combines a ValueDecl with the matrix position of the value. Only
      * applicable to closed types. For types whose size is not known at
      * compile time this needs to be done at runtime.
      *
      */
-    public static class PositionedValueDecl  {
+    public static class PositionedValueDecl {
         public Integer row;
         public Integer column;
         public ValueDecl valueDecl;
-        
+
         public PositionedValueDecl(Integer row, Integer column, ValueDecl decl) {
             this.row = row;
             this.column = column;
@@ -86,19 +86,33 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
     }
 
     public MatrixLiteralNode(MatrixLiteralNode old) {
-        super(old.getLocation());
+        super(old.location());
         this.typeNode = old.typeNode;
         this.pairs = old.pairs;
         this.rowDim = old.rowDim;
         this.columnDim = old.columnDim;
     }
-    
-    public MatrixType evalType(Boolean reduce) throws PacioliException {
-        PacioliType type = typeNode.evalType(reduce);
+
+    public MatrixLiteralNode withTypeNode(TypeNode typeNode) {
+        MatrixLiteralNode copy = new MatrixLiteralNode(location(), typeNode, pairs);
+        copy.rowDim = rowDim;
+        copy.columnDim = columnDim;
+        return copy;
+    }
+
+    public MatrixLiteralNode withPairs(List<ValueDecl> pairs) {
+        MatrixLiteralNode copy = new MatrixLiteralNode(location(), typeNode, pairs);
+        copy.rowDim = rowDim;
+        copy.columnDim = columnDim;
+        return copy;
+    }
+
+    public MatrixType evalType() throws PacioliException {
+        TypeObject type = typeNode.evalType();
         if (type instanceof MatrixType) {
             return (MatrixType) type;
         } else {
-            throw new PacioliException(typeNode.getLocation(), "Expected a matrix type");
+            throw new PacioliException(typeNode.location(), "Expected a matrix type");
         }
     }
 
@@ -108,12 +122,15 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
     }
 
     public List<PositionedValueDecl> positionedValueDecls() {
-        
-        List<PositionedValueDecl> decls = new ArrayList<PositionedValueDecl>(); 
+
+        List<PositionedValueDecl> decls = new ArrayList<PositionedValueDecl>();
 
         // The matrix type's row and column dimension should have been set
         // during resolving
         assert (rowDim != null && columnDim != null);
+        if (rowDim == null || columnDim == null) {
+            throw new PacioliException(location(), "Not resolved");
+        }
 
         // Write the elements. Table check stores all found indices to check for
         // doublures.
@@ -131,10 +148,10 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
             if (check.containsKey(rowPos)) {
                 if (check.get(rowPos).contains(columnPos)) {
                     if (!locationReported) {
-                        Pacioli.warn("In %s", getLocation().description());
+                        Pacioli.println("In %s", location().description());
                         locationReported = true;
                     }
-                    Pacioli.warn("Duplicate: %s %s", rowDim.ElementAt(rowPos), columnDim.ElementAt(columnPos));
+                    Pacioli.println("Duplicate: %s %s", rowDim.ElementAt(rowPos), columnDim.ElementAt(columnPos));
                 } else {
                     check.get(rowPos).add(columnPos);
                 }

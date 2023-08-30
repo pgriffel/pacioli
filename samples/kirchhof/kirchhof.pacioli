@@ -1,0 +1,140 @@
+# ----------------------------------------------------------------------------
+# Kirchhof case
+# ----------------------------------------------------------------------------
+
+import si;
+
+# ----------------------------------------------------------------------------
+# Electricity Network
+#
+#        n0 --- e0 --> n1
+#        |             ^
+#        |             |
+#        e1            e2
+#        |             |
+#        v             |
+#        n2 --- e3 --> n3
+#
+# ----------------------------------------------------------------------------
+
+defindex Node = {n0, n1, n2, n3};
+
+defindex Edge = {e0, e1, e2, e3};
+
+defmatrix incidence :: Edge! per Node! = {
+  e0, n0 -> -1,
+  e0, n1 ->  1,
+  e1, n0 -> -1,
+  e1, n2 ->  1,
+  e2, n1 ->  1,
+  e2, n3 -> -1,
+  e3, n2 -> -1,
+  e3, n3 ->  1
+};
+
+defmatrix conductance :: ampere/volt*Edge! = {
+  e0 -> 1,
+  e1 -> 2,
+  e2 -> 2,
+  e3 -> 1
+};
+
+# ----------------------------------------------------------------------------
+# Masking Out a Ground Node
+# ----------------------------------------------------------------------------
+
+define ground = Node@n3;
+
+define mask = |Edge!| per (|Node!| - delta(ground));
+
+define grounded_incidence = incidence * mask;
+
+# ----------------------------------------------------------------------------
+# Computing Current and Potential
+# ----------------------------------------------------------------------------
+
+declare potential :: (volt*Edge!, ampere*Node!) -> volt*Node!;
+declare current :: (volt*Edge!, ampere*Node!) -> ampere*Edge!;
+
+define M1 = grounded_incidence^T '*' diagonal(conductance);
+define M2 = M1 '*' grounded_incidence;
+
+define potential(battery, inflow) =
+  M2 '\' (M1 '*' battery - inflow);
+
+define current(battery, inflow) = 
+  conductance * (battery - grounded_incidence '*' potential(battery, inflow));
+
+define current2(battery, inflow, potential) = 
+  conductance * (battery - grounded_incidence '*' potential);
+
+define potential2(battery, inflow) =
+  M2 '\' (M1*battery - inflow);
+
+# ----------------------------------------------------------------------------
+# A case
+# ----------------------------------------------------------------------------
+
+declare my_battery :: volt*Edge!;
+declare my_inflow :: ampere*Node!;
+
+defmatrix my_battery :: volt*Edge! = {
+  e0 -> 12,
+  e1 -> -12,
+  e2 -> -6,
+  e3 -> 6
+};
+
+defmatrix my_inflow :: ampere*Node! = {
+  n0 -> 1,
+  n1 -> 1,
+  n2 -> 6,
+  n3 -> 0
+};
+
+define my_potential = potential(my_battery, my_inflow);
+
+define my_current = current(my_battery, my_inflow);
+
+# ----------------------------------------------------------------------------
+# Tuples
+# ----------------------------------------------------------------------------
+
+declare solve_system ::
+  (volt*Edge!, ampere*Node!) -> Tuple(volt*Node!, ampere*Edge!);
+
+define solve_system(battery, inflow) =
+  let potential = potential(battery, inflow) in
+    tuple(potential, conductance * (battery - grounded_incidence '*' potential))
+  end;
+
+solve_system(my_battery, my_inflow);
+
+# ----------------------------------------------------------------------------
+# Kirchhofs Law
+# ----------------------------------------------------------------------------
+
+declare check_kirchhof :: 
+  (volt*Node!, ampere*Edge!, volt*Edge!, ampere*Node!) -> Tuple(decimals*Edge!, decimals*Node!);
+
+define decimal_places(x) = |decimals| '.*' -log(abs(magnitude(x)), 10);
+
+define check_kirchhof(potential, current, battery, inflow) =
+  let
+    potential_diff = grounded_incidence '*' potential,
+    net_current = grounded_incidence^T '*' current,
+    resistor_potential = current / conductance,
+    effective_inflow = inflow - delta(ground) * inflow
+  in
+    tuple(decimal_places(resistor_potential + potential_diff - battery), 
+          decimal_places(net_current - effective_inflow))
+  end;
+
+declare run :: () -> Tuple(decimals*Edge!, decimals*Node!);
+
+define run() = 
+  let (potential, current) = solve_system(my_battery, my_inflow) in
+    check_kirchhof(potential, current, my_battery, my_inflow)
+  end;
+
+run();

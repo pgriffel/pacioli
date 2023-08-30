@@ -1,0 +1,54 @@
+import si;
+import testing;
+
+include fourier_motzkin;
+
+
+run_test_suites(fourier_motzkin_suites);
+
+
+declare fourier_motzkin_suites :: List(TestSuite);
+
+define fourier_motzkin_suites = [
+    fourier_motzkin_suite
+];
+
+defindex Place = {
+    "place a",
+    "place b",
+    "place c" 
+};
+
+defindex Transition = {
+    "Transition x",
+    "Transition y",
+    "Transition z"
+};
+
+define tvec(x, y, z) = 
+  x '.*' delta(Transition@"Transition x") +
+  y '.*' delta(Transition@"Transition y") +
+  z '.*' delta(Transition@"Transition z");
+
+defmatrix test_matrix :: Place! per Transition! = {
+    "place a", "Transition x" -> 1,
+    "place a", "Transition y" -> -1
+};
+
+define fourier_motzkin_suite = test_suite("Function fourier_motzkin", [
+
+    test("should solve correctly for a 3 by 3 matrix with 2 non-zero entries", () ->
+        fourier_motzkin(test_matrix) = [tvec(0,0,1), tvec(1,1,0)]
+    ),
+
+    test("should solve correctly for the zero matrix", () ->
+        fourier_motzkin(0 '.*' test_matrix) = [tvec(1,0,0), tvec(0,1,0), tvec(0,0,1)]
+    ),
+
+    test("should solve correctly for 1 by 1 matrices", () ->
+        fourier_motzkin(0) = [1] and
+        fourier_motzkin(1) = [] and
+        fourier_motzkin(9) = [] and
+        fourier_motzkin(-9) = []
+    )
+]);

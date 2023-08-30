@@ -1,10 +1,10 @@
 package pacioli.ast.expression;
 
-import pacioli.Location;
-import pacioli.ValueContext;
+import pacioli.ast.ValueContext;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.ValueInfo;
 
 public class StatementNode extends AbstractExpressionNode {
 
@@ -13,10 +13,9 @@ public class StatementNode extends AbstractExpressionNode {
     // Filled during resolve
     public SymbolTable<ValueInfo> table;
     public SymbolTable<ValueInfo> shadowed;
-    
+
     // Is the value info for the result place
     public ValueInfo resultInfo;
-
 
     public StatementNode(Location location, SequenceNode body) {
         super(location);
@@ -27,7 +26,7 @@ public class StatementNode extends AbstractExpressionNode {
         super(location);
         this.body = body;
     }
-    
+
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);

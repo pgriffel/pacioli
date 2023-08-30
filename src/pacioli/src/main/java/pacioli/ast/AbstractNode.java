@@ -21,95 +21,24 @@
 
 package pacioli.ast;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Set;
+import pacioli.compiler.Location;
 
-import pacioli.AbstractPrintable;
-import pacioli.CompilationSettings;
-import pacioli.Location;
-import pacioli.Printer;
-import pacioli.Progam;
-import pacioli.symboltable.SymbolInfo;
-import pacioli.visitors.DesugarVisitor;
-import pacioli.visitors.JSGenerator;
-import pacioli.visitors.LiftStatements;
-import pacioli.visitors.MVMGenerator;
-import pacioli.visitors.MatlabGenerator;
-import pacioli.visitors.PrintVisitor;
-import pacioli.visitors.ResolveVisitor;
-import pacioli.visitors.UsesVisitor;
-
-public abstract class AbstractNode extends AbstractPrintable implements Node {
+public abstract class AbstractNode implements Node {
 
     private final Location location;
 
     public AbstractNode(Location location) {
-        assert(location != null);
+        assert (location != null);
         this.location = location;
     }
 
     @Override
-    public Location getLocation() {
+    public Location location() {
         return location;
     }
 
     public String sourceDescription() {
-        if (location == null) {
-            return "No source location available";
-        } else {
-            return location.description();
-        }
-    }
-    
-    @Override
-    public void printPretty(PrintWriter out) {
-        this.accept(new PrintVisitor(new Printer(out)));
-    }
-    
-    @Override
-    public Node desugar() {
-        return new DesugarVisitor().nodeAccept(this);
-    }
-    
-    @Override
-    public Node liftStatements(Progam prog) {
-        return new LiftStatements(prog).nodeAccept(this);
-    }
-    
-    @Override
-    public String compileToMVM(CompilationSettings settings) {
-        StringWriter outputStream = new StringWriter();
-        accept(new MVMGenerator(new Printer(new PrintWriter(outputStream)), settings));
-        return outputStream.toString();
-    }
-    
-    @Override
-    public String compileToJS(CompilationSettings settings, boolean boxed) {
-        StringWriter outputStream = new StringWriter();
-        this.accept(new JSGenerator(new Printer(new PrintWriter(outputStream)), settings, boxed));
-        return outputStream.toString();
-    }
-    
-    @Override
-    public void compileToJS(Printer writer, CompilationSettings settings, boolean boxed) {
-        this.accept(new JSGenerator(writer, settings, boxed));;
-    }
-    
-    @Override
-    public String compileToMATLAB(CompilationSettings settings) {
-        StringWriter outputStream = new StringWriter();
-        this.accept(new MatlabGenerator(new Printer(new PrintWriter(outputStream)), settings));
-        return outputStream.toString();
-    }
-    
-    @Override
-    public void resolve(Progam prog) {
-        accept(new ResolveVisitor(prog));
+        return location.description();
     }
 
-    @Override
-    public Set<SymbolInfo> uses() {
-        return new UsesVisitor().idsAccept(this);
-    }
 }

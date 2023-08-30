@@ -22,11 +22,20 @@ import geometry;
 deftype for_unit a: Shell(a) = Tuple(Settings(a), Body(a), List(Mesh(a)));
 deftype for_unit a: Settings(a) = Tuple(Curve(a), Curve(a), 1, 1, List(1));
 deftype for_unit a: Body(a) = List(Curve(a));
-deftype for_unit a: Curve(a) = List(a*Space!);
+deftype for_unit a: Curve(a) = List(a*Geom3!);
 
 deftype for_unit a: Info(a) = Tuple(List(a^2), List(a^2), List(a^2), List(a^3), List(a^3));
 
-deftype for_unit a: Mesh(a) = Tuple(List(a*Space!), List(Tuple(1, 1, 1, 1)));
+deftype for_unit a: Mesh(a) = Tuple(List(a*Geom3!), List(Tuple(1, 1, 1, 1)));
+
+# ----------------------------------------------------------------------------
+# Added because tests have no access to the shell internals
+# ----------------------------------------------------------------------------
+
+declare shell_body_internals :: for_unit a: (Shell(a)) -> List(List(a*Geom3!));
+
+define shell_body_internals(shell) = 
+  get_body(shell);
 
 # ----------------------------------------------------------------------------
 # Function Signatures
@@ -38,15 +47,16 @@ declare growth_factor :: (1, 1, 1) -> 1;
 declare growth_factors :: (1, 1) -> List(1);
 
 declare initial_shell :: for_unit a:
-  (List(Tuple(a, a)), a*Space!, a*Space!, 1, radian, 1, radian, radian, radian, 1, 1) -> Shell(a);
+  (List(Tuple(a, a)), a*Geom3!, a*Geom3!, 1, radian, 1, radian, radian, radian, 1, 1) -> Shell(a);
 
+declare get_settings :: for_unit a: (Shell(a)) -> Settings(a);
 declare get_body :: for_unit a: (Shell(a)) -> Body(a);
 declare get_meshes :: for_unit a: (Shell(a)) -> List(Mesh(a));
 declare shell_current_size :: for_unit a: (Shell(a)) -> 1;
 declare shell_full_size :: for_unit a: (Shell(a)) -> 1;
 declare shell_initial_curve :: for_unit a: (Shell(a)) -> Curve(a);
 
-declare axis_point :: for_unit a: (Shell(a)) -> a*Space!;
+declare axis_point :: for_unit a: (Shell(a)) -> a*Geom3!;
 
 declare grow :: for_unit a: (Shell(a), 1) -> Shell(a);
 
@@ -75,7 +85,7 @@ define initial_shell(coords, offset, displacement, roz, mu,
       tuple(tuple(u, gvm, growth_constant, segments, landmarks), [], [])
   end;
 
-declare growth_vector_map :: for_unit a: (Curve(a), a*Space!, 1, Space! per Space!, List(1)) -> Curve(a);
+declare growth_vector_map :: for_unit a: (Curve(a), a*Geom3!, 1, Geom3! per Geom3!, List(1)) -> Curve(a);
 
 define growth_vector_map(curve, translation, growth_constant, rotation, landmarks) =
   let
@@ -160,8 +170,8 @@ define grow(shell, n) =
           i := 0;
           while i != n do
               t := step(s, gvm, growth_factor(m+i, factor, nr_ticks), landmarks);
-              me := add_mut(me, segment_mesh(s, t));
-              b := add_mut(b, t);
+              me := _add_mut(me, segment_mesh(s, t));
+              b := _add_mut(b, t);
               s := t;
               i := i + 1;
           end
@@ -189,7 +199,7 @@ define step(curve, gvm, growth_factor, landmarks) =
 define axis_point(shell) =
   let body = get_body(shell) in
       if body = [] then
-          0 * shell_unit(shell) '.*' |Space!|
+          0 * shell_unit(shell) '.*' |Geom3!|
       else
           sum[ curve_nth(0, x) | x <- body] '/.' list_size(body)
       end
@@ -208,7 +218,7 @@ define axis_point(shell) =
 
 define empty_shell_info(shell) =
   let u = shell_unit(shell) in 
-      tuple([0 * sqr(u)], [0 * sqr(u)], [0 * sqr(u)], [0 * cube(u)], [0 * cube(u)])
+      tuple([0 * u^2], [0 * u^2], [0 * u^2], [0 * u^3], [0 * u^3])
   end;
 
 define extend_shell_info(shell, info, n) =
@@ -230,11 +240,11 @@ define extend_shell_info(shell, info, n) =
               area := area + sass;
               vss := surface_volume(append(ss, append(curve_surface(a), cb)));
               volume := volume + vss;
-              aperture_area := add_mut(aperture_area, surface_area(cb));
-              body_area_growth := add_mut(body_area_growth, sass);
-              body_area := add_mut(body_area, area);
-              body_volume_growth := add_mut(body_volume_growth, vss);
-              body_volume := add_mut(body_volume, volume);
+              aperture_area := _add_mut(aperture_area, surface_area(cb));
+              body_area_growth := _add_mut(body_area_growth, sass);
+              body_area := _add_mut(body_area, area);
+              body_volume_growth := _add_mut(body_volume_growth, vss);
+              body_volume := _add_mut(body_volume, volume);
               i := i + 1;
           end
           return tuple(aperture_area, body_area_growth, body_area, body_volume_growth, body_volume);
@@ -261,10 +271,10 @@ define borders(coords) =
       indices = naturals(list_size(coords)),
       x_less(a, b) = let (ax, _) = a, (bx, _) = b in ax < bx end,
       y_less(a, b) = let (_, ay) = a, (_, by) = b in ay < by end,
-      left = fold_list(lambda (i,j) if x_less(nth(i, coords), nth(j, coords)) then i else j end end, indices),
-      top = fold_list(lambda (i,j) if y_less(nth(i, coords), nth(j, coords)) then i else j end end, indices),
-      right = fold_list(lambda (i,j) if x_less(nth(i, coords), nth(j, coords)) then j else i end end, indices),
-      bottom = fold_list(lambda (i,j) if y_less(nth(i, coords), nth(j, coords)) then j else i end end, indices)
+      left = fold_list((i,j) -> if x_less(nth(i, coords), nth(j, coords)) then i else j end, indices),
+      top = fold_list((i,j) -> if y_less(nth(i, coords), nth(j, coords)) then i else j end, indices),
+      right = fold_list((i,j) -> if x_less(nth(i, coords), nth(j, coords)) then j else i end, indices),
+      bottom = fold_list((i,j) -> if y_less(nth(i, coords), nth(j, coords)) then j else i end, indices)
   in
     [left, top, right, bottom]
   end;
@@ -273,20 +283,20 @@ define borders(coords) =
 # Curves
 # ----------------------------------------------------------------------------
 
-declare make_curve :: for_unit a: (List(a*Space!)) -> Curve(a);
-declare curve_nth :: for_unit a: (1, Curve(a)) -> a*Space!;
+declare make_curve :: for_unit a: (List(a*Geom3!)) -> Curve(a);
+declare curve_nth :: for_unit a: (1, Curve(a)) -> a*Geom3!;
 declare curve_reverse :: for_unit a: (Curve(a)) -> Curve(a);
-declare translate_curve :: for_unit a: (Curve(a), a*Space!) -> Curve(a);
-declare transform_curve :: for_unit a,b: (Curve(a), b*Space! per Space!) -> Curve(a*b);
+declare translate_curve :: for_unit a: (Curve(a), a*Geom3!) -> Curve(a);
+declare transform_curve :: for_unit a,b: (Curve(a), b*Geom3! per Geom3!) -> Curve(a*b);
 declare sum_curves :: for_unit a: (Curve(a), Curve(a)) -> Curve(a);
 declare scale_curve :: for_unit a,b: (Curve(a), b) -> Curve(a*b);
-declare curve_surface :: for_unit a: (Curve(a)) -> List(Tuple(a*Space!, a*Space!, a*Space!));
-declare segment_surface :: for_unit a: (Curve(a), Curve(a)) -> List(Tuple(a*Space!, a*Space!, a*Space!));
-declare segment_closed_surface :: for_unit a: (Curve(a), Curve(a)) -> List(Tuple(a*Space!, a*Space!, a*Space!));
+declare curve_surface :: for_unit a: (Curve(a)) -> List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!));
+declare segment_surface :: for_unit a: (Curve(a), Curve(a)) -> List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!));
+declare segment_closed_surface :: for_unit a: (Curve(a), Curve(a)) -> List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!));
 declare segment_area :: for_unit a: (Curve(a), Curve(a)) -> a^2;
 declare segment_volume :: for_unit a: (Curve(a), Curve(a)) -> a^3;
-declare compute_rotation :: for_unit a: (a*Space!, a*Space!, a*Space!, a*Space!) -> Space! per Space!;
-declare curve_rotation :: for_unit a: (Curve(a), List(1)) -> Space! per Space!;
+declare compute_rotation :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!, a*Geom3!) -> Geom3! per Geom3!;
+declare curve_rotation :: for_unit a: (Curve(a), List(1)) -> Geom3! per Geom3!;
 declare segment_mesh :: for_unit a: (Curve(a), Curve(a)) -> Mesh(a); 
 
 define make_curve(vs) = append(vs, [head(vs)]);

@@ -9,8 +9,8 @@
 	<description>Matrix Virtual Machine</description>
 
 	<properties>
-		<maven.compiler.source>11</maven.compiler.source>
-		<maven.compiler.target>11</maven.compiler.target>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
 	</properties>
 
 	<repositories>
@@ -38,6 +38,52 @@
 			<artifactId>runtime</artifactId>
 			<version>11b</version>
 		</dependency>
+
 	</dependencies>
+
+  <build>
+      <plugins>
+
+		<plugin>
+			<groupId>de.jflex</groupId>
+			<artifactId>jflex-maven-plugin</artifactId>
+			<version>1.9.1</version>
+			<executions>
+			<execution> 
+				<goals>
+				<goal>generate</goal>
+				</goals>
+				<configuration>
+              	  	<outputDirectory>src/main/java</outputDirectory>
+					<lexDefinitions>
+                		<lexDefinition>src/main/java/mvm/parser/lexer.flex</lexDefinition>
+              		</lexDefinitions>
+				</configuration>
+			</execution>
+			</executions>
+		</plugin>
+
+		<plugin>
+			<groupId>de.jflex</groupId>
+			<artifactId>cup-maven-plugin</artifactId>
+			<version>1.3</version>
+			<executions>
+				<execution>
+					<goals>
+						<goal>generate</goal>
+					</goals>
+					<configuration>
+						<generatedSourcesDirectory>src/main/java</generatedSourcesDirectory>
+						<cupSourceDirectory>${project.basedir}/src/main/java/mvm/parser</cupSourceDirectory>
+						<symbolInterface>true</symbolInterface>
+						<parserName>Parser</parserName>
+					</configuration>
+				</execution>
+			</executions>
+		</plugin>
+
+      </plugins>
+
+  </build>
 
 </project>

@@ -1,0 +1,14 @@
+import testing;
+
+include geometric_algebra/multivector_layer_tests;
+include geometric_algebra/term_layer_tests;
+
+run_test_suites(all_suites);
+
+define all_suites =
+    flatten(all_suite_collections);
+
+define all_suite_collections = [
+    multivector_layer_suites,
+    term_layer_suites
+];

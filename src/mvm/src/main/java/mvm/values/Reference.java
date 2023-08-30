@@ -36,7 +36,7 @@ public class Reference extends AbstractPacioliValue {
         this.value = value;
     }
 
-    public PacioliValue getValue() throws MVMException {
+    public PacioliValue value() throws MVMException {
         return value;
     }
 

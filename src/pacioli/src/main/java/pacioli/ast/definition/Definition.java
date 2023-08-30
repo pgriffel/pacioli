@@ -21,13 +21,8 @@
 
 package pacioli.ast.definition;
 
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Node;
 
 public interface Definition extends Node {
-
-    public String localName();
-
-    public void addToProgr(Progam program) throws PacioliException;
+    public String name();
 }

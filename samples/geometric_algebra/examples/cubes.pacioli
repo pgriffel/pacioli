@@ -1,0 +1,31 @@
+import geometry;
+import geometric_algebra;
+import graphics;
+
+# ------------------------------------------------------------------------------
+# The rendered scene
+# ------------------------------------------------------------------------------
+
+define the_scene() =
+    let scene = empty_scene("An experiment with the Mesh and Path datastructures") in
+        add_paths([path1, path2], add_meshes([tuple(mesh1, false), tuple(mesh2, true)], scene))
+    end;
+
+define mesh1 =
+    cube_mesh(3*|metre|);
+
+define mesh2 =
+    let d = -15*|metre| in
+        mesh_move(cube_mesh(30*|metre|), space_vec(d, d, d))
+    end;
+
+define pathPoints = [
+    space_vec( 1, 1, 1),
+    space_vec( 1,-1, 1),
+    space_vec(-1,-1,-1),
+    space_vec(-1, 1,-1),
+    space_vec( 1, 1, 1)
+];
+
+define path1 = make_path([7.5 * |metre| '.*' x | x <- pathPoints]);
+define path2 = make_path([15 * |metre| '.*' x | x <- pathPoints]);

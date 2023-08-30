@@ -21,24 +21,12 @@
 
 package pacioli.types.ast;
 
-import pacioli.Location;
 import pacioli.ast.AbstractNode;
-import pacioli.types.PacioliType;
-import pacioli.visitors.TypeEvaluator;
+import pacioli.compiler.Location;
 
 public abstract class AbstractTypeNode extends AbstractNode implements TypeNode {
 
-    public AbstractTypeNode() {
-        super(null);
-    }
-
     public AbstractTypeNode(Location location) {
         super(location);
-    }
-
-    @Override
-    public PacioliType evalType(Boolean reduce) {
-        TypeEvaluator visitor = new TypeEvaluator(reduce);
-        return visitor.typeAccept(this);
     }
 }

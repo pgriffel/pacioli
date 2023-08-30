@@ -1,8 +1,8 @@
 package pacioli.types.ast;
 
-import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 
 public class TypeKroneckerNode extends AbstractTypeNode {
 
@@ -16,7 +16,7 @@ public class TypeKroneckerNode extends AbstractTypeNode {
     }
 
     public Node transform(TypeNode left, TypeNode right) {
-        return new TypeKroneckerNode(getLocation(), left, right);
+        return new TypeKroneckerNode(location(), left, right);
     }
 
     @Override

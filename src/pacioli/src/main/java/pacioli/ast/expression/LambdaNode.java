@@ -24,11 +24,11 @@ package pacioli.ast.expression;
 import java.util.ArrayList;
 import java.util.List;
 
-import pacioli.Location;
-import pacioli.Utils;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
+import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.ValueInfo;
+import pacioli.symboltable.info.ValueInfo;
 
 public class LambdaNode extends AbstractExpressionNode {
 
@@ -45,18 +45,23 @@ public class LambdaNode extends AbstractExpressionNode {
     }
 
     public LambdaNode(LambdaNode old, ExpressionNode body) {
-        super(old.getLocation());
+        super(old.location());
         arguments = old.arguments;
         expression = body;
         table = old.table;
     }
 
-    public String argsString() {
+    @Override
+    public String toString() {
+        return "LambdaNode [arguments=" + arguments + ", expression=" + expression + "]";
+    }
+
+    public String argsString(String prefix) {
         List<String> args = new ArrayList<String>();
         for (String arg : arguments) {
-            args.add("lcl_" + arg + "");
+            args.add(prefix + arg + "");
         }
-        return Utils.intercalate(",", args);
+        return Utils.intercalate(", ", args);
     }
 
     @Override

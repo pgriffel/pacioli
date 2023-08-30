@@ -3,47 +3,58 @@ package pacioli.types.visitors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
+import java.util.function.Function;
 
-import pacioli.PacioliException;
-import pacioli.types.FunctionType;
-import pacioli.types.IndexSetVar;
-import pacioli.types.PacioliType;
-import pacioli.types.ParametricType;
-import pacioli.types.ScalarUnitVar;
-import pacioli.types.Schema;
-import pacioli.types.TypeVar;
+import pacioli.Pacioli;
+import pacioli.compiler.PacioliException;
+import pacioli.symboltable.info.ParametricInfo;
 import pacioli.types.TypeVisitor;
-import pacioli.types.VectorUnitVar;
 import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.FunctionType;
+import pacioli.types.type.IndexSetVar;
+import pacioli.types.type.OperatorConst;
+import pacioli.types.type.OperatorVar;
+import pacioli.types.type.ParametricType;
+import pacioli.types.type.Quant;
+import pacioli.types.type.ScalarUnitVar;
+import pacioli.types.type.Schema;
+import pacioli.types.type.TypeObject;
+import pacioli.types.type.TypePredicate;
+import pacioli.types.type.TypeVar;
+import pacioli.types.type.VectorUnitVar;
 
 public class ReduceTypes implements TypeVisitor {
 
-    private Stack<PacioliType> nodeStack = new Stack<PacioliType>();
-    
+    private Stack<TypeObject> nodeStack = new Stack<TypeObject>();
+    Function<? super ParametricInfo, ? extends Boolean> reduceCallback;
 
-    public PacioliType typeNodeAccept(PacioliType child) {
+    public ReduceTypes(Function<? super ParametricInfo, ? extends Boolean> reduceCallback) {
+        this.reduceCallback = reduceCallback;
+    }
+
+    public TypeObject typeNodeAccept(TypeObject child) {
         // Pacioli.logln("accept: %s", child.getClass());
         child.accept(this);
         return nodeStack.pop();
     }
-    
-    public void returnTypeNode(PacioliType value) {
+
+    public void returnTypeNode(TypeObject value) {
         // Pacioli.logln("return: %s", value.getClass());
         nodeStack.push(value);
     }
-    
+
     @Override
     public void visit(FunctionType type) {
-        PacioliType domainType = typeNodeAccept(type.domain);
-        PacioliType rangeType =  typeNodeAccept(type.range);
+        TypeObject domainType = typeNodeAccept(type.domain());
+        TypeObject rangeType = typeNodeAccept(type.range());
         returnTypeNode(new FunctionType(domainType, rangeType));
     }
 
     @Override
     public void visit(Schema type) {
-        returnTypeNode(new Schema(type.variables, typeNodeAccept(type.type)));
+        returnTypeNode(new Schema(type.variables(), typeNodeAccept(type.type()), type.conditions()));
     }
 
     @Override
@@ -52,8 +63,8 @@ public class ReduceTypes implements TypeVisitor {
     }
 
     @Override
-    public void visit(IndexType type) {       
-        returnTypeNode(typeNodeAccept(type.indexSet));
+    public void visit(IndexType type) {
+        returnTypeNode(typeNodeAccept(type.indexSet()));
     }
 
     @Override
@@ -68,16 +79,20 @@ public class ReduceTypes implements TypeVisitor {
 
     @Override
     public void visit(ParametricType type) {
-        List<PacioliType> items = new ArrayList<PacioliType>();
-        for (PacioliType arg : type.args) {
+        List<TypeObject> items = new ArrayList<TypeObject>();
+        for (TypeObject arg : type.args()) {
             items.add(typeNodeAccept(arg));
         }
         try {
-            ParametricType opType = new ParametricType(type.info, type.definition, items);
-            if (!type.definition.isPresent()) {
+            ParametricType opType = new ParametricType(type.location(), type.definition().orElse(null), type.op(),
+                    items); // TODO: check orElse
+            boolean reduce = type.definition().isPresent() && reduceCallback.apply(type.op().info().get());
+            if (!reduce) {
                 returnTypeNode(opType);
             } else {
-                returnTypeNode(type.definition.get().constaint(true).reduce(opType));
+                TypeObject reduced = type.definition().get().constaint().reduce(opType).reduce(reduceCallback);
+                Pacioli.logIf(Pacioli.Options.showTypeReductions, "Reduced %s to %s", type.pretty(), reduced.pretty());
+                returnTypeNode(type.definition().get().constaint().reduce(opType).reduce(reduceCallback));
             }
         } catch (PacioliException e) {
             throw new RuntimeException("Type error", e);
@@ -97,6 +112,28 @@ public class ReduceTypes implements TypeVisitor {
     @Override
     public void visit(VectorUnitVar type) {
         returnTypeNode(type);
+    }
+
+    @Override
+    public void visit(OperatorConst type) {
+        returnTypeNode(type);
+    }
+
+    @Override
+    public void visit(OperatorVar type) {
+        returnTypeNode(type);
+    }
+
+    @Override
+    public void visit(TypePredicate typePredicate) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    }
+
+    @Override
+    public void visit(Quant quant) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'visit'");
     }
 
 }

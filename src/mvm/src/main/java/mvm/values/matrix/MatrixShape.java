@@ -36,7 +36,8 @@ public class MatrixShape extends AbstractPrintable {
     public final Unit<MatrixBase> rowUnit;
     public final Unit<MatrixBase> columnUnit;
 
-    public MatrixShape(Unit<MatrixBase> factor, MatrixDimension rowDimension, Unit<MatrixBase> rowUnit, MatrixDimension columnDimension,
+    public MatrixShape(Unit<MatrixBase> factor, MatrixDimension rowDimension, Unit<MatrixBase> rowUnit,
+            MatrixDimension columnDimension,
             Unit<MatrixBase> columnUnit) {
         this.factor = factor;
         this.rowDimension = rowDimension;
@@ -69,7 +70,7 @@ public class MatrixShape extends AbstractPrintable {
         this.columnUnit = MatrixBase.ONE;
     }
 
-    public Unit<MatrixBase> getFactor() {
+    public Unit<MatrixBase> factor() {
         return factor;
     }
 

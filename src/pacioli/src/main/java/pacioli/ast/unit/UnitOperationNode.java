@@ -1,8 +1,8 @@
 package pacioli.ast.unit;
 
-import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 
 public class UnitOperationNode extends AbstractUnitNode {
 
@@ -18,7 +18,7 @@ public class UnitOperationNode extends AbstractUnitNode {
     }
 
     public Node transform(UnitNode left, UnitNode right) {
-        return new UnitOperationNode(getLocation(), operator, left, right);
+        return new UnitOperationNode(location(), operator, left, right);
     }
 
     @Override

@@ -1,0 +1,33 @@
+
+import si;
+
+# Base units are pre-defined
+define v0 = |gram|;
+define v1 = |metre|;
+
+# Units can always be multiplied
+define v2 = |gram| * |gram|;
+define v3 = |gram| * |metre| * |second| * |ampere| * |kelvin| * |mole| * |candela|;
+
+# Units can not always be summed. Value v5 gives an error.
+define v4 = |gram| + |gram|;
+#define v5 = |gram| + |metre|;
+
+# The type is semantic, the order of multiplication is irrelevant
+define v6 = |gram|*|metre| + |gram|*|metre|;
+define v7 = |gram|*|metre| + |metre|*|gram|;
+
+# The type system does inference
+define f(x) = x*|metre| + |gram|*|metre|;
+
+# The type system derives a most general type
+define g(x,y) = x*y + |gram|*|metre|;
+define h(x) = g(x, |gram|);
+define v8 = g(|gram|, |metre|);
+define v9 = g(|metre|, |gram|);
+
+# Multiplying left and right is not allowed. Value v10 gives an error. A multiplication and division cancel
+#define v10 = g(|metre|*|second|, |gram|*|second|);
+define v11 = g(|metre|*|second|, |gram|/|second|);
+
+v0; v1; v2; v3; v4; v6; v7; v8; v9; v11;

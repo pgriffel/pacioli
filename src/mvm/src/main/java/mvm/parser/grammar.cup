@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -16,9 +15,7 @@ import mvm.ast.*;
 import mvm.ast.expression.*;
 import mvm.ast.shape.*;
 import mvm.ast.unit.*;
-import pacioli.PacioliException;
-import uom.Unit;
-import mvm.values.matrix.MatrixShape;
+import mvm.MVMException;
 import mvm.values.matrix.Matrix;
 import mvm.values.PacioliString;
 import mvm.values.Boole;
@@ -33,7 +30,7 @@ parser code {:
        from CUP's syntax_error to CUP's report_fatal_error
        function. */
     String errorMessage;
-    pacioli.Location errorLocation;
+    String errorLocation;
 
    /* Public interface */
     public Parser(Lexer lex, ComplexSymbolFactory sf, File file) {
@@ -55,7 +52,7 @@ parser code {:
 
     public void report_fatal_error(String message, Object info) throws java.lang.Exception {
         done_parsing();      
-        throw new PacioliException(errorLocation, errorMessage);
+        throw new MVMException("Error at %s: %s %s %s", errorLocation, errorMessage, message, info);
     }
 
     public void syntax_error(Symbol cur_token) {
@@ -66,16 +63,16 @@ parser code {:
             list.add(symbl_name_from_id(expected));
         }
         ComplexSymbol token = (ComplexSymbol) cur_token;
-        errorLocation = makeLoc(token.getLeft(), token.getRight());
+        errorLocation = String.format("%s-%s", token.getLeft(), token.getRight());
         errorMessage = "Expected one of " + list;
     }
 
    /* Utility functions for the grammar rules */
-    private pacioli.Location makeLoc(Location from, Location to) {
-        pacioli.Location pacioliFrom = new pacioli.Location(file, from.getLine(), from.getColumn(), from.getOffset());
-        pacioli.Location pacioliTo = new pacioli.Location(file, to.getLine(), to.getColumn(), to.getOffset());
-        return pacioliFrom.join(pacioliTo);
-    }
+//    private pacioli.Location makeLoc(Location from, Location to) {
+//        pacioli.Location pacioliFrom = new pacioli.Location(file, from.getLine(), from.getColumn(), from.getOffset());
+//        pacioli.Location pacioliTo = new pacioli.Location(file, to.getLine(), to.getColumn(), to.getOffset());
+//        return pacioliFrom.join(pacioliTo);
+//    }
 
     private class UnitDecl {
 
@@ -143,7 +140,7 @@ non terminal ShapeNode               shape;
 program ::=  
    requires:r commands:c                              {: Program prog = new Program(); 
                                                          for(Identifier req: r) {
-                                                             prog.addRequire(req.getName());
+                                                             prog.addRequire(req.name());
                                                          };
                                                          for(Instruction inst: c) {
                                                              prog.addInstruction(inst);
@@ -162,12 +159,13 @@ commands ::=
  ;
 
 command ::= 
-   BASEUNIT STR:b STR:u                         {: RESULT = new StoreUnit(b, u); :}
- | UNIT STR:b STR:n unsigned:d unit:un          {: RESULT = new StoreUnit(b, n, d, un); :}
- | INDEXSET STR:f STR:n LIST string_list:s      {: RESULT = new StoreIndexSet(f, n, s); :}
- | STORE STR:n expr:e                              {: RESULT = new StoreValue(n, e); :}
+   BASEUNIT STR:b STR:u                               {: RESULT = new StoreUnit(b, u); :}
+ | UNIT STR:b STR:n unsigned:d unit:un                {: RESULT = new StoreUnit(b, n, d, un); :}
+ | INDEXSET STR:f STR:n LIST string_list:s            {: RESULT = new StoreIndexSet(f, n, s); :}
+ | INDEXSET STR:f STR:n expr:e                        {: RESULT = new StoreDynamicIndexSet(f, n, e); :}
+ | STORE STR:n expr:e                                 {: RESULT = new StoreValue(n, e); :}
  | PRINT expr:e                                       {: RESULT = new Print(e); :}
- | UNITVECTOR STR:e STR:u LIST unit_list:l      {: List<String> names = new ArrayList<String>();
+ | UNITVECTOR STR:e STR:u LIST unit_list:l            {: List<String> names = new ArrayList<String>();
                                                          List<UnitNode> units = new ArrayList<UnitNode>();
                                                          for (UnitDecl d: l) {
                                                            names.add(d.name);
@@ -182,7 +180,7 @@ command ::=
 
 path ::= 
     IDENT:id                                           {: RESULT = new Identifier(id); :}
- |  path:p DIV IDENT:i                                 {: RESULT = new Identifier(p.getName() + "/" + i); :}
+ |  path:p DIV IDENT:i                                 {: RESULT = new Identifier(p.name() + "/" + i); :}
  ;
 
 //------------------------------------------------------------------------------
@@ -244,7 +242,8 @@ args ::=
 
 expr ::= 
    APPLICATION LPAR expr:f args:a RPAR                   {: RESULT = new Application(f, a); :}
-// | APPLICATION_DEBUG LPAR STR:fun STR:a STR:b exprs:args RPAR          //{: RESULT = new ApplicationNode(fun, args, makeLoc(funxleft, argsxright)); :}
+ | APPLICATION_DEBUG LPAR STR:a COMMA STR:b COMMA STR:trace COMMA expr:fun COMMA exprs:args RPAR          {: RESULT = new ApplicationDebug(a,b,trace.equals("true"),fun, args); :}
+ | APPLICATION_DEBUG LPAR STR:a COMMA STR:b COMMA STR:trace COMMA expr:fun RPAR          {: RESULT = new ApplicationDebug(a,b,trace.equals("true"),fun, new ArrayList<Expression>()); :}
  | LAMBDA string_list:ids expr:b                         {: RESULT = new Lambda(ids, b); :}
  | IF LPAR expr:t COMMA expr:p COMMA expr:n RPAR         {: RESULT = new Branch(t, p, n); :}
  | VAR LPAR STR:id RPAR                               {: RESULT = new Identifier(id); :}

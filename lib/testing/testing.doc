@@ -1,0 +1,19 @@
+<p>
+    A library for automated testing. Tests can be combined into test suites. Running a test suite performs all
+    tests in it and gives a summary of the outcomes.
+</p>
+
+Example of a test suite for function <code>naturals</code>:
+<pre>
+define naturals_suite =
+    test_suite("Function 'naturals'", [
+
+        test("should produce the empty list for 0", () ->
+            naturals(0) = []
+        ),
+
+        test("should produce the first 5 naturals", () ->
+            naturals(5) = [0, 1, 2, 3, 4]
+        )
+    ]);    
+</pre>

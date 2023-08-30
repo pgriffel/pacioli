@@ -20,7 +20,7 @@ public class MatrixConstructor extends AbstractPrintable implements Expression {
 
     @Override
     public PacioliValue eval(Environment environment) throws MVMException {
-        Matrix matrix = new Matrix(shape.eval(environment.getMachine()));
+        Matrix matrix = new Matrix(shape.eval(environment.machine()));
         if (op.equals("ones")) {
             return matrix.ones();
         } else if (op.equals("conversion")) {

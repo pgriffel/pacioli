@@ -27,9 +27,9 @@ public class Print extends AbstractPrintable implements Instruction {
         if (result != null) {
             // Pacioli.logln("%s", result.toText());
             if (System.console() == null) {
-                System.out.print(result.toText());
+                System.out.println(result.toText());
             } else {
-                System.console().format("%s", result.toText());
+                System.console().format("%s\n", result.toText());
             }
         }
     }

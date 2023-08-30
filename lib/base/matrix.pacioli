@@ -1,0 +1,323 @@
+# Copyright (c) 2018 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+export
+    _,
+    index_less,
+    make_matrix,
+    magnitude,
+    unit_factor,
+    row_unit,
+    column_unit,
+    row_domain,
+    column_domain,
+    row,
+    column,
+    get,
+    get_num,
+    left_identity,
+    right_identity,
+    signum,
+    support,
+    positive_support,
+    negative_support,
+    sum,
+    minus,
+    multiply,
+    divide,
+    left_divide,
+    expt,
+    mexpt,
+    mmult,
+    scale,
+    rscale,
+    scale_down,
+    lscale_down,
+    negative,
+    reciprocal,
+    transpose,
+    dim_inv,
+    dim_div,
+    total,
+    less,
+    less_eq,
+    greater,
+    greater_eq,
+    is_zero,
+    sqrt,
+    log,
+    exp,
+    ln,
+    abs,
+    max,
+    min,
+    gcd,
+    mod,
+    div,
+    sin,
+    cos,
+    tan,
+    top,
+    bottom,
+    random,
+    ranking,
+    plu,
+    svd,
+    qr,
+    solve,
+    mapnz;
+
+defunit radian "rad" = 1;
+
+# ----------------------------------------------------------------------------
+# Indices
+# ----------------------------------------------------------------------------
+
+doc _
+    "The single entry for the 'empty' index set.
+    
+    Use this as index for a column vector (an n by 1 matrix) or a row vector
+    (1 by n matrix).
+    
+    For example <code>get(x, 2, _)</code> gets the third entry from a column 
+    vector. Note that if <code>x</code> is a scalar then <code>get(x, _, _)</code>
+    equals <code>x</code>.";
+
+declare _ :: Index();
+
+# ----------------------------------------------------------------------------
+
+doc index_less
+    "Order on indices.
+    
+    Is the order of the indices in the index set definition.";
+
+declare index_less :: for_index P: (P, P) -> Boole;
+
+# ----------------------------------------------------------------------------
+# Matrix Shape
+# ----------------------------------------------------------------------------
+
+doc make_matrix
+    "Constructs a dimensionless matrix from a list of entries. Each entry
+    is a tuple of the form (i, j, value).";
+
+declare make_matrix ::
+  for_index P,Q: for_unit a: (List(Tuple(P, Q, a))) -> a*P! per Q!;
+
+declare magnitude ::
+  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> P! per Q!;
+
+declare unit_factor ::
+  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> a;
+
+declare row_unit ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> P!u;
+
+declare column_unit ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Q!v;
+
+declare row_domain ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> List(P);
+
+declare column_domain ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> List(Q);
+
+declare row ::
+  for_index P,Q: for_unit a,Q!v: (a*P! per Q!v, P) -> a per Q!v;
+
+declare column ::
+  for_index P,Q: for_unit a,P!v: (a*P!v per Q!, Q) -> a*P!v;
+
+declare get ::
+  for_index P,Q: for_unit a: (a*P! per Q!, P, Q) -> a;
+
+declare get_num ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, P, Q) -> 1;
+
+declare left_identity ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> P!u per P!u;
+
+declare right_identity ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Q!v per Q!v;
+
+declare signum ::
+  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
+
+declare support ::
+  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
+
+declare positive_support ::
+  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
+
+declare negative_support ::
+  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
+
+# ----------------------------------------------------------------------------
+# Linear Algebra Operators
+# ----------------------------------------------------------------------------
+
+declare sum ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare minus ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare multiply ::
+  for_index P,Q: for_unit a,b,P!u,P!w,Q!v,Q!z: (a*P!u per Q!v, b*P!w per Q!z) -> a*b*P!u*P!w per Q!v*Q!z;
+
+declare divide ::
+  for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y;
+
+declare left_divide ::
+  for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!x/P!u per b*Q!y/Q!v;
+
+declare expt ::
+  for_index P,Q: (P! per Q!, 1) -> P! per Q!;
+
+declare mexpt ::
+  for_index P: for_unit P!u: (P!u per P!u, 1) -> P!u per P!u;
+
+declare mmult ::
+  for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*Q!v per R!w) -> a*b*P!u per R!w;
+
+declare scale ::
+  for_index P,Q: for_unit a,b,P!u,Q!v: (a, b*P!u per Q!v) -> a*b*P!u per Q!v;
+
+declare rscale ::
+  for_index P,Q: for_unit a,b,P!u,Q!v: (a*P!u per Q!v, b) -> a*b*P!u per Q!v;
+
+declare scale_down ::
+  for_index P,Q: for_unit a,b,P!u,Q!v: (a*P!u per Q!v, b) -> a*P!u per b*Q!v;
+
+declare lscale_down ::
+  for_index P,Q: for_unit a,b,P!u,Q!v: (a, b*P!u per Q!v) -> a*P!u per b*Q!v;
+
+declare negative ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare reciprocal ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a^-1*P!u^-1 per Q!v^-1;
+
+declare transpose ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*Q!v^-1 per P!u^-1;
+
+declare dim_inv ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
+
+declare dim_div ::
+  for_index D,E,H: for_unit a,D!b,E!c,f,H!g: (a*D!b per E!c, f*H!g per E!c) -> a*D!b per f*H!g;
+
+declare total ::
+  for_index P,Q: for_unit a: (a*P! per Q!) -> a;
+
+# ----------------------------------------------------------------------------
+# Predicates
+# ----------------------------------------------------------------------------
+
+declare less ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
+
+declare less_eq ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
+
+declare greater ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
+
+declare greater_eq ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
+
+declare is_zero ::
+  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> Boole;
+
+# ----------------------------------------------------------------------------
+# Other Operations
+# ----------------------------------------------------------------------------
+
+declare sqrt ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a^2*P!u^2 per Q!v^2) -> a*P!u per Q!v;
+
+declare log ::
+  for_index P,Q: (P! per Q!, 1) -> P! per Q!;
+
+declare exp ::
+  for_index P,Q: (P! per Q!) -> P! per Q!;
+
+declare ln ::
+  for_index P,Q: (P! per Q!) -> P! per Q!;
+
+declare abs ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare max ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare min ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare gcd ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> P! per Q!;
+
+declare mod ::
+  for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v;
+
+declare div ::
+  for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b/Q!v/Q!y;
+
+declare sin ::
+  for_index P,Q: (radian * P! per Q!) -> P! per Q!;
+
+declare cos ::
+  for_index P,Q: (radian * P! per Q!) -> P! per Q!;
+
+declare tan ::
+  for_index P,Q: (radian * P! per Q!) -> P! per Q!;
+
+declare top ::
+  for_index P,Q: for_unit a, P!u, Q!v: (1, a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare bottom ::
+  for_index P,Q: for_unit a, P!u, Q!v: (1, a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare random ::
+  () -> 1;
+
+declare ranking ::
+  #for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> P! per Q!;
+  for_index P,Q: for_unit a: (a*P! per Q!) -> P! per Q!;
+
+# ----------------------------------------------------------------------------
+# Factorizations
+# ----------------------------------------------------------------------------
+
+declare plu ::
+  for_index P: for_unit a,P!u: (a*P!u per P!u) -> Tuple(P!u per P!u, P!u per P!u, a*P!u per P!u);
+
+declare svd ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> List(Tuple(a, P!u, Q!v^-1));
+
+declare qr ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Tuple(P!u per P!u, a*P!u per Q!v);
+
+declare solve ::
+  for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*P!u per R!w) -> a^-1*b*Q!v per R!w;
+
+declare mapnz ::
+#  for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
+  for_index P,Q: for_unit a, P!u, Q!v: ((1) -> 1, a*P!u per Q!v) -> a*P!u per Q!v;

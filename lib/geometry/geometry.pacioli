@@ -17,46 +17,84 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+export
+    Geom2,
+    Geom3,
+    d2x,
+    d2y,
+    d_x,
+    d_y,
+    d_z,
+    vector2d,
+    vector3d,
+    space_vec,
+    polar2cartesian,
+    inclination,
+    azimuth,
+    cross,
+    cross_sqrt,
+    triangle_area,
+    signed_volume,
+    surface_area,
+    surface_volume,
+    x_rotation,
+    y_rotation,
+    z_rotation,
+    rotation;
+
 # ----------------------------------------------------------------------------
 # 3D Space
 # ----------------------------------------------------------------------------
 
-defindex Space = {x, y, z};
+doc Geom2
+    "Index set for a 2D geometric space. Defined as the set <code>{x, y}</code>.";
 
-declare public d_x :: Space!;
-declare public d_y :: Space!;
-declare public d_z :: Space!;
+doc Geom3
+    "Index set for a 3D geometric space. Defined as the set <code>{x, y, z}</code>.";
 
-define d_x = delta(Space@x);
-define d_y = delta(Space@y);
-define d_z = delta(Space@z);
+defindex Geom2 = {x, y};
+defindex Geom3 = {x, y, z};
+
+declare d2x :: Geom2!;
+declare d2y :: Geom2!;
+
+declare d_x :: Geom3!;
+declare d_y :: Geom3!;
+declare d_z :: Geom3!;
+
+define d2x = delta(Geom2@x);
+define d2y = delta(Geom2@y);
+
+define d_x = delta(Geom3@x);
+define d_y = delta(Geom3@y);
+define d_z = delta(Geom3@z);
 
 # ----------------------------------------------------------------------------
 # Vector construction
 # ----------------------------------------------------------------------------
 
-declare public space_vec :: for_unit a: (a, a, a) -> a*Space!;
+declare vector2d :: for_unit a: (a, a) -> a*Geom2!;
+
+declare vector3d :: for_unit a: (a, a, a) -> a*Geom3!;
+
+define vector2d(a, b) = a '.*' d2x + b '.*' d2y;
+
+define vector3d(x, y, z) =
+#  x '.*' delta(Geom3@x) + y '.*' delta(Geom3@y) + z '.*' delta(Geom3@z);
+  x '.*' delta(Geom3@x) + y '.*' delta(Geom3@y) + z '.*' delta(Geom3@z);
+
+declare space_vec :: for_unit a: (a, a, a) -> a*Geom3!;
 
 define space_vec(a, b, c) = a '.*' d_x + b '.*' d_y + c '.*' d_z;
 
-# ----------------------------------------------------------------------------
-# General Functions
-# ----------------------------------------------------------------------------
-
-declare public norm :: for_index P: for_unit a: (a*P!) -> a;
-declare public normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
-
-define norm(x) = sqrt(inner(x,x));
-
-define normalized(x) = x '/.' magnitude(norm(x));
 
 # ----------------------------------------------------------------------------
 # Polar Coordinates
 # ----------------------------------------------------------------------------
 
-declare public polar2cartesian :: for_unit a: (a, radian, radian) -> a*Space!;
-declare public inclination :: for_unit a: (a*Space!) -> radian;
-declare public azimuth :: for_unit a: (a*Space!) -> radian;
+declare polar2cartesian :: for_unit a: (a, radian, radian) -> a*Geom3!;
+declare inclination :: for_unit a: (a*Geom3!) -> radian;
+declare azimuth :: for_unit a: (a*Geom3!) -> radian;
 
 define polar2cartesian(radius, inclination, azimuth) =
   scale(radius, space_vec(sin(inclination) * cos(azimuth),
@@ -71,13 +109,13 @@ define azimuth(vec) = atan2(inner(vec, d_y), inner(vec, d_x));
 # Cross Product
 # ----------------------------------------------------------------------------
 
-declare public cross :: for_unit a: (a*Space!, a*Space!) -> a^2*Space!;
-declare public cross_sqrt :: for_unit a: (a*Space!, a*Space!) -> a*Space!;
+declare cross :: for_unit a,b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!;
+declare cross_sqrt :: for_unit a: (a*Geom3!, a*Geom3!) -> a*Geom3!;
 
 define cross(v,w) =
   let
-      vx = get(v, Space@x, _), vy = get(v, Space@y, _), vz = get(v, Space@z, _),
-      wx = get(w, Space@x, _), wy = get(w, Space@y, _), wz = get(w, Space@z, _)
+      vx = get(v, Geom3@x, _), vy = get(v, Geom3@y, _), vz = get(v, Geom3@z, _),
+      wx = get(w, Geom3@x, _), wy = get(w, Geom3@y, _), wz = get(w, Geom3@z, _)
   in
       (vy*wz - vz*wy) '.*' d_x + (vz*wx - vx*wz) '.*' d_y + (vx*wy - vy*wx) '.*' d_z
   end;
@@ -94,8 +132,8 @@ define cross_sqrt(v,w) =
   let
       #vx = inner(v, d_x), vy = inner(v, d_y), vz = inner(v, d_z),
       #wx = inner(w, d_x), wy = inner(w, d_y), wz = inner(w, d_z),
-      vx = get(v, Space@x, _), vy = get(v, Space@y, _), vz = get(v, Space@z, _),
-      wx = get(w, Space@x, _), wy = get(w, Space@y, _), wz = get(w, Space@z, _),
+      vx = get(v, Geom3@x, _), vy = get(v, Geom3@y, _), vz = get(v, Geom3@z, _),
+      wx = get(w, Geom3@x, _), wy = get(w, Geom3@y, _), wz = get(w, Geom3@z, _),
       sx = vy*wz - vz*wy,
       sy = vz*wx - vx*wz,
       sz = vx*wy - vy*wx,
@@ -113,10 +151,10 @@ define cross_sqrt_alt(v,w) =
 # Volumes and Areas
 # ----------------------------------------------------------------------------
 
-declare public triangle_area :: for_unit a: (a*Space!, a*Space!, a*Space!) -> a^2;
-declare public signed_volume :: for_unit a: (a*Space!, a*Space!, a*Space!) -> a^3;
-declare public surface_area :: for_unit a: (List(Tuple(a*Space!, a*Space!, a*Space!))) -> a^2;
-declare public surface_volume :: for_unit a: (List(Tuple(a*Space!, a*Space!, a*Space!))) -> a^3;
+declare triangle_area :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> a^2;
+declare signed_volume :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> a^3;
+declare surface_area :: for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!))) -> a^2;
+declare surface_volume :: for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!))) -> a^3;
 
 define triangle_area(x, y, z) =
   norm(cross(y - x, z - x)) / 2;
@@ -134,10 +172,10 @@ define surface_volume(surface) =
 # Rotations
 # ----------------------------------------------------------------------------
 
-declare public x_rotation :: (radian) -> Space! per Space!;
-declare public y_rotation :: (radian) -> Space! per Space!;
-declare public z_rotation :: (radian) -> Space! per Space!;
-declare public rotation :: (radian, radian, radian) -> Space! per Space!;
+declare x_rotation :: (radian) -> Geom3! per Geom3!;
+declare y_rotation :: (radian) -> Geom3! per Geom3!;
+declare z_rotation :: (radian) -> Geom3! per Geom3!;
+declare rotation :: (radian, radian, radian) -> Geom3! per Geom3!;
 
 define x_rotation(angle) =
   (space_vec(1,           0,          0) '*' d_x^T +

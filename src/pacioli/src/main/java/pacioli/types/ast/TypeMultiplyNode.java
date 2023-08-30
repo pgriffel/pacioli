@@ -1,8 +1,8 @@
 package pacioli.types.ast;
 
-import pacioli.Location;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 
 public class TypeMultiplyNode extends AbstractTypeNode {
 
@@ -16,7 +16,7 @@ public class TypeMultiplyNode extends AbstractTypeNode {
     }
 
     public Node transform(TypeNode left, TypeNode right) {
-        return new TypeMultiplyNode(getLocation(), left, right);
+        return new TypeMultiplyNode(location(), left, right);
     }
 
     @Override

@@ -21,37 +21,31 @@
 
 package pacioli.types.matrix;
 
-import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
-import pacioli.ConstraintSet;
-import pacioli.Pacioli;
-import pacioli.PacioliException;
-import pacioli.Substitution;
-import pacioli.types.AbstractType;
-import pacioli.types.PacioliType;
-import pacioli.types.TypeBase;
+import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.PacioliException;
+import pacioli.types.ConstraintSet;
 import pacioli.types.TypeVisitor;
-import pacioli.types.VectorUnitVar;
-import pacioli.types.ast.TypeKroneckerNode;
-import pacioli.types.ast.TypeNode;
+import pacioli.types.type.AbstractType;
+import pacioli.types.type.TypeBase;
+import pacioli.types.type.TypeIdentifier;
+import pacioli.types.type.TypeObject;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitMap;
 
 public class MatrixType extends AbstractType {
 
-    public final Unit<TypeBase> factor;
-    public final IndexType rowDimension;
-    public final IndexType columnDimension;
-    public final Unit<TypeBase> rowUnit;
-    public final Unit<TypeBase> columnUnit;
+    private final Unit<TypeBase> factor;
+    private final IndexType rowDimension;
+    private final IndexType columnDimension;
+    private final Unit<TypeBase> rowUnit;
+    private final Unit<TypeBase> columnUnit;
 
-    private MatrixType(Unit<TypeBase> factor, IndexType rowDimension, Unit<TypeBase> rowUnit, IndexType columnDimension, Unit<TypeBase> columnUnit) {
+    public MatrixType(Unit<TypeBase> factor, IndexType rowDimension, Unit<TypeBase> rowUnit, IndexType columnDimension,
+            Unit<TypeBase> columnUnit) {
         this.factor = factor;
         this.rowDimension = rowDimension;
         this.rowUnit = rowUnit;
@@ -83,7 +77,17 @@ public class MatrixType extends AbstractType {
         this.columnUnit = TypeBase.ONE;
     }
 
-    
+    @Override
+    public String description() {
+        return "matrix type";
+    }
+
+    @Override
+    public String toString() {
+        return String.format("<Matrix %s, %s, %s, %s, %s>",
+                factor, rowDimension, rowUnit, columnDimension, columnUnit);
+    }
+
     @Override
     public int hashCode() {
         return factor.hashCode();
@@ -104,21 +108,28 @@ public class MatrixType extends AbstractType {
     }
 
     @Override
-    public String toString() {
-        return String.format("<%s, %s, %s, %s, %s>", //super.toString(), 
-                factor, rowDimension, rowUnit, columnDimension,
-                columnUnit);
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
     }
 
-    @Override
-    public void printPretty(PrintWriter out) {
-        deval().printPretty(out);
-        //out.print(toString());
-    }
-
-    
-    public Unit<TypeBase> getFactor() {
+    public Unit<TypeBase> factor() {
         return factor;
+    }
+
+    public IndexType rowDimension() {
+        return rowDimension;
+    }
+
+    public IndexType columnDimension() {
+        return columnDimension;
+    }
+
+    public Unit<TypeBase> rowUnit() {
+        return rowUnit;
+    }
+
+    public Unit<TypeBase> columnUnit() {
+        return columnUnit;
     }
 
     public boolean unitSquare() {
@@ -127,6 +138,10 @@ public class MatrixType extends AbstractType {
 
     public MatrixType dimensionless() {
         return new MatrixType(TypeBase.ONE, rowDimension, TypeBase.ONE, columnDimension, TypeBase.ONE);
+    }
+
+    public MatrixType factorless() {
+        return new MatrixType(TypeBase.ONE, rowDimension, rowUnit, columnDimension, columnUnit);
     }
 
     public MatrixType transpose() {
@@ -154,8 +169,8 @@ public class MatrixType extends AbstractType {
     }
 
     public boolean joinable(MatrixType other) {
-        return columnDimension.equals(other.rowDimension) && 
-               columnUnit.equals(other.rowUnit);
+        return columnDimension.equals(other.rowDimension) &&
+                columnUnit.equals(other.rowUnit);
     }
 
     public MatrixType join(MatrixType other) {
@@ -188,6 +203,7 @@ public class MatrixType extends AbstractType {
 
             IndexType rowType = (IndexType) rowDimension;
 
+            // UNITTODO
             // Can kroneckerNth from MatrixBase or VectorBase be used here?
             Unit<TypeBase> unit = TypeBase.ONE;
             for (int i = 0; i < columns.size(); i++) {
@@ -196,7 +212,8 @@ public class MatrixType extends AbstractType {
                     public Unit<TypeBase> map(TypeBase base) {
                         assert (base instanceof VectorBase);
                         VectorBase bangBase = (VectorBase) base;
-                        return (Unit<TypeBase>) ((bangBase.position == columns.get(tmp)) ? bangBase.move(tmp) : TypeBase.ONE);
+                        return (Unit<TypeBase>) ((bangBase.position() == columns.get(tmp)) ? bangBase.move(tmp)
+                                : TypeBase.ONE);
                     }
                 });
             }
@@ -214,31 +231,34 @@ public class MatrixType extends AbstractType {
     public MatrixType nmode(Integer n, MatrixType transform) throws PacioliException {
 
         // Start with an empty matrix type
-        MatrixType newType = new MatrixType();
-        
+        MatrixType newType = new MatrixType(factor);
+
+        MatrixType tmp = factorless();
+
         // Add the dimension below n unchanged
         for (int i = 0; i < n; i++) {
-            newType = newType.kronecker(project(Arrays.asList(i)));
+            newType = newType.kronecker(tmp.project(Arrays.asList(i)));
         }
-        
+
         // Transform the n-th dimension and add it
-        MatrixType projected = project(Arrays.asList(n));
+        MatrixType projected = tmp.project(Arrays.asList(n));
         if (!transform.joinable(projected)) {
             throw new RuntimeException(
                     String.format("Invalid transformation in nmode product: cannot multiply %s and %s",
-                                  transform.pretty(),
-                                  project(Arrays.asList(n)).pretty()));
-        };
+                            transform.pretty(),
+                            tmp.project(Arrays.asList(n)).pretty()));
+        }
+        ;
         newType = newType.kronecker(transform.join(projected));
-        
+
         // Add the dimension above n unchanged
         for (int i = n + 1; i < rowDimension.width(); i++) {
-            newType = newType.kronecker(project(Arrays.asList(i)));
+            newType = newType.kronecker(tmp.project(Arrays.asList(i)));
         }
-        
+
         return newType;
     }
-    
+
     public boolean singleton() {
         if (rowDimension.isVar() || columnDimension.isVar()) {
             return false;
@@ -273,29 +293,7 @@ public class MatrixType extends AbstractType {
     }
 
     @Override
-    public Set<String> unitVecVarCompoundNames() {
-        Set<String> names = new LinkedHashSet<String>();
-        names.addAll(dimensionUnitVecVarCompoundNames(rowDimension, rowUnit));
-        names.addAll(dimensionUnitVecVarCompoundNames(columnDimension, columnUnit));
-        return names;
-    }
-
-    public Set<String> dimensionUnitVecVarCompoundNames(IndexType dimension, Unit<TypeBase> unit) {
-        Set<String> names = new HashSet<String>();
-        if (dimension.isVar()) {
-            for (TypeBase base : unit.bases()) {
-                assert (base instanceof VectorUnitVar);
-                VectorUnitVar vbase = (VectorUnitVar) base;
-                //Pacioli.logln("Adding %s ! %s", dimension.varName(), vbase.unitPart());
-                names.add(dimension.varName() + "!" + vbase.unitPart());
-                //names.add(base.pretty());
-            }
-        }
-        return names;
-    }
-    
-    @Override
-    public ConstraintSet unificationConstraints(PacioliType other) throws PacioliException {
+    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         MatrixType otherType = (MatrixType) other;
         ConstraintSet constraints = new ConstraintSet();
         constraints.addUnitConstraint(factor, otherType.factor, "Matrix factors must match");
@@ -306,44 +304,66 @@ public class MatrixType extends AbstractType {
         return constraints;
     }
 
-    @Override
-    public String description() {
-        return "matrix type";
-    }
-    
-    @Override
-    public PacioliType applySubstitution(Substitution subs) {
-        return new MatrixType(subs.apply(factor), (IndexType) rowDimension.applySubstitution(subs), subs.apply(rowUnit),
-                (IndexType) columnDimension.applySubstitution(subs), subs.apply(columnUnit));
-
-    }
-   
-    public TypeNode devalDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
+    // UNITTODO
+    public String prettyDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
         if (dimension.isVar()) {
-            VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimension, 0);
-            return unit.fold(unitDevaluator);
+            String devaluated = unit.pretty();
+            devaluated = devaluated.equals("1") ? dimension.getVar().pretty() + "!" : devaluated;
+            return devaluated;
+
         } else {
             final IndexType dimType = (IndexType) dimension;
-            TypeNode node = null;
+            String node = "";
             for (int i = 0; i < dimType.width(); i++) {
-                IndexType ty = dimType.project(Arrays.asList(i));
-                VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
-                Unit<TypeBase> filtered = unit;    
-                //Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
-                
-                TypeNode devaluated = filtered.fold(unitDevaluator);
+                // IndexType ty = dimType.project(Arrays.asList(i));
+                // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
+                Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
+
+                String idx = dimType.nthIndexSet(i).name();
+                String devaluated = filtered.pretty();
+                devaluated = devaluated.equals("1") ? idx + "!" : devaluated;
                 if (i == 0) {
                     node = devaluated;
                 } else {
-                    node = new TypeKroneckerNode(node.getLocation().join(devaluated.getLocation()), node, devaluated);
-                }            
+                    node = node + " % " + devaluated;
+                }
             }
             return node;
         }
     }
 
-    @Override
-    public void accept(TypeVisitor visitor) {
-        visitor.visit(this);
+    // UNITTODO
+    public String asMVMDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit, CompilationSettings settings) {
+        if (dimension.isVar()) {
+            throw new UnsupportedOperationException("Is this used?");
+            // String devaluated = TypeBase.compileUnitToMVM(unit, settings); //
+            // unit.pretty();
+            // devaluated = devaluated.equals("") ? dimension.getVar().pretty() + "!" :
+            // devaluated;
+            // return devaluated;
+
+        } else {
+            final IndexType dimType = (IndexType) dimension;
+            String node = "";
+            for (int i = 0; i < dimType.width(); i++) {
+                // IndexType ty = dimType.project(Arrays.asList(i));
+                // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
+                Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
+
+                TypeIdentifier idx = dimType.nthIndexSet(i);
+
+                String devaluated = TypeBase.compileUnitToMVM(filtered, settings);
+                devaluated = filtered.pretty().equals("1")
+                        ? String.format("bang_shape(\"index_%s_%s\", \"\")", idx.home(), idx.name())
+                        : devaluated;
+                if (i == 0) {
+                    node = devaluated;
+                } else {
+                    node = String.format("shape_binop(\"kronecker\", %s, %s)", node, devaluated);
+                }
+            }
+            return node;
+        }
     }
+
 }

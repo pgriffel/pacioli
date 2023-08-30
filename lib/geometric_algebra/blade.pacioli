@@ -1,0 +1,221 @@
+# ----------------------------------------------------------------------------
+# Blade layer
+# ----------------------------------------------------------------------------
+
+export
+    make_context,
+    base_blade_vectors,
+    blade_grade;
+
+# ----------------------------------------------------------------------------
+# The context
+# ----------------------------------------------------------------------------
+
+doc Context 
+    "A context defines all blades, their names and the order for an instances
+    of geometric algebra.
+
+    For example a context for two-dimensional geometry could be defined by:
+
+    <pre>
+    define context_2d =
+        make_context(\"My 2D context!!!\", [
+            tuple(\"1\", []),
+            tuple(\"e1\", [base1]),
+            tuple(\"e2\", [base2]),
+            tuple(\"e12\", [base1, base2]),
+        ]);
+    </pre>
+
+    where base1 and base2 are some base vectors.";
+
+deftype for_index I: for_unit a:
+    Context(a, I!) = Tuple(String, List(Tuple(String, List(a * I!))));
+
+# ----------------------------------------------------------------------------
+
+doc make_context
+    "Constructor for contexts. The name is an arbitrary string. The
+    names and vectors is a list of pairs (x, vs) with x a description
+    of a blade and vs the blade's vectors.";
+
+declare make_context :: for_index I: for_unit a:
+    (String, List(Tuple(String, List(a * I!)))) -> Context(a, I!);
+
+define make_context(name, names_and_vectors) =
+    tuple(name, names_and_vectors);
+
+# ----------------------------------------------------------------------------
+
+doc context_blades
+    "A list of all blades in the context. The blades are constructed
+    from the names and vectors passed to the constructor.";
+
+declare context_blades :: for_index I: 
+    (Context(1, I!)) -> List(BaseBlade(1, I!));
+
+define context_blades(context) = 
+    [make_base_blade(i, context) | i <- naturals(context_size(context))];
+
+# ----------------------------------------------------------------------------
+
+doc context_name
+    "The name of a context that was passed to the constructor.";
+
+declare context_name :: for_index I: for_unit a: (Context(a, I!)) -> String;
+
+define context_name(context) =
+    let (name, _) = context in name end;
+
+# ----------------------------------------------------------------------------
+
+doc context_size
+    "The number of blades in a context. Equals the size of the names
+    and vectors list that was passed to the constructor.";
+
+declare context_size :: for_index I: for_unit a: (Context(a, I!)) -> 1;
+
+define context_size(context) =
+    let (_, info) = context in
+        list_size(info)
+    end;
+
+# ----------------------------------------------------------------------------
+
+doc context_blade_name
+    "Looks up a blade's name in the context from a given blade
+    position. The position must be less than the context size.";
+
+declare context_blade_name :: for_index I: for_unit a:
+    (Context(a, I!), 1) -> String;
+
+define context_blade_name(context, i) =
+    let 
+        (_, info) = context,
+        (name, _) = nth(i, info)
+    in
+        name
+    end;
+
+# ----------------------------------------------------------------------------
+
+doc context_blade_vectors
+    "Looks up a blade's vectors in the context from a given blade
+    position. The position must be less than the context size.";
+
+declare context_blade_vectors :: for_index I: for_unit a:
+    (Context(a, I!), 1) -> List(a*I!);
+
+define context_blade_vectors(context, i) =
+    let
+        (_, info) = context,
+        (_, vectors) = nth(i, info)
+    in
+        vectors
+    end;
+
+# ----------------------------------------------------------------------------
+
+declare context_product :: for_index I: for_unit a,b:
+    (Context(a, I!), Context(b, I!)) -> Context(a*b, I!);
+
+define context_product(a_context, b_context) =
+    let (_, a_info) = a_context,
+        (_, b_info) = b_context
+    in
+        make_context(
+            concatenate(context_name(a_context), context_name(b_context)),
+            zip_with((t1, t2) -> product_tuples(t1, t2), a_info, b_info))
+    end;
+
+# ----------------------------------------------------------------------------
+
+define product_tuples(t1, t2) = 
+    let (name1, bases_1) = t1,
+        (_, bases_2) = t2
+    in
+        tuple(name1, zip_with((b1, b2) -> b1*b2, bases_1, bases_2))
+    end;
+
+# ----------------------------------------------------------------------------
+# Representation of Base Blades layer
+#
+# The information about the geometry instance that we are working with is 
+# carried in each blade. This context is needed for the inner, the geometric 
+# and the outer product and for printing. By storing it in each blade the code
+# at higher levels does not have to see it.
+#
+# Alternatively we could generate code for the various GA instances. In
+# that case the information can be hard-coded in the generated code instead
+# of carrying it in the blades.
+# ----------------------------------------------------------------------------
+
+doc BaseBlade
+    "Given some context c, a blade is a pair (i, c) with i an index into the list 
+    of names and vectors c. The index tells which blade it is.";
+
+deftype for_index I: for_unit a:
+    BaseBlade(a, I!) = Tuple(1, Context(a, I!));
+
+# ----------------------------------------------------------------------------
+
+declare make_base_blade :: for_index I: (1, Context(1, I!)) -> BaseBlade(1, I!);
+
+define make_base_blade(position, context) =
+    tuple(position, context);
+
+# ----------------------------------------------------------------------------
+
+declare base_blade_position :: for_index I: for_unit a: (BaseBlade(a, I!)) -> 1;
+
+define base_blade_position(base_blade) = 
+    let (position, _) = base_blade in position end;
+
+# ----------------------------------------------------------------------------
+
+declare base_blade_context :: for_index I: for_unit a: (BaseBlade(a, I!)) -> Context(a, I!);
+
+define base_blade_context(base_blade) = 
+    let (_, context) = base_blade in context end;
+
+# ----------------------------------------------------------------------------
+
+declare base_blade_name :: for_index I: for_unit a: (BaseBlade(a, I!)) -> String;
+
+define base_blade_name(base_blade) = 
+    context_blade_name(base_blade_context(base_blade), base_blade_position(base_blade));
+
+# ----------------------------------------------------------------------------
+
+declare base_blade_vectors :: for_index I: for_unit a: (BaseBlade(a, I!)) -> List(a * I!);
+
+define base_blade_vectors(base_blade) = 
+    context_blade_vectors(base_blade_context(base_blade), base_blade_position(base_blade));
+
+# ----------------------------------------------------------------------------
+
+declare scalar_base_blade :: for_index I:  (Context(1, I!)) -> BaseBlade(1, I!);
+
+define scalar_base_blade(context) =
+    make_base_blade(0, context);
+
+# ----------------------------------------------------------------------------
+
+declare is_scalar_base_blade :: for_index I: for_unit a: (BaseBlade(a, I!)) -> Boole;
+
+define is_scalar_base_blade(blade) =
+    base_blade_position(blade) = 0;
+
+# ----------------------------------------------------------------------------
+
+declare blade_grade :: for_index I: for_unit a: (BaseBlade(a, I!)) -> 1;
+
+define blade_grade(n) =
+    list_size(base_blade_vectors(n));
+
+# ----------------------------------------------------------------------------
+
+declare compare_base :: for_index I: for_unit a: (BaseBlade(a, I!), BaseBlade(a, I!)) -> 1;
+
+define compare_base(x, y) =
+    compare(base_blade_position(x), base_blade_position(y));

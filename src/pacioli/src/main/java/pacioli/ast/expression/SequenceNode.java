@@ -23,8 +23,8 @@ package pacioli.ast.expression;
 
 import java.util.List;
 
-import pacioli.Location;
 import pacioli.ast.Visitor;
+import pacioli.compiler.Location;
 
 public class SequenceNode extends AbstractExpressionNode {
 
@@ -36,7 +36,7 @@ public class SequenceNode extends AbstractExpressionNode {
     }
 
     public SequenceNode transform(List<ExpressionNode> items) {
-        return new SequenceNode(getLocation(), items);
+        return new SequenceNode(location(), items);
     }
 
     @Override

@@ -23,13 +23,10 @@ package pacioli.ast.definition;
 
 import java.util.List;
 
-import pacioli.Location;
-import pacioli.PacioliException;
-import pacioli.Progam;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
-import pacioli.symboltable.VectorUnitInfo;
+import pacioli.compiler.Location;
 import pacioli.types.ast.TypeIdentifierNode;
 
 public class UnitVectorDefinition extends AbstractDefinition {
@@ -40,8 +37,8 @@ public class UnitVectorDefinition extends AbstractDefinition {
 
     public static class UnitDecl {
 
-        public IdentifierNode key;
-        public UnitNode value;
+        public final IdentifierNode key;
+        public final UnitNode value;
 
         public UnitDecl(IdentifierNode key, UnitNode value) {
             this.key = key;
@@ -58,23 +55,12 @@ public class UnitVectorDefinition extends AbstractDefinition {
     }
 
     @Override
-    public String localName() {
-        return indexSetNode.getName() + "!" + unitNode.getName();
+    public String name() {
+        return indexSetNode.name() + "!" + unitNode.name();
     }
 
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
-
-    @Override
-    public void addToProgr(Progam program) throws PacioliException {
-        //GenericInfo generic = new GenericInfo(localName(), program.getModule(), true, getLocation());       
-        //VectorUnitInfo info = new VectorUnitInfo(generic);
-        VectorUnitInfo info = new VectorUnitInfo(localName(), program.getModule(), true, getLocation(), !program.isLibrary());
-        info.setDefinition(this);
-        info.setItems(items);
-        program.addInfo(info);
-    }
-
 }

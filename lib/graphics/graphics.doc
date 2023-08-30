@@ -1,0 +1,27 @@
+<p>
+    The grapics libaray provides functions to create a scene with 3D geometric shapes. Works together with
+    the <code>pacioli.js</code> library to display a 3D geometric space in the browser. Depends on the 
+    <code>geometry</code> library.
+</p>
+
+The following example creates a scene with arrows pointing in various directions from the origin. 
+The parameters <code>a</code>, <code>b</code> and <code>c</code> get passed at runtime.
+<pre>
+import geometry;
+
+define my_scene(a, b, c) =
+    let scene = empty_scene("My nice scene!") in
+        add_arrows(my_arrows(a, b, c), scene)
+    end;
+
+define my_arrows(a, b, c) =
+    [origin_arrow(vec, "blue") | i <- [-1, 0, 1],
+                                 j <- [-1, 0, 1],
+                                 k <- [-1, 0, 1],
+                                 vec := vector3d(i*a*|metre|, j*b*|metre|, k*c*|metre|)];
+</pre>
+
+<p>
+After compilation the function <code>my_scene</code> can be called from javascript code to create the scene at runtime. 
+See the <code>pacioli.js</code> library for the runtime API. 
+</p>

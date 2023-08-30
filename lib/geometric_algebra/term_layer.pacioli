@@ -1,0 +1,305 @@
+# ----------------------------------------------------------------------------
+# Term layer: weighted Blades
+# ----------------------------------------------------------------------------
+
+include blade;
+
+import geometry;
+
+export
+    Term,
+    make_term,
+    term_weight,
+    term_base_blade,
+    term_grade,
+    scale_term,
+    term_product,
+    term_reverse,
+    term_inverse,
+    term_bar,
+    compare_term;
+
+# ----------------------------------------------------------------------------
+# Term
+#
+# Term is represented using a 2-tuple (w,b) in which
+#    w represents its weight
+#    b represents the base blade number
+#
+# Examples: (5,0) represents the (weighted) blade 5e0. (3,2) represents 3e2.
+# ----------------------------------------------------------------------------
+
+doc Term
+    "A term in a <code>MultiVector(a, I!)</code> multivector.";
+
+deftype for_index I: for_unit a:
+    Term(a, I!) = Tuple(a, BaseBlade(1, I!));
+
+# ----------------------------------------------------------------------------
+
+doc make_term
+    "Constructs a term from a weight and a base blade.";
+
+declare make_term ::
+    for_index I: for_unit a: (a, BaseBlade(1, I!)) -> Term(a, I!);
+
+define make_term(weight, blade) =
+    tuple(weight, blade);
+
+# ----------------------------------------------------------------------------
+
+doc term_weight
+    "A term's weight. Satisfies <code>term_weight(make_term(w, b)) = w</code>";
+
+declare term_weight ::
+    for_index I: for_unit a: (Term(a, I!)) -> a;
+
+define term_weight(term) =
+    let (weight, _) = term in weight end;
+
+#declare term_weight_unit_inverse :: for_index I: for_unit a: (Term(a, I!)) -> a^-1;
+
+define term_weight_unit_inverse(term) =
+    let (weight, _) = term,
+        w = magnitude(weight)
+    in
+        w * w / weight
+    end;
+
+# ----------------------------------------------------------------------------
+
+doc value term_base_blade
+    "A term's base blade. Satisfies <code>term_base_blade(make_term(w, b)) = b</code>.";
+
+declare term_base_blade ::
+    for_index I: for_unit a: (Term(a, I!)) -> BaseBlade(1, I!);
+
+define term_base_blade(term) =
+    let (_, blade) = term in blade end;
+
+# ----------------------------------------------------------------------------
+
+doc term_grade
+    "A term's grade. Scalars are grade 0, vectors are grade 1,
+    bi-vectors are grade 2. In general a k-vector has grade k.";
+
+declare term_grade :: 
+   for_index I: for_unit a: (Term(a, I!)) -> 1;
+
+define term_grade(term) =
+    blade_grade(term_base_blade(term));
+
+# ----------------------------------------------------------------------------
+
+doc scale_term
+    "Scales a term with a factor. Multiplies the term's weight with the
+    given number.";
+
+declare scale_term :: 
+   for_index I: for_unit a,b: (a, Term(b, I!)) -> Term(a*b, I!);
+
+define scale_term(a, term) =
+    let (weight, blade) = term in make_term(a * weight, blade) end;
+
+# ----------------------------------------------------------------------------
+
+doc term_product
+    "Product of two terms. When the third argument is true it is the
+    geometric product, otherwise it is the outer product.";
+
+declare term_product ::
+    for_index I: for_unit a,b: (Term(a, I!), Term(b, I!), Boole) -> Term(a*b, I!);
+
+define term_product(x, y, no_common) =
+    let
+        x_context = base_blade_context(term_base_blade(x)),
+        y_context = base_blade_context(term_base_blade(y)),
+        context = context_product(x_context, y_context),
+        x_bin = int2bin(base_blade_position(term_base_blade(x))),
+        y_bin = int2bin(base_blade_position(term_base_blade(y)))
+    in
+         let
+            wx = term_weight(x),
+            wy = term_weight(y),
+            sign = mod(count_swap(x_bin, y_bin), 2),
+            weight = if sign = 0 then wx * wy else -wx * wy end,
+            blade = make_base_blade(bin2int(bit_list_xor(x_bin, y_bin)), context)
+        in
+            if no_common and some[b != 0 | b <- bit_list_and(x_bin, y_bin)] then
+                # @@@TODO: scalar_base_blade necessary or should blade suffice?
+                #scale_term(0, make_term(weight, scalar_base_blade(context)))
+                scale_term(0, make_term(weight, blade))
+             else
+                make_term(weight, blade)
+            end
+        end
+    end;
+
+# ----------------------------------------------------------------------------
+
+doc term_reverse 
+    "Reverses a term. Changes the sign of the term depending on the term's 
+    grade according to the following pattern: ++--++--++--.
+    
+    So terms with grade 0 or 1 don't get their sign changed, terms with 
+    grade 2 or 3 do get their sign changed, and so on.";
+
+declare term_reverse ::
+    for_index I: for_unit a: (Term(a, I!)) -> Term(a, I!);
+
+define term_reverse(term) =
+  # p.519 Leo (++--++--++-- pattern for reversion)
+    let
+        modulus = mod(term_grade(term), 4)
+    in
+        if modulus = 0 or modulus = 1 then
+            term
+        else
+            scale_term(-1, term)
+            #make_term(-1 * term_weight_unit_inverse(term), term_base_blade(term))
+        end
+    end;
+
+# ----------------------------------------------------------------------------
+
+doc term_inverse
+    "Leo's inverse formula 6.24 p155. NB: units TODO";
+
+# TODO invert the unit
+declare term_inverse ::
+    for_index I: for_unit a: (Term(a, I!)) -> Term(a^-1, I!);
+
+define term_inverse(term) = 
+    let
+        rev_term = term_reverse(term),
+        term_prod = term_product(term, rev_term, false)
+    in
+        make_term(term_weight(rev_term) / term_weight(term_prod), term_base_blade(rev_term))
+    end;
+
+# ----------------------------------------------------------------------------
+
+doc term_bar
+    "Grade involution for a term.
+    
+    Changes the sign of the term depending on the term's grade according to the
+    following pattern: +-+-+-+-+-+-. So terms with even grade don't get their
+    sign changed and terms with odd grade do get their sign changed.";
+
+declare term_bar :: 
+   for_index I: for_unit a: (Term(a, I!)) -> Term(a, I!);
+
+define term_bar(term) =
+    if mod(term_grade(term), 2) = 0 then
+        term
+    else
+        scale_term(-1, term)
+    end;
+
+# ----------------------------------------------------------------------------
+
+declare compare_term :: 
+   for_index I: for_unit a: (Term(a, I!), Term(a, I!)) -> 1;
+
+define compare_term(x, y) =
+    let grade_comparison = compare(term_grade(x), term_grade(y)) in
+        if grade_comparison = 0 then
+            compare_base(term_base_blade(x), term_base_blade(y))
+        else
+            grade_comparison
+        end
+    end;
+
+# ----------------------------------------------------------------------------
+
+doc term_inner_product
+    "The inner product between terms. Equals the geometric product, unless
+    the predicate of the third argument is true. In that case the result
+    is zero. The predicate receives the grades of the terms and the geometric
+    product as arguments.
+
+    @@@ TODO Leo's ArrayList...
+
+    See Leo's code MODIFIED_HESTENES_INNER_PRODUCT - in BasisBlade innerProductFilter
+    https://geometricalgebra.org/ga_ref_impl/subspace/basis/BasisBlade.java.html#inner_product_filter";
+    
+declare term_inner_product :: for_index I: for_unit a,b:
+    (Term(a, I!), Term(b, I!), (1, 1, Term(a*b, I!)) -> Boole) -> Term(a*b, I!);
+
+define term_inner_product(t1, t2, predicate) = 
+    let res = term_geometric_product(t1, t2) in
+        if predicate(term_grade(t1), term_grade(t2), res) then
+            res
+        else
+            scale_term(0, res) #make_term(0, scalar_base_blade(base_blade_context(term_base_blade(res))))
+        end
+    end;
+
+# ----------------------------------------------------------------------------
+
+doc term_geometric_product
+    "The geometric product between terms.
+
+    @@@TODO: scale AND-ed terms using Metric double array according to Leo's code
+
+    https://geometricalgebra.org/ga_ref_impl/subspace/basis/BasisBlade.java.html#geometricProduct";
+
+declare term_geometric_product :: 
+   for_index I: for_unit a,b: (Term(a, I!), Term(b, I!)) -> Term(a*b, I!);
+
+define term_geometric_product(t1, t2) = 
+    term_product(t1, t2, false);
+
+# ----------------------------------------------------------------------------
+# Just needed for term_product
+# ----------------------------------------------------------------------------
+
+deftype ReversedBitList() = List(1);
+
+declare int2bin :: (1) -> ReversedBitList;
+
+define int2bin(n) =
+    if n=0 then
+        [0]
+    else if n=1 then
+        [1]
+    else if mod(n, 2) = 0 then
+        cons(0, int2bin(div(n, 2)))
+    else
+        cons(1, int2bin(div(n-1, 2)))
+    end;
+
+declare bin2int ::
+    for_index I: for_unit a:  (ReversedBitList) -> 1;
+
+define bin2int(xs) =
+    if xs = [0] then
+        0
+    else if xs = [1] then
+        1
+    else
+        head(xs) + 2*bin2int(tail(xs))
+    end;
+
+declare bit_list_and, bit_list_xor ::
+    (ReversedBitList, ReversedBitList) -> ReversedBitList;
+
+define bit_list_xor(xs, ys) =
+    if ys = [] then
+        xs
+    else if xs = [] then
+        ys
+    else
+        cons(mod(head(xs) + head(ys), 2), bit_list_xor(tail(xs), tail(ys)))
+    end;
+
+define bit_list_and(xs, ys) =
+  zip_with((x, y) -> x * y, xs, ys);
+
+define count_swap(xs, ys) =
+    let
+        m = list_size(xs),
+        n = list_size(ys)
+    in
+        count[ nth(i, xs) * nth(j, ys) = 1 | i <- naturals(m), j <- naturals(min(i, n))]
+    end;
