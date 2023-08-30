@@ -141,7 +141,7 @@ public class PacioliFile extends AbstractPrintable {
             Arrays.asList("base", "standard"));
 
     public File findDocFile() {
-        return new File(fsFile.getParentFile(), "doc.html");
+        return new File(fsFile.getParentFile(), this.moduleName + ".doc");
     }
 
     public Optional<PacioliFile> findInclude(String name) {

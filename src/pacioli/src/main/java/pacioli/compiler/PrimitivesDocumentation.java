@@ -29,7 +29,7 @@ public class PrimitivesDocumentation {
 
     public void generate() throws Exception {
 
-        Pacioli.log("dirName = %s, libs= %s", dirName, libs);
+        Pacioli.log("Generating built-in documentation in directory %s", dirName);
 
         writeAPIFile("io.html", "dev", "io", true, true);
         writeAPIFile("string.html", "dev", "string", true, true);

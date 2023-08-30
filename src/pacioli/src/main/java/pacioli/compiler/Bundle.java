@@ -1,8 +1,10 @@
 package pacioli.compiler;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -331,9 +333,10 @@ public class Bundle {
      * @throws PacioliException
      * @throws IOException
      */
-    public void printAPI(List<File> includes, String version, File docFile) throws PacioliException, IOException {
-
-        PrintWriter writer = new PrintWriter(System.out);
+    public void printAPI(File output, List<File> includes, String version, File docFile)
+            throws PacioliException, IOException {
+        FileWriter out = new FileWriter(output, false);
+        PrintWriter writer = new PrintWriter(out);
         DocumentationGenerator generator = new DocumentationGenerator(writer, file.moduleName(), version);
 
         if (docFile.exists()) {
@@ -380,7 +383,9 @@ public class Bundle {
         }
 
         generator.generate();
+        out.close();
         writer.close();
+        // System.out.print(out.toString());
     }
 
     public void printSymbolTables() {
