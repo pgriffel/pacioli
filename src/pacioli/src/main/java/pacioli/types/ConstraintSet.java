@@ -37,9 +37,7 @@ import pacioli.compiler.Utils;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
-import pacioli.types.type.UnitVar;
 import pacioli.types.type.Var;
-import uom.Fraction;
 import uom.Unit;
 
 /**
@@ -276,7 +274,7 @@ public class ConstraintSet extends AbstractPrintable {
                                 left.pretty(), right.pretty(), constraint.reason);
                     }
 
-                    mgu = unifyUnits(left, right).compose(mgu);
+                    mgu = UnitUnification.unifyUnits(left, right).compose(mgu);
                 } catch (PacioliException ex) {
                     throw new PacioliException("\n" + ex.getLocalizedMessage() + "\n\n" + constraint.reason);
                 }
@@ -465,80 +463,5 @@ public class ConstraintSet extends AbstractPrintable {
         }
 
         return mgu;
-    }
-
-    private Substitution unifyUnits(Unit<TypeBase> x, Unit<TypeBase> y) throws PacioliException {
-        try {
-            if (x.equals(y)) {
-                return new Substitution();
-            } else {
-                // hier met de factor(s) multiplyen?
-                return unitUnify(x.multiply(y.reciprocal()));
-            }
-        } catch (PacioliException ex) {
-            throw new PacioliException("Cannot unify units %s and %s", x.pretty(), y.pretty());
-        }
-    }
-
-    private Substitution unitUnify(Unit<TypeBase> unit) throws PacioliException {
-
-        List<TypeBase> varBases = new ArrayList<TypeBase>();
-        List<TypeBase> fixedBases = new ArrayList<TypeBase>();
-
-        for (TypeBase base : unit.bases()) {
-            if (base instanceof UnitVar) {
-                varBases.add(base);
-            } else {
-                fixedBases.add(base);
-            }
-
-        }
-
-        if (varBases.isEmpty()) {
-            if (fixedBases.isEmpty()) {
-                return new Substitution();
-            } else {
-                throw new PacioliException("Cannot unify unit 1 %s", unit.pretty());
-            }
-        }
-
-        if (varBases.size() == 1) {
-
-            UnitVar var = (UnitVar) varBases.get(0);
-            assert (unit.power(var).isInt());
-            int power = unit.power(var).intValue();
-            Unit<TypeBase> residu = TypeBase.ONE;
-
-            for (TypeBase fixed : fixedBases) {
-                assert (unit.power(fixed).isInt());
-                int fixedPower = unit.power(fixed).intValue();
-                if (fixedPower % power != 0) {
-                    throw new PacioliException("Cannot unify unit 2 %s", unit.pretty());
-                }
-                residu = residu.multiply(fixed.raise(new Fraction(-fixedPower / power)));
-            }
-
-            return new Substitution(var, residu);
-        }
-
-        UnitVar minVar = (UnitVar) varBases.get(0);
-        for (TypeBase var : varBases) {
-            if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
-                minVar = (UnitVar) var;
-            }
-        }
-
-        assert (unit.power(minVar).isInt());
-        Fraction minPower = unit.power(minVar);
-        Unit<TypeBase> rest = TypeBase.ONE;
-        for (TypeBase var : unit.bases()) {
-            if (!var.equals(minVar)) {
-                assert (unit.power(var).isInt());
-                rest = rest.multiply(var.raise(unit.power(var).div(minPower).floor().negate()));
-            }
-        }
-
-        Substitution tmp = new Substitution(minVar, minVar.multiply(rest));
-        return unitUnify(tmp.apply(unit)).compose(tmp);
     }
 }

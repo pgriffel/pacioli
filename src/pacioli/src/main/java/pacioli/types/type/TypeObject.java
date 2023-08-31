@@ -23,7 +23,6 @@ package pacioli.types.type;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,6 +36,7 @@ import pacioli.symboltable.info.ParametricInfo;
 import pacioli.types.ConstraintSet;
 import pacioli.types.Substitution;
 import pacioli.types.TypeVisitor;
+import pacioli.types.UnitUnification;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.visitors.VectorVarNames;
 import pacioli.types.visitors.JSGenerator;
@@ -46,7 +46,6 @@ import pacioli.types.visitors.ReduceTypes;
 import pacioli.types.visitors.SimplificationParts;
 import pacioli.types.visitors.SubstituteVisitor;
 import pacioli.types.visitors.UsesVars;
-import uom.Fraction;
 import uom.Unit;
 
 /**
@@ -133,7 +132,7 @@ public interface TypeObject extends Printable {
         Set<UnitVar> ignore = new HashSet<>();
         for (int i = 0; i < parts.size(); i++) {
             Unit<TypeBase> part = mgu.apply(parts.get(i));
-            Substitution simplified = unitSimplify(part, ignore);
+            Substitution simplified = UnitUnification.unitSimplify(part, ignore);
             for (TypeBase base : simplified.apply(part).bases()) {
                 if (base instanceof Var) {
                     ignore.add((UnitVar) base);
@@ -234,67 +233,5 @@ public interface TypeObject extends Printable {
     // Hack to print proper compound unit vector in schema's
     default public Set<String> unitVecVarCompoundNames() {
         return new VectorVarNames().acceptTypeObject(this);
-    };
-
-    // UNITTODO
-    public static Substitution unitSimplify(Unit<TypeBase> unit, Set<UnitVar> ignore) {
-
-        List<TypeBase> varBases = new ArrayList<TypeBase>();
-        List<TypeBase> fixedBases = new ArrayList<TypeBase>();
-
-        for (TypeBase base : unit.bases()) {
-            if (base instanceof UnitVar && !ignore.contains((Var) base)) {
-                varBases.add(base);
-            } else {
-                fixedBases.add(base);
-            }
-
-        }
-
-        if (varBases.isEmpty()) {
-            return new Substitution();
-        }
-
-        UnitVar minVar = (UnitVar) varBases.get(0);
-        for (TypeBase var : varBases) {
-            if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
-                minVar = (UnitVar) var;
-            }
-        }
-        assert (unit.power(minVar).isInt());
-        Fraction minPower = unit.power(minVar);
-
-        if (minPower.signum() < 0) {
-            Substitution tmp = new Substitution(minVar, minVar.reciprocal());
-            return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
-        }
-
-        if (varBases.size() == 1) {
-
-            UnitVar var = (UnitVar) varBases.get(0);
-            assert (unit.power(var).isInt());
-            int power = unit.power(var).intValue();
-            // Unit residu = Unit.ONE.multiply(unit.factor());
-            Unit<TypeBase> residu = TypeBase.ONE;
-
-            for (TypeBase fixed : fixedBases) {
-                assert (unit.power(fixed).isInt());
-                int fixedPower = unit.power(fixed).intValue();
-                residu = residu.multiply(fixed.raise(new Fraction(-fixedPower / power)));
-            }
-
-            return new Substitution(var, var.multiply(residu));
-        }
-
-        Unit<TypeBase> rest = (Unit<TypeBase>) TypeBase.ONE;
-        for (TypeBase var : unit.bases()) {
-            if (!var.equals(minVar)) {
-                assert (unit.power(var).isInt());
-                rest = rest.multiply(var.raise(unit.power(var).div(minPower).floor().negate()));
-            }
-        }
-
-        Substitution tmp = new Substitution(minVar, minVar.multiply(rest));
-        return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
     }
 }
