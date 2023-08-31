@@ -109,10 +109,17 @@ public class PrimitivesDocumentation {
                     generator.addFunction(info.name(), args, type.pretty(),
                             info.generalInfo().documentation().orElse(""));
 
+                    if (info.generalInfo().documentation().isEmpty()) {
+                        Pacioli.log("  no documentation for function %s", info.name());
+                    }
+
                 } else {
 
                     generator.addValue(info.name(), type.pretty(), info.generalInfo().documentation().orElse(""));
 
+                    if (info.generalInfo().documentation().isEmpty()) {
+                        Pacioli.log("  no documentation for value %s", info.name());
+                    }
                 }
             }
         }
