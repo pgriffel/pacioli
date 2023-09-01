@@ -65,6 +65,8 @@ export function boxRawValue(value: RawValue, type: PacioliType): PacioliValue {
         }
       } else if (type.name === "Void") {
         return nothing;
+      } else if (type.name === "Maybe") {
+        return boxRawValue(value, type.items[0]);
       } else if (type.name === "List") {
         if (typeof value === "object") {
           const values = value as unknown as Array<RawValue>; // Cast!!!

@@ -145,6 +145,18 @@ public class JSGenerator implements TypeVisitor {
                 sep = ", ";
             }
             out.write("])");
+        } else if (name.equals("Maybe")) {
+
+            out.write("new Pacioli.GenericType(");
+            out.write("'Maybe', [");
+            String sep = "";
+            for (TypeObject arg : type.args()) {
+                out.write(sep);
+                // out.write(arg.compileToJS());
+                arg.accept(this);
+                sep = ", ";
+            }
+            out.write("])");
         } else if (name.equals("Ref")) {
 
             out.write("new Pacioli.Type(");
