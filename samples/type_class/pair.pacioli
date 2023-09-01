@@ -1,0 +1,10 @@
+export Pair, make_pair, pair_left, pair_right;
+    
+deftype for_type t: Pair(t) = Tuple(t, t);
+
+declare make_pair :: for_type t: (t, t) -> Pair(t);
+declare pair_left, pair_right :: for_type t: (Pair(t)) -> t;
+
+define make_pair(x, y) = tuple(x, y);
+define pair_left(pair) = let (x, _) = pair in x end;
+define pair_right(pair) = let (_, y) = pair in y end;
