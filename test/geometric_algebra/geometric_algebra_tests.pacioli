@@ -21,7 +21,7 @@ run_test_suites(geometric_algebra_suites);
 
 declare mv :: (String) -> MultiVector(1, Geom3!);
 
-define mv(input) = parse_mv(input);
+define mv(input) = parse_multivector((a) -> parse_base_blade(|1|, a), input); #parse_mv(input);
 
 # ------------------------------------------------------------------------------
 # Term layer
@@ -69,45 +69,45 @@ define term_suite = test_suite("Term layer", [
 define parser_suite = test_suite("Parser", [
 
     test("should parse a scalar", () ->
-        parse_multivector(parse_base_blade, "42") = make_multivector([make_term(42, e0)])
+        parse_multivector(blade_parser(1), "42") = make_multivector([make_term(42, e0)])
     ),
 
     test("should parse a negative scalar", () ->
-        parse_multivector(parse_base_blade, "-999") = make_multivector([make_term(-999, e0)])
+        parse_multivector(blade_parser(1), "-999") = make_multivector([make_term(-999, e0)])
     ),
 
     test("should parse a more complex multivector", () ->
-        parse_multivector(parse_base_blade, "1 + 1.8e3 + -3e23") =
+        parse_multivector(blade_parser(1), "1 + 1.8e3 + -3e23") =
             make_multivector([make_term(1, e0), make_term(1.8, e3), make_term(-3, e23)])
     ),
 
     test("should handle missing weights", () ->
-        parse_multivector(parse_base_blade, "1 + e3 + -e23") =
+        parse_multivector(blade_parser(1), "1 + e3 + -e23") =
             make_multivector([make_term(1, e0), make_term(1, e3), make_term(-1, e23)])
     ),
 
     test("should ignore extra whitespace", () ->
-        parse_multivector(parse_base_blade, "1   +    1.8e3+ -3e23   ") =
+        parse_multivector(blade_parser(1), "1   +    1.8e3+ -3e23   ") =
             make_multivector([make_term(1, e0), make_term(1.8, e3), make_term(-3, e23)])
     ),
 
     test("should merge terms", () ->
-        parse_multivector(parse_base_blade, "1 + 1.8e3 + 3e3") =
+        parse_multivector(blade_parser(1), "1 + 1.8e3 + 3e3") =
             make_multivector([make_term(1, e0), make_term(4.8, e3)])
     ),
 
     test("should reorder terms", () ->
-        parse_multivector(parse_base_blade, "2 + 3e2 + 4e1") =
+        parse_multivector(blade_parser(1), "2 + 3e2 + 4e1") =
             make_multivector([make_term(2, e0), make_term(4, e1), make_term(3, e2)])
     ),
 
     test("should reorder blades", () ->
-        parse_multivector(parse_base_blade, "3e21") =
+        parse_multivector(blade_parser(1), "3e21") =
             make_multivector([make_term(-3, e12)])
     ),
 
     test("should normalize", () ->
-        parse_multivector(parse_base_blade, "e1e2") =
+        parse_multivector(blade_parser(1), "e1e2") =
             make_multivector([make_term(1, e12)])
     )
 ]);
