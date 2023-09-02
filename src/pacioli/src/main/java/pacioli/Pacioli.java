@@ -386,6 +386,8 @@ public class Pacioli {
     private static void apiCommand(String fileName, List<File> libs)
             throws Exception {
 
+        log("Generating documentation for %s\n", fileName);
+
         Integer version = 0; // TODO, see below
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
 
@@ -397,20 +399,21 @@ public class Pacioli {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
 
-        PacioliFile file = optionalFile.get();
-
         try {
+            PacioliFile file = optionalFile.get();
             Project project = Project.load(file, libs);
             List<File> includes = new ArrayList<>();
             project.includeTree(file).forEach(x -> {
                 includes.add(x.fsFile());
             });
             File out = new File(file.fsFile().getParentFile(), file.moduleName() + ".html");
-            log("Generating documentation %s", out.getAbsolutePath());
+
             project.loadBundle().printAPI(out, includes, "dev", project.findDocFile()); // TODO: version, see above
 
+            Pacioli.log("\nDocumentation ready");
+
         } catch (IOException e) {
-            println("\nError: cannot generate api for file '%s':\n\n%s", fileName, e);
+            println("\nError: cannot generate documentation for file '%s':\n\n%s", fileName, e);
         }
 
     }

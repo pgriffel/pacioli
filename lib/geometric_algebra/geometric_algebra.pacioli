@@ -11,7 +11,7 @@ import geometry;
 export
     e0, e1, e12, e123, e13, e2, e23, e3,
     f0, f1, f12, f2,
-    parse_base_blade,
+    parse_base_blade, blade_parser,
     parse_mv,
     vec2mv;
 
@@ -156,28 +156,33 @@ define f12 = nth(3, blades_2D);
 
 declare parse_mv :: (String) -> MultiVector(unit_3D, Geom3!);
 
-define parse_mv(x) = parse_multivector(parse_base_blade, x);
+define parse_mv(x) = parse_multivector((a) -> parse_base_blade(|unit_3D|, a), x);
 
-declare parse_base_blade :: (String) -> Term(unit_3D, Geom3!);
+declare blade_parser :: for_unit a: (a) -> (String) -> Term(a, Geom3!);
+
+define blade_parser(x) =
+    (input) -> parse_base_blade(x, input);
+
+declare parse_base_blade :: for_unit a: (a, String) -> Term(a, Geom3!);
 
 # TODO: parse_base_blade is 3D specific, should also handle 2D
-define parse_base_blade(input) =
-    if input = "0" then make_term(|unit_3D|, e0)
-    else if input = "1" then make_term(|unit_3D|, e1)
-    else if input = "2" then make_term(|unit_3D|, e2)
-    else if input = "3" then make_term(|unit_3D|, e3)
-    else if input = "12" then make_term(|unit_3D|, e12)
-    else if input = "13" then make_term(|unit_3D|, e13)
-    else if input = "21" then make_term(-|unit_3D|, e12)
-    else if input = "23" then make_term(|unit_3D|, e23)
-    else if input = "31" then make_term(-|unit_3D|, e13)
-    else if input = "32" then make_term(-|unit_3D|, e23)
-    else if input = "123" then make_term(|unit_3D|, e123)
-    else if input = "132" then make_term(-|unit_3D|, e123)
-    else if input = "213" then make_term(-|unit_3D|, e123)    
-    else if input = "231" then make_term(|unit_3D|, e123)    
-    else if input = "321" then make_term(-|unit_3D|, e123)    
-    else if input = "312" then make_term(|unit_3D|, e123)    
+define parse_base_blade(unit_3D, input) =
+    if input = "0" then make_term(unit_3D, e0)
+    else if input = "1" then make_term(unit_3D, e1)
+    else if input = "2" then make_term(unit_3D, e2)
+    else if input = "3" then make_term(unit_3D, e3)
+    else if input = "12" then make_term(unit_3D, e12)
+    else if input = "13" then make_term(unit_3D, e13)
+    else if input = "21" then make_term(-unit_3D, e12)
+    else if input = "23" then make_term(unit_3D, e23)
+    else if input = "31" then make_term(-unit_3D, e13)
+    else if input = "32" then make_term(-unit_3D, e23)
+    else if input = "123" then make_term(unit_3D, e123)
+    else if input = "132" then make_term(-unit_3D, e123)
+    else if input = "213" then make_term(-unit_3D, e123)    
+    else if input = "231" then make_term(unit_3D, e123)    
+    else if input = "321" then make_term(-unit_3D, e123)    
+    else if input = "312" then make_term(unit_3D, e123)    
     else error(concatenate("Unexpected base blade in input: e", input))
     end;
 

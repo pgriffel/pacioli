@@ -333,20 +333,34 @@ public class Bundle {
      * @throws PacioliException
      * @throws IOException
      */
-    public void printAPI(File output, List<File> includes, String version, File docFile)
-            throws PacioliException, IOException {
+    public void printAPI(
+            File output,
+            List<File> includes,
+            String version,
+            File docFile) throws PacioliException, IOException {
+
         FileWriter out = new FileWriter(output, false);
         PrintWriter writer = new PrintWriter(out);
         DocumentationGenerator generator = new DocumentationGenerator(writer, file.moduleName(), version);
 
+        int nrValues = 0;
+        int nrFunctions = 0;
+        int nrTypes = 0;
+        int nrIndexSets = 0;
+
         if (docFile.exists()) {
+            Pacioli.log("Found doc file %s, including contents...", docFile.getAbsolutePath());
             List<String> read = Files.readAllLines(docFile.toPath());
             String total = "";
             for (String line : read) {
                 total += line + "\n";
             }
             generator.setIntro(total);
+        } else {
+            Pacioli.log("No doc file found at %s, using standard intro...", docFile.getAbsolutePath());
         }
+
+        Pacioli.log("Collecting exports...");
 
         for (String name : environment.values().allNames()) {
             ValueInfo info = environment.values().lookup(name);
@@ -359,8 +373,16 @@ public class Bundle {
                     LambdaNode lambda = (LambdaNode) body;
                     generator.addFunction(info.name(), lambda.arguments, info.publicType(),
                             info.generalInfo().documentation().orElse(""));
+                    if (info.generalInfo().documentation().isEmpty()) {
+                        Pacioli.log("  no documentation for function %s", info.name());
+                    }
+                    nrFunctions++;
                 } else {
                     generator.addValue(info.name(), info.publicType(), info.generalInfo().documentation().orElse(""));
+                    if (info.generalInfo().documentation().isEmpty()) {
+                        Pacioli.log("  no documentation for value %s", info.name());
+                    }
+                    nrValues++;
                 }
             }
         }
@@ -375,17 +397,33 @@ public class Bundle {
                             def.definition().get().lhs.pretty(),
                             def.definition().get().rhs.pretty(),
                             info.generalInfo().documentation().orElse("n/a"));
+                    if (info.generalInfo().documentation().isEmpty()) {
+                        Pacioli.log("  no documentation for type %s", info.name());
+                    }
+                    nrTypes++;
                 }
                 if (info instanceof IndexSetInfo def) {
                     generator.addIndexSet(info.name(), info.generalInfo().documentation().orElse("n/a"));
+                    if (info.generalInfo().documentation().isEmpty()) {
+                        Pacioli.log("  no documentation for index set %s", info.name());
+                    }
+                    nrIndexSets++;
                 }
             }
         }
 
+        Pacioli.log("Generating documentation entries...");
+        Pacioli.log("  types:       %s", nrTypes);
+        Pacioli.log("  index sets:  %s", nrIndexSets);
+        Pacioli.log("  values:      %s", nrValues);
+        Pacioli.log("  functions:   %s", nrFunctions);
+
         generator.generate();
+
+        Pacioli.log("Writing file %s...", output.getAbsolutePath());
+
         out.close();
         writer.close();
-        // System.out.print(out.toString());
     }
 
     public void printSymbolTables() {

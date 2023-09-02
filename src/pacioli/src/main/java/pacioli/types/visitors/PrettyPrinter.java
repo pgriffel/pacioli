@@ -192,14 +192,14 @@ public class PrettyPrinter implements TypeVisitor {
     @Override
     public void visit(TypePredicate type) {
         out.print(type.id());
-        out.print("[");
+        out.print("(");
         String sep = "";
         for (TypeObject id : type.arguments()) {
             out.print(sep);
             id.accept(this);
             sep = ", ";
         }
-        out.print("]");
+        out.print(")");
     }
 
     @Override

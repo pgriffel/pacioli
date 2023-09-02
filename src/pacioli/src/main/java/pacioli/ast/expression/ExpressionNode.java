@@ -39,6 +39,7 @@ public interface ExpressionNode extends Node {
 
         defaultTypes.put("Void", (ParametricInfo) prog.types().lookup("Void"));
         defaultTypes.put("Tuple", (ParametricInfo) prog.types().lookup("Tuple"));
+        defaultTypes.put("Maybe", (ParametricInfo) prog.types().lookup("Maybe"));
         defaultTypes.put("String", (ParametricInfo) prog.types().lookup("String"));
         defaultTypes.put("Boole", (ParametricInfo) prog.types().lookup("Boole"));
 

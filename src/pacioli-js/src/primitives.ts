@@ -129,6 +129,14 @@ export function lib_base_base__ref_get(ref: any[]) {
   return ref[0];
 }
 
+export function lib_base_base_just(value: any) {
+  return value;
+}
+
+export function lib_base_base_nothing() {
+  return undefined;
+}
+
 export function lib_base_base_not(boole: boolean) {
   return !boole;
 }
