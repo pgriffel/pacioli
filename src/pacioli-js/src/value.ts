@@ -25,6 +25,7 @@ import { PacioliBoole } from "./values/boole";
 import { Coordinates } from "./values/coordinates";
 import { PacioliFunction } from "./values/function";
 import { Matrix } from "./values/matrix";
+import { Maybe } from "./values/maybe";
 import { PacioliString } from "./values/string";
 import { Void } from "./values/void";
 
@@ -109,7 +110,8 @@ export type PacioliValue =
   | PacioliBoole
   | PacioliFunction
   | PacioliString
-  | Void;
+  | Void
+  | Maybe;
 
 export interface ToText {
   toText(): string;

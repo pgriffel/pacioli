@@ -26,6 +26,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Matrix } from "./values/matrix";
 import { PacioliString } from "./values/string";
+import { num } from "./api";
 
 export interface SpaceOptions {
   perspective: boolean;
@@ -48,6 +49,8 @@ export class Space {
   private scene: THREE.Scene;
   private camera: THREE.Camera;
   private body: THREE.Object3D<THREE.Event>;
+  public callback: any;
+  public data: any;
 
   constructor(
     public readonly parent: HTMLElement,
@@ -215,7 +218,12 @@ export class Space {
     return lineObject;
   }
 
-  addVector(origin: Matrix, vector: Matrix, color: PacioliString) {
+  addVector(
+    origin: Matrix,
+    vector: Matrix,
+    color: PacioliString,
+    name?: PacioliString
+  ) {
     const vectorColor = color ? color.value : "blue";
 
     this.log(
@@ -250,10 +258,30 @@ export class Space {
     let arrow = new THREE.ArrowHelper(
       jsVector,
       jsOrigin,
-      (1.12 * vectorLength) / 1.12,
+      vectorLength,
       vectorColor
     ); //, 1, 0.2)
+
+    console.log(`name=${name} ${typeof name}`);
+    if (name) {
+      arrow.name = name.value;
+    }
     this.body.add(arrow);
+  }
+
+  moveVector(name: string, vector: Matrix) {
+    console.log("moving vector " + name);
+    const arrow = this.scene.getObjectByName(name);
+    const jsVector = vec2THREE(vector.numbers, 1);
+    if (arrow) {
+      console.log(`pos=${arrow.position.toArray()}, ${arrow.toJSON()}`);
+      // arrow.position.set(jsVector.x, jsVector.y, jsVector.z);
+      // arrow.position.copy(jsVector);
+      arrow.position.x = jsVector.x;
+      arrow.position.y = jsVector.y;
+      arrow.position.z = jsVector.z;
+    }
+    console.log("moved vector " + arrow + vector);
   }
 
   /**
@@ -287,6 +315,37 @@ export class Space {
   private log(text: string) {
     if (this.options.verbose) {
       console.log(text);
+    }
+  }
+
+  fillSpaceWithScene(tup: any) {
+    const [, data, callback] = tup;
+    const [vectors, meshes, paths] = data;
+
+    this.callback = callback;
+    this.data = data;
+
+    // Add the scene elements to the space
+    this.clear();
+    for (const [mesh, wireframe] of meshes) {
+      this.addMesh(mesh, { wireframe: wireframe.value });
+    }
+
+    for (const [origin, vector, color, name] of vectors) {
+      this.addVector(origin, vector, color, name);
+    }
+
+    for (const path of paths) {
+      this.addPath(path);
+    }
+  }
+
+  updateSpace(time: number) {
+    this.data = this.callback.call(num(time), this.data);
+    console.log(`data = ${this.data}`);
+    const [vectors, ,] = this.data;
+    for (const [, vector, , name] of vectors) {
+      this.moveVector(name.value, vector);
     }
   }
 }

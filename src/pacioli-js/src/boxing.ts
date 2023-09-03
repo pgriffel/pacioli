@@ -36,6 +36,7 @@ import { nothing } from "./values/void";
 import { GenericType } from "./types/generic";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { UnitVector } from "./values/unit-vector";
+import { Maybe } from "./values/maybe";
 
 export function boxRawValue(value: RawValue, type: PacioliType): PacioliValue {
   switch (type.kind) {
@@ -66,7 +67,16 @@ export function boxRawValue(value: RawValue, type: PacioliType): PacioliValue {
       } else if (type.name === "Void") {
         return nothing;
       } else if (type.name === "Maybe") {
-        return boxRawValue(value, type.items[0]);
+        return new Maybe(value ? boxRawValue(value, type.items[0]) : undefined);
+        // if (value) {
+        //   // return boxRawValue(value, type.items[0]);
+        //   const valueObject = { value: value };
+        //   return tagKind(valueObject, "maybe");
+        // } else {
+        //   const valueObject = { value: undefined };
+        //   return tagKind(valueObject, "maybe");
+        //   // return nothing; // this is inaccurate!
+        // }
       } else if (type.name === "List") {
         if (typeof value === "object") {
           const values = value as unknown as Array<RawValue>; // Cast!!!
@@ -179,6 +189,9 @@ export function rawValueFromValue(value: PacioliValue): any {
     }
     case "function": {
       return value.fun;
+    }
+    case "maybe": {
+      return value.value;
     }
     default: {
       throw new Error("TODO");
