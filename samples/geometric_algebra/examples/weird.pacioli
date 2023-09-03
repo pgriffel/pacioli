@@ -7,11 +7,13 @@ import graphics;
 # ------------------------------------------------------------------------------
 
 define the_scene() =
-    let offset = vector3d(1*|metre|, 1*|metre|, 0*|metre|),
-        scene = empty_scene("Just some weird example to test graphics of vectors..........") in
+    let 
+        scene = empty_scene("Just some weird example to test graphics of vectors."),
+        offset(t) = vector3d(1*cos(t*2*pi*|radian|)*|metre|, 1*sin(t*2*pi*|radian|)*|metre|, 0*|metre|)
+    in
         add_updater(
             add_arrows(rendered_vectors, scene),
-            (t, s) -> set_arrows(s, [ move_arrow(x, offset) | x <- get_arrows(s)]))
+            (t, s) -> set_arrows(s, [ move_arrow(x, offset(t/60)) | x <- get_arrows(s)]))
     end;
 
 define rendered_vectors =
