@@ -319,7 +319,7 @@ declare move_arrow :: for_unit a: (Arrow(a), a * Geom3!) -> Arrow(a);
 
 define move_arrow(arrow, position) =
     let (from, to, color, name) = arrow in
-        tuple(from, to, color, name)
+        tuple(from + position, to + position, color, name)
     end;
 
 # ------------------------------------------------------------------------------

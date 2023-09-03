@@ -265,18 +265,13 @@ export class Space {
   }
 
   moveVector(name: string, vector: Matrix) {
-    console.log("moving vector " + name);
     const arrow = this.scene.getObjectByName(name);
-    const jsVector = vec2THREE(vector.numbers, 1);
     if (arrow) {
-      console.log(`pos=${arrow.position.toArray()}, ${arrow.toJSON()}`);
-      // arrow.position.set(jsVector.x, jsVector.y, jsVector.z);
-      // arrow.position.copy(jsVector);
+      const jsVector = vec2THREE(vector.numbers, 1);
       arrow.position.x = jsVector.x;
       arrow.position.y = jsVector.y;
       arrow.position.z = jsVector.z;
     }
-    console.log("moved vector " + arrow + vector);
   }
 
   /**
@@ -338,7 +333,7 @@ export class Space {
   updateSpace(time: number) {
     this.data = this.callback.call(num(time), this.data);
     const [vectors, ,] = this.data;
-    for (const [, vector, , name] of vectors) {
+    for (const [vector, , , name] of vectors) {
       this.moveVector(name.value.value, vector);
     }
   }
