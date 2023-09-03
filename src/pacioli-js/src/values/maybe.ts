@@ -20,10 +20,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { PacioliType } from "../type";
 import { PacioliValue } from "../value";
 
 export class Maybe {
   readonly kind = "maybe";
 
-  constructor(public value?: PacioliValue) {}
+  constructor(public type: PacioliType, public value?: PacioliValue) {}
 }

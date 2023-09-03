@@ -68,6 +68,7 @@ export type RawTag =
   | "list"
   | "reference"
   | "void"
+  | "maybe"
   | "primitive";
 
 // should be somehting like  type RawValue = RawTagged | string | boole | function

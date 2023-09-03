@@ -27,6 +27,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Matrix } from "./values/matrix";
 import { PacioliString } from "./values/string";
 import { num } from "./api";
+import { Maybe } from "./values/maybe";
 
 export interface SpaceOptions {
   perspective: boolean;
@@ -218,12 +219,7 @@ export class Space {
     return lineObject;
   }
 
-  addVector(
-    origin: Matrix,
-    vector: Matrix,
-    color: PacioliString,
-    name?: PacioliString
-  ) {
+  addVector(origin: Matrix, vector: Matrix, color: PacioliString, name: Maybe) {
     const vectorColor = color ? color.value : "blue";
 
     this.log(
@@ -262,9 +258,8 @@ export class Space {
       vectorColor
     ); //, 1, 0.2)
 
-    console.log(`name=${name} ${typeof name}`);
-    if (name) {
-      arrow.name = name.value;
+    if (name.value) {
+      arrow.name = (name.value as unknown as PacioliString).value;
     }
     this.body.add(arrow);
   }
@@ -342,10 +337,9 @@ export class Space {
 
   updateSpace(time: number) {
     this.data = this.callback.call(num(time), this.data);
-    console.log(`data = ${this.data}`);
     const [vectors, ,] = this.data;
     for (const [, vector, , name] of vectors) {
-      this.moveVector(name.value, vector);
+      this.moveVector(name.value.value, vector);
     }
   }
 }

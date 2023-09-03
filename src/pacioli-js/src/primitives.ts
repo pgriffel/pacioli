@@ -137,6 +137,17 @@ export function lib_base_base_nothing() {
   return undefined;
 }
 
+export function lib_base_base_is_nothing(value: any) {
+  return value === undefined;
+}
+
+export function lib_base_base_maybe_get(value: any) {
+  if (value === undefined) {
+    throw new Error("Cannot get empty Maybe value");
+  }
+  return value;
+}
+
 export function lib_base_base_not(boole: boolean) {
   return !boole;
 }
