@@ -7,18 +7,24 @@ import graphics;
 # ------------------------------------------------------------------------------
 
 define the_scene() =
-    let scene = empty_scene("Just some weird example to test graphics of vectors.") in
-        add_arrows(rendered_vectors, scene)
+    let 
+        scene = empty_scene("Just some weird example to test graphics of vectors."),
+        offset(t) = vector3d(1*cos(t*2*pi*|radian|)*|metre|, 1*sin(t*2*pi*|radian|)*|metre|, 0*|metre|)
+    in
+        add_updater(
+            add_arrows(rendered_vectors, scene),
+            (t, s) -> set_arrows(s, [ move_arrow(x, offset(t/60)) | x <- get_arrows(s)]))
     end;
 
 define rendered_vectors =
     let 
         ith_vec(i) = space_vec(expt(-0.5, i) * i, expt(0.5, i) * i^2, expt(0.5, i) * i^3),
-        colored = [ tuple(orig, next - orig, color) | i <- naturals(50),
+        colored = [ tuple(orig, next - orig, color, name) | i <- naturals(50),
                                                       orig := ith_vec(i),
                                                       next := ith_vec(i+1),
-                                                      color := if mod(i, 2) = 0 then "red" else "blue" end],
+                                                      color := if mod(i, 2) = 0 then "red" else "blue" end,
+                                                      name := format("arr_%s", i)],
         factor = 8 * |metre|
     in
-        [ make_arrow(factor '.*' from, factor '.*' to, color) | (from, to, color) <- colored]
+        [ make_named_arrow(factor '.*' from, factor '.*' to, color, name) | (from, to, color, name) <- colored]
     end;
