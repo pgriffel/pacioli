@@ -79,7 +79,7 @@ declare empty_scene ::
     for_unit a: (String) -> Scene(a);
 
 define empty_scene(description) =
-    tuple(description, tuple([], [], []), (t, s) -> s);
+    tuple(description, tuple([], [], []), (_, s) -> s);
 
 # ------------------------------------------------------------------------------
 
