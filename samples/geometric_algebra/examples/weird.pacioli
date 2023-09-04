@@ -9,11 +9,13 @@ import graphics;
 define the_scene() =
     let 
         scene = empty_scene("Just some weird example to test graphics of vectors."),
-        offset(t) = vector3d(1*cos(t*2*pi*|radian|)*|metre|, 1*sin(t*2*pi*|radian|)*|metre|, 0*|metre|)
+        offset(t) = vector3d(
+                        cos(t*2*pi*|radian|) * |metre|,
+                        sin(t*2*pi*|radian|) * |metre|,
+                        0 * |metre|),
+        update(t, s) = set_arrows(s, [ move_arrow(x, offset(t/12)) | x <- get_arrows(s)])
     in
-        add_updater(
-            add_arrows(rendered_vectors, scene),
-            (t, s) -> set_arrows(s, [ move_arrow(x, offset(t/12)) | x <- get_arrows(s)]))
+        add_arrows(rendered_vectors, add_updater(scene, update))
     end;
 
 define rendered_vectors =

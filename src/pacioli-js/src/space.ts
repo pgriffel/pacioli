@@ -50,6 +50,8 @@ export class Space {
   private scene: THREE.Scene;
   private camera: THREE.Camera;
   private body: THREE.Object3D<THREE.Event>;
+
+  public description: string = "";
   public callback: any;
   public data: any;
 
@@ -309,10 +311,11 @@ export class Space {
   }
 
   fillSpaceWithScene(tup: any) {
-    const [, data, callback] = tup;
+    const [description, data, callback] = tup;
     const [vectors, meshes, paths] = data;
 
-    this.callback = callback;
+    this.description = description;
+    this.callback = callback.value;
     this.data = data;
 
     // Add the scene elements to the space

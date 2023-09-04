@@ -64,9 +64,14 @@
                 parent.appendChild(spaceElement);
                 const space = new Pacioli.Space(spaceElement, spaceConfig)  
 
-                // Add the example with the initial parameter values
-                fillSpaceWithScene(space, descriptionElement, script, fun, initialParameters)
+                // Compute the example's scene from the initial parameter values
+                // and load it into the space
+                const scene = computeScene(script, fun, initialParameters);
+                space.fillSpaceWithScene(scene);
 
+                // Set the example description
+                const [description] = scene;
+                descriptionElement.innerHTML = description.value
                 
                 // Add inputs and a button if the parameter list is not empty
                 if (initialParameters.length > 0) {
@@ -90,54 +95,35 @@
 
                         // User clicked the button. Get the input values and update the space
                         const params = inputs.map(input => Number(input.value))
-                        fillSpaceWithScene(space, descriptionElement, script, fun, params)
+                        const scene = computeScene(script, fun, params);
+                        space.fillSpaceWithScene(scene);
+                        space.draw()
                     }
                     parent.appendChild(buttonElement);
                 }
 
                 // Add a button to recalculate the scene
-                let time = 0;
-                const runButtonElement = document.createElement("button");
-                runButtonElement.innerText = "Run"
-                runButtonElement.onclick = () => {
+                if (space.callback) {
+                    let time = 0;
+                    const runButtonElement = document.createElement("button");
+                    runButtonElement.innerText = "Step " + time
+                    runButtonElement.onclick = () => {
+                        
+                        // User clicked the button. Get the input values and update the space
+                        space.updateSpace(time++);
+                        space.draw()
 
-                    // User clicked the button. Get the input values and update the space
-                    space.updateSpace(time++);
-                    space.draw()
+                        runButtonElement.innerText = "Step " + time
+                    }
+                    parent.appendChild(runButtonElement);
                 }
-                parent.appendChild(runButtonElement);
 
             }
         }
         
-        function fillSpaceWithScene(space, descriptionElement, script, fun, params) {
-
-            // Compute the scene and get its elements.
-            const p = params.map(x => Pacioli.num(x))
-            const scene = Pacioli.fun(script, fun).apply(p)
-            const [description, data, callback] = scene
-            const [vectors, meshes, paths] = data
-
-            space.fillSpaceWithScene(scene);
-
-            return;
-
-            // Set the example description
-            descriptionElement.innerHTML = description.value
-
-            // Add the scene elements to the space
-            space.clear()
-            for (const [mesh, wireframe] of meshes) {
-                space.addMesh(mesh, {wireframe: wireframe.value});
-            }
-            for (const [origin, vector, color, name] of vectors) {
-                space.addVector(origin, vector, color, name?.value)
-            }            
-            for (const path of paths) {
-                space.addPath(path)
-            }
-            space.draw()
-
+        function computeScene(script, fun, params) {
+            const args = params.map(x => Pacioli.num(x));
+            return Pacioli.fun(script, fun).apply(args);
         }
 
     </script>
