@@ -266,13 +266,14 @@ export class Space {
     this.body.add(arrow);
   }
 
-  moveVector(name: string, vector: Matrix) {
-    const arrow = this.scene.getObjectByName(name);
+  moveVector(name: string, vector: Matrix, color: string) {
+    const arrow = this.scene.getObjectByName(name) as THREE.ArrowHelper;
     if (arrow) {
       const jsVector = vec2THREE(vector.numbers, 1);
       arrow.position.x = jsVector.x;
       arrow.position.y = jsVector.y;
       arrow.position.z = jsVector.z;
+      arrow.setColor(color);
     }
   }
 
@@ -349,8 +350,8 @@ export class Space {
   updateSpace() {
     this.data = this.callback.call(num(this.frameCounter++), this.data);
     const [vectors, ,] = this.data;
-    for (const [vector, , , name] of vectors) {
-      this.moveVector(name.value.value, vector);
+    for (const [vector, , color, name] of vectors) {
+      this.moveVector(name.value.value, vector, color.value);
     }
   }
 }

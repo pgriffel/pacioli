@@ -10,12 +10,28 @@ define the_scene() =
     let 
         scene = empty_scene("Just some weird example to test graphics of vectors."),
         offset(t) = vector3d(
-                        cos(t*2*pi*|radian|) * |metre|,
-                        sin(t*2*pi*|radian|) * |metre|,
-                        0 * |metre|),
-        update(t, s) = set_arrows(s, [ move_arrow(x, offset(t/60)) | x <- get_arrows(s)])
+                        sin(7*t*2*pi*|radian|) * |metre|,
+                        sin(11*t*2*pi*|radian|) * |metre|,
+                        cos(13*t*2*pi*|radian|) * |metre|),
+        update(t, s) = set_arrows(s, [ update_arrow_color(t, move_arrow(x, 1 '.*' offset(t/(400)))) | x <- get_arrows(s)])
     in
         add_arrows(rendered_vectors, add_updater(scene, update))
+    end;
+
+define update_arrow_color(t, arrow) =
+    if mod(t, 5) = 0 and false then
+        let color = arrow_color(arrow) in
+            set_arrow_color(arrow,
+                if color = "red" then
+                    "green"
+                else if color = "blue" then
+                    "red"
+                else
+                    "blue"
+                end)
+        end
+    else
+        arrow
     end;
 
 define rendered_vectors =
@@ -24,7 +40,7 @@ define rendered_vectors =
         colored = [ tuple(orig, next - orig, color, name) | i <- naturals(50),
                                                       orig := ith_vec(i),
                                                       next := ith_vec(i+1),
-                                                      color := if mod(i, 2) = 0 then "red" else "blue" end,
+                                                      color := if mod(i, 3) = 0 then "green" else if mod(i, 3) = 1 then "red" else "blue" end,
                                                       name := format("arr_%s", i)],
         factor = 8 * |metre|
     in

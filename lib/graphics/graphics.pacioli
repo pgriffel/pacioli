@@ -27,7 +27,9 @@ export
     face,
     make_arrow, make_named_arrow,
     origin_arrow,
-    move_arrow;
+    move_arrow,
+    arrow_color,
+    set_arrow_color;
 
 # ------------------------------------------------------------------------------
 # Scene elements
@@ -320,6 +322,20 @@ declare move_arrow :: for_unit a: (Arrow(a), a * Geom3!) -> Arrow(a);
 define move_arrow(arrow, position) =
     let (from, to, color, name) = arrow in
         tuple(from + position, to + position, color, name)
+    end;
+
+declare set_arrow_color :: for_unit a: (Arrow(a), String) -> Arrow(a);
+
+define set_arrow_color(arrow, color) =
+    let (from, to, _, name) = arrow in
+        tuple(from, to, color, name)
+    end;
+
+declare arrow_color :: for_unit a: (Arrow(a)) -> String;
+
+define arrow_color(arrow) =
+    let (_, _, color, _) = arrow in
+        color
     end;
 
 # ------------------------------------------------------------------------------
