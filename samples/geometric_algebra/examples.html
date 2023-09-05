@@ -105,17 +105,27 @@
                 // Add a button to recalculate the scene
                 if (space.callback) {
                     let time = 0;
-                    const runButtonElement = document.createElement("button");
-                    runButtonElement.innerText = "Step " + time
-                    runButtonElement.onclick = () => {
-                        
-                        // User clicked the button. Get the input values and update the space
-                        space.updateSpace(time++);
-                        space.draw()
+                    const stepButtonElement = document.createElement("button");
+                    stepButtonElement.innerText = "Step " + time
+                    stepButtonElement.onclick = () => {
+                        if (!space.isAnimating()) {
+                            // User clicked the button. Get the input values and update the space
+                            space.updateSpace(time++);
+                            space.draw()
+                            stepButtonElement.innerText = "Step " + space.frameCounter
+                        }
+                    }
+                    parent.appendChild(stepButtonElement);
 
-                        runButtonElement.innerText = "Step " + time
+                    const runButtonElement = document.createElement("button");
+                    runButtonElement.innerText = "Start"
+                    runButtonElement.onclick = () => {
+                        space.setAnimating(!space.isAnimating());
+                        runButtonElement.innerText = space.isAnimating() ? "Stop " : "Start";
+                        stepButtonElement.innerText = "Step " + space.frameCounter
                     }
                     parent.appendChild(runButtonElement);
+
                 }
 
             }

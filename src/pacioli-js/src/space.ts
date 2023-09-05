@@ -101,7 +101,7 @@ export class Space {
     controls.minDistance = 2;
     controls.maxDistance = 50;
     controls.maxPolarAngle = Math.PI / 1;
-    controls.addEventListener("change", this.draw.bind(this));
+    controls.addEventListener("change", this.onChange.bind(this));
 
     // Create the body and add it to the scene
     this.body = new THREE.Object3D();
@@ -280,7 +280,13 @@ export class Space {
    * Must be called after making changes to the space.
    */
   draw() {
-    requestAnimationFrame(this.animate.bind(this));
+    requestAnimationFrame(this.render.bind(this));
+  }
+
+  onChange() {
+    if (!this.options.animating) {
+      this.draw();
+    }
   }
 
   isAnimating(): boolean {
@@ -294,13 +300,20 @@ export class Space {
     }
   }
 
-  private animate() {
+  frameCounter: number = 0;
+
+  private render() {
+    // Update the scene if we are animating
+    if (this.options.animating && this.callback) {
+      this.updateSpace();
+    }
+
     // Render the scene
     this.renderer.render(this.scene, this.camera);
 
     // Loop the animation.
     if (this.options.animating) {
-      this.draw();
+      window.setTimeout(() => this.draw(), 1000 / 60);
     }
   }
 
@@ -333,8 +346,8 @@ export class Space {
     }
   }
 
-  updateSpace(time: number) {
-    this.data = this.callback.call(num(time), this.data);
+  updateSpace() {
+    this.data = this.callback.call(num(this.frameCounter++), this.data);
     const [vectors, ,] = this.data;
     for (const [vector, , , name] of vectors) {
       this.moveVector(name.value.value, vector);

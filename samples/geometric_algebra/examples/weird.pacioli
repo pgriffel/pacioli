@@ -13,7 +13,7 @@ define the_scene() =
                         cos(t*2*pi*|radian|) * |metre|,
                         sin(t*2*pi*|radian|) * |metre|,
                         0 * |metre|),
-        update(t, s) = set_arrows(s, [ move_arrow(x, offset(t/12)) | x <- get_arrows(s)])
+        update(t, s) = set_arrows(s, [ move_arrow(x, offset(t/60)) | x <- get_arrows(s)])
     in
         add_arrows(rendered_vectors, add_updater(scene, update))
     end;

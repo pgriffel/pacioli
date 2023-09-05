@@ -30,17 +30,17 @@ export
     move_arrow;
 
 # ------------------------------------------------------------------------------
-# Shape data
+# Scene elements
 # ------------------------------------------------------------------------------
 
-deftype for_unit a: SceneData(a) = 
+deftype for_unit a: SceneElements(a) = 
     Tuple(
         List(Arrow(a)),
         List(Tuple(Mesh(a), Boole)),
         List(Path(a)));
 
-declare get_arrows :: for_unit a: (SceneData(a)) -> List(Arrow(a));
-declare set_arrows :: for_unit a: (SceneData(a), List(Arrow(a))) -> SceneData(a);
+declare get_arrows :: for_unit a: (SceneElements(a)) -> List(Arrow(a));
+declare set_arrows :: for_unit a: (SceneElements(a), List(Arrow(a))) -> SceneElements(a);
 
 define get_arrows(data) =
     let (vectors, _, _) = data in
@@ -65,8 +65,8 @@ doc Scene
 deftype for_unit a: Scene(a) = 
     Tuple(
         String,
-        SceneData(a),
-        Maybe((1, SceneData(a)) -> SceneData(a)));
+        SceneElements(a),
+        Maybe((1, SceneElements(a)) -> SceneElements(a)));
 
 # ------------------------------------------------------------------------------
 
@@ -84,7 +84,7 @@ define empty_scene(description) =
 # ------------------------------------------------------------------------------
 
 declare add_updater ::
-    for_unit a: (Scene(a), (1, SceneData(a)) -> SceneData(a)) -> Scene(a);
+    for_unit a: (Scene(a), (1, SceneElements(a)) -> SceneElements(a)) -> Scene(a);
 
 define add_updater(scene, callback) =
     let (description, data, _) = scene in
