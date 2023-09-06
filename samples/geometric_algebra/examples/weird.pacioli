@@ -6,39 +6,43 @@ import graphics;
 # The rendered scene
 # ------------------------------------------------------------------------------
 
-define the_scene() =
+define the_scene(n, k) =
     let 
-        scene = empty_scene("Just some weird example to test graphics of vectors."),
-        update(t, s) = set_arrows(s, [ update_arrow_color(t, x) | x <- get_arrows(s)])
+        scene = empty_scene("Just some weird example to test graphics of vectors.")
     in
-        add_arrows(rendered_vectors, add_updater(scene, update))
+        add_arrows(weird_arrows(n, k), add_updater(scene, update_scene))
     end;
 
-define update_arrow_color(t, arrow) =
-    if mod(t, 10) = 0 then
-        let color = arrow_color(arrow) in
-            set_arrow_color(arrow,
-                if color = "red" then
-                    "green"
-                else if color = "blue" then
-                    "red"
-                else
-                    "blue"
-                end)
-        end
+define weird_arrows(n, k) =
+    let 
+        c = 8*|metre|,
+        ith_vec(i) = space_vec(expt(-0.5, i) * i, expt(0.5, i) * i^2, expt(0.5, i) * i^3)
+    in
+        [ arrow | i <- naturals(n),
+                  from := c '.*' ith_vec(i),
+                  to := c '.*' ith_vec(i+1) - from,
+                  color := let m = mod(i, 3*k) in
+                                if m < k then 
+                                    "red"
+                                else if m < 2*k then
+                                    "green"
+                                else
+                                    "blue"
+                                end
+                           end,
+                  name := format("arr_%s", i),
+                  arrow := named_arrow(from, to, color, name)]
+    end;
+
+define update_scene(time, scene) = 
+    if mod(time, 5) = 0 then
+        set_arrows(scene, update_arrow_colors(get_arrows(scene)))
     else
-        arrow
+        scene
     end;
 
-define rendered_vectors =
-    let 
-        ith_vec(i) = space_vec(expt(-0.5, i) * i, expt(0.5, i) * i^2, expt(0.5, i) * i^3),
-        colored = [ tuple(orig, next - orig, color, name) | i <- naturals(50),
-                                                      orig := ith_vec(i),
-                                                      next := ith_vec(i+1),
-                                                      color := if mod(i, 3) = 0 then "green" else if mod(i, 3) = 1 then "red" else "blue" end,
-                                                      name := format("arr_%s", i)],
-        factor = 8 * |metre|
-    in
-        [ named_arrow(factor '.*' from, factor '.*' to, color, name) | (from, to, color, name) <- colored]
-    end;
+define update_arrow_colors(arrows) =
+    [arrow | n := list_size(arrows),
+             i <- naturals(n),
+             j := mod(i + 1, n),
+             arrow := set_arrow_color(nth(j, arrows), arrow_color(nth(i, arrows)))];

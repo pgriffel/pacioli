@@ -36,14 +36,19 @@ type PacioliScene = [PacioliString, SceneElements, Maybe<PacioliFunction>];
 
 type SceneElements = [PacioliArrow[], PacioliMesh[], PacioliPath[]];
 
-type PacioliArrow = [Matrix, Matrix, PacioliString, Maybe<PacioliString>];
+type PacioliArrow = [
+  Matrix, // from
+  Matrix, // to
+  PacioliString, // color
+  Maybe<PacioliString> // name
+];
 
 type PacioliMesh = [
-  [Matrix, PacioliString][],
-  [Matrix, Matrix, Matrix][],
-  Matrix,
-  Maybe<PacioliString>,
-  PacioliBoole
+  [Matrix, PacioliString][], // vertices
+  [Matrix, Matrix, Matrix][], // faces
+  Matrix, // position
+  Maybe<PacioliString>, // name
+  PacioliBoole // wireframe
 ];
 
 type PacioliPath = Matrix[];
@@ -52,6 +57,7 @@ export interface SpaceOptions {
   perspective: boolean;
   axis: boolean;
   axisSize: number;
+  axisColors: [string, string, string];
   width: number;
   height: number;
   unit: SIUnit;
@@ -134,9 +140,9 @@ export class Space {
     if (this.options.axis) {
       const axis = new THREE.AxesHelper(500);
       axis.setColors(
-        new THREE.Color("#ffaaaa"),
-        new THREE.Color("#aaffaa"),
-        new THREE.Color("#aaaaff")
+        new THREE.Color(this.options.axisColors[0]),
+        new THREE.Color(this.options.axisColors[1]),
+        new THREE.Color(this.options.axisColors[2])
       );
       this.scene.add(axis);
     }
@@ -152,6 +158,7 @@ export class Space {
       perspective: options.perspective || false,
       axis: !!options.axis,
       axisSize: options.axisSize || 10,
+      axisColors: options.axisColors || ["#eeaaaa", "#aaeeaa", "#aaaaee"],
       width: options.width || 640,
       height: options.height || 360,
       unit: options.unit || UOM.ONE,
@@ -371,6 +378,7 @@ export class Space {
       console.warn("No callback available in UpdateSpace, skipping update");
     }
   }
+
   /**
    * Must be called after making changes to the space.
    */
