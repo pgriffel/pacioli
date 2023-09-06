@@ -22,13 +22,13 @@
         // Note that the space has unit metre. The scene elements must have compatible units,
         // otherwise runtime errors will occur in the browser.
         const examples = [
-            ["usr_bi_vector", "scene2", [0]],
-            ["usr_bi_vector", "scene1", [2, 1, 0, -3, 0, 2, 0]],
-            ["usr_inner", "the_scene", [5, 0, 5, 0, 7, 7]],
-            ["usr_outer_cos_sin", "the_scene", [3]],
-            ["usr_weird", "the_scene", []],
-            ["usr_cubes", "the_scene", []],
-            ["usr_physics", "the_scene", [0, 1]]    
+            ["physics", "the_scene", [0, 1]],
+            ["bi_vector", "scene1", [2, 1, 0, -3, 0, 2, 0]],
+            ["bi_vector", "scene2", [0]],
+            ["inner", "the_scene", [5, 0, 5, 0, 7, 7]],
+            ["outer_cos_sin", "the_scene", [3]],
+            ["weird", "the_scene", []],
+            ["cubes", "the_scene", []]
         ]
 
         function onLoad() {
@@ -54,8 +54,7 @@
                 headerElement.id = script + "_" + fun
                 parent.appendChild(headerElement);
                 
-                // Add an element for the description. The description is set in
-                // fillSpaceWithScene below.
+                // Add an element for the description. The description is set below.
                 const descriptionElement = document.createElement("p");
                 parent.appendChild(descriptionElement);
                 
@@ -67,7 +66,7 @@
                 // Compute the example's scene from the initial parameter values
                 // and load it into the space
                 const scene = computeScene(script, fun, initialParameters);
-                space.fillSpaceWithScene(scene);
+                space.loadScene(scene);
 
                 // Set the example description
                 const [description] = scene;
@@ -96,7 +95,7 @@
                         // User clicked the button. Get the input values and update the space
                         const params = inputs.map(input => Number(input.value))
                         const scene = computeScene(script, fun, params);
-                        space.fillSpaceWithScene(scene);
+                        space.loadScene(scene);
                         space.draw()
                     }
                     parent.appendChild(buttonElement);
@@ -110,7 +109,7 @@
                     stepButtonElement.onclick = () => {
                         if (!space.isAnimating()) {
                             // User clicked the button. Get the input values and update the space
-                            space.updateSpace(time++);
+                            space.updateScene(time++);
                             space.draw()
                             stepButtonElement.innerText = "Step " + space.frameCounter
                         }
@@ -133,7 +132,7 @@
         
         function computeScene(script, fun, params) {
             const args = params.map(x => Pacioli.num(x));
-            return Pacioli.fun(script, fun).apply(args);
+            return Pacioli.fun("usr_" + script, fun).apply(args);
         }
 
     </script>

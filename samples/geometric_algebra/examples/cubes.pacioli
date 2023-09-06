@@ -7,16 +7,28 @@ import graphics;
 # ------------------------------------------------------------------------------
 
 define the_scene() =
-    let scene = empty_scene("An experiment with the Mesh and Path datastructures") in
-        add_paths([path1, path2], add_meshes([tuple(mesh1, false), tuple(mesh2, true)], scene))
+    let 
+        scene = empty_scene("An experiment with the Mesh and Path datastructures"),
+        a = random()*100,
+        b = random()*100,
+        c = random()*100,
+        offset(t) = vector3d(
+                        sin(a*t*2*pi*|radian|) * |metre|,
+                        sin(b*t*2*pi*|radian|) * |metre|,
+                        cos(c*t*2*pi*|radian|) * |metre|),
+        update(t, s) = set_meshes(s, [ move_mesh(x, 1 '.*' offset(t/(a*b*c)*50)) | x <- get_meshes(s)])
+    in
+        add_paths([path1, path2],
+            add_meshes([set_wireframe(mesh1, false), set_wireframe(mesh2, true)], 
+                add_updater(scene, update)))
     end;
 
 define mesh1 =
-    cube_mesh(3*|metre|);
+    named_cube_mesh("foo", 3*|metre|);
 
 define mesh2 =
     let d = -15*|metre| in
-        mesh_move(cube_mesh(30*|metre|), space_vec(d, d, d))
+        move_mesh(cube_mesh(30*|metre|), space_vec(d, d, d))
     end;
 
 define pathPoints = [

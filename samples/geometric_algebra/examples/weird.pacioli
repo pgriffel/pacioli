@@ -9,17 +9,13 @@ import graphics;
 define the_scene() =
     let 
         scene = empty_scene("Just some weird example to test graphics of vectors."),
-        offset(t) = vector3d(
-                        sin(7*t*2*pi*|radian|) * |metre|,
-                        sin(11*t*2*pi*|radian|) * |metre|,
-                        cos(13*t*2*pi*|radian|) * |metre|),
-        update(t, s) = set_arrows(s, [ update_arrow_color(t, move_arrow(x, 1 '.*' offset(t/(400)))) | x <- get_arrows(s)])
+        update(t, s) = set_arrows(s, [ update_arrow_color(t, x) | x <- get_arrows(s)])
     in
         add_arrows(rendered_vectors, add_updater(scene, update))
     end;
 
 define update_arrow_color(t, arrow) =
-    if mod(t, 5) = 0 and false then
+    if mod(t, 10) = 0 then
         let color = arrow_color(arrow) in
             set_arrow_color(arrow,
                 if color = "red" then
@@ -44,5 +40,5 @@ define rendered_vectors =
                                                       name := format("arr_%s", i)],
         factor = 8 * |metre|
     in
-        [ make_named_arrow(factor '.*' from, factor '.*' to, color, name) | (from, to, color, name) <- colored]
+        [ named_arrow(factor '.*' from, factor '.*' to, color, name) | (from, to, color, name) <- colored]
     end;

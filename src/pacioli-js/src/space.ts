@@ -28,6 +28,25 @@ import { Matrix } from "./values/matrix";
 import { PacioliString } from "./values/string";
 import { num } from "./api";
 import { Maybe } from "./values/maybe";
+import { PacioliBoole } from "./values/boole";
+import { PacioliFunction } from "./values/function";
+import { PacioliValue } from "./value";
+
+type PacioliScene = [PacioliString, SceneElements, Maybe<PacioliFunction>];
+
+type SceneElements = [PacioliArrow[], PacioliMesh[], PacioliPath[]];
+
+type PacioliArrow = [Matrix, Matrix, PacioliString, Maybe<PacioliString>];
+
+type PacioliMesh = [
+  [Matrix, PacioliString][],
+  [Matrix, Matrix, Matrix][],
+  Matrix,
+  Maybe<PacioliString>,
+  PacioliBoole
+];
+
+type PacioliPath = Matrix[];
 
 export interface SpaceOptions {
   perspective: boolean;
@@ -38,6 +57,8 @@ export interface SpaceOptions {
   unit: SIUnit;
   animating: boolean;
   verbose: boolean;
+  fps: number;
+  background: string;
 }
 
 /**
@@ -45,15 +66,17 @@ export interface SpaceOptions {
  */
 export class Space {
   private options: SpaceOptions;
-
   private renderer: THREE.Renderer;
   private scene: THREE.Scene;
   private camera: THREE.Camera;
   private body: THREE.Object3D<THREE.Event>;
 
-  public description: string = "";
-  public callback: any;
-  public data: any;
+  public frameCounter: number = 0;
+
+  // Pacioli scene properties, set when a Pacioli scene is loaded
+  public description?: PacioliString;
+  public callback?: PacioliFunction;
+  public elements?: SceneElements;
 
   constructor(
     public readonly parent: HTMLElement,
@@ -78,8 +101,7 @@ export class Space {
 
     // Create the scene
     this.scene = new THREE.Scene();
-    //this.scene.background = new THREE.Color( 0xffffff );
-    this.scene.background = new THREE.Color(0xeeeeee);
+    this.scene.background = new THREE.Color(this.options.background);
 
     // Create the camera and add it to the scene
     if (this.options.perspective) {
@@ -101,7 +123,7 @@ export class Space {
     controls.minDistance = 2;
     controls.maxDistance = 50;
     controls.maxPolarAngle = Math.PI / 1;
-    controls.addEventListener("change", this.onChange.bind(this));
+    controls.addEventListener("change", this.onChangeOrbit.bind(this));
 
     // Create the body and add it to the scene
     this.body = new THREE.Object3D();
@@ -135,6 +157,8 @@ export class Space {
       unit: options.unit || UOM.ONE,
       animating: options.animating || false,
       verbose: options.verbose || false,
+      fps: options.fps || 60,
+      background: options.background || "#eeeeee",
     };
   }
 
@@ -145,26 +169,20 @@ export class Space {
     }
   }
 
-  addMesh(
-    mesh: [[Matrix, PacioliString][], [Matrix, Matrix, Matrix][]],
-    options: any
-  ) {
-    this.log(`Adding mesh ${mesh[0]}, ${JSON.stringify(options)}`);
+  addMesh(mesh: PacioliMesh) {
+    this.log(`Adding mesh ${mesh}`);
 
-    var graphics = options || {};
+    // Dev setting for now, just as all other props
+    var material = "OTHERnormal";
 
-    // Create the proper material
-    var material = graphics.material || "OTHERnormal";
-    var transparent = graphics.transparent || false;
+    const [vs, fs, pos, name, hasWireframe] = mesh;
 
-    var wireframe = graphics.wireframe || false;
-    var transparent = graphics.transparent || false;
     var props = {
-      //        overdraw: !(wireframe || transparent),
-      wireframe: wireframe,
+      // overdraw: !(wireframe || transparent),
+      wireframe: hasWireframe.value,
       side: THREE.DoubleSide,
-      transparent: transparent,
-      //        opacity: (transparent) ? 0.5 : 1.0,
+      transparent: false,
+      // opacity: (transparent) ? 0.5 : 1.0,
       color: 0xaaaaff,
       vertexColors: true,
     };
@@ -177,13 +195,27 @@ export class Space {
     } else if (material == "Phong") {
       mat = new THREE.MeshPhongMaterial(props);
     } else {
-      //props['color'] = 0Xaaaaff;
+      // props['color'] = 0Xaaaaff;
       mat = new THREE.MeshBasicMaterial(props);
     }
 
     // Create a mesh object with the material and add it to the body
-    var meshObject = mesh2THREE(mesh, mat, this.options.unit, wireframe);
+    var meshObject = mesh2THREE(
+      [vs, fs],
+      mat,
+      this.options.unit,
+      hasWireframe.value
+    );
+    if (name.value) {
+      meshObject.name = (name.value as unknown as PacioliString).value;
+    }
     this.body.add(meshObject);
+
+    // Place the mesh at the proper position
+    const jsVector = vec2THREE(pos.numbers, 1);
+    meshObject.position.x = jsVector.x;
+    meshObject.position.y = jsVector.y;
+    meshObject.position.z = jsVector.z;
 
     // const plane = new THREE.Triangle(new THREE.Vector3(1,1,1), new THREE.Vector3(1,1,4), new THREE.Vector3(2,1,1));
     // const planeMesh = new THREE.Mesh( plane, mat );
@@ -197,7 +229,7 @@ export class Space {
     return meshObject;
   }
 
-  addPath(points: Matrix[]) {
+  addPath(points: PacioliPath) {
     this.log(`Adding path ${points.map(vec2String)}`);
     var geometry = new THREE.BufferGeometry();
     var material = new THREE.LineBasicMaterial({
@@ -221,7 +253,12 @@ export class Space {
     return lineObject;
   }
 
-  addVector(origin: Matrix, vector: Matrix, color: PacioliString, name: Maybe) {
+  addVector(
+    origin: Matrix,
+    vector: Matrix,
+    color: PacioliString,
+    name: Maybe<PacioliString>
+  ) {
     const vectorColor = color ? color.value : "blue";
 
     this.log(
@@ -258,7 +295,7 @@ export class Space {
       jsOrigin,
       vectorLength,
       vectorColor
-    ); //, 1, 0.2)
+    );
 
     if (name.value) {
       arrow.name = (name.value as unknown as PacioliString).value;
@@ -266,7 +303,7 @@ export class Space {
     this.body.add(arrow);
   }
 
-  moveVector(name: string, vector: Matrix, color: string) {
+  updateVector(name: string, vector: Matrix, color: string) {
     const arrow = this.scene.getObjectByName(name) as THREE.ArrowHelper;
     if (arrow) {
       const jsVector = vec2THREE(vector.numbers, 1);
@@ -277,17 +314,68 @@ export class Space {
     }
   }
 
+  updateMesh(name: string, vector: Matrix) {
+    const mesh = this.scene.getObjectByName(name);
+    if (mesh) {
+      const jsVector = vec2THREE(vector.numbers, 1);
+      mesh.position.x = jsVector.x;
+      mesh.position.y = jsVector.y;
+      mesh.position.z = jsVector.z;
+    }
+  }
+
+  loadScene(scene: PacioliScene) {
+    const [description, elements, callback] = scene;
+    const [vectors, meshes, paths] = elements;
+
+    this.description = description;
+    this.callback = callback.value;
+    this.elements = elements;
+
+    this.clear();
+    for (const mesh of meshes) {
+      this.addMesh(mesh);
+    }
+
+    for (const [origin, vector, color, name] of vectors) {
+      this.addVector(origin, vector, color, name);
+    }
+
+    for (const path of paths) {
+      this.addPath(path);
+    }
+  }
+
+  updateScene() {
+    if (this.elements === undefined) {
+      throw new Error("No scene elements to update");
+    }
+    if (this.callback) {
+      this.elements = this.callback.call(
+        num(this.frameCounter++),
+        this.elements as unknown as PacioliValue
+      ) as unknown as SceneElements;
+      const [vectors, meshes] = this.elements;
+      for (const [vector, , color, name] of vectors) {
+        if (name.value) {
+          this.updateVector(name.value.value, vector, color.value);
+        }
+      }
+      for (const mesh of meshes) {
+        const [, , position, name] = mesh;
+        if (name.value) {
+          this.updateMesh(name.value.value, position);
+        }
+      }
+    } else {
+      console.warn("No callback available in UpdateSpace, skipping update");
+    }
+  }
   /**
    * Must be called after making changes to the space.
    */
   draw() {
     requestAnimationFrame(this.render.bind(this));
-  }
-
-  onChange() {
-    if (!this.options.animating) {
-      this.draw();
-    }
   }
 
   isAnimating(): boolean {
@@ -301,57 +389,27 @@ export class Space {
     }
   }
 
-  frameCounter: number = 0;
-
   private render() {
-    // Update the scene if we are animating
     if (this.options.animating && this.callback) {
-      this.updateSpace();
+      this.updateScene();
     }
 
-    // Render the scene
     this.renderer.render(this.scene, this.camera);
 
-    // Loop the animation.
     if (this.options.animating) {
-      window.setTimeout(() => this.draw(), 1000 / 60);
+      window.setTimeout(() => this.draw(), 1000 / this.options.fps);
+    }
+  }
+
+  private onChangeOrbit() {
+    if (!this.options.animating) {
+      this.draw();
     }
   }
 
   private log(text: string) {
     if (this.options.verbose) {
       console.log(text);
-    }
-  }
-
-  fillSpaceWithScene(tup: any) {
-    const [description, data, callback] = tup;
-    const [vectors, meshes, paths] = data;
-
-    this.description = description;
-    this.callback = callback.value;
-    this.data = data;
-
-    // Add the scene elements to the space
-    this.clear();
-    for (const [mesh, wireframe] of meshes) {
-      this.addMesh(mesh, { wireframe: wireframe.value });
-    }
-
-    for (const [origin, vector, color, name] of vectors) {
-      this.addVector(origin, vector, color, name);
-    }
-
-    for (const path of paths) {
-      this.addPath(path);
-    }
-  }
-
-  updateSpace() {
-    this.data = this.callback.call(num(this.frameCounter++), this.data);
-    const [vectors, ,] = this.data;
-    for (const [vector, , color, name] of vectors) {
-      this.moveVector(name.value.value, vector, color.value);
     }
   }
 }
@@ -385,10 +443,9 @@ function vec2String(vector: Matrix) {
   ).toFixed(5)}, ${getNumber(vector.numbers, 2, 0).toFixed(5)})`;
 }
 
-// TODO: fix any type.
 function mesh2THREE(
   mesh: [[Matrix, PacioliString][], [Matrix, Matrix, Matrix][]],
-  material: any,
+  material: THREE.Material,
   unit: SIUnit,
   wireframe: boolean
 ) {

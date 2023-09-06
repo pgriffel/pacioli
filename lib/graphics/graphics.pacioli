@@ -11,21 +11,27 @@ export
     Vertex,
     Face,
     Scene,
+    SceneElts,
     empty_scene, 
     add_updater,
     get_arrows,
     set_arrows,
+    get_meshes,
+    set_meshes,
     add_arrows,
     add_meshes,
     add_paths,
     make_path,
     make_line,
     make_mesh,
-    mesh_move,
+    move_mesh,
     cube_mesh,
+    named_cube_mesh,
     vertex,
     face,
-    make_arrow, make_named_arrow,
+    set_wireframe,
+    make_arrow,
+    named_arrow,
     origin_arrow,
     move_arrow,
     arrow_color,
@@ -35,14 +41,14 @@ export
 # Scene elements
 # ------------------------------------------------------------------------------
 
-deftype for_unit a: SceneElements(a) = 
+deftype for_unit a: SceneElts(a) = 
     Tuple(
         List(Arrow(a)),
-        List(Tuple(Mesh(a), Boole)),
+        List(Mesh(a)),
         List(Path(a)));
 
-declare get_arrows :: for_unit a: (SceneElements(a)) -> List(Arrow(a));
-declare set_arrows :: for_unit a: (SceneElements(a), List(Arrow(a))) -> SceneElements(a);
+declare get_arrows :: for_unit a: (SceneElts(a)) -> List(Arrow(a));
+declare set_arrows :: for_unit a: (SceneElts(a), List(Arrow(a))) -> SceneElts(a);
 
 define get_arrows(data) =
     let (vectors, _, _) = data in
@@ -51,6 +57,19 @@ define get_arrows(data) =
 
 define set_arrows(data, vectors) =
     let (_, meshes, paths) = data in
+        tuple(vectors, meshes, paths)
+    end;
+
+declare get_meshes :: for_unit a: (SceneElts(a)) -> List(Mesh(a));
+declare set_meshes :: for_unit a: (SceneElts(a), List(Mesh(a))) -> SceneElts(a);
+
+define get_meshes(data) =
+    let (_, meshes, _) = data in
+        meshes
+    end;
+
+define set_meshes(data, meshes) =
+    let (vectors, _, paths) = data in
         tuple(vectors, meshes, paths)
     end;
 
@@ -67,8 +86,8 @@ doc Scene
 deftype for_unit a: Scene(a) = 
     Tuple(
         String,
-        SceneElements(a),
-        Maybe((1, SceneElements(a)) -> SceneElements(a)));
+        SceneElts(a),
+        Maybe((1, SceneElts(a)) -> SceneElts(a)));
 
 # ------------------------------------------------------------------------------
 
@@ -86,7 +105,7 @@ define empty_scene(description) =
 # ------------------------------------------------------------------------------
 
 declare add_updater ::
-    for_unit a: (Scene(a), (1, SceneElements(a)) -> SceneElements(a)) -> Scene(a);
+    for_unit a: (Scene(a), (1, SceneElts(a)) -> SceneElts(a)) -> Scene(a);
 
 define add_updater(scene, callback) =
     let (description, data, _) = scene in
@@ -102,11 +121,11 @@ declare add_arrows ::
     for_unit a: (List(Arrow(a)), Scene(a)) -> Scene(a);
 
 define add_arrows(vs, scene) =
-    let (description, data, callback) = scene in
-#        let (vectors, meshes, paths) = data in
-#            tuple(description, tuple(append(vs, vectors), meshes, paths), callback)
-#        end
-        tuple(description, set_arrows(data, append(vs, get_arrows(data))), callback)
+    let (description, elements, callback) = scene in
+        tuple(
+            description,
+            set_arrows(elements, append(vs, get_arrows(elements))),
+            callback)
     end;
 
 
@@ -116,7 +135,7 @@ doc add_meshes
     "Adds meshes to a scene";
 
 declare add_meshes ::
-    for_unit a: (List(Tuple(Mesh(a), Boole)), Scene(a)) -> Scene(a);
+    for_unit a: (List(Mesh(a)), Scene(a)) -> Scene(a);
 
 define add_meshes(ms, scene) =
     let (description, data, callback) = scene in
@@ -182,7 +201,12 @@ doc Mesh
     <code>Scene(a)</code> scene.";
 
 deftype for_unit a:
-    Mesh(a) = Tuple(List(Tuple(a*Geom3!, String)), List(Tuple(1, 1, 1)));
+    Mesh(a) = Tuple(
+                List(Tuple(a*Geom3!, String)),
+                List(Tuple(1, 1, 1)),
+                a*Geom3!,
+                Maybe(String),
+                Boole);
 
 doc Vertex
     "A point in a <code>Mesh(a)</code> mesh.";
@@ -226,16 +250,29 @@ doc make_mesh
 declare make_mesh :: for_unit a: (List(Vertex(a)), List(Face)) -> Mesh(a);
 
 define make_mesh(vertices, faces) = 
-    tuple(vertices, faces);
+    tuple(vertices, faces, 0 '.*' let (v,_) = nth(0, vertices) in v end, nothing(), false);
+
+declare named_mesh :: for_unit a: (List(Vertex(a)), List(Face), String) -> Mesh(a);
+
+define named_mesh(vertices, faces, name) = 
+    tuple(vertices, faces, 0 '.*' let (v,_) = nth(0, vertices) in v end, just(name), false);
+
+declare set_wireframe :: for_unit a: (Mesh(a), Boole) -> Mesh(a);
+
+define set_wireframe(mesh, status) = 
+  let (vs, fs, pos, name, _) = mesh in tuple(vs, fs, pos, name, status) end;
 
 # ------------------------------------------------------------------------------
 
 doc cube_mesh
     "Creates a cube mesh, a mesh with lengths of 'size' positioned at the origin.";
 
-declare cube_mesh :: for_unit a: (a) -> Mesh(a);
+declare named_cube_mesh :: for_unit a: (String, a) -> Mesh(a);
 
-define cube_mesh(size) =
+define named_cube_mesh(name, size) =
+    make_cube_mesh(just(name), size);
+
+define make_cube_mesh(name, size) =
     let
         c = "lightgreen",
         vertices = [vertex(space_vec(0,0,0),c),
@@ -261,19 +298,24 @@ define cube_mesh(size) =
             face(3,0,4)
         ]
     in
-        tuple([tuple(size '.*' x, c) | (x, c) <- vertices], faces)
+        tuple([tuple(size '.*' x, c) | (x, c) <- vertices], faces, 0 '.*' size '.*' space_vec(0,0,0), name, false)
     end;
+
+declare cube_mesh :: for_unit a: (a) -> Mesh(a);
+
+define cube_mesh(size) =
+    make_cube_mesh(nothing(), size);
 
 # ------------------------------------------------------------------------------
 
-doc mesh_move
+doc move_mesh
     "Moves a mesh by offset 'vec'";
 
-declare mesh_move :: for_unit a: (Mesh(a), a*Geom3!) -> Mesh(a);
+declare move_mesh :: for_unit a: (Mesh(a), a*Geom3!) -> Mesh(a);
 
-define mesh_move(mesh, vec) =
-    let (vertices, faces) = mesh in
-        tuple([tuple(x + vec, c) | (x, c) <- vertices], faces)
+define move_mesh(mesh, vec) =
+    let (vertices, faces, pos, name, wireframe) = mesh in
+        tuple(vertices, faces, pos + vec, name, wireframe)
     end;
 
 # ------------------------------------------------------------------------------
@@ -299,10 +341,10 @@ declare make_arrow ::
 define make_arrow(from, to, color) =
     tuple(from, to, color, nothing());
 
-declare make_named_arrow ::
+declare named_arrow ::
     for_unit a: (a*Geom3!, a*Geom3!, String, String) -> Arrow(a);
 
-define make_named_arrow(from, to, color, name) =
+define named_arrow(from, to, color, name) =
     tuple(from, to, color, just(name));
 
 # ------------------------------------------------------------------------------

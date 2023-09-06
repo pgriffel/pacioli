@@ -112,7 +112,7 @@ export type PacioliValue =
   | PacioliFunction
   | PacioliString
   | Void
-  | Maybe;
+  | Maybe<any>;
 
 export interface ToText {
   toText(): string;

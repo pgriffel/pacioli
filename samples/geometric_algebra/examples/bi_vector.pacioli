@@ -14,13 +14,13 @@ define scene1(vx, vy, vz, wx, wy, wz, wireframe) =
         origin = 1 * |metre| '.*' space_vec(5,5,5),
         vx = |metre| '.*' mv2vec(x),
         vy = |metre| '.*' mv2vec(y),
-        mesh = mesh_move(bi_vector_mesh(x, y), origin),
+        mesh = move_mesh(bi_vector_mesh(x, y), origin),
         vecs = [
             make_arrow(origin, vx, "blue"),
             make_arrow(origin + vx, vy, "red")
         ]
     in
-        add_meshes([tuple(mesh, wireframe != 0)], add_arrows(vecs, scene))
+        add_meshes([set_wireframe(mesh, wireframe != 0)], add_arrows(vecs, scene))
     end;
 
 define bi_vector_mesh(x, y) = 
@@ -62,7 +62,7 @@ define add_bi_vectors(bi_vectors, scene, wireframe) =
         (meshes, arrow_pairs) = unzip([bi_vector_mesh_and_arrows(o, v1, v2, c) | (o, v1, v2, c) <- bi_vectors]),
         arrows = [v | (a, b) <- arrow_pairs, v <- [a, b]]
     in 
-        add_meshes([tuple(m, wireframe) | m <- meshes], add_arrows(arrows, scene))
+        add_meshes([set_wireframe(m, wireframe) | m <- meshes], add_arrows(arrows, scene))
     end;
 
 declare bi_vector_mesh_and_arrows :: for_unit a:

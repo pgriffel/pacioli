@@ -21,10 +21,9 @@
  */
 
 import { PacioliType } from "../type";
-import { PacioliValue } from "../value";
 
-export class Maybe {
+export class Maybe<T> {
   readonly kind = "maybe";
 
-  constructor(public type: PacioliType, public value?: PacioliValue) {}
+  constructor(public type: PacioliType, public value?: T) {}
 }
