@@ -34,14 +34,14 @@ define weird_arrows(n, k) =
                   arrow := named_arrow(from, to, color, name)]
     end;
 
-define update_scene(time, scene) = 
+define update_scene(time, elements) = 
     if mod(time, 5) = 0 then
-        set_arrows(scene, update_arrow_colors(get_arrows(scene)))
+        set_arrows(elements, shift_arrow_colors(get_arrows(elements)))
     else
-        scene
+        elements
     end;
 
-define update_arrow_colors(arrows) =
+define shift_arrow_colors(arrows) =
     [arrow | n := list_size(arrows),
              i <- naturals(n),
              j := mod(i + 1, n),

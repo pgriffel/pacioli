@@ -89,7 +89,7 @@
 
                     // Add a button to recalculate the scene
                     const buttonElement = document.createElement("button");
-                    buttonElement.innerText = "Go"
+                    buttonElement.innerText = "Enter"
                     buttonElement.onclick = () => {
 
                         // User clicked the button. Get the input values and update the space
@@ -111,7 +111,7 @@
                             // User clicked the button. Get the input values and update the space
                             space.updateScene(time++);
                             space.draw()
-                            stepButtonElement.innerText = "Step " + space.frameCounter
+                            stepButtonElement.innerText = "Step " + space.frameNr()
                         }
                     }
                     parent.appendChild(stepButtonElement);
@@ -121,7 +121,7 @@
                     runButtonElement.onclick = () => {
                         space.setAnimating(!space.isAnimating());
                         runButtonElement.innerText = space.isAnimating() ? "Stop " : "Start";
-                        stepButtonElement.innerText = "Step " + space.frameCounter
+                        stepButtonElement.innerText = "Step " + space.frameNr()
                     }
                     parent.appendChild(runButtonElement);
 
@@ -132,7 +132,7 @@
         
         function computeScene(script, fun, params) {
             const args = params.map(x => Pacioli.num(x));
-            return Pacioli.fun("usr_" + script, fun).apply(args);
+            return Pacioli.fun(script, fun).apply(args);
         }
 
     </script>

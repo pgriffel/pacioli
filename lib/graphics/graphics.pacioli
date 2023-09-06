@@ -33,6 +33,7 @@ export
     make_arrow,
     named_arrow,
     origin_arrow,
+    named_origin_arrow,
     move_arrow,
     arrow_color,
     set_arrow_color;
@@ -356,6 +357,14 @@ declare origin_arrow :: for_unit a: (a*Geom3!, String) -> Arrow(a);
 
 define origin_arrow(vector, color) =
     make_arrow(0 '.*' vector, vector, color);
+
+doc named_origin_arrow
+    "Creates an arrow from the origin to some point.";
+
+declare named_origin_arrow :: for_unit a: (a*Geom3!, String, String) -> Arrow(a);
+
+define named_origin_arrow(vector, color, name) =
+    named_arrow(0 '.*' vector, vector, color, name);
 
 # ------------------------------------------------------------------------------
 

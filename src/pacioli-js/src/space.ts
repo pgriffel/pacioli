@@ -61,7 +61,6 @@ export interface SpaceOptions {
   width: number;
   height: number;
   unit: SIUnit;
-  animating: boolean;
   verbose: boolean;
   fps: number;
   background: string;
@@ -72,17 +71,19 @@ export interface SpaceOptions {
  */
 export class Space {
   private options: SpaceOptions;
+
   private renderer: THREE.Renderer;
   private scene: THREE.Scene;
   private camera: THREE.Camera;
   private body: THREE.Object3D<THREE.Event>;
 
-  public frameCounter: number = 0;
+  private animating: boolean = false;
+  private frameCounter: number = 0;
 
   // Pacioli scene properties, set when a Pacioli scene is loaded
-  public description?: PacioliString;
-  public callback?: PacioliFunction;
-  public elements?: SceneElements;
+  private description?: PacioliString;
+  private callback?: PacioliFunction;
+  private elements?: SceneElements;
 
   constructor(
     public readonly parent: HTMLElement,
@@ -162,7 +163,6 @@ export class Space {
       width: options.width || 640,
       height: options.height || 360,
       unit: options.unit || UOM.ONE,
-      animating: options.animating || false,
       verbose: options.verbose || false,
       fps: options.fps || 60,
       background: options.background || "#eeeeee",
@@ -379,6 +379,14 @@ export class Space {
     }
   }
 
+  getDescription(): string | undefined {
+    return this.description?.value;
+  }
+
+  frameNr(): number {
+    return this.frameCounter;
+  }
+
   /**
    * Must be called after making changes to the space.
    */
@@ -387,30 +395,30 @@ export class Space {
   }
 
   isAnimating(): boolean {
-    return this.options.animating;
+    return this.animating;
   }
 
   setAnimating(animating: boolean) {
-    this.options.animating = animating;
+    this.animating = animating;
     if (animating) {
       this.draw();
     }
   }
 
   private render() {
-    if (this.options.animating && this.callback) {
+    if (this.animating && this.callback) {
       this.updateScene();
     }
 
     this.renderer.render(this.scene, this.camera);
 
-    if (this.options.animating) {
+    if (this.animating) {
       window.setTimeout(() => this.draw(), 1000 / this.options.fps);
     }
   }
 
   private onChangeOrbit() {
-    if (!this.options.animating) {
+    if (!this.animating) {
       this.draw();
     }
   }

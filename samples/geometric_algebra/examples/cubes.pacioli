@@ -16,7 +16,7 @@ define the_scene() =
                         sin(a*t*2*pi*|radian|) * |metre|,
                         sin(b*t*2*pi*|radian|) * |metre|,
                         cos(c*t*2*pi*|radian|) * |metre|),
-        update(t, s) = set_meshes(s, [ move_mesh(x, 1 '.*' offset(t/(a*b*c)*50)) | x <- get_meshes(s)])
+        update(t, elts) = set_meshes(elts, [ move_mesh(x, 1 '.*' offset(t/(a*b*c)*50)) | x <- get_meshes(elts)])
     in
         add_paths([path1, path2],
             add_meshes([set_wireframe(mesh1, false), set_wireframe(mesh2, true)], 
