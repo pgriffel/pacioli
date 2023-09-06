@@ -43,7 +43,7 @@ import mvm.values.matrix.MatrixShape;
 
 public class Primitives {
 
-    static private String prefix = "lib_base_";
+    static private String prefix = "$base_";
 
     static void load(Environment store) {
 
