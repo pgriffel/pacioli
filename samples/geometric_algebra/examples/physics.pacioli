@@ -113,7 +113,7 @@ define the_scene(t0, t1) =
     end;
 
 define rendered_vectors(i, color) =
-    [named_origin_arrow(10 '.*'mv2vec(framevector(j, 0.1 * i * |second|)), color, format("arrr_%s_%s", color, j)) | j <- naturals(3)];
+    [named_origin_arrow(5 '.*'mv2vec(framevector(j, 0.1 * i * |second|)), color, format("arrr_%s_%s", color, j)) | j <- naturals(3)];
 
 define update_scene(time, elements) = 
     set_arrows(elements, append(rendered_vectors(time+1, "blue"), rendered_vectors(0, "red")) );

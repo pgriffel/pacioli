@@ -15,7 +15,7 @@ define the_scene(n, k) =
 
 define weird_arrows(n, k) =
     let 
-        c = 8*|metre|,
+        c = 2*|metre|,
         ith_vec(i) = space_vec(expt(-0.5, i) * i, expt(0.5, i) * i^2, expt(0.5, i) * i^3)
     in
         [ arrow | i <- naturals(n),

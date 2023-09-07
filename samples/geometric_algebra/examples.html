@@ -14,9 +14,9 @@
 
     <script>
 
-        // Add a [script, fun, parameters] entry for each example to this list and include its 
-        // script further below. The parameters is a list of numbers. The UI will make
-        // an input for each parameter and use the numbers as initial value. The script's
+        // Add a [script, fun, parameters, options?] entry for each example to this list and 
+        // include its script further below. The parameters is a list of numbers. The UI will 
+        // make an input for each parameter and use the numbers as initial value. The script's
         // scene function fun must accept the same number as arguments.
         //
         // Note that the space has unit metre. The scene elements must have compatible units,
@@ -27,7 +27,7 @@
             ["bi_vector", "scene2", [0]],
             ["inner", "the_scene", [5, 0, 5, 0, 7, 7]],
             ["outer_cos_sin", "the_scene", [3]],
-            ["weird", "the_scene", [50, 5]],
+            ["weird", "the_scene", [50, 5], {axis: false}],
             ["cubes", "the_scene", []]
         ]
 
@@ -35,43 +35,46 @@
 
             // These space settings can be tweaked
             const spaceConfig = {
-                width: 700,
-                height: 500,
+                width: 800,
+                height: 450,
                 unit: Pacioli.unit("metre"),
                 axis: true,
-                axisSize: 30,
-                verbose: false
+                axisSize: 10,
+                grid: [20, 20],
+                perspective: true,
+                zoomRange: [1, 50],
+                camera: [20, 10, 20]
             }
 
             // Locate the DOM element where we will append the examples
             var parent = document.getElementById("pacioli_hook")
 
-            for (const [script, fun, initialParameters] of examples) {
+            for (const [script, fun, initialParameters, options] of examples) {
                 
-                // Create a section in the dom with a header 
+                const scene = computeScene(script, fun, initialParameters);
+                
+                // Create DOM elements
                 const headerElement = document.createElement("h2");
+                const descriptionElement = document.createElement("p");
+                const spaceElement = document.createElement("div");
+                
+                // Give the example a title
                 headerElement.innerText = "Example " + script + " - " + fun
                 headerElement.id = script + "_" + fun
-                parent.appendChild(headerElement);
-                
-                // Add an element for the description. The description is set below.
-                const descriptionElement = document.createElement("p");
-                parent.appendChild(descriptionElement);
-                
-                // Add a Pacioli space element
-                const spaceElement = document.createElement("div");
-                parent.appendChild(spaceElement);
-                const space = new Pacioli.Space(spaceElement, spaceConfig)  
 
-                // Compute the example's scene from the initial parameter values
-                // and load it into the space
-                const scene = computeScene(script, fun, initialParameters);
-                space.loadScene(scene);
-
-                // Set the example description
+                // Add the example's description
                 const [description] = scene;
                 descriptionElement.innerHTML = description.value
 
+                // Add a Pacioli space and load the scene into it
+                const space = new Pacioli.Space(spaceElement, {...spaceConfig, ...options})  
+                space.loadScene(scene);
+
+                // Add the elements to the DOM
+                parent.appendChild(headerElement);               
+                parent.appendChild(descriptionElement);
+                parent.appendChild(spaceElement);
+                
                 let stepButtonElement;
                 
                 // Add inputs and a button if the parameter list is not empty

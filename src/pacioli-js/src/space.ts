@@ -64,7 +64,30 @@ export interface SpaceOptions {
   verbose: boolean;
   fps: number;
   background: string;
+  grid?: [number, number];
+  gridColor: string;
+  zoomRange: [number, number];
+  perspectiveMax: number;
+  camera: [number, number, number];
 }
+
+const defaultOptions: SpaceOptions = {
+  perspective: true,
+  axis: true,
+  axisSize: 10,
+  axisColors: ["#eeaaaa", "#aaeeaa", "#aaaaee"],
+  width: 640,
+  height: 360,
+  unit: UOM.ONE,
+  verbose: false,
+  fps: 60,
+  background: "#eeeeee",
+  grid: [20, 20],
+  gridColor: "#dddddd",
+  zoomRange: [1, 50],
+  perspectiveMax: 5000,
+  camera: [10, 5, 10],
+};
 
 /**
  * A 3D environment for graphical display with Three.js.
@@ -89,7 +112,7 @@ export class Space {
     public readonly parent: HTMLElement,
     options: Partial<SpaceOptions>
   ) {
-    this.options = this.copyOptions(options);
+    this.options = { ...defaultOptions, ...options };
 
     this.log("Constructing space");
 
@@ -112,34 +135,49 @@ export class Space {
 
     // Create the camera and add it to the scene
     if (this.options.perspective) {
-      this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000);
+      this.camera = new THREE.PerspectiveCamera(
+        50,
+        width / height,
+        0.1,
+        this.options.perspectiveMax
+      );
     } else {
+      // This fudge factor makes the zoom more compatible with the
+      // perspective camera. The orthographic works in 'pixel' units
+      // instead of 'world' units. Is this what causes the mismatch?
+      const fudge = 0.05;
       this.camera = new THREE.OrthographicCamera(
-        -width / 2,
-        width / 2,
-        height / 2,
-        -height / 2,
-        -1000,
-        1000
+        (fudge * -width) / 2,
+        (fudge * width) / 2,
+        (fudge * height) / 2,
+        (fudge * -height) / 2,
+        -this.options.perspectiveMax,
+        this.options.perspectiveMax
       );
     }
     this.scene.add(this.camera);
 
     // Connect orbit controls to the renderer and to the draw method
     const controls = new OrbitControls(this.camera, this.renderer.domElement);
-    controls.minDistance = 2;
-    controls.maxDistance = 50;
+    controls.minDistance = this.options.zoomRange[0];
+    controls.maxDistance = this.options.zoomRange[1];
     controls.maxPolarAngle = Math.PI / 1;
     controls.addEventListener("change", this.onChangeOrbit.bind(this));
 
-    // Create the body and add it to the scene
-    this.body = new THREE.Object3D();
-    this.body.scale.set(10, 10, 10);
-    this.scene.add(this.body);
+    // Add a grid if requested
+    if (this.options.grid) {
+      const gridHelper = new THREE.GridHelper(
+        this.options.grid[0],
+        this.options.grid[1],
+        new THREE.Color(this.options.gridColor),
+        new THREE.Color(this.options.gridColor)
+      );
+      this.scene.add(gridHelper);
+    }
 
-    // Add axis
+    // Add axis if requested
     if (this.options.axis) {
-      const axis = new THREE.AxesHelper(500);
+      const axis = new THREE.AxesHelper(this.options.axisSize);
       axis.setColors(
         new THREE.Color(this.options.axisColors[0]),
         new THREE.Color(this.options.axisColors[1]),
@@ -148,25 +186,18 @@ export class Space {
       this.scene.add(axis);
     }
 
+    // Create the body and add it to the scene
+    this.body = new THREE.Object3D();
+    this.scene.add(this.body);
+
     // Let the camera look at the body
-    this.camera.position.set(10, 10, 10);
+    this.camera.position.set(
+      this.options.camera[0],
+      this.options.camera[1],
+      this.options.camera[2]
+    );
     this.camera.lookAt(this.body.position);
     controls.update();
-  }
-
-  private copyOptions(options: Partial<SpaceOptions>): SpaceOptions {
-    return {
-      perspective: options.perspective || false,
-      axis: !!options.axis,
-      axisSize: options.axisSize || 10,
-      axisColors: options.axisColors || ["#eeaaaa", "#aaeeaa", "#aaaaee"],
-      width: options.width || 640,
-      height: options.height || 360,
-      unit: options.unit || UOM.ONE,
-      verbose: options.verbose || false,
-      fps: options.fps || 60,
-      background: options.background || "#eeeeee",
-    };
   }
 
   clear() {
