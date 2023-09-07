@@ -71,6 +71,8 @@
                 // Set the example description
                 const [description] = scene;
                 descriptionElement.innerHTML = description.value
+
+                let stepButtonElement;
                 
                 // Add inputs and a button if the parameter list is not empty
                 if (initialParameters.length > 0) {
@@ -97,19 +99,21 @@
                         const scene = computeScene(script, fun, params);
                         space.loadScene(scene);
                         space.draw()
+                        if (space.callback && stepButtonElement) {
+                            stepButtonElement.innerText = "Step " + space.frameNr()
+                        }
                     }
                     parent.appendChild(buttonElement);
                 }
 
                 // Add a button to recalculate the scene
                 if (space.callback) {
-                    let time = 0;
-                    const stepButtonElement = document.createElement("button");
-                    stepButtonElement.innerText = "Step " + time
+                    stepButtonElement = document.createElement("button");
+                    stepButtonElement.innerText = "Step " + space.frameNr()
                     stepButtonElement.onclick = () => {
                         if (!space.isAnimating()) {
                             // User clicked the button. Get the input values and update the space
-                            space.updateScene(time++);
+                            space.updateScene();
                             space.draw()
                             stepButtonElement.innerText = "Step " + space.frameNr()
                         }
