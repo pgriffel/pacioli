@@ -310,13 +310,17 @@ export class Space {
     this.body.add(arrow);
   }
 
-  updateVector(name: string, vector: Matrix, color: string) {
+  updateVector(name: string, from: Matrix, to: Matrix, color: string) {
     const arrow = this.scene.getObjectByName(name) as THREE.ArrowHelper;
     if (arrow) {
-      const jsVector = vec2THREE(vector.numbers, 1);
+      const jsVector = vec2THREE(from.numbers, 1);
       arrow.position.x = jsVector.x;
       arrow.position.y = jsVector.y;
       arrow.position.z = jsVector.z;
+      const dst = vec2THREE(to.numbers, 1);
+      dst.normalize();
+      arrow.setDirection(dst);
+      // TODO: set arrow length
       arrow.setColor(color);
     }
   }
@@ -351,6 +355,8 @@ export class Space {
     for (const path of paths) {
       this.addPath(path);
     }
+
+    this.frameCounter = 0;
   }
 
   updateScene() {
@@ -363,9 +369,9 @@ export class Space {
         this.elements as unknown as PacioliValue
       ) as unknown as SceneElements;
       const [vectors, meshes] = this.elements;
-      for (const [vector, , color, name] of vectors) {
+      for (const [from, to, color, name] of vectors) {
         if (name.value) {
-          this.updateVector(name.value.value, vector, color.value);
+          this.updateVector(name.value.value, from, to, color.value);
         }
       }
       for (const mesh of meshes) {

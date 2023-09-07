@@ -13,7 +13,7 @@ export
     Scene,
     SceneElts,
     empty_scene, 
-    add_updater,
+    add_animation_callback,
     get_arrows,
     set_arrows,
     get_meshes,
@@ -105,10 +105,10 @@ define empty_scene(description) =
 
 # ------------------------------------------------------------------------------
 
-declare add_updater ::
+declare add_animation_callback ::
     for_unit a: (Scene(a), (1, SceneElts(a)) -> SceneElts(a)) -> Scene(a);
 
-define add_updater(scene, callback) =
+define add_animation_callback(scene, callback) =
     let (description, data, _) = scene in
         tuple(description, data, just(callback))
     end;
@@ -368,11 +368,11 @@ define named_origin_arrow(vector, color, name) =
 
 # ------------------------------------------------------------------------------
 
-declare move_arrow :: for_unit a: (Arrow(a), a * Geom3!) -> Arrow(a);
+declare move_arrow :: for_unit a: (Arrow(a), a * Geom3!, a * Geom3!) -> Arrow(a);
 
-define move_arrow(arrow, position) =
-    let (from, to, color, name) = arrow in
-        tuple(from + position, to + position, color, name)
+define move_arrow(arrow, from, to) =
+    let (_, _, color, name) = arrow in
+        tuple(from, to, color, name)
     end;
 
 declare set_arrow_color :: for_unit a: (Arrow(a), String) -> Arrow(a);

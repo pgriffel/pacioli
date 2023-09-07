@@ -109,9 +109,11 @@ multivector2string(framevector2(0, 1 * |second|));
       
 define the_scene(t0, t1) =
     let scene = empty_scene("rotor in e1-e2") in
-        add_arrows(rendered_vectors(t1, "blue"), add_arrows(rendered_vectors(t0, "red"), scene))
+        add_arrows(rendered_vectors(t1, "blue"), add_arrows(rendered_vectors(t0, "red"), add_animation_callback(scene, update_scene)))
     end;
 
-define rendered_vectors(i, color) = 
-    [origin_arrow(10 '.*'mv2vec(framevector(j, i * |second|)), color) | j <- naturals(3)];
+define rendered_vectors(i, color) =
+    [named_origin_arrow(10 '.*'mv2vec(framevector(j, 0.1 * i * |second|)), color, format("arrr_%s_%s", color, j)) | j <- naturals(3)];
 
+define update_scene(time, elements) = 
+    set_arrows(elements, append(rendered_vectors(time+1, "blue"), rendered_vectors(0, "red")) );

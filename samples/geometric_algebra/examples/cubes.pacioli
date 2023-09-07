@@ -20,7 +20,7 @@ define the_scene() =
     in
         add_paths([path1, path2],
             add_meshes([set_wireframe(mesh1, false), set_wireframe(mesh2, true)], 
-                add_updater(scene, update)))
+                add_animation_callback(scene, update)))
     end;
 
 define mesh1 =
