@@ -9,18 +9,33 @@ import graphics;
 define the_scene() =
     let 
         scene = empty_scene("An experiment with the Mesh and Path datastructures"),
-        a = random()*100,
-        b = random()*100,
-        c = random()*100,
-        offset(t) = vector3d(
-                        sin(a*t*2*pi*|radian|) * |metre|,
-                        sin(b*t*2*pi*|radian|) * |metre|,
-                        cos(c*t*2*pi*|radian|) * |metre|),
-        update(t, elts) = set_meshes(elts, [ move_mesh(x, 0.3 '.*' offset(t/(a*b*c)*50)) | x <- get_meshes(elts)])
+        update(elts, offset) =
+            set_meshes(elts, [ move_mesh(x, offset) | x <- get_meshes(elts)]),
+        f(n) = 
+            let
+                r1 = random(),
+                r2 = random(),
+                r3 = random()
+            in
+                (t) -> 10 / n * r1 * |metre| * sin(0.03 * r2 * expt(2, n) * t * pi * |radian|) 
+                                             * cos(0.03 * r3 * expt(2, n) * t * pi * |radian|)
+            end,
+        updater() =
+            let 
+                n = 3,
+                xfs = [f(i) | i <- naturals(n)],
+                yfs = [f(i) | i <- naturals(n)],
+                zfs = [f(i) | i <- naturals(n)]
+            in
+                (t, elts) ->
+                    let fsum(fs) = sum[f(t) | f <- fs] in
+                        set_meshes(elts, [ move_mesh(x, vector3d(fsum(xfs), fsum(yfs), fsum(zfs))) | x <- get_meshes(elts)])
+                    end
+            end
     in
         add_paths([path1, path2],
             add_meshes([set_wireframe(mesh1, false), set_wireframe(mesh2, true)], 
-                add_animation_callback(scene, update)))
+                add_animation_callback(scene, updater())))
     end;
 
 define mesh1 =

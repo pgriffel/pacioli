@@ -24,11 +24,13 @@ export
     make_path,
     make_line,
     make_mesh,
+    named_mesh,
     move_mesh,
     cube_mesh,
     named_cube_mesh,
     vertex,
     face,
+    mesh_position,
     set_wireframe,
     make_arrow,
     named_arrow,
@@ -42,11 +44,20 @@ export
 # Scene elements
 # ------------------------------------------------------------------------------
 
+doc SceneElts
+    "Contains all scene elements. A scene element is an arrow, a mesh or a path.";
+
 deftype for_unit a: SceneElts(a) = 
     Tuple(
         List(Arrow(a)),
         List(Mesh(a)),
         List(Path(a)));
+
+doc get_arrows
+    "Gets the arrows from the scene elements.";
+
+doc set_arrows
+    "Replaces the arrows in the scene elements.";
 
 declare get_arrows :: for_unit a: (SceneElts(a)) -> List(Arrow(a));
 declare set_arrows :: for_unit a: (SceneElts(a), List(Arrow(a))) -> SceneElts(a);
@@ -60,6 +71,12 @@ define set_arrows(data, vectors) =
     let (_, meshes, paths) = data in
         tuple(vectors, meshes, paths)
     end;
+
+doc get_meshes
+    "Gets the meshes from the scene elements.";
+
+doc set_meshes
+    "Replaces the meshes in the scene elements.";
 
 declare get_meshes :: for_unit a: (SceneElts(a)) -> List(Mesh(a));
 declare set_meshes :: for_unit a: (SceneElts(a), List(Mesh(a))) -> SceneElts(a);
@@ -104,6 +121,12 @@ define empty_scene(description) =
     tuple(description, tuple([], [], []), nothing());
 
 # ------------------------------------------------------------------------------
+
+doc add_animation_callback
+    "Adds an animation callback to the scene. The function is called during animation
+    with the current frame number and the current named scene elements. The function
+    must return scene elements with the same names. The existing scene elements then get
+    updated with the properties from the returned elements.";
 
 declare add_animation_callback ::
     for_unit a: (Scene(a), (1, SceneElts(a)) -> SceneElts(a)) -> Scene(a);
@@ -253,10 +276,41 @@ declare make_mesh :: for_unit a: (List(Vertex(a)), List(Face)) -> Mesh(a);
 define make_mesh(vertices, faces) = 
     tuple(vertices, faces, 0 '.*' let (v,_) = nth(0, vertices) in v end, nothing(), false);
 
+doc named_mesh
+    "The same as <code>make_mesh</code> except the mesh is also given a name. The name is used
+    during animation to locate it when updating the scene.";
+
 declare named_mesh :: for_unit a: (List(Vertex(a)), List(Face), String) -> Mesh(a);
 
 define named_mesh(vertices, faces, name) = 
     tuple(vertices, faces, 0 '.*' let (v,_) = nth(0, vertices) in v end, just(name), false);
+
+# ------------------------------------------------------------------------------
+
+doc mesh_position
+    "A mesh's position";
+
+define mesh_position(mesh) =
+    let (_, _, pos, _, _) = mesh in
+        pos
+    end;
+
+declare mesh_position :: for_unit a: (Mesh(a)) -> a * Geom3!;
+
+doc move_mesh
+    "Moves a mesh by offset 'vec'";
+
+declare move_mesh :: for_unit a: (Mesh(a), a*Geom3!) -> Mesh(a);
+
+define move_mesh(mesh, vec) =
+    let (vertices, faces, _, name, wireframe) = mesh in
+        tuple(vertices, faces, vec, name, wireframe)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc set_wireframe
+    "Copy of the mesh, but with the wireframe property changed.";
 
 declare set_wireframe :: for_unit a: (Mesh(a), Boole) -> Mesh(a);
 
@@ -269,6 +323,10 @@ doc cube_mesh
     "Creates a cube mesh, a mesh with lengths of 'size' positioned at the origin.";
 
 declare named_cube_mesh :: for_unit a: (String, a) -> Mesh(a);
+
+doc named_cube_mesh
+    "The same as <code>make_cube_mesh</code> except the cube is also given a name. The name is used
+    during animation to locate it when updating the scene.";
 
 define named_cube_mesh(name, size) =
     make_cube_mesh(just(name), size);
@@ -308,18 +366,6 @@ define cube_mesh(size) =
     make_cube_mesh(nothing(), size);
 
 # ------------------------------------------------------------------------------
-
-doc move_mesh
-    "Moves a mesh by offset 'vec'";
-
-declare move_mesh :: for_unit a: (Mesh(a), a*Geom3!) -> Mesh(a);
-
-define move_mesh(mesh, vec) =
-    let (vertices, faces, pos, name, wireframe) = mesh in
-        tuple(vertices, faces, pos + vec, name, wireframe)
-    end;
-
-# ------------------------------------------------------------------------------
 # Arrow
 # ------------------------------------------------------------------------------
 
@@ -341,6 +387,10 @@ declare make_arrow ::
 
 define make_arrow(from, to, color) =
     tuple(from, to, color, nothing());
+
+doc named_arrow
+    "The same as <code>make_arrow</code> except the arrow is also given a name. The name is used
+    during animation to locate it when updating the scene.";
 
 declare named_arrow ::
     for_unit a: (a*Geom3!, a*Geom3!, String, String) -> Arrow(a);
@@ -368,6 +418,9 @@ define named_origin_arrow(vector, color, name) =
 
 # ------------------------------------------------------------------------------
 
+doc move_arrow
+    "Updates the start and end position of the arrow";
+
 declare move_arrow :: for_unit a: (Arrow(a), a * Geom3!, a * Geom3!) -> Arrow(a);
 
 define move_arrow(arrow, from, to) =
@@ -375,12 +428,18 @@ define move_arrow(arrow, from, to) =
         tuple(from, to, color, name)
     end;
 
+doc set_arrow_color
+    "Copy of the arrow, but with a different color.";
+
 declare set_arrow_color :: for_unit a: (Arrow(a), String) -> Arrow(a);
 
 define set_arrow_color(arrow, color) =
     let (from, to, _, name) = arrow in
         tuple(from, to, color, name)
     end;
+
+doc arrow_color
+    "An arrow's color.";
 
 declare arrow_color :: for_unit a: (Arrow(a)) -> String;
 
