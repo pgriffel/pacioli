@@ -3,45 +3,50 @@ import geometric_algebra;
 import graphics;
 
 # ------------------------------------------------------------------------------
-# The rendered scene
+# The rendered scenes
 # ------------------------------------------------------------------------------
 
-define the_scene() =
+define scene1(n, k, f) =
     let 
-        scene = empty_scene("An experiment with the Mesh and Path datastructures"),
+        scene = empty_scene("An experiment with the CubeMesh datastructure and animation."),
+        names = [format("fs%s", i) | i <- naturals(n)],
         f(n) = 
             let
                 r1 = random(),
                 r2 = random(),
                 r3 = random()
             in
-                (t) -> 10 / n * r1 * |metre| * sin(0.03 * r2 * expt(2, n) * t * pi * |radian|) 
-                                             * cos(0.03 * r3 * expt(2, n) * t * pi * |radian|)
+                (t) -> 10 / (n+1) * r1 * |metre| * sin(f * r2 * expt(2, n) * t * pi * |radian|) 
+                                                 * cos(f * r3 * expt(2, n) * t * pi * |radian|)
             end,
-        updater() =
+        animation_callback() =
             let 
-                n = 3,
-                genFs(name) = tuple(mesh1(name),
-                                    [f(i) | i <- naturals(n)],
-                                    [f(i) | i <- naturals(n)],
-                                    [f(i) | i <- naturals(n)]),
-                fooFs = genFs("foo"),
-                barFs = genFs("bar"),
-                bazFs = genFs("baz")
+                genFs(name) =
+                    tuple(
+                        mesh1(name),
+                        [f(i) | i <- naturals(k)],
+                        [f(i) | i <- naturals(k)],
+                        [f(i) | i <- naturals(k)]),
+                fss = [genFs(name) | name <- names]
             in
                 (t, elts) ->
                     let fsum(fs) = sum[f(t) | f <- fs] in
                             set_meshes(elts, [ move_mesh(mesh, vector3d(fsum(xfs), fsum(yfs), fsum(zfs)))
-                                                | (mesh, xfs, yfs, zfs) <- [fooFs, barFs, bazFs]])
+                                                | (mesh, xfs, yfs, zfs) <- fss])
                     end
             end
     in
+        add_meshes([set_wireframe(mesh1(name), false) | name <- names],
+            add_animation_callback(scene, animation_callback()))
+    end;
+
+define scene2() =
+    let 
+        scene = empty_scene("An experiment with the Mesh and Path datastructures")
+    in
         add_paths([path1, path2],
-            add_meshes([set_wireframe(mesh1("foo"), false), 
-                        set_wireframe(mesh1("bar"), false),
-                        set_wireframe(mesh1("baz"), false),
-                        set_wireframe(mesh2, true)],
-                add_animation_callback(scene, updater())))
+            add_meshes([set_wireframe(mesh2, true)],
+                scene))
     end;
 
 define mesh1(name) =

@@ -15,20 +15,21 @@
     <script>
 
         // Add a [script, fun, parameters, options?] entry for each example to this list and 
-        // include its script further below. The parameters is a list of numbers. The UI will 
-        // make an input for each parameter and use the numbers as initial value. The script's
-        // scene function fun must accept the same number as arguments.
+        // include its script further below. The parameters is a list of [label, number] pairs.
+        // The UI will  make an input for each parameter and use the numbers as initial value. 
+        // The script's scene function fun must accept the same number as arguments.
         //
         // Note that the space has unit metre. The scene elements must have compatible units,
         // otherwise runtime errors will occur in the browser.
         const examples = [
-            ["physics", "the_scene_mv", [0, 1]],
-            ["bi_vector", "scene1", [2, 1, 0, -3, 0, 2, 0]],
-            ["bi_vector", "scene2", [0]],
-            ["inner", "the_scene", [5, 0, 5, 0, 7, 7]],
-            ["outer_cos_sin", "the_scene", [3]],
-            ["weird", "the_scene", [50, 5], {axis: false}],
-            ["cubes", "the_scene", []]
+            ["physics", "the_scene_mv", [["Angle red", 0], ["Angle blue", 1]]],
+            ["bi_vector", "scene1", [["x", 2], ["y", 1], ["z", 0], ["x", -3], ["y", 0], ["z", 2], ["wireframe", 0]]],
+            ["bi_vector", "scene2", [["wireframe", 0]]],
+            ["inner", "the_scene", [["x", 5], ["y", 0], ["z", 5], ["x", 0], ["y", 7], ["z", 7]]],
+            ["outer_cos_sin", "the_scene", [["i", 3]]],
+            ["weird", "the_scene", [["n", 50], ["k", 5]], {axis: false}],
+            ["cubes", "scene1", [["n", 50], ["terms", 5], ["speed", 0.01]]],
+            ["cubes", "scene2", []]
         ]
 
         function onLoad() {
@@ -51,7 +52,7 @@
 
             for (const [script, fun, initialParameters, options] of examples) {
                 
-                const scene = computeScene(script, fun, initialParameters);
+                const scene = computeScene(script, fun, initialParameters.map(([, val]) => val));
                 
                 // Create DOM elements
                 const headerElement = document.createElement("h2");
@@ -70,81 +71,104 @@
                 const space = new Pacioli.Space(spaceElement, {...spaceConfig, ...options})  
                 space.loadScene(scene);
 
+                // Create a panel with relevant buttons
+                const buttonPanel = makeButtonPanel(space, script, fun, initialParameters);
+
                 // Add the elements to the DOM
                 parent.appendChild(headerElement);               
                 parent.appendChild(descriptionElement);
-                parent.appendChild(spaceElement);
-                
-                let stepButtonElement;
-                
-                // Add inputs and a button if the parameter list is not empty
-                if (initialParameters.length > 0) {
-                    const buttonElement = document.createElement("button");
-
-                    // Create input elements for the parameters
-                    const inputs = initialParameters.map(value => {
-                        const inputElement = document.createElement("input");
-                        inputElement.value = value
-
-                        inputElement.addEventListener("keypress", function(event) {
-                            if (event.key === "Enter") {
-                                event.preventDefault();
-                                buttonElement.click();
-                            }
-                        }); 
-
-                        return inputElement
-                    })
-                    
-                    // Add the input elements to the dom
-                    for (const input of inputs) {
-                        parent.appendChild(input);
-                    }
-
-                    // Add a button to recalculate the scene
-                    buttonElement.innerText = "Enter"
-                    buttonElement.onclick = () => {
-
-                        if (!space.isAnimating()) {
-                            // User clicked the button. Get the input values and update the space
-                            const params = inputs.map(input => Number(input.value))
-                            const scene = computeScene(script, fun, params);
-                            space.loadScene(scene);
-                            space.draw()
-                            if (space.callback && stepButtonElement) {
-                                stepButtonElement.innerText = "Step " + space.frameNr()
-                            }
-                        }
-                    }
-                    parent.appendChild(buttonElement);
-                }
-
-                // Add a button to recalculate the scene
-                if (space.callback) {
-                    stepButtonElement = document.createElement("button");
-                    stepButtonElement.innerText = "Step " + space.frameNr()
-                    stepButtonElement.onclick = () => {
-                        if (!space.isAnimating()) {
-                            // User clicked the button. Get the input values and update the space
-                            space.updateScene();
-                            space.draw()
-                            stepButtonElement.innerText = "Step " + space.frameNr()
-                        }
-                    }
-                    parent.appendChild(stepButtonElement);
-
-                    const runButtonElement = document.createElement("button");
-                    runButtonElement.innerText = "Start"
-                    runButtonElement.onclick = () => {
-                        space.setAnimating(!space.isAnimating());
-                        runButtonElement.innerText = space.isAnimating() ? "Stop " : "Start";
-                        stepButtonElement.innerText = "Step " + space.frameNr()
-                    }
-                    parent.appendChild(runButtonElement);
-
-                }
+                parent.appendChild(spaceElement);                       
+                parent.appendChild(buttonPanel);
 
             }
+        }
+
+        function makeButtonPanel(space, script, fun, initialParameters) {
+            
+            const panel = document.createElement('div');
+
+            let inputButton;
+            let stepButton;
+            let runButton;
+        
+            // Add inputs and a button if the parameter list is not empty
+            if (initialParameters.length > 0) {
+
+                inputButton = document.createElement("button");
+
+                // Create input elements for the parameters
+                const inputs = initialParameters.map(([label, value]) => {
+                    const inputElement = document.createElement("input");
+                    inputElement.value = value
+                    inputElement.addEventListener("keypress", function(event) {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            inputButton.click();
+                        }
+                    }); 
+                    return [label, inputElement]
+                })
+
+                // Add a button to recalculate the scene
+                inputButton.innerText = "Enter"
+                inputButton.onclick = () => {
+
+                    if (!space.isAnimating()) {
+                        // User clicked the button. Get the input values and update the space
+                        const params = inputs.map(([,input]) => Number(input.value))
+                        const scene = computeScene(script, fun, params);
+                        space.loadScene(scene);
+                        space.draw()
+                        if (space.callback && stepButton) {
+                            stepButton.innerText = "Step " + space.frameNr()
+                        }
+                    }
+                }
+                
+                // Add the input elements to a table
+                const table = document.createElement('table')
+                for (const [label, input] of inputs) {
+                    const row = document.createElement('tr')
+                    const key = document.createElement('td')
+                    const value = document.createElement('td')
+                    key.innerText = label
+                    value.appendChild(input)
+                    row.appendChild(key)
+                    row.appendChild(value)
+                    table.appendChild(row)
+                }
+
+                panel.appendChild(table);
+                panel.appendChild(inputButton);
+            }
+
+            // Add buttons to run the animation
+            if (space.callback) {
+                
+                stepButton = document.createElement("button");
+                runButton = document.createElement("button");
+                
+                stepButton.innerText = "Step " + space.frameNr()
+                stepButton.onclick = () => {
+                    if (!space.isAnimating()) {
+                        space.updateScene();
+                        space.draw()
+                        stepButton.innerText = "Step " + space.frameNr()
+                    }
+                }
+                
+                runButton.innerText = "Start"
+                runButton.onclick = () => {
+                    space.setAnimating(!space.isAnimating());
+                    runButton.innerText = space.isAnimating() ? "Stop " : "Start";
+                    stepButton.innerText = "Step " + space.frameNr()
+                }
+
+                panel.appendChild(stepButton);
+                panel.appendChild(runButton);
+            }
+            
+            return panel;
         }
         
         function computeScene(script, fun, params) {
