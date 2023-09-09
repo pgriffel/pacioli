@@ -28,7 +28,8 @@ export
     scalar_part,
     multivector2string,
     parse_multivector,
-    mv2vec;
+    mv2vec,
+    table;
 
 # ------------------------------------------------------------------------------
 # MultiVector

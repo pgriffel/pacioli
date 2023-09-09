@@ -3,9 +3,11 @@
 # ----------------------------------------------------------------------------
 
 export
+    BaseBlade, # deftype
     make_context,
     base_blade_vectors,
-    blade_grade;
+    blade_grade,
+    context_blades;
 
 # ----------------------------------------------------------------------------
 # The context

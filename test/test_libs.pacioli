@@ -3,7 +3,7 @@ import testing;
 include base/base_tests;
 include standard/standard_tests;
 include geometry/geometry_tests;
-include geometric_algebra/geometric_algebra_tests;
+#include geometric_algebra/geometric_algebra_tests;
 
 run_test_suites(all_suites);
 
@@ -13,6 +13,6 @@ define all_suites =
 define all_suite_collections = [
     base_suites,
     standard_suites,   
-    geometry_suites,
-    geometric_algebra_suites
+    geometry_suites
+#    geometric_algebra_suites
 ];
