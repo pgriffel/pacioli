@@ -79,11 +79,22 @@
                 
                 // Add inputs and a button if the parameter list is not empty
                 if (initialParameters.length > 0) {
+                    const buttonElement = document.createElement("button");
 
                     // Create input elements for the parameters
                     const inputs = initialParameters.map(value => {
                         const inputElement = document.createElement("input");
                         inputElement.value = value
+
+                        inputElement.addEventListener("keypress", function(event) {
+                            if (event.key === "Enter") {
+                                event.preventDefault();
+                                
+                                buttonElement.click();
+                            }
+                        }); 
+
+
                         return inputElement
                     })
                     
@@ -93,7 +104,6 @@
                     }
 
                     // Add a button to recalculate the scene
-                    const buttonElement = document.createElement("button");
                     buttonElement.innerText = "Enter"
                     buttonElement.onclick = () => {
 
