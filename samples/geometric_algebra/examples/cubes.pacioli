@@ -9,8 +9,6 @@ import graphics;
 define the_scene() =
     let 
         scene = empty_scene("An experiment with the Mesh and Path datastructures"),
-        update(elts, offset) =
-            set_meshes(elts, [ move_mesh(x, offset) | x <- get_meshes(elts)]),
         f(n) = 
             let
                 r1 = random(),
@@ -23,23 +21,31 @@ define the_scene() =
         updater() =
             let 
                 n = 3,
-                xfs = [f(i) | i <- naturals(n)],
-                yfs = [f(i) | i <- naturals(n)],
-                zfs = [f(i) | i <- naturals(n)]
+                genFs(name) = tuple(mesh1(name),
+                                    [f(i) | i <- naturals(n)],
+                                    [f(i) | i <- naturals(n)],
+                                    [f(i) | i <- naturals(n)]),
+                fooFs = genFs("foo"),
+                barFs = genFs("bar"),
+                bazFs = genFs("baz")
             in
                 (t, elts) ->
                     let fsum(fs) = sum[f(t) | f <- fs] in
-                        set_meshes(elts, [ move_mesh(x, vector3d(fsum(xfs), fsum(yfs), fsum(zfs))) | x <- get_meshes(elts)])
+                            set_meshes(elts, [ move_mesh(mesh, vector3d(fsum(xfs), fsum(yfs), fsum(zfs)))
+                                                | (mesh, xfs, yfs, zfs) <- [fooFs, barFs, bazFs]])
                     end
             end
     in
         add_paths([path1, path2],
-            add_meshes([set_wireframe(mesh1, false), set_wireframe(mesh2, true)], 
+            add_meshes([set_wireframe(mesh1("foo"), false), 
+                        set_wireframe(mesh1("bar"), false),
+                        set_wireframe(mesh1("baz"), false),
+                        set_wireframe(mesh2, true)],
                 add_animation_callback(scene, updater())))
     end;
 
-define mesh1 =
-    named_cube_mesh("foo", 1*|metre|);
+define mesh1(name) =
+    named_cube_mesh(name, 1*|metre|);
 
 define mesh2 =
     let d = -5*|metre| in
