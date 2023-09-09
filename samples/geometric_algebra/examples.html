@@ -89,11 +89,9 @@
                         inputElement.addEventListener("keypress", function(event) {
                             if (event.key === "Enter") {
                                 event.preventDefault();
-                                
                                 buttonElement.click();
                             }
                         }); 
-
 
                         return inputElement
                     })
@@ -107,13 +105,15 @@
                     buttonElement.innerText = "Enter"
                     buttonElement.onclick = () => {
 
-                        // User clicked the button. Get the input values and update the space
-                        const params = inputs.map(input => Number(input.value))
-                        const scene = computeScene(script, fun, params);
-                        space.loadScene(scene);
-                        space.draw()
-                        if (space.callback && stepButtonElement) {
-                            stepButtonElement.innerText = "Step " + space.frameNr()
+                        if (!space.isAnimating()) {
+                            // User clicked the button. Get the input values and update the space
+                            const params = inputs.map(input => Number(input.value))
+                            const scene = computeScene(script, fun, params);
+                            space.loadScene(scene);
+                            space.draw()
+                            if (space.callback && stepButtonElement) {
+                                stepButtonElement.innerText = "Step " + space.frameNr()
+                            }
                         }
                     }
                     parent.appendChild(buttonElement);
