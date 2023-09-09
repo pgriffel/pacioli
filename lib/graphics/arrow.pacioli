@@ -1,0 +1,104 @@
+# ------------------------------------------------------------------------------
+# 3D graphics
+# ------------------------------------------------------------------------------
+
+import geometry;
+
+export
+    Arrow,
+    make_arrow,
+    named_arrow,
+    origin_arrow,
+    named_origin_arrow,
+    move_arrow,
+    arrow_color,
+    set_arrow_color;
+
+# ------------------------------------------------------------------------------
+# Arrow
+# ------------------------------------------------------------------------------
+
+doc Arrow
+    "An arrow is a colored line segment from from one position to another,
+    with an arrowhead at the end. Is an element of a <code>Scene(a)</code> 
+    scene.";
+
+deftype for_unit a:
+    Arrow(a) = Tuple(a*Geom3!, a*Geom3!, String, Maybe(String));
+
+# ------------------------------------------------------------------------------
+
+doc make_arrow
+    "Creates an arrow between two points.";
+
+declare make_arrow ::
+    for_unit a: (a*Geom3!, a*Geom3!, String) -> Arrow(a);
+
+define make_arrow(from, to, color) =
+    tuple(from, to, color, nothing());
+
+# ------------------------------------------------------------------------------
+
+doc named_arrow
+    "The same as <code>make_arrow</code> except the arrow is also given a name. 
+    The name is used during animation to locate it when updating the scene.";
+
+declare named_arrow ::
+    for_unit a: (a*Geom3!, a*Geom3!, String, String) -> Arrow(a);
+
+define named_arrow(from, to, color, name) =
+    tuple(from, to, color, just(name));
+
+# ------------------------------------------------------------------------------
+
+doc origin_arrow
+    "Creates an arrow from the origin to some point.";
+
+declare origin_arrow :: for_unit a: (a*Geom3!, String) -> Arrow(a);
+
+define origin_arrow(vector, color) =
+    make_arrow(0 '.*' vector, vector, color);
+
+# ------------------------------------------------------------------------------
+
+doc named_origin_arrow
+    "Creates an arrow from the origin to some point.";
+
+declare named_origin_arrow :: for_unit a: (a*Geom3!, String, String) -> Arrow(a);
+
+define named_origin_arrow(vector, color, name) =
+    named_arrow(0 '.*' vector, vector, color, name);
+
+# ------------------------------------------------------------------------------
+
+doc move_arrow
+    "Updates the start and end position of the arrow";
+
+declare move_arrow :: for_unit a: (Arrow(a), a * Geom3!, a * Geom3!) -> Arrow(a);
+
+define move_arrow(arrow, from, to) =
+    let (_, _, color, name) = arrow in
+        tuple(from, to, color, name)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc arrow_color
+    "An arrow's color.";
+
+declare arrow_color :: for_unit a: (Arrow(a)) -> String;
+
+define arrow_color(arrow) =
+    let (_, _, color, _) = arrow in
+        color
+    end;
+
+doc set_arrow_color
+    "Copy of the arrow, but with a different color.";
+
+declare set_arrow_color :: for_unit a: (Arrow(a), String) -> Arrow(a);
+
+define set_arrow_color(arrow, color) =
+    let (from, to, _, name) = arrow in
+        tuple(from, to, color, name)
+    end;

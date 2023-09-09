@@ -1,0 +1,43 @@
+# ------------------------------------------------------------------------------
+# 3D graphics
+# ------------------------------------------------------------------------------
+
+import geometry;
+
+export
+    Path,
+    make_path,
+    make_line;
+
+# ------------------------------------------------------------------------------
+# Path
+# ------------------------------------------------------------------------------
+
+doc Path
+    "A series of lines between succesive points. Is an element of a 
+    <code>Scene(a)</code> scene.";
+
+deftype for_unit a:
+    Path(a) = List(a * Geom3!);
+
+# ------------------------------------------------------------------------------
+
+doc make_path
+    "Constructs a path from a list of points.";
+
+declare make_path ::
+    for_unit a: (List(a * Geom3!)) -> Path(a);
+
+define make_path(vecs) =
+    vecs;
+
+# ------------------------------------------------------------------------------
+
+doc make_line
+    "A line between two points. Each point is indicated by a vector.";
+
+declare make_line ::
+    for_unit a: (a * Geom3!, a * Geom3!) -> Path(a);
+
+define make_line(v0, v1) =
+    make_path([v0, v1]);

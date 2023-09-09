@@ -1,0 +1,174 @@
+# ------------------------------------------------------------------------------
+# 3D graphics
+# ------------------------------------------------------------------------------
+
+import geometry;
+
+export
+    Mesh,
+    Vertex,
+    Face,
+    make_mesh,
+    named_mesh,
+    move_mesh,
+    cube_mesh,
+    named_cube_mesh,
+    vertex,
+    face,
+    mesh_position,
+    set_wireframe;
+
+# ------------------------------------------------------------------------------
+# Mesh
+# ------------------------------------------------------------------------------
+
+doc Mesh
+    "A 3D shape composed from faces and vertices. Is an element of a 
+    <code>Scene(a)</code> scene.";
+
+deftype for_unit a:
+    Mesh(a) = Tuple(
+                List(Tuple(a*Geom3!, String)),
+                List(Tuple(1, 1, 1)),
+                a*Geom3!,
+                Maybe(String),
+                Boole);
+
+doc Vertex
+    "A point in a <code>Mesh(a)</code> mesh.";
+
+deftype for_unit a:
+    Vertex(a) = Tuple(a*Geom3!, String);
+
+doc Face
+    "A suface between a mesh's vertices.";
+
+deftype 
+    Face() = Tuple(1, 1, 1);
+
+# ------------------------------------------------------------------------------
+
+doc vertex
+    "Creates a mesh vertex. Expects x, y and z coordinates and a color. Is an 
+    element of a <code>Scene(a)</code> scene.";
+
+declare vertex :: for_unit a: (a * Geom3!, String) -> Vertex(a);
+
+define vertex(vec, color) =
+    tuple(vec, color);
+
+# ------------------------------------------------------------------------------
+
+doc face
+    "Creates a mesh face. Each argument is the index of a vertex. The mesh must
+    contains sufficient vertices.";
+
+declare face :: (1, 1, 1) -> Face;
+
+define face(i, j, k) =
+    tuple(i, j, k);
+
+# ------------------------------------------------------------------------------
+
+doc make_mesh
+    "Creates a mesh from vertices and faces";
+
+declare make_mesh :: for_unit a: (List(Vertex(a)), List(Face)) -> Mesh(a);
+
+define make_mesh(vertices, faces) = 
+    tuple(vertices, faces, 0 '.*' let (v,_) = nth(0, vertices) in v end, nothing(), false);
+
+doc named_mesh
+    "The same as <code>make_mesh</code> except the mesh is also given a name. The name is used
+    during animation to locate it when updating the scene.";
+
+declare named_mesh :: for_unit a: (List(Vertex(a)), List(Face), String) -> Mesh(a);
+
+define named_mesh(vertices, faces, name) = 
+    tuple(vertices, faces, 0 '.*' let (v,_) = nth(0, vertices) in v end, just(name), false);
+
+# ------------------------------------------------------------------------------
+
+doc mesh_position
+    "A mesh's position";
+
+define mesh_position(mesh) =
+    let (_, _, pos, _, _) = mesh in
+        pos
+    end;
+
+declare mesh_position :: for_unit a: (Mesh(a)) -> a * Geom3!;
+
+doc move_mesh
+    "Moves a mesh by offset 'vec'";
+
+declare move_mesh :: for_unit a: (Mesh(a), a*Geom3!) -> Mesh(a);
+
+define move_mesh(mesh, vec) =
+    let (vertices, faces, _, name, wireframe) = mesh in
+        tuple(vertices, faces, vec, name, wireframe)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc set_wireframe
+    "Copy of the mesh, but with the wireframe property changed.";
+
+declare set_wireframe :: for_unit a: (Mesh(a), Boole) -> Mesh(a);
+
+define set_wireframe(mesh, status) = 
+  let (vs, fs, pos, name, _) = mesh in tuple(vs, fs, pos, name, status) end;
+
+# ------------------------------------------------------------------------------
+# Cube mesh
+# ------------------------------------------------------------------------------
+
+doc cube_mesh
+    "Creates a cube mesh, a mesh with lengths of 'size' positioned at the origin.";
+
+declare cube_mesh :: for_unit a: (a) -> Mesh(a);
+
+define cube_mesh(size) =
+    make_cube_mesh(nothing(), size);
+
+# ------------------------------------------------------------------------------
+
+declare named_cube_mesh :: for_unit a: (String, a) -> Mesh(a);
+
+doc named_cube_mesh
+    "The same as <code>make_cube_mesh</code> except the cube is also given a name. The name is used
+    during animation to locate it when updating the scene.";
+
+define named_cube_mesh(name, size) =
+    make_cube_mesh(just(name), size);
+
+# ------------------------------------------------------------------------------
+
+define make_cube_mesh(name, size) =
+    let
+        c = "lightgreen",
+        vertices = [vertex(space_vec(0,0,0),c),
+                    vertex(space_vec(1,0,0),c),
+                    vertex(space_vec(1,0,1),c),
+                    vertex(space_vec(0,0,1),c),
+                    vertex(space_vec(0,1,0),c),
+                    vertex(space_vec(1,1,0),c),
+                    vertex(space_vec(1,1,1),c),
+                    vertex(space_vec(0,1,1),c)],
+        faces = [
+            face(0,2,1),
+            face(0,3,2),                 
+            face(4,5,6),                                
+            face(4,6,7),                                                
+            face(0,5,4),                
+            face(0,1,5),                                                                
+            face(1,6,5),                
+            face(1,2,6),                
+            face(2,7,6),                
+            face(2,3,7),
+            face(3,4,7), 
+            face(3,0,4)
+        ]
+    in
+        tuple([tuple(size '.*' x, c) | (x, c) <- vertices], faces, 0 '.*' size '.*' space_vec(0,0,0), name, false)
+    end;
