@@ -10,7 +10,7 @@ define the_scene(n, k) =
     let 
         scene = empty_scene("Just some weird example to test graphics of vectors.")
     in
-        add_arrows(weird_arrows(n, k), add_animation_callback(scene, update_scene))
+        add_arrows(weird_arrows(n, k), set_animation_callback(scene, update_scene))
     end;
 
 define weird_arrows(n, k) =

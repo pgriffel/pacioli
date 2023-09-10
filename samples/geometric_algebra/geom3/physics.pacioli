@@ -102,7 +102,7 @@ define the_scene_mv(t0, t1) =
     let scene = empty_scene("rotor in e1-e2") in
         add_arrows(rendered_vectors_mv(t1, "blue"),
             add_arrows(rendered_vectors_mv(t0, "red"),
-                add_animation_callback(scene, animation_callback_mv(t0, t1))))
+                set_animation_callback(scene, animation_callback_mv(t0, t1))))
     end;
 
 define the_scene_hard(t0, t1) =

@@ -19,7 +19,7 @@ define scene1(n, k, f) =
                                                           * cos(0.1 * f * r3 * t * pi * |radian| / (i+1))
             end,
         names = [format("fs%s", i) | i <- naturals(n)],
-        animation_callback() =
+        animation_callback =
             let 
                 genFs(name) =
                     tuple(
@@ -36,7 +36,7 @@ define scene1(n, k, f) =
             end
     in
         add_meshes([set_wireframe(mesh1(name), false) | name <- names],
-            add_animation_callback(scene, animation_callback()))
+            set_animation_callback(scene, animation_callback))
     end;
 
 define scene2() =
@@ -66,3 +66,17 @@ define pathPoints = [
 
 define path1 = make_path([2.5 * |metre| '.*' x | x <- pathPoints]);
 define path2 = make_path([5 * |metre| '.*' x | x <- pathPoints]);
+
+
+define scene3(a, b, c) =
+    let scene = empty_scene("My nice scene!") in
+        add_arrows(my_arrows(a, b, c), scene)
+    end;
+
+define my_arrows(a, b, c) =
+    [origin_arrow(vec, "blue") | i <- [-1, 1],
+                                 j <- [-1, 1],
+                                 k <- [-1, 1],
+                                 vec := vector3d(i*a*|metre|, j*b*|metre|, k*c*|metre|)];
+
+list_size(my_arrows(3, 3, 3))                                 ;

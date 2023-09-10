@@ -15,11 +15,11 @@ export
     add_arrows,
     add_meshes,
     add_paths, 
-    add_animation_callback,
     get_arrows,
     set_arrows,
     get_meshes,
-    set_meshes;
+    set_meshes,
+    set_animation_callback;
 
 # ------------------------------------------------------------------------------
 # Scene elements
@@ -107,16 +107,17 @@ define empty_scene(description) =
 
 # ------------------------------------------------------------------------------
 
-doc add_animation_callback
+doc set_animation_callback
     "Adds an animation callback to the scene. The function is called during animation
-    with the current frame number and the current named scene elements. The function
-    must return scene elements with the same names. The existing scene elements then get
-    updated with the properties from the returned elements.";
+    with the current frame number and the current named scene elements.
+    
+    The function must return scene elements with the same names. The existing scene 
+    elements then get updated with the properties from the returned elements.";
 
-declare add_animation_callback ::
+declare set_animation_callback ::
     for_unit a: (Scene(a), (1, SceneElts(a)) -> SceneElts(a)) -> Scene(a);
 
-define add_animation_callback(scene, callback) =
+define set_animation_callback(scene, callback) =
     let (description, data, _) = scene in
         tuple(description, data, just(callback))
     end;

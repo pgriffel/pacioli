@@ -22,14 +22,15 @@
         // Note that the space has unit metre. The scene elements must have compatible units,
         // otherwise runtime errors will occur in the browser.
         const examples = [
-            ["physics", "the_scene_mv", [["Angle red", 0], ["Angle blue", 1]]],
+            ["physics", "the_scene_mv", [["angle red", 0], ["angle blue", 1]]],
             ["bi_vector", "scene1", [["x", 2], ["y", 1], ["z", 0], ["x", -3], ["y", 0], ["z", 2], ["wireframe", 0]]],
             ["bi_vector", "scene2", [["wireframe", 0]]],
             ["inner", "the_scene", [["x", 5], ["y", 0], ["z", 5], ["x", 0], ["y", 7], ["z", 7]]],
             ["outer_cos_sin", "the_scene", [["i", 3]]],
             ["weird", "the_scene", [["n", 50], ["k", 5]], {axis: false}],
             ["cubes", "scene1", [["cubes", 50], ["terms", 5], ["speed", 1]]],
-            ["cubes", "scene2", []]
+            ["cubes", "scene2", []],
+            ["cubes", "scene3", [["a", 5], ["b", 5], ["c", 5]]]
         ]
 
         function onLoad() {
@@ -44,7 +45,8 @@
                 grid: [20, 20],
                 perspective: true,
                 zoomRange: [1, 50],
-                camera: [20, 10, 20]
+                camera: [20, 10, 20],
+                fps: 15
             }
 
             // Locate the DOM element where we will append the examples
