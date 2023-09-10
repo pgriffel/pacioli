@@ -79,7 +79,11 @@ public class Primitives {
 
         storeBaseValue(store, "false", new Boole(false));
 
-        storeBaseValue(store, "nothing", null);
+        storePrimitive(store, new Primitive("base_nothing") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return null;
+            }
+        });
 
         storePrimitive(store, new Primitive("base_tuple") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
