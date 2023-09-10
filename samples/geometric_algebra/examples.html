@@ -28,7 +28,7 @@
             ["inner", "the_scene", [["x", 5], ["y", 0], ["z", 5], ["x", 0], ["y", 7], ["z", 7]]],
             ["outer_cos_sin", "the_scene", [["i", 3]]],
             ["weird", "the_scene", [["n", 50], ["k", 5]], {axis: false}],
-            ["cubes", "scene1", [["n", 50], ["terms", 5], ["speed", 0.01]]],
+            ["cubes", "scene1", [["cubes", 50], ["terms", 5], ["speed", 1]]],
             ["cubes", "scene2", []]
         ]
 
@@ -162,6 +162,8 @@
                     space.setAnimating(!space.isAnimating());
                     runButton.innerText = space.isAnimating() ? "Stop " : "Start";
                     stepButton.innerText = "Step " + space.frameNr()
+                    inputButton.disabled = space.isAnimating()
+                    stepButton.disabled = space.isAnimating()
                 }
 
                 panel.appendChild(stepButton);

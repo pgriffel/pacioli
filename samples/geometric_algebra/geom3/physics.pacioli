@@ -100,7 +100,9 @@ define multivector_reverse_hard(x) = ???;
       
 define the_scene_mv(t0, t1) =
     let scene = empty_scene("rotor in e1-e2") in
-        add_arrows(rendered_vectors_mv(t1, "blue"), add_arrows(rendered_vectors_mv(t0, "red"), add_animation_callback(scene, updater_scene_mv(t1))))
+        add_arrows(rendered_vectors_mv(t1, "blue"),
+            add_arrows(rendered_vectors_mv(t0, "red"),
+                add_animation_callback(scene, animation_callback_mv(t0, t1))))
     end;
 
 define the_scene_hard(t0, t1) =
@@ -118,6 +120,6 @@ define rendered_vectors_hard(i, color) =
 
 
 
-define updater_scene_mv(start) = 
+define animation_callback_mv(t0, t1) = 
     (time, elements) ->
-        set_arrows(elements, append(rendered_vectors_mv(start + time, "blue"), rendered_vectors_mv(0, "red")) );
+        set_arrows(elements, append(rendered_vectors_mv(t1 + time + 1, "blue"), rendered_vectors_mv(t0, "red")) );

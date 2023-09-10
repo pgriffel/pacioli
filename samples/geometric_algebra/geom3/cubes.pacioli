@@ -9,31 +9,30 @@ import graphics;
 define scene1(n, k, f) =
     let 
         scene = empty_scene("An experiment with the CubeMesh datastructure and animation."),
-        names = [format("fs%s", i) | i <- naturals(n)],
-        f(n) = 
+        f(i) = 
             let
                 r1 = random(),
                 r2 = random(),
                 r3 = random()
             in
-                (t) -> 10 / (n+1) * r1 * |metre| * sin(f * r2 * expt(2, n) * t * pi * |radian|) 
-                                                 * cos(f * r3 * expt(2, n) * t * pi * |radian|)
+                (t) -> (10 / k ) * sqrt(k) * r1 * |metre| * sin(0.1 * f * r2 * t * pi * |radian| / (i+1)) 
+                                                          * cos(0.1 * f * r3 * t * pi * |radian| / (i+1))
             end,
+        names = [format("fs%s", i) | i <- naturals(n)],
         animation_callback() =
             let 
                 genFs(name) =
                     tuple(
                         mesh1(name),
-                        [f(i) | i <- naturals(k)],
-                        [f(i) | i <- naturals(k)],
-                        [f(i) | i <- naturals(k)]),
-                fss = [genFs(name) | name <- names]
+                        [ f(i) | i <- naturals(k) ],
+                        [ f(i) | i <- naturals(k) ],
+                        [ f(i) | i <- naturals(k) ]),
+                fss = [ genFs(name) | name <- names ],
+                fsum(fs, t) = sum[ f(t) | f <- fs ]
             in
                 (t, elts) ->
-                    let fsum(fs) = sum[f(t) | f <- fs] in
-                            set_meshes(elts, [ move_mesh(mesh, vector3d(fsum(xfs), fsum(yfs), fsum(zfs)))
-                                                | (mesh, xfs, yfs, zfs) <- fss])
-                    end
+                    set_meshes(elts, [ move_mesh(mesh, vector3d(fsum(xfs, t), fsum(yfs, t), fsum(zfs, t)))
+                                        | (mesh, xfs, yfs, zfs) <- fss])
             end
     in
         add_meshes([set_wireframe(mesh1(name), false) | name <- names],
