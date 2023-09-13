@@ -817,6 +817,20 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("matrix_floor") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.floor();
+            }
+        });
+
+        storePrimitive(store, new Primitive("matrix_ceiling") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.ceiling();
+            }
+        });
+
         // //////////////////////////////////////////////////////////////////////////////
         // List
 

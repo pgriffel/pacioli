@@ -918,6 +918,26 @@ public class Matrix extends AbstractPacioliValue {
         return matrix;
     }
 
+    public PacioliValue floor() {
+        Matrix matrix = new Matrix(shape.dimensionless());
+        for (int i = 0; i < nrRows(); i++) {
+            for (int j = 0; j < nrColumns(); j++) {
+                matrix.numbers.setEntry(i, j, Math.floor(numbers.getEntry(i, j)));
+            }
+        }
+        return matrix;
+    }
+
+    public PacioliValue ceiling() {
+        Matrix matrix = new Matrix(shape.dimensionless());
+        for (int i = 0; i < nrRows(); i++) {
+            for (int j = 0; j < nrColumns(); j++) {
+                matrix.numbers.setEntry(i, j, Math.ceil(numbers.getEntry(i, j)));
+            }
+        }
+        return matrix;
+    }
+
     public PacioliValue sin() {
         Matrix matrix = new Matrix(shape.dimensionless());
         for (int i = 0; i < nrRows(); i++) {

@@ -118,6 +118,8 @@ export {
   $base_base_equal,
   $base_matrix_exp,
   $base_matrix_expt,
+  $base_matrix_floor,
+  $base_matrix_ceiling,
   $base_list_fold_list,
   $base_string_format,
   $base_matrix_gcd,

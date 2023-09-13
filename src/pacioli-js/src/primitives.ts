@@ -677,6 +677,18 @@ export function $base_system__atan2(x: any, y: any) {
   );
 }
 
+export function $base_matrix_floor(x: any) {
+  return unaryNumbers(x, function (val: number) {
+    return Math.floor(val);
+  });
+}
+
+export function $base_matrix_ceiling(x: any) {
+  return unaryNumbers(x, function (val: number) {
+    return Math.ceil(val);
+  });
+}
+
 export function $base_matrix_abs(x: any) {
   return unaryNumbers(x, function (val: number) {
     return Math.abs(val);
