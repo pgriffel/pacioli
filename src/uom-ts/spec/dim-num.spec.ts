@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import * as fc from "fast-check";
 import { UOM } from "../src/uom";
-import { DimNum } from "./../src/dim-num";
+import { DimNum } from "../src/dim-num";
 import { arbitraryUOM } from "./uom.spec";
 
 // const siPlus: Definition = {

@@ -3,7 +3,7 @@ import * as fc from "fast-check";
 import { DimNum } from "../src/dim-num";
 import { si } from "../src/si";
 import { UOM } from "../src/uom";
-import { Context, Definition } from "./../src/context";
+import { Context, Definition } from "../src/context";
 import { arbitraryBase, testContext } from "./base.spec";
 import { arbitraryDimNum } from "./dim-num.spec";
 import { arbitraryUOM } from "./uom.spec";
