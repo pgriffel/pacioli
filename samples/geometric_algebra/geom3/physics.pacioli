@@ -112,14 +112,14 @@ define the_scene_hard(t0, t1) =
 
 
 define rendered_vectors_mv(i, color) = 
-    [named_origin_arrow(5 '.*'mv2vec(framevector_mv(j, 0.1 * i * |second|)), color, format("arrr_%s_%s", color, j)) | j <- naturals(3)];
+    [named_origin_arrow(5 '.*'mv2vec(framevector_mv(j, 5 * i * |1|)), color, format("arrr_%s_%s", color, j)) | j <- naturals(3)];
 
 
 define rendered_vectors_hard(i, color) = 
-    [origin_arrow(10 '.*'mv2vec(framevector_hard(j, i * |second|)), color) | j <- naturals(3)];
+    [origin_arrow(10 '.*'mv2vec(framevector_hard(j, i * |1|)), color) | j <- naturals(3)];
 
 
 
 define animation_callback_mv(t0, t1) = 
     (time, elements) ->
-        set_arrows(elements, append(rendered_vectors_mv(t1 + time + 1, "blue"), rendered_vectors_mv(t0, "red")) );
+        set_arrows(elements, append(rendered_vectors_mv(t1 + time , "blue"), rendered_vectors_mv(t0, "red")) );

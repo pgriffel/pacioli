@@ -9,8 +9,8 @@ import graphics;
 define the_scene(a, b, c, x, y, z) =
     let
         scene = empty_scene("Shows projections with inner products. Extension of example <a href=\"#outer_cos_sin_the_scene\">outer_cos_sin</a>. Give <i>x</i>, <i>y</i> and <i>z</i> of vectors as parameters"),
-        v1 = |metre| '.*' space_vec(a, b, c),
-        v2 = |metre| '.*' space_vec(x, y, z),
+        v1 = |1| '.*' space_vec(a, b, c),
+        v2 = |1| '.*' space_vec(x, y, z),
         (p1, p2) = projections(v1, v2),
         arrows = [
             origin_arrow(v1, "red"), 

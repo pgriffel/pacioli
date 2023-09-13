@@ -13,8 +13,8 @@ define scene1(vx, vy, vz, wx, wy, wz, wireframe) =
         x = make_multivector([make_term(vx, e1), make_term(vy, e2), make_term(vz, e3)]),
         y = make_multivector([make_term(wx, e1), make_term(wy, e2), make_term(wz, e3)]),
         origin = 1 * |metre| '.*' space_vec(5,5,5),
-        vx = |metre| '.*' mv2vec(x),
-        vy = |metre| '.*' mv2vec(y),
+        vx = |1| '.*' mv2vec(x),
+        vy = |1| '.*' mv2vec(y),
         mesh = move_mesh(bi_vector_mesh(x, y), origin),
         vecs = [
             make_arrow(origin, vx, "blue"),
@@ -29,14 +29,14 @@ define bi_vector_mesh(x, y) =
         vx = mv2vec(x),
         vy = mv2vec(y),
         vertices = [
-            space_vec(0,0,0),
+            |metre| '.*' space_vec(0,0,0),
             vx,
             vy,
             vx + vy
         ],
         faces = [face(0,1,3), face(0,3,2)]
     in
-        make_mesh([vertex(|metre| '.*' x, "lightgreen") | x <- vertices], faces)
+        make_mesh([vertex(|1| '.*' x, "lightgreen") | x <- vertices], faces)
     end;
 
 # ------------------------------------------------------------------------------

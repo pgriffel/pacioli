@@ -22,15 +22,15 @@
         // Note that the space has unit metre. The scene elements must have compatible units,
         // otherwise runtime errors will occur in the browser.
         const examples = [
-            ["physics", "the_scene_mv", [["angle red", 0], ["angle blue", 1]]],
-            ["bi_vector", "scene1", [["x", 2], ["y", 1], ["z", 0], ["x", -3], ["y", 0], ["z", 2], ["wireframe", 0]]],
+            ["physics", "the_scene_mv", [["start red", 0, "second"], ["start blue", 0.1, "second"]]],
+            ["bi_vector", "scene1", [["x", 2, "metre"], ["y", 1, "metre"], ["z", 0, "metre"], ["x", -3, "metre"], ["y", 0, "metre"], ["z", 2, "metre"], ["wireframe", 0]]],
             ["bi_vector", "scene2", [["wireframe", 0]]],
-            ["inner", "the_scene", [["x", 5], ["y", 0], ["z", 5], ["x", 0], ["y", 7], ["z", 7]]],
+            ["inner", "the_scene", [["x", 5, "metre"], ["y", 0, "metre"], ["z", 5, "metre"], ["x", 0, "metre"], ["y", 7, "metre"], ["z", 7, "metre"]]],
             ["outer_cos_sin", "the_scene", [["i", 3]]],
             ["weird", "the_scene", [["n", 50], ["k", 5]], {axis: false}],
-            ["cubes", "scene1", [["cubes", 50], ["terms", 5], ["speed", 1]]],
+            ["cubes", "scene1", [["cubes", 5], ["terms", 5], ["speedup", 1]]],
             ["cubes", "scene2", []],
-            ["cubes", "scene3", [["a", 5], ["b", 5], ["c", 5]]]
+            ["cubes", "scene3", [["a", 5, "metre"], ["b", 5, "metre"], ["c", 5, "metre"]]]
         ]
 
         function onLoad() {
@@ -46,7 +46,7 @@
                 perspective: true,
                 zoomRange: [1, 50],
                 camera: [20, 10, 20],
-                fps: 15
+                fps: 30 
             }
 
             // Locate the DOM element where we will append the examples
@@ -54,7 +54,9 @@
 
             for (const [script, fun, initialParameters, options] of examples) {
                 
-                const scene = computeScene(script, fun, initialParameters.map(([, val]) => val));
+                const args = initialParameters.map(([, val, unit]) => Pacioli.num(val, unit ? Pacioli.unit(unit) : undefined));
+                const scene = computeScene(script, fun, args);
+                //const scene = computeScene(script, fun, initialParameters.map(([, val, unit]) => unit ? Pacioli.num(val, Pacioli.unit(unit)) : Pacioli.num(val)));
                 
                 // Create DOM elements
                 const headerElement = document.createElement("h2");
@@ -99,7 +101,7 @@
                 inputButton = document.createElement("button");
 
                 // Create input elements for the parameters
-                const inputs = initialParameters.map(([label, value]) => {
+                const inputs = initialParameters.map(([label, value, unit]) => {
                     const inputElement = document.createElement("input");
                     inputElement.value = value
                     inputElement.addEventListener("keypress", function(event) {
@@ -108,7 +110,7 @@
                             inputButton.click();
                         }
                     }); 
-                    return [label, inputElement]
+                    return [label, inputElement, unit ? Pacioli.unit(unit) : undefined]
                 })
 
                 // Add a button to recalculate the scene
@@ -117,26 +119,31 @@
 
                     if (!space.isAnimating()) {
                         // User clicked the button. Get the input values and update the space
-                        const params = inputs.map(([,input]) => Number(input.value))
+                        // const params = inputs.map(([,input]) => Number(input.value))
+                        const params = inputs.map(([,input, unit]) => Pacioli.num(Number(input.value), unit))
+                        // const params = initialParameters.map(([, val, unit]) => unit ? Pacioli.num(val, Pacioli.unit(unit)) : Pacioli.num(val))
                         const scene = computeScene(script, fun, params);
                         space.loadScene(scene);
                         space.draw()
                         if (space.callback && stepButton) {
-                            stepButton.innerText = "Step " + space.frameNr()
+                            stepButton.innerText = "Step " + space.animationTime().toFixed(2) + "s"
                         }
                     }
                 }
                 
                 // Add the input elements to a table
                 const table = document.createElement('table')
-                for (const [label, input] of inputs) {
+                for (const [label, input, unit] of inputs) {
                     const row = document.createElement('tr')
                     const key = document.createElement('td')
                     const value = document.createElement('td')
+                    const un = document.createElement('td')
                     key.innerText = label
+                    un.innerText = unit ? unit.toText() : ""
                     value.appendChild(input)
                     row.appendChild(key)
                     row.appendChild(value)
+                    row.appendChild(un)
                     table.appendChild(row)
                 }
 
@@ -150,12 +157,12 @@
                 stepButton = document.createElement("button");
                 runButton = document.createElement("button");
                 
-                stepButton.innerText = "Step " + space.frameNr()
+                stepButton.innerText = "Step " + space.animationTime().toFixed(2) + "s"
                 stepButton.onclick = () => {
                     if (!space.isAnimating()) {
                         space.updateScene();
                         space.draw()
-                        stepButton.innerText = "Step " + space.frameNr()
+                        stepButton.innerText = "Step " + space.animationTime().toFixed(2) + "s"
                     }
                 }
                 
@@ -163,7 +170,7 @@
                 runButton.onclick = () => {
                     space.setAnimating(!space.isAnimating());
                     runButton.innerText = space.isAnimating() ? "Stop " : "Start";
-                    stepButton.innerText = "Step " + space.frameNr()
+                    stepButton.innerText = "Step " + space.animationTime().toFixed(2) + "s"
                     inputButton.disabled = space.isAnimating()
                     stepButton.disabled = space.isAnimating()
                 }
@@ -176,8 +183,8 @@
         }
         
         function computeScene(script, fun, params) {
-            const args = params.map(x => Pacioli.num(x));
-            return Pacioli.fun(script, fun).apply(args);
+            // const args = params.map(x => Pacioli.num(x));
+            return Pacioli.fun(script, fun).apply(params);
         }
 
     </script>

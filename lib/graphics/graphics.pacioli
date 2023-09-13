@@ -90,7 +90,7 @@ deftype for_unit a: Scene(a) =
     Tuple(
         String,
         SceneElts(a),
-        Maybe((1, SceneElts(a)) -> SceneElts(a)));
+        Maybe((second, SceneElts(a)) -> SceneElts(a)));
 
 # ------------------------------------------------------------------------------
 
@@ -115,7 +115,7 @@ doc set_animation_callback
     elements then get updated with the properties from the returned elements.";
 
 declare set_animation_callback ::
-    for_unit a: (Scene(a), (1, SceneElts(a)) -> SceneElts(a)) -> Scene(a);
+    for_unit a: (Scene(a), (second, SceneElts(a)) -> SceneElts(a)) -> Scene(a);
 
 define set_animation_callback(scene, callback) =
     let (description, data, _) = scene in

@@ -15,8 +15,8 @@ define scene1(n, k, f) =
                 r2 = random(),
                 r3 = random()
             in
-                (t) -> (10 / k ) * sqrt(k) * r1 * |metre| * sin(0.1 * f * r2 * t * pi * |radian| / (i+1)) 
-                                                          * cos(0.1 * f * r3 * t * pi * |radian| / (i+1))
+                (t) -> (10 / k ) * sqrt(k) * r1 * |metre| * sin(0.2 * f * r2 * t * pi * |radian| / (i+1)) 
+                                                          * cos(0.2 * f * r3 * t * pi * |radian| / (i+1))
             end,
         names = [format("fs%s", i) | i <- naturals(n)],
         animation_callback =
@@ -28,7 +28,7 @@ define scene1(n, k, f) =
                         [ f(i) | i <- naturals(k) ],
                         [ f(i) | i <- naturals(k) ]),
                 fss = [ genFs(name) | name <- names ],
-                fsum(fs, t) = sum[ f(t) | f <- fs ]
+                fsum(fs, t) = sum[ f(10 * t/|second|) | f <- fs ]
             in
                 (t, elts) ->
                     set_meshes(elts, [ move_mesh(mesh, vector3d(fsum(xfs, t), fsum(yfs, t), fsum(zfs, t)))
@@ -77,6 +77,6 @@ define my_arrows(a, b, c) =
     [origin_arrow(vec, "blue") | i <- [-1, 1],
                                  j <- [-1, 1],
                                  k <- [-1, 1],
-                                 vec := vector3d(i*a*|metre|, j*b*|metre|, k*c*|metre|)];
+                                 vec := vector3d(i*a, j*b, k*c)];
 
 list_size(my_arrows(3, 3, 3))                                 ;

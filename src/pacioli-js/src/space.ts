@@ -26,7 +26,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Matrix } from "./values/matrix";
 import { PacioliString } from "./values/string";
-import { num } from "./api";
+import { num, unit } from "./api";
 import { Maybe } from "./values/maybe";
 import { PacioliBoole } from "./values/boole";
 import { PacioliFunction } from "./values/function";
@@ -102,11 +102,17 @@ export class Space {
 
   private animating: boolean = false;
   private frameCounter: number = 0;
+  private startTime: number = 0.0;
+  private extraTime: number = 0.0;
+  private prevFrameTime: number = 0.0;
+  private animationRequest?: number;
 
   // Pacioli scene properties, set when a Pacioli scene is loaded
   private description?: PacioliString;
   private callback?: PacioliFunction;
   private elements?: SceneElements;
+
+  private readonly sec = unit("second");
 
   constructor(
     public readonly parent: HTMLElement,
@@ -198,6 +204,22 @@ export class Space {
     );
     this.camera.lookAt(this.body.position);
     controls.update();
+  }
+
+  getDescription(): string | undefined {
+    return this.description?.value;
+  }
+
+  frameNr(): number {
+    return this.frameCounter;
+  }
+
+  isAnimating(): boolean {
+    return this.animating;
+  }
+
+  animationTime(): number {
+    return this.extraTime + this.frameCounter / this.options.fps;
   }
 
   clear() {
@@ -387,70 +409,124 @@ export class Space {
       this.addPath(path);
     }
 
-    this.frameCounter = 0;
+    this.resetAnimatin();
+    this.log("Initialized animation");
   }
 
   updateScene() {
     if (this.elements === undefined) {
       throw new Error("No scene elements to update");
     }
-    if (this.callback) {
-      this.elements = this.callback.call(
-        num(this.frameCounter++),
-        this.elements as unknown as PacioliValue
-      ) as unknown as SceneElements;
-      const [vectors, meshes] = this.elements;
-      for (const [from, to, color, name] of vectors) {
-        if (name.value) {
-          this.updateVector(name.value.value, from, to, color.value);
-        }
-      }
-      for (const mesh of meshes) {
-        const [, , position, name] = mesh;
-        if (name.value) {
-          this.updateMesh(name.value.value, position);
-        }
-      }
+    if (!this.callback) {
+      throw new Error("No callback available in UpdateSpace");
+    }
+    this.log(`Stepping animation`);
+    this.moveSceneForward();
+  }
+
+  private moveSceneForward() {
+    // Update the animation time
+    if (this.animating) {
+      this.frameCounter++;
     } else {
-      console.warn("No callback available in UpdateSpace, skipping update");
+      this.extraTime += 1 / this.options.fps;
+    }
+
+    // Call the animation callback
+    this.elements = this.callback!.call(
+      num(this.animationTime(), this.sec),
+      this.elements as unknown as PacioliValue
+    ) as unknown as SceneElements;
+
+    // Update the space
+    const [vectors, meshes] = this.elements;
+    for (const [from, to, color, name] of vectors) {
+      if (name.value) {
+        this.updateVector(name.value.value, from, to, color.value);
+      }
+    }
+    for (const mesh of meshes) {
+      const [, , position, name] = mesh;
+      if (name.value) {
+        this.updateMesh(name.value.value, position);
+      }
     }
   }
 
-  getDescription(): string | undefined {
-    return this.description?.value;
-  }
-
-  frameNr(): number {
-    return this.frameCounter;
-  }
-
-  /**
-   * Must be called after making changes to the space.
-   */
-  draw() {
-    requestAnimationFrame(this.render.bind(this));
-  }
-
-  isAnimating(): boolean {
-    return this.animating;
-  }
-
   setAnimating(animating: boolean) {
+    if (this.animating && !animating) {
+      this.pauseAnimation();
+      this.log("Paused animation");
+    }
+    if (!this.animating && animating) {
+      if (this.elements === undefined) {
+        throw new Error("No scene elements to update");
+      }
+      if (!this.callback) {
+        throw new Error("No callback available in UpdateSpace");
+      }
+      this.log("Starting animation");
+      this.startAnimating();
+    }
     this.animating = animating;
     if (animating) {
       this.draw();
     }
   }
 
+  private startAnimating() {
+    this.startTime = Date.now();
+    this.frameCounter = 0;
+    this.prevFrameTime = Date.now();
+  }
+
+  private resetAnimatin() {
+    this.frameCounter = 0;
+    this.extraTime = 0.0;
+  }
+
+  private pauseAnimation() {
+    if (this.animationRequest) {
+      window.cancelAnimationFrame(this.animationRequest);
+    }
+    this.extraTime += this.frameCounter / this.options.fps;
+    this.frameCounter = 0;
+  }
+
+  draw() {
+    this.animationRequest = requestAnimationFrame(this.render.bind(this));
+  }
+
   private render() {
     if (this.animating && this.callback) {
-      this.updateScene();
+      this.moveSceneForward();
     }
 
     this.renderer.render(this.scene, this.camera);
 
     if (this.animating) {
-      window.setTimeout(() => this.draw(), 1000 / this.options.fps);
+      const frameLength = 1000 / this.options.fps;
+
+      const target = this.startTime + (this.frameCounter + 1) * frameLength;
+      const currentTime = Date.now();
+      const delay = Math.max(0, target - currentTime);
+
+      if (this.frameCounter % 10 === 0) {
+        const util = 100 - (100 * delay) / frameLength;
+        const elapsedSeconds = (currentTime - this.prevFrameTime) / 1000;
+        const avgFps =
+          (1000 * this.frameCounter) / (currentTime - this.startTime);
+        this.log(
+          `frame = ${this.frameCounter}  util = ${util.toFixed(
+            3
+          )}%   avg fps = ${avgFps.toFixed(3)}  fps = ${(
+            1 / elapsedSeconds
+          ).toFixed(3)}  delay = ${delay.toFixed(3)}ms  now = ${currentTime}`
+        );
+      }
+      this.prevFrameTime = currentTime;
+
+      window.setTimeout(() => this.draw(), delay);
     }
   }
 
