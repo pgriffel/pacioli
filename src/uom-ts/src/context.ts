@@ -8,10 +8,10 @@
  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
  * the Software, and to permit persons to whom the Software is furnished to do so,
  * subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
  * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
@@ -21,67 +21,61 @@
  */
 
 // import { Base } from "./base";
-import { DimNum } from './dim-num';
+import { DimNum } from "./dim-num";
 import { unitFromJSON } from "./json";
 import { parseDimNum } from "./parser";
 import { Prefix } from "./prefix";
 import { SIBase } from "./si-base";
 import { UOM } from "./uom";
 
-
 /**
  * Syntax to define a SI units of measurement system
  */
 export interface Definition {
-
   prefixes: {
-    name: string,
-    power: number,
-    symbol: string
-  }[],
+    name: string;
+    power: number;
+    symbol: string;
+  }[];
 
   bases: {
-    name: string,
-    symbol: string
-  }[],
+    name: string;
+    symbol: string;
+  }[];
 
   equations: {
-    lhs: string,
+    lhs: string;
     rhs: {
-      factor?: number,
+      factor?: number;
       powers: {
         base: {
-          name: string,
-          prefix?: string
-        },
-        power?: number
-      }[]
-    }
-  }[]
+          name: string;
+          prefix?: string;
+        };
+        power?: number;
+      }[];
+    };
+  }[];
 }
-
 
 /**
  * An SI unit of measurement.
  */
 export type SIUnit = UOM<SIBase>;
 
-
 /**
  * Context for the SI
- * 
- * The SI is a units of measurement system that requires an environment that is populated with 
+ *
+ * The SI is a units of measurement system that requires an environment that is populated with
  * prefixes, base units, principle units, and definitions for derived units.
- * 
- * The Context class provides all this static information. It is for example used to 
+ *
+ * The Context class provides all this static information. It is for example used to
  * compute converson factors.
  */
 export class Context {
-
   private prefixes: Map<string, Prefix> = new Map();
   private bases: Map<string, SIBase> = new Map();
   private equations: Map<string, DimNum> = new Map();
-
 
   /**
    * Cache with units that are created from the context's bases. Maps
@@ -89,10 +83,9 @@ export class Context {
    */
   private unitCache: Map<string, SIUnit> = new Map();
 
-
   // /**
   //  * Constructs a unit with a single base with power 1 and the given prefix.
-  //  * 
+  //  *
   //  * @param prefix A prefix
   //  * @param base A base instance
   //  * @returns A unit with the single base
@@ -101,22 +94,20 @@ export class Context {
   //   return UOM.fromBase(SIBase.fromParts(prefix, base));
   // }
 
-
   /**
    * Creates a new empty context. The context contains the identity prefix.
-   * 
-   * @returns A fresh empty context. 
+   *
+   * @returns A fresh empty context.
    */
   static empty() {
     return new Context([Prefix.empty], [], []);
   }
 
-
   /**
    * Creates a unit of measurement context from a definition object.
-   * 
+   *
    * Shorthand for Context.empty().loadDef(def)
-   * 
+   *
    * @param def A proper unit of measurement context definition
    * @returns A fresh context with the definitions loaded
    */
@@ -129,7 +120,6 @@ export class Context {
     bases: SIBase[],
     equations: [string, DimNum][]
   ) {
-
     // Set the prefixes
     for (const prefix of prefixes) {
       this.prefixes.set(prefix.name, prefix);
@@ -146,36 +136,36 @@ export class Context {
     }
   }
 
-
   /**
    * Interprets the definition and adds the prefixes, bases, basis and
-   * equations to the context. Returns the updated context to allow 
+   * equations to the context. Returns the updated context to allow
    * chaining.
-   * 
+   *
    * This method mutates the context. It is idempotent.
-   * 
+   *
    * @param def The definition
    * @returns The mutated object
    */
   public loadDef(def: Definition): Context {
-
     // Load the prefixes.
     for (const record of def.prefixes) {
-      this.prefixes.set(record.name, new Prefix(record.power, record.name, record.symbol))
+      this.prefixes.set(
+        record.name,
+        new Prefix(record.power, record.name, record.symbol)
+      );
     }
 
     // Load the bases
     for (const record of def.bases) {
       this.addSIBase(SIBase.fromBase(record.name, record.symbol));
-//      this.bases.set(record.name, SIBase.fromBase(new Base(record.name, record.symbol)));
+      //      this.bases.set(record.name, SIBase.fromBase(new Base(record.name, record.symbol)));
     }
 
     // Load the equations
     // let line = 0;
     for (const record of def.equations) {
-
       // Parse the unit in the rhs of this equation
-      const unit = this.parseSIUnit(record.rhs)
+      const unit = this.parseSIUnit(record.rhs);
       // const unit = record.rhs.powers.map(term => {
 
       //   return this.parseSIUnit(term)
@@ -206,19 +196,20 @@ export class Context {
   }
 
   public parseSIUnit(json: any): SIUnit {
-
     return unitFromJSON(
       json,
       // prefix => this.prefixes.get(prefix),
       (prefixName, baseName) => {
-        const prefix = this.prefixes.get(prefixName)
+        const prefix = this.prefixes.get(prefixName);
         if (prefix) {
           return this.getScaledUnit(prefixName, baseName);
         } else {
-          throw new Error("Cannot create unit from json. Invalid prefix: " + prefixName);
+          throw new Error(
+            "Cannot create unit from json. Invalid prefix: " + prefixName
+          );
         }
       }
-    )
+    );
 
     // if (!json.powers) {
     //   throw new Error('expected powers in unit json ' + json)
@@ -252,43 +243,41 @@ export class Context {
   // public getBasis(): UOM[] {
   //   return this.basis;
   // }
-  
+
   public addBase(name: string, symbol: string, def?: DimNum) {
-    this.addSIBase(SIBase.fromBase(name, symbol), def);    
+    this.addSIBase(SIBase.fromBase(name, symbol), def);
   }
 
   public addSIBase(base: SIBase, def?: DimNum) {
     this.bases.set(base.getName(), base);
-    if (def !== undefined){
+    if (def !== undefined) {
       this.equations.set(base.getName(), def);
     }
   }
 
   /**
-   * Returns all bases in the context. 
-   * 
+   * Returns all bases in the context.
+   *
    * @returns An array with bases
    */
   public getBases(): SIBase[] {
     return Array.from(this.bases.values());
   }
 
-
   /**
    * All prefixes in the context.
-   * 
-   * @returns An array of prefixes 
+   *
+   * @returns An array of prefixes
    */
   public getPrefixes(): Prefix[] {
     return Array.from(this.prefixes.values());
   }
 
-
   /**
    * Finds the prefix with the given name. Throws
    * an error if it does not exist.
-   * 
-   * @param name The prefix name 
+   *
+   * @param name The prefix name
    * @returns The prefix
    */
   public getPrefix(name: string): Prefix {
@@ -299,12 +288,11 @@ export class Context {
     return prefix;
   }
 
-
   // /**
   //  * Finds the prefix with the given name. Throws
   //  * an error if it does not exist.
-  //  * 
-  //  * @param name The prefix name 
+  //  *
+  //  * @param name The prefix name
   //  * @returns The prefix
   //  */
   // private getBase(name: string): SIBase {
@@ -316,14 +304,14 @@ export class Context {
   // }
 
   /**
-    * Returns a unit with the given base name and give prefix. Throws
-    * an error if it does not exist.
-    * 
-    * The prefix overrides a possible prefix in the name.
-    * 
-    * @param name A base name, or a prefix and base name separated by a colon
-    * @returns The unit
-    */
+   * Returns a unit with the given base name and give prefix. Throws
+   * an error if it does not exist.
+   *
+   * The prefix overrides a possible prefix in the name.
+   *
+   * @param name A base name, or a prefix and base name separated by a colon
+   * @returns The unit
+   */
   public getScaledUnit(prefix: string, name: string): UOM<SIBase> {
     const unit = this.lookupScaledUnit(prefix, name);
     if (unit === undefined) {
@@ -331,8 +319,11 @@ export class Context {
     }
     return unit;
   }
-  
-  public lookupScaledUnit(prefix: string, name: string): UOM<SIBase> | undefined {
+
+  public lookupScaledUnit(
+    prefix: string,
+    name: string
+  ): UOM<SIBase> | undefined {
     const parts = name.split(":");
     const baseName = parts.length === 2 ? parts[1] : name;
     const fullName = prefix.length > 0 ? prefix + ":" + baseName : baseName;
@@ -345,12 +336,12 @@ export class Context {
   }
 
   /**
-    * Returns a unit with the given base name. Throws
-    * an error if it does not exist.
-    * 
-    * @param name A base name, or a prefix and base name separated by a colon
-    * @returns The unit
-    */
+   * Returns a unit with the given base name. Throws
+   * an error if it does not exist.
+   *
+   * @param name A base name, or a prefix and base name separated by a colon
+   * @returns The unit
+   */
   public getUnit(name: string): UOM<SIBase> {
     const unit = this.lookupUnit(name);
     if (unit === undefined) {
@@ -368,13 +359,16 @@ export class Context {
       if (parts.length === 2) {
         return this.getUnitFromBase(parts[0], parts[1], name);
       } else {
-        return this.getUnitFromBase('', name, name);
+        return this.getUnitFromBase("", name, name);
       }
     }
   }
 
-  private getUnitFromBase(prefixName: string, baseName: string, fullName: string): UOM<SIBase> | undefined {
-
+  private getUnitFromBase(
+    prefixName: string,
+    baseName: string,
+    fullName: string
+  ): UOM<SIBase> | undefined {
     const prefix = this.prefixes.get(prefixName);
     const base = this.bases.get(baseName);
 
@@ -382,59 +376,61 @@ export class Context {
       return undefined;
     }
     if (!prefix) {
-      throw new Error("Prefix '" + prefixName + "' unknown in unit " + fullName);
+      throw new Error(
+        "Prefix '" + prefixName + "' unknown in unit " + fullName
+      );
     }
 
     //const unit = Context.constructUnit(prefix, base);
-    const scaledBase = base.withPrefix(prefix)
+    const scaledBase = base.withPrefix(prefix);
     const unit = UOM.fromBase(scaledBase);
     //this.unitCache.set(fullName, unit);
     this.unitCache.set(scaledBase.getName(), unit);
     return unit;
   }
 
-
   /**
    * An equivalent unit of the given one that only uses
    * base units.
-   * 
+   *
    * Creates a unit with each derived unit replaced by its definition and
-   * flattened recursively. 
-   * 
+   * flattened recursively.
+   *
    * @param unit Any unit
    * @returns The new flattened unit
    */
   public flatten(unit: UOM<SIBase>): DimNum {
-
     let num = DimNum.ONE;
 
     for (const term of unit.termMap.values()) {
-
       const prefixFactor = (10 ** term.base.prefix.power) ** term.power;
-      const definition: DimNum | undefined = this.equations.get(term.base.getBaseName());
+      const definition: DimNum | undefined = this.equations.get(
+        term.base.getBaseName()
+      );
 
       if (definition) {
-        num = num.mult(this.flattenDimNum(definition.expt(term.power)))
+        num = num
+          .mult(this.flattenDimNum(definition.expt(term.power)))
           .scale(prefixFactor);
       } else {
         ////const unit = UOM.fromBase(SIBase.fromParts(Prefix.empty, term.base.base)).expt(term.power);
         //const unit = UOM.fromBase(term.base).expt(term.power);
-        const unit = UOM.fromBase(term.base.withPrefix(Prefix.empty)).expt(term.power);
+        const unit = UOM.fromBase(term.base.withPrefix(Prefix.empty)).expt(
+          term.power
+        );
         num = num.mult(new DimNum(prefixFactor, unit));
       }
-
     }
 
     return num;
   }
 
-
   /**
    * An equivalent dimensioned number as the given one that only uses
    * base units.
-   * 
+   *
    * Uses method flatten to flatten the unit.
-   * 
+   *
    * @param unit A dimensioned number
    * @returns The new flattened dimensioned number
    */
@@ -443,11 +439,10 @@ export class Context {
     return new DimNum(num.factor * flatUnit.factor, flatUnit.unit);
   }
 
-
   /**
    * The factor needed to convert a unit to another one. Throws an error if the conversion
-   * is not possible. 
-   * 
+   * is not possible.
+   *
    * @param from The unit to convert
    * @param to The unit to convert to
    * @returns The conversion factor
@@ -455,140 +450,166 @@ export class Context {
   conversionFactor(from: UOM<SIBase>, to: UOM<SIBase>): number {
     var flat = this.flatten(from.div(to));
     if (flat.isDimensionless()) {
-      return flat.factor
+      return flat.factor;
     } else {
-      throw new Error("cannot convert unit " + from.toText() + " to unit " + to.toText() + "")
+      throw new Error(
+        "cannot convert unit " + from.toText() + " to unit " + to.toText() + ""
+      );
     }
   }
 
-
   /**
    * The factor needed to convert a unit to another one. Returns undefined if the conversion
-   * is not possible. 
-   * 
+   * is not possible.
+   *
    * @param from The unit to convert
    * @param to The unit to convert to
    * @returns The conversion factor or undefined
    */
-  conversionFactorMaybe(from: UOM<SIBase>, to: UOM<SIBase>): number | undefined {
+  conversionFactorMaybe(
+    from: UOM<SIBase>,
+    to: UOM<SIBase>
+  ): number | undefined {
     var flat = this.flatten(from.div(to));
     if (flat.isDimensionless()) {
-      return flat.factor
+      return flat.factor;
     } else {
       return undefined;
     }
   }
 
-
   /**
    * Generate a definition for the context.
-   * 
+   *
    * Loading the generated definition into an empty one reconstructs
    * the context.
-   * 
+   *
    * @returns The generated definition
    */
   genDef(): Definition {
     return {
-      prefixes: Array.from(this.prefixes.values()).map(prefix => {
+      prefixes: Array.from(this.prefixes.values()).map((prefix) => {
         return {
           name: prefix.name,
           power: prefix.power,
-          symbol: prefix.symbol
-        }
+          symbol: prefix.symbol,
+        };
       }),
-      bases: Array.from(this.bases.values()).map(base => {
+      bases: Array.from(this.bases.values()).map((base) => {
         return {
           name: base.getName(),
-          symbol: base.getSymbol()
-        }
+          symbol: base.getSymbol(),
+        };
       }),
       equations: Array.from(this.equations.entries()).map(([name, def]) => {
         return {
           lhs: name,
           rhs: {
             factor: def.factor,
-            powers: Array.from(def.unit.termMap.values()).map(term => {
+            powers: Array.from(def.unit.termMap.values()).map((term) => {
               return {
                 base: {
                   name: term.base.getBaseName(),
-                  prefix: term.base.prefix.name
+                  prefix: term.base.prefix.name,
                 },
-                power: term.power
-              }
-            })
-          }
-        }
-      })
-    }
+                power: term.power,
+              };
+            }),
+          },
+        };
+      }),
+    };
   }
-
 
   /**
    * A human readable form of the context contents. Can be useful for
    * things like debugging.
-   * 
+   *
    * Somewhat more readable than JSON.stringify(context.genDef(), null, 2)
-   * 
+   *
    * @returns A string with the printed context.
    */
   public toText(): string {
-    return "Prefixes:\n" + Array.from(this.prefixes.values()).filter(x => x.power !== 0).map(prefix => {
-      return "  " + prefix.name + " (" + prefix.symbol + ") = " + "10^" + prefix.power;
-    }).join("\n") + "\nBases:\n" +
-      Array.from(this.bases.values()).map(base => {
-        return "  " + base.getName() + " (" + base.getSymbol() + ")";
-      }).join("\n") + "\nEquations:\n" +
-      Array.from(this.equations.entries()).map(([name, def]) => {
-        return "  " + name + " = " + def.toText();
-      }).join("\n")
+    return (
+      "Prefixes:\n" +
+      Array.from(this.prefixes.values())
+        .filter((x) => x.power !== 0)
+        .map((prefix) => {
+          return (
+            "  " +
+            prefix.name +
+            " (" +
+            prefix.symbol +
+            ") = " +
+            "10^" +
+            prefix.power
+          );
+        })
+        .join("\n") +
+      "\nBases:\n" +
+      Array.from(this.bases.values())
+        .map((base) => {
+          return "  " + base.getName() + " (" + base.getSymbol() + ")";
+        })
+        .join("\n") +
+      "\nEquations:\n" +
+      Array.from(this.equations.entries())
+        .map(([name, def]) => {
+          return "  " + name + " = " + def.toText();
+        })
+        .join("\n")
+    );
   }
-
-
 
   /**
    * Parses a dimensioned number expression from a string. Throws an error if the string cannot
-   * be interpreted as a dimensioned number, or if a base cannot be found. Multiplication and 
+   * be interpreted as a dimensioned number, or if a base cannot be found. Multiplication and
    * division have equal precedence and are done from left to right.
-   * 
+   *
    * dimnum ::=
    *   term |
    *   term "*" dimnum |
    *   term "/" dimnum
-   * 
-   * term ::= 
+   *
+   * term ::=
    *   number |
-   *   identifier | 
+   *   identifier |
    *   prefix ":" identifier |
    *   term "^" integer |
    *   "(" dimnum ")"
-   * 
+   *
    * prefix ::= "milli" | "centi" | "kilo" | ...
-   * 
+   *
    * An example expression is "9.8 * kilo:gram * metre / second^2"
-   * 
+   *
    * @param expr The string to parse
    * @returns A dimensioned number
    */
   parseDimNum(input: string): DimNum {
     function getter<T, U>(fun: (x: T) => U | undefined): (x: T) => U {
       return (x) => {
-        const result = fun(x)
+        const result = fun(x);
         if (result === undefined) {
-          throw new Error(`Base ${x} unknown`)
+          throw new Error(`Base ${x} unknown`);
         }
         return result;
-      }
+      };
     }
-    function getter2<T, U, V>(fun: (x: T, y: V) => U | undefined): (x: T, y:V) => U {
+    function getter2<T, U, V>(
+      fun: (x: T, y: V) => U | undefined
+    ): (x: T, y: V) => U {
       return (x, y) => {
-        const result = fun(x, y)
+        const result = fun(x, y);
         if (result === undefined) {
-          throw new Error(`Base ${x} unknown`)
+          throw new Error(`Base ${x} unknown`);
         }
         return result;
-      }
+      };
     }
-    return parseDimNum(input, getter(this.getUnit.bind(this)), getter2(this.getScaledUnit.bind(this)))
+    return parseDimNum(
+      input,
+      getter(this.getUnit.bind(this)),
+      getter2(this.getScaledUnit.bind(this))
+    );
   }
 }

@@ -8,10 +8,10 @@
  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
  * the Software, and to permit persons to whom the Software is furnished to do so,
  * subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
  * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
@@ -20,49 +20,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 // export {
 //   Base
 // } from './base'
 
+export { Definition, SIUnit, Context } from "./context";
 
-export {
-  Definition,
-  SIUnit,
-  Context
-} from './context'
+export { DimNum } from "./dim-num";
 
+export { Prefix } from "./prefix";
 
-export {
-  DimNum
-} from './dim-num'
+export { SIBase } from "./si-base";
 
+export { siDef, si } from "./si";
 
-export {
-  Prefix
-} from './prefix'
+export { UOMBase } from "./uom-base";
 
+export { UOM } from "./uom";
 
-export {
-  SIBase
-} from './si-base'
-
-
-export {
-  siDef,
-  si
-} from './si'
-
-
-export {
-  UOMBase
-} from './uom-base'
-
-
-export {
-  UOM
-} from './uom'
-
-export {
-  unitFromJSON 
-} from './json'
+export { unitFromJSON } from "./json";

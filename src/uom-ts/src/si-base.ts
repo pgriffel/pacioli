@@ -8,10 +8,10 @@
  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
  * the Software, and to permit persons to whom the Software is furnished to do so,
  * subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
  * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
@@ -23,27 +23,30 @@
 import { Prefix } from "./prefix";
 import { UOMBase } from "./uom-base";
 
-
 /**
  * Implementation of an UOMBase for the SI system.
- * 
+ *
  * The identity prefix handles a unit without a prefix.
- * 
- * Uses the convention to name scaled units with a prefix and a 
- * unit name separated by a colon. So unit 'kilo:metre' is a scaled 
+ *
+ * Uses the convention to name scaled units with a prefix and a
+ * unit name separated by a colon. So unit 'kilo:metre' is a scaled
  * variant of unit 'metre'
  */
 export class SIBase implements UOMBase {
-
   /**
    * Constructs an SIBase instance.
-   * 
-   * @param prefix 
-   * @param base 
-   * @returns 
+   *
+   * @param prefix
+   * @param base
+   * @returns
    */
   static fromParts(prefix: Prefix, name: string, symbol: string) {
-    return new SIBase(prefix, name, symbol, prefix.name.length === 0 ? name : prefix.name + ":" + name);
+    return new SIBase(
+      prefix,
+      name,
+      symbol,
+      prefix.name.length === 0 ? name : prefix.name + ":" + name
+    );
   }
 
   static fromBase(name: string, symbol: string): SIBase {
@@ -56,7 +59,7 @@ export class SIBase implements UOMBase {
 
   /**
    * General constructor. Use SIBase.fromParts instead.
-   * 
+   *
    * @param prefix A prefix
    * @param base A base
    * @param name A unique name for the base
@@ -66,7 +69,7 @@ export class SIBase implements UOMBase {
     private name: string,
     private symbol: string,
     private fullName: string
-  ) { }
+  ) {}
 
   getName(): string {
     return this.fullName;
@@ -74,8 +77,8 @@ export class SIBase implements UOMBase {
 
   /**
    * Same as getName() but omits the prefix.
-   * 
-   * @returns 
+   *
+   * @returns
    */
   getBaseName(): string {
     return this.name;
@@ -86,8 +89,8 @@ export class SIBase implements UOMBase {
   }
 
   /**
-   * Human readable form of a term. Used in the UOM toText method. 
-   * 
+   * Human readable form of a term. Used in the UOM toText method.
+   *
    * @returns A text form of the unit.
    */
   toText() {

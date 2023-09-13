@@ -1,9 +1,8 @@
-import { expect } from 'chai';
-import * as fc from 'fast-check';
-import { UOM } from '../src/uom';
-import { DimNum } from './../src/dim-num';
-import { arbitraryUOM } from './uom.spec';
-
+import { expect } from "chai";
+import * as fc from "fast-check";
+import { UOM } from "../src/uom";
+import { DimNum } from "./../src/dim-num";
+import { arbitraryUOM } from "./uom.spec";
 
 // const siPlus: Definition = {
 //   prefixes: [],
@@ -20,7 +19,6 @@ import { arbitraryUOM } from './uom.spec';
 
 // const testUOMContext = Context.empty().loadDef(siDef).loadDef(siPlus);
 
-
 /**
  * A fast check Arbitrary for the {@link DimNum} class.
  *
@@ -28,7 +26,9 @@ import { arbitraryUOM } from './uom.spec';
  * @see arbitraryBase
  */
 export function arbitraryDimNum(): fc.Arbitrary<DimNum> {
-  return arbitraryUOM().chain((uom) => arbitraryNum().map(factor => new DimNum(factor, uom)));
+  return arbitraryUOM().chain((uom) =>
+    arbitraryNum().map((factor) => new DimNum(factor, uom))
+  );
 }
 
 export function arbitraryNum(): fc.Arbitrary<number> {
@@ -36,17 +36,14 @@ export function arbitraryNum(): fc.Arbitrary<number> {
     { arbitrary: fc.constantFrom(-2, -1, 0, 1, 2), weight: 1 },
     { arbitrary: fc.integer(), weight: 2 },
     { arbitrary: fc.float(), weight: 2 }
-  )
+  );
 }
 
-
-describe('DimNum', () => {
-
-  describe('dimless', () => {
-    it('should create a dimensioned number with the identity unit and the given factor', () => {
-      fc.assert(fc.property(fc.integer(),
-        (factor) => {
-
+describe("DimNum", () => {
+  describe("dimless", () => {
+    it("should create a dimensioned number with the identity unit and the given factor", () => {
+      fc.assert(
+        fc.property(fc.integer(), (factor) => {
           // when a dimensioned number is created with dimless
           const dimNum = DimNum.dimless(factor);
 
@@ -55,16 +52,15 @@ describe('DimNum', () => {
 
           // and the factor should be the given factor
           expect(dimNum.factor).to.equal(factor);
-        }));
+        })
+      );
     });
   });
 
-  
-  describe('fromUnit', () => {
-    it('should create a dimensioned number with the given unit and factor 1', () => {
-      fc.assert(fc.property(arbitraryUOM(),
-        (unit) => {
-
+  describe("fromUnit", () => {
+    it("should create a dimensioned number with the given unit and factor 1", () => {
+      fc.assert(
+        fc.property(arbitraryUOM(), (unit) => {
           // when a dimensioned number is created with fromUnit
           const dimNum = DimNum.fromUnit(unit);
 
@@ -73,15 +69,15 @@ describe('DimNum', () => {
 
           // and the factor should be 1
           expect(dimNum.factor).to.equal(1);
-        }));
+        })
+      );
     });
   });
 
-  describe('mult', () => {
-    it('should correctly multiply two dimensioned numbers', () => {
-      fc.assert(fc.property(arbitraryDimNum(), arbitraryDimNum(),
-        (numA, numB) => {
-
+  describe("mult", () => {
+    it("should correctly multiply two dimensioned numbers", () => {
+      fc.assert(
+        fc.property(arbitraryDimNum(), arbitraryDimNum(), (numA, numB) => {
           // When two units are multipled
           const mult = numA.mult(numB);
 
@@ -90,15 +86,15 @@ describe('DimNum', () => {
 
           // And the unit is the product of the units
           expect(mult.unit.equals(numA.unit.mult(numB.unit))).to.equal(true);
-        }));
+        })
+      );
     });
   });
 
-  describe('expt', () => {
-    it('should correctly compute a power', () => {
-      fc.assert(fc.property(arbitraryDimNum(), fc.integer(),
-        (num, power) => {
-
+  describe("expt", () => {
+    it("should correctly compute a power", () => {
+      fc.assert(
+        fc.property(arbitraryDimNum(), fc.integer(), (num, power) => {
           // When the exponent of a unit is computed
           const exp = num.expt(power);
 
@@ -107,30 +103,29 @@ describe('DimNum', () => {
 
           // And the unit is the exponent of the unit
           expect(exp.unit.equals(num.unit.expt(power))).to.equal(true);
-        }));
+        })
+      );
     });
   });
 
-  describe('reciprocal', () => {
-    it('should correctly take the reciprocal', () => {
-      fc.assert(fc.property(arbitraryDimNum(),
-        (num) => {
-          
+  describe("reciprocal", () => {
+    it("should correctly take the reciprocal", () => {
+      fc.assert(
+        fc.property(arbitraryDimNum(), (num) => {
           // When the reciprocal of a unit is taken
           const reci = num.reciprocal();
 
           // Then the result is the same as an exponent with power -1
           expect(reci.equals(num.expt(-1))).to.equal(true);
-
-        }));
+        })
+      );
     });
   });
 
-  describe('div', () => {
-    it('should correctly divide two dimensioned numbers', () => {
-      fc.assert(fc.property(arbitraryDimNum(), arbitraryDimNum(),
-        (numA, numB) => {
-          
+  describe("div", () => {
+    it("should correctly divide two dimensioned numbers", () => {
+      fc.assert(
+        fc.property(arbitraryDimNum(), arbitraryDimNum(), (numA, numB) => {
           // When two units are divided
           const div = numA.div(numB);
 
@@ -138,32 +133,36 @@ describe('DimNum', () => {
           //
           // If numA.factor === 0 && numB.factor === 0 then the outcome is NaN (result of 0/0)
           // and NaN === NaN is false. For just numB.factor === 0 the outcome is Infinity
-          // (result of e.g. 1/0) and Infinity === Infinity is true.  
-          expect(div.equals(numA.mult(numB.reciprocal()))).to.equal(numA.factor !== 0 || numB.factor !== 0);
-
+          // (result of e.g. 1/0) and Infinity === Infinity is true.
+          expect(div.equals(numA.mult(numB.reciprocal()))).to.equal(
+            numA.factor !== 0 || numB.factor !== 0
+          );
         })
-        );
+      );
     });
   });
 
-  describe('equals', () => {
-    it('should correctly test equality of two dimensioned numbers', () => {
-      fc.assert(fc.property(arbitraryDimNum(), arbitraryDimNum(),
-        (numA, numB) => {
-          expect(numA.equals(numB)).to.equal(numA.factor === numB.factor && numA.unit.equals(numB.unit));
-        }));
+  describe("equals", () => {
+    it("should correctly test equality of two dimensioned numbers", () => {
+      fc.assert(
+        fc.property(arbitraryDimNum(), arbitraryDimNum(), (numA, numB) => {
+          expect(numA.equals(numB)).to.equal(
+            numA.factor === numB.factor && numA.unit.equals(numB.unit)
+          );
+        })
+      );
     });
   });
 
-  describe('isDimensionless', () => {
-    it('should only be true for an empty unit', () => {
-      fc.assert(fc.property(arbitraryDimNum(),
-        (num) => {
+  describe("isDimensionless", () => {
+    it("should only be true for an empty unit", () => {
+      fc.assert(
+        fc.property(arbitraryDimNum(), (num) => {
           expect(num.isDimensionless()).to.equal(num.unit.isDimensionless());
-        }));
+        })
+      );
     });
   });
-
 
   // describe('flatten', () => {
   //   it('should ...', () => {
@@ -184,7 +183,7 @@ describe('DimNum', () => {
   //     const cent = testUOMContext.getUnit("cent");
 
   //     // DimNum.fromUnit(millicent).sum(DimNum.fromUnit(euro));
-      
+
   //     console.log('flatten', millicent.toText(), testUOMContext.flatten(millicent).toText());
   //     console.log('flatten', euro.toText(), testUOMContext.flatten(euro).toText());
 
@@ -201,5 +200,4 @@ describe('DimNum', () => {
   //     console.log(testUOMContext.toText());
   //   });
   // });
-
 });

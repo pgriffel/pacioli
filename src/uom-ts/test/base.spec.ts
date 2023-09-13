@@ -1,4 +1,4 @@
-import { siDef } from "./../src/si";
+import { siDef } from "../src/si";
 import * as fc from "fast-check";
 import { Context } from "../src/context";
 import { SIBase } from "../src/si-base";
