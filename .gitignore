@@ -11,6 +11,7 @@
 /src/pacioli-js/test/
 /src/uom-ts/node_modules/
 /src/uom-ts/dist/
+/src/uom-ts/test/
 bundle.cmd
 pacioli.bat
 debug.options
