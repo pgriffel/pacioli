@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-export { DimNum } from "uom-ts";
+export { DimNum, si } from "uom-ts";
 
 export { tagKind } from "./value";
 

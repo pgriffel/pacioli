@@ -6,11 +6,11 @@ import graphics;
 # The rendered scene
 # ------------------------------------------------------------------------------
 
-define the_scene(n, k) =
+define the_scene(n, k, freq) =
     let 
         scene = empty_scene("Just some weird example to test graphics of vectors.")
     in
-        add_arrows(weird_arrows(n, k), set_animation_callback(scene, update_scene))
+        add_arrows(weird_arrows(n, k), set_animation_callback(scene, scene_updater(k, freq)))
     end;
 
 define weird_arrows(n, k) =
@@ -34,15 +34,27 @@ define weird_arrows(n, k) =
                   arrow := named_arrow(from, to, color, name)]
     end;
 
-define update_scene(time, elements) = 
-    if mod(time, 5) = 0 then
-        set_arrows(elements, shift_arrow_colors(get_arrows(elements)))
-    else
-        elements
-    end;
+define scene_updater(k, freq) = 
+    (time, elements) ->
+        set_arrows(elements, arrow_colors(k, time, freq, get_arrows(elements)));
 
-define shift_arrow_colors(arrows) =
+define arrow_colors(k, time, freq, arrows) =
     [arrow | n := list_size(arrows),
              i <- naturals(n),
-             j := mod(i + 1, n),
-             arrow := set_arrow_color(nth(j, arrows), arrow_color(nth(i, arrows)))];
+             arrow := nth(i, arrows),
+             arrow := set_arrow_color(arrow, shift_arrow_color(arrow, i, time, k, freq))];
+
+define shift_arrow_color(arrow, i, time, k, freq) =
+    let 
+        rounded = floor(-1*freq*time/|hertz|) + i*|second|/k,
+        m = mod(rounded, 3*|second|),
+        m = if m < 0*|second| then -m else m end
+    in
+        if m < |second| then 
+            "red"
+        else if m < 2*|second| then
+            "green"
+        else
+            "blue"
+        end
+    end;

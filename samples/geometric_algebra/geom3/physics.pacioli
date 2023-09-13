@@ -32,8 +32,8 @@ unit_factor(momentum_3D);
 # Multivector version
 #declare framevector_mv :: for_unit a: ((a * Geom3!), second) -> (a, Geom3!);
 
-define framevector_mv(k, t) =
-    rotate_mv(rotor_mv(t), fixedvector_mv(k));
+define framevector_mv(k, t, speed) =
+    rotate_mv(rotor_mv(t, speed), fixedvector_mv(k));
 
 define framevector_hard(k, t) =
     rotate_hard(rotor_hard(t), fixedvector_hard(k));
@@ -62,9 +62,9 @@ define rotor_e1_mv = make_multivector([make_term(1, e1)]);
 define rotor_e1_hard = vector3d(1,0,0);
 
 # rotor without unit metre
-define rotor_mv(t) = 
+define rotor_mv(t, speed) = 
     let
-        a = t * 0.1 * |radian| / |second|,
+        a = t * speed / 2, #0.1 * |radian| / |second|,
         rotor_m = make_multivector([make_term(cos(a), e1), make_term(sin(a), e2)])
     in
         geometric_product(rotor_e1_mv, rotor_m)
@@ -98,11 +98,11 @@ define multivector_reverse_hard(x) = ???;
 # The scene
 # ------------------------------------------------------------------------------
       
-define the_scene_mv(t0, t1) =
+define the_scene_mv(t0, t1, speed) =
     let scene = empty_scene("rotor in e1-e2") in
-        add_arrows(rendered_vectors_mv(t1, "blue"),
-            add_arrows(rendered_vectors_mv(t0, "red"),
-                set_animation_callback(scene, animation_callback_mv(t0, t1))))
+        add_arrows(rendered_vectors_mv(t1, "blue", speed),
+            add_arrows(rendered_vectors_mv(t0, "red", speed),
+                set_animation_callback(scene, animation_callback_mv(t0, t1, speed))))
     end;
 
 define the_scene_hard(t0, t1) =
@@ -111,8 +111,8 @@ define the_scene_hard(t0, t1) =
     end;
 
 
-define rendered_vectors_mv(i, color) = 
-    [named_origin_arrow(5 '.*'mv2vec(framevector_mv(j, 5 * i * |1|)), color, format("arrr_%s_%s", color, j)) | j <- naturals(3)];
+define rendered_vectors_mv(i, color, speed) = 
+    [named_origin_arrow(5 '.*'mv2vec(framevector_mv(j,  i * |1|, speed)), color, format("arrr_%s_%s", color, j)) | j <- naturals(3)];
 
 
 define rendered_vectors_hard(i, color) = 
@@ -120,6 +120,6 @@ define rendered_vectors_hard(i, color) =
 
 
 
-define animation_callback_mv(t0, t1) = 
+define animation_callback_mv(t0, t1, speed) = 
     (time, elements) ->
-        set_arrows(elements, append(rendered_vectors_mv(t1 + time , "blue"), rendered_vectors_mv(t0, "red")) );
+        set_arrows(elements, append(rendered_vectors_mv(t1 + time , "blue", speed), rendered_vectors_mv(t0, "red", speed)) );

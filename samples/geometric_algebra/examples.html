@@ -22,13 +22,13 @@
         // Note that the space has unit metre. The scene elements must have compatible units,
         // otherwise runtime errors will occur in the browser.
         const examples = [
-            ["physics", "the_scene_mv", [["start red", 0, "second"], ["start blue", 0.1, "second"]]],
+            ["physics", "the_scene_mv", [["start red", 0, "second"], ["start blue", 0.1, "second"], ["speed", 2 * 3.14 / 60, "radian/second"]]],
             ["bi_vector", "scene1", [["x", 2, "metre"], ["y", 1, "metre"], ["z", 0, "metre"], ["x", -3, "metre"], ["y", 0, "metre"], ["z", 2, "metre"], ["wireframe", 0]]],
             ["bi_vector", "scene2", [["wireframe", 0]]],
             ["inner", "the_scene", [["x", 5, "metre"], ["y", 0, "metre"], ["z", 5, "metre"], ["x", 0, "metre"], ["y", 7, "metre"], ["z", 7, "metre"]]],
             ["outer_cos_sin", "the_scene", [["i", 3]]],
-            ["weird", "the_scene", [["n", 50], ["k", 5]], {axis: false}],
-            ["cubes", "scene1", [["cubes", 5], ["terms", 5], ["speedup", 1]]],
+            ["weird", "the_scene", [["n", 50], ["k", 5], ["freq", 1, "hertz"]], {axis: false}],
+            ["cubes", "scene1", [["cubes", 25], ["terms", 3], ["speedup", 1]]],
             ["cubes", "scene2", []],
             ["cubes", "scene3", [["a", 5, "metre"], ["b", 5, "metre"], ["c", 5, "metre"]]]
         ]
@@ -46,7 +46,7 @@
                 perspective: true,
                 zoomRange: [1, 50],
                 camera: [20, 10, 20],
-                fps: 30 
+                fps: 30
             }
 
             // Locate the DOM element where we will append the examples
@@ -54,9 +54,8 @@
 
             for (const [script, fun, initialParameters, options] of examples) {
                 
-                const args = initialParameters.map(([, val, unit]) => Pacioli.num(val, unit ? Pacioli.unit(unit) : undefined));
+                const args = initialParameters.map(([, val, unit]) => Pacioli.num(val, unit ? Pacioli.si.parseDimNum(unit).unit : undefined));
                 const scene = computeScene(script, fun, args);
-                //const scene = computeScene(script, fun, initialParameters.map(([, val, unit]) => unit ? Pacioli.num(val, Pacioli.unit(unit)) : Pacioli.num(val)));
                 
                 // Create DOM elements
                 const headerElement = document.createElement("h2");
@@ -110,7 +109,7 @@
                             inputButton.click();
                         }
                     }); 
-                    return [label, inputElement, unit ? Pacioli.unit(unit) : undefined]
+                    return [label, inputElement, unit ? Pacioli.si.parseDimNum(unit).unit : undefined]
                 })
 
                 // Add a button to recalculate the scene
@@ -119,9 +118,7 @@
 
                     if (!space.isAnimating()) {
                         // User clicked the button. Get the input values and update the space
-                        // const params = inputs.map(([,input]) => Number(input.value))
                         const params = inputs.map(([,input, unit]) => Pacioli.num(Number(input.value), unit))
-                        // const params = initialParameters.map(([, val, unit]) => unit ? Pacioli.num(val, Pacioli.unit(unit)) : Pacioli.num(val))
                         const scene = computeScene(script, fun, params);
                         space.loadScene(scene);
                         space.draw()
@@ -183,7 +180,6 @@
         }
         
         function computeScene(script, fun, params) {
-            // const args = params.map(x => Pacioli.num(x));
             return Pacioli.fun(script, fun).apply(params);
         }
 

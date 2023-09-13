@@ -511,17 +511,19 @@ export class Space {
       const currentTime = Date.now();
       const delay = Math.max(0, target - currentTime);
 
-      if (this.frameCounter % 10 === 0) {
+      if (this.options.verbose && this.frameCounter % 10 === 0) {
         const util = 100 - (100 * delay) / frameLength;
         const elapsedSeconds = (currentTime - this.prevFrameTime) / 1000;
         const avgFps =
           (1000 * this.frameCounter) / (currentTime - this.startTime);
         this.log(
-          `frame = ${this.frameCounter}  util = ${util.toFixed(
-            3
-          )}%   avg fps = ${avgFps.toFixed(3)}  fps = ${(
+          `frame = ${this.frameCounter.toFixed(0).padStart(3)}  util = ${util
+            .toFixed(3)
+            .padStart(7)}%   avg fps = ${avgFps.toFixed(3)}  fps = ${(
             1 / elapsedSeconds
-          ).toFixed(3)}  delay = ${delay.toFixed(3)}ms  now = ${currentTime}`
+          ).toFixed(3)}  delay = ${delay
+            .toFixed(3)
+            .padStart(7)}ms  now = ${currentTime}`
         );
       }
       this.prevFrameTime = currentTime;
