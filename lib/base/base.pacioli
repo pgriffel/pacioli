@@ -51,6 +51,7 @@ defunit ampere "A";
 defunit kelvin "K";
 defunit mole "mol";
 defunit candela "cd";
+defunit hertz "Hz";
 
 # ----------------------------------------------------------------------------
 # General primitives

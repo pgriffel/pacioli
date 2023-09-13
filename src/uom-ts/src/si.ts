@@ -56,6 +56,8 @@ export const siDef: Definition = {
     { name: "candela", symbol: "cd" },
     { name: "second", symbol: "s" },
     { name: "metre", symbol: "m" },
+    { name: "hertz", symbol: "Hz" },
+    { name: "radian", symbol: "rad" },
   ],
 
   equations: [],
