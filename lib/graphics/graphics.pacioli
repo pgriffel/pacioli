@@ -10,7 +10,6 @@ import geometry;
 
 export
     Scene,
-    SceneElts,
     empty_scene,
     add_arrows,
     add_meshes,
@@ -19,65 +18,13 @@ export
     set_arrows,
     get_meshes,
     set_meshes,
-    set_animation_callback;
+    Animation,
+    StatefulAnimation,
+    add_animation_callback,
+    add_stateful_animation_callback;
 
 # ------------------------------------------------------------------------------
-# Scene elements
-# ------------------------------------------------------------------------------
-
-doc SceneElts
-    "Contains all scene elements. A scene element is an arrow, a mesh or a path.";
-
-deftype for_unit a: SceneElts(a) = 
-    Tuple(
-        List(Arrow(a)),
-        List(Mesh(a)),
-        List(Path(a)));
-
-# ------------------------------------------------------------------------------
-
-doc get_arrows
-    "Gets the arrows from the scene elements.";
-
-doc set_arrows
-    "Replaces the arrows in the scene elements.";
-
-declare get_arrows :: for_unit a: (SceneElts(a)) -> List(Arrow(a));
-declare set_arrows :: for_unit a: (SceneElts(a), List(Arrow(a))) -> SceneElts(a);
-
-define get_arrows(data) =
-    let (vectors, _, _) = data in
-        vectors
-    end;
-
-define set_arrows(data, vectors) =
-    let (_, meshes, paths) = data in
-        tuple(vectors, meshes, paths)
-    end;
-
-# ------------------------------------------------------------------------------
-
-doc get_meshes
-    "Gets the meshes from the scene elements.";
-
-doc set_meshes
-    "Replaces the meshes in the scene elements.";
-
-declare get_meshes :: for_unit a: (SceneElts(a)) -> List(Mesh(a));
-declare set_meshes :: for_unit a: (SceneElts(a), List(Mesh(a))) -> SceneElts(a);
-
-define get_meshes(data) =
-    let (_, meshes, _) = data in
-        meshes
-    end;
-
-define set_meshes(data, meshes) =
-    let (vectors, _, paths) = data in
-        tuple(vectors, meshes, paths)
-    end;
-
-# ------------------------------------------------------------------------------
-# Building a scene
+# Scene
 # ------------------------------------------------------------------------------
 
 doc Scene
@@ -89,8 +36,9 @@ doc Scene
 deftype for_unit a: Scene(a) = 
     Tuple(
         String,
-        SceneElts(a),
-        Maybe((second, SceneElts(a)) -> SceneElts(a)));
+        List(Arrow(a)),
+        List(Mesh(a)),
+        List(Path(a)));
 
 # ------------------------------------------------------------------------------
 
@@ -103,23 +51,48 @@ declare empty_scene ::
     for_unit a: (String) -> Scene(a);
 
 define empty_scene(description) =
-    tuple(description, tuple([], [], []), nothing());
+    tuple(description, [], [], []);
 
 # ------------------------------------------------------------------------------
 
-doc set_animation_callback
-    "Adds an animation callback to the scene. The function is called during animation
-    with the current frame number and the current named scene elements.
-    
-    The function must return scene elements with the same names. The existing scene 
-    elements then get updated with the properties from the returned elements.";
+doc get_arrows
+    "Gets the arrows in the scene.";
 
-declare set_animation_callback ::
-    for_unit a: (Scene(a), (second, SceneElts(a)) -> SceneElts(a)) -> Scene(a);
+doc set_arrows
+    "Replaces the arrows in the scene.";
 
-define set_animation_callback(scene, callback) =
-    let (description, data, _) = scene in
-        tuple(description, data, just(callback))
+declare get_arrows :: for_unit a: (Scene(a)) -> List(Arrow(a));
+declare set_arrows :: for_unit a: (Scene(a), List(Arrow(a))) -> Scene(a);
+
+define get_arrows(data) =
+    let (_, vectors, _, _) = data in
+        vectors
+    end;
+
+define set_arrows(data, vectors) =
+    let (description, _, meshes, paths) = data in
+        tuple(description, vectors, meshes, paths)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc get_meshes
+    "Gets the meshes in the scene.";
+
+doc set_meshes
+    "Replaces the meshes in the scene.";
+
+declare get_meshes :: for_unit a: (Scene(a)) -> List(Mesh(a));
+declare set_meshes :: for_unit a: (Scene(a), List(Mesh(a))) -> Scene(a);
+
+define get_meshes(data) =
+    let (_, _, meshes, _) = data in
+        meshes
+    end;
+
+define set_meshes(data, meshes) =
+    let (description, vectors, _, paths) = data in
+        tuple(description, vectors, meshes, paths)
     end;
 
 # ------------------------------------------------------------------------------
@@ -131,13 +104,7 @@ declare add_arrows ::
     for_unit a: (List(Arrow(a)), Scene(a)) -> Scene(a);
 
 define add_arrows(vs, scene) =
-    let (description, elements, callback) = scene in
-        tuple(
-            description,
-            set_arrows(elements, append(vs, get_arrows(elements))),
-            callback)
-    end;
-
+    set_arrows(scene, append(vs, get_arrows(scene)));
 
 # ------------------------------------------------------------------------------
 
@@ -148,11 +115,7 @@ declare add_meshes ::
     for_unit a: (List(Mesh(a)), Scene(a)) -> Scene(a);
 
 define add_meshes(ms, scene) =
-    let (description, data, callback) = scene in
-        let (vectors, meshes, paths) = data in
-            tuple(description, tuple(vectors, append(ms, meshes), paths), callback)
-        end
-    end;
+    set_meshes(scene, append(ms, get_meshes(scene)));
 
 # ------------------------------------------------------------------------------
 
@@ -163,14 +126,79 @@ declare add_paths ::
     for_unit a: (List(Path(a)), Scene(a)) -> Scene(a);
 
 define add_paths(ps, scene) =
-    let (description, data, callback) = scene in
-        let (vectors, meshes, paths) = data in
-            tuple(description, tuple(vectors, meshes, append(ps, paths)), callback)
-        end
+    let (description, vectors, meshes, paths) = scene in
+        tuple(description, vectors, meshes, append(ps, paths))
     end;
 
 # ------------------------------------------------------------------------------
-# Parallelogram
+# Animation
+# ------------------------------------------------------------------------------
+
+doc Animation
+    "Combines a Scene with an animation callback.";
+
+deftype for_unit a: Animation(a) = 
+    Tuple(
+        (second, Scene(a)) -> Scene(a),
+        Scene(a));
+
+define animation_scene(animation) = 
+    let (scene, _) = animation in scene end;
+
+# ------------------------------------------------------------------------------
+
+doc add_animation_callback
+    "Adds an animation callback to the scene. The function is called during animation
+    with the current frame number and the current named scene.
+    
+    The function must return a scene with the same element names. The existing scene 
+    elements then get updated with the properties from the returned elements.
+    
+    The scene is filtered for named elements.";
+
+declare add_animation_callback ::
+    for_unit a: ((second, Scene(a)) -> Scene(a), Scene(a)) -> Animation(a);
+
+define add_animation_callback(callback, scene) =
+    tuple(callback, scene);
+
+# ------------------------------------------------------------------------------
+# Animation with state
+# ------------------------------------------------------------------------------
+
+doc StatefulAnimation
+    "Combines a Scene with an animation callback that accepts a state parameter.";
+
+deftype for_unit a: for_type t: StatefulAnimation(a, t) = 
+    Tuple(
+        t,
+        (second, t, Scene(a)) -> Tuple(t, Scene(a)),
+        Scene(a));
+
+define stateful_animation_scene(animation) = 
+    let (_, _, scene) = animation in scene end;
+    
+# ------------------------------------------------------------------------------
+
+doc add_stateful_animation_callback
+    "Adds an animation callback to the scene. The function is called during animation
+    with the current frame number, the current state and the current scene.
+    In the first call the initial value is passed to the callback.
+    
+    The function must return a tuple of the new state and scene with the same 
+    element names as the elements in the passed scene. The existing scene elements
+    then get updated with the properties from the returned elements.
+    
+    The scene is filtered for named elements.";
+
+declare add_stateful_animation_callback ::
+    for_unit a: for_type t: (t, (second, t, Scene(a)) -> Tuple(t, Scene(a)), Scene(a)) -> StatefulAnimation(a, t);
+
+define add_stateful_animation_callback(initial, callback, scene) =
+    tuple(initial, callback, scene);
+    
+# ------------------------------------------------------------------------------
+# Parallelogram (not used)
 # ------------------------------------------------------------------------------
 
 doc Parallelogram

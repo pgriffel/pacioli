@@ -14,23 +14,77 @@
 
     <script>
 
-        // Add a [script, fun, parameters, options?] entry for each example to this list and 
-        // include its script further below. The parameters is a list of [label, number] pairs.
-        // The UI will  make an input for each parameter and use the numbers as initial value. 
-        // The script's scene function fun must accept the same number as arguments.
+        // Add a {file, function, kind, params, options?} entry for each example to this list and 
+        // include its script further below. The kind is one of 'scene', 'animation', or 
+        // 'stateful-animation'. The parameters is a list of [label, number, unit] tuples. The UI
+        // will  make an input for each parameter and use the numbers as initial value. The script's
+        // scene function fun must accept the same number as arguments.
         //
         // Note that the space has unit metre. The scene elements must have compatible units,
         // otherwise runtime errors will occur in the browser.
         const examples = [
-            ["physics", "the_scene_mv", [["start red", 0, "second"], ["start blue", 0.1, "second"], ["speed", 2 * 3.14 / 60, "radian/second"]]],
-            ["bi_vector", "scene1", [["x", 2, "metre"], ["y", 1, "metre"], ["z", 0, "metre"], ["x", -3, "metre"], ["y", 0, "metre"], ["z", 2, "metre"], ["wireframe", 0]]],
-            ["bi_vector", "scene2", [["wireframe", 0]]],
-            ["inner", "the_scene", [["x", 5, "metre"], ["y", 0, "metre"], ["z", 5, "metre"], ["x", 0, "metre"], ["y", 7, "metre"], ["z", 7, "metre"]]],
-            ["outer_cos_sin", "the_scene", [["i", 3]]],
-            ["weird", "the_scene", [["n", 50], ["k", 5], ["freq", 1, "hertz"]], {axis: false}],
-            ["cubes", "scene1", [["cubes", 25], ["terms", 3], ["speedup", 1]]],
-            ["cubes", "scene2", []],
-            ["cubes", "scene3", [["a", 5, "metre"], ["b", 5, "metre"], ["c", 5, "metre"]]]
+            {
+                file: "physics",
+	            function: "the_scene_mv",
+                kind: 'animation',
+	            params: [["start red", 0, "second"], ["start blue", 0.1, "second"], ["speed", 1, "radian/second"]]
+	        },
+            {
+                file: "physics",
+	            function: "the_scene_mv",
+                kind: 'animation',
+	            params: [["start red", 0, "second"], ["start blue", 0.1, "second"], ["speed", 2 * 3.14 / 60, "radian/second"]],
+                options: {fps: 1}
+	        },
+            {
+                file: "bi_vector",
+	            function: "scene1",
+                kind: 'scene',
+	            params: [["x", 2, "metre"], ["y", 1, "metre"], ["z", 0, "metre"], ["x", -3, "metre"], ["y", 0, "metre"], ["z", 2, "metre"], ["wireframe", 0]]
+	        },
+            {
+                file: "bi_vector",
+	            function: "scene2",
+                kind: 'scene',
+	            params: [["wireframe", 0]]
+	        },
+            {
+                file: "inner",
+	            function: "the_scene",
+                kind: 'scene',
+	            params: [["x", 5, "metre"], ["y", 0, "metre"], ["z", 5, "metre"], ["x", 0, "metre"], ["y", 7, "metre"], ["z", 7, "metre"]]
+	        },
+            {
+                file: "outer_cos_sin",
+                function: "the_scene",
+                kind: 'scene',
+                params: [["i", 3]]
+            },
+            {
+                file: "weird",
+	            function: "the_scene",
+                kind: 'animation',
+	            params: [["n", 50], ["k", 5], ["freq", 1, "hertz"]],
+                options: {axis: false}
+	        },
+            {
+                file: "cubes",
+	            function: "scene1",
+                kind: 'stateful-animation',
+	            params: [["cubes", 25], ["terms", 3], ["speedup", 1]]
+	        },
+            {
+                file: "cubes",
+	            function: "scene2",
+                kind: 'scene',
+	            params: []
+	        },
+            {
+                file: "cubes",
+	            function: "scene3",
+                kind: 'scene',
+	            params: [["a", 5, "metre"], ["b", 5, "metre"], ["c", 5, "metre"]]
+	        }
         ]
 
         function onLoad() {
@@ -52,10 +106,14 @@
             // Locate the DOM element where we will append the examples
             var parent = document.getElementById("pacioli_hook")
 
-            for (const [script, fun, initialParameters, options] of examples) {
+            for (const example of examples) {
                 
-                const args = initialParameters.map(([, val, unit]) => Pacioli.num(val, unit ? Pacioli.si.parseDimNum(unit).unit : undefined));
-                const scene = computeScene(script, fun, args);
+                const script = example.file
+                const fun = example.function
+
+                // Call the script function
+                const args = example.params.map(([, val, unit]) => Pacioli.num(val, unit ? Pacioli.si.parseDimNum(unit).unit : undefined));
+                const sceneOrAnimation = Pacioli.fun(script, fun).apply(args);
                 
                 // Create DOM elements
                 const headerElement = document.createElement("h2");
@@ -66,27 +124,25 @@
                 headerElement.innerText = "Example " + script + " - " + fun
                 headerElement.id = script + "_" + fun
 
-                // Add the example's description
-                const [description] = scene;
-                descriptionElement.innerHTML = description.value
+                // Add a Pacioli space and load the scene into it.
+                const space = new Pacioli.Space(spaceElement, {...spaceConfig, ...example.options})  
+                load(space, sceneOrAnimation, example.kind);
 
-                // Add a Pacioli space and load the scene into it
-                const space = new Pacioli.Space(spaceElement, {...spaceConfig, ...options})  
-                space.loadScene(scene);
+                // Add the example's description
+                descriptionElement.innerHTML = space.getDescription();
 
                 // Create a panel with relevant buttons
-                const buttonPanel = makeButtonPanel(space, script, fun, initialParameters);
+                const buttonPanel = makeButtonPanel(space, script, fun, example.kind, example.params);
 
                 // Add the elements to the DOM
                 parent.appendChild(headerElement);               
                 parent.appendChild(descriptionElement);
                 parent.appendChild(spaceElement);                       
                 parent.appendChild(buttonPanel);
-
             }
         }
 
-        function makeButtonPanel(space, script, fun, initialParameters) {
+        function makeButtonPanel(space, script, fun, kind, initialParameters) {
             
             const panel = document.createElement('div');
 
@@ -119,10 +175,10 @@
                     if (!space.isAnimating()) {
                         // User clicked the button. Get the input values and update the space
                         const params = inputs.map(([,input, unit]) => Pacioli.num(Number(input.value), unit))
-                        const scene = computeScene(script, fun, params);
-                        space.loadScene(scene);
+                        const sceneOrAnimation = Pacioli.fun(script, fun).apply(params);
+                        load(space, sceneOrAnimation, kind);
                         space.draw()
-                        if (space.callback && stepButton) {
+                        if (space.isAnimation() && stepButton) {
                             stepButton.innerText = "Step " + space.animationTime().toFixed(2) + "s"
                         }
                     }
@@ -149,7 +205,7 @@
             }
 
             // Add buttons to run the animation
-            if (space.callback) {
+            if (space.isAnimation()) {
                 
                 stepButton = document.createElement("button");
                 runButton = document.createElement("button");
@@ -178,9 +234,25 @@
             
             return panel;
         }
-        
-        function computeScene(script, fun, params) {
-            return Pacioli.fun(script, fun).apply(params);
+
+        function load(space, sceneOrAnimation, kind) {
+            switch (kind) {
+                case 'scene': {   
+                    space.loadScene(sceneOrAnimation);
+                    break;  
+                }
+                case 'animation': {   
+                    space.loadAnimation(sceneOrAnimation);
+                    break;  
+                }
+                case 'stateful-animation': {   
+                    space.loadStatefulAnimation(sceneOrAnimation);
+                    break;  
+                }
+                default: {
+                    throw new Error("Unknown kind")
+                }
+            }
         }
 
     </script>

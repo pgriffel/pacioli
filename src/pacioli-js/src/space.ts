@@ -32,9 +32,16 @@ import { PacioliBoole } from "./values/boole";
 import { PacioliFunction } from "./values/function";
 import { PacioliValue } from "./value";
 
-type PacioliScene = [PacioliString, SceneElements, Maybe<PacioliFunction>];
+type PacioliScene = [
+  PacioliString,
+  PacioliArrow[],
+  PacioliMesh[],
+  PacioliPath[]
+];
 
-type SceneElements = [PacioliArrow[], PacioliMesh[], PacioliPath[]];
+type Animation = [PacioliFunction, PacioliScene];
+
+type StatefulAnimation = [PacioliValue, PacioliFunction, PacioliScene];
 
 type PacioliArrow = [
   Matrix, // from
@@ -93,26 +100,34 @@ const defaultOptions: SpaceOptions = {
  * A 3D environment for graphical display with Three.js.
  */
 export class Space {
+  // Constants
+  private readonly TIME_UNIT = unit("second");
+
+  // Space configuration
   private options: SpaceOptions;
 
+  // Three.js properties
   private renderer: THREE.Renderer;
   private scene: THREE.Scene;
   private camera: THREE.Camera;
   private body: THREE.Object3D<THREE.Event>;
 
+  // Pacioli scene properties, set when a Pacioli scene or
+  // animation is loaded
+  private initialScene?: PacioliScene;
+  private callback?: PacioliFunction;
+  private statefulCallback?: PacioliFunction;
+  private initialState?: PacioliValue;
+
+  // Animation state
   private animating: boolean = false;
   private frameCounter: number = 0;
   private startTime: number = 0.0;
   private extraTime: number = 0.0;
   private prevFrameTime: number = 0.0;
   private animationRequest?: number;
-
-  // Pacioli scene properties, set when a Pacioli scene is loaded
-  private description?: PacioliString;
-  private callback?: PacioliFunction;
-  private elements?: SceneElements;
-
-  private readonly sec = unit("second");
+  private animationState?: PacioliValue;
+  private animationScene?: PacioliScene;
 
   constructor(
     public readonly parent: HTMLElement,
@@ -207,7 +222,11 @@ export class Space {
   }
 
   getDescription(): string | undefined {
-    return this.description?.value;
+    return this.initialScene ? this.initialScene[0].value : undefined;
+  }
+
+  isAnimation(): boolean {
+    return this.callback !== undefined || this.statefulCallback !== undefined;
   }
 
   frameNr(): number {
@@ -388,15 +407,29 @@ export class Space {
     }
   }
 
-  loadScene(scene: PacioliScene) {
-    const [description, elements, callback] = scene;
-    const [vectors, meshes, paths] = elements;
+  loadAnimation(animation: Animation) {
+    const [callback, scene] = animation;
+    this.callback = callback;
+    this.statefulCallback = undefined;
+    this.initialState = undefined;
+    this.loadScene(scene);
+  }
 
-    this.description = description;
-    this.callback = callback.value;
-    this.elements = elements;
+  loadStatefulAnimation(animation: StatefulAnimation) {
+    const [initial, callback, scene] = animation;
+    this.statefulCallback = callback;
+    this.initialState = initial;
+    this.callback = undefined;
+    this.loadScene(scene);
+  }
+
+  loadScene(scene: PacioliScene) {
+    this.initialScene = scene;
+
+    const [, vectors, meshes, paths] = scene;
 
     this.clear();
+
     for (const mesh of meshes) {
       this.addMesh(mesh);
     }
@@ -409,16 +442,19 @@ export class Space {
       this.addPath(path);
     }
 
-    this.resetAnimatin();
+    this.resetAnimation();
     this.log("Initialized animation");
   }
 
   updateScene() {
-    if (this.elements === undefined) {
+    if (this.animationScene === undefined) {
       throw new Error("No scene elements to update");
     }
-    if (!this.callback) {
+    if (!(this.callback || this.statefulCallback)) {
       throw new Error("No callback available in UpdateSpace");
+    }
+    if (this.statefulCallback && !this.initialState) {
+      throw new Error("No initial value available in UpdateSpace");
     }
     this.log(`Stepping animation`);
     this.moveSceneForward();
@@ -433,13 +469,30 @@ export class Space {
     }
 
     // Call the animation callback
-    this.elements = this.callback!.call(
-      num(this.animationTime(), this.sec),
-      this.elements as unknown as PacioliValue
-    ) as unknown as SceneElements;
+    // TODO: see if the performance can be improved. The call method on
+    // the callback is expensive. It does unification of the types to
+    // check the inputs. This catches unit errors etc., but it would
+    // be nice if this could be checked earlier and omitted here.
+    // Maybe just make the first call checked?!
+    if (this.callback) {
+      this.animationScene = this.callback.call(
+        num(this.animationTime(), this.TIME_UNIT),
+        this.animationScene as unknown as PacioliValue
+      ) as unknown as PacioliScene;
+    } else if (this.statefulCallback) {
+      const [state, scene] = this.statefulCallback.call(
+        num(this.animationTime(), this.TIME_UNIT),
+        this.animationState ? this.animationState : this.initialState!,
+        this.animationScene as unknown as PacioliValue
+      ) as unknown as [PacioliValue, PacioliScene];
+      this.animationState = state;
+      this.animationScene = scene;
+    } else {
+      throw new Error("no callback to recalculate scene for animation");
+    }
 
     // Update the space
-    const [vectors, meshes] = this.elements;
+    const [, vectors, meshes] = this.animationScene;
     for (const [from, to, color, name] of vectors) {
       if (name.value) {
         this.updateVector(name.value.value, from, to, color.value);
@@ -459,14 +512,14 @@ export class Space {
       this.log("Paused animation");
     }
     if (!this.animating && animating) {
-      if (this.elements === undefined) {
+      if (this.animationScene === undefined) {
         throw new Error("No scene elements to update");
       }
-      if (!this.callback) {
+      if (!this.isAnimation()) {
         throw new Error("No callback available in UpdateSpace");
       }
       this.log("Starting animation");
-      this.startAnimating();
+      this.startAnimation();
     }
     this.animating = animating;
     if (animating) {
@@ -474,13 +527,15 @@ export class Space {
     }
   }
 
-  private startAnimating() {
+  private startAnimation() {
     this.startTime = Date.now();
     this.frameCounter = 0;
     this.prevFrameTime = Date.now();
   }
 
-  private resetAnimatin() {
+  private resetAnimation() {
+    this.animationScene = this.initialScene;
+    this.animationState = this.initialState;
     this.frameCounter = 0;
     this.extraTime = 0.0;
   }
@@ -498,7 +553,7 @@ export class Space {
   }
 
   private render() {
-    if (this.animating && this.callback) {
+    if (this.animating && this.isAnimation()) {
       this.moveSceneForward();
     }
 
@@ -533,9 +588,7 @@ export class Space {
   }
 
   private onChangeOrbit() {
-    if (!this.animating) {
-      this.draw();
-    }
+    requestAnimationFrame(() => this.renderer.render(this.scene, this.camera));
   }
 
   private log(text: string) {

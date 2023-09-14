@@ -6,11 +6,15 @@ import graphics;
 # The rendered scene
 # ------------------------------------------------------------------------------
 
+declare the_scene :: (1, 1, hertz) -> Animation(metre);
+
 define the_scene(n, k, freq) =
     let 
         scene = empty_scene("Just some weird example to test graphics of vectors.")
     in
-        add_arrows(weird_arrows(n, k), set_animation_callback(scene, scene_updater(k, freq)))
+        add_animation_callback(
+            scene_updater(k, freq),
+            add_arrows(weird_arrows(n, k), scene))
     end;
 
 define weird_arrows(n, k) =

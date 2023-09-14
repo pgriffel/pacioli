@@ -97,12 +97,18 @@ define multivector_reverse_hard(x) = ???;
 # ------------------------------------------------------------------------------
 # The scene
 # ------------------------------------------------------------------------------
-      
+
+declare the_scene_mv :: (second, second, radian/second) -> Animation(metre);
+
 define the_scene_mv(t0, t1, speed) =
-    let scene = empty_scene("rotor in e1-e2") in
-        add_arrows(rendered_vectors_mv(t1, "blue", speed),
-            add_arrows(rendered_vectors_mv(t0, "red", speed),
-                set_animation_callback(scene, animation_callback_mv(t0, t1, speed))))
+    let
+        scene = empty_scene("rotor in e1-e2"),
+        callback = animation_callback_mv(t0, t1, speed),
+        arrows = append(
+                    rendered_vectors_mv(t1, "blue", speed),
+                    rendered_vectors_mv(t0, "red", speed))
+    in
+        add_animation_callback(callback, add_arrows(arrows, scene))
     end;
 
 define the_scene_hard(t0, t1) =
@@ -110,16 +116,20 @@ define the_scene_hard(t0, t1) =
         add_arrows(rendered_vectors_hard(t1, "blue"), add_arrows(rendered_vectors_hard(t0, "red"), scene))
     end;
 
+declare rendered_vectors_mv :: (second, String, radian/second) -> List(Arrow(metre));
 
-define rendered_vectors_mv(i, color, speed) = 
-    [named_origin_arrow(5 '.*'mv2vec(framevector_mv(j,  i * |1|, speed)), color, format("arrr_%s_%s", color, j)) | j <- naturals(3)];
+define rendered_vectors_mv(t, color, speed) = 
+    [named_origin_arrow(5 '.*' mv2vec(framevector_mv(j, t, speed)), color, format("arrr_%s_%s", color, j)) | j <- naturals(3)];
 
 
 define rendered_vectors_hard(i, color) = 
-    [origin_arrow(10 '.*'mv2vec(framevector_hard(j, i * |1|)), color) | j <- naturals(3)];
+    [origin_arrow(10 '.*'mv2vec(framevector_hard(j, i)), color) | j <- naturals(3)];
 
 
+declare animation_callback_mv ::
+    (second, second, radian/second) -> (second, Scene(metre)) -> Scene(metre);
 
 define animation_callback_mv(t0, t1, speed) = 
-    (time, elements) ->
-        set_arrows(elements, append(rendered_vectors_mv(t1 + time , "blue", speed), rendered_vectors_mv(t0, "red", speed)) );
+    (time, scene) ->
+        set_arrows(scene, append(rendered_vectors_mv(t1 + time, "blue", speed),
+                                 rendered_vectors_mv(floor(t0 + time / 60), "red", speed)) );

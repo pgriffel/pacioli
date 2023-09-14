@@ -6,6 +6,10 @@ import graphics;
 # The rendered scenes
 # ------------------------------------------------------------------------------
 
+
+declare scene2 :: () -> Scene(metre);
+declare scene3 :: for_unit a: (metre, metre, metre) -> Scene(metre);
+
 define scene1(n, k, f) =
     let 
         scene = empty_scene("An experiment with the CubeMesh datastructure and animation."),
@@ -30,13 +34,23 @@ define scene1(n, k, f) =
                 fss = [ genFs(name) | name <- names ],
                 fsum(fs, t) = sum[ f(10 * t/|second|) | f <- fs ]
             in
-                (t, elts) ->
-                    set_meshes(elts, [ move_mesh(mesh, vector3d(fsum(xfs, t), fsum(yfs, t), fsum(zfs, t)))
-                                        | (mesh, xfs, yfs, zfs) <- fss])
+                (t, state, elts) ->
+                    let 
+                        (limit, ang, prev) = state,
+                        amp = cos(ang/250),
+                        adj_limit = if amp < 0 and prev >= 0 then 1.5*random() else limit end
+                    in 
+                        tuple(
+                            tuple(adj_limit, ang + 1*|radian|, amp),
+                            set_meshes(elts, [ move_mesh(mesh, 2 * limit * amp '.*' vector3d(fsum(xfs, t), fsum(yfs, t), fsum(zfs, t)))
+                                                    | (mesh, xfs, yfs, zfs) <- fss]))
+                    end
             end
     in
-        add_meshes([set_wireframe(mesh1(name), false) | name <- names],
-            set_animation_callback(scene, animation_callback))
+        add_stateful_animation_callback(
+            tuple(2, 0*|radian|, 0),
+            animation_callback,
+            add_meshes([set_wireframe(mesh1(name), false) | name <- names], scene))
     end;
 
 define scene2() =
