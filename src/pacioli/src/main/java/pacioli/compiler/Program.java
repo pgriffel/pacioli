@@ -559,81 +559,36 @@ public class Program {
 
     private void inferTypes(PacioliTable prog, PacioliTable env) {
 
-        Pacioli.trace("Infering types in module '%s'", this.file.module());
-
-        // values.parent = environment.values();
-        // typess.parent = environment.types();
+        Pacioli.trace("Inferring types in module '%s'", this.file.module());
 
         prog.setParent(env);
-        PacioliTable environment = prog;
 
         Set<Info> discovered = new HashSet<Info>();
         Set<Info> finished = new HashSet<Info>();
 
-        List<String> names = environment.values().allNames();
-        Collections.sort(names);
-
-        for (String value : names) {
-            ValueInfo info = environment.values().lookup(value);
-
-            if (info.isFromFile(this.file) && info.definition().isPresent()) {
-
-                Pacioli.logIf(Pacioli.Options.showTypeInference, "Infering type of %s", value);
-
-                inferValueDefinitionType(info, discovered, finished, Pacioli.Options.showTypeInference, environment);
-
-                Pacioli.logIf(Pacioli.Options.showTypeInference, "%s :: %s;", info.name(),
-                        info.inferredType().get().pretty());
+        for (ValueInfo info : prog.values().localInfos()) {
+            if (info.definition().isPresent()) {
+                inferValueDefinitionTypeRec(info, discovered, finished, prog);
             }
-
-            Optional<TypeNode> declared = info.declaredType();
-
-            if (info.isFromFile(this.file) && declared.isPresent() && info.inferredType().isPresent()) {
-
-                TypeObject declaredType = declared.get().evalType().instantiate()
-                        .reduce(i -> i.isFromFile(this.file));
-                TypeObject inferredType = info.localType().instantiate();
-
-                Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails,
-                        "Checking inferred type\n  %s\nagainst declared type\n  %s",
-                        inferredType.pretty(), declaredType.pretty());
-
-                if (!declaredType.isInstanceOf(inferredType)) {
-                    throw new RuntimeException("Type error",
-                            new PacioliException(info.location(),
-                                    String.format(
-                                            "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
-                                            declaredType.unfresh().pretty(),
-                                            inferredType.unfresh().pretty())));
-                }
-            }
-
         }
+
         int i = 0;
-        for (Toplevel toplevel : environment.toplevels()) {
+        for (Toplevel toplevel : prog.toplevels()) {
 
-            inferUsedTypes(toplevel, discovered, finished, true, environment);
+            inferUsedTypes(toplevel, discovered, finished, prog);
 
-            Pacioli.logIf(Pacioli.Options.showTypeInference, "Inferring typing of toplevel %s", i);
-
-            Typing typing = toplevel.body.inferTyping(environment, this.file);
-            Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Typing of toplevel %s is %s", i, typing.pretty());
-
-            toplevel.type = typing.solve(!this.file.isLibrary()).simplify();
-            Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Type of toplevel %s is %s", i,
-                    toplevel.type.pretty());
-
-            i++;
+            Pacioli.logIf(Pacioli.Options.showTypeInference, "\nInferring typing of toplevel %s", i++);
+            Typing typing = toplevel.body.inferTyping(prog, this.file);
+            toplevel.type = typing.solve(false).simplify();
         }
 
     }
 
-    private void inferUsedTypes(Definition definition, Set<Info> discovered, Set<Info> finished,
-            Boolean verbose, PacioliTable env) {
+    private void inferUsedTypes(Definition definition, Set<Info> discovered, Set<Info> finished, PacioliTable env) {
         for (Info pre : definition.uses()) {
             if (pre.isGlobal() && pre instanceof ValueInfo) {
                 if (pre.isFromFile(this.file) && pre.definition().isPresent()) {
-                    inferValueDefinitionType((ValueInfo) pre, discovered, finished, verbose, env);
+                    inferValueDefinitionTypeRec((ValueInfo) pre, discovered, finished, env);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
                     if (!vinfo.declaredType().isPresent() && !vinfo.name().equals("nmode")) {
@@ -641,6 +596,21 @@ public class Program {
                                 new PacioliException(pre.location(), "No type declared for %s", pre.name()));
                     }
                 }
+            }
+        }
+    }
+
+    private void inferValueDefinitionTypeRec(ValueInfo info, Set<Info> discovered, Set<Info> finished,
+            PacioliTable env) {
+
+        if (!finished.contains(info)) {
+            if (discovered.contains(info)) {
+                // Pacioli.warn("Cycle in definition of %s", info.name());
+            } else {
+                discovered.add(info);
+                inferUsedTypes(info.definition().get(), discovered, finished, env);
+                inferValueDefinitionType(info, discovered, finished, env);
+                finished.add(info);
             }
         }
     }
@@ -655,46 +625,60 @@ public class Program {
      *                   logging per definition.
      * @param env
      */
-    private void inferValueDefinitionType(ValueInfo info, Set<Info> discovered, Set<Info> finished,
-            Boolean verbose, PacioliTable env) {
+    private void inferValueDefinitionType(ValueInfo info, Set<Info> discovered, Set<Info> finished, PacioliTable env) {
 
-        if (!finished.contains(info)) {
-            if (discovered.contains(info)) {
-                // Pacioli.warn("Cycle in definition of %s", info.name());
-            } else {
-                discovered.add(info);
-                inferUsedTypes(info.definition().get(), discovered, finished, verbose, env);
+        ValueDefinition def = info.definition().get();
 
-                ValueDefinition def = info.definition().get();
+        boolean verbose = info.globalName().equals(Pacioli.Options.traceTypeInference);
 
-                Pacioli.logIf(Pacioli.Options.showTypeInference, "Infering typing of %s", info.name());
+        Pacioli.logIf(Pacioli.Options.showTypeInference || verbose, "\nInferring typing of %s", info.name());
 
-                Typing typing = def.body.inferTyping(env, this.file);
+        Typing typing = def.body.inferTyping(env, this.file);
 
-                Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Inferred typing of %s is %s", info.name(),
-                        typing.pretty());
+        Pacioli.logIf(verbose, "Inferred typing of %s is %s", info.name(), typing.pretty());
 
-                try {
-                    TypeObject solved = typing.solve(Pacioli.Options.showTypeInferenceDetails).unfresh();
-                    if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nSolved type of %s is %s",
-                                info.name(),
-                                solved.pretty());
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nSimple type of %s is %s",
-                                info.name(),
-                                solved.simplify().pretty());
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nGenerl type of %s is %s",
-                                info.name(),
-                                solved.simplify().generalize().pretty());
-                    }
-                    info.setinferredType(solved.simplify().generalize());
-                } catch (PacioliException e) {
-                    throw new RuntimeException("Type error", e);
+        try {
+
+            TypeObject solved = typing.solve(verbose).unfresh();
+
+            Pacioli.logIf(verbose, "Solved type of %s is\n    %s",
+                    info.name(),
+                    solved.pretty());
+            Pacioli.logIf(verbose, "Simple type of %s is\n    %s",
+                    info.name(),
+                    solved.simplify().pretty());
+            Pacioli.logIf(Pacioli.Options.showTypeInference || verbose, "Generalized type of %s is\n    %s",
+                    info.name(),
+                    solved.simplify().generalize().pretty());
+
+            info.setinferredType(solved.simplify().generalize());
+
+            Optional<TypeNode> declared = info.declaredType();
+
+            if (info.isFromFile(this.file) && declared.isPresent() && info.inferredType().isPresent()) {
+
+                TypeObject declaredType = declared.get().evalType().instantiate()
+                        .reduce(i -> i.isFromFile(this.file));
+                TypeObject inferredType = info.localType().instantiate();
+
+                Pacioli.logIf(Pacioli.Options.showTypeInference || verbose,
+                        "Checking inferred type\n  %s\nagainst declared type\n  %s",
+                        inferredType.unfresh().pretty(), declaredType.unfresh().pretty());
+
+                if (!declaredType.isInstanceOf(inferredType)) {
+                    throw new RuntimeException("Type error",
+                            new PacioliException(info.location(),
+                                    String.format(
+                                            "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
+                                            declaredType.unfresh().pretty(),
+                                            inferredType.unfresh().pretty())));
                 }
-
-                finished.add(info);
             }
+
+        } catch (PacioliException e) {
+            throw new RuntimeException("Type error", e);
         }
+
     }
 
     // -------------------------------------------------------------------------

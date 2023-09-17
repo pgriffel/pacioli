@@ -70,7 +70,6 @@ public class Pacioli {
         public static boolean showResolvingDetails = false;
         public static boolean showIncludeSearches = false;
         public static boolean showTypeInference = false;
-        public static boolean showTypeInferenceDetails = false;
         public static boolean showTypeReductions = false;
         public static boolean showClassRewriting = false;
         public static boolean dumpOnMVMError = true;
@@ -80,6 +79,7 @@ public class Pacioli {
         public static boolean wrapTypes = false;
         public static boolean rewriteTypes = false;
         public static boolean includePrivate = true;
+        public static String traceTypeInference = null;
     }
 
     // Remember if user output is at the beginning of a line. Used when printing
@@ -286,8 +286,6 @@ public class Pacioli {
                     Options.showSymbolTableAdditions = Boolean.parseBoolean(value);
                 } else if (key.equals("showResolvingDetails")) {
                     Options.showResolvingDetails = Boolean.parseBoolean(value);
-                } else if (key.equals("showTypeInferenceDetails")) {
-                    Options.showTypeInferenceDetails = Boolean.parseBoolean(value);
                 } else if (key.equals("showIncludeSearches")) {
                     Options.showIncludeSearches = Boolean.parseBoolean(value);
                 } else if (key.equals("showModifiedFiles")) {
@@ -308,6 +306,8 @@ public class Pacioli {
                     Options.showClassRewriting = Boolean.parseBoolean(value);
                 } else if (key.equals("rewriteTypes")) {
                     Options.rewriteTypes = Boolean.parseBoolean(value);
+                } else if (key.equals("traceTypeInference")) {
+                    Options.traceTypeInference = value;
                 } else {
                     println("Skipping unknown option '%s'", key);
                 }
@@ -358,7 +358,7 @@ public class Pacioli {
 
     private static void typesCommand(String fileName, List<File> libs, boolean rewriteTypes, boolean includePrivate)
             throws Exception {
-
+        logOptions(false);
         Integer version = 0; // todo
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
 
@@ -372,7 +372,7 @@ public class Pacioli {
 
         PacioliFile file = optionalFile.get();
 
-        log("Displaying types for file '%s'\n", file.fsFile());
+        log("Displaying types for file '%s'", file.fsFile());
 
         try {
             Project.load(file, libs).loadBundle().printTypes(rewriteTypes, includePrivate, false);
@@ -430,7 +430,7 @@ public class Pacioli {
 
     private static void compileCommand(String fileName, List<File> libs, CompilationSettings settings)
             throws Exception {
-
+        logOptions(false);
         Integer version = 0;
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
         String kind = settings.kind();
@@ -438,6 +438,7 @@ public class Pacioli {
         if (!optionalFile.isPresent()) {
             throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);
         } else {
+
             PacioliFile file = optionalFile.get();
             if (kind.equals("bundle")) {
                 log("Creating bundle for file '%s'", file);
@@ -468,7 +469,7 @@ public class Pacioli {
     }
 
     private static void runCommand(String fileName, List<File> libs, CompilationSettings settings) throws Exception {
-
+        logOptions(false);
         log("Running file '%s'", fileName);
 
         // Locate the file
@@ -482,6 +483,7 @@ public class Pacioli {
 
         // If so, compile and run it
         try {
+
             Project project = Project.load(file.get(), libs);
 
             List<PacioliFile> modifiedFiles = project.modifiedFiles(settings.target());
@@ -503,7 +505,7 @@ public class Pacioli {
     }
 
     private static void debugCommand(String command, List<String> fileNames, List<File> libs) throws Exception {
-
+        logOptions(false);
         for (String fileName : fileNames) {
 
             Integer version = 0; // todo
@@ -552,22 +554,7 @@ public class Pacioli {
                 OPTIONS_FILE,
                 Paths.get("").toAbsolutePath().toString());
 
-        println("trace=%s", Options.trace);
-        println("showFileLoads=%s", Options.showFileLoads);
-        println("showSymbolTableAdditions=%s", Options.showSymbolTableAdditions);
-        println("showResolvingDetails=%s", Options.showResolvingDetails);
-        println("showIncludeSearches=%s", Options.showIncludeSearches);
-        println("showTypeInference=%s", Options.showTypeInference);
-        println("showTypeInferenceDetails=%s", Options.showTypeInferenceDetails);
-        println("showTypeReductions=%s", Options.showTypeReductions);
-        println("showClassRewriting=%s", Options.showClassRewriting);
-        println("dumpOnMVMError=%s", Options.dumpOnMVMError);
-        println("showGeneratingCode=%s", Options.showGeneratingCode);
-        println("showModifiedFiles=%s", Options.showModifiedFiles);
-        println("showModifiedFiles=%s", Options.showModifiedFiles);
-        println("printTypesAsString=%s", Options.printTypesAsString);
-        println("rewriteTypes=%s", Options.rewriteTypes);
-        println("includePrivate=%s", Options.includePrivate);
+        logOptions(true);
 
         println("\nPaul Griffioen 2013 - 2023");
     }
@@ -596,6 +583,25 @@ public class Pacioli {
     /*
      * Helpers
      */
+
+    private static void logOptions(boolean all) {
+        logIf(all || Options.trace, "trace=%s", Options.trace);
+        logIf(all || Options.showFileLoads, "showFileLoads=%s", Options.showFileLoads);
+        logIf(all || Options.showSymbolTableAdditions, "showSymbolTableAdditions=%s", Options.showSymbolTableAdditions);
+        logIf(all || Options.showResolvingDetails, "showResolvingDetails=%s", Options.showResolvingDetails);
+        logIf(all || Options.showIncludeSearches, "showIncludeSearches=%s", Options.showIncludeSearches);
+        logIf(all || Options.showTypeInference, "showTypeInference=%s", Options.showTypeInference);
+        logIf(all || Options.showTypeReductions, "showTypeReductions=%s", Options.showTypeReductions);
+        logIf(all || Options.showClassRewriting, "showClassRewriting=%s", Options.showClassRewriting);
+        logIf(all || !Options.dumpOnMVMError, "dumpOnMVMError=%s", Options.dumpOnMVMError);
+        logIf(all || Options.showGeneratingCode, "showGeneratingCode=%s", Options.showGeneratingCode);
+        logIf(all || Options.showModifiedFiles, "showModifiedFiles=%s", Options.showModifiedFiles);
+        logIf(all || Options.printTypesAsString, "printTypesAsString=%s", Options.printTypesAsString);
+        logIf(all || Options.rewriteTypes, "rewriteTypes=%s", Options.rewriteTypes);
+        logIf(all || !Options.includePrivate, "includePrivate=%s", Options.includePrivate);
+        logIf(all || !(Options.traceTypeInference == null || "".equals(Options.traceTypeInference)),
+                "traceTypeInference=%s", Options.traceTypeInference);
+    }
 
     /**
      * Create a bundle from the project files.

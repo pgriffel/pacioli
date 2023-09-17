@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -300,6 +299,8 @@ public class Bundle {
         List<String> names = environment.values().allNames();
         Collections.sort(names);
 
+        Pacioli.println("");
+
         for (String value : names) {
             ValueInfo info = environment.values().lookup(value);
             boolean fromProgram = info.generalInfo().module().equals(file.module());
@@ -316,7 +317,7 @@ public class Bundle {
             }
         }
 
-        Integer count = 1;
+        Integer count = 0;
         Pacioli.println("");
         for (Toplevel toplevel : environment.toplevels()) {
             TypeObject type = toplevel.type;

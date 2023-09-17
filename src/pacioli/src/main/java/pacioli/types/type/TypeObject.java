@@ -79,10 +79,14 @@ public interface TypeObject extends Printable {
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException;
 
     public default Substitution unify(TypeObject other) throws PacioliException {
-        return unify(this, other);
+        return unify(this, other, false);
     };
 
-    public static Substitution unify(TypeObject x, TypeObject y) throws PacioliException {
+    public default Substitution unifyVerbose(TypeObject other, boolean verbose) throws PacioliException {
+        return unify(this, other, verbose);
+    };
+
+    public static Substitution unify(TypeObject x, TypeObject y, boolean verbose) throws PacioliException {
         if (x.equals(y)) {
             return new Substitution();
         }
@@ -96,7 +100,7 @@ public interface TypeObject extends Printable {
         }
 
         if (x.getClass().equals(y.getClass())) {
-            return x.unificationConstraints(y).solve(false);
+            return x.unificationConstraints(y).solve(verbose);
         } else {
             throw new PacioliException("Cannot unify a %s and a %s", x.description(), y.description());
         }

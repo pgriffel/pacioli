@@ -49,6 +49,8 @@ import uom.Unit;
  */
 public class ConstraintSet extends AbstractPrintable {
 
+    public static int DEPTH = 0;
+
     private final List<EqualityConstraint> equalityConstaints = new ArrayList<EqualityConstraint>();
     private final List<InstanceConstraint> instanceConstaints = new ArrayList<InstanceConstraint>();
     private final List<UnitConstraint> unitConstaints = new ArrayList<UnitConstraint>();
@@ -228,6 +230,9 @@ public class ConstraintSet extends AbstractPrintable {
 
     public Substitution solve(Boolean verbose) throws PacioliException {
 
+        DEPTH++;
+        int depth = DEPTH - 1;
+
         List<EqualityConstraint> todoEqs = new ArrayList<EqualityConstraint>(equalityConstaints);
         List<UnitConstraint> todoUnits = new ArrayList<UnitConstraint>(unitConstaints);
         List<InstanceConstraint> todoInsts = new ArrayList<InstanceConstraint>(instanceConstaints);
@@ -246,13 +251,13 @@ public class ConstraintSet extends AbstractPrintable {
                 TypeObject right = mgu.apply(constraint.rhs);
                 try {
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nUnifying %s and %s\n%s",
-                                left.pretty(), right.pretty(), constraint.reason);
+                        Pacioli.log("\n%s%s> Unifying %s and %s\n%s",
+                                " ".repeat(depth), depth, left.pretty(), right.pretty(), constraint.reason);
                     }
-                    Substitution subs = left.unify(right);
+                    Substitution subs = left.unifyVerbose(right, verbose);
                     mgu = subs.compose(mgu);
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Result=\n%s", subs.pretty());
+                        Pacioli.log("%s<%s Result=%s", " ".repeat(depth), depth, subs.pretty());
                     }
                 } catch (PacioliException ex) {
                     throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason, left.unfresh().pretty(),
@@ -270,7 +275,7 @@ public class ConstraintSet extends AbstractPrintable {
                     Unit<TypeBase> right = mgu.apply(constraint.rhs);
 
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nUnifying units %s and %s\n%s",
+                        Pacioli.log("\nUnifying units %s and %s\n%s",
                                 left.pretty(), right.pretty(), constraint.reason);
                     }
 
@@ -292,7 +297,7 @@ public class ConstraintSet extends AbstractPrintable {
 
                 try {
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails,
+                        Pacioli.log(
                                 "\nUnifying %s and nmode(%s, %s, %s)\n%s",
                                 result.pretty(),
                                 tensor.pretty(),
@@ -345,19 +350,19 @@ public class ConstraintSet extends AbstractPrintable {
                     // node.sourceDescription());
 
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nUnifying %s and %s\n%s",
+                        Pacioli.log("\nUnifying %s and %s\n%s",
                                 result.pretty(),
                                 tensorType.nmode(n, matrixType).pretty(),
                                 constraint.reason);
                     }
 
                     // typing.addConstraint(tensorType.nmode(n, matrixType), resultType, message);
-                    Substitution subs = result.unify(tensorType.nmode(n, matrixType));
+                    Substitution subs = result.unifyVerbose(tensorType.nmode(n, matrixType), verbose);
                     // Substitution subs = result.unify(tensor);
 
                     mgu = subs.compose(mgu);
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Result=\n%s", subs.pretty());
+                        Pacioli.log("Result=\n%s", subs.pretty());
                     }
                 } catch (PacioliException ex) {
                     throw new PacioliException("\n%s:\n\n%s\n =\nnmode(%s, %s, %s) \n\n%s", constraint.reason,
@@ -437,7 +442,7 @@ public class ConstraintSet extends AbstractPrintable {
                 todoInsts.remove((int) chosenConstraint);
 
                 if (verbose) {
-                    Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nInstance unifying %s and %s\n%s",
+                    Pacioli.log("\nInstance unifying %s and %s\n%s",
                             constraint.lhs.pretty(), constraint.rhs.pretty(), constraint.reason);
                 }
 
@@ -450,10 +455,10 @@ public class ConstraintSet extends AbstractPrintable {
                 // }
 
                 try {
-                    Substitution subs = left.unify(right);
+                    Substitution subs = left.unifyVerbose(right, verbose);
                     mgu = subs.compose(mgu);
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Result=\n%s", subs.pretty());
+                        Pacioli.log("Result=\n%s", subs.pretty());
                     }
                 } catch (PacioliException ex) {
                     throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason, left.unfresh().pretty(),
@@ -461,6 +466,8 @@ public class ConstraintSet extends AbstractPrintable {
                 }
             }
         }
+
+        DEPTH--;
 
         return mgu;
     }
