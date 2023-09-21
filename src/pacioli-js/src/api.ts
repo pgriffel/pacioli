@@ -36,6 +36,8 @@ import { boxRawValue, matrixShapeFromType } from "./boxing";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
 
+const defaultContext = PacioliContext.si();
+
 // -----------------------------------------------------------------------------
 // New
 // -----------------------------------------------------------------------------
@@ -54,18 +56,27 @@ export function createMatrixType(
 // Upgrade
 // -----------------------------------------------------------------------------
 
-export function value(module: string, name: string) {
+export function value(
+  module: string,
+  name: string,
+  context: PacioliContext = defaultContext
+) {
   return boxRawValue(
-    lookupItem(module + "_" + name),
-    lookupItem("u_" + module + "_" + name)
+    lookupItem(module + "_" + name, context),
+    lookupItem("u_" + module + "_" + name, context),
+    context
   );
 }
 
 // Just a synonym for value
-export function fun(module: string, name: string) {
-  const type = lookupItem("u_" + module + "_" + name);
-  const value = lookupItem(module + "_" + name);
-  const box = boxRawValue(value, type);
+export function fun(
+  module: string,
+  name: string,
+  context: PacioliContext = defaultContext
+) {
+  const type = lookupItem("u_" + module + "_" + name, context);
+  const value = lookupItem(module + "_" + name, context);
+  const box = boxRawValue(value, type, context);
   if (box instanceof PacioliFunction) {
     return box;
   } else {
@@ -146,12 +157,15 @@ export function makeIndexSet(id: string, name: string, items: string[]) {
   return IndexSet.fromItems(id, name, items);
 }
 
-export function createCoordinates(pairs: string[][]) {
+export function createCoordinates(
+  pairs: string[][],
+  context: PacioliContext = defaultContext
+) {
   var names = [];
   var indexSets = [];
   for (var i = 0; i < pairs.length; i++) {
     names[i] = pairs[i][0];
-    indexSets[i] = lookupItem(pairs[i][1]);
+    indexSets[i] = lookupItem(pairs[i][1], context);
   }
   var coords = new Coordinates(names, indexSets);
   // added coords for b_Matrix_make_matrix
@@ -184,8 +198,11 @@ export function oneNumbers(m: number, n: number) {
   return numbers;
 }
 
-export function oneNumbersFromShape(type: MatrixType) {
-  const shape = matrixShapeFromType(type);
+export function oneNumbersFromShape(
+  type: MatrixType,
+  context: PacioliContext = defaultContext
+) {
+  const shape = matrixShapeFromType(type, context);
   const numbers = oneNumbers(shape.nrRows(), shape.nrColumns());
   numbers.shape = shape;
   return numbers;
@@ -262,19 +279,26 @@ export function printValue(x: any) {
 // -----------------------------------------------------------------------------
 
 const cache: any = {};
-const context = PacioliContext.si();
 
-export function fetchValue(home: string, name: string) {
-  return lookupItem(home + "_" + name);
+export function fetchValue(
+  home: string,
+  name: string,
+  context: PacioliContext = defaultContext
+) {
+  return lookupItem(home + "_" + name, context);
 }
 
 // Pacioli.bfetchValue = function (home: string, name: string) {
 //     return Pacioli.lookupItem("b_glbl_" + home + "_" + name);
 // }
 
-export function fetchIndex(id: string) {
-  //return lookupItem("index_" + id);
-  return lookupIndexSet("index_" + id);
+export function fetchIndex(
+  id: string,
+  context: PacioliContext = defaultContext
+) {
+  // //return lookupItem("index_" + id);
+  // return lookupIndexSet("index_" + id, context);
+  return lookupIndexSet(id, context);
 }
 
 // export function storeIndex(id: string, index: IndexSet) {
@@ -288,11 +312,19 @@ export function fetchIndex(id: string) {
 
 // // todo: replace unit_ by sbase_
 // todo2: is this a base or a unit? What does the compute_ function give?
-export function fetchScalarBase(id: string): SIBase {
-  return lookupItem("sbase_" + id);
+export function fetchScalarBase(
+  id: string,
+  context: PacioliContext = defaultContext
+): SIBase {
+  console.log("who uses fetchScalarBase?");
+  return lookupItem("sbase_" + id, context);
 }
 
-export function fetchUnit(prefix: string, base: string): SIUnit {
+export function fetchUnit(
+  prefix: string,
+  base: string,
+  context: PacioliContext = defaultContext
+): SIUnit {
   const unit = context.getUnit(prefix, base);
   if (unit === undefined) {
     const def: { definition?: DimNum; symbol: string } = computeItem(
@@ -317,8 +349,19 @@ export function fetchUnit(prefix: string, base: string): SIUnit {
 // }
 
 // // todo: replace unit_ by sbase_
-export function fetchVectorBase(id: string) {
-  return lookupItem("vbase_" + id);
+export function fetchVectorBase(
+  id: string,
+  context: PacioliContext = defaultContext
+) {
+  const vec = context.findUnitVector(id);
+  if (vec == undefined) {
+    // todo: compute_unitvec_ van maken?
+    const computed = findFunction("compute_" + id)();
+    context.addUnitVector(computed);
+    return computed;
+  } else {
+    return vec;
+  }
 }
 
 // Pacioli.fetchType = function (home: string, name: string) {
@@ -330,7 +373,10 @@ export function fetchVectorBase(id: string) {
 
 //declare namespace Pacioli {};
 
-export function lookupItem(full: string) {
+export function lookupItem(
+  full: string,
+  _context: PacioliContext = defaultContext
+) {
   if (cache[full] == undefined) {
     if (window["Pacioli" as any][full as any]) {
       cache[full] = window["Pacioli" as any][full as any];
@@ -353,33 +399,24 @@ export function lookupItem(full: string) {
   return cache[full];
 }
 
-export function lookupIndexSet(full: string) {
-  if (context.findIndexSet(full) == undefined) {
-    if (window["Pacioli" as any][full as any]) {
-      context.addIndexSet(window["Pacioli" as any][full as any] as any);
-    } else if (window["Pacioli" as any][("compute_" + full) as any]) {
-      const fn = window["Pacioli" as any][("compute_" + full) as any];
-      if (typeof fn === "function") {
-        context.addIndexSet((fn as any)());
-      }
-    } else {
-      throw new Error(
-        "no function found to compute Pacioli item '" + full + "'"
-      );
-    }
+export function lookupIndexSet(
+  id: string,
+  context: PacioliContext = defaultContext
+) {
+  const indexSet = context.findIndexSet(id);
+  if (indexSet == undefined) {
+    const computed = findFunction("compute_index_" + id)();
+    context.addIndexSet(computed);
+    return computed;
+  } else {
+    return indexSet;
   }
-  if (
-    context.findIndexSet(full) === undefined ||
-    context.findIndexSet(full) === null
-  ) {
-    throw new Error(
-      "result of Pacioli item '" + full + "' computation is undefined"
-    );
-  }
-  return context.findIndexSet(full);
 }
 
-export function lookupBase(full: string) {
+export function lookupBase(
+  full: string,
+  context: PacioliContext = defaultContext
+) {
   if (cache(full) == undefined) {
     if (window["Pacioli" as any][full as any]) {
       context.addIndexSet(window["Pacioli" as any][full as any] as any);
@@ -419,5 +456,25 @@ function computeItem(full: string): { symbol: string; definition?: DimNum } {
     }
   } else {
     throw new Error("no function found to compute Pacioli item '" + full + "'");
+  }
+}
+
+function findFunction(name: string): () => any {
+  const nameSpace = window["Pacioli" as any];
+  if (nameSpace === undefined) {
+    throw new Error(
+      `No 'Pacioli' namespace found, cannot compute Pacioli item '${name}'`
+    );
+  }
+  const fun = nameSpace[name as any] as unknown as () => any;
+  if (fun === undefined) {
+    throw new Error(`No function found to compute Pacioli item '${name}'`);
+  }
+  if (typeof fun === "function") {
+    return fun;
+  } else {
+    throw new Error(
+      `Expected a function to compute Pacioli item '${name}', but found a ${typeof fun}`
+    );
   }
 }

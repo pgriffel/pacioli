@@ -21,7 +21,7 @@
  */
 
 import { SIUnit, UOM } from "uom-ts";
-import { fetchIndex, fetchUnit, fetchVectorBase } from "./api";
+import { fetchIndex, fetchUnit } from "./api";
 import { PacioliType, PacioliUnit, PacioliVector } from "./type";
 import { IndexType, MatrixType, PacioliIndex } from "./types/matrix";
 import { PacioliValue, RawValue, tagKind, tagType } from "./value";
@@ -35,17 +35,21 @@ import { VectorBase } from "./values/vector-base";
 import { nothing } from "./values/void";
 import { GenericType } from "./types/generic";
 import { SIBaseType, VectorBaseType } from "./types/bases";
-import { UnitVector } from "./values/unit-vector";
 import { Maybe } from "./values/maybe";
+import { PacioliContext } from "./context";
 
-export function boxRawValue(value: RawValue, type: PacioliType): PacioliValue {
+export function boxRawValue(
+  value: RawValue,
+  type: PacioliType,
+  context: PacioliContext
+): PacioliValue {
   switch (type.kind) {
     case "generic": {
       if (type.name === "Tuple") {
         const values = value as unknown as Array<RawValue>; // Cast!!!
         var array = [];
         for (var i = 0; i < values.length; i++) {
-          array.push(boxRawValue(values[i], type.items[i]));
+          array.push(boxRawValue(values[i], type.items[i], context));
         }
         return tagKind(array, "tuple");
       } else if (type.name === "Boole") {
@@ -69,14 +73,14 @@ export function boxRawValue(value: RawValue, type: PacioliType): PacioliValue {
       } else if (type.name === "Maybe") {
         return new Maybe(
           type,
-          value ? boxRawValue(value, type.items[0]) : undefined
+          value ? boxRawValue(value, type.items[0], context) : undefined
         );
       } else if (type.name === "List") {
         if (typeof value === "object") {
           const values = value as unknown as Array<RawValue>; // Cast!!!
           var array = [];
           for (var i = 0; i < values.length; i++) {
-            array.push(boxRawValue(values[i], type.items[0]));
+            array.push(boxRawValue(values[i], type.items[0], context));
           }
           tagType(array, type);
           return tagKind(array, "list"); // Cast!!!
@@ -91,7 +95,7 @@ export function boxRawValue(value: RawValue, type: PacioliType): PacioliValue {
     }
     case "function": {
       if (typeof value === "function") {
-        return new PacioliFunction(value, type);
+        return new PacioliFunction(value, type, context);
       } else {
         throw new Error(
           `Expected a function instead of ${value} when boxing raw function value`
@@ -99,7 +103,7 @@ export function boxRawValue(value: RawValue, type: PacioliType): PacioliValue {
       }
     }
     case "matrix": {
-      return new Matrix(matrixShapeFromType(type), value);
+      return new Matrix(matrixShapeFromType(type, context), value);
     }
     case "typevar": {
       throw Error(
@@ -118,15 +122,18 @@ export function boxRawValue(value: RawValue, type: PacioliType): PacioliValue {
   }
 }
 
-export function matrixShapeFromType(type: MatrixType): MatrixShape {
-  const rowDim = matrixDimensionFromIndex(type.rowIndex);
-  const columnDim = matrixDimensionFromIndex(type.columnIndex);
+export function matrixShapeFromType(
+  type: MatrixType,
+  context: PacioliContext
+): MatrixShape {
+  const rowDim = matrixDimensionFromIndex(type.rowIndex, context);
+  const columnDim = matrixDimensionFromIndex(type.columnIndex, context);
   return new MatrixShape(
-    internUnit(type.multiplier),
+    internUnit(type.multiplier, context),
     rowDim,
-    internUnitVector(rowDim, type.rowUnit),
+    internUnitVector(rowDim, type.rowUnit, context),
     columnDim,
-    internUnitVector(columnDim, type.columnUnit)
+    internUnitVector(columnDim, type.columnUnit, context)
   );
 }
 
@@ -195,11 +202,14 @@ export function rawValueFromValue(value: PacioliValue): any {
   }
 }
 
-function matrixDimensionFromIndex(index: PacioliIndex): MatrixDimension {
+function matrixDimensionFromIndex(
+  index: PacioliIndex,
+  context: PacioliContext
+): MatrixDimension {
   if (index.kind === "index") {
     return new MatrixDimension(
       index.sets.map((name) => {
-        const set = fetchIndex(name);
+        const set = fetchIndex(name, context);
         if (set) return set;
         else {
           throw new Error(
@@ -227,12 +237,12 @@ function matrixDimensionFromIndexInv(dimension: MatrixDimension): PacioliIndex {
  * @param unit
  * @returns
  */
-function internUnit(unit: PacioliUnit): SIUnit {
+export function internUnit(unit: PacioliUnit, context: PacioliContext): SIUnit {
   return unit.map((base) => {
     if (base.isVar) {
       throw new Error("cannot have variable");
     } else {
-      const siUnit = fetchUnit(base.prefix, base.getName());
+      const siUnit = fetchUnit(base.prefix, base.getName(), context);
       if (siUnit) {
         return siUnit;
       } else {
@@ -263,23 +273,25 @@ function internUnitInv(unit: SIUnit): PacioliUnit {
  * @returns
  */
 function internUnitVector(
-  dimension: MatrixDimension,
-  unit: PacioliVector
+  _dimension: MatrixDimension,
+  unit: PacioliVector,
+  context: PacioliContext
 ): SIVector {
   const siUnit: SIVector = unit.map((base) => {
     if (base.isVar) {
       throw new Error("cannot have variable");
     } else {
-      const unitObject = fetchVectorBase(base.getName()).units;
-      const unitMap = new Map<string, SIUnit>();
-      for (const [key, value] of Object.entries(unitObject)) {
-        unitMap.set(key, internUnit(value as PacioliUnit));
-      }
-      const unitVector = UnitVector.fromMap(
-        base.getName(),
-        dimension.indexSets[base.position],
-        unitMap
-      );
+      const unitVector = context.findUnitVector(base.getName());
+      // const unitObject = fetchVectorBase(base.getName(), context).units;
+      // const unitMap = new Map<string, SIUnit>();
+      // for (const [key, value] of Object.entries(unitObject)) {
+      //   unitMap.set(key, internUnit(value as PacioliUnit, context));
+      // }
+      // const unitVector = UnitVector.fromMap(
+      //   base.getName(),
+      //   dimension.indexSets[base.position],
+      //   unitMap
+      // );
       if (unitVector !== undefined) {
         const siUnitVec: SIVector = UOM.fromBase(
           new VectorBase(unitVector, base.position, base.getName())

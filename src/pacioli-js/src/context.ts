@@ -53,7 +53,11 @@ export class PacioliContext {
     this.unitContext.addBase(name, symbol, definition);
   }
 
-  public getUnit(prefix: string, name: string): SIUnit | undefined {
+  public getUnit(prefix: string, name: string): SIUnit {
+    return this.unitContext.getScaledUnit(prefix, name);
+  }
+
+  public lookupUnit(prefix: string, name: string): SIUnit | undefined {
     return this.unitContext.lookupScaledUnit(prefix, name);
   }
 

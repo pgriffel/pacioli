@@ -201,3 +201,5 @@ export {
   compute_$base_matrix__,
   ONE,
 } from "./primitives";
+
+export { internUnit, matrixShapeFromType } from "./boxing";

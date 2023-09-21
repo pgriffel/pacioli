@@ -23,15 +23,24 @@
 import { typeFromValue, rawValueFromValue, boxRawValue } from "../boxing";
 import { FunctionType } from "../types/function";
 import { PacioliValue } from "../value";
+import { PacioliContext } from "../context";
 
 export class PacioliFunction {
   readonly kind = "function";
-  constructor(public fun: Function, public type: FunctionType) {}
+  constructor(
+    public fun: Function,
+    public type: FunctionType,
+    private context: PacioliContext
+  ) {}
 
   apply(args: PacioliValue[]): PacioliValue {
     const types = args.map(typeFromValue);
     const values: any[] = args.map(rawValueFromValue);
-    return boxRawValue(this.fun.apply(this, values), this.type.apply(types));
+    return boxRawValue(
+      this.fun.apply(this, values),
+      this.type.apply(types),
+      this.context
+    );
   }
 
   call(...args: PacioliValue[]): PacioliValue {
