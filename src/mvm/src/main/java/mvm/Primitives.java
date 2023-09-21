@@ -85,6 +85,12 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("base_just") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return params.get(0);
+            }
+        });
+
         storePrimitive(store, new Primitive("base_tuple") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 return new PacioliTuple(params);
