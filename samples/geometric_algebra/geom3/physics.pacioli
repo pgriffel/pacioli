@@ -35,14 +35,14 @@ unit_factor(momentum_3D);
 define framevector_mv(k, t, speed) =
     rotate_mv(rotor_mv(t, speed), fixedvector_mv(k));
 
-define framevector_hard(k, t) =
-    rotate_hard(rotor_hard(t), fixedvector_hard(k));
+define framevector_hard(k, t, speed) =
+    rotate_hard(rotor_hard(t, speed), fixedvector_hard(k));
 
 define rotate_mv(rotor, mv) =
     geometric_product(rotor, geometric_product(mv, multivector_reverse(rotor)));
 
 define rotate_hard(rotor, vector) =
-    geometric_product_hard(rotor, geometric_product_hard(vector, multivector_reverse_hard(rotor)));
+    geometric_product_hard_with_rotor(rotor, geometric_product_hard_with_mvrev(vector, multivector_reverse_hard(rotor)));
 
 
 # Open: type of the fixedvector. Assume a
@@ -64,23 +64,40 @@ define rotor_e1_hard = vector3d(1,0,0);
 # rotor without unit metre
 define rotor_mv(t, speed) = 
     let
-        a = t * speed / 2, #0.1 * |radian| / |second|,
+        a = t * speed / 2, 
         rotor_m = make_multivector([make_term(cos(a), e1), make_term(sin(a), e2)])
     in
         geometric_product(rotor_e1_mv, rotor_m)
     end;
 
-define rotor_hard(t) =
+define rotor_hard(t, speed) =
     let
-        a = t * 0.1 * |radian| / |second|,
+        a = t * speed / 2,
         rotor_input_vector = vector3d(cos(a), sin(a), 0)
     in
-        geometric_product_hard(rotor_e1_mv, rotor_input_vector)
+        # for now 2 vectors, should become a tuple for the 3D multivector
+        geometric_product_hard(rotor_e1_hard, rotor_input_vector)
     end;
 
 
-define geometric_product_hard(x,y) = ???;
-define multivector_reverse_hard(x) = ???;
+define geometric_product_hard(x,y) = 
+    tuple(x,y);
+
+define geometric_product_hard_with_rotor(rotor, vector) = 
+    let (v1, v2) = rotor,
+        inner = inner(v1, v2),
+        outer = v1 '*' v2^T
+    in
+        outer '*' vector
+    end;
+
+define geometric_product_hard_with_mvrev(vector, mvrev) = 
+    let (v1, v2) = mvrev
+    in
+    vector
+    end;
+
+define multivector_reverse_hard(x) = x;
 
 #multivector2string(rotor(0 * |second|));
 #multivector2string(framevector(0, 0 * |second|));
@@ -111,9 +128,9 @@ define the_scene_mv(t0, t1, speed) =
         add_animation_callback(callback, add_arrows(arrows, scene))
     end;
 
-define the_scene_hard(t0, t1) =
+define the_scene_hard(t0, t1, speed) =
     let scene = empty_scene("rotor in e1-e2") in
-        add_arrows(rendered_vectors_hard(t1, "blue"), add_arrows(rendered_vectors_hard(t0, "red"), scene))
+        add_arrows(rendered_vectors_hard(t1, "blue", speed), add_arrows(rendered_vectors_hard(t0, "red", speed), scene))
     end;
 
 declare rendered_vectors_mv :: (second, String, radian/second) -> List(Arrow(metre));
@@ -122,8 +139,8 @@ define rendered_vectors_mv(t, color, speed) =
     [named_origin_arrow(5 '.*' mv2vec(framevector_mv(j, t, speed)), color, format("arrr_%s_%s", color, j)) | j <- naturals(3)];
 
 
-define rendered_vectors_hard(i, color) = 
-    [origin_arrow(10 '.*'mv2vec(framevector_hard(j, i)), color) | j <- naturals(3)];
+define rendered_vectors_hard(i, color, speed) = 
+    [origin_arrow(5 '.*'framevector_hard(j, i, speed), color) | j <- naturals(3)];
 
 
 declare animation_callback_mv ::
@@ -133,3 +150,7 @@ define animation_callback_mv(t0, t1, speed) =
     (time, scene) ->
         set_arrows(scene, append(rendered_vectors_mv(t1 + time, "blue", speed),
                                  rendered_vectors_mv(floor(t0 + time / 60), "red", speed)) );
+
+#rendered_vectors_mv(0*|second|, "blue", 1*|radian/second|);
+multivector2string(rotor_mv(0.1 * |second|, 1 * |radian| / |second|));
+rotor_hard(0.1 * |second|, 1 * |radian| / |second|);
