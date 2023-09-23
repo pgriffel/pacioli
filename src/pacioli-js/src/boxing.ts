@@ -21,7 +21,7 @@
  */
 
 import { SIUnit, UOM } from "uom-ts";
-import { fetchIndex, fetchUnit } from "./api";
+import { fetchIndex, fetchUnit, fetchUnitVector } from "./api";
 import { PacioliType, PacioliUnit, PacioliVector } from "./type";
 import { IndexType, MatrixType, PacioliIndex } from "./types/matrix";
 import { PacioliValue, RawValue, tagKind, tagType } from "./value";
@@ -273,7 +273,7 @@ function internUnitInv(unit: SIUnit): PacioliUnit {
  * @returns
  */
 function internUnitVector(
-  _dimension: MatrixDimension,
+  dimension: MatrixDimension,
   unit: PacioliVector,
   context: PacioliContext
 ): SIVector {
@@ -281,7 +281,12 @@ function internUnitVector(
     if (base.isVar) {
       throw new Error("cannot have variable");
     } else {
-      const unitVector = context.findUnitVector(base.getName());
+      //const unitVector = context.findUnitVector(base.getName());
+      const unitVector = fetchUnitVector(
+        base.getName(),
+        dimension.indexSets[base.position],
+        context
+      );
       // const unitObject = fetchVectorBase(base.getName(), context).units;
       // const unitMap = new Map<string, SIUnit>();
       // for (const [key, value] of Object.entries(unitObject)) {

@@ -32,9 +32,10 @@ import { PacioliContext } from "./context";
 import { PacioliFunction } from "./values/function";
 import { MatrixType, PacioliIndex } from "./types/matrix";
 import { PacioliValue } from "./value";
-import { boxRawValue, matrixShapeFromType } from "./boxing";
+import { boxRawValue, internUnit, matrixShapeFromType } from "./boxing";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
+import { UnitVector } from "./values/unit-vector";
 
 const defaultContext = PacioliContext.si();
 
@@ -288,30 +289,20 @@ export function fetchValue(
   return lookupItem(home + "_" + name, context);
 }
 
-// Pacioli.bfetchValue = function (home: string, name: string) {
-//     return Pacioli.lookupItem("b_glbl_" + home + "_" + name);
-// }
-
 export function fetchIndex(
   id: string,
   context: PacioliContext = defaultContext
 ) {
-  // //return lookupItem("index_" + id);
-  // return lookupIndexSet("index_" + id, context);
-  return lookupIndexSet(id, context);
+  const indexSet = context.findIndexSet(id);
+  if (indexSet == undefined) {
+    const computed = findFunction("compute_index_" + id)();
+    context.addIndexSet(computed);
+    return computed;
+  } else {
+    return indexSet;
+  }
 }
 
-// export function storeIndex(id: string, index: IndexSet) {
-//     Pacioli.cache["index_" + id] = index;
-// }
-
-// // todo: replace unit_ by sbase_
-// Pacioli.storeScalarBase = function (id: string, base: string) {
-//     Pacioli.cache["unit_" + id] = base;
-// }
-
-// // todo: replace unit_ by sbase_
-// todo2: is this a base or a unit? What does the compute_ function give?
 export function fetchScalarBase(
   id: string,
   context: PacioliContext = defaultContext
@@ -325,7 +316,7 @@ export function fetchUnit(
   base: string,
   context: PacioliContext = defaultContext
 ): SIUnit {
-  const unit = context.getUnit(prefix, base);
+  const unit = context.lookupUnit(prefix, base);
   if (unit === undefined) {
     const def: { definition?: DimNum; symbol: string } = computeItem(
       "sbase_" + base
@@ -343,35 +334,25 @@ export function fetchUnit(
   }
 }
 
-// // todo: replace unit_ by sbase_
-// export function storeVectorBase(id: string, base: VectorBase) {
-//     Pacioli.cache["unitvec_" + id] = base;
-// }
-
-// // todo: replace unit_ by sbase_
-export function fetchVectorBase(
+export function fetchUnitVector(
   id: string,
+  indexSet: IndexSet,
   context: PacioliContext = defaultContext
-) {
+): UnitVector {
   const vec = context.findUnitVector(id);
   if (vec == undefined) {
-    // todo: compute_unitvec_ van maken?
-    const computed = findFunction("compute_" + id)();
+    const unitObject = findFunction("compute_vbase_" + id)().units;
+    const unitMap = new Map<string, SIUnit>();
+    for (const [key, value] of Object.entries(unitObject)) {
+      unitMap.set(key, internUnit(value as PacioliUnit, context));
+    }
+    const computed = UnitVector.fromMap(id, indexSet, unitMap);
     context.addUnitVector(computed);
     return computed;
   } else {
     return vec;
   }
 }
-
-// Pacioli.fetchType = function (home: string, name: string) {
-//     alert('Who used fetchType?');
-//     return Pacioli.lookupItem("u_glbl_" + home + "_" + name);
-// }
-
-//const Pacioli: any = {}
-
-//declare namespace Pacioli {};
 
 export function lookupItem(
   full: string,
@@ -397,20 +378,6 @@ export function lookupItem(
     );
   }
   return cache[full];
-}
-
-export function lookupIndexSet(
-  id: string,
-  context: PacioliContext = defaultContext
-) {
-  const indexSet = context.findIndexSet(id);
-  if (indexSet == undefined) {
-    const computed = findFunction("compute_index_" + id)();
-    context.addIndexSet(computed);
-    return computed;
-  } else {
-    return indexSet;
-  }
 }
 
 export function lookupBase(

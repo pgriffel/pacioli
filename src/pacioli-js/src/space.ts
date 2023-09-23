@@ -32,6 +32,9 @@ import { PacioliBoole } from "./values/boole";
 import { PacioliFunction } from "./values/function";
 import { PacioliValue } from "./value";
 
+/**
+ * Matches the Scene type from the graphics Pacioli library
+ */
 type PacioliScene = [
   PacioliString,
   PacioliArrow[],
@@ -39,10 +42,19 @@ type PacioliScene = [
   PacioliPath[]
 ];
 
+/**
+ * Matches the Animation type from the graphics Pacioli library
+ */
 type Animation = [PacioliFunction, PacioliScene];
 
+/**
+ * Matches the StatefulAnimation type from the graphics Pacioli library
+ */
 type StatefulAnimation = [PacioliValue, PacioliFunction, PacioliScene];
 
+/**
+ * Matches the Arrow type from the graphics Pacioli library
+ */
 type PacioliArrow = [
   Matrix, // from
   Matrix, // to
@@ -50,6 +62,9 @@ type PacioliArrow = [
   Maybe<PacioliString> // name
 ];
 
+/**
+ * Matches the Mesh type from the graphics Pacioli library
+ */
 type PacioliMesh = [
   [Matrix, PacioliString][], // vertices
   [Matrix, Matrix, Matrix][], // faces
@@ -58,8 +73,14 @@ type PacioliMesh = [
   PacioliBoole // wireframe
 ];
 
+/**
+ * Matches the Path type from the graphics Pacioli library
+ */
 type PacioliPath = Matrix[];
 
+/**
+ * Configuration options for the Space class
+ */
 export interface SpaceOptions {
   perspective: boolean;
   axis: boolean;
@@ -78,6 +99,9 @@ export interface SpaceOptions {
   camera: [number, number, number];
 }
 
+/**
+ * Default configuration options for the Space class
+ */
 const defaultOptions: SpaceOptions = {
   perspective: true,
   axis: true,
@@ -129,6 +153,12 @@ export class Space {
   private animationState?: PacioliValue;
   private animationScene?: PacioliScene;
 
+  /**
+   * Constructs a space element
+   *
+   * @param parent DOM element to which the space is added
+   * @param options Configuration of the space element
+   */
   constructor(
     public readonly parent: HTMLElement,
     options: Partial<SpaceOptions>
