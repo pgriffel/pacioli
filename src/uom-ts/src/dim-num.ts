@@ -199,6 +199,22 @@ export class DimNum {
    *
    * @returns The text form
    */
+  toLocale(decimals: number, locales: Intl.LocalesArgument): string {
+    return (
+      this.factor.toLocaleString(locales, {
+        maximumFractionDigits: decimals,
+        minimumFractionDigits: decimals,
+      }) + this.unit.toText()
+    );
+  }
+
+  /**
+   * A human readable form of the dimensioned number.
+   *
+   * This form cannot be parsed
+   *
+   * @returns The text form
+   */
   toPrecision(n?: number): string {
     const unitText = this.unit.toText();
     return unitText.length === 0
