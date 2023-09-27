@@ -30,13 +30,6 @@
 	            params: [["start red", 0, "second"], ["start blue", 0.1, "second"], ["speed", 1, "radian/second"]]
 	        },
             {
-                file: "physics",
-	            function: "the_scene_mv",
-                kind: 'animation',
-	            params: [["start red", 0, "second"], ["start blue", 0.1, "second"], ["speed", 2 * 3.14 / 60, "radian/second"]],
-                options: {fps: 1}
-	        },
-            {
                 file: "bi_vector",
 	            function: "scene1",
                 kind: 'scene',
@@ -84,6 +77,13 @@
 	            function: "scene3",
                 kind: 'scene',
 	            params: [["a", 5, "metre"], ["b", 5, "metre"], ["c", 5, "metre"]]
+	        },
+            {
+                file: "clock",
+	            function: "clock",
+                kind: 'animation',
+                options: {fps: 1},
+	            params: [["hour", new Date().getHours(), "hour"], ["minute", new Date().getMinutes(), "minute"], ["second", new Date().getSeconds(), "second"]]
 	        }
         ]
 
@@ -100,7 +100,7 @@
                 perspective: true,
                 zoomRange: [1, 50],
                 camera: [20, 10, 20],
-                fps: 30
+                fps: 30, verbose: true
             }
 
             // Locate the DOM element where we will append the examples
@@ -112,7 +112,7 @@
                 const fun = example.function
 
                 // Call the script function
-                const args = example.params.map(([, val, unit]) => Pacioli.num(val, unit ? Pacioli.si.parseDimNum(unit).unit : undefined));
+                const args = example.params.map(([, val, unit]) => Pacioli.num(val, unit ? Pacioli.parseUnit(unit) : undefined));
                 const sceneOrAnimation = Pacioli.fun(script, fun).apply(args);
                 
                 // Create DOM elements
@@ -165,7 +165,7 @@
                             inputButton.click();
                         }
                     }); 
-                    return [label, inputElement, unit ? Pacioli.si.parseDimNum(unit).unit : undefined]
+                    return [label, inputElement, unit ? Pacioli.parseUnit(unit) : undefined]
                 })
 
                 // Add a button to recalculate the scene
@@ -266,5 +266,6 @@
     <script type="text/javascript" src="geom3/weird.js"></script>
     <script type="text/javascript" src="geom3/cubes.js"></script>
     <script type="text/javascript" src="geom3/physics.js"></script>
+    <script type="text/javascript" src="geom3/clock.js"></script>
 
 </html>

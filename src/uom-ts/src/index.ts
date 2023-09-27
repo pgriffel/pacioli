@@ -39,3 +39,5 @@ export { UOMBase } from "./uom-base";
 export { UOM } from "./uom";
 
 export { unitFromJSON } from "./json";
+
+export { parseDimNum } from "./parser";

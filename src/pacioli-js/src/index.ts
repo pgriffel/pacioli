@@ -44,6 +44,8 @@ export {
   unitFromVarName,
   typeFromVarName,
   list,
+  parseDimNum,
+  parseUnit,
 } from "./api";
 
 export { findNonZero } from "./values/numbers";

@@ -291,8 +291,8 @@ export class Space {
       wireframe: hasWireframe.value,
       side: THREE.DoubleSide,
       transparent: false,
-      // opacity: (transparent) ? 0.5 : 1.0,
-      color: 0xaaaaff,
+      // // opacity: (transparent) ? 0.5 : 1.0,
+      // color: 0xaaaaff,
       vertexColors: true,
     };
 

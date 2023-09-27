@@ -20,7 +20,15 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { DimNum, si, SIBase, SIUnit, UOM, UOMBase } from "uom-ts";
+import {
+  DimNum,
+  si,
+  SIBase,
+  SIUnit,
+  UOM,
+  UOMBase,
+  parseDimNum as uomParseDimNum,
+} from "uom-ts";
 import { Coordinates } from "./values/coordinates";
 import { DOM } from "./dom";
 import { IndexSet } from "./values/index-set";
@@ -117,6 +125,28 @@ export function num(num: string | number, unit: SIUnit = UOM.ONE) {
     [0, 0, typeof num === "string" ? parseFloat(num) : num],
   ]);
   return new Matrix(shape, numbers);
+}
+
+export function parseUnit(
+  input: string,
+  context: PacioliContext = defaultContext
+): SIUnit {
+  return uomParseDimNum(
+    input,
+    (x) => fetchUnit("", x, context),
+    (x, y) => fetchUnit(x, y, context)
+  ).unit;
+}
+
+export function parseDimNum(
+  input: string,
+  context: PacioliContext = defaultContext
+): DimNum {
+  return uomParseDimNum(
+    input,
+    (x) => fetchUnit("", x, context),
+    (x, y) => fetchUnit(x, y, context)
+  );
 }
 
 // Pacioli.tuple = function (array) {
