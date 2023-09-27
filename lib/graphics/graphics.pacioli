@@ -17,7 +17,9 @@ export
     get_arrows,
     set_arrows,
     get_meshes,
-    set_meshes,
+    set_meshes;
+
+export
     Animation,
     StatefulAnimation,
     add_animation_callback,
@@ -142,8 +144,11 @@ deftype for_unit a: Animation(a) =
         (second, Scene(a)) -> Scene(a),
         Scene(a));
 
+declare animation_scene ::
+    for_unit a: for_type t: (Animation(a)) -> Scene(a);
+
 define animation_scene(animation) = 
-    let (scene, _) = animation in scene end;
+    let (_, scene) = animation in scene end;
 
 # ------------------------------------------------------------------------------
 
@@ -174,6 +179,9 @@ deftype for_unit a: for_type t: StatefulAnimation(a, t) =
         t,
         (second, t, Scene(a)) -> Tuple(t, Scene(a)),
         Scene(a));
+
+declare stateful_animation_scene ::
+    for_unit a: for_type t: (StatefulAnimation(a, t)) -> Scene(a);
 
 define stateful_animation_scene(animation) = 
     let (_, _, scene) = animation in scene end;

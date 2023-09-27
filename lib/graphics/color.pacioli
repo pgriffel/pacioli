@@ -1,0 +1,55 @@
+# ------------------------------------------------------------------------------
+# 3D graphics
+# ------------------------------------------------------------------------------
+
+export
+    Color,
+    rgb,
+    make_color,
+    color_string;
+
+# ------------------------------------------------------------------------------
+# Color
+# ------------------------------------------------------------------------------
+
+doc Color
+    "The color of a graphics element.";
+
+deftype Color() = String();
+
+# ------------------------------------------------------------------------------
+
+doc rgb
+    "Create a color from rgb values in the range 0 to 255.";
+
+declare rgb :: (1, 1, 1) -> Color;
+
+define rgb(r, g, b) = 
+    let 
+        nums = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"],
+        # Bug in js primitives: div does not round!!!
+        hex(x) = concatenate(nth(floor(div(x, 16)), nums), nth(mod(x, 16), nums))
+    in
+        format("#%s%s%s", hex(r), hex(g), hex(b))
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc make_color
+    "Create a color from a html color string. For example <code>make_color(\"#ffffff\")</code> 
+    and <code>make_color(\"white\")</code> both create the color white.";
+
+declare make_color :: (String) -> Color;
+
+define make_color(color) = 
+    color;
+    
+# ------------------------------------------------------------------------------
+
+doc color_string
+    "The html string representation of the color.";
+
+declare color_string :: (Color) -> String;
+
+define color_string(color) = 
+    color;

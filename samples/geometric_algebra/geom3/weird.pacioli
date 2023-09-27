@@ -27,11 +27,11 @@ define weird_arrows(n, k) =
                   to := c '.*' ith_vec(i+1) - from,
                   color := let m = mod(i, 3*k) in
                                 if m < k then 
-                                    "red"
+                                    make_color("red")
                                 else if m < 2*k then
-                                    "green"
+                                    make_color("green")
                                 else
-                                    "blue"
+                                    make_color("blue")
                                 end
                            end,
                   name := format("arr_%s", i),
@@ -55,10 +55,10 @@ define shift_arrow_color(arrow, i, time, k, freq) =
         m = if m < 0*|second| then -m else m end
     in
         if m < |second| then 
-            "red"
+            make_color("red")
         else if m < 2*|second| then
-            "green"
+            make_color("green")
         else
-            "blue"
+            make_color("blue")
         end
     end;

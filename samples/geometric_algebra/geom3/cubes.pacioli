@@ -23,11 +23,12 @@ define scene1(n, k, f) =
                                                           * cos(0.2 * f * r3 * t * pi * |radian| / (i+1))
             end,
         names = [format("fs%s", i) | i <- naturals(n)],
+        clr = color_generator(),
         animation_callback =
             let 
                 genFs(name) =
                     tuple(
-                        mesh1(name),
+                        mesh1(name, clr),
                         [ f(i) | i <- naturals(k) ],
                         [ f(i) | i <- naturals(k) ],
                         [ f(i) | i <- naturals(k) ]),
@@ -50,7 +51,7 @@ define scene1(n, k, f) =
         add_stateful_animation_callback(
             tuple(2, 0*|radian|, 0),
             animation_callback,
-            add_meshes([set_wireframe(mesh1(name), false) | name <- names], scene))
+            add_meshes([set_wireframe(mesh1(name, clr), false) | name <- names], scene))
     end;
 
 define scene2() =
@@ -62,12 +63,22 @@ define scene2() =
                 scene))
     end;
 
-define mesh1(name) =
-    named_cube_mesh(name, 1*|metre|);
+define mesh1(name, color_gen) =
+    named_cube_mesh(name, 1*|metre|, color_gen());
+
+define color_generator() =
+    let
+        wr = random(),
+        wg = random(),
+        wb = random(),
+        random_num(w) = floor(255 * expt(w * random(), 1/5))
+    in
+        () -> rgb(random_num(wr), random_num(wg), random_num(wb))
+    end;
 
 define mesh2 =
     let d = -5*|metre| in
-        move_mesh(cube_mesh(10*|metre|), space_vec(d, d, d))
+        move_mesh(cube_mesh(10*|metre|, make_color("blue")), space_vec(d, d, d))
     end;
 
 define pathPoints = [
@@ -88,9 +99,9 @@ define scene3(a, b, c) =
     end;
 
 define my_arrows(a, b, c) =
-    [origin_arrow(vec, "blue") | i <- [-1, 1],
+    [origin_arrow(vec, make_color("blue")) | i <- [-1, 1],
                                  j <- [-1, 1],
                                  k <- [-1, 1],
                                  vec := vector3d(i*a, j*b, k*c)];
 
-list_size(my_arrows(3, 3, 3))                                 ;
+color_generator()();

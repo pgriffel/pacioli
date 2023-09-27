@@ -2,6 +2,8 @@
 # 3D graphics
 # ------------------------------------------------------------------------------
 
+include color;
+
 import geometry;
 
 export
@@ -28,7 +30,7 @@ doc Mesh
 
 deftype for_unit a:
     Mesh(a) = Tuple(
-                List(Tuple(a*Geom3!, String)),
+                List(Tuple(a*Geom3!, Color)),
                 List(Tuple(1, 1, 1)),
                 a*Geom3!,
                 Maybe(String),
@@ -38,7 +40,7 @@ doc Vertex
     "A point in a <code>Mesh(a)</code> mesh.";
 
 deftype for_unit a:
-    Vertex(a) = Tuple(a*Geom3!, String);
+    Vertex(a) = Tuple(a*Geom3!, Color);
 
 doc Face
     "A suface between a mesh's vertices.";
@@ -52,7 +54,7 @@ doc vertex
     "Creates a mesh vertex. Expects x, y and z coordinates and a color. Is an 
     element of a <code>Scene(a)</code> scene.";
 
-declare vertex :: for_unit a: (a * Geom3!, String) -> Vertex(a);
+declare vertex :: for_unit a: (a * Geom3!, Color) -> Vertex(a);
 
 define vertex(vec, color) =
     tuple(vec, color);
@@ -126,35 +128,34 @@ define set_wireframe(mesh, status) =
 doc cube_mesh
     "Creates a cube mesh, a mesh with lengths of 'size' positioned at the origin.";
 
-declare cube_mesh :: for_unit a: (a) -> Mesh(a);
+declare cube_mesh :: for_unit a: (a, Color) -> Mesh(a);
 
-define cube_mesh(size) =
-    make_cube_mesh(nothing(), size);
+define cube_mesh(size, color) =
+    make_cube_mesh(nothing(), size, color);
 
 # ------------------------------------------------------------------------------
 
-declare named_cube_mesh :: for_unit a: (String, a) -> Mesh(a);
+declare named_cube_mesh :: for_unit a: (String, a, Color) -> Mesh(a);
 
 doc named_cube_mesh
     "The same as <code>make_cube_mesh</code> except the cube is also given a name. The name is used
     during animation to locate it when updating the scene.";
 
-define named_cube_mesh(name, size) =
-    make_cube_mesh(just(name), size);
+define named_cube_mesh(name, size, color) =
+    make_cube_mesh(just(name), size, color);
 
 # ------------------------------------------------------------------------------
 
-define make_cube_mesh(name, size) =
+define make_cube_mesh(name, size, color) =
     let
-        c = "lightgreen",
-        vertices = [vertex(space_vec(0,0,0),c),
-                    vertex(space_vec(1,0,0),c),
-                    vertex(space_vec(1,0,1),c),
-                    vertex(space_vec(0,0,1),c),
-                    vertex(space_vec(0,1,0),c),
-                    vertex(space_vec(1,1,0),c),
-                    vertex(space_vec(1,1,1),c),
-                    vertex(space_vec(0,1,1),c)],
+        vertices = [vertex(space_vec(0,0,0),color),
+                    vertex(space_vec(1,0,0),color),
+                    vertex(space_vec(1,0,1),color),
+                    vertex(space_vec(0,0,1),color),
+                    vertex(space_vec(0,1,0),color),
+                    vertex(space_vec(1,1,0),color),
+                    vertex(space_vec(1,1,1),color),
+                    vertex(space_vec(0,1,1),color)],
         faces = [
             face(0,2,1),
             face(0,3,2),                 

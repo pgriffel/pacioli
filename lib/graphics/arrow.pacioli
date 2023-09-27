@@ -2,6 +2,8 @@
 # 3D graphics
 # ------------------------------------------------------------------------------
 
+include color;
+
 import geometry;
 
 export
@@ -24,7 +26,7 @@ doc Arrow
     scene.";
 
 deftype for_unit a:
-    Arrow(a) = Tuple(a*Geom3!, a*Geom3!, String, Maybe(String));
+    Arrow(a) = Tuple(a*Geom3!, a*Geom3!, Color, Maybe(String));
 
 # ------------------------------------------------------------------------------
 
@@ -32,7 +34,7 @@ doc make_arrow
     "Creates an arrow between two points.";
 
 declare make_arrow ::
-    for_unit a: (a*Geom3!, a*Geom3!, String) -> Arrow(a);
+    for_unit a: (a*Geom3!, a*Geom3!, Color) -> Arrow(a);
 
 define make_arrow(from, to, color) =
     tuple(from, to, color, nothing());
@@ -44,7 +46,7 @@ doc named_arrow
     The name is used during animation to locate it when updating the scene.";
 
 declare named_arrow ::
-    for_unit a: (a*Geom3!, a*Geom3!, String, String) -> Arrow(a);
+    for_unit a: (a*Geom3!, a*Geom3!, Color, String) -> Arrow(a);
 
 define named_arrow(from, to, color, name) =
     tuple(from, to, color, just(name));
@@ -54,7 +56,7 @@ define named_arrow(from, to, color, name) =
 doc origin_arrow
     "Creates an arrow from the origin to some point.";
 
-declare origin_arrow :: for_unit a: (a*Geom3!, String) -> Arrow(a);
+declare origin_arrow :: for_unit a: (a*Geom3!, Color) -> Arrow(a);
 
 define origin_arrow(vector, color) =
     make_arrow(0 '.*' vector, vector, color);
@@ -64,7 +66,7 @@ define origin_arrow(vector, color) =
 doc named_origin_arrow
     "Creates an arrow from the origin to some point.";
 
-declare named_origin_arrow :: for_unit a: (a*Geom3!, String, String) -> Arrow(a);
+declare named_origin_arrow :: for_unit a: (a*Geom3!, Color, String) -> Arrow(a);
 
 define named_origin_arrow(vector, color, name) =
     named_arrow(0 '.*' vector, vector, color, name);
@@ -86,7 +88,7 @@ define move_arrow(arrow, from, to) =
 doc arrow_color
     "An arrow's color.";
 
-declare arrow_color :: for_unit a: (Arrow(a)) -> String;
+declare arrow_color :: for_unit a: (Arrow(a)) -> Color;
 
 define arrow_color(arrow) =
     let (_, _, color, _) = arrow in
@@ -96,7 +98,7 @@ define arrow_color(arrow) =
 doc set_arrow_color
     "Copy of the arrow, but with a different color.";
 
-declare set_arrow_color :: for_unit a: (Arrow(a), String) -> Arrow(a);
+declare set_arrow_color :: for_unit a: (Arrow(a), Color) -> Arrow(a);
 
 define set_arrow_color(arrow, color) =
     let (from, to, _, name) = arrow in

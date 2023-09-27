@@ -25,5 +25,5 @@ define example(a) =
         #mv2 = make_multivector([make_term(0.5, e1), make_term(0.5, e2)])
         mv2 = make_multivector([make_term(cos(a), e1), make_term(sin(a), e2)])
     in
-        [tuple(mv2vec(mv1), "red"), tuple(mv2vec(mv2), "blue")]
+        [tuple(mv2vec(mv1), make_color("red")), tuple(mv2vec(mv2), make_color("blue"))]
     end;
