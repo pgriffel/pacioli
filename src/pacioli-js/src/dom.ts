@@ -23,16 +23,21 @@
 import { Matrix } from "./values/matrix";
 import { getCOONumbers, getFullNumbers, getNumber } from "./values/numbers";
 import { Coordinates } from "./values/coordinates";
+import { SIUnit } from "uom-ts";
 
 // TODO: remove any type
-export function DOM(x: any) {
+// TODO: connect zeroRows
+export function DOM(
+  x: any,
+  options?: { decimals?: number; zero?: string; zeroRows?: boolean }
+) {
   if (typeof x === "boolean" || typeof x === "string") {
     return document.createTextNode(x.toString());
   } else {
     switch (x.kind) {
       case "matrix":
         if (x.shape) {
-          return DOMmatrixTable(x);
+          return DOMmatrixTable(x, options);
         } else {
           // hack to debug without shape info via print en printed
           return document.createTextNode(getFullNumbers(x));
@@ -47,7 +52,7 @@ export function DOM(x: any) {
         var items = x; //.unlist()
         for (var i = 0; i < items.length; i++) {
           var item = document.createElement("li");
-          item.appendChild(DOM(items[i]));
+          item.appendChild(DOM(items[i], options));
           list.appendChild(item);
         }
         return list;
@@ -56,7 +61,7 @@ export function DOM(x: any) {
         var items = x; //.untuple()
         for (var i = 0; i < items.length; i++) {
           var item = document.createElement("li");
-          item.appendChild(DOM(items[i]));
+          item.appendChild(DOM(items[i], options));
           tup.appendChild(item);
         }
         return tup;
@@ -67,7 +72,10 @@ export function DOM(x: any) {
 }
 
 // TODO Use tableRows from Matrix
-export function DOMmatrixTable(matrix: Matrix) {
+export function DOMmatrixTable(
+  matrix: Matrix,
+  options?: { decimals?: number; zero?: string; zeroRows?: boolean }
+) {
   var shape = matrix.shape;
   var numbers = matrix.numbers;
 
@@ -75,15 +83,20 @@ export function DOMmatrixTable(matrix: Matrix) {
   var columnOrder = shape.columnOrder();
 
   if (rowOrder === 0 && columnOrder === 0) {
-    var fragment = document.createDocumentFragment();
+    var value = getNumber(matrix.numbers, 0, 0);
     var unit = shape.unitAt(0, 0);
+
+    var fragment = document.createDocumentFragment();
     fragment.appendChild(
-      document.createTextNode(getNumber(matrix.numbers, 0, 0).toFixed(2))
+      document.createTextNode(
+        toFixed(value, options?.decimals || 2, options?.zero)
+      )
     );
-    if (!unit.isDimensionless()) {
-      fragment.appendChild(document.createTextNode(" "));
-      fragment.appendChild(document.createTextNode(unit.toText()));
-    }
+    fragment.appendChild(
+      document.createTextNode(
+        unitToText(unit, value === 0 && typeof options?.zero === "string")
+      )
+    );
     //fragment.normalize()
     return fragment;
   }
@@ -144,17 +157,22 @@ export function DOMmatrixTable(matrix: Matrix) {
 
       var cell = document.createElement("td");
       cell.className = "value";
-      cell.innerHTML = values[i].toFixed(2);
+      cell.innerHTML = toFixed(
+        values[i],
+        options?.decimals || 2,
+        options?.zero
+      );
       row.appendChild(cell);
 
       var cell = document.createElement("td");
       cell.className = "unit";
       var un = shape.unitAt(rows[i], columns[i]);
-      if (un.toText() === "1") {
-        cell.innerHTML = "";
-      } else {
-        cell.appendChild(document.createTextNode(un.toText()));
-      }
+
+      cell.appendChild(
+        document.createTextNode(
+          unitToText(un, values[i] === 0 && typeof options?.zero === "string")
+        )
+      );
       row.appendChild(cell);
 
       tbody.appendChild(row);
@@ -170,7 +188,15 @@ export function DOMmatrixTable(matrix: Matrix) {
  * @param columns A properties object for every column
  * @returns A 'table' HTML element
  */
-export function DOMTable(columns: { title: string; value: Matrix }[]) {
+export function DOMTable(
+  columns: {
+    title: string;
+    value: Matrix;
+    decimals: number;
+    zero?: string;
+  }[],
+  options?: { decimals: number; zero?: string; zeroRows: boolean }
+) {
   // Use the first column for the shape. TODO: check the rest! Is not type checked!!!
   const matrix = columns[0].value;
   const n = columns.length;
@@ -180,15 +206,32 @@ export function DOMTable(columns: { title: string; value: Matrix }[]) {
   const columnOrder = shape.columnOrder();
 
   if (rowOrder === 0 && columnOrder === 0) {
-    const fragment = document.createDocumentFragment();
+    const value = getNumber(matrix.numbers, 0, 0);
     const unit = shape.unitAt(0, 0);
+
+    const fragment = document.createDocumentFragment();
+
     fragment.appendChild(
-      document.createTextNode(getNumber(matrix.numbers, 0, 0).toFixed(2))
+      document.createTextNode(
+        toFixed(
+          value,
+          columns[0].decimals || options?.decimals || 2,
+          columns[0].zero || options?.zero
+        )
+      )
     );
-    if (!unit.isDimensionless()) {
-      fragment.appendChild(document.createTextNode(" "));
-      fragment.appendChild(document.createTextNode(unit.toText()));
-    }
+
+    fragment.appendChild(
+      document.createTextNode(
+        unitToText(
+          unit,
+          value === 0 &&
+            (typeof columns[0].zero === "string" ||
+              typeof options?.zero === "string")
+        )
+      )
+    );
+
     //fragment.normalize()
     return fragment;
   }
@@ -275,23 +318,26 @@ export function DOMTable(columns: { title: string; value: Matrix }[]) {
         }
 
         // Add the value for each colulmn
+        const nrDecs = columns[j].decimals || 2;
+        const zero =
+          typeof columns[j].zero === "string" ? columns[j].zero : options?.zero;
         for (let k = 0; k < n; k++) {
           let cell = document.createElement("td");
           cell.className = "value";
           const num = numbers[k][i][j];
           allZero = allZero && num === 0;
-          cell.innerHTML = num.toFixed(2);
+          cell.innerHTML = toFixed(num, nrDecs, zero);
           row.appendChild(cell);
 
           cell = document.createElement("td");
           cell.className = "unit";
           const un =
             0 < rowOrder ? shapes[k].unitAt(i, j) : shapes[k].unitAt(i, j);
-          if (un.toText() === "1") {
-            cell.innerHTML = "";
-          } else {
-            cell.appendChild(document.createTextNode(un.toText()));
-          }
+          cell.appendChild(
+            document.createTextNode(
+              unitToText(un, num === 0 && typeof zero === "string")
+            )
+          );
 
           row.appendChild(cell);
         }
@@ -303,4 +349,14 @@ export function DOMTable(columns: { title: string; value: Matrix }[]) {
     }
   }
   return table;
+}
+
+function toFixed(value: number, decimals: number, zero?: string): string {
+  return typeof zero === "string" && value === 0
+    ? zero
+    : value.toFixed(decimals);
+}
+
+function unitToText(unit: SIUnit, empty: boolean): string {
+  return empty || unit.isDimensionless() ? " " : unit.toText();
 }
