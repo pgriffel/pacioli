@@ -318,7 +318,8 @@ export function DOMTable(
         }
 
         // Add the value for each colulmn
-        const nrDecs = columns[j].decimals || 2;
+        const nrDecs =
+          typeof columns[j].decimals === "number" ? columns[j].decimals : 2;
         const zero =
           typeof columns[j].zero === "string" ? columns[j].zero : options?.zero;
         for (let k = 0; k < n; k++) {
