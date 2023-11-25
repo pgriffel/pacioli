@@ -20,6 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import BigNumber from "bignumber.js";
 import { SIUnit } from "./context";
 import { UOM } from "./uom";
 
@@ -32,7 +33,7 @@ export class DimNum {
   /**
    * The multiplicative unit
    */
-  public static ONE = new DimNum(1, UOM.ONE);
+  public static ONE = new DimNum(new BigNumber(1), UOM.ONE);
 
   /**
    * Constructs a dimensionless number.
@@ -40,7 +41,7 @@ export class DimNum {
    * @param factor The number
    * @returns A dimensioned number with unit UOM.ONE
    */
-  static dimless(factor: number): DimNum {
+  static dimless(factor: BigNumber): DimNum {
     return new DimNum(factor, UOM.ONE);
   }
 
@@ -51,10 +52,26 @@ export class DimNum {
    * @returns The dimensioned number
    */
   static fromUnit(unit: SIUnit): DimNum {
-    return new DimNum(1, unit);
+    return new DimNum(new BigNumber(1), unit);
   }
 
-  constructor(public factor: number, public unit: SIUnit) {}
+  static fromNumber(magnitude: number, unit: SIUnit = UOM.ONE): DimNum {
+    return new DimNum(new BigNumber(magnitude), unit);
+  }
+
+  static fromString(magnitude: string, unit: SIUnit = UOM.ONE): DimNum {
+    return new DimNum(new BigNumber(magnitude), unit);
+  }
+
+  public withUnit(unit: SIUnit): DimNum {
+    return new DimNum(this.magnitude, unit);
+  }
+
+  public withMagnitude(magnitude: BigNumber): DimNum {
+    return new DimNum(magnitude, this.unit);
+  }
+
+  constructor(public magnitude: BigNumber, public unit: SIUnit) {}
 
   /**
    * Are two dimensioned numbers equal? Compares the factors and the units.
@@ -63,7 +80,10 @@ export class DimNum {
    * @returns True iff the factors and the numbers are equal
    */
   equals(other: DimNum): boolean {
-    return this.factor === other.factor && this.unit.equals(other.unit);
+    return (
+      this.magnitude.comparedTo(other.magnitude) === 0 &&
+      this.unit.equals(other.unit)
+    );
   }
 
   /**
@@ -84,7 +104,7 @@ export class DimNum {
           " because the units differ"
       );
     }
-    return new DimNum(this.factor + other.factor, this.unit);
+    return new DimNum(this.magnitude.plus(other.magnitude), this.unit);
   }
 
   /**
@@ -94,8 +114,8 @@ export class DimNum {
    * @param factor The number to scale with
    * @returns The scaled dimensioned number
    */
-  scale(factor: number): DimNum {
-    return new DimNum(this.factor * factor, this.unit);
+  scale(factor: BigNumber): DimNum {
+    return new DimNum(this.magnitude.multipliedBy(factor), this.unit);
   }
 
   /**
@@ -105,7 +125,10 @@ export class DimNum {
    * @returns The product of the two numbers
    */
   mult(other: DimNum): DimNum {
-    return new DimNum(this.factor * other.factor, this.unit.mult(other.unit));
+    return new DimNum(
+      this.magnitude.multipliedBy(other.magnitude),
+      this.unit.mult(other.unit)
+    );
   }
 
   /**
@@ -115,7 +138,10 @@ export class DimNum {
    * @returns The new dimensioned number.
    */
   expt(power: number): DimNum {
-    return new DimNum(this.factor ** power, this.unit.expt(power));
+    return new DimNum(
+      this.magnitude.exponentiatedBy(power),
+      this.unit.expt(power)
+    );
   }
 
   /**
@@ -147,7 +173,10 @@ export class DimNum {
    * @returns The reciprocal
    */
   round(): DimNum {
-    return new DimNum(Math.round(this.factor), this.unit);
+    return new DimNum(
+      this.magnitude.integerValue(BigNumber.ROUND_HALF_CEIL),
+      this.unit
+    );
   }
 
   /**
@@ -170,8 +199,8 @@ export class DimNum {
   toText(): string {
     const unitText = this.unit.toText();
     return unitText.length === 0
-      ? this.factor.toString()
-      : this.factor.toString() +
+      ? this.magnitude.toString()
+      : this.magnitude.toString() +
           (unitText[0] === "/" ? "" : "*") +
           this.unit.toText();
   }
@@ -185,11 +214,13 @@ export class DimNum {
    */
   toFixed(n?: number): string {
     const unitText = this.unit.toText();
+    // Why does the @types/bignumber.js type for toFixed not
+    // have significantDigits?: number as first argument?
     return unitText.length === 0
-      ? this.factor.toFixed(n)
-      : this.factor.toFixed(n) +
-          (unitText[0] === "/" ? "" : "*") +
-          this.unit.toText();
+      ? this.magnitude.toFixed(n!)
+      : this.magnitude.toFixed(n!) +
+          (unitText[0] === "/" ? "" : " ") +
+          unitText;
   }
 
   /**
@@ -200,11 +231,14 @@ export class DimNum {
    * @returns The text form
    */
   toLocale(decimals: number, locales: Intl.LocalesArgument): string {
+    // Hack to get decimal separator
+    const num = 1.1;
+    const separator = num.toLocaleString(locales)[1];
+    const unitText = this.unit.toText();
+
     return (
-      this.factor.toLocaleString(locales, {
-        maximumFractionDigits: decimals,
-        minimumFractionDigits: decimals,
-      }) + this.unit.toText()
+      this.magnitude.toFixed(decimals).replace(".", separator) +
+      (unitText === "" ? "" : " " + unitText)
     );
   }
 
@@ -217,9 +251,11 @@ export class DimNum {
    */
   toPrecision(n?: number): string {
     const unitText = this.unit.toText();
+    // Why does the @types/bignumber.js type for toPrecision not
+    // have significantDigits?: number as first argument?
     return unitText.length === 0
-      ? this.factor.toPrecision(n)
-      : this.factor.toPrecision(n) +
+      ? this.magnitude.toPrecision(n!)
+      : this.magnitude.toPrecision(n!) +
           (unitText[0] === "/" ? "" : "*") +
           this.unit.toText();
   }

@@ -20,6 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import BigNumber from "bignumber.js";
 import { SIUnit } from "./context";
 import { DimNum } from "./dim-num";
 import { Token, tokenize } from "./tokenizer";
@@ -30,8 +31,8 @@ import { Token, tokenize } from "./tokenizer";
 const dimNumTokens = [
   { tag: "scaled", regex: "([a-zA-Z]\\w*)s*:s*([a-zA-Z]\\w*)" },
   { tag: "identifier", regex: "([a-zA-Z]\\w*)" },
-  { tag: "decimal", regex: "(\\d+.\\d+)" },
-  { tag: "integer", regex: "(\\d+)" },
+  { tag: "decimal", regex: "([+-]?\\d+.\\d+)" },
+  { tag: "integer", regex: "([+-]?\\d+)" },
   { tag: "times", regex: "\\*" },
   { tag: "div", regex: "\\/" },
   { tag: "power", regex: "\\^" },
@@ -82,7 +83,7 @@ function parseDimNumRec(
   baseCallback: (name: string) => SIUnit,
   scaledBaseCallback: (prefix: string, input: string) => SIUnit
 ): ParseResult {
-  if (tokenize.length === 0) {
+  if (tokens.length === 0) {
     throw new Error("Expected unit");
   }
 
@@ -176,12 +177,12 @@ function parseTerm(
       break;
     }
     case "integer": {
-      num = DimNum.dimless(parseInt(head.data[0]));
+      num = DimNum.dimless(new BigNumber(head.data[0]));
       rest = tokens.slice(1);
       break;
     }
     case "decimal": {
-      num = DimNum.dimless(parseFloat(head.data[0]));
+      num = DimNum.dimless(new BigNumber(head.data[0]));
       rest = tokens.slice(1);
       break;
     }

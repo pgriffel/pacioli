@@ -21,12 +21,13 @@
  */
 
 // import { Base } from "./base";
+import BigNumber from "bignumber.js";
 import { DimNum } from "./dim-num";
 import { unitFromJSON } from "./json";
 import { parseDimNum } from "./parser";
 import { Prefix } from "./prefix";
-import { SIBase } from "./si-base";
 import { UOM } from "./uom";
+import { SIBase, SIPrimitiveBase } from "./si-base";
 
 /**
  * Syntax to define a SI units of measurement system
@@ -46,7 +47,7 @@ export interface Definition {
   equations: {
     lhs: string;
     rhs: {
-      factor?: number;
+      factor?: BigNumber;
       powers: {
         base: {
           name: string;
@@ -127,7 +128,7 @@ export class Context {
 
     // Set the bases
     for (const base of bases.values()) {
-      this.bases.set(base.getName(), base);
+      this.bases.set(base.name, base);
     }
 
     // Set the equations
@@ -157,7 +158,7 @@ export class Context {
 
     // Load the bases
     for (const record of def.bases) {
-      this.addSIBase(SIBase.fromBase(record.name, record.symbol));
+      this.addSIBase(new SIPrimitiveBase(record.name, record.symbol));
       //      this.bases.set(record.name, SIBase.fromBase(new Base(record.name, record.symbol)));
     }
 
@@ -187,7 +188,7 @@ export class Context {
       // });
 
       // Create and store a definition
-      const def = new DimNum(record.rhs.factor || 1, unit);
+      const def = new DimNum(new BigNumber(record.rhs.factor || 1), unit);
       this.equations.set(record.lhs, def);
     }
 
@@ -245,13 +246,13 @@ export class Context {
   // }
 
   public addBase(name: string, symbol: string, def?: DimNum) {
-    this.addSIBase(SIBase.fromBase(name, symbol), def);
+    this.addSIBase(new SIPrimitiveBase(name, symbol), def);
   }
 
   public addSIBase(base: SIBase, def?: DimNum) {
-    this.bases.set(base.getName(), base);
+    this.bases.set(base.name, base);
     if (def !== undefined) {
-      this.equations.set(base.getName(), def);
+      this.equations.set(base.name, def);
     }
   }
 
@@ -381,11 +382,8 @@ export class Context {
       );
     }
 
-    //const unit = Context.constructUnit(prefix, base);
-    const scaledBase = base.withPrefix(prefix);
-    const unit = UOM.fromBase(scaledBase);
-    //this.unitCache.set(fullName, unit);
-    this.unitCache.set(scaledBase.getName(), unit);
+    const unit = UOM.fromPrefixAndBase(prefix, base);
+    this.unitCache.set(fullName, unit);
     return unit;
   }
 
@@ -403,9 +401,11 @@ export class Context {
     let num = DimNum.ONE;
 
     for (const term of unit.termMap.values()) {
-      const prefixFactor = (10 ** term.base.prefix.power) ** term.power;
+      const prefixFactor = new BigNumber(10)
+        .exponentiatedBy(term.prefix.power)
+        .exponentiatedBy(term.power);
       const definition: DimNum | undefined = this.equations.get(
-        term.base.getBaseName()
+        term.getBaseName()
       );
 
       if (definition) {
@@ -415,9 +415,7 @@ export class Context {
       } else {
         ////const unit = UOM.fromBase(SIBase.fromParts(Prefix.empty, term.base.base)).expt(term.power);
         //const unit = UOM.fromBase(term.base).expt(term.power);
-        const unit = UOM.fromBase(term.base.withPrefix(Prefix.empty)).expt(
-          term.power
-        );
+        const unit = UOM.fromTerm(term.withPrefix(Prefix.empty));
         num = num.mult(new DimNum(prefixFactor, unit));
       }
     }
@@ -436,7 +434,10 @@ export class Context {
    */
   public flattenDimNum(num: DimNum): DimNum {
     const flatUnit = this.flatten(num.unit);
-    return new DimNum(num.factor * flatUnit.factor, flatUnit.unit);
+    return new DimNum(
+      num.magnitude.multipliedBy(flatUnit.magnitude),
+      flatUnit.unit
+    );
   }
 
   /**
@@ -447,10 +448,10 @@ export class Context {
    * @param to The unit to convert to
    * @returns The conversion factor
    */
-  conversionFactor(from: UOM<SIBase>, to: UOM<SIBase>): number {
+  conversionFactor(from: UOM<SIBase>, to: UOM<SIBase>): BigNumber {
     var flat = this.flatten(from.div(to));
     if (flat.isDimensionless()) {
-      return flat.factor;
+      return flat.magnitude;
     } else {
       throw new Error(
         "cannot convert unit " + from.toText() + " to unit " + to.toText() + ""
@@ -469,10 +470,10 @@ export class Context {
   conversionFactorMaybe(
     from: UOM<SIBase>,
     to: UOM<SIBase>
-  ): number | undefined {
+  ): BigNumber | undefined {
     var flat = this.flatten(from.div(to));
     if (flat.isDimensionless()) {
-      return flat.factor;
+      return flat.magnitude;
     } else {
       return undefined;
     }
@@ -497,20 +498,20 @@ export class Context {
       }),
       bases: Array.from(this.bases.values()).map((base) => {
         return {
-          name: base.getName(),
-          symbol: base.getSymbol(),
+          name: base.name,
+          symbol: base.symbol,
         };
       }),
       equations: Array.from(this.equations.entries()).map(([name, def]) => {
         return {
           lhs: name,
           rhs: {
-            factor: def.factor,
+            factor: def.magnitude,
             powers: Array.from(def.unit.termMap.values()).map((term) => {
               return {
                 base: {
-                  name: term.base.getBaseName(),
-                  prefix: term.base.prefix.name,
+                  name: term.getBaseName(),
+                  prefix: term.prefix.name,
                 },
                 power: term.power,
               };
@@ -549,7 +550,7 @@ export class Context {
       "\nBases:\n" +
       Array.from(this.bases.values())
         .map((base) => {
-          return "  " + base.getName() + " (" + base.getSymbol() + ")";
+          return "  " + base.name + " (" + base.symbol + ")";
         })
         .join("\n") +
       "\nEquations:\n" +
