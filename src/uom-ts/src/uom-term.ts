@@ -1,6 +1,6 @@
-/* Runtime Support for the Pacioli language
+/* Units of measurement for the Pacioli language
  *
- * Copyright (c) 2022 Paul Griffioen
+ * Copyright (c) 2023 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,13 +23,7 @@
 import { UOMBase } from "./uom-base";
 
 /**
- * Implementation of an UOMBase for the SI system.
- *
- * The identity prefix handles a unit without a prefix.
- *
- * Uses the convention to name scaled units with a prefix and a
- * unit name separated by a colon. So unit 'kilo:metre' is a scaled
- * variant of unit 'metre'
+ * A term in a unit of measurement. Is a base raised to a power.
  */
 export class UOMTerm<T extends UOMBase> {
   /**
@@ -50,34 +44,19 @@ export class UOMTerm<T extends UOMBase> {
   /**
    * General constructor.
    *
-   * @param prefix A prefix
-   * @param base A base
+   * @param base The term's base
+   * @param power The term's power
    */
-  private constructor(
-    // public readonly prefix: Prefix,
-    public readonly base: T,
-    public readonly power: number
-  ) {}
-
-  getName(): string {
-    return this.base.name;
-    // return this.prefix.name.length === 0
-    //   ? this.base.name
-    //   : this.prefix.name + ":" + this.base.name;
-  }
+  private constructor(public readonly base: T, public readonly power: number) {}
 
   /**
-   * Same as getName() but omits the prefix.
+   * The term's name is the name of the base.
    *
-   * @returns
+   * @returns Name of the term's base
    */
-  // getBaseName(): string {
-  //   return this.base.name;
-  // }
-
-  // getSymbol(): string {
-  //   return this.prefix.symbol + this.base.symbol;
-  // }
+  getName(): string {
+    return this.base.name;
+  }
 
   /**
    * Human readable form of a term. Used in the UOM toText method.

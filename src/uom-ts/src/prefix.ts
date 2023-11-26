@@ -1,6 +1,6 @@
-/* Runtime Support for the Pacioli language
+/* Units of measurement for the Pacioli language
  *
- * Copyright (c) 2022 Paul Griffioen
+ * Copyright (c) 2023 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -52,5 +52,3 @@ export class Prefix {
     return this.power === 0;
   }
 }
-
-//export const idPrefix: Prefix = new Prefix(0, "", "");

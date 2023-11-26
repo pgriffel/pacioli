@@ -1,9 +1,30 @@
+/* Units of measurement for the Pacioli language
+ *
+ * Copyright (c) 2023 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 import { UOM } from "./uom";
 import { UOMBase } from "./uom-base";
 
 export function unitFromJSON<T extends UOMBase>(
   json: any,
-  // prefixCallback: (name: string) => Prefix | undefined,
   baseCallback: (prefix: string, name: string) => UOM<T> | undefined
 ): UOM<T> {
   // Check that the powers field is present
@@ -24,13 +45,9 @@ export function unitFromJSON<T extends UOMBase>(
     }
 
     // Call the callbacks to get the prefix and base
-    // const prefix = prefixCallback(term.base.prefix || "");
     const unit = baseCallback(term.base.prefix || "", term.base.name);
 
     // Check the callback results
-    // if (!prefix) {
-    //   throw new Error("Cannot create unit from json. Prefix callback returned invalid prefix for " + term.base.prefix);
-    // }
     if (!unit) {
       throw new Error(
         "Cannot create unit from json. Base callback returned invalid base for " +

@@ -1,3 +1,25 @@
+/* Units of measurement for the Pacioli language
+ *
+ * Copyright (c) 2023 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 import { expect } from "chai";
 import * as fc from "fast-check";
 import { DimNum } from "../src/dim-num";
@@ -10,17 +32,6 @@ import { arbitraryUOM } from "./uom.spec";
 import BigNumber from "bignumber.js";
 import { SIBase } from "../src/si-base";
 
-/**
- * Notes:
- * - The test script in package.json contains the mocha timeout: mocha --timeout 60000
- * - Run 1 test with it.only (chai feature)
- * - To rerun:
- *   1) Use it.only to single out the test
- *   2) Paste the { seed: 1442240156, path: "149448", endOnFailure: true } as second
- *      arg of the fc.assert of the failing test.
- *   3) call npm run test as always
- * - Where to put the following settings
- */
 fc.configureGlobal({
   numRuns: 10000,
   verbose: true,
