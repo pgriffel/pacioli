@@ -29,7 +29,7 @@ import { Token, tokenize } from "./tokenizer";
  * Hardcoded regular expressions for the tokens in dimensioned number experessions.
  */
 const dimNumTokens = [
-  { tag: "scaled", regex: "([a-zA-Z]\\w*)s*:s*([a-zA-Z]\\w*)" },
+  { tag: "scaled", regex: "([a-zA-Z]\\w*)\\s*:\\s*([a-zA-Z]\\w*)" },
   { tag: "identifier", regex: "([a-zA-Z]\\w*)" },
   { tag: "decimal", regex: "([+-]?\\d+.\\d+)" },
   { tag: "integer", regex: "([+-]?\\d+)" },
@@ -165,24 +165,24 @@ function parseTerm(
       break;
     }
     case "scaled": {
-      num = DimNum.fromUnit(scaledBaseCallback(head.data[0], head.data[1]));
+      num = DimNum.fromUnit(scaledBaseCallback(head.data[1], head.data[2]));
       rest = tokens.slice(1);
       break;
     }
     case "identifier": {
-      baseCallback(head.data[0]);
+      baseCallback(head.data[1]);
 
-      num = DimNum.fromUnit(baseCallback(head.data[0]));
+      num = DimNum.fromUnit(baseCallback(head.data[1]));
       rest = tokens.slice(1);
       break;
     }
     case "integer": {
-      num = DimNum.dimless(new BigNumber(head.data[0]));
+      num = DimNum.dimless(new BigNumber(head.data[1]));
       rest = tokens.slice(1);
       break;
     }
     case "decimal": {
-      num = DimNum.dimless(new BigNumber(head.data[0]));
+      num = DimNum.dimless(new BigNumber(head.data[1]));
       rest = tokens.slice(1);
       break;
     }
@@ -200,7 +200,7 @@ function parseTerm(
     // num = num.expt(rec.num)
     // rest = rec.rest
     if (rest[1].tag === "integer") {
-      num = num.expt(parseInt(rest[1].data[0]));
+      num = num.expt(parseInt(rest[1].data[1]));
       rest = rest.slice(2);
     } else {
       throw new Error("expected integer power");

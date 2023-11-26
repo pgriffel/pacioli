@@ -4,11 +4,11 @@ import { DimNum } from "../src/dim-num";
 import { si } from "../src/si";
 import { UOM } from "../src/uom";
 import { Context, Definition } from "../src/context";
-import { arbitraryBase, testContext } from "./base.spec";
+import { arbitraryPrimitiveSIBase, testContext } from "./base.spec";
 import { arbitraryDimNum } from "./dim-num.spec";
 import { arbitraryUOM } from "./uom.spec";
+import BigNumber from "bignumber.js";
 import { SIBase } from "../src/si-base";
-import { Prefix } from "../src/prefix";
 
 /**
  * Notes:
@@ -33,11 +33,11 @@ describe("context", () => {
   describe("flatten", () => {
     it("should do nothing for a simple unit and no equation", () => {
       fc.assert(
-        fc.property(arbitraryBase(), (base) => {
+        fc.property(arbitraryPrimitiveSIBase(), (base) => {
           // Given a definition
           const def: Definition = {
             prefixes: [],
-            bases: [{ name: base.getName(), symbol: base.getSymbol() }],
+            bases: [{ name: base.name, symbol: base.symbol }],
             equations: [],
           };
 
@@ -45,7 +45,7 @@ describe("context", () => {
           const context = Context.empty().loadDef(def);
 
           // When the unit for the base is created
-          const unit = context.getUnit(base.getName());
+          const unit = context.getUnit(base.name);
 
           const flat = context.flatten(unit);
 
@@ -60,19 +60,15 @@ describe("context", () => {
         fc.property(arbitraryDimNum(), fc.string(), (dimNum, name) => {
           fc.pre(name.split(":").length === 1);
 
-          const base = SIBase.fromParts(Prefix.empty, name, name);
-
-          // let bases = testContext.getBases();
-          // bases.push(base);
+          const base = SIBase.from(name, name);
 
           // When a context is created from the definition
-          // const context = new Context(testContext.getPrefixes(), bases, [[name, dimNum]])
           const context = new Context([], [base], [[name, dimNum]]).loadDef(
             testContext.genDef()
           );
 
           // When the unit for the base is created
-          const unit = context.getUnit(base.getName());
+          const unit = context.getUnit(base.name);
 
           const flat = context.flatten(unit);
 
@@ -101,10 +97,8 @@ describe("context", () => {
 
           // And when the unit's terms are flattened and multiplied
           const alt = unit
-            .bases()
-            .map((term) =>
-              testContext.flatten(UOM.fromBase(term).expt(unit.power(term)))
-            )
+            .terms()
+            .map((term) => testContext.flatten(UOM.fromTerm(term)))
             .reduce((x, y) => x.mult(y), DimNum.ONE);
 
           // Then these should be the same, except for precision
@@ -143,20 +137,24 @@ describe("context", () => {
   describe("conversionFactor", () => {
     it("should give 1/1000 for milli to no prefix", () => {
       expect(
-        si.conversionFactor(si.getUnit("milli:gram"), si.getUnit("gram"))
-      ).to.equal(1 / 1000);
+        si
+          .conversionFactor(si.getUnit("milli:gram"), si.getUnit("gram"))
+          .comparedTo(new BigNumber("0.001"))
+      ).to.equal(0);
     });
 
     it("should give 1/1000 for milli to no prefix alt", () => {
       expect(
-        si.conversionFactor(
-          si.getUnit("milli:gram"),
-          si.getScaledUnit("", "gram")
-        )
-      ).to.equal(1 / 1000);
+        si
+          .conversionFactor(
+            si.getUnit("milli:gram"),
+            si.getScaledUnit("", "gram")
+          )
+          .comparedTo(new BigNumber("0.001"))
+      ).to.equal(0);
     });
 
-    it("should give 1/1000 for milli:cent to euro", () => {
+    it("should give 1/100000 for milli:cent to euro", () => {
       const context = Context.fromDef({
         prefixes: [{ name: "milli", power: -3, symbol: "m" }],
         bases: [
@@ -168,7 +166,10 @@ describe("context", () => {
         equations: [
           {
             lhs: "cent",
-            rhs: { factor: 0.01, powers: [{ base: { name: "euro" } }] },
+            rhs: {
+              factor: new BigNumber(0.01),
+              powers: [{ base: { name: "euro" } }],
+            },
           },
           {
             lhs: "millicent",
@@ -178,11 +179,13 @@ describe("context", () => {
       });
 
       expect(
-        context.conversionFactor(
-          context.getUnit("milli:cent"),
-          context.getScaledUnit("", "milli:cent")
-        )
-      ).to.equal(1 / 1000);
+        context
+          .conversionFactor(
+            context.getUnit("millicent"),
+            context.getScaledUnit("", "euro")
+          )
+          .comparedTo(new BigNumber("0.00001"))
+      ).to.equal(0);
     });
   });
 });

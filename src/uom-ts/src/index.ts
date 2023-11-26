@@ -32,6 +32,8 @@ export { Prefix } from "./prefix";
 
 export { SIBase } from "./si-base";
 
+export { UOMTerm as SITerm } from "./uom-term";
+
 export { siDef, si } from "./si";
 
 export { UOMBase } from "./uom-base";

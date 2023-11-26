@@ -1,24 +1,14 @@
 import * as fc from "fast-check";
 import { SIBase } from "../src/si-base";
-import { arbitraryBase } from "./base.spec";
-import { arbitraryPrefix } from "./prefix.spec";
+import { UOMTerm } from "../src/uom-term";
+import { arbitrarySIBase } from "./base.spec";
 
-export function arbitrarySIBase(): fc.Arbitrary<SIBase> {
-  return fc
-    .record({
-      prefix: arbitraryPrefix(),
-      base: arbitraryBase(),
-    })
-    .map((rec) =>
-      SIBase.fromParts(rec.prefix, rec.base.getName(), rec.base.getSymbol())
-    );
-}
-
-export function arbitraryTerm(): fc.Arbitrary<{ term: SIBase; power: number }> {
-  return fc.record({
-    term: arbitrarySIBase(),
-    power: fc.integer({ min: -10, max: 10 }),
-  });
+export function arbitrarySITerm(): fc.Arbitrary<UOMTerm<SIBase>> {
+  return arbitrarySIBase().chain((base) =>
+    fc
+      .integer({ min: -10, max: 10 })
+      .map((power) => UOMTerm.fromBase(base).withPower(power))
+  );
 }
 
 // describe('Term', () => {

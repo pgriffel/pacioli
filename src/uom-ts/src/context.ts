@@ -27,7 +27,7 @@ import { unitFromJSON } from "./json";
 import { parseDimNum } from "./parser";
 import { Prefix } from "./prefix";
 import { UOM } from "./uom";
-import { SIBase, SIPrimitiveBase } from "./si-base";
+import { SIBase } from "./si-base";
 
 /**
  * Syntax to define a SI units of measurement system
@@ -83,17 +83,6 @@ export class Context {
    * base names to units. The names can include a prefix.
    */
   private unitCache: Map<string, SIUnit> = new Map();
-
-  // /**
-  //  * Constructs a unit with a single base with power 1 and the given prefix.
-  //  *
-  //  * @param prefix A prefix
-  //  * @param base A base instance
-  //  * @returns A unit with the single base
-  //  */
-  // private static constructUnit(prefix: Prefix, base: SIBase): SIUnit {
-  //   return UOM.fromBase(SIBase.fromParts(prefix, base));
-  // }
 
   /**
    * Creates a new empty context. The context contains the identity prefix.
@@ -158,34 +147,13 @@ export class Context {
 
     // Load the bases
     for (const record of def.bases) {
-      this.addSIBase(new SIPrimitiveBase(record.name, record.symbol));
-      //      this.bases.set(record.name, SIBase.fromBase(new Base(record.name, record.symbol)));
+      this.addSIBase(SIBase.from(record.name, record.symbol));
     }
 
     // Load the equations
-    // let line = 0;
     for (const record of def.equations) {
       // Parse the unit in the rhs of this equation
       const unit = this.parseSIUnit(record.rhs);
-      // const unit = record.rhs.powers.map(term => {
-
-      //   return this.parseSIUnit(term)
-
-      //   // // Find the prefix and base
-      //   // const prefix = this.prefixes.get(term.base.prefix || "");
-      //   // const base = this.bases.get(term.base.name);
-      //   // if (!base) {
-      //   //   throw new Error("Base " + term.base.name + " unknown in uom context definition (eq " + line + ")");
-      //   // }
-      //   // if (!prefix) {
-      //   //   throw new Error("Prefix " + term.base.prefix + " unknown in uom context definition (eq " + line + ")");
-      //   // }
-
-      //   // line++;
-
-      //   // // Create the unit
-      //   // return Context.constructUnit(prefix, base).expt(term.power || 1);
-      // });
 
       // Create and store a definition
       const def = new DimNum(new BigNumber(record.rhs.factor || 1), unit);
@@ -197,56 +165,20 @@ export class Context {
   }
 
   public parseSIUnit(json: any): SIUnit {
-    return unitFromJSON(
-      json,
-      // prefix => this.prefixes.get(prefix),
-      (prefixName, baseName) => {
-        const prefix = this.prefixes.get(prefixName);
-        if (prefix) {
-          return this.getScaledUnit(prefixName, baseName);
-        } else {
-          throw new Error(
-            "Cannot create unit from json. Invalid prefix: " + prefixName
-          );
-        }
+    return unitFromJSON(json, (prefixName, baseName) => {
+      const prefix = this.prefixes.get(prefixName);
+      if (prefix) {
+        return this.getScaledUnit(prefixName, baseName);
+      } else {
+        throw new Error(
+          "Cannot create unit from json. Invalid prefix: " + prefixName
+        );
       }
-    );
-
-    // if (!json.powers) {
-    //   throw new Error('expected powers in unit json ' + json)
-    // }
-
-    // const unit: SIUnit[] = json.powers.map((term: any) => {
-
-    //   if (!term.base) {
-    //     throw new Error('expected base in the powers of unit json ' + json)
-    //   }
-
-    //   // Find the prefix and base
-    //   const prefix = this.prefixes.get(term.base.prefix || "");
-    //   const base = this.bases.get(term.base.name);
-    //   const line = 'unknown'
-    //   if (!base) {
-    //     // return 1
-    //     throw new Error("Base " + term.base.name + " unknown in uom context definition (eq " + line + ")");
-    //   }
-    //   if (!prefix) {
-    //     // return undefined
-    //     throw new Error("Prefix " + term.base.prefix + " unknown in uom context definition (eq " + line + ")");
-    //   }
-
-    //   // Create the unit
-    //   return Context.constructUnit(prefix, base).expt(term.power || 1);
-    // });
-    // return unit.reduce((x, y) => x.mult(y), UOM.ONE);
+    });
   }
 
-  // public getBasis(): UOM[] {
-  //   return this.basis;
-  // }
-
   public addBase(name: string, symbol: string, def?: DimNum) {
-    this.addSIBase(new SIPrimitiveBase(name, symbol), def);
+    this.addSIBase(SIBase.from(name, symbol), def);
   }
 
   public addSIBase(base: SIBase, def?: DimNum) {
@@ -289,21 +221,6 @@ export class Context {
     return prefix;
   }
 
-  // /**
-  //  * Finds the prefix with the given name. Throws
-  //  * an error if it does not exist.
-  //  *
-  //  * @param name The prefix name
-  //  * @returns The prefix
-  //  */
-  // private getBase(name: string): SIBase {
-  //   const base = this.bases.get(name);
-  //   if (!base) {
-  //     throw new Error("Base " + name + " unknown");
-  //   }
-  //   return base;
-  // }
-
   /**
    * Returns a unit with the given base name and give prefix. Throws
    * an error if it does not exist.
@@ -316,7 +233,7 @@ export class Context {
   public getScaledUnit(prefix: string, name: string): UOM<SIBase> {
     const unit = this.lookupScaledUnit(prefix, name);
     if (unit === undefined) {
-      throw new Error("Base '" + name + "' unknown");
+      throw new Error(`Base '${name}' unknown (prefix override = ${prefix})`);
     }
     return unit;
   }
@@ -382,7 +299,7 @@ export class Context {
       );
     }
 
-    const unit = UOM.fromPrefixAndBase(prefix, base);
+    const unit = UOM.fromBase(base.withPrefix(prefix));
     this.unitCache.set(fullName, unit);
     return unit;
   }
@@ -402,20 +319,18 @@ export class Context {
 
     for (const term of unit.termMap.values()) {
       const prefixFactor = new BigNumber(10)
-        .exponentiatedBy(term.prefix.power)
+        .exponentiatedBy(term.base.prefix.power)
         .exponentiatedBy(term.power);
-      const definition: DimNum | undefined = this.equations.get(
-        term.getBaseName()
-      );
+      const definition: DimNum | undefined = this.equations.get(term.base.base);
 
       if (definition) {
         num = num
           .mult(this.flattenDimNum(definition.expt(term.power)))
           .scale(prefixFactor);
       } else {
-        ////const unit = UOM.fromBase(SIBase.fromParts(Prefix.empty, term.base.base)).expt(term.power);
-        //const unit = UOM.fromBase(term.base).expt(term.power);
-        const unit = UOM.fromTerm(term.withPrefix(Prefix.empty));
+        const unit = UOM.fromBase(term.base.withPrefix(Prefix.empty)).expt(
+          term.power
+        );
         num = num.mult(new DimNum(prefixFactor, unit));
       }
     }
@@ -510,8 +425,8 @@ export class Context {
             powers: Array.from(def.unit.termMap.values()).map((term) => {
               return {
                 base: {
-                  name: term.getBaseName(),
-                  prefix: term.prefix.name,
+                  name: term.base.base,
+                  prefix: term.base.prefix.name,
                 },
                 power: term.power,
               };
@@ -587,30 +502,10 @@ export class Context {
    * @returns A dimensioned number
    */
   parseDimNum(input: string): DimNum {
-    function getter<T, U>(fun: (x: T) => U | undefined): (x: T) => U {
-      return (x) => {
-        const result = fun(x);
-        if (result === undefined) {
-          throw new Error(`Base ${x} unknown`);
-        }
-        return result;
-      };
-    }
-    function getter2<T, U, V>(
-      fun: (x: T, y: V) => U | undefined
-    ): (x: T, y: V) => U {
-      return (x, y) => {
-        const result = fun(x, y);
-        if (result === undefined) {
-          throw new Error(`Base ${x} unknown`);
-        }
-        return result;
-      };
-    }
     return parseDimNum(
       input,
-      getter(this.getUnit.bind(this)),
-      getter2(this.getScaledUnit.bind(this))
+      this.getUnit.bind(this),
+      this.getScaledUnit.bind(this)
     );
   }
 }

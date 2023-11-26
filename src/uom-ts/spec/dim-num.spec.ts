@@ -3,21 +3,8 @@ import * as fc from "fast-check";
 import { UOM } from "../src/uom";
 import { DimNum } from "../src/dim-num";
 import { arbitraryUOM } from "./uom.spec";
-
-// const siPlus: Definition = {
-//   prefixes: [],
-//   bases: [
-//     {name: "euro", symbol: "€"},
-//     {name: "cent", symbol: "¢"},
-//     {name: "millicent", symbol: "m¢"}
-//   ],
-//   equations: [
-//     {lhs: "cent", rhs: {factor: 1/100, unit: [{base: "euro"}]}},
-//     {lhs: "millicent", rhs: {unit: [{prefix: "milli", base: "cent"}]}}
-//   ]
-// }
-
-// const testUOMContext = Context.empty().loadDef(siDef).loadDef(siPlus);
+import BigNumber from "bignumber.js";
+import { testContext } from "./base.spec";
 
 /**
  * A fast check Arbitrary for the {@link DimNum} class.
@@ -27,7 +14,7 @@ import { arbitraryUOM } from "./uom.spec";
  */
 export function arbitraryDimNum(): fc.Arbitrary<DimNum> {
   return arbitraryUOM().chain((uom) =>
-    arbitraryNum().map((factor) => new DimNum(factor, uom))
+    arbitraryBigNum().map((factor) => new DimNum(factor, uom))
   );
 }
 
@@ -39,11 +26,15 @@ export function arbitraryNum(): fc.Arbitrary<number> {
   );
 }
 
+export function arbitraryBigNum(): fc.Arbitrary<BigNumber> {
+  return arbitraryNum().map((x) => new BigNumber(x));
+}
+
 describe("DimNum", () => {
   describe("dimless", () => {
     it("should create a dimensioned number with the identity unit and the given factor", () => {
       fc.assert(
-        fc.property(fc.integer(), (factor) => {
+        fc.property(arbitraryBigNum(), (factor) => {
           // when a dimensioned number is created with dimless
           const dimNum = DimNum.dimless(factor);
 
@@ -51,7 +42,7 @@ describe("DimNum", () => {
           expect(dimNum.unit.equals(UOM.ONE)).to.equal(true);
 
           // and the factor should be the given factor
-          expect(dimNum.factor).to.equal(factor);
+          expect(dimNum.magnitude.comparedTo(factor)).to.equal(0);
         })
       );
     });
@@ -68,7 +59,7 @@ describe("DimNum", () => {
           expect(dimNum.unit.equals(unit)).to.equal(true);
 
           // and the factor should be 1
-          expect(dimNum.factor).to.equal(1);
+          expect(dimNum.magnitude.comparedTo(new BigNumber(1))).to.equal(0);
         })
       );
     });
@@ -82,7 +73,11 @@ describe("DimNum", () => {
           const mult = numA.mult(numB);
 
           // Then the factor is the product of the factors
-          expect(mult.factor).to.equal(numA.factor * numB.factor);
+          expect(
+            mult.magnitude.comparedTo(
+              numA.magnitude.multipliedBy(numB.magnitude)
+            )
+          ).to.equal(0);
 
           // And the unit is the product of the units
           expect(mult.unit.equals(numA.unit.mult(numB.unit))).to.equal(true);
@@ -94,16 +89,22 @@ describe("DimNum", () => {
   describe("expt", () => {
     it("should correctly compute a power", () => {
       fc.assert(
-        fc.property(arbitraryDimNum(), fc.integer(), (num, power) => {
-          // When the exponent of a unit is computed
-          const exp = num.expt(power);
+        fc.property(
+          arbitraryDimNum(),
+          fc.integer({ min: -10, max: 10 }),
+          (num, power) => {
+            // When the exponent of a unit is computed
+            const exp = num.expt(power);
 
-          // Then the factor is the exponent of the factor
-          expect(exp.factor).to.equal(num.factor ** power);
+            // Then the factor is the exponent of the factor
+            expect(
+              exp.magnitude.comparedTo(num.magnitude.exponentiatedBy(power))
+            ).to.equal(0);
 
-          // And the unit is the exponent of the unit
-          expect(exp.unit.equals(num.unit.expt(power))).to.equal(true);
-        })
+            // And the unit is the exponent of the unit
+            expect(exp.unit.equals(num.unit.expt(power))).to.equal(true);
+          }
+        )
       );
     });
   });
@@ -135,7 +136,8 @@ describe("DimNum", () => {
           // and NaN === NaN is false. For just numB.factor === 0 the outcome is Infinity
           // (result of e.g. 1/0) and Infinity === Infinity is true.
           expect(div.equals(numA.mult(numB.reciprocal()))).to.equal(
-            numA.factor !== 0 || numB.factor !== 0
+            numA.magnitude.comparedTo(new BigNumber(0)) !== 0 ||
+              numB.magnitude.comparedTo(new BigNumber(0)) !== 0
           );
         })
       );
@@ -147,7 +149,8 @@ describe("DimNum", () => {
       fc.assert(
         fc.property(arbitraryDimNum(), arbitraryDimNum(), (numA, numB) => {
           expect(numA.equals(numB)).to.equal(
-            numA.factor === numB.factor && numA.unit.equals(numB.unit)
+            numA.magnitude.comparedTo(numB.magnitude) === 0 &&
+              numA.unit.equals(numB.unit)
           );
         })
       );
@@ -159,6 +162,74 @@ describe("DimNum", () => {
       fc.assert(
         fc.property(arbitraryDimNum(), (num) => {
           expect(num.isDimensionless()).to.equal(num.unit.isDimensionless());
+        })
+      );
+    });
+  });
+
+  describe("toFixed", () => {
+    it("should print with dot for en-US", () => {
+      expect(DimNum.dimless(new BigNumber("12.345")).toFixed()).to.equal(
+        "12.345"
+      );
+    });
+
+    it("should print dimensioned number correctly", () => {
+      expect(
+        testContext.parseDimNum("12.345 * euro^2 / stuk").toFixed()
+      ).to.equal("12.345 €^2/st");
+    });
+
+    it("should print unit with negative power correctly", () => {
+      expect(
+        testContext.parseDimNum("12.345 * euro^-2 / stuk").toFixed()
+      ).to.equal("12.345/€^2/st");
+    });
+  });
+
+  describe("toLocale", () => {
+    it("should print with comma for nl-NL", () => {
+      expect(
+        DimNum.dimless(new BigNumber("12.345")).toLocale(2, "nl-NL")
+      ).to.equal("12,35");
+    });
+
+    it("should print dimensioned number correctly for nl-NL", () => {
+      expect(
+        testContext.parseDimNum("12.345 * euro^2 / stuk").toLocale(2, "nl-NL")
+      ).to.equal("12,35 €^2/st");
+    });
+  });
+
+  describe("print", () => {
+    it("should print a dimensionless number", () => {
+      expect(DimNum.dimless(new BigNumber("12.345")).print()).to.equal(
+        "12.345"
+      );
+    });
+
+    it("should print a simple dimensioned number", () => {
+      expect(DimNum.fromUnit(testContext.getUnit("euro")).print()).to.equal(
+        "euro"
+      );
+    });
+
+    it("should print a complex dimensioned number", () => {
+      expect(
+        new DimNum(
+          new BigNumber("12.345"),
+          testContext.getUnit("euro").expt(2).mult(testContext.getUnit("stuk"))
+        ).print()
+      ).to.equal("12.345*euro^2*stuk");
+    });
+
+    it("should print an arbitrary dimensioned number", () => {
+      fc.assert(
+        fc.property(arbitraryDimNum(), (num) => {
+          if (!num.equals(testContext.parseDimNum(num.print()))) {
+            console.log("huh");
+          }
+          expect(num.equals(testContext.parseDimNum(num.print()))).to.be.true;
         })
       );
     });

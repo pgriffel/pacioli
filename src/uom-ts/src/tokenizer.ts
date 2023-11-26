@@ -51,7 +51,7 @@ export function tokenize(
       tag: x.tag,
       regex: new RegExp("\\s*" + x.regex + "\\s*", "y"),
     }))
-    .concat({ tag: "eof", regex: /\s*$/ });
+    .concat({ tag: "eof", regex: /$/ });
 
   // Match tokens until a non-match is encountered or end of file is reached
   let matches = [];
@@ -89,11 +89,11 @@ function matchRegexes(
 
     // Match the regular rexpression. Return if successful
     const result = item.regex.exec(input);
-    if (result) {
+    if (result && result.index === position) {
       return {
         tag: item.tag,
         position: item.regex.lastIndex,
-        data: result.slice(1),
+        data: result, //.slice(1),
       };
     }
   }

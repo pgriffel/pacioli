@@ -20,6 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { UOMTerm } from "./uom-term";
 import { UOMBase } from "./uom-base";
 
 /**
@@ -36,7 +37,7 @@ export class UOM<T extends UOMBase> {
    *
    * Terms are stored in a map indexed by the term's name for efficient lookup.
    */
-  termMap: Map<string, { base: T; power: number }>;
+  termMap: Map<string, UOMTerm<T>>;
 
   /**
    * The identity unit
@@ -50,8 +51,12 @@ export class UOM<T extends UOMBase> {
    * @param base A base
    * @returns A unit with the single term
    */
+  static fromTerm<T extends UOMBase>(term: UOMTerm<T>): UOM<T> {
+    return new UOM(new Map([[term.getName(), term]]));
+  }
+
   static fromBase<T extends UOMBase>(base: T): UOM<T> {
-    return new UOM(new Map([[base.getName(), { base: base, power: 1 }]]));
+    return UOM.fromTerm(UOMTerm.fromBase(base));
   }
 
   /**
@@ -60,13 +65,13 @@ export class UOM<T extends UOMBase> {
    *
    * @param terms A term map
    */
-  constructor(terms: Map<string, { base: T; power: number }>) {
+  constructor(terms: Map<string, UOMTerm<T>>) {
     // Ensure that UOM instances never contain a zero power. This
     // makes the implementation of some other functions easier.
     this.termMap = new Map();
     for (const term of terms.values()) {
       if (term.power !== 0) {
-        this.termMap.set(term.base.getName(), term);
+        this.termMap.set(term.getName(), term);
       }
     }
   }
@@ -77,17 +82,26 @@ export class UOM<T extends UOMBase> {
    * @param term A term. Does not have to be member of terms().
    * @returns The power for the given term
    */
-  public power(term: T): number {
-    return this.termMap.get(term.getName())?.power || 0;
+  public power(base: T): number {
+    return this.termMap.get(base.name)?.power || 0;
+  }
+
+  /**
+   * The terms with non-zero power in this unit.
+   *
+   * @returns An array of terms
+   */
+  public terms(): UOMTerm<T>[] {
+    return Array.from(this.termMap.values());
   }
 
   /**
    * The bases with non-zero power in this unit.
    *
-   * @returns An array of terms
+   * @returns An array of bases
    */
   public bases(): T[] {
-    return Array.from(this.termMap.values()).map((x) => x.base);
+    return Array.from(this.termMap.values()).map((term) => term.base);
   }
 
   /**
@@ -117,15 +131,15 @@ export class UOM<T extends UOMBase> {
    * @returns The product of the two units
    */
   mult(other: UOM<T>): UOM<T> {
-    var result = new Map<string, { base: T; power: number }>();
+    var result = new Map<string, UOMTerm<T>>();
     for (const term of this.termMap.values()) {
-      result.set(term.base.getName(), term);
+      result.set(term.getName(), term);
     }
     for (const term of other.termMap.values()) {
-      result.set(term.base.getName(), {
-        base: term.base,
-        power: term.power + this.power(term.base),
-      });
+      result.set(
+        term.getName(),
+        term.withPower(term.power + this.power(term.base))
+      );
     }
     return new UOM(result);
   }
@@ -137,12 +151,9 @@ export class UOM<T extends UOMBase> {
    * @returns The new unit.
    */
   expt(power: number): UOM<T> {
-    var result = new Map<string, { base: T; power: number }>();
+    var result = new Map<string, UOMTerm<T>>();
     for (const term of this.termMap.values()) {
-      result.set(term.base.getName(), {
-        base: term.base,
-        power: term.power * power,
-      });
+      result.set(term.getName(), term.withPower(term.power * power));
     }
     return new UOM(result);
   }
@@ -190,24 +201,20 @@ export class UOM<T extends UOMBase> {
     let sep = "";
     for (const term of this.termMap.values()) {
       if (term.power > 0) {
-        text +=
-          sep + term.base.toText() + (term.power === 1 ? "" : "^" + term.power);
+        text += sep + term.toText();
         sep = "*";
       }
     }
     sep = "/";
     for (const term of this.termMap.values()) {
       if (term.power < 0) {
-        text +=
-          sep +
-          term.base.toText() +
-          (term.power === -1 ? "" : "^" + -term.power);
+        text += sep + term.withPower(-term.power).toText();
       }
     }
     return text;
   }
 
-  map<U extends UOMBase>(fun: (x: T) => UOM<U>): UOM<U> {
+  map<U extends UOMBase>(fun: (base: T) => UOM<U>): UOM<U> {
     var result = UOM.ONE;
     for (const term of this.termMap.values()) {
       var base = fun(term.base);
@@ -215,5 +222,22 @@ export class UOM<T extends UOMBase> {
       result = result.mult(powerBase.expt(term.power));
     }
     return result;
+  }
+
+  fold<U>(
+    base: (base: T, power: number) => U,
+    mult: (x: U, y: U) => U,
+    init?: U
+  ): U {
+    const terms = Array.from(this.termMap.values());
+    if (terms.length === 0) {
+      if (init === undefined) {
+        throw Error("Folding an empty unit but no default value is provided");
+      } else {
+        return init;
+      }
+    } else {
+      return terms.map((term) => base(term.base, term.power)).reduce(mult);
+    }
   }
 }

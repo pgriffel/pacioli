@@ -27,7 +27,7 @@ export interface UOMBase {
   /**
    * The name that is used by the unit that contains the term to identify it.
    */
-  getName(): string;
+  readonly name: string;
 
   /**
    * Human readable form of the base. Used by UOM.toText() to output a unit.

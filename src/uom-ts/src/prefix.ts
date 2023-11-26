@@ -47,6 +47,10 @@ export class Prefix {
    * change the unit.
    */
   static empty: Prefix = new Prefix(0, "", "");
+
+  public isEmpty(): boolean {
+    return this.power === 0;
+  }
 }
 
 //export const idPrefix: Prefix = new Prefix(0, "", "");

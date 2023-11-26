@@ -190,6 +190,29 @@ export class DimNum {
   }
 
   /**
+   * A parsable form of the dimensioned number.
+   *
+   * @returns The text form
+   */
+  print(): string {
+    const magnitudeText = this.magnitude.toFixed();
+    const unitText = this.unit.fold(
+      (base, power) => (power === 1 ? base.name : `${base.name}^${power}`),
+      (x, y) => x + "*" + y,
+      ""
+    );
+
+    if (unitText.length === 0) {
+      return magnitudeText;
+    }
+    if (magnitudeText === "1") {
+      return unitText;
+    }
+
+    return magnitudeText + "*" + unitText;
+  }
+
+  /**
    * A human readable form of the dimensioned number.
    *
    * This form cannot be parsed
@@ -197,12 +220,11 @@ export class DimNum {
    * @returns The text form
    */
   toText(): string {
+    const magnitudeText = this.magnitude.toString();
     const unitText = this.unit.toText();
     return unitText.length === 0
-      ? this.magnitude.toString()
-      : this.magnitude.toString() +
-          (unitText[0] === "/" ? "" : "*") +
-          this.unit.toText();
+      ? magnitudeText
+      : magnitudeText + (unitText[0] === "/" ? "" : "*") + unitText;
   }
 
   /**

@@ -1,10 +1,8 @@
 import { expect } from "chai";
 import * as fc from "fast-check";
-import { SIBase } from "../src/si-base";
 import { UOM } from "../src/uom";
-import { arbitraryBase } from "./base.spec";
-import { arbitrarySIBase } from "./term.spec";
-import { Prefix } from "../src/prefix";
+import { arbitrarySIBase } from "./base.spec";
+import { SIUnit } from "../src/context";
 
 /**
  * A fast check Arbitrary for the {@link UOM} class.
@@ -12,11 +10,8 @@ import { Prefix } from "../src/prefix";
  * @returns an arbitray UOM instance
  * @see arbitraryBase
  */
-// export function arbitraryUOM(): fc.Arbitrary<UOM<SIBase>> {
-//   return fc.array(arbitraryTerm())
-//     .map((terms => terms.map(UOM.fromTerm).reduce((x, y) => x.mult(y), UOM.ONE)));
-// }
-export function arbitraryUOM(): fc.Arbitrary<UOM<SIBase>> {
+
+export function arbitraryUOM(): fc.Arbitrary<SIUnit> {
   return fc
     .array(arbitrarySIBase())
     .map((terms) =>
@@ -28,24 +23,21 @@ describe("UOM", () => {
   describe("fromBase", () => {
     it("should create a unit with correct prefix, base and power", () => {
       fc.assert(
-        fc.property(arbitraryBase(), (bas) => {
-          const base = bas.withPrefix(new Prefix(1, "foo", "foo"));
+        fc.property(arbitrarySIBase(), (base) => {
           // when a unit is created with fromBase
-          const uom = UOM.fromBase(
-            SIBase.fromParts(base.prefix, base.getBaseName(), base.getSymbol())
-          );
+          const uom = UOM.fromBase(base);
 
           // then the unit should have one term
-          const terms = uom.bases();
+          const terms = uom.terms();
           expect(terms.length).to.equal(1);
 
           // and the base, prefix and power should be correct
           const term = terms[0];
-          expect(term.getName()).to.equal(base.getName());
-          expect(term.getSymbol()).to.equal(base.getSymbol());
-          expect(term.prefix).to.equal(base.prefix);
+          expect(term.getName()).to.equal(base.name);
+          expect(term.toText()).to.equal(base.prefix.symbol + base.symbol);
+          expect(term.base.prefix).to.equal(base.prefix);
 
-          expect(uom.power(term)).to.equal(1);
+          expect(uom.power(term.base)).to.equal(1);
         })
       );
     });
@@ -91,8 +83,8 @@ describe("UOM", () => {
           const exp = uom.expt(power);
 
           // Then the power should be multiplied I.
-          for (const term of uom.bases()) {
-            expect(exp.power(term)).to.equal(power * uom.power(term));
+          for (const base of uom.bases()) {
+            expect(exp.power(base)).to.equal(power * uom.power(base));
           }
 
           // Then the power should be multiplied II.
@@ -171,7 +163,7 @@ describe("UOM", () => {
           expect(uom.isDimensionless()).to.equal(allZero);
 
           // This stronger condition holds for the current implementation
-          expect(uom.isDimensionless()).to.equal(uom.bases().length === 0);
+          expect(uom.isDimensionless()).to.equal(uom.terms().length === 0);
         })
       );
     });

@@ -20,7 +20,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Prefix } from "./prefix";
 import { UOMBase } from "./uom-base";
 
 /**
@@ -32,34 +31,53 @@ import { UOMBase } from "./uom-base";
  * unit name separated by a colon. So unit 'kilo:metre' is a scaled
  * variant of unit 'metre'
  */
-export class SIBase implements UOMBase {
-  readonly name: string;
-
-  static from(base: string, symbol: string): SIBase {
-    return new SIBase(Prefix.empty, base, symbol);
+export class UOMTerm<T extends UOMBase> {
+  /**
+   * Constructs an SITerm instance.
+   *
+   * @param prefix
+   * @param base
+   * @returns
+   */
+  static fromBase<T extends UOMBase>(base: T): UOMTerm<T> {
+    return new UOMTerm(base, 1);
   }
 
-  public withPrefix(prefix: Prefix): SIBase {
-    return new SIBase(prefix, this.base, this.symbol);
+  public withPower(power: number): UOMTerm<T> {
+    return new UOMTerm(this.base, power);
   }
 
   /**
-   * General constructor. Use SIBase.fromParts instead.
+   * General constructor.
    *
-   * @param name A unique name for the base
-   * @param symbol A unique symbol for the base
+   * @param prefix A prefix
+   * @param base A base
    */
-  constructor(
-    public readonly prefix: Prefix,
-    public readonly base: string,
-    public readonly symbol: string
-  ) {
-    this.name = this.prefix.isEmpty() ? base : this.prefix.name + ":" + base;
+  private constructor(
+    // public readonly prefix: Prefix,
+    public readonly base: T,
+    public readonly power: number
+  ) {}
+
+  getName(): string {
+    return this.base.name;
+    // return this.prefix.name.length === 0
+    //   ? this.base.name
+    //   : this.prefix.name + ":" + this.base.name;
   }
 
-  public isPrimitive(): boolean {
-    return this.prefix.isEmpty();
-  }
+  /**
+   * Same as getName() but omits the prefix.
+   *
+   * @returns
+   */
+  // getBaseName(): string {
+  //   return this.base.name;
+  // }
+
+  // getSymbol(): string {
+  //   return this.prefix.symbol + this.base.symbol;
+  // }
 
   /**
    * Human readable form of a term. Used in the UOM toText method.
@@ -67,6 +85,6 @@ export class SIBase implements UOMBase {
    * @returns A text form of the unit.
    */
   toText() {
-    return this.prefix.symbol + this.symbol;
+    return this.base.toText() + (this.power === 1 ? "" : "^" + this.power);
   }
 }

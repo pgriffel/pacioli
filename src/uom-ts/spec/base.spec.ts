@@ -2,6 +2,8 @@ import { siDef } from "../src/si";
 import * as fc from "fast-check";
 import { Context } from "../src/context";
 import { SIBase } from "../src/si-base";
+import BigNumber from "bignumber.js";
+import { arbitraryPrefix } from "./prefix.spec";
 
 export const testDefs = {
   prefixes: [],
@@ -14,7 +16,10 @@ export const testDefs = {
   equations: [
     {
       lhs: "cent",
-      rhs: { factor: 0.01, powers: [{ base: { name: "euro" } }] },
+      rhs: {
+        factor: new BigNumber(0.01),
+        powers: [{ base: { name: "euro" } }],
+      },
     },
     {
       lhs: "millicent",
@@ -25,8 +30,14 @@ export const testDefs = {
 
 export const testContext = Context.fromDef(siDef).loadDef(testDefs);
 
-export function arbitraryBase(): fc.Arbitrary<SIBase> {
+export function arbitraryPrimitiveSIBase(): fc.Arbitrary<SIBase> {
   return fc
     .subarray(testContext.getBases(), { minLength: 1, maxLength: 1 })
     .map((x) => x[0]);
+}
+
+export function arbitrarySIBase(): fc.Arbitrary<SIBase> {
+  return arbitraryPrimitiveSIBase().chain((base) =>
+    arbitraryPrefix().map((prefix) => base.withPrefix(prefix))
+  );
 }
