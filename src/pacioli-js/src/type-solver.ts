@@ -119,38 +119,11 @@ class Binding {
     public vectorMap: Map<string, PacioliVector> = new Map()
   ) {}
 
-  // public bindType(key: TypeVar, value: PacioliType): Binding {
-  //   return new Binding(this.addToMap(key.name, value, this.typeMap), this.indexMap, this.unitMap)
-  // }
-
-  // public bindUnit(key: UnitVar, value: UOM<UnitBase | UnitVar>): Binding {
-  //   return new Binding(this.typeMap, this.indexMap, this.addToMap(key.name, value, this.unitMap))
-  // }
-
-  // public bindIndex(key: IndexVar, value: IndexType | IndexVar): Binding {
-  //   return new Binding(this.typeMap, this.addToMap(key.name, value, this.indexMap), this.unitMap)
-  // }
-
-  // private addToMap<T>(key: string, value: T, map: Map<string, T>): Map<string, T> {
-  //   const newMap = new Map<string, T>()
-  //   map.forEach((value, key) => {
-  //     newMap.set(key, value)
-  //   })
-  //   newMap.set(key, value)
-  //   return newMap;
-  // }
-
   static fromType(variable: PacioliVar, type: PacioliType): Binding {
     const binding = new Binding();
     binding.typeMap.set(variable.name, type);
     return binding;
   }
-
-  // static fromUnit(variable: UnitVar, unit: PacioliUnit): Binding {
-  //   const binding = new Binding()
-  //   binding.unitMap.set(variable.name, unit)
-  //   return binding
-  // }
 
   static fromIndex(variable: IndexVar, index: IndexType | IndexVar): Binding {
     const binding = new Binding();
@@ -334,15 +307,6 @@ function subsUnit<T extends PacioliBase>(
     }
   });
 }
-
-// function subsVectorUnit(unit: PacioliVector, bindings: Map<string, PacioliVector>): PacioliVector {
-//   return unit.map(base => {
-//     switch (base.kind) {
-//       case 'vectorbasetype': return UOM.fromBase(base)
-//       case 'unitvar': return bindings.get(base.name) || UOM.fromBase(base)
-//     }
-//   })
-// }
 
 export function subs(type: PacioliType, bindings: Binding): PacioliType {
   switch (type.kind) {

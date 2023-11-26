@@ -117,11 +117,6 @@ export class Coordinates {
   }
 
   public shape() {
-    // const multiplier = UOM.ONE;
-    // const rowSets = this.indexSets;
-    // const columnSets = [];
-    // const rowUnit = UOM.ONE
-    // const columnUnit = UOM.ONE
     return new MatrixShape(
       UOM.ONE,
       new MatrixDimension(this.indexSets),

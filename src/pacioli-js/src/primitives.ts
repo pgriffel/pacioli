@@ -71,8 +71,6 @@ import { Matrix } from "./values/matrix";
 // -----------------------------------------------------------------------------
 
 export const ONE = UOM.ONE;
-// export const RADIAN = si.getUnit('radian') // unit('radian')      // From primitive module 'Matrix'
-// export const PERCENT = si.getUnit('percent') // unit('percent')    // From primitive module 'Standard'
 
 export const prefix = {
   yotta: { symbol: "Y", factor: Math.pow(10, 24) },

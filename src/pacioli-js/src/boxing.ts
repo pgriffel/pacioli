@@ -281,22 +281,11 @@ function internUnitVector(
     if (base.isVar) {
       throw new Error("cannot have variable");
     } else {
-      //const unitVector = context.findUnitVector(base.getName());
       const unitVector = fetchUnitVector(
         base.name,
         dimension.indexSets[base.position],
         context
       );
-      // const unitObject = fetchVectorBase(base.getName(), context).units;
-      // const unitMap = new Map<string, SIUnit>();
-      // for (const [key, value] of Object.entries(unitObject)) {
-      //   unitMap.set(key, internUnit(value as PacioliUnit, context));
-      // }
-      // const unitVector = UnitVector.fromMap(
-      //   base.getName(),
-      //   dimension.indexSets[base.position],
-      //   unitMap
-      // );
       if (unitVector !== undefined) {
         const siUnitVec: SIVector = UOM.fromBase(
           new VectorBase(unitVector, base.position, base.name)

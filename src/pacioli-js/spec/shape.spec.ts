@@ -24,22 +24,12 @@ import * as fc from "fast-check";
 import { arbitraryShape } from "./context.arbitraries";
 import { testContext } from "./test-context";
 
-/**
- * A fast check Arbitrary for the {@link Shape} class.
- *
- * @returns an arbitray Shape instance
- */
-// export function arbitraryShape(): fc.Arbitrary<Shape> {
-//   return arbitraryUOM().map((unit) => new Shape(unit));
-// }
-
 describe("Shape", () => {
   describe("rowOrder", () => {
     it("should create a shape that is compatible with the coordinates", () => {
       fc.assert(
         fc.property(arbitraryShape(testContext), (shape) => {
           expect(shape).toEqual(shape);
-          // console.log(shape)
         })
       );
     });
