@@ -30,14 +30,10 @@ export class SIBaseType implements PacioliBase {
   readonly kind = "sibasetype";
   readonly isVar = false;
 
-  constructor(public prefix: string, private name: string) {
+  constructor(public readonly prefix: string, public readonly name: string) {
     if (typeof prefix !== "string") {
       throw new Error("prefix error");
     }
-  }
-
-  getName(): string {
-    return this.name;
   }
 
   public toText(): string {
@@ -49,11 +45,7 @@ export class VectorBaseType implements PacioliBase {
   readonly kind = "vectorbasetype";
   readonly isVar = false;
 
-  constructor(private name: string, public position: number) {}
-
-  getName(): string {
-    return this.name;
-  }
+  constructor(public readonly name: string, public readonly position: number) {}
 
   public toText(): string {
     return this.name + "$" + this.position;

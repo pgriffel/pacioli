@@ -261,8 +261,8 @@ export class ScatterPlot {
           if (this.options.onclick) {
             setTimeout(() => {
               this.options.onclick!({
-                x: new DimNum(data.x, unitX),
-                y: new DimNum(data.y, unitY),
+                x: DimNum.fromNumber(data.x, unitX),
+                y: DimNum.fromNumber(data.y, unitY),
                 element: data.coordinates,
               });
             }, 0);
@@ -272,8 +272,8 @@ export class ScatterPlot {
           if (this.options.tooltip) {
             tooltip.show(
               this.options.tooltip(
-                new DimNum(d.x, unitX),
-                new DimNum(d.y, unitY),
+                DimNum.fromNumber(d.x, unitX),
+                DimNum.fromNumber(d.y, unitY),
                 d.coordinates
               ),
               event.pageX + this.options.tooltipOffset.dx,
@@ -397,7 +397,9 @@ function mergeData(
       if (rowX < rowY) {
         const valueX = convert
           ? valsX[ptrX] *
-            context.unitContext.conversionFactor(shapeX.unitAt(rowX, 0), unitX)
+            context.unitContext
+              .conversionFactor(shapeX.unitAt(rowX, 0), unitX)
+              .toNumber()
           : valsX[ptrX];
         if (valueX !== 0) {
           values.push({
@@ -412,7 +414,9 @@ function mergeData(
       } else if (rowX > rowY) {
         const valueY = convert
           ? valsY[ptrY] *
-            context.unitContext.conversionFactor(shapeY.unitAt(rowY, 0), unitY)
+            context.unitContext
+              .conversionFactor(shapeY.unitAt(rowY, 0), unitY)
+              .toNumber()
           : valsY[ptrY];
         if (valueY !== 0) {
           values.push({
@@ -427,11 +431,15 @@ function mergeData(
       } else {
         const valueX = convert
           ? valsX[ptrX] *
-            context.unitContext.conversionFactor(shapeX.unitAt(rowX, 0), unitX)
+            context.unitContext
+              .conversionFactor(shapeX.unitAt(rowX, 0), unitX)
+              .toNumber()
           : valsX[ptrX];
         const valueY = convert
           ? valsY[ptrY] *
-            context.unitContext.conversionFactor(shapeY.unitAt(rowY, 0), unitY)
+            context.unitContext
+              .conversionFactor(shapeY.unitAt(rowY, 0), unitY)
+              .toNumber()
           : valsY[ptrY];
         if (valueX !== 0 && valueY !== 0) {
           values.push({
@@ -452,7 +460,9 @@ function mergeData(
       const rowX = rowsX[ptrX];
       const valueX = convert
         ? valsX[ptrX] *
-          context.unitContext.conversionFactor(shapeX.unitAt(rowX, 0), unitX)
+          context.unitContext
+            .conversionFactor(shapeX.unitAt(rowX, 0), unitX)
+            .toNumber()
         : valsX[ptrX];
       if (valueX !== 0) {
         values.push({
@@ -469,7 +479,9 @@ function mergeData(
       const rowY = rowsY[ptrY];
       const valueY = convert
         ? valsY[ptrY] *
-          context.unitContext.conversionFactor(shapeY.unitAt(rowY, 0), unitY)
+          context.unitContext
+            .conversionFactor(shapeY.unitAt(rowY, 0), unitY)
+            .toNumber()
         : valsY[ptrY];
       if (valueY !== 0) {
         values.push({

@@ -147,7 +147,7 @@ export class Coordinates {
     var newUnit = UOM.ONE;
     for (var i = 0; i < this.order(); i++) {
       newUnit = newUnit.mult(
-        unit.map(function (base) {
+        unit.map((base) => {
           return vecBaseItem(base, i);
         })
       );

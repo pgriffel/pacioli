@@ -303,7 +303,7 @@ export class LineChart {
             tooltipDot.style("display", "none");
             // Without the timeout the display: none does not have an effect
             setTimeout(() => {
-              this.options.onclick!(new DimNum(d, unit), data.labels[i]);
+              this.options.onclick!(DimNum.fromNumber(d, unit), data.labels[i]);
             }, 0);
           }
         })
@@ -311,7 +311,10 @@ export class LineChart {
           if (this.options.tooltip) {
             // Call the tooltip callback to get the HTML to display
             tooltip.show(
-              this.options.tooltip(new DimNum(num, unit), data.labels[i]),
+              this.options.tooltip(
+                DimNum.fromNumber(num, unit),
+                data.labels[i]
+              ),
               event.pageX + this.options.tooltipOffset.dx,
               event.pageY + this.options.tooltipOffset.dy
             );

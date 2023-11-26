@@ -235,7 +235,7 @@ export class PieChart {
             // Without the timeout the display: none does not have an effect
             setTimeout(() => {
               this.options.onclick!(
-                new DimNum(d.data.value, unit),
+                DimNum.fromNumber(d.data.value, unit),
                 d.data.name,
                 d.data.value / total
               );
@@ -246,7 +246,7 @@ export class PieChart {
           if (this.options.tooltip) {
             tooltip.show(
               this.options.tooltip(
-                new DimNum(d.data.value, unit),
+                DimNum.fromNumber(d.data.value, unit),
                 d.data.name,
                 d.data.value / total
               ),

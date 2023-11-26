@@ -89,7 +89,7 @@ export function DOMmatrixTable(
     var fragment = document.createDocumentFragment();
     fragment.appendChild(
       document.createTextNode(
-        toFixed(value, options?.decimals || 2, options?.zero)
+        toFixed(value, firstDefined(options?.decimals, 2)!, options?.zero)
       )
     );
     fragment.appendChild(
@@ -159,7 +159,7 @@ export function DOMmatrixTable(
       cell.className = "value";
       cell.innerHTML = toFixed(
         values[i],
-        options?.decimals || 2,
+        firstDefined(options?.decimals, 2)!,
         options?.zero
       );
       row.appendChild(cell);
@@ -215,8 +215,8 @@ export function DOMTable(
       document.createTextNode(
         toFixed(
           value,
-          columns[0].decimals || options?.decimals || 2,
-          columns[0].zero || options?.zero
+          firstDefined(columns[0].decimals, options?.decimals, 2)!,
+          firstDefined(columns[0].zero, options?.zero)
         )
       )
     );
@@ -318,10 +318,8 @@ export function DOMTable(
         }
 
         // Add the value for each colulmn
-        const nrDecs =
-          typeof columns[j].decimals === "number" ? columns[j].decimals : 2;
-        const zero =
-          typeof columns[j].zero === "string" ? columns[j].zero : options?.zero;
+        const nrDecs = firstDefined(columns[j].decimals, options?.decimals, 2)!;
+        const zero = firstDefined(columns[j].zero, options?.zero);
         for (let k = 0; k < n; k++) {
           let cell = document.createElement("td");
           cell.className = "value";
@@ -352,12 +350,27 @@ export function DOMTable(
   return table;
 }
 
+const locale = "nl-NL";
+
 function toFixed(value: number, decimals: number, zero?: string): string {
   return typeof zero === "string" && value === 0
     ? zero
-    : value.toFixed(decimals);
+    : // : value.toFixed(decimals);
+      value.toLocaleString(locale, {
+        maximumFractionDigits: decimals,
+        minimumFractionDigits: decimals,
+      });
 }
 
 function unitToText(unit: SIUnit, empty: boolean): string {
   return empty || unit.isDimensionless() ? " " : unit.toText();
+}
+
+function firstDefined<T>(...args: T[]): T | undefined {
+  for (const arg of args) {
+    if (arg !== undefined && arg !== null) {
+      return arg;
+    }
+  }
+  return undefined;
 }

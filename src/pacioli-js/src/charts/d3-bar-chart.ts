@@ -316,14 +316,14 @@ export class BarChart {
             tooltip.hide();
             // Without the timeout the display: none does not have an effect
             setTimeout(() => {
-              this.options.onclick!(new DimNum(d.number, unit), d.label);
+              this.options.onclick!(DimNum.fromNumber(d.number, unit), d.label);
             }, 0);
           }
         })
         .on("mouseover", (event, d) => {
           if (this.options.tooltip) {
             tooltip.show(
-              this.options.tooltip(new DimNum(d.number, unit), d.label),
+              this.options.tooltip(DimNum.fromNumber(d.number, unit), d.label),
               event.pageX + this.options.tooltipOffset.dx,
               event.pageY + this.options.tooltipOffset.dy
             );

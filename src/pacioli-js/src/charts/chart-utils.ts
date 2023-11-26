@@ -75,7 +75,9 @@ export function transformData(
       var content = items[0];
       if (content.kind === "matrix") {
         var factor = convert
-          ? context.unitContext.conversionFactor(content.shape.multiplier, unit)
+          ? context.unitContext
+              .conversionFactor(content.shape.multiplier, unit)
+              .toNumber()
           : 1;
         for (var i = 0; i < content.numbers.length; i++) {
           var value = getNumber(content.numbers, 0, 0) * factor;
@@ -102,10 +104,9 @@ export function transformData(
         // var columns = nums[1]
         var vals = nums[2];
         for (var i = 0; i < rows.length; i++) {
-          var factor = context.unitContext.conversionFactor(
-            shape.unitAt(rows[i], 0),
-            unit
-          );
+          var factor = context.unitContext
+            .conversionFactor(shape.unitAt(rows[i], 0), unit)
+            .toNumber();
           var value = vals[i] * factor;
           values.push(value);
           labels.push(shape.rowCoordinates(rows[i]).shortText());
@@ -115,7 +116,9 @@ export function transformData(
       } else {
         for (var i = 0; i < numbers.length; i++) {
           var factor = convert
-            ? context.unitContext.conversionFactor(shape.unitAt(i, 0), unit)
+            ? context.unitContext
+                .conversionFactor(shape.unitAt(i, 0), unit)
+                .toNumber()
             : 1;
           var value = getNumber(numbers, i, 0) * factor;
           if (includeZeros || value !== 0) {

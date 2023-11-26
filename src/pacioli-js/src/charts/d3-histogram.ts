@@ -403,9 +403,9 @@ export class Histogram {
     // Show the filtered vector in a popup window
     return {
       value: result,
-      frequency: DimNum.dimless(frequency),
-      lower: new DimNum(lower, unit),
-      upper: new DimNum(upper, unit),
+      frequency: DimNum.fromNumber(frequency),
+      lower: DimNum.fromNumber(lower, unit),
+      upper: DimNum.fromNumber(upper, unit),
     };
   }
 }

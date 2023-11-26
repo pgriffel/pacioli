@@ -23,6 +23,7 @@
 import { Context as UOMContext, siDef } from "uom-ts";
 import { PacioliContext } from "../src/context";
 import { IndexSet } from "../src/values/index-set";
+import BigNumber from "bignumber.js";
 
 export const testDefs = {
   prefixes: [],
@@ -35,7 +36,10 @@ export const testDefs = {
   equations: [
     {
       lhs: "cent",
-      rhs: { factor: 0.01, powers: [{ base: { name: "euro" } }] },
+      rhs: {
+        factor: new BigNumber(0.01),
+        powers: [{ base: { name: "euro" } }],
+      },
     },
     {
       lhs: "millicent",

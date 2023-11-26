@@ -233,7 +233,7 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
       rest = rest.mult(UOM.fromBase(base).expt(-fixedPower / power));
     });
 
-    map.set(firstVar.getName(), rest);
+    map.set(firstVar.name, rest);
     return map;
   }
 
@@ -255,7 +255,7 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
         .expt(-Math.floor(unit.power(base) / minPower));
     }
   });
-  map.set(minVar.getName(), UOM.fromBase(minVar).mult(rest));
+  map.set(minVar.name, UOM.fromBase(minVar).mult(rest));
   return mapCompose(unitMatch(subsUnit(unit, map)), map, subsUnit);
 }
 
@@ -328,7 +328,7 @@ function subsUnit<T extends PacioliBase>(
 ): UOM<T> {
   return unit.map((base) => {
     if (base.isVar) {
-      return bindings.get(base.getName()) || UOM.fromBase(base);
+      return bindings.get(base.name) || UOM.fromBase(base);
     } else {
       return UOM.fromBase(base);
     }

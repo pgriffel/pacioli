@@ -81,7 +81,10 @@ export class Matrix {
         kvList.push({
           row: this.shape.rowCoordinates(rows[i]).names,
           column: this.shape.columnCoordinates(columns[i]).names,
-          value: new DimNum(values[i], this.shape.unitAt(rows[i], columns[i])),
+          value: DimNum.fromNumber(
+            values[i],
+            this.shape.unitAt(rows[i], columns[i])
+          ),
         });
       }
     }
@@ -262,7 +265,7 @@ export function convert_unit(
       shape.unitAt(rows[i], columns[i]),
       unit
     );
-    convertedValues.push(values[i] * factor);
+    convertedValues.push(values[i] * factor.toNumber());
   }
   return tagNumbers([rows, columns, convertedValues], m, n, 2);
 }

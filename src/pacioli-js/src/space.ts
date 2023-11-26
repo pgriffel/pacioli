@@ -353,7 +353,7 @@ export class Space {
     );
 
     geometry.setFromPoints(
-      points.map((point: Matrix) => vec2THREE(point.numbers, factor))
+      points.map((point: Matrix) => vec2THREE(point.numbers, factor.toNumber()))
     );
 
     var lineObject = new THREE.Line(geometry, material);
@@ -379,10 +379,12 @@ export class Space {
     // Find the conversion factor between the vectors' units and the space's unit. Assume
     // that the vector units are homogeneous (the same for x, y and z), and the unit is in
     // the type's multiplier.
-    var originFactor =
-      si.conversionFactor(origin.shape.multiplier, this.options.unit) * 1;
-    var vectorFactor =
-      si.conversionFactor(vector.shape.multiplier, this.options.unit) * 1;
+    var originFactor = si
+      .conversionFactor(origin.shape.multiplier, this.options.unit)
+      .toNumber();
+    var vectorFactor = si
+      .conversionFactor(vector.shape.multiplier, this.options.unit)
+      .toNumber();
 
     // Convert the vectors from Pacioli to javascript/three.js. Since the vector is just
     // used for direction its unit factor is ignored here and applied to the length below.
@@ -673,7 +675,7 @@ function mesh2THREE(
   var positions = new Float32Array(vertices.length * 3); // buffer arrray, position of 4 vertices
 
   for (var i = 0; i < vertices.length; i++) {
-    const vec = vec2THREE(vertices[i][0].numbers, factor);
+    const vec = vec2THREE(vertices[i][0].numbers, factor.toNumber());
     positions[i * 3 + 0] = vec.x;
     positions[i * 3 + 1] = vec.y;
     positions[i * 3 + 2] = vec.z;

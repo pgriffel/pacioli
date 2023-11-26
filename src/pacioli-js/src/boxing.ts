@@ -242,7 +242,7 @@ export function internUnit(unit: PacioliUnit, context: PacioliContext): SIUnit {
     if (base.isVar) {
       throw new Error("cannot have variable");
     } else {
-      const siUnit = fetchUnit(base.prefix, base.getName(), context);
+      const siUnit = fetchUnit(base.prefix, base.name, context);
       if (siUnit) {
         return siUnit;
       } else {
@@ -262,7 +262,7 @@ export function internUnit(unit: PacioliUnit, context: PacioliContext): SIUnit {
  */
 function internUnitInv(unit: SIUnit): PacioliUnit {
   return unit.map((base) =>
-    UOM.fromBase(new SIBaseType(base.prefix.name, base.getName()))
+    UOM.fromBase(new SIBaseType(base.prefix.name, base.name))
   );
 }
 
@@ -283,7 +283,7 @@ function internUnitVector(
     } else {
       //const unitVector = context.findUnitVector(base.getName());
       const unitVector = fetchUnitVector(
-        base.getName(),
+        base.name,
         dimension.indexSets[base.position],
         context
       );
@@ -299,7 +299,7 @@ function internUnitVector(
       // );
       if (unitVector !== undefined) {
         const siUnitVec: SIVector = UOM.fromBase(
-          new VectorBase(unitVector, base.position, base.getName())
+          new VectorBase(unitVector, base.position, base.name)
         );
         return siUnitVec;
       } else {
