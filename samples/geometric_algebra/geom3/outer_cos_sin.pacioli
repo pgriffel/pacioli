@@ -16,7 +16,7 @@ define rendered_vectors(i) =
     let
         colored = [example(j * 2*pi*|radian| / 24) | j <- naturals(i)]
     in
-        [ origin_arrow(|metre| '.*' v, c) | x <- colored, (v, c) <- x]
+        [ with_arrow_color(c, origin_arrow(|metre| '.*' v)) | x <- colored, (v, c) <- x]
     end;
 
 define example(a) =

@@ -13,10 +13,10 @@ define the_scene(a, b, c, x, y, z) =
         v2 = |1| '.*' space_vec(x, y, z),
         (p1, p2) = projections(v1, v2),
         arrows = [
-            origin_arrow(v1, make_color("red")), 
-            origin_arrow(v2, make_color("blue")),
-            origin_arrow(p1, make_color("#FFAAAA")),
-            origin_arrow(p2, make_color("#AAAAFF"))
+            with_arrow_color(make_color("red"), origin_arrow(v1)),
+            with_arrow_color(make_color("blue"), origin_arrow(v2)),
+            with_arrow_color(make_color("#FFAAAA"), origin_arrow(p1)),
+            with_arrow_color(make_color("#AAAAFF"), origin_arrow(p2))
         ],
         lines = [
             make_line(v1, p1),

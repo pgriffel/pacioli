@@ -17,8 +17,8 @@ define scene1(vx, vy, vz, wx, wy, wz, wireframe) =
         vy = |1| '.*' mv2vec(y),
         mesh = move_mesh(bi_vector_mesh(x, y), origin),
         vecs = [
-            make_arrow(origin, vx, make_color("blue")),
-            make_arrow(origin + vx, vy, make_color("red"))
+            with_arrow_color(make_color("blue"), make_arrow(origin, vx)),
+            with_arrow_color(make_color("red"), make_arrow(origin + vx, vy))
         ]
     in
         add_meshes([set_wireframe(mesh, wireframe != 0)], add_arrows(vecs, scene))
@@ -70,7 +70,7 @@ declare bi_vector_mesh_and_arrows :: for_unit a:
     (a*Geom3!, a*Geom3!, a*Geom3!, Color) -> Tuple(Mesh(a), Tuple(Arrow(a), Arrow(a)));
 
 define bi_vector_mesh_and_arrows(origin, v1, v2, color) = 
-    tuple(bi_vector_mesh2(origin, v1, v2), tuple(make_arrow(origin, v1, color), make_arrow(origin + v1, v2, color)));
+    tuple(bi_vector_mesh2(origin, v1, v2), tuple(with_arrow_color(color, make_arrow(origin, v1)), with_arrow_color(color, make_arrow(origin + v1, v2))));
 
 declare bi_vector_mesh2 :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> Mesh(a);
 

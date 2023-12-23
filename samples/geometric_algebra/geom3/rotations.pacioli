@@ -1,0 +1,195 @@
+# First the reflection, according to Doran p41, fig 2.7
+# "The vector a is reflected in the (hyper)plane perpendicular to n."
+# We take the 3D case.
+
+import graphics;
+import geometry;
+import geometric_algebra;
+include generated/generated_algebra; #physics uses Geom3
+
+doc scene_reflection
+"Scene reflection based upon Doran p40, 2.96, 2.97, 2.99, and fig 2.7 on p4. Coordinates are transformed into
+multivectors. The construction of a parallel and a perpendicular uses normalised n.";
+
+define scene_reflection(nx, ny, nz, ax, ay, az) =
+
+    let
+        scene = empty_scene("Reflection Doran p40 2.96, 2.97, 2.99, and fig 2.7 on p41. See also Leo p168. Doran assumes a unit vector but disregards units, therefore a fix in the calculation of the projection is required to correct Doran's formula."),
+         
+        mv_arrow(label, mv, color) = 
+            with_arrow_color(make_color(color),
+                with_arrow_label(label,
+                    origin_arrow(mv2vec(mv)))),
+
+        n_mv = make_multivector([make_term(nx, e1), make_term(ny, e2), make_term(nz, e3)]),
+        a_mv = make_multivector([make_term(ax, e1), make_term(ay, e2), make_term(az, e3)]),
+
+        a_mv_parallel = project(n_mv, a_mv),
+        a_mv_perpendicular = reject(n_mv, a_mv),
+        a_mv_reflected = multivector_subtract(a_mv_perpendicular, a_mv_parallel),
+
+        arrows = [
+            mv_arrow("a", a_mv, "red"), 
+            mv_arrow("n", n_mv, "green"),
+            mv_arrow("a<sub>&#x2225</sub>", a_mv_parallel, "red"),
+            mv_arrow("a<sub>&#x22A5</sub>", a_mv_perpendicular, "red"),
+            mv_arrow("a'", a_mv_reflected, "blue")
+        ]
+    in
+        add_arrows(arrows, scene)
+    end;
+
+define scene_reflection_dimless(nx, ny, nz, ax, ay, az) =
+
+    let
+        mv_arrow(label, mv, color) = 
+            with_arrow_color(make_color(color),
+                with_arrow_label(label,
+                    origin_arrow(|metre| '.*' mv2vec(mv)))),
+
+        # first make n into a unit vector nn normalized n- Doran, p40
+        # and  discard the inputs nx, ny, nz
+
+        nn = normalized(|1| '.*' space_vec(nx, ny, nz)),
+        nnx = get(nn, Geom3@x, _),
+        nny = get(nn, Geom3@y, _),
+        nnz = get(nn, Geom3@z, _),
+
+        scene = empty_scene("Shows projections with inner products. Extension of example <a href=\"#outer_cos_sin_the_scene\">outer_cos_sin</a>. Give <i>x</i>, <i>y</i> and <i>z</i> of vectors as parameters"),
+        
+        nn_mv = make_multivector([make_term(nx, e1), make_term(ny, e2), make_term(nz, e3)]),
+        a_mv = make_multivector([make_term(ax, e1), make_term(ay, e2), make_term(az, e3)]),
+        vnn = mv2vec(nn_mv),
+        va = mv2vec(a_mv),
+        a = |1| '.*' space_vec(ax, ay, az),
+        a_mv_parallel = make_a_parallel_dimless(nn_mv, a_mv),
+        a_mv_perpendicular = make_a_perpendicular_dimless(nn_mv, a_mv),
+
+        # va must equal a 
+        # vnn must equal nn
+
+        # Check generated_algebra.paciolia alias geometric_unit
+        # @@@ Why does the browser give an error message about metre?
+        arrows = [
+            mv_arrow("a", a_mv, "red"), 
+            mv_arrow("n", nn_mv, "green"),
+            mv_arrow("a<sub>&#x2225</sub>", a_mv_parallel, "red"),
+            mv_arrow("a<sub>&#x22A5</sub>", a_mv_perpendicular, "red")
+        ],
+
+        lines = [
+        ]
+        # mesh todo
+    in
+        add_paths(lines, add_arrows(arrows, scene))
+        #arrows # for type debugging arrows
+    end;
+
+
+# Doran 2.96 and 2.97 p40
+# 28-10-2023 - Finding: Doran's formula assumes a dimensionless unit vector n.
+# A projection is in effect a scaling of the to be projected upon vector with a dimensionless scalar.
+# Doran's formula does not take the correct unit into account, because his scalar is not dimensionless.
+# His approach is however enough when working without units.
+#
+# To replay this finding, the generated_algebra alias setting 'geometric_unit' can be set to '1' instead of 'metre'.
+# As a fix we need a more complex formula, see below; a division by the inner product (of left_contraction) of the
+# vectors a and n is needed; we perform this division by taking the geometric product of the inner product with the
+# inverse multivector of the inner product of n with itself.
+#
+
+# associativity of Doran 2.97: "a dot n n" equals "(a dot n) n"
+define make_a_parallel_dimless(n_mv, a_mv) =
+    let
+        in_an = left_contraction(a_mv, n_mv)
+    in
+        geometric_product(in_an, n_mv)
+    end;
+
+# associativity of Doran 2.97: "n n wedge a" equals "n (n wedge a)"
+define make_a_perpendicular_dimless(n_mv, a_mv) = 
+    let
+        on = outer_product(n_mv, a_mv)
+    in
+        geometric_product(n_mv, on)
+    end;
+
+# make a projection function (inner.pacioli?)
+
+doc project
+"Project a_mv on n_mv, using Leo's formula on p155 for the projection,
+using formula 6.24 for the division. However, we need an extra geometric product";
+
+define project(n_mv, a_mv) =
+    let
+        in_an = left_contraction(a_mv, n_mv),
+        in_nn = left_contraction(n_mv, n_mv),
+        projected_a = geometric_product(in_an, multivector_inverse(in_nn))
+    in
+        # This geometric product is needed on top of Leo's formula on p155.
+        geometric_product(projected_a, n_mv)
+   end;
+
+
+define reject(n_mv, a_mv) = 
+    let
+        in_nn = left_contraction(n_mv, n_mv),
+        outer = outer_product(geometric_product(n_mv, multivector_inverse(in_nn)), a_mv)
+    in
+        geometric_product(n_mv, outer)
+    end;
+
+#
+# TODO:
+# 1. TODO Leo's validatie op p68 reproduceren voor units of measurement
+# 1b. Figuur 2.1 a en tekst in 2.6 uitwerken / tekenen punten
+# 1c. Exercise 6.7.1 on page 161 (Leo)
+# 2. Verkennen raaklijn - inner product met 'afgeleide' als vector - gevolg voor units
+# 4. Doorgaan bij Doran naar de rotatie 
+# 5. Homogene model (H11) naast Vector model (H10), daarna exercise bij 15.4, bv ex 10 p461
+# 6. Doran H5 p128 - spacetime algebra modelleren - en H10.6.3 p376; nog zoeken. (Zie ook https://youtu.be/e7aIVSVc8cI?feature=shared)
+# 7. Leo 7.3.2 real 2d rotors subsume complex numbers
+# 9. Volgende grote (middellange termijn) stap: lineaire transformatie, Leo H7, ivm contra-/covariantie
+# 
+# 10. Tests nalopen ivm units (m ^ 5 probleem etc), refactoring etc
+#
+# DONE 
+# 1a. Naast Geom1 ook Geom0 maken, kijken wat dat brengt; Vreemde bivector.net producten.
+# 3. make_a_perpendicular langs dezelfde lijn als make_a_parallel
+# 8. Vector normaliseren bij Doran 2.96-7 op p40 - hoe gebeurt dat bij Leo? Versies maken (met unit en dimless)
+# 
+
+
+define make_rotor(n, m) = 
+    # Hier gebleven; normaliseren van de vectoren m en n - als multivectoren 
+    # conform Leo p172 vergt deling door de norm van R, maar:
+    # - we hebben geen sqrt van een multivector EN 
+    # - we willen een genormaliseerde vector MET unit zoals 1m.
+    # De berekening maakt nu een dimless rotor.
+    # Nog nagaan - zie 6.22 en 6.23 - de k-grade selection operator.
+    #
+    let
+        rotor = geometric_product(n, m),
+        rotor_norm_square = geometric_product(rotor, multivector_reverse(rotor))
+    in
+        geometric_product(rotor, geometric_product(rotor, multivector_inverse(rotor_norm_square)))
+    end;
+
+# Leo's formule op p170
+define make_rotor_leo(n, m) = 
+    geometric_product(n, multivector_inverse(m));
+
+define make_rotor_doran(n, m) =
+    geometric_product(normalise(n), normalise(m));
+
+define normalise(n) =
+    let 
+        in_nn = left_contraction(n, n)
+    in 
+        geometric_product(n, geometric_product(n, multivector_inverse(in_nn)))
+    end;
+
+
+
+define rotate (a, rotor) =
+    geometric_product(geometric_product(rotor, a), multivector_reverse(rotor));

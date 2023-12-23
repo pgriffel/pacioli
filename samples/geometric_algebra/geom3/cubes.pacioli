@@ -99,7 +99,7 @@ define scene3(a, b, c) =
     end;
 
 define my_arrows(a, b, c) =
-    [origin_arrow(vec, make_color("blue")) | i <- [-1, 1],
+    [origin_arrow(vec) | i <- [-1, 1],
                                  j <- [-1, 1],
                                  k <- [-1, 1],
                                  vec := vector3d(i*a, j*b, k*c)];

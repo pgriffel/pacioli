@@ -35,7 +35,9 @@ define weird_arrows(n, k) =
                                 end
                            end,
                   name := format("arr_%s", i),
-                  arrow := named_arrow(from, to, color, name)]
+                  arrow := with_arrow_name(name,
+                            with_arrow_color(color,
+                             make_arrow(from, to)))]
     end;
 
 define scene_updater(k, freq) = 
@@ -46,7 +48,7 @@ define arrow_colors(k, time, freq, arrows) =
     [arrow | n := list_size(arrows),
              i <- naturals(n),
              arrow := nth(i, arrows),
-             arrow := set_arrow_color(arrow, shift_arrow_color(arrow, i, time, k, freq))];
+             arrow := with_arrow_color(shift_arrow_color(arrow, i, time, k, freq), arrow)];
 
 define shift_arrow_color(arrow, i, time, k, freq) =
     let 

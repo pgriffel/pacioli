@@ -31,6 +31,10 @@ import { Maybe } from "./values/maybe";
 import { PacioliBoole } from "./values/boole";
 import { PacioliFunction } from "./values/function";
 import { PacioliValue } from "./value";
+import {
+  CSS2DObject,
+  CSS2DRenderer,
+} from "three/examples/jsm/renderers/CSS2DRenderer";
 
 /**
  * Matches the Scene type from the graphics Pacioli library
@@ -58,8 +62,9 @@ type StatefulAnimation = [PacioliValue, PacioliFunction, PacioliScene];
 type PacioliArrow = [
   Matrix, // from
   Matrix, // to
-  PacioliString, // color
-  Maybe<PacioliString> // name
+  PacioliString, // name
+  PacioliString, // label
+  Maybe<PacioliString> // color
 ];
 
 /**
@@ -97,6 +102,7 @@ export interface SpaceOptions {
   zoomRange: [number, number];
   perspectiveMax: number;
   camera: [number, number, number];
+  showLabels: boolean;
 }
 
 /**
@@ -118,6 +124,7 @@ const defaultOptions: SpaceOptions = {
   zoomRange: [1, 50],
   perspectiveMax: 5000,
   camera: [10, 5, 10],
+  showLabels: true,
 };
 
 /**
@@ -132,6 +139,7 @@ export class Space {
 
   // Three.js properties
   private renderer: THREE.Renderer;
+  private labelRenderer: CSS2DRenderer;
   private scene: THREE.Scene;
   private camera: THREE.Camera;
   private body: THREE.Object3D<THREE.Event>;
@@ -175,10 +183,24 @@ export class Space {
       this.parent.removeChild(this.parent.firstChild);
     }
 
+    // Create a parent for the two renderers
+    const renderersDiv = document.createElement("div");
+    renderersDiv.style.position = "relative";
+    this.parent.appendChild(renderersDiv);
+
     // Create the renderer and append it to the given parent
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(width, height);
-    this.parent.appendChild(this.renderer.domElement);
+    renderersDiv.appendChild(this.renderer.domElement);
+
+    // Create the label renderer and append it to the given parent
+    // It is placed exactly on top of the WebGL renderer.
+    this.labelRenderer = new CSS2DRenderer();
+    this.labelRenderer.setSize(width, height);
+    this.labelRenderer.domElement.style.position = "absolute";
+    this.labelRenderer.domElement.style.top = "0px";
+    this.labelRenderer.domElement.style.zIndex = "99";
+    renderersDiv.appendChild(this.labelRenderer.domElement);
 
     // Create the scene
     this.scene = new THREE.Scene();
@@ -209,7 +231,10 @@ export class Space {
     this.scene.add(this.camera);
 
     // Connect orbit controls to the renderer and to the draw method
-    const controls = new OrbitControls(this.camera, this.renderer.domElement);
+    const controls = new OrbitControls(
+      this.camera,
+      this.labelRenderer.domElement
+    );
     controls.minDistance = this.options.zoomRange[0];
     controls.maxDistance = this.options.zoomRange[1];
     controls.maxPolarAngle = Math.PI / 1;
@@ -235,6 +260,18 @@ export class Space {
         new THREE.Color(this.options.axisColors[2])
       );
       this.scene.add(axis);
+      if (this.options.showLabels) {
+        const unit = this.options.unit.toText();
+        this.scene.add(
+          makeLabelObject(`x[${unit}]`, this.options.axisSize * 1.05, 0, 0)
+        );
+        this.scene.add(
+          makeLabelObject(`z[${unit}]`, 0, this.options.axisSize * 1.05, 0)
+        );
+        this.scene.add(
+          makeLabelObject(`y[${unit}]`, 0, 0, this.options.axisSize * 1.05)
+        );
+      }
     }
 
     // Create the body and add it to the scene
@@ -365,15 +402,18 @@ export class Space {
   addVector(
     origin: Matrix,
     vector: Matrix,
-    color: PacioliString,
-    name: Maybe<PacioliString>
+    name: PacioliString,
+    label: PacioliString,
+    color: Maybe<PacioliString>
   ) {
-    const vectorColor = color ? color.value : "blue";
+    const vectorColor = color.value ? color.value.value : "blue";
 
     this.log(
       `Adding vector from ${vec2String(origin)} to ${vec2String(
         vector
-      )} with color ${vectorColor}`
+      )} with color '${vectorColor}', name '${name.value}' and label '${
+        label.value
+      }'`
     );
 
     // Find the conversion factor between the vectors' units and the space's unit. Assume
@@ -397,6 +437,20 @@ export class Space {
       vectorFactor *
       Math.sqrt(jsVector.x ** 2 + jsVector.y ** 2 + jsVector.z ** 2);
 
+    // Add a label if required
+    if (this.options.showLabels && label.value !== "") {
+      const labelObject = makeLabelObject(
+        label.value,
+        jsVector.x * 1.1,
+        jsVector.y * 1.1,
+        jsVector.z * 1.1
+      );
+      if (name.value !== "") {
+        labelObject.name = name.value + "_label";
+      }
+      this.body.add(labelObject);
+    }
+
     // Normalize the direction vector (convert to vector of length 1)
     jsVector.normalize();
 
@@ -408,24 +462,42 @@ export class Space {
       vectorColor
     );
 
-    if (name.value) {
-      arrow.name = (name.value as unknown as PacioliString).value;
+    if (name.value !== "") {
+      arrow.name = name.value;
     }
+
     this.body.add(arrow);
   }
 
-  updateVector(name: string, from: Matrix, to: Matrix, color: string) {
+  updateVector(
+    name: string,
+    from: Matrix,
+    to: Matrix,
+    _: PacioliString,
+    color: Maybe<PacioliString>
+  ) {
     const arrow = this.scene.getObjectByName(name) as THREE.ArrowHelper;
+    const labelObj = this.scene.getObjectByName(
+      name + "_label"
+    ) as THREE.ArrowHelper;
+    const vectorColor = color.value ? color.value.value : "blue";
+    const jsVector = vec2THREE(from.numbers, 1);
+    const dst = vec2THREE(to.numbers, 1);
+
+    if (labelObj) {
+      labelObj.position.x = dst.x * 1.1;
+      labelObj.position.y = dst.y * 1.1;
+      labelObj.position.z = dst.z * 1.1;
+    }
+
     if (arrow) {
-      const jsVector = vec2THREE(from.numbers, 1);
       arrow.position.x = jsVector.x;
       arrow.position.y = jsVector.y;
       arrow.position.z = jsVector.z;
-      const dst = vec2THREE(to.numbers, 1);
       dst.normalize();
       arrow.setDirection(dst);
       // TODO: set arrow length
-      arrow.setColor(color);
+      arrow.setColor(vectorColor);
     }
   }
 
@@ -466,8 +538,8 @@ export class Space {
       this.addMesh(mesh);
     }
 
-    for (const [origin, vector, color, name] of vectors) {
-      this.addVector(origin, vector, color, name);
+    for (const [origin, vector, name, label, color] of vectors) {
+      this.addVector(origin, vector, name, label, color);
     }
 
     for (const path of paths) {
@@ -525,9 +597,9 @@ export class Space {
 
     // Update the space
     const [, vectors, meshes] = this.animationScene;
-    for (const [from, to, color, name] of vectors) {
+    for (const [from, to, name, label, color] of vectors) {
       if (name.value) {
-        this.updateVector(name.value.value, from, to, color.value);
+        this.updateVector(name.value, from, to, label, color);
       }
     }
     for (const mesh of meshes) {
@@ -590,6 +662,7 @@ export class Space {
     }
 
     this.renderer.render(this.scene, this.camera);
+    this.labelRenderer.render(this.scene, this.camera);
 
     if (this.animating) {
       const frameLength = 1000 / this.options.fps;
@@ -620,7 +693,10 @@ export class Space {
   }
 
   private onChangeOrbit() {
-    requestAnimationFrame(() => this.renderer.render(this.scene, this.camera));
+    requestAnimationFrame(() => {
+      this.renderer.render(this.scene, this.camera);
+      this.labelRenderer.render(this.scene, this.camera);
+    });
   }
 
   private log(text: string) {
@@ -628,6 +704,30 @@ export class Space {
       console.log(text);
     }
   }
+}
+
+/**
+ * Creates a three.js CSS2DObject for displaying a label with a CSS2DRenderer.
+ *
+ * @param text The label text
+ * @param x The label x coordinate
+ * @param y The label y coordinate
+ * @param z The label z coordinate
+ * @returns A new CSS2DObject object
+ */
+function makeLabelObject(text: string, x: number, y: number, z: number) {
+  const labelDiv = document.createElement("div");
+  labelDiv.className = "label";
+  //labelDiv.textContent = label.value;
+  labelDiv.innerHTML = text;
+  labelDiv.style.backgroundColor = "transparent";
+  labelDiv.style.color = "#444444";
+
+  const labelObject = new CSS2DObject(labelDiv);
+  labelObject.position.set(x, y, z);
+  // label.center.set(0, 1);
+  // label.layers.set(0);
+  return labelObject;
 }
 
 /**

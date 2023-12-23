@@ -136,11 +136,11 @@ define the_scene_hard(t0, t1, speed) =
 declare rendered_vectors_mv :: (second, Color, radian/second) -> List(Arrow(metre));
 
 define rendered_vectors_mv(t, color, speed) = 
-    [named_origin_arrow(5 '.*' mv2vec(framevector_mv(j, t, speed)), color, format("arrr_%s_%s", color, j)) | j <- naturals(3)];
+    [with_arrow_name(format("arrr_%s_%s", color, j), with_arrow_color(color, origin_arrow(5 '.*' mv2vec(framevector_mv(j, t, speed))))) | j <- naturals(3)];
 
 
 define rendered_vectors_hard(i, color, speed) = 
-    [origin_arrow(5 '.*'framevector_hard(j, i, speed), color) | j <- naturals(3)];
+    [with_arrow_color(color, origin_arrow(5 '.*'framevector_hard(j, i, speed))) | j <- naturals(3)];
 
 
 declare animation_callback_mv ::

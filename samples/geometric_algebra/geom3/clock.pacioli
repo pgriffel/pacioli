@@ -1,0 +1,67 @@
+include generated/generated_algebra;
+
+import geometry;
+import geometric_algebra;
+import graphics;
+import si;
+
+define framevector(k, t, speed) =
+    rotate(rotor(t, speed), k);
+
+define rotate(rotor, mv) =
+    geometric_product(rotor, geometric_product(mv, multivector_reverse(rotor)));
+
+define rotor_e1 = make_multivector([make_term(1, e1)]);
+
+# rotor without unit metre
+define rotor(t, speed) = 
+    let
+        a = t * speed / 2, 
+        rotor_m = make_multivector([make_term(cos(a), e1), make_term(sin(a), e2)])
+    in
+        geometric_product(rotor_m, rotor_e1)
+    end;
+
+# ------------------------------------------------------------------------------
+# The scene
+# ------------------------------------------------------------------------------
+
+defconv hour2second :: second/hour;
+defconv minute2second :: second/minute;
+
+declare clock :: (hour, minute, second) -> Animation(metre);
+
+define clock(hour, minute, second) =
+    let
+        scene = empty_scene("Multi-vector clock"),
+        speed = 2 * pi * |radian/minute| / minute2second,
+        offset = hour2second * hour + minute2second * minute + second,
+        callback = animation_callback(offset, speed),
+        arrows = hands(offset, speed)
+    in
+        add_animation_callback(callback, add_arrows(arrows, scene))
+    end;
+
+define hour_hand = parse_mv("4e1");
+define minute_hand = parse_mv("6e1");
+define second_hand = parse_mv("6e1");
+
+declare hands :: (second, radian/second) -> List(Arrow(metre));
+
+define hands(time, speed) =
+    [with_arrow_name("hour_hand",
+        with_arrow_color(make_color("blue"),
+         origin_arrow(mv2vec(framevector(hour_hand, time, speed/60/12))))),
+     with_arrow_name("minute_hand",
+        with_arrow_color(make_color("blue"),
+            origin_arrow(mv2vec(framevector(minute_hand, time, speed/60))))),
+    with_arrow_name("second_hand",
+        with_arrow_color(make_color("red"),
+            origin_arrow(mv2vec(framevector(second_hand, time, speed)))))];
+
+declare animation_callback ::
+    (second, radian/second) -> (second, Scene(metre)) -> Scene(metre);
+
+define animation_callback(t0, speed) = 
+    (time, scene) ->
+        set_arrows(scene, hands(t0 + time, speed) );
