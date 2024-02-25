@@ -75,7 +75,7 @@ public class MVMGenerator implements TypeVisitor {
         } else if (hasLeft) {
             out.format("%s", left);
         } else if (hasRight) {
-            out.format("%s", right);
+            out.format("shape_binop(\"per\", scalar_shape(unit(\"\")), %s)", right);
         } else {
             out.write("scalar_shape(unit(\"\"))");
         }
