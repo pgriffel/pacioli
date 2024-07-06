@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Pacioli GA</title>
+</head>
+
+<body onload="onLoad();">
+    <div id="console"></div>
+    <div id="pacioli_hook" style=" margin: 10px"></div>
+</body>
+
+
+<script>
+
+
+    // Add a {file, function, kind, params, options?} entry for each example to this list and 
+    // include its script further below. The kind is one of 'scene', 'animation', or 
+    // 'stateful-animation'. The parameters is a list of [label, number, unit] tuples. The UI
+    // will  make an input for each parameter and use the numbers as initial value. The script's
+    // scene function fun must accept the same number as arguments.
+    //
+    // Strings are for now supported by using unit 'string'.
+    //
+    // Note that the space has unit metre. The scene elements must have compatible units,
+    // otherwise runtime errors will occur in the browser.
+    const examples = [
+        {
+            file: "rotations",
+            function: "scene_rotor_composition",
+            kind: 'stateful-animation',
+            params: [["Rotor 1 (mv1)", "e1 + 5e2", "string"], ["Rotor 1 (mv2)", "e1 + 6e2", "string"],
+            ["Rotor 2 (mv1)", "e2 + 20e3", "string"], ["Rotor 2 (mv2)", "e3", "string"],
+            ["Initial frame (mv1)", "e1", "string"],
+            ["Initial frame (mv2)", "e2", "string"],
+            ["Initial frame (mv3)", "e3", "string"]
+            ]
+        },
+        {
+            file: "rotations",
+            function: "scene_rotor_nesting",
+            kind: 'stateful-animation',
+            params: [["Rotor 1 (mv1)", "e1 + 5e2", "string"], ["Rotor 1 (mv2)", "e1 + 6e2", "string"],
+            ["Rotor 2 (mv1)", "e2 + 20e3", "string"], ["Rotor 2 (mv2)", "e3", "string"],
+            ["Initial frame (mv1)", "e1", "string"],
+            ["Initial frame (mv2)", "e2", "string"],
+            ["Initial frame (mv3)", "e3", "string"]
+            ]
+        },
+        {
+            file: "rotations",
+            function: "scene_rotor_nesting",
+            kind: 'stateful-animation',
+            params: [["Rotor 1 (mv1)", "e1 + 6e2", "string"], ["Rotor 1 (mv2)", "e1 + 6e2", "string"],
+            ["Rotor 2 (mv1)", "e2 + 20e3", "string"], ["Rotor 2 (mv2)", "e3", "string"],
+            ["Initial frame (mv1)", "e1", "string"],
+            ["Initial frame (mv2)", "e2", "string"],
+            ["Initial frame (mv3)", "e3", "string"]
+            ]
+        },
+        {
+            file: "rotations",
+            function: "scene_rotor_nesting",
+            kind: 'stateful-animation',
+            params: [["Rotor 1 (mv1)", "e1 + 5e2", "string"], ["Rotor 1 (mv2)", "e1 + 6e2", "string"],
+            ["Rotor 2 (mv1)", "e2 + 20e3", "string"], ["Rotor 2 (mv2)", "e2 + 20e3", "string"],
+            ["Initial frame (mv1)", "e1", "string"],
+            ["Initial frame (mv2)", "e2", "string"],
+            ["Initial frame (mv3)", "e3", "string"]
+            ]
+        },
+        {
+            file: "rotations",
+            function: "scene_reflection",
+            kind: 'scene',
+            params: [["nx", 0, "metre"], ["ny", 5, "metre"], ["nz", 0, "metre"],
+            ["ax", -3, "metre"], ["ay", 3, "metre"], ["az", 0, "metre"]]
+        },
+        {
+            file: "rotations",
+            function: "scene_rotation",
+            kind: 'scene',
+            params: [
+                ["ax", 0, "metre"], ["ay", 5, "metre"], ["az", 0, "metre"],
+                ["bx", 3, "metre"], ["by", 3, "metre"], ["bz", 0, "metre"],
+                ["xx", 0, "metre"], ["xy", 7, "metre"], ["xz", 7, "metre"]]
+        },
+        {
+            file: "rotations",
+            function: "scene_rotation_rotor",
+            kind: 'scene',
+            params: [
+                ["ax", 0, "metre"], ["ay", 5, "metre"], ["az", 0, "metre"],
+                ["bx", 3, "metre"], ["by", 3, "metre"], ["bz", 0, "metre"],
+                ["xx", 0, "metre"], ["xy", 7, "metre"], ["xz", 7, "metre"]]
+        }
+    ]
+
+    function onLoad() {
+        main(examples)
+    }
+</script>
+
+<script type="text/javascript" src="pacioli-0.5.0.bundle.js"></script>
+
+<!-- Include each compiled example script here and add the examples to the list above -->
+<script type="text/javascript" src="geom3/rotations.js"></script>
+<script type="text/javascript" src="geom3/physics.js"></script>
+
+<script type="text/javascript" src="scene.js"></script>
+
+</html>

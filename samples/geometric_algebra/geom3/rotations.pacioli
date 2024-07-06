@@ -7,19 +7,40 @@ import geometry;
 import geometric_algebra;
 include generated/generated_algebra; #physics uses Geom3
 
+# ------------------------------------------------------------------------------
+#
+# Scenes in this file are in two groups:
+# 1. 3 scenes in which a single reflection is used to built a single rotation, and then a rotor:
+# 2. 2 animated scenes in which rotors are displayed, one composed and one nested.
+#    Note: the nested scene leads to three examples in the html.
+#
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# First group of scenes:
+# 
+# - scene_reflection
+# - scene_rotation
+# - scene_rotation_rotor
+#
+# ------------------------------------------------------------------------------
+
+
+
+
 doc scene_reflection
-"Scene reflection based upon Doran p40, 2.96, 2.97, 2.99, and fig 2.7 on p4. Coordinates are transformed into
-multivectors. The construction of a parallel and a perpendicular uses normalised n.";
+"Scene reflection based upon fig 2.7 on p41 of Doran, but instead of Doran's formulas 2.96, 2.97, 2.99
+we use Leo's formulas for right division, projection, and rejection on pp155-157.";
+
+define  mv_arrow(label, mv, color) = 
+            with_arrow_color(make_color(color),
+            with_arrow_label(label,
+            origin_arrow(mv2vec(mv))));
 
 define scene_reflection(nx, ny, nz, ax, ay, az) =
 
     let
-        scene = empty_scene("Reflection Doran p40 2.96, 2.97, 2.99, and fig 2.7 on p41. See also Leo p168. Doran assumes a unit vector but disregards units, therefore a fix in the calculation of the projection is required to correct Doran's formula."),
-         
-        mv_arrow(label, mv, color) = 
-            with_arrow_color(make_color(color),
-                with_arrow_label(label,
-                    origin_arrow(mv2vec(mv)))),
+        scene = empty_scene("Reflection Doran fig 2.7 but Leo's formulas for right division, projection and rejection on pp155-157."),
 
         n_mv = make_multivector([make_term(nx, e1), make_term(ny, e2), make_term(nz, e3)]),
         a_mv = make_multivector([make_term(ax, e1), make_term(ay, e2), make_term(az, e3)]),
@@ -27,6 +48,7 @@ define scene_reflection(nx, ny, nz, ax, ay, az) =
         a_mv_parallel = project(n_mv, a_mv),
         a_mv_perpendicular = reject(n_mv, a_mv),
         a_mv_reflected = multivector_subtract(a_mv_perpendicular, a_mv_parallel),
+        #a_mv_reflected = reflect(n_mv, a_mv),
 
         arrows = [
             mv_arrow("a", a_mv, "red"), 
@@ -39,157 +61,314 @@ define scene_reflection(nx, ny, nz, ax, ay, az) =
         add_arrows(arrows, scene)
     end;
 
-define scene_reflection_dimless(nx, ny, nz, ax, ay, az) =
+
+doc scene_rotation
+"Scene rotation based upon fig 7.2 on p170 in Leo, with two reflections.";
+
+define scene_rotation(ax, ay, az, bx, by, bz, xx, xy, xz) =
 
     let
-        mv_arrow(label, mv, color) = 
-            with_arrow_color(make_color(color),
-                with_arrow_label(label,
-                    origin_arrow(|metre| '.*' mv2vec(mv)))),
+        scene = empty_scene("Rotation fig 7.2 on p170 in Leo using two reflections."),
+         
+        x = make_multivector([make_term(xx, e1), make_term(xy, e2), make_term(xz, e3)]),
+        a = make_multivector([make_term(ax, e1), make_term(ay, e2), make_term(az, e3)]),
+        b = make_multivector([make_term(bx, e1), make_term(by, e2), make_term(bz, e3)]),
 
-        # first make n into a unit vector nn normalized n- Doran, p40
-        # and  discard the inputs nx, ny, nz
+        a_reflected = reflect(a, x),
+        b_reflected = reflect(b, a_reflected),
 
-        nn = normalized(|1| '.*' space_vec(nx, ny, nz)),
-        nnx = get(nn, Geom3@x, _),
-        nny = get(nn, Geom3@y, _),
-        nnz = get(nn, Geom3@z, _),
-
-        scene = empty_scene("Shows projections with inner products. Extension of example <a href=\"#outer_cos_sin_the_scene\">outer_cos_sin</a>. Give <i>x</i>, <i>y</i> and <i>z</i> of vectors as parameters"),
-        
-        nn_mv = make_multivector([make_term(nx, e1), make_term(ny, e2), make_term(nz, e3)]),
-        a_mv = make_multivector([make_term(ax, e1), make_term(ay, e2), make_term(az, e3)]),
-        vnn = mv2vec(nn_mv),
-        va = mv2vec(a_mv),
-        a = |1| '.*' space_vec(ax, ay, az),
-        a_mv_parallel = make_a_parallel_dimless(nn_mv, a_mv),
-        a_mv_perpendicular = make_a_perpendicular_dimless(nn_mv, a_mv),
-
-        # va must equal a 
-        # vnn must equal nn
-
-        # Check generated_algebra.paciolia alias geometric_unit
-        # @@@ Why does the browser give an error message about metre?
         arrows = [
-            mv_arrow("a", a_mv, "red"), 
-            mv_arrow("n", nn_mv, "green"),
-            mv_arrow("a<sub>&#x2225</sub>", a_mv_parallel, "red"),
-            mv_arrow("a<sub>&#x22A5</sub>", a_mv_perpendicular, "red")
-        ],
-
-        lines = [
+            mv_arrow("a", a, "blue"), 
+            mv_arrow("b", b, "blue"),
+            mv_arrow("x", x, "red"),
+            mv_arrow("axa<sup>-1</sup>", a_reflected, "red"),
+            mv_arrow("b(axa<sup>-1</sup>)b<sup>-1</sup>", b_reflected, "red")
         ]
-        # mesh todo
     in
-        add_paths(lines, add_arrows(arrows, scene))
-        #arrows # for type debugging arrows
+        add_arrows(arrows, scene)
     end;
 
 
-# Doran 2.96 and 2.97 p40
-# 28-10-2023 - Finding: Doran's formula assumes a dimensionless unit vector n.
-# A projection is in effect a scaling of the to be projected upon vector with a dimensionless scalar.
-# Doran's formula does not take the correct unit into account, because his scalar is not dimensionless.
-# His approach is however enough when working without units.
-#
-# To replay this finding, the generated_algebra alias setting 'geometric_unit' can be set to '1' instead of 'metre'.
-# As a fix we need a more complex formula, see below; a division by the inner product (of left_contraction) of the
-# vectors a and n is needed; we perform this division by taking the geometric product of the inner product with the
-# inverse multivector of the inner product of n with itself.
-#
+doc scene_rotation_rotor
+"Scene rotation based upon formula 7.3 on p171 in Leo, using the rotor formula.";
 
-# associativity of Doran 2.97: "a dot n n" equals "(a dot n) n"
-define make_a_parallel_dimless(n_mv, a_mv) =
+define scene_rotation_rotor(ax, ay, az, bx, by, bz, xx, xy, xz) =
+
     let
-        in_an = left_contraction(a_mv, n_mv)
+        scene = empty_scene("Rotation fig 7.2 on p170 in Leo using the rotor formula 7.3."),
+         
+        x = make_multivector([make_term(xx, e1), make_term(xy, e2), make_term(xz, e3)]),
+        a = make_multivector([make_term(ax, e1), make_term(ay, e2), make_term(az, e3)]),
+        b = make_multivector([make_term(bx, e1), make_term(by, e2), make_term(bz, e3)]),
+
+        rotor = make_rotor(b, a),
+        x_rotated = rotate(x, rotor),
+
+        arrows = [
+            mv_arrow("a", a, "blue"), 
+            mv_arrow("b", b, "blue"),
+            mv_arrow("x", x, "red"),
+            mv_arrow("x_rotated", x_rotated, "red")
+        ]
     in
-        geometric_product(in_an, n_mv)
+        add_arrows(arrows, scene)
     end;
 
-# associativity of Doran 2.97: "n n wedge a" equals "n (n wedge a)"
-define make_a_perpendicular_dimless(n_mv, a_mv) = 
-    let
-        on = outer_product(n_mv, a_mv)
-    in
-        geometric_product(n_mv, on)
-    end;
 
-# make a projection function (inner.pacioli?)
-
-doc project
-"Project a_mv on n_mv, using Leo's formula on p155 for the projection,
-using formula 6.24 for the division. However, we need an extra geometric product";
-
-define project(n_mv, a_mv) =
-    let
-        in_an = left_contraction(a_mv, n_mv),
-        in_nn = left_contraction(n_mv, n_mv),
-        projected_a = geometric_product(in_an, multivector_inverse(in_nn))
-    in
-        # This geometric product is needed on top of Leo's formula on p155.
-        geometric_product(projected_a, n_mv)
-   end;
-
-
-define reject(n_mv, a_mv) = 
-    let
-        in_nn = left_contraction(n_mv, n_mv),
-        outer = outer_product(geometric_product(n_mv, multivector_inverse(in_nn)), a_mv)
-    in
-        geometric_product(n_mv, outer)
-    end;
-
-#
-# TODO:
-# 1. TODO Leo's validatie op p68 reproduceren voor units of measurement
-# 1b. Figuur 2.1 a en tekst in 2.6 uitwerken / tekenen punten
-# 1c. Exercise 6.7.1 on page 161 (Leo)
-# 2. Verkennen raaklijn - inner product met 'afgeleide' als vector - gevolg voor units
-# 4. Doorgaan bij Doran naar de rotatie 
-# 5. Homogene model (H11) naast Vector model (H10), daarna exercise bij 15.4, bv ex 10 p461
-# 6. Doran H5 p128 - spacetime algebra modelleren - en H10.6.3 p376; nog zoeken. (Zie ook https://youtu.be/e7aIVSVc8cI?feature=shared)
-# 7. Leo 7.3.2 real 2d rotors subsume complex numbers
-# 9. Volgende grote (middellange termijn) stap: lineaire transformatie, Leo H7, ivm contra-/covariantie
+# ------------------------------------------------------------------------------
+# Second group of scenes:
 # 
-# 10. Tests nalopen ivm units (m ^ 5 probleem etc), refactoring etc
+# This group is made of two main scenes:
+# - scene_rotor_composition
+# - scene_rotor_nesting
+# Both scenes take as input 7 strings of multivectors:
+#   2 for rotor 1, 2 for rotor 2, 3 for the initial reference frame
+# Note: the second scene has a variable heading which is used to display three examples.
 #
-# DONE 
-# 1a. Naast Geom1 ook Geom0 maken, kijken wat dat brengt; Vreemde bivector.net producten.
-# 3. make_a_perpendicular langs dezelfde lijn als make_a_parallel
-# 8. Vector normaliseren bij Doran 2.96-7 op p40 - hoe gebeurt dat bij Leo? Versies maken (met unit en dimless)
-# 
+# ------------------------------------------------------------------------------
 
 
-define make_rotor(n, m) = 
-    # Hier gebleven; normaliseren van de vectoren m en n - als multivectoren 
-    # conform Leo p172 vergt deling door de norm van R, maar:
-    # - we hebben geen sqrt van een multivector EN 
-    # - we willen een genormaliseerde vector MET unit zoals 1m.
-    # De berekening maakt nu een dimless rotor.
-    # Nog nagaan - zie 6.22 en 6.23 - de k-grade selection operator.
-    #
+declare scene_rotor_composition :: (String, String, String, String, String, String, String) ->
+    StatefulAnimation(metre, List(MultiVector(metre, Geom3!)));
+
+define scene_rotor_composition(r11, r12, r21, r22, iframe1, iframe2, iframe3) =
     let
-        rotor = geometric_product(n, m),
-        rotor_norm_square = geometric_product(rotor, multivector_reverse(rotor))
+        initial_ref_frame_mv = [parse_mv(iframe1), parse_mv(iframe2), parse_mv(iframe3),
+            parse_mv("e1+e2+e3")],  # additional parameters hard coded...
+        rotor_1 = make_rotor(parse_mv(r11), parse_mv(r12)),
+        rotor_2 = make_rotor(parse_mv(r21), parse_mv(r22)),
+        rotor_compose = geometric_product,
+        rotor = rotor_compose(rotor_1, rotor_2),
+
+        title = format("Rotation with rotating composed rotor of rotor1, rotor2 = %s", 
+            multivector2string(rotor)),
+        scene = empty_scene(title),
+
+        callback = animation_callback_state_composition(rotor),
+        arrows = append(
+                    frame_arrows(initial_ref_frame_mv, make_color("blue"), true),
+                    frame_arrows(initial_ref_frame_mv, make_color("red"), false))
     in
-        geometric_product(rotor, geometric_product(rotor, multivector_inverse(rotor_norm_square)))
+        add_stateful_animation_callback(initial_ref_frame_mv, callback, add_arrows(arrows, scene))
     end;
 
-# Leo's formule op p170
-define make_rotor_leo(n, m) = 
-    geometric_product(n, multivector_inverse(m));
+# Stateful callback, using the updated state=frame 
+define animation_callback_state_composition(rotor) = 
+    (time, frame, scene) ->
+        let new_frame = [rotate(x, rotor) | x <- frame]
+        in
+        tuple(new_frame,
+            set_arrows(scene, 
+            append(
+                    frame_arrows(new_frame, make_color("blue"), true),
+                    frame_arrows(frame, make_color("red"), false))))
+    end;
 
-define make_rotor_doran(n, m) =
-    geometric_product(normalise(n), normalise(m));
 
-define normalise(n) =
+
+declare scene_rotor_nesting :: (String, String, String, String, String, String, String) ->
+    StatefulAnimation(metre, State(metre));
+
+define scene_rotor_nesting(r11, r12, r21, r22, iframe1, iframe2, iframe3) =
+    let
+        title = "Rotation with rotating rotors.",
+
+        body = "Instead of the composition of rotors, the second rotor rotates the
+            object while the first rotation rotates the entire scene. The second rotor
+            is 'nested' in the first. This is achieved by rotating the second rotor 
+            together with the rotated object.",
+
+        rotor1_text = if r11 = r12 then "Rotor 1 is off." else "Rotor 1 is on." end,
+        rotor2_text = if r21 = r22 then "Rotor 2 is off." else "Rotor 2 is on." end,
+
+        header = format("%s %s %s %s", title, rotor1_text, rotor2_text, body),
+
+        initial_ref_frame = [parse_mv(iframe1), parse_mv(iframe2), parse_mv(iframe3)],
+        rotor_1 = make_rotor(parse_mv(r11), parse_mv(r12)),
+        rotor_2 = make_rotor(parse_mv(r21), parse_mv(r22)),
+
+        state = initial_state(rotor_1, rotor_2, initial_ref_frame, trail_colors(2, 1)),
+        scene = add_arrows(state_arrows(state), empty_scene(header))
+    in
+        add_stateful_animation_callback(state, animation_callback_nesting, scene)
+    end;
+
+declare animation_callback_nesting :: for_unit a:
+    (second, State(a), Scene(a)) -> Tuple(State(a), Scene(a));
+
+define animation_callback_nesting(time, state, scene) =
+    let next = next_state(state) in
+        tuple(next, set_arrows(scene, state_arrows(next)))
+    end;
+
+# ------------------------------------------------------------------------------
+# State
+# 
+# The state triple is needed for the three scenes in which the nested rotors are dislayed/
+# ------------------------------------------------------------------------------
+
+doc State
+    "The rotation scene's state is a triple (rotor1, rotor2, trail). The first
+    rotation is constant, the second rotation rotates with the frame. The trail
+    is a trail of multi-vector lists. See the Trail type.";
+
+deftype for_unit a: State(a) = Tuple(
+    MultiVector(1, Geom3!),
+    MultiVector(1, Geom3!),
+    Trail(List(MultiVector(a, Geom3!)))
+);
+
+# ------------------------------------------------------------------------------
+
+declare initial_state :: for_unit a: (
+    MultiVector(1, Geom3!),
+    MultiVector(1, Geom3!),
+    List(MultiVector(a, Geom3!)),
+    List(Color)
+) -> State(a);
+
+define initial_state(rotor1, rotor2, object, trail_colors) =
+    tuple(rotor1, rotor2, initial_trail(object, trail_colors));
+
+# ------------------------------------------------------------------------------
+
+declare next_state ::
+    for_unit a: (State(a)) -> State(a);
+
+define next_state(state) =
+    let
+        (rot1, rot2, trail) = state,
+        old_frame = trail_head(trail),
+        new_frame = [rotate(rotate(x, rot2), rot1) | x <- old_frame],
+        new_trail = update_head(new_frame, trail)
+    in
+        tuple(rot1, rotate(rot2, rot1), new_trail)
+    end;
+
+# ------------------------------------------------------------------------------
+
+declare state_arrows :: for_unit a: (State(a)) -> List(Arrow(a));
+
+define state_arrows(state) = 
+    let
+        (_, _, trail) = state,
+        labeled_arrows = [arrow | (frame, color) := head(trail), 
+                                  arrow <- frame_arrows(frame, color, true)],
+        unlabeled_arrows = [arrow | (frame, color) <- tail(trail),
+                                    arrow <- frame_arrows(frame, color, false)]
+    in
+        append(unlabeled_arrows, labeled_arrows)
+    end;
+
+
+# ------------------------------------------------------------------------------
+# Common code for the two scenes: frame arrows
+# ------------------------------------------------------------------------------
+
+
+declare frame_arrows :: for_unit a:
+    (List(MultiVector(a, Geom3!)), Color, Boole) -> List(Arrow(a));
+
+define frame_arrows(frame, color, show_label) = 
+    [arrow | j <- naturals(list_size(frame)), 
+             mv := nth(j, frame),
+             label := if show_label then multivector2string(mv) else "" end,
+             arrow := frame_arrow(mv2vec(mv), color, label, format("arrr_%s_%s", color, j))];
+
+
+define frame_arrow(vector, color, label, name) =
+    with_arrow_label(label,
+        with_arrow_name(name,
+            with_arrow_color(color,
+                origin_arrow(5 '.*' vector))));
+
+
+
+
+
+# ------------------------------------------------------------------------------
+# Trails
+# The Trails functions are needed for displaying a latest <16> animated frames.
+# ------------------------------------------------------------------------------
+
+doc Trail
+    "A trail is a list of pairs (value, color) with value any object, and color
+    a graphics color. When the head of a trail is updated the colors remain the 
+    same, but the values are rotated. This means that the value in each pair
+    becomes the value of the pair before it, while the color is unchanged.
+    The first pair get the new value.";
+
+deftype for_type t: Trail(t) = 
+    List(Tuple(t, Color));
+
+# ------------------------------------------------------------------------------
+
+declare initial_trail :: for_type t:
+    (t, List(Color)) -> Trail(t);
+
+define initial_trail(object, colors) =
+    [tuple(object, color) | color <- colors];
+
+# ------------------------------------------------------------------------------
+
+declare trail_head :: for_type t: (Trail(t)) -> t;
+
+define trail_head(trail) =
+    let (frame, color) = head(trail) in
+        frame
+    end;
+
+# ------------------------------------------------------------------------------
+
+declare update_head :: for_type t: (t, Trail(t)) -> Trail(t);
+
+define update_head(value, trail) = 
     let 
-        in_nn = left_contraction(n, n)
-    in 
-        geometric_product(n, geometric_product(n, multivector_inverse(in_nn)))
+        frames = [frame | (frame, _) <- trail],
+        colors = [color | (_, color) <- trail],
+        new_frames = cons(value, butlast(frames))
+    in
+        zip(new_frames, colors)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc trail_colors
+    "Quick hack for trail colors. Parameter color is 0 (red), 1 (green), or 2 (blue). Parameter
+    gradient is 0 (short trail) or 1 (long trail)";
+
+declare trail_colors :: (1, 1) -> List(Color);
+
+define trail_colors(color, gradient) =
+    let
+        formatter = nth(mod(color, 3), ["#FF%s%s", "#%sFF%s", "#%s%sFF"]),
+        gradients = nth(mod(gradient, 2), [
+                ["00", "B0", "B8", "C0", "C8", "D0", "D8", "E0", "E8"],
+                ["00", "B0", "B4", "B8", "BC", "C0", "C4", "C8", "CC", "D0", "D4", "D8", "DC", "E0", "E4", "E8", "EC"]
+            ])
+    in
+        [make_color(format(formatter, g, g)) | g <- gradients]
     end;
 
 
 
-define rotate (a, rotor) =
-    geometric_product(geometric_product(rotor, a), multivector_reverse(rotor));
+
+# ------------------------------------------------------------------------------
+# butLast
+# Utility for the trails display, for standard lib
+# ------------------------------------------------------------------------------
+ 
+doc butlast
+    "A copy of the list with the last element removed. The empty list
+    if the list is empty.";
+
+declare butlast :: for_type t: (List(t)) -> List(t);
+
+define butlast(xs) =
+    if xs = [] or tail(xs) = [] then
+        []
+    else 
+        cons(head(xs), butlast(tail(xs)))
+    end;
+
+
