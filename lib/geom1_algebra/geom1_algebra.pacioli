@@ -1,0 +1,92 @@
+# ------------------------------------------------------------------------------
+# MultiVector functional layer - instances for applications
+# ------------------------------------------------------------------------------
+
+import geometry;
+import geometric_algebra;
+
+export
+    e0, e1,
+    parse_base_blade,
+    parse_mv,
+    vec2mv;
+
+defindex Geom1 = {x};
+
+declare d1x :: Geom1!;
+
+define d1x = delta(Geom1@x);
+
+
+declare vector1d :: for_unit a: (a) -> a*Geom1!;
+
+define vector1d(x) =
+#  x '.*' delta(Geom1@x);
+  x '.*' delta(Geom1@x);
+
+
+# TODO: separate aliases for term_weight AND term_base_blade
+defalias geometric_unit = metre;
+
+
+define blades = 
+    let 
+        base1 = vector1d(1),
+        context = make_context("Geom1", [
+            tuple("1", []), # TODO: should 1 -> e0??
+            tuple("e1", [base1])
+        ])
+    in
+        context_blades(context)
+    end;
+
+define terms = 
+    [make_term(|geometric_unit|, blade) | blade <- blades];
+
+set_nr_decimals(0);
+
+table(terms, terms, outer_product, "^");
+table(terms, terms, geometric_product, "*");
+table(terms, terms, left_contraction, "L");
+table(terms, terms, right_contraction , "R");
+table(terms, terms, hestenes_inner_product, "H");
+table(terms, terms, modified_hestenes_inner_product, "M");
+
+
+# ------------------------------------------------------------------------------
+# Blades used in geometric_algebra_tests.pacioli
+# ------------------------------------------------------------------------------
+
+declare e0 :: BaseBlade(1, Geom1!);
+declare e1 :: BaseBlade(1, Geom1!);
+
+define e0 = nth(0, blades);
+define e1 = nth(1, blades);
+
+declare parse_mv :: (String) -> MultiVector(geometric_unit, Geom1!);
+
+define parse_mv(x) = parse_multivector((s)-> parse_base_blade(s, |geometric_unit|), x);
+
+declare parse_base_blade :: for_unit a : (String, a) -> Term(a, Geom1!);
+
+define parse_base_blade(input, unit) =
+    if input = "0" then make_term(unit, e0)
+    else if input = "1" then make_term(unit, e1)
+    else error(concatenate("Unexpected base blade in input: e", input))
+    end;
+
+# ------------------------------------------------------------------------------
+# vec2mv
+# ------------------------------------------------------------------------------
+
+declare vec2mv :: for_unit a: (a * Geom1!) -> MultiVector(a, Geom1!);
+
+define vec2mv(vec) =
+    let u = unit_factor(vec) in
+        let mag = magnitude(vec) in
+            make_multivector([
+                scale_term(u,make_term(get(mag, Geom1@x, _), e1))
+            ])
+        end
+    end;
+

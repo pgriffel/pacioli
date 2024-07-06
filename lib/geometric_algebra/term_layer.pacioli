@@ -17,7 +17,8 @@ export
     term_reverse,
     term_inverse,
     term_bar,
-    compare_term;
+    compare_term,
+    transform_term;
 
 # ----------------------------------------------------------------------------
 # Term
@@ -249,6 +250,13 @@ declare term_geometric_product ::
 
 define term_geometric_product(t1, t2) = 
     term_product(t1, t2, false);
+
+declare transform_term :: for_index A,B: for_unit a,c:
+    (Term(a, B!), c/a * A! per B!) -> Term(c, A!);
+
+# @@@ TODO recursively apply the outermorphism rules of Leo 4.3 on p101-103.
+define transform_term(term, matrix) = ???;
+#    let (weight, blade) = term in make_term(a * weight, blade) end;
 
 # ----------------------------------------------------------------------------
 # Just needed for term_product

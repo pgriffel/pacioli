@@ -17,11 +17,13 @@ export
     hestenes_inner_product,
     modified_hestenes_inner_product,
     multivector_reverse,
+    multivector_scale,
     multivector_negate,
     multivector_bar,
     multivector_even,
     multivector_odd,
     multivector_add,
+    multivector_subtract,
     multivector_inverse,
     multivector_filter,
     project_grade,
@@ -29,7 +31,8 @@ export
     multivector2string,
     parse_multivector,
     mv2vec,
-    table;
+    table,
+    transformmv;
 
 # ------------------------------------------------------------------------------
 # MultiVector
@@ -164,6 +167,14 @@ define multivector_add(mv1, mv2) =
 
 # ------------------------------------------------------------------------------
 
+declare multivector_subtract :: for_index I: for_unit a:
+    (MultiVector(a, I!), MultiVector(a, I!)) -> MultiVector(a, I!);
+
+define multivector_subtract(mv1, mv2) =
+    multivector_add(mv1, multivector_negate(mv2));
+
+# ------------------------------------------------------------------------------
+
 declare geometric_product :: for_index I: for_unit a,b:
     (MultiVector(a, I!), MultiVector(b, I!)) -> MultiVector(a*b, I!);
 
@@ -213,11 +224,27 @@ define multivector_odd(mv) =
 
 # ------------------------------------------------------------------------------
 
-declare multivector_inverse ::
+declare multivector_inverse, versor_inverse ::
     for_index I: for_unit a: (MultiVector(a, I!)) -> MultiVector(a^-1, I!);
 
+# Leo p530 21.2: "As long as you stay within the bounds of geometric algebra (as opposed to Clifford algebra;
+# see Section 7.7.2 for our take on the difference), the versor inverse method should cover
+# all of your inversion needs."
 define multivector_inverse(mv) =
-    [term_inverse(term) | term <- mv];
+    versor_inverse(mv);
+
+declare multivector_scale :: for_index b: for_unit a, c:
+    (MultiVector(a, b!), c) -> MultiVector(a*c, b!);
+
+define multivector_scale(mv, scale) =
+    [scale_term(scale, term) | term <- mv];
+
+define versor_inverse(mv) =
+    let reverse = multivector_reverse(mv),
+        scp = scalar_part(left_contraction(mv, reverse))
+    in
+        multivector_scale(reverse, 1/scp)
+    end;
 
 # ------------------------------------------------------------------------------
 
@@ -365,8 +392,11 @@ define multivector2string(mv) =
     if mv = [] then
         num2str(0, |1|)
     else
+        let unit = format("%s", unit_factor(term_weight(nth(0, mv)))) in
+            format("%s %s", intercalate([term2string(term) | term <- mv], " + "), if unit = "1" then "" else unit end)
+        end
         #intercalate([concatenate(let w = term_weight(term) in if w = 1 then "" else if w = -1 then "-" else num2str(w, |1|) end end, let t = term_base_blade(term) in if t = e0 then "" else base_blade_name(t) end end) | term <- mv], " + ")
-        intercalate([term2string(term) | term <- mv], " + ")
+        
     end;
 
 # ------------------------------------------------------------------------------
@@ -437,3 +467,11 @@ define mv2vec(mv) =
 
 define term2vec(term) =
   term_weight(term) '.*' nth(0, base_blade_vectors(term_base_blade(term)));
+
+
+declare transformmv :: for_index A,B: for_unit a,c:
+    (MultiVector(a, B!), c/a * A! per B!) -> MultiVector(c, A!);
+
+define transformmv(mv, matrix) = 
+    [transform_term(term, matrix) | term <- mv];
+

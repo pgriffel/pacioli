@@ -47,6 +47,15 @@ declare make_context :: for_index I: for_unit a:
 define make_context(name, names_and_vectors) =
     tuple(name, names_and_vectors);
 
+doc context_unit
+    "Returns the unit of the context.";
+
+declare context_unit :: for_index I: for_unit a: (Context(a, I!)) -> a;
+
+# we take the e1 entry from the list of blades, then the 0th element from that list to obtain the e1 vector. 
+define context_unit(context) = 
+    unit_factor(nth(0, context_blade_vectors(context, 1)));     
+
 # ----------------------------------------------------------------------------
 
 doc context_blades
@@ -123,10 +132,19 @@ declare context_product :: for_index I: for_unit a,b:
 
 define context_product(a_context, b_context) =
     let (_, a_info) = a_context,
-        (_, b_info) = b_context
+        (_, b_info) = b_context,
+        a_context_name = context_name(a_context),
+        b_context_name = context_name(b_context)
     in
         make_context(
-            concatenate(context_name(a_context), context_name(b_context)),
+            if
+                a_context_name = b_context_name
+            then
+                a_context_name
+            else
+                error(format("context product error %s != %s",a_context_name, b_context_name))
+            end,
+           
             zip_with((t1, t2) -> product_tuples(t1, t2), a_info, b_info))
     end;
 
@@ -138,6 +156,23 @@ define product_tuples(t1, t2) =
     in
         tuple(name1, zip_with((b1, b2) -> b1*b2, bases_1, bases_2))
     end;
+
+
+# We need linear transformations within the same space, Rn -> Rn (Leo p100)
+# @@@TODO: Must we have a less generic type definition? 
+# 
+declare transform_context:: for_index A,B: for_unit a,c:
+    (Context(a, B!), c/a * A! per B!) -> Context(c, A!);
+
+declare transform_blade:: for_index A,B: for_unit a,c:
+    (BaseBlade(a, B!), c/a * A! per B!) -> BaseBlade(c, A!);
+
+# @@@ TODO recursively apply the outermorphism rules of Leo 4.3 on p101-103.
+define transform_context(context, matrix) = ???;
+
+
+define transform_blade(blade, matrix) = ???
+    ;
 
 # ----------------------------------------------------------------------------
 # Representation of Base Blades layer

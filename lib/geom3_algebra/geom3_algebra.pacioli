@@ -5,6 +5,7 @@
 import geometry;
 import geometric_algebra;
 
+# DEPRECATED FILE
 export
     e0, e1, e12, e123, e13, e2, e23, e3,
     parse_base_blade,
@@ -82,8 +83,6 @@ define parse_mv_unit(x, unit) = parse_multivector((s)-> parse_base_blade(s, unit
 
 declare parse_base_blade :: for_unit a : (String, a) -> Term(a, Geom3!);
 
-
-
 define parse_base_blade(input, unit) =
     if input = "0" then make_term(unit, e0)
     else if input = "1" then make_term(unit, e1)
@@ -103,7 +102,6 @@ define parse_base_blade(input, unit) =
     else if input = "312" then make_term(unit, e123)    
     else error(concatenate("Unexpected base blade in input: e", input))
     end;
-
 
 # ------------------------------------------------------------------------------
 # vec2mv

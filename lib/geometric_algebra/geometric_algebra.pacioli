@@ -12,6 +12,14 @@ include blade;
 
 import geometry;
 
+export
+    geometric_division,
+    reflect,
+    project,
+    reject,
+    make_rotor,
+    rotate;
+
 
 # ------------------------------------------------------------------------------
 # MultiVector functional layer - instances for applications
@@ -71,3 +79,66 @@ import geometry;
 #              +-------------+---------------+---------------+--------------+
 #
 
+
+# General geometric_division - inverse of ge
+doc geometric_division "geometric (right) division x/y";
+
+declare geometric_division :: for_index b: for_unit a, c:
+    (MultiVector(a, b!), MultiVector(c, b!)) -> MultiVector(a/c, b!);
+
+define geometric_division(x, y) =
+    geometric_product(x, multivector_inverse(y));
+
+
+# Vectors of the functions below must have the same unit type, because
+# - we must be able to add two vectors, such as the project + the reject to the original vector
+# - linear algebra addition mean that you can only add vectors that have the same unit
+# - rotation leaves the vector unit invariant.
+#
+
+doc reflect
+"Reflect a vector in the vector a - line - based  on formula 7.1 on p168 in Leo.";
+
+declare reflect :: for_index b: for_unit a: (MultiVector(a, b!), MultiVector(a, b!)) -> MultiVector(a, b!);
+
+define reflect(a, x) = 
+    geometric_product(a, geometric_product(x, multivector_inverse(a)));
+
+doc project
+"Project x on a, using Leo's formula on p155 and 157 for the projection,
+using the (right) geometric division.";
+
+declare project :: for_index b: for_unit a:
+    (MultiVector(a, b!), MultiVector(a, b!)) -> MultiVector(a, b!);
+
+define project(a, x) =
+    geometric_division(left_contraction(x, a), a); 
+
+
+doc reject "Reject x from a, the remainder of the projection, using Leo's formula on p156 for the rejection,
+using the (right) geometric division.";
+
+declare reject :: for_index b: for_unit a:
+    (MultiVector(a, b!), MultiVector(a, b!)) -> MultiVector(a, b!);
+
+define reject(a, x) = 
+   geometric_division(outer_product(x, a), a); 
+   
+# Leo's formula's op p170-1 for a rotor and a rotation
+# We force the vector types to be the same for the rotor, so the rotor is dimensionless
+#
+doc make_rotor "Make a rotor uring Leo's formula on p170-171 for a rotor and a rotation.";
+
+declare make_rotor :: for_index b: for_unit a:
+    (MultiVector(a, b!), MultiVector(a, b!)) -> MultiVector(1, b!);
+
+define make_rotor(b, a) = 
+    geometric_division(b, a);
+
+doc rotate "Rotate a vector using a rotor.";
+
+declare rotate :: for_index b: for_unit a:
+    (MultiVector(a, b!), MultiVector(1, b!)) -> MultiVector(a, b!);
+
+define rotate (x, rotor) =
+    geometric_product(geometric_product(rotor, x), multivector_inverse(rotor));

@@ -12,7 +12,9 @@
     <div id="pacioli_hook" style=" margin: 10px"></div>
 </body>
 
+
 <script>
+
 
     // Add a {file, function, kind, params, options?} entry for each example to this list and 
     // include its script further below. The kind is one of 'scene', 'animation', or 
@@ -20,35 +22,45 @@
     // will  make an input for each parameter and use the numbers as initial value. The script's
     // scene function fun must accept the same number as arguments.
     //
+    // Strings are for now supported by using unit 'string'.
+    //
     // Note that the space has unit metre. The scene elements must have compatible units,
     // otherwise runtime errors will occur in the browser.
     const examples = [
         {
-            file: "rotations",
-            function: "scene_reflection",
-            kind: 'scene',
-            params: [["nx", 0, "metre"], ["ny", 5, "metre"], ["nz", 0, "metre"],
-            ["ax", -3, "metre"], ["ay", 3, "metre"], ["az", 0, "metre"]]
+            file: "torque_cross_vector",
+            function: "scene_torque_orbital2d_pointmass",
+            kind: 'stateful-animation',
+            params: [["mass", 5, "gram"], ["rx", 2, "metre"]]
         },
         {
-            file: "rotations",
-            function: "scene_reflection_dimless",
-            kind: 'scene',
-            params: [["nx", 0, "1"], ["ny", 5, "1"], ["nz", 0, "1"],
-            ["ax", -3, "1"], ["ay", 3, "1"], ["az", 0, "1"]]
+            file: "torque_cross_vector3d",
+            function: "scene_orbit_point_mass",
+            kind: 'stateful-animation',
+            params: [
+                ["mass", 1, "gram"],
+                ["x", -4, "metre"],
+                ["y", 4, "metre"],
+                ["z", 0, "metre"],
+                ["force field (1, 2, 3 or 4)", 1, "1"],
+                ["torque factor", 1, "metre / gram / metre * second^2 / metre"],
+                ["force factor", 1, "metre / gram / metre * second^2"],
+                ["momentum factor", 1, "metre / gram / metre^2 * second"],
+                ["velocity factor", 1, "metre / metre * second"]
+            ]
         },
         {
-            file: "physics",
-            function: "the_scene_mv",
+            file: "cross_vector",
+            function: "scene_cross_oscillate",
             kind: 'animation',
-            params: [["start red", 0, "second"], ["start blue", 0.1, "second"], ["speed", 1, "radian/second"]]
+            params: [["x", 2, "metre"], ["y", 3, "metre"]]
         },
         {
-            file: "physics",
-            function: "the_scene_mv",
+            file: "cross_vector",
+            function: "scene_cross_dimless_oscillate",
+            unit: "1",  // Override the default metre!
             kind: 'animation',
-            params: [["start red", 0, "second"], ["start blue", 0.1, "second"], ["speed", 2 * 3.14 / 60, "radian/second"]],
-            options: { fps: 1 }
+            params: [["x", 2, "1"], ["y", 3, "1"]]
         },
         {
             file: "bi_vector",
@@ -102,173 +114,8 @@
     ]
 
     function onLoad() {
-
-        // These space settings can be tweaked
-        const spaceConfig = {
-            width: 800,
-            height: 450,
-            unit: Pacioli.unit("metre"),
-            axis: true,
-            axisSize: 10,
-            grid: [20, 20],
-            perspective: true,
-            zoomRange: [1, 50],
-            camera: [20, 10, 20],
-            fps: 30, verbose: true
-        }
-
-        // Locate the DOM element where we will append the examples
-        var parent = document.getElementById("pacioli_hook")
-
-        for (const example of examples) {
-
-            const script = example.file
-            const fun = example.function
-
-            // Call the script function
-            const args = example.params.map(([, val, unit]) => Pacioli.num(val, unit ? Pacioli.si.parseDimNum(unit).unit : undefined));
-            const sceneOrAnimation = Pacioli.fun(script, fun).apply(args);
-
-            // Create DOM elements
-            const headerElement = document.createElement("h2");
-            const descriptionElement = document.createElement("p");
-            const spaceElement = document.createElement("div");
-
-            // Give the example a title
-            headerElement.innerText = "Example " + script + " - " + fun
-            headerElement.id = script + "_" + fun
-
-            // Add a Pacioli space and load the scene into it.
-            const space = new Pacioli.Space(spaceElement, { ...spaceConfig, ...example.options })
-            load(space, sceneOrAnimation, example.kind);
-
-            // Add the example's description
-            descriptionElement.innerHTML = space.getDescription();
-
-            // Create a panel with relevant buttons
-            const buttonPanel = makeButtonPanel(space, script, fun, example.kind, example.params);
-
-            // Add the elements to the DOM
-            parent.appendChild(headerElement);
-            parent.appendChild(descriptionElement);
-            parent.appendChild(spaceElement);
-            parent.appendChild(buttonPanel);
-        }
+        main(examples)
     }
-
-    function makeButtonPanel(space, script, fun, kind, initialParameters) {
-
-        const panel = document.createElement('div');
-
-        let inputButton;
-        let stepButton;
-        let runButton;
-
-        // Add inputs and a button if the parameter list is not empty
-        if (initialParameters.length > 0) {
-
-            inputButton = document.createElement("button");
-
-            // Create input elements for the parameters
-            const inputs = initialParameters.map(([label, value, unit]) => {
-                const inputElement = document.createElement("input");
-                inputElement.value = value
-                inputElement.addEventListener("keypress", function (event) {
-                    if (event.key === "Enter") {
-                        event.preventDefault();
-                        inputButton.click();
-                    }
-                });
-                return [label, inputElement, unit ? Pacioli.si.parseDimNum(unit).unit : undefined]
-            })
-
-            // Add a button to recalculate the scene
-            inputButton.innerText = "Enter"
-            inputButton.onclick = () => {
-
-                if (!space.isAnimating()) {
-                    // User clicked the button. Get the input values and update the space
-                    const params = inputs.map(([, input, unit]) => Pacioli.num(Number(input.value), unit))
-                    const sceneOrAnimation = Pacioli.fun(script, fun).apply(params);
-                    load(space, sceneOrAnimation, kind);
-                    space.draw()
-                    if (space.isAnimation() && stepButton) {
-                        stepButton.innerText = "Step " + space.animationTime().toFixed(2) + "s"
-                    }
-                }
-            }
-
-            // Add the input elements to a table
-            const table = document.createElement('table')
-            for (const [label, input, unit] of inputs) {
-                const row = document.createElement('tr')
-                const key = document.createElement('td')
-                const value = document.createElement('td')
-                const un = document.createElement('td')
-                key.innerText = label
-                un.innerText = unit ? unit.toText() : ""
-                value.appendChild(input)
-                row.appendChild(key)
-                row.appendChild(value)
-                row.appendChild(un)
-                table.appendChild(row)
-            }
-
-            panel.appendChild(table);
-            panel.appendChild(inputButton);
-        }
-
-        // Add buttons to run the animation
-        if (space.isAnimation()) {
-
-            stepButton = document.createElement("button");
-            runButton = document.createElement("button");
-
-            stepButton.innerText = "Step " + space.animationTime().toFixed(2) + "s"
-            stepButton.onclick = () => {
-                if (!space.isAnimating()) {
-                    space.updateScene();
-                    space.draw()
-                    stepButton.innerText = "Step " + space.animationTime().toFixed(2) + "s"
-                }
-            }
-
-            runButton.innerText = "Start"
-            runButton.onclick = () => {
-                space.setAnimating(!space.isAnimating());
-                runButton.innerText = space.isAnimating() ? "Stop " : "Start";
-                stepButton.innerText = "Step " + space.animationTime().toFixed(2) + "s"
-                inputButton.disabled = space.isAnimating()
-                stepButton.disabled = space.isAnimating()
-            }
-
-            panel.appendChild(stepButton);
-            panel.appendChild(runButton);
-        }
-
-        return panel;
-    }
-
-    function load(space, sceneOrAnimation, kind) {
-        switch (kind) {
-            case 'scene': {
-                space.loadScene(sceneOrAnimation);
-                break;
-            }
-            case 'animation': {
-                space.loadAnimation(sceneOrAnimation);
-                break;
-            }
-            case 'stateful-animation': {
-                space.loadStatefulAnimation(sceneOrAnimation);
-                break;
-            }
-            default: {
-                throw new Error("Unknown kind")
-            }
-        }
-    }
-
 </script>
 
 <script type="text/javascript" src="pacioli-0.5.0.bundle.js"></script>
@@ -279,7 +126,9 @@
 <script type="text/javascript" src="geom3/outer_cos_sin.js"></script>
 <script type="text/javascript" src="geom3/weird.js"></script>
 <script type="text/javascript" src="geom3/cubes.js"></script>
-<script type="text/javascript" src="geom3/physics.js"></script>
-<script type="text/javascript" src="geom3/rotations.js"></script>
+<script type="text/javascript" src="geom3/cross_vector.js"></script>
+<script type="text/javascript" src="geom3/torque_cross_vector.js"></script>
+<script type="text/javascript" src="geom3/torque_cross_vector3d.js"></script>
+<script type="text/javascript" src="scene.js"></script>
 
 </html>
