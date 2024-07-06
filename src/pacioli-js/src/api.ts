@@ -44,6 +44,7 @@ import { boxRawValue, internUnit, matrixShapeFromType } from "./boxing";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
 import { UnitVector } from "./values/unit-vector";
+import { PacioliString } from "./values/string";
 
 const defaultContext = PacioliContext.si();
 
@@ -304,6 +305,10 @@ export function printValue(x: any) {
 // Pacioli.dimNum = function (a, b) {
 //     return new Pacioli.DimensionedNumber(a, b);
 // }
+
+export function string(value: string): PacioliString {
+  return new PacioliString(value);
+}
 
 // -----------------------------------------------------------------------------
 // 1. The Store

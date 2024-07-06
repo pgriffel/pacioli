@@ -32,6 +32,7 @@ export {
   value,
   fun,
   num,
+  string,
   lookupItem,
   createMatrixType,
   fetchIndex,
