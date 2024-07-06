@@ -431,19 +431,15 @@ export class Space {
     const jsOrigin = vec2THREE(origin.numbers, originFactor);
     const jsVector = vec2THREE(vector.numbers, 1);
 
-    // Determine the vector's length before normalizing, taking the unit factor into
-    // account. (Is there some existing function to compute the vector's length?)
-    const vectorLength =
-      vectorFactor *
-      Math.sqrt(jsVector.x ** 2 + jsVector.y ** 2 + jsVector.z ** 2);
+    const labelPos = jsVector.clone().multiplyScalar(1.1).add(jsOrigin);
 
     // Add a label if required
-    if (this.options.showLabels && label.value !== "") {
+    if (this.options.showLabels && label.value !== null) {
       const labelObject = makeLabelObject(
         label.value,
-        jsVector.x * 1.1,
-        jsVector.y * 1.1,
-        jsVector.z * 1.1
+        labelPos.x * 1.0,
+        labelPos.y * 1.0,
+        labelPos.z * 1.0
       );
       if (name.value !== "") {
         labelObject.name = name.value + "_label";
@@ -451,12 +447,19 @@ export class Space {
       this.body.add(labelObject);
     }
 
+    const dirVec = jsVector; //.sub(jsOrigin);
+
+    // Determine the vector's length before normalizing, taking the unit factor into
+    // account. (Is there some existing function to compute the vector's length?)
+    const vectorLength =
+      vectorFactor * Math.sqrt(dirVec.x ** 2 + dirVec.y ** 2 + dirVec.z ** 2);
+
     // Normalize the direction vector (convert to vector of length 1)
-    jsVector.normalize();
+    dirVec.normalize();
 
     // Use three.js's ArrowHelper to display the vector.
     let arrow = new THREE.ArrowHelper(
-      jsVector,
+      dirVec,
       jsOrigin,
       vectorLength,
       vectorColor
@@ -473,30 +476,37 @@ export class Space {
     name: string,
     from: Matrix,
     to: Matrix,
-    _: PacioliString,
+    label: PacioliString,
     color: Maybe<PacioliString>
   ) {
     const arrow = this.scene.getObjectByName(name) as THREE.ArrowHelper;
-    const labelObj = this.scene.getObjectByName(
-      name + "_label"
-    ) as THREE.ArrowHelper;
+    const labelObj = this.scene.getObjectByName(name + "_label") as CSS2DObject;
     const vectorColor = color.value ? color.value.value : "blue";
     const jsVector = vec2THREE(from.numbers, 1);
     const dst = vec2THREE(to.numbers, 1);
 
+    const labelPos = dst.clone().multiplyScalar(1.1).add(jsVector);
+
     if (labelObj) {
-      labelObj.position.x = dst.x * 1.1;
-      labelObj.position.y = dst.y * 1.1;
-      labelObj.position.z = dst.z * 1.1;
+      labelObj.position.x = labelPos.x * 1.0;
+      labelObj.position.y = labelPos.y * 1.0;
+      labelObj.position.z = labelPos.z * 1.0;
+      labelObj.element.innerHTML = label.value;
     }
 
     if (arrow) {
+      var vectorFactor = 1; // TODO: do we not to convert as in addVector?
+      const vectorLength =
+        vectorFactor * Math.sqrt(dst.x ** 2 + dst.y ** 2 + dst.z ** 2);
+
+      const dirVec = dst; //.sub(jsVector);
+
       arrow.position.x = jsVector.x;
       arrow.position.y = jsVector.y;
       arrow.position.z = jsVector.z;
-      dst.normalize();
-      arrow.setDirection(dst);
-      // TODO: set arrow length
+      dirVec.normalize();
+      arrow.setDirection(dirVec);
+      arrow.setLength(vectorLength);
       arrow.setColor(vectorColor);
     }
   }
