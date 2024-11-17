@@ -66,7 +66,7 @@ public class Pacioli {
     public static class Options {
         public static boolean trace = false;
         public static boolean showFileLoads = false;
-        public static boolean showSymbolTableAdditions = false;
+        public static List<String> showSymbolTableAdditions = List.of();
         public static boolean showResolvingDetails = false;
         public static boolean showIncludeSearches = false;
         public static boolean showTypeInference = false;
@@ -79,7 +79,7 @@ public class Pacioli {
         public static boolean wrapTypes = false;
         public static boolean rewriteTypes = false;
         public static boolean includePrivate = true;
-        public static String traceTypeInference = null;
+        public static List<String> traceTypeInference = null;
     }
 
     // Remember if user output is at the beginning of a line. Used when printing
@@ -283,7 +283,7 @@ public class Pacioli {
                 } else if (key.equals("showFileLoads")) {
                     Options.showFileLoads = Boolean.parseBoolean(value);
                 } else if (key.equals("showSymbolTableAdditions")) {
-                    Options.showSymbolTableAdditions = Boolean.parseBoolean(value);
+                    Options.showSymbolTableAdditions = List.of(value.split(","));
                 } else if (key.equals("showResolvingDetails")) {
                     Options.showResolvingDetails = Boolean.parseBoolean(value);
                 } else if (key.equals("showIncludeSearches")) {
@@ -307,7 +307,7 @@ public class Pacioli {
                 } else if (key.equals("rewriteTypes")) {
                     Options.rewriteTypes = Boolean.parseBoolean(value);
                 } else if (key.equals("traceTypeInference")) {
-                    Options.traceTypeInference = value;
+                    Options.traceTypeInference = List.of(value.split(","));
                 } else {
                     println("Skipping unknown option '%s'", key);
                 }
@@ -587,7 +587,8 @@ public class Pacioli {
     private static void logOptions(boolean all) {
         logIf(all || Options.trace, "trace=%s", Options.trace);
         logIf(all || Options.showFileLoads, "showFileLoads=%s", Options.showFileLoads);
-        logIf(all || Options.showSymbolTableAdditions, "showSymbolTableAdditions=%s", Options.showSymbolTableAdditions);
+        logIf(all || !Options.showSymbolTableAdditions.isEmpty(), "showSymbolTableAdditions=%s",
+                Options.showSymbolTableAdditions);
         logIf(all || Options.showResolvingDetails, "showResolvingDetails=%s", Options.showResolvingDetails);
         logIf(all || Options.showIncludeSearches, "showIncludeSearches=%s", Options.showIncludeSearches);
         logIf(all || Options.showTypeInference, "showTypeInference=%s", Options.showTypeInference);

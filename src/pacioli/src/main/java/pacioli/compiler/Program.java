@@ -295,7 +295,8 @@ public class Program {
         // Build the value infos and add them to the table
         for (ValueInfo.Builder builder : valueBuilders.values()) {
             ValueInfo info = builder.build();
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s to %s from file %s",
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions.contains(info.name()),
+                    "Adding type %s to %s from file %s",
                     info.name(), file.module(), file.fsFile());
 
             env.addInfo(info);
@@ -304,7 +305,8 @@ public class Program {
         // Build the types infos and add them to the table
         for (InfoBuilder<?, ? extends TypeInfo> builder : typeBuilders.values()) {
             TypeInfo info = builder.build();
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s to %s from file %s",
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions.contains(info.name()),
+                    "Adding value %s to %s from file %s",
                     info.name(), file.module(), file.fsFile());
             env.addInfo(info);
         }
@@ -629,7 +631,7 @@ public class Program {
 
         ValueDefinition def = info.definition().get();
 
-        boolean verbose = info.globalName().equals(Pacioli.Options.traceTypeInference);
+        boolean verbose = Pacioli.Options.traceTypeInference.contains(info.name());
 
         Pacioli.logIf(Pacioli.Options.showTypeInference || verbose, "\nInferring typing of %s", info.name());
 

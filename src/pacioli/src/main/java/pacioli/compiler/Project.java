@@ -18,6 +18,7 @@ import org.jgrapht.traverse.DepthFirstIterator;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import pacioli.Pacioli;
+import pacioli.Pacioli.Options;
 import pacioli.ast.ImportNode;
 import pacioli.ast.IncludeNode;
 import pacioli.ast.ProgramNode;
@@ -217,6 +218,7 @@ public class Project {
         for (PacioliFile current : orderedFiles()) {
 
             // Parse the file
+            Pacioli.logIf(Options.showFileLoads, "Loading %s", current.moduleName());
             Program program = Program.load(current).desugar();
 
             // Filter the bundle's total symbol tables for the directly used modules of the

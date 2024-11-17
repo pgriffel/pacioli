@@ -109,11 +109,13 @@ public class Bundle {
             String infoModule = info.generalInfo().module();
             if ((info.isPublic() || info instanceof UnitInfo) && importedModules.contains(infoModule)
                     || includedModules.contains(infoModule)) {
-                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(),
+                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions.contains(info.name()), "Adding type %s %s",
+                        info.globalName(),
                         info.name());
                 table.put(info.name(), info);
             } else {
-                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Skipping type %s %s (%s || %s fails %s)",
+                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions.contains(info.name()),
+                        "Skipping type %s %s (%s || %s fails %s)",
                         info.globalName(), info.name(),
                         importedModules.contains(infoModule), includedModules.contains(infoModule), infoModule);
             }
@@ -146,7 +148,7 @@ public class Bundle {
     void load(PacioliTable other, boolean includeToplevels) throws Exception {
         // See duplicate code in Progam
         other.values().localInfos().forEach(info -> {
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s",
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions.contains(info.name()), "Adding value %s",
                     info.globalName());
             if (environment.values().contains(info.globalName())) {
                 throw new PacioliException(info.location(), "Duplicate name: %s, %s %s",
@@ -158,7 +160,7 @@ public class Bundle {
 
         });
         other.types().localInfos().forEach(info -> {
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s",
+            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions.contains(info.name()), "Adding type %s %s",
                     info.globalName(), info.name());
             if (environment.types().contains(info.globalName())) {
                 throw new PacioliException(info.location(), "Duplicate name: %s %s", info.globalName(),
