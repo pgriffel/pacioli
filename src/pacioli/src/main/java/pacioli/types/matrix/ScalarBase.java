@@ -86,6 +86,8 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
                 fac = new BigDecimal(1000);
             } else if (prefix.get().equals("milli")) {
                 fac = new BigDecimal(0.001);
+            } else if (prefix.get().equals("centi")) {
+                fac = new BigDecimal(0.01);
             } else if (prefix.get().equals("deci")) {
                 fac = new BigDecimal(0.1);
             } else {
