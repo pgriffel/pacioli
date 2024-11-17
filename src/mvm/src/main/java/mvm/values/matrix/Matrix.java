@@ -208,7 +208,7 @@ public class Matrix extends AbstractPacioliValue {
         return keys;
     }
 
-    private Unit<MatrixBase> unitAt(int i, int j) {
+    public Unit<MatrixBase> unitAt(int i, int j) {
         return shape.factor().multiply(getUnit(rowDimension(), shape.rowUnit, i)
                 .multiply(getUnit(columnDimension(), shape.columnUnit, j).reciprocal()));
     }
