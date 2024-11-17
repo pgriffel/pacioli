@@ -194,8 +194,12 @@ public interface TypeObject extends Printable {
                 char ch = (char) character++;
                 // Results in weird types like b!b. Is that okay?
                 map = map.compose(new Substitution(var, var.rename(String.format("%s!%s", ch, ch))));
+            } else if (var instanceof IndexSetVar) {
+                map = map.compose(
+                        new Substitution(var, var.rename(String.format("%s", (char) character++).toUpperCase())));
             } else {
-                map = map.compose(new Substitution(var, var.rename(String.format("%s", (char) character++))));
+                map = map.compose(
+                        new Substitution(var, var.rename(String.format("%s", (char) character++))));
             }
         }
         TypeObject unfreshType = applySubstitution(map);
