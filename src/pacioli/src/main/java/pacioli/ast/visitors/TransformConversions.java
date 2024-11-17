@@ -3,6 +3,7 @@ package pacioli.ast.visitors;
 import java.util.ArrayList;
 import java.util.List;
 
+import mvm.values.matrix.MatrixBase;
 import pacioli.ast.IdentityTransformation;
 import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.IdentifierNode;
@@ -15,6 +16,7 @@ import pacioli.types.matrix.VectorBase;
 import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
 import uom.Fraction;
+import uom.Unit;
 import uom.UnitFold;
 
 /**
@@ -89,6 +91,23 @@ public class TransformConversions extends IdentityTransformation {
                 DimensionedNumber<TypeBase> div = typeFactor.multiply(rowUnit.multiply(columnsUnit.reciprocal()));
                 DimensionedNumber<TypeBase> flat = div.flat();
 
+                if (!flat.unit().equals(MatrixBase.ONE)) {
+                    var pos = flat.unit().map(x -> flat.unit().power(x).signum() > 0 ? x : TypeBase.ONE);
+                    var neg = flat.unit().map(x -> flat.unit().power(x).signum() < 0 ? x : TypeBase.ONE);
+
+                    throw new PacioliException(node.location(),
+                            String.format(
+                                    "Cannot convert automatically form unit %s to unit %s for entry %s. Make sure the units are compatible, or create a custom conversion matrix.",
+                                    pos.pretty(),
+                                    neg.reciprocal().pretty(),
+                                    items.size() == 0 ? "_" : String.join(", ", items)));
+
+                    // throw new PacioliException(node.location(),
+                    // String.format("Cannot create conversion factor for entry %s. Residual is %s
+                    // %s -> %s",
+                    // items.size() == 0 ? "_" : String.join(", ", items), flat.unit().pretty(),
+                    // pos.pretty(), neg.reciprocal().pretty()));
+                }
                 // todo: how to handle empty dimension?
 
                 List<IdentifierNode> key = new ArrayList<IdentifierNode>();
