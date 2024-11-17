@@ -73,6 +73,20 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("base_nmode") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 3);
+                checkMatrixArg(params, 0);
+                checkMatrixArg(params, 1);
+                checkMatrixArg(params, 2);
+                Matrix x = (Matrix) params.get(0);
+                Matrix y = (Matrix) params.get(1);
+                Matrix z = (Matrix) params.get(2);
+                Matrix matrix = new Matrix(x.shape);
+                return matrix;
+            }
+        });
+
         // //////////////////
 
         storeBaseValue(store, "true", new Boole(true));
@@ -1115,6 +1129,16 @@ public class Primitives {
                     padded.append(subs.charAt(i++ % mod));
                 }
                 return new PacioliString(padded.toString());
+            }
+        });
+
+        storePrimitive(store, new Primitive("string_unit2string") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                // Just ignore the unit in the third parameter. The MVM is already typed.
+                // The unit is for targets that compute with numbers only.
+                Matrix num = (Matrix) params.get(0);
+                PacioliString string = new PacioliString(num.unitAt(0, 0).pretty());
+                return string;
             }
         });
 

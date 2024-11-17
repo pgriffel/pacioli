@@ -957,6 +957,21 @@ export function $base_io_set_nr_decimals(num: any) {
   return nothing;
 }
 
+export function $base_string_unit2string(unit: any) {
+  const shape = unit.shape;
+  if (shape === undefined) {
+    throw Error("shape undefined");
+  }
+  var rowOrder = shape.rowOrder();
+  var columnOrder = shape.columnOrder();
+
+  if (rowOrder === 0 && columnOrder === 0) {
+    return shape.unitAt(0, 0).toText();
+  } else {
+    throw Error("unit2string is not implemented for non-scalars");
+  }
+}
+
 export function $base_string_num2string(num: any, decimals: any, unit: any) {
   const shape = unit.shape;
   if (shape === undefined) {

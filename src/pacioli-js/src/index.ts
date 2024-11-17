@@ -201,6 +201,7 @@ export {
   $base_matrix_unit_factor,
   $base_base__while,
   $base_list_zip,
+  $base_string_unit2string,
   compute_$base_matrix__,
   ONE,
 } from "./primitives";
