@@ -26,6 +26,7 @@ export
     pad_right,
     format,
     parse_num,
+    unit2string,
     num2string,
     num2str;
 
@@ -114,6 +115,22 @@ doc parse_num
     "Reads a number from a string.";
 
 declare parse_num :: (String) -> 1;
+
+# ----------------------------------------------------------------------------
+
+doc unit2string
+    "Convert a matrix to a string.
+    
+    The last argument must be a literal unit. It is converted to text at 
+    compile time.
+    
+    The second argument is the number of decimals.
+
+    For example <code>num2string(1/3*|metre|, 5, |metre|)</code> <code>\"0,33333m\"</code>";
+
+declare unit2string :: for_unit a:
+    (a) -> String;
+
 
 # ----------------------------------------------------------------------------
 
