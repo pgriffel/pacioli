@@ -195,7 +195,12 @@ export function DOMTable(
     decimals: number;
     zero?: string;
   }[],
-  options?: { decimals: number; zero?: string; zeroRows: boolean }
+  options?: {
+    decimals: number;
+    zero?: string;
+    zeroRows: boolean;
+    totalsRow?: boolean;
+  }
 ) {
   // Use the first column for the shape. TODO: check the rest! Is not type checked!!!
   const matrix = columns[0].value;
@@ -296,6 +301,8 @@ export function DOMTable(
     // Kan dit??? Copied from above
     return document.createTextNode("0");
   } else {
+    const totals: Array<number> = new Array(n).fill(0);
+
     // Add the data rows
     for (let i = 0; i < nrRows; i++) {
       for (let j = 0; j < nrColumns; j++) {
@@ -328,6 +335,8 @@ export function DOMTable(
           cell.innerHTML = toFixed(num, nrDecs, zero);
           row.appendChild(cell);
 
+          totals[k] += num;
+
           cell = document.createElement("td");
           cell.className = "unit";
           const un =
@@ -345,6 +354,52 @@ export function DOMTable(
           tbody.appendChild(row);
         }
       }
+    }
+
+    // Add a total row if asked
+    if (options?.totalsRow) {
+      const row = document.createElement("tr");
+
+      // Add the index
+      if (0 < rowOrder) {
+        const cell = document.createElement("td");
+        cell.className = "key";
+        cell.innerHTML = "Totaal";
+        row.appendChild(cell);
+      }
+      if (0 < columnOrder) {
+        const cell = document.createElement("td");
+        cell.className = "key";
+        cell.innerHTML = "";
+        row.appendChild(cell);
+      }
+
+      // Add the totals cells
+      const nrDecs = 2; // TODO
+      const zero = "-";
+      for (let k = 0; k < n; k++) {
+        let cell = document.createElement("td");
+        cell.className = "total";
+        const num = totals[k];
+        cell.innerHTML = toFixed(num, nrDecs, zero);
+        row.appendChild(cell);
+
+        // TODO: handle units
+        cell = document.createElement("td");
+        cell.className = "unit";
+        // const un =
+        // 0 < rowOrder ? shapes[k].unitAt(i, j) : shapes[k].unitAt(i, j);
+        cell.appendChild(
+          document.createTextNode(
+            "" // unitToText(un, num === 0 && typeof zero === "string")
+          )
+        );
+
+        row.appendChild(cell);
+      }
+
+      // Add the totals row
+      tbody.appendChild(row);
     }
   }
   return table;
