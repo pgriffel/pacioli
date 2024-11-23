@@ -26,7 +26,9 @@ export
     d_y,
     d_z,
     vector2d,
+    matrix2d,
     vector3d,
+    matrix3d,
     space_vec,
     polar2cartesian,
     inclination,
@@ -40,7 +42,9 @@ export
     x_rotation,
     y_rotation,
     z_rotation,
-    rotation;
+    rotation,
+    det2d,
+    det3d;
 
 # ----------------------------------------------------------------------------
 # 3D Space
@@ -83,10 +87,90 @@ define vector3d(x, y, z) =
 #  x '.*' delta(Geom3@x) + y '.*' delta(Geom3@y) + z '.*' delta(Geom3@z);
   x '.*' delta(Geom3@x) + y '.*' delta(Geom3@y) + z '.*' delta(Geom3@z);
 
+# Obsolete. Use vector3d
+
 declare space_vec :: for_unit a: (a, a, a) -> a*Geom3!;
 
 define space_vec(a, b, c) = a '.*' d_x + b '.*' d_y + c '.*' d_z;
 
+# ----------------------------------------------------------------------------
+# Matrix construction
+# ----------------------------------------------------------------------------
+
+declare matrix2d :: for_unit a: (a, a, a, a) -> a * Geom2! per Geom2!;
+
+doc matrix2d
+    "Creates a <code>Geom2</code> matrix. The arguments are in row-major order.";
+
+define matrix2d(a, b, c, d) =
+    let x = Geom2@x,
+        y = Geom2@y
+    in
+        make_matrix([
+          tuple(x, x, a), tuple(x, y, b),
+          tuple(y, x, c), tuple(y, y, d)
+        ])
+    end;
+
+# ----------------------------------------------------------------------------
+
+declare matrix3d :: for_unit a: (a, a, a, a, a, a, a, a, a) -> a * Geom3! per Geom3!;
+
+doc matrix3d
+    "Creates a <code>Geom3</code> matrix. The arguments are in row-major order.";
+
+define matrix3d(a, b, c, d, e, f, g, h, i) =
+    let x = Geom3@x,
+        y = Geom3@y,
+        z = Geom3@z
+    in
+        make_matrix([
+          tuple(x, x, a), tuple(x, y, b), tuple(x, z, c),
+          tuple(y, x, d), tuple(y, y, e), tuple(y, z, f),
+          tuple(z, x, g), tuple(z, y, h), tuple(z, z, i)
+        ])
+    end;
+
+# ----------------------------------------------------------------------------
+# Determinants
+# ----------------------------------------------------------------------------
+
+declare det2d :: for_unit a, Geom2!u: (a * Geom2!u per Geom2!u) -> a^2;
+
+doc det2d
+    "Determinant of a <code>Geom2</code> matrix";
+
+define det2d(matrix) =
+    let m = unit_factor(matrix) '.*' magnitude(matrix),
+        a = get(m, Geom2@x, Geom2@x),
+        b = get(m, Geom2@x, Geom2@y),
+        c = get(m, Geom2@y, Geom2@x),
+        d = get(m, Geom2@y, Geom2@y)
+    in
+        a*d - b*c
+    end;
+
+# ----------------------------------------------------------------------------
+
+declare det3d :: for_unit a, Geom3!u: (a * Geom3!u per Geom3!u) -> a^3;
+
+doc det3d
+    "Determinant of a <code>Geom3</code> matrix";
+
+define det3d(matrix) =
+    let m = unit_factor(matrix) '.*' magnitude(matrix),
+        a = get(m, Geom3@x, Geom3@x),
+        b = get(m, Geom3@x, Geom3@y),
+        c = get(m, Geom3@x, Geom3@z),
+        d = get(m, Geom3@y, Geom3@x),
+        e = get(m, Geom3@y, Geom3@y),
+        f = get(m, Geom3@y, Geom3@z),
+        g = get(m, Geom3@z, Geom3@x),
+        h = get(m, Geom3@z, Geom3@y),
+        i = get(m, Geom3@z, Geom3@z)
+    in
+        a*e*i + b*f*g + c*d*h - c*e*g - b*d*i - a*f*h
+    end;
 
 # ----------------------------------------------------------------------------
 # Polar Coordinates
@@ -117,35 +201,11 @@ define cross(v,w) =
       vx = get(v, Geom3@x, _), vy = get(v, Geom3@y, _), vz = get(v, Geom3@z, _),
       wx = get(w, Geom3@x, _), wy = get(w, Geom3@y, _), wz = get(w, Geom3@z, _)
   in
-      (vy*wz - vz*wy) '.*' d_x + (vz*wx - vx*wz) '.*' d_y + (vx*wy - vy*wx) '.*' d_z
+      vector3d(vy*wz - vz*wy, vz*wx - vx*wz, vx*wy - vy*wx)
   end;
-
-#define cross(v,w) =
-#  let
-#      vx = inner(v, d_x), vy = inner(v, d_y), vz = inner(v, d_z),
-#      wx = inner(w, d_x), wy = inner(w, d_y), wz = inner(w, d_z)
-#  in
-#      (vy*wz - vz*wy) '.*' d_x + (vz*wx - vx*wz) '.*' d_y + (vx*wy - vy*wx) '.*' d_z
-#  end;
 
 define cross_sqrt(v,w) =
-  let
-      #vx = inner(v, d_x), vy = inner(v, d_y), vz = inner(v, d_z),
-      #wx = inner(w, d_x), wy = inner(w, d_y), wz = inner(w, d_z),
-      vx = get(v, Geom3@x, _), vy = get(v, Geom3@y, _), vz = get(v, Geom3@z, _),
-      wx = get(w, Geom3@x, _), wy = get(w, Geom3@y, _), wz = get(w, Geom3@z, _),
-      sx = vy*wz - vz*wy,
-      sy = vz*wx - vx*wz,
-      sz = vx*wy - vy*wx,
-      sq = sqrt(sx*sx + sy*sy + sz*sz)
-  in
-      (sx '.*' d_x + sy '.*' d_y + sz '.*' d_z) '/.' sqrt(sq)
-  end;
-
-define cross_sqrt_alt(v,w) =
-  let c = cross(v, w) in
-      polar2cartesian(sqrt(norm(c)), inclination(c), azimuth(c))
-  end;
+    cross(v,w) '/.' sqrt(norm(v) * norm(w));
 
 # ----------------------------------------------------------------------------
 # Volumes and Areas
