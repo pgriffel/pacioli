@@ -28,6 +28,14 @@
     // otherwise runtime errors will occur in the browser.
     const examples = [
         {
+            file: "torque_quaternion",
+            function: "scene_quaternion_sandbox",
+            unit: "1",  // Override the default metre!
+            kind: 'scene',
+            params: [["a1", 0, "1"], ["i1", -1, "1"], ["j1", 2, "1"], ["k1", 0, "1"],
+            ["a2", 0, "1"], ["i2", 0, "1"], ["j2", 1, "1"], ["k2", 1, "1"]]
+        },
+        {
             file: "torque_cross_vector",
             function: "scene_torque_orbital2d_pointmass",
             kind: 'stateful-animation',
@@ -118,7 +126,8 @@
     }
 </script>
 
-<script type="text/javascript" src="pacioli-0.5.0.bundle.js"></script>
+<script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+<script type="text/javascript" src="../scene.js"></script>
 
 <!-- Include each compiled example script here and add the examples to the list above -->
 <script type="text/javascript" src="geom3/bi_vector.js"></script>
@@ -129,6 +138,7 @@
 <script type="text/javascript" src="geom3/cross_vector.js"></script>
 <script type="text/javascript" src="geom3/torque_cross_vector.js"></script>
 <script type="text/javascript" src="geom3/torque_cross_vector3d.js"></script>
-<script type="text/javascript" src="scene.js"></script>
+<script type="text/javascript" src="geom3/torque_quaternion.js"></script>
+
 
 </html>
