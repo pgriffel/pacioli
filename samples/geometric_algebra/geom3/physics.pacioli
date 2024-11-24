@@ -3,6 +3,38 @@ import geometric_algebra;
 import graphics;
 include generated/generated_algebra; #physics uses Geom3
 
+#
+# WORKING ANGULAR MOMENTUM DORAN CASUS
+#
+# TODO:
+# 1. TODO Leo's validatie op p68 reproduceren voor units of measurement
+# 1b. Figuur 2.1 a en tekst in 2.6 uitwerken / tekenen punten
+# 1c. Exercise 6.7.1 on page 161 (Leo)
+# 2. Verkennen raaklijn - inner product met 'afgeleide' als vector - gevolg voor units
+# 5. Homogene model (H11) naast Vector model (H10), daarna exercise bij 15.4, bv ex 10 p461
+# 6. Doran H5 p128 - spacetime algebra modelleren - en H10.6.3 p376; nog zoeken. (Zie ook https://youtu.be/e7aIVSVc8cI?feature=shared)
+# 7. Leo 7.3.2 real 2d rotors subsume complex numbers
+# 9. Volgende grote (middellange termijn) stap: lineaire transformatie, Leo H7, ivm contra-/covariantie
+# 
+# 10. Tests nalopen ivm units (m ^ 5 probleem etc), refactoring etc
+# 11. Multivector classification 21.5, Exponentiation
+# 12. Hoofdstuk 4: voorbeeld co/contravariantie uitzoeken; hoe werkt schalen? Eq 4.4 Leo
+#
+# DONE 
+# 1a. Naast Geom1 ook Geom0 maken, kijken wat dat brengt; Vreemde bivector.net producten.
+# 3. make_a_perpendicular langs dezelfde lijn als make_a_parallel
+# 4. Doorgaan bij Doran naar de rotatie 
+# 8. Vector normaliseren bij Doran 2.96-7 op p40 - hoe gebeurt dat bij Leo? Versies maken (met unit en dimless)
+# 
+
+
+##########################################
+# MOMENTUM
+##########################################
+
+
+
+
 # we introduce a bivector as a (2,0) tensor, in Geom3
 # Open: how the antisymmetry must be included, we assume not needed in the deftype
 #
@@ -17,140 +49,62 @@ defalias distance_unit = metre;
 defalias momentum_unit = kilo:gram * metre;
 
 
-position_3D;
-magnitude(position_3D);
-unit(position_3D);
-unit_factor(position_3D);
+#######
+# Doran 3.9 and 3.10 (p56) Example
+#
+define x = parse_mv_unit("e1", |metre|);
+define v = parse_mv_unit("e1+e2", |metre/second|);
+define a = parse_mv_unit("e2", |metre/second^2|);
+define m = parse_mv_unit("2", |kilo:gram|);
 
-momentum_3D;
-magnitude(momentum_3D);
-unit(momentum_3D);
-unit_factor(momentum_3D);
+define p = geometric_product(m, v);
+define f = geometric_product(m, a);
 
+# 3.9 L angular momentum
+multivector2string(outer_product(x, p));
 
-# Rotating frame of vectors example (Doran, p69)
-# Multivector version
-#declare framevector_mv :: for_unit a: ((a * Geom3!), second) -> (a, Geom3!);
+# 3.10 torque (dL/dt)
+multivector2string(multivector_add(outer_product(v, p), outer_product(x, f)));
 
-define framevector_mv(k, t, speed) =
-    rotate_mv(rotor_mv(t, speed), fixedvector_mv(k));
-
-define framevector_hard(k, t, speed) =
-    rotate_hard(rotor_hard(t, speed), fixedvector_hard(k));
-
-define rotate_mv(rotor, mv) =
-    geometric_product(rotor, geometric_product(mv, multivector_reverse(rotor)));
-
-define rotate_hard(rotor, vector) =
-    geometric_product_hard_with_rotor(rotor, geometric_product_hard_with_mvrev(vector, multivector_reverse_hard(rotor)));
+#multivector2string(outer_product(x, f));
 
 
-# Open: type of the fixedvector. Assume a
-# We assume for the frame of vectors the basis vectors {e1, e2, e3}
-# declare fixedvector :: (1) -> MultiVector(a);
+#### p62 Doran 3.55 and 3.56
+# purpose is to find an example of a transform on a multivector with at least a scalar and a non scalar.
+# where is the outer morphism applied in Doran?
+# exercise 6 on p119 of Leo
+# 
+define k = parse_mv_unit("1", |kilo:gram*metre^2/second^2|);
+define L = outer_product(x, p);
+define e = parse_mv_unit("e1+e2", |metre|);
+geometric_product(L, v) = geometric_product(k, multivector_add(x, e));
 
-define baseframe_mv = [parse_mv("e1"), parse_mv("e2"), parse_mv("e1+e2+e3")];
+multivector2string(geometric_product(L, v));
 
-define baseframe_hard = [vector3d(1,0,0), vector3d(0,1,0), vector3d(1,1,1)];
+geometric_product(L, geometric_product(v, x)) = 
+    geometric_product(L, (multivector_add(left_contraction(v, x), outer_product(v, x))));
 
-define fixedvector_mv(k) = nth(k, baseframe_mv);
+multivector2string(geometric_product(L, geometric_product(v, x)));
 
-define fixedvector_hard(k) = nth(k, baseframe_hard);
-
-define rotor_e1_mv = make_multivector([make_term(1, e1)]);
-
-define rotor_e1_hard = vector3d(1,0,0);
-
-# rotor without unit metre
-define rotor_mv(t, speed) = 
-    let
-        a = t * speed / 2, 
-        rotor_m = make_multivector([make_term(cos(a), e1), make_term(sin(a), e2)])
-    in
-        geometric_product(rotor_e1_mv, rotor_m)
-    end;
-
-define rotor_hard(t, speed) =
-    let
-        a = t * speed / 2,
-        rotor_input_vector = vector3d(cos(a), sin(a), 0)
-    in
-        # for now 2 vectors, should become a tuple for the 3D multivector
-        geometric_product_hard(rotor_e1_hard, rotor_input_vector)
-    end;
+multivector2string(multivector_add(left_contraction(v, x), outer_product(v, x)));
 
 
-define geometric_product_hard(x,y) = 
-    tuple(x,y);
+# exercise 6 on p119 of Leo
+# - fix the test suite, contains Examples
+# - make a scalar product straight from the definition? For now we use left_contraction:
+# We define a scalar_product as a left_contraction om Multivectors.
+#
+define scalar_product(mv1, mv2) = left_contraction(mv1, mv2);
 
-define geometric_product_hard_with_rotor(rotor, vector) = 
-    let (v1, v2) = rotor,
-        inner = inner(v1, v2),
-        outer = v1 '*' v2^T
-    in
-        outer '*' vector
-    end;
+define squared_norm(mv) = 
+    scalar_product(mv, multivector_reverse(mv));
 
-define geometric_product_hard_with_mvrev(vector, mvrev) = 
-    let (v1, v2) = mvrev
-    in
-    vector
-    end;
+multivector2string(scalar_product(x, v));
 
-define multivector_reverse_hard(x) = x;
+define y = parse_mv_unit("3e1+4e2+5e3", |metre|);
+define z = parse_mv_unit("3e1+4e2", |metre|);
 
-#multivector2string(rotor(0 * |second|));
-#multivector2string(framevector(0, 0 * |second|));
-#multivector2string(rotor(1 * |second|));
-#multivector2string(framevector(0, 1 * |second|));
-
-#multivector2string(rotor(0 * |second|));
-#multivector2string(framevector2(0, 0 * |second|));
-#multivector2string(rotor(1 * |second|));
-#multivector2string(framevector2(0, 1 * |second|));
-
-#framevector(0, 1 * |second|);
-
-# ------------------------------------------------------------------------------
-# The scene
-# ------------------------------------------------------------------------------
-
-declare the_scene_mv :: (second, second, radian/second) -> Animation(metre);
-
-define the_scene_mv(t0, t1, speed) =
-    let
-        scene = empty_scene("rotor in e1-e2"),
-        callback = animation_callback_mv(t0, t1, speed),
-        arrows = append(
-                    rendered_vectors_mv(t1, make_color("blue"), speed),
-                    rendered_vectors_mv(t0, make_color("red"), speed))
-    in
-        add_animation_callback(callback, add_arrows(arrows, scene))
-    end;
-
-define the_scene_hard(t0, t1, speed) =
-    let scene = empty_scene("rotor in e1-e2") in
-        add_arrows(rendered_vectors_hard(t1, make_color("blue"), speed), add_arrows(rendered_vectors_hard(t0, make_color("red"), speed), scene))
-    end;
-
-declare rendered_vectors_mv :: (second, Color, radian/second) -> List(Arrow(metre));
-
-define rendered_vectors_mv(t, color, speed) = 
-    [with_arrow_name(format("arrr_%s_%s", color, j), with_arrow_color(color, origin_arrow(5 '.*' mv2vec(framevector_mv(j, t, speed))))) | j <- naturals(3)];
-
-
-define rendered_vectors_hard(i, color, speed) = 
-    [with_arrow_color(color, origin_arrow(5 '.*'framevector_hard(j, i, speed))) | j <- naturals(3)];
-
-
-declare animation_callback_mv ::
-    (second, second, radian/second) -> (second, Scene(metre)) -> Scene(metre);
-
-define animation_callback_mv(t0, t1, speed) = 
-    (time, scene) ->
-        set_arrows(scene, append(rendered_vectors_mv(t1 + time, make_color("blue"), speed),
-                                 rendered_vectors_mv(floor(t0 + time / 60), make_color("red"), speed)) );
-
-#rendered_vectors_mv(0*|second|, "blue", 1*|radian/second|);
-multivector2string(rotor_mv(0.1 * |second|, 1 * |radian| / |second|));
-rotor_hard(0.1 * |second|, 1 * |radian| / |second|);
+multivector2string(squared_norm(x));
+multivector2string(squared_norm(v));
+multivector2string(squared_norm(y));
+multivector2string(squared_norm(z));
