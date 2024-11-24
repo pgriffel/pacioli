@@ -283,7 +283,7 @@ public class Pacioli {
                 } else if (key.equals("showFileLoads")) {
                     Options.showFileLoads = Boolean.parseBoolean(value);
                 } else if (key.equals("showSymbolTableAdditions")) {
-                    Options.showSymbolTableAdditions = List.of(value.split(","));
+                    Options.showSymbolTableAdditions = value.isEmpty() ? List.of() : List.of(value.split(","));
                 } else if (key.equals("showResolvingDetails")) {
                     Options.showResolvingDetails = Boolean.parseBoolean(value);
                 } else if (key.equals("showIncludeSearches")) {
@@ -307,7 +307,7 @@ public class Pacioli {
                 } else if (key.equals("rewriteTypes")) {
                     Options.rewriteTypes = Boolean.parseBoolean(value);
                 } else if (key.equals("traceTypeInference")) {
-                    Options.traceTypeInference = List.of(value.split(","));
+                    Options.traceTypeInference = value.isEmpty() ? List.of() : List.of(value.split(","));
                 } else {
                     println("Skipping unknown option '%s'", key);
                 }
@@ -588,7 +588,7 @@ public class Pacioli {
         logIf(all || Options.trace, "trace=%s", Options.trace);
         logIf(all || Options.showFileLoads, "showFileLoads=%s", Options.showFileLoads);
         logIf(all || !Options.showSymbolTableAdditions.isEmpty(), "showSymbolTableAdditions=%s",
-                Options.showSymbolTableAdditions);
+                Options.showSymbolTableAdditions.size());
         logIf(all || Options.showResolvingDetails, "showResolvingDetails=%s", Options.showResolvingDetails);
         logIf(all || Options.showIncludeSearches, "showIncludeSearches=%s", Options.showIncludeSearches);
         logIf(all || Options.showTypeInference, "showTypeInference=%s", Options.showTypeInference);
@@ -600,8 +600,7 @@ public class Pacioli {
         logIf(all || Options.printTypesAsString, "printTypesAsString=%s", Options.printTypesAsString);
         logIf(all || Options.rewriteTypes, "rewriteTypes=%s", Options.rewriteTypes);
         logIf(all || !Options.includePrivate, "includePrivate=%s", Options.includePrivate);
-        logIf(all || !(Options.traceTypeInference == null || "".equals(Options.traceTypeInference)),
-                "traceTypeInference=%s", Options.traceTypeInference);
+        logIf(all || !(Options.traceTypeInference.isEmpty()), "traceTypeInference=%s", Options.traceTypeInference);
     }
 
     /**
