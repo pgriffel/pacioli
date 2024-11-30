@@ -104,7 +104,7 @@ export interface SpaceOptions {
   camera: [number, number, number];
   showLabels: boolean;
   autoRotation: boolean;
-  secondPerRotation: number;
+  secondsPerRotation: number;
 }
 
 /**
@@ -128,7 +128,7 @@ const defaultOptions: SpaceOptions = {
   camera: [10, 5, 10],
   showLabels: true,
   autoRotation: false,
-  secondPerRotation: 30,
+  secondsPerRotation: 30,
 };
 
 /**
@@ -147,6 +147,7 @@ export class Space {
   private scene: THREE.Scene;
   private camera: THREE.Camera;
   private body: THREE.Object3D<THREE.Event>;
+  private controls: OrbitControls;
 
   // Pacioli scene properties, set when a Pacioli scene or
   // animation is loaded
@@ -164,8 +165,6 @@ export class Space {
   private animationRequest?: number;
   private animationState?: PacioliValue;
   private animationScene?: PacioliScene;
-
-  private controls: OrbitControls;
 
   /**
    * Constructs a space element
@@ -194,7 +193,7 @@ export class Space {
     renderersDiv.style.position = "relative";
     this.parent.appendChild(renderersDiv);
 
-    // Create the renderer and append it to the given parent
+    // Create the 3D WebGL renderer and append it to the given parent
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setSize(width, height);
     renderersDiv.appendChild(this.renderer.domElement);
@@ -265,7 +264,7 @@ export class Space {
 
     // Start auto rotation if the options is true. Requires this.controls to be set.
     if (this.options.autoRotation) {
-      this.startAutoRotation(this.options.secondPerRotation);
+      this.startAutoRotation(this.options.secondsPerRotation);
     }
   }
 
@@ -391,10 +390,8 @@ export class Space {
   updateMesh(name: string, vector: Matrix) {
     const mesh = this.scene.getObjectByName(name);
     if (mesh) {
-      const jsVector = vec2THREE(vector.numbers, 1);
-      mesh.position.x = jsVector.x;
-      mesh.position.y = jsVector.y;
-      mesh.position.z = jsVector.z;
+      const jsVector = vector2THREE(vector, this.options.unit);
+      mesh.position.set(jsVector.x, jsVector.y, jsVector.z);
     }
   }
 
@@ -518,9 +515,9 @@ export class Space {
     }
   }
 
-  startAutoRotation(secondPerRotation?: number) {
+  startAutoRotation(secondsPerRotation?: number) {
     this.controls.autoRotateSpeed =
-      60 / (secondPerRotation ?? this.options.secondPerRotation);
+      60 / (secondsPerRotation ?? this.options.secondsPerRotation);
     this.controls.autoRotate = true;
     this.draw();
   }
@@ -746,7 +743,7 @@ function createTHREEMesh(
   }
 
   // Place the mesh at the proper position
-  const jsVector = vec2THREE(pos.numbers, 1);
+  const jsVector = vector2THREE(pos, unit);
   meshObject.position.x = jsVector.x;
   meshObject.position.y = jsVector.y;
   meshObject.position.z = jsVector.z;
@@ -763,15 +760,13 @@ function mesh2THREE(
 ) {
   const [vertices, faces] = mesh;
 
-  var factor = si.conversionFactor(vertices[0][0].shape.multiplier, unit);
-
   var geometry = new THREE.BufferGeometry();
 
   var indices = new Uint32Array(faces.length * 3); // indices for 4 faces
   var positions = new Float32Array(vertices.length * 3); // buffer arrray, position of 4 vertices
 
   for (var i = 0; i < vertices.length; i++) {
-    const vec = vec2THREE(vertices[i][0].numbers, factor.toNumber());
+    const vec = vector2THREE(vertices[i][0], unit);
     positions[i * 3 + 0] = vec.x;
     positions[i * 3 + 1] = vec.y;
     positions[i * 3 + 2] = vec.z;
@@ -831,10 +826,8 @@ function createTHREEPath(points: PacioliPath, unit: SIUnit) {
     opacity: 0.3,
   });
 
-  var factor = si.conversionFactor(points[0].shape.multiplier, unit);
-
   geometry.setFromPoints(
-    points.map((point: Matrix) => vec2THREE(point.numbers, factor.toNumber()))
+    points.map((point: Matrix) => vector2THREE(point, unit))
   );
 
   var lineObject = new THREE.Line(geometry, material);
@@ -902,21 +895,6 @@ function arrowDirectionAndLength(
   threeVector.normalize();
 
   return [threeVector, vectorLength];
-}
-
-/**
- * Assume the input numbers is a 3d vector and converts it to a THREE vector
- *
- * @param vector A matrix's numbers
- * @param factor A fudge factor
- * @returns A THREE vector
- */
-function vec2THREE(vector: number[][], factor: number) {
-  return new THREE.Vector3(
-    getNumber(vector, 0, 0) * factor,
-    getNumber(vector, 2, 0) * factor,
-    getNumber(vector, 1, 0) * factor
-  );
 }
 
 /**
