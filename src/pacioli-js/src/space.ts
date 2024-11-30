@@ -213,77 +213,43 @@ export class Space {
     this.scene.background = new THREE.Color(this.options.background);
 
     // Create the camera and add it to the scene
-    if (this.options.perspective) {
-      this.camera = new THREE.PerspectiveCamera(
-        50,
-        width / height,
-        0.1,
-        this.options.perspectiveMax
-      );
-    } else {
-      // This fudge factor makes the zoom more compatible with the
-      // perspective camera. The orthographic works in 'pixel' units
-      // instead of 'world' units. Is this what causes the mismatch?
-      const fudge = 0.05;
-      this.camera = new THREE.OrthographicCamera(
-        (fudge * -width) / 2,
-        (fudge * width) / 2,
-        (fudge * height) / 2,
-        (fudge * -height) / 2,
-        -this.options.perspectiveMax,
-        this.options.perspectiveMax
-      );
-    }
+    const kind = this.options.perspective ? "perspective" : "orthographic";
+    this.camera = createCamera(
+      kind,
+      width,
+      height,
+      this.options.perspectiveMax
+    );
     this.scene.add(this.camera);
 
     // Connect orbit controls to the renderer and to the draw method
-    const controls = new OrbitControls(
+    this.controls = createOrbitControls(
       this.camera,
-      this.labelRenderer.domElement
+      this.labelRenderer.domElement,
+      this.options.zoomRange
     );
-    controls.minDistance = this.options.zoomRange[0];
-    controls.maxDistance = this.options.zoomRange[1];
-    controls.maxPolarAngle = Math.PI / 1;
-    controls.addEventListener("change", this.onChangeOrbit.bind(this));
-
-    this.controls = controls;
-
-    if (this.options.autoRotation) {
-      // requires this.controls to be set!
-      this.startAutoRotation(this.options.secondPerRotation);
-    }
+    this.controls.addEventListener("change", this.onChangeOrbit.bind(this));
 
     // Add a grid if requested
     if (this.options.grid) {
-      const gridHelper = new THREE.GridHelper(
-        this.options.grid[0],
-        this.options.grid[1],
-        new THREE.Color(this.options.gridColor),
-        new THREE.Color(this.options.gridColor)
+      this.scene.add(
+        createGridHelper(this.options.grid, this.options.gridColor)
       );
-      this.scene.add(gridHelper);
     }
 
     // Add axis if requested
     if (this.options.axis) {
-      const axis = new THREE.AxesHelper(this.options.axisSize);
-      axis.setColors(
-        new THREE.Color(this.options.axisColors[0]),
-        new THREE.Color(this.options.axisColors[1]),
-        new THREE.Color(this.options.axisColors[2])
+      this.scene.add(
+        createAxis(this.options.axisSize, this.options.axisColors)
       );
-      this.scene.add(axis);
+
+      // Add axis labels if requested
       if (this.options.showLabels) {
         const unit = this.options.unit.toText();
-        this.scene.add(
-          makeLabelObject(`x[${unit}]`, this.options.axisSize * 1.05, 0, 0)
-        );
-        this.scene.add(
-          makeLabelObject(`z[${unit}]`, 0, this.options.axisSize * 1.05, 0)
-        );
-        this.scene.add(
-          makeLabelObject(`y[${unit}]`, 0, 0, this.options.axisSize * 1.05)
-        );
+        const offset = this.options.axisSize * 1.05;
+        this.scene.add(makeLabelObject(`x[${unit}]`, offset, 0, 0));
+        this.scene.add(makeLabelObject(`z[${unit}]`, 0, offset, 0));
+        this.scene.add(makeLabelObject(`y[${unit}]`, 0, 0, offset));
       }
     }
 
@@ -292,13 +258,15 @@ export class Space {
     this.scene.add(this.body);
 
     // Let the camera look at the body
-    this.camera.position.set(
-      this.options.camera[0],
-      this.options.camera[1],
-      this.options.camera[2]
-    );
+    const camPos = this.options.camera;
+    this.camera.position.set(camPos[0], camPos[1], camPos[2]);
     this.camera.lookAt(this.body.position);
-    controls.update();
+    this.controls.update();
+
+    // Start auto rotation if the options is true. Requires this.controls to be set.
+    if (this.options.autoRotation) {
+      this.startAutoRotation(this.options.secondPerRotation);
+    }
   }
 
   getDescription(): string | undefined {
@@ -331,85 +299,17 @@ export class Space {
   addMesh(mesh: PacioliMesh) {
     this.log(`Adding mesh ${mesh}`);
 
-    // Dev setting for now, just as all other props
-    var material = "OTHERnormal";
-
-    const [vs, fs, pos, name, hasWireframe] = mesh;
-
-    var props = {
-      // overdraw: !(wireframe || transparent),
-      wireframe: hasWireframe.value,
-      side: THREE.DoubleSide,
-      transparent: false,
-      // // opacity: (transparent) ? 0.5 : 1.0,
-      // color: 0xaaaaff,
-      vertexColors: true,
-    };
-
-    let mat;
-    if (material == "normal") {
-      mat = new THREE.MeshNormalMaterial(props);
-    } else if (material == "Lambert") {
-      mat = new THREE.MeshLambertMaterial(props);
-    } else if (material == "Phong") {
-      mat = new THREE.MeshPhongMaterial(props);
-    } else {
-      // props['color'] = 0Xaaaaff;
-      mat = new THREE.MeshBasicMaterial(props);
-    }
-
-    // Create a mesh object with the material and add it to the body
-    var meshObject = mesh2THREE(
-      [vs, fs],
-      mat,
-      this.options.unit,
-      hasWireframe.value
-    );
-    if (name.value) {
-      meshObject.name = (name.value as unknown as PacioliString).value;
-    }
+    // Create a THREE mesh object from the Pacioli mesh and add it to the body
+    const meshObject = createTHREEMesh(mesh, this.options.unit);
     this.body.add(meshObject);
-
-    // Place the mesh at the proper position
-    const jsVector = vec2THREE(pos.numbers, 1);
-    meshObject.position.x = jsVector.x;
-    meshObject.position.y = jsVector.y;
-    meshObject.position.z = jsVector.z;
-
-    // const plane = new THREE.Triangle(new THREE.Vector3(1,1,1), new THREE.Vector3(1,1,4), new THREE.Vector3(2,1,1));
-    // const planeMesh = new THREE.Mesh( plane, mat );
-    // this.body.add(planeMesh);
-
-    // const plane = new THREE.PlaneGeometry(10, 10);
-    // const planeMesh = new THREE.Mesh( plane, mat );
-    // this.body.add(planeMesh);
-
-    // Return the mesh object to the caller as reference
-    return meshObject;
   }
 
   addPath(points: PacioliPath) {
     this.log(`Adding path ${points.map(vec2String)}`);
-    var geometry = new THREE.BufferGeometry();
-    var material = new THREE.LineBasicMaterial({
-      color: 0xaaaaaa,
-      transparent: true,
-      opacity: 0.3,
-    });
 
-    var factor = si.conversionFactor(
-      points[0].shape.multiplier,
-      this.options.unit
-    );
-
-    geometry.setFromPoints(
-      points.map((point: Matrix) => vec2THREE(point.numbers, factor.toNumber()))
-    );
-
-    var lineObject = new THREE.Line(geometry, material);
+    // Create a THREE line object from the Pacioli path and add it to the body
+    var lineObject = createTHREEPath(points, this.options.unit);
     this.body.add(lineObject);
-
-    return lineObject;
   }
 
   addVector(
@@ -429,60 +329,27 @@ export class Space {
       }'`
     );
 
-    // Find the conversion factor between the vectors' units and the space's unit. Assume
-    // that the vector units are homogeneous (the same for x, y and z), and the unit is in
-    // the type's multiplier.
-    var originFactor = si
-      .conversionFactor(origin.shape.multiplier, this.options.unit)
-      .toNumber();
-    var vectorFactor = si
-      .conversionFactor(vector.shape.multiplier, this.options.unit)
-      .toNumber();
-
-    // Convert the vectors from Pacioli to javascript/three.js. Since the vector is just
-    // used for direction its unit factor is ignored here and applied to the length below.
-    const jsOrigin = vec2THREE(origin.numbers, originFactor);
-    const jsVector = vec2THREE(vector.numbers, 1);
-
-    const labelPos = jsVector.clone().multiplyScalar(1.1).add(jsOrigin);
-
-    // Add a label if required
-    if (this.options.showLabels && label.value !== null) {
-      const labelObject = makeLabelObject(
-        label.value,
-        labelPos.x * 1.0,
-        labelPos.y * 1.0,
-        labelPos.z * 1.0
-      );
-      if (name.value !== "") {
-        labelObject.name = name.value + "_label";
-      }
-      this.body.add(labelObject);
-    }
-
-    const dirVec = jsVector; //.sub(jsOrigin);
-
-    // Determine the vector's length before normalizing, taking the unit factor into
-    // account. (Is there some existing function to compute the vector's length?)
-    const vectorLength =
-      vectorFactor * Math.sqrt(dirVec.x ** 2 + dirVec.y ** 2 + dirVec.z ** 2);
-
-    // Normalize the direction vector (convert to vector of length 1)
-    dirVec.normalize();
-
-    // Use three.js's ArrowHelper to display the vector.
-    let arrow = new THREE.ArrowHelper(
-      dirVec,
-      jsOrigin,
-      vectorLength,
-      vectorColor
+    // Add an ArrowHelper
+    const arrowHelper = createTHREEArrowHelper(
+      origin,
+      vector,
+      name,
+      color,
+      this.options.unit
     );
+    this.body.add(arrowHelper);
 
-    if (name.value !== "") {
-      arrow.name = name.value;
+    // Add a label. Only skip if it is empty and will always stay empty (no name given for updates)
+    if (name.value !== "" || label.value !== "") {
+      const arrowLabel = createTHREELabel(
+        origin,
+        vector,
+        name,
+        label,
+        this.options.unit
+      );
+      this.body.add(arrowLabel);
     }
-
-    this.body.add(arrow);
   }
 
   updateVector(
@@ -492,35 +359,32 @@ export class Space {
     label: PacioliString,
     color: Maybe<PacioliString>
   ) {
+    // Update the ArrowHelper if needed
     const arrow = this.scene.getObjectByName(name) as THREE.ArrowHelper;
-    const labelObj = this.scene.getObjectByName(name + "_label") as CSS2DObject;
-    const vectorColor = color.value ? color.value.value : "blue";
-    const jsVector = vec2THREE(from.numbers, 1);
-    const dst = vec2THREE(to.numbers, 1);
-
-    const labelPos = dst.clone().multiplyScalar(1.1).add(jsVector);
-
-    if (labelObj) {
-      labelObj.position.x = labelPos.x * 1.0;
-      labelObj.position.y = labelPos.y * 1.0;
-      labelObj.position.z = labelPos.z * 1.0;
-      labelObj.element.innerHTML = label.value;
-    }
-
     if (arrow) {
-      var vectorFactor = 1; // TODO: do we not to convert as in addVector?
-      const vectorLength =
-        vectorFactor * Math.sqrt(dst.x ** 2 + dst.y ** 2 + dst.z ** 2);
+      const [dirVec, vectorLength] = arrowDirectionAndLength(
+        to,
+        this.options.unit
+      );
+      const vectorColor = color.value ? color.value.value : "blue";
+      const jsVector = vector2THREE(from, this.options.unit);
 
-      const dirVec = dst; //.sub(jsVector);
-
-      arrow.position.x = jsVector.x;
-      arrow.position.y = jsVector.y;
-      arrow.position.z = jsVector.z;
-      dirVec.normalize();
+      arrow.position.set(jsVector.x, jsVector.y, jsVector.z);
       arrow.setDirection(dirVec);
       arrow.setLength(vectorLength);
       arrow.setColor(vectorColor);
+    }
+
+    // Update the label if needed
+    const labelObj = this.scene.getObjectByName(name + "_label") as CSS2DObject;
+    if (labelObj) {
+      const vec = vector2THREE(to, this.options.unit);
+      const labelPos = vector2THREE(from, this.options.unit)
+        .multiplyScalar(1.1)
+        .add(vec);
+
+      labelObj.position.set(labelPos.x, labelPos.y, labelPos.z);
+      labelObj.element.innerHTML = label.value;
     }
   }
 
@@ -749,6 +613,66 @@ export class Space {
   }
 }
 
+function createOrbitControls(
+  camera: THREE.Camera,
+  domElement: HTMLElement,
+  zoomRange: [number, number]
+) {
+  const controls = new OrbitControls(camera, domElement);
+  controls.minDistance = zoomRange[0];
+  controls.maxDistance = zoomRange[1];
+  controls.maxPolarAngle = Math.PI / 1;
+  return controls;
+}
+
+function createCamera(
+  kind: "perspective" | "orthographic",
+  width: number,
+  height: number,
+  perspectiveMax: number
+) {
+  switch (kind) {
+    case "perspective": {
+      return new THREE.PerspectiveCamera(
+        50,
+        width / height,
+        0.1,
+        perspectiveMax
+      );
+    }
+    case "orthographic": {
+      // This fudge factor makes the zoom more compatible with the
+      // perspective camera. The orthographic works in 'pixel' units
+      // instead of 'world' units. Is this what causes the mismatch?
+      const fudge = 0.05;
+      return new THREE.OrthographicCamera(
+        (fudge * -width) / 2,
+        (fudge * width) / 2,
+        (fudge * height) / 2,
+        (fudge * -height) / 2,
+        -perspectiveMax,
+        perspectiveMax
+      );
+    }
+    default: {
+      throw Error(`Camera kind $kind unknown`);
+    }
+  }
+}
+
+function createAxis(
+  size: number,
+  colors: [string, string, string]
+): THREE.AxesHelper {
+  const axis = new THREE.AxesHelper(size);
+  axis.setColors(
+    new THREE.Color(colors[0]),
+    new THREE.Color(colors[1]),
+    new THREE.Color(colors[2])
+  );
+  return axis;
+}
+
 /**
  * Creates a three.js CSS2DObject for displaying a label with a CSS2DRenderer.
  *
@@ -773,33 +697,62 @@ function makeLabelObject(text: string, x: number, y: number, z: number) {
   return labelObject;
 }
 
-/**
- * Assume the input numbers is a 3d vector and converts it to a THREE vector
- *
- * @param vector A matrix's numbers
- * @param factor A fudge factor
- * @returns A THREE vector
- */
-function vec2THREE(vector: number[][], factor: number) {
-  return new THREE.Vector3(
-    getNumber(vector, 0, 0) * factor,
-    getNumber(vector, 2, 0) * factor,
-    getNumber(vector, 1, 0) * factor
-  );
+function createGridHelper(grid: [number, number], color: string) {
+  const gridColor = new THREE.Color(color);
+  return new THREE.GridHelper(grid[0], grid[1], gridColor, gridColor);
 }
 
-/**
- * Assume the input numbers is a 3d vector and converts it to a string
- *
- * @param vector A matrix's numbers
- * @returns A string of the form (x, y, z)
- */
-function vec2String(vector: Matrix) {
-  return `(${getNumber(vector.numbers, 0, 0).toFixed(5)}, ${getNumber(
-    vector.numbers,
-    1,
-    0
-  ).toFixed(5)}, ${getNumber(vector.numbers, 2, 0).toFixed(5)})`;
+function createTHREEMesh(
+  mesh: PacioliMesh,
+  unit: SIUnit
+): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
+  // Dev setting for now, just as all other props
+  var material = "OTHERnormal";
+
+  const [vs, fs, pos, name, hasWireframe] = mesh;
+
+  var props = {
+    // overdraw: !(wireframe || transparent),
+    wireframe: hasWireframe.value,
+    side: THREE.DoubleSide,
+    transparent: false,
+    // // opacity: (transparent) ? 0.5 : 1.0,
+    // color: 0xaaaaff,
+    vertexColors: true,
+  };
+
+  let mat;
+  if (material == "normal") {
+    mat = new THREE.MeshNormalMaterial(props);
+  } else if (material == "Lambert") {
+    mat = new THREE.MeshLambertMaterial(props);
+  } else if (material == "Phong") {
+    mat = new THREE.MeshPhongMaterial(props);
+  } else {
+    // props['color'] = 0Xaaaaff;
+    mat = new THREE.MeshBasicMaterial(props);
+  }
+
+  // Create a mesh object with the material and add it to the body
+  var meshObject = mesh2THREE(
+    [vs, fs],
+    mat,
+    unit,
+    hasWireframe.value
+  ) as THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
+
+  if (name.value) {
+    meshObject.name = (name.value as unknown as PacioliString).value;
+  }
+
+  // Place the mesh at the proper position
+  const jsVector = vec2THREE(pos.numbers, 1);
+  meshObject.position.x = jsVector.x;
+  meshObject.position.y = jsVector.y;
+  meshObject.position.z = jsVector.z;
+
+  // Return the mesh object to the caller as reference
+  return meshObject;
 }
 
 function mesh2THREE(
@@ -868,4 +821,138 @@ function mesh2THREE(
   } else {
     return new THREE.Mesh(geometry, material);
   }
+}
+
+function createTHREEPath(points: PacioliPath, unit: SIUnit) {
+  var geometry = new THREE.BufferGeometry();
+  var material = new THREE.LineBasicMaterial({
+    color: 0xaaaaaa,
+    transparent: true,
+    opacity: 0.3,
+  });
+
+  var factor = si.conversionFactor(points[0].shape.multiplier, unit);
+
+  geometry.setFromPoints(
+    points.map((point: Matrix) => vec2THREE(point.numbers, factor.toNumber()))
+  );
+
+  var lineObject = new THREE.Line(geometry, material);
+
+  return lineObject;
+}
+
+function createTHREELabel(
+  origin: Matrix,
+  vector: Matrix,
+  name: PacioliString,
+  label: PacioliString,
+  unit: SIUnit
+) {
+  const vec = vector2THREE(vector, unit);
+  const labelPos = vector2THREE(origin, unit).multiplyScalar(1.1).add(vec);
+
+  // Add a label if required
+  const labelObject = makeLabelObject(
+    label.value,
+    labelPos.x,
+    labelPos.y,
+    labelPos.z
+  );
+
+  // Add a name if given, so the label can be found during an update.
+  if (name.value !== "") {
+    labelObject.name = name.value + "_label";
+  }
+
+  return labelObject;
+}
+
+function createTHREEArrowHelper(
+  origin: Matrix,
+  vector: Matrix,
+  name: PacioliString,
+  color: Maybe<PacioliString>,
+  unit: SIUnit
+): THREE.ArrowHelper {
+  const vectorColor = color.value ? color.value.value : "blue";
+  const from = vector2THREE(origin, unit);
+  const [dirVec, vectorLength] = arrowDirectionAndLength(vector, unit);
+
+  // Use three.js's ArrowHelper to display the vector.
+  let arrow = new THREE.ArrowHelper(dirVec, from, vectorLength, vectorColor);
+
+  if (name.value !== "") {
+    arrow.name = name.value;
+  }
+
+  return arrow;
+}
+
+function arrowDirectionAndLength(
+  vector: Matrix,
+  unit: SIUnit
+): [THREE.Vector3, number] {
+  const threeVector = vector2THREE(vector, unit);
+
+  const vectorLength = Math.sqrt(
+    threeVector.x ** 2 + threeVector.y ** 2 + threeVector.z ** 2
+  );
+
+  threeVector.normalize();
+
+  return [threeVector, vectorLength];
+}
+
+/**
+ * Assume the input numbers is a 3d vector and converts it to a THREE vector
+ *
+ * @param vector A matrix's numbers
+ * @param factor A fudge factor
+ * @returns A THREE vector
+ */
+function vec2THREE(vector: number[][], factor: number) {
+  return new THREE.Vector3(
+    getNumber(vector, 0, 0) * factor,
+    getNumber(vector, 2, 0) * factor,
+    getNumber(vector, 1, 0) * factor
+  );
+}
+
+/**
+ * Assume the input numbers is a 3d vector and converts it to a THREE vector
+ *
+ * @param vector A matrix's numbers
+ * @param factor A fudge factor
+ * @returns A THREE vector
+ */
+function vector2THREE(vector: Matrix, unit: SIUnit, scale?: number) {
+  const extraFactor = scale ?? 1;
+  const numbers = vector.numbers;
+
+  // Find the conversion factor between the vectors' units and the space's unit. Assume
+  // that the vector units are homogeneous (the same for x, y and z), and the unit is in
+  // the type's multiplier.
+  var factor =
+    extraFactor * si.conversionFactor(vector.shape.multiplier, unit).toNumber();
+
+  return new THREE.Vector3(
+    getNumber(numbers, 0, 0) * factor,
+    getNumber(numbers, 2, 0) * factor,
+    getNumber(numbers, 1, 0) * factor
+  );
+}
+
+/**
+ * Assume the input numbers is a 3d vector and converts it to a string
+ *
+ * @param vector A matrix's numbers
+ * @returns A string of the form (x, y, z)
+ */
+function vec2String(vector: Matrix) {
+  return `(${getNumber(vector.numbers, 0, 0).toFixed(5)}, ${getNumber(
+    vector.numbers,
+    1,
+    0
+  ).toFixed(5)}, ${getNumber(vector.numbers, 2, 0).toFixed(5)})`;
 }
