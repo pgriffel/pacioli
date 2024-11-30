@@ -103,6 +103,8 @@ export interface SpaceOptions {
   perspectiveMax: number;
   camera: [number, number, number];
   showLabels: boolean;
+  autoRotation: boolean;
+  secondPerRotation: number;
 }
 
 /**
@@ -125,6 +127,8 @@ const defaultOptions: SpaceOptions = {
   perspectiveMax: 5000,
   camera: [10, 5, 10],
   showLabels: true,
+  autoRotation: false,
+  secondPerRotation: 30,
 };
 
 /**
@@ -160,6 +164,8 @@ export class Space {
   private animationRequest?: number;
   private animationState?: PacioliValue;
   private animationScene?: PacioliScene;
+
+  private controls: OrbitControls;
 
   /**
    * Constructs a space element
@@ -239,6 +245,13 @@ export class Space {
     controls.maxDistance = this.options.zoomRange[1];
     controls.maxPolarAngle = Math.PI / 1;
     controls.addEventListener("change", this.onChangeOrbit.bind(this));
+
+    this.controls = controls;
+
+    if (this.options.autoRotation) {
+      // requires this.controls to be set!
+      this.startAutoRotation(this.options.secondPerRotation);
+    }
 
     // Add a grid if requested
     if (this.options.grid) {
@@ -641,6 +654,17 @@ export class Space {
     }
   }
 
+  startAutoRotation(secondPerRotation?: number) {
+    this.controls.autoRotateSpeed =
+      60 / (secondPerRotation ?? this.options.secondPerRotation);
+    this.controls.autoRotate = true;
+    this.draw();
+  }
+
+  stopAutoRotation() {
+    this.controls.autoRotate = false;
+  }
+
   private startAnimation() {
     this.startTime = Date.now();
     this.frameCounter = 0;
@@ -696,9 +720,18 @@ export class Space {
             .padStart(7)}ms  now = ${currentTime}`
         );
       }
+
       this.prevFrameTime = currentTime;
 
       window.setTimeout(() => this.draw(), delay);
+    }
+
+    if (this.controls.autoRotate) {
+      this.controls.update();
+      // Don't set timeout twice!
+      if (!this.animating) {
+        window.setTimeout(() => this.draw(), this.options.fps);
+      }
     }
   }
 
