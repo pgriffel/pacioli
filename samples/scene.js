@@ -11,7 +11,6 @@ function main(examples) {
         perspective: true,
         zoomRange: [1, 1000],
         camera: [20, 10, 20],
-        fps: 30,
         verbose: false
     }
 
@@ -143,7 +142,6 @@ function makeButtonPanel(descriptionElement, space, script, fun, kind, initialPa
         stepButton.onclick = () => {
             if (!space.isAnimating()) {
                 space.updateScene();
-                space.draw()
                 stepButton.innerText = "Step " + space.animationTime().toFixed(2) + "s"
             }
         }

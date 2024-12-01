@@ -161,9 +161,6 @@ export class Space {
   // Animation state
   private animating: boolean = false;
   private frameCounter: number = 0;
-  private startTime: number = 0.0;
-  private extraTime: number = 0.0;
-  private prevFrameTime: number = 0.0;
   private animationRequest?: number;
   private animationState?: PacioliValue;
   private animationScene?: PacioliScene;
@@ -317,7 +314,7 @@ export class Space {
    * @returns Elapsed time in seconds.
    */
   animationTime(): number {
-    return this.extraTime + this.frameCounter / this.options.fps;
+    return this.frameCounter / this.options.fps;
   }
 
   /**
@@ -333,7 +330,7 @@ export class Space {
   }
 
   /**
-   * Loads all meshes, vectors and patsh from the given animation into this
+   * Loads all meshes, vectors and paths from the given animation into this
    * space. Clears any previous content first.
    *
    * See also loadStatefulAnimation and loadScene.
@@ -418,7 +415,7 @@ export class Space {
       this.log("Paused animation");
     }
 
-    // Start animating if animation start is requested
+    // Check for callbacks if animation start is requested
     if (!this.animating && animating) {
       if (this.animationScene === undefined) {
         throw new Error("No scene elements to update");
@@ -426,16 +423,9 @@ export class Space {
       if (!this.isAnimation()) {
         throw new Error("No callback available in UpdateSpace");
       }
-      this.log("Starting animation");
       this.startAnimation();
-    }
-
-    // Remember if animating is started or stopped
-    this.animating = animating;
-
-    // Invalidate the UI if animating is started
-    if (animating) {
       this.draw();
+      this.log("Started animation");
     }
   }
 
@@ -446,25 +436,14 @@ export class Space {
    * @param secondsPerRotation Rotation speed in seconds per rotation.
    */
   startAutoRotation(secondsPerRotation?: number) {
-    // Temporarily pause animating
-    const isAnimating = this.isAnimating();
-    if (isAnimating) {
-      // Without this pause the animation will freeze for a while after
-      // turning of auto rotation. Does a better fix exist?
-      this.pauseAnimation();
-    }
-
-    // Start auto rotation
+    // Convert to THREE's unit of speed
     this.controls.autoRotateSpeed =
       60 / (secondsPerRotation ?? this.options.secondsPerRotation);
+
+    // Turn on THREE's built-in auto rotation
     this.controls.autoRotate = true;
 
-    // Restart animating if it was running
-    if (isAnimating) {
-      this.startAnimation();
-    }
-
-    // Ensure the controls are updated
+    // Ensure the controls get updated
     this.draw();
   }
 
@@ -472,26 +451,12 @@ export class Space {
    * Stops auto rotation
    */
   stopAutoRotation() {
-    // Temporarily pause animating
-    const isAnimating = this.isAnimating();
-    if (isAnimating) {
-      // Without this pause the animation will freeze for a while after
-      // turning of auto rotation. Does a better fix exist?
-      this.pauseAnimation();
-    }
-
-    // Stop auto rotation
+    // Turn off THREE's built-in auto rotation
     this.controls.autoRotate = false;
-
-    // Restart animating if it was running
-    if (isAnimating) {
-      this.startAnimation();
-    }
   }
 
   /**
-   * Performs a single animation step. Does not update the screen. Call
-   * method draw() to schedule a screen update.
+   * Performs a single animation step. Schedules a screen update.
    */
   updateScene() {
     if (this.animationScene === undefined) {
@@ -505,6 +470,7 @@ export class Space {
     }
     this.log(`Stepping animation`);
     this.moveSceneForward();
+    this.draw();
   }
 
   /**
@@ -521,16 +487,13 @@ export class Space {
   }
 
   private startAnimation() {
-    this.startTime = Date.now();
-    this.frameCounter = 0;
-    this.prevFrameTime = Date.now();
+    this.animating = true;
   }
 
   private resetAnimation() {
     this.animationScene = this.initialScene;
     this.animationState = this.initialState;
     this.frameCounter = 0;
-    this.extraTime = 0.0;
   }
 
   private pauseAnimation() {
@@ -538,8 +501,7 @@ export class Space {
       window.cancelAnimationFrame(this.animationRequest);
       this.animationRequest = undefined;
     }
-    this.extraTime += this.frameCounter / this.options.fps;
-    this.frameCounter = 0;
+    this.animating = false;
   }
 
   private render() {
@@ -557,46 +519,13 @@ export class Space {
     }
 
     if (this.animating || this.controls.autoRotate) {
-      // Auto-rotate only works correctly at >60 fps. At 30 fps the
-      // rotation speed changes when the animation is started and
-      // stopped. Auto rotate does not seem to catch up when the frame
-      // rate is below 60.
-      const fps = this.controls.autoRotate ? 60 : this.options.fps;
-      const frameLength = 1000 / fps;
-
-      const target = this.startTime + (this.frameCounter + 1) * frameLength;
-      const currentTime = Date.now();
-      const delay = Math.max(0, target - currentTime);
-
-      if (this.options.verbose && this.frameCounter % 10 === 0) {
-        const util = 100 - (100 * delay) / frameLength;
-        const elapsedSeconds = (currentTime - this.prevFrameTime) / 1000;
-        const avgFps =
-          (1000 * this.frameCounter) / (currentTime - this.startTime);
-        this.log(
-          `frame = ${this.frameCounter.toFixed(0).padStart(3)}  util = ${util
-            .toFixed(3)
-            .padStart(7)}%   avg fps = ${avgFps.toFixed(3)}  fps = ${(
-            1 / elapsedSeconds
-          ).toFixed(3)}  delay = ${delay
-            .toFixed(3)
-            .padStart(7)}ms  now = ${currentTime}`
-        );
-      }
-
-      this.prevFrameTime = currentTime;
-
-      window.setTimeout(() => this.draw(), delay);
+      this.draw();
     }
   }
 
   private moveSceneForward() {
     // Update the animation time
-    if (this.animating) {
-      this.frameCounter++;
-    } else {
-      this.extraTime += 1 / this.options.fps;
-    }
+    this.frameCounter++;
 
     // Call the animation callback
     // TODO: see if the performance can be improved. The call method on
