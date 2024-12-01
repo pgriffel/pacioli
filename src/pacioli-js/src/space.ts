@@ -133,6 +133,8 @@ const defaultOptions: SpaceOptions = {
 
 /**
  * A 3D environment for graphical display with Three.js.
+ *
+ * Renders 3D elements, and renders labels on top of the 3D scene.
  */
 export class Space {
   // Constants
@@ -167,7 +169,7 @@ export class Space {
   private animationScene?: PacioliScene;
 
   /**
-   * Constructs a space element
+   * Constructs a space element and adds it to the DOM.
    *
    * @param parent DOM element to which the space is added
    * @param options Configuration of the space element
@@ -268,26 +270,59 @@ export class Space {
     }
   }
 
+  /**
+   * The description of the last loaded scene (static or animation). Is undefined
+   * when no scene has been loaded yet.
+   *
+   * @returns The scene's description
+   */
   getDescription(): string | undefined {
     return this.initialScene ? this.initialScene[0].value : undefined;
   }
 
+  /**
+   * Has an animation been loaded instead of a static scene?
+   *
+   * See methods loadAnimation and loadStatefulAnimation.
+   *
+   * @returns True if the scene is an animation, false if it is static.
+   */
   isAnimation(): boolean {
     return this.callback !== undefined || this.statefulCallback !== undefined;
   }
 
+  /**
+   * The current frame number in an animation
+   *
+   * @returns Elapsed number of frames.
+   */
   frameNr(): number {
     return this.frameCounter;
   }
 
+  /**
+   * Is an animation running?
+   *
+   * See method setAnimating.
+   *
+   * @returns True if an animation is running.
+   */
   isAnimating(): boolean {
     return this.animating;
   }
 
+  /**
+   * The elapsed animation time. Not real time, but logical time.
+   *
+   * @returns Elapsed time in seconds.
+   */
   animationTime(): number {
     return this.extraTime + this.frameCounter / this.options.fps;
   }
 
+  /**
+   * Removes any element that has been loaded previously.
+   */
   clear() {
     this.log("Clearing space");
     while (0 < this.body.children.length) {
@@ -295,106 +330,14 @@ export class Space {
     }
   }
 
-  addMesh(mesh: PacioliMesh) {
-    this.log(`Adding mesh ${mesh}`);
-
-    // Create a THREE mesh object from the Pacioli mesh and add it to the body
-    const meshObject = createTHREEMesh(mesh, this.options.unit);
-    this.body.add(meshObject);
-  }
-
-  addPath(points: PacioliPath) {
-    this.log(`Adding path ${points.map(vec2String)}`);
-
-    // Create a THREE line object from the Pacioli path and add it to the body
-    var lineObject = createTHREEPath(points, this.options.unit);
-    this.body.add(lineObject);
-  }
-
-  addVector(
-    origin: Matrix,
-    vector: Matrix,
-    name: PacioliString,
-    label: PacioliString,
-    color: Maybe<PacioliString>
-  ) {
-    const vectorColor = color.value ? color.value.value : "blue";
-
-    this.log(
-      `Adding vector from ${vec2String(origin)} to ${vec2String(
-        vector
-      )} with color '${vectorColor}', name '${name.value}' and label '${
-        label.value
-      }'`
-    );
-
-    // Add an ArrowHelper
-    const arrowHelper = createTHREEArrowHelper(
-      origin,
-      vector,
-      name,
-      color,
-      this.options.unit
-    );
-    this.body.add(arrowHelper);
-
-    // Add a label. Only skip if it is empty and will always stay empty (no name given for updates)
-    if (name.value !== "" || label.value !== "") {
-      const arrowLabel = createTHREELabel(
-        origin,
-        vector,
-        name,
-        label,
-        this.options.unit
-      );
-      this.body.add(arrowLabel);
-    }
-  }
-
-  updateVector(
-    name: string,
-    from: Matrix,
-    to: Matrix,
-    label: PacioliString,
-    color: Maybe<PacioliString>
-  ) {
-    // Update the ArrowHelper if needed
-    const arrow = this.scene.getObjectByName(name) as THREE.ArrowHelper;
-    if (arrow) {
-      const [dirVec, vectorLength] = arrowDirectionAndLength(
-        to,
-        this.options.unit
-      );
-      const vectorColor = color.value ? color.value.value : "blue";
-      const jsVector = vector2THREE(from, this.options.unit);
-
-      arrow.position.set(jsVector.x, jsVector.y, jsVector.z);
-      arrow.setDirection(dirVec);
-      arrow.setLength(vectorLength);
-      arrow.setColor(vectorColor);
-    }
-
-    // Update the label if needed
-    const labelObj = this.scene.getObjectByName(name + "_label") as CSS2DObject;
-    if (labelObj) {
-      const vec = vector2THREE(to, this.options.unit);
-      const labelPos = vector2THREE(from, this.options.unit)
-        .multiplyScalar(1.1)
-        .add(vec);
-
-      labelObj.position.set(labelPos.x, labelPos.y, labelPos.z);
-      labelObj.element.innerHTML = label.value;
-    }
-  }
-
-  updateMesh(name: string, vector: Matrix) {
-    const mesh = this.scene.getObjectByName(name);
-    if (mesh) {
-      const jsVector = vector2THREE(vector, this.options.unit);
-      mesh.position.set(jsVector.x, jsVector.y, jsVector.z);
-    }
-  }
-
+  /**
+   * Loads all meshes, vectors and patsh from the given animation into this
+   * space. Clears any previous content first.
+   *
+   * See also loadStatefulAnimation and loadScene.
+   *
+   * @param animation A Pacioli animation.
+   */
   loadAnimation(animation: Animation) {
     const [callback, scene] = animation;
     this.callback = callback;
@@ -403,6 +346,14 @@ export class Space {
     this.loadScene(scene);
   }
 
+  /**
+   * Loads all meshes, vectors and patsh from the given animation into this
+   * space. Clears any previous content first.
+   *
+   * See also loadAnimation and loadScene
+   *
+   * @param animation A stateful Pacioli animation.
+   */
   loadStatefulAnimation(animation: StatefulAnimation) {
     const [initial, callback, scene] = animation;
     this.statefulCallback = callback;
@@ -411,6 +362,14 @@ export class Space {
     this.loadScene(scene);
   }
 
+  /**
+   * Loads all meshes, vectors and patsh from the given scene into this
+   * space. Clears any previous content first.
+   *
+   * See also loadAnimation and loadStatefulAnimation
+   *
+   * @param scene
+   */
   loadScene(scene: PacioliScene) {
     this.initialScene = scene;
 
@@ -434,66 +393,12 @@ export class Space {
     this.log("Initialized animation");
   }
 
-  updateScene() {
-    if (this.animationScene === undefined) {
-      throw new Error("No scene elements to update");
-    }
-    if (!(this.callback || this.statefulCallback)) {
-      throw new Error("No callback available in UpdateSpace");
-    }
-    if (this.statefulCallback && !this.initialState) {
-      throw new Error("No initial value available in UpdateSpace");
-    }
-    this.log(`Stepping animation`);
-    this.moveSceneForward();
-  }
-
-  private moveSceneForward() {
-    // Update the animation time
-    if (this.animating) {
-      this.frameCounter++;
-    } else {
-      this.extraTime += 1 / this.options.fps;
-    }
-
-    // Call the animation callback
-    // TODO: see if the performance can be improved. The call method on
-    // the callback is expensive. It does unification of the types to
-    // check the inputs. This catches unit errors etc., but it would
-    // be nice if this could be checked earlier and omitted here.
-    // Maybe just make the first call checked?!
-    if (this.callback) {
-      this.animationScene = this.callback.call(
-        num(this.animationTime(), this.TIME_UNIT),
-        this.animationScene as unknown as PacioliValue
-      ) as unknown as PacioliScene;
-    } else if (this.statefulCallback) {
-      const [state, scene] = this.statefulCallback.call(
-        num(this.animationTime(), this.TIME_UNIT),
-        this.animationState ? this.animationState : this.initialState!,
-        this.animationScene as unknown as PacioliValue
-      ) as unknown as [PacioliValue, PacioliScene];
-      this.animationState = state;
-      this.animationScene = scene;
-    } else {
-      throw new Error("no callback to recalculate scene for animation");
-    }
-
-    // Update the space
-    const [, vectors, meshes] = this.animationScene;
-    for (const [from, to, name, label, color] of vectors) {
-      if (name.value) {
-        this.updateVector(name.value, from, to, label, color);
-      }
-    }
-    for (const mesh of meshes) {
-      const [, , position, name] = mesh;
-      if (name.value) {
-        this.updateMesh(name.value.value, position);
-      }
-    }
-  }
-
+  /**
+   * Starts or stops the animation. Does not reset the animation. Starting
+   * an animation picks it up where it was last stopped.
+   *
+   * @param animating Starting (true) or stopping (false)
+   */
   setAnimating(animating: boolean) {
     if (this.animating && !animating) {
       this.pauseAnimation();
@@ -515,15 +420,73 @@ export class Space {
     }
   }
 
+  /**
+   * Starts auto rotation with the given speed. Uses the speed from the
+   * options if no speed is given.
+   *
+   * @param secondsPerRotation Rotation speed in seconds per rotation.
+   */
   startAutoRotation(secondsPerRotation?: number) {
+    const isAnimating = this.isAnimating();
+    if (isAnimating) {
+      // Without this pause the animation will freeze for a while after
+      // turning of auto rotation. Does a better fix exist?
+      this.pauseAnimation();
+    }
     this.controls.autoRotateSpeed =
       60 / (secondsPerRotation ?? this.options.secondsPerRotation);
     this.controls.autoRotate = true;
+    if (isAnimating) {
+      this.startAnimation();
+    }
     this.draw();
   }
 
+  /**
+   * Stops auto rotation
+   */
   stopAutoRotation() {
+    const isAnimating = this.isAnimating();
+    if (isAnimating) {
+      // Without this pause the animation will freeze for a while after
+      // turning of auto rotation. Does a better fix exist?
+      this.pauseAnimation();
+    }
     this.controls.autoRotate = false;
+    if (isAnimating) {
+      this.startAnimation();
+    }
+  }
+
+  /**
+   * Performs a single animation step. Does not update the screen. Call
+   * method draw() to schedule a screen update.
+   */
+  updateScene() {
+    if (this.animationScene === undefined) {
+      throw new Error("No scene elements to update");
+    }
+    if (!(this.callback || this.statefulCallback)) {
+      throw new Error("No callback available in UpdateSpace");
+    }
+    if (this.statefulCallback && !this.initialState) {
+      throw new Error("No initial value available in UpdateSpace");
+    }
+    this.log(`Stepping animation`);
+    this.moveSceneForward();
+  }
+
+  /**
+   * Schedules rendering of the scene. Can be called multiple times. Ensures
+   * only a single rendering is scheduled.
+   *
+   * Typically called to indicate that the scene is outdated after making
+   * a change.
+   */
+  draw() {
+    if (this.animationRequest === undefined) {
+      this.animationRequest = requestAnimationFrame(this.render.bind(this));
+    }
   }
 
   private startAnimation() {
@@ -546,12 +509,6 @@ export class Space {
     }
     this.extraTime += this.frameCounter / this.options.fps;
     this.frameCounter = 0;
-  }
-
-  draw() {
-    if (this.animationRequest === undefined) {
-      this.animationRequest = requestAnimationFrame(this.render.bind(this));
-    }
   }
 
   private render() {
@@ -602,6 +559,52 @@ export class Space {
     }
   }
 
+  private moveSceneForward() {
+    // Update the animation time
+    if (this.animating) {
+      this.frameCounter++;
+    } else {
+      this.extraTime += 1 / this.options.fps;
+    }
+
+    // Call the animation callback
+    // TODO: see if the performance can be improved. The call method on
+    // the callback is expensive. It does unification of the types to
+    // check the inputs. This catches unit errors etc., but it would
+    // be nice if this could be checked earlier and omitted here.
+    // Maybe just make the first call checked?!
+    if (this.callback) {
+      this.animationScene = this.callback.call(
+        num(this.animationTime(), this.TIME_UNIT),
+        this.animationScene as unknown as PacioliValue
+      ) as unknown as PacioliScene;
+    } else if (this.statefulCallback) {
+      const [state, scene] = this.statefulCallback.call(
+        num(this.animationTime(), this.TIME_UNIT),
+        this.animationState ? this.animationState : this.initialState!,
+        this.animationScene as unknown as PacioliValue
+      ) as unknown as [PacioliValue, PacioliScene];
+      this.animationState = state;
+      this.animationScene = scene;
+    } else {
+      throw new Error("no callback to recalculate scene for animation");
+    }
+
+    // Update the space
+    const [, vectors, meshes] = this.animationScene;
+    for (const [from, to, name, label, color] of vectors) {
+      if (name.value) {
+        this.updateVector(name.value, from, to, label, color);
+      }
+    }
+    for (const mesh of meshes) {
+      const [, , position, name] = mesh;
+      if (name.value) {
+        this.updateMesh(name.value.value, position);
+      }
+    }
+  }
+
   private onChangeOrbit() {
     requestAnimationFrame(() => {
       this.renderer.render(this.scene, this.camera);
@@ -612,6 +615,117 @@ export class Space {
   private log(text: string) {
     if (this.options.verbose) {
       console.log(text);
+    }
+  }
+
+  private addMesh(mesh: PacioliMesh) {
+    this.log(`Adding mesh ${mesh}`);
+
+    // Create a THREE mesh object from the Pacioli mesh and add it to the body
+    const meshObject = createTHREEMesh(mesh, this.options.unit);
+    this.body.add(meshObject);
+  }
+
+  private updateMesh(name: string, vector: Matrix) {
+    const mesh = this.scene.getObjectByName(name);
+    if (mesh) {
+      const jsVector = vector2THREE(vector, this.options.unit);
+      mesh.position.set(jsVector.x, jsVector.y, jsVector.z);
+    }
+  }
+
+  private addPath(points: PacioliPath) {
+    this.log(`Adding path ${points.map(vec2String)}`);
+
+    // Create a THREE line object from the Pacioli path and add it to the body
+    var lineObject = createTHREEPath(points, this.options.unit);
+    this.body.add(lineObject);
+  }
+
+  // TODO: updatePath
+
+  private addVector(
+    origin: Matrix,
+    vector: Matrix,
+    name: PacioliString,
+    label: PacioliString,
+    color: Maybe<PacioliString>
+  ) {
+    const vectorColor = color.value ? color.value.value : "blue";
+
+    this.log(
+      `Adding vector from ${vec2String(origin)} to ${vec2String(
+        vector
+      )} with color '${vectorColor}', name '${name.value}' and label '${
+        label.value
+      }'`
+    );
+
+    // Add an ArrowHelper
+    const arrowHelper = createTHREEArrowHelper(
+      origin,
+      vector,
+      name,
+      color,
+      this.options.unit
+    );
+    this.body.add(arrowHelper);
+
+    // Add a label. Only skip if it is empty and will always stay empty (no name given for updates)
+    if (name.value !== "" || label.value !== "") {
+      const arrowLabel = createTHREELabel(
+        origin,
+        vector,
+        name,
+        label,
+        this.options.unit
+      );
+      this.body.add(arrowLabel);
+    }
+  }
+
+  /**
+   * Called during animation.
+   *
+   * @param name
+   * @param from
+   * @param to
+   * @param label
+   * @param color
+   */
+  private updateVector(
+    name: string,
+    from: Matrix,
+    to: Matrix,
+    label: PacioliString,
+    color: Maybe<PacioliString>
+  ) {
+    // Update the ArrowHelper if needed
+    const arrow = this.scene.getObjectByName(name) as THREE.ArrowHelper;
+    if (arrow) {
+      const [dirVec, vectorLength] = arrowDirectionAndLength(
+        to,
+        this.options.unit
+      );
+      const vectorColor = color.value ? color.value.value : "blue";
+      const jsVector = vector2THREE(from, this.options.unit);
+
+      arrow.position.set(jsVector.x, jsVector.y, jsVector.z);
+      arrow.setDirection(dirVec);
+      arrow.setLength(vectorLength);
+      arrow.setColor(vectorColor);
+    }
+
+    // Update the label if needed
+    const labelObj = this.scene.getObjectByName(name + "_label") as CSS2DObject;
+    if (labelObj) {
+      const vec = vector2THREE(to, this.options.unit);
+      const labelPos = vector2THREE(from, this.options.unit)
+        .multiplyScalar(1.1)
+        .add(vec);
+
+      labelObj.position.set(labelPos.x, labelPos.y, labelPos.z);
+      labelObj.element.innerHTML = label.value;
     }
   }
 }
