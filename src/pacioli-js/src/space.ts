@@ -540,18 +540,23 @@ export class Space {
   }
 
   private pauseAnimation() {
-    if (this.animationRequest) {
+    if (this.animationRequest && !this.controls.autoRotate) {
       window.cancelAnimationFrame(this.animationRequest);
+      this.animationRequest = undefined;
     }
     this.extraTime += this.frameCounter / this.options.fps;
     this.frameCounter = 0;
   }
 
   draw() {
-    this.animationRequest = requestAnimationFrame(this.render.bind(this));
+    if (this.animationRequest === undefined) {
+      this.animationRequest = requestAnimationFrame(this.render.bind(this));
+    }
   }
 
   private render() {
+    this.animationRequest = undefined;
+
     if (this.animating && this.isAnimation()) {
       this.moveSceneForward();
     }
@@ -559,8 +564,17 @@ export class Space {
     this.renderer.render(this.scene, this.camera);
     this.labelRenderer.render(this.scene, this.camera);
 
-    if (this.animating) {
-      const frameLength = 1000 / this.options.fps;
+    if (this.controls.autoRotate) {
+      this.controls.update();
+    }
+
+    if (this.animating || this.controls.autoRotate) {
+      // Auto-rotate only works correctly at >60 fps. At 30 fps the
+      // rotation speed changes when the animation is started and
+      // stopped. Auto rotate does not seem to catch up when the frame
+      // rate is below 60.
+      const fps = this.controls.autoRotate ? 60 : this.options.fps;
+      const frameLength = 1000 / fps;
 
       const target = this.startTime + (this.frameCounter + 1) * frameLength;
       const currentTime = Date.now();
@@ -585,14 +599,6 @@ export class Space {
       this.prevFrameTime = currentTime;
 
       window.setTimeout(() => this.draw(), delay);
-    }
-
-    if (this.controls.autoRotate) {
-      this.controls.update();
-      // Don't set timeout twice!
-      if (!this.animating) {
-        window.setTimeout(() => this.draw(), this.options.fps);
-      }
     }
   }
 
