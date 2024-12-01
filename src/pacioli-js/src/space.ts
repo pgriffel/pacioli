@@ -325,6 +325,8 @@ export class Space {
    */
   clear() {
     this.log("Clearing space");
+
+    // Remove any element that has been added to the scene's body
     while (0 < this.body.children.length) {
       this.body.remove(this.body.children[0]);
     }
@@ -340,9 +342,13 @@ export class Space {
    */
   loadAnimation(animation: Animation) {
     const [callback, scene] = animation;
+
+    // Set animation specific members
     this.callback = callback;
     this.statefulCallback = undefined;
     this.initialState = undefined;
+
+    // Do a regular scene load
     this.loadScene(scene);
   }
 
@@ -356,9 +362,13 @@ export class Space {
    */
   loadStatefulAnimation(animation: StatefulAnimation) {
     const [initial, callback, scene] = animation;
+
+    // Set stateful animation specific members
     this.statefulCallback = callback;
     this.initialState = initial;
     this.callback = undefined;
+
+    // Do a regular scene load
     this.loadScene(scene);
   }
 
@@ -371,26 +381,28 @@ export class Space {
    * @param scene
    */
   loadScene(scene: PacioliScene) {
+    // Remember the scene for resetting
     this.initialScene = scene;
 
-    const [, vectors, meshes, paths] = scene;
-
+    // Remove previous scene elements
     this.clear();
 
+    // Add all scene elements
+    const [name, vectors, meshes, paths] = scene;
     for (const mesh of meshes) {
       this.addMesh(mesh);
     }
-
     for (const [origin, vector, name, label, color] of vectors) {
       this.addVector(origin, vector, name, label, color);
     }
-
     for (const path of paths) {
       this.addPath(path);
     }
 
+    // Initialize the animation
     this.resetAnimation();
-    this.log("Initialized animation");
+
+    this.log(`Loaded scene ${name} and initialized the animation`);
   }
 
   /**
@@ -400,10 +412,13 @@ export class Space {
    * @param animating Starting (true) or stopping (false)
    */
   setAnimating(animating: boolean) {
+    // Pause animating if animation stop is requested
     if (this.animating && !animating) {
       this.pauseAnimation();
       this.log("Paused animation");
     }
+
+    // Start animating if animation start is requested
     if (!this.animating && animating) {
       if (this.animationScene === undefined) {
         throw new Error("No scene elements to update");
@@ -414,7 +429,11 @@ export class Space {
       this.log("Starting animation");
       this.startAnimation();
     }
+
+    // Remember if animating is started or stopped
     this.animating = animating;
+
+    // Invalidate the UI if animating is started
     if (animating) {
       this.draw();
     }
@@ -427,18 +446,25 @@ export class Space {
    * @param secondsPerRotation Rotation speed in seconds per rotation.
    */
   startAutoRotation(secondsPerRotation?: number) {
+    // Temporarily pause animating
     const isAnimating = this.isAnimating();
     if (isAnimating) {
       // Without this pause the animation will freeze for a while after
       // turning of auto rotation. Does a better fix exist?
       this.pauseAnimation();
     }
+
+    // Start auto rotation
     this.controls.autoRotateSpeed =
       60 / (secondsPerRotation ?? this.options.secondsPerRotation);
     this.controls.autoRotate = true;
+
+    // Restart animating if it was running
     if (isAnimating) {
       this.startAnimation();
     }
+
+    // Ensure the controls are updated
     this.draw();
   }
 
@@ -446,13 +472,18 @@ export class Space {
    * Stops auto rotation
    */
   stopAutoRotation() {
+    // Temporarily pause animating
     const isAnimating = this.isAnimating();
     if (isAnimating) {
       // Without this pause the animation will freeze for a while after
       // turning of auto rotation. Does a better fix exist?
       this.pauseAnimation();
     }
+
+    // Stop auto rotation
     this.controls.autoRotate = false;
+
+    // Restart animating if it was running
     if (isAnimating) {
       this.startAnimation();
     }
