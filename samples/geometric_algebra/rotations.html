@@ -4,111 +4,170 @@
 <head>
     <meta charset='utf-8'>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <title>Pacioli GA</title>
+    <title>Pacioli Rotations</title>
+
+    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <script type="text/javascript" src="../scene.js"></script>
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="geom3/rotations.js"></script>
+    <script type="text/javascript" src="geom3/physics.js"></script>
+
+    <link rel="stylesheet" href="../scene.css">
 </head>
 
-<body onload="onLoad();">
+<body>
     <div id="console"></div>
-    <div id="pacioli_hook" style=" margin: 10px"></div>
+
+
+    <h2>Rotation Composition</h2>
+    <p>
+        Rotation with rotating composed rotor of rotor1, rotor2
+
+    <div class="example">
+        <pacioli-scene id="scene_rotation_composition" script="rotations" function="scene_rotor_composition"
+            kind="stateful-animation">
+            <parameter name="Rotor 1 (mv1)" unit="string">e1 + 5e2</parameter>
+            <parameter name="Rotor 1 (mv2)" unit="string">e1 + 6e2</parameter>
+            <parameter name="Rotor 2 (mv1)" unit="string">e2 + 20e3</parameter>
+            <parameter name="Rotor 2 (mv2)" unit="string">e3</parameter>
+            <parameter name="Initial frame (mv1)" unit="string">e1</parameter>
+            <parameter name="Initial frame (mv2)" unit="string">e2</parameter>
+            <parameter name="Initial frame (mv3)" unit="string">e3</parameter>
+        </pacioli-scene>
+        <pacioli-controls for="scene_rotation_composition"></pacioli-controls>
+    </div>
+
+
+    <h2>Rotation Nesting I</h2>
+    <p>
+        Rotation with rotating rotors. Rotor 1 is on. Rotor 2 is on.
+    <p>
+        Instead of the composition of rotors, the second rotor rotates the object while the first rotation rotates the
+        entire scene. The second rotor is 'nested' in the first. This is achieved by rotating the second rotor together
+        with the rotated object.
+
+    <div class="example">
+        <pacioli-scene id="scene_rotation_nesting1" script="rotations" function="scene_rotor_nesting"
+            kind="stateful-animation">
+            <parameter name="Rotor 1 (mv1)" unit="string">e1 + 5e2</parameter>
+            <parameter name="Rotor 1 (mv2)" unit="string">e1 + 6e2</parameter>
+            <parameter name="Rotor 2 (mv1)" unit="string">e2 + 20e3</parameter>
+            <parameter name="Rotor 2 (mv2)" unit="string">e3</parameter>
+            <parameter name="Initial frame (mv1)" unit="string">e1</parameter>
+            <parameter name="Initial frame (mv2)" unit="string">e2</parameter>
+            <parameter name="Initial frame (mv3)" unit="string">e3</parameter>
+        </pacioli-scene>
+        <pacioli-controls for="scene_rotation_nesting1"></pacioli-controls>
+    </div>
+
+
+    <h2>Rotation Nesting II</h2>
+    <p>
+        Rotation with rotating rotors. Rotor 1 is off. Rotor 2 is on.
+    <p>
+        Instead of the composition of rotors, the second rotor rotates the object while the first rotation rotates the
+        entire scene. The second rotor is 'nested' in the first. This is achieved by rotating the second rotor together
+        with the rotated object.
+
+    <div class="example">
+        <pacioli-scene id="scene_rotation_nesting2" script="rotations" function="scene_rotor_nesting"
+            kind="stateful-animation">
+            <parameter name="Rotor 1 (mv1)" unit="string">e1 + 6e2</parameter>
+            <parameter name="Rotor 1 (mv2)" unit="string">e1 + 6e2</parameter>
+            <parameter name="Rotor 2 (mv1)" unit="string">e2 + 20e3</parameter>
+            <parameter name="Rotor 2 (mv2)" unit="string">e3</parameter>
+            <parameter name="Initial frame (mv1)" unit="string">e1</parameter>
+            <parameter name="Initial frame (mv2)" unit="string">e2</parameter>
+            <parameter name="Initial frame (mv3)" unit="string">e3</parameter>
+        </pacioli-scene>
+        <pacioli-controls for="scene_rotation_nesting2"></pacioli-controls>
+    </div>
+
+
+    <h2>Rotation Nesting III</h2>
+    <p>
+        Rotation with rotating rotors. Rotor 1 is on. Rotor 2 is off.
+    <p>
+        Instead of the composition of rotors, the second rotor rotates the object while the first rotation rotates the
+        entire scene. The second rotor is 'nested' in the first. This is achieved by rotating the second rotor together
+        with the rotated object.
+
+    <div class="example">
+        <pacioli-scene id="scene_rotation_nesting3" script="rotations" function="scene_rotor_nesting"
+            kind="stateful-animation">
+            <parameter name="Rotor 1 (mv1)" unit="string">e1 + 5e2</parameter>
+            <parameter name="Rotor 1 (mv2)" unit="string">e1 + 6e2</parameter>
+            <parameter name="Rotor 2 (mv1)" unit="string">e2 + 20e3</parameter>
+            <parameter name="Rotor 2 (mv2)" unit="string">e2 + 20e3</parameter>
+            <parameter name="Initial frame (mv1)" unit="string">e1</parameter>
+            <parameter name="Initial frame (mv2)" unit="string">e2</parameter>
+            <parameter name="Initial frame (mv3)" unit="string">e3</parameter>
+        </pacioli-scene>
+        <pacioli-controls for="scene_rotation_nesting3"></pacioli-controls>
+    </div>
+
+
+
+    <h2>Reflection</h2>
+    <p>
+        Reflection Doran fig 2.7 but Leo's formulas for right division, projection and rejection on pp155-157.
+
+    <div class="example">
+        <pacioli-scene id="scene_reflection" script="rotations" function="scene_reflection" kind="scene">
+            <parameter name="nx" unit="metre">0</parameter>
+            <parameter name="ny" unit="metre">5</parameter>
+            <parameter name="nz" unit="metre">0</parameter>
+            <parameter name="ax" unit="metre">-3</parameter>
+            <parameter name="ay" unit="metre">3</parameter>
+            <parameter name="az" unit="metre">0</parameter>
+        </pacioli-scene>
+        <pacioli-controls for="scene_reflection"></pacioli-controls>
+    </div>
+
+
+    <h2>Rotations</h2>
+    <p>
+        Rotation fig 7.2 on p170 in Leo using two reflections.
+
+    <div class="example">
+        <pacioli-scene id="scene_reflection" script="rotations" function="scene_rotation" kind="scene">
+            <parameter name="ax" unit="metre">0</parameter>
+            <parameter name="ay" unit="metre">5</parameter>
+            <parameter name="az" unit="metre">0</parameter>
+            <parameter name="bx" unit="metre">3</parameter>
+            <parameter name="by" unit="metre">3</parameter>
+            <parameter name="cz" unit="metre">0</parameter>
+            <parameter name="xx" unit="metre">0</parameter>
+            <parameter name="xy" unit="metre">7</parameter>
+            <parameter name="xz" unit="metre">7</parameter>
+
+        </pacioli-scene>
+        <pacioli-controls for="scene_reflection"></pacioli-controls>
+    </div>
+
+
+    <h2>Rotations with Rotor</h2>
+    <p>
+        Rotation fig 7.2 on p170 in Leo using the rotor formula 7.3.
+
+    <div class="example">
+        <pacioli-scene id="scene_reflection" script="rotations" function="scene_rotation_rotor" kind="scene">
+            <parameter name="ax" unit="metre">0</parameter>
+            <parameter name="ay" unit="metre">5</parameter>
+            <parameter name="az" unit="metre">0</parameter>
+            <parameter name="bx" unit="metre">3</parameter>
+            <parameter name="by" unit="metre">3</parameter>
+            <parameter name="cz" unit="metre">0</parameter>
+            <parameter name="xx" unit="metre">0</parameter>
+            <parameter name="xy" unit="metre">7</parameter>
+            <parameter name="xz" unit="metre">7</parameter>
+
+        </pacioli-scene>
+        <pacioli-controls for="scene_reflection"></pacioli-controls>
+    </div>
+
 </body>
-
-
-<script>
-
-
-    // Add a {file, function, kind, params, options?} entry for each example to this list and 
-    // include its script further below. The kind is one of 'scene', 'animation', or 
-    // 'stateful-animation'. The parameters is a list of [label, number, unit] tuples. The UI
-    // will  make an input for each parameter and use the numbers as initial value. The script's
-    // scene function fun must accept the same number as arguments.
-    //
-    // Strings are for now supported by using unit 'string'.
-    //
-    // Note that the space has unit metre. The scene elements must have compatible units,
-    // otherwise runtime errors will occur in the browser.
-    const examples = [
-        {
-            file: "rotations",
-            function: "scene_rotor_composition",
-            kind: 'stateful-animation',
-            params: [["Rotor 1 (mv1)", "e1 + 5e2", "string"], ["Rotor 1 (mv2)", "e1 + 6e2", "string"],
-            ["Rotor 2 (mv1)", "e2 + 20e3", "string"], ["Rotor 2 (mv2)", "e3", "string"],
-            ["Initial frame (mv1)", "e1", "string"],
-            ["Initial frame (mv2)", "e2", "string"],
-            ["Initial frame (mv3)", "e3", "string"]
-            ]
-        },
-        {
-            file: "rotations",
-            function: "scene_rotor_nesting",
-            kind: 'stateful-animation',
-            params: [["Rotor 1 (mv1)", "e1 + 5e2", "string"], ["Rotor 1 (mv2)", "e1 + 6e2", "string"],
-            ["Rotor 2 (mv1)", "e2 + 20e3", "string"], ["Rotor 2 (mv2)", "e3", "string"],
-            ["Initial frame (mv1)", "e1", "string"],
-            ["Initial frame (mv2)", "e2", "string"],
-            ["Initial frame (mv3)", "e3", "string"]
-            ]
-        },
-        {
-            file: "rotations",
-            function: "scene_rotor_nesting",
-            kind: 'stateful-animation',
-            params: [["Rotor 1 (mv1)", "e1 + 6e2", "string"], ["Rotor 1 (mv2)", "e1 + 6e2", "string"],
-            ["Rotor 2 (mv1)", "e2 + 20e3", "string"], ["Rotor 2 (mv2)", "e3", "string"],
-            ["Initial frame (mv1)", "e1", "string"],
-            ["Initial frame (mv2)", "e2", "string"],
-            ["Initial frame (mv3)", "e3", "string"]
-            ]
-        },
-        {
-            file: "rotations",
-            function: "scene_rotor_nesting",
-            kind: 'stateful-animation',
-            params: [["Rotor 1 (mv1)", "e1 + 5e2", "string"], ["Rotor 1 (mv2)", "e1 + 6e2", "string"],
-            ["Rotor 2 (mv1)", "e2 + 20e3", "string"], ["Rotor 2 (mv2)", "e2 + 20e3", "string"],
-            ["Initial frame (mv1)", "e1", "string"],
-            ["Initial frame (mv2)", "e2", "string"],
-            ["Initial frame (mv3)", "e3", "string"]
-            ]
-        },
-        {
-            file: "rotations",
-            function: "scene_reflection",
-            kind: 'scene',
-            params: [["nx", 0, "metre"], ["ny", 5, "metre"], ["nz", 0, "metre"],
-            ["ax", -3, "metre"], ["ay", 3, "metre"], ["az", 0, "metre"]]
-        },
-        {
-            file: "rotations",
-            function: "scene_rotation",
-            kind: 'scene',
-            params: [
-                ["ax", 0, "metre"], ["ay", 5, "metre"], ["az", 0, "metre"],
-                ["bx", 3, "metre"], ["by", 3, "metre"], ["bz", 0, "metre"],
-                ["xx", 0, "metre"], ["xy", 7, "metre"], ["xz", 7, "metre"]]
-        },
-        {
-            file: "rotations",
-            function: "scene_rotation_rotor",
-            kind: 'scene',
-            params: [
-                ["ax", 0, "metre"], ["ay", 5, "metre"], ["az", 0, "metre"],
-                ["bx", 3, "metre"], ["by", 3, "metre"], ["bz", 0, "metre"],
-                ["xx", 0, "metre"], ["xy", 7, "metre"], ["xz", 7, "metre"]]
-        }
-    ]
-
-    function onLoad() {
-        main(examples)
-    }
-</script>
-
-<script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
-<script type="text/javascript" src="../scene.js"></script>
-
-<!-- Include each compiled example script here and add the examples to the list above -->
-<script type="text/javascript" src="geom3/rotations.js"></script>
-<script type="text/javascript" src="geom3/physics.js"></script>
 
 
 </html>
