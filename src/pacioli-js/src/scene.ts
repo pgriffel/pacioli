@@ -181,7 +181,6 @@ export class PacioliSceneComponent extends HTMLElement {
    * The unit for the scene's 3D space. The default is unit 'metre'.
    */
   parsedUnit() {
-    console.log("space unit is ", this.unit);
     return si.parseDimNum(this.unit || "metre").unit;
   }
 
