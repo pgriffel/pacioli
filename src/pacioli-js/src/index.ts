@@ -207,3 +207,5 @@ export {
 } from "./primitives";
 
 export { internUnit, matrixShapeFromType } from "./boxing";
+
+export { PacioliSceneComponent, PacioliControlsComponent } from "./scene";

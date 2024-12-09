@@ -39,7 +39,7 @@ import {
 /**
  * Matches the Scene type from the graphics Pacioli library
  */
-type PacioliScene = [
+export type PacioliScene = [
   PacioliString,
   PacioliArrow[],
   PacioliMesh[],
@@ -49,12 +49,12 @@ type PacioliScene = [
 /**
  * Matches the Animation type from the graphics Pacioli library
  */
-type Animation = [PacioliFunction, PacioliScene];
+export type Animation = [PacioliFunction, PacioliScene];
 
 /**
  * Matches the StatefulAnimation type from the graphics Pacioli library
  */
-type StatefulAnimation = [PacioliValue, PacioliFunction, PacioliScene];
+export type StatefulAnimation = [PacioliValue, PacioliFunction, PacioliScene];
 
 /**
  * Matches the Arrow type from the graphics Pacioli library
