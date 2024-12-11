@@ -209,4 +209,5 @@ export {
 
 export { internUnit, matrixShapeFromType } from "./boxing";
 
-export { PacioliSceneComponent, PacioliControlsComponent } from "./scene";
+export { PacioliSceneComponent } from "./web-components/pacioli-scene";
+export { PacioliControlsComponent } from "./web-components/pacioli-controls";
