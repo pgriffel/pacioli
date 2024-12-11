@@ -22,7 +22,7 @@ export class PacioliSceneComponent extends HTMLElement {
   camera: [number, number, number] = [20, 10, 20];
   verbose = false;
 
-  // Parameters for function LoadPacioliScript that computes the scene.
+  // Parameters for function loadPacioliSpace that computes the scene.
   script?: string;
   function?: string;
   kind?: "scene" | "animation" | "stateful-animation";
@@ -58,7 +58,7 @@ export class PacioliSceneComponent extends HTMLElement {
   connectedCallback() {
     const shadow: ShadowRoot = this.attachShadow({ mode: "open" });
 
-    // Append the div for errors after the space. Hide it until the first
+    // Append the div for errors before the space. Hide it until the first
     // error is displayed.
     this.errorDiv.style.color = "red";
     this.errorDiv.style.background = "yellow";
@@ -270,7 +270,7 @@ export class PacioliSceneComponent extends HTMLElement {
       try {
         this.space.updateScene();
       } catch (error: any) {
-        this.displayError("Step failed: " + error);
+        this.displayError("Step failed:\n\n" + error);
       }
     }
   }
@@ -613,7 +613,7 @@ function parseParameters(
       }
     } catch (error: any) {
       throw Error(
-        `cannot read value ${node.value} for ${node.type} parameter ${node.label}: ${error}.`
+        `cannot read value ${node.value} for ${node.type} parameter ${node.label}:\n\n ${error}.`
       );
     }
   });
