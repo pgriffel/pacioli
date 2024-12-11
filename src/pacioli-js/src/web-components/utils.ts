@@ -3,6 +3,7 @@ import { PacioliScene, Space, Animation, StatefulAnimation } from "../space";
 import { fun, num, string } from "../api";
 import { PacioliString } from "../values/string";
 import { Matrix } from "../values/matrix";
+import { PacioliFunction } from "../values/function";
 
 /**
  * Types for the parsed PacioliSceneComponent parameters. The parameters are passed via
@@ -186,7 +187,7 @@ export function loadPacioliSpace(
 ) {
   const params = parameters.map((parameter) => parameter.pacioliValue);
 
-  const scene = fun(script, func).apply(params);
+  const scene = pacioliFunction(script, func).apply(params);
 
   switch (kind) {
     case "scene": {
@@ -201,5 +202,16 @@ export function loadPacioliSpace(
       space.loadStatefulAnimation(scene as unknown as StatefulAnimation);
       break;
     }
+  }
+}
+
+function pacioliFunction(script: string, func: string): PacioliFunction {
+  try {
+    return fun(script, func);
+  } catch (error: any) {
+    console.log(error);
+    throw Error(
+      `function '${func}' from script '${script}' is unknown.\n\n Please give a valid Pacioli filename in the 'script' attribute, and a valid function name in the 'function' attribute, and check that the file is included.`
+    );
   }
 }
