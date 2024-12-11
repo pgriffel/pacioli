@@ -35,7 +35,7 @@ export class PacioliControlsComponent extends HTMLElement {
   // Inputs for the scene parameters
   inputs?: {
     parameter: PacioliParameter;
-    input: HTMLInputElement;
+    element: HTMLInputElement;
   }[];
 
   // Table of parameters inputs
@@ -128,7 +128,7 @@ export class PacioliControlsComponent extends HTMLElement {
    */
   private createInputs(): {
     parameter: PacioliParameter;
-    input: HTMLInputElement;
+    element: HTMLInputElement;
   }[] {
     const scene = this.sceneElement();
     if (scene) {
@@ -234,9 +234,9 @@ export class PacioliControlsComponent extends HTMLElement {
     const scene = this.sceneElement();
     if (scene && this.inputs) {
       scene.setParameters(
-        this.inputs.map((record) => {
+        this.inputs.map((input) => {
           return {
-            value: record.input.value,
+            value: input.element.value,
           };
         })
       );

@@ -5,7 +5,7 @@ import { PacioliParameter, parseParameters, loadPacioliSpace } from "./utils";
 /**
  * Web component for a 3D Pacioli space. A wrapper around the Space class.
  *
- * Say we have a scene function foo from file bar.pacioli. The function takes
+ * Say we have a scene function foo from file bar.pacioli, and the function takes
  * a parameter for an object shape and one for mass, then
  *
  * @example
@@ -178,7 +178,7 @@ export class PacioliSceneComponent extends HTMLElement {
   /**
    * Parses the DOM children and returns a list of parameters.
    *
-   * @returns A list of objects with the 'label', 'value', 'unit', 'pacioliUnit' and 'pacioliValue' fields.
+   * @returns The parsed parameters
    */
   parsedParameters(): PacioliParameter[] {
     return parseParameters(this.currentParameters());
@@ -238,7 +238,7 @@ export class PacioliSceneComponent extends HTMLElement {
    * Calls the script function with the current parameter values and loads the returned
    * scene into the Pacioli space. The animation is reset to time zero.
    *
-   * No animation can be running when calling this method.
+   * Should not be called when an animation is running
    */
   reset() {
     this.clearErrors();
@@ -270,9 +270,9 @@ export class PacioliSceneComponent extends HTMLElement {
   }
 
   /**
-   * Registers a callback. Currently only called after creation. All other methods
-   * are called by the control element, so it can update itself. More calls can be
-   * added in the future if needed.
+   * Registers a callback. Currently only called after loading a scene. All other
+   * methods are called by the control element, so it can update itself. More calls
+   * can be added in the future if needed.
    *
    * @param {*} callback A function of zero arguments.
    */
@@ -283,7 +283,7 @@ export class PacioliSceneComponent extends HTMLElement {
   /**
    * Performs a single animation step.
    *
-   * No animation can be running when calling this method.
+   * Should not be called when an animation is running.
    */
   step() {
     if (this.space && !this.space.isRunning()) {
@@ -315,7 +315,7 @@ export class PacioliSceneComponent extends HTMLElement {
   }
 
   /**
-   * Clears the text of the error output and hides the element.
+   * Clears the text of the error output and hides the error element.
    */
   clearErrors() {
     this.errorDiv.innerText = "";

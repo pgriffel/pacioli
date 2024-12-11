@@ -4,6 +4,7 @@ import { fun, num, string } from "../api";
 import { PacioliString } from "../values/string";
 import { Matrix } from "../values/matrix";
 import { PacioliFunction } from "../values/function";
+import { PacioliValue } from "../value";
 
 /**
  * Types for the parsed PacioliSceneComponent parameters. The parameters are passed via
@@ -46,9 +47,10 @@ export function parseParameters(
     try {
       switch (node.type) {
         case "string": {
+          // Create a StringParameter
           return {
-            label: node.label,
             type: "string",
+            label: node.label,
             value: node.value,
             pacioliValue: string(node.value),
           };
@@ -59,15 +61,17 @@ export function parseParameters(
           // unclear error message in si.parseDimNum below.
           if (node.value === "") {
             throw Error(
-              `invalid value for for ${node.type} parameter ${node.label}`
+              `invalid value for ${node.type} parameter ${node.label}`
             );
           }
 
+          // Parse the number and the unit
           const dimNum = si.parseDimNum(node.value + " * " + node.unit);
 
+          // Create a NumberParameter
           return {
-            label: node.label,
             type: "number",
+            label: node.label,
             value: node.value,
             unit: node.unit,
             pacioliUnit: dimNum.unit,
@@ -94,24 +98,25 @@ export function parseParameters(
  *
  * @param parsedParameters The parsed scene parameters
  * @param enterKeyCallback A function that is called when the enter key is pressed
- * @returns A list of objects with a 'parameter' and a 'input' field
+ * @returns A list of objects with a 'parameter' and a 'element' field
  */
 export function createParameterInputs(
   parsedParameters: PacioliParameter[],
   enterKeyCallback?: () => void
 ): {
   parameter: PacioliParameter;
-  input: HTMLInputElement;
+  element: HTMLInputElement;
 }[] {
   return parsedParameters.map((parameter) => {
+    // Create an input element for each parameter
     const inputElement = document.createElement("input");
-
     inputElement.className = "pacioli-controls-input";
     inputElement.value = parameter.value;
     inputElement.type = parameter.type;
 
+    // Add a callback for the enter key. Needed to make the return
+    // key reset the animation
     if (enterKeyCallback) {
-      // Needed to make the return key reset the animation
       inputElement.addEventListener("keypress", (event) => {
         if (event.key === "Enter") {
           event.preventDefault();
@@ -120,51 +125,57 @@ export function createParameterInputs(
       });
     }
 
-    return { parameter, input: inputElement };
+    return { parameter, element: inputElement };
   });
 }
 
 /**
  * Create a HMTML table for the PacioliSceneComponent parameters
  *
- * @param inputs A list of objects with a 'parameter' and a 'input' field
+ * @param inputs A list of objects with a 'parameter' and a 'element' field
  * @returns A HTML table
  */
 export function createParameterTable(
   inputs: {
     parameter: PacioliParameter;
-    input: HTMLInputElement;
+    element: HTMLInputElement;
   }[]
 ) {
+  // Create a HTML table
   const table = document.createElement("table");
-
   table.className = "pacioli-controls-table";
 
-  for (const record of inputs) {
+  for (const input of inputs) {
+    // Create a row with a label, a value and a unit entry
     const row = document.createElement("tr");
-    const key = document.createElement("td");
-    const value = document.createElement("td");
-    const un = document.createElement("td");
+    const labelEntry = document.createElement("td");
+    const valueEntry = document.createElement("td");
+    const unitEntry = document.createElement("td");
 
-    key.innerText = record.parameter.label;
+    // Set the label
+    labelEntry.innerText = input.parameter.label;
 
-    switch (record.parameter.type) {
+    // Append the input to the value entry
+    valueEntry.appendChild(input.element);
+
+    // Set the unit
+    switch (input.parameter.type) {
       case "string": {
-        un.innerText = "";
+        unitEntry.innerText = "";
         break;
       }
       case "number": {
-        un.innerText = record.parameter.pacioliUnit.toText();
+        unitEntry.innerText = input.parameter.pacioliUnit.toText();
         break;
       }
     }
 
-    value.appendChild(record.input);
+    // Append the entries to the row
+    row.appendChild(labelEntry);
+    row.appendChild(valueEntry);
+    row.appendChild(unitEntry);
 
-    row.appendChild(key);
-    row.appendChild(value);
-    row.appendChild(un);
-
+    // Append the row to the table
     table.appendChild(row);
   }
 
@@ -185,10 +196,12 @@ export function loadPacioliSpace(
   kind: "scene" | "animation" | "stateful-animation",
   parameters: PacioliParameter[]
 ) {
-  const params = parameters.map((parameter) => parameter.pacioliValue);
+  // Lookup the Pacioli function and apply it to the parameter values
+  const params: PacioliValue[] = parameters.map((param) => param.pacioliValue);
+  const scene: PacioliValue = pacioliFunction(script, func).apply(params);
 
-  const scene = pacioliFunction(script, func).apply(params);
-
+  // Cast the PacioliValue to the expected type and hope it works out at runtime.
+  // TODO: Improve error handling with runtime checks on the returned value
   switch (kind) {
     case "scene": {
       space.loadScene(scene as unknown as PacioliScene);
@@ -205,13 +218,17 @@ export function loadPacioliSpace(
   }
 }
 
+/**
+ * Wrapper around api function 'fun' with a PacioliScene specific error message if the
+ * function is not found.
+ */
 function pacioliFunction(script: string, func: string): PacioliFunction {
   try {
     return fun(script, func);
   } catch (error: any) {
     console.log(error);
     throw Error(
-      `function '${func}' from script '${script}' is unknown.\n\n Please give a valid Pacioli filename in the 'script' attribute, and a valid function name in the 'function' attribute, and check that the file is included.`
+      `function '${func}' from script '${script}' is unknown.\n\n Please give a valid Pacioli filename in the 'script' attribute, and a valid function name in the 'function' attribute, and check that the compiled file is included.`
     );
   }
 }
