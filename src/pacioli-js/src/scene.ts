@@ -130,6 +130,17 @@ export class PacioliSceneComponent extends HTMLElement {
   }
 
   /**
+   * The unit for the scene's 3D space. The default is unit 'metre'.
+   */
+  parsedUnit() {
+    try {
+      return si.parseDimNum(this.unit || "metre").unit;
+    } catch (error: any) {
+      throw Error(`failed to parse scene unit '${this.unit}'`);
+    }
+  }
+
+  /**
    * The component's DOM children. They contain the parameters for the scene function.
    */
   parameterNodes(): HTMLElement[] {
@@ -156,14 +167,12 @@ export class PacioliSceneComponent extends HTMLElement {
   }
 
   /**
-   * The unit for the scene's 3D space. The default is unit 'metre'.
+   * Parses the DOM children and returns a list of parameters.
+   *
+   * @returns A list of objects with the 'label', 'value', 'unit', 'pacioliUnit' and 'pacioliValue' fields.
    */
-  parsedUnit() {
-    try {
-      return si.parseDimNum(this.unit || "metre").unit;
-    } catch (error: any) {
-      throw Error(`failed to parse scene unit '${this.unit}'`);
-    }
+  parsedParameters(): PacioliParameter[] {
+    return parseParameters(this.currentParameters());
   }
 
   /**
@@ -179,15 +188,6 @@ export class PacioliSceneComponent extends HTMLElement {
     for (let i = 0; i < children.length; i++) {
       children[i].innerText = parameters[i].value;
     }
-  }
-
-  /**
-   * Parses the DOM children and returns a list of parameters.
-   *
-   * @returns A list of objects with the 'label', 'value', 'unit', 'pacioliUnit' and 'pacioliValue' fields.
-   */
-  parsedParameters(): PacioliParameter[] {
-    return parseParameters(this.currentParameters());
   }
 
   /**
@@ -261,6 +261,17 @@ export class PacioliSceneComponent extends HTMLElement {
   }
 
   /**
+   * Registers a callback. Currently only called after creation. All other methods
+   * are called by the control element, so it can update itself. More calls can be
+   * added in the future if needed.
+   *
+   * @param {*} callback A function of zero arguments.
+   */
+  registerCallback(callback: () => void) {
+    this.callbacks.push(callback);
+  }
+
+  /**
    * Performs a single animation step.
    *
    * No animation can be running when calling this method.
@@ -285,21 +296,18 @@ export class PacioliSceneComponent extends HTMLElement {
   }
 
   /**
-   * Registers a callback. Currently only called after creation. All other methods
-   * are called by the control element, so it can update itself. More calls can be
-   * added in the future if needed.
+   * Adds a line to the error output. Makes sure the error element is unhidden.
    *
-   * @param {*} callback A function of zero arguments.
+   * @param message The text to add
    */
-  registerCallback(callback: () => void) {
-    this.callbacks.push(callback);
-  }
-
   displayError(message: string) {
     this.errorDiv.hidden = false;
     this.errorDiv.innerText = message + "\n\n" + this.errorDiv.innerText;
   }
 
+  /**
+   * Clears the text of the error output and hides the element.
+   */
   clearErrors() {
     this.errorDiv.innerText = "";
     this.errorDiv.hidden = true;
@@ -310,17 +318,30 @@ export class PacioliSceneComponent extends HTMLElement {
  * Web component with controls for the PacioliScene web component.
  */
 export class PacioliControlsComponent extends HTMLElement {
+  // Auto-rotation speed
   static SECONDS_PER_ROTATION = 30;
 
+  // Web component field
   static observedAttributes = ["for"];
 
+  // Id of the connected PacioliScene
   for?: string;
 
-  inputs: {
+  // The controls are divided into animation controls and configuration
+  // controls
+  animationElement: HTMLDivElement;
+  configurationElement: HTMLDivElement;
+
+  // Inputs for the scene parameters
+  inputs?: {
     parameter: PacioliParameter;
     input: HTMLInputElement;
   }[];
-  table: HTMLTableElement;
+
+  // Table of parameters inputs
+  table?: HTMLTableElement;
+
+  // The buttons
   stepButton: HTMLButtonElement;
   startButton: HTMLButtonElement;
   resetButton: HTMLButtonElement;
@@ -328,8 +349,9 @@ export class PacioliControlsComponent extends HTMLElement {
 
   constructor() {
     super();
-    this.inputs = this.createInputs();
-    this.table = createParameterTable(this.inputs);
+    // Create parent elements
+    this.animationElement = document.createElement("div");
+    this.configurationElement = document.createElement("div");
 
     // Create the buttons
     this.stepButton = this.createStepButton();
@@ -354,28 +376,24 @@ export class PacioliControlsComponent extends HTMLElement {
     // sheet.replaceSync("button { color: red; border: 2px dotted black;}");
     // parent.adoptedStyleSheets = [sheet];
 
-    // The controls are divided into animation controls and configuration
-    // controls
-    const animationElement = document.createElement("div");
-    const configurationElement = document.createElement("div");
+    // Add the parent elements
+    this.animationElement.className = "pacioli-controls-animation";
+    this.configurationElement.className = "pacioli-controls-configuration";
 
-    animationElement.className = "pacioli-controls-animation";
-    configurationElement.className = "pacioli-controls-configuration";
-
-    parent.appendChild(animationElement);
-    parent.appendChild(configurationElement);
+    parent.appendChild(this.animationElement);
+    parent.appendChild(this.configurationElement);
 
     // Create a table of inputs for the scene parameters
     this.inputs = this.createInputs();
     this.table = createParameterTable(this.inputs);
 
     // Add the new elements to the parent
-    animationElement.appendChild(this.startButton);
-    animationElement.appendChild(this.stepButton);
-    animationElement.appendChild(this.table);
-    animationElement.appendChild(this.resetButton);
+    this.animationElement.appendChild(this.startButton);
+    this.animationElement.appendChild(this.stepButton);
+    this.animationElement.appendChild(this.table);
+    this.animationElement.appendChild(this.resetButton);
 
-    configurationElement.appendChild(this.autoRotateButton);
+    this.configurationElement.appendChild(this.autoRotateButton);
 
     // Make sure the proper buttons are shown and enabled
     this.updateButtons();
@@ -397,11 +415,6 @@ export class PacioliControlsComponent extends HTMLElement {
         this.for = newValue;
         break;
       }
-      default: {
-        throw Error(
-          `cannot set attribe ${name} on PacioliControlsComponent. Valid attribute is 'for'`
-        );
-      }
     }
   }
 
@@ -417,7 +430,12 @@ export class PacioliControlsComponent extends HTMLElement {
       : undefined;
   }
 
-  createInputs(): {
+  /**
+   * Create inputs for the scene parameters
+   *
+   * @returns List of objects with a 'paramater' and a 'input' field.
+   */
+  private createInputs(): {
     parameter: PacioliParameter;
     input: HTMLInputElement;
   }[] {
@@ -431,7 +449,12 @@ export class PacioliControlsComponent extends HTMLElement {
     }
   }
 
-  createStartButton() {
+  /**
+   * Creates the start button
+   *
+   * @returns A HTML button
+   */
+  private createStartButton() {
     let runButton = document.createElement("button");
 
     runButton.innerText = "Start";
@@ -441,7 +464,12 @@ export class PacioliControlsComponent extends HTMLElement {
     return runButton;
   }
 
-  createStepButton() {
+  /**
+   * Creates the step button
+   *
+   * @returns A HTML button
+   */
+  private createStepButton() {
     let stepButton = document.createElement("button");
 
     stepButton.className = "pacioli-controls-button";
@@ -450,7 +478,12 @@ export class PacioliControlsComponent extends HTMLElement {
     return stepButton;
   }
 
-  createResetButton() {
+  /**
+   * Creates the reset button
+   *
+   * @returns A HTML button
+   */
+  private createResetButton() {
     let inputButton = document.createElement("button");
 
     inputButton.innerText = "Apply";
@@ -460,7 +493,12 @@ export class PacioliControlsComponent extends HTMLElement {
     return inputButton;
   }
 
-  createAutoRotationButton() {
+  /**
+   * Creates the auto-rotate button
+   *
+   * @returns A HTML button
+   */
+  private createAutoRotationButton() {
     let rotateLabel = document.createElement("label");
     let rotateCheckbox = document.createElement("input");
 
@@ -476,7 +514,10 @@ export class PacioliControlsComponent extends HTMLElement {
     return rotateLabel;
   }
 
-  startButtonClicked() {
+  /**
+   * Handler for the start button
+   */
+  private startButtonClicked() {
     const scene = this.sceneElement();
     if (scene) {
       scene.setAnimating(!scene.isAnimating());
@@ -484,7 +525,10 @@ export class PacioliControlsComponent extends HTMLElement {
     }
   }
 
-  stepButtonClicked() {
+  /**
+   * Handler for the step button
+   */
+  private stepButtonClicked() {
     const scene = this.sceneElement();
     if (scene) {
       scene.step();
@@ -492,9 +536,12 @@ export class PacioliControlsComponent extends HTMLElement {
     }
   }
 
-  resetButtonClicked() {
+  /**
+   * Handler for the reset button
+   */
+  private resetButtonClicked() {
     const scene = this.sceneElement();
-    if (scene) {
+    if (scene && this.inputs) {
       scene.setParameters(
         this.inputs.map((record) => {
           return {
@@ -507,7 +554,10 @@ export class PacioliControlsComponent extends HTMLElement {
     }
   }
 
-  autoRotateCheckboxClicked(checked: boolean) {
+  /**
+   * Handler for the auto-rotate button
+   */
+  private autoRotateCheckboxClicked(checked: boolean) {
     const scene = this.sceneElement();
     if (scene && scene.space) {
       if (checked) {
@@ -520,10 +570,18 @@ export class PacioliControlsComponent extends HTMLElement {
     }
   }
 
-  updateButtons() {
+  /**
+   * Set the disabled and hidden state of the buttons. Also set the
+   * button labels for the animation buttons.
+   */
+  private updateButtons() {
     const scene = this.sceneElement();
 
     if (scene) {
+      this.animationElement.hidden =
+        !scene.space!.isAnimation() &&
+        (this.inputs === undefined || this.inputs.length === 0);
+
       this.stepButton.hidden = !scene.space!.isAnimation();
       this.startButton.hidden = !scene.space!.isAnimation();
 
@@ -564,6 +622,13 @@ type StringParameter = {
   pacioliValue: PacioliString;
 };
 
+/**
+ * Turns the raw parameter attribues from the child nodes into PacioliParameter
+ * objects.
+ *
+ * @param parameters List of attribute values for the scene parameters
+ * @returns A list of parsed parameters.
+ */
 function parseParameters(
   parameters: {
     label: string;
@@ -585,7 +650,7 @@ function parseParameters(
         }
 
         case "number": {
-          // FireFox gives an empty string on invalid input. This gives a
+          // Browsers give an empty string on invalid input. This gives a
           // unclear error message in si.parseDimNum below.
           if (node.value === "") {
             throw Error(
@@ -619,6 +684,13 @@ function parseParameters(
   });
 }
 
+/**
+ * Create HTML input elements for the scene parameters
+ *
+ * @param parsedParameters The parsed scene parameters
+ * @param enterKeyCallback A function that is called when the enter key is pressed
+ * @returns A list of objects with a 'parameter' and a 'input' field
+ */
 function createParameterInputs(
   parsedParameters: PacioliParameter[],
   enterKeyCallback?: () => void
@@ -647,6 +719,12 @@ function createParameterInputs(
   });
 }
 
+/**
+ * Create a HMTML table for the scene parameters
+ *
+ * @param inputs A list of objects with a 'parameter' and a 'input' field
+ * @returns A HTML table
+ */
 function createParameterTable(
   inputs: {
     parameter: PacioliParameter;
