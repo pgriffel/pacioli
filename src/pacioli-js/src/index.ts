@@ -105,6 +105,7 @@ export {
   $base_base__catch_result,
   $base_base_is_nothing,
   $base_base_just,
+  $base_base_error,
   $base_matrix_column,
   $base_matrix_column_domain,
   $base_matrix_column_unit,

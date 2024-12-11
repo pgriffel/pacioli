@@ -131,6 +131,10 @@ export function $base_base_just(value: any) {
   return value;
 }
 
+export function $base_base_error(value: any) {
+  throw Error(value);
+}
+
 export function $base_base_nothing() {
   return undefined;
 }
