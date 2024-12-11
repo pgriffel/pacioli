@@ -329,8 +329,8 @@ export class PacioliControlsComponent extends HTMLElement {
 
   // The controls are divided into animation controls and configuration
   // controls
-  animationElement: HTMLDivElement;
-  configurationElement: HTMLDivElement;
+  animationElement: HTMLDivElement = document.createElement("div");
+  configurationElement: HTMLDivElement = document.createElement("div");
 
   // Inputs for the scene parameters
   inputs?: {
@@ -342,22 +342,13 @@ export class PacioliControlsComponent extends HTMLElement {
   table?: HTMLTableElement;
 
   // The buttons
-  stepButton: HTMLButtonElement;
-  startButton: HTMLButtonElement;
-  resetButton: HTMLButtonElement;
-  autoRotateButton: HTMLLabelElement;
+  stepButton = this.createStepButton();
+  startButton = this.createStartButton();
+  resetButton = this.createResetButton();
+  autoRotateButton = this.createAutoRotationButton();
 
   constructor() {
     super();
-    // Create parent elements
-    this.animationElement = document.createElement("div");
-    this.configurationElement = document.createElement("div");
-
-    // Create the buttons
-    this.stepButton = this.createStepButton();
-    this.startButton = this.createStartButton();
-    this.resetButton = this.createResetButton();
-    this.autoRotateButton = this.createAutoRotationButton();
   }
 
   /**
@@ -396,13 +387,13 @@ export class PacioliControlsComponent extends HTMLElement {
     this.configurationElement.appendChild(this.autoRotateButton);
 
     // Make sure the proper buttons are shown and enabled
-    this.updateButtons();
+    this.updateControls();
 
     // If we are connected to a scene, then we need to keep the
     // state of the buttons synchronized with the scene animation.
     const scene = this.sceneElement();
     if (scene) {
-      scene.registerCallback(() => this.updateButtons());
+      scene.registerCallback(() => this.updateControls());
     }
   }
 
@@ -521,7 +512,7 @@ export class PacioliControlsComponent extends HTMLElement {
     const scene = this.sceneElement();
     if (scene) {
       scene.setAnimating(!scene.isAnimating());
-      this.updateButtons();
+      this.updateControls();
     }
   }
 
@@ -532,7 +523,7 @@ export class PacioliControlsComponent extends HTMLElement {
     const scene = this.sceneElement();
     if (scene) {
       scene.step();
-      this.updateButtons();
+      this.updateControls();
     }
   }
 
@@ -550,7 +541,7 @@ export class PacioliControlsComponent extends HTMLElement {
         })
       );
       scene.reset();
-      this.updateButtons();
+      this.updateControls();
     }
   }
 
@@ -574,25 +565,39 @@ export class PacioliControlsComponent extends HTMLElement {
    * Set the disabled and hidden state of the buttons. Also set the
    * button labels for the animation buttons.
    */
-  private updateButtons() {
+  private updateControls() {
     const scene = this.sceneElement();
 
     if (scene) {
-      this.animationElement.hidden =
-        !scene.space!.isAnimation() &&
-        (this.inputs === undefined || this.inputs.length === 0);
+      // If we get here the space must have been created
+      const space = scene.space!;
 
-      this.stepButton.hidden = !scene.space!.isAnimation();
-      this.startButton.hidden = !scene.space!.isAnimation();
+      // Distinguish animations and static scenes
+      if (space.isAnimation()) {
+        const isAnimating = space.isAnimating();
 
-      this.stepButton.innerText =
-        "Step " + scene.space!.animationTime().toFixed(2) + "s";
-      this.startButton.innerText = scene.space!.isAnimating() ? "Pause" : "Run";
+        this.animationElement.hidden = false;
+        this.stepButton.hidden = false;
+        this.startButton.hidden = false;
 
-      this.stepButton.disabled = scene.space!.isAnimating();
-      this.resetButton.disabled = scene.space!.isAnimating();
-      this.startButton.disabled = false;
+        this.stepButton.innerText =
+          "Step " + space.animationTime().toFixed(2) + "s";
+        this.startButton.innerText = isAnimating ? "Pause" : "Run";
+
+        this.stepButton.disabled = isAnimating;
+        this.resetButton.disabled = isAnimating;
+        this.startButton.disabled = false;
+      } else {
+        this.animationElement.hidden =
+          this.inputs === undefined || this.inputs.length === 0;
+
+        this.stepButton.hidden = true;
+        this.startButton.hidden = true;
+
+        this.resetButton.disabled = false;
+      }
     } else {
+      // No scene, just disable the buttons
       this.resetButton.disabled = true;
       this.stepButton.disabled = true;
       this.startButton.disabled = true;
