@@ -1,0 +1,65 @@
+body {
+    --element-bg-color: #888888;
+    --bg-color: #888888;
+    --fg-color: white;
+    --border: 1pt solid #BBBBBB;
+}
+
+pacioli-scene {
+    border: var(--border);
+}
+
+.example {
+    display: flex;
+    flex-direction: row;
+}
+
+.pacioli-controls-animation {
+    margin-left: 10pt;
+    margin-bottom: 10pt;
+    padding: 10pt;
+    border: var(--border);
+    NObackground: var(--bg-color);
+    NOcolor: var(--fg-color)
+}
+
+.pacioli-controls-configuration {
+    margin-left: 10pt;
+    margin-bottom: 10pt;
+    padding: 10pt;
+    border: var(--border);
+    NObackground: var(--bg-color);
+    NOcolor: var(--fg-color)
+}
+
+.pacioli-controls-button {
+    width: 80pt;
+    margin: 10pt;
+    padding: 3pt;
+    NObackground: var(--element-bg-color);
+    NOcolor: var(--fg-color);
+    NOborder: var(--border);
+}
+
+.pacioli-controls-checkbox {
+    NObackground: var(--element-bg-color);
+    NOmargin: 5pt;
+}
+
+.pacioli-controls-input {
+    NObackground: #BBBBBB;
+    NOborder: var(--border);
+}
+
+.pacioli-controls-table {
+    margin: 15pt;
+}
+
+td {
+    padding: 3pt;
+}
+
+input {
+    padding: 3pt; 
+    //line-height: 28px;
+}
