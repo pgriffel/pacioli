@@ -304,7 +304,7 @@ export class Space {
    *
    * @returns True if an animation is running.
    */
-  isAnimating(): boolean {
+  isRunning(): boolean {
     return this.animating;
   }
 
@@ -313,7 +313,7 @@ export class Space {
    *
    * @returns Elapsed time in seconds.
    */
-  animationTime(): number {
+  runningTime(): number {
     return this.frameCounter / this.options.fps;
   }
 
@@ -406,17 +406,17 @@ export class Space {
    * Starts or stops the animation. Does not reset the animation. Starting
    * an animation picks it up where it was last stopped.
    *
-   * @param animating Starting (true) or stopping (false)
+   * @param running Starting (true) or stopping (false)
    */
-  setAnimating(animating: boolean) {
+  setRunning(running: boolean) {
     // Pause animating if animation stop is requested
-    if (this.animating && !animating) {
+    if (this.animating && !running) {
       this.pauseAnimation();
       this.log("Paused animation");
     }
 
     // Check for callbacks if animation start is requested
-    if (!this.animating && animating) {
+    if (!this.animating && running) {
       if (this.animationScene === undefined) {
         throw new Error("No scene elements to update");
       }
@@ -535,12 +535,12 @@ export class Space {
     // Maybe just make the first call checked?!
     if (this.callback) {
       this.animationScene = this.callback.call(
-        num(this.animationTime(), this.TIME_UNIT),
+        num(this.runningTime(), this.TIME_UNIT),
         this.animationScene as unknown as PacioliValue
       ) as unknown as PacioliScene;
     } else if (this.statefulCallback) {
       const [state, scene] = this.statefulCallback.call(
-        num(this.animationTime(), this.TIME_UNIT),
+        num(this.runningTime(), this.TIME_UNIT),
         this.animationState ? this.animationState : this.initialState!,
         this.animationScene as unknown as PacioliValue
       ) as unknown as [PacioliValue, PacioliScene];

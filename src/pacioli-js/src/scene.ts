@@ -234,7 +234,7 @@ export class PacioliSceneComponent extends HTMLElement {
   reset() {
     this.clearErrors();
 
-    if (this.space && !this.space.isAnimating()) {
+    if (this.space && !this.space.isRunning()) {
       this.loadSpace();
       this.space.draw();
     }
@@ -245,18 +245,18 @@ export class PacioliSceneComponent extends HTMLElement {
    *
    * @returns True if an animation running.
    */
-  isAnimating() {
-    return this.space && this.space.isAnimating();
+  isRunning() {
+    return this.space && this.space.isRunning();
   }
 
   /**
    * Starts or pauses an animation.
    *
-   * @param {*} animating Start (true) or pause (false)
+   * @param {*} running Start (true) or pause (false)
    */
-  setAnimating(animating: boolean) {
+  setRunning(running: boolean) {
     if (this.space) {
-      this.space.setAnimating(animating);
+      this.space.setRunning(running);
     }
   }
 
@@ -277,7 +277,7 @@ export class PacioliSceneComponent extends HTMLElement {
    * No animation can be running when calling this method.
    */
   step() {
-    if (this.space && !this.space.isAnimating()) {
+    if (this.space && !this.space.isRunning()) {
       try {
         this.space.updateScene();
       } catch (error: any) {
@@ -511,7 +511,7 @@ export class PacioliControlsComponent extends HTMLElement {
   private startButtonClicked() {
     const scene = this.sceneElement();
     if (scene) {
-      scene.setAnimating(!scene.isAnimating());
+      scene.setRunning(!scene.isRunning());
       this.updateControls();
     }
   }
@@ -574,18 +574,18 @@ export class PacioliControlsComponent extends HTMLElement {
 
       // Distinguish animations and static scenes
       if (space.isAnimation()) {
-        const isAnimating = space.isAnimating();
+        const isRunning = space.isRunning();
 
         this.animationElement.hidden = false;
         this.stepButton.hidden = false;
         this.startButton.hidden = false;
 
         this.stepButton.innerText =
-          "Step " + space.animationTime().toFixed(2) + "s";
-        this.startButton.innerText = isAnimating ? "Pause" : "Run";
+          "Step " + space.runningTime().toFixed(2) + "s";
+        this.startButton.innerText = isRunning ? "Pause" : "Run";
 
-        this.stepButton.disabled = isAnimating;
-        this.resetButton.disabled = isAnimating;
+        this.stepButton.disabled = isRunning;
+        this.resetButton.disabled = isRunning;
         this.startButton.disabled = false;
       } else {
         this.animationElement.hidden =
