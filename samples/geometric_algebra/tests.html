@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Pacioli Tests</title>
+
+    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="geom3/weird.js"></script>
+    <script type="text/javascript" src="geom3/cubes.js"></script>
+
+</head>
+
+<body>
+    <div id="console"></div>
+
+
+    <h2>Weird</h2>
+    <p>
+        Just some weird example to test graphics of vectors.
+
+    <div class="example">
+        <pacioli-scene id="scene_weird" script="weird" function="the_scene" kind="animation">
+            <parameter label="n" unit="1">50</parameter>
+            <parameter label="k" unit="1">5</parameter>
+            <parameter label="freq" unit="hertz">1</parameter>
+        </pacioli-scene>
+        <pacioli-controls for="scene_weird"></pacioli-controls>
+    </div>
+
+
+    <h2>Cubes I</h2>
+    <p>
+        An experiment with the CubeMesh datastructure and animation.
+
+    <div class="example">
+        <pacioli-scene id="scene_cubes1" script="cubes" function="scene1" kind="stateful-animation">
+            <parameter label="cubes">25</parameter>
+            <parameter label="terms">3</parameter>
+            <parameter label="speedup">1</parameter>
+        </pacioli-scene>
+        <pacioli-controls for="scene_cubes1"></pacioli-controls>
+    </div>
+
+    <h2>Cubes II</h2>
+    <p>
+        An experiment with the Mesh and Path datastructures
+
+    <div class="example">
+        <pacioli-scene id="scene_cubes2" script="cubes" function="scene2" kind="scene">
+        </pacioli-scene>
+        <pacioli-controls for="scene_cubes2"></pacioli-controls>
+    </div>
+
+
+    <h2>Cubes III</h2>
+    <p>
+        My nice scene!
+
+    <div class="example">
+        <pacioli-scene id="scene_cubes3" script="cubes" function="scene3" kind="scene">
+            <parameter label="a" unit="metre">5</parameter>
+            <parameter label="b" unit="metre">5</parameter>
+            <parameter label="c" unit="metre">5</parameter>
+        </pacioli-scene>
+        <pacioli-controls for="scene_cubes3"></pacioli-controls>
+    </div>
+
+</body>
+
+
+</html>

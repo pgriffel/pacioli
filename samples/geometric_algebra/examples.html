@@ -33,14 +33,14 @@
     <div class="example">
         <pacioli-scene id="scene_quaternion" script="torque_quaternion" function="scene_quaternion_sandbox" kind="scene"
             unit="1">
-            <parameter name="a1">0</parameter>
-            <parameter name="i1">-1</parameter>
-            <parameter name="j1">2</parameter>
-            <parameter name="k1">0</parameter>
-            <parameter name="a2">0</parameter>
-            <parameter name="i2">0</parameter>
-            <parameter name="j2">1</parameter>
-            <parameter name="k2">1</parameter>
+            <parameter label="a1">0</parameter>
+            <parameter label="i1">-1</parameter>
+            <parameter label="j1">2</parameter>
+            <parameter label="k1">0</parameter>
+            <parameter label="a2">0</parameter>
+            <parameter label="i2">0</parameter>
+            <parameter label="j2">1</parameter>
+            <parameter label="k2">1</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_quaternion"></pacioli-controls>
     </div>
@@ -54,8 +54,8 @@
     <div class="example">
         <pacioli-scene id="scene_torque1" script="torque_cross_vector" function="scene_torque_orbital2d_pointmass"
             kind="stateful-animation">
-            <parameter name="mass" unit="gram">5</parameter>
-            <parameter name="rx" unit="metre">2</parameter>
+            <parameter label="mass" unit="gram">5</parameter>
+            <parameter label="rx" unit="metre">2</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_torque1"></pacioli-controls>
     </div>
@@ -78,15 +78,15 @@
     <div class="example">
         <pacioli-scene id="scene_torque2" script="torque_cross_vector3d" function="scene_orbit_point_mass"
             kind="stateful-animation">
-            <parameter name="mass" unit="gram">1</parameter>
-            <parameter name="x" unit="metre">-4</parameter>
-            <parameter name="y" unit="metre">4</parameter>
-            <parameter name="z" unit="metre">0</parameter>
-            <parameter name="force field (1, 2, 3 or 4)" unit="1">1</parameter>
-            <parameter name="torque factor" unit="metre / gram / metre * second^2 / metre">1</parameter>
-            <parameter name="force factor" unit="metre / gram / metre * second^2">1</parameter>
-            <parameter name="momentum factor" unit="metre / gram / metre^2 * second">1</parameter>
-            <parameter name="velocity factor" unit="metre / metre * second">1</parameter>
+            <parameter label="mass" unit="gram">1</parameter>
+            <parameter label="x" unit="metre">-4</parameter>
+            <parameter label="y" unit="metre">4</parameter>
+            <parameter label="z" unit="metre">0</parameter>
+            <parameter label="force field (1, 2, 3 or 4)" unit="1">1</parameter>
+            <parameter label="torque factor" unit="metre / gram / metre * second^2 / metre">1</parameter>
+            <parameter label="force factor" unit="metre / gram / metre * second^2">1</parameter>
+            <parameter label="momentum factor" unit="metre / gram / metre^2 * second">1</parameter>
+            <parameter label="velocity factor" unit="metre / metre * second">1</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_torque2"></pacioli-controls>
     </div>
@@ -94,13 +94,13 @@
 
     <h2>Cross Vector I</h2>
     <p>
-        An oscillating unit-aware cross vector based upon the cross vector diagram in
-        https://en.wikipedia.org/wiki/Exterior_algebra.
+        An oscillating unit-aware cross vector based upon the cross vector diagram in the <a
+            href="https://en.wikipedia.org/wiki/Exterior_algebra"> Wikipedia page on exterior algebras</a>.
 
     <div class="example">
         <pacioli-scene id="scene_cross1" script="cross_vector" function="scene_cross_oscillate" kind="animation">
-            <parameter name="x" unit="metre">3</parameter>
-            <parameter name="y" unit="metre">3</parameter>
+            <parameter label="x" unit="metre">3</parameter>
+            <parameter label="y" unit="metre">3</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_cross1"></pacioli-controls>
     </div>
@@ -108,14 +108,14 @@
 
     <h2>Cross Vector II</h2>
     <p>
-        An oscillating dimensionless cross vector based upon the cross vector diagram in
-        https://en.wikipedia.org/wiki/Exterior_algebra.
+        An oscillating dimensionless cross vector based upon the cross vector diagram in the <a
+            href="https://en.wikipedia.org/wiki/Exterior_algebra"> Wikipedia page on exterior algebras</a>.
 
     <div class="example">
         <pacioli-scene id="scene_cross2" script="cross_vector" function="scene_cross_dimless_oscillate" kind="animation"
             unit="1">
-            <parameter name="x" unit="1">3</parameter>
-            <parameter name="y" unit="1">3</parameter>
+            <parameter label="x" unit="1">3</parameter>
+            <parameter label="y" unit="1">3</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_cross2"></pacioli-controls>
     </div>
@@ -127,13 +127,13 @@
 
     <div class="example">
         <pacioli-scene id="scene_bivector1" script="bi_vector" function="scene1" kind="scene">
-            <parameter name="x" unit="metre">2</parameter>
-            <parameter name="y" unit="metre">1</parameter>
-            <parameter name="z" unit="metre">0</parameter>
-            <parameter name="x" unit="metre">-3</parameter>
-            <parameter name="y" unit="metre">0</parameter>
-            <parameter name="z" unit="metre">2</parameter>
-            <parameter name="wireframe">0</parameter>
+            <parameter label="x" unit="metre">2</parameter>
+            <parameter label="y" unit="metre">1</parameter>
+            <parameter label="z" unit="metre">0</parameter>
+            <parameter label="x" unit="metre">-3</parameter>
+            <parameter label="y" unit="metre">0</parameter>
+            <parameter label="z" unit="metre">2</parameter>
+            <parameter label="wireframe">0</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_bivector1"></pacioli-controls>
     </div>
@@ -147,7 +147,7 @@
 
     <div class="example">
         <pacioli-scene id="scene_bivector2" script="bi_vector" function="scene2" kind="scene">
-            <parameter name="wireframe" unit="1">0</parameter>
+            <parameter label="wireframe" unit="1">0</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_bivector2"></pacioli-controls>
     </div>
@@ -161,12 +161,12 @@
 
     <div class="example">
         <pacioli-scene id="scene_inner" script="inner" function="the_scene" kind="scene">
-            <parameter name="x" unit="metre">5</parameter>
-            <parameter name="y" unit="metre">0</parameter>
-            <parameter name="z" unit="metre">5</parameter>
-            <parameter name="x" unit="metre">0</parameter>
-            <parameter name="y" unit="metre">0</parameter>
-            <parameter name="z" unit="metre">7</parameter>
+            <parameter label="x" unit="metre">5</parameter>
+            <parameter label="y" unit="metre">0</parameter>
+            <parameter label="z" unit="metre">5</parameter>
+            <parameter label="x" unit="metre">0</parameter>
+            <parameter label="y" unit="metre">0</parameter>
+            <parameter label="z" unit="metre">7</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_inner"></pacioli-controls>
     </div>
@@ -178,62 +178,11 @@
 
     <div class="example">
         <pacioli-scene id="scene_outer" script="outer_cos_sin" function="the_scene" kind="scene">
-            <parameter name="i" unit="1">24</parameter>
+            <parameter label="i" unit="1">24</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_outer"></pacioli-controls>
     </div>
 
-
-    <h2>Weird</h2>
-    <p>
-        Just some weird example to test graphics of vectors.
-
-    <div class="example">
-        <pacioli-scene id="scene_weird" script="weird" function="the_scene" kind="animation">
-            <parameter name="n" unit="1">50</parameter>
-            <parameter name="k" unit="1">5</parameter>
-            <parameter name="freq" unit="hertz">1</parameter>
-        </pacioli-scene>
-        <pacioli-controls for="scene_weird"></pacioli-controls>
-    </div>
-
-
-    <h2>Cubes I</h2>
-    <p>
-        An experiment with the CubeMesh datastructure and animation.
-
-    <div class="example">
-        <pacioli-scene id="scene_cubes1" script="cubes" function="scene1" kind="stateful-animation">
-            <parameter name="cubes">25</parameter>
-            <parameter name="terms">3</parameter>
-            <parameter name="speedup">1</parameter>
-        </pacioli-scene>
-        <pacioli-controls for="scene_cubes1"></pacioli-controls>
-    </div>
-
-    <h2>Cubes II</h2>
-    <p>
-        An experiment with the Mesh and Path datastructures
-
-    <div class="example">
-        <pacioli-scene id="scene_cubes2" script="cubes" function="scene2" kind="scene">
-        </pacioli-scene>
-        <pacioli-controls for="scene_cubes2"></pacioli-controls>
-    </div>
-
-
-    <h2>Cubes III</h2>
-    <p>
-        My nice scene!
-
-    <div class="example">
-        <pacioli-scene id="scene_cubes3" script="cubes" function="scene3" kind="scene">
-            <parameter name="a" unit="metre">5</parameter>
-            <parameter name="b" unit="metre">5</parameter>
-            <parameter name="c" unit="metre">5</parameter>
-        </pacioli-scene>
-        <pacioli-controls for="scene_cubes3"></pacioli-controls>
-    </div>
 
 </body>
 

@@ -24,6 +24,7 @@ import { typeFromValue, rawValueFromValue, boxRawValue } from "../boxing";
 import { FunctionType } from "../types/function";
 import { PacioliValue } from "../value";
 import { PacioliContext } from "../context";
+import { GenericType } from "../types/generic";
 
 export class PacioliFunction {
   readonly kind = "function";
@@ -36,11 +37,15 @@ export class PacioliFunction {
   apply(args: PacioliValue[]): PacioliValue {
     const types = args.map(typeFromValue);
     const values: any[] = args.map(rawValueFromValue);
-    return boxRawValue(
-      this.fun.apply(this, values),
-      this.type.apply(types),
-      this.context
-    );
+    const expectedNrArgs = (this.type.from as GenericType).items.length;
+    if (args.length === expectedNrArgs) {
+      const type = this.type.apply(types);
+      return boxRawValue(this.fun.apply(this, values), type, this.context);
+    } else {
+      throw Error(
+        `Number of arguments do not match. Expected ${expectedNrArgs}, but got ${args.length}`
+      );
+    }
   }
 
   call(...args: PacioliValue[]): PacioliValue {

@@ -183,9 +183,9 @@ export class Space {
     const height = this.options.height;
 
     // Make the parent node empty
-    while (this.parent.firstChild) {
-      this.parent.removeChild(this.parent.firstChild);
-    }
+    // while (this.parent.firstChild) {
+    //   this.parent.removeChild(this.parent.firstChild);
+    // }
 
     // Create a parent for the two renderers
     const renderersDiv = document.createElement("div");

@@ -28,13 +28,13 @@
     <div class="example">
         <pacioli-scene id="scene_rotation_composition" script="rotations" function="scene_rotor_composition"
             kind="stateful-animation">
-            <parameter name="Rotor 1 (mv1)" unit="string">e1 + 5e2</parameter>
-            <parameter name="Rotor 1 (mv2)" unit="string">e1 + 6e2</parameter>
-            <parameter name="Rotor 2 (mv1)" unit="string">e2 + 20e3</parameter>
-            <parameter name="Rotor 2 (mv2)" unit="string">e3</parameter>
-            <parameter name="Initial frame (mv1)" unit="string">e1</parameter>
-            <parameter name="Initial frame (mv2)" unit="string">e2</parameter>
-            <parameter name="Initial frame (mv3)" unit="string">e3</parameter>
+            <parameter label="Rotor 1 (mv1)" type="string">e1 + 5e2</parameter>
+            <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
+            <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
+            <parameter label="Rotor 2 (mv2)" type="string">e3</parameter>
+            <parameter label="Initial frame (mv1)" type="string">e1</parameter>
+            <parameter label="Initial frame (mv2)" type="string">e2</parameter>
+            <parameter label="Initial frame (mv3)" type="string">e3</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_rotation_composition"></pacioli-controls>
     </div>
@@ -51,13 +51,13 @@
     <div class="example">
         <pacioli-scene id="scene_rotation_nesting1" script="rotations" function="scene_rotor_nesting"
             kind="stateful-animation">
-            <parameter name="Rotor 1 (mv1)" unit="string">e1 + 5e2</parameter>
-            <parameter name="Rotor 1 (mv2)" unit="string">e1 + 6e2</parameter>
-            <parameter name="Rotor 2 (mv1)" unit="string">e2 + 20e3</parameter>
-            <parameter name="Rotor 2 (mv2)" unit="string">e3</parameter>
-            <parameter name="Initial frame (mv1)" unit="string">e1</parameter>
-            <parameter name="Initial frame (mv2)" unit="string">e2</parameter>
-            <parameter name="Initial frame (mv3)" unit="string">e3</parameter>
+            <parameter label="Rotor 1 (mv1)" type="string">e1 + 5e2</parameter>
+            <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
+            <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
+            <parameter label="Rotor 2 (mv2)" type="string">e3</parameter>
+            <parameter label="Initial frame (mv1)" type="string">e1</parameter>
+            <parameter label="Initial frame (mv2)" type="string">e2</parameter>
+            <parameter label="Initial frame (mv3)" type="string">e3</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_rotation_nesting1"></pacioli-controls>
     </div>
@@ -74,13 +74,13 @@
     <div class="example">
         <pacioli-scene id="scene_rotation_nesting2" script="rotations" function="scene_rotor_nesting"
             kind="stateful-animation">
-            <parameter name="Rotor 1 (mv1)" unit="string">e1 + 6e2</parameter>
-            <parameter name="Rotor 1 (mv2)" unit="string">e1 + 6e2</parameter>
-            <parameter name="Rotor 2 (mv1)" unit="string">e2 + 20e3</parameter>
-            <parameter name="Rotor 2 (mv2)" unit="string">e3</parameter>
-            <parameter name="Initial frame (mv1)" unit="string">e1</parameter>
-            <parameter name="Initial frame (mv2)" unit="string">e2</parameter>
-            <parameter name="Initial frame (mv3)" unit="string">e3</parameter>
+            <parameter label="Rotor 1 (mv1)" type="string">e1 + 6e2</parameter>
+            <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
+            <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
+            <parameter label="Rotor 2 (mv2)" type="string">e3</parameter>
+            <parameter label="Initial frame (mv1)" type="string">e1</parameter>
+            <parameter label="Initial frame (mv2)" type="string">e2</parameter>
+            <parameter label="Initial frame (mv3)" type="string">e3</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_rotation_nesting2"></pacioli-controls>
     </div>
@@ -97,13 +97,13 @@
     <div class="example">
         <pacioli-scene id="scene_rotation_nesting3" script="rotations" function="scene_rotor_nesting"
             kind="stateful-animation">
-            <parameter name="Rotor 1 (mv1)" unit="string">e1 + 5e2</parameter>
-            <parameter name="Rotor 1 (mv2)" unit="string">e1 + 6e2</parameter>
-            <parameter name="Rotor 2 (mv1)" unit="string">e2 + 20e3</parameter>
-            <parameter name="Rotor 2 (mv2)" unit="string">e2 + 20e3</parameter>
-            <parameter name="Initial frame (mv1)" unit="string">e1</parameter>
-            <parameter name="Initial frame (mv2)" unit="string">e2</parameter>
-            <parameter name="Initial frame (mv3)" unit="string">e3</parameter>
+            <parameter label="Rotor 1 (mv1)" type="string">e1 + 5e2</parameter>
+            <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
+            <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
+            <parameter label="Rotor 2 (mv2)" type="string">e2 + 20e3</parameter>
+            <parameter label="Initial frame (mv1)" type="string">e1</parameter>
+            <parameter label="Initial frame (mv2)" type="string">e2</parameter>
+            <parameter label="Initial frame (mv3)" type="string">e3</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_rotation_nesting3"></pacioli-controls>
     </div>
@@ -116,12 +116,12 @@
 
     <div class="example">
         <pacioli-scene id="scene_reflection" script="rotations" function="scene_reflection" kind="scene">
-            <parameter name="nx" unit="metre">0</parameter>
-            <parameter name="ny" unit="metre">5</parameter>
-            <parameter name="nz" unit="metre">0</parameter>
-            <parameter name="ax" unit="metre">-3</parameter>
-            <parameter name="ay" unit="metre">3</parameter>
-            <parameter name="az" unit="metre">0</parameter>
+            <parameter label="nx" unit="metre">0</parameter>
+            <parameter label="ny" unit="metre">5</parameter>
+            <parameter label="nz" unit="metre">0</parameter>
+            <parameter label="ax" unit="metre">-3</parameter>
+            <parameter label="ay" unit="metre">3</parameter>
+            <parameter label="az" unit="metre">0</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_reflection"></pacioli-controls>
     </div>
@@ -132,19 +132,19 @@
         Rotation fig 7.2 on p170 in Leo using two reflections.
 
     <div class="example">
-        <pacioli-scene id="scene_reflection" script="rotations" function="scene_rotation" kind="scene">
-            <parameter name="ax" unit="metre">0</parameter>
-            <parameter name="ay" unit="metre">5</parameter>
-            <parameter name="az" unit="metre">0</parameter>
-            <parameter name="bx" unit="metre">3</parameter>
-            <parameter name="by" unit="metre">3</parameter>
-            <parameter name="cz" unit="metre">0</parameter>
-            <parameter name="xx" unit="metre">0</parameter>
-            <parameter name="xy" unit="metre">7</parameter>
-            <parameter name="xz" unit="metre">7</parameter>
+        <pacioli-scene id="scene_rotation" script="rotations" function="scene_rotation" kind="scene">
+            <parameter label="ax" unit="metre">0</parameter>
+            <parameter label="ay" unit="metre">5</parameter>
+            <parameter label="az" unit="metre">0</parameter>
+            <parameter label="bx" unit="metre">3</parameter>
+            <parameter label="by" unit="metre">3</parameter>
+            <parameter label="cz" unit="metre">0</parameter>
+            <parameter label="xx" unit="metre">0</parameter>
+            <parameter label="xy" unit="metre">7</parameter>
+            <parameter label="xz" unit="metre">7</parameter>
 
         </pacioli-scene>
-        <pacioli-controls for="scene_reflection"></pacioli-controls>
+        <pacioli-controls for="scene_rotation"></pacioli-controls>
     </div>
 
 
@@ -153,19 +153,19 @@
         Rotation fig 7.2 on p170 in Leo using the rotor formula 7.3.
 
     <div class="example">
-        <pacioli-scene id="scene_reflection" script="rotations" function="scene_rotation_rotor" kind="scene">
-            <parameter name="ax" unit="metre">0</parameter>
-            <parameter name="ay" unit="metre">5</parameter>
-            <parameter name="az" unit="metre">0</parameter>
-            <parameter name="bx" unit="metre">3</parameter>
-            <parameter name="by" unit="metre">3</parameter>
-            <parameter name="cz" unit="metre">0</parameter>
-            <parameter name="xx" unit="metre">0</parameter>
-            <parameter name="xy" unit="metre">7</parameter>
-            <parameter name="xz" unit="metre">7</parameter>
+        <pacioli-scene id="scene_rotation_rotor" script="rotations" function="scene_rotation_rotor" kind="scene">
+            <parameter label="ax" unit="metre">0</parameter>
+            <parameter label="ay" unit="metre">5</parameter>
+            <parameter label="az" unit="metre">0</parameter>
+            <parameter label="bx" unit="metre">3</parameter>
+            <parameter label="by" unit="metre">3</parameter>
+            <parameter label="cz" unit="metre">0</parameter>
+            <parameter label="xx" unit="metre">0</parameter>
+            <parameter label="xy" unit="metre">7</parameter>
+            <parameter label="xz" unit="metre">7</parameter>
 
         </pacioli-scene>
-        <pacioli-controls for="scene_reflection"></pacioli-controls>
+        <pacioli-controls for="scene_rotation_rotor"></pacioli-controls>
     </div>
 
 </body>

@@ -4,36 +4,14 @@ import { fun, num, string } from "./api";
 import { PacioliString } from "./values/string";
 import { Matrix } from "./values/matrix";
 
-type PacioliParameter = NumberParameter | StringParameter;
-
-type NumberParameter = {
-  type: "number";
-  name: string;
-  value: string;
-  unit: string;
-  pacioliValue: Matrix;
-  pacioliUnit: SIUnit;
-};
-
-type StringParameter = {
-  type: "string";
-  name: string;
-  value: string;
-  pacioliValue: PacioliString;
-};
-
 /**
  * Web component for a 3D Pacioli space.
  *
- * A wrapper around Pacioli.Space.
+ * A wrapper around the Space class.
  */
 export class PacioliSceneComponent extends HTMLElement {
-  /**
-   * List of registered callbacks. The callback mechanism is used by connected PacioliControls
-   * elements to get informed about relevant changes.
-   */
-  callbacks: (() => void)[] = [];
-
+  // Options for the Pacioli space.
+  unit = "metre";
   width = 800;
   height = 600;
   axis = true;
@@ -44,13 +22,22 @@ export class PacioliSceneComponent extends HTMLElement {
   camera: [number, number, number] = [20, 10, 20];
   verbose = false;
 
-  kind: "scene" | "animation" | "stateful-animation" = "scene";
-  unit = "metre";
+  // Parameters for function LoadPacioliScript that computes the scene.
   script?: string;
   function?: string;
+  kind?: "scene" | "animation" | "stateful-animation";
+
+  // The Pacioli space
   space?: Space;
 
-  // TODO: complete this list
+  // List of registered callbacks. The callback mechanism is used by connected PacioliControls
+  // elements to get informed about relevant changes.
+  callbacks: (() => void)[] = [];
+
+  // HTML element to display errors.
+  errorDiv = document.createElement("div");
+
+  // Web component field. TODO: complete this list
   static observedAttributes = [
     "width",
     "height",
@@ -61,53 +48,43 @@ export class PacioliSceneComponent extends HTMLElement {
     "unit",
   ];
 
-  /**
-   * Static space options. Might become part of PacioliControls and thus dynamic in the future.
-   */
-  spaceOptions() {
-    return {
-      width: this.width || 800,
-      height: this.height || 600,
-      axis: this.axis ?? true,
-      axisSize: this.axisSize || 10,
-      grid: this.grid || [20, 20],
-      perspective: this.perspective ?? true,
-      zoomRange: this.zoomRange || [1, 1000],
-      camera: this.camera || [20, 10, 20],
-      verbose: this.verbose || false,
-    };
-  }
-
   constructor() {
     super();
-    // TODO: fix any
-    // const shadow: any = this.attachShadow({ mode: "open" });
-
-    // Create a Pacioli space and attach it to the shadow DOM parent.
-    // this.space = new Space(shadow, {
-    //   ...this.spaceOptions(),
-    //   unit: this.parsedUnit(),
-    // });
   }
 
   /**
    * Web component life-cycle event.
    */
   connectedCallback() {
-    // Delay loading the space until the DOM children exist. We need the children so we can get
-    // the parameter values.
-    const shadow: any = this.attachShadow({ mode: "open" });
-    // Create a Pacioli space and attach it to the shadow DOM parent.
-    this.space = new Space(shadow, {
-      ...this.spaceOptions(),
-      unit: this.parsedUnit(),
-    });
+    const shadow: ShadowRoot = this.attachShadow({ mode: "open" });
 
-    setTimeout(() => {
-      this.loadScript();
-      this.space!.draw();
-      this.callCallbacks();
-    }, 1);
+    // Append the div for errors after the space. Hide it until the first
+    // error is displayed.
+    this.errorDiv.style.color = "red";
+    this.errorDiv.style.background = "yellow";
+    this.errorDiv.style.padding = "8pt";
+    this.errorDiv.hidden = true;
+    shadow.appendChild(this.errorDiv);
+
+    try {
+      // Create a Pacioli space and attach it to the shadow DOM parent.
+      const options = {
+        ...this,
+        unit: this.parsedUnit(),
+      };
+      const space = new Space(shadow as unknown as HTMLElement, options);
+
+      this.space = space;
+
+      // Delay loading the space until the DOM children exist. We need the children so we can get
+      // the parameter values.
+      setTimeout(() => {
+        this.loadSpace();
+        space.draw();
+      }, 1);
+    } catch (error: any) {
+      this.displayError(error);
+    }
   }
 
   /**
@@ -117,6 +94,10 @@ export class PacioliSceneComponent extends HTMLElement {
     switch (name) {
       case "width": {
         this.width = parseInt(newValue);
+        break;
+      }
+      case "height": {
+        this.height = parseInt(newValue);
         break;
       }
       case "script": {
@@ -139,22 +120,17 @@ export class PacioliSceneComponent extends HTMLElement {
         ) {
           this.kind = newValue;
         } else {
-          throw Error(
-            `Cannot set kind ${newValue} on PacioliControlsComponent. Valid kinds are 'scene', 'animation' or 'stateful-animation'`
+          this.displayError(
+            `Cannot set kind '${newValue}' on PacioliControlsComponent. Valid kinds are 'scene', 'animation' or 'stateful-animation'`
           );
         }
         break;
-      }
-      default: {
-        throw Error(
-          `Cannot set attribe ${name} on PacioliControlsComponent. Valid attributes are 'width', 'height', 'script', 'kind', 'unit' `
-        );
       }
     }
   }
 
   /**
-   * The component's DOM children. These contain the parameters for the scene function.
+   * The component's DOM children. They contain the parameters for the scene function.
    */
   parameterNodes(): HTMLElement[] {
     return Array.from(this.childNodes).filter(
@@ -163,15 +139,17 @@ export class PacioliSceneComponent extends HTMLElement {
   }
 
   /**
-   * Collect the parameter name, unit and value for the DOM children.
+   * Collect the parameter label, type, unit and value for the DOM children.
    */
   currentParameters(): {
-    name: string;
+    label: string;
+    type: string;
     unit: string;
     value: string;
   }[] {
     return this.parameterNodes().map((child) => ({
-      name: child.getAttribute("name") || "n/a",
+      label: child.getAttribute("label") || "n/a",
+      type: child.getAttribute("type") || "number",
       unit: child.getAttribute("unit") || "1",
       value: child.innerText,
     }));
@@ -181,7 +159,11 @@ export class PacioliSceneComponent extends HTMLElement {
    * The unit for the scene's 3D space. The default is unit 'metre'.
    */
   parsedUnit() {
-    return si.parseDimNum(this.unit || "metre").unit;
+    try {
+      return si.parseDimNum(this.unit || "metre").unit;
+    } catch (error: any) {
+      throw Error(`failed to parse scene unit '${this.unit}'`);
+    }
   }
 
   /**
@@ -193,6 +175,7 @@ export class PacioliSceneComponent extends HTMLElement {
    */
   setParameters(parameters: { value: string }[]) {
     const children = this.parameterNodes();
+
     for (let i = 0; i < children.length; i++) {
       children[i].innerText = parameters[i].value;
     }
@@ -201,74 +184,44 @@ export class PacioliSceneComponent extends HTMLElement {
   /**
    * Parses the DOM children and returns a list of parameters.
    *
-   * @returns A list of objects with the 'name', 'value', 'unit', 'pacioliUnit' and 'pacioliValue' fields.
+   * @returns A list of objects with the 'label', 'value', 'unit', 'pacioliUnit' and 'pacioliValue' fields.
    */
   parsedParameters(): PacioliParameter[] {
-    return this.currentParameters().map((node) => {
-      if (node.unit === "string") {
-        return {
-          name: node.name,
-          type: "string",
-          value: node.value,
-          pacioliValue: string(node.value),
-        };
-      } else {
-        const dimNum = si.parseDimNum(node.value + " * " + node.unit);
-        const magnitude = dimNum.magnitude;
-        const unit = dimNum.unit;
-        return {
-          name: node.name,
-          type: "number",
-          value: node.value,
-          unit: node.unit,
-          pacioliUnit: unit,
-          pacioliValue: num(Number(magnitude), unit),
-        };
-      }
-    });
+    return parseParameters(this.currentParameters());
   }
 
-  // /**
-  //  * Calls the scene's script function. The function must return a Pacioli scene.
-  //  *
-  //  * @returns A Pacioli scene.
-  //  */
-  // callScript() {
-  //   const params = this.parsedParameters().map(
-  //     (parameter) => parameter.pacioliValue
-  //   );
-  //   if (this.script && this.function) {
-  //     return fun(this.script, this.function).apply(params);
-  //   } else {
-  //     throw Error("no script function for scene");
-  //   }
-  // }
-
-  loadScript() {
-    const params = this.parsedParameters().map(
-      (parameter) => parameter.pacioliValue
-    );
-
-    if (this.script && this.function) {
-      const scene = fun(this.script, this.function).apply(params);
-      const space = this.space!;
-      switch (this.kind) {
-        case "scene": {
-          space.loadScene(scene as unknown as PacioliScene);
-          break;
-        }
-        case "animation": {
-          space.loadAnimation(scene as unknown as Animation);
-          break;
-        }
-        case "stateful-animation": {
-          space.loadStatefulAnimation(scene as unknown as StatefulAnimation);
-          break;
-        }
-        default: {
-          throw new Error("Unknown kind");
-        }
+  /**
+   * Calls the scene's script function and loads the scene. The function must return
+   * a Pacioli scene.
+   *
+   * Calls the registered callbacks when loading has finished.
+   */
+  loadSpace() {
+    try {
+      if (this.kind === undefined) {
+        throw new Error(
+          `scene kind unknown. Please give a 'kind' attribute. The value must be 'scene', 'animation' or 'stateful-animation'`
+        );
       }
+
+      if (this.script === undefined || this.function === undefined) {
+        throw new Error(
+          `script function is unknown. Please give a 'script' attribute with the Pacioli filename, and a 'function' attribute with the scene function name.`
+        );
+      }
+
+      if (this.space) {
+        loadPacioliSpace(
+          this.space,
+          this.script,
+          this.function,
+          this.kind,
+          this.parsedParameters()
+        );
+        this.callCallbacks();
+      }
+    } catch (error: any) {
+      this.displayError("Could not load script:\n\n" + error);
     }
   }
 
@@ -279,10 +232,11 @@ export class PacioliSceneComponent extends HTMLElement {
    * No animation can be running when calling this method.
    */
   reset() {
-    const space = this.space;
-    if (!space!.isAnimating()) {
-      this.loadScript();
-      space!.draw();
+    this.clearErrors();
+
+    if (this.space && !this.space.isAnimating()) {
+      this.loadSpace();
+      this.space.draw();
     }
   }
 
@@ -292,7 +246,7 @@ export class PacioliSceneComponent extends HTMLElement {
    * @returns True if an animation running.
    */
   isAnimating() {
-    return this.space!.isAnimating();
+    return this.space && this.space.isAnimating();
   }
 
   /**
@@ -301,7 +255,9 @@ export class PacioliSceneComponent extends HTMLElement {
    * @param {*} animating Start (true) or pause (false)
    */
   setAnimating(animating: boolean) {
-    this.space!.setAnimating(animating);
+    if (this.space) {
+      this.space.setAnimating(animating);
+    }
   }
 
   /**
@@ -310,8 +266,12 @@ export class PacioliSceneComponent extends HTMLElement {
    * No animation can be running when calling this method.
    */
   step() {
-    if (!this.space!.isAnimating()) {
-      this.space!.updateScene();
+    if (this.space && !this.space.isAnimating()) {
+      try {
+        this.space.updateScene();
+      } catch (error: any) {
+        this.displayError("Step failed: " + error);
+      }
     }
   }
 
@@ -334,6 +294,16 @@ export class PacioliSceneComponent extends HTMLElement {
   registerCallback(callback: () => void) {
     this.callbacks.push(callback);
   }
+
+  displayError(message: string) {
+    this.errorDiv.hidden = false;
+    this.errorDiv.innerText = message + "\n\n" + this.errorDiv.innerText;
+  }
+
+  clearErrors() {
+    this.errorDiv.innerText = "";
+    this.errorDiv.hidden = true;
+  }
 }
 
 /**
@@ -345,6 +315,7 @@ export class PacioliControlsComponent extends HTMLElement {
   static observedAttributes = ["for"];
 
   for?: string;
+
   inputs: {
     parameter: PacioliParameter;
     input: HTMLInputElement;
@@ -358,7 +329,7 @@ export class PacioliControlsComponent extends HTMLElement {
   constructor() {
     super();
     this.inputs = this.createInputs();
-    this.table = this.createParameterTable(this.inputs);
+    this.table = createParameterTable(this.inputs);
 
     // Create the buttons
     this.stepButton = this.createStepButton();
@@ -375,6 +346,8 @@ export class PacioliControlsComponent extends HTMLElement {
     const parent = this;
 
     // Alternative that uses a shadow DOM with its own style sheet.
+    // How can we use the shadow DOM and still allow overriding the
+    // style of the controls?
 
     // const parent = this.attachShadow({ mode: "open" });
     // const sheet = new CSSStyleSheet();
@@ -394,7 +367,7 @@ export class PacioliControlsComponent extends HTMLElement {
 
     // Create a table of inputs for the scene parameters
     this.inputs = this.createInputs();
-    this.table = this.createParameterTable(this.inputs);
+    this.table = createParameterTable(this.inputs);
 
     // Add the new elements to the parent
     animationElement.appendChild(this.startButton);
@@ -426,7 +399,7 @@ export class PacioliControlsComponent extends HTMLElement {
       }
       default: {
         throw Error(
-          `Cannot set attribe ${name} on PacioliControlsComponent. Valid attribute is 'for'`
+          `cannot set attribe ${name} on PacioliControlsComponent. Valid attribute is 'for'`
         );
       }
     }
@@ -450,61 +423,12 @@ export class PacioliControlsComponent extends HTMLElement {
   }[] {
     const scene = this.sceneElement();
     if (scene) {
-      return scene.parsedParameters().map((parameter) => {
-        const inputElement = document.createElement("input");
-        inputElement.className = "pacioli-controls-input";
-        inputElement.value = parameter.value;
-        inputElement.type = parameter.type;
-
-        // Make the return key reset the animation
-        inputElement.addEventListener("keypress", (event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            this.resetButton.click();
-          }
-        });
-        return { parameter, input: inputElement };
-      });
+      return createParameterInputs(scene.parsedParameters(), () =>
+        this.resetButton.click()
+      );
     } else {
       return [];
     }
-  }
-
-  createParameterTable(
-    inputs: {
-      parameter: PacioliParameter;
-      input: HTMLInputElement;
-    }[]
-  ) {
-    const table = document.createElement("table");
-    table.className = "pacioli-controls-table";
-
-    for (const record of inputs) {
-      const row = document.createElement("tr");
-      const key = document.createElement("td");
-      const value = document.createElement("td");
-      const un = document.createElement("td");
-      key.innerText = record.parameter.name;
-
-      switch (record.parameter.type) {
-        case "string": {
-          un.innerText = "";
-          break;
-        }
-        case "number": {
-          un.innerText = record.parameter.pacioliUnit.toText();
-          break;
-        }
-      }
-
-      value.appendChild(record.input);
-      row.appendChild(key);
-      row.appendChild(value);
-      row.appendChild(un);
-      table.appendChild(row);
-    }
-
-    return table;
   }
 
   createStartButton() {
@@ -585,13 +509,13 @@ export class PacioliControlsComponent extends HTMLElement {
 
   autoRotateCheckboxClicked(checked: boolean) {
     const scene = this.sceneElement();
-    if (scene) {
+    if (scene && scene.space) {
       if (checked) {
-        scene.space!.startAutoRotation(
+        scene.space.startAutoRotation(
           PacioliControlsComponent.SECONDS_PER_ROTATION
         );
       } else {
-        scene.space!.stopAutoRotation();
+        scene.space.stopAutoRotation();
       }
     }
   }
@@ -605,16 +529,195 @@ export class PacioliControlsComponent extends HTMLElement {
 
       this.stepButton.innerText =
         "Step " + scene.space!.animationTime().toFixed(2) + "s";
+      this.startButton.innerText = scene.space!.isAnimating() ? "Pause" : "Run";
+
       this.stepButton.disabled = scene.space!.isAnimating();
       this.resetButton.disabled = scene.space!.isAnimating();
-      this.startButton.innerText = scene.space!.isAnimating() ? "Pause" : "Run";
       this.startButton.disabled = false;
-      // this.table.disabled = false;
     } else {
       this.resetButton.disabled = true;
       this.stepButton.disabled = true;
       this.startButton.disabled = true;
-      // this.table.disabled = true;
+    }
+  }
+}
+
+/**
+ * Types for the parsed scene parameters. The parameters are passed via
+ * child DOM elements.
+ */
+type PacioliParameter = NumberParameter | StringParameter;
+
+type NumberParameter = {
+  type: "number";
+  label: string;
+  value: string;
+  unit: string;
+  pacioliValue: Matrix;
+  pacioliUnit: SIUnit;
+};
+
+type StringParameter = {
+  type: "string";
+  label: string;
+  value: string;
+  pacioliValue: PacioliString;
+};
+
+function parseParameters(
+  parameters: {
+    label: string;
+    type: string;
+    unit: string;
+    value: string;
+  }[]
+): PacioliParameter[] {
+  return parameters.map((node) => {
+    try {
+      switch (node.type) {
+        case "string": {
+          return {
+            label: node.label,
+            type: "string",
+            value: node.value,
+            pacioliValue: string(node.value),
+          };
+        }
+
+        case "number": {
+          // FireFox gives an empty string on invalid input. This gives a
+          // unclear error message in si.parseDimNum below.
+          if (node.value === "") {
+            throw Error(
+              `invalid value for for ${node.type} parameter ${node.label}`
+            );
+          }
+
+          const dimNum = si.parseDimNum(node.value + " * " + node.unit);
+
+          return {
+            label: node.label,
+            type: "number",
+            value: node.value,
+            unit: node.unit,
+            pacioliUnit: dimNum.unit,
+            pacioliValue: num(Number(dimNum.magnitude), dimNum.unit),
+          };
+        }
+
+        default: {
+          throw new Error(
+            `unexpected parameter type '${node.type}' for parameter '${node.label}'. Expected 'string' or 'number'.`
+          );
+        }
+      }
+    } catch (error: any) {
+      throw Error(
+        `cannot read value ${node.value} for ${node.type} parameter ${node.label}: ${error}.`
+      );
+    }
+  });
+}
+
+function createParameterInputs(
+  parsedParameters: PacioliParameter[],
+  enterKeyCallback?: () => void
+): {
+  parameter: PacioliParameter;
+  input: HTMLInputElement;
+}[] {
+  return parsedParameters.map((parameter) => {
+    const inputElement = document.createElement("input");
+
+    inputElement.className = "pacioli-controls-input";
+    inputElement.value = parameter.value;
+    inputElement.type = parameter.type;
+
+    if (enterKeyCallback) {
+      // Needed to make the return key reset the animation
+      inputElement.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          enterKeyCallback();
+        }
+      });
+    }
+
+    return { parameter, input: inputElement };
+  });
+}
+
+function createParameterTable(
+  inputs: {
+    parameter: PacioliParameter;
+    input: HTMLInputElement;
+  }[]
+) {
+  const table = document.createElement("table");
+
+  table.className = "pacioli-controls-table";
+
+  for (const record of inputs) {
+    const row = document.createElement("tr");
+    const key = document.createElement("td");
+    const value = document.createElement("td");
+    const un = document.createElement("td");
+
+    key.innerText = record.parameter.label;
+
+    switch (record.parameter.type) {
+      case "string": {
+        un.innerText = "";
+        break;
+      }
+      case "number": {
+        un.innerText = record.parameter.pacioliUnit.toText();
+        break;
+      }
+    }
+
+    value.appendChild(record.input);
+
+    row.appendChild(key);
+    row.appendChild(value);
+    row.appendChild(un);
+
+    table.appendChild(row);
+  }
+
+  return table;
+}
+
+/**
+ * Calls the script function and loads the scene. The function must return
+ * a Pacioli scene, animation or stateful animation.
+ *
+ * Here we pass from static to the dynamic typing. Loading will crash if the
+ * parameter types do no match the function's type.
+ */
+function loadPacioliSpace(
+  space: Space,
+  script: string,
+  func: string,
+  kind: "scene" | "animation" | "stateful-animation",
+  parameters: PacioliParameter[]
+) {
+  const params = parameters.map((parameter) => parameter.pacioliValue);
+
+  const scene = fun(script, func).apply(params);
+
+  switch (kind) {
+    case "scene": {
+      space.loadScene(scene as unknown as PacioliScene);
+      break;
+    }
+    case "animation": {
+      space.loadAnimation(scene as unknown as Animation);
+      break;
+    }
+    case "stateful-animation": {
+      space.loadStatefulAnimation(scene as unknown as StatefulAnimation);
+      break;
     }
   }
 }
