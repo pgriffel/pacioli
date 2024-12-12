@@ -7,6 +7,48 @@ import { PacioliFunction } from "../values/function";
 import { PacioliValue } from "../value";
 
 /**
+ * Creates a HTML button. De buttons has css class 'pacioli-controls-button'.
+ *
+ * @param label The text on the button
+ * @param callback Function called when the button is clicked
+ * @returns The new button
+ */
+export function createButton(label: string, callback: () => void) {
+  let buttonElement = document.createElement("button");
+
+  buttonElement.innerText = label;
+  buttonElement.className = "pacioli-controls-button";
+  buttonElement.onclick = callback;
+
+  return buttonElement;
+}
+
+/**
+ * Creates a HTML checkbox (a label with nested input). De checkbox has css
+ * class 'pacioli-controls-checkbox'.
+ *
+ * @param label The text on the checkbox
+ * @param callback Function called when the checkbox is changed
+ * @returns The new checkbox
+ */
+export function createCheckBox(
+  label: string,
+  callback: (checked: boolean) => void
+) {
+  let labelElement = document.createElement("label");
+  let checkboxElement = document.createElement("input");
+
+  labelElement.innerText = label;
+  checkboxElement.type = "checkbox";
+  labelElement.className = "pacioli-controls-checkbox";
+  checkboxElement.onchange = (event) =>
+    callback((event.target as HTMLInputElement).checked);
+
+  labelElement.appendChild(checkboxElement);
+  return labelElement;
+}
+
+/**
  * Types for the parsed PacioliSceneComponent parameters. The parameters are passed via
  * child DOM elements.
  */

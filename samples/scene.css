@@ -42,6 +42,7 @@ pacioli-scene {
 }
 
 .pacioli-controls-checkbox {
+    margin-right: 30pt;
     NObackground: var(--element-bg-color);
     NOmargin: 5pt;
 }

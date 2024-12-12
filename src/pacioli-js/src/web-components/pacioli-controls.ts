@@ -1,5 +1,7 @@
 import { PacioliSceneComponent } from "./pacioli-scene";
 import {
+  createButton,
+  createCheckBox,
   createParameterInputs,
   createParameterTable,
   PacioliParameter,
@@ -42,10 +44,18 @@ export class PacioliControlsComponent extends HTMLElement {
   table?: HTMLTableElement;
 
   // The buttons
-  stepButton = this.createStepButton();
-  startButton = this.createStartButton();
-  resetButton = this.createResetButton();
-  autoRotateButton = this.createAutoRotationButton();
+  stepButton = createButton("Step", () => this.stepButtonClicked());
+  startButton = createButton("Run", () => this.startButtonClicked());
+  resetButton = createButton("Reset", () => this.resetButtonClicked());
+  autoRotateButton = createCheckBox("Rotate", (checked) =>
+    this.autoRotateCheckboxClicked(checked)
+  );
+  axisCheckBox = createCheckBox("Axis", (checked) =>
+    this.axisCheckBoxClicked(checked)
+  );
+  gridCheckBox = createCheckBox("Grid", (checked) =>
+    this.gridCheckBoxClicked(checked)
+  );
 
   constructor() {
     super();
@@ -84,6 +94,8 @@ export class PacioliControlsComponent extends HTMLElement {
     this.animationElement.appendChild(this.table);
     this.animationElement.appendChild(this.resetButton);
 
+    this.configurationElement.appendChild(this.axisCheckBox);
+    this.configurationElement.appendChild(this.gridCheckBox);
     this.configurationElement.appendChild(this.autoRotateButton);
 
     // Make sure the proper buttons are shown and enabled
@@ -141,71 +153,6 @@ export class PacioliControlsComponent extends HTMLElement {
   }
 
   /**
-   * Creates the start button
-   *
-   * @returns A HTML button
-   */
-  private createStartButton() {
-    let runButton = document.createElement("button");
-
-    runButton.innerText = "Start";
-    runButton.className = "pacioli-controls-button";
-    runButton.onclick = () => this.startButtonClicked();
-
-    return runButton;
-  }
-
-  /**
-   * Creates the step button
-   *
-   * @returns A HTML button
-   */
-  private createStepButton() {
-    let stepButton = document.createElement("button");
-
-    stepButton.className = "pacioli-controls-button";
-    stepButton.onclick = () => this.stepButtonClicked();
-
-    return stepButton;
-  }
-
-  /**
-   * Creates the reset button
-   *
-   * @returns A HTML button
-   */
-  private createResetButton() {
-    let inputButton = document.createElement("button");
-
-    inputButton.innerText = "Apply";
-    inputButton.className = "pacioli-controls-button";
-    inputButton.onclick = () => this.resetButtonClicked();
-
-    return inputButton;
-  }
-
-  /**
-   * Creates the auto-rotate button
-   *
-   * @returns A HTML button
-   */
-  private createAutoRotationButton() {
-    let rotateLabel = document.createElement("label");
-    let rotateCheckbox = document.createElement("input");
-
-    rotateLabel.innerText = "Rotate";
-    rotateCheckbox.type = "checkbox";
-    rotateLabel.className = "pacioli-controls-checkbox";
-    rotateCheckbox.onchange = (event) =>
-      this.autoRotateCheckboxClicked(
-        (event.target as HTMLInputElement).checked
-      );
-
-    rotateLabel.appendChild(rotateCheckbox);
-    return rotateLabel;
-  }
-
-  /**
    * Handler for the start button
    */
   private startButtonClicked() {
@@ -246,6 +193,38 @@ export class PacioliControlsComponent extends HTMLElement {
   }
 
   /**
+   * Handler for the axis checkbox
+   */
+  private axisCheckBoxClicked(checked: boolean) {
+    const scene = this.sceneElement();
+    if (scene && scene.space) {
+      if (checked) {
+        scene.space.showAxis();
+        scene.space.draw();
+      } else {
+        scene.space.hideAxis();
+        scene.space.draw();
+      }
+    }
+  }
+
+  /**
+   * Handler for the axis checkbox
+   */
+  private gridCheckBoxClicked(checked: boolean) {
+    const scene = this.sceneElement();
+    if (scene && scene.space) {
+      if (checked) {
+        scene.space.showGrid();
+        scene.space.draw();
+      } else {
+        scene.space.hideGrid();
+        scene.space.draw();
+      }
+    }
+  }
+
+  /**
    * Handler for the auto-rotate button
    */
   private autoRotateCheckboxClicked(checked: boolean) {
@@ -271,6 +250,12 @@ export class PacioliControlsComponent extends HTMLElement {
     if (scene) {
       // If we get here the space must have been created
       const space = scene.space!;
+
+      const box = this.axisCheckBox.children[0] as HTMLInputElement;
+      box.checked = space.hasAxis();
+
+      const gridCheckBox = this.gridCheckBox.children[0] as HTMLInputElement;
+      gridCheckBox.checked = space.hasGrid();
 
       // Distinguish animations and static scenes
       if (space.isAnimation()) {

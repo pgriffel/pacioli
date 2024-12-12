@@ -97,7 +97,8 @@ export interface SpaceOptions {
   verbose: boolean;
   fps: number;
   background: string;
-  grid?: [number, number];
+  grid: boolean;
+  gridSize: [number, number];
   gridColor: string;
   zoomRange: [number, number];
   perspectiveMax: number;
@@ -121,7 +122,8 @@ const defaultOptions: SpaceOptions = {
   verbose: false,
   fps: 60,
   background: "#eeeeee",
-  grid: [20, 20],
+  grid: true,
+  gridSize: [20, 20],
   gridColor: "#dddddd",
   zoomRange: [1, 50],
   perspectiveMax: 5000,
@@ -150,6 +152,10 @@ export class Space {
   private camera: THREE.Camera;
   private body: THREE.Object3D<THREE.Event>;
   private controls: OrbitControls;
+
+  private axis?: THREE.AxesHelper;
+  private axisLabels: CSS2DObject[] = [];
+  private grid?: THREE.GridHelper;
 
   // Pacioli scene properties, set when a Pacioli scene or
   // animation is loaded
@@ -230,25 +236,12 @@ export class Space {
 
     // Add a grid if requested
     if (this.options.grid) {
-      this.scene.add(
-        createGridHelper(this.options.grid, this.options.gridColor)
-      );
+      this.showGrid();
     }
 
-    // Add axis if requested
+    // Add axis if requested. Don't put it below the grid.
     if (this.options.axis) {
-      this.scene.add(
-        createAxis(this.options.axisSize, this.options.axisColors)
-      );
-
-      // Add axis labels if requested
-      if (this.options.showLabels) {
-        const unit = this.options.unit.toText();
-        const offset = this.options.axisSize * 1.05;
-        this.scene.add(makeLabelObject(`x[${unit}]`, offset, 0, 0));
-        this.scene.add(makeLabelObject(`z[${unit}]`, 0, offset, 0));
-        this.scene.add(makeLabelObject(`y[${unit}]`, 0, 0, offset));
-      }
+      this.showAxis();
     }
 
     // Create the body and add it to the scene
@@ -426,6 +419,57 @@ export class Space {
       this.startAnimation();
       this.draw();
       this.log("Started animation");
+    }
+  }
+
+  hasGrid(): boolean {
+    return this.grid !== undefined;
+  }
+
+  showGrid() {
+    if (this.grid === undefined) {
+      this.grid = createGridHelper(
+        this.options.gridSize,
+        this.options.gridColor
+      );
+      this.scene.add(this.grid);
+    }
+  }
+
+  hideGrid() {
+    if (this.grid) {
+      this.scene.remove(this.grid);
+      this.grid = undefined;
+    }
+  }
+
+  hasAxis(): boolean {
+    return this.axis !== undefined;
+  }
+
+  showAxis() {
+    if (this.axis === undefined) {
+      this.axis = createAxis(this.options.axisSize, this.options.axisColors);
+      this.scene.add(this.axis);
+
+      // Add axis labels if requested
+      if (this.options.showLabels) {
+        const unit = this.options.unit.toText();
+        const offset = this.options.axisSize * 1.05;
+        this.axisLabels.push(makeLabelObject(`x[${unit}]`, offset, 0, 0));
+        this.axisLabels.push(makeLabelObject(`z[${unit}]`, 0, offset, 0));
+        this.axisLabels.push(makeLabelObject(`y[${unit}]`, 0, 0, offset));
+        this.axisLabels.forEach((label) => this.scene.add(label));
+      }
+    }
+  }
+
+  hideAxis() {
+    if (this.axis) {
+      this.scene.remove(this.axis);
+      this.axis = undefined;
+      this.axisLabels.forEach((label) => this.scene.remove(label));
+      this.axisLabels = [];
     }
   }
 

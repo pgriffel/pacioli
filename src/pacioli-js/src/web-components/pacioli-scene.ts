@@ -25,7 +25,8 @@ export class PacioliSceneComponent extends HTMLElement {
   height = 600;
   axis = true;
   axisSize = 10;
-  grid: [number, number] = [20, 20];
+  grid = true;
+  gridSize: [number, number] = [20, 20];
   perspective = true;
   zoomRange: [number, number] = [1, 1000];
   camera: [number, number, number] = [20, 10, 20];
@@ -55,6 +56,8 @@ export class PacioliSceneComponent extends HTMLElement {
     "parameters",
     "kind",
     "unit",
+    "axis",
+    "grid",
   ];
 
   constructor() {
@@ -133,6 +136,14 @@ export class PacioliSceneComponent extends HTMLElement {
             `Cannot set kind '${newValue}' on PacioliControlsComponent. Valid kinds are 'scene', 'animation' or 'stateful-animation'`
           );
         }
+        break;
+      }
+      case "axis": {
+        this.axis = newValue === "true";
+        break;
+      }
+      case "grid": {
+        this.grid = newValue === "true";
         break;
       }
     }
