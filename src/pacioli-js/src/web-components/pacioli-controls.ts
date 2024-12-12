@@ -1,11 +1,5 @@
 import { PacioliSceneComponent } from "./pacioli-scene";
-import {
-  createButton,
-  createCheckBox,
-  createParameterInputs,
-  createParameterTable,
-  PacioliParameter,
-} from "./utils";
+import { PacioliParameter } from "./utils";
 
 /**
  * Web component with controls for the PacioliScene web component.
@@ -288,6 +282,134 @@ export class PacioliControlsComponent extends HTMLElement {
       this.startButton.disabled = true;
     }
   }
+}
+
+/**
+ * Creates a HTML button. De buttons has css class 'pacioli-controls-button'.
+ *
+ * @param label The text on the button
+ * @param callback Function called when the button is clicked
+ * @returns The new button
+ */
+function createButton(label: string, callback: () => void) {
+  let buttonElement = document.createElement("button");
+
+  buttonElement.innerText = label;
+  buttonElement.className = "pacioli-controls-button";
+  buttonElement.onclick = callback;
+
+  return buttonElement;
+}
+
+/**
+ * Creates a HTML checkbox (a label with nested input). De checkbox has css
+ * class 'pacioli-controls-checkbox'.
+ *
+ * @param label The text on the checkbox
+ * @param callback Function called when the checkbox is changed
+ * @returns The new checkbox
+ */
+function createCheckBox(label: string, callback: (checked: boolean) => void) {
+  let labelElement = document.createElement("label");
+  let checkboxElement = document.createElement("input");
+
+  labelElement.innerText = label;
+  checkboxElement.type = "checkbox";
+  labelElement.className = "pacioli-controls-checkbox";
+  checkboxElement.onchange = (event) =>
+    callback((event.target as HTMLInputElement).checked);
+
+  labelElement.appendChild(checkboxElement);
+  return labelElement;
+}
+
+/**
+ * Create HTML input elements for the PacioliSceneComponent parameters
+ *
+ * @param parsedParameters The parsed scene parameters
+ * @param enterKeyCallback A function that is called when the enter key is pressed
+ * @returns A list of objects with a 'parameter' and a 'element' field
+ */
+function createParameterInputs(
+  parsedParameters: PacioliParameter[],
+  enterKeyCallback?: () => void
+): {
+  parameter: PacioliParameter;
+  element: HTMLInputElement;
+}[] {
+  return parsedParameters.map((parameter) => {
+    // Create an input element for each parameter
+    const inputElement = document.createElement("input");
+    inputElement.className = "pacioli-controls-input";
+    inputElement.value = parameter.value;
+    inputElement.type = parameter.type;
+
+    // Add a callback for the enter key. Needed to make the return
+    // key reset the animation
+    if (enterKeyCallback) {
+      inputElement.addEventListener("keypress", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          enterKeyCallback();
+        }
+      });
+    }
+
+    return { parameter, element: inputElement };
+  });
+}
+
+/**
+ * Create a HMTML table for the PacioliSceneComponent parameters
+ *
+ * @param inputs A list of objects with a 'parameter' and a 'element' field
+ * @returns A HTML table
+ */
+function createParameterTable(
+  inputs: {
+    parameter: PacioliParameter;
+    element: HTMLInputElement;
+  }[]
+) {
+  // Create a HTML table
+  const table = document.createElement("table");
+  table.className = "pacioli-controls-table";
+
+  for (const input of inputs) {
+    // Create a row with a label, a value and a unit entry
+    const row = document.createElement("tr");
+    const labelEntry = document.createElement("td");
+    const valueEntry = document.createElement("td");
+    const unitEntry = document.createElement("td");
+
+    // Set the label
+    labelEntry.innerText = input.parameter.label;
+
+    // Append the input to the value entry
+    valueEntry.appendChild(input.element);
+
+    // Set the unit
+    switch (input.parameter.type) {
+      case "string": {
+        unitEntry.innerText = "";
+        break;
+      }
+      case "number": {
+        unitEntry.innerText = input.parameter.pacioliUnit.toText();
+        break;
+      }
+    }
+
+    // Append the entries to the row
+    row.appendChild(labelEntry);
+    row.appendChild(valueEntry);
+    row.appendChild(unitEntry);
+
+    // Append the row to the table
+    table.appendChild(row);
+  }
+
+  return table;
 }
 
 customElements.define("pacioli-controls", PacioliControlsComponent);
