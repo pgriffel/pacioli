@@ -47,10 +47,10 @@ export class PacioliSceneComponent extends HTMLElement {
   // elements to get informed about relevant changes.
   callbacks: (() => void)[] = [];
 
-  // HTML element to display errors.
+  // HTML element to display errors. TODO: add a close button
   errorDiv = document.createElement("div");
 
-  // Web component field. TODO: complete this list
+  // Web component field.
   static observedAttributes = [
     "width",
     "height",
@@ -63,15 +63,13 @@ export class PacioliSceneComponent extends HTMLElement {
     "grid",
   ];
 
+  shadow: ShadowRoot;
+
   constructor() {
     super();
-  }
 
-  /**
-   * Web component life-cycle event.
-   */
-  connectedCallback() {
-    const shadow: ShadowRoot = this.attachShadow({ mode: "open" });
+    // We use the Web component shadow DOM mechanism
+    this.shadow = this.attachShadow({ mode: "open" });
 
     // Append the div for errors before the space. Hide it until the first
     // error is displayed.
@@ -79,15 +77,20 @@ export class PacioliSceneComponent extends HTMLElement {
     this.errorDiv.style.background = "yellow";
     this.errorDiv.style.padding = "8pt";
     this.errorDiv.hidden = true;
-    shadow.appendChild(this.errorDiv);
+    this.shadow.appendChild(this.errorDiv);
+  }
 
+  /**
+   * Web component life-cycle event.
+   */
+  connectedCallback() {
     try {
       // Create a Pacioli space and attach it to the shadow DOM parent.
       const options = {
         ...this,
         unit: this.parsedUnit(),
       };
-      const space = new Space(shadow as unknown as HTMLElement, options);
+      const space = new Space(this.shadow as unknown as HTMLElement, options);
 
       this.space = space;
 
@@ -108,11 +111,25 @@ export class PacioliSceneComponent extends HTMLElement {
   attributeChangedCallback(name: string, _: string, newValue: string) {
     switch (name) {
       case "width": {
-        this.width = parseInt(newValue);
+        const parsed = parseInt(newValue);
+        if (Number.isFinite(parsed)) {
+          this.width = parsed;
+        } else {
+          this.displayError(
+            `Width ${newValue} invalid. Please give a valid number.`
+          );
+        }
         break;
       }
       case "height": {
-        this.height = parseInt(newValue);
+        const parsed = parseInt(newValue);
+        if (Number.isFinite(parsed)) {
+          this.height = parsed;
+        } else {
+          this.displayError(
+            `Height ${newValue} invalid. Please give a valid number.`
+          );
+        }
         break;
       }
       case "script": {
@@ -202,14 +219,14 @@ export class PacioliSceneComponent extends HTMLElement {
    * Set the parameter values programmatically. Updates the values in the DOM children. Only sets the
    * magnitudes. The units are fixed.
    *
-   * @param {*} parameters The parameter values. List of objects with a 'value' field, one for each
+   * @param {*} values The parameter values. List of objects with a 'value' field, one for each
    * script function parameter. Must match the parameter child nodes.
    */
-  setParameters(parameters: { value: string }[]) {
+  setParameters(values: string[]) {
     const children = this.parameterNodes();
 
     for (let i = 0; i < children.length; i++) {
-      children[i].innerText = parameters[i].value;
+      children[i].innerText = values[i];
     }
   }
 
@@ -223,13 +240,13 @@ export class PacioliSceneComponent extends HTMLElement {
     try {
       if (this.kind === undefined) {
         throw new Error(
-          `scene kind unknown. Please give a 'kind' attribute. The value must be 'scene', 'animation' or 'stateful-animation'`
+          `scene kind unknown.\n\n Please give a 'kind' attribute. The value must be 'scene', 'animation' or 'stateful-animation'`
         );
       }
 
       if (this.script === undefined || this.function === undefined) {
         throw new Error(
-          `script function is unknown. Please give a 'script' attribute with the Pacioli filename, and a 'function' attribute with the scene function name.`
+          `script function is unknown.\n\n Please give a 'script' attribute with the Pacioli filename, and a 'function' attribute with the scene function name.`
         );
       }
 

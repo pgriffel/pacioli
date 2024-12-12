@@ -174,13 +174,7 @@ export class PacioliControlsComponent extends HTMLElement {
   private resetButtonClicked() {
     const scene = this.sceneElement();
     if (scene && this.inputs) {
-      scene.setParameters(
-        this.inputs.map((input) => {
-          return {
-            value: input.element.value,
-          };
-        })
-      );
+      scene.setParameters(this.inputs.map((input) => input.element.value));
       scene.reset();
       this.updateControls();
     }
