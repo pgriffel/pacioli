@@ -32,13 +32,13 @@
         <pacioli-scene id="scene_quaternion" script="torque_quaternion" function="scene_quaternion_sandbox" kind="scene"
             unit="1">
             <parameter label="a1">0</parameter>
-            <parameter label="i1">-1</parameter>
-            <parameter label="j1">2</parameter>
+            <parameter label="i1">-5</parameter>
+            <parameter label="j1">10</parameter>
             <parameter label="k1">0</parameter>
             <parameter label="a2">0</parameter>
             <parameter label="i2">0</parameter>
-            <parameter label="j2">1</parameter>
-            <parameter label="k2">1</parameter>
+            <parameter label="j2">5</parameter>
+            <parameter label="k2">5</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_quaternion"></pacioli-controls>
     </div>
@@ -83,7 +83,7 @@
             <parameter label="force field (1, 2, 3 or 4)" unit="1">1</parameter>
             <parameter label="torque factor" unit="metre / gram / metre * second^2 / metre">1</parameter>
             <parameter label="force factor" unit="metre / gram / metre * second^2">1</parameter>
-            <parameter label="momentum factor" unit="metre / gram / metre^2 * second">1</parameter>
+            <parameter label="momentum factor" unit="metre / gram / metre^2 * second">0.1</parameter>
             <parameter label="velocity factor" unit="metre / metre * second">1</parameter>
         </pacioli-scene>
         <pacioli-controls for="scene_torque2"></pacioli-controls>
