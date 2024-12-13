@@ -501,6 +501,9 @@ export class Space {
   }
 
   hideAxis() {
+    // Remove any axis labels.
+    this.hideAxisLabels();
+
     if (this.axis) {
       // Remove the axis
       this.scene.remove(this.axis);
@@ -509,9 +512,6 @@ export class Space {
       // Update the screen
       this.draw();
     }
-
-    // Remove any axis labels.
-    this.hideAxisLabels();
   }
 
   hasAxisLabels() {
