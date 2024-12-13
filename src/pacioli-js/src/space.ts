@@ -427,15 +427,28 @@ export class Space {
   }
 
   hasLabels(): boolean {
+    // The label renderer is the second renderer. Is it present?
     return this.renderersDiv.childElementCount === 2;
   }
 
   showLabels() {
-    this.renderersDiv.appendChild(this.labelRenderer.domElement);
+    if (!this.hasLabels()) {
+      // The label renderer is the second renderer. Add it.
+      this.renderersDiv.appendChild(this.labelRenderer.domElement);
+
+      // Ensure the screen gets updated
+      this.draw();
+    }
   }
 
   hideLabels() {
-    this.renderersDiv.removeChild(this.labelRenderer.domElement);
+    if (this.hasLabels()) {
+      // The label renderer is the second renderer. Remove it.
+      this.renderersDiv.removeChild(this.labelRenderer.domElement);
+
+      // Ensure the screen gets updated
+      this.draw();
+    }
   }
 
   hasGrid(): boolean {
@@ -444,18 +457,26 @@ export class Space {
 
   showGrid() {
     if (this.grid === undefined) {
+      // Add the grid
       this.grid = createGridHelper(
         this.options.gridSize,
         this.options.gridColor
       );
       this.scene.add(this.grid);
+
+      // Update the screen
+      this.draw();
     }
   }
 
   hideGrid() {
     if (this.grid) {
+      // Remove the grid
       this.scene.remove(this.grid);
       this.grid = undefined;
+
+      // Update the screen
+      this.draw();
     }
   }
 
@@ -465,28 +486,62 @@ export class Space {
 
   showAxis() {
     if (this.axis === undefined) {
+      // Add the axis
       this.axis = createAxis(this.options.axisSize, this.options.axisColors);
       this.scene.add(this.axis);
 
-      // Add axis labels if requested
-      if (this.options.showLabels) {
-        const unit = this.options.unit.toText();
-        const offset = this.options.axisSize * 1.05;
-        this.axisLabels.push(makeLabelObject(`x[${unit}]`, offset, 0, 0));
-        this.axisLabels.push(makeLabelObject(`z[${unit}]`, 0, offset, 0));
-        this.axisLabels.push(makeLabelObject(`y[${unit}]`, 0, 0, offset));
-        this.axisLabels.forEach((label) => this.scene.add(label));
-      }
+      // Update the screen
+      this.draw();
+    }
+
+    // Create axis labels if requested
+    if (this.options.showLabels) {
+      this.showAxisLabels();
     }
   }
 
   hideAxis() {
     if (this.axis) {
+      // Remove the axis
       this.scene.remove(this.axis);
       this.axis = undefined;
-      this.axisLabels.forEach((label) => this.scene.remove(label));
-      this.axisLabels = [];
+
+      // Update the screen
+      this.draw();
     }
+
+    // Remove any axis labels.
+    this.hideAxisLabels();
+  }
+
+  hasAxisLabels() {
+    this.axisLabels.length > 0;
+  }
+
+  showAxisLabels() {
+    if (this.axisLabels.length === 0) {
+      // Create axis labels
+      const unit = this.options.unit.toText();
+      const offset = this.options.axisSize * 1.05;
+      this.axisLabels.push(makeLabelObject(`x[${unit}]`, offset, 0, 0));
+      this.axisLabels.push(makeLabelObject(`z[${unit}]`, 0, offset, 0));
+      this.axisLabels.push(makeLabelObject(`y[${unit}]`, 0, 0, offset));
+
+      // Add the labels
+      this.axisLabels.forEach((label) => this.scene.add(label));
+
+      // Update the screen
+      this.draw();
+    }
+  }
+
+  hideAxisLabels() {
+    // Remove any axis labels.
+    this.axisLabels.forEach((label) => this.scene.remove(label));
+    this.axisLabels = [];
+
+    // Update the screen
+    this.draw();
   }
 
   /**

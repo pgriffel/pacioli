@@ -192,10 +192,8 @@ export class PacioliControlsComponent extends HTMLElement {
     if (scene && scene.space) {
       if (checked) {
         scene.space.showAxis();
-        scene.space.draw();
       } else {
         scene.space.hideAxis();
-        scene.space.draw();
       }
     }
   }
@@ -208,10 +206,8 @@ export class PacioliControlsComponent extends HTMLElement {
     if (scene && scene.space) {
       if (checked) {
         scene.space.showLabels();
-        scene.space.draw();
       } else {
         scene.space.hideLabels();
-        scene.space.draw();
       }
     }
   }
@@ -224,10 +220,8 @@ export class PacioliControlsComponent extends HTMLElement {
     if (scene && scene.space) {
       if (checked) {
         scene.space.showGrid();
-        scene.space.draw();
       } else {
         scene.space.hideGrid();
-        scene.space.draw();
       }
     }
   }
