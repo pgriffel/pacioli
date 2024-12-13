@@ -41,14 +41,17 @@ export class PacioliControlsComponent extends HTMLElement {
   stepButton = createButton("Step", () => this.stepButtonClicked());
   startButton = createButton("Run", () => this.startButtonClicked());
   resetButton = createButton("Reset", () => this.resetButtonClicked());
-  autoRotateButton = createCheckBox("Rotate", (checked) =>
-    this.autoRotateCheckboxClicked(checked)
-  );
-  axisCheckBox = createCheckBox("Axis", (checked) =>
+  axisCheckBox = createCheckBox("axis", (checked) =>
     this.axisCheckBoxClicked(checked)
   );
-  gridCheckBox = createCheckBox("Grid", (checked) =>
+  gridCheckBox = createCheckBox("grid", (checked) =>
     this.gridCheckBoxClicked(checked)
+  );
+  labelsCheckBox = createCheckBox("labels", (checked) =>
+    this.labelsCheckBoxClicked(checked)
+  );
+  autoRotateButton = createCheckBox("rotate", (checked) =>
+    this.autoRotateCheckboxClicked(checked)
   );
 
   constructor() {
@@ -90,6 +93,7 @@ export class PacioliControlsComponent extends HTMLElement {
 
     this.configurationElement.appendChild(this.axisCheckBox);
     this.configurationElement.appendChild(this.gridCheckBox);
+    this.configurationElement.appendChild(this.labelsCheckBox);
     this.configurationElement.appendChild(this.autoRotateButton);
 
     // Make sure the proper buttons are shown and enabled
@@ -199,6 +203,22 @@ export class PacioliControlsComponent extends HTMLElement {
   /**
    * Handler for the axis checkbox
    */
+  private labelsCheckBoxClicked(checked: boolean) {
+    const scene = this.sceneElement();
+    if (scene && scene.space) {
+      if (checked) {
+        scene.space.showLabels();
+        scene.space.draw();
+      } else {
+        scene.space.hideLabels();
+        scene.space.draw();
+      }
+    }
+  }
+
+  /**
+   * Handler for the axis checkbox
+   */
   private gridCheckBoxClicked(checked: boolean) {
     const scene = this.sceneElement();
     if (scene && scene.space) {
@@ -244,6 +264,10 @@ export class PacioliControlsComponent extends HTMLElement {
 
       const gridCheckBox = this.gridCheckBox.children[0] as HTMLInputElement;
       gridCheckBox.checked = space.hasGrid();
+
+      const labelsCheckBox = this.labelsCheckBox
+        .children[0] as HTMLInputElement;
+      labelsCheckBox.checked = space.hasLabels();
 
       // Distinguish animations and static scenes
       if (space.isAnimation()) {

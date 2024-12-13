@@ -171,6 +171,8 @@ export class Space {
   private animationState?: PacioliValue;
   private animationScene?: PacioliScene;
 
+  renderersDiv: HTMLDivElement;
+
   /**
    * Constructs a space element and adds it to the DOM.
    *
@@ -197,6 +199,8 @@ export class Space {
     const renderersDiv = document.createElement("div");
     renderersDiv.style.position = "relative";
     this.parent.appendChild(renderersDiv);
+
+    this.renderersDiv = renderersDiv;
 
     // Create the 3D WebGL renderer and append it to the given parent
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -229,7 +233,7 @@ export class Space {
     // Connect orbit controls to the renderer and to the draw method
     this.controls = createOrbitControls(
       this.camera,
-      this.labelRenderer.domElement,
+      this.renderersDiv, // this.labelRenderer.domElement,
       this.options.zoomRange
     );
     this.controls.addEventListener("change", this.onChangeOrbit.bind(this));
@@ -420,6 +424,18 @@ export class Space {
       this.draw();
       this.log("Started animation");
     }
+  }
+
+  hasLabels(): boolean {
+    return this.renderersDiv.childElementCount === 2;
+  }
+
+  showLabels() {
+    this.renderersDiv.appendChild(this.labelRenderer.domElement);
+  }
+
+  hideLabels() {
+    this.renderersDiv.removeChild(this.labelRenderer.domElement);
   }
 
   hasGrid(): boolean {
