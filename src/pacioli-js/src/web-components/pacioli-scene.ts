@@ -47,8 +47,10 @@ export class PacioliSceneComponent extends HTMLElement {
   // elements to get informed about relevant changes.
   callbacks: (() => void)[] = [];
 
-  // HTML element to display errors. TODO: add a close button
+  // HTML element to display errors.
   errorDiv = document.createElement("div");
+  errorText = document.createElement("div");
+  closeErrorButton = document.createElement("button");
 
   // Web component field.
   static observedAttributes = [
@@ -78,6 +80,11 @@ export class PacioliSceneComponent extends HTMLElement {
     this.errorDiv.style.padding = "8pt";
     this.errorDiv.hidden = true;
     this.shadow.appendChild(this.errorDiv);
+
+    this.errorDiv.appendChild(this.errorText);
+    this.errorDiv.appendChild(this.closeErrorButton);
+    this.closeErrorButton.innerText = "Close";
+    this.closeErrorButton.onclick = (_: Event) => this.clearErrors();
   }
 
   /**
@@ -342,14 +349,14 @@ export class PacioliSceneComponent extends HTMLElement {
    */
   displayError(message: string) {
     this.errorDiv.hidden = false;
-    this.errorDiv.innerText = message + "\n\n" + this.errorDiv.innerText;
+    this.errorText.innerText = message + "\n\n" + this.errorText.innerText;
   }
 
   /**
    * Clears the text of the error output and hides the error element.
    */
   clearErrors() {
-    this.errorDiv.innerText = "";
+    this.errorText.innerText = "";
     this.errorDiv.hidden = true;
   }
 }
