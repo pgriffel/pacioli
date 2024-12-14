@@ -140,9 +140,9 @@ export class LineChart {
       );
 
       // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
+      // while (parent.firstChild) {
+      //   parent.removeChild(parent.firstChild);
+      // }
 
       // Define dimensions of graph
       var m = this.options.margin;

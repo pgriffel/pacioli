@@ -1,9 +1,8 @@
 import { si } from "uom-ts";
 import { PacioliScene, Space, Animation, StatefulAnimation } from "../space";
-import { PacioliParameter } from "./utils";
-import { fun, num, string } from "../api";
+import { pacioliFunction, PacioliParameter } from "./utils";
 import { PacioliValue } from "../value";
-import { PacioliFunction } from "../values/function";
+import { num, string } from "../api";
 
 /**
  * Web component for a 3D Pacioli space. A wrapper around the Space class.
@@ -459,21 +458,6 @@ function loadPacioliSpace(
       space.loadStatefulAnimation(scene as unknown as StatefulAnimation);
       break;
     }
-  }
-}
-
-/**
- * Wrapper around api function 'fun' with a PacioliScene specific error message if the
- * function is not found.
- */
-function pacioliFunction(script: string, func: string): PacioliFunction {
-  try {
-    return fun(script, func);
-  } catch (error: any) {
-    console.log(error);
-    throw Error(
-      `function '${func}' from script '${script}' is unknown.\n\n Please give a valid Pacioli filename in the 'script' attribute, and a valid function name in the 'function' attribute, and check that the compiled file is included.`
-    );
   }
 }
 
