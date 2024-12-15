@@ -6,12 +6,8 @@ import { PacioliWebComponent } from "./pacioli-web-component";
  * Abstract class for web components displaying some computed PacioliValue.
  */
 export class PacioliCustomElement extends PacioliWebComponent {
-  parent: HTMLElement;
-
   constructor() {
     super();
-
-    this.parent = this;
   }
 
   override rootElement(): HTMLElement {
