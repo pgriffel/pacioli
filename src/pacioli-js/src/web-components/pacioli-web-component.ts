@@ -1,4 +1,4 @@
-import { callWebComponentFunction } from "./utils";
+import { callWebComponentFunction, parameterNodes } from "./utils";
 import { PacioliValue } from "../value";
 
 /**
@@ -27,14 +27,14 @@ export class PacioliWebComponent extends HTMLElement {
    * Web component life-cycle event.
    */
   connectedCallback() {
-    // Append the errors
+    // Append the error elements
     this.appendErrorDivs(this.rootElement());
 
     // Delay loading the space until the DOM children exist. We need the children so we can get
     // the parameter values.
     setTimeout(() => {
       try {
-        this.dataAvailable(callWebComponentFunction(this));
+        this.dataAvailable(this.fetchData());
       } catch (error: any) {
         this.displayError(error);
       }
@@ -53,6 +53,30 @@ export class PacioliWebComponent extends HTMLElement {
    */
   rootElement(): HTMLElement {
     throw Error("Method rootElement must be overridden!");
+  }
+
+  /**
+   * Set the parameter values programmatically. Updates the values in the DOM children. Only sets the
+   * magnitudes. The units are fixed.
+   *
+   * @param {*} values The parameter values. List of objects with a 'value' field, one for each
+   * script function parameter. Must match the parameter child nodes.
+   */
+  setParameters(values: string[]) {
+    const children = parameterNodes(this);
+
+    for (let i = 0; i < children.length; i++) {
+      children[i].innerText = values[i];
+    }
+  }
+
+  /**
+   * Calls the script function
+   *
+   * @returns A PacioliValue
+   */
+  fetchData(): PacioliValue {
+    return callWebComponentFunction(this);
   }
 
   /**

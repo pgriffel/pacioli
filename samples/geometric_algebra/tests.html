@@ -37,7 +37,7 @@
         Just some weird example to test graphics of vectors.
 
     <div class="example">
-        <pacioli-scene id="scene_weird" script="weird" function="the_scene" kind="animation" grid="false">
+        <pacioli-scene id="scene_weird" script="weird" function="the_scene" kind="animation" axis>
             <parameter label="n" unit="1">50</parameter>
             <parameter label="k" unit="1">5</parameter>
             <parameter label="freq" unit="hertz">1</parameter>
@@ -51,8 +51,7 @@
         An experiment with the CubeMesh datastructure and animation.
 
     <div class="example">
-        <pacioli-scene id="scene_cubes1" script="cubes" function="scene1" kind="stateful-animation" axis="false"
-            axis="false">
+        <pacioli-scene id="scene_cubes1" script="cubes" function="scene1" kind="stateful-animation" grid>
             <parameter label="cubes">25</parameter>
             <parameter label="terms">3</parameter>
             <parameter label="speedup">1</parameter>
@@ -65,7 +64,7 @@
         An experiment with the Mesh and Path datastructures
 
     <div class="example">
-        <pacioli-scene id="scene_cubes2" script="cubes" function="scene2" kind="scene" grid="false" axis="false">
+        <pacioli-scene id="scene_cubes2" script="cubes" function="scene2" kind="scene">
         </pacioli-scene>
         <pacioli-controls for="scene_cubes2"></pacioli-controls>
     </div>
@@ -76,7 +75,7 @@
         My nice scene!
 
     <div class="example">
-        <pacioli-scene id="scene_cubes3" script="cubes" function="scene3" kind="scene">
+        <pacioli-scene id="scene_cubes3" script="cubes" function="scene3" kind="scene" grid axis>
             <parameter label="a" unit="metre">5</parameter>
             <parameter label="b" unit="metre">5</parameter>
             <parameter label="c" unit="metre">5</parameter>

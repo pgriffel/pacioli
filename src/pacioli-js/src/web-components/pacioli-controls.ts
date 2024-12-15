@@ -1,5 +1,5 @@
 import { PacioliSceneComponent } from "./pacioli-scene";
-import { PacioliParameter } from "./utils";
+import { PacioliParameter, parameterNodes, parseParameterNode } from "./utils";
 
 /**
  * Web component with controls for the PacioliScene web component.
@@ -142,8 +142,9 @@ export class PacioliControlsComponent extends HTMLElement {
   }[] {
     const scene = this.sceneElement();
     if (scene) {
-      return createParameterInputs(scene.parsedParameters(), () =>
-        this.resetButton.click()
+      return createParameterInputs(
+        parameterNodes(scene).map(parseParameterNode),
+        () => this.resetButton.click()
       );
     } else {
       return [];
@@ -178,9 +179,13 @@ export class PacioliControlsComponent extends HTMLElement {
   private resetButtonClicked() {
     const scene = this.sceneElement();
     if (scene && this.inputs) {
-      scene.setParameters(this.inputs.map((input) => input.element.value));
-      scene.reset();
-      this.updateControls();
+      try {
+        scene.setParameters(this.inputs.map((input) => input.element.value));
+        scene.reset();
+        this.updateControls();
+      } catch (error: any) {
+        scene.displayError(error);
+      }
     }
   }
 
