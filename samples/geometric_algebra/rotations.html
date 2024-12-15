@@ -24,7 +24,7 @@
 
     <div class="example">
         <pacioli-scene id="scene_rotation_composition" script="rotations" function="scene_rotor_composition"
-            kind="stateful-animation">
+            kind="stateful-animation" perspective grid axis>
             <parameter label="Rotor 1 (mv1)" type="string">e1 + 5e2</parameter>
             <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
             <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
@@ -47,7 +47,7 @@
 
     <div class="example">
         <pacioli-scene id="scene_rotation_nesting1" script="rotations" function="scene_rotor_nesting"
-            kind="stateful-animation">
+            kind="stateful-animation" perspective grid axis>
             <parameter label="Rotor 1 (mv1)" type="string">e1 + 5e2</parameter>
             <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
             <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
@@ -70,7 +70,7 @@
 
     <div class="example">
         <pacioli-scene id="scene_rotation_nesting2" script="rotations" function="scene_rotor_nesting"
-            kind="stateful-animation">
+            kind="stateful-animation" perspective grid axis>
             <parameter label="Rotor 1 (mv1)" type="string">e1 + 6e2</parameter>
             <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
             <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
@@ -93,7 +93,7 @@
 
     <div class="example">
         <pacioli-scene id="scene_rotation_nesting3" script="rotations" function="scene_rotor_nesting"
-            kind="stateful-animation">
+            kind="stateful-animation" perspective grid axis>
             <parameter label="Rotor 1 (mv1)" type="string">e1 + 5e2</parameter>
             <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
             <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
@@ -112,7 +112,8 @@
         Reflection Doran fig 2.7 but Leo's formulas for right division, projection and rejection on pp155-157.
 
     <div class="example">
-        <pacioli-scene id="scene_reflection" script="rotations" function="scene_reflection" kind="scene">
+        <pacioli-scene id="scene_reflection" script="rotations" function="scene_reflection" kind="scene" perspective
+            grid axis>
             <parameter label="nx" unit="metre">0</parameter>
             <parameter label="ny" unit="metre">5</parameter>
             <parameter label="nz" unit="metre">0</parameter>
@@ -129,7 +130,8 @@
         Rotation fig 7.2 on p170 in Leo using two reflections.
 
     <div class="example">
-        <pacioli-scene id="scene_rotation" script="rotations" function="scene_rotation" kind="scene">
+        <pacioli-scene id="scene_rotation" script="rotations" function="scene_rotation" kind="scene" perspective grid
+            axis>
             <parameter label="ax" unit="metre">0</parameter>
             <parameter label="ay" unit="metre">5</parameter>
             <parameter label="az" unit="metre">0</parameter>
@@ -150,7 +152,8 @@
         Rotation fig 7.2 on p170 in Leo using the rotor formula 7.3.
 
     <div class="example">
-        <pacioli-scene id="scene_rotation_rotor" script="rotations" function="scene_rotation_rotor" kind="scene">
+        <pacioli-scene id="scene_rotation_rotor" script="rotations" function="scene_rotation_rotor" kind="scene"
+            perspective grid axis>
             <parameter label="ax" unit="metre">0</parameter>
             <parameter label="ay" unit="metre">5</parameter>
             <parameter label="az" unit="metre">0</parameter>
