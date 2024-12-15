@@ -18,9 +18,9 @@ define the_scene(n, k, freq) =
             add_arrows(weird_arrows(n, k), scene))
     end;
 
-define yo() = [1,2,3,4,5,6,7,5,6,7,8,6,4,7,8,8,7,76,6,7];
+define test_data_dimless() = [1,2,3,4,5,6,7,5,6,7,8,6,4,7,8,8,7,76,6,7];
 
-define yo_gram() = [x * |gram| | x <- yo()];
+define test_data_gram() = [x * |gram| | x <- test_data_dimless()];
 
 define weird_arrows(n, k) =
     let 
