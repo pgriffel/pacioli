@@ -1,49 +1,47 @@
-import { si } from "uom-ts";
-import { LineChart } from "../charts/d3-line-chart";
+import { si, SIUnit, UOM } from "uom-ts";
+import { LineChart, LineChartOptions } from "../charts/d3-line-chart";
 import { PacioliContext } from "../context";
-import { PacioliWebComponent } from "./pacioli-web-component";
 import { PacioliValue } from "../value";
+import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
+import { dataUnit } from "../charts/chart-utils";
+import {
+  optionalBooleanAttributes,
+  optionalNumberAttributes,
+  optionalStringAttributes,
+} from "./utils";
 
 /**
  * Web component for a line chart. A wrapper around the LineChart class.
- *
- * Say we have a scene function foo from file bar.pacioli, and the function takes
- * a parameter for an object shape and one for mass, then
- *
- * @example
- * declare foo :: (String, gram) -> Scene(metre)
- *
- * define foo(shape, mass) = ...
- *
- * <pacioli-scene script="bar" function="foo" kind="scene">
- *       <parameter label="shape" type="string">sphere</parameter>
- *       <parameter label="mass" unit="gram">10</parameter>
- * </pacioli-scene>
  */
-export class PacioliLineChartComponent extends PacioliWebComponent {
-  // Options for the Pacioli space.
-  unit = "metre";
+export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
+  // The unit of measurement. Is derived from the data if no unit attribute
+  // is given.
+  unit?: SIUnit;
 
-  // The Pacioli space
+  // The bar chart
   chart?: LineChart;
 
   // Web component field.
   static observedAttributes = ["unit"];
 
-  // shadow: ShadowRoot;
-
   constructor() {
     super();
+
+    // Set the style sheet
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(this.styleSheet());
+    this.root.adoptedStyleSheets = [sheet];
   }
 
   /**
    * Web component life-cycle event.
    */
   override dataAvailable(data: PacioliValue) {
-    const value = data;
-    const chart = new LineChart(value, PacioliContext.si(), {});
-    chart.draw(this as unknown as HTMLElement);
-    this.chart = chart;
+    if (this.unit === undefined) {
+      this.unit = dataUnit(data);
+    }
+    this.chart = new LineChart(data, PacioliContext.si(), this.chartOptions());
+    this.chart.draw(this.rootElement());
   }
 
   /**
@@ -52,21 +50,91 @@ export class PacioliLineChartComponent extends PacioliWebComponent {
   attributeChangedCallback(name: string, _: string, newValue: string) {
     switch (name) {
       case "unit": {
-        this.unit = newValue;
+        this.unit = si.parseDimNum(newValue).unit;
         break;
       }
     }
   }
 
+  chartOptions(): LineChartOptions {
+    return {
+      unit: this.unit || UOM.ONE,
+      ...optionalStringAttributes(this, ["label"]),
+      ...optionalBooleanAttributes(this, ["smooth"]),
+      ...optionalNumberAttributes(this, ["width", "height"]),
+    };
+  }
+
   /**
-   * The unit for the scene's 3D space. The default is unit 'metre'.
+   * Style sheet for the bar chart
+   *
+   * @returns A style sheet string
    */
-  parsedUnit() {
-    try {
-      return si.parseDimNum(this.unit || "metre").unit;
-    } catch (error: any) {
-      throw Error(`failed to parse scene unit '${this.unit}'`);
-    }
+  styleSheet(): string {
+    return `   
+    
+.pacioli-ts-chart path {
+    stroke-width: 1;
+    fill: none;
+}
+
+.data {
+    stroke: steelblue;
+}
+			
+.axis {
+    shape-rendering: crispEdges;
+}
+
+.axis {
+    OLDfont: 10px sans-serif;
+    font: 10px;
+}
+    
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.x.axis line { 
+    stroke: lightgrey;
+}
+
+.x.axis .minor {
+    stroke-opacity: .5;
+}
+
+.x.axis path {
+    /*display: none;*/
+}
+
+.x.axis path {
+    display: none;
+}
+			
+.x.axis text {
+    font-size: 10px;
+}
+
+.y.axis line, .y.axis path {
+    stroke: lightgrey;
+    stroke-opacity: .5;
+    fill: none;
+    /*stroke: #000;*/
+}
+
+.y.axis text {
+    font-size: 10px;
+}
+
+
+.dot {
+    fill: lightblue !important ;
+    stroke: darkgray;
+}
+`;
   }
 }
 

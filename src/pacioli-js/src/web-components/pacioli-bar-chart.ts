@@ -1,30 +1,24 @@
-import { si } from "uom-ts";
+import { si, SIUnit, UOM } from "uom-ts";
 import { PacioliContext } from "../context";
-import { PacioliWebComponent } from "./pacioli-web-component";
-import { BarChart } from "../charts/d3-bar-chart";
+import { BarChart, BarChartOptions } from "../charts/d3-bar-chart";
 import { PacioliValue } from "../value";
+import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
+import {
+  optionalStringAttributes,
+  optionalBooleanAttributes,
+  optionalNumberAttributes,
+} from "./utils";
+import { dataUnit } from "../charts/chart-utils";
 
 /**
- * Web component for a line chart. A wrapper around the LineChart class.
- *
- * Say we have a scene function foo from file bar.pacioli, and the function takes
- * a parameter for an object shape and one for mass, then
- *
- * @example
- * declare foo :: (String, gram) -> Scene(metre)
- *
- * define foo(shape, mass) = ...
- *
- * <pacioli-scene script="bar" function="foo" kind="scene">
- *       <parameter label="shape" type="string">sphere</parameter>
- *       <parameter label="mass" unit="gram">10</parameter>
- * </pacioli-scene>
+ * Web component for a bar chart. A wrapper around the BarChart class.
  */
-export class PacioliBarChartComponent extends PacioliWebComponent {
-  // Options for the Pacioli space.
-  unit = "metre";
+export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
+  // The unit of measurement. Is derived from the data if no unit attribute
+  // is given.
+  unit?: SIUnit;
 
-  // The Pacioli space
+  // The bar chart
   chart?: BarChart;
 
   // Web component field.
@@ -32,16 +26,22 @@ export class PacioliBarChartComponent extends PacioliWebComponent {
 
   constructor() {
     super();
+
+    // Set the style sheet
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(this.styleSheet());
+    this.root.adoptedStyleSheets = [sheet];
   }
 
   /**
    * Web component life-cycle event.
    */
   override dataAvailable(data: PacioliValue) {
-    const value = data;
-    const chart = new BarChart(value, PacioliContext.si(), {});
-    chart.draw(this as unknown as HTMLElement);
-    this.chart = chart;
+    if (this.unit === undefined) {
+      this.unit = dataUnit(data);
+    }
+    this.chart = new BarChart(data, PacioliContext.si(), this.chartOptions());
+    this.chart.draw(this.rootElement());
   }
 
   /**
@@ -50,21 +50,31 @@ export class PacioliBarChartComponent extends PacioliWebComponent {
   attributeChangedCallback(name: string, _: string, newValue: string) {
     switch (name) {
       case "unit": {
-        this.unit = newValue;
+        this.unit = si.parseDimNum(newValue).unit;
         break;
       }
     }
   }
 
+  chartOptions(): BarChartOptions {
+    return {
+      unit: this.unit || UOM.ONE,
+      ...optionalStringAttributes(this, ["label"]),
+      ...optionalBooleanAttributes(this, ["smooth"]),
+      ...optionalNumberAttributes(this, ["width", "height"]),
+    };
+  }
+
   /**
-   * The unit for the scene's 3D space. The default is unit 'metre'.
+   * Style sheet for the bar chart
+   *
+   * @returns A style sheet string
    */
-  parsedUnit() {
-    try {
-      return si.parseDimNum(this.unit || "metre").unit;
-    } catch (error: any) {
-      throw Error(`failed to parse scene unit '${this.unit}'`);
-    }
+  styleSheet(): string {
+    return `
+    .bar {
+      fill: steelblue;
+    }`;
   }
 }
 

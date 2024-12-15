@@ -163,3 +163,47 @@ export function parseParameterNode(
     );
   }
 }
+
+export function optionalStringAttributes(
+  element: HTMLElement,
+  attributes: string[]
+) {
+  let object = {};
+  attributes.forEach((attribute) => {
+    const value = element.getAttribute(attribute);
+    if (value !== null) {
+      object = { ...object, [attribute]: value };
+    }
+  });
+  return object;
+}
+
+export function optionalNumberAttributes(
+  element: HTMLElement,
+  attributes: string[]
+) {
+  let object = {};
+  attributes.forEach((attribute) => {
+    const value = element.getAttribute(attribute);
+    if (value !== null) {
+      const num = Number(value);
+      if (Number.isFinite(num)) {
+        object = { ...object, [attribute]: num };
+      } else {
+        throw Error(`Invalid number ${value} for attritube ${attribute}`);
+      }
+    }
+  });
+  return object;
+}
+
+export function optionalBooleanAttributes(
+  element: HTMLElement,
+  attributes: string[]
+) {
+  let object = {};
+  attributes.forEach((attribute) => {
+    object = { ...object, [attribute]: element.hasAttribute(attribute) };
+  });
+  return object;
+}

@@ -20,6 +20,8 @@ define the_scene(n, k, freq) =
 
 define yo() = [1,2,3,4,5,6,7,5,6,7,8,6,4,7,8,8,7,76,6,7];
 
+define yo_gram() = [x * |gram| | x <- yo()];
+
 define weird_arrows(n, k) =
     let 
         c = 2*|metre|,

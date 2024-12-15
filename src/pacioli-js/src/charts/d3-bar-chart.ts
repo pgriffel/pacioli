@@ -224,9 +224,9 @@ export class BarChart {
       // var xSet = input.label // "shape.rowName()" //vector.shape.rowSets.map(function (x) {return x.name})
 
       // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
+      // while (parent.firstChild) {
+      //   parent.removeChild(parent.firstChild);
+      // }
 
       // Add an svg element
       var svg = d3

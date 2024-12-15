@@ -3,6 +3,7 @@ import { PacioliScene, Space, Animation, StatefulAnimation } from "../space";
 import { pacioliFunction, PacioliParameter } from "./utils";
 import { PacioliValue } from "../value";
 import { num, string } from "../api";
+import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
 
 /**
  * Web component for a 3D Pacioli space. A wrapper around the Space class.
@@ -20,7 +21,7 @@ import { num, string } from "../api";
  *       <parameter label="mass" unit="gram">10</parameter>
  * </pacioli-scene>
  */
-export class PacioliSceneComponent extends HTMLElement {
+export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   // Options for the Pacioli space.
   unit = "metre";
   width = 800;
@@ -64,51 +65,82 @@ export class PacioliSceneComponent extends HTMLElement {
     "grid",
   ];
 
-  shadow: ShadowRoot;
+  // shadow: ShadowRoot;
 
   constructor() {
     super();
 
-    // We use the Web component shadow DOM mechanism
-    this.shadow = this.attachShadow({ mode: "open" });
+    // // We use the Web component shadow DOM mechanism
+    // this.shadow = this.attachShadow({ mode: "open" });
 
-    // Append the div for errors before the space. Hide it until the first
-    // error is displayed.
-    this.errorDiv.style.color = "red";
-    this.errorDiv.style.background = "yellow";
-    this.errorDiv.style.padding = "8pt";
-    this.errorDiv.hidden = true;
-    this.shadow.appendChild(this.errorDiv);
+    // // Append the div for errors before the space. Hide it until the first
+    // // error is displayed.
+    // this.errorDiv.style.color = "red";
+    // this.errorDiv.style.background = "yellow";
+    // this.errorDiv.style.padding = "8pt";
+    // this.errorDiv.hidden = true;
+    // this.shadow.appendChild(this.errorDiv);
 
-    this.errorDiv.appendChild(this.errorText);
-    this.errorDiv.appendChild(this.closeErrorButton);
-    this.closeErrorButton.innerText = "Close";
-    this.closeErrorButton.onclick = (_: Event) => this.clearErrors();
+    // this.errorDiv.appendChild(this.errorText);
+    // this.errorDiv.appendChild(this.closeErrorButton);
+    // this.closeErrorButton.innerText = "Close";
+    // this.closeErrorButton.onclick = (_: Event) => this.clearErrors();
   }
 
   /**
    * Web component life-cycle event.
    */
-  connectedCallback() {
-    try {
-      // Create a Pacioli space and attach it to the shadow DOM parent.
-      const options = {
-        ...this,
-        unit: this.parsedUnit(),
-      };
-      const space = new Space(this.shadow as unknown as HTMLElement, options);
+  // connectedCallback() {
+  //   try {
+  //     // Create a Pacioli space and attach it to the shadow DOM parent.
+  //     const options = {
+  //       ...this,
+  //       unit: this.parsedUnit(),
+  //     };
+  //     const space = new Space(this.shadow as unknown as HTMLElement, options);
 
-      this.space = space;
+  //     this.space = space;
 
-      // Delay loading the space until the DOM children exist. We need the children so we can get
-      // the parameter values.
-      setTimeout(() => {
-        this.loadSpace();
-        space.draw();
-      }, 1);
-    } catch (error: any) {
-      this.displayError(error);
+  //     // Delay loading the space until the DOM children exist. We need the children so we can get
+  //     // the parameter values.
+  //     setTimeout(() => {
+  //       this.loadSpace();
+  //       space.draw();
+  //     }, 1);
+  //   } catch (error: any) {
+  //     this.displayError(error);
+  //   }
+  // }
+
+  override dataAvailable(data: PacioliValue) {
+    // Create a Pacioli space and attach it to the shadow DOM parent.
+    const options = {
+      ...this,
+      unit: this.parsedUnit(),
+    };
+    const space = new Space(this.rootElement(), options);
+
+    this.space = space;
+
+    // this.loadSpace();
+    // Cast the PacioliValue to the expected type and hope it works out at runtime.
+    // TODO: Improve error handling with runtime checks on the returned value
+    switch (this.kind) {
+      case "scene": {
+        space.loadScene(data as unknown as PacioliScene);
+        break;
+      }
+      case "animation": {
+        space.loadAnimation(data as unknown as Animation);
+        break;
+      }
+      case "stateful-animation": {
+        space.loadStatefulAnimation(data as unknown as StatefulAnimation);
+        break;
+      }
     }
+
+    space.draw();
   }
 
   /**
@@ -138,14 +170,14 @@ export class PacioliSceneComponent extends HTMLElement {
         }
         break;
       }
-      case "script": {
-        this.script = newValue;
-        break;
-      }
-      case "function": {
-        this.function = newValue;
-        break;
-      }
+      // case "script": {
+      //   this.script = newValue;
+      //   break;
+      // }
+      // case "function": {
+      //   this.function = newValue;
+      //   break;
+      // }
       case "unit": {
         this.unit = newValue;
         break;

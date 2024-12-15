@@ -249,7 +249,7 @@ export class PacioliControlsComponent extends HTMLElement {
   private updateControls() {
     const scene = this.sceneElement();
 
-    if (scene) {
+    if (scene && scene.space) {
       // If we get here the space must have been created
       const space = scene.space!;
 

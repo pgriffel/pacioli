@@ -2,23 +2,15 @@ import { callWebComponentFunction } from "./utils";
 import { PacioliValue } from "../value";
 
 /**
- * Web component for a line chart. A wrapper around the LineChart class.
+ * Abstract class for web components displaying some computed PacioliValue.
  *
- * Say we have a scene function foo from file bar.pacioli, and the function takes
- * a parameter for an object shape and one for mass, then
+ * Implements
+ * 1) Reading parameter values from the DOM and calling some script function with them
+ * 2) Displaying errors
  *
- * @example
- * declare foo :: (String, gram) -> Scene(metre)
- *
- * define foo(shape, mass) = ...
- *
- * <pacioli-scene script="bar" function="foo" kind="scene">
- *       <parameter label="shape" type="string">sphere</parameter>
- *       <parameter label="mass" unit="gram">10</parameter>
- * </pacioli-scene>
  */
 export class PacioliWebComponent extends HTMLElement {
-  // Parameters for function loadPacioliSpace that computes the scene.
+  // Parameters for function that computes the PacioliValue.
   script?: string;
   function?: string;
 
@@ -35,21 +27,39 @@ export class PacioliWebComponent extends HTMLElement {
    * Web component life-cycle event.
    */
   connectedCallback() {
+    // Append the errors
+    this.appendErrorDivs(this.rootElement());
+
     // Delay loading the space until the DOM children exist. We need the children so we can get
     // the parameter values.
     setTimeout(() => {
       try {
-        this.appendErrorDivs(this);
-
-        const value = callWebComponentFunction(this);
-
-        this.dataAvailable(value);
+        this.dataAvailable(callWebComponentFunction(this));
       } catch (error: any) {
         this.displayError(error);
       }
     }, 1);
   }
 
+  /**
+   * Abstract method. Called when the function return value is available.
+   *
+   * @param _ The PacioliValue to display.
+   */
+  dataAvailable(_: PacioliValue) {}
+
+  /**
+   * Abstract method. Must erturn the component root element.
+   */
+  rootElement(): HTMLElement {
+    throw Error("Method rootElement must be overridden!");
+  }
+
+  /**
+   * Adds DOM elements for error output
+   *
+   * @param parent The component parent to which the elements are added
+   */
   appendErrorDivs(parent: HTMLElement) {
     this.errorDiv.style.color = "red";
     this.errorDiv.style.background = "yellow";
@@ -65,14 +75,13 @@ export class PacioliWebComponent extends HTMLElement {
     this.errorDiv.appendChild(this.closeErrorButton);
   }
 
-  dataAvailable(_: PacioliValue) {}
-
   /**
    * Adds a line to the error output. Makes sure the error element is unhidden.
    *
    * @param message The text to add
    */
   displayError(message: string) {
+    console.log(message);
     this.errorDiv.hidden = false;
     this.errorText.innerText = message + "\n\n" + this.errorText.innerText;
   }
