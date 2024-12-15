@@ -157,8 +157,12 @@ export class PacioliControlsComponent extends HTMLElement {
   private startButtonClicked() {
     const scene = this.sceneElement();
     if (scene) {
-      scene.setRunning(!scene.isRunning());
-      this.updateControls();
+      try {
+        scene.setRunning(!scene.isRunning());
+        this.updateControls();
+      } catch (error: any) {
+        scene.displayError(error);
+      }
     }
   }
 
@@ -168,8 +172,12 @@ export class PacioliControlsComponent extends HTMLElement {
   private stepButtonClicked() {
     const scene = this.sceneElement();
     if (scene) {
-      scene.step();
-      this.updateControls();
+      try {
+        scene.step();
+        this.updateControls();
+      } catch (error: any) {
+        scene.displayError(error);
+      }
     }
   }
 
@@ -195,10 +203,14 @@ export class PacioliControlsComponent extends HTMLElement {
   private axisCheckBoxClicked(checked: boolean) {
     const scene = this.sceneElement();
     if (scene && scene.space) {
-      if (checked) {
-        scene.space.showAxis();
-      } else {
-        scene.space.hideAxis();
+      try {
+        if (checked) {
+          scene.space.showAxis();
+        } else {
+          scene.space.hideAxis();
+        }
+      } catch (error: any) {
+        scene.displayError(error);
       }
     }
   }
@@ -209,10 +221,14 @@ export class PacioliControlsComponent extends HTMLElement {
   private labelsCheckBoxClicked(checked: boolean) {
     const scene = this.sceneElement();
     if (scene && scene.space) {
-      if (checked) {
-        scene.space.showLabels();
-      } else {
-        scene.space.hideLabels();
+      try {
+        if (checked) {
+          scene.space.showLabels();
+        } else {
+          scene.space.hideLabels();
+        }
+      } catch (error: any) {
+        scene.displayError(error);
       }
     }
   }
@@ -223,10 +239,14 @@ export class PacioliControlsComponent extends HTMLElement {
   private gridCheckBoxClicked(checked: boolean) {
     const scene = this.sceneElement();
     if (scene && scene.space) {
-      if (checked) {
-        scene.space.showGrid();
-      } else {
-        scene.space.hideGrid();
+      try {
+        if (checked) {
+          scene.space.showGrid();
+        } else {
+          scene.space.hideGrid();
+        }
+      } catch (error: any) {
+        scene.displayError(error);
       }
     }
   }
@@ -237,12 +257,16 @@ export class PacioliControlsComponent extends HTMLElement {
   private autoRotateCheckboxClicked(checked: boolean) {
     const scene = this.sceneElement();
     if (scene && scene.space) {
-      if (checked) {
-        scene.space.startAutoRotation(
-          PacioliControlsComponent.SECONDS_PER_ROTATION
-        );
-      } else {
-        scene.space.stopAutoRotation();
+      try {
+        if (checked) {
+          scene.space.startAutoRotation(
+            PacioliControlsComponent.SECONDS_PER_ROTATION
+          );
+        } else {
+          scene.space.stopAutoRotation();
+        }
+      } catch (error: any) {
+        scene.displayError(error);
       }
     }
   }

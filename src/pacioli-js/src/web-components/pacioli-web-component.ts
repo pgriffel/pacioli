@@ -10,9 +10,9 @@ import { PacioliValue } from "../value";
  *
  */
 export class PacioliWebComponent extends HTMLElement {
-  // Parameters for function that computes the PacioliValue.
-  script?: string;
-  function?: string;
+  // // Parameters for function that computes the PacioliValue.
+  // script?: string;
+  // function?: string;
 
   // HTML element to display errors.
   errorDiv = document.createElement("div");

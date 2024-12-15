@@ -170,7 +170,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
       try {
         this.space.updateScene();
       } catch (error: any) {
-        this.displayError("Step failed:\n\n" + error);
+        throw Error("Step failed:\n\n" + error);
       }
     }
   }
@@ -182,24 +182,6 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
     for (let callback of this.callbacks) {
       callback();
     }
-  }
-
-  /**
-   * Adds a line to the error output. Makes sure the error element is unhidden.
-   *
-   * @param message The text to add
-   */
-  displayError(message: string) {
-    this.errorDiv.hidden = false;
-    this.errorText.innerText = message + "\n\n" + this.errorText.innerText;
-  }
-
-  /**
-   * Clears the text of the error output and hides the error element.
-   */
-  clearErrors() {
-    this.errorText.innerText = "";
-    this.errorDiv.hidden = true;
   }
 }
 
