@@ -53,19 +53,19 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   }
 
   override dataAvailable(data: PacioliValue) {
-    const space = new Space(this.rootElement(), this.spaceOptions());
-
-    this.space = space;
-
     if (this.kind !== undefined) {
-      loadSpaceData(space, data, this.kind);
+      // Create a space and load the data
+      this.space = new Space(this.rootElement(), this.spaceOptions());
+      loadSpaceData(this.space, data, this.kind);
+
+      // Call the registered callbacks
+      this.callCallbacks();
+
+      // Update the screen to show the loaded data
+      this.space.draw();
     } else {
       this.displayError("No kind (yet)");
     }
-
-    this.callCallbacks();
-
-    space.draw();
   }
 
   /**
@@ -167,11 +167,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    */
   step() {
     if (this.space && !this.space.isRunning()) {
-      try {
-        this.space.updateScene();
-      } catch (error: any) {
-        throw Error("Step failed:\n\n" + error);
-      }
+      this.space.updateScene();
     }
   }
 

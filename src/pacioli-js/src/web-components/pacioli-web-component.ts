@@ -10,10 +10,6 @@ import { PacioliValue } from "../value";
  *
  */
 export class PacioliWebComponent extends HTMLElement {
-  // // Parameters for function that computes the PacioliValue.
-  // script?: string;
-  // function?: string;
-
   // HTML element to display errors.
   errorDiv = document.createElement("div");
   errorText = document.createElement("div");
@@ -49,7 +45,7 @@ export class PacioliWebComponent extends HTMLElement {
   dataAvailable(_: PacioliValue) {}
 
   /**
-   * Abstract method. Must erturn the component root element.
+   * Abstract method. Must return the component root element.
    */
   rootElement(): HTMLElement {
     throw Error("Method rootElement must be overridden!");
@@ -59,8 +55,7 @@ export class PacioliWebComponent extends HTMLElement {
    * Set the parameter values programmatically. Updates the values in the DOM children. Only sets the
    * magnitudes. The units are fixed.
    *
-   * @param {*} values The parameter values. List of objects with a 'value' field, one for each
-   * script function parameter. Must match the parameter child nodes.
+   * @param {*} values The parameter values. Must match the parameter child nodes.
    */
   setParameters(values: string[]) {
     const children = parameterNodes(this);
@@ -71,7 +66,7 @@ export class PacioliWebComponent extends HTMLElement {
   }
 
   /**
-   * Calls the script function
+   * Calls the function identified by the 'script' and the 'function' attributes.
    *
    * @returns A PacioliValue
    */

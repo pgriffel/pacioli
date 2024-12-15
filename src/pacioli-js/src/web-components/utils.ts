@@ -28,6 +28,31 @@ export type StringParameter = {
 };
 
 /**
+ *
+ * @param element
+ * @returns
+ */
+export function callWebComponentFunction(element: HTMLElement): PacioliValue {
+  // Get the element's 'script' and 'function' attributes
+  const script = element.getAttribute("script");
+  const fun = element.getAttribute("function");
+  if (script === null || fun === null) {
+    throw new Error(
+      `script function is unknown.\n\n Please give a 'script' attribute with the Pacioli filename, and a 'function' attribute with the scene function name.`
+    );
+  }
+
+  // Find the function and get the parameters from the child nodes
+  const pacioliFun = pacioliFunction(script, fun);
+  const params = parameterNodes(element)
+    .map(parseParameterNode)
+    .map((p) => p.pacioliValue);
+
+  // Call the function with the parametes
+  return pacioliFun.apply(params);
+}
+
+/**
  * Wrapper around api function 'fun' with a PacioliScene specific error message if the
  * function is not found.
  */
@@ -42,41 +67,6 @@ export function pacioliFunction(script: string, func: string): PacioliFunction {
   }
 }
 
-// export class WebComponentFunction {
-//   private readonly fun = pacioliFunction(this.script, this.file);
-
-//   constructor(public readonly script: string, public readonly file: string) {}
-
-//   apply(args: PacioliValue[]): PacioliValue {
-//     return this.fun.apply(args);
-//   }
-
-//   call(element: HTMLElement): PacioliValue {
-//     const params = parseParameters(currentParameters(element));
-//     return this.fun.apply(params.map((p) => p.pacioliValue));
-//   }
-// }
-
-// export interface PacioliWebComponent extends HTMLElement {
-//   script?: string;
-//   function?: string;
-// }
-
-export function callWebComponentFunction(element: HTMLElement): PacioliValue {
-  const script = element.getAttribute("script");
-  const fun = element.getAttribute("function");
-
-  if (script === null || fun === null) {
-    throw new Error(
-      `script function is unknown.\n\n Please give a 'script' attribute with the Pacioli filename, and a 'function' attribute with the scene function name.`
-    );
-  }
-
-  const pacioliFun = pacioliFunction(script, fun);
-  const params = parameterNodes(element).map(parseParameterNode);
-  return pacioliFun.apply(params.map((p) => p.pacioliValue));
-}
-
 /**
  * The element's DOM children. They contain the parameters for the scene function.
  */
@@ -87,25 +77,8 @@ export function parameterNodes(element: HTMLElement): HTMLElement[] {
 }
 
 /**
- * Collect the parameter label, type, unit and value for the DOM children.
- */
-export function currentParameters(element: HTMLElement): {
-  label: string;
-  type: string;
-  unit: string;
-  value: string;
-}[] {
-  return parameterNodes(element).map((child) => ({
-    label: child.getAttribute("label") || "n/a",
-    type: child.getAttribute("type") || "number",
-    unit: child.getAttribute("unit") || "1",
-    value: child.innerText,
-  }));
-}
-
-/**
- * Turns the raw parameter attribues from the PacioliSceneComponent child nodes
- * into PacioliParameter objects.
+ * Turns the raw parameter attribues from a PacioliWebComponent parameter child node
+ * into a PacioliParameter object.
  *
  * @param parameters List of attribute values for the scene parameters
  * @returns A list of parsed parameters.
@@ -164,6 +137,14 @@ export function parseParameterNode(
   }
 }
 
+/**
+ * Collects existing string attribute values from an element.
+ *
+ * @param element A DOM element
+ * @param attributes A list of attribute names
+ * @returns An object with an entry for each attribute in argument attributes that exists
+ * in element
+ */
 export function optionalStringAttributes(
   element: HTMLElement,
   attributes: string[]
@@ -178,6 +159,14 @@ export function optionalStringAttributes(
   return object;
 }
 
+/**
+ * Collects existing numeric attribute values from an element.
+ *
+ * @param element A DOM element
+ * @param attributes A list of attribute names
+ * @returns An object with an entry for each attribute in argument attributes that exists
+ * in element
+ */
 export function optionalNumberAttributes(
   element: HTMLElement,
   attributes: string[]
@@ -197,6 +186,13 @@ export function optionalNumberAttributes(
   return object;
 }
 
+/**
+ * Collects boolean attribute values from an element.
+ *
+ * @param element A DOM element
+ * @param attributes A list of attribute names
+ * @returns An object with an entry for each attribute in argument attributes
+ */
 export function optionalBooleanAttributes(
   element: HTMLElement,
   attributes: string[]
