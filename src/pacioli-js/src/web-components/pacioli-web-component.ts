@@ -9,7 +9,7 @@ import { PacioliValue } from "../value";
  * 2) Displaying errors
  *
  */
-export class PacioliWebComponent extends HTMLElement {
+export abstract class PacioliWebComponent extends HTMLElement {
   // HTML element to display errors.
   errorDiv = document.createElement("div");
   errorText = document.createElement("div");

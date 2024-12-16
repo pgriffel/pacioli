@@ -5,7 +5,7 @@ import { PacioliWebComponent } from "./pacioli-web-component";
  *
  * Abstract class for web components displaying some computed PacioliValue.
  */
-export class PacioliShadowTreeComponent extends PacioliWebComponent {
+export abstract class PacioliShadowTreeComponent extends PacioliWebComponent {
   root: ShadowRoot;
 
   constructor() {

@@ -56,7 +56,12 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
     }
   }
 
-  chartOptions(): LineChartOptions {
+  /**
+   * Creates an options for the chart from the element's attributes.
+   *
+   * @returns An object with only the entries that are found in the attributes.
+   */
+  chartOptions(): Partial<LineChartOptions> {
     return {
       unit: this.unit || UOM.ONE,
       ...optionalStringAttributes(this, ["label"]),

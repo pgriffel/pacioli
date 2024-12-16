@@ -150,17 +150,6 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   }
 
   /**
-   * Registers a callback. Currently only called after loading a scene. All other
-   * methods are called by the control element, so it can update itself. More calls
-   * can be added in the future if needed.
-   *
-   * @param {*} callback A function of zero arguments.
-   */
-  registerCallback(callback: () => void) {
-    this.callbacks.push(callback);
-  }
-
-  /**
    * Performs a single animation step.
    *
    * Should not be called when an animation is running.
@@ -169,6 +158,17 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
     if (this.space && !this.space.isRunning()) {
       this.space.updateScene();
     }
+  }
+
+  /**
+   * Registers a callback. Currently only called after loading a scene. All other
+   * methods are called by the control element, so it can update itself. More calls
+   * can be added in the future if needed.
+   *
+   * @param {*} callback A function of zero arguments.
+   */
+  registerCallback(callback: () => void) {
+    this.callbacks.push(callback);
   }
 
   /**
