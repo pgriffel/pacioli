@@ -35,9 +35,6 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   // is given.
   unit?: SIUnit;
 
-  // Kind of the scene. Each uses different data.
-  kind?: "scene" | "animation" | "stateful-animation";
-
   // The Pacioli space
   space?: Space;
 
@@ -53,19 +50,15 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   }
 
   override dataAvailable(data: PacioliValue) {
-    if (this.kind !== undefined) {
-      // Create a space and load the data
-      this.space = new Space(this.rootElement(), this.spaceOptions());
-      loadSpaceData(this.space, data, this.kind);
+    // Create a space and load the data
+    this.space = new Space(this.rootElement(), this.spaceOptions());
+    loadSpaceData(this.space, data, this.sceneKind());
 
-      // Call the registered callbacks
-      this.callCallbacks();
+    // Call the registered callbacks
+    this.callCallbacks();
 
-      // Update the screen to show the loaded data
-      this.space.draw();
-    } else {
-      this.displayError("No kind (yet)");
-    }
+    // Update the screen to show the loaded data
+    this.space.draw();
   }
 
   /**
@@ -77,19 +70,30 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
         this.unit = si.parseDimNum(newValue).unit;
         break;
       }
-      case "kind": {
-        if (
-          newValue === "scene" ||
-          newValue === "animation" ||
-          newValue === "stateful-animation"
-        ) {
-          this.kind = newValue;
-        } else {
-          this.displayError(
-            `Cannot set kind '${newValue}' on PacioliControlsComponent. Valid kinds are 'scene', 'animation' or 'stateful-animation'`
-          );
-        }
-        break;
+    }
+  }
+
+  /**
+   * Is the scene a static scene, a simple animation, or a stateful
+   * animation? Each case uses different data.
+   *
+   * @returns The scene kind
+   */
+  sceneKind(): "scene" | "animation" | "stateful-animation" {
+    const kindAttribute = this.getAttribute("kind");
+    if (kindAttribute === null) {
+      throw Error(`no 'kind' attribute on pacioli-scene. Please `);
+    } else {
+      if (
+        kindAttribute === "scene" ||
+        kindAttribute === "animation" ||
+        kindAttribute === "stateful-animation"
+      ) {
+        return kindAttribute;
+      } else {
+        throw Error(
+          `cannot set kind '${kindAttribute}' on PacioliControlsComponent. Valid kinds are 'scene', 'animation' or 'stateful-animation'`
+        );
       }
     }
   }
@@ -123,8 +127,8 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   reset() {
     this.clearErrors();
 
-    if (this.space && !this.space.isRunning() && this.kind != undefined) {
-      loadSpaceData(this.space, this.fetchData(), this.kind);
+    if (this.space && !this.space.isRunning()) {
+      loadSpaceData(this.space, this.fetchData(), this.sceneKind());
       this.space.draw();
     }
   }

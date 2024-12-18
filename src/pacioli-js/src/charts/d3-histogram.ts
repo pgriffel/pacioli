@@ -210,9 +210,9 @@ export class Histogram {
       // var yAxis = d3.axisLeft(range);
 
       // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
+      // while (parent.firstChild) {
+      //   parent.removeChild(parent.firstChild);
+      // }
 
       // Create an svg element under the parent
       const svg = d3

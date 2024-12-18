@@ -40,16 +40,14 @@ export abstract class PacioliWebComponent extends HTMLElement {
   /**
    * Abstract method. Called when the function return value is available.
    *
-   * @param _ The PacioliValue to display.
+   * @param data The PacioliValue to display.
    */
-  dataAvailable(_: PacioliValue) {}
+  abstract dataAvailable(data: PacioliValue): void;
 
   /**
    * Abstract method. Must return the component root element.
    */
-  rootElement(): HTMLElement {
-    throw Error("Method rootElement must be overridden!");
-  }
+  abstract rootElement(): HTMLElement;
 
   /**
    * Set the parameter values programmatically. Updates the values in the DOM children. Only sets the

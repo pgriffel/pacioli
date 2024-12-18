@@ -52,9 +52,9 @@ export class WordCloud {
   public draw(parent: HTMLElement) {
     try {
       // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
+      // while (parent.firstChild) {
+      //   parent.removeChild(parent.firstChild);
+      // }
 
       var words = this.data.map(function (d: any) {
         return {

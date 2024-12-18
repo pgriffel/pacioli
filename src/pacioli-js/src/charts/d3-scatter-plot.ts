@@ -187,9 +187,9 @@ export class ScatterPlot {
       const yAxis = d3.axisLeft(yScale);
 
       // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
+      // while (parent.firstChild) {
+      //   parent.removeChild(parent.firstChild);
+      // }
 
       // Create an svg element under the parent
       const svg = d3

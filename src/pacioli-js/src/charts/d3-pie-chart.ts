@@ -133,9 +133,9 @@ export class PieChart {
       // var numbers = this.data.value
 
       // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
+      // while (parent.firstChild) {
+      //   parent.removeChild(parent.firstChild);
+      // }
 
       const data: { value: number; name: string }[] = [];
       for (let i = 0; i < input.labels.length; i++) {
