@@ -994,6 +994,10 @@ export function $base_string_num2str(num: any, unit: any) {
   return matrix.toDecimal(NR_DECIMALS);
 }
 
+export function $base_string_string_compare(x: any, y: any) {
+  return initialNumbers(1, 1, [[0, 0, x < y ? -1 : x > y ? 1 : 0]]);
+}
+
 export function $base_string_concatenate(x: any, y: any) {
   return x.concat(y);
 }

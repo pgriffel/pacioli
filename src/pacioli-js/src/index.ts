@@ -166,6 +166,7 @@ export {
   $base_string_pad_left,
   $base_string_pad_right,
   $base_string_parse_num,
+  $base_string_string_compare,
   $base_matrix_positive_support,
   $base_io_print,
   $base_matrix_random,
