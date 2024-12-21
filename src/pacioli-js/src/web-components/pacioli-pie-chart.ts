@@ -91,70 +91,18 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
 	opacity: .3;
 	stroke: black;
 	stroke-width: 2px;
-	fill: none;
+	fill: blue;
 }
-
-.pacioli-ts-chart path {
+.chart path {
     stroke-width: 1;
-    fill: none;
-}
-
-.data {
-    stroke: steelblue;
-}
-			
-.axis {
-    shape-rendering: crispEdges;
-}
-
-.axis {
-    OLDfont: 10px sans-serif;
-    font: 10px;
+    fill: red;
 }
     
-.axis path,
-.axis line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
+.pacioli-ts-chart path {
+    stroke-width: 1;
+    NOfill: yellow;
 }
 
-.x.axis line { 
-    stroke: lightgrey;
-}
-
-.x.axis .minor {
-    stroke-opacity: .5;
-}
-
-.x.axis path {
-    /*display: none;*/
-}
-
-.x.axis path {
-    display: none;
-}
-			
-.x.axis text {
-    font-size: 10px;
-}
-
-.y.axis line, .y.axis path {
-    stroke: lightgrey;
-    stroke-opacity: .5;
-    fill: none;
-    /*stroke: #000;*/
-}
-
-.y.axis text {
-    font-size: 10px;
-}
-
-
-.dot {
-    fill: lightblue !important ;
-    stroke: darkgray;
-}
 `;
   }
 }
