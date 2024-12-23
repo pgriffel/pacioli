@@ -1,4 +1,4 @@
-import { PacioliWebComponentFollower } from "../pacioli-web-component-follower";
+import { PacioliWebController } from "../pacioli-web-controller";
 import { PacioliParameter, parameterNodes, parseParameterNode } from "../utils";
 
 /**
@@ -13,7 +13,7 @@ import { PacioliParameter, parameterNodes, parseParameterNode } from "../utils";
  *
  * <pacioli-inputs for="my_scene"></pacioli-inputs>
  */
-export class PacioliInputsComponent extends PacioliWebComponentFollower {
+export class PacioliInputsComponent extends PacioliWebController {
   /**
    * Inputs for the scene parameters
    */

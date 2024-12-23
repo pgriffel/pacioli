@@ -78,7 +78,7 @@ export abstract class PacioliWebComponent
    * Implementation of the PacioliWebComponent api.
    */
   clearContent() {
-    const parent = this.contentDiv;
+    const parent = this.contentParent();
     while (parent.firstChild) {
       parent.removeChild(parent.firstChild);
     }

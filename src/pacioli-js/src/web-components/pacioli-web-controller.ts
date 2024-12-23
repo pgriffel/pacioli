@@ -6,21 +6,15 @@ import {
 } from "./utils";
 
 /**
- * Web component with controls for the PacioliScene web component.
- *
- *
- * @example
- * <pacioli-scene id="my_scene" ... >
- *    <parameter> ... </parameter>
- *    ...
- * </pacioli-scene>
- *
- * <pacioli-inputs for="my_scene"></pacioli-inputs>
+ * Abstract base class for Pacioli web component controllers.
  */
-export abstract class PacioliWebComponentFollower
+export abstract class PacioliWebController
   extends HTMLElement
   implements PacioliWebComponentBase, Follower
 {
+  /**
+   * The content div
+   */
   private readonly parentDiv: HTMLDivElement = document.createElement("div");
 
   /**
@@ -60,10 +54,10 @@ export abstract class PacioliWebComponentFollower
   }
 
   /**
-   * Makes the parent element (not the root) empty.
+   *Implementation for PacioliWebComponentBase
    */
   clearContent(): void {
-    const parent = this.parentDiv;
+    const parent = this.contentParent();
     while (parent.firstChild) {
       parent.removeChild(parent.firstChild);
     }
@@ -80,23 +74,33 @@ export abstract class PacioliWebComponentFollower
    * Implementation for Follower
    */
   followAttached(callback: () => void) {
-    this.follow(this.getAttribute("for") || "", callback);
+    const followedId = this.getAttribute("for");
+    if (followedId) {
+      this.follow(followedId, callback);
+    } else {
+      throw Error(
+        `could not subscribe to Pacioli web component. No 'for' attribute found.`
+      );
+    }
   }
 
   /**
    * Implementation for Follower
    */
-  follow(id: string, callback: () => void) {
+  follow(elementId: string, callback: () => void) {
     this.unfollow();
 
-    const element = getPacioliWebComponentById(id);
+    const element = getPacioliWebComponentById(elementId);
 
     if (element) {
-      this.followedComponentId = id;
+      this.followedComponentId = elementId;
       this.callback = callback;
+
       element.registerCallback(callback);
     } else {
-      throw Error(`Could not subscribe Pacioli web component follower ${id}`);
+      throw Error(
+        `could not subscribe to Pacioli web component. Element '${elementId}' is not a known Pacioli web component.`
+      );
     }
   }
 
@@ -104,16 +108,16 @@ export abstract class PacioliWebComponentFollower
    * Implementation for Follower
    */
   unfollow() {
-    const id = this.followedComponentId;
+    const followedId = this.followedComponentId;
 
-    if (id) {
-      const element = getPacioliWebComponentById(id);
+    if (followedId) {
+      const followedComponent = getPacioliWebComponentById(followedId);
 
-      if (element && this.callback) {
-        element.unregisterCallback(this.callback);
+      if (followedComponent && this.callback) {
+        followedComponent.unregisterCallback(this.callback);
       } else {
         console.warn(
-          `Could not unsubscribe Pacioli web component follower ${id}`
+          `Could not unsubscribe from Pacioli web component. Element ${followedId} not found.`
         );
       }
     }

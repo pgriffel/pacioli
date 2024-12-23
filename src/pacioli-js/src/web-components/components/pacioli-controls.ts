@@ -1,4 +1,4 @@
-import { PacioliWebComponentFollower } from "../pacioli-web-component-follower";
+import { PacioliWebController } from "../pacioli-web-controller";
 import { PacioliSceneComponent } from "./pacioli-scene";
 
 /**
@@ -13,7 +13,7 @@ import { PacioliSceneComponent } from "./pacioli-scene";
  *
  * <pacioli-controls for="my_scene"></pacioli-controls>
  */
-export class PacioliControlsComponent extends PacioliWebComponentFollower {
+export class PacioliControlsComponent extends PacioliWebController {
   /**
    * Auto-rotation speed
    */
