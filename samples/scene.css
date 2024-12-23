@@ -14,7 +14,7 @@ pacioli-scene {
     flex-direction: row;
 }
 
-.pacioli-inputs {
+.pacioli-inputs-content, .NOpacioli-controls-content {
     margin-left: 10pt;
     margin-bottom: 10pt;
     padding: 10pt;
