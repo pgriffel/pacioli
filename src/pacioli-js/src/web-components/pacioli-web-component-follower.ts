@@ -38,29 +38,22 @@ export abstract class PacioliWebComponentFollower
     super();
   }
 
+  /**
+   * Web component life-cycle event.
+   */
   connectedCallback() {
-    // The parent to which elements will be added
-    // const parent = this.rootElement();
-
-    // Alternative that uses a shadow DOM with its own style sheet.
-    // How can we use the shadow DOM and still allow overriding the
-    // style of the controls?
-
-    // const parent = this.attachShadow({ mode: "open" });
-    // const sheet = new CSSStyleSheet();
-    // sheet.replaceSync("button { color: red; border: 2px dotted black;}");
-    // parent.adoptedStyleSheets = [sheet];
-
-    // Add the parent elements
     this.rootElement().appendChild(this.contentParent());
   }
 
+  /**
+   * Implementation for PacioliWebComponentBase
+   */
   rootElement(): HTMLElement {
     return this;
   }
 
   /**
-   * Element to append content.
+   * Implementation for PacioliWebComponentBase
    */
   contentParent(): HTMLElement {
     return this.parentDiv;
@@ -69,16 +62,30 @@ export abstract class PacioliWebComponentFollower
   /**
    * Makes the parent element (not the root) empty.
    */
-  clearContent(): void {}
+  clearContent(): void {
+    const parent = this.parentDiv;
+    while (parent.firstChild) {
+      parent.removeChild(parent.firstChild);
+    }
+  }
 
+  /**
+   * Implementation for Follower
+   */
   attachedComponent(): PacioliWebComponent | null {
     return attachedPacioliWebComponent(this);
   }
 
+  /**
+   * Implementation for Follower
+   */
   followAttached(callback: () => void) {
     this.follow(this.getAttribute("for") || "", callback);
   }
 
+  /**
+   * Implementation for Follower
+   */
   follow(id: string, callback: () => void) {
     this.unfollow();
 
@@ -93,6 +100,9 @@ export abstract class PacioliWebComponentFollower
     }
   }
 
+  /**
+   * Implementation for Follower
+   */
   unfollow() {
     const id = this.followedComponentId;
 

@@ -85,19 +85,12 @@ export abstract class PacioliWebComponent
   }
 
   /**
-   * Implementation of the PacioliWebComponent api. Does nothing.
+   * Implementation of the Callable api. Does nothing.
    */
   parametersChanged(): void {}
 
   /**
-   * Implementation of the PacioliWebComponent api. Always false.
-   */
-  isBusy(): boolean {
-    return false;
-  }
-
-  /**
-   * Implementation of the PacioliWebComponent api.
+   * Implementation of the Callable api.
    */
   setParameters(values: string[]) {
     setParameterNodes(this, values);
@@ -105,28 +98,28 @@ export abstract class PacioliWebComponent
   }
 
   /**
-   * Implementation of the PacioliWebComponent api.
+   * Implementation of the Callable api.
    */
   fetchData(): PacioliValue {
     return callWebComponentFunction(this);
   }
 
   /**
-   * Implementation of the PacioliWebComponent api.
+   * Implementation of the Followed api.
    */
   registerCallback(callback: () => void) {
     this.callbacks.push(callback);
   }
 
   /**
-   * Implementation of the PacioliWebComponent api.
+   * Implementation of the Followed api.
    */
   unregisterCallback(callback: () => void) {
     this.callbacks = this.callbacks.filter((obj) => obj !== callback);
   }
 
   /**
-   * Implementation of the PacioliWebComponent api.
+   * Implementation of the Followed api.
    */
   callCallbacks() {
     for (let callback of this.callbacks) {
@@ -135,7 +128,14 @@ export abstract class PacioliWebComponent
   }
 
   /**
-   * Implementation of the PacioliWebComponent api.
+   * Implementation of the Followed api. Always false.
+   */
+  isBusy(): boolean {
+    return false;
+  }
+
+  /**
+   * Implementation of the ErrorOutput api.
    */
   displayError(message: string) {
     console.log(message);
@@ -145,7 +145,7 @@ export abstract class PacioliWebComponent
   }
 
   /**
-   * Clears the text of the error output and hides the error element.
+   * Implementation of the ErrorOutput api.
    */
   clearErrors() {
     this.errorElements.text.innerText = "";
