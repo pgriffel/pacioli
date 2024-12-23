@@ -1,13 +1,13 @@
 import { si, SIUnit, UOM } from "uom-ts";
-import { PacioliContext } from "../context";
-import { BarChart, BarChartOptions } from "../charts/d3-bar-chart";
-import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
+import { PacioliContext } from "../../context";
+import { BarChart, BarChartOptions } from "../../charts/d3-bar-chart";
+import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import {
   optionalStringAttributes,
   optionalBooleanAttributes,
   optionalNumberAttributes,
-} from "./utils";
-import { dataUnit } from "../charts/chart-utils";
+} from "../utils";
+import { dataUnit } from "../../charts/chart-utils";
 
 /**
  * Web component for a bar chart. A wrapper around the BarChart class.
@@ -63,9 +63,9 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
     }
 
     // Refresh the chart
-    this.clearParentDiv();
+    this.clearContent();
     this.chart = new BarChart(data, PacioliContext.si(), this.chartOptions());
-    this.chart.draw(this.parentDiv());
+    this.chart.draw(this.contentParent());
   }
 
   /**

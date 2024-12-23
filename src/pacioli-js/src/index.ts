@@ -210,12 +210,12 @@ export {
 
 export { internUnit, matrixShapeFromType } from "./boxing";
 
-export { PacioliSceneComponent } from "./web-components/pacioli-scene";
-export { PacioliControlsComponent } from "./web-components/pacioli-controls";
-export { PacioliInputsComponent } from "./web-components/pacioli-inputs";
-export { PacioliLineChartComponent } from "./web-components/pacioli-line-chart";
-export { PacioliBarChartComponent } from "./web-components/pacioli-bar-chart";
-export { PacioliHistogramComponent } from "./web-components/pacioli-histogram";
-export { PacioliPieChartComponent } from "./web-components/pacioli-pie-chart";
-export { PacioliScatterPlotComponent } from "./web-components/pacioli-scatter-plot";
-export { PacioliWordCloudComponent } from "./web-components/pacioli-wordcloud";
+export { PacioliSceneComponent } from "./web-components/components/pacioli-scene";
+export { PacioliControlsComponent } from "./web-components/components/pacioli-controls";
+export { PacioliInputsComponent } from "./web-components/components/pacioli-inputs";
+export { PacioliLineChartComponent } from "./web-components/components/pacioli-line-chart";
+export { PacioliBarChartComponent } from "./web-components/components/pacioli-bar-chart";
+export { PacioliHistogramComponent } from "./web-components/components/pacioli-histogram";
+export { PacioliPieChartComponent } from "./web-components/components/pacioli-pie-chart";
+export { PacioliScatterPlotComponent } from "./web-components/components/pacioli-scatter-plot";
+export { PacioliWordCloudComponent } from "./web-components/components/pacioli-wordcloud";

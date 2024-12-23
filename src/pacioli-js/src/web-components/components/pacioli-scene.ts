@@ -5,14 +5,14 @@ import {
   Animation,
   StatefulAnimation,
   SpaceOptions,
-} from "../space";
-import { PacioliValue } from "../value";
-import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
+} from "../../space";
+import { PacioliValue } from "../../value";
+import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import {
   optionalBooleanAttributes,
   optionalNumberAttributes,
   optionalStringAttributes,
-} from "./utils";
+} from "../utils";
 
 /**
  * Web component for a 3D Pacioli space. A wrapper around the Space class.
@@ -52,7 +52,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
     super.connectedCallback();
 
     // Create the Space
-    this.space = new Space(this.parentDiv(), this.spaceOptions());
+    this.space = new Space(this.contentParent(), this.spaceOptions());
   }
 
   /**

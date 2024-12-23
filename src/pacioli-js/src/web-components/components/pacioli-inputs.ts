@@ -1,10 +1,5 @@
-import { PacioliWebComponent } from "./pacioli-web-component";
-import {
-  attachedPacioliWebComponent,
-  PacioliParameter,
-  parameterNodes,
-  parseParameterNode,
-} from "./utils";
+import { PacioliWebComponentFollower } from "../pacioli-web-component-follower";
+import { PacioliParameter, parameterNodes, parseParameterNode } from "../utils";
 
 /**
  * Web component with controls for the PacioliScene web component.
@@ -18,57 +13,61 @@ import {
  *
  * <pacioli-inputs for="my_scene"></pacioli-inputs>
  */
-export class PacioliInputsComponent extends HTMLElement {
-  // Parent for the controls.
-  parentDiv: HTMLDivElement = document.createElement("div");
-
-  // Inputs for the scene parameters
-  inputs?: {
+export class PacioliInputsComponent extends PacioliWebComponentFollower {
+  /**
+   * Inputs for the scene parameters
+   */
+  private inputs?: {
     parameter: PacioliParameter;
     element: HTMLInputElement;
   }[];
 
-  // Table of parameters inputs
-  table?: HTMLTableElement;
+  /**
+   * Table of parameters inputs
+   */
+  private table?: HTMLTableElement;
 
-  // The button
-  applyButton = createButton("Apply", () => this.resetButtonClicked());
+  /**
+   * The apply button
+   */
+  private readonly applyButton = createButton("Apply", () =>
+    this.applyButtonClicked()
+  );
 
   constructor() {
     super();
   }
 
-  controlledElement(): PacioliWebComponent | undefined {
-    return attachedPacioliWebComponent(this);
+  /**
+   * Web component life-cycle event.
+   */
+  attributeChangedCallback(name: string, _: string, next: string) {
+    switch (name) {
+      case "for": {
+        this.unfollow();
+        this.removeElements();
+        this.createAndAppendElements();
+        this.follow(next, () => this.updateControls());
+        break;
+      }
+    }
   }
 
   /**
    * Web component life-cycle event.
    */
   connectedCallback() {
-    // The parent to which elements will be added
-    const parent = this;
+    super.connectedCallback();
 
-    // Alternative that uses a shadow DOM with its own style sheet.
-    // How can we use the shadow DOM and still allow overriding the
-    // style of the controls?
+    // Set the CSS class name for styling
+    this.contentParent().className = "pacioli-inputs-content";
 
-    // const parent = this.attachShadow({ mode: "open" });
-    // const sheet = new CSSStyleSheet();
-    // sheet.replaceSync("button { color: red; border: 2px dotted black;}");
-    // parent.adoptedStyleSheets = [sheet];
-
-    // Add the parent elements
-    this.parentDiv.className = "pacioli-inputs";
-
-    parent.appendChild(this.parentDiv);
-
+    // Add the content
     this.createAndAppendElements();
-    this.parentDiv.appendChild(this.applyButton);
 
     // If we are connected to a scene, then we need to keep the
     // state of the buttons synchronized with the scene animation.
-    this.attachToControlledElement();
+    this.followAttached(() => this.updateControls());
 
     // Make sure the proper buttons are shown and enabled
     this.updateControls();
@@ -80,43 +79,16 @@ export class PacioliInputsComponent extends HTMLElement {
     this.table = createParameterTable(this.inputs);
 
     // Add the new elements to the parent
-    this.parentDiv.appendChild(this.table);
+    this.contentParent().appendChild(this.table);
+    this.contentParent().appendChild(this.applyButton);
   }
 
   removeElements() {
     if (this.table) {
-      this.parentDiv.removeChild(this.table);
+      this.clearContent();
+
       this.table = undefined;
       this.inputs = undefined;
-    }
-  }
-
-  attachToControlledElement() {
-    const element = this.controlledElement();
-    if (element) {
-      element.registerCallback(this.updateControls.bind(this)); // .bind(this) ?
-    }
-  }
-
-  detachFromControlledElement() {
-    const element = this.controlledElement();
-    if (element) {
-      element.unregisterCallback(this.updateControls.bind(this)); // .bind(this) ?
-    }
-  }
-
-  /**
-   * Web component life-cycle event.
-   */
-  attributeChangedCallback(name: string, _: string, __: string) {
-    switch (name) {
-      case "for": {
-        this.detachFromControlledElement();
-        this.removeElements();
-        this.createAndAppendElements();
-        this.attachToControlledElement();
-        break;
-      }
     }
   }
 
@@ -129,7 +101,7 @@ export class PacioliInputsComponent extends HTMLElement {
     parameter: PacioliParameter;
     element: HTMLInputElement;
   }[] {
-    const scene = this.controlledElement();
+    const scene = this.attachedComponent();
     if (scene) {
       return createParameterInputs(
         parameterNodes(scene).map(parseParameterNode),
@@ -143,13 +115,11 @@ export class PacioliInputsComponent extends HTMLElement {
   /**
    * Handler for the reset button
    */
-  private resetButtonClicked() {
-    const scene = this.controlledElement();
+  private applyButtonClicked() {
+    const scene = this.attachedComponent();
     if (scene && this.inputs) {
       try {
         scene.setParameters(this.inputs.map((input) => input.element.value));
-        // scene.reset();
-        scene.parametersChanged();
         this.updateControls();
       } catch (error: any) {
         scene.displayError(error);
@@ -162,7 +132,7 @@ export class PacioliInputsComponent extends HTMLElement {
    * button labels for the animation buttons.
    */
   private updateControls() {
-    const scene = this.controlledElement();
+    const scene = this.attachedComponent();
 
     if (scene) {
       this.applyButton.disabled = scene.isBusy();

@@ -1,3 +1,4 @@
+import { PacioliWebComponentFollower } from "../pacioli-web-component-follower";
 import { PacioliSceneComponent } from "./pacioli-scene";
 
 /**
@@ -12,29 +13,16 @@ import { PacioliSceneComponent } from "./pacioli-scene";
  *
  * <pacioli-controls for="my_scene"></pacioli-controls>
  */
-export class PacioliControlsComponent extends HTMLElement {
-  // Auto-rotation speed
+export class PacioliControlsComponent extends PacioliWebComponentFollower {
+  /**
+   * Auto-rotation speed
+   */
   static SECONDS_PER_ROTATION = 30;
-
-  // Web component field
-  static observedAttributes = ["for"];
-
-  // Id of the connected PacioliScene
-  for?: string;
 
   // The controls are divided into animation controls and configuration
   // controls
   animationElement: HTMLDivElement = document.createElement("div");
   configurationElement: HTMLDivElement = document.createElement("div");
-
-  // // Inputs for the scene parameters
-  // inputs?: {
-  //   parameter: PacioliParameter;
-  //   element: HTMLInputElement;
-  // }[];
-
-  // // Table of parameters inputs
-  // table?: HTMLTableElement;
 
   // The buttons
   stepButton = createButton("Step", () => this.stepButtonClicked());
@@ -61,33 +49,23 @@ export class PacioliControlsComponent extends HTMLElement {
    * Web component life-cycle event.
    */
   connectedCallback() {
+    super.connectedCallback();
+
     // The parent to which elements will be added
-    const parent = this;
+    const parent = this.contentParent();
 
-    // Alternative that uses a shadow DOM with its own style sheet.
-    // How can we use the shadow DOM and still allow overriding the
-    // style of the controls?
-
-    // const parent = this.attachShadow({ mode: "open" });
-    // const sheet = new CSSStyleSheet();
-    // sheet.replaceSync("button { color: red; border: 2px dotted black;}");
-    // parent.adoptedStyleSheets = [sheet];
-
-    // Add the parent elements
+    // Set the CSS styles
+    this.contentParent().className = "pacioli-controls-content";
     this.animationElement.className = "pacioli-controls-animation";
     this.configurationElement.className = "pacioli-controls-configuration";
 
+    // Add the parent elements
     parent.appendChild(this.animationElement);
     parent.appendChild(this.configurationElement);
-
-    // // Create a table of inputs for the scene parameters
-    // this.inputs = this.createInputs();
-    // this.table = createParameterTable(this.inputs);
 
     // Add the new elements to the parent
     this.animationElement.appendChild(this.startButton);
     this.animationElement.appendChild(this.stepButton);
-    // this.animationElement.appendChild(this.table);
     this.animationElement.appendChild(this.resetButton);
 
     this.configurationElement.appendChild(this.axisCheckBox);
@@ -100,22 +78,7 @@ export class PacioliControlsComponent extends HTMLElement {
 
     // If we are connected to a scene, then we need to keep the
     // state of the buttons synchronized with the scene animation.
-    const scene = this.sceneElement();
-    if (scene) {
-      scene.registerCallback(() => this.updateControls());
-    }
-  }
-
-  /**
-   * Web component life-cycle event.
-   */
-  attributeChangedCallback(name: string, _: string, newValue: string) {
-    switch (name) {
-      case "for": {
-        this.for = newValue;
-        break;
-      }
-    }
+    this.followAttached(() => this.updateControls());
   }
 
   /**
@@ -125,30 +88,9 @@ export class PacioliControlsComponent extends HTMLElement {
    * @returns The connected PacioliScene, or undefined if no connected scene exists.
    */
   sceneElement(): PacioliSceneComponent | undefined {
-    return this.for
-      ? (document.getElementById(this.for) as PacioliSceneComponent)
-      : undefined;
+    const component = this.attachedComponent();
+    return component ? (component as PacioliSceneComponent) : undefined;
   }
-
-  // /**
-  //  * Create inputs for the scene parameters
-  //  *
-  //  * @returns List of objects with a 'paramater' and a 'input' field.
-  //  */
-  // private createInputs(): {
-  //   parameter: PacioliParameter;
-  //   element: HTMLInputElement;
-  // }[] {
-  //   const scene = this.sceneElement();
-  //   if (scene) {
-  //     return createParameterInputs(
-  //       parameterNodes(scene).map(parseParameterNode),
-  //       () => this.resetButton.click()
-  //     );
-  //   } else {
-  //     return [];
-  //   }
-  // }
 
   /**
    * Handler for the start button
@@ -307,9 +249,6 @@ export class PacioliControlsComponent extends HTMLElement {
         this.resetButton.disabled = isRunning;
         this.startButton.disabled = false;
       } else {
-        // this.animationElement.hidden =
-        //   this.inputs === undefined || this.inputs.length === 0;
-
         this.animationElement.hidden = true;
         this.stepButton.hidden = true;
         this.startButton.hidden = true;

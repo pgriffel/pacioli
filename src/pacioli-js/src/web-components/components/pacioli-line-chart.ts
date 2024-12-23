@@ -1,23 +1,27 @@
-import { WordCloud, WordCloudOptions } from "../charts/d3-wordcloud";
-import { PacioliValue } from "../value";
-import { Matrix } from "../values/matrix";
-import { getNumber } from "../values/numbers";
-import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
+import { si, SIUnit, UOM } from "uom-ts";
+import { LineChart, LineChartOptions } from "../../charts/d3-line-chart";
+import { PacioliContext } from "../../context";
+import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
+import { dataUnit } from "../../charts/chart-utils";
 import {
   optionalBooleanAttributes,
   optionalNumberAttributes,
   optionalStringAttributes,
-} from "./utils";
+} from "../utils";
 
 /**
- * Web component for a line chart. A wrapper around the WordCloud class.
+ * Web component for a line chart. A wrapper around the LineChart class.
  */
-export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
+export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
+  // The unit of measurement. Is derived from the data if no unit attribute
+  // is given.
+  unit?: SIUnit;
+
   // The bar chart
-  chart?: WordCloud;
+  chart?: LineChart;
 
   // Web component field.
-  static observedAttributes = [];
+  static observedAttributes = ["unit"];
 
   constructor() {
     super();
@@ -28,15 +32,29 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
     this.root.adoptedStyleSheets = [sheet];
   }
 
-  override parametersChanged() {
-    // Compute the words
-    const words = wordData(this.fetchData());
+  override parametersChanged(): void {
+    const data = this.fetchData();
 
-    this.clearParentDiv();
+    if (this.unit === undefined) {
+      this.unit = dataUnit(data);
+    }
 
-    // Add a new word cloud to the fresh DIV
-    this.chart = new WordCloud(words, this.chartOptions());
-    this.chart.draw(this.parentDiv());
+    this.clearContent();
+
+    this.chart = new LineChart(data, PacioliContext.si(), this.chartOptions());
+    this.chart.draw(this.contentParent());
+  }
+
+  /**
+   * Web component life-cycle event.
+   */
+  attributeChangedCallback(name: string, _: string, newValue: string) {
+    switch (name) {
+      case "unit": {
+        this.unit = si.parseDimNum(newValue).unit;
+        break;
+      }
+    }
   }
 
   /**
@@ -44,10 +62,11 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
    *
    * @returns An object with only the entries that are found in the attributes.
    */
-  chartOptions(): Partial<WordCloudOptions> {
+  chartOptions(): Partial<LineChartOptions> {
     return {
-      ...optionalStringAttributes(this, [""]),
-      ...optionalBooleanAttributes(this, [""]),
+      unit: this.unit || UOM.ONE,
+      ...optionalStringAttributes(this, ["label"]),
+      ...optionalBooleanAttributes(this, ["smooth"]),
       ...optionalNumberAttributes(this, ["width", "height"]),
     };
   }
@@ -60,22 +79,6 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
   styleSheet(): string {
     return `   
     
-.pacioli-pie-chart {
-
-}
-
-.pacioli-pie-chart path.slice {
-	stroke-width:2px;
-}
-
-
-.pacioli-pie-chart polyline {
-	opacity: .3;
-	stroke: black;
-	stroke-width: 2px;
-	fill: none;
-}
-
 .pacioli-ts-chart path {
     stroke-width: 1;
     fill: none;
@@ -141,15 +144,4 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
   }
 }
 
-customElements.define("pacioli-wordcloud", PacioliWordCloudComponent);
-
-function wordData(data: PacioliValue) {
-  const words = data as unknown as [any, Matrix][];
-  return words.map(
-    (word) =>
-      [word[0].value, getNumber(word[1].numbers, 0, 0)] as unknown as [
-        string,
-        number
-      ]
-  );
-}
+customElements.define("pacioli-line-chart", PacioliLineChartComponent);

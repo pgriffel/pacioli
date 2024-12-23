@@ -165,22 +165,34 @@ export function parseParameterNode(
  */
 export function attachedPacioliWebComponent(
   element: HTMLElement
-): PacioliWebComponent | undefined {
+): PacioliWebComponent | null {
   const elementId = element.getAttribute("for");
+  return elementId ? getPacioliWebComponentById(elementId) : null;
+}
 
-  if (elementId) {
-    const element = document.getElementById(elementId);
+/**
+ * The Pacioli web component that is referenced by an element's 'for' attribute. Returns
+ * undefined if no such component is found.
+ *
+ * @param element The element with the 'for' attribute
+ * @returns The referenced element, or undefined if it is not found.
+ */
+export function getPacioliWebComponentById(
+  elementId: string
+): PacioliWebComponent | null {
+  const element = document.getElementById(elementId);
 
-    if (element && "setParameters" in element) {
+  if (element) {
+    if ("setParameters" in element) {
       return element as PacioliWebComponent;
     } else {
       throw Error(
         `Id ${elementId} does not reference a Pacioli web component. Please provide a valid id.`
       );
     }
+  } else {
+    return null;
   }
-
-  return undefined;
 }
 
 /**

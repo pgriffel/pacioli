@@ -1,13 +1,13 @@
 import { si, SIUnit, UOM } from "uom-ts";
-import { PieChart, PieChartOptions } from "../charts/d3-pie-chart";
-import { PacioliContext } from "../context";
-import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
-import { dataUnit } from "../charts/chart-utils";
+import { PieChart, PieChartOptions } from "../../charts/d3-pie-chart";
+import { PacioliContext } from "../../context";
+import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
+import { dataUnit } from "../../charts/chart-utils";
 import {
   optionalBooleanAttributes,
   optionalNumberAttributes,
   optionalStringAttributes,
-} from "./utils";
+} from "../utils";
 
 /**
  * Web component for a line chart. A wrapper around the PieChart class.
@@ -39,10 +39,10 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
       this.unit = dataUnit(data);
     }
 
-    this.clearParentDiv();
+    this.clearContent();
 
     this.chart = new PieChart(data, PacioliContext.si(), this.chartOptions());
-    this.chart.draw(this.parentDiv());
+    this.chart.draw(this.contentParent());
   }
 
   /**

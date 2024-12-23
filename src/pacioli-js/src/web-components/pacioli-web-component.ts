@@ -1,81 +1,191 @@
+import { callWebComponentFunction, setParameterNodes } from "./utils";
 import { PacioliValue } from "../value";
+import {
+  Callable,
+  ErrorOutput,
+  Followed,
+  PacioliWebComponentBase,
+} from "./interfaces";
 
 /**
- * API for web components displaying some computed PacioliValue.
+ * Abstract base class for Pacioli web components.
  *
- * Extends the HTMLElement with
- * 1) Reading parameter values from the DOM and calling some script function with them
- * 2) Displaying errors
- * 3) A callback mechanism for synchronizing attached controls and inputs
  */
-export interface PacioliWebComponent extends HTMLElement {
+export abstract class PacioliWebComponent
+  extends HTMLElement
+  implements PacioliWebComponentBase, Callable, Followed, ErrorOutput
+{
   /**
-   * The web component root element. Has the error output and the content
-   * as children. Use the parentDiv to append content.
+   * HTML elements to display errors
    */
-  rootElement(): HTMLElement;
+  private errorElements = this.createErrorElements();
 
   /**
-   * Element to append content.
+   * Parent HTML element for the component's content.
    */
-  parentDiv(): HTMLElement;
+  private contentDiv = document.createElement("div");
 
   /**
-   * Makes the parent element (not the root) empty.
+   * List of registered callbacks. The callback mechanism is used by connected controls and
+   * input elements to get informed about relevant changes.
    */
-  clearParentDiv(): void;
+  private callbacks: (() => void)[] = [];
 
   /**
-   * Set the parameter values programmatically. Updates the values in the DOM children.
-   * Only sets the magnitudes. The units are fixed.
-   *
-   * @param values
+   * Just the instantiation. The actual building is done in the connectedCallback
+   * life cycle method.
    */
-  setParameters(values: string[]): void;
+  constructor() {
+    super();
+    this.contentDiv.className = "pacioli-web-component-content";
+  }
 
   /**
-   * Called when the parameters are changed, also initially after construction.
+   * Web component life-cycle event.
    */
-  parametersChanged(): void;
+  connectedCallback() {
+    const root = this.rootElement();
+
+    // Append the error elements
+    this.appendErrorDivs(root);
+    root.appendChild(this.contentDiv);
+
+    // Schedule a call to parametersChanged. It must be delayed until the DOM children exist.
+    // We need the children so we can get the parameter values.
+    setTimeout(() => {
+      try {
+        this.parametersChanged();
+      } catch (error: any) {
+        this.displayError(error);
+      }
+    }, 1); // On FireFox 0 is sufficient. Chrome requires > 0.
+  }
 
   /**
-   * Calls the function identified by the 'script' and the 'function' attributes.
-   *
-   * @returns A PacioliValue
+   * Implementation of the PacioliWebComponent api. Abstract method. Must return
+   * the component root element.
    */
-  fetchData(): PacioliValue;
+  abstract rootElement(): HTMLElement;
 
   /**
-   *
-   * @param callback
+   * Implementation of the PacioliWebComponent api.
    */
-  registerCallback(callback: () => void): void;
+  contentParent(): HTMLElement {
+    return this.contentDiv;
+  }
 
   /**
-   *
-   * @param callback
+   * Implementation of the PacioliWebComponent api.
    */
-  unregisterCallback(callback: () => void): void;
+  clearContent() {
+    const parent = this.contentDiv;
+    while (parent.firstChild) {
+      parent.removeChild(parent.firstChild);
+    }
+  }
 
   /**
-   *
+   * Implementation of the PacioliWebComponent api. Does nothing.
    */
-  callCallbacks(): void;
+  parametersChanged(): void {}
 
   /**
-   *
+   * Implementation of the PacioliWebComponent api. Always false.
    */
-  isBusy(): boolean;
+  isBusy(): boolean {
+    return false;
+  }
 
   /**
-   * Adds a line to the error output. Makes sure the error element is unhidden.
-   *
-   * @param message The text to add
+   * Implementation of the PacioliWebComponent api.
    */
-  displayError(message: string): void;
+  setParameters(values: string[]) {
+    setParameterNodes(this, values);
+    this.parametersChanged();
+  }
+
+  /**
+   * Implementation of the PacioliWebComponent api.
+   */
+  fetchData(): PacioliValue {
+    return callWebComponentFunction(this);
+  }
+
+  /**
+   * Implementation of the PacioliWebComponent api.
+   */
+  registerCallback(callback: () => void) {
+    this.callbacks.push(callback);
+  }
+
+  /**
+   * Implementation of the PacioliWebComponent api.
+   */
+  unregisterCallback(callback: () => void) {
+    this.callbacks = this.callbacks.filter((obj) => obj !== callback);
+  }
+
+  /**
+   * Implementation of the PacioliWebComponent api.
+   */
+  callCallbacks() {
+    for (let callback of this.callbacks) {
+      callback();
+    }
+  }
+
+  /**
+   * Implementation of the PacioliWebComponent api.
+   */
+  displayError(message: string) {
+    console.log(message);
+    this.errorElements.parent.hidden = false;
+    this.errorElements.text.innerText =
+      message + "\n\n" + this.errorElements.text.innerText;
+  }
 
   /**
    * Clears the text of the error output and hides the error element.
    */
-  clearErrors(): void;
+  clearErrors() {
+    this.errorElements.text.innerText = "";
+    this.errorElements.parent.hidden = true;
+  }
+
+  /**
+   * Creates HTML elements for displaying errors.
+   *
+   * @returns The error output elements
+   */
+  private createErrorElements() {
+    return {
+      parent: document.createElement("div"),
+      text: document.createElement("div"),
+      closeButton: document.createElement("button"),
+    };
+  }
+
+  /**
+   * Adds DOM elements for error output
+   *
+   * @param parent The component parent to which the elements are added
+   */
+  private appendErrorDivs(parent: HTMLElement) {
+    const parentElement = this.errorElements.parent;
+    const text = this.errorElements.text;
+    const closeButton = this.errorElements.closeButton;
+
+    parentElement.style.color = "red";
+    parentElement.style.background = "yellow";
+    parentElement.style.padding = "8pt";
+    parentElement.hidden = true;
+
+    closeButton.innerText = "Close";
+    closeButton.onclick = (_: Event) => this.clearErrors();
+
+    parent.appendChild(parentElement);
+
+    parentElement.appendChild(text);
+    parentElement.appendChild(closeButton);
+  }
 }

@@ -1,13 +1,13 @@
 import { si, SIUnit, UOM } from "uom-ts";
-import { PacioliContext } from "../context";
-import { Histogram, HistogramOptions } from "../charts/d3-histogram";
-import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
+import { PacioliContext } from "../../context";
+import { Histogram, HistogramOptions } from "../../charts/d3-histogram";
+import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import {
   optionalStringAttributes,
   optionalBooleanAttributes,
   optionalNumberAttributes,
-} from "./utils";
-import { dataUnit } from "../charts/chart-utils";
+} from "../utils";
+import { dataUnit } from "../../charts/chart-utils";
 
 /**
  * Web component for a bar chart. A wrapper around the Histogram class.
@@ -39,10 +39,10 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
       this.unit = dataUnit(data);
     }
 
-    this.clearParentDiv();
+    this.clearContent();
 
     this.chart = new Histogram(data, PacioliContext.si(), this.chartOptions());
-    this.chart.draw(this.parentDiv());
+    this.chart.draw(this.contentParent());
   }
 
   /**
@@ -67,7 +67,13 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
       unit: this.unit || UOM.ONE,
       ...optionalStringAttributes(this, ["label"]),
       ...optionalBooleanAttributes(this, ["smooth"]),
-      ...optionalNumberAttributes(this, ["width", "height", "bins"]),
+      ...optionalNumberAttributes(this, [
+        "width",
+        "height",
+        "bins",
+        "lower",
+        "upper",
+      ]),
     };
   }
 

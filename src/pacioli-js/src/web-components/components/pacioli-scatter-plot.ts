@@ -1,24 +1,26 @@
 import { si, SIUnit, UOM } from "uom-ts";
-import { LineChart, LineChartOptions } from "../charts/d3-line-chart";
-import { PacioliContext } from "../context";
-import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
-import { dataUnit } from "../charts/chart-utils";
+import { ScatterPlot, ScatterPlotOptions } from "../../charts/d3-scatter-plot";
+import { PacioliContext } from "../../context";
+import { PacioliValue } from "../../value";
+import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
+import { dataUnit } from "../../charts/chart-utils";
 import {
   optionalBooleanAttributes,
   optionalNumberAttributes,
   optionalStringAttributes,
-} from "./utils";
+} from "../utils";
 
 /**
- * Web component for a line chart. A wrapper around the LineChart class.
+ * Web component for a line chart. A wrapper around the ScatterPlot class.
  */
-export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
+export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
   // The unit of measurement. Is derived from the data if no unit attribute
   // is given.
-  unit?: SIUnit;
+  xunit?: SIUnit;
+  yunit?: SIUnit;
 
   // The bar chart
-  chart?: LineChart;
+  chart?: ScatterPlot;
 
   // Web component field.
   static observedAttributes = ["unit"];
@@ -35,14 +37,29 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
   override parametersChanged(): void {
     const data = this.fetchData();
 
-    if (this.unit === undefined) {
-      this.unit = dataUnit(data);
+    if (data.kind !== "tuple") {
+      throw Error("data must be a pair");
     }
 
-    this.clearParentDiv();
+    const tuple = data as unknown as PacioliValue[];
 
-    this.chart = new LineChart(data, PacioliContext.si(), this.chartOptions());
-    this.chart.draw(this.parentDiv());
+    const xdata = tuple[0];
+    const ydata = tuple[1];
+
+    if (this.xunit === undefined) {
+      this.xunit = dataUnit(xdata);
+    }
+    if (this.yunit === undefined) {
+      this.yunit = dataUnit(ydata);
+    }
+
+    this.chart = new ScatterPlot(
+      xdata,
+      ydata,
+      PacioliContext.si(),
+      this.chartOptions()
+    );
+    this.chart.draw(this.contentParent());
   }
 
   /**
@@ -51,7 +68,7 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
   attributeChangedCallback(name: string, _: string, newValue: string) {
     switch (name) {
       case "unit": {
-        this.unit = si.parseDimNum(newValue).unit;
+        this.xunit = si.parseDimNum(newValue).unit;
         break;
       }
     }
@@ -62,9 +79,10 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    *
    * @returns An object with only the entries that are found in the attributes.
    */
-  chartOptions(): Partial<LineChartOptions> {
+  chartOptions(): Partial<ScatterPlotOptions> {
     return {
-      unit: this.unit || UOM.ONE,
+      xunit: this.xunit || UOM.ONE,
+      yunit: this.yunit || UOM.ONE,
       ...optionalStringAttributes(this, ["label"]),
       ...optionalBooleanAttributes(this, ["smooth"]),
       ...optionalNumberAttributes(this, ["width", "height"]),
@@ -79,6 +97,22 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
   styleSheet(): string {
     return `   
     
+.pacioli-pie-chart {
+
+}
+
+.pacioli-pie-chart path.slice {
+	stroke-width:2px;
+}
+
+
+.pacioli-pie-chart polyline {
+	opacity: .3;
+	stroke: black;
+	stroke-width: 2px;
+	fill: none;
+}
+
 .pacioli-ts-chart path {
     stroke-width: 1;
     fill: none;
@@ -144,4 +178,4 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
   }
 }
 
-customElements.define("pacioli-line-chart", PacioliLineChartComponent);
+customElements.define("pacioli-scatter-plot", PacioliScatterPlotComponent);
