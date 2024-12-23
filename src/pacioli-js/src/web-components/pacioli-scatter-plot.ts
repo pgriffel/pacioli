@@ -34,10 +34,9 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
     this.root.adoptedStyleSheets = [sheet];
   }
 
-  /**
-   * Web component life-cycle event.
-   */
-  override dataAvailable(data: PacioliValue) {
+  override parametersChanged(): void {
+    const data = this.fetchData();
+
     if (data.kind !== "tuple") {
       throw Error("data must be a pair");
     }
@@ -60,7 +59,7 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
       PacioliContext.si(),
       this.chartOptions()
     );
-    this.chart.draw(this.rootElement());
+    this.chart.draw(this.parentDiv());
   }
 
   /**

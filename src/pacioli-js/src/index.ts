@@ -212,6 +212,7 @@ export { internUnit, matrixShapeFromType } from "./boxing";
 
 export { PacioliSceneComponent } from "./web-components/pacioli-scene";
 export { PacioliControlsComponent } from "./web-components/pacioli-controls";
+export { PacioliInputsComponent } from "./web-components/pacioli-inputs";
 export { PacioliLineChartComponent } from "./web-components/pacioli-line-chart";
 export { PacioliBarChartComponent } from "./web-components/pacioli-bar-chart";
 export { PacioliHistogramComponent } from "./web-components/pacioli-histogram";

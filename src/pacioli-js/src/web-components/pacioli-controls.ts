@@ -88,7 +88,7 @@ export class PacioliControlsComponent extends HTMLElement {
     // Add the new elements to the parent
     this.animationElement.appendChild(this.startButton);
     this.animationElement.appendChild(this.stepButton);
-    this.animationElement.appendChild(this.table);
+    // this.animationElement.appendChild(this.table);
     this.animationElement.appendChild(this.resetButton);
 
     this.configurationElement.appendChild(this.axisCheckBox);
@@ -188,7 +188,7 @@ export class PacioliControlsComponent extends HTMLElement {
     const scene = this.sceneElement();
     if (scene && this.inputs) {
       try {
-        scene.setParameters(this.inputs.map((input) => input.element.value));
+        // scene.setParameters(this.inputs.map((input) => input.element.value));
         scene.reset();
         this.updateControls();
       } catch (error: any) {

@@ -28,28 +28,15 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
     this.root.adoptedStyleSheets = [sheet];
   }
 
-  /**
-   * Web component life-cycle event.
-   */
-  override dataAvailable(data: PacioliValue) {
-    const words = data as unknown as [any, Matrix][];
-    const words2 = words.map(
-      (word) =>
-        [word[0].value, getNumber(word[1].numbers, 0, 0)] as unknown as [
-          string,
-          number
-        ]
-    );
-    this.chart = new WordCloud(words2, this.chartOptions());
-    this.chart.draw(this.rootElement());
-  }
+  override parametersChanged() {
+    // Compute the words
+    const words = wordData(this.fetchData());
 
-  /**
-   * Web component life-cycle event.
-   */
-  attributeChangedCallback(name: string, _: string, _2: string) {
-    switch (name) {
-    }
+    this.clearParentDiv();
+
+    // Add a new word cloud to the fresh DIV
+    this.chart = new WordCloud(words, this.chartOptions());
+    this.chart.draw(this.parentDiv());
   }
 
   /**
@@ -155,3 +142,14 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
 }
 
 customElements.define("pacioli-wordcloud", PacioliWordCloudComponent);
+
+function wordData(data: PacioliValue) {
+  const words = data as unknown as [any, Matrix][];
+  return words.map(
+    (word) =>
+      [word[0].value, getNumber(word[1].numbers, 0, 0)] as unknown as [
+        string,
+        number
+      ]
+  );
+}

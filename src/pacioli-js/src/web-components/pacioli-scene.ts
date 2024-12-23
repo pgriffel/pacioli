@@ -38,27 +38,21 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   // The Pacioli space
   space?: Space;
 
-  // List of registered callbacks. The callback mechanism is used by connected PacioliControls
-  // elements to get informed about relevant changes.
-  callbacks: (() => void)[] = [];
-
   // Web component field.
-  static observedAttributes = ["kind", "unit"];
+  static observedAttributes = ["unit"];
 
   constructor() {
     super();
   }
 
-  override dataAvailable(data: PacioliValue) {
-    // Create a space and load the data
-    this.space = new Space(this.rootElement(), this.spaceOptions());
-    loadSpaceData(this.space, data, this.sceneKind());
+  /**
+   * Web component life-cycle event.
+   */
+  connectedCallback() {
+    super.connectedCallback();
 
-    // Call the registered callbacks
-    this.callCallbacks();
-
-    // Update the screen to show the loaded data
-    this.space.draw();
+    // Create the Space
+    this.space = new Space(this.parentDiv(), this.spaceOptions());
   }
 
   /**
@@ -74,6 +68,15 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   }
 
   /**
+   * Pacioli web component life-cycle event.
+   */
+  parametersChanged() {
+    if (this.space) {
+      this.fetchAndLoadData(this.space);
+    }
+  }
+
+  /**
    * Is the scene a static scene, a simple animation, or a stateful
    * animation? Each case uses different data.
    *
@@ -81,8 +84,9 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    */
   sceneKind(): "scene" | "animation" | "stateful-animation" {
     const kindAttribute = this.getAttribute("kind");
+
     if (kindAttribute === null) {
-      throw Error(`no 'kind' attribute on pacioli-scene. Please `);
+      throw Error(`no 'kind' attribute on pacioli-scene. Please provide one.`);
     } else {
       if (
         kindAttribute === "scene" ||
@@ -128,9 +132,16 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
     this.clearErrors();
 
     if (this.space && !this.space.isRunning()) {
-      loadSpaceData(this.space, this.fetchData(), this.sceneKind());
-      this.space.draw();
+      this.fetchAndLoadData(this.space);
     }
+  }
+
+  /**
+   *
+   * @returns
+   */
+  override isBusy(): boolean {
+    return this.isRunning() ?? false;
   }
 
   /**
@@ -150,6 +161,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   setRunning(running: boolean) {
     if (this.space) {
       this.space.setRunning(running);
+      this.callCallbacks();
     }
   }
 
@@ -165,23 +177,18 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   }
 
   /**
-   * Registers a callback. Currently only called after loading a scene. All other
-   * methods are called by the control element, so it can update itself. More calls
-   * can be added in the future if needed.
-   *
-   * @param {*} callback A function of zero arguments.
+   * Calls the script function with the current parameter values and loads the returned
+   * scene into the Pacioli space.
    */
-  registerCallback(callback: () => void) {
-    this.callbacks.push(callback);
-  }
+  private fetchAndLoadData(space: Space) {
+    // Compute the data and load it into the space
+    loadSpaceData(space, this.fetchData(), this.sceneKind());
 
-  /**
-   * Calls all registered callbacks.
-   */
-  callCallbacks() {
-    for (let callback of this.callbacks) {
-      callback();
-    }
+    // Update the screen to show the loaded data
+    space.draw();
+
+    // Synchronize any connected controls and inputs
+    this.callCallbacks();
   }
 }
 

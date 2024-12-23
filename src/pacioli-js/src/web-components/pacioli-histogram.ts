@@ -1,7 +1,6 @@
 import { si, SIUnit, UOM } from "uom-ts";
 import { PacioliContext } from "../context";
 import { Histogram, HistogramOptions } from "../charts/d3-histogram";
-import { PacioliValue } from "../value";
 import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
 import {
   optionalStringAttributes,
@@ -33,15 +32,17 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
     this.root.adoptedStyleSheets = [sheet];
   }
 
-  /**
-   * Web component life-cycle event.
-   */
-  override dataAvailable(data: PacioliValue) {
+  override parametersChanged(): void {
+    const data = this.fetchData();
+
     if (this.unit === undefined) {
       this.unit = dataUnit(data);
     }
+
+    this.clearParentDiv();
+
     this.chart = new Histogram(data, PacioliContext.si(), this.chartOptions());
-    this.chart.draw(this.rootElement());
+    this.chart.draw(this.parentDiv());
   }
 
   /**

@@ -1,7 +1,6 @@
 import { si, SIUnit, UOM } from "uom-ts";
 import { PieChart, PieChartOptions } from "../charts/d3-pie-chart";
 import { PacioliContext } from "../context";
-import { PacioliValue } from "../value";
 import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
 import { dataUnit } from "../charts/chart-utils";
 import {
@@ -33,15 +32,17 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
     this.root.adoptedStyleSheets = [sheet];
   }
 
-  /**
-   * Web component life-cycle event.
-   */
-  override dataAvailable(data: PacioliValue) {
+  override parametersChanged(): void {
+    const data = this.fetchData();
+
     if (this.unit === undefined) {
       this.unit = dataUnit(data);
     }
+
+    this.clearParentDiv();
+
     this.chart = new PieChart(data, PacioliContext.si(), this.chartOptions());
-    this.chart.draw(this.rootElement());
+    this.chart.draw(this.parentDiv());
   }
 
   /**

@@ -14,6 +14,15 @@ pacioli-scene {
     flex-direction: row;
 }
 
+.pacioli-inputs {
+    margin-left: 10pt;
+    margin-bottom: 10pt;
+    padding: 10pt;
+    border: var(--border);
+    NObackground: var(--bg-color);
+    NOcolor: var(--fg-color)
+}
+
 .pacioli-controls-animation {
     margin-left: 10pt;
     margin-bottom: 10pt;

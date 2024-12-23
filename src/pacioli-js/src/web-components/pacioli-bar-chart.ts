@@ -1,7 +1,6 @@
 import { si, SIUnit, UOM } from "uom-ts";
 import { PacioliContext } from "../context";
 import { BarChart, BarChartOptions } from "../charts/d3-bar-chart";
-import { PacioliValue } from "../value";
 import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
 import {
   optionalStringAttributes,
@@ -14,14 +13,20 @@ import { dataUnit } from "../charts/chart-utils";
  * Web component for a bar chart. A wrapper around the BarChart class.
  */
 export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
-  // The unit of measurement. Is derived from the data if no unit attribute
-  // is given.
+  /**
+   * The unit of measurement. Is derived from the data if no unit attribute
+   * is given.
+   */
   unit?: SIUnit;
 
-  // The bar chart
+  /**
+   * The bar chart
+   */
   chart?: BarChart;
 
-  // Web component field.
+  /**
+   * Web component field.
+   */
   static observedAttributes = ["unit"];
 
   constructor() {
@@ -36,17 +41,6 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
   /**
    * Web component life-cycle event.
    */
-  override dataAvailable(data: PacioliValue) {
-    if (this.unit === undefined) {
-      this.unit = dataUnit(data);
-    }
-    this.chart = new BarChart(data, PacioliContext.si(), this.chartOptions());
-    this.chart.draw(this.rootElement());
-  }
-
-  /**
-   * Web component life-cycle event.
-   */
   attributeChangedCallback(name: string, _: string, newValue: string) {
     switch (name) {
       case "unit": {
@@ -54,6 +48,24 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
         break;
       }
     }
+  }
+
+  /**
+   * Pacioli web component life-cycle event.
+   */
+  override parametersChanged(): void {
+    // Compute the data using the new parameter values
+    const data = this.fetchData();
+
+    // If no unit is known, then derive it from the data.
+    if (this.unit === undefined) {
+      this.unit = dataUnit(data);
+    }
+
+    // Refresh the chart
+    this.clearParentDiv();
+    this.chart = new BarChart(data, PacioliContext.si(), this.chartOptions());
+    this.chart.draw(this.parentDiv());
   }
 
   /**

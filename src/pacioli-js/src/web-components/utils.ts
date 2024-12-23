@@ -4,6 +4,7 @@ import { Matrix } from "../values/matrix";
 import { fun, num, string } from "../api";
 import { PacioliFunction } from "../values/function";
 import { PacioliValue } from "../value";
+import { PacioliWebComponent } from "./pacioli-web-component";
 
 /**
  * Types for the parsed PacioliSceneComponent parameters. The parameters are passed via
@@ -76,6 +77,24 @@ export function parameterNodes(element: HTMLElement): HTMLElement[] {
   ) as HTMLElement[];
 }
 
+export function setParameterNodes(element: HTMLElement, values: string[]) {
+  const children = parameterNodes(element);
+
+  if (children.length === values.length) {
+  } else {
+    const script = element.getAttribute("script");
+    const fun = element.getAttribute("function");
+
+    throw Error(
+      `invalid number of arugments for function ${fun} from ${script}. Expected ${children.length}, but got ${values.length}.`
+    );
+  }
+
+  for (let i = 0; i < children.length; i++) {
+    children[i].innerText = values[i];
+  }
+}
+
 /**
  * Turns the raw parameter attribues from a PacioliWebComponent parameter child node
  * into a PacioliParameter object.
@@ -135,6 +154,33 @@ export function parseParameterNode(
       `cannot read value ${value} for ${type} parameter ${label}:\n\n ${error}.`
     );
   }
+}
+
+/**
+ * The Pacioli web component that is referenced by an element's 'for' attribute. Returns
+ * undefined if no such component is found.
+ *
+ * @param element The element with the 'for' attribute
+ * @returns The referenced element, or undefined if it is not found.
+ */
+export function attachedPacioliWebComponent(
+  element: HTMLElement
+): PacioliWebComponent | undefined {
+  const elementId = element.getAttribute("for");
+
+  if (elementId) {
+    const element = document.getElementById(elementId);
+
+    if (element && "setParameters" in element) {
+      return element as PacioliWebComponent;
+    } else {
+      throw Error(
+        `Id ${elementId} does not reference a Pacioli web component. Please provide a valid id.`
+      );
+    }
+  }
+
+  return undefined;
 }
 
 /**
