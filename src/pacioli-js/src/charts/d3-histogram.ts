@@ -177,7 +177,7 @@ export class Histogram {
       const dataLower = hasLower ? (this.options.lower as number) : data.min;
       const dataUpper = hasUpper ? (this.options.upper as number) : data.max;
       const lower = hasLower ? dataLower : Math.floor(dataLower);
-      const upper = hasUpper ? dataUpper : Math.ceil(dataUpper);
+      const upper = hasUpper ? dataUpper : Math.ceil(dataUpper) + 1;
 
       // Create an array with the bin tresholds. The d3 library does not create bins
       // of uniform size. See
@@ -188,7 +188,7 @@ export class Histogram {
       // that amount as the number of bins. The actual bin array is discarded.
       const nrBins = hasBins
         ? (this.options.bins as number)
-        : d3.bin().domain([lower, upper])(data.values).length;
+        : d3.bin().domain([lower, upper])(data.values).length + 1;
       const binWidth = (upper - lower) / nrBins;
       const tresholds = [...Array(nrBins)].map((_, i) => i * binWidth + lower);
       const histogram = d3.bin().domain([lower, upper]).thresholds(tresholds);
