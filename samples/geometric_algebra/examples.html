@@ -39,6 +39,7 @@
             <parameter label="j2">5</parameter>
             <parameter label="k2">5</parameter>
         </pacioli-scene>
+        <pacioli-inputs for="scene_quaternion"></pacioli-inputs>
         <pacioli-controls for="scene_quaternion"></pacioli-controls>
     </div>
 
@@ -54,6 +55,7 @@
             <parameter label="mass" unit="gram">5</parameter>
             <parameter label="rx" unit="metre">2</parameter>
         </pacioli-scene>
+        <pacioli-inputs for="scene_torque1"></pacioli-inputs>
         <pacioli-controls for="scene_torque1"></pacioli-controls>
     </div>
 
@@ -85,6 +87,7 @@
             <parameter label="momentum factor" unit="metre / gram / metre^2 * second">0.1</parameter>
             <parameter label="velocity factor" unit="metre / metre * second">1</parameter>
         </pacioli-scene>
+        <pacioli-inputs for="scene_torque2"></pacioli-inputs>
         <pacioli-controls for="scene_torque2"></pacioli-controls>
     </div>
 
@@ -100,6 +103,7 @@
             <parameter label="x" unit="metre">3</parameter>
             <parameter label="y" unit="metre">3</parameter>
         </pacioli-scene>
+        <pacioli-inputs for="scene_cross1"></pacioli-inputs>
         <pacioli-controls for="scene_cross1"></pacioli-controls>
     </div>
 
@@ -115,6 +119,7 @@
             <parameter label="x" unit="1">3</parameter>
             <parameter label="y" unit="1">3</parameter>
         </pacioli-scene>
+        <pacioli-inputs for="scene_cross2"></pacioli-inputs>
         <pacioli-controls for="scene_cross2"></pacioli-controls>
     </div>
 
@@ -133,6 +138,7 @@
             <parameter label="z" unit="metre">2</parameter>
             <parameter label="wireframe">0</parameter>
         </pacioli-scene>
+        <pacioli-inputs for="scene_bivector1"></pacioli-inputs>
         <pacioli-controls for="scene_bivector1"></pacioli-controls>
     </div>
 
@@ -147,6 +153,7 @@
         <pacioli-scene id="scene_bivector2" script="bi_vector" function="scene2" kind="scene" perspective grid axis>
             <parameter label="wireframe" unit="1">0</parameter>
         </pacioli-scene>
+        <pacioli-inputs for="scene_bivector2"></pacioli-inputs>
         <pacioli-controls for="scene_bivector2"></pacioli-controls>
     </div>
 
@@ -166,6 +173,7 @@
             <parameter label="y" unit="metre">0</parameter>
             <parameter label="z" unit="metre">7</parameter>
         </pacioli-scene>
+        <pacioli-inputs for="scene_inner"></pacioli-inputs>
         <pacioli-controls for="scene_inner"></pacioli-controls>
     </div>
 
@@ -178,6 +186,7 @@
         <pacioli-scene id="scene_outer" script="outer_cos_sin" function="the_scene" kind="scene" perspective grid axis>
             <parameter label="i" unit="1">24</parameter>
         </pacioli-scene>
+        <pacioli-inputs for="scene_outer"></pacioli-inputs>
         <pacioli-controls for="scene_outer"></pacioli-controls>
     </div>
 
