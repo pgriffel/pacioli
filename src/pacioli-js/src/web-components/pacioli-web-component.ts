@@ -48,7 +48,7 @@ export abstract class PacioliWebComponent
 
     // Append the error elements
     this.appendErrorDivs(root);
-    root.appendChild(this.contentDiv);
+    root.appendChild(this.contentParent());
 
     // Schedule a call to parametersChanged. It must be delayed until the DOM children exist.
     // We need the children so we can get the parameter values.
