@@ -31,14 +31,20 @@ import {
  * </pacioli-scene>
  */
 export class PacioliSceneComponent extends PacioliShadowTreeComponent {
-  // The unit of measurement. Is CURRENTLY NOT derived from the data if no unit attribute
-  // is given.
+  /**
+   * The unit of measurement. Is CURRENTLY NOT derived from the data if no unit attribute
+   * is given.
+   */
   unit?: SIUnit;
 
-  // The Pacioli space
+  /**
+   * The Pacioli space
+   */
   space?: Space;
 
-  // Web component field.
+  /**
+   * Web component field.
+   */
   static observedAttributes = ["unit"];
 
   constructor() {

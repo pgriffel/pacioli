@@ -13,14 +13,20 @@ import { dataUnit } from "../../charts/chart-utils";
  * Web component for a bar chart. A wrapper around the Histogram class.
  */
 export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
-  // The unit of measurement. Is derived from the data if no unit attribute
-  // is given.
+  /**
+   * The unit of measurement. Is derived from the data if no unit attribute
+   * is given.
+   */
   unit?: SIUnit;
 
-  // The bar chart
+  /**
+   * The histogram
+   */
   chart?: Histogram;
 
-  // Web component field.
+  /**
+   * Web component field.
+   */
   static observedAttributes = ["unit"];
 
   constructor() {
@@ -32,15 +38,20 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
     this.root.adoptedStyleSheets = [sheet];
   }
 
+  /**
+   * Pacioli web component life-cycle event.
+   */
   override parametersChanged(): void {
+    // Compute the data using the new parameter values
     const data = this.fetchData();
 
+    // If no unit is known, then derive it from the data.
     if (this.unit === undefined) {
       this.unit = dataUnit(data);
     }
 
+    // Refresh the chart
     this.clearContent();
-
     this.chart = new Histogram(data, PacioliContext.si(), this.chartOptions());
     this.chart.draw(this.contentParent());
   }
@@ -78,7 +89,7 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
   }
 
   /**
-   * Style sheet for the bar chart
+   * Style sheet for the histogram
    *
    * @returns A style sheet string
    */

@@ -73,7 +73,10 @@ export class PacioliInputsComponent extends PacioliWebController {
     this.updateControls();
   }
 
-  createAndAppendElements() {
+  /**
+   * Create and append the content
+   */
+  private createAndAppendElements() {
     // Create a table of inputs for the scene parameters
     this.inputs = this.createInputs();
     this.table = createParameterTable(this.inputs);
@@ -83,7 +86,10 @@ export class PacioliInputsComponent extends PacioliWebController {
     this.contentParent().appendChild(this.applyButton);
   }
 
-  removeElements() {
+  /**
+   * Remove all content
+   */
+  private removeElements() {
     if (this.table) {
       this.clearContent();
 

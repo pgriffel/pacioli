@@ -19,24 +19,55 @@ export class PacioliControlsComponent extends PacioliWebController {
    */
   static SECONDS_PER_ROTATION = 30;
 
-  // The controls are divided into animation controls and configuration
-  // controls
+  /**
+   * Parent for the animation controls
+   */
   animationElement: HTMLDivElement = document.createElement("div");
+
+  /**
+   * Parent for the configuration option controls
+   */
   configurationElement: HTMLDivElement = document.createElement("div");
 
-  // The buttons
+  /**
+   * The step button
+   */
   stepButton = createButton("Step", () => this.stepButtonClicked());
+
+  /**
+   * The start button
+   */
   startButton = createButton("Run", () => this.startButtonClicked());
+
+  /**
+   * The reset button
+   */
   resetButton = createButton("Reset", () => this.resetButtonClicked());
+
+  /**
+   * The axis option
+   */
   axisCheckBox = createCheckBox("axis", (checked) =>
     this.axisCheckBoxClicked(checked)
   );
+
+  /**
+   * The grid option
+   */
   gridCheckBox = createCheckBox("grid", (checked) =>
     this.gridCheckBoxClicked(checked)
   );
+
+  /**
+   * The labels option
+   */
   labelsCheckBox = createCheckBox("labels", (checked) =>
     this.labelsCheckBoxClicked(checked)
   );
+
+  /**
+   * The rotate option
+   */
   autoRotateButton = createCheckBox("rotate", (checked) =>
     this.autoRotateCheckboxClicked(checked)
   );

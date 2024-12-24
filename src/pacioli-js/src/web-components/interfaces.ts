@@ -7,7 +7,7 @@ import { PacioliWebComponent } from "./pacioli-web-component";
  */
 export interface PacioliWebComponentBase {
   /**
-   * The web component root element. Use the parentDiv to append content.
+   * The web component root element. Use the contentParent to append content.
    */
   rootElement(): HTMLElement;
 

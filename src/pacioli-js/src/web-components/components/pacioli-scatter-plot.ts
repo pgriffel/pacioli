@@ -14,15 +14,26 @@ import {
  * Web component for a line chart. A wrapper around the ScatterPlot class.
  */
 export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
-  // The unit of measurement. Is derived from the data if no unit attribute
-  // is given.
+  /**
+   * The unit of measurement in the x direction. Is derived from the data if no
+   * unit attribute is given.
+   */
   xunit?: SIUnit;
+
+  /**
+   * The unit of measurement in the y direction. Is derived from the data if no
+   * unit attribute is given.
+   */
   yunit?: SIUnit;
 
-  // The bar chart
+  /**
+   * The scatter plot
+   */
   chart?: ScatterPlot;
 
-  // Web component field.
+  /**
+   * Web component field.
+   */
   static observedAttributes = ["unit"];
 
   constructor() {
@@ -34,6 +45,21 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
     this.root.adoptedStyleSheets = [sheet];
   }
 
+  /**
+   * Web component life-cycle event.
+   */
+  attributeChangedCallback(name: string, _: string, newValue: string) {
+    switch (name) {
+      case "unit": {
+        this.xunit = si.parseDimNum(newValue).unit;
+        break;
+      }
+    }
+  }
+
+  /**
+   * Pacioli web component life-cycle event.
+   */
   override parametersChanged(): void {
     const data = this.fetchData();
 
@@ -60,18 +86,6 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
       this.chartOptions()
     );
     this.chart.draw(this.contentParent());
-  }
-
-  /**
-   * Web component life-cycle event.
-   */
-  attributeChangedCallback(name: string, _: string, newValue: string) {
-    switch (name) {
-      case "unit": {
-        this.xunit = si.parseDimNum(newValue).unit;
-        break;
-      }
-    }
   }
 
   /**

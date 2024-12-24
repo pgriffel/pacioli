@@ -13,10 +13,14 @@ import {
  * Web component for a line chart. A wrapper around the WordCloud class.
  */
 export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
-  // The bar chart
+  /**
+   * The word cloud
+   */
   chart?: WordCloud;
 
-  // Web component field.
+  /**
+   * Web component field.
+   */
   static observedAttributes = [];
 
   constructor() {
@@ -28,6 +32,9 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
     this.root.adoptedStyleSheets = [sheet];
   }
 
+  /**
+   * Pacioli web component life-cycle event.
+   */
   override parametersChanged() {
     // Compute the words
     const words = wordData(this.fetchData());
@@ -64,6 +71,13 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
 
 customElements.define("pacioli-wordcloud", PacioliWordCloudComponent);
 
+/**
+ * Transforms word cloud data from Pacioli format to the word cloud
+ * format.
+ *
+ * @param data word cloud data in Pacioli format
+ * @returns word cloud data in word cloud component format
+ */
 function wordData(data: PacioliValue): [string, number][] {
   const words = data as unknown as [any, Matrix][];
   return words.map(

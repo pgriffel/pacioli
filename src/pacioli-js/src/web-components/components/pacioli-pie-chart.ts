@@ -13,14 +13,20 @@ import {
  * Web component for a line chart. A wrapper around the PieChart class.
  */
 export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
-  // The unit of measurement. Is derived from the data if no unit attribute
-  // is given.
+  /**
+   * The unit of measurement. Is derived from the data if no unit attribute
+   * is given.
+   */
   unit?: SIUnit;
 
-  // The bar chart
+  /**
+   * The pie chart
+   */
   chart?: PieChart;
 
-  // Web component field.
+  /**
+   * Web component field.
+   */
   static observedAttributes = ["unit"];
 
   constructor() {
@@ -30,19 +36,6 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
     const sheet = new CSSStyleSheet();
     sheet.replaceSync(this.styleSheet());
     this.root.adoptedStyleSheets = [sheet];
-  }
-
-  override parametersChanged(): void {
-    const data = this.fetchData();
-
-    if (this.unit === undefined) {
-      this.unit = dataUnit(data);
-    }
-
-    this.clearContent();
-
-    this.chart = new PieChart(data, PacioliContext.si(), this.chartOptions());
-    this.chart.draw(this.contentParent());
   }
 
   /**
@@ -55,6 +48,22 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
         break;
       }
     }
+  }
+
+  /**
+   * Pacioli web component life-cycle event.
+   */
+  override parametersChanged(): void {
+    const data = this.fetchData();
+
+    if (this.unit === undefined) {
+      this.unit = dataUnit(data);
+    }
+
+    this.clearContent();
+
+    this.chart = new PieChart(data, PacioliContext.si(), this.chartOptions());
+    this.chart.draw(this.contentParent());
   }
 
   /**
