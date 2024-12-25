@@ -64,6 +64,14 @@ export abstract class PacioliWebController
   }
 
   /**
+   *Implementation for PacioliWebComponentBase
+   */
+
+  findElement(selectors: string): HTMLElement {
+    return this.rootElement().querySelector(selectors)!;
+  }
+
+  /**
    * Implementation for Follower
    */
   attachedComponent(): PacioliWebComponent | null {

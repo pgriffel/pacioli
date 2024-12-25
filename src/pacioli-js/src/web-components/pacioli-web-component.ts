@@ -7,6 +7,26 @@ import {
   PacioliWebComponentBase,
 } from "./interfaces";
 
+const template = document.createElement("template");
+
+template.innerHTML = `
+  <style>
+    #error-root {
+      background: yellow;
+      color: red;
+    }
+    #close-button {
+      margin: 5pt;
+    }
+  </style>
+  <div id="error-root">
+    <div id="error-content"></div>
+    <button id="close-button">Close</button>
+  </div>
+  <div id="content">
+  </div>
+`;
+
 /**
  * Abstract base class for Pacioli web components.
  *
@@ -15,16 +35,6 @@ export abstract class PacioliWebComponent
   extends HTMLElement
   implements PacioliWebComponentBase, Callable, Followed, ErrorOutput
 {
-  /**
-   * HTML elements to display errors
-   */
-  private errorElements = this.createErrorElements();
-
-  /**
-   * Parent HTML element for the component's content.
-   */
-  private contentDiv = document.createElement("div");
-
   /**
    * List of registered callbacks. The callback mechanism is used by connected controls and
    * input elements to get informed about relevant changes.
@@ -37,18 +47,23 @@ export abstract class PacioliWebComponent
    */
   constructor() {
     super();
-    this.contentDiv.className = "pacioli-web-component-content";
+    // this.contentDiv.className = "pacioli-web-component-content";
   }
 
   /**
    * Web component life-cycle event.
    */
   connectedCallback() {
-    const root = this.rootElement();
+    // Add the content
+    this.rootElement().appendChild(template.content.cloneNode(true));
 
-    // Append the error elements
-    this.appendErrorDivs(root);
-    root.appendChild(this.contentParent());
+    // Make the close button close the error pane
+    this.closeErrorOutputButton().addEventListener("click", () =>
+      this.clearErrors()
+    );
+
+    // Make sure the error output pane is hidden
+    this.clearErrors();
 
     // Schedule a call to parametersChanged. It must be delayed until the DOM children exist.
     // We need the children so we can get the parameter values.
@@ -71,7 +86,7 @@ export abstract class PacioliWebComponent
    * Implementation of the PacioliWebComponent api.
    */
   contentParent(): HTMLElement {
-    return this.contentDiv;
+    return this.rootElement().querySelector("#content")!;
   }
 
   /**
@@ -82,6 +97,13 @@ export abstract class PacioliWebComponent
     while (parent.firstChild) {
       parent.removeChild(parent.firstChild);
     }
+  }
+
+  /**
+   *Implementation for PacioliWebComponentBase
+   */
+  findElement(selectors: string): HTMLElement {
+    return this.rootElement().querySelector(selectors)!;
   }
 
   /**
@@ -139,53 +161,28 @@ export abstract class PacioliWebComponent
    */
   displayError(message: string) {
     console.log(message);
-    this.errorElements.parent.hidden = false;
-    this.errorElements.text.innerText =
-      message + "\n\n" + this.errorElements.text.innerText;
+    this.errorRoot().hidden = false;
+    const content = this.errorContentParent();
+    content.innerText = message + "\n\n" + content.innerText;
   }
 
   /**
    * Implementation of the ErrorOutput api.
    */
   clearErrors() {
-    this.errorElements.text.innerText = "";
-    this.errorElements.parent.hidden = true;
+    this.errorContentParent().innerText = "";
+    this.errorRoot().hidden = true;
   }
 
-  /**
-   * Creates HTML elements for displaying errors.
-   *
-   * @returns The error output elements
-   */
-  private createErrorElements() {
-    return {
-      parent: document.createElement("div"),
-      text: document.createElement("div"),
-      closeButton: document.createElement("button"),
-    };
+  private errorRoot(): HTMLElement {
+    return this.rootElement().querySelector("#error-root")!;
   }
 
-  /**
-   * Adds DOM elements for error output
-   *
-   * @param parent The component parent to which the elements are added
-   */
-  private appendErrorDivs(parent: HTMLElement) {
-    const parentElement = this.errorElements.parent;
-    const text = this.errorElements.text;
-    const closeButton = this.errorElements.closeButton;
+  private errorContentParent(): HTMLElement {
+    return this.rootElement().querySelector("#error-content")!;
+  }
 
-    parentElement.style.color = "red";
-    parentElement.style.background = "yellow";
-    parentElement.style.padding = "8pt";
-    parentElement.hidden = true;
-
-    closeButton.innerText = "Close";
-    closeButton.onclick = (_: Event) => this.clearErrors();
-
-    parent.appendChild(parentElement);
-
-    parentElement.appendChild(text);
-    parentElement.appendChild(closeButton);
+  private closeErrorOutputButton(): HTMLElement {
+    return this.rootElement().querySelector("#close-button")!;
   }
 }

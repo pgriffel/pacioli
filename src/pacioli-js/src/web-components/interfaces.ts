@@ -20,6 +20,13 @@ export interface PacioliWebComponentBase {
    * Makes the parent element (not the root) empty.
    */
   clearContent(): void;
+
+  /**
+   * Convenience method to find elements in the component's tree.
+   *
+   * @param selectors A query selector string
+   */
+  findElement(selectors: string): HTMLElement;
 }
 
 /**

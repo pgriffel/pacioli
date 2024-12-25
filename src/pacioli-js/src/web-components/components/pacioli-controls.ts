@@ -1,6 +1,39 @@
 import { PacioliWebController } from "../pacioli-web-controller";
 import { PacioliSceneComponent } from "./pacioli-scene";
 
+const template = document.createElement("template");
+
+template.innerHTML = `
+  <style>
+    .pacioli-controls-animation {
+      background: var(--bg-color);
+    }
+
+    .pacioli-controls-configuration {
+      background: var(--bg-color);
+    }
+  </style>
+  <div class="pacioli-controls-animation">
+    <button class="run">Run</button>
+    <button class="step">Step</button>
+    <button class="reset">Reset</button>
+  </div>
+  <div class="pacioli-controls-configuration">
+    <label class="axis">axis
+      <input type="checkbox"></input>
+    </label>
+    <label class="grid">grid
+      <input type="checkbox"></input>
+    </label>
+    <label class="labels">labels
+      <input type="checkbox"></input>
+    </label>
+    <label class="rotate">rotate
+      <input type="checkbox"></input>
+    </label>
+  </div>
+`;
+
 /**
  * Web component with controls for the PacioliScene web component.
  *
@@ -20,60 +53,17 @@ export class PacioliControlsComponent extends PacioliWebController {
   static SECONDS_PER_ROTATION = 30;
 
   /**
-   * Parent for the animation controls
+   * Web component life-cycle event.
    */
-  animationElement: HTMLDivElement = document.createElement("div");
-
-  /**
-   * Parent for the configuration option controls
-   */
-  configurationElement: HTMLDivElement = document.createElement("div");
-
-  /**
-   * The step button
-   */
-  stepButton = createButton("Step", () => this.stepButtonClicked());
-
-  /**
-   * The start button
-   */
-  startButton = createButton("Run", () => this.startButtonClicked());
-
-  /**
-   * The reset button
-   */
-  resetButton = createButton("Reset", () => this.resetButtonClicked());
-
-  /**
-   * The axis option
-   */
-  axisCheckBox = createCheckBox("axis", (checked) =>
-    this.axisCheckBoxClicked(checked)
-  );
-
-  /**
-   * The grid option
-   */
-  gridCheckBox = createCheckBox("grid", (checked) =>
-    this.gridCheckBoxClicked(checked)
-  );
-
-  /**
-   * The labels option
-   */
-  labelsCheckBox = createCheckBox("labels", (checked) =>
-    this.labelsCheckBoxClicked(checked)
-  );
-
-  /**
-   * The rotate option
-   */
-  autoRotateButton = createCheckBox("rotate", (checked) =>
-    this.autoRotateCheckboxClicked(checked)
-  );
-
-  constructor() {
-    super();
+  attributeChangedCallback(name: string, _: string, next: string) {
+    switch (name) {
+      case "for": {
+        this.unfollow();
+        this.follow(next, () => this.updateControls());
+        this.updateControls();
+        break;
+      }
+    }
   }
 
   /**
@@ -82,27 +72,14 @@ export class PacioliControlsComponent extends PacioliWebController {
   connectedCallback() {
     super.connectedCallback();
 
-    // The parent to which elements will be added
-    const parent = this.contentParent();
+    // Create the content from the template
+    this.contentParent().appendChild(template.content.cloneNode(true));
+
+    // Connect all event handlers to the content elements
+    this.addEventListeners();
 
     // Set the CSS styles
     this.contentParent().className = "pacioli-controls-content";
-    this.animationElement.className = "pacioli-controls-animation";
-    this.configurationElement.className = "pacioli-controls-configuration";
-
-    // Add the parent elements
-    parent.appendChild(this.animationElement);
-    parent.appendChild(this.configurationElement);
-
-    // Add the new elements to the parent
-    this.animationElement.appendChild(this.startButton);
-    this.animationElement.appendChild(this.stepButton);
-    this.animationElement.appendChild(this.resetButton);
-
-    this.configurationElement.appendChild(this.axisCheckBox);
-    this.configurationElement.appendChild(this.gridCheckBox);
-    this.configurationElement.appendChild(this.labelsCheckBox);
-    this.configurationElement.appendChild(this.autoRotateButton);
 
     // Make sure the proper buttons are shown and enabled
     this.updateControls();
@@ -121,6 +98,28 @@ export class PacioliControlsComponent extends PacioliWebController {
   sceneElement(): PacioliSceneComponent | undefined {
     const component = this.attachedComponent();
     return component ? (component as PacioliSceneComponent) : undefined;
+  }
+
+  /**
+   * Helper for connectedCallback. Call only once!
+   */
+  private addEventListeners() {
+    this.addButtonEventListener(".run", () => this.startButtonClicked());
+    this.addButtonEventListener(".step", () => this.stepButtonClicked());
+    this.addButtonEventListener(".reset", () => this.resetButtonClicked());
+
+    this.addCheckBoxEventListener(".axis", (checked) =>
+      this.axisCheckBoxClicked(checked)
+    );
+    this.addCheckBoxEventListener(".grid", (checked) =>
+      this.gridCheckBoxClicked(checked)
+    );
+    this.addCheckBoxEventListener(".labels", (checked) =>
+      this.labelsCheckBoxClicked(checked)
+    );
+    this.addCheckBoxEventListener(".rotate", (checked) =>
+      this.autoRotateCheckboxClicked(checked)
+    );
   }
 
   /**
@@ -248,90 +247,78 @@ export class PacioliControlsComponent extends PacioliWebController {
    * button labels for the animation buttons.
    */
   private updateControls() {
+    const animationElement = this.findElement(".pacioli-controls-animation");
+
+    const runButton = this.animationButton(".run");
+    const stepButton = this.animationButton(".step");
+    const resetButton = this.animationButton(".reset");
+
     const scene = this.sceneElement();
 
     if (scene && scene.space) {
       // If we get here the space must have been created
       const space = scene.space!;
 
-      const box = this.axisCheckBox.children[0] as HTMLInputElement;
-      box.checked = space.hasAxis();
-
-      const gridCheckBox = this.gridCheckBox.children[0] as HTMLInputElement;
-      gridCheckBox.checked = space.hasGrid();
-
-      const labelsCheckBox = this.labelsCheckBox
-        .children[0] as HTMLInputElement;
-      labelsCheckBox.checked = space.hasLabels();
+      this.configurationCheckbox(".axis").checked = space.hasAxis();
+      this.configurationCheckbox(".grid").checked = space.hasGrid();
+      this.configurationCheckbox(".labels").checked = space.hasLabels();
 
       // Distinguish animations and static scenes
       if (space.isAnimation()) {
         const isRunning = space.isRunning();
 
-        this.animationElement.hidden = false;
-        this.stepButton.hidden = false;
-        this.startButton.hidden = false;
+        animationElement.hidden = false;
+        runButton.hidden = false;
+        stepButton.hidden = false;
 
-        this.stepButton.innerText =
-          "Step " + space.runningTime().toFixed(2) + "s";
-        this.startButton.innerText = isRunning ? "Pause" : "Run";
+        runButton.innerText = isRunning ? "Pause" : "Run";
+        stepButton.innerText = "Step " + space.runningTime().toFixed(2) + "s";
 
-        this.stepButton.disabled = isRunning;
-        this.resetButton.disabled = isRunning;
-        this.startButton.disabled = false;
+        runButton.disabled = false;
+        stepButton.disabled = isRunning;
+        resetButton.disabled = isRunning;
       } else {
-        this.animationElement.hidden = true;
-        this.stepButton.hidden = true;
-        this.startButton.hidden = true;
-
-        this.resetButton.disabled = false;
+        animationElement.hidden = true;
       }
     } else {
-      // No scene, just disable the buttons
-      this.resetButton.disabled = true;
-      this.stepButton.disabled = true;
-      this.startButton.disabled = true;
+      // No scene, just disable the animation buttons
+      runButton.disabled = true;
+      stepButton.disabled = true;
+      resetButton.disabled = true;
     }
   }
-}
 
-/**
- * Creates a HTML button. De buttons has css class 'pacioli-controls-button'.
- *
- * @param label The text on the button
- * @param callback Function called when the button is clicked
- * @returns The new button
- */
-function createButton(label: string, callback: () => void) {
-  let buttonElement = document.createElement("button");
+  private animationButton(className: string): HTMLButtonElement {
+    return this.findElement(
+      `.pacioli-controls-animation ${className}`
+    ) as HTMLButtonElement;
+  }
 
-  buttonElement.innerText = label;
-  buttonElement.className = "pacioli-controls-button";
-  buttonElement.onclick = callback;
+  private configurationLabel(className: string): HTMLLabelElement {
+    return this.rootElement().querySelector(
+      `.pacioli-controls-configuration ${className}`
+    )!;
+  }
 
-  return buttonElement;
-}
+  private configurationCheckbox(className: string): HTMLInputElement {
+    return this.configurationLabel(className).children[0] as HTMLInputElement;
+  }
 
-/**
- * Creates a HTML checkbox (a label with nested input). De checkbox has css
- * class 'pacioli-controls-checkbox'.
- *
- * @param label The text on the checkbox
- * @param callback Function called when the checkbox is changed
- * @returns The new checkbox
- */
-function createCheckBox(label: string, callback: (checked: boolean) => void) {
-  let labelElement = document.createElement("label");
-  let checkboxElement = document.createElement("input");
+  private addButtonEventListener(className: string, handler: () => void) {
+    this.animationButton(className).addEventListener("click", handler);
+  }
 
-  labelElement.innerText = label;
-  checkboxElement.type = "checkbox";
-  labelElement.className = "pacioli-controls-checkbox";
-  checkboxElement.onchange = (event) =>
-    callback((event.target as HTMLInputElement).checked);
-
-  labelElement.appendChild(checkboxElement);
-  return labelElement;
+  private addCheckBoxEventListener(
+    className: string,
+    handler: (_: boolean) => void
+  ) {
+    this.configurationLabel(className).addEventListener(
+      "change",
+      (event: Event) => {
+        handler((event.target as HTMLInputElement).checked);
+      }
+    );
+  }
 }
 
 customElements.define("pacioli-controls", PacioliControlsComponent);

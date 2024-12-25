@@ -1,9 +1,17 @@
 import { PacioliWebController } from "../pacioli-web-controller";
 import { PacioliParameter, parameterNodes, parseParameterNode } from "../utils";
 
+const template = document.createElement("template");
+
+template.innerHTML = `
+  <style>
+  </style>
+  <table class="parameters"></table>
+  <button class="apply">Apply</button>
+`;
+
 /**
  * Web component with controls for the PacioliScene web component.
- *
  *
  * @example
  * <pacioli-scene id="my_scene" ... >
@@ -15,6 +23,11 @@ import { PacioliParameter, parameterNodes, parseParameterNode } from "../utils";
  */
 export class PacioliInputsComponent extends PacioliWebController {
   /**
+   * Web component field.
+   */
+  static observedAttributes = ["for"];
+
+  /**
    * Inputs for the scene parameters
    */
   private inputs?: {
@@ -23,31 +36,23 @@ export class PacioliInputsComponent extends PacioliWebController {
   }[];
 
   /**
-   * Table of parameters inputs
-   */
-  private table?: HTMLTableElement;
-
-  /**
-   * The apply button
-   */
-  private readonly applyButton = createButton("Apply", () =>
-    this.applyButtonClicked()
-  );
-
-  constructor() {
-    super();
-  }
-
-  /**
    * Web component life-cycle event.
    */
   attributeChangedCallback(name: string, _: string, next: string) {
     switch (name) {
       case "for": {
-        this.unfollow();
-        this.removeElements();
-        this.createAndAppendElements();
-        this.follow(next, () => this.updateControls());
+        // Only handle changes after the initial construction. Initial
+        // construction is done in connectedCallback.
+        if (this.findElement(`.parameters`)) {
+          // Detach from previous component
+          this.unfollow();
+          this.removeTableRows();
+
+          // Attach to new component. Same sequence as in connectedCallback.
+          this.createAndAppendTableRows();
+          this.follow(next, () => this.updateControls());
+          this.updateControls();
+        }
         break;
       }
     }
@@ -62,8 +67,16 @@ export class PacioliInputsComponent extends PacioliWebController {
     // Set the CSS class name for styling
     this.contentParent().className = "pacioli-inputs-content";
 
-    // Add the content
-    this.createAndAppendElements();
+    // Create the content from the template
+    this.contentParent().appendChild(template.content.cloneNode(true));
+
+    // Connect the apply button handler
+    this.findElement("button").addEventListener("click", () =>
+      this.applyButtonClicked()
+    );
+
+    // Add input rows to the parameter table
+    this.createAndAppendTableRows();
 
     // If we are connected to a scene, then we need to keep the
     // state of the buttons synchronized with the scene animation.
@@ -74,28 +87,26 @@ export class PacioliInputsComponent extends PacioliWebController {
   }
 
   /**
-   * Create and append the content
+   * Creates a row for each parameter and adds it to the parameter table
    */
-  private createAndAppendElements() {
-    // Create a table of inputs for the scene parameters
+  private createAndAppendTableRows() {
+    // Remember the inputs so we can access them seperately
     this.inputs = this.createInputs();
-    this.table = createParameterTable(this.inputs);
 
-    // Add the new elements to the parent
-    this.contentParent().appendChild(this.table);
-    this.contentParent().appendChild(this.applyButton);
+    // Add the inputs to the table
+    addParameterRows(this.tableElement(), this.inputs);
   }
 
   /**
-   * Remove all content
+   * Remove all rows from the parameter table
    */
-  private removeElements() {
-    if (this.table) {
-      this.clearContent();
-
-      this.table = undefined;
-      this.inputs = undefined;
+  private removeTableRows() {
+    while (this.tableElement().rows.length > 0) {
+      this.tableElement().deleteRow(0);
     }
+
+    // Keep invariant that the inputs member and the parameter table rows match.
+    this.inputs = undefined;
   }
 
   /**
@@ -111,7 +122,7 @@ export class PacioliInputsComponent extends PacioliWebController {
     if (scene) {
       return createParameterInputs(
         parameterNodes(scene).map(parseParameterNode),
-        () => this.applyButton.click()
+        () => this.applyButtonClicked()
       );
     } else {
       return [];
@@ -119,7 +130,7 @@ export class PacioliInputsComponent extends PacioliWebController {
   }
 
   /**
-   * Handler for the reset button
+   * Handler for the apply button
    */
   private applyButtonClicked() {
     const scene = this.attachedComponent();
@@ -139,31 +150,16 @@ export class PacioliInputsComponent extends PacioliWebController {
    */
   private updateControls() {
     const scene = this.attachedComponent();
-
-    if (scene) {
-      this.applyButton.disabled = scene.isBusy();
-    } else {
-      // No scene, just disable the buttons
-      this.applyButton.disabled = true;
-    }
+    this.applyButton().disabled = scene ? scene.isBusy() : true;
   }
-}
 
-/**
- * Creates a HTML button. De buttons has css class 'pacioli-controls-button'.
- *
- * @param label The text on the button
- * @param callback Function called when the button is clicked
- * @returns The new button
- */
-function createButton(label: string, callback: () => void) {
-  let buttonElement = document.createElement("button");
+  private tableElement(): HTMLTableElement {
+    return this.findElement(`.parameters`) as HTMLTableElement;
+  }
 
-  buttonElement.innerText = label;
-  buttonElement.className = "pacioli-controls-button";
-  buttonElement.onclick = callback;
-
-  return buttonElement;
+  private applyButton(): HTMLButtonElement {
+    return this.findElement(`button`) as HTMLButtonElement;
+  }
 }
 
 /**
@@ -203,21 +199,18 @@ function createParameterInputs(
 }
 
 /**
- * Create a HMTML table for the PacioliSceneComponent parameters
+ * Adds input elements to the parameter table
  *
- * @param inputs A list of objects with a 'parameter' and a 'element' field
- * @returns A HTML table
+ * @param table The parameter table
+ * @param inputs A list of parameter/input pairs.
  */
-function createParameterTable(
+function addParameterRows(
+  table: HTMLTableElement,
   inputs: {
     parameter: PacioliParameter;
     element: HTMLInputElement;
   }[]
 ) {
-  // Create a HTML table
-  const table = document.createElement("table");
-  table.className = "pacioli-controls-table";
-
   for (const input of inputs) {
     // Create a row with a label, a value and a unit entry
     const row = document.createElement("tr");
@@ -251,8 +244,6 @@ function createParameterTable(
     // Append the row to the table
     table.appendChild(row);
   }
-
-  return table;
 }
 
 customElements.define("pacioli-inputs", PacioliInputsComponent);
