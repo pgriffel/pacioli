@@ -271,7 +271,7 @@ export class Histogram {
         .text("Frequency");
 
       // Create a tooltip with a unique css class name for the histogram charts.
-      const tooltip = new ToolTip("pacioli-ts-histogram");
+      const tooltip = new ToolTip("pacioli tooltip histogram");
 
       // Add the histogram bars
       group

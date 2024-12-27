@@ -237,7 +237,7 @@ export class ScatterPlot {
         .text(labelY + " [" + unitY.toText() + "]");
 
       // Create a tooltip parent with default styling.
-      const tooltip = new ToolTip("pacioli-ts-scatter-plot");
+      const tooltip = new ToolTip("pacioli tooltip scatter-plot");
 
       // Add dots for the data
       // https://htmlcssjavascript.com/web/mastering-svg-bonus-content-a-d3-line-chart/

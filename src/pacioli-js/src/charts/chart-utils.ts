@@ -178,12 +178,19 @@ export function displayChartError(
  * events of the chart elements.
  */
 export class ToolTip {
-  constructor(public className: string) {}
+  id: string;
+
+  constructor(public className: string) {
+    this.id = className
+      .split(" ")
+      .filter((x) => x !== "")
+      .join(".");
+  }
 
   private findDiv(): d3.Selection<HTMLDivElement, unknown, HTMLElement, any> {
     // See if a tooltip exists
     const tt: d3.Selection<HTMLDivElement, unknown, HTMLElement, any> =
-      d3.select("div." + this.className);
+      d3.select("div." + this.id);
 
     // Return a tooltip parent with default styling. Create it if it does not exist yet.
     return tt.size() > 0
@@ -216,7 +223,7 @@ export class ToolTip {
   public hide() {
     // Set the display style to none to make the tooltip disappear
     const tt: d3.Selection<HTMLDivElement, unknown, HTMLElement, any> =
-      d3.select("div." + this.className);
+      d3.select("div." + this.id);
     tt.style("display", "none");
   }
 }

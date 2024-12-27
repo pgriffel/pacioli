@@ -219,7 +219,7 @@ export class PieChart {
         .outerRadius(labelOffset);
 
       // Create a tooltip parent with default styling.
-      const tooltip = new ToolTip("pacioli-ts-pie-chart");
+      const tooltip = new ToolTip("pacioli tooltip pie-chart");
 
       plotArea
         .selectAll("path")

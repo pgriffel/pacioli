@@ -292,7 +292,7 @@ export class BarChart {
       yAxisElt.append("g").call(yAxis);
 
       // Create a tooltip with a unqiue css class name for bar charts
-      const tooltip = new ToolTip("pacioli-ts-bar-chart");
+      const tooltip = new ToolTip("pacioli tooltip bar-chart");
 
       // Add the bars to the inner group
       inner

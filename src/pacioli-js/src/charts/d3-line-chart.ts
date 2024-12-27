@@ -280,7 +280,7 @@ export class LineChart {
       // .style("display", "none")
       // .attr("class", "pacioli-ts-line-chart")
 
-      const tooltip = new ToolTip("pacioli-ts-line-chart");
+      const tooltip = new ToolTip("pacioli tooltip line-chart");
 
       const xwidth = w / data.values.length;
 
@@ -320,8 +320,8 @@ export class LineChart {
             );
 
             // Show the dot on the graph's line
-            tooltipDot.style("cx", (i - 0) * xwidth);
-            tooltipDot.style("cy", yScale(num));
+            tooltipDot.attr("cx", (i - 0) * xwidth);
+            tooltipDot.attr("cy", yScale(num));
             tooltipDot.style("display", null);
           }
         })
