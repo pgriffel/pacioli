@@ -1,9 +1,9 @@
 import { PacioliWebController } from "../pacioli-web-controller";
 import { PacioliParameter, parameterNodes, parseParameterNode } from "../utils";
 
-const template = document.createElement("template");
+const TEMPLATE = document.createElement("template");
 
-template.innerHTML = `
+TEMPLATE.innerHTML = `
   <style>
   </style>
   <table class="parameters"></table>
@@ -38,12 +38,12 @@ export class PacioliInputsComponent extends PacioliWebController {
   /**
    * Web component life-cycle event.
    */
-  attributeChangedCallback(name: string, _: string, next: string) {
+  attributeChangedCallback(name: string, prev: string | null, next: string) {
     switch (name) {
       case "for": {
         // Only handle changes after the initial construction. Initial
         // construction is done in connectedCallback.
-        if (this.findElement(`.parameters`)) {
+        if (prev !== null) {
           // Detach from previous component
           this.unfollow();
           this.removeTableRows();
@@ -68,7 +68,7 @@ export class PacioliInputsComponent extends PacioliWebController {
     this.contentParent().className = "pacioli-inputs-content";
 
     // Create the content from the template
-    this.contentParent().appendChild(template.content.cloneNode(true));
+    this.contentParent().appendChild(TEMPLATE.content.cloneNode(true));
 
     // Connect the apply button handler
     this.findElement("button").addEventListener("click", () =>
@@ -136,6 +136,7 @@ export class PacioliInputsComponent extends PacioliWebController {
     const scene = this.attachedComponent();
     if (scene && this.inputs) {
       try {
+        scene.clearErrors(); // Better if the caller does this!?
         scene.setParameters(this.inputs.map((input) => input.element.value));
         this.updateControls();
       } catch (error: any) {

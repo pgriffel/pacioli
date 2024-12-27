@@ -140,9 +140,9 @@ export class LineChart {
       );
 
       // Make the parent node empty
-      // while (parent.firstChild) {
-      //   parent.removeChild(parent.firstChild);
-      // }
+      while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+      }
 
       // Define dimensions of graph
       var m = this.options.margin;
@@ -165,7 +165,7 @@ export class LineChart {
         .append("svg:svg")
         .attr("width", w + m.left + m.right)
         .attr("height", h + m.top + m.bottom)
-        .attr("class", "pacioli-ts-chart pacioli-ts-line-chart");
+        .attr("class", "pacioli chart line-chart");
 
       // Add a group to allow attr's to apply to everything in the group
       const group = svg

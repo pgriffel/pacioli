@@ -261,3 +261,18 @@ export function optionalBooleanAttributes(
   });
   return object;
 }
+
+export function optionsFromAttributes<Options>(
+  element: HTMLElement,
+  supportedAttributes: {
+    strings: string[];
+    booleans: string[];
+    numbers: string[];
+  }
+): Partial<Options> {
+  return {
+    ...optionalStringAttributes(element, supportedAttributes.strings),
+    ...optionalBooleanAttributes(element, supportedAttributes.booleans),
+    ...optionalNumberAttributes(element, supportedAttributes.numbers),
+  };
+}

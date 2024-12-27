@@ -7,9 +7,9 @@ import {
   PacioliWebComponentBase,
 } from "./interfaces";
 
-const template = document.createElement("template");
+const TEMPLATE = document.createElement("template");
 
-template.innerHTML = `
+TEMPLATE.innerHTML = `
   <style>
     #error-root {
       background: yellow;
@@ -42,20 +42,11 @@ export abstract class PacioliWebComponent
   private callbacks: (() => void)[] = [];
 
   /**
-   * Just the instantiation. The actual building is done in the connectedCallback
-   * life cycle method.
-   */
-  constructor() {
-    super();
-    // this.contentDiv.className = "pacioli-web-component-content";
-  }
-
-  /**
    * Web component life-cycle event.
    */
   connectedCallback() {
     // Add the content
-    this.rootElement().appendChild(template.content.cloneNode(true));
+    this.rootElement().appendChild(TEMPLATE.content.cloneNode(true));
 
     // Make the close button close the error pane
     this.closeErrorOutputButton().addEventListener("click", () =>
@@ -116,7 +107,11 @@ export abstract class PacioliWebComponent
    */
   setParameters(values: string[]) {
     setParameterNodes(this, values);
-    this.parametersChanged();
+    try {
+      this.parametersChanged();
+    } catch (error: any) {
+      this.displayError(error);
+    }
   }
 
   /**
@@ -161,9 +156,16 @@ export abstract class PacioliWebComponent
    */
   displayError(message: string) {
     console.log(message);
-    this.errorRoot().hidden = false;
-    const content = this.errorContentParent();
-    content.innerText = message + "\n\n" + content.innerText;
+
+    // Delay displaying the errors for errors during DOM building (e.g. in
+    // attributeChangedCallback) to increase the probability that the
+    // error output pane exists.
+    setTimeout(() => {
+      this.errorRoot().hidden = false;
+
+      const content = this.errorContentParent();
+      content.innerText = message + "\n\n" + content.innerText;
+    }, 1);
   }
 
   /**

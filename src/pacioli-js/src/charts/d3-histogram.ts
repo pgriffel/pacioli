@@ -210,9 +210,9 @@ export class Histogram {
       // var yAxis = d3.axisLeft(range);
 
       // Make the parent node empty
-      // while (parent.firstChild) {
-      //   parent.removeChild(parent.firstChild);
-      // }
+      while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+      }
 
       // Create an svg element under the parent
       const svg = d3
@@ -220,7 +220,7 @@ export class Histogram {
         .append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
-        .attr("class", "pacioli-ts-chart pacioli-ts-histogram");
+        .attr("class", "pacioli chart histogram");
 
       const group = svg
         .append("g")

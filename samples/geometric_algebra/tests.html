@@ -23,11 +23,13 @@
     <p>
         Test of the pacioli-wordcloud web component
     <p>
-        <pacioli-wordcloud id="wc" script="weird" function="word_count" width="1500" height="1200">
+
+    <div class="example">
+        <pacioli-wordcloud id="wc" script="weird" function="word_count" width="1200" height="1000">
             <parameter label="treshold">10</parameter>
         </pacioli-wordcloud>
         <pacioli-inputs for="wc"></pacioli-inputs>
-
+    </div>
 
     <h2>Scatter Plot</h2>
     <p>
@@ -49,33 +51,75 @@
     <h2>Histogram</h2>
     <p>
         Test of the pacioli-histogram web component
+
+
+
     <p>
-        <pacioli-histogram id="dice" unit="1" script="weird" function="dice" abins="100">
+    <div class="example">
+
+        <pacioli-histogram id="dice" unit="1" script="weird" function="dice" Abins="100" lower="0" upper="25"
+            label="dice test" decimals="5" , gap="1.0">
             <parameter label="throws">10000</parameter>
-            <parameter label="dice">2</parameter>
+            <parameter label="dice">3</parameter>
         </pacioli-histogram>
         <pacioli-inputs for="dice"></pacioli-inputs>
+
+    </div>
+
+    Issues:
+    <ul>
+        <li>convert boolean should be negated</li>
+        <li>zeros boolean should be negated</li>
+        <li>decimals does not work</li>
+    </ul>
+
+
 
     <h2>Bar Chart</h2>
     <p>
         Test of the pacioli-bar-chart web component
+
     <p>
-        <pacioli-bar-chart unit="1" script="weird" function="test_data_dimless"></pacioli-bar-chart>
+        <pacioli-bar-chart script="weird" function="test_data_gram" label="Bart chart test" unit="milli:gram"
+            ymin="-100000" , ymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
+
+
+        Issues:
+    <ul>
+        <li>decimals does not work</li>
+        <li>zeros boolean should be negated</li>
+        <li>Trash at the bottom. Margin too small?</li>
+    </ul>
 
 
     <h2>Line Chart</h2>
     <p>
         Test of the pacioli-line-chart web component
+
     <p>
+    <div class="example">
+
         <pacioli-line-chart unit="kilo:gram" height="200" script="weird" function="test_data_gram" smooth
             label="some value" width="1200"></pacioli-line-chart>
+    </div>
+
+    Issues:
+    <ul>
+        <li>convert boolean should be negated</li>
+        <li>zeros boolean should be negated</li>
+        <li>decimals does not work</li>
+        <li>...</li>
+    </ul>
+
+
 
     <h2>Weird</h2>
     <p>
         Just some weird example to test graphics of vectors.
 
     <div class="example">
-        <pacioli-scene id="scene_weird" script="weird" function="the_scene" kind="animation" perspective axis>
+        <pacioli-scene id="scene_weird" script="weird" function="the_scene" kind="animation" perspective axis
+            width="500">
             <parameter label="n" unit="1">50</parameter>
             <parameter label="k" unit="1">5</parameter>
             <parameter label="freq" unit="hertz">1</parameter>

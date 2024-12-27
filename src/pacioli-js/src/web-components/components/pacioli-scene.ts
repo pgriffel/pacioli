@@ -8,11 +8,16 @@ import {
 } from "../../space";
 import { PacioliValue } from "../../value";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import {
-  optionalBooleanAttributes,
-  optionalNumberAttributes,
-  optionalStringAttributes,
-} from "../utils";
+import { optionsFromAttributes } from "../utils";
+
+/**
+ * Attribues supported by the 3D scene component
+ */
+const SUPPORTED_ATTRIBUTES = {
+  strings: [],
+  booleans: ["axis", "grid", "perspective"],
+  numbers: ["width", "height", "fps"],
+};
 
 /**
  * Web component for a 3D Pacioli space. A wrapper around the Space class.
@@ -65,11 +70,15 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    * Web component life-cycle event.
    */
   attributeChangedCallback(name: string, _: string, newValue: string) {
-    switch (name) {
-      case "unit": {
-        this.unit = si.parseDimNum(newValue).unit;
-        break;
+    try {
+      switch (name) {
+        case "unit": {
+          this.unit = si.parseDimNum(newValue).unit;
+          break;
+        }
       }
+    } catch (err: any) {
+      this.displayError(err);
     }
   }
 
@@ -122,9 +131,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
       zoomRange: [1, 1000],
       camera: [20, 10, 20],
       verbose: false,
-      ...optionalStringAttributes(this, []),
-      ...optionalBooleanAttributes(this, ["axis", "grid", "perspective"]),
-      ...optionalNumberAttributes(this, ["width", "height"]),
+      ...optionsFromAttributes<SpaceOptions>(this, SUPPORTED_ATTRIBUTES),
     };
   }
 

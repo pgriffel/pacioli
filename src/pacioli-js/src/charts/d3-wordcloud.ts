@@ -52,9 +52,9 @@ export class WordCloud {
   public draw(parent: HTMLElement) {
     try {
       // Make the parent node empty
-      // while (parent.firstChild) {
-      //   parent.removeChild(parent.firstChild);
-      // }
+      while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+      }
 
       var words = this.data.map(function (d: any) {
         return {
@@ -77,7 +77,7 @@ export class WordCloud {
         .append("svg")
         .attr("width", w)
         .attr("height", h)
-        .attr("class", "pacioli-ts-chart pacioli-ts-wordcloud")
+        .attr("class", "pacioli wordcloud")
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 

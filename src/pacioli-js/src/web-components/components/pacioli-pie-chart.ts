@@ -3,11 +3,23 @@ import { PieChart, PieChartOptions } from "../../charts/d3-pie-chart";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { dataUnit } from "../../charts/chart-utils";
-import {
-  optionalBooleanAttributes,
-  optionalNumberAttributes,
-  optionalStringAttributes,
-} from "../utils";
+import { optionsFromAttributes } from "../utils";
+
+/**
+ * Attribues supported by the pie chart component
+ */
+const SUPPORTED_ATTRIBUTES = {
+  strings: ["label"],
+  booleans: [],
+  numbers: ["width", "height", "radius", "labelOffset", "decimals"],
+};
+
+/**
+ * Style sheet for the pie chart
+ */
+const STYLES = `
+
+`;
 
 /**
  * Web component for a line chart. A wrapper around the PieChart class.
@@ -31,22 +43,22 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
 
   constructor() {
     super();
-
-    // Set the style sheet
-    const sheet = new CSSStyleSheet();
-    sheet.replaceSync(this.styleSheet());
-    this.root.adoptedStyleSheets = [sheet];
+    this.adoptStyles(STYLES);
   }
 
   /**
    * Web component life-cycle event.
    */
   attributeChangedCallback(name: string, _: string, newValue: string) {
-    switch (name) {
-      case "unit": {
-        this.unit = si.parseDimNum(newValue).unit;
-        break;
+    try {
+      switch (name) {
+        case "unit": {
+          this.unit = si.parseDimNum(newValue).unit;
+          break;
+        }
       }
+    } catch (err: any) {
+      this.displayError(err);
     }
   }
 
@@ -54,14 +66,17 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
+    // Compute the data using the new parameter values
     const data = this.fetchData();
 
+    // If no unit is known, then derive it from the data. Set it before it
+    // is used in the chartOptions call below.
     if (this.unit === undefined) {
       this.unit = dataUnit(data);
     }
 
+    // Refresh the chart
     this.clearContent();
-
     this.chart = new PieChart(data, PacioliContext.si(), this.chartOptions());
     this.chart.draw(this.contentParent());
   }
@@ -74,46 +89,8 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
   chartOptions(): Partial<PieChartOptions> {
     return {
       unit: this.unit || UOM.ONE,
-      ...optionalStringAttributes(this, ["label"]),
-      ...optionalBooleanAttributes(this, ["smooth"]),
-      ...optionalNumberAttributes(this, ["width", "height"]),
+      ...optionsFromAttributes<PieChartOptions>(this, SUPPORTED_ATTRIBUTES),
     };
-  }
-
-  /**
-   * Style sheet for the bar chart
-   *
-   * @returns A style sheet string
-   */
-  styleSheet(): string {
-    return `   
-    
-.pacioli-pie-chart {
-
-}
-
-.pacioli-pie-chart path.slice {
-	stroke-width:2px;
-}
-
-
-.pacioli-pie-chart polyline {
-	opacity: .3;
-	stroke: black;
-	stroke-width: 2px;
-	fill: blue;
-}
-.chart path {
-    stroke-width: 1;
-    fill: red;
-}
-    
-.pacioli-ts-chart path {
-    stroke-width: 1;
-    NOfill: yellow;
-}
-
-`;
   }
 }
 

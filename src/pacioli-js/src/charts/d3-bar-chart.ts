@@ -224,9 +224,9 @@ export class BarChart {
       // var xSet = input.label // "shape.rowName()" //vector.shape.rowSets.map(function (x) {return x.name})
 
       // Make the parent node empty
-      // while (parent.firstChild) {
-      //   parent.removeChild(parent.firstChild);
-      // }
+      while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+      }
 
       // Add an svg element
       var svg = d3
@@ -234,7 +234,7 @@ export class BarChart {
         .append("svg")
         .attr("width", this.options.width)
         .attr("height", this.options.height)
-        .attr("class", "pacioli-ts-chart pacioli-ts-bar-chart");
+        .attr("class", "pacioli chart bar-chart");
 
       // Create a margin object following the D3 convention
       var margin = {

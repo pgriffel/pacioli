@@ -2,12 +2,25 @@ import { si, SIUnit, UOM } from "uom-ts";
 import { PacioliContext } from "../../context";
 import { BarChart, BarChartOptions } from "../../charts/d3-bar-chart";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import {
-  optionalStringAttributes,
-  optionalBooleanAttributes,
-  optionalNumberAttributes,
-} from "../utils";
+import { optionsFromAttributes } from "../utils";
 import { dataUnit } from "../../charts/chart-utils";
+
+/**
+ * Attribues supported by the bar chart component
+ */
+const SUPPORTED_ATTRIBUTES = {
+  strings: ["label"],
+  booleans: [],
+  numbers: ["width", "height", "ymin", "ymax", "decimals", "padding"],
+};
+
+/**
+ * Style sheet for the bar chart
+ */
+const STYLES = ` 
+  .bar {
+    fill: steelblue;
+  }`;
 
 /**
  * Web component for a bar chart. A wrapper around the BarChart class.
@@ -31,22 +44,22 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
 
   constructor() {
     super();
-
-    // Set the style sheet
-    const sheet = new CSSStyleSheet();
-    sheet.replaceSync(this.styleSheet());
-    this.root.adoptedStyleSheets = [sheet];
+    this.adoptStyles(STYLES);
   }
 
   /**
    * Web component life-cycle event.
    */
   attributeChangedCallback(name: string, _: string, newValue: string) {
-    switch (name) {
-      case "unit": {
-        this.unit = si.parseDimNum(newValue).unit;
-        break;
+    try {
+      switch (name) {
+        case "unit": {
+          this.unit = si.parseDimNum(newValue).unit;
+          break;
+        }
       }
+    } catch (err: any) {
+      this.displayError(err);
     }
   }
 
@@ -57,7 +70,8 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
     // Compute the data using the new parameter values
     const data = this.fetchData();
 
-    // If no unit is known, then derive it from the data.
+    // If no unit is known, then derive it from the data. Set it before it
+    // is used in the chartOptions call below.
     if (this.unit === undefined) {
       this.unit = dataUnit(data);
     }
@@ -76,22 +90,8 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
   chartOptions(): Partial<BarChartOptions> {
     return {
       unit: this.unit || UOM.ONE,
-      ...optionalStringAttributes(this, ["label"]),
-      ...optionalBooleanAttributes(this, ["smooth"]),
-      ...optionalNumberAttributes(this, ["width", "height"]),
+      ...optionsFromAttributes<BarChartOptions>(this, SUPPORTED_ATTRIBUTES),
     };
-  }
-
-  /**
-   * Style sheet for the bar chart
-   *
-   * @returns A style sheet string
-   */
-  styleSheet(): string {
-    return `
-    .bar {
-      fill: steelblue;
-    }`;
   }
 }
 

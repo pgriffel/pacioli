@@ -17,7 +17,7 @@ export interface PacioliWebComponentBase {
   contentParent(): HTMLElement;
 
   /**
-   * Makes the parent element (not the root) empty.
+   * Makes the content parent element (not the root element) empty.
    */
   clearContent(): void;
 
@@ -44,7 +44,8 @@ export interface Callable {
   setParameters(values: string[]): void;
 
   /**
-   * Called when the parameters are changed. Also initially after construction.
+   * Called when the parameters are changed. Also initially after construction. Errors are
+   * catched and displayed.
    */
   parametersChanged(): void;
 
@@ -62,7 +63,8 @@ export interface Callable {
  */
 export interface ErrorOutput {
   /**
-   * Adds a line to the error output. Makes sure the error element is unhidden.
+   * Adds a line to the error output. Makes sure the error element is unhidden. Is deplayed
+   * to give errors during DOM building a change to be displayed.
    *
    * @param message The text to add
    */

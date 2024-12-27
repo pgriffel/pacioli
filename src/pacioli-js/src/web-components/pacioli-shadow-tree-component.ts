@@ -19,4 +19,16 @@ export abstract class PacioliShadowTreeComponent extends PacioliWebComponent {
   override rootElement(): HTMLElement {
     return this.root as unknown as HTMLElement;
   }
+
+  /**
+   * Sets the adoptedStyleSheets of the component's shadow root to the
+   * given styles.
+   *
+   * @param styles A string with CSS styles
+   */
+  adoptStyles(styles: string) {
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(styles);
+    this.root.adoptedStyleSheets = [sheet];
+  }
 }

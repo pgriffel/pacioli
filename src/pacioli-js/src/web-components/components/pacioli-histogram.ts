@@ -2,12 +2,46 @@ import { si, SIUnit, UOM } from "uom-ts";
 import { PacioliContext } from "../../context";
 import { Histogram, HistogramOptions } from "../../charts/d3-histogram";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import {
-  optionalStringAttributes,
-  optionalBooleanAttributes,
-  optionalNumberAttributes,
-} from "../utils";
+import { optionsFromAttributes } from "../utils";
 import { dataUnit } from "../../charts/chart-utils";
+
+/**
+ * Attribues supported by the histogram component
+ */
+const SUPPORTED_ATTRIBUTES = {
+  strings: ["label"],
+  booleans: [],
+  numbers: ["width", "height", "bins", "lower", "upper", "decimals", "gap"],
+};
+
+/**
+ * Style sheet for the histogram component
+ */
+const STYLES = ` 
+
+.axis {
+  shape-rendering: crispEdges;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.axis text {
+  font-size: 10pt;
+}
+
+.axis path,
+.axis line {
+  stroke-opacity: .5;
+  stroke: lightgrey;
+}
+
+.x.axis path {
+  display: none;
+}
+
+  `;
 
 /**
  * Web component for a bar chart. A wrapper around the Histogram class.
@@ -31,11 +65,23 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
 
   constructor() {
     super();
+    this.adoptStyles(STYLES);
+  }
 
-    // Set the style sheet
-    const sheet = new CSSStyleSheet();
-    sheet.replaceSync(this.styleSheet());
-    this.root.adoptedStyleSheets = [sheet];
+  /**
+   * Web component life-cycle event.
+   */
+  attributeChangedCallback(name: string, _: string, newValue: string) {
+    try {
+      switch (name) {
+        case "unit": {
+          this.unit = si.parseDimNum(newValue).unit;
+          break;
+        }
+      }
+    } catch (err: any) {
+      this.displayError(err);
+    }
   }
 
   /**
@@ -45,7 +91,8 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
     // Compute the data using the new parameter values
     const data = this.fetchData();
 
-    // If no unit is known, then derive it from the data.
+    // If no unit is known, then derive it from the data. Set it before it
+    // is used in the chartOptions call below.
     if (this.unit === undefined) {
       this.unit = dataUnit(data);
     }
@@ -57,18 +104,6 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
   }
 
   /**
-   * Web component life-cycle event.
-   */
-  attributeChangedCallback(name: string, _: string, newValue: string) {
-    switch (name) {
-      case "unit": {
-        this.unit = si.parseDimNum(newValue).unit;
-        break;
-      }
-    }
-  }
-
-  /**
    * Creates an options for the chart from the element's attributes.
    *
    * @returns An object with only the entries that are found in the attributes.
@@ -76,92 +111,8 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
   chartOptions(): Partial<HistogramOptions> {
     return {
       unit: this.unit || UOM.ONE,
-      ...optionalStringAttributes(this, ["label"]),
-      ...optionalBooleanAttributes(this, ["smooth"]),
-      ...optionalNumberAttributes(this, [
-        "width",
-        "height",
-        "bins",
-        "lower",
-        "upper",
-      ]),
+      ...optionsFromAttributes<HistogramOptions>(this, SUPPORTED_ATTRIBUTES),
     };
-  }
-
-  /**
-   * Style sheet for the histogram
-   *
-   * @returns A style sheet string
-   */
-  styleSheet(): string {
-    return `
-    
-.pacioli-ts-chart path {
-    stroke-width: 1;
-    fill: none;
-}
-
-.bar {
-      fill: steelblue;
-    }
-
-.data {
-    stroke: steelblue;
-}
-			
-.axis {
-    shape-rendering: crispEdges;
-}
-
-.axis {
-    OLDfont: 10px sans-serif;
-    font: 10px;
-}
-    
-.axis path,
-.axis line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-}
-
-.x.axis line { 
-    stroke: lightgrey;
-}
-
-.x.axis .minor {
-    stroke-opacity: .5;
-}
-
-.x.axis path {
-    /*display: none;*/
-}
-
-.x.axis path {
-    display: none;
-}
-			
-.x.axis text {
-    font-size: 10px;
-}
-
-.y.axis line, .y.axis path {
-    stroke: lightgrey;
-    stroke-opacity: .5;
-    fill: none;
-    /*stroke: #000;*/
-}
-
-.y.axis text {
-    font-size: 10px;
-}
-
-
-.dot {
-    fill: lightblue !important ;
-    stroke: darkgray;
-}
-    `;
   }
 }
 

@@ -1,9 +1,9 @@
 import { PacioliWebController } from "../pacioli-web-controller";
 import { PacioliSceneComponent } from "./pacioli-scene";
 
-const template = document.createElement("template");
+const TEMPLATE = document.createElement("template");
 
-template.innerHTML = `
+TEMPLATE.innerHTML = `
   <style>
     .pacioli-controls-animation {
       background: var(--bg-color);
@@ -19,16 +19,16 @@ template.innerHTML = `
     <button class="reset">Reset</button>
   </div>
   <div class="pacioli-controls-configuration">
-    <label class="axis">axis
+    <label class="axis" for="">axis
       <input type="checkbox"></input>
     </label>
-    <label class="grid">grid
+    <label class="grid" for="">grid
       <input type="checkbox"></input>
     </label>
-    <label class="labels">labels
+    <label class="labels" for="">labels
       <input type="checkbox"></input>
     </label>
-    <label class="rotate">rotate
+    <label class="rotate" for="">rotate
       <input type="checkbox"></input>
     </label>
   </div>
@@ -48,6 +48,11 @@ template.innerHTML = `
  */
 export class PacioliControlsComponent extends PacioliWebController {
   /**
+   * Web component field.
+   */
+  static observedAttributes = ["for"];
+
+  /**
    * Auto-rotation speed
    */
   static SECONDS_PER_ROTATION = 30;
@@ -55,12 +60,16 @@ export class PacioliControlsComponent extends PacioliWebController {
   /**
    * Web component life-cycle event.
    */
-  attributeChangedCallback(name: string, _: string, next: string) {
+  attributeChangedCallback(name: string, prev: string | null, next: string) {
     switch (name) {
       case "for": {
-        this.unfollow();
-        this.follow(next, () => this.updateControls());
-        this.updateControls();
+        // Only handle changes after the initial construction. Initial
+        // construction is done in connectedCallback.
+        if (prev !== null) {
+          this.unfollow();
+          this.follow(next, () => this.updateControls());
+          this.updateControls();
+        }
         break;
       }
     }
@@ -73,7 +82,7 @@ export class PacioliControlsComponent extends PacioliWebController {
     super.connectedCallback();
 
     // Create the content from the template
-    this.contentParent().appendChild(template.content.cloneNode(true));
+    this.contentParent().appendChild(TEMPLATE.content.cloneNode(true));
 
     // Connect all event handlers to the content elements
     this.addEventListeners();
@@ -159,7 +168,6 @@ export class PacioliControlsComponent extends PacioliWebController {
     const scene = this.sceneElement();
     if (scene) {
       try {
-        // scene.setParameters(this.inputs.map((input) => input.element.value));
         scene.reset();
         this.updateControls();
       } catch (error: any) {
@@ -268,6 +276,7 @@ export class PacioliControlsComponent extends PacioliWebController {
         const isRunning = space.isRunning();
 
         animationElement.hidden = false;
+        animationElement.style.display = ""; // "inline-block";
         runButton.hidden = false;
         stepButton.hidden = false;
 
@@ -279,6 +288,8 @@ export class PacioliControlsComponent extends PacioliWebController {
         resetButton.disabled = isRunning;
       } else {
         animationElement.hidden = true;
+        // console.log(animationElement.style.display);
+        animationElement.style.display = "none";
       }
     } else {
       // No scene, just disable the animation buttons

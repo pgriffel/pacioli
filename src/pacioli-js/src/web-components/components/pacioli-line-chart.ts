@@ -3,11 +3,51 @@ import { LineChart, LineChartOptions } from "../../charts/d3-line-chart";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { dataUnit } from "../../charts/chart-utils";
-import {
-  optionalBooleanAttributes,
-  optionalNumberAttributes,
-  optionalStringAttributes,
-} from "../utils";
+import { optionsFromAttributes } from "../utils";
+
+/**
+ * Attribues supported by the histogram component
+ */
+const SUPPORTED_ATTRIBUTES = {
+  strings: ["label", "xlabel"],
+  booleans: ["smooth", "rotate"],
+  numbers: ["decimals", "norm", "ymin", "ymax", "xticks", "yticks"],
+};
+
+/**
+ * Style sheet for the line chart
+ */
+const STYLES = `
+
+.data {
+  stroke: steelblue;
+  stroke-width: 1;
+  fill: none;
+}
+    
+.axis {
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  font-size: 10pt;
+}
+
+.axis path,
+.axis line {
+  stroke-opacity: .5;
+  stroke: lightgrey;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.dot {
+  fill: lightblue !important ;
+  stroke: darkgray;
+}
+`;
 
 /**
  * Web component for a line chart. A wrapper around the LineChart class.
@@ -31,22 +71,22 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
 
   constructor() {
     super();
-
-    // Set the style sheet
-    const sheet = new CSSStyleSheet();
-    sheet.replaceSync(this.styleSheet());
-    this.root.adoptedStyleSheets = [sheet];
+    this.adoptStyles(STYLES);
   }
 
   /**
    * Web component life-cycle event.
    */
   attributeChangedCallback(name: string, _: string, newValue: string) {
-    switch (name) {
-      case "unit": {
-        this.unit = si.parseDimNum(newValue).unit;
-        break;
+    try {
+      switch (name) {
+        case "unit": {
+          this.unit = si.parseDimNum(newValue).unit;
+          break;
+        }
       }
+    } catch (err: any) {
+      this.displayError(err);
     }
   }
 
@@ -54,14 +94,17 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
+    // Compute the data using the new parameter values
     const data = this.fetchData();
 
+    // If no unit is known, then derive it from the data. Set it before it
+    // is used in the chartOptions call below.
     if (this.unit === undefined) {
       this.unit = dataUnit(data);
     }
 
+    // Refresh the chart
     this.clearContent();
-
     this.chart = new LineChart(data, PacioliContext.si(), this.chartOptions());
     this.chart.draw(this.contentParent());
   }
@@ -74,82 +117,8 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
   chartOptions(): Partial<LineChartOptions> {
     return {
       unit: this.unit || UOM.ONE,
-      ...optionalStringAttributes(this, ["label"]),
-      ...optionalBooleanAttributes(this, ["smooth"]),
-      ...optionalNumberAttributes(this, ["width", "height"]),
+      ...optionsFromAttributes<LineChartOptions>(this, SUPPORTED_ATTRIBUTES),
     };
-  }
-
-  /**
-   * Style sheet for the bar chart
-   *
-   * @returns A style sheet string
-   */
-  styleSheet(): string {
-    return `   
-    
-.pacioli-ts-chart path {
-    stroke-width: 1;
-    fill: none;
-}
-
-.data {
-    stroke: steelblue;
-}
-			
-.axis {
-    shape-rendering: crispEdges;
-}
-
-.axis {
-    OLDfont: 10px sans-serif;
-    font: 10px;
-}
-    
-.axis path,
-.axis line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-}
-
-.x.axis line { 
-    stroke: lightgrey;
-}
-
-.x.axis .minor {
-    stroke-opacity: .5;
-}
-
-.x.axis path {
-    /*display: none;*/
-}
-
-.x.axis path {
-    display: none;
-}
-			
-.x.axis text {
-    font-size: 10px;
-}
-
-.y.axis line, .y.axis path {
-    stroke: lightgrey;
-    stroke-opacity: .5;
-    fill: none;
-    /*stroke: #000;*/
-}
-
-.y.axis text {
-    font-size: 10px;
-}
-
-
-.dot {
-    fill: lightblue !important ;
-    stroke: darkgray;
-}
-`;
   }
 }
 

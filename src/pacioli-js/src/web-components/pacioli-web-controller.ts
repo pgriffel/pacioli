@@ -28,10 +28,6 @@ export abstract class PacioliWebController
    */
   private followedComponentId?: string;
 
-  constructor() {
-    super();
-  }
-
   /**
    * Web component life-cycle event.
    */

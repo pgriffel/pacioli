@@ -4,11 +4,41 @@ import { PacioliContext } from "../../context";
 import { PacioliValue } from "../../value";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { dataUnit } from "../../charts/chart-utils";
-import {
-  optionalBooleanAttributes,
-  optionalNumberAttributes,
-  optionalStringAttributes,
-} from "../utils";
+import { optionsFromAttributes } from "../utils";
+
+/**
+ * Attribues supported by the scatter plot component
+ */
+const SUPPORTED_ATTRIBUTES = {
+  strings: ["label"],
+  booleans: ["trendline"],
+  numbers: ["width", "height", "xlower", "ylower", "radius", "decimals"],
+};
+
+/**
+ * Style sheet for the scatter plot chart
+ */
+const STYLES = `
+
+.axis {
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  font-size: 10pt;
+}
+
+.axis path,
+.axis line {
+  stroke-opacity: .5;
+  stroke: lightgrey;
+}
+
+
+.dot {
+    fill: lightblue !important ;
+    stroke: darkgray;
+}`;
 
 /**
  * Web component for a line chart. A wrapper around the ScatterPlot class.
@@ -38,22 +68,26 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
 
   constructor() {
     super();
-
-    // Set the style sheet
-    const sheet = new CSSStyleSheet();
-    sheet.replaceSync(this.styleSheet());
-    this.root.adoptedStyleSheets = [sheet];
+    this.adoptStyles(STYLES);
   }
 
   /**
    * Web component life-cycle event.
    */
   attributeChangedCallback(name: string, _: string, newValue: string) {
-    switch (name) {
-      case "unit": {
-        this.xunit = si.parseDimNum(newValue).unit;
-        break;
+    try {
+      switch (name) {
+        case "xunit": {
+          this.xunit = si.parseDimNum(newValue).unit;
+          break;
+        }
+        case "yunit": {
+          this.yunit = si.parseDimNum(newValue).unit;
+          break;
+        }
       }
+    } catch (err: any) {
+      this.displayError(err);
     }
   }
 
@@ -97,98 +131,8 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
     return {
       xunit: this.xunit || UOM.ONE,
       yunit: this.yunit || UOM.ONE,
-      ...optionalStringAttributes(this, ["label"]),
-      ...optionalBooleanAttributes(this, ["smooth"]),
-      ...optionalNumberAttributes(this, ["width", "height"]),
+      ...optionsFromAttributes<ScatterPlotOptions>(this, SUPPORTED_ATTRIBUTES),
     };
-  }
-
-  /**
-   * Style sheet for the bar chart
-   *
-   * @returns A style sheet string
-   */
-  styleSheet(): string {
-    return `   
-    
-.pacioli-pie-chart {
-
-}
-
-.pacioli-pie-chart path.slice {
-	stroke-width:2px;
-}
-
-
-.pacioli-pie-chart polyline {
-	opacity: .3;
-	stroke: black;
-	stroke-width: 2px;
-	fill: none;
-}
-
-.pacioli-ts-chart path {
-    stroke-width: 1;
-    fill: none;
-}
-
-.data {
-    stroke: steelblue;
-}
-			
-.axis {
-    shape-rendering: crispEdges;
-}
-
-.axis {
-    OLDfont: 10px sans-serif;
-    font: 10px;
-}
-    
-.axis path,
-.axis line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-}
-
-.x.axis line { 
-    stroke: lightgrey;
-}
-
-.x.axis .minor {
-    stroke-opacity: .5;
-}
-
-.x.axis path {
-    /*display: none;*/
-}
-
-.x.axis path {
-    display: none;
-}
-			
-.x.axis text {
-    font-size: 10px;
-}
-
-.y.axis line, .y.axis path {
-    stroke: lightgrey;
-    stroke-opacity: .5;
-    fill: none;
-    /*stroke: #000;*/
-}
-
-.y.axis text {
-    font-size: 10px;
-}
-
-
-.dot {
-    fill: lightblue !important ;
-    stroke: darkgray;
-}
-`;
   }
 }
 

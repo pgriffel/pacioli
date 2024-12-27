@@ -133,9 +133,9 @@ export class PieChart {
       // var numbers = this.data.value
 
       // Make the parent node empty
-      // while (parent.firstChild) {
-      //   parent.removeChild(parent.firstChild);
-      // }
+      while (parent.firstChild) {
+        parent.removeChild(parent.firstChild);
+      }
 
       const data: { value: number; name: string }[] = [];
       for (let i = 0; i < input.labels.length; i++) {
@@ -167,7 +167,7 @@ export class PieChart {
       const svg = d3
         .select(parent)
         .append("svg")
-        .attr("class", "pacioli-ts-chart pacioli-ts-pie-chart")
+        .attr("class", "pacioli chart pie-chart")
         .attr("width", width)
         .attr("height", height);
 
