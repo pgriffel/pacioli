@@ -48,6 +48,11 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   space?: Space;
 
   /**
+   * Loaded initial data for the scene
+   */
+  fetchedData?: PacioliValue;
+
+  /**
    * Web component field.
    */
   static observedAttributes = ["unit"];
@@ -88,7 +93,8 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   parametersChanged() {
     try {
       if (this.space) {
-        this.fetchAndLoadData(this.space);
+        this.fetchedData = this.fetchData();
+        this.loadData(this.space);
       }
     } catch (err: any) {
       this.displayError(err);
@@ -149,7 +155,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
     this.clearErrors();
 
     if (this.space && !this.space.isRunning()) {
-      this.fetchAndLoadData(this.space);
+      this.loadData(this.space);
     }
   }
 
@@ -197,15 +203,17 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    * Calls the script function with the current parameter values and loads the returned
    * scene into the Pacioli space.
    */
-  private fetchAndLoadData(space: Space) {
-    // Compute the data and load it into the space
-    loadSpaceData(space, this.fetchData(), this.sceneKind());
+  private loadData(space: Space) {
+    if (this.fetchedData) {
+      // Load the computed data into the space
+      loadSpaceData(space, this.fetchedData, this.sceneKind());
 
-    // Update the screen to show the loaded data
-    space.draw();
+      // Update the screen to show the loaded data
+      space.draw();
 
-    // Synchronize any connected controls and inputs
-    this.callCallbacks();
+      // Synchronize any connected controls and inputs
+      this.callCallbacks();
+    }
   }
 }
 
