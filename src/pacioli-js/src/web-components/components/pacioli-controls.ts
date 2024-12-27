@@ -60,12 +60,12 @@ export class PacioliControlsComponent extends PacioliWebController {
   /**
    * Web component life-cycle event.
    */
-  attributeChangedCallback(name: string, prev: string | null, next: string) {
+  attributeChangedCallback(name: string, _: string | null, next: string) {
     switch (name) {
       case "for": {
         // Only handle changes after the initial construction. Initial
         // construction is done in connectedCallback.
-        if (prev !== null) {
+        if (this.isConnected) {
           this.unfollow();
           this.follow(next, () => this.updateControls());
           this.updateControls();
@@ -95,7 +95,9 @@ export class PacioliControlsComponent extends PacioliWebController {
 
     // If we are connected to a scene, then we need to keep the
     // state of the buttons synchronized with the scene animation.
-    this.followAttached(() => this.updateControls());
+    if (this.attachedComponent()) {
+      this.followAttached(() => this.updateControls());
+    }
   }
 
   /**

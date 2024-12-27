@@ -38,13 +38,13 @@ export class PacioliInputsComponent extends PacioliWebController {
   /**
    * Web component life-cycle event.
    */
-  attributeChangedCallback(name: string, prev: string | null, next: string) {
+  attributeChangedCallback(name: string, _: string | null, next: string) {
     switch (name) {
       case "for": {
         // Only handle changes after the initial construction. Initial
         // construction is done in connectedCallback.
-        if (prev !== null) {
-          // Detach from previous component
+        if (this.isConnected) {
+          // Detach from previous component. No harm if we were not following.
           this.unfollow();
           this.removeTableRows();
 
@@ -75,15 +75,16 @@ export class PacioliInputsComponent extends PacioliWebController {
       this.applyButtonClicked()
     );
 
-    // Add input rows to the parameter table
-    this.createAndAppendTableRows();
+    // Add input rows to the parameter table and follow the attached component
+    if (this.attachedComponent()) {
+      this.createAndAppendTableRows();
 
-    // If we are connected to a scene, then we need to keep the
-    // state of the buttons synchronized with the scene animation.
-    this.followAttached(() => this.updateControls());
+      // We need to keep the state of the buttons synchronized with the component state.
+      this.followAttached(() => this.updateControls());
 
-    // Make sure the proper buttons are shown and enabled
-    this.updateControls();
+      // Make sure the proper buttons are shown and enabled
+      this.updateControls();
+    }
   }
 
   /**
