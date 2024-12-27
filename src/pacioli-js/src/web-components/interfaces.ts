@@ -44,8 +44,7 @@ export interface Callable {
   setParameters(values: string[]): void;
 
   /**
-   * Called when the parameters are changed. Also initially after construction. Errors are
-   * catched and displayed.
+   * Called when the parameters are changed. Also initially after construction.
    */
   parametersChanged(): void;
 

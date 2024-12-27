@@ -59,11 +59,7 @@ export abstract class PacioliWebComponent
     // Schedule a call to parametersChanged. It must be delayed until the DOM children exist.
     // We need the children so we can get the parameter values.
     setTimeout(() => {
-      try {
-        this.parametersChanged();
-      } catch (error: any) {
-        this.displayError(error);
-      }
+      this.parametersChanged();
     }, 1); // On FireFox 0 is sufficient. Chrome requires > 0.
   }
 
@@ -107,11 +103,7 @@ export abstract class PacioliWebComponent
    */
   setParameters(values: string[]) {
     setParameterNodes(this, values);
-    try {
-      this.parametersChanged();
-    } catch (error: any) {
-      this.displayError(error);
-    }
+    this.parametersChanged();
   }
 
   /**

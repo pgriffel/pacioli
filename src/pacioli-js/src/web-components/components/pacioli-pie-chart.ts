@@ -66,19 +66,23 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
-    // Compute the data using the new parameter values
-    const data = this.fetchData();
+    try {
+      // Compute the data using the new parameter values
+      const data = this.fetchData();
 
-    // If no unit is known, then derive it from the data. Set it before it
-    // is used in the chartOptions call below.
-    if (this.unit === undefined) {
-      this.unit = dataUnit(data);
+      // If no unit is known, then derive it from the data. Set it before it
+      // is used in the chartOptions call below.
+      if (this.unit === undefined) {
+        this.unit = dataUnit(data);
+      }
+
+      // Refresh the chart
+      this.clearContent();
+      this.chart = new PieChart(data, PacioliContext.si(), this.chartOptions());
+      this.chart.draw(this.contentParent());
+    } catch (err: any) {
+      this.displayError(err);
     }
-
-    // Refresh the chart
-    this.clearContent();
-    this.chart = new PieChart(data, PacioliContext.si(), this.chartOptions());
-    this.chart.draw(this.contentParent());
   }
 
   /**

@@ -95,31 +95,35 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
-    const data = this.fetchData();
+    try {
+      const data = this.fetchData();
 
-    if (data.kind !== "tuple") {
-      throw Error("data must be a pair");
+      if (data.kind !== "tuple") {
+        throw Error("data must be a pair");
+      }
+
+      const tuple = data as unknown as PacioliValue[];
+
+      const xdata = tuple[0];
+      const ydata = tuple[1];
+
+      if (this.xunit === undefined) {
+        this.xunit = dataUnit(xdata);
+      }
+      if (this.yunit === undefined) {
+        this.yunit = dataUnit(ydata);
+      }
+
+      this.chart = new ScatterPlot(
+        xdata,
+        ydata,
+        PacioliContext.si(),
+        this.chartOptions()
+      );
+      this.chart.draw(this.contentParent());
+    } catch (err: any) {
+      this.displayError(err);
     }
-
-    const tuple = data as unknown as PacioliValue[];
-
-    const xdata = tuple[0];
-    const ydata = tuple[1];
-
-    if (this.xunit === undefined) {
-      this.xunit = dataUnit(xdata);
-    }
-    if (this.yunit === undefined) {
-      this.yunit = dataUnit(ydata);
-    }
-
-    this.chart = new ScatterPlot(
-      xdata,
-      ydata,
-      PacioliContext.si(),
-      this.chartOptions()
-    );
-    this.chart.draw(this.contentParent());
   }
 
   /**

@@ -86,8 +86,12 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   parametersChanged() {
-    if (this.space) {
-      this.fetchAndLoadData(this.space);
+    try {
+      if (this.space) {
+        this.fetchAndLoadData(this.space);
+      }
+    } catch (err: any) {
+      this.displayError(err);
     }
   }
 
