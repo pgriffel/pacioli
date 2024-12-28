@@ -1,0 +1,119 @@
+body {
+    --element-bg-color: #888888;
+    --bg-color: white;
+    --fg-color: white;
+    --border: 1pt solid #BBBBBB;
+}
+
+pacioli-scene {
+    border: var(--border);
+}
+
+.example {
+    display: grid;
+    grid-template-columns: min-content min-content;
+    grid-template-rows: min-content 1fr;
+    grid-template-areas: 
+      "scene config"
+      "scene animation";
+    NOalign-content: start;
+    NOdisplay: flex;
+    NOflex-direction: row;
+}
+
+.example pacioli-scene {
+    grid-area: scene;
+}
+
+.example pacioli-histogram {
+    grid-area: scene;
+}
+
+.example pacioli-inputs {
+    grid-area: config;
+}
+
+.example pacioli-controls {
+    grid-area: animation;
+}
+
+
+.pacioli-inputs-content, .NOpacioli-controls-content {
+    margin-left: 10pt;
+    margin-bottom: 10pt;
+    padding: 10pt;
+    border: var(--border);
+    NObackground: var(--bg-color);
+    NOcolor: var(--fg-color)
+}
+
+.pacioli-inputs-content button {
+    width: 80pt;
+    margin: 10pt;
+    padding: 3pt;
+    NObackground: var(--element-bg-color);
+    NOcolor: var(--fg-color);
+    NOborder: var(--border);
+}
+
+.pacioli-controls-animation {
+    display: flex;
+    flex-direction: row;
+    margin-left: 10pt;
+    margin-bottom: 10pt;
+    padding: 10pt;
+    border: var(--border);
+    NObackground: var(--bg-color);
+    NOcolor: var(--fg-color)
+}
+
+input[type="checkbox"]
+{
+    vertical-align:middle;
+}
+
+.pacioli-controls-configuration {
+    NOdisplay: inline-block;
+    display: flex;
+    flex-direction: row;
+    margin-left: 10pt;
+    margin-bottom: 10pt;
+    padding: 10pt;
+    border: var(--border);
+    NObackground: var(--bg-color);
+    NOcolor: var(--fg-color)
+}
+
+.pacioli-controls-animation button {
+    width: 80pt;
+    margin: 10pt;
+    padding: 3pt;
+    NObackground: var(--element-bg-color);
+    NOcolor: var(--fg-color);
+    NOborder: var(--border);
+}
+
+.pacioli-controls-configuration label {
+    padding: 8pt;
+    NObackground: var(--element-bg-color);
+    NOmargin: 5pt;
+}
+
+.pacioli-controls-configuration input {
+    margin-right: 10pt;
+    padding: 3pt;
+    NObackground: var(--element-bg-color);
+    NOmargin: 5pt;
+}
+
+.pacioli-controls-table {
+    margin: 15pt;
+}
+
+td {
+    padding: 1pt;
+}
+
+input {
+    padding: 3pt;
+}

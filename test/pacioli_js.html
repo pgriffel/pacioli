@@ -7,35 +7,23 @@
 
     <title>Pacioli Tests</title>
 
-    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
-    <link rel="stylesheet" href="../scene.css">
+    <script type="text/javascript" src="pacioli-0.5.0.bundle.js"></script>
+    <link rel="stylesheet" href="pacioli_js.css">
 
     <!-- Include each compiled example script here and add the examples to the list below -->
-    <script type="text/javascript" src="geom3/weird.js"></script>
-    <script type="text/javascript" src="geom3/cubes.js"></script>
+    <script type="text/javascript" src="pacioli_js/web_components.js"></script>
 
 </head>
 
 <body>
     <div id="console"></div>
 
-    <h2>Word Cloud</h2>
-    <p>
-        Test of the pacioli-wordcloud web component
-    <p>
-
-    <div class="example">
-        <pacioli-wordcloud id="wc" script="weird" function="word_count" width="1200" height="1000">
-            <parameter label="treshold">10</parameter>
-        </pacioli-wordcloud>
-        <pacioli-inputs for="wc"></pacioli-inputs>
-    </div>
 
     <h2>Scatter Plot</h2>
     <p>
         Test of the pacioli-scatter-plot web component
     <p>
-        <pacioli-scatter-plot xunit="kilo:gram" yunit="kilo:gram" script="weird" function="scattered">
+        <pacioli-scatter-plot xunit="kilo:gram" yunit="kilo:gram" script="web_components" function="scattered">
             <parameter>100</parameter>
         </pacioli-scatter-plot>
 
@@ -44,7 +32,7 @@
     <p>
         Test of the pacioli-pie-chart web component
     <p>
-        <pacioli-pie-chart unit="kilo:gram" script="weird" function="test_data_gram">
+        <pacioli-pie-chart unit="kilo:gram" script="web_components" function="test_data_gram">
         </pacioli-pie-chart>
 
 
@@ -57,8 +45,8 @@
     <p>
     <div class="example">
 
-        <pacioli-histogram id="dice" unit="1" script="weird" function="dice" Abins="100" lower="0" upper="25"
-            label="dice test" decimals="5" , gap="1.0">
+        <pacioli-histogram id="dice" unit="1" script="web_components" function="dice" NObins="100" NOlower="0"
+            NOupper="25" label="dice test" decimals="5" , gap="1.0">
             <parameter label="throws">10000</parameter>
             <parameter label="dice">3</parameter>
         </pacioli-histogram>
@@ -80,7 +68,7 @@
         Test of the pacioli-bar-chart web component
 
     <p>
-        <pacioli-bar-chart script="weird" function="test_data_gram" label="Bart chart test" unit="milli:gram"
+        <pacioli-bar-chart script="web_components" function="test_data_gram" label="Bart chart test" unit="milli:gram"
             ymin="-100000" , ymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
 
 
@@ -99,7 +87,7 @@
     <p>
     <div class="example">
 
-        <pacioli-line-chart unit="kilo:gram" height="200" script="weird" function="test_data_gram" smooth
+        <pacioli-line-chart unit="kilo:gram" height="200" script="web_components" function="test_data_gram" smooth
             label="some value" width="1200"></pacioli-line-chart>
     </div>
 
@@ -111,30 +99,13 @@
         <li>...</li>
     </ul>
 
-
-
-    <h2>Weird</h2>
-    <p>
-        Just some weird example to test graphics of vectors.
-
-    <div class="example">
-        <pacioli-scene id="scene_weird" script="weird" function="the_scene" kind="animation" perspective axis
-            width="500">
-            <parameter label="n" unit="1">50</parameter>
-            <parameter label="k" unit="1">5</parameter>
-            <parameter label="freq" unit="hertz">1</parameter>
-        </pacioli-scene>
-        <pacioli-inputs for="scene_weird"></pacioli-inputs>
-        <pacioli-controls for="scene_weird"></pacioli-controls>
-    </div>
-
-
     <h2>Cubes I</h2>
     <p>
         An experiment with the CubeMesh datastructure and animation.
 
     <div class="example">
-        <pacioli-scene id="scene_cubes1" script="cubes" function="scene1" kind="stateful-animation" perspective grid>
+        <pacioli-scene id="scene_cubes1" script="web_components" function="scene1" kind="stateful-animation" perspective
+            grid>
             <parameter label="cubes">25</parameter>
             <parameter label="terms">3</parameter>
             <parameter label="speedup">1</parameter>
@@ -148,7 +119,7 @@
         An experiment with the Mesh and Path datastructures
 
     <div class="example">
-        <pacioli-scene id="scene_cubes2" script="cubes" function="scene2" kind="scene" perspective>
+        <pacioli-scene id="scene_cubes2" script="web_components" function="scene2" kind="scene" perspective>
         </pacioli-scene>
         <pacioli-controls for="scene_cubes2"></pacioli-controls>
     </div>
@@ -159,7 +130,7 @@
         My nice scene!
 
     <div class="example">
-        <pacioli-scene id="scene_cubes3" script="cubes" function="scene3" kind="scene" perspective grid axis>
+        <pacioli-scene id="scene_cubes3" script="web_components" function="scene3" kind="scene" perspective grid axis>
             <parameter label="a" unit="metre">5</parameter>
             <parameter label="b" unit="metre">5</parameter>
             <parameter label="c" unit="metre">5</parameter>
@@ -168,6 +139,35 @@
         <pacioli-controls for="scene_cubes3"></pacioli-controls>
     </div>
 
+
+
+    <h2>Weird</h2>
+    <p>
+        Just some weird example to test graphics of vectors.
+
+    <div class="example">
+        <pacioli-scene id="scene_weird" script="web_components" function="the_scene" kind="animation" perspective axis
+            width="500">
+            <parameter label="n" unit="1">50</parameter>
+            <parameter label="k" unit="1">5</parameter>
+            <parameter label="freq" unit="hertz">1</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="scene_weird"></pacioli-inputs>
+        <pacioli-controls for="scene_weird"></pacioli-controls>
+    </div>
+
+
+    <h2>Word Cloud</h2>
+    <p>
+        Test of the pacioli-wordcloud web component
+    <p>
+
+    <div class="example">
+        <pacioli-wordcloud id="wc" script="web_components" function="word_count" width="1200" height="1000">
+            <parameter label="treshold">10</parameter>
+        </pacioli-wordcloud>
+        <pacioli-inputs for="wc"></pacioli-inputs>
+    </div>
 </body>
 
 
