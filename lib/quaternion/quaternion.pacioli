@@ -1,0 +1,222 @@
+# ----------------------------------------------------------------------------
+# Quaternion
+#
+# Paul Griffioen 2012-2024
+# ----------------------------------------------------------------------------
+
+import geometry;
+
+export
+    Quaternion,
+    make_quaternion,
+    make_quaternion2,
+    quaternion_scalar,
+    quaternion_vector,
+    unit_quaternion,
+    quaternion_norm,
+    quaternion_conjugate,
+    scale_quaternion,
+    quaternion_sum,
+    quaternion_product,
+    quaternion_inverse,
+    quaternion2string,
+    quaternion2str;
+
+# ----------------------------------------------------------------------------
+# The Quaternion type
+# ----------------------------------------------------------------------------
+
+doc Quaternion
+    "The type of Hamilton's quaternions.";
+
+deftype for_unit a: Quaternion(a) = Tuple(a, a*Geom3!);
+
+# ----------------------------------------------------------------------------
+# Quaternion functions
+# ----------------------------------------------------------------------------
+
+doc make_quaternion
+  "Constructs quaternion a + bi + cj + dk from parameters a, b, c and d.";
+
+declare make_quaternion ::
+    for_unit a: (a, a, a, a) -> Quaternion(a);
+
+define make_quaternion(a, b, c, d) =
+    tuple(a, vector3d(b, c, d));
+
+# ----------------------------------------------------------------------------
+
+doc make_quaternion2
+  "Constructs quaternion a + bi + cj + dk from parameters a and v where
+  v = vector3d(b, c, d).";
+
+declare make_quaternion2 ::
+    for_unit a: (a, a*Geom3!) -> Quaternion(a);
+
+define make_quaternion2(r, v) =
+    tuple(r, v);
+
+# ----------------------------------------------------------------------------
+
+doc quaternion_scalar
+    "The scalar part of a quaternion. For quaterion a + bi + cj + dk it is
+    scalar a.";
+
+declare quaternion_scalar ::
+    for_unit a: (Quaternion(a)) -> a;
+
+define quaternion_scalar(q) =
+    let (r, _) = q in r end;
+
+# ----------------------------------------------------------------------------
+
+doc quaternion_vector
+    "The vector part of a quaternion. For quaterion a + bi + cj + dk it is
+    vector3d(b, c, d).";
+
+declare quaternion_vector ::
+    for_unit a: (Quaternion(a)) -> a*Geom3!;
+
+define quaternion_vector(q) =
+    let (_, v) = q in v end;
+
+# ----------------------------------------------------------------------------
+
+doc unit_quaternion
+    "Scales a quaternion to one with norm 1.";
+
+declare unit_quaternion ::
+    for_unit a: (Quaternion(a)) -> Quaternion(1);
+
+define unit_quaternion(q) =
+    scale_quaternion(1 / quaternion_norm(q), q);
+
+# ----------------------------------------------------------------------------
+
+doc quaternion_norm
+    "The norm of a quaternion. For some quaternion a + bi + cj + dk it is
+    the square root of a^2 + b^2 + c^2 + d^2.";
+
+declare quaternion_norm ::
+    for_unit a: (Quaternion(a)) -> a;
+
+define quaternion_norm(q) =
+  let (r, v) = q in
+      sqrt(r^2 + inner(v, v))
+  end;
+
+# ----------------------------------------------------------------------------
+
+doc scale_quaternion
+    "Scales a quaternion with some factor.";
+
+declare scale_quaternion ::
+    for_unit a,b: (a, Quaternion(b)) -> Quaternion(a*b);
+
+define scale_quaternion(c, q) =
+  let (r, v) = q in
+      tuple(scale(c, r), scale(c, v))
+  end;
+
+# ----------------------------------------------------------------------------
+
+doc quaternion_sum
+    "Adds two quaternions.";
+
+declare quaternion_sum ::
+    for_unit a: (Quaternion(a), Quaternion(a)) -> Quaternion(a);
+
+define quaternion_sum(q0, q1) =
+  let
+      (r0, v0) = q0,
+      (r1, v1) = q1
+  in
+      tuple(r0 + r1, v0 + v1)
+  end;
+
+# ----------------------------------------------------------------------------
+
+doc quaternion_product
+    "Multiplies two quaternions.";
+
+declare quaternion_product ::
+    for_unit a, b: (Quaternion(a), Quaternion(b)) -> Quaternion(a*b);
+
+define quaternion_product(q0, q1) =
+  let
+      (r0, v0) = q0,
+      (r1, v1) = q1
+  in
+      tuple(
+          r0 * r1 - inner(v0, v1),
+          scale(r0, v1) + scale(r1, v0) + cross(v0, v1))
+  end;
+
+# ----------------------------------------------------------------------------
+doc quaternion_inverse
+    "The inverse of a quaternion. quaternion_product(q, inverse(q)) = 1";
+
+declare quaternion_inverse ::
+    for_unit a: (Quaternion(a)) -> Quaternion(a^-1);
+
+define quaternion_inverse(q) = 
+    let
+        (r, v) = q,
+        denominator = r^2 + inner(v,v)
+    in
+        tuple(r / denominator, -v '/.' denominator)
+    end;
+
+
+
+# ----------------------------------------------------------------------------
+doc quaternion_conjugate
+    "The conjugate of a quaternion. For some quaternion a + bi + cj + dk it is
+    a - bi - cj - dk.";
+
+declare quaternion_conjugate ::
+    for_unit a: (Quaternion(a)) -> Quaternion(a);
+
+define quaternion_conjugate(q) = 
+let
+    (r, v) = q
+in
+    tuple(r, -v)
+end;
+
+# ----------------------------------------------------------------------------
+
+doc quaternion2str
+    "String representation of a quaternion with nr_decimals() decimals.";
+
+declare quaternion2str ::
+    for_unit a: (Quaternion(a), a) -> String;
+
+define quaternion2str(q, u) =
+    quaternion2string(q, nr_decimals(), u);
+
+# ----------------------------------------------------------------------------
+
+doc quaternion2string
+    "String representation of a quaternion.";
+
+declare quaternion2string ::
+    for_unit a: (Quaternion(a), 1, a) -> String;
+
+define quaternion2string(q, decimals, u) =
+    let
+        (r, v) = q,
+        magnitude_r = num2string(magnitude(r), decimals, 1),
+        magnitude_i = num2string(get_num(v, Geom3@x, _), decimals, 1),
+        magnitude_j = num2string(get_num(v, Geom3@y, _), decimals, 1),
+        magnitude_k = num2string(get_num(v, Geom3@z, _), decimals, 1),
+        unit = unit2string(unit(quaternion_scalar(q))),
+        #unit = unit2string(u),
+        quat = format("%s + %si + %sj + %sk", magnitude_r, magnitude_i, magnitude_j, magnitude_k)
+    in
+        if unit = "1" then
+            quat
+        else
+            format("(%s)%s", quat, unit)
+        end
+    end;

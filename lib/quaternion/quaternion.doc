@@ -1,0 +1,7 @@
+<p>
+Dimensioned quaternions. Hamilton's numbers of the form a + bi + cj + dk with a unit of measurement.
+</p>
+<p>
+Quaternions have homogeneous units of measurement. In a quaternion of type <code>Quaternion(a)</code> the 
+scalar part has unit <code>a</code> and the vector part has unit <code>a*Geom3!</code>.
+</p>
