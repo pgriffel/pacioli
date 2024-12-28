@@ -197,7 +197,7 @@ export class PacioliControlsComponent extends PacioliWebController {
   }
 
   /**
-   * Handler for the axis checkbox
+   * Handler for the labels checkbox
    */
   private labelsCheckBoxClicked(checked: boolean) {
     const scene = this.sceneElement();
@@ -215,7 +215,7 @@ export class PacioliControlsComponent extends PacioliWebController {
   }
 
   /**
-   * Handler for the axis checkbox
+   * Handler for the grid checkbox
    */
   private gridCheckBoxClicked(checked: boolean) {
     const scene = this.sceneElement();
@@ -233,7 +233,7 @@ export class PacioliControlsComponent extends PacioliWebController {
   }
 
   /**
-   * Handler for the auto-rotate button
+   * Handler for the auto-rotate checkbox
    */
   private autoRotateCheckboxClicked(checked: boolean) {
     const scene = this.sceneElement();
@@ -253,7 +253,7 @@ export class PacioliControlsComponent extends PacioliWebController {
   }
 
   /**
-   * Set the disabled and hidden state of the buttons. Also set the
+   * Set the disabled and hidden state of the controls. Also set the
    * button labels for the animation buttons.
    */
   private updateControls() {
@@ -277,8 +277,7 @@ export class PacioliControlsComponent extends PacioliWebController {
       if (space.isAnimation()) {
         const isRunning = space.isRunning();
 
-        animationElement.hidden = false;
-        animationElement.style.display = ""; // "inline-block";
+        animationElement.style.display = "";
         runButton.hidden = false;
         stepButton.hidden = false;
 
@@ -289,8 +288,6 @@ export class PacioliControlsComponent extends PacioliWebController {
         stepButton.disabled = isRunning;
         resetButton.disabled = isRunning;
       } else {
-        animationElement.hidden = true;
-        // console.log(animationElement.style.display);
         animationElement.style.display = "none";
       }
     } else {
@@ -308,9 +305,9 @@ export class PacioliControlsComponent extends PacioliWebController {
   }
 
   private configurationLabel(className: string): HTMLLabelElement {
-    return this.rootElement().querySelector(
+    return this.findElement(
       `.pacioli-controls-configuration ${className}`
-    )!;
+    ) as HTMLLabelElement;
   }
 
   private configurationCheckbox(className: string): HTMLInputElement {

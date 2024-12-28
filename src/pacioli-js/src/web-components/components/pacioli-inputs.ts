@@ -11,7 +11,7 @@ TEMPLATE.innerHTML = `
 `;
 
 /**
- * Web component with controls for the PacioliScene web component.
+ * Web component with inputs for a Pacioli web component's parameters.
  *
  * @example
  * <pacioli-scene id="my_scene" ... >
@@ -113,7 +113,7 @@ export class PacioliInputsComponent extends PacioliWebController {
   /**
    * Create inputs for the scene parameters
    *
-   * @returns List of objects with a 'paramater' and a 'input' field.
+   * @returns List of objects with a 'paramater' and a 'element' field.
    */
   private createInputs(): {
     parameter: PacioliParameter;
@@ -137,7 +137,7 @@ export class PacioliInputsComponent extends PacioliWebController {
     const scene = this.attachedComponent();
     if (scene && this.inputs) {
       try {
-        scene.clearErrors(); // Better if the caller does this!?
+        scene.clearErrors();
         scene.setParameters(this.inputs.map((input) => input.element.value));
         this.updateControls();
       } catch (error: any) {
@@ -147,8 +147,7 @@ export class PacioliInputsComponent extends PacioliWebController {
   }
 
   /**
-   * Set the disabled and hidden state of the buttons. Also set the
-   * button labels for the animation buttons.
+   * Set the disabled and hidden state of the buttons.
    */
   private updateControls() {
     const scene = this.attachedComponent();

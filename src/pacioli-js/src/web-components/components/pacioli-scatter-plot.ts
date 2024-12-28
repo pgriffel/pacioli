@@ -96,17 +96,19 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
    */
   override parametersChanged(): void {
     try {
+      // Compute the data using the new parameter values
       const data = this.fetchData();
 
+      // Extract the x and y values
       if (data.kind !== "tuple") {
         throw Error("data must be a pair");
       }
-
       const tuple = data as unknown as PacioliValue[];
-
       const xdata = tuple[0];
       const ydata = tuple[1];
 
+      // Derive unknown units from the data. Set them before they
+      // are used in the chartOptions call below.
       if (this.xunit === undefined) {
         this.xunit = dataUnit(xdata);
       }
@@ -114,6 +116,8 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
         this.yunit = dataUnit(ydata);
       }
 
+      // Refresh the chart
+      this.clearContent();
       this.chart = new ScatterPlot(
         xdata,
         ydata,

@@ -48,7 +48,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   space?: Space;
 
   /**
-   * Loaded initial data for the scene
+   * Fetched data. Stored for resetting the scene.
    */
   fetchedData?: PacioliValue;
 
@@ -56,10 +56,6 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    * Web component field.
    */
   static observedAttributes = ["unit"];
-
-  constructor() {
-    super();
-  }
 
   /**
    * Web component life-cycle event.
@@ -128,8 +124,9 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   }
 
   /**
+   * Creates an options for the scene from the element's attributes.
    *
-   * @returns
+   * @returns An object with only the entries that are found in the attributes.
    */
   spaceOptions(): Partial<SpaceOptions> {
     return {
@@ -146,22 +143,21 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   }
 
   /**
-   * Calls the script function with the current parameter values and loads the returned
-   * scene into the Pacioli space. The animation is reset to time zero.
+   * Loads the previously computed initial scene into the Pacioli space. The
+   * animation is reset to time zero.
    *
    * Should not be called when an animation is running
    */
   reset() {
-    this.clearErrors();
-
     if (this.space && !this.space.isRunning()) {
       this.loadData(this.space);
     }
   }
 
   /**
+   * Hints that the scene should not be adjusted.
    *
-   * @returns
+   * @returns True if an animation running.
    */
   override isBusy(): boolean {
     return this.isRunning() ?? false;
@@ -170,7 +166,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   /**
    * Is an animation running?
    *
-   * @returns True if an animation running.
+   * @returns True if an animation is running.
    */
   isRunning() {
     return this.space && this.space.isRunning();
@@ -200,8 +196,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   }
 
   /**
-   * Calls the script function with the current parameter values and loads the returned
-   * scene into the Pacioli space.
+   * Loads the fetched data into the Pacioli space.
    */
   private loadData(space: Space) {
     if (this.fetchedData) {
