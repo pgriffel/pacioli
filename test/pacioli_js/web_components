@@ -2,18 +2,15 @@ import geometry;
 import geometric_algebra;
 import graphics;
 
-
 # ------------------------------------------------------------------------------
-# The rendered scenes
+# Cubes I - Flying cubes
 # ------------------------------------------------------------------------------
 
-
-declare scene2 :: () -> Scene(metre);
-declare scene3 :: for_unit a: (metre, metre, metre) -> Scene(metre);
+declare scene1 :: (1, 1, 1) -> StatefulAnimation(metre, Tuple(1, radian, 1));
 
 define scene1(n, k, f) =
     let 
-        scene = empty_scene("An experiment with the CubeMesh datastructure and animation."),
+        scene = empty_scene("Flying cubes"),
         f(i) = 
             let
                 r1 = random(),
@@ -55,15 +52,6 @@ define scene1(n, k, f) =
             add_meshes([set_wireframe(mesh1(name, clr), false) | name <- names], scene))
     end;
 
-define scene2() =
-    let 
-        scene = empty_scene("An experiment with the Mesh and Path datastructures")
-    in
-        add_paths([path1, path2],
-            add_meshes([set_wireframe(mesh2, true)],
-                scene))
-    end;
-
 define mesh1(name, color_gen) =
     named_cube_mesh(name, 1*|metre|, color_gen());
 
@@ -75,6 +63,22 @@ define color_generator() =
         random_num(w) = floor(255 * expt(w * random(), 1/5))
     in
         () -> rgb(random_num(wr), random_num(wg), random_num(wb))
+    end;
+
+# ------------------------------------------------------------------------------
+# Cubes II - A simple static cube
+# ------------------------------------------------------------------------------
+
+declare scene2 :: () -> Scene(metre);
+    declare scene3 :: for_unit a: (metre, metre, metre) -> Scene(metre);
+    
+define scene2() =
+    let 
+        scene = empty_scene("A simple static cube")
+    in
+        add_paths([path1, path2],
+            add_meshes([set_wireframe(mesh2, true)],
+                scene))
     end;
 
 define mesh2 =
@@ -93,6 +97,9 @@ define pathPoints = [
 define path1 = make_path([2.5 * |metre| '.*' x | x <- pathPoints]);
 define path2 = make_path([5 * |metre| '.*' x | x <- pathPoints]);
 
+# ------------------------------------------------------------------------------
+# Cubes III - My nice scene!
+# ------------------------------------------------------------------------------
 
 define scene3(a, b, c) =
     let scene = empty_scene("My nice scene!") in
@@ -105,11 +112,8 @@ define my_arrows(a, b, c) =
                                  k <- [-1, 1],
                                  vec := vector3d(i*a, j*b, k*c)];
 
-color_generator()();
-
-
 # ------------------------------------------------------------------------------
-# The rendered scene
+# Weird arrows
 # ------------------------------------------------------------------------------
 
 declare the_scene :: (1, 1, hertz) -> Animation(metre);
@@ -123,36 +127,6 @@ define the_scene(n, k, freq) =
             scene_updater(k, freq),
             add_arrows(weird_arrows(n, k), scene))
     end;
-
-define MAX = 100;
-
-defindex Nats = [num2string(n, 0, |1|) | n <- naturals(MAX)];
-
-define natVec(nums) = 
-    make_matrix([x | (n, v) <- zip(row_domain(|Nats!|), nums), 
-                      x := tuple(n, _,  100 * random() * random() * random() * random())]);
-
-define wordcloud() = [
-    tuple("foo", 112),
-    tuple("bar", 23),
-    tuple("bax", 42)   
-];
-
-define scattered(n) =
-  tuple(natVec(naturals(MAX)), natVec(naturals(MAX)));
-
-
-
-define scattered_lists(n) =
-    unzip([tuple(a * |gram|, b * |gram|) | _ <- naturals(n), 
-                                           a := floor(6 * random()), 
-                                           b := floor(6 * random())]);
-
-define dice(n, k) = [sum[1 + floor(6 * random()) | _ <- naturals(k)] | _ <- naturals(n)];
-
-define test_data_dimless() = [1,2,3,4,5,6,7,5,6,7,8,6,4,7,8,8,7,76,6,7];
-
-define test_data_gram() = [x * |gram| | x <- test_data_dimless()];
 
 define weird_arrows(n, k) =
     let 
@@ -203,7 +177,41 @@ define shift_arrow_color(arrow, i, time, k, freq) =
     end;
 
 # ------------------------------------------------------------------------------
-#
+# Chart data
+# ------------------------------------------------------------------------------
+
+define MAX = 100;
+
+defindex Nats = [num2string(n, 0, |1|) | n <- naturals(MAX)];
+
+define natVec(nums) = 
+    make_matrix([x | (n, v) <- zip(row_domain(|Nats!|), nums), 
+                      x := tuple(n, _,  100 * random() * random() * random() * random())]);
+
+define wordcloud() = [
+    tuple("foo", 112),
+    tuple("bar", 23),
+    tuple("bax", 42)   
+];
+
+define scattered(n) =
+  tuple(natVec(naturals(MAX)), natVec(naturals(MAX)));
+
+
+
+define scattered_lists(n) =
+    unzip([tuple(a * |gram|, b * |gram|) | _ <- naturals(n), 
+                                           a := floor(6 * random()), 
+                                           b := floor(6 * random())]);
+
+define dice(n, k) = [sum[1 + floor(6 * random()) | _ <- naturals(k)] | _ <- naturals(n)];
+
+define test_data_dimless() = [1,2,3,4,5,6,7,5,6,7,8,6,4,7,8,8,7,76,6,7];
+
+define test_data_gram() = [x * |gram| | x <- test_data_dimless()];
+
+# ------------------------------------------------------------------------------
+# General
 # ------------------------------------------------------------------------------
 
 define second(x) =
@@ -220,25 +228,14 @@ define nth_tail(xs, n) =
     return tailed;
   end;
 
-define element_count(xs) =
-    if xs = [] then
-        []
-    else
-        loop_list(
-            [tuple(head(xs), 1)],
-            (a, x) -> 
-                let (k, c) = head(a) in
-                    if k = x then
-                        cons(tuple(x, c + 1), tail(a))
-                    else
-                        cons(tuple(x, 1), a)
-                    end
-                end,
-            tail(xs))
-    end;
+# ------------------------------------------------------------------------------
+# Word cloud
+# ------------------------------------------------------------------------------
 
-set_nr_decimals(0);
-element_count(["foo", "foo", "bar"]);
+define word_count(n) =
+    [pair | pair <- wikipedia_dimensional_analysis_word_count,
+            #pair <- gauss_word_count,
+            second(pair) >= n];
 
 define count_words(text) = 
     sort_list(
@@ -248,20 +245,32 @@ define count_words(text) =
                 string_compare)),
         (x, y) -> second(y) - second(x));
 
+define element_count(xs) =
+        if xs = [] then
+            []
+        else
+            loop_list(
+                [tuple(head(xs), 1)],
+                (a, x) -> 
+                    let (k, c) = head(a) in
+                        if k = x then
+                            cons(tuple(x, c + 1), tail(a))
+                        else
+                            cons(tuple(x, 1), a)
+                        end
+                    end,
+                tail(xs))
+        end;
+
+set_nr_decimals(0);
+
+element_count(["foo", "foo", "bar"]);
+
 count_words("  foo
 bar bar baz foo
 bar foo baz
 ");
-
-# ------------------------------------------------------------------------------
-#
-# ------------------------------------------------------------------------------
-
-define word_count(n) =
-    [pair | pair <- wikipedia_dimensional_analysis_word_count,
-            #pair <- gauss_word_count,
-            second(pair) >= n];
-
+                    
 # ------------------------------------------------------------------------------
 #
 # ------------------------------------------------------------------------------
