@@ -899,7 +899,7 @@ function createTHREEMesh(
   unit: SIUnit
 ): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
   // Dev setting for now, just as all other props
-  var material = "OTHERnormal";
+  var material = "normal";
 
   const [vs, fs, pos, name, hasWireframe] = mesh;
 
@@ -994,7 +994,7 @@ function mesh2THREE(
   // geometry.mergeVertices();
   // geometry.computeFaceNormals();
   // geometry.computeCentroids();
-  // geometry.computeVertexNormals;
+  geometry.computeVertexNormals;
 
   geometry.setIndex(new THREE.BufferAttribute(indices, 1));
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
