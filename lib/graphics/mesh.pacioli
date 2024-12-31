@@ -18,6 +18,7 @@ export
     vertex,
     face,
     mesh_position,
+    with_material,
     set_wireframe;
 
 # ------------------------------------------------------------------------------
@@ -34,7 +35,8 @@ deftype for_unit a:
                 List(Tuple(1, 1, 1)),
                 a*Geom3!,
                 Maybe(String),
-                Boole);
+                Boole,
+                String);
 
 doc Vertex
     "A point in a <code>Mesh(a)</code> mesh.";
@@ -78,7 +80,7 @@ doc make_mesh
 declare make_mesh :: for_unit a: (List(Vertex(a)), List(Face)) -> Mesh(a);
 
 define make_mesh(vertices, faces) = 
-    tuple(vertices, faces, 0 '.*' let (v,_) = nth(0, vertices) in v end, nothing(), false);
+    tuple(vertices, faces, 0 '.*' let (v,_) = nth(0, vertices) in v end, nothing(), false, "none");
 
 doc named_mesh
     "The same as <code>make_mesh</code> except the mesh is also given a name. The name is used
@@ -87,7 +89,18 @@ doc named_mesh
 declare named_mesh :: for_unit a: (List(Vertex(a)), List(Face), String) -> Mesh(a);
 
 define named_mesh(vertices, faces, name) = 
-    tuple(vertices, faces, 0 '.*' let (v,_) = nth(0, vertices) in v end, just(name), false);
+    tuple(vertices, faces, 0 '.*' let (v,_) = nth(0, vertices) in v end, just(name), false, "none");
+
+doc with_material
+    "Changes the mesh's material. Currently the only supported values are 'normal' and
+    'none'.";
+
+declare with_material :: for_unit a: (Mesh(a), String) -> Mesh(a);
+
+define with_material(mesh, material) = 
+    let (vs, fs, pos, name, wireframe, _) = mesh in
+        tuple(vs, fs, pos, name, wireframe, material)
+    end;
 
 # ------------------------------------------------------------------------------
 
@@ -95,7 +108,7 @@ doc mesh_position
     "A mesh's position";
 
 define mesh_position(mesh) =
-    let (_, _, pos, _, _) = mesh in
+    let (_, _, pos, _, _, _) = mesh in
         pos
     end;
 
@@ -107,8 +120,8 @@ doc move_mesh
 declare move_mesh :: for_unit a: (Mesh(a), a*Geom3!) -> Mesh(a);
 
 define move_mesh(mesh, vec) =
-    let (vertices, faces, _, name, wireframe) = mesh in
-        tuple(vertices, faces, vec, name, wireframe)
+    let (vertices, faces, _, name, wireframe, material) = mesh in
+        tuple(vertices, faces, vec, name, wireframe, material)
     end;
 
 # ------------------------------------------------------------------------------
@@ -119,7 +132,7 @@ doc set_wireframe
 declare set_wireframe :: for_unit a: (Mesh(a), Boole) -> Mesh(a);
 
 define set_wireframe(mesh, status) = 
-  let (vs, fs, pos, name, _) = mesh in tuple(vs, fs, pos, name, status) end;
+  let (vs, fs, pos, name, _, material) = mesh in tuple(vs, fs, pos, name, status, material) end;
 
 # ------------------------------------------------------------------------------
 # Cube mesh
@@ -171,5 +184,5 @@ define make_cube_mesh(name, size, color) =
             face(3,0,4)
         ]
     in
-        tuple([tuple(size '.*' x, c) | (x, c) <- vertices], faces, 0 '.*' size '.*' space_vec(0,0,0), name, false)
+        tuple([tuple(size '.*' x, c) | (x, c) <- vertices], faces, 0 '.*' size '.*' space_vec(0,0,0), name, false, "none")
     end;

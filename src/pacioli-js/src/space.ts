@@ -35,6 +35,7 @@ import {
   CSS2DObject,
   CSS2DRenderer,
 } from "three/examples/jsm/renderers/CSS2DRenderer";
+import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper.js";
 
 /**
  * Matches the Scene type from the graphics Pacioli library
@@ -75,7 +76,8 @@ type PacioliMesh = [
   [Matrix, Matrix, Matrix][], // faces
   Matrix, // position
   Maybe<PacioliString>, // name
-  PacioliBoole // wireframe
+  PacioliBoole, // wireframe
+  PacioliString // material
 ];
 
 /**
@@ -699,6 +701,10 @@ export class Space {
     // Create a THREE mesh object from the Pacioli mesh and add it to the body
     const meshObject = createTHREEMesh(mesh, this.options.unit);
     this.body.add(meshObject);
+    if (false && meshObject.geometry.attributes.normal) {
+      const helper = new VertexNormalsHelper(meshObject, 1, 0xff0000);
+      this.body.add(helper);
+    }
   }
 
   private updateMesh(name: string, vector: Matrix) {
@@ -899,9 +905,10 @@ function createTHREEMesh(
   unit: SIUnit
 ): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
   // Dev setting for now, just as all other props
-  var material = "normal";
 
-  const [vs, fs, pos, name, hasWireframe] = mesh;
+  const [vs, fs, pos, name, hasWireframe, materialOption] = mesh;
+
+  var material = materialOption.value === "normal" ? "normal" : "";
 
   var props = {
     // overdraw: !(wireframe || transparent),
@@ -914,11 +921,11 @@ function createTHREEMesh(
   };
 
   let mat;
-  if (material == "normal") {
+  if (material === "normal") {
     mat = new THREE.MeshNormalMaterial(props);
-  } else if (material == "Lambert") {
+  } else if (material === "Lambert") {
     mat = new THREE.MeshLambertMaterial(props);
-  } else if (material == "Phong") {
+  } else if (material === "Phong") {
     mat = new THREE.MeshPhongMaterial(props);
   } else {
     // props['color'] = 0Xaaaaff;
@@ -960,11 +967,17 @@ function mesh2THREE(
   var indices = new Uint32Array(faces.length * 3); // indices for 4 faces
   var positions = new Float32Array(vertices.length * 3); // buffer arrray, position of 4 vertices
 
+  // Compute our own normals instead of geometry.computeVertexNormals() below!?
+  // Not used at the moment.
+  var normals = [];
+
   for (var i = 0; i < vertices.length; i++) {
     const vec = vector2THREE(vertices[i][0], unit);
     positions[i * 3 + 0] = vec.x;
     positions[i * 3 + 1] = vec.y;
     positions[i * 3 + 2] = vec.z;
+
+    normals.push(vec.x, vec.y, vec.z);
   }
 
   for (var i = 0; i < faces.length; i++) {
@@ -989,16 +1002,21 @@ function mesh2THREE(
     colors.push(color.r, color.g, color.b);
     colors.push(color.r, color.g, color.b);
   }
-  // TODO: fix material
+  // TODO: fix material. UPDATE: Fixed with computeVertexNormals call. See further comments.
 
   // geometry.mergeVertices();
   // geometry.computeFaceNormals();
   // geometry.computeCentroids();
-  geometry.computeVertexNormals;
+  // geometry.computeVertexNormals();
+
+  // Not used. See comment above.
+  //geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
 
   geometry.setIndex(new THREE.BufferAttribute(indices, 1));
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+
+  geometry.computeVertexNormals();
 
   var geo = new THREE.EdgesGeometry(geometry); // or WireframeGeometry( geometry )
 
