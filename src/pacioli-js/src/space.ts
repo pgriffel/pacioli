@@ -83,7 +83,10 @@ type PacioliMesh = [
 /**
  * Matches the Path type from the graphics Pacioli library
  */
-type PacioliPath = Matrix[];
+type PacioliPath = [
+  Matrix[], // path points
+  PacioliString // color
+];
 
 /**
  * Configuration options for the Space class
@@ -715,11 +718,11 @@ export class Space {
     }
   }
 
-  private addPath(points: PacioliPath) {
-    this.log(`Adding path ${points.map(vec2String)}`);
+  private addPath(path: PacioliPath) {
+    this.log(`Adding path ${path[0].map(vec2String)}`);
 
     // Create a THREE line object from the Pacioli path and add it to the body
-    var lineObject = createTHREEPath(points, this.options.unit);
+    var lineObject = createTHREEPath(path, this.options.unit);
     this.body.add(lineObject);
   }
 
@@ -1031,16 +1034,16 @@ function mesh2THREE(
   }
 }
 
-function createTHREEPath(points: PacioliPath, unit: SIUnit) {
+function createTHREEPath(path: PacioliPath, unit: SIUnit) {
   var geometry = new THREE.BufferGeometry();
   var material = new THREE.LineBasicMaterial({
-    color: 0xaaaaaa,
+    color: path[1].value,
     transparent: true,
-    opacity: 0.3,
+    opacity: 1.0,
   });
 
   geometry.setFromPoints(
-    points.map((point: Matrix) => vector2THREE(point, unit))
+    path[0].map((point: Matrix) => vector2THREE(point, unit))
   );
 
   var lineObject = new THREE.Line(geometry, material);

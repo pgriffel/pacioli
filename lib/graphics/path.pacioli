@@ -4,10 +4,13 @@
 
 import geometry;
 
+include color;
+
 export
     Path,
     make_path,
-    make_line;
+    make_line,
+    with_path_color;
 
 # ------------------------------------------------------------------------------
 # Path
@@ -18,7 +21,7 @@ doc Path
     <code>Scene(a)</code> scene.";
 
 deftype for_unit a:
-    Path(a) = List(a * Geom3!);
+    Path(a) = Tuple(List(a * Geom3!), Color);
 
 # ------------------------------------------------------------------------------
 
@@ -29,7 +32,7 @@ declare make_path ::
     for_unit a: (List(a * Geom3!)) -> Path(a);
 
 define make_path(vecs) =
-    vecs;
+    tuple(vecs, make_color("blue"));
 
 # ------------------------------------------------------------------------------
 
@@ -41,3 +44,13 @@ declare make_line ::
 
 define make_line(v0, v1) =
     make_path([v0, v1]);
+
+# ------------------------------------------------------------------------------
+
+declare with_path_color ::
+    for_unit a: (Path(a), Color) -> Path(a);
+
+define with_path_color(path, color) =
+    let (vecs, _) = path in
+        tuple(vecs, color)
+    end;
