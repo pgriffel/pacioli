@@ -20,7 +20,7 @@
     "d3": "^7.4.4",
     "d3-cloud": "^1.2.5",
     "numeric": "^1.2.6",
-    "three": "^0.150.1",
+    "three": "^0.171.0",
     "uom-ts": "file:uom-ts-0.0.1.tgz"
   },
   "devDependencies": {
