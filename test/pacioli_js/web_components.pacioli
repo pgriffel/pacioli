@@ -10,7 +10,10 @@ declare scene1 :: (1, 1, 1) -> StatefulAnimation(metre, Tuple(1, radian, 1));
 
 define scene1(n, k, f) =
     let 
-        scene = empty_scene("Flying cubes"),
+        light1 = make_spotlight(|metre| '.*' vector3d(50, 0, 0), |metre| '.*' vector3d(0, 0, 0), make_color("white"), 2000),
+        light2 = make_spotlight(|metre| '.*' vector3d(0, 50, 0), |metre| '.*' vector3d(0, 0, 0), make_color("white"), 2000),
+        light3 = make_spotlight(|metre| '.*' vector3d(0, 0, 50), |metre| '.*' vector3d(0, 0, 0), make_color("white"), 2000),
+        scene = add_spotlights([light1, light2, light3], empty_scene("Flying cubes")),
         f(i) = 
             let
                 r1 = random(),
@@ -53,7 +56,7 @@ define scene1(n, k, f) =
     end;
 
 define mesh1(name, color_gen) =
-    named_cube_mesh(name, 1*|metre|, color_gen());
+    with_material(named_cube_mesh(name, 1*|metre|, color_gen()), "Phong");
 
 define color_generator() =
     let
@@ -175,7 +178,10 @@ define icosahedron(size) =
 define icosahedron_planes(size) =
     let
         coords = pacioli_plane_coordinates(size),
-        plane_path(a,b,c,d) = with_path_color(make_path([nth(a, coords), nth(b, coords), nth(c, coords), nth(d, coords), nth(a, coords)]), make_color("green"))
+        plane_path(a,b,c,d) =
+            with_path_color(
+                make_path([nth(a, coords), nth(b, coords), nth(c, coords), nth(d, coords), nth(a, coords)]), 
+                make_color("green"))
     in
         [
             plane_path(0, 3, 9, 6),

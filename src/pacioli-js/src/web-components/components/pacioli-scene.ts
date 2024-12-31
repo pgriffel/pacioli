@@ -14,7 +14,7 @@ import { optionsFromAttributes } from "../utils";
  * Attribues supported by the 3D scene component
  */
 const SUPPORTED_ATTRIBUTES = {
-  strings: [],
+  strings: ["background", "ambientColor", "ambientIntensity"],
   booleans: ["axis", "grid", "perspective"],
   numbers: ["width", "height", "fps"],
 };

@@ -44,7 +44,8 @@ export type PacioliScene = [
   PacioliString,
   PacioliArrow[],
   PacioliMesh[],
-  PacioliPath[]
+  PacioliPath[],
+  PacioliSpotLight[]
 ];
 
 /**
@@ -89,6 +90,16 @@ type PacioliPath = [
 ];
 
 /**
+ * Matches the SpotLight type from the graphics Pacioli library
+ */
+type PacioliSpotLight = [
+  Matrix, // position
+  Matrix, // target
+  PacioliString, // color
+  Matrix // intensity
+];
+
+/**
  * Configuration options for the Space class
  */
 export interface SpaceOptions {
@@ -111,6 +122,8 @@ export interface SpaceOptions {
   showLabels: boolean;
   autoRotation: boolean;
   secondsPerRotation: number;
+  ambientColor?: string;
+  ambientIntensity?: number;
 }
 
 /**
@@ -253,6 +266,16 @@ export class Space {
       this.showAxis();
     }
 
+    // Add ambient light if requested
+    if (this.options.ambientColor) {
+      const color = new THREE.Color(this.options.ambientColor);
+      const ambientLight = new THREE.AmbientLight(
+        color,
+        this.options.ambientIntensity || 1.0
+      );
+      this.scene.add(ambientLight);
+    }
+
     // Create the body and add it to the scene
     this.body = new THREE.Object3D();
     this.scene.add(this.body);
@@ -387,7 +410,7 @@ export class Space {
     this.clear();
 
     // Add all scene elements
-    const [name, vectors, meshes, paths] = scene;
+    const [name, vectors, meshes, paths, lights] = scene;
     for (const mesh of meshes) {
       this.addMesh(mesh);
     }
@@ -396,6 +419,9 @@ export class Space {
     }
     for (const path of paths) {
       this.addPath(path);
+    }
+    for (const [position, target, color, intensity] of lights) {
+      this.addSpotLight(position, target, color, intensity);
     }
 
     // Initialize the animation
@@ -726,6 +752,27 @@ export class Space {
     this.body.add(lineObject);
   }
 
+  private addSpotLight(
+    position: Matrix,
+    target: Matrix,
+    color: PacioliString,
+    intensity: Matrix
+  ) {
+    const positionVector = vector2THREE(position, this.options.unit);
+    const targetVector = vector2THREE(target, this.options.unit);
+
+    const light = new THREE.SpotLight(
+      new THREE.Color(color.value),
+      getNumber(intensity.numbers, 0, 0)
+    );
+
+    light.position.set(positionVector.x, positionVector.y, positionVector.z);
+    light.target.position.set(targetVector.x, targetVector.y, targetVector.z);
+
+    this.scene.add(light);
+    this.scene.add(light.target);
+  }
+
   // TODO: updatePath
 
   private addVector(
@@ -911,7 +958,7 @@ function createTHREEMesh(
 
   const [vs, fs, pos, name, hasWireframe, materialOption] = mesh;
 
-  var material = materialOption.value === "normal" ? "normal" : "";
+  var material = materialOption.value.toLowerCase();
 
   var props = {
     // overdraw: !(wireframe || transparent),
@@ -919,6 +966,7 @@ function createTHREEMesh(
     side: THREE.DoubleSide,
     transparent: false,
     // // opacity: (transparent) ? 0.5 : 1.0,
+    opacity: 1.0,
     // color: 0xaaaaff,
     vertexColors: true,
   };
@@ -926,9 +974,9 @@ function createTHREEMesh(
   let mat;
   if (material === "normal") {
     mat = new THREE.MeshNormalMaterial(props);
-  } else if (material === "Lambert") {
+  } else if (material === "lambert") {
     mat = new THREE.MeshLambertMaterial(props);
-  } else if (material === "Phong") {
+  } else if (material === "phong") {
     mat = new THREE.MeshPhongMaterial(props);
   } else {
     // props['color'] = 0Xaaaaff;

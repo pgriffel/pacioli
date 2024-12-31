@@ -99,33 +99,8 @@
         <li>...</li>
     </ul>
 
+
     <h2>Cubes I</h2>
-    <p>
-        An experiment with the CubeMesh datastructure and animation.
-
-    <div class="example">
-        <pacioli-scene id="scene_cubes1" script="web_components" function="scene1" kind="stateful-animation" perspective
-            grid>
-            <parameter label="cubes">25</parameter>
-            <parameter label="terms">3</parameter>
-            <parameter label="speedup">1</parameter>
-        </pacioli-scene>
-        <pacioli-inputs for="scene_cubes1"></pacioli-inputs>
-        <pacioli-controls for="scene_cubes1"></pacioli-controls>
-    </div>
-
-    <h2>Cubes II</h2>
-    <p>
-        An experiment with the Mesh and Path datastructures
-
-    <div class="example">
-        <pacioli-scene id="scene_cubes2" script="web_components" function="scene2" kind="scene" perspective>
-        </pacioli-scene>
-        <pacioli-controls for="scene_cubes2"></pacioli-controls>
-    </div>
-
-
-    <h2>Cubes III</h2>
     <p>
         My nice scene!
 
@@ -140,18 +115,46 @@
     </div>
 
 
+    <h2>Cubes II</h2>
+    <p>
+        An experiment with the Mesh and Path datastructures
+
+    <div class="example">
+        <pacioli-scene id="scene_cubes2" script="web_components" function="scene2" kind="scene" perspective>
+        </pacioli-scene>
+        <pacioli-controls for="scene_cubes2"></pacioli-controls>
+    </div>
+
+
+    <h2>Cubes III</h2>
+    <p>
+        An experiment with the CubeMesh datastructure and animation.
+
+    <div class="example">
+        <pacioli-scene id="scene_cubes1" script="web_components" function="scene1" kind="stateful-animation" perspective
+            grid background="#222222" ambientColor="white" ambientIntensity="0.3">
+            <parameter label="cubes">25</parameter>
+            <parameter label="terms">3</parameter>
+            <parameter label="speedup">1</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="scene_cubes1"></pacioli-inputs>
+        <pacioli-controls for="scene_cubes1"></pacioli-controls>
+    </div>
+
+
     <h2>Cubes IV</h2>
     <p>
         An icosahedron
 
     <div class="example">
-        <pacioli-scene id="scene_cubes4" script="web_components" function="scene4" kind="scene" perspective>
+        <pacioli-scene id="scene_cubes4" script="web_components" function="scene4" kind="scene" perspective
+            background="#222222">
             <parameter label="arrows">0</parameter>
-            <parameter label="planes">1</parameter>
+            <parameter label="planes">0</parameter>
             <parameter label="faces">1</parameter>
             <parameter label="fill">1</parameter>
-            <parameter label="gap">-3</parameter>
-            <parameter label="size" unit="metre">3</parameter>
+            <parameter label="gap">0</parameter>
+            <parameter label="size" unit="metre">5</parameter>
         </pacioli-scene>
         <pacioli-inputs for="scene_cubes4"></pacioli-inputs>
         <pacioli-controls for="scene_cubes4"></pacioli-controls>
