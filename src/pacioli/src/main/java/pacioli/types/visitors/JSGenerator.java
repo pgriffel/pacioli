@@ -1,5 +1,6 @@
 package pacioli.types.visitors;
 
+import pacioli.compiler.Bundle;
 import pacioli.compiler.Printer;
 import pacioli.types.TypeVisitor;
 import pacioli.types.matrix.IndexList;
@@ -100,82 +101,12 @@ public class JSGenerator implements TypeVisitor {
     @Override
     public void visit(ParametricType type) {
         String name = type.name();
-        if (name.equals("Boole")) {
-            out.write("new Pacioli.GenericType('Boole', [])");
-        } else if (name.equals("String")) {
-            out.write("new Pacioli.GenericType('String', [])");
-        } else if (name.equals("File")) {
-            out.write("new Pacioli.GenericType('File', [])");
-        } else if (name.equals("Report")) {
-            out.write("new Pacioli.Type('report')");
-        } else if (name.equals("Void")) {
-            out.write("new Pacioli.GenericType('Void', [])");
-        } else if (name.equals("Index")) {
-            // out.write("new Pacioli.Type('coordinate', ");
-            out.write("new Pacioli.GenericType('Coordinates', [");
-            String sep = "";
-            for (TypeObject arg : type.args()) {
-                out.write(sep);
-                // out.write(arg.compileToJS());
-                arg.accept(this);
-                sep = ", ";
-            }
-            out.write("])");
-        } else if (name.equals("List")) {
-
+        if (Bundle.PRIMITIVE_TYPES.contains(name)) {
             out.write("new Pacioli.GenericType(");
-            out.write("'List', [");
+            out.write("\"" + name + "\", [");
             String sep = "";
             for (TypeObject arg : type.args()) {
                 out.write(sep);
-                // out.write(arg.compileToJS());
-                arg.accept(this);
-                sep = ", ";
-            }
-            out.write("])");
-        } else if (name.equals("Array")) {
-
-            out.write("new Pacioli.GenericType(");
-            out.write("'Array', [");
-            String sep = "";
-            for (TypeObject arg : type.args()) {
-                out.write(sep);
-                // out.write(arg.compileToJS());
-                arg.accept(this);
-                sep = ", ";
-            }
-            out.write("])");
-        } else if (name.equals("Maybe")) {
-
-            out.write("new Pacioli.GenericType(");
-            out.write("'Maybe', [");
-            String sep = "";
-            for (TypeObject arg : type.args()) {
-                out.write(sep);
-                // out.write(arg.compileToJS());
-                arg.accept(this);
-                sep = ", ";
-            }
-            out.write("])");
-        } else if (name.equals("Ref")) {
-
-            out.write("new Pacioli.Type(");
-            out.write("\"reference\", ");
-            String sep = "";
-            for (TypeObject arg : type.args()) {
-                out.write(sep);
-                // out.write(arg.compileToJS());
-                arg.accept(this);
-                sep = ", ";
-            }
-            out.write(")");
-        } else if (name.equals("Tuple")) {
-            out.write("new Pacioli.GenericType(");
-            out.write("\"Tuple\", [");
-            String sep = "";
-            for (TypeObject arg : type.args()) {
-                out.write(sep);
-                // out.write(arg.compileToJS());
                 arg.accept(this);
                 sep = ", ";
             }
