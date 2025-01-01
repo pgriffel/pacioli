@@ -1,10 +1,9 @@
-import { si, SIUnit } from "uom-ts";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
 import { DOMTable } from "../../dom";
 
 /**
- * Attribues supported by the bar chart component
+ * Attribues supported by the table component
  */
 const SUPPORTED_ATTRIBUTES = {
   strings: ["zero"],
@@ -13,7 +12,7 @@ const SUPPORTED_ATTRIBUTES = {
 };
 
 /**
- * Style sheet for the bar chart
+ * Style sheet for the table component
  */
 const STYLES = ` 
 
@@ -72,39 +71,12 @@ td.total {
 `;
 
 /**
- * Web component for a bar chart. A wrapper around the Table class.
+ * Web component for a table. A wrapper around the DOMTable function.
  */
 export class PacioliTableComponent extends PacioliShadowTreeComponent {
-  /**
-   * The unit of measurement. Is derived from the data if no unit attribute
-   * is given.
-   */
-  unit?: SIUnit;
-
-  /**
-   * Web component field.
-   */
-  static observedAttributes = ["unit"];
-
   constructor() {
     super();
     this.adoptStyles(STYLES);
-  }
-
-  /**
-   * Web component life-cycle event.
-   */
-  attributeChangedCallback(name: string, _: string, newValue: string) {
-    try {
-      switch (name) {
-        case "unit": {
-          this.unit = si.parseDimNum(newValue).unit;
-          break;
-        }
-      }
-    } catch (err: any) {
-      this.displayError(err);
-    }
   }
 
   /**
@@ -115,15 +87,9 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
       // Compute the data using the new parameter values
       const data = this.fetchData();
 
-      // If no unit is known, then derive it from the data. Set it before it
-      // is used in the chartOptions call below.
-      // if (this.unit === undefined) {
-      //   this.unit = dataUnit(data);
-      // }
-
       if (data.kind === "tuple") {
         const items = data as any;
-        // Refresh the chart
+        // Refresh the table
         this.clearContent();
         const columns = items.map((item: any) => ({
           title: item[0].value,
@@ -140,7 +106,7 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
   }
 
   /**
-   * Creates an options for the chart from the element's attributes.
+   * Creates an options for the table from the element's attributes.
    *
    * @returns An object with only the entries that are found in the attributes.
    */
@@ -150,15 +116,12 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
     zeroRows: boolean;
     totalsRow?: boolean;
   }> {
-    return {
-      // unit: this.unit || UOM.ONE,
-      ...optionsFromAttributes<{
-        decimals: number;
-        zero?: string;
-        zeroRows: boolean;
-        totalsRow?: boolean;
-      }>(this, SUPPORTED_ATTRIBUTES),
-    };
+    return optionsFromAttributes<{
+      decimals: number;
+      zero?: string;
+      zeroRows: boolean;
+      totalsRow?: boolean;
+    }>(this, SUPPORTED_ATTRIBUTES);
   }
 }
 

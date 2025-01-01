@@ -1,4 +1,3 @@
-import { si, SIUnit } from "uom-ts";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
 import { DOM } from "../../dom";
@@ -99,36 +98,9 @@ td.total {
  * Web component for a Pacioli value. A wrapper around the DOM function.
  */
 export class PacioliValueComponent extends PacioliShadowTreeComponent {
-  /**
-   * The unit of measurement. Is derived from the data if no unit attribute
-   * is given.
-   */
-  unit?: SIUnit;
-
-  /**
-   * Web component field.
-   */
-  static observedAttributes = ["unit"];
-
   constructor() {
     super();
     this.adoptStyles(STYLES);
-  }
-
-  /**
-   * Web component life-cycle event.
-   */
-  attributeChangedCallback(name: string, _: string, newValue: string) {
-    try {
-      switch (name) {
-        case "unit": {
-          this.unit = si.parseDimNum(newValue).unit;
-          break;
-        }
-      }
-    } catch (err: any) {
-      this.displayError(err);
-    }
   }
 
   /**
@@ -139,13 +111,7 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
       // Compute the data using the new parameter values
       const data = this.fetchData();
 
-      // If no unit is known, then derive it from the data. Set it before it
-      // is used in the chartOptions call below.
-      // if (this.unit === undefined) {
-      //   this.unit = dataUnit(data);
-      // }
-
-      // Refresh the chart
+      // Refresh the html
       this.clearContent();
       this.contentParent().appendChild(DOM(data));
     } catch (err: any) {
@@ -154,7 +120,7 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
   }
 
   /**
-   * Creates an options for the chart from the element's attributes.
+   * Creates an options for the value from the element's attributes.
    *
    * @returns An object with only the entries that are found in the attributes.
    */
@@ -163,14 +129,11 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
     zero?: string;
     zeroRows?: boolean;
   }> {
-    return {
-      //unit: this.unit || UOM.ONE,
-      ...optionsFromAttributes<{
-        decimals?: number;
-        zero?: string;
-        zeroRows?: boolean;
-      }>(this, SUPPORTED_ATTRIBUTES),
-    };
+    return optionsFromAttributes<{
+      decimals?: number;
+      zero?: string;
+      zeroRows?: boolean;
+    }>(this, SUPPORTED_ATTRIBUTES);
   }
 }
 
