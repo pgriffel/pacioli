@@ -18,7 +18,7 @@ doc SpotLight
     "A spotlight. Is an element of a <code>Scene(a)</code> scene.";
 
 deftype for_unit a:
-    SpotLight(a) = Tuple(a * Geom3!, a * Geom3!, Color, 1);
+    SpotLight(a) = Tuple(a * Geom3!, a * Geom3!, Color, candela);
 
 # ------------------------------------------------------------------------------
 
@@ -26,7 +26,7 @@ doc make_spotlight
     "Constructs a spotlight.";
 
 declare make_spotlight ::
-    for_unit a: (a * Geom3!, a * Geom3!, Color, 1) -> SpotLight(a);
+    for_unit a: (a * Geom3!, a * Geom3!, Color, candela) -> SpotLight(a);
 
 define make_spotlight(position, target, color, intensity) =
     tuple(position, target, color, intensity);
