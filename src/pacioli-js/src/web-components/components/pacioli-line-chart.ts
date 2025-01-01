@@ -11,7 +11,16 @@ import { optionsFromAttributes } from "../utils";
 const SUPPORTED_ATTRIBUTES = {
   strings: ["label", "xlabel"],
   booleans: ["smooth", "rotate"],
-  numbers: ["decimals", "norm", "ymin", "ymax", "xticks", "yticks"],
+  numbers: [
+    "width",
+    "height",
+    "decimals",
+    "norm",
+    "ymin",
+    "ymax",
+    "xticks",
+    "yticks",
+  ],
 };
 
 /**
