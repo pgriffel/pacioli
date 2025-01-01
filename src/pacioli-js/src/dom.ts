@@ -48,7 +48,7 @@ export function DOM(
       // case "ref":
       //     return Pacioli.DOM(x.value[0])
       case "list":
-        var list = document.createElement("ul");
+        var list = document.createElement("ol");
         var items = x; //.unlist()
         for (var i = 0; i < items.length; i++) {
           var item = document.createElement("li");
@@ -57,7 +57,7 @@ export function DOM(
         }
         return list;
       case "tuple":
-        var tup = document.createElement("ol");
+        var tup = document.createElement("ul");
         var items = x; //.untuple()
         for (var i = 0; i < items.length; i++) {
           var item = document.createElement("li");
@@ -66,7 +66,7 @@ export function DOM(
         }
         return tup;
       default:
-        return document.createTextNode(x.value + x.kind);
+        return document.createTextNode(x.value);
     }
   }
 }
