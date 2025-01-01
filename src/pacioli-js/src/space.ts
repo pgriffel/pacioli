@@ -1067,6 +1067,7 @@ function mesh2THREE(
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
 
+  geometry = geometry.toNonIndexed();
   geometry.computeVertexNormals();
 
   var geo = new THREE.EdgesGeometry(geometry); // or WireframeGeometry( geometry )
