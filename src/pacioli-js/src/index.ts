@@ -219,3 +219,5 @@ export { PacioliHistogramComponent } from "./web-components/components/pacioli-h
 export { PacioliPieChartComponent } from "./web-components/components/pacioli-pie-chart";
 export { PacioliScatterPlotComponent } from "./web-components/components/pacioli-scatter-plot";
 export { PacioliWordCloudComponent } from "./web-components/components/pacioli-wordcloud";
+export { PacioliValueComponent } from "./web-components/components/pacioli-value";
+export { PacioliTableComponent } from "./web-components/components/pacioli-table";

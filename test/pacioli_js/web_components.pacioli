@@ -10,10 +10,11 @@ declare scene1 :: (1, 1, 1) -> StatefulAnimation(metre, Tuple(1, radian, 1));
 
 define scene1(n, k, f) =
     let 
-        light1 = make_spotlight(|metre| '.*' vector3d(50, 0, 0), |metre| '.*' vector3d(0, 0, 0), make_color("white"), 2000),
-        light2 = make_spotlight(|metre| '.*' vector3d(0, 50, 0), |metre| '.*' vector3d(0, 0, 0), make_color("white"), 2000),
-        light3 = make_spotlight(|metre| '.*' vector3d(0, 0, 50), |metre| '.*' vector3d(0, 0, 0), make_color("white"), 2000),
-        scene = add_spotlights([light1, light2, light3], empty_scene("Flying cubes")),
+        light1 = make_spotlight(|metre| '.*' vector3d(50, 0, 1), |metre| '.*' vector3d(0, 0, 0), make_color("white"), 2000),
+        light2 = make_spotlight(|metre| '.*' vector3d(0, 50, 1), |metre| '.*' vector3d(0, 0, 0), make_color("white"), 2500),
+        light3 = make_spotlight(|metre| '.*' vector3d(0, 0, 50), |metre| '.*' vector3d(0, 0, 0), make_color("white"), 3000),
+        #scene = add_spotlights([], empty_scene("Flying cubes")),
+        scene = add_spotlights([light1, light2, light3], empty_scene("Cube cloud")),
         f(i) = 
             let
                 r1 = random(),
@@ -56,7 +57,7 @@ define scene1(n, k, f) =
     end;
 
 define mesh1(name, color_gen) =
-    with_material(named_cube_mesh(name, 1*|metre|, color_gen()), "Phong");
+    with_material(named_cube_mesh(name, 1*|metre|, color_gen()), "Lambert");
 
 define color_generator() =
     let
@@ -320,9 +321,66 @@ define scattered_lists(n) =
 
 define dice(n, k) = [sum[1 + floor(6 * random()) | _ <- naturals(k)] | _ <- naturals(n)];
 
-define test_data_dimless() = [1,2,3,4,5,6,7,5,6,7,8,6,4,7,8,8,7,76,6,7];
+define test_data_dimless() =
+    sines(50, 5);
+
+define test_data_dimless2 =
+    sines(ceiling(random() * 100), ceiling(random() * 50));
+
+define test_data_gram2 = [x * |gram| | x <- test_data_dimless2];
+
+define sines(n, k) =
+    [v | cs := [ tuple(j, random() - 0.5, random() - 0.5) | j <- naturals(k)],
+         arc := 2 * pi / n * |radian|,
+         decay := 1.2,
+         i <- naturals(n),
+         v := 0 + sum[ w | (j, c1, c2) <- cs,
+                       d := expt(decay, j + 1),
+                       w := (c1 / d) * sin(i * (j + 1) * arc) + (c2 / d) * cos(i * (j + 1) * arc)]];
+
+#define test_data_dimless() = [1,2,3,4,5,6,7,5,6,7,8,6,4,7,8,8,7,76,6,7];
 
 define test_data_gram() = [x * |gram| | x <- test_data_dimless()];
+
+define test_columns() = 
+    tuple(
+        tuple("Land area", land_area),
+        tuple("Population", population),
+        tuple("Density", population/land_area));
+
+defunit people "ppl";
+
+defindex Continent = {
+    Africa,
+    Asia,
+    Europe,
+    North_America,
+    South_America,
+    Antarctica,
+    Oceania 
+};
+
+defmatrix land_area :: kilo:metre^2 * Continent! = {
+    Asia -> 44614000,
+    Africa -> 30365000,
+    North_America -> 24230000,
+    South_America -> 17814000,
+    Antarctica -> 14200000,
+    Europe -> 10000000,
+    Oceania -> 8510926
+};
+
+define get_population() = population;
+
+defmatrix population :: 1 * Continent! = {
+    Asia -> 4694576167,
+    Africa -> 1393676444,
+    North_America -> 595783465,
+    South_America -> 434254119 ,
+    Antarctica -> 0,
+    Europe -> 745173774 ,
+    Oceania -> 44491724
+};
 
 # ------------------------------------------------------------------------------
 # General
