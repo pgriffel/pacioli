@@ -272,6 +272,8 @@ export class PacioliControlsComponent extends PacioliWebController {
       this.configurationCheckbox(".axis").checked = space.hasAxis();
       this.configurationCheckbox(".grid").checked = space.hasGrid();
       this.configurationCheckbox(".labels").checked = space.hasLabels();
+      this.configurationCheckbox(".rotate").checked =
+        space.autoRotateSpeed() > 0;
 
       // Distinguish animations and static scenes
       if (space.isAnimation()) {

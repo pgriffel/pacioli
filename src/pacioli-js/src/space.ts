@@ -164,7 +164,7 @@ export class Space {
   private options: SpaceOptions;
 
   // Three.js properties
-  private renderer: THREE.Renderer;
+  private renderer: THREE.WebGLRenderer;
   private labelRenderer: CSS2DRenderer;
   private scene: THREE.Scene;
   private camera: THREE.Camera;
@@ -190,6 +190,8 @@ export class Space {
   private animationScene?: PacioliScene;
 
   renderersDiv: HTMLDivElement;
+
+  addedMeshes: THREE.Mesh<THREE.BufferGeometry, THREE.Material>[] = [];
 
   /**
    * Constructs a space element and adds it to the DOM.
@@ -348,10 +350,30 @@ export class Space {
   clear() {
     this.log("Clearing space");
 
+    this.addedMeshes.forEach((mesh) => {
+      mesh.material.dispose();
+      mesh.geometry.dispose();
+    });
+
+    this.addedMeshes = [];
+
     // Remove any element that has been added to the scene's body
     while (0 < this.body.children.length) {
       this.body.remove(this.body.children[0]);
     }
+  }
+
+  /**
+   * Frees all resources.
+   */
+  dispose() {
+    this.clear();
+
+    // this.renderer.renderLists.dispose();
+    this.renderer.dispose();
+    this.controls.dispose();
+    this.axis?.dispose();
+    this.grid?.dispose();
   }
 
   /**
@@ -601,6 +623,10 @@ export class Space {
     this.controls.autoRotate = false;
   }
 
+  autoRotateSpeed(): number {
+    return this.controls.autoRotate ? 60 / this.controls.autoRotateSpeed : 0;
+  }
+
   /**
    * Performs a single animation step. Schedules a screen update.
    */
@@ -730,6 +756,9 @@ export class Space {
     // Create a THREE mesh object from the Pacioli mesh and add it to the body
     const meshObject = createTHREEMesh(mesh, this.options.unit);
     this.body.add(meshObject);
+
+    this.addedMeshes.push(meshObject);
+
     if (false && meshObject.geometry.attributes.normal) {
       const helper = new VertexNormalsHelper(meshObject, 1, 0xff0000);
       this.body.add(helper);
@@ -769,8 +798,8 @@ export class Space {
     light.position.set(positionVector.x, positionVector.y, positionVector.z);
     light.target.position.set(targetVector.x, targetVector.y, targetVector.z);
 
-    this.scene.add(light);
-    this.scene.add(light.target);
+    this.body.add(light);
+    this.body.add(light.target);
   }
 
   // TODO: updatePath
