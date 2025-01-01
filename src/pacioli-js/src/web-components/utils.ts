@@ -1,7 +1,7 @@
 import { si, SIUnit } from "uom-ts";
 import { PacioliString } from "../values/string";
 import { Matrix } from "../values/matrix";
-import { fun, num, string } from "../api";
+import { num, string, value } from "../api";
 import { PacioliFunction } from "../values/function";
 import { PacioliValue } from "../value";
 import { PacioliWebComponent } from "./pacioli-web-component";
@@ -29,42 +29,40 @@ export type StringParameter = {
 };
 
 /**
+ * Returns the Pacioli belonging to the element's 'script' and 'definition'
+ * attribute values. If the defined value is a Pacioli function then the
+ * function is called with the element's parameter values. If it is not
+ * a function then the defined value is returned as is.
  *
- * @param element
- * @returns
+ * @param element An HTML web element, typically a web component
+ * @returns The computed Pacioli value
  */
-export function callWebComponentFunction(element: HTMLElement): PacioliValue {
-  // Get the element's 'script' and 'function' attributes
+export function computeWebComponentValue(element: HTMLElement): PacioliValue {
+  // Get the element's 'script' and 'definition' attributes
   const script = element.getAttribute("script");
-  const fun = element.getAttribute("function");
-  if (script === null || fun === null) {
+  const definition = element.getAttribute("definition");
+
+  // Check that they exist
+  if (script === null || definition === null) {
     throw new Error(
-      `script function is unknown.\n\n Please give a 'script' attribute with the Pacioli filename, and a 'function' attribute with the scene function name.`
+      `definition not found.\n\n Please give a 'script' attribute with a valid Pacioli filename, and a 'definition' attribute with a valid value or function name.`
     );
   }
 
-  // Find the function and get the parameters from the child nodes
-  const pacioliFun = pacioliFunction(script, fun);
-  const params = parameterNodes(element)
-    .map(parseParameterNode)
-    .map((p) => p.pacioliValue);
+  // Compute the value
+  const pacioliValue = value(script, definition);
 
-  // Call the function with the parametes
-  return pacioliFun.apply(params);
-}
+  if (pacioliValue instanceof PacioliFunction) {
+    // If it is a function then we need the parameter values
+    const params = parameterNodes(element)
+      .map(parseParameterNode)
+      .map((p) => p.pacioliValue);
 
-/**
- * Wrapper around api function 'fun' with a PacioliScene specific error message if the
- * function is not found.
- */
-export function pacioliFunction(script: string, func: string): PacioliFunction {
-  try {
-    return fun(script, func);
-  } catch (error: any) {
-    console.log(error);
-    throw Error(
-      `function '${func}' from script '${script}' is unknown.\n\n Please give a valid Pacioli filename in the 'script' attribute, and a valid function name in the 'function' attribute, and check that the compiled file is included.`
-    );
+    // Call the function with the parameters
+    return pacioliValue.apply(params);
+  } else {
+    // Not a function, just return the value.
+    return pacioliValue;
   }
 }
 

@@ -1,4 +1,4 @@
-import { callWebComponentFunction, setParameterNodes } from "./utils";
+import { computeWebComponentValue, setParameterNodes } from "./utils";
 import { PacioliValue } from "../value";
 import {
   Callable,
@@ -110,7 +110,7 @@ export abstract class PacioliWebComponent
    * Implementation of the Callable api.
    */
   fetchData(): PacioliValue {
-    return callWebComponentFunction(this);
+    return computeWebComponentValue(this);
   }
 
   /**
