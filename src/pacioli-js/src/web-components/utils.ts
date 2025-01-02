@@ -81,10 +81,10 @@ export function setParameterNodes(element: HTMLElement, values: string[]) {
   if (children.length === values.length) {
   } else {
     const script = element.getAttribute("script");
-    const fun = element.getAttribute("function");
+    const definition = element.getAttribute("definition");
 
     throw Error(
-      `invalid number of arugments for function ${fun} from ${script}. Expected ${children.length}, but got ${values.length}.`
+      `invalid number of arugments for definition '${definition}' from script '${script}'. Expected ${children.length}, but got ${values.length}.`
     );
   }
 
