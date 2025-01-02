@@ -181,7 +181,9 @@ define scene1(n, k, f) =
         light1 = make_center_spot_light(vector3d(50*|metre|, 0*|metre|, 0*|metre|), 2000*|candela|),
         light2 = make_center_spot_light(vector3d(0*|metre|, 50*|metre|, 0*|metre|), 5000*|candela|),
         light3 = make_center_spot_light(vector3d(0*|metre|, 0*|metre|, 50*|metre|), 2500*|candela|),
-        scene = add_spotlights([light1, light2, light3], empty_scene("Cube cloud")),
+        scene = add_spotlights([light1, light2, light3],
+                    with_ambient_light("white", 0.5,
+                        empty_scene("Cube cloud"))),
         f(i) = 
             let
                 r1 = random(),

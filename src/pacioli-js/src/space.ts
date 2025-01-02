@@ -45,7 +45,8 @@ export type PacioliScene = [
   PacioliArrow[],
   PacioliMesh[],
   PacioliPath[],
-  PacioliSpotLight[]
+  PacioliSpotLight[],
+  AmbientLight
 ];
 
 /**
@@ -98,6 +99,8 @@ type PacioliSpotLight = [
   PacioliString, // color
   Matrix // intensity
 ];
+
+type AmbientLight = [PacioliString, Matrix];
 
 /**
  * Configuration options for the Space class
@@ -174,6 +177,7 @@ export class Space {
   private axis?: THREE.AxesHelper;
   private axisLabels: CSS2DObject[] = [];
   private grid?: THREE.GridHelper;
+  private ambientLight?: THREE.AmbientLight;
 
   // Pacioli scene properties, set when a Pacioli scene or
   // animation is loaded
@@ -266,16 +270,6 @@ export class Space {
     // Add axis if requested. Don't put it below the grid.
     if (this.options.axis) {
       this.showAxis();
-    }
-
-    // Add ambient light if requested
-    if (this.options.ambientColor) {
-      const color = new THREE.Color(this.options.ambientColor);
-      const ambientLight = new THREE.AmbientLight(
-        color,
-        this.options.ambientIntensity || 1.0
-      );
-      this.scene.add(ambientLight);
     }
 
     // Create the body and add it to the scene
@@ -374,6 +368,7 @@ export class Space {
     this.controls.dispose();
     this.axis?.dispose();
     this.grid?.dispose();
+    this.ambientLight?.dispose();
   }
 
   /**
@@ -432,7 +427,7 @@ export class Space {
     this.clear();
 
     // Add all scene elements
-    const [name, vectors, meshes, paths, lights] = scene;
+    const [name, vectors, meshes, paths, lights, ambientLight] = scene;
     for (const mesh of meshes) {
       this.addMesh(mesh);
     }
@@ -445,6 +440,13 @@ export class Space {
     for (const [position, target, color, intensity] of lights) {
       this.addSpotLight(position, target, color, intensity);
     }
+
+    // Don't overrule light that is set via options. This allows
+    // the web components to change the ambient light.
+    this.setAmbientLight(
+      this.options.ambientColor || ambientLight[0].value,
+      this.options.ambientIntensity || getNumber(ambientLight[1].numbers, 0, 0)
+    );
 
     // Initialize the animation
     this.resetAnimation();
@@ -625,6 +627,15 @@ export class Space {
 
   autoRotateSpeed(): number {
     return this.controls.autoRotate ? 60 / this.controls.autoRotateSpeed : 0;
+  }
+
+  setAmbientLight(color: string, intensity: number) {
+    if (this.ambientLight === undefined) {
+      this.ambientLight = new THREE.AmbientLight();
+      this.scene.add(this.ambientLight);
+    }
+    this.ambientLight.color = new THREE.Color(color);
+    this.ambientLight.intensity = intensity;
   }
 
   /**

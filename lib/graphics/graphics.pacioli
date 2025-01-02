@@ -12,6 +12,7 @@ import geometry;
 export
     Scene,
     empty_scene,
+    with_ambient_light,
     add_arrows,
     add_meshes,
     add_paths,
@@ -43,12 +44,17 @@ deftype for_unit a: Scene(a) =
         List(Arrow(a)),
         List(Mesh(a)),
         List(Path(a)),
-        List(SpotLight(a)));
+        List(SpotLight(a)),
+        Tuple(String, 1));
 
 # ------------------------------------------------------------------------------
 
 doc empty_scene
     "Constructs a scene.
+
+    The scene has ambient white light of intensity 0.3. Set the ambient light
+    intensity to zero with function with_ambient_light to remove this default
+    ambient light.
     
     The argument is a description of the scene that can be used as a caption.";
 
@@ -56,7 +62,21 @@ declare empty_scene ::
     for_unit a: (String) -> Scene(a);
 
 define empty_scene(description) =
-    tuple(description, [], [], [], []);
+    tuple(description, [], [], [], [], tuple("white", 1));
+
+# ------------------------------------------------------------------------------
+
+doc with_ambient_light
+    "Sets the ambient light of the scene. The intensity ranges from 1 to 5 
+    (it seems).";
+
+declare with_ambient_light :: 
+    for_unit a: (String, 1, Scene(a)) -> Scene(a);
+
+define with_ambient_light(color, intensity, scene) =
+    let (description, arrows, meshes, paths, lights, _) = scene in
+        tuple(description, arrows, meshes, paths, lights, tuple(color, intensity))
+    end;
 
 # ------------------------------------------------------------------------------
 
@@ -70,13 +90,13 @@ declare get_arrows :: for_unit a: (Scene(a)) -> List(Arrow(a));
 declare set_arrows :: for_unit a: (Scene(a), List(Arrow(a))) -> Scene(a);
 
 define get_arrows(data) =
-    let (_, vectors, _, _, _) = data in
+    let (_, vectors, _, _, _, _) = data in
         vectors
     end;
 
 define set_arrows(data, vectors) =
-    let (description, _, meshes, paths, lights) = data in
-        tuple(description, vectors, meshes, paths, lights)
+    let (description, _, meshes, paths, lights, ambient_light) = data in
+        tuple(description, vectors, meshes, paths, lights, ambient_light)
     end;
 
 # ------------------------------------------------------------------------------
@@ -91,13 +111,13 @@ declare get_meshes :: for_unit a: (Scene(a)) -> List(Mesh(a));
 declare set_meshes :: for_unit a: (Scene(a), List(Mesh(a))) -> Scene(a);
 
 define get_meshes(data) =
-    let (_, _, meshes, _, _) = data in
+    let (_, _, meshes, _, _, _) = data in
         meshes
     end;
 
 define set_meshes(data, meshes) =
-    let (description, vectors, _, paths, lights) = data in
-        tuple(description, vectors, meshes, paths, lights)
+    let (description, vectors, _, paths, lights, ambient_light) = data in
+        tuple(description, vectors, meshes, paths, lights, ambient_light)
     end;
 
 # ------------------------------------------------------------------------------
@@ -131,8 +151,8 @@ declare add_paths ::
     for_unit a: (List(Path(a)), Scene(a)) -> Scene(a);
 
 define add_paths(ps, scene) =
-    let (description, vectors, meshes, paths, lights) = scene in
-        tuple(description, vectors, meshes, append(ps, paths), lights)
+    let (description, vectors, meshes, paths, lights, ambient_light) = scene in
+        tuple(description, vectors, meshes, append(ps, paths), lights, ambient_light)
     end;
 
 # ------------------------------------------------------------------------------
@@ -144,8 +164,8 @@ declare add_spotlights ::
     for_unit a: (List(SpotLight(a)), Scene(a)) -> Scene(a);
 
 define add_spotlights(ls, scene) =
-    let (description, vectors, meshes, paths, lights) = scene in
-        tuple(description, vectors, meshes, paths, append(ls, lights))
+    let (description, vectors, meshes, paths, lights, ambient_light) = scene in
+        tuple(description, vectors, meshes, paths, append(ls, lights), ambient_light)
     end;
 
 # ------------------------------------------------------------------------------
