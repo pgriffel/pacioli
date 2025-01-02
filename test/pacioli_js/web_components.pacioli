@@ -176,17 +176,11 @@ define path2 = make_path([5 * |metre| '.*' x | x <- pathPoints]);
 
 declare scene1 :: (1, 1, 1) -> StatefulAnimation(metre, Tuple(1, radian, 1));
 
-declare make_center_spot_light :: 
-    for_unit a: (a*Geom3!, candela) -> SpotLight(a);
-
-define make_center_spot_light(position, intensity) =
-    make_spotlight(position, 0 '.*' position, make_color("white"), intensity);
-
 define scene1(n, k, f) =
     let 
         light1 = make_center_spot_light(vector3d(50*|metre|, 0*|metre|, 0*|metre|), 2000*|candela|),
-        light2 = make_center_spot_light(vector3d(0*|metre|, 50*|metre|, 0*|metre|), 2500*|candela|),
-        light3 = make_center_spot_light(vector3d(0*|metre|, 0*|metre|, 50*|metre|), 3000*|candela|),
+        light2 = make_center_spot_light(vector3d(0*|metre|, 50*|metre|, 0*|metre|), 5000*|candela|),
+        light3 = make_center_spot_light(vector3d(0*|metre|, 0*|metre|, 50*|metre|), 2500*|candela|),
         scene = add_spotlights([light1, light2, light3], empty_scene("Cube cloud")),
         f(i) = 
             let
@@ -229,8 +223,14 @@ define scene1(n, k, f) =
             add_meshes([set_wireframe(mesh1(name, clr), false) | name <- names], scene))
     end;
 
+declare make_center_spot_light :: 
+    for_unit a: (a*Geom3!, candela) -> SpotLight(a);
+
+define make_center_spot_light(position, intensity) =
+    make_spotlight(position, 0 '.*' position, make_color("white"), intensity);
+
 define mesh1(name, color_gen) =
-    with_material(named_cube_mesh(name, 1*|metre|, color_gen()), "Lambert");
+    with_material(named_cube_mesh(name, 1*|metre|, color_gen()), "Phong");
 
 define color_generator() =
     let
