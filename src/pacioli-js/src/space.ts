@@ -1026,8 +1026,6 @@ function createTHREEMesh(
   mesh: PacioliMesh,
   unit: SIUnit
 ): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
-  // Dev setting for now, just as all other props
-
   const [vs, fs, pos, name, hasWireframe, materialOption] = mesh;
 
   var material = materialOption.value.toLowerCase();
@@ -1037,9 +1035,8 @@ function createTHREEMesh(
     wireframe: hasWireframe.value,
     side: THREE.DoubleSide,
     transparent: false,
-    // // opacity: (transparent) ? 0.5 : 1.0,
+    // opacity: (transparent) ? 0.5 : 1.0,
     opacity: 1.0,
-    // color: 0xaaaaff,
     vertexColors: true,
   };
 
@@ -1051,7 +1048,6 @@ function createTHREEMesh(
   } else if (material === "phong") {
     mat = new THREE.MeshPhongMaterial(props);
   } else {
-    // props['color'] = 0Xaaaaff;
     mat = new THREE.MeshBasicMaterial(props);
   }
 
@@ -1120,7 +1116,6 @@ function mesh2THREE(
     color.set(vertices[i][1].value);
 
     // define the same color for each vertex of a triangle
-
     colors.push(color.r, color.g, color.b);
     colors.push(color.r, color.g, color.b);
     colors.push(color.r, color.g, color.b);
@@ -1142,13 +1137,12 @@ function mesh2THREE(
   geometry = geometry.toNonIndexed();
   geometry.computeVertexNormals();
 
-  var geo = new THREE.EdgesGeometry(geometry); // or WireframeGeometry( geometry )
-
-  var mat = new THREE.LineBasicMaterial({ color: 0x222222, linewidth: 2 });
-
-  var wireframeSegment = new THREE.LineSegments(geo, mat);
-
   if (wireframe) {
+    var geo = new THREE.EdgesGeometry(geometry); // or WireframeGeometry( geometry )
+
+    var mat = new THREE.LineBasicMaterial({ color: 0x222222, linewidth: 2 });
+
+    var wireframeSegment = new THREE.LineSegments(geo, mat);
     return wireframeSegment;
   } else {
     return new THREE.Mesh(geometry, material);

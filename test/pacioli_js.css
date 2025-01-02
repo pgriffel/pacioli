@@ -5,10 +5,6 @@ body {
     --border: 1pt solid #BBBBBB;
 }
 
-pacioli-scene {
-    border: var(--border);
-}
-
 .example {
     display: grid;
     grid-template-columns: min-content min-content;

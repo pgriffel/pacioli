@@ -1,6 +1,5 @@
 **/*.mvm
 **/*.js
-!/samples/scene.js
 **/*.pacioli~
 **/*.java~
 /src/uom/target/
