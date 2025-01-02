@@ -11,19 +11,17 @@ const TEMPLATE = document.createElement("template");
 
 TEMPLATE.innerHTML = `
   <style>
-    #error-root {
+    .error-root {
       background: yellow;
       color: red;
-    }
-    #close-button {
-      margin: 5pt;
+      padding: 8pt;
     }
   </style>
-  <div id="error-root">
-    <div id="error-content"></div>
-    <button id="close-button">Close</button>
+  <div class="error-root">
+    <div class="error-content"></div>
+    <button class="close-button">Close</button>
   </div>
-  <div id="content">
+  <div class="content">
   </div>
 `;
 
@@ -73,7 +71,7 @@ export abstract class PacioliWebComponent
    * Implementation of the PacioliWebComponent api.
    */
   contentParent(): HTMLElement {
-    return this.rootElement().querySelector("#content")!;
+    return this.rootElement().querySelector(".content")!;
   }
 
   /**
@@ -169,14 +167,14 @@ export abstract class PacioliWebComponent
   }
 
   private errorRoot(): HTMLElement {
-    return this.rootElement().querySelector("#error-root")!;
+    return this.rootElement().querySelector(".error-root")!;
   }
 
   private errorContentParent(): HTMLElement {
-    return this.rootElement().querySelector("#error-content")!;
+    return this.rootElement().querySelector(".error-content")!;
   }
 
   private closeErrorOutputButton(): HTMLElement {
-    return this.rootElement().querySelector("#close-button")!;
+    return this.rootElement().querySelector(".close-button")!;
   }
 }
