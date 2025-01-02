@@ -14,9 +14,31 @@ import { optionsFromAttributes } from "../utils";
  * Attribues supported by the 3D scene component
  */
 const SUPPORTED_ATTRIBUTES = {
-  strings: ["background", "ambientColor", "ambientIntensity"],
-  booleans: ["axis", "grid", "perspective"],
-  numbers: ["width", "height", "fps"],
+  strings: [
+    "background",
+    "axisColorsX",
+    "axisColorsY",
+    "axisColorsZ",
+    "gridColor",
+    "ambientColor",
+  ],
+  booleans: ["axis", "grid", "orthographic", "hideLabels", "autoRotation"],
+  numbers: [
+    "width",
+    "height",
+    "axisSize",
+    "ambientIntensity",
+    "fps",
+    "gridSizeX",
+    "gridSizeY",
+    "zoomMin",
+    "zoomMax",
+    "perspectiveMax",
+    "cameraX",
+    "cameraY",
+    "cameraZ",
+    "secondsPerRotation",
+  ],
 };
 
 /**
@@ -131,13 +153,6 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   spaceOptions(): Partial<SpaceOptions> {
     return {
       unit: this.unit || si.parseDimNum("metre").unit,
-      width: 800,
-      height: 600,
-      axisSize: 10,
-      gridSize: [20, 20],
-      zoomRange: [1, 1000],
-      camera: [20, 10, 20],
-      verbose: false,
       ...optionsFromAttributes<SpaceOptions>(this, SUPPORTED_ATTRIBUTES),
     };
   }

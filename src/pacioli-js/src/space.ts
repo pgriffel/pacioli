@@ -100,29 +100,42 @@ type PacioliSpotLight = [
   Matrix // intensity
 ];
 
-type AmbientLight = [PacioliString, Matrix];
+/**
+ * Matches the ambient light part of the Scene type from the
+ * graphics Pacioli library.
+ */
+type AmbientLight = [
+  PacioliString, // color
+  Matrix // intensity
+];
 
 /**
  * Configuration options for the Space class
  */
 export interface SpaceOptions {
-  perspective: boolean;
+  orthographic: boolean;
   axis: boolean;
   axisSize: number;
-  axisColors: [string, string, string];
+  axisColorsX: string;
+  axisColorsY: string;
+  axisColorsZ: string;
   width: number;
   height: number;
   unit: SIUnit;
-  verbose: boolean;
+  verbose: boolean; // undocumented feature
   fps: number;
   background: string;
   grid: boolean;
-  gridSize: [number, number];
+  gridSizeX: number;
+  gridSizeY: number;
   gridColor: string;
-  zoomRange: [number, number];
+  zoomMin: number;
+  zoomMax: number;
   perspectiveMax: number;
-  camera: [number, number, number];
-  showLabels: boolean;
+  cameraX: number;
+  cameraY: number;
+  cameraZ: number;
+  hideLabels: boolean;
   autoRotation: boolean;
   secondsPerRotation: number;
   ambientColor?: string;
@@ -133,23 +146,29 @@ export interface SpaceOptions {
  * Default configuration options for the Space class
  */
 const defaultOptions: SpaceOptions = {
-  perspective: true,
-  axis: true,
+  orthographic: false,
+  axis: false,
   axisSize: 10,
-  axisColors: ["#eeaaaa", "#aaeeaa", "#aaaaee"],
-  width: 640,
-  height: 360,
+  axisColorsX: "#eeaaaa",
+  axisColorsY: "#aaeeaa",
+  axisColorsZ: "#aaaaee",
+  width: 800,
+  height: 450,
   unit: UOM.ONE,
   verbose: false,
   fps: 60,
   background: "#eeeeee",
-  grid: true,
-  gridSize: [20, 20],
+  grid: false,
+  gridSizeX: 20,
+  gridSizeY: 20,
   gridColor: "#dddddd",
-  zoomRange: [1, 50],
+  zoomMin: 1,
+  zoomMax: 500,
   perspectiveMax: 5000,
-  camera: [10, 5, 10],
-  showLabels: true,
+  cameraX: 20,
+  cameraY: 10,
+  cameraZ: 20,
+  hideLabels: false,
   autoRotation: false,
   secondsPerRotation: 30,
 };
@@ -245,7 +264,7 @@ export class Space {
     this.scene.background = new THREE.Color(this.options.background);
 
     // Create the camera and add it to the scene
-    const kind = this.options.perspective ? "perspective" : "orthographic";
+    const kind = this.options.orthographic ? "orthographic" : "perspective";
     this.camera = createCamera(
       kind,
       width,
@@ -257,8 +276,9 @@ export class Space {
     // Connect orbit controls to the renderer and to the draw method
     this.controls = createOrbitControls(
       this.camera,
-      this.renderersDiv, // this.labelRenderer.domElement,
-      this.options.zoomRange
+      this.renderersDiv,
+      this.options.zoomMin,
+      this.options.zoomMax
     );
     this.controls.addEventListener("change", this.onChangeOrbit.bind(this));
 
@@ -277,8 +297,11 @@ export class Space {
     this.scene.add(this.body);
 
     // Let the camera look at the body
-    const camPos = this.options.camera;
-    this.camera.position.set(camPos[0], camPos[1], camPos[2]);
+    this.camera.position.set(
+      this.options.cameraX,
+      this.options.cameraY,
+      this.options.cameraZ
+    );
     this.camera.lookAt(this.body.position);
     this.controls.update();
 
@@ -514,7 +537,8 @@ export class Space {
     if (this.grid === undefined) {
       // Add the grid
       this.grid = createGridHelper(
-        this.options.gridSize,
+        this.options.gridSizeX,
+        this.options.gridSizeY,
         this.options.gridColor
       );
       this.scene.add(this.grid);
@@ -542,7 +566,12 @@ export class Space {
   showAxis() {
     if (this.axis === undefined) {
       // Add the axis
-      this.axis = createAxis(this.options.axisSize, this.options.axisColors);
+      this.axis = createAxis(
+        this.options.axisSize,
+        this.options.axisColorsX,
+        this.options.axisColorsY,
+        this.options.axisColorsZ
+      );
       this.scene.add(this.axis);
 
       // Update the screen
@@ -550,7 +579,7 @@ export class Space {
     }
 
     // Create axis labels if requested
-    if (this.options.showLabels) {
+    if (!this.options.hideLabels) {
       this.showAxisLabels();
     }
   }
@@ -904,11 +933,12 @@ export class Space {
 function createOrbitControls(
   camera: THREE.Camera,
   domElement: HTMLElement,
-  zoomRange: [number, number]
+  zoomMin: number,
+  zoomMax: number
 ) {
   const controls = new OrbitControls(camera, domElement);
-  controls.minDistance = zoomRange[0];
-  controls.maxDistance = zoomRange[1];
+  controls.minDistance = zoomMin;
+  controls.maxDistance = zoomMax;
   controls.maxPolarAngle = Math.PI / 1;
   return controls;
 }
@@ -950,13 +980,15 @@ function createCamera(
 
 function createAxis(
   size: number,
-  colors: [string, string, string]
+  colorX: string,
+  colorY: string,
+  colorZ: string
 ): THREE.AxesHelper {
   const axis = new THREE.AxesHelper(size);
   axis.setColors(
-    new THREE.Color(colors[0]),
-    new THREE.Color(colors[1]),
-    new THREE.Color(colors[2])
+    new THREE.Color(colorX),
+    new THREE.Color(colorY),
+    new THREE.Color(colorZ)
   );
   return axis;
 }
@@ -985,9 +1017,9 @@ function makeLabelObject(text: string, x: number, y: number, z: number) {
   return labelObject;
 }
 
-function createGridHelper(grid: [number, number], color: string) {
+function createGridHelper(gridX: number, gridY: number, color: string) {
   const gridColor = new THREE.Color(color);
-  return new THREE.GridHelper(grid[0], grid[1], gridColor, gridColor);
+  return new THREE.GridHelper(gridX, gridY, gridColor, gridColor);
 }
 
 function createTHREEMesh(

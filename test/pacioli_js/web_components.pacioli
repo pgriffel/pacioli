@@ -210,7 +210,7 @@ define scene1(n, k, f) =
                     let 
                         (limit, ang, prev) = state,
                         amp = cos(ang/250),
-                        adj_limit = if amp < 0 and prev >= 0 then 1.5*random() else limit end
+                        adj_limit = if amp < 0 and prev >= 0 then random() + 0.1 else limit end
                     in 
                         tuple(
                             tuple(adj_limit, ang + 1*|radian|, amp),

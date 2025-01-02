@@ -44,7 +44,7 @@ export interface BarChartOptions extends DefaultChartOptions {
   unit?: SIUnit;
 
   /**
-   * Should the input be converted?
+   * Should the input be converted? Undocumented feature.
    */
   convert?: boolean;
 
