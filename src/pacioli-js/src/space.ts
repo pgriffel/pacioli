@@ -552,6 +552,7 @@ export class Space {
     if (this.grid) {
       // Remove the grid
       this.scene.remove(this.grid);
+      this.grid.dispose();
       this.grid = undefined;
 
       // Update the screen
@@ -591,6 +592,7 @@ export class Space {
     if (this.axis) {
       // Remove the axis
       this.scene.remove(this.axis);
+      this.axis.dispose();
       this.axis = undefined;
 
       // Update the screen
