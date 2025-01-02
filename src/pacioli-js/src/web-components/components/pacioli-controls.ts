@@ -19,16 +19,16 @@ TEMPLATE.innerHTML = `
     <button class="reset">Reset</button>
   </div>
   <div class="pacioli-controls-configuration">
-    <label class="axis" for="">axis
+    <label class="axis">axis
       <input type="checkbox"></input>
     </label>
-    <label class="grid" for="">grid
+    <label class="grid">grid
       <input type="checkbox"></input>
     </label>
-    <label class="labels" for="">labels
+    <label class="labels">labels
       <input type="checkbox"></input>
     </label>
-    <label class="rotate" for="">rotate
+    <label class="rotate">rotate
       <input type="checkbox"></input>
     </label>
   </div>
