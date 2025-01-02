@@ -29,7 +29,7 @@ export type StringParameter = {
 };
 
 /**
- * Returns the Pacioli belonging to the element's 'script' and 'definition'
+ * Returns the Pacioli value corresponding with the element's 'script' and 'definition'
  * attribute values. If the defined value is a Pacioli function then the
  * function is called with the element's parameter values. If it is not
  * a function then the defined value is returned as is.

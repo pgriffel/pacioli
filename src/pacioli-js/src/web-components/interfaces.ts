@@ -49,8 +49,8 @@ export interface Callable {
   parametersChanged(): void;
 
   /**
-   * Calls the function identified by the 'script' and the 'function' attributes
-   * using the current parameter values.
+   * Computes the value or function identified by the 'script' and the 'definition'
+   * attributes. For a function the current parameter values are used as arugments.
    *
    * @returns A PacioliValue
    */
