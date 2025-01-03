@@ -52,6 +52,7 @@ defunit kelvin "K";
 defunit mole "mol";
 defunit candela "cd";
 defunit hertz "Hz";
+defunit people "ppl";
 
 # ----------------------------------------------------------------------------
 # General primitives

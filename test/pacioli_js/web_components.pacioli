@@ -1,3 +1,4 @@
+import si;
 import geometry;
 import geometric_algebra;
 import graphics;
@@ -24,9 +25,9 @@ define nth_tail(xs, n) =
 # Chart data
 # ------------------------------------------------------------------------------
 
-define MAX = 100;
+define NR_NATS = 100;
 
-defindex Nats = [num2string(n, 0, |1|) | n <- naturals(MAX)];
+defindex Nats = [pad_left(num2string(n, 0, |1|), 2, "0") | n <- naturals(NR_NATS)];
 
 define natVec(nums) = 
     make_matrix([x | (n, v) <- zip(row_domain(|Nats!|), nums), 
@@ -43,7 +44,7 @@ define wordcloud() = [
 # ------------------------------------------------------------------------------
 
 define scattered(n) =
-  tuple(natVec(naturals(MAX)), natVec(naturals(MAX)));
+  tuple(natVec(naturals(NR_NATS)), natVec(naturals(NR_NATS)));
 
 define scattered_lists(n) =
     unzip([tuple(a * |gram|, b * |gram|) | _ <- naturals(n), 
@@ -81,7 +82,7 @@ define test_data_gram() = [x * |gram| | x <- test_data_dimless()];
 # ------------------------------------------------------------------------------
 
 # FIXME: units defined in a script are not known at runtime in js.
-defunit people "ppl";
+#defunit people "ppl";
 
 defindex Continent = {
     Africa,
@@ -98,12 +99,12 @@ defmatrix land_area :: kilo:metre^2 * Continent! = {
     Africa -> 30365000,
     North_America -> 24230000,
     South_America -> 17814000,
-    Antarctica -> 14200000,
+    Antarctica -> 14200000, 
     Europe -> 10000000,
     Oceania -> 8510926
 };
 
-defmatrix population :: 1 * Continent! = {
+defmatrix population :: people * Continent! = {
     Asia -> 4694576167,
     Africa -> 1393676444,
     North_America -> 595783465,

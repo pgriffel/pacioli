@@ -58,6 +58,7 @@ export const siDef: Definition = {
     { name: "metre", symbol: "m" },
     { name: "hertz", symbol: "Hz" },
     { name: "radian", symbol: "rad" },
+    { name: "people", symbol: "ppl" },
   ],
 
   equations: [],
