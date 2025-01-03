@@ -21,6 +21,7 @@ const SUPPORTED_ATTRIBUTES = {
     "axisColorsZ",
     "gridColor",
     "ambientColor",
+    "labelColor",
   ],
   booleans: ["axis", "grid", "orthographic", "hideLabels", "autoRotation"],
   numbers: [

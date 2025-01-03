@@ -88,10 +88,10 @@ defindex Continent = {
     Africa,
     Asia,
     Europe,
+    Oceania,
     North_America,
     South_America,
-    Antarctica,
-    Oceania 
+    Antarctica
 };
 
 define earth_surface_area = c1 * c1 * 510064472 * |kilo:metre|^2;
@@ -347,7 +347,9 @@ define icosahedron_planes(size) =
     end;
 
 define icosahedron_arrows(size) =
-    [with_arrow_label(format("p%s", i), origin_arrow(v)) | (i, v) <- zip(naturals(12), pacioli_plane_coordinates(size))];
+    [with_arrow_color(
+        make_color("steelblue"),
+        with_arrow_label(format("p%s", i), origin_arrow(v))) | (i, v) <- zip(naturals(12), pacioli_plane_coordinates(size))];
 
 define make_triangle_lines(a, b, c, gap) =
     let dir = gap '.*' (a + b + c) '/.' 3 in

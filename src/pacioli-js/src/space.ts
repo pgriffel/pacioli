@@ -136,6 +136,7 @@ export interface SpaceOptions {
   cameraY: number;
   cameraZ: number;
   hideLabels: boolean;
+  labelColor: string;
   autoRotation: boolean;
   secondsPerRotation: number;
   ambientColor?: string;
@@ -169,6 +170,7 @@ const defaultOptions: SpaceOptions = {
   cameraY: 10,
   cameraZ: 20,
   hideLabels: false,
+  labelColor: "#333333",
   autoRotation: false,
   secondsPerRotation: 30,
 };
@@ -609,9 +611,15 @@ export class Space {
       // Create axis labels
       const unit = this.options.unit.toText();
       const offset = this.options.axisSize * 1.05;
-      this.axisLabels.push(makeLabelObject(`x[${unit}]`, offset, 0, 0));
-      this.axisLabels.push(makeLabelObject(`z[${unit}]`, 0, offset, 0));
-      this.axisLabels.push(makeLabelObject(`y[${unit}]`, 0, 0, offset));
+      this.axisLabels.push(
+        makeLabelObject(`x[${unit}]`, offset, 0, 0, this.options.labelColor)
+      );
+      this.axisLabels.push(
+        makeLabelObject(`z[${unit}]`, 0, offset, 0, this.options.labelColor)
+      );
+      this.axisLabels.push(
+        makeLabelObject(`y[${unit}]`, 0, 0, offset, this.options.labelColor)
+      );
 
       // Add the labels
       this.axisLabels.forEach((label) => this.scene.add(label));
@@ -880,7 +888,8 @@ export class Space {
         vector,
         name,
         label,
-        this.options.unit
+        this.options.unit,
+        this.options.labelColor
       );
       this.body.add(arrowLabel);
     }
@@ -1004,13 +1013,19 @@ function createAxis(
  * @param z The label z coordinate
  * @returns A new CSS2DObject object
  */
-function makeLabelObject(text: string, x: number, y: number, z: number) {
+function makeLabelObject(
+  text: string,
+  x: number,
+  y: number,
+  z: number,
+  color: string
+) {
   const labelDiv = document.createElement("div");
   labelDiv.className = "label";
   //labelDiv.textContent = label.value;
   labelDiv.innerHTML = text;
   labelDiv.style.backgroundColor = "transparent";
-  labelDiv.style.color = "#444444";
+  labelDiv.style.color = color;
 
   const labelObject = new CSS2DObject(labelDiv);
   labelObject.position.set(x, y, z);
@@ -1173,7 +1188,8 @@ function createTHREELabel(
   vector: Matrix,
   name: PacioliString,
   label: PacioliString,
-  unit: SIUnit
+  unit: SIUnit,
+  color: string
 ) {
   const vec = vector2THREE(vector, unit);
   const labelPos = vector2THREE(origin, unit).multiplyScalar(1.1).add(vec);
@@ -1183,7 +1199,8 @@ function createTHREELabel(
     label.value,
     labelPos.x,
     labelPos.y,
-    labelPos.z
+    labelPos.z,
+    color
   );
 
   // Add a name if given, so the label can be found during an update.

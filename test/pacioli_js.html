@@ -18,15 +18,14 @@
 <body>
     <div id="console"></div>
 
-    <h2>Todo</h2>
-    <ul>
-        <li>Match chart options and attributes</li>
-        <li>Make chart attributes override options</li>
-        <li>Table styling</li>
-        <li>Make units defined in a script available at runtime (people unit)</li>
-        <li>Function to set scene background</li>
-        <li>Checkboxes for booleans in pacioli-input</li>
-    </ul>
+
+    <h2>Pacioli value</h2>
+    <p>
+        Test of the pacioli-value web component
+    <p>
+        <pacioli-value script="web_components" definition="wordcloud">
+        </pacioli-value>
+
 
     <h2>Pacioli table</h2>
     <p>
@@ -59,37 +58,12 @@
     </table>
 
 
-
-
-    <h2>Pacioli value</h2>
-    <p>
-        Test of the pacioli-value web component
-    <p>
-        <pacioli-value script="web_components" definition="wordcloud">
-        </pacioli-value>
-
-
-    <h2>Scatter Plot</h2>
-    <p>
-        Test of the pacioli-scatter-plot web component
-    <p>
-        <pacioli-scatter-plot xunit="kilo:gram" yunit="kilo:gram" script="web_components" definition="scattered">
-            <parameter>100</parameter>
-        </pacioli-scatter-plot>
-
-
     <h2>Pie Chart</h2>
     <p>
         Test of the pacioli-pie-chart web component
     <p>
-        <pacioli-pie-chart unit="people" script="web_components" definition="get_population">
+        <pacioli-pie-chart script="web_components" definition="get_population" unit="giga:people" labelOffset="500">
         </pacioli-pie-chart>
-
-
-    <h2>Histogram</h2>
-    <p>
-        Test of the pacioli-histogram web component
-
 
 
     <p>
@@ -154,6 +128,23 @@
     </ul>
 
 
+
+    <h2>Histogram</h2>
+    <p>
+        Test of the pacioli-histogram web component
+
+
+
+    <h2>Scatter Plot</h2>
+    <p>
+        Test of the pacioli-scatter-plot web component
+    <p>
+        <pacioli-scatter-plot xunit="kilo:gram" yunit="kilo:gram" script="web_components" definition="scattered">
+            <parameter>100</parameter>
+        </pacioli-scatter-plot>
+
+
+
     <h2>Cubes I</h2>
     <p>
         My nice scene!
@@ -186,7 +177,7 @@
 
     <div class="example">
         <pacioli-scene id="scene_cubes4" script="web_components" definition="scene4" kind="scene" perspective
-            background="#222222">
+            background="#222222" labelColor="#eeeeee">
             <parameter label="arrows" type="boole">false</parameter>
             <parameter label="planes" type="boole">false</parameter>
             <parameter label="faces" type="boole">true</parameter>
@@ -205,7 +196,7 @@
 
     <div class="example">
         <pacioli-scene id="scene_cubes1" script="web_components" definition="scene1" kind="stateful-animation"
-            perspective background="#222222" ambientIntensity="0.1" width="1280" height="720">
+            perspective background="#222222" ambientIntensity="0.1" width="1280" height="720" labelColor="#eeeeee">
             <parameter label="cubes">100</parameter>
             <parameter label="terms">2</parameter>
             <parameter label="speedup">1</parameter>
@@ -242,6 +233,19 @@
         </pacioli-wordcloud>
         <pacioli-inputs for="wc"></pacioli-inputs>
     </div>
+
+
+
+    <h2>Todo</h2>
+    <ul>
+        <li>Match chart options and attributes</li>
+        <li>Make chart attributes override options</li>
+        <li>Table styling</li>
+        <li>Make units defined in a script available at runtime (people unit)</li>
+        <li>Function to set scene background</li>
+        <li>Font color labels</li>
+    </ul>
+
 </body>
 
 
