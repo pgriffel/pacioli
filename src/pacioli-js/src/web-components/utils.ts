@@ -5,12 +5,16 @@ import { num, string, value } from "../api";
 import { PacioliFunction } from "../values/function";
 import { PacioliValue } from "../value";
 import { PacioliWebComponent } from "./pacioli-web-component";
+import { PacioliBoole, pacioliFalse, pacioliTrue } from "../values/boole";
 
 /**
  * Types for the parsed PacioliSceneComponent parameters. The parameters are passed via
  * child DOM elements.
  */
-export type PacioliParameter = NumberParameter | StringParameter;
+export type PacioliParameter =
+  | NumberParameter
+  | StringParameter
+  | BooleParameter;
 
 export type NumberParameter = {
   type: "number";
@@ -26,6 +30,13 @@ export type StringParameter = {
   label: string;
   value: string;
   pacioliValue: PacioliString;
+};
+
+export type BooleParameter = {
+  type: "boole";
+  label: string;
+  value: string;
+  pacioliValue: PacioliBoole;
 };
 
 /**
@@ -141,9 +152,19 @@ export function parseParameterNode(
         };
       }
 
+      case "boole": {
+        // Create a BooleParameter
+        return {
+          type: "boole",
+          label: label,
+          value: value,
+          pacioliValue: value === "true" ? pacioliTrue : pacioliFalse,
+        };
+      }
+
       default: {
         throw new Error(
-          `unexpected parameter type '${type}' for parameter '${label}'. Expected 'string' or 'number'.`
+          `unexpected parameter type '${type}' for parameter '${label}'. Expected 'string', 'number', or 'boole'.`
         );
       }
     }

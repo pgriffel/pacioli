@@ -123,6 +123,7 @@ export class PacioliInputsComponent extends PacioliWebController {
     if (scene) {
       return createParameterInputs(
         parameterNodes(scene).map(parseParameterNode),
+        !this.hasAttribute("calm"),
         () => this.applyButtonClicked()
       );
     } else {
@@ -138,7 +139,15 @@ export class PacioliInputsComponent extends PacioliWebController {
     if (scene && this.inputs) {
       try {
         scene.clearErrors();
-        scene.setParameters(this.inputs.map((input) => input.element.value));
+        scene.setParameters(
+          this.inputs.map((input) =>
+            input.parameter.type === "boole"
+              ? input.element.checked
+                ? "true"
+                : "false"
+              : input.element.value
+          )
+        );
         this.updateControls();
       } catch (error: any) {
         scene.displayError(error);
@@ -172,6 +181,7 @@ export class PacioliInputsComponent extends PacioliWebController {
  */
 function createParameterInputs(
   parsedParameters: PacioliParameter[],
+  booleansImmediate: boolean,
   enterKeyCallback?: () => void
 ): {
   parameter: PacioliParameter;
@@ -181,12 +191,30 @@ function createParameterInputs(
     // Create an input element for each parameter
     const inputElement = document.createElement("input");
     inputElement.className = "pacioli-controls-input";
-    inputElement.value = parameter.value;
-    inputElement.type = parameter.type;
 
-    // Add a callback for the enter key. Needed to make the return
-    // key reset the animation
+    // Booleans need conversion between 'on' and 'true'/false
+    if (parameter.type === "boole") {
+      inputElement.checked = parameter.value === "true";
+      inputElement.type = "checkbox";
+    } else {
+      inputElement.value = parameter.value;
+      inputElement.type = parameter.type;
+    }
+
     if (enterKeyCallback) {
+      // Add a callback checkbox changes. Needed to make checkboxes reset
+      // the animation.
+      if (booleansImmediate && parameter.type === "boole") {
+        inputElement.addEventListener("change", (event) => {
+          if (true) {
+            event.preventDefault();
+            enterKeyCallback();
+          }
+        });
+      }
+
+      // Add a callback for the enter key. Needed to make the return
+      // key reset the animation
       inputElement.addEventListener("keypress", (event) => {
         if (event.key === "Enter") {
           event.preventDefault();
@@ -228,6 +256,10 @@ function addParameterRows(
     // Set the unit
     switch (input.parameter.type) {
       case "string": {
+        unitEntry.innerText = "";
+        break;
+      }
+      case "boole": {
         unitEntry.innerText = "";
         break;
       }

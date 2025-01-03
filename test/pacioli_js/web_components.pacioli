@@ -248,15 +248,15 @@ define color_generator() =
 # Cubes IV - An icosahedron
 # ------------------------------------------------------------------------------
 
-declare scene4 :: (1, 1, 1, 1, 1, metre) -> Scene(metre);
+declare scene4 :: (Boole, Boole, Boole, Boole, 1, metre) -> Scene(metre);
     
 define scene4(arrows, planes, faces, fill, gap, size) =
     let 
         scene = empty_scene("Icosahedron"),
-        show_arrows = arrows > 0,
-        show_planes = planes > 0,
-        show_faces = faces > 0,
-        fill_faces = fill > 0
+        show_arrows = arrows,
+        show_planes = planes,
+        show_faces = faces,
+        fill_faces = fill
     in
         add_arrows(if show_arrows then icosahedron_arrows(size) else [] end,
             add_paths(if show_planes then icosahedron_planes(size) else [] end,
