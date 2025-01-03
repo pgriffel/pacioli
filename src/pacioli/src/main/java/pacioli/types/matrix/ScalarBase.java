@@ -84,12 +84,24 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
         if (prefix.isPresent()) {
             if (prefix.get().equals("kilo")) {
                 fac = new BigDecimal(1000);
+            } else if (prefix.get().equals("pico")) {
+                fac = new BigDecimal(1).movePointLeft(12);
+            } else if (prefix.get().equals("nano")) {
+                fac = new BigDecimal(1).movePointLeft(9);
+            } else if (prefix.get().equals("micro")) {
+                fac = new BigDecimal(1).movePointLeft(6);
             } else if (prefix.get().equals("milli")) {
-                fac = new BigDecimal(0.001);
+                fac = new BigDecimal(1).movePointLeft(3);
             } else if (prefix.get().equals("centi")) {
-                fac = new BigDecimal(0.01);
+                fac = new BigDecimal(1).movePointLeft(2);
             } else if (prefix.get().equals("deci")) {
-                fac = new BigDecimal(0.1);
+                fac = new BigDecimal(1).movePointLeft(1);
+            } else if (prefix.get().equals("mega")) {
+                fac = new BigDecimal(1).movePointRight(6);
+            } else if (prefix.get().equals("giga")) {
+                fac = new BigDecimal(1).movePointRight(9);
+            } else if (prefix.get().equals("tera")) {
+                fac = new BigDecimal(1).movePointRight(12);
             } else {
                 throw new RuntimeException("todo: unit prefix" + prefix.get());
             }

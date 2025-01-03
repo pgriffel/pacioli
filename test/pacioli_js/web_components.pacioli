@@ -94,6 +94,14 @@ defindex Continent = {
     Oceania 
 };
 
+define earth_surface_area = c1 * c1 * 510064472 * |kilo:metre|^2;
+
+define earth_land_area = c1 * c1 * total(land_area);
+
+define earth_land_area_fraction = 
+    to_percentage(earth_land_area / earth_surface_area);
+    
+
 defmatrix land_area :: kilo:metre^2 * Continent! = {
     Asia -> 44614000,
     Africa -> 30365000,
@@ -118,9 +126,12 @@ define get_population() = population;
 
 define test_columns() = 
     tuple(
-        tuple("Land area", land_area),
-        tuple("Population", population),
+        tuple("Land area", c1 * c1 '.*' land_area),
+        tuple("Population", c2 '.*' population),
         tuple("Density", population/land_area));
+
+defconv c1 :: mega:metre/kilo:metre;
+defconv c2 :: mega:people/people;
 
 # ------------------------------------------------------------------------------
 # Cubes I - My nice scene!
