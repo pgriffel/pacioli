@@ -34,7 +34,7 @@ body {
 }
 
 
-.pacioli-inputs-content, .NOpacioli-controls-content {
+.pacioli-inputs-content, .NOpacioli-controls-content, .pacioli.histogram.options {
     margin-left: 10pt;
     margin-bottom: 10pt;
     padding: 10pt;
@@ -43,13 +43,23 @@ body {
     NOcolor: var(--fg-color)
 }
 
-.pacioli-inputs-content button {
+.pacioli-inputs-content button, .pacioli.histogram.options button {
     width: 80pt;
     margin: 10pt;
     padding: 3pt;
     NObackground: var(--element-bg-color);
     NOcolor: var(--fg-color);
     NOborder: var(--border);
+}
+
+.pacioli.histogram.options .buttons {
+    display: flex;
+    flex-direction: row;
+}
+
+.pacioli.histogram.options .inputs {
+    display: flex;
+    flex-direction: row;
 }
 
 .pacioli-controls-animation {

@@ -1,4 +1,5 @@
 import { PacioliWebController } from "../pacioli-web-controller";
+import { addButtonEventListener, addCheckBoxEventListener } from "../utils";
 import { PacioliSceneComponent } from "./pacioli-scene";
 
 const TEMPLATE = document.createElement("template");
@@ -115,20 +116,26 @@ export class PacioliControlsComponent extends PacioliWebController {
    * Helper for connectedCallback. Call only once!
    */
   private addEventListeners() {
-    this.addButtonEventListener(".run", () => this.startButtonClicked());
-    this.addButtonEventListener(".step", () => this.stepButtonClicked());
-    this.addButtonEventListener(".reset", () => this.resetButtonClicked());
+    addButtonEventListener(this.animationButton(".run"), () =>
+      this.startButtonClicked()
+    );
+    addButtonEventListener(this.animationButton(".step"), () =>
+      this.stepButtonClicked()
+    );
+    addButtonEventListener(this.animationButton(".reset"), () =>
+      this.resetButtonClicked()
+    );
 
-    this.addCheckBoxEventListener(".axis", (checked) =>
+    addCheckBoxEventListener(this.configurationLabel(".axis"), (checked) =>
       this.axisCheckBoxClicked(checked)
     );
-    this.addCheckBoxEventListener(".grid", (checked) =>
+    addCheckBoxEventListener(this.configurationLabel(".grid"), (checked) =>
       this.gridCheckBoxClicked(checked)
     );
-    this.addCheckBoxEventListener(".labels", (checked) =>
+    addCheckBoxEventListener(this.configurationLabel(".labels"), (checked) =>
       this.labelsCheckBoxClicked(checked)
     );
-    this.addCheckBoxEventListener(".rotate", (checked) =>
+    addCheckBoxEventListener(this.configurationLabel(".rotate"), (checked) =>
       this.autoRotateCheckboxClicked(checked)
     );
   }
@@ -314,22 +321,6 @@ export class PacioliControlsComponent extends PacioliWebController {
 
   private configurationCheckbox(className: string): HTMLInputElement {
     return this.configurationLabel(className).children[0] as HTMLInputElement;
-  }
-
-  private addButtonEventListener(className: string, handler: () => void) {
-    this.animationButton(className).addEventListener("click", handler);
-  }
-
-  private addCheckBoxEventListener(
-    className: string,
-    handler: (_: boolean) => void
-  ) {
-    this.configurationLabel(className).addEventListener(
-      "change",
-      (event: Event) => {
-        handler((event.target as HTMLInputElement).checked);
-      }
-    );
   }
 }
 

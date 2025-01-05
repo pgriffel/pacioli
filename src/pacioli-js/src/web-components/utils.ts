@@ -299,7 +299,7 @@ export function optionsFromAttributes<Options>(
   };
 }
 
-export function optionsFromOptionsAttribute<Options>(
+export function optionsFromScript<Options>(
   element: HTMLElement,
   supportedAttributes: {
     strings: string[];
@@ -307,6 +307,10 @@ export function optionsFromOptionsAttribute<Options>(
     numbers: string[];
   }
 ): Partial<Options> {
+  if (!element.hasAttribute("options")) {
+    return {};
+  }
+
   const optionValue = computeWebComponentValue(element, "options");
   if (optionValue.kind === "list") {
     const items = optionValue as any;
@@ -372,4 +376,35 @@ export function optionsFromOptionsAttribute<Options>(
   } else {
     throw Error(`attribute options must be a list, got a ${optionValue.kind}`);
   }
+}
+
+export function addInputEventListener(
+  inputElement: HTMLInputElement,
+  handler: (value: string) => void
+) {
+  inputElement.addEventListener("change", (event: Event) => {
+    event.preventDefault();
+    const target = event.target as HTMLInputElement;
+    handler(target.value);
+  });
+}
+
+export function addButtonEventListener(
+  element: HTMLButtonElement,
+  handler: () => void
+) {
+  element.addEventListener("click", (event: Event) => {
+    handler();
+    event.preventDefault();
+  });
+}
+
+export function addCheckBoxEventListener(
+  element: HTMLElement,
+  handler: (checked: boolean) => void
+) {
+  element.addEventListener("change", (event: Event) => {
+    event.preventDefault();
+    handler((event.target as HTMLInputElement).checked);
+  });
 }

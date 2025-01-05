@@ -124,6 +124,12 @@ export class Histogram {
     )}: ${frequency.toFixed(0)}`;
   }
 
+  params?: {
+    lower: number;
+    upper: number;
+    nrBins: number;
+  };
+
   constructor(
     private data: PacioliValue,
     public context: PacioliContext,
@@ -151,6 +157,7 @@ export class Histogram {
 
       // Determine the three histogram parameters from the options.
       const params = this.boundsAndNrBins(data);
+      this.params = params;
       const lower = params.lower;
       const upper = params.upper;
       const nrBins = params.nrBins;
@@ -331,6 +338,18 @@ export class Histogram {
     }
 
     return this;
+  }
+
+  nrBins(): number | undefined {
+    return this.params?.nrBins;
+  }
+
+  lower(): number | undefined {
+    return this.params?.lower;
+  }
+
+  upper(): number | undefined {
+    return this.params?.upper;
   }
 
   /**

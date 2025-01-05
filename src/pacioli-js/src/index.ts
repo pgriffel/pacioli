@@ -216,6 +216,7 @@ export { PacioliInputsComponent } from "./web-components/components/pacioli-inpu
 export { PacioliLineChartComponent } from "./web-components/components/pacioli-line-chart";
 export { PacioliBarChartComponent } from "./web-components/components/pacioli-bar-chart";
 export { PacioliHistogramComponent } from "./web-components/components/pacioli-histogram";
+export { PacioliHistogramOptionsComponent } from "./web-components/components/pacioli-histogram-options";
 export { PacioliPieChartComponent } from "./web-components/components/pacioli-pie-chart";
 export { PacioliScatterPlotComponent } from "./web-components/components/pacioli-scatter-plot";
 export { PacioliWordCloudComponent } from "./web-components/components/pacioli-wordcloud";

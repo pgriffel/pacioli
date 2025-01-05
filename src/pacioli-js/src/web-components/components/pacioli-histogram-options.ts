@@ -1,0 +1,175 @@
+import { PacioliWebController } from "../pacioli-web-controller";
+import { addButtonEventListener, addInputEventListener } from "../utils";
+import { PacioliHistogramComponent } from "./pacioli-histogram";
+
+const TEMPLATE = document.createElement("template");
+
+TEMPLATE.innerHTML = `
+  <style>
+    .pacioli-controls-animation {
+      background: var(--bg-color);
+    }
+
+    .pacioli-controls-configuration {
+      background: var(--bg-color);
+    }
+  </style>
+  <div class="buttons">
+    <button class="dot">Dot</button>
+    <button class="sturges">Sturges</button>
+    <button class="freedman-diaconis">FD</button>
+    <button class="custom">Custom</button>
+  </div>
+  <div class="inputs">
+    <label class="bins">nr. bins
+      <input type="number"></input>
+    </label>
+    <label class="lower">lower
+      <input type="number"></input>
+    </label>
+    <label class="upper">upper
+      <input type="number"></input>
+    </label>
+  </div>
+`;
+
+/**
+ * The 'pacioli-histogram-options' web component. A web component with
+ * controls for the 'pacioli-histogram' web component.
+ *
+ * The chart's options are changed by manipulating the chart's attributes
+ * in the DOM.
+ *
+ * @example
+ * <pacioli-histogram id="my_histogram" ... >
+ *    <parameter> ... </parameter>
+ *    ...
+ * </pacioli-histogram>
+ *
+ * <pacioli-histogram-options for="my_histogram"></pacioli-histogram-options>
+ */
+export class PacioliHistogramOptionsComponent extends PacioliWebController {
+  /**
+   * Web component field.
+   */
+  static observedAttributes = ["for"];
+
+  /**
+   * Web component life-cycle event.
+   */
+  connectedCallback() {
+    super.connectedCallback();
+
+    // Create the content from the template
+    this.contentParent().appendChild(TEMPLATE.content.cloneNode(true));
+    this.contentParent().className = "pacioli histogram options";
+
+    // Connect all event handlers to the content elements
+    this.addEventListeners();
+
+    // Set the inputs initially to the values from the heuristic. After initial
+    // construction we don't touch the users input. Delay the call to make sure
+    // the inputs exist.
+    setTimeout(() => this.updateInputs(), 1);
+  }
+
+  /**
+   * The histogram web component to which this element is connected via the id in
+   * the 'for' field.
+   *
+   * @returns The connected histogram, or undefined if no connected histogram exists.
+   */
+  histogramElement(): PacioliHistogramComponent | undefined {
+    const component = this.attachedComponent();
+    return component ? (component as PacioliHistogramComponent) : undefined;
+  }
+
+  /**
+   * Helper for connectedCallback. Call only once!
+   */
+  private addEventListeners() {
+    const inputElements = [
+      [".bins input", "bins"],
+      [".lower input", "lower"],
+      [".upper input", "upper"],
+    ];
+
+    // Add event handlers to the inputs. Update the chart's attributes
+    // from the new input values.
+    inputElements.forEach(([className, attribute]) => {
+      addInputEventListener(this.inputElement(className), (value) => {
+        if (value === "") {
+          this.histogramElement()?.removeAttribute(attribute);
+        } else {
+          this.histogramElement()?.setAttribute(attribute, value);
+        }
+      });
+    });
+
+    // Add an event handler to the custom button. It sets or unsets
+    // the 'bins' attribute. The bounds don't need to be set, because
+    // they are not changed by the heuristics.
+    addButtonEventListener(this.buttonElement(".custom"), () => {
+      const value = this.inputElement(".bins input").value;
+      if (value === "") {
+        this.histogramElement()?.removeAttribute("bins");
+      } else {
+        this.histogramElement()?.setAttribute("bins", value);
+      }
+    });
+
+    const heuristics = [
+      [".dot", "dot"],
+      [".sturges", "sturges"],
+      [".freedman-diaconis", "freedman-diaconis"],
+    ];
+
+    // Add an event handler to the heuristic buttons. It must remove
+    // the 'bins' attribute, otherwise it would have no effect.
+    heuristics.forEach(([className, heuristic]) => {
+      addButtonEventListener(this.buttonElement(className), () => {
+        this.histogramElement()?.removeAttribute("bins");
+        this.histogramElement()?.setAttribute("heuristic", heuristic);
+      });
+    });
+  }
+
+  /**
+   * Sets the input values from the actual chart values.
+   */
+  private updateInputs() {
+    const nrBinsInput = this.inputElement(".bins input");
+    const lowerBoundInput = this.inputElement(".lower input");
+    const upperBoundInput = this.inputElement(".upper input");
+
+    const histogram = this.histogramElement();
+
+    if (histogram) {
+      const nrBins = histogram.nrBins();
+      if (nrBins !== undefined) {
+        nrBinsInput.value = nrBins.toString();
+      }
+      const lower = histogram.lower();
+      if (lower !== undefined) {
+        lowerBoundInput.value = lower.toString();
+      }
+      const upper = histogram.upper();
+      if (upper !== undefined) {
+        upperBoundInput.value = upper.toString();
+      }
+    }
+  }
+
+  private inputElement(className: string): HTMLInputElement {
+    return this.findElement(`${className}`) as HTMLInputElement;
+  }
+
+  private buttonElement(className: string): HTMLButtonElement {
+    return this.findElement(` ${className}`) as HTMLButtonElement;
+  }
+}
+
+customElements.define(
+  "pacioli-histogram-options",
+  PacioliHistogramOptionsComponent
+);

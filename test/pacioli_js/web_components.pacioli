@@ -50,7 +50,9 @@ define myRandomCount =
     sort_list([ x | (_, x) <- element_count([ x | (_, x) <- sort_list_by(myRandomNats, compare, second)])], compare);
 
 define random_vec_histogram_options(factor) =
-    [tuple("upper",  int2str(factor, |1|))];
+    [tuple("upper",  int2str(factor, |1|)),
+    tuple("upper",  int2str(factor, |1|)),
+    tuple("lupper",  int2str(factor, |1|))];
 
 # ------------------------------------------------------------------------------
 
