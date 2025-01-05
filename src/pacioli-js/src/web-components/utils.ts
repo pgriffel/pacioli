@@ -48,10 +48,13 @@ export type BooleParameter = {
  * @param element An HTML web element, typically a web component
  * @returns The computed Pacioli value
  */
-export function computeWebComponentValue(element: HTMLElement): PacioliValue {
+export function computeWebComponentValue(
+  element: HTMLElement,
+  attribute: string = "definition"
+): PacioliValue {
   // Get the element's 'script' and 'definition' attributes
   const script = element.getAttribute("script");
-  const definition = element.getAttribute("definition");
+  const definition = element.getAttribute(attribute);
 
   // Check that they exist
   if (script === null || definition === null) {
@@ -294,4 +297,79 @@ export function optionsFromAttributes<Options>(
     ...optionalBooleanAttributes(element, supportedAttributes.booleans),
     ...optionalNumberAttributes(element, supportedAttributes.numbers),
   };
+}
+
+export function optionsFromOptionsAttribute<Options>(
+  element: HTMLElement,
+  supportedAttributes: {
+    strings: string[];
+    booleans: string[];
+    numbers: string[];
+  }
+): Partial<Options> {
+  const optionValue = computeWebComponentValue(element, "options");
+  if (optionValue.kind === "list") {
+    const items = optionValue as any;
+    const table = new Map<string, string | null>();
+
+    items.forEach((item: any) => {
+      if (item.kind !== "tuple") {
+        throw Error(
+          `found a ${item.kind} in the options instead of a tuple. Chart options must be pairs (tuple) of strings.`
+        );
+      }
+      if (item[0].kind !== "string") {
+        throw Error(`chart option key must be a string, got a ${item[0].kind}`);
+      }
+      if (item[1].kind !== "string") {
+        throw Error(
+          `chart option value for ${item[0].value} must be a string, got a ${item[1].kind}`
+        );
+      }
+      if (table.has(item[0].value)) {
+        console.warn(`Duplicate chart attribute ${item[0].value}`);
+      }
+      const key = item[0].value;
+      const value = item[1].value;
+      table.set(key, value);
+    });
+
+    let object = {};
+
+    supportedAttributes.strings.forEach((attribute) => {
+      if (table.has(attribute)) {
+        object = { ...object, [attribute]: table.get(attribute) };
+        table.set(attribute, null);
+      }
+    });
+
+    supportedAttributes.booleans.forEach((attribute) => {
+      if (table.has(attribute)) {
+        object = { ...object, [attribute]: table.get(attribute) === "true" };
+        table.set(attribute, null);
+      }
+    });
+
+    supportedAttributes.numbers.forEach((attribute) => {
+      if (table.has(attribute)) {
+        const num = Number(table.get(attribute));
+        if (Number.isFinite(num)) {
+          object = { ...object, [attribute]: num };
+          table.set(attribute, null);
+        } else {
+          throw Error(`invalid number ${value} for attritube ${attribute}`);
+        }
+      }
+    });
+
+    for (let key of table.keys()) {
+      if (table.get(key) !== null) {
+        console.warn(`Ignoring unknown chart option '${key}'`);
+      }
+    }
+
+    return object;
+  } else {
+    throw Error(`attribute options must be a list, got a ${optionValue.kind}`);
+  }
 }

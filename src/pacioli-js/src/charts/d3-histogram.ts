@@ -37,6 +37,7 @@ export interface HistogramOptions extends DefaultChartOptions {
   zeros?: boolean;
   decimals?: number;
   gap?: number;
+  heuristic: string;
   onclick?: (
     values: { keys: string[]; value: string }[],
     frequency: DimNum,
@@ -72,6 +73,7 @@ export class Histogram {
     zeros: boolean;
     decimals: number;
     gap: number;
+    heuristic: string;
     onclick?: (
       values: { keys: string[]; value: string }[],
       frequency: DimNum,
@@ -91,6 +93,7 @@ export class Histogram {
     convert: true,
     decimals: 2,
     gap: 1,
+    heuristic: "d3",
     onclick: this.defaultClickHanler.bind(this),
     tooltip: this.defaultTooltip.bind(this),
     tooltipOffset: { dx: 0, dy: -50 },
@@ -124,7 +127,7 @@ export class Histogram {
   constructor(
     private data: PacioliValue,
     public context: PacioliContext,
-    options: HistogramOptions
+    options: Partial<HistogramOptions>
   ) {
     this.options = { ...this.defaultOptions, ...options };
   }
@@ -146,32 +149,23 @@ export class Histogram {
       var width = this.options.width - margin.left - margin.right;
       var height = this.options.height - margin.top - margin.bottom;
 
-      // Check the existence of options for the bin calculation
-      const hasLower = typeof this.options.lower === "number";
-      const hasUpper = typeof this.options.upper === "number";
-      const hasBins = typeof this.options.bins === "number";
+      // Determine the three histogram parameters from the options.
+      const params = this.boundsAndNrBins(data);
+      const lower = params.lower;
+      const upper = params.upper;
+      const nrBins = params.nrBins;
 
-      // Determine the value bounds. The effective bounds are not necessarily
-      // the data bounds. If no bounds are given then the data bounds are rounded
-      // to give nicer bins.
-      const dataLower = hasLower ? (this.options.lower as number) : data.min;
-      const dataUpper = hasUpper ? (this.options.upper as number) : data.max;
-      const lower = hasLower ? dataLower : Math.floor(dataLower);
-      const upper = hasUpper ? dataUpper : Math.floor(dataUpper) + 1;
+      const dataRange = upper - lower;
 
-      // Create an array with the bin tresholds. The d3 library does not create bins
-      // of uniform size. See
-      //   https://dev.to/kevinlien/d3-histograms-and-fixing-the-bin-problem-4ac5
-      // You can however pass a tresholds array instead of the number of bins to d3's
-      // bin() function. Therefore we calculate the bin tresholds ourselves. If no
-      // bins are given as option we use d3's bin() function to create bins and use
-      // that amount as the number of bins. The actual bin array is discarded.
-      const nrBins = hasBins
-        ? (this.options.bins as number)
-        : d3.bin().domain([lower, upper])(data.values).length;
-      const binWidth = (upper - lower) / nrBins;
-      const tresholds = [...Array(nrBins + 1)].map(
-        (_, i) => i * binWidth + lower
+      if (nrBins <= 0 || dataRange <= 0) {
+        throw Error(
+          "cannot place data in bins. Is the data valid and non-empty?"
+        );
+      }
+
+      const binWidth = dataRange / nrBins;
+      const tresholds = [...Array(nrBins)].map(
+        (_, i) => (i + 1) * binWidth + lower
       );
       const histogram = d3.bin().domain([lower, upper]).thresholds(tresholds);
       const binArray = histogram(data.values);
@@ -337,6 +331,73 @@ export class Histogram {
     }
 
     return this;
+  }
+
+  /**
+   * Returns the three parameters for a histogram: the lower bound, the upper
+   * bound, and the number of bins.
+   *
+   * There is not a single optimal solution. Uses heuristics if requested.
+   *
+   * @param data The data displayed by the histogram
+   * @returns the bounds and number of bins.
+   */
+  boundsAndNrBins(data: { values: number[]; min: number; max: number }) {
+    // Check the existence of options for the bin calculation.
+    const hasLower = typeof this.options.lower === "number";
+    const hasUpper = typeof this.options.upper === "number";
+    const hasBins = typeof this.options.bins === "number";
+
+    // Determine the value bounds. The effective bounds are not necessarily
+    // the data bounds. If no bounds are given then the data bounds are rounded
+    // to give nicer bins.
+    const lower = hasLower
+      ? (this.options.lower as number)
+      : Math.floor(data.min);
+    const upper = hasUpper
+      ? (this.options.upper as number)
+      : Math.floor(data.max) + 1;
+
+    let nrBins = hasBins
+      ? (this.options.bins as number)
+      : // default method "d3"
+        d3.bin().domain([lower, upper])(data.values).length;
+
+    function sturges() {
+      return Math.ceil(Math.log2(data.values.length));
+    }
+
+    function fd() {
+      const perc25 = d3.quantile(data.values, 0.25);
+      const perc75 = d3.quantile(data.values, 0.75);
+      if (perc25 && perc75) {
+        const h = (2 * (perc75 - perc25)) / data.values.length ** (1 / 3);
+        return h === 0 ? 1 : Math.ceil((upper - lower) / h);
+      } else {
+        throw Error("cannot compute Freedman-Diaconis. Is the data valid?");
+      }
+    }
+
+    // https://www.statology.org/choosing-the-optimal-bin-size-for-your-histogram/
+    let method = this.options.heuristic;
+
+    if (!hasBins && method === "sturges") {
+      nrBins = sturges();
+    }
+
+    if (!hasBins && method === "freedman-diaconis") {
+      nrBins = fd();
+    }
+
+    if (!hasBins && method === "seaborn") {
+      nrBins = Math.max(sturges(), fd());
+    }
+
+    return {
+      lower,
+      upper,
+      nrBins,
+    };
   }
 
   /**

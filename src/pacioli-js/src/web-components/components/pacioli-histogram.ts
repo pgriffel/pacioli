@@ -2,14 +2,14 @@ import { si, SIUnit, UOM } from "uom-ts";
 import { PacioliContext } from "../../context";
 import { Histogram, HistogramOptions } from "../../charts/d3-histogram";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes } from "../utils";
+import { optionsFromAttributes, optionsFromOptionsAttribute } from "../utils";
 import { dataUnit } from "../../charts/chart-utils";
 
 /**
  * Attribues supported by the histogram component
  */
 const SUPPORTED_ATTRIBUTES = {
-  strings: ["label"],
+  strings: ["label", "heuristic"],
   booleans: [],
   numbers: ["width", "height", "bins", "lower", "upper", "decimals", "gap"],
 };
@@ -117,8 +117,12 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
    * @returns An object with only the entries that are found in the attributes.
    */
   chartOptions(): Partial<HistogramOptions> {
+    const options = this.hasAttribute("options")
+      ? optionsFromOptionsAttribute(this, SUPPORTED_ATTRIBUTES)
+      : {};
     return {
       unit: this.unit || UOM.ONE,
+      ...options,
       ...optionsFromAttributes<HistogramOptions>(this, SUPPORTED_ATTRIBUTES),
     };
   }

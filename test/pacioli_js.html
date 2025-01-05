@@ -20,14 +20,21 @@
 
     <div class="example">
 
-        <pacioli-histogram id="dice1" unit="1" script="web_components" definition="randomNatVec" NObins="10" NOlower="0"
-            NOupper="1" label="n test" decimals="2" , gap="1.0">
+        <pacioli-histogram id="dice1" unit="1" script="web_components" definition="randomNatVec" lower="0" upper="100"
+            options="random_vec_histogram_options" nbins="10" label="n test" decimals="2" , gap="1.0"
+            heuristic="seaborn">
             <parameter label="n">100</parameter>
         </pacioli-histogram>
         <pacioli-inputs for="dice1"></pacioli-inputs>
 
+
     </div>
 
+    gyh
+    <pacioli-bar-chart id="dice1b" unit="1" script="web_components" definition="myRandomCount" NObins="10" NOlower="0"
+        NOupper="1" label="n test" decimals="2" , gap="1.0">
+        <parameter label="n">100</parameter>
+    </pacioli-bar-chart>
 
 
 
@@ -131,7 +138,7 @@
     <div class="example">
 
         <pacioli-histogram id="dice" unit="1" script="web_components" definition="dice" NObins="100" NOlower="0"
-            NOupper="25" label="dice test" decimals="5" , gap="1.0">
+            NOupper="25" label="dice test" decimals="5" , gap="1.0" heuristic="d3">
             <parameter label="throws">10000</parameter>
             <parameter label="dice">3</parameter>
         </pacioli-histogram>

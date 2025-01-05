@@ -21,6 +21,9 @@ define nth_tail(xs, n) =
     return tailed;
   end;
 
+define sort_list_by(xs, pred, acc) =
+    sort_list(xs, (x, y) -> pred(acc(x), acc(y)));
+
 # ------------------------------------------------------------------------------
 # Chart data
 # ------------------------------------------------------------------------------
@@ -30,15 +33,24 @@ define NR_NATS = 100;
 defindex Nats =
     [pad_left(num2string(n, 0, |1|), 2, "0") | n <- naturals(NR_NATS)];
 
+define randomNums(factor) =
+    [x | i <- row_domain(|Nats!|),
+        x := tuple(i, factor * random() * random() * random() * random())];
+
 define randomNatVec(factor) =
-    make_matrix([x | i <- row_domain(|Nats!|),
-                     x := tuple(i, _,  factor * random() * random() * random() * random())]);
+    make_matrix([tuple(k, _, v) | (k, v) <- randomNums(factor)]);
+
+define myRandomNats = 
+   [tuple(k, floor(v)) | (k, v) <- randomNums(100)];
 
 define myRandomVec = 
-   randomNatVec(100);
+   make_matrix([tuple(k, _, v) | (k, v) <- myRandomNats]);
 
 define myRandomCount = 
-    element_count(myRandomVec);
+    sort_list([ x | (_, x) <- element_count([ x | (_, x) <- sort_list_by(myRandomNats, compare, second)])], compare);
+
+define random_vec_histogram_options(factor) =
+    [tuple("upper",  int2str(factor, |1|))];
 
 # ------------------------------------------------------------------------------
 
