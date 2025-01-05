@@ -25,7 +25,6 @@ import { DimNum, SIUnit } from "uom-ts";
 import { PacioliValue } from "../value";
 import { PacioliContext } from "../context";
 import { dataUnit, displayChartError, transformData } from "./chart-utils";
-import { Matrix } from "../values/matrix";
 import * as d3 from "d3";
 
 export interface HistogramOptions extends DefaultChartOptions {
@@ -39,17 +38,12 @@ export interface HistogramOptions extends DefaultChartOptions {
   decimals?: number;
   gap?: number;
   onclick?: (
-    value: Matrix,
+    values: { keys: string[]; value: string }[],
     frequency: DimNum,
     lower: DimNum,
     upper: DimNum
   ) => void;
-  tooltip?: (
-    value: Matrix,
-    frequency: DimNum,
-    lower: DimNum,
-    upper: DimNum
-  ) => string;
+  tooltip?: (frequency: DimNum, lower: DimNum, upper: DimNum) => string;
   tooltipOffset?: { dx: number; dy: number };
 }
 
@@ -79,17 +73,12 @@ export class Histogram {
     decimals: number;
     gap: number;
     onclick?: (
-      value: Matrix,
+      values: { keys: string[]; value: string }[],
       frequency: DimNum,
       lower: DimNum,
       upper: DimNum
     ) => void;
-    tooltip?: (
-      value: Matrix,
-      frequency: DimNum,
-      lower: DimNum,
-      upper: DimNum
-    ) => string;
+    tooltip?: (frequency: DimNum, lower: DimNum, upper: DimNum) => string;
     tooltipOffset: { dx: number; dy: number };
   };
 
@@ -108,7 +97,7 @@ export class Histogram {
   };
 
   defaultClickHanler(
-    value: Matrix,
+    values: { keys: string[]; value: string }[],
     frequency: DimNum,
     lower: DimNum,
     upper: DimNum
@@ -120,22 +109,13 @@ export class Histogram {
       lower.toFixed(this.options.decimals) +
       " to " +
       upper.toFixed(this.options.decimals);
-    const data = value.keyValueList();
-    const mat = data.values.map(
-      (value) =>
-        `\n${value.row.toString()}  ${value.column.toString()}  ${value.value.toFixed(
-          this.options.decimals
-        )} `
+    const mat = values.map(
+      (value) => `\n${value.keys.toString()}  ${value.value} `
     );
     alert(text + mat);
   }
 
-  defaultTooltip(
-    _: Matrix,
-    frequency: DimNum,
-    lower: DimNum,
-    upper: DimNum
-  ): string {
+  defaultTooltip(frequency: DimNum, lower: DimNum, upper: DimNum): string {
     return `${lower.toFixed(this.options.decimals)}..${upper.toFixed(
       this.options.decimals
     )}: ${frequency.toFixed(0)}`;
@@ -177,7 +157,7 @@ export class Histogram {
       const dataLower = hasLower ? (this.options.lower as number) : data.min;
       const dataUpper = hasUpper ? (this.options.upper as number) : data.max;
       const lower = hasLower ? dataLower : Math.floor(dataLower);
-      const upper = hasUpper ? dataUpper : Math.ceil(dataUpper) + 1;
+      const upper = hasUpper ? dataUpper : Math.floor(dataUpper) + 1;
 
       // Create an array with the bin tresholds. The d3 library does not create bins
       // of uniform size. See
@@ -188,9 +168,11 @@ export class Histogram {
       // that amount as the number of bins. The actual bin array is discarded.
       const nrBins = hasBins
         ? (this.options.bins as number)
-        : d3.bin().domain([lower, upper])(data.values).length + 1;
+        : d3.bin().domain([lower, upper])(data.values).length;
       const binWidth = (upper - lower) / nrBins;
-      const tresholds = [...Array(nrBins)].map((_, i) => i * binWidth + lower);
+      const tresholds = [...Array(nrBins + 1)].map(
+        (_, i) => i * binWidth + lower
+      );
       const histogram = d3.bin().domain([lower, upper]).thresholds(tresholds);
       const binArray = histogram(data.values);
 
@@ -304,7 +286,14 @@ export class Histogram {
         .on("click", (_, d) => {
           if (this.options.onclick) {
             tooltip.hide();
-            const dat = this.binData(d.x0 || 0, d.x1 || 0, data.max, d.length);
+            const dat = this.binData(
+              data.values,
+              data.labels,
+              d.x0 || 0,
+              d.x1 || 0,
+              data.max,
+              d.length
+            );
             // Without the timeout the tooltip.hide() does not have an effect
             setTimeout(() => {
               this.options.onclick!(
@@ -320,6 +309,8 @@ export class Histogram {
           if (this.options.tooltip) {
             // Determine the data in the clicked bin
             const dat = this.binData(
+              data.values,
+              data.labels,
               d.x0 as number,
               d.x1 as number,
               data.max,
@@ -330,12 +321,7 @@ export class Histogram {
             // move it the proper position. Use the event's pageX and pageY properties to
             // determine the mouse position on the screen
             tooltip.show(
-              this.options.tooltip(
-                dat.value,
-                dat.frequency,
-                dat.lower,
-                dat.upper
-              ),
+              this.options.tooltip(dat.frequency, dat.lower, dat.upper),
               event.pageX + this.options.tooltipOffset.dx,
               event.pageY + this.options.tooltipOffset.dy
             );
@@ -358,46 +344,30 @@ export class Histogram {
    * filters the input Pacioli vector to only the values in a bin.
    */
   private binData(
+    values: number[],
+    labels: string[],
     lower: number,
     upper: number,
-    max: number,
+    _max: number,
     frequency: number
   ): {
-    value: Matrix;
+    value: { keys: string[]; value: string }[];
     frequency: DimNum;
     lower: DimNum;
     upper: DimNum;
   } {
-    var result: Matrix;
+    var result: { keys: string[]; value: string }[];
     const unit = this.options.unit || dataUnit(this.data);
 
-    if (this.data.kind === "matrix") {
-      result = this.data
-        .convertUnit(unit, this.context.unitContext)
-        .filter(
-          (num) =>
-            lower <= num && (num < upper || (num === max && upper === max))
-        );
-    } else if (this.data.kind === "list") {
-      throw new Error("TODO: histogram for list");
-
-      // // Todo: convert to chart unit of measurement. See vector case above.
-      // var factor = this.data.type.param.param.multiplier.conversionFactor(unit)
-      // var filtered = []
-      // for (var i = 0; i < this.data.value.length; i++) {
-      //   var num = Pacioli.getNumber(this.data.value[i], 0, 0) * factor
-      //   if (lower <= num && (num < upper || (num === max && upper === max))) {
-      //     filtered.push(this.data.value[i])
-      //   }
-      // }
-      // filtered.kind = this.data.value.kind
-      // result = new Pacioli.Box(this.data.type, filtered)
-      // //console.log(this.data)
-      // //console.log(result)
-    } else {
-      throw new Error(
-        `Histrogram values must be a matrix or a list, not a ${this.data.kind}`
-      );
+    result = [];
+    for (let i = 0; i < values.length; i++) {
+      const num = values[i];
+      if (lower <= num && num < upper) {
+        result.push({
+          keys: [labels[i]],
+          value: num.toFixed(this.options.decimals),
+        });
+      }
     }
 
     // Show the filtered vector in a popup window

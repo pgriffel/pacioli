@@ -27,11 +27,18 @@ define nth_tail(xs, n) =
 
 define NR_NATS = 100;
 
-defindex Nats = [pad_left(num2string(n, 0, |1|), 2, "0") | n <- naturals(NR_NATS)];
+defindex Nats =
+    [pad_left(num2string(n, 0, |1|), 2, "0") | n <- naturals(NR_NATS)];
 
-define natVec(nums) = 
-    make_matrix([x | (n, v) <- zip(row_domain(|Nats!|), nums), 
-                      x := tuple(n, _,  100 * random() * random() * random() * random())]);
+define randomNatVec(factor) =
+    make_matrix([x | i <- row_domain(|Nats!|),
+                     x := tuple(i, _,  factor * random() * random() * random() * random())]);
+
+define myRandomVec = 
+   randomNatVec(100);
+
+define myRandomCount = 
+    element_count(myRandomVec);
 
 # ------------------------------------------------------------------------------
 
@@ -44,7 +51,7 @@ define wordcloud() = [
 # ------------------------------------------------------------------------------
 
 define scattered(n) =
-  tuple(natVec(naturals(NR_NATS)), natVec(naturals(NR_NATS)));
+  tuple(randomNatVec(100), randomNatVec(200));
 
 define scattered_lists(n) =
     unzip([tuple(a * |gram|, b * |gram|) | _ <- naturals(n), 
@@ -58,13 +65,10 @@ define dice(n, k) =
 
 # ------------------------------------------------------------------------------
 
-define test_data_dimless() =
-    sines(50, 5);
-
-define test_data_dimless2 =
+define test_data_dimless =
     sines(ceiling(random() * 500), ceiling(random() * 100));
 
-define test_data_gram2 = [x * |gram| | x <- test_data_dimless2];
+define test_data_metre = [5000 * x * |metre| | x <- test_data_dimless];
 
 define sines(n, k) =
     [v | cs := [ tuple(j, random() - 0.5, random() - 0.5) | j <- naturals(k)],
@@ -74,10 +78,6 @@ define sines(n, k) =
          v := 0 + sum[ w | (j, c1, c2) <- cs,
                        d := expt(decay, j + 1),
                        w := (c1 / d) * sin(i * (j + 1) * arc) + (c2 / d) * cos(i * (j + 1) * arc)]];
-
-#define test_data_dimless() = [1,2,3,4,5,6,7,5,6,7,8,6,4,7,8,8,7,76,6,7];
-
-define test_data_gram() = [x * |gram| | x <- test_data_dimless()];
 
 # ------------------------------------------------------------------------------
 

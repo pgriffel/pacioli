@@ -18,6 +18,18 @@
 <body>
     <div id="console"></div>
 
+    <div class="example">
+
+        <pacioli-histogram id="dice1" unit="1" script="web_components" definition="randomNatVec" NObins="10" NOlower="0"
+            NOupper="1" label="n test" decimals="2" , gap="1.0">
+            <parameter label="n">100</parameter>
+        </pacioli-histogram>
+        <pacioli-inputs for="dice1"></pacioli-inputs>
+
+    </div>
+
+
+
 
     <h2>Pacioli value</h2>
     <p>
@@ -66,6 +78,55 @@
         </pacioli-pie-chart>
 
 
+
+
+
+    <h2>Bar Chart</h2>
+    <p>
+        Test of the pacioli-bar-chart web component
+
+    <p>
+        <pacioli-bar-chart script="web_components" definition="land_area" label="Bart chart test" unit="mega:metre^2"
+            Aymin="-100000" , Aymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
+
+
+    <p>
+        <pacioli-bar-chart script="web_components" definition="test_data_metre" label="Bart chart test" unit="metre"
+            width="1200" height="200" Aymin="-100000" , Aymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
+
+        Issues:
+    <ul>
+        <li>decimals does not work</li>
+        <li>zeros boolean should be negated</li>
+        <li>Trash at the bottom. Margin too small?</li>
+    </ul>
+
+
+    <h2>Line Chart</h2>
+    <p>
+        Test of the pacioli-line-chart web component
+
+    <p>
+    <div class="example">
+
+        <pacioli-line-chart unit="kilo:metre" height="200" script="web_components" definition="test_data_metre"
+            smoothkkk label="some value" width="1200"></pacioli-line-chart>
+    </div>
+
+    Issues:
+    <ul>
+        <li>convert boolean should be negated</li>
+        <li>zeros boolean should be negated</li>
+        <li>decimals does not work</li>
+        <li>...</li>
+    </ul>
+
+
+
+    <h2>Histogram</h2>
+    <p>
+        Test of the pacioli-histogram web component
+
     <p>
     <div class="example">
 
@@ -84,55 +145,6 @@
         <li>zeros boolean should be negated</li>
         <li>decimals does not work</li>
     </ul>
-
-
-
-    <h2>Bar Chart</h2>
-    <p>
-        Test of the pacioli-bar-chart web component
-
-    <p>
-        <pacioli-bar-chart script="web_components" definition="land_area" label="Bart chart test" unit="mega:metre^2"
-            Aymin="-100000" , Aymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
-
-
-    <p>
-        <pacioli-bar-chart script="web_components" definition="test_data_gram2" label="Bart chart test" unit="gram"
-            width="1200" height="200" Aymin="-100000" , Aymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
-
-        Issues:
-    <ul>
-        <li>decimals does not work</li>
-        <li>zeros boolean should be negated</li>
-        <li>Trash at the bottom. Margin too small?</li>
-    </ul>
-
-
-    <h2>Line Chart</h2>
-    <p>
-        Test of the pacioli-line-chart web component
-
-    <p>
-    <div class="example">
-
-        <pacioli-line-chart unit="kilo:gram" height="200" script="web_components" definition="test_data_gram2" smoothkkk
-            label="some value" width="1200"></pacioli-line-chart>
-    </div>
-
-    Issues:
-    <ul>
-        <li>convert boolean should be negated</li>
-        <li>zeros boolean should be negated</li>
-        <li>decimals does not work</li>
-        <li>...</li>
-    </ul>
-
-
-
-    <h2>Histogram</h2>
-    <p>
-        Test of the pacioli-histogram web component
-
 
 
     <h2>Scatter Plot</h2>
@@ -183,7 +195,7 @@
             <parameter label="faces" type="boole">true</parameter>
             <parameter label="fill" type="boole">true</parameter>
             <parameter label="gap">0</parameter>
-            <parameter label="size" unit="metre">5</parameter>
+            <parameter label="size" unit="metre">3</parameter>
         </pacioli-scene>
         <pacioli-inputs for="scene_cubes4"></pacioli-inputs>
         <pacioli-controls for="scene_cubes4"></pacioli-controls>
@@ -243,7 +255,7 @@
         <li>Table styling</li>
         <li>Make units defined in a script available at runtime (people unit)</li>
         <li>Function to set scene background</li>
-        <li>Font color labels</li>
+        <li>Decimal separator</li>
     </ul>
 
 </body>
