@@ -1,0 +1,173 @@
+import graphics;
+import geometry;
+import geometric_algebra;
+include generated/generated_algebra; #physics uses Geom3
+
+# ------------------------------------------------------------------------------
+#
+# Cross-vector Ssenes in this file
+#
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# First group of scenes:
+# 
+# - scene_cross_oscillate
+#
+#
+# ------------------------------------------------------------------------------
+
+
+# 
+# General documentation to do:
+# Stateful animation in order to support multiple use cases 
+# Formulas and derivatives lead from position to angular momentum to force/torque,
+# but for our purpose we need to work the other way around, from
+# force/torque -> angular momentum -> position.
+#
+
+doc scene_torque_orbital2d_pointmass
+"Scene of 2d orbital unit-aware torque and angular momentum cross vectors based on the diagram in https://en.wikipedia.org/wiki/Torque.";
+
+
+# A tuple for states of (x,y,z) vectors
+declare scene_torque_orbital2d_pointmass :: (gram, metre) ->
+    StatefulAnimation(metre, State);
+
+# TODO: make spherical 3D version
+#declare scene_torque_spherical3d_pointmass :: (metre, metre) ->
+#   Animation(metre);
+
+
+define scene_torque_orbital2d_pointmass(mass, rx1) =
+    let
+        scene = empty_scene("Scene of 2d orbital unit-aware torque and angular momentum cross vectors based on the diagram in https://en.wikipedia.org/wiki/Torque."),
+        w = 1 * |radian| / |second|,   # angular speed for now fixed       
+        callback = animation_callback_state_composition(mass, rx1),
+        initialState = initial_state(),
+        # start with time=0
+        t = 0 * |second|,
+        arrows = state_arrows(initialState)
+    in
+        add_stateful_animation_callback(initialState, callback, add_arrows(arrows, scene))
+    end;
+
+# Stateful callback, using the updated state=frame 
+define animation_callback_state_composition(mass, radius) = 
+    (time, state, scene) ->
+        let newState = next_state(state, mass, time, radius)
+        in
+        tuple(newState,
+            set_arrows(scene, state_arrows(newState)))
+    end;
+
+
+declare square_wave :: (gram * metre / second^2, second) -> gram * metre / second^2;
+
+define square_wave(F_value, time) = 
+    let
+        total_cycle = 8 * |second|,
+        time_mod = mod(time + 0 * |second|, total_cycle)
+    in
+        if time_mod >= 0 * |second| and time_mod < total_cycle / 4 then F_value
+        else if time_mod >= total_cycle / 2 and time_mod < total_cycle * 3 / 4 then - F_value
+        else 0 * |gram * metre / second^2|
+        end
+    end;
+
+
+# ------------------------------------------------------------------------------
+# State
+# 
+# The state vectors are needed for the orbital and spherical scenes
+# ------------------------------------------------------------------------------
+
+# No trail (yet)
+#doc State
+#    "The state keeps the accumulated values of angle, torque, force, angular momentum and position. The radius is fixed.";
+
+#deftype State = Tuple(
+#    radian,                                     # Angle
+#    kg * metre^2 / second^2 * Geom3!,           # Torque
+#    kg * metre / second^2                       # Force
+#    kg * metre^2 / second   * Geom3!            # Angular momentum  
+#    metre * Geom3!                              # position
+#);
+
+doc State
+    "The state keeps the accumulated value of angle only to compute torque, force, angular momentum and position. The radius is fixed.";
+
+deftype State() = Tuple(
+    second,                       # time (clockticks)
+    radian,                       # angle
+    gram * metre^2 / second       # angular momentum
+);
+
+
+# ------------------------------------------------------------------------------
+
+# angle and second start at 0
+# Mass / kilogram and initial position (metre, metre, metre) are needed for the initial state
+declare initial_state :: () -> State;
+
+define initial_state() =
+    tuple(  0 * |second|,
+            0 * |radian|, 
+            0 * |gram * metre^2 / second|);
+
+
+# ------------------------------------------------------------------------------
+
+# mass, time, radius and force are parameters
+declare next_state :: (State, gram, second, metre) -> State;
+
+define next_state(state, mass, time, radius) =
+    let
+        (oldTime, oldAngle, oldAngMomentum) = state,
+        # newForce depends on the square wave
+        newForce = square_wave(10 * |gram * metre / second^2|, time),
+        omega =  oldAngMomentum / (mass * radius^2),
+        dt = time - oldTime,
+        newAngle = oldAngle + dt * omega * |radian|,
+        newTorque = newForce * radius,
+        newAngularMomentum = oldAngMomentum + newTorque * dt
+    in
+        tuple(time, newAngle, newAngularMomentum)
+    end;
+
+declare state_arrows :: (State) -> List(Arrow(metre));
+
+define state_arrows(state) = 
+    let
+        (time, angle, angMomentum) = state,
+        # rotation through the angle in the (x,y) plane. 
+        position_vector = |metre| '.*' vector3d(sin(angle), cos(angle), 0),
+        origin = |metre| '.*' vector3d(0,0,0),
+
+        force = square_wave(10 * |gram * metre / second^2|, time) '.*' vector3d(1, 0, 0),
+
+        # cross product and type cast into metre
+        torque = |metre| / |gram*metre^2/second^2| '.*' cross(position_vector, force),
+
+        # angMomentum type cast into metre
+        angMomentum_vector = |metre| '.*' vector3d(0,0, angMomentum / |gram * metre^2 / second|)
+    in
+        [frame_arrow(origin, 5 '.*' position_vector,        # 5 for better proportions
+            make_color("green"), "position", "position"),
+         frame_arrow(origin, angMomentum_vector,
+            make_color("orange"), "angular momentum", "angular momentum"),
+         # type cast force into metre
+         # force starts at position
+         frame_arrow(5 '.*' position_vector, |metre| / |gram*metre/second^2| '.*' force,
+            make_color("yellow"), "force", "force"),
+         frame_arrow(origin, torque,
+            make_color("blue"), "torque", "torque")]
+    end;
+# ------------------------------------------------------------------------------
+
+
+define frame_arrow(vector_from, vector_to, color, label, name) =
+    with_arrow_label(label,
+        with_arrow_name(name,
+            with_arrow_color(color,
+                make_arrow(vector_from, vector_to))));

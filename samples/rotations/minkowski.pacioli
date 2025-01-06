@@ -1,0 +1,177 @@
+
+
+###############################################################
+# Minkowski example to study heterogeneous units
+
+import testing;
+
+export
+    Minkowski;
+
+defindex Minkowski = {x, y, z, t};
+
+# high number of decimals because of dividing by c = speed of light
+set_nr_decimals(12);
+
+declare d_x :: Minkowski!si;
+declare d_y :: Minkowski!si;
+declare d_z :: Minkowski!si;
+declare d_t :: Minkowski!si;
+
+
+define d_x = delta(Minkowski@x) * |Minkowski!si|;
+define d_y = delta(Minkowski@y) * |Minkowski!si|;
+define d_z = delta(Minkowski@z) * |Minkowski!si|;
+define d_t = delta(Minkowski@t) * |Minkowski!si|;
+
+defunit Minkowski!si = {x:metre, y:metre, z:metre, t:second};
+
+declare vector4d :: for_unit a: (a, a, a, a) -> a*Minkowski!si;
+
+define vector4d(x, y, z, t) =
+  x '.*' d_x + y '.*' d_y + z '.*' d_z + t '.*' d_t;
+
+#d_x;
+#d_t;
+#d_x + d_t;
+
+# A matrix = (1,1) tensor
+# TODO how to name this transform/convert (metric?) matrix / (1,1) tensor
+defmatrix convert :: Minkowski!si per Minkowski!si = {
+    x,x -> 1,
+    y,y -> 1,
+    z,z -> 1,
+    t,t -> -300000
+};
+
+declare metric :: Minkowski! per Minkowski!;
+
+defmatrix metric :: Minkowski! per Minkowski! = {
+    x,x -> 1,
+    y,y -> 1,
+    z,z -> 1,
+    t,t -> -1
+};
+
+declare homogenize :: metre*Minkowski! per Minkowski!si;
+
+defmatrix homogenize :: metre*Minkowski! per Minkowski!si = {
+    x,x -> 1,
+    y,y -> 1,
+    z,z -> 1,
+    t,t -> 300000
+};
+
+
+defmatrix permute_xy :: Minkowski!si per Minkowski!si = {
+    x,y -> 1,
+    y,x -> 1,
+    z,z -> 1,
+    t,t -> 1
+};
+
+defmatrix permute_zt :: Minkowski!si per Minkowski!si= {
+    x,x -> 1,
+    y,y -> 1,
+    z,t -> 1,
+    t,z -> 1
+};
+
+#permute_xy;
+#permute_xy '*' v;
+
+#permute_zt;
+#permute_zt '*' v;
+
+#
+# Experiment computing the inner_minkowski :
+# Initially we built one convert for both making a homogeneous matrix and for applying the metric of
+# the c speed. We arrived at the type eclare inner_minkowski :: for_unit a, b: 
+#    (a*Minkowski!si, b*Minkowski!si) -> b/a;
+# This required the left multiplication in inner_minkowsky by the ^D = ^T^R doimensional inverse.
+# However, the pointwise inner product produces another value (without units).
+# To fix this we change the inner_product type to 
+# declare inner_minkowski :: for_unit a, b: 
+#   (a*Minkowski!si, b*Minkowski!si) -> a*b*metre^2;
+#
+# Question: how does this result match with the uniform scaling on p102 of Leo?
+#
+
+declare inner_minkowski :: for_unit a, b: 
+    (a*Minkowski!si, b*Minkowski!si) -> a*b*metre^2;
+
+#
+# vector_v = (vx, vy, vz, vt)
+# vector_w = (wx, wy, wz, wt)
+# vector_v^T metric vector_w
+# inputs are 2 (1,0) tensors, so 4x1 vectors. (1,4) matrix
+# so a (4,1)^D x (4,4) x (4,1) matrix -> 1,1 
+# 
+# result must be vxwx + vywy + vzwz - vtwt OR the opposite -vxwx - vywy - vzwz + vtwt
+#
+define inner_minkowski(vector_v, vector_w) =
+    let
+        vh = homogenize '*' vector_v,
+        wh = homogenize '*' vector_w
+    in
+        vh^T '*' metric '*' wh
+    end;
+
+
+define inner_minkowski_indexed1(v,w) =
+let
+    vx = get_num(v, Minkowski@x, _),
+    vy = get_num(v, Minkowski@y, _),
+    vz = get_num(v, Minkowski@z, _),
+    vt = get_num(v, Minkowski@t, _),
+    wx = get_num(w, Minkowski@x, _),
+    wy = get_num(w, Minkowski@y, _),
+    wz = get_num(w, Minkowski@z, _),
+    wt = get_num(w, Minkowski@t, _)
+in 
+    vx * wx + vy * wy + vz * wz - vt * wt
+end;
+
+inner_minkowski_indexed1(homogenize '*' v, homogenize '*' w);
+
+#-vxwx -vywy -vzwz +vtwt without units
+define inner_minkowski_indexed2(v, w) = -inner_minkowski_indexed1(v, w);
+
+inner_minkowski_indexed2(homogenize '*' v, homogenize '*' w);
+
+define spacelike(u) = inner_minkowski(u,u) > 0 * |metre^2|;
+define lightlike(u) = approximates(inner_minkowski(u,u), 0 * |metre^2|, 20 * |decimals|);
+define timelike(u)  = inner_minkowski(u,u) < 0 * |metre^2|;
+
+
+###########################################
+
+# A column vector = (1,0) tensor
+define v = vector4d(1,2,3,4);
+define w = vector4d(1,1,1,1);
+
+define minkowski_suite = test_suite("Minkowski tests", [
+
+    test("magnitude of inner_minkowski should be vxwx + vywy + vzwz - vtwt", () ->
+        magnitude(inner_minkowski(v, w)) = inner_minkowski_indexed1(homogenize '*' v, homogenize '*' w)
+    ),
+
+    test("timelike vector4d(1,2,3,4)", () ->
+        timelike(vector4d(1,2,3,4))
+    ),
+
+    test("spacelike vector4d(300000,1,1,1)", () ->
+        spacelike(vector4d(300000,1,1,1))
+    ),
+
+    test("lightlike vector4d(300000,0,0,1)", () ->
+        lightlike(vector4d(300000,0,0,1))
+    )
+]);
+
+define minkowski_suites = [
+    minkowski_suite
+];
+ 
+run_test_suites(minkowski_suites);
+ 

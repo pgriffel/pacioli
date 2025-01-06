@@ -1,0 +1,206 @@
+# ----------------------------------------------------------------------------
+# Complex
+#
+# ----------------------------------------------------------------------------
+
+import geometry;
+import quaternion;
+
+# ----------------------------------------------------------------------------
+# The Complex type
+# We assume one and the same dimension of both 1 and i.
+# ----------------------------------------------------------------------------
+
+doc Complex
+    "The type of Complex numbers; as a tuple.";
+
+deftype for_unit a: Complex(a) = Tuple(a, a);
+
+# ----------------------------------------------------------------------------
+# Complex functions
+# ----------------------------------------------------------------------------
+
+doc make_complex
+  "Constructs complex a + bi  from parameters a and b.";
+
+declare make_complex ::
+    for_unit a: (a, a) -> Complex(a);
+
+define make_complex(a, b) =
+    tuple(a, b);
+
+# ----------------------------------------------------------------------------
+
+doc real_part
+    "The real part of a Complex number.";
+
+declare real_part ::
+    for_unit a: (Complex(a)) -> a;
+
+doc imaginary_part
+    "The imaginary part of a Complex number.";
+
+declare imaginary_part ::
+    for_unit a: (Complex(a)) -> a;
+
+define real_part(c) =
+    let (r, _) = c in r end;
+
+define imaginary_part(c) =
+    let (_, i) = c in i end;
+
+# ----------------------------------------------------------------------------
+
+doc unit_complex
+    "Scales a complex number to one with norm 1.";
+
+declare unit_complex ::
+    for_unit a: (Complex(a)) -> Complex(1);
+
+define unit_complex(c) =
+    scale_complex(1 / complex_norm(c), c);
+
+# ----------------------------------------------------------------------------
+
+doc complex_norm
+    "The norm of a complex number. For some complex number a + bi it is
+    the square root of a^2 + b^2.";
+
+declare complex_norm ::
+    for_unit a: (Complex(a)) -> a;
+
+define complex_norm(q) =
+  let (r, i) = q in
+      sqrt(r^2 + i^2)
+  end;
+
+# ----------------------------------------------------------------------------
+
+doc scale_complex
+    "Scales a complex number with some factor.";
+
+declare scale_complex ::
+    for_unit a,b: (a, Complex(b)) -> Complex(a*b);
+
+define scale_complex(c, q) =
+  let (r, i) = q in
+      tuple(scale(c, r), scale(c, i))
+  end;
+
+# ----------------------------------------------------------------------------
+
+doc complex_sum
+    "Adds two complex numbers.";
+
+declare complex_sum ::
+    for_unit a: (Complex(a), Complex(a)) -> Complex(a);
+
+define complex_sum(c0, c1) =
+  let
+      (r0, v0) = c0,
+      (r1, v1) = c1
+  in
+      tuple(r0 + r1, v0 + v1)
+  end;
+
+# ----------------------------------------------------------------------------
+
+doc complex_product
+    "Multiplies two complex numbers.";
+
+declare complex_product ::
+    for_unit a, b: (Complex(a), Complex(b)) -> Complex(a*b);
+
+define complex_product(c0, c1) =
+  let
+      (r0, i0) = c0,
+      (r1, i1) = c1
+  in
+      tuple(
+          r0 * r1 - i0 * i1,
+          r0 * i1 + r1 * i0)
+  end;
+
+# ----------------------------------------------------------------------------
+
+declare conjugate :: for_unit a: (Complex(a)) -> Complex(a);
+
+define conjugate(c) = 
+    make_complex(real_part(c), -imaginary_part(c));
+
+# ----------------------------------------------------------------------------
+doc complex_inverse
+    "The inverse of a complex number. complex_product(q, complex_inverse(q)) = 1";
+
+declare complex_inverse ::
+    for_unit a: (Complex(a)) -> Complex(a^-1);
+
+define complex_inverse(c) = 
+    let
+        (r, i) = c,
+        denominator = r^2 + i^2
+    in
+        tuple(r / denominator, -i / denominator)
+    end;
+
+# ----------------------------------------------------------------------------
+
+doc complex2str
+    "String representation of a complex number with nr_decimals() decimals.";
+
+declare complex2str ::
+    for_unit a: (Complex(a), a) -> String;
+
+define complex2str(q, u) =
+    complex2string(q, nr_decimals(), u);
+
+# ----------------------------------------------------------------------------
+
+doc complex2string
+    "String representation of a complex number.";
+
+declare complex2string ::
+    for_unit a: (Complex(a), 1, a) -> String;
+
+define complex2string(c, decimals, u) =
+    let
+        (r, i) = c,
+        magnitude_r = num2string(magnitude(r), decimals, 1),
+        magnitude_i = num2string(magnitude(i), decimals, 1),       
+        unit = unit2string(unit(real_part(c))),
+        #unit = unit2string(u),
+        compl = format("%s + %si", magnitude_r, magnitude_i)
+    in
+        if unit = "1" then
+            compl
+        else
+            format("(%s)%s", compl, unit)
+        end
+    end;
+
+# ----------------------------------------------------------------------------
+# Other representations
+# ----------------------------------------------------------------------------
+
+declare matrix_representation :: 
+    for_unit a: (Complex(a)) -> a * Geom2! per Geom2!;
+
+define matrix_representation(x) = 
+    let
+        re = real_part(x),
+        im = imaginary_part(x)
+    in
+        matrix2d(re, -im, im, re)
+    end;
+
+
+declare quaternion_representation :: 
+    for_unit a: (Complex(a)) -> Quaternion(a);
+
+define quaternion_representation(x) = 
+    let
+        re = real_part(x),
+        im = imaginary_part(x)
+    in
+        make_quaternion(re, im, 0 * re, 0 * re)
+    end;

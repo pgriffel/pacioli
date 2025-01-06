@@ -1,0 +1,57 @@
+import geometry;
+include standard_candidates;
+
+# ------------------------------------------------------------------------------
+# Commutativity findings:
+# 1) a conversion matrix does not commute
+# 2) a sandwich formula for computing with complex numbers is not needed, because the outer matrices will cancel due to Commutativity
+# 3) a complex number cannot have different units for the x and y, because that would need a sandwhich formula with a conversion matrix
+# ------------------------------------------------------------------------------
+
+
+
+# 1)
+# In general conversion from a * I!u to b * J!v is a matrix of the form b * J!v per a * I!u
+# Let C be a conversion matrix of this type
+# If yc = C '*' y converts an a * I!u vector y to a b * J!v vector yc
+# For any D, commute(C, D) is only defined iff I=J and v=u.
+# Any C sastisfying this condition is a scalar multiple of the identity matrix.
+
+# For a conversion to operate on a matrix a sandwich formula with the Dimensional inverse is needed
+# The dimensional inverse can only be define under the extra condition that I=J
+# There can only be 1 conversion matrix for fixed I, u and v.
+# If X is a matrix of type I!u then C '*' X '*' C^D converts X to a matrix of type I!v
+
+# A conversion hence is a base transformation of units I!u into I!v
+#
+# Now if we have an operator A that transforms x with type I!u into y with type I!a
+# y = A * x
+
+# 
+# We wish to convert x of type I!u to xc of type I!v using conversion matrix C1
+# xc = C1 '*' x
+#
+# And convert y of type I!a to yc of type I!b
+# yc = C2 '*' y
+# 
+# We rewrite the above equations uning the dimensional inverse thus:
+# C1^D xc = x 
+# C2^D yc = y
+#
+# (C2^D yc) = A (C1^D xc)
+# mutiplying in the left with C2 yields
+# yc = (C2 A C1^D) xc
+
+# The general conversion formula has a sandwich C2 A C1^D, with two conversion matrices C1 and C2
+# C1 and C2 are only equal iff a=b and u=v (as follows from the Pacioli definition)
+
+
+# 2)
+# Because of the three operator forms for the Dimensional inverse D, Transpose, and Reciprocal 
+# there can be three forms of sandwich formula.
+
+# Let A and C represent a complex number. Let A^D '*' C '*' A be a sandwich formula (a) operating upon complex numbers.
+# Since the complex numbers commute, we can rewrite (a) into A^D '*' A '*' C = I '*' C.
+
+# 3)
+

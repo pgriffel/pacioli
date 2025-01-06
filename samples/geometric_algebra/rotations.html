@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Pacioli Rotations</title>
+
+    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="geom3/rotations.js"></script>
+
+
+</head>
+
+<body>
+
+    <h2>Rotation Composition</h2>
+    <p>
+        Rotation with rotating composed rotor of rotor1, rotor2
+
+    <div class="example">
+        <pacioli-scene id="scene_rotation_composition" script="rotations" definition="scene_rotor_composition"
+            kind="stateful-animation" perspective grid axis>
+            <parameter label="Rotor 1 (mv1)" type="string">e1 + 5e2</parameter>
+            <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
+            <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
+            <parameter label="Rotor 2 (mv2)" type="string">e3</parameter>
+            <parameter label="Initial frame (mv1)" type="string">e1</parameter>
+            <parameter label="Initial frame (mv2)" type="string">e2</parameter>
+            <parameter label="Initial frame (mv3)" type="string">e3</parameter>
+        </pacioli-scene>
+        <pacioli-controls for="scene_rotation_composition"></pacioli-controls>
+    </div>
+
+
+    <h2>Rotation Nesting I</h2>
+    <p>
+        Rotation with rotating rotors. Rotor 1 is on. Rotor 2 is on.
+    <p>
+        Instead of the composition of rotors, the second rotor rotates the object while the first rotation rotates the
+        entire scene. The second rotor is 'nested' in the first. This is achieved by rotating the second rotor together
+        with the rotated object.
+
+    <div class="example">
+        <pacioli-scene id="scene_rotation_nesting1" script="rotations" definition="scene_rotor_nesting"
+            kind="stateful-animation" perspective grid axis>
+            <parameter label="Rotor 1 (mv1)" type="string">e1 + 5e2</parameter>
+            <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
+            <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
+            <parameter label="Rotor 2 (mv2)" type="string">e3</parameter>
+            <parameter label="Initial frame (mv1)" type="string">e1</parameter>
+            <parameter label="Initial frame (mv2)" type="string">e2</parameter>
+            <parameter label="Initial frame (mv3)" type="string">e3</parameter>
+        </pacioli-scene>
+        <pacioli-controls for="scene_rotation_nesting1"></pacioli-controls>
+    </div>
+
+
+    <h2>Rotation Nesting II</h2>
+    <p>
+        Rotation with rotating rotors. Rotor 1 is off. Rotor 2 is on.
+    <p>
+        Instead of the composition of rotors, the second rotor rotates the object while the first rotation rotates the
+        entire scene. The second rotor is 'nested' in the first. This is achieved by rotating the second rotor together
+        with the rotated object.
+
+    <div class="example">
+        <pacioli-scene id="scene_rotation_nesting2" script="rotations" definition="scene_rotor_nesting"
+            kind="stateful-animation" perspective grid axis>
+            <parameter label="Rotor 1 (mv1)" type="string">e1 + 6e2</parameter>
+            <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
+            <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
+            <parameter label="Rotor 2 (mv2)" type="string">e3</parameter>
+            <parameter label="Initial frame (mv1)" type="string">e1</parameter>
+            <parameter label="Initial frame (mv2)" type="string">e2</parameter>
+            <parameter label="Initial frame (mv3)" type="string">e3</parameter>
+        </pacioli-scene>
+        <pacioli-controls for="scene_rotation_nesting2"></pacioli-controls>
+    </div>
+
+
+    <h2>Rotation Nesting III</h2>
+    <p>
+        Rotation with rotating rotors. Rotor 1 is on. Rotor 2 is off.
+    <p>
+        Instead of the composition of rotors, the second rotor rotates the object while the first rotation rotates the
+        entire scene. The second rotor is 'nested' in the first. This is achieved by rotating the second rotor together
+        with the rotated object.
+
+    <div class="example">
+        <pacioli-scene id="scene_rotation_nesting3" script="rotations" definition="scene_rotor_nesting"
+            kind="stateful-animation" perspective grid axis>
+            <parameter label="Rotor 1 (mv1)" type="string">e1 + 5e2</parameter>
+            <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
+            <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
+            <parameter label="Rotor 2 (mv2)" type="string">e2 + 20e3</parameter>
+            <parameter label="Initial frame (mv1)" type="string">e1</parameter>
+            <parameter label="Initial frame (mv2)" type="string">e2</parameter>
+            <parameter label="Initial frame (mv3)" type="string">e3</parameter>
+        </pacioli-scene>
+        <pacioli-controls for="scene_rotation_nesting3"></pacioli-controls>
+    </div>
+
+
+
+    <h2>Reflection</h2>
+    <p>
+        Reflection Doran fig 2.7 but Leo's formulas for right division, projection and rejection on pp155-157.
+
+    <div class="example">
+        <pacioli-scene id="scene_reflection" script="rotations" definition="scene_reflection" kind="scene" perspective
+            grid axis>
+            <parameter label="nx" unit="metre">0</parameter>
+            <parameter label="ny" unit="metre">5</parameter>
+            <parameter label="nz" unit="metre">0</parameter>
+            <parameter label="ax" unit="metre">-3</parameter>
+            <parameter label="ay" unit="metre">3</parameter>
+            <parameter label="az" unit="metre">0</parameter>
+        </pacioli-scene>
+        <pacioli-controls for="scene_reflection"></pacioli-controls>
+    </div>
+
+
+    <h2>Rotations</h2>
+    <p>
+        Rotation fig 7.2 on p170 in Leo using two reflections.
+
+    <div class="example">
+        <pacioli-scene id="scene_rotation" script="rotations" definition="scene_rotation" kind="scene" perspective grid
+            axis>
+            <parameter label="ax" unit="metre">0</parameter>
+            <parameter label="ay" unit="metre">5</parameter>
+            <parameter label="az" unit="metre">0</parameter>
+            <parameter label="bx" unit="metre">3</parameter>
+            <parameter label="by" unit="metre">3</parameter>
+            <parameter label="cz" unit="metre">0</parameter>
+            <parameter label="xx" unit="metre">0</parameter>
+            <parameter label="xy" unit="metre">7</parameter>
+            <parameter label="xz" unit="metre">7</parameter>
+
+        </pacioli-scene>
+        <pacioli-controls for="scene_rotation"></pacioli-controls>
+    </div>
+
+
+    <h2>Rotations with Rotor</h2>
+    <p>
+        Rotation fig 7.2 on p170 in Leo using the rotor formula 7.3.
+
+    <div class="example">
+        <pacioli-scene id="scene_rotation_rotor" script="rotations" definition="scene_rotation_rotor" kind="scene"
+            perspective grid axis>
+            <parameter label="ax" unit="metre">0</parameter>
+            <parameter label="ay" unit="metre">5</parameter>
+            <parameter label="az" unit="metre">0</parameter>
+            <parameter label="bx" unit="metre">3</parameter>
+            <parameter label="by" unit="metre">3</parameter>
+            <parameter label="cz" unit="metre">0</parameter>
+            <parameter label="xx" unit="metre">0</parameter>
+            <parameter label="xy" unit="metre">7</parameter>
+            <parameter label="xz" unit="metre">7</parameter>
+
+        </pacioli-scene>
+        <pacioli-controls for="scene_rotation_rotor"></pacioli-controls>
+    </div>
+
+</body>
+
+
+</html>

@@ -1,0 +1,62 @@
+# ------------------------------------------------------------------------------
+# Cross-product experiments with angular momentum and torque
+# 
+# Point mass in orbit in a force field. Computes in 3D with vector and cross 
+# products.
+# ------------------------------------------------------------------------------
+
+import si;
+import graphics;
+import geometry;
+import quaternion;
+
+# ------------------------------------------------------------------------------
+# Scene for a first display of quanternion operations and working of rotations
+# ------------------------------------------------------------------------------
+
+declare scene_quaternion_sandbox :: (1,1,1,1, 1,1,1,1) -> Scene(1);
+
+define scene_quaternion_sandbox(
+    a1, i1, j1, k1,
+    a2, i2, j2, k2)
+=
+    let
+        q1 = make_quaternion(a1, i1, j1, k1),
+        q2 = make_quaternion(a2, i2, j2, k2),        
+        
+        # The initial position
+        q_conj_q2 = quaternion_conjugate(q2),
+        q_sandwich = quaternion_product(q1, quaternion_product(q_conj_q2, quaternion_inverse(q1))),
+
+        # Description of the scene, including the title of the selected force field
+        description = format("A simple quaternion scene displaying product")
+ 
+    in
+        add_quaternions(
+            [tuple(q1, "q1"),
+             tuple(q2, "q2"),
+             tuple(q_conj_q2, "q2_conj"),
+             tuple(q_sandwich, "q_sandw")
+            ],
+            empty_scene(description))
+    end;
+
+# Tuples of quaternions and strings for the labels
+declare add_quaternions :: (List(Tuple(Quaternion(1), String)), Scene(1)) -> Scene(1);
+
+define add_quaternions(qs, scene) =
+    add_arrows(
+        [frame_arrow(
+            quaternion_vector(q),
+            make_color("blue"), 
+            format("%s,%s", label, num2str(quaternion_scalar(q), |1|)),
+            "foo")
+        | (q,label) <- qs],
+        scene);
+
+define frame_arrow(vector, color, label, name) =
+    with_arrow_label(label,
+        with_arrow_name(name,
+            with_arrow_color(color,
+                origin_arrow(1 '.*' vector))));
+

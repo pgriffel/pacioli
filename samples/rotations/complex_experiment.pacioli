@@ -1,0 +1,431 @@
+# ------------------------------------------------------------------------------
+# Some experiments with complex numbers
+# ------------------------------------------------------------------------------
+
+import testing;
+import geometry;
+import quaternion;
+include complex;
+include standard_candidates;
+
+# ------------------------------------------------------------------------------
+# Running the tests
+# ------------------------------------------------------------------------------
+
+run_test_suites([
+    matrix_representation_test_suite("dimensioned", test_numbers_dimensioned),
+    matrix_representation_test_suite("dimensionless", test_numbers_dimless),
+    quaterion_representation_test_suite("dimensioned", test_numbers_dimensioned),
+    quaterion_representation_test_suite("dimensionless", test_numbers_dimless),
+    complex_number_test_suite("dimensioned", test_numbers_dimensioned),
+    complex_number_test_suite("dimensionless", test_numbers_dimless),
+    some_theorems_suite("dimensioned", test_numbers_dimensioned),
+    some_theorems_suite("dimensionless", test_numbers_dimless),
+    rotation_test_suite("dimensioned", test_numbers_dimensioned),
+    rotation_test_suite("dimensionless", test_numbers_dimless),
+    commutativity_test_suite("dimensioned", test_numbers_dimensioned),
+    commutativity_test_suite("dimensionless", test_numbers_dimless)
+]);
+
+# ------------------------------------------------------------------------------
+# Test input
+# ------------------------------------------------------------------------------
+
+define test_numbers_dimless = [
+    make_complex(0, 0),
+    make_complex(1, 0),
+    make_complex(0, 1),
+    make_complex(1, 1),
+    make_complex(-1, -1),
+    make_complex(2, 3),
+    make_complex(-2, 3)
+];
+
+define test_numbers_dimensioned = [
+    make_complex(0 * |metre|, 0 * |metre|),
+    make_complex(1 * |metre|, 0 * |metre|),
+    make_complex(0 * |metre|, 1 * |metre|),
+    make_complex(1 * |metre|, 1 * |metre|),
+    make_complex(-1 * |metre|, -1 * |metre|),
+    make_complex(2 * |metre|, 3 * |metre|),
+    make_complex(-2 * |metre|, 3 * |metre|)
+];
+
+# ------------------------------------------------------------------------------
+# Matrix representation
+# ------------------------------------------------------------------------------
+
+define matrix_representation_test_suite(description, test_numbers) =
+    test_suite(format("Matrix representation of a complex number - %s", description), [
+
+        test("sum works", () ->
+            all[mx + my = matrix_representation(complex_sum(x, y)) | 
+                x <- test_numbers,
+                y <- test_numbers,
+                mx := matrix_representation(x),
+                my := matrix_representation(y)]
+        ),
+        
+        test("product works", () ->
+            all[mx '*' my = matrix_representation(complex_product(x, y)) | 
+                x <- test_numbers,
+                y <- test_numbers,
+                mx := matrix_representation(x),
+                my := matrix_representation(y)]
+        ),
+        
+        test("complex_norm works", () ->
+            all[complex_norm(x) = sqrt(det2d(matrix_representation(x))) |
+                x <- test_numbers]
+        ),
+
+        test("unit_complex works", () ->
+            all[mx '/.' complex_norm(x) = matrix_representation(unit_complex(x)) | 
+                x <- test_numbers,
+                mx := matrix_representation(x)]
+        ),
+         
+        test("scale_complex works", () ->
+            all[c '.*' my = matrix_representation(scale_complex(c, y)) | 
+                x <- [-2, -1, 0, 1, 2],
+                c := x * |milli:metre|,
+                y <- test_numbers,
+                my := matrix_representation(y)]
+        ),
+         
+        test("conjugate works", () ->
+            all[m_x_reflect^D '*' mx '*' m_x_reflect = matrix_representation(conjugate(x)) | 
+                x <- test_numbers,
+                mx := matrix_representation(x)]
+        ),
+         
+        test("complex_inverse works", () ->
+            all[approximates(inverse(mx), matrix_representation(complex_inverse(x)), 15 * |decimals|) | 
+                x <- test_numbers,
+                mx := matrix_representation(x)]
+        )
+    ]);
+
+# ------------------------------------------------------------------------------
+# Quaternion representation
+# ------------------------------------------------------------------------------
+
+define quaterion_representation_test_suite(description, test_numbers) = 
+    test_suite(format("Quaternion representation of a complex number - %s", description), [
+
+        test("sum works", () ->
+            all[quaternion_sum(qx, qy) = quaternion_representation(complex_sum(x, y)) | 
+                x <- test_numbers,
+                y <- test_numbers,
+                qx := quaternion_representation(x),
+                qy := quaternion_representation(y)]
+        ),
+
+        test("product works", () ->
+            all[quaternion_product(qx, qy) = quaternion_representation(complex_product(x, y)) | 
+                x <- test_numbers,
+                y <- test_numbers,
+                qx := quaternion_representation(x),
+                qy := quaternion_representation(y)]
+        ),
+
+        test("complex_norm works", () ->
+            all[complex_norm(x) = quaternion_norm(quaternion_representation(x)) |
+                x <- test_numbers]
+        ),
+
+        test("unit_complex works", () ->
+            all[unit_quaternion(quaternion_representation(x)) = quaternion_representation(unit_complex(x)) | 
+                x <- test_numbers]
+        ),
+         
+        test("scale_complex works", () ->
+            all[scale_quaternion(c, qy) = quaternion_representation(scale_complex(c, y)) | 
+                x <- [-2, -1, 0, 1, 2],
+                c := x * |milli:metre|,
+                y <- test_numbers,
+                qy := quaternion_representation(y)]
+        ),
+                
+        test("conjugate works", () ->
+            all[quaternion_conjugate(qx) = quaternion_representation(conjugate(x)) | 
+                x <- test_numbers,
+                qx := quaternion_representation(x)]
+        ),
+         
+        test("complex_inverse works", () ->
+            all[quaternion_inverse(qx) = quaternion_representation(complex_inverse(x)) | 
+                x <- test_numbers,
+                qx := quaternion_representation(x)]
+        )
+    ]);
+
+# ------------------------------------------------------------------------------
+# Some theorems
+# ------------------------------------------------------------------------------
+
+define some_theorems_suite(description, test_numbers) =
+    test_suite(format("Some theorems - %s", description), [
+
+        test("The complex norm equals the sqrt of the determinant of the matrix representation", () ->
+            all[complex_norm(x) = sqrt(det2d(matrix_representation(x))) | x <- test_numbers]
+        )
+    ]);
+
+# ------------------------------------------------------------------------------
+# Rotations as double reflections
+# ------------------------------------------------------------------------------
+
+# permutation produces from (a,b) (b,a) - xy_reflect '*' vector2d(a, b) = vector2d(b, a)
+# the permutation constructed by adding two outer products equals a reflection in the x=y line
+#
+define m_xy_reflect =
+    matrix2d(0, 1, 
+             1, 0);
+
+# reflection in x-axis is in fact the conjugate
+define m_x_reflect =
+    matrix2d(1,  0, 
+             0, -1);
+
+# Right-angled rotation (90 degrees): xy-reflect of the conjugate
+define m_rot =
+    m_xy_reflect '*' m_x_reflect;
+
+# ------------------------------------------------------------------------------
+# Complex numbers
+# ------------------------------------------------------------------------------
+
+define complex_number_test_suite(description, test_numbers) =
+    test_suite(format("Complex numbers - %s", description), [
+
+        test("i is combination of two reflections, a permutation and a conjugation", () ->
+            m_rot = matrix_representation(make_complex(0, 1))
+        )
+    ]);
+
+# ------------------------------------------------------------------------------
+# Rotations
+# ------------------------------------------------------------------------------
+    
+define rotor = make_complex(0, 2);
+define unit_rotor = unit_complex(rotor);
+
+define rotor_dim = scale_complex(|metre|, rotor);
+define unit_rotor_dim = scale_complex(|metre|, unit_rotor);
+
+define rotee = make_complex(1 * |metre|, 2 * |metre|);
+
+"rotee:";
+complex2str(rotee, |metre|);
+
+"rotor:";
+complex2str(rotor, |1|);
+
+
+"complex_product(unit_rotor_dim, rotee):";
+complex2str(complex_product(unit_rotor_dim, rotee), |metre^2|);
+
+"complex_product(unit_rotor, rotee):";
+complex2str(complex_product(unit_rotor, rotee), |metre|);
+
+define complex_q_rotor = quaternion_representation(unit_rotor);
+define complex_q_rotor_dim = quaternion_representation(unit_rotor_dim);
+define complex_q_rotee = quaternion_representation(rotee);
+
+define q_rotor = unit_quaternion(make_quaternion(1, 2, 3, 4));
+define q_rotor_dim = scale_quaternion( |metre|, unit_quaternion(make_quaternion(1, 2, 3, 4)));
+define q_rotee = make_quaternion(5 * |metre|, 6 * |metre|, 7 * |metre|, 8 * |metre|);
+
+define quaternion_commutes(q1, q2) =
+    quaternion_product(q1, q2) =  quaternion_product(q2, q1);
+
+"quaternion_commutes(q_rotor, q_rotee);";
+quaternion_commutes(q_rotor, q_rotee);
+
+"quaternion_commutes(quaternion_representation(rotor), quaternion_representation(rotee));";
+quaternion_commutes(quaternion_representation(rotor), quaternion_representation(rotee));
+
+"q_rotor_dim * q_rotee:";
+quaternion2str(quaternion_product(q_rotor_dim, q_rotee), |metre|^2);
+
+define complex_sandwich(rotor, rotee) = 
+    complex_product(complex_product(rotor, rotee), complex_inverse(rotor));
+
+define quaternion_sandwich(rotor, rotee) =
+    quaternion_product(quaternion_product(rotor, rotee), quaternion_inverse(rotor));
+
+"complex_sandwich(rotor, rotee)";
+complex2str(complex_sandwich(rotor, rotee), |metre|);
+
+# The quaterion representation of a complex rotor does not yield the same rotation as the complex rotor itself
+"quaternion_sandwich(quaternion_representation(rotor), quaternion_representation(rotee))";
+quaternion2str(quaternion_sandwich(quaternion_representation(rotor), quaternion_representation(rotee)), |metre|);
+
+# 
+"quaternion_sandwich(make_quaternion(sqrt(2)/2, 0, 0, sqrt(2)/2), scale_quaternion(|metre|, make_quaternion(0, 1, 2, 0)))";
+quaternion2str(quaternion_sandwich(make_quaternion(sqrt(2)/2, 0, 0, sqrt(2)/2), 
+    scale_quaternion(|metre|, make_quaternion(0, 1, 2, 0))), |metre|);
+
+"quaternion_sandwich(q_rotor, q_rotee)";
+quaternion2str(quaternion_sandwich(q_rotor, q_rotee), |metre|);
+
+# ------------------------------------------------------------------------------
+# Rotations tests
+# ------------------------------------------------------------------------------
+
+define rotation_test_suite(description, test_numbers) =
+    test_suite(format("Rotation - %s", description), [
+
+        # A dimless rotor produces a complex number with unit metre invariant - also a metre
+        test("rotee is rotated by rotor", () ->
+            complex_product(rotor, rotee) = make_complex(-4 * |metre|, 2 * |metre|)
+        ),
+
+        # A rotor as a dimensioned complex number does not produce a complex number with unit metre but with metre^2
+        test("rotee is rotated by rotor_dim", () ->
+            complex_product(rotor_dim, rotee) = make_complex(-4 * |metre^2|, 2 * |metre^2|)
+        )
+    ]);
+
+#
+# Just as quaternions complex numbers can be seen both as numbers and as rotating operators.
+# We call the acting rotating operator the rotor; the rotor acts upon the 'rotee'. Both can be
+# represented as either a quaternion or a complex number.
+# A rotation is the product of a rotor and a rotee, however for complex numbers this is a commutative operation,
+# so rotor(rotee) = rotee(rotor).
+#
+# Finding is that only a dimensionless complex number as rotor leaves the unit of measurement of the rotee invariant.
+#
+# Both a complex number represented as a 2x2 matrix and a complex number represented as a quaternion in which j and k are 0
+# are commutative (they form a normal subgroup). Therefore no sandwich formulas are needed for rotations.
+# For the types
+# 
+
+
+
+
+# The xy- and x-reflections are represented by a main diagonal matrix.
+# Such a matrix has a negative determinant of -(a^2 +b^2) and hence does not represent a complex number
+define make_maindiagonal_matrix(a, b) = 
+    matrix2d(a, b, b, -a);    
+
+# A complex number is represented by an off diagonal matrix.
+# Such a matrix has a positive determinant a^2 + b^2.
+define make_offdiagonal_matrix(a, b) = 
+    matrix2d(a, b, -b, a);   
+
+
+
+define commutativity_test_suite(description, test_numbers) =
+    test_suite(format("Commutativity - %s", description), [
+
+        test("the determinant of matrix2d(a, b, b, -a) equals -(a^2 +b^2)", () ->
+            det2d(make_maindiagonal_matrix(1 , 2)) = -5
+        ),
+
+        test("the determinant of matrix2d(a, b, -b, a) equals +(a^2 +b^2)", () ->
+            det2d(make_offdiagonal_matrix(1 , 2)) = 5
+        ),
+
+        # The product of two reflections (negative determinant) produces a complex number (positive determinant),
+        # this follow from a general property of main and off diagonal matrices.
+        test("the product of two main diagonal matrices is an off diagonal matrix", () ->
+            let x = make_maindiagonal_matrix(1, 2),
+                y = make_maindiagonal_matrix(3, 4),
+                z = x '*' y
+            in
+                z = make_offdiagonal_matrix(11, -2)
+            end
+        )
+
+    ]);
+
+
+# 
+# The following finding cannot be expressed as a test, it can only be shown by the type system check:
+# The flag pole example in which a complex number has different units of measurement leads to a
+# conversion matrix. This 
+# The commutes declaration shows that row and column dimensions must be equal,
+# @@@ NOG BETER UITZOEKEN!!!
+# c per c matrices, so square matrices
+# example of c!b is Geom2!flag_pole. So the defconv conv will never commute, because it does not match the form.
+# This is so regardless the difference in times in flag_pole, it will also not work for metre and cent:metre.
+# Only an identity conversion will commute, trivially. 
+#
+
+defunit Geom2!flag_pole = {
+    x: metre,
+    y: centi:metre
+ };
+
+defconv conv :: Geom2!flag_pole per metre * Geom2!;
+
+"conv '*' make_offdiagonal_matrix(2,3) '*' conv^D";
+conv '*' make_offdiagonal_matrix(2,3) '*' conv^D;
+
+#commutes(make_offdiagonal_matrix(3,4), conv^D'*' make_offdiagonal_matrix(2,3) '*' conv);
+
+#commutes(make_offdiagonal_matrix(3,4), conv'*' make_offdiagonal_matrix(2,3) '*' conv^D);
+
+#commutes(make_offdiagonal_matrix(3,4), conv);
+
+commutes(conv'*' make_offdiagonal_matrix(3,4) '*' conv^D, conv'*' make_offdiagonal_matrix(2,3) '*' conv^D);
+
+
+
+# Agenda
+#
+# First understand the 2D rotation situation, then move on to 3D
+# A number of questions
+# Where will we see the double angle construction through reflections?
+# Does the "lerp" approach lead to the same result?
+#
+# Will complex numbers with different units lead to a sandwich formula (like p^-1Ap),
+# and does that mean that the algebra becomes non-commutative?
+# Answer: yes, see defconv conv, and the commutes decaration above.
+
+# And then (->3D) how does the sandwich formula behave in quaternions?
+#
+# How can we represent "rot" as a product of 2 complex numbers?
+# (a + bi) * x = a - bi <=> x = ? (x_reflect)
+# (a + bi) * x = b + ai <=> x = ? (xy_reflect)
+# Penrose p86, geometry of complex algebra, view points of rotations.
+#
+# Part of the scheme to study rotations with the aim to add units of measurement
+# and to see if we can show invariance of units.
+# So far the main finding is the scalar under grading problem of geoemtric algebra.
+#
+
+# We can solve both equations in x:
+# x_reflect = (a^2-b^2/(a^2+b^2), -2abi/(a^2+b^2))
+# xy_reflect = (2ab/(a^2+a^2), i(a^2-b^2)/(a^2+b^2))
+# So, both results are in effect functions of a and b
+# And both are NOT in the form of our chosen matrix representation (make_matrix)
+# 
+# However, see the m_conjugate definition for the sandwich formula using x_reflect.
+# It can be argued that x_reflect will not work - because the determinant wil switch sign -
+# and hence an even number is needed, snadwiching with x_reflect^D.
+
+
+# Rotation for any angle is a lerp? between the identity transformation
+# and the right-angled rotation.
+
+define ident = left_identity(m_rot);
+
+define part(a, b) = 
+    a '.*' ident + b '.*' m_rot;
+
+"part(1,0)";
+part(1,0);
+
+"part(0,1)";
+part(0,1);
+
+"part(0.5,0/5)";
+part(0.5,0.5);
+
+"part(cos(0.5 * |radian|), sin(0.5)* |radian|)";
+part(cos(0.5* |radian|), sin(0.5* |radian|));
+
+

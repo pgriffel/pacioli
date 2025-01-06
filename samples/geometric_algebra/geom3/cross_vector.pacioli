@@ -1,0 +1,105 @@
+import graphics;
+import geometry;
+import geometric_algebra;
+include generated/generated_algebra; #physics uses Geom3
+
+# ------------------------------------------------------------------------------
+#
+# Cross-vector Ssenes in this file
+#
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# First group of scenes:
+# 
+# - scene_cross_oscillate
+#
+#
+# ------------------------------------------------------------------------------
+
+
+
+
+doc scene_cross_oscillate
+"Scene of oscillating unit-aware cross vector based on the cross vector diagram in https://en.wikipedia.org/wiki/Exterior_algebra.";
+
+
+# A tuple for states of (x,y,z) vectors
+declare scene_cross_oscillate :: (metre, metre) ->
+    Animation(metre);
+
+declare scene_cross_dimless_oscillate :: (1, 1) ->
+    Animation(1);  # Geom3 dimensionless
+
+
+define scene_cross_oscillate(x1, y1) =
+    let
+        scene = empty_scene("An oscillating unit-aware cross sqrt vector based upon the cross vector diagram in https://en.wikipedia.org/wiki/Exterior_algebra."),
+        w = 1 * |radian| / |second|,   # angular speed for now fixed       
+        callback = animation_callback_oscillate(x1, y1, w),
+        # start with time=0
+        t = 0 * |second|,
+        arrows = make_arrows_from_vectors(time_frame_oscillate(t, x1, y1, w))
+    in
+        add_animation_callback(callback, add_arrows(arrows, scene))
+    end;
+
+define scene_cross_dimless_oscillate(x1, y1) =
+    let
+       scene = empty_scene("An oscillating dimensionless cross vector based upon the cross vector diagram in https://en.wikipedia.org/wiki/Exterior_algebra."),
+       w = 1 * |radian| / |second|,   # angular speed for now fixed       
+       callback = animation_callback_oscillate_dimless(x1, y1, w),
+       # start with time=0
+       t = 0 * |second|,
+       arrows = make_arrows_from_vectors(time_frame_oscillate_dimless(t, x1, y1, w))
+    in
+       add_animation_callback(callback, add_arrows(arrows, scene))
+    end;
+
+declare time_frame_oscillate:: (second, metre, metre, radian/second) -> 
+    Tuple(metre * Geom3!, metre * Geom3!, metre * Geom3!);
+
+define time_frame_oscillate(time, x1, y1, w) = 
+        let x = vector3d(x1, 0 * |metre|, 0 * |metre|),
+            y = vector3d(sin(time * w) * y1, cos(time * w) * y1, 0 * |metre|),
+            z = cross_sqrt(x, y)
+        in
+            tuple(x, y, z)
+        end;
+
+declare time_frame_oscillate_dimless:: (second, 1, 1, radian/second) ->
+    Tuple(Geom3!, Geom3!, Geom3!);
+
+define time_frame_oscillate_dimless(time, x1, y1, w) = 
+        let x = vector3d(x1, 0, 0),
+            y = vector3d(sin(time * w) * y1, cos(time * w) * y1, 0),
+            z = cross(x, y)
+        in
+            tuple(x, y, z)
+        end;
+
+
+# Time dependent callback oscillate with dimension
+define animation_callback_oscillate(x1, y1, w) = 
+    (time, scene) ->
+        set_arrows(scene, 
+                make_arrows_from_vectors(time_frame_oscillate(time, x1, y1, w)));
+
+# Time dependent callback oscillate dimensionless
+define animation_callback_oscillate_dimless(x1, y1, w) = 
+    (time, scene) ->
+        set_arrows(scene, 
+                make_arrows_from_vectors(time_frame_oscillate_dimless(time, x1, y1, w)));
+
+
+define make_arrows_from_vectors(triple_vector) =
+    let
+        (x_vector, y_vector, z_vector) = triple_vector 
+    in
+        [
+            with_arrow_color(make_color("red"), with_arrow_name("x", origin_arrow(x_vector))),
+            with_arrow_color(make_color("blue"), with_arrow_name("y", origin_arrow(y_vector))),
+            with_arrow_color(make_color("green"), with_arrow_name("z", origin_arrow(z_vector)))
+        ]
+    end;
+

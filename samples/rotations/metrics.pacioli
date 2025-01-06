@@ -1,0 +1,261 @@
+import geometry;
+import testing;
+include minkowski;
+
+# ------------------------------------------------------------------------------
+# Matrix representation of bilinear forms
+#
+# Consider a vector with index set I and uniform unit of measurement a, then
+# the vector's type is a*I!.
+#
+# Let u,v,w be vectors and let a and b be constants. A bilinear form f satisfies
+# (1) f(av+bw,u) = af(v,u) + bf(w,u)
+# (2) f(u,av+bw) = af(u,v) + bf(u,w)
+#
+# A bilinear form has type (a*I!, a*I!) -> a^2
+#
+# A bilinear form can be represented by a matrix, say M: 
+#     f(v,w) = v^T '*' M '*' w.
+#
+# The derived type of bilinear_form(M, v, w) below is:
+#
+# for_index E, F, H, K: for_unit a, b, K!j, E!c, F!d, i, H!g:
+#     (a*E!c per F!d, b*1/E!c per H!g, i*F!d per K!j) -> a*b*i*1/H!g per K!j
+#
+# (1) H!g = 1 and K!j = 1 since v and w are vectors
+#
+# for_index E, F: for_unit a, b, E!c, F!d, i:
+#     (a*E!c per F!d, b*1/E!c, i*F!d) -> a*b*i
+#
+# (2) E!c = 1/F!d and b=i since v and w have the same type
+#
+# for_index F: for_unit a, b, F!d:
+#     (a/F!d per F!d, b*F!d, b*F!d) -> a*b^2
+#
+# (3) We want the metric to be of the shape F!u per F!u. The reciprocal 1/F!d in
+#     the metric type then forces the type to:
+#
+# for_index F: for_unit b:
+#     (F! per F!, b*F!, b*F!) -> b^2
+#
+# Finally some renaming gives the type below.
+# ------------------------------------------------------------------------------
+
+#declare bilinear_form :: for_index I: for_unit a:
+#    (I! per I!, a*I!, a*I!) -> a^2;
+
+declare bilinear_form :: for_index I: for_unit a, b, c, I!u, I!v:
+    (a * I!u per I!v, b/I!u, c*I!v) -> a*b*c;
+
+# In bilinear forms we take the left version of the transpose sandwich
+define bilinear_form(M, v, w) =
+    v^T '*' M '*' w;
+
+declare bilinear_form_D :: for_index D, E: for_unit a, D!b, E!c, f, i:
+    (a*D!b per E!c, f*D!b, i*E!c) -> a*i/f;
+
+# And the dimension inverse version
+define bilinear_form_D(M, v, w) =
+    v^D '*' M '*' w;
+
+# ------------------------------------------------------------------------------
+# Metric norm
+#
+# Given some bilinear form f, the norm of a vector v is sqrt(f(v,v))
+#
+# ------------------------------------------------------------------------------
+
+#declare metric_norm :: for_index I: for_unit a: 
+#    (I! per I!, a*I!) -> a;
+
+declare metric_norm :: for_index D: for_unit a, b, D!c: (a^2/D!c per D!c, b*D!c) -> a*b;
+
+define metric_norm(metric, v) =
+    sqrt(bilinear_form(metric, v, v));
+
+# ------------------------------------------------------------------------------
+# Standaard inner and norm
+#
+# Let v and w be vectors with the same uniform unit, and let I be the 
+# corresponding identity matrix. Then
+#
+# (1) inner(v, w) = bilinear_form(I, v, w)
+#
+# (2) norm(v) = metric_norm(I, v)
+# ------------------------------------------------------------------------------
+
+run_test_suites([test_suite("Standaard geometry", 
+    let 
+        vecs2d = [vector2d(0,0), vector2d(1,1), vector2d(2,-3)],
+        vecs3d = [vector3d(0,0,0), vector3d(-1,2,-3)],
+        vecs3d_dim = [|centi:metre| '.*' v | v <- vecs3d]
+    in [
+        test("standard inner equals bilinear_form with identity matrix metric 2d", () ->
+            all[inner(v, w) = bilinear_form(left_identity(v), v, w) | v <- vecs2d, w <- vecs2d]
+        ),
+
+        test("standard inner equals bilinear_form with identity matrix metric 3d", () ->
+            all[inner(v, w) = bilinear_form(left_identity(v), v, w) | v <- vecs3d, w <- vecs3d]
+        ),
+
+        test("standard norm equals norm with identity matrix metric 2d", () ->
+            all[norm(v) = metric_norm(left_identity(v), v) | v <- vecs2d]
+        ),
+
+        test("standard norm equals norm with identity matrix metric 3d", () ->
+            all[norm(v) = metric_norm(left_identity(v), v) | v <- vecs3d]
+        ),
+
+        test("standard norm equals norm with identity matrix metric 3d", () ->
+            all[norm(v) = metric_norm(left_identity(v), v) | v <- vecs3d_dim]
+        )
+
+    ]
+    end)]);
+
+# ------------------------------------------------------------------------------
+# Distance
+# ------------------------------------------------------------------------------
+
+declare metric_distance :: for_index I: for_unit a:
+    (I! per I!, a*I!, a*I!) -> a;
+
+define metric_distance(metric, x, y) =
+    metric_norm(metric, x - y);
+
+# ------------------------------------------------------------------------------
+# Symmetric bilinear form
+#
+# A bilinear form f is symmetric when 
+# f(v,w) = f(w,v)
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# Skew-symmetric bilinear form
+#
+# A bilinear form f is skew-symmetric when 
+# f(v,w) = -f(w,v)
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# Alternate bilinear form
+#
+# A bilinear form f is alternate when 
+# f(v,v) = 0
+# ------------------------------------------------------------------------------
+
+#declare is_symmetric :: for_index I: (I! per I!) -> Boole;
+declare is_skew_symmetric :: for_index I: (I! per I!) -> Boole;
+declare is_alternate :: for_index I: (I! per I!) -> Boole;
+
+#declare is_symmetric :: for_index C: for_unit a, C!b: (a*C!b per 1/C!b) -> Boole;
+
+define is_symmetric(A) = 
+    A^T = A;
+
+define is_skew_symmetric(A) = 
+    A^T = -A;
+
+define is_alternate(A) = 
+    is_skew_symmetric(A) and has_zero_diagonal(A);
+
+# ------------------------------------------------------------------------------
+
+declare has_zero_diagonal :: 
+    for_index I: for_unit a, I!u, I!v: (a*I!u per I!v) -> Boole;
+
+define has_zero_diagonal(A) = 
+    all[get_num(A, i, i) = 0 | i <- row_domain(A)];
+
+
+ 
+# ------------------------------------------------------------------------------
+# Extra tests. Old minkowski code above not touched.
+# ------------------------------------------------------------------------------
+
+define minkowski_metric = metric; # bad naming fix
+
+define minkowski_inner(x, y) =
+    bilinear_form(minkowski_metric, x, y);
+
+define minkowski_norm(x) =
+    metric_norm(minkowski_metric, x);
+    
+define test_vecs = [vector4d(0,0,0,0), vector4d(1,2,3,4), vector4d(1,2,3,-4)];
+
+define minkowski_suite2 = test_suite("Minkowski tests 2", [t | x <- test_vecs, y <- test_vecs, t <- [
+    
+    let 
+        actual = minkowski_inner(homogenize '*' x, homogenize '*' y), 
+        expected = inner_minkowski(x, y)
+    in
+        test(
+            format("bilinear_form(metric, v, w) equals inner_minkowski after homogenizing %s = %s", actual, expected),
+            () -> actual = expected)
+    end
+]]);
+
+define minkowski_suites2 = [
+    minkowski_suite2
+];
+ 
+set_nr_decimals(2);
+
+run_test_suites(minkowski_suites2);
+ 
+# ------------------------------------------------------------------------------
+# Metric tensor
+#
+# See https://en.wikipedia.org/wiki/Metric_tensor#Lorentzian_metrics_from_relativity
+#
+#
+#
+# ------------------------------------------------------------------------------
+
+# TODO: schwarzschild coordinates
+
+define schwarzschild_vec(time, radius, latitued, longitude) = ???;
+
+#declare schwarzschild_time :: (Minkowski!si) -> second;
+
+# ------------------------------------------------------------------------------
+
+define rs = 2*g*me/c/c;
+
+define g = 6.6743015 * 10^-11 * |metre^3 / kilo:gram / second^2|;
+
+#define me = 100000000000000000000000000 * |kilo:gram / metre|;
+define me = 100000000000000000000000000 * |kilo:gram|;
+
+define c = 300000000 * |metre/second|;
+
+
+define schwarzschild_metric(g, me, r, angle) =
+    let
+        rs = 2*g*me/c/c,
+        # FIXME: juiste coordinaten gebruiken
+        x = delta(Minkowski@x),
+        y = delta(Minkowski@y),
+        z = delta(Minkowski@z),
+        t = delta(Minkowski@t),
+        a = 1 - r/rs # this forces r to a dimensionless number
+    in
+        a '.*' x '*' x^T +
+        -1/a '.*' y '*' y^T +
+        -r^2 '.*' z '*' z^T +
+        -r^2 * sin(angle) '.*' t '*' t^T
+    end;
+
+
+set_nr_decimals(30);
+
+#schwarzschild_metric(g, me, 10 * |metre|, 0.5 * |radian|);
+
+define r = 100;
+
+#1 - 2*g*me/r/c/c;
+
+2*g*me;
+
+
+2*g*me/c/c;

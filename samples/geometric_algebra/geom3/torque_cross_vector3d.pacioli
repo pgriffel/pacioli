@@ -1,0 +1,305 @@
+# ------------------------------------------------------------------------------
+# Cross-product experiments with angular momentum and torque
+# 
+# Point mass in orbit in a force field. Computes in 3D with vector and cross 
+# products.
+# ------------------------------------------------------------------------------
+
+import si;
+import graphics;
+import geometry;
+
+# ------------------------------------------------------------------------------
+# The scene
+# ------------------------------------------------------------------------------
+
+declare scene_orbit_point_mass :: (
+    gram, 
+    metre, metre, metre,
+    1,
+    second^2/gram/metre,
+    second^2/gram,
+    second/gram/metre,
+    second
+) -> StatefulAnimation(metre, State);
+
+define scene_orbit_point_mass(
+    mass,
+    x, y, z,
+    force_field_choice,
+    torque_factor,
+    force_factor,
+    momentum_factor,
+    velocity_factor
+) =
+    let
+        # The initial position
+        position = vector3d(x, y, z),
+
+        # Force force_field_choice to a valid integer and find the force field
+        force_field_index = mod(floor(force_field_choice), list_size(all_force_fields)),
+        force_field = nth(force_field_index, all_force_fields),
+
+        # Description of the scene, including the title of the selected force field
+        description = format("A scene of torque and angular momentum cross vectors based on the diagram from the
+        <a href=\"https://en.wikipedia.org/wiki/Torque\">Wikipedia page on Torque</a>.
+        
+            <p>There are four kinds of force fields to choose from:
+                <ol>
+                    <li> A alternating force in the x direction</li>
+                    <li> A constant force when x is negative.</li>
+                    <li> Initially a force in the x direction, followed by a force upwards for a short duration.</li>
+                    <li> The same as the previous, but the upward force remains forever.</li>
+                </ol>
+
+            <p>Current field = %s", 
+            nth(force_field_index, all_force_fields_titles)),
+
+        # The animation callbacks
+        scene_fn = scene_update_fn(mass, torque_factor, force_factor, momentum_factor, velocity_factor),
+        animation_fn = animation_callback(mass, force_field, scene_fn),
+        
+        # The initial state and scene
+        state = initial_state(position, force_field),
+        scene = scene_fn(state, empty_scene(description)) 
+    in
+        add_stateful_animation_callback(state, animation_fn, scene)
+    end;
+
+# ------------------------------------------------------------------------------
+
+declare animation_callback ::
+    (gram, ForceField, (State, Scene(metre)) -> Scene(metre)) -> 
+        (second, State, Scene(metre)) -> Tuple(State, Scene(metre));
+
+define animation_callback(mass, force_field, scene_fn) = 
+    (time, state, scene) ->
+        let next = next_state(state, mass, time, force_field) in
+            tuple(next, scene_fn(next, scene))
+        end;
+
+# ------------------------------------------------------------------------------
+# The force fields
+# ------------------------------------------------------------------------------
+
+define all_force_fields = [
+    force_field_precession,
+    force_field_alternating,
+    force_field_constant,
+    force_field_inclination
+];
+
+define all_force_fields_titles = [
+    "force field precession",
+    "force field alternating",
+    "force field constant",
+    "force field inclination"
+];
+
+# ------------------------------------------------------------------------------
+
+declare force_vector ::
+    (1, 1, 1) -> gram*metre/second^2*Geom3!;
+
+define force_vector(x, y, z) =
+    |gram * metre / second^2| '.*' vector3d(x, y, z);
+
+# ------------------------------------------------------------------------------
+
+doc ForceField
+    "Force field in 3D. Maps time and position to force.";
+
+deftype ForceField() = 
+    (second, metre * Geom3!) -> gram*metre/second^2*Geom3!;
+
+declare 
+    force_field_alternating, 
+    force_field_constant, 
+    force_field_inclination, 
+    force_field_precession :: ForceField;
+
+define force_field_alternating(time, pos) =
+    let
+        total_cycle = 15 * |second|,
+        time_mod = mod(time, total_cycle)
+    in
+        if time_mod < total_cycle / 4 then 
+            force_vector(1, 0, 0)
+        else if time_mod >= total_cycle  / 2 and time_mod < total_cycle * 3 / 4 then
+            force_vector(-1, 0, 0)
+        else
+            force_vector(0, 0, 0)
+        end
+    end;
+
+define force_field_constant(time, pos) =
+    if inner(pos, d_x) < 0 * |metre| then
+        force_vector(1, 0, 0)
+    else 
+        force_vector(0, 0, 0)
+    end;
+
+define force_field_inclination(time, pos) =
+    if time < 5 * |second| then
+        force_vector(1, 0, 0)
+    else if time > 9 * |second| and time < 10 * |second| then
+        force_vector(0, 0, 1)
+    else
+        force_vector(0, 0, 0)
+    end;
+
+define force_field_precession(time, pos) =
+    if time < 5 * |second| then
+        force_vector(1, 0, 0)
+    else if time > 9 * |second| then
+        force_vector(0, 0, 1)
+    else
+        force_vector(0, 0, 0)
+    end;
+
+# ------------------------------------------------------------------------------
+# The state
+# ------------------------------------------------------------------------------
+
+doc State
+    "The state consists of (time, position, velocity, angular_momentum, force, torque) tuples.";
+
+deftype State() = Tuple(
+    second,
+    metre * Geom3!, 
+    metre/second * Geom3!, 
+    gram * metre^2 / second * Geom3!, 
+    gram * metre / second^2 * Geom3!, 
+    gram * metre^2 / second^2 * Geom3!
+);
+
+# ------------------------------------------------------------------------------
+
+declare initial_state ::
+    (metre * Geom3!, ForceField) -> State;
+
+define initial_state(position, force_field) =
+    let 
+        angular_momentum = |gram * metre^2 / second| '.*' vector3d(0, 0, 0),
+        velocity = vector3d(0, 0, 0) '*.' |metre/second|,
+        time = 0 * |second|,
+        force = force_field(time, position),
+        torque = cross(position, force)
+    in
+        tuple(time, position, velocity, angular_momentum, force, torque)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc next_state
+    "Computes the animation state at the requested point in time. It performs an
+    integration of the force in the system over the elapsed time.
+    
+    The computation derives the change in angular momentum from the force. From
+    the angular momentum it computes the angular velocity and the tangential velocity.
+    The tangential velocity is integrated to determine the position.
+
+    There are two implementations. The Euler implemenation is simple, but not very
+    stable. The verlet implementation is more stable. It is a (momentum variant
+    of) velocity Verlet. A leapfrog method variant.
+
+    With both integrators the radius drifts. This is corrected by rescaling the position
+    vector after calculating the position.";
+
+declare next_state, next_state_euler, next_state_verlet ::
+    (State, gram, second, ForceField) -> State;
+
+define next_state(state, mass, time, force_field) =
+    next_state_verlet(state, mass, time, force_field);
+
+define next_state_euler(state, mass, time, force_field) =
+    let
+        (t, position, velocity, angular_momentum,  _, _) = state,
+        dt = time - t,
+        radius = norm(position),
+        moment_of_inertia = radius * radius * mass,
+        force = force_field(time, position),
+        torque = cross(position, force),
+        new_angular_momentum = angular_momentum + dt '.*' torque,
+        orbital_velocity = angular_momentum '/.' moment_of_inertia,
+        tangential_velocity = cross(orbital_velocity, position),
+        new_pos = position + tangential_velocity '*.' dt,
+        correction = radius / norm(new_pos),
+        true_pos = new_pos '*.' correction
+    in
+        tuple(time, true_pos, tangential_velocity, new_angular_momentum, force, torque)
+    end;
+
+define next_state_verlet(state, mass, time, force_field) =
+    let
+        (t, position, velocity, angular_momentum,  _, torque) = state,
+        dt = time - t,
+        hdt = dt / 2,
+
+        radius = norm(position),
+        moment_of_inertia = radius * radius * mass,        
+
+        h_angular_momentum = angular_momentum + hdt '.*' torque,
+        h_orbital_velocity = h_angular_momentum '/.' moment_of_inertia,
+        h_tangential_velocity = cross(h_orbital_velocity, position),
+        
+        h_pos = position + h_tangential_velocity '*.' dt,
+        h_radius = norm(h_pos),
+        h_moment_of_inertia = h_radius * h_radius * mass,
+        new_pos = h_pos '*.' (radius / h_radius),
+
+        force = force_field(time, new_pos),
+        new_torque = cross(new_pos, force),
+
+        new_angular_momentum = h_angular_momentum + hdt '.*' new_torque,
+        orbital_velocity = new_angular_momentum '/.' h_moment_of_inertia,
+        tangential_velocity = cross(orbital_velocity, new_pos)
+    in
+        tuple(time, new_pos, tangential_velocity, new_angular_momentum, force, new_torque)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc scene_update_fn
+    "Returns a function that updates the scene arrows from the state vectors. The
+    fudge factors scale the arrows that have incommensurate units.";
+
+declare scene_update_fn ::
+    (gram, second^2/gram/metre, second^2/gram, second/gram/metre, second) ->
+        (State, Scene(metre)) -> Scene(metre);
+
+define scene_update_fn(mass, torque_factor, force_factor, momentum_factor, velocity_factor) = 
+    let
+        position_color = make_color("green"),
+        torque_color = make_color("red"),
+        force_color = make_color("blue"),
+        momentum_color = make_color("orange"),
+        velocity_color = make_color("purple"),
+
+        arrow(name, color, label, arr) = 
+            with_arrow_name(name,
+                with_arrow_color(color,
+                        with_arrow_label(label, arr)))
+    in
+        (state, scene) ->
+            let
+                (_, position, velocity, angular_momentum, force, torque) = state,
+
+                position_label = "",  # format("r = %s", num2str(norm(position), |metre|)),
+                torque_label = if is_zero(torque) then "" else "<p>&#964</p>" end,
+                force_label = if is_zero(force) then "" else "f" end,
+                momentum_label = format("p=%s", num2str(norm(angular_momentum), |gram * metre^2 / second|)),
+                velocity_label = format("v=%s", num2str(norm(velocity), |metre/second|))
+            in
+                set_arrows(
+                    scene, 
+                    [
+                        arrow("position", position_color, position_label, origin_arrow(position)),
+                        arrow("torque", torque_color, torque_label, origin_arrow(torque_factor '.*' torque)),
+                        arrow("force", force_color, force_label, make_arrow(position, force_factor '.*' force)),
+                        arrow("momentum", momentum_color, momentum_label, origin_arrow(momentum_factor '.*' angular_momentum)),
+                        arrow("velocity", velocity_color, velocity_label, make_arrow(position, velocity_factor '.*' velocity))
+                    ]
+                )
+            end
+    end;

@@ -1,0 +1,295 @@
+
+import geometry;
+import testing;
+include complex;
+
+# -----------------------------
+# A study to explore the gaussian integers
+# - euclidian algorithm / gcd
+# - congruence computations, also in matrix representation
+# - units
+# -----------------------------
+
+
+############################################################
+# functions to handle the matrix representation
+
+define matrix_to_complex_representation(m) = 
+    let y = m '*' vector2d(1, 0),
+        (re, im) = y
+    in
+        make_complex(re, im)
+    end;
+
+
+define m_conjugate(x) =
+    matrix_representation(conjugate(x));
+
+define m_complex_product(x, y) = 
+    matrix_representation(x) '*' matrix_representation(y);
+
+define m_real_part(x) = 
+    let
+        (re, _) = matrix_to_complex_representation(x)
+    in
+        re
+    end;
+
+define m_imaginary_part(x) = 
+    let
+        (_, im) = matrix_to_complex_representation(x)
+    in
+        im
+    end;
+
+# @@@
+define m_make_complex(x, y) = 
+    matrix_representation(make_complex(x, y));
+
+##############################################
+
+
+define norm_square(a) = 
+    # the product of a and its conjugate gives the absolute value of a squared.
+    # det2d gives the same result a^2+b^2
+    m_complex_product(a, m_conjugate(a));
+
+
+"gcd(16, 12)";
+gcd(16,12);
+
+"gcd(matrix_representation(make_complex(16, 0)), matrix_representation(make_complex(12, 0)))";
+gcd(matrix_representation(make_complex(16, 0)), matrix_representation(make_complex(12, 0)));
+
+# 5 = (2+i)(2-i) so the gcd should be 2+i 
+# However the gcd results in an all 1 matrix, not even representing a complex number
+# the < > mod and div should depend on a^2+b^2 (squared) norm
+"gcd(matrix_representation(make_complex(5, 0)), matrix_representation(make_complex(2,1)))";
+gcd(matrix_representation(make_complex(5, 0)), matrix_representation(make_complex(2,1)));
+
+#declare less2d :: for_unit a: (M_Complex(a), M_Complex(a)) -> Boole;
+
+define less2d(a, b) = 
+    let
+        norm_a = norm_square(a),
+        norm_b = norm_square(b)
+    in
+        norm_a < norm_b
+    end;
+
+#declare norm_equal:: for_unit a: (M_Complex(a), M_Complex(a)) -> Boole;
+define norm_equal(a, b) = (norm_square(a) = norm_square(b));
+
+#declare zero2d :: for_unit a: (M_Complex(a)) -> Boole;
+define zero2d(a) = (a = a '*' matrix_representation(0));
+
+#declare mod2d :: for_unit a: (M_Complex(a), M_Complex(a)) -> M_Complex(a);
+
+
+# ismod(a,b,m) is mathematically an equivalence relation defining a congruence of numbers,
+# that is true iff a == b mod m or equivalently iff (a-b) = k m for some integer, 
+# a,b,k integers >= 0 and m > 0.
+# this is what the type checker says...
+declare ismod :: for_index E, F: for_unit a, E!c, g, E!b, F!d, F!h: (a*E!c per F!d, a*E!c per F!d, g*E!b per F!h) -> Boole;
+
+
+# we compute by dividing (a-b) by m and checking if the result (k) is an integer
+# (a,b) == m iff (a-b) = km for integer k, hence the floor_complex(k) test
+# to do that we check if the result equals its floor. 
+# 
+define ismod(a, b, m) = 
+    let k = (a-b)/m
+    in (k = floor(k))
+    end;
+
+"ismod(5,1,2)";
+ismod(5,1,2);
+
+"ismod(5,1,3)";
+ismod(5,1,3);
+
+"ismod(4,0,2)";
+ismod(4,0,2);
+
+
+# test_mod by example of 3.21 p82 in Concrete Mathematics
+# @@@ Concrete Mathematics states that mathematicians have used this notation 'informally'
+# ismod as a relation should be closer to the original notion by Gauss
+#
+define test_mod(a, m) = 
+    let
+        k = a * m^-1
+    in
+        a - (m * floor(k))
+    end;
+
+"test_mod(7,4)";
+test_mod(7,4);
+
+
+set_nr_decimals(20);
+
+# We need a "floor(c)" for complex numbers that can handle (+,-) and (-,+) cases for c well
+# so that floor will reduce the radius of the circle on which c lies, in all directions.
+#
+#declare floor_complex :: for_unit a : (M_Complex(a)) -> M_Complex(a);
+declare floor_complex :: for_unit a: (a*Geom2! per Geom2!) -> a*Geom2! per Geom2!;
+
+define floor_complex(c) =
+    let re = m_real_part(c),
+        im = m_imaginary_part(c),
+        re_floor = if (re < 0*re) then ceiling(re) else floor(re) end,
+        im_floor = if (re < 0*im) then ceiling(im) else floor(im) end,
+        floored_c = make_complex(re_floor, im_floor)
+    in
+        matrix_representation(floored_c)
+    end;
+
+# this is what the type checker says...
+#declare ismod2d :: for_index C: for_unit a, C!b, d: (a*Geom2! per C!b, a*Geom2! per C!b, d*1/C!b per Geom2!) -> Boole;
+
+
+declare ismod2d :: for_unit a, b: (a*Geom2! per Geom2!, a*Geom2! per Geom2!, b*Geom2! per Geom2!) -> Boole;
+
+# ismod for 2d/complex numbers
+# @@@ finding: the type checker allows 2 units, this leads to k being a unit typed integer.
+# Question: should we allow unit typed integers or should we change the declaration so that all units are equal
+# and we have only dimensionless integers. 
+define ismod2d(a, b, m) = 
+    let 
+        k = (a-b) '*' inverse(m)    #m_complex_inverse(m)  
+    in 
+        (k = floor_complex(k))
+    end;
+
+# mod2d by extending 3.21 p82 in Concrete Mathematics to complex integers
+define mod2d(a, m) =
+    let
+        k = a '*' inverse(m),   #m_complex_inverse(m),  
+        k_floor = floor_complex(k)
+    in 
+        a - m '*' k_floor
+    end;
+
+"inverse(matrix_representation(make_complex(2,1)))";
+inverse(matrix_representation(make_complex(2,1)));
+
+"matrix_representation(make_complex(5, 0)) '*' matrix_representation(make_complex(2,1))";
+matrix_representation(make_complex(5, 0)) '*' matrix_representation(make_complex(2,1));
+
+"floor_complex(matrix_representation(make_complex(5, 0)) '*' inverse(matrix_representation(make_complex(2,1))))";
+floor_complex(matrix_representation(make_complex(5, 0)) '*' inverse(matrix_representation(make_complex(2,1))));
+
+
+#"floor_complex(m_make_complex(2.5, 1.5))";
+#floor_complex(m_make_complex(2.5, 1.5));
+
+#"m_make_complex(5,0) - m_make_complex(2,1)";
+#m_make_complex(5,0) - m_make_complex(2,1);
+
+#"m_make_complex(2,1)^-1";
+#m_make_complex(2,1)^-1;
+
+#"ismod2d(m_make_complex(5, 0), m_make_complex(2, 0), m_make_complex(2, 0))";
+#ismod2d(m_make_complex(5, 0), m_make_complex(2, 0), m_make_complex(2, 0));
+
+#"ismod2d(m_make_complex(5, 0), m_make_complex(1, 0), m_make_complex(2, 0))";
+#ismod2d(m_make_complex(5, 0), m_make_complex(1, 0), m_make_complex(2, 0));
+
+#"ismod2d(m_make_complex(5, 0), m_make_complex(0, 0), m_make_complex(2, 1))";
+#ismod2d(m_make_complex(5, 0), m_make_complex(0, 0), m_make_complex(2, 1));
+
+#"mod2d(m_make_complex(7, 0), m_make_complex(4, 0))";
+#mod2d(m_make_complex(7, 0), m_make_complex(4, 0));
+
+#"mod2d(m_make_complex(5, 0), m_make_complex(2, 1))";
+#mod2d(m_make_complex(5, 0), m_make_complex(2, 1));
+
+#"mod2d(m_make_complex(5, 0), m_make_complex(2, 1))";
+#mod2d(m_make_complex(5, 0), m_make_complex(2, 1));
+
+#"mod2d(m_make_complex(5,0), m_make_complex(1,2))";
+#mod2d(m_make_complex(5,0), m_make_complex(1,2));
+
+
+#define mod2d(a, b) = 
+#    if zero2d(a) then a 
+#    else if less2d(a, b) then a 
+#    else mod2d(a - b, b)
+#    end;
+
+"mod(2, 3.4)";
+mod(2, 3.4);
+
+
+
+#declare gcd2 :: for_unit a: (M_Complex(a), M_Complex(a)) -> M_Complex(a);
+
+#define gcd2(a, b) = 
+
+
+
+#"det2d(m_make_complex(3, 4))";
+#det2d(m_make_complex(3, 4));
+
+#"less2d(m_make_complex(3, 4), m_make_complex(5,0))";
+#less2d(m_make_complex(3, 4), m_make_complex(5,0));
+
+# positive integer a, b!
+define gcd2(a, b) = 
+begin
+    while b != 0 do
+        t := b;
+        b := mod(a , b);
+        a := t;
+    end
+    return a;
+end;
+
+# we define the mod2 function although there is a predefined mod function, as a stepping stone 
+# to also study mod2 for the gaussian integers.
+# Although mod2(a,b) is mathematically an equivalence relation defining a congruence of numbers
+# we make it into a function by selecting one unique "normalized representant", namely the value
+# 0 <= mod2(a,b) < b, with both a and b integers, a >= 0 and b > 0.
+# 
+define mod2(a, b) = 
+begin
+    while a >= b do
+        a := a-b;
+    end
+    return a;
+end;
+
+
+"mod(5, 2)";
+mod(5, 2);
+
+"mod2(5, 2)";
+mod2(5, 2);
+
+"mod(16, 12)";
+mod(16, 12);
+
+"mod2(16, 12)";
+mod2(16, 12);
+
+"gcd2(16, 12)";
+gcd2(16, 12);
+
+"gcd(12, 16)";
+gcd(12, 16);
+
+"gcd(-2, -4)";
+gcd(-2, -4);
+
+
+
+
+"make_complex(2, 1)";
+m_make_complex(2, 1);
+
+"m_conjugate(m_make_complex(2, 1))";
+m_conjugate(m_make_complex(2, 1));
+
+"norm_square(m_make_complex(2,1))";
+norm_square(m_make_complex(2,1));
