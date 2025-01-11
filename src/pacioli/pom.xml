@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pacioli</groupId>
@@ -12,14 +13,6 @@
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 	</properties>
-
-	<repositories>
-		<repository>
-			<id>jars</id>
-			<name>Local jars</name>
-			<url>file://${project.basedir}/jars</url>
-		</repository>
-    </repositories>
 
 	<dependencies>
 		<dependency>
@@ -37,14 +30,6 @@
 			<artifactId>commons-io</artifactId>
 			<version>2.11.0</version>
 		</dependency>
-		<!-- http://www2.cs.tum.edu/projects/cup/ -->
-		<dependency>
-			<groupId>java_cup</groupId>
-			<artifactId>runtime</artifactId>
-			<version>11b</version>
-		    <!-- <scope>system</scope>
-			<systemPath>${project.basedir}/java-cup-11b-runtime.jar</systemPath> -->
-		</dependency>
 		<dependency>
 			<groupId>pacioli</groupId>
 			<artifactId>mvm</artifactId>
@@ -61,6 +46,11 @@
 			<artifactId>junit-jupiter-api</artifactId>
 			<version>5.9.3</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>de.jflex</groupId>
+			<artifactId>cup_runtime</artifactId>
+			<version>11b-20160615</version>
 		</dependency>
 	</dependencies>
 
@@ -88,26 +78,26 @@
 					</descriptorRefs>
 				</configuration>
 			</plugin>
-				
+
 			<plugin>
 				<groupId>de.jflex</groupId>
 				<artifactId>jflex-maven-plugin</artifactId>
 				<version>1.9.1</version>
 				<executions>
-				<execution> 
-					<goals>
-					<goal>generate</goal>
-					</goals>
-					<configuration>
-						<outputDirectory>src/main/java</outputDirectory>
-						<lexDefinitions>
-							<lexDefinition>src/main/java/pacioli/parser/lexer.flex</lexDefinition>
-						</lexDefinitions>
-					</configuration>
-				</execution>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>src/main/java</outputDirectory>
+							<lexDefinitions>
+								<lexDefinition>src/main/java/pacioli/parser/lexer.flex</lexDefinition>
+							</lexDefinitions>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
-			
+
 			<!-- Switched to com.github.vbmacher below because that one supports the -location flag -->
 
 			<!-- <plugin>
@@ -136,9 +126,9 @@
 				<version>11b-20160615-2</version>
 				<executions>
 					<execution>
-					<goals>
-						<goal>generate</goal>
-					</goals>
+						<goals>
+							<goal>generate</goal>
+						</goals>
 					</execution>
 				</executions>
 				<configuration>
