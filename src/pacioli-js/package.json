@@ -10,8 +10,9 @@
   "scripts": {
     "test": "tsc --project tsconfig.test.json && jasmine",
     "build": "tsc",
-    "build:bundle": "tsc && webpack",
-    "build:bundle-windows": "tsc && webpack && copy \"D:\\code\\pacioli\\src\\pacioli-js\\dist\\pacioli-0.5.0.bundle.js\" \"D:\\code\\pacioli\\samples\" && copy \"D:\\code\\pacioli\\src\\pacioli-js\\dist\\pacioli-0.5.0.bundle.js\" \"D:\\code\\pacioli\\test\""
+    "bundle": "tsc && webpack",
+    "bundle:win": "tsc && webpack && copy dist\\pacioli-0.5.0.bundle.js ..\\..\\samples && copy dist\\pacioli-0.5.0.bundle.js ..\\..\\test",
+    "bundle:linux": "tsc && webpack && copy dist/pacioli-0.5.0.bundle.js ../../samples && copy dist/pacioli-0.5.0.bundle.js ..//../test"
   },
   "author": "Paul Griffioen",
   "license": "MIT",
