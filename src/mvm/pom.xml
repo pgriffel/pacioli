@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pacioli</groupId>
@@ -13,14 +14,6 @@
 		<maven.compiler.target>17</maven.compiler.target>
 	</properties>
 
-	<repositories>
-		<repository>
-			<id>jars</id>
-			<name>Local jars</name>
-			<url>file://${project.basedir}/jars</url>
-		</repository>
-    </repositories>
-
 	<dependencies>
 		<dependency>
 			<groupId>pacioli</groupId>
@@ -32,58 +25,58 @@
 			<artifactId>commons-math3</artifactId>
 			<version>3.6.1</version>
 		</dependency>
-		<!-- http://www2.cs.tum.edu/projects/cup/ -->
+		<!-- https://mvnrepository.com/artifact/de.jflex/cup_runtime -->
 		<dependency>
-			<groupId>java_cup</groupId>
-			<artifactId>runtime</artifactId>
-			<version>11b</version>
+			<groupId>de.jflex</groupId>
+			<artifactId>cup_runtime</artifactId>
+			<version>11b-20160615</version>
 		</dependency>
 
 	</dependencies>
 
-  <build>
-      <plugins>
+	<build>
+		<plugins>
 
-		<plugin>
-			<groupId>de.jflex</groupId>
-			<artifactId>jflex-maven-plugin</artifactId>
-			<version>1.9.1</version>
-			<executions>
-			<execution> 
-				<goals>
-				<goal>generate</goal>
-				</goals>
-				<configuration>
-              	  	<outputDirectory>src/main/java</outputDirectory>
-					<lexDefinitions>
-                		<lexDefinition>src/main/java/mvm/parser/lexer.flex</lexDefinition>
-              		</lexDefinitions>
-				</configuration>
-			</execution>
-			</executions>
-		</plugin>
+			<plugin>
+				<groupId>de.jflex</groupId>
+				<artifactId>jflex-maven-plugin</artifactId>
+				<version>1.9.1</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>src/main/java</outputDirectory>
+							<lexDefinitions>
+								<lexDefinition>src/main/java/mvm/parser/lexer.flex</lexDefinition>
+							</lexDefinitions>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
-		<plugin>
-			<groupId>de.jflex</groupId>
-			<artifactId>cup-maven-plugin</artifactId>
-			<version>1.3</version>
-			<executions>
-				<execution>
-					<goals>
-						<goal>generate</goal>
-					</goals>
-					<configuration>
-						<generatedSourcesDirectory>src/main/java</generatedSourcesDirectory>
-						<cupSourceDirectory>${project.basedir}/src/main/java/mvm/parser</cupSourceDirectory>
-						<symbolInterface>true</symbolInterface>
-						<parserName>Parser</parserName>
-					</configuration>
-				</execution>
-			</executions>
-		</plugin>
+			<plugin>
+				<groupId>de.jflex</groupId>
+				<artifactId>cup-maven-plugin</artifactId>
+				<version>1.3</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<generatedSourcesDirectory>src/main/java</generatedSourcesDirectory>
+							<cupSourceDirectory>${project.basedir}/src/main/java/mvm/parser</cupSourceDirectory>
+							<symbolInterface>true</symbolInterface>
+							<parserName>Parser</parserName>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
-      </plugins>
+		</plugins>
 
-  </build>
+	</build>
 
 </project>
