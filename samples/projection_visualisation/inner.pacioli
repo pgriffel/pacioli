@@ -1,5 +1,5 @@
 import geometry;
-import geometric_algebra;
+#import geometric_algebra;
 import graphics;
 
 # ------------------------------------------------------------------------------

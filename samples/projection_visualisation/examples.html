@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Projection Visualisation</title>
+
+    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="inner.js"></script>
+
+</head>
+
+<body>
+
+
+    <h2>Inner product</h2>
+    <p>
+        Shows projections with inner products. Extension of example <a
+            href="#outer_cos_sin_the_scene">outer_cos_sin</a>. Give <i>x</i>, <i>y</i> and <i>z</i> of vectors as
+        parameters
+
+    <div class="example">
+        <pacioli-scene id="scene_inner" script="inner" definition="the_scene" kind="scene" perspective grid axis>
+            <parameter label="x" unit="metre">5</parameter>
+            <parameter label="y" unit="metre">0</parameter>
+            <parameter label="z" unit="metre">5</parameter>
+            <parameter label="x" unit="metre">0</parameter>
+            <parameter label="y" unit="metre">0</parameter>
+            <parameter label="z" unit="metre">7</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="scene_inner"></pacioli-inputs>
+        <pacioli-controls for="scene_inner"></pacioli-controls>
+    </div>
+
+
+</body>
+
+
+</html>

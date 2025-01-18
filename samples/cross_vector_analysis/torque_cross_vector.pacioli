@@ -1,7 +1,7 @@
 import graphics;
 import geometry;
-import geometric_algebra;
-include generated/generated_algebra; #physics uses Geom3
+#import geometric_algebra;
+#include generated/generated_algebra; #physics uses Geom3
 
 # ------------------------------------------------------------------------------
 #

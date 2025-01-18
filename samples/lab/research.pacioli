@@ -1,0 +1,36 @@
+
+
+# Separate 2 types of products for magnitude and direction
+# We run into problems because we cannot separate unit multipliction from scalar multiplication,
+# either scalar multiplication leads to dimensionless numbers, of it leads to units scaling. We
+# conclude that we need more than 1 type of product to be able to do both.
+# 
+
+# Descartes: Example 2 times 3 metre -> 6 metre, so a scalar multiple of a line segment
+#
+# Maxwell: Example 2 metre times 3 metre -> 6 metre^2, so the units multiply as well
+#
+deftype Maxwell() = Tuple(1, metre);
+# The descartes product has different typed arguments, hence a left and right version. 
+#
+declare scaling_left_product:: (1, Maxwell) -> Maxwell;     # grade preserving ((1, N) -> N)
+declare scaling_right_product:: (Maxwell, 1) -> Maxwell;    # grade preserving ((N, 1) -> N)
+declare descartes_product:: (Maxwell, Maxwell) -> Maxwell;  # grade preserving ((N, N) -> N)
+declare dimless_product:: (1, 1) -> 1;                      # grade preserving ((1, 1) -> 1)
+
+# grade increasing ((N, M) -> N*M)
+declare grade_increase_product:: (Maxwell, Maxwell) -> Tuple(1, metre^2);
+# grade decreasing ((N, N) -> 1)
+declare grade_decrease_product:: (Maxwell, Maxwell) -> Tuple(1, 1);
+
+# we assume Minkowski
+declare direction_product:: for_unit a, b: 
+        (a*Minkowski!si, b*Minkowski!si) -> a*b*metre^2;
+
+# define magnitude_product(x, y) =
+
+
+#
+# Te doen:
+# Sommen op p614 (2.5-9) van Hestened New Foudations for Classical Mechanics
+#

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Bi Vector Visualisations</title>
+
+    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="bi_vector.js"></script>
+    <script type="text/javascript" src="outer_cos_sin.js"></script>
+
+</head>
+
+<body>
+
+    <h2>Bi-vector I</h2>
+    <p>
+        Experiment with rendering a bi-vector plane. Use the last parameter to toggle the wireframe
+
+    <div class="example">
+        <pacioli-scene id="scene_bivector1" script="bi_vector" definition="scene1" kind="scene" perspective grid axis>
+            <parameter label="x" unit="metre">2</parameter>
+            <parameter label="y" unit="metre">1</parameter>
+            <parameter label="z" unit="metre">0</parameter>
+            <parameter label="x" unit="metre">-3</parameter>
+            <parameter label="y" unit="metre">0</parameter>
+            <parameter label="z" unit="metre">2</parameter>
+            <parameter label="wireframe">0</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="scene_bivector1"></pacioli-inputs>
+        <pacioli-controls for="scene_bivector1"></pacioli-controls>
+    </div>
+
+
+    <h2>Bi-vector II</h2>
+    <p>
+        Experiment with bi-vectors. The red and the blue bi-vectors are the same. Both equal
+        bi-vector 3e<sub>12</sub> + 4e<sub>13</sub> + 2e<sub>23</sub>. Leo p.34. The parameter
+        toggles the wireframe.
+
+    <div class="example">
+        <pacioli-scene id="scene_bivector2" script="bi_vector" definition="scene2" kind="scene" perspective grid axis>
+            <parameter label="wireframe" unit="1">0</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="scene_bivector2"></pacioli-inputs>
+        <pacioli-controls for="scene_bivector2"></pacioli-controls>
+    </div>
+
+
+    <h2 id="outer_cos_sin_the_scene">Outer product</h2>
+    <p>
+        Leo p58. Give i=0,1,...24 as parameter
+
+    <div class="example">
+        <pacioli-scene id="scene_outer" script="outer_cos_sin" definition="the_scene" kind="scene" perspective grid
+            axis>
+            <parameter label="i" unit="1">24</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="scene_outer"></pacioli-inputs>
+        <pacioli-controls for="scene_outer"></pacioli-controls>
+    </div>
+
+
+</body>
+
+
+</html>

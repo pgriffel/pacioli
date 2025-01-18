@@ -1,0 +1,110 @@
+import geometry;
+import geometric_algebra;
+import graphics;
+include generated/generated_algebra; #physics uses Geom3
+
+#
+# WORKING ANGULAR MOMENTUM DORAN CASUS
+#
+# TODO:
+# 1. TODO Leo's validatie op p68 reproduceren voor units of measurement
+# 1b. Figuur 2.1 a en tekst in 2.6 uitwerken / tekenen punten
+# 1c. Exercise 6.7.1 on page 161 (Leo)
+# 2. Verkennen raaklijn - inner product met 'afgeleide' als vector - gevolg voor units
+# 5. Homogene model (H11) naast Vector model (H10), daarna exercise bij 15.4, bv ex 10 p461
+# 6. Doran H5 p128 - spacetime algebra modelleren - en H10.6.3 p376; nog zoeken. (Zie ook https://youtu.be/e7aIVSVc8cI?feature=shared)
+# 7. Leo 7.3.2 real 2d rotors subsume complex numbers
+# 9. Volgende grote (middellange termijn) stap: lineaire transformatie, Leo H7, ivm contra-/covariantie
+# 
+# 10. Tests nalopen ivm units (m ^ 5 probleem etc), refactoring etc
+# 11. Multivector classification 21.5, Exponentiation
+# 12. Hoofdstuk 4: voorbeeld co/contravariantie uitzoeken; hoe werkt schalen? Eq 4.4 Leo
+#
+# DONE 
+# 1a. Naast Geom1 ook Geom0 maken, kijken wat dat brengt; Vreemde bivector.net producten.
+# 3. make_a_perpendicular langs dezelfde lijn als make_a_parallel
+# 4. Doorgaan bij Doran naar de rotatie 
+# 8. Vector normaliseren bij Doran 2.96-7 op p40 - hoe gebeurt dat bij Leo? Versies maken (met unit en dimless)
+# 
+
+
+##########################################
+# MOMENTUM
+##########################################
+
+
+
+
+# we introduce a bivector as a (2,0) tensor, in Geom3
+# Open: how the antisymmetry must be included, we assume not needed in the deftype
+#
+deftype Bivector() = Geom3! % Geom3!;    
+
+
+# Example position and momentum as multivectors
+define position_3D = vector3d(100 * |distance_unit|, 200 * |distance_unit|, 500 * |distance_unit|);
+define momentum_3D = vector3d(4 * |momentum_unit/second|, 2 * |momentum_unit/second|, 1 * |momentum_unit/second|);
+
+defalias distance_unit = metre;
+defalias momentum_unit = kilo:gram * metre;
+
+
+#######
+# Doran 3.9 and 3.10 (p56) Example
+#
+define x = parse_mv_unit("e1", |metre|);
+define v = parse_mv_unit("e1+e2", |metre/second|);
+define a = parse_mv_unit("e2", |metre/second^2|);
+define m = parse_mv_unit("2", |kilo:gram|);
+
+define p = geometric_product(m, v);
+define f = geometric_product(m, a);
+
+# 3.9 L angular momentum
+multivector2string(outer_product(x, p));
+
+# 3.10 torque (dL/dt)
+multivector2string(multivector_add(outer_product(v, p), outer_product(x, f)));
+
+#multivector2string(outer_product(x, f));
+
+
+#### p62 Doran 3.55 and 3.56
+# purpose is to find an example of a transform on a multivector with at least a scalar and a non scalar.
+# where is the outer morphism applied in Doran?
+# exercise 6 on p119 of Leo
+# 
+define k = parse_mv_unit("1", |kilo:gram*metre^2/second^2|);
+define L = outer_product(x, p);
+define e = parse_mv_unit("e1+e2", |metre|);
+geometric_product(L, v) = geometric_product(k, multivector_add(x, e));
+
+multivector2string(geometric_product(L, v));
+
+geometric_product(L, geometric_product(v, x)) = 
+    geometric_product(L, (multivector_add(left_contraction(v, x), outer_product(v, x))));
+
+multivector2string(geometric_product(L, geometric_product(v, x)));
+
+multivector2string(multivector_add(left_contraction(v, x), outer_product(v, x)));
+
+
+# exercise 6 on p119 of Leo
+# - fix the test suite, contains Examples
+# - make a scalar product straight from the definition? For now we use left_contraction:
+# We define a scalar_product as a left_contraction om Multivectors.
+#
+define scalar_product(mv1, mv2) = left_contraction(mv1, mv2);
+
+define squared_norm(mv) = 
+    scalar_product(mv, multivector_reverse(mv));
+
+multivector2string(scalar_product(x, v));
+
+define y = parse_mv_unit("3e1+4e2+5e3", |metre|);
+define z = parse_mv_unit("3e1+4e2", |metre|);
+
+multivector2string(squared_norm(x));
+multivector2string(squared_norm(v));
+multivector2string(squared_norm(y));
+multivector2string(squared_norm(z));

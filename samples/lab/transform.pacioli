@@ -1,0 +1,50 @@
+import geometry;
+import geometric_algebra;
+import graphics;
+include generated/generated_algebra; #physics uses Geom3
+
+define x = parse_mv_unit("e1", |metre|);
+define y = parse_mv_unit("e2", |metre|);
+
+define z = parse_mv_unit("e2+e3", |metre|);
+
+multivector2string(outer_product(x, y));
+
+# Leo p120 4.9.1 orthogonal projection example
+let
+    b = outer_product(x, y)
+in
+    multivector2string(left_contraction(left_contraction(z, multivector_inverse(b)), b))
+end;
+
+
+# 4.2
+
+
+# ----------------
+
+#
+# @@@Finding: following the logic of linear transformations of blades as explained in Leo ch4.2 pp101-106
+# we detect a problem with the transformation rules of scalars in particular:
+# See 4.3 - the linear transform f applied to a scalar alpha yields that same scalar alpha,
+# witness the situation where the multivector 2+3e1+4e12 metre is transformed with a matrix that
+# transforms using a second/metre unit type.
+# This leads to the situation that a multivector of unit type metre can transform into a multivector
+# of multiple unit types.
+# @@@Uniform scaling rule in 4.4 (?)
+#
+# This is shown by the pacioli type expressions of transformation functions, and its application to a
+# 3D multivector consisting of a unit, a vector and a bivector part.
+#
+
+define test_mv =  parse_mv_unit("2 + 3e1 + 4e12", |metre|);
+define test_mv1 = parse_mv_unit("2", |metre|);
+define test_mv2 = parse_mv_unit("3e1", |metre|);
+define test_mv3 = parse_mv_unit("4e12", |metre|);
+
+defmatrix test_matrix :: second/metre * Geom3! per Geom3! =
+{
+
+};
+
+multivector2string(transformmv(test_mv, test_matrix));

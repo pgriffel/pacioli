@@ -1,0 +1,52 @@
+import geometry;
+import geometric_algebra;
+import graphics;
+include generated/generated_algebra; #physics uses Geom3
+
+# we introduce a bivector as a (2,0) tensor, in Geom3
+# Open: how the antisymmetry must be included, we assume not needed in the deftype
+#
+deftype Bivector() = Geom3! % Geom3!;    
+
+
+# ------------------------------------------------------------------------------
+# bivector basis as matrices
+# ------------------------------------------------------------------------------
+
+defmatrix e12_matrix :: metre * Geom3! % metre * Geom3! = {
+    x, y -> 1,
+    y, x -> -1
+};
+
+defmatrix e13_matrix :: metre * Geom3! % metre * Geom3! = {
+    x, z -> 1,
+    z, x -> -1
+};
+
+defmatrix e23_matrix :: metre * Geom3! % metre * Geom3! = {
+    y, z -> 1,
+    z, y -> -1
+};
+
+# Tensors cannot (always?) be added - is this correct? It does run...
+# Example taken from https://en.wikipedia.org/wiki/Bivector
+define general_bivector(b12, b13, b23) =
+    b12 '.*' e12_matrix + b13 '.*' e13_matrix + b23 '.*' e23_matrix;
+
+#position_3D^T '*' general_bivector(1,2,3);
+
+#general_bivector(1,2,3) '*' position_3D;
+
+#let x = general_bivector(1,2,3) in x '*' x end;
+
+let x = general_bivector(1,2,3) in x^T '*' x end;
+
+let x = general_bivector(1,2,3) in x '*' x^T end;
+
+#let x = general_bivector(1,2,3) in x^T '*' x^T end;
+
+
+e12_matrix '*' e12_matrix^T;
+
+e12_matrix '*' e23_matrix^T;
+

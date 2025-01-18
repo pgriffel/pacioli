@@ -1,0 +1,123 @@
+
+# Rotating frame of vectors example (Doran, p69)
+# Multivector version
+#declare framevector_mv :: for_unit a: ((a * Geom3!), second) -> (a, Geom3!);
+
+define framevector_mv(k, t, speed) =
+    rotate_mv(rotor_mv(t, speed), fixedvector_mv(k));
+
+
+define rotate_mv(rotor, mv) =
+    geometric_product(rotor, geometric_product(mv, multivector_reverse(rotor)));
+
+
+# Open: type of the fixedvector. Assume a
+# We assume for the frame of vectors the basis vectors {e1, e2, e3}
+# declare fixedvector :: (1) -> MultiVector(a);
+
+
+
+define rotor_e1_mv = make_multivector([make_term(1, e1)]);
+
+
+# rotor without unit metre
+define rotor_mv(t, speed) = 
+    let
+        a = t * speed / 2, 
+        rotor_m = make_multivector([make_term(cos(a), e1), make_term(sin(a), e2)])
+    in
+        geometric_product(rotor_e1_mv, rotor_m)
+    end;
+
+
+declare animation_callback_mv ::
+    (second, second, radian/second) -> (second, List(MultiVector(metre, Geom3!)), Scene(metre)) -> Tuple(List(MultiVector(metre, Geom3!)), Scene(metre));
+
+# Keep working version of callback that is essentially stateless because it does not use the frame/state but recompues the
+# new state from the initial state each time.
+define animation_callback_mv(t0, t1, speed) = 
+    (time, frame, scene) ->
+        tuple(frame,
+            set_arrows(scene, append(rendered_vectors_mv(t1 + time, make_color("blue"), speed),
+                                 rendered_vectors_mv(floor(t0 + time / 60), make_color("red"), speed))));
+
+
+#rendered_vectors_mv(0*|second|, "blue", 1*|radian/second|);
+multivector2string(rotor_mv(0.1 * |second|, 1 * |radian| / |second|));
+
+
+
+##########################################
+# HARD
+##########################################
+
+
+define the_scene_hard(t0, t1, speed) =
+    let scene = empty_scene("hard otor in e1-e2") in
+        add_arrows(rendered_vectors_hard(t1, make_color("blue"), speed), add_arrows(rendered_vectors_hard(t0, make_color("red"), speed), scene))
+    end;
+
+
+
+define rendered_vectors_hard(i, color, speed) = 
+    [with_arrow_color(color, origin_arrow(5 '.*'framevector_hard(j, i, speed))) | j <- naturals(3)];
+
+define rotor_hard(t, speed) =
+    let
+        a = t * speed / 2,
+        rotor_input_vector = vector3d(cos(a), sin(a), 0)
+    in
+        # for now 2 vectors, should become a tuple for the 3D multivector
+        geometric_product_hard(rotor_e1_hard, rotor_input_vector)
+    end;
+
+
+define geometric_product_hard(x,y) = 
+    tuple(x,y);
+
+define geometric_product_hard_with_rotor(rotor, vector) = 
+    let (v1, v2) = rotor,
+        inner = inner(v1, v2),
+        outer = v1 '*' v2^T
+    in
+        outer '*' vector
+    end;
+
+define geometric_product_hard_with_mvrev(vector, mvrev) = 
+    let (v1, v2) = mvrev
+    in
+    vector
+    end;
+
+define multivector_reverse_hard(x) = x;
+
+#multivector2string(rotor(0 * |second|));
+#multivector2string(framevector(0, 0 * |second|));
+#multivector2string(rotor(1 * |second|));
+#multivector2string(framevector(0, 1 * |second|));
+
+#multivector2string(rotor(0 * |second|));
+#multivector2string(framevector2(0, 0 * |second|));
+#multivector2string(rotor(1 * |second|));
+#multivector2string(framevector2(0, 1 * |second|));
+
+#framevector(0, 1 * |second|);
+
+rotor_hard(0.1 * |second|, 1 * |radian| / |second|);
+
+
+define framevector_hard(k, t, speed) =
+    rotate_hard(rotor_hard(t, speed), fixedvector_hard(k));
+
+define rotate_hard(rotor, vector) =
+    geometric_product_hard_with_rotor(rotor, geometric_product_hard_with_mvrev(vector, multivector_reverse_hard(rotor)));
+
+define baseframe_hard = [vector3d(1,0,0), vector3d(0,1,0), vector3d(1,1,1)];
+define fixedvector_hard(k) = nth(k, baseframe_hard);
+
+define rotor_e1_hard = vector3d(1,0,0);
+
+
+
+
+
