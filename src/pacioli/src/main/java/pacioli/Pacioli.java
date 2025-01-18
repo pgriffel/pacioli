@@ -79,7 +79,7 @@ public class Pacioli {
         public static boolean wrapTypes = false;
         public static boolean rewriteTypes = false;
         public static boolean includePrivate = true;
-        public static List<String> traceTypeInference = null;
+        public static List<String> traceTypeInference = List.of();
     }
 
     // Remember if user output is at the beginning of a line. Used when printing
