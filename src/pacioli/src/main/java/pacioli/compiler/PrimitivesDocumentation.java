@@ -56,25 +56,41 @@ public class PrimitivesDocumentation {
 
         List<ValueInfo> infos = new ArrayList<>();
 
+        DocumentationGenerator generator = new DocumentationGenerator(writer, module, version);
+
+        File docFile = null;
+
         if (base) {
             File theFile = new File(libs.get(0), "base/" + module + ".pacioli");
-            PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", "irrelevant", true);
+            PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", module, true);
             PacioliTable program = Program.load(pacioliFile).desugar().generateInfos();
             for (ValueInfo info : program.values().allInfos()) {
                 infos.add(info);
             }
+
+            docFile = pacioliFile.docFile();
         }
 
         if (standard) {
             File theFile = new File(libs.get(0), "standard/" + module + ".pacioli");
-            PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", "irrelevant", true);
+            PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", module, true);
             PacioliTable program = Program.load(pacioliFile).desugar().generateInfos();
             for (ValueInfo info : program.values().allInfos()) {
                 infos.add(info);
             }
+
+            docFile = pacioliFile.docFile();
         }
 
-        DocumentationGenerator generator = new DocumentationGenerator(writer, module, version);
+        if (docFile != null) {
+            if (docFile.exists()) {
+                Pacioli.log("Found doc file %s, including contents...", docFile.getAbsolutePath());
+                generator.setIntroFromDocFile(docFile);
+            } else {
+                Pacioli.log("No doc file found at %s, using standard intro...", docFile.getAbsolutePath());
+            }
+        }
+
         for (ValueInfo info : infos) {
             if (info.isPublic() && info.declaredType().isPresent()) {
 
@@ -106,8 +122,15 @@ public class PrimitivesDocumentation {
                         }
                     }
 
-                    generator.addFunction(info.name(), args, type.pretty(),
-                            info.generalInfo().documentation().orElse(""));
+                    if (info.definition().isPresent()) { // foute check. acos etc gaat fout. Hebben wel body, maar zijn
+                                                         // primitive!?
+                        generator.addFunction(info.name(), args, type.pretty(),
+                                info.generalInfo().documentation().orElse(""));
+                    } else {
+                        generator.addPrimitiveFunction(info.name(), args, type.pretty(),
+                                info.generalInfo().documentation().orElse(""));
+
+                    }
 
                     if (info.generalInfo().documentation().isEmpty()) {
                         Pacioli.log("  no documentation for function %s", info.name());
@@ -115,7 +138,13 @@ public class PrimitivesDocumentation {
 
                 } else {
 
-                    generator.addValue(info.name(), type.pretty(), info.generalInfo().documentation().orElse(""));
+                    if (info.definition().isPresent()) {
+                        generator.addValue(info.name(), type.pretty(),
+                                info.generalInfo().documentation().orElse(""));
+                    } else {
+                        generator.addPrimitiveValue(info.name(), type.pretty(),
+                                info.generalInfo().documentation().orElse(""));
+                    }
 
                     if (info.generalInfo().documentation().isEmpty()) {
                         Pacioli.log("  no documentation for value %s", info.name());

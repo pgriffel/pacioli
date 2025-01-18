@@ -1,7 +1,9 @@
 package pacioli.compiler;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,6 +43,9 @@ public class DocumentationGenerator {
     Set<String> functions = new HashSet<>();
     Set<String> values = new HashSet<>();
 
+    // Is a function or value primitive?
+    Set<String> primitives = new HashSet<>();
+
     // Info for type definitions
     Map<String, String> typeDocs = new HashMap<>();
     Map<String, String> typeLHS = new HashMap<>();
@@ -71,6 +76,16 @@ public class DocumentationGenerator {
         values.add(name);
     }
 
+    public void addPrimitiveValue(String name, String type, String documentation) {
+        this.addValue(name, type, documentation);
+        this.primitives.add(name);
+    }
+
+    public void addPrimitiveValue(String name, TypeObject type, String documentation) {
+        this.addValue(name, type, documentation);
+        this.primitives.add(name);
+    }
+
     public void addValue(String name, String type, String documentation) {
         if (argumentsTable.containsKey(name)) {
             throw new RuntimeException(String.format("Cannot add value %s, it is already added as function", name));
@@ -98,6 +113,16 @@ public class DocumentationGenerator {
         documentationTable.put(name, documentation);
         argumentsTable.put(name, arguments);
         functions.add(name);
+    }
+
+    public void addPrimitiveFunction(String name, List<String> arguments, TypeObject type, String documentation) {
+        this.addFunction(name, arguments, type, documentation);
+        this.primitives.add(name);
+    }
+
+    public void addPrimitiveFunction(String name, List<String> arguments, String type, String documentation) {
+        this.addFunction(name, arguments, type, documentation);
+        this.primitives.add(name);
     }
 
     public void addIndexSet(String name, String documentation) {
@@ -307,6 +332,9 @@ public class DocumentationGenerator {
                 println("<dt id=\"%s\"><code>%s</code></dt>", name, name);
                 println("<dd>");
                 println("<pre>:: %s</pre>", typeTable.get(name));
+                if (this.primitives.contains(name)) {
+                    println("Primitive value");
+                }
                 for (String part : getDocuParts(name)) {
                     println("\n<p>%s</p>\n", part);
                 }
@@ -324,6 +352,9 @@ public class DocumentationGenerator {
                 println("<dt id=\"%s\"><code>%s%s</code></dt>", name, name, args);
                 println("<dd>");
                 println("<pre>:: %s</pre>", lookupType(name));
+                if (this.primitives.contains(name)) {
+                    println("Primitive function");
+                }
                 for (String part : getDocuParts(name)) {
                     println("\n<p>%s</p>\n", part);
                 }
@@ -342,4 +373,12 @@ public class DocumentationGenerator {
         this.intro = intro;
     }
 
+    public void setIntroFromDocFile(File docFile) throws IOException {
+        List<String> read = Files.readAllLines(docFile.toPath());
+        String total = "";
+        for (String line : read) {
+            total += line + "\n";
+        }
+        this.setIntro(total);
+    }
 }

@@ -353,12 +353,7 @@ public class Bundle {
 
         if (docFile.exists()) {
             Pacioli.log("Found doc file %s, including contents...", docFile.getAbsolutePath());
-            List<String> read = Files.readAllLines(docFile.toPath());
-            String total = "";
-            for (String line : read) {
-                total += line + "\n";
-            }
-            generator.setIntro(total);
+            generator.setIntroFromDocFile(docFile);
         } else {
             Pacioli.log("No doc file found at %s, using standard intro...", docFile.getAbsolutePath());
         }

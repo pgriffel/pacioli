@@ -44,8 +44,8 @@ public class Project {
         this.graph = graph;
     }
 
-    public File findDocFile() {
-        return this.file.findDocFile();
+    public File docFile() {
+        return this.file.docFile();
     }
 
     /**

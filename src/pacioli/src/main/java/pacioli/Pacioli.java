@@ -408,7 +408,7 @@ public class Pacioli {
             });
             File out = new File(file.fsFile().getParentFile(), file.moduleName() + ".html");
 
-            project.loadBundle().printAPI(out, includes, "dev", project.findDocFile()); // TODO: version, see above
+            project.loadBundle().printAPI(out, includes, "dev", project.docFile()); // TODO: version, see above
 
             Pacioli.log("\nDocumentation ready");
 
