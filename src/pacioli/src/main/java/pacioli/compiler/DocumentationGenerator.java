@@ -345,23 +345,41 @@ public class DocumentationGenerator {
 
         // Print details for the functions
         if (funs.size() > 0) {
-            println("<h2>Functions</h2>");
-            println("<dl>");
-            for (String name : funs) {
-                String args = String.format("(%s)", argsString(name));
-                println("<dt id=\"%s\"><code>%s%s</code></dt>", name, name, args);
-                println("<dd>");
-                println("<pre>:: %s</pre>", lookupType(name));
-                if (this.primitives.contains(name)) {
-                    println("Primitive function");
-                }
-                for (String part : getDocuParts(name)) {
-                    println("\n<p>%s</p>\n", part);
-                }
-                println("</dd>");
 
+            if (false) {
+                println("<h2>Functions</h2>");
+                println("<dl>");
+                for (String name : funs) {
+                    String args = String.format("(%s)", argsString(name));
+                    println("<dt id=\"%s\"><code>%s%s</code></dt>", name, name, args);
+                    println("<dd>");
+                    println("<pre>:: %s</pre>", lookupType(name));
+                    if (this.primitives.contains(name)) {
+                        println("Primitive function");
+                    }
+                    for (String part : getDocuParts(name)) {
+                        println("\n<p>%s</p>\n", part);
+                    }
+                    println("</dd>");
+
+                }
+                println("</dl>");
+            } else {
+                println("<h2>Functions</h2>");
+
+                for (String name : funs) {
+                    println("<h3 id=\"%s\">%s</h3>", name, name);
+                    String args = String.format("(%s)", argsString(name));
+                    println("<p><code>%s%s :: %s</code>", name, args, lookupType(name));
+                    if (this.primitives.contains(name)) {
+                        println("<p>Primitive function");
+                    }
+                    for (String part : getDocuParts(name)) {
+                        println("\n<p>%s</p>\n", part);
+                    }
+
+                }
             }
-            println("</dl>");
         }
 
         // Finish the html

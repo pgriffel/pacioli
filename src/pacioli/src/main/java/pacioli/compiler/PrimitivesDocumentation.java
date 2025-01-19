@@ -16,6 +16,7 @@ import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.ast.TypePerNode;
 
 public class PrimitivesDocumentation {
 
@@ -53,6 +54,7 @@ public class PrimitivesDocumentation {
             throws Exception {
 
         List<String> paramNames = List.of("x", "y", "z", "u", "v", "w", "a", "b", "c", "d", "e", "f", "g", "h");
+        List<String> matrixParamNames = List.of("A", "B", "C", "D", "E", "F");
 
         List<ValueInfo> infos = new ArrayList<>();
 
@@ -115,7 +117,18 @@ public class PrimitivesDocumentation {
                         FunctionTypeNode fun = (FunctionTypeNode) ((SchemaNode) type).type;
                         if (fun.domain instanceof TypeApplicationNode) {
                             TypeApplicationNode tuple = (TypeApplicationNode) fun.domain;
-                            args = paramNames.subList(0, tuple.args.size());
+                            List<String> params = new ArrayList<>();
+                            int p = 0;
+                            int q = 0;
+                            for (TypeNode arg : tuple.args) {
+                                if (arg instanceof TypePerNode) {
+                                    params.add(matrixParamNames.get(q++));
+                                } else {
+                                    params.add(paramNames.get(p++));
+                                }
+                            }
+                            args = params;
+                            // args = paramNames.subList(0, tuple.args.size());
                         } else {
                             // Must be function 'tuple' or 'format'
                             args = List.of("...");
