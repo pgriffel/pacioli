@@ -353,7 +353,8 @@ define curve_rotation(curve, landmarks) =
 define compute_rotation(left, top, right, bottom) =
   let
       width = right - left,
-      height = top - bottom
+      height = top - bottom,
+      (d_x, d_y, d_z) = basis3d
   in magnitude(
       normalized(width) '*' d_x^T +
       normalized(cross_sqrt(width, height)) '*' d_y^T +

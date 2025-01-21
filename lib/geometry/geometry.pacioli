@@ -20,11 +20,8 @@
 export
     Geom2,
     Geom3,
-    d2x,
-    d2y,
-    d_x,
-    d_y,
-    d_z,
+    basis2d,
+    basis3d,
     vector2d,
     matrix2d,
     vector3d,
@@ -59,19 +56,28 @@ doc Geom3
 defindex Geom2 = {x, y};
 defindex Geom3 = {x, y, z};
 
-declare d2x :: Geom2!;
-declare d2y :: Geom2!;
+doc basis2d
+    "Basis vectors for Geom3.
+    
+    Example:
+    
+    <code>let (vx, vy) = basis2d in ... end</code>";
 
-declare d_x :: Geom3!;
-declare d_y :: Geom3!;
-declare d_z :: Geom3!;
+doc basis3d
+    "Basis vectors for Geom2.
+    
+    Example:
+    
+    <code>let (i, j, k) = basis3d in ... end</code>";
 
-define d2x = delta(Geom2@x);
-define d2y = delta(Geom2@y);
+declare basis2d :: Tuple(Geom2!, Geom2!);
+declare basis3d :: Tuple(Geom3!, Geom3!, Geom3!);
 
-define d_x = delta(Geom3@x);
-define d_y = delta(Geom3@y);
-define d_z = delta(Geom3@z);
+define basis2d =
+    tuple(delta(Geom2@x), delta(Geom2@y));
+
+define basis3d =
+    tuple(delta(Geom3@x), delta(Geom3@y), delta(Geom3@y));
 
 # ----------------------------------------------------------------------------
 # Vector construction
@@ -81,17 +87,25 @@ declare vector2d :: for_unit a: (a, a) -> a*Geom2!;
 
 declare vector3d :: for_unit a: (a, a, a) -> a*Geom3!;
 
-define vector2d(a, b) = a '.*' d2x + b '.*' d2y;
+define vector2d(a, b) = 
+    let (d2x, d2y) = basis2d in
+        a '.*' d2x + b '.*' d2y
+    end;
 
-define vector3d(x, y, z) =
-#  x '.*' delta(Geom3@x) + y '.*' delta(Geom3@y) + z '.*' delta(Geom3@z);
-  x '.*' delta(Geom3@x) + y '.*' delta(Geom3@y) + z '.*' delta(Geom3@z);
+
+define vector3d(a, b, c) = 
+    let (i, j, k) = basis3d in
+        a '.*' i + b '.*' j + c '.*' k
+    end;
 
 # Obsolete. Use vector3d
 
 declare space_vec :: for_unit a: (a, a, a) -> a*Geom3!;
 
-define space_vec(a, b, c) = a '.*' d_x + b '.*' d_y + c '.*' d_z;
+define space_vec(a, b, c) = 
+    let (d_x, d_y, d_z) = basis3d in
+        a '.*' d_x + b '.*' d_y + c '.*' d_z
+    end;
 
 # ----------------------------------------------------------------------------
 # Matrix construction
@@ -185,9 +199,12 @@ define polar2cartesian(radius, inclination, azimuth) =
 			  sin(inclination) * sin(azimuth),
 			  cos(inclination)));
 
-define inclination(vec) = acos(inner(vec, d_z) / norm(vec));
+define inclination(vec) = acos(inner(vec, delta(Geom3@z)) / norm(vec));
 
-define azimuth(vec) = atan2(inner(vec, d_y), inner(vec, d_x));
+define azimuth(vec) = 
+    let (i, j, _) = basis3d in
+        atan2(inner(vec, i), inner(vec, j))
+    end;
 
 # ----------------------------------------------------------------------------
 # Cross Product
@@ -238,19 +255,25 @@ declare z_rotation :: (radian) -> Geom3! per Geom3!;
 declare rotation :: (radian, radian, radian) -> Geom3! per Geom3!;
 
 define x_rotation(angle) =
+  let (d_x, d_y, d_z) = basis3d in
   (space_vec(1,           0,          0) '*' d_x^T +
    space_vec(0,  cos(angle), sin(angle)) '*' d_y^T +
-   space_vec(0, -sin(angle), cos(angle)) '*' d_z^T);
+   space_vec(0, -sin(angle), cos(angle)) '*' d_z^T)
+   end;
 
 define y_rotation(angle) =
+  let (d_x, d_y, d_z) = basis3d in
   (space_vec(cos(angle), 0, -sin(angle)) '*' d_x^T +
    space_vec(         0, 1,           0) '*' d_y^T +
-   space_vec(sin(angle), 0,  cos(angle)) '*' d_z^T);
+   space_vec(sin(angle), 0,  cos(angle)) '*' d_z^T)
+   end;
 
 define z_rotation(angle) =
+  let (d_x, d_y, d_z) = basis3d in
   (space_vec( cos(angle), sin(angle), 0) '*' d_x^T +
    space_vec(-sin(angle), cos(angle), 0) '*' d_y^T +
-   space_vec(         0,           0, 1) '*' d_z^T);
+   space_vec(         0,           0, 1) '*' d_z^T)
+   end;
 
 define rotation(x_angle, y_angle, z_angle) =
   z_rotation(z_angle) '*' y_rotation(y_angle) '*' x_rotation(x_angle);
