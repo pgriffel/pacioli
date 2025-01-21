@@ -50,31 +50,39 @@ export
 doc Geom2
     "Index set for a 2D geometric space. Defined as the set <code>{x, y}</code>.";
 
+defindex Geom2 = {x, y};
+
+# ----------------------------------------------------------------------------
+
 doc Geom3
     "Index set for a 3D geometric space. Defined as the set <code>{x, y, z}</code>.";
 
-defindex Geom2 = {x, y};
 defindex Geom3 = {x, y, z};
 
+# ----------------------------------------------------------------------------
+
 doc basis2d
-    "Basis vectors for Geom3.
+    "Basis vectors for Geom2.
     
     Example:
     
     <code>let (vx, vy) = basis2d in ... end</code>";
 
+declare basis2d :: Tuple(Geom2!, Geom2!);
+
+define basis2d =
+    tuple(delta(Geom2@x), delta(Geom2@y));
+
+# ----------------------------------------------------------------------------
+
 doc basis3d
-    "Basis vectors for Geom2.
+    "Basis vectors for Geom3.
     
     Example:
     
     <code>let (i, j, k) = basis3d in ... end</code>";
 
-declare basis2d :: Tuple(Geom2!, Geom2!);
 declare basis3d :: Tuple(Geom3!, Geom3!, Geom3!);
-
-define basis2d =
-    tuple(delta(Geom2@x), delta(Geom2@y));
 
 define basis3d =
     tuple(delta(Geom3@x), delta(Geom3@y), delta(Geom3@y));
@@ -83,20 +91,29 @@ define basis3d =
 # Vector construction
 # ----------------------------------------------------------------------------
 
-declare vector2d :: for_unit a: (a, a) -> a*Geom2!;
+doc vector2d
+    "Creates a <code>Geom2</code> vector.";
 
-declare vector3d :: for_unit a: (a, a, a) -> a*Geom3!;
+declare vector2d :: for_unit a: (a, a) -> a*Geom2!;
 
 define vector2d(a, b) = 
     let (d2x, d2y) = basis2d in
         a '.*' d2x + b '.*' d2y
     end;
 
+# ----------------------------------------------------------------------------
+
+doc vector3d
+    "Creates a <code>Geom3</code> vector.";
+
+declare vector3d :: for_unit a: (a, a, a) -> a*Geom3!;
 
 define vector3d(a, b, c) = 
     let (i, j, k) = basis3d in
         a '.*' i + b '.*' j + c '.*' k
     end;
+
+# ----------------------------------------------------------------------------
 
 # Obsolete. Use vector3d
 
