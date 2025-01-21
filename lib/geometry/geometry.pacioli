@@ -149,41 +149,39 @@ define matrix3d(a, b, c, d, e, f, g, h, i) =
 # Determinants
 # ----------------------------------------------------------------------------
 
-declare det2d :: for_unit a, Geom2!u: (a * Geom2!u per Geom2!u) -> a^2;
+declare det2d :: for_unit a, Geom2!u: (a * Geom2! per Geom2!) -> a^2;
 
 doc det2d
     "Determinant of a <code>Geom2</code> matrix";
 
-define det2d(matrix) =
-    let m = unit_factor(matrix) '.*' magnitude(matrix),
-        a = get(m, Geom2@x, Geom2@x),
-        b = get(m, Geom2@x, Geom2@y),
-        c = get(m, Geom2@y, Geom2@x),
-        d = get(m, Geom2@y, Geom2@y)
+define det2d(A) =
+    let xx = get(A, Geom2@x, Geom2@x),
+        xy = get(A, Geom2@x, Geom2@y),
+        yx = get(A, Geom2@y, Geom2@x),
+        yy = get(A, Geom2@y, Geom2@y)
     in
-        a*d - b*c
+        xx*yy - xy*yx
     end;
 
 # ----------------------------------------------------------------------------
 
-declare det3d :: for_unit a, Geom3!u: (a * Geom3!u per Geom3!u) -> a^3;
+declare det3d :: for_unit a, Geom3!u: (a * Geom3! per Geom3!) -> a^3;
 
 doc det3d
     "Determinant of a <code>Geom3</code> matrix";
 
-define det3d(matrix) =
-    let m = unit_factor(matrix) '.*' magnitude(matrix),
-        a = get(m, Geom3@x, Geom3@x),
-        b = get(m, Geom3@x, Geom3@y),
-        c = get(m, Geom3@x, Geom3@z),
-        d = get(m, Geom3@y, Geom3@x),
-        e = get(m, Geom3@y, Geom3@y),
-        f = get(m, Geom3@y, Geom3@z),
-        g = get(m, Geom3@z, Geom3@x),
-        h = get(m, Geom3@z, Geom3@y),
-        i = get(m, Geom3@z, Geom3@z)
+define det3d(A) =
+    let xx = get(A, Geom3@x, Geom3@x),
+        xy = get(A, Geom3@x, Geom3@y),
+        xz = get(A, Geom3@x, Geom3@z),
+        yx = get(A, Geom3@y, Geom3@x),
+        yy = get(A, Geom3@y, Geom3@y),
+        yz = get(A, Geom3@y, Geom3@z),
+        zx = get(A, Geom3@z, Geom3@x),
+        zy = get(A, Geom3@z, Geom3@y),
+        zz = get(A, Geom3@z, Geom3@z)
     in
-        a*e*i + b*f*g + c*d*h - c*e*g - b*d*i - a*f*h
+        xx*yy*zz + xy*yz*zx + xz*yx*zy - xz*yy*zx - xy*yx*zz - xx*yz*zy
     end;
 
 # ----------------------------------------------------------------------------
