@@ -271,7 +271,6 @@ public class DocumentationGenerator {
         } else {
             println("<p>Interface for the <code>%s</code> library</p>", module);
         }
-        println("<small>Version %s, %s</small>", version, ZonedDateTime.now());
 
         // Print the types for the values and the function in a synopsis section
         println("<h2>Synopsis</h2>");
@@ -369,8 +368,7 @@ public class DocumentationGenerator {
 
                 for (String name : funs) {
                     println("<h3 id=\"%s\">%s</h3>", name, name);
-                    String args = String.format("(%s)", argsString(name));
-                    println("<p><code>%s%s :: %s</code>", name, args, lookupType(name));
+                    println("<p><code>:: %s</code>", lookupType(name));
                     if (this.primitives.contains(name)) {
                         println("<p>Primitive function");
                     }
@@ -381,6 +379,8 @@ public class DocumentationGenerator {
                 }
             }
         }
+
+        println("<small>Version %s, %s</small>", version, ZonedDateTime.now());
 
         // Finish the html
         println("</body>");
