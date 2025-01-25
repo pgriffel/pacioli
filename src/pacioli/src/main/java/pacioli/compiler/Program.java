@@ -280,11 +280,10 @@ public class Program {
                 Kind kind = doc.id.determineKind(valueExists, typeExists);
 
                 // Find the proper info and set the documentation
-                String docu = ((StringNode) doc.body).valueString();
                 if (kind.equals(IdentifierNode.Kind.VALUE)) {
-                    valueBuilders.get(name).documentation(docu);
+                    valueBuilders.get(name).documentation(doc);
                 } else {
-                    typeBuilders.get(name).documentation(docu);
+                    typeBuilders.get(name).documentation(doc);
                 }
             }
         }

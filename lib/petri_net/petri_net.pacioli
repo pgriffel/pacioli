@@ -68,7 +68,7 @@ declare petri_marking ::
     for_unit P!u:
       (PetriNet(P!u, T!)) -> P!u;
 
-doc petri_marking
+doc petri_unit
     "The units of measurement of the Petri net's pre and post matrices.";
 
 declare petri_unit ::
@@ -76,7 +76,7 @@ declare petri_unit ::
     for_unit P!u:
       (PetriNet(P!u, T!)) -> P!u per T!;
 
-doc petri_marking
+doc place_unit
     "Unit vector for the net's places.";
 
 declare place_unit ::
@@ -84,7 +84,7 @@ declare place_unit ::
     for_unit mon, P!u:
       (PetriNet(P!u, T!)) -> P!u;
 
-doc petri_marking
+doc transition_unit
     "Unit vector for the net's transitions.";
 
 declare transition_unit ::
