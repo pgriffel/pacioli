@@ -255,7 +255,7 @@ declare diagonal3 :: for_index P: for_unit a,P!u: (a*P!u) -> P! per P!;
 
 
 define diagonal(x) =
-  let u = row_unit(x), units = unit_factor(x) '.*' u per u in
+  let u = row_unit(x), units = scalar_unit(x) '.*' u per u in
     make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
   end;
 

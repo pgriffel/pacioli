@@ -18,22 +18,22 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 export
-    intercalate,
+    join_string,
     int2str;
 
 # ----------------------------------------------------------------------------
 # String
 # ----------------------------------------------------------------------------
 
-doc intercalate
+doc join_string
     "Contatenates all strings with the seperator between them all.
     
-    For example <code>intercalate([\"a\", \"bb\", \"ccc\"], \"++\")</code> is
+    For example <code>join_string([\"a\", \"bb\", \"ccc\"], \"++\")</code> is
     <code>\"a++bb++ccc\"</code>";
 
-declare intercalate :: (List(String), String) -> String;
+declare join_string :: (List(String), String) -> String;
 
-define intercalate(items, seperator) =
+define join_string(items, seperator) =
   if items = [] then "" else
     fold_list((x, y) -> concatenate(x, concatenate(seperator, y)), items)
   end;

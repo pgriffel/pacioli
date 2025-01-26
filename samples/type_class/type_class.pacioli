@@ -20,7 +20,7 @@ definstance Eq(a) for_unit a:
    is_equal(x, y) = x = y;
 
 definstance Eq(String)
-   is_equal(x, y) = string_compare(x, y) = 0;
+   is_equal(x, y) = compare_string(x, y) = 0;
 
 
 # A test function

@@ -18,7 +18,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 export
-    string_compare,
+    compare_string,
     concatenate,
     split_string,
     trim,
@@ -34,11 +34,11 @@ export
 # Strings
 # ----------------------------------------------------------------------------
 
-doc string_compare
+doc compare_string
     "Alphanumerical ordering of strings. Returns -1 if x comes before y, returns 1
     if x comes after y and returns 0 if x equals y.";
 
-declare string_compare :: (String, String) -> 1;
+declare compare_string :: (String, String) -> 1;
 
 # ----------------------------------------------------------------------------
 

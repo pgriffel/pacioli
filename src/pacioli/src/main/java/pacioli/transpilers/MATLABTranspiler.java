@@ -538,7 +538,7 @@ public class MATLABTranspiler implements SymbolTableVisitor {
             "end\n" +
             "\n" +
             "\n" +
-            "function num = glbl_base_unit_factor(x)\n" +
+            "function num = glbl_base_scalar_unit(x)\n" +
             "  num = 1;\n" +
             "endfunction\n" +
             "\n" +

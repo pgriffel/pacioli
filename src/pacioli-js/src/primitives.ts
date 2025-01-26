@@ -249,7 +249,7 @@ export function compute_$base_matrix__() {
   return createCoordinates([]);
 }
 
-export function $base_matrix_unit_factor(_x: any) {
+export function $base_matrix_scalar_unit(_x: any) {
   return oneNumbers(1, 1);
 }
 
@@ -994,7 +994,7 @@ export function $base_string_num2str(num: any, unit: any) {
   return matrix.toDecimal(NR_DECIMALS);
 }
 
-export function $base_string_string_compare(x: any, y: any) {
+export function $base_string_compare_string(x: any, y: any) {
   return initialNumbers(1, 1, [[0, 0, x < y ? -1 : x > y ? 1 : 0]]);
 }
 

@@ -103,7 +103,7 @@ define growth_vector_map(curve, translation, growth_constant, rotation, landmark
 # ----------------------------------------------------------------------------
                        
 define shell_unit(shell) =
-  unit_factor(curve_nth(0, shell_initial_curve(shell)));
+  scalar_unit(curve_nth(0, shell_initial_curve(shell)));
 
 define get_settings(shell) = 
   let (x, _, _) = shell in x end;

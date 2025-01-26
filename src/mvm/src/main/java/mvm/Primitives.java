@@ -1053,7 +1053,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("string_string_compare") {
+        storePrimitive(store, new Primitive("string_compare_string") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliString string1 = (PacioliString) params.get(0);
                 PacioliString string2 = (PacioliString) params.get(1);
@@ -1292,7 +1292,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("io_file_write") {
+        storePrimitive(store, new Primitive("io_write_string") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 FileHandle handle = (FileHandle) params.get(0);
                 PacioliString text = (PacioliString) params.get(1);
