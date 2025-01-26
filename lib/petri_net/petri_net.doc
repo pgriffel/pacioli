@@ -4,73 +4,72 @@ Petri net a unit of measurement is associated with the net's places.
 
 <p>
 A Petri net is a tuple
-(<math>
+<math>
+  <ms>(</ms>
   <mi>P</mi>
-</math>,
-<math>
+  <mo>,</mo>
   <mi>T</mi>
-</math>,
-<math>
+  <mo>,</mo>
   <msup>
     <mi>F</mi>
     <mi>&plus;</mi>
   </msup>
-</math>,
-<math>
+  <mo>,</mo>
   <msup>
     <mi>F</mi>
     <mi>&minus;</mi>
   </msup>
-</math>)
+  <ms>)</ms>
+</math>
 
 with 
 <ul>
-<li>
-<math>
-  <mi>P</mi>
-</math>
-a set of places,
-</li>
-<li>
-<math>
-  <mi>T</mi>
-</math>
-a set of transitions,
-</li>
-<li>
-<math>
-  <msup>
-    <mi>F</mi>
-    <mi>&plus;</mi>
-  </msup>
-</math>
-a matrix of the form
-<math>
-  <mi>P</mi>
-  <mo>&times;</mo>
-  <mi>T</mi>
-  <mo>&rarr;</mo>
-  <mi>&Nopf;</mi>
-</math>
-called the post matrix, and
-</li>
-<li>
-<math>
-  <msup>
-    <mi>F</mi>
-    <mi>&minus;</mi>
-  </msup>
-</math>
-a matrix of the form
-<math>
-  <mi>P</mi>
-  <mo>&times;</mo>
-  <mi>T</mi>
-  <mo>&rarr;</mo>
-  <mi>&Nopf;</mi>
-</math>
-called the pre matrix.
-</li>
+  <li>
+    <math>
+      <mi>P</mi>
+    </math>
+    a set of places,
+  </li>
+  <li>
+    <math>
+      <mi>T</mi>
+    </math>
+    a set of transitions,
+  </li>
+  <li>
+    <math>
+      <msup>
+        <mi>F</mi>
+        <mi>&plus;</mi>
+      </msup>
+    </math>
+    a matrix of the form
+    <math>
+      <mi>P</mi>
+      <mo>&times;</mo>
+      <mi>T</mi>
+      <mo>&rarr;</mo>
+      <mi>&Nopf;</mi>
+    </math>
+    called the post matrix, and
+  </li>
+  <li>
+    <math>
+      <msup>
+        <mi>F</mi>
+        <mi>&minus;</mi>
+      </msup>
+    </math>
+    a matrix of the form
+    <math>
+      <mi>P</mi>
+      <mo>&times;</mo>
+      <mi>T</mi>
+      <mo>&rarr;</mo>
+      <mi>&Nopf;</mi>
+    </math>
+    called the pre matrix.
+  </li>
 </ul>
 
 
@@ -160,9 +159,6 @@ tokens from each place, and produces
 tokens for each place.
 
 
-
-
-
 <p>
 In a matrix setting it is natural to define firing of transitions in parallel.
 Given a transition vector
@@ -196,27 +192,27 @@ fires, the new marking
 is given by
 
 <blockquote>
-<math>
-  <mi>m</mi>
-  <mi>'</mi>
-  <mo>=</mo>
-  <mi>m</mi>
-  <mo>+</mo>
-  <mi>F</mi>
-  <mi>x</mi>
-  <ms>
-</math>
-under the condition that
-<math>
-  </ms>
-  <msup>
+  <math>
+    <mi>m</mi>
+    <mi>'</mi>
+    <mo>=</mo>
+    <mi>m</mi>
+    <mo>+</mo>
     <mi>F</mi>
-    <mi>&minus;</mi>
-  </msup>
-  <mi>x</mi>
-  <mo>&ge;</mo>
-  <mn>m</mn>
-</math>
+    <mi>x</mi>
+    <ms>
+  </math>
+  under the condition that
+  <math>
+    </ms>
+    <msup>
+      <mi>F</mi>
+      <mi>&minus;</mi>
+    </msup>
+    <mi>x</mi>
+    <mo>&ge;</mo>
+    <mn>m</mn>
+  </math>
 </blockquote>
 
 where flow matrix
@@ -236,5 +232,4 @@ is defined as
     <mi>F</mi>
     <mi>&minus;</mi>
   </msup>
-
 </math>
