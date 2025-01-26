@@ -273,7 +273,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("matrix_unit_factor") {
+        storePrimitive(store, new Primitive("matrix_scalar_unit") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix matrix = (Matrix) params.get(0);
                 return new Matrix(matrix.shape.factor());
