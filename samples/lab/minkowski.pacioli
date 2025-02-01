@@ -2,6 +2,7 @@
 
 ###############################################################
 # Minkowski example to study heterogeneous units
+# This is an example of a non-euclidean metric.
 
 import testing;
 

@@ -7,6 +7,8 @@ include generated/generated_algebra; #physics uses Geom3
 #
 # Cross-vector Ssenes in this file
 #
+# Abandoned experiment with displaying cross vectors based upon geometric algebra.
+#
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------

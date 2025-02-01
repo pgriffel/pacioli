@@ -4,6 +4,10 @@ include minkowski;
 
 # ------------------------------------------------------------------------------
 # Matrix representation of bilinear forms
+# - based upon Roman, Advanced Linear Algebra
+#
+# Motivation: how to do units of measurements correctly with metrics?
+# - how does this relate to isometry? https://en.wikipedia.org/wiki/Isometry 
 #
 # Consider a vector with index set I and uniform unit of measurement a, then
 # the vector's type is a*I!.
@@ -259,3 +263,24 @@ define r = 100;
 
 
 2*g*me/c/c;
+
+# ------------------------------------------------------------------------------
+# Isometry definition
+#
+# See https://en.wikipedia.org/wiki/Isometry
+#
+# ------------------------------------------------------------------------------
+
+# A map f: X -> Y is called an isometry or distance-preserving map if for any a,b in X
+# dx(a,b) = dy(f(a), f(b)) [wikipedia]
+
+declare is_isometry_predicate ::for_index B, C: for_unit a: 
+    ((a*B!) -> a*C!, B! per B!, C! per C!) -> (a*B!, a*B!) -> Boole;
+
+define is_isometry_predicate(f, metric_x, metric_y) = 
+    (a, b) -> metric_distance(metric_x, a, b) = metric_distance(metric_y, f(a), f(b));
+
+is_isometry_predicate(fun, minkowski_metric, minkowski_metric)
+    (nth(0, test_vecs), nth(1, test_vecs));
+
+define fun(x) = x;

@@ -1,5 +1,7 @@
 
 # Rotating frame of vectors example (Doran, p69)
+# Abandoned experiment to find a physics example in geoemtric algebra that illustrates
+# the issue with the scalar unit in geometric algebra.
 # Multivector version
 #declare framevector_mv :: for_unit a: ((a * Geom3!), second) -> (a, Geom3!);
 
@@ -48,7 +50,7 @@ multivector2string(rotor_mv(0.1 * |second|, 1 * |radian| / |second|));
 
 
 ##########################################
-# HARD
+# HARD CODED
 ##########################################
 
 

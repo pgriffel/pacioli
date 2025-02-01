@@ -1,0 +1,243 @@
+# ------------------------------------------------------------------------------
+# Some experiments with quaternion representations of complex numbers
+# ------------------------------------------------------------------------------
+
+#
+# Quaternion_representation in complex.pacioli gives the representation of a Complex
+# number as a quaternion; the idea is simply to disregard the j and k by setting them 
+# to 0.
+# The quaternion_representation_test_suite contains tests for the correct working of
+# all operations on complex numbers in this representation.
+#
+# Complex numbers and quaternions both have a geometric representation as a vector. For
+# complex numbers this vector represenation is the well known 2 dimenstional representation
+# in the complex plane with the real and imanginary values as components.
+# Quaternions represent 3-dimensional vectors with the i,j,k components, ignoring the real
+# part.
+# Hence the representation of a 2D complex number as a 3D vector in quaternion representation
+# requires one further constraint - in order to represent a 2D vector.
+#
+# As can be seen this leads to two different representations of a complex number as a 
+# quaternion:
+# (a, b, 0, 0) 
+# (0, a, b, 0) 
+# where a is the real and b the imaginary part of the complex number. In the second representation
+# k is simply set to 0 in order to represent the 2D complex number as a vector.
+#
+# Rotations
+#
+# The quaternion_rotation_test_suit contains tests on the computation of a rotation of 
+# complex number as a vector. The rotation of a vector as a quaternion requires the application
+# of a sandwich formula on quaternions. The tests show that the computation works only correctly
+# with the second representation above.
+#
+# In the sandwich formula one of the vectors is called the rotor, the other is called the rotee;
+# the idea is that the rotor acts upon the rotee.
+# The rotor needs to be a dimensionless complex number, in order to make the result have the 
+# same unit type as the rotee.
+#  
+Just as quaternions complex numbers can be seen both as numbers and as rotating operators.
+# We call the acting rotating operator the rotor; the rotor acts upon the 'rotee'. Both can be
+# represented as either a quaternion or a complex number.
+# A rotation is the product of a rotor and a rotee, however for complex numbers this is a commutative operation,
+# so rotor(rotee) = rotee(rotor).
+#
+# Finding is that only a dimensionless complex number as rotor leaves the unit of measurement of the rotee invariant.
+#
+# 
+
+
+import testing;
+import geometry;
+import quaternion;
+include complex;
+include standard_candidates;
+
+# ------------------------------------------------------------------------------
+# Running the tests
+# ------------------------------------------------------------------------------
+
+run_test_suites([
+    quaternion_representation_test_suite("dimensioned", test_numbers_dimensioned),
+    quaternion_representation_test_suite("dimensionless", test_numbers_dimless),
+    quaternion_rotation_test_suite("dimensioned")
+]);
+
+# ------------------------------------------------------------------------------
+# Test input
+# ------------------------------------------------------------------------------
+
+define test_numbers_dimless = [
+    make_complex(0, 0),
+    make_complex(1, 0),
+    make_complex(0, 1),
+    make_complex(1, 1),
+    make_complex(-1, -1),
+    make_complex(2, 3),
+    make_complex(-2, 3)
+];
+
+define test_numbers_dimensioned = [
+    make_complex(0 * |metre|, 0 * |metre|),
+    make_complex(1 * |metre|, 0 * |metre|),
+    make_complex(0 * |metre|, 1 * |metre|),
+    make_complex(1 * |metre|, 1 * |metre|),
+    make_complex(-1 * |metre|, -1 * |metre|),
+    make_complex(2 * |metre|, 3 * |metre|),
+    make_complex(-2 * |metre|, 3 * |metre|)
+];
+
+
+
+# Rotation of quaternions requires the sandwich computation
+define quaternion_sandwich(rotor, rotee) =
+    quaternion_product(quaternion_product(rotor, rotee), quaternion_inverse(rotor));
+
+
+# ------------------------------------------------------------------------------
+# Quaternion representation
+# ------------------------------------------------------------------------------
+
+define quaternion_representation_test_suite(description, test_numbers) = 
+    test_suite(format("Quaternion representation of a complex number - %s", description), [
+
+        test("sum works", () ->
+            all[quaternion_sum(qx, qy) = quaternion_representation(complex_sum(x, y)) | 
+                x <- test_numbers,
+                y <- test_numbers,
+                qx := quaternion_representation(x),
+                qy := quaternion_representation(y)]
+        ),
+
+        test("product works", () ->
+            all[quaternion_product(qx, qy) = quaternion_representation(complex_product(x, y)) | 
+                x <- test_numbers,
+                y <- test_numbers,
+                qx := quaternion_representation(x),
+                qy := quaternion_representation(y)]
+        ),
+
+        test("complex_norm works", () ->
+            all[complex_norm(x) = quaternion_norm(quaternion_representation(x)) |
+                x <- test_numbers]
+        ),
+
+        test("unit_complex works", () ->
+            all[unit_quaternion(quaternion_representation(x)) = quaternion_representation(unit_complex(x)) | 
+                x <- test_numbers]
+        ),
+         
+        test("scale_complex works", () ->
+            all[scale_quaternion(c, qy) = quaternion_representation(scale_complex(c, y)) | 
+                x <- [-2, -1, 0, 1, 2],
+                c := x * |milli:metre|,
+                y <- test_numbers,
+                qy := quaternion_representation(y)]
+        ),
+                
+        test("conjugate works", () ->
+            all[quaternion_conjugate(qx) = quaternion_representation(conjugate(x)) | 
+                x <- test_numbers,
+                qx := quaternion_representation(x)]
+        ),
+         
+        test("complex_inverse works", () ->
+            all[quaternion_inverse(qx) = quaternion_representation(complex_inverse(x)) | 
+                x <- test_numbers,
+                qx := quaternion_representation(x)]
+        )
+  
+    ]);
+
+
+define quaternion_rotation_test_suite(description) = 
+    test_suite(format("Quaternion rotation of a complex number - %s", description), [
+
+        test("complex rotation with alternative (0,a,b,0) quaternion representation works", () ->
+            let rotor = make_complex(0, 2),
+                rotee = make_complex(1 * |metre|, 2 * |metre|)
+            in
+                quaternion_sandwich(
+                        make_quaternion(sqrt(2)/2, 0, 0, sqrt(2)/2), 
+                        scale_quaternion(|metre|,
+                            make_quaternion(0, 1, 2, 0))) = 
+                scale_quaternion(|metre|, make_quaternion(0, -2, 1, 0))
+            end
+        ),
+
+        test("complex rotation on quaternion representation (a,b,0,0) fails", () ->
+            let rotor = make_complex(0, 2),
+                rotee = make_complex(1 * |metre|, 2 * |metre|)
+            in
+                quaternion_sandwich(quaternion_representation(rotor),
+                                    quaternion_representation(rotee)) =
+                quaternion_representation(complex_product(rotor, rotee))
+            end
+        )      
+  
+    ]);
+
+# ------------------------------------------------------------------------------
+# Rotations
+# ------------------------------------------------------------------------------
+    
+define rotor = make_complex(0, 2);
+define unit_rotor = unit_complex(rotor);
+
+define rotor_dim = scale_complex(|metre|, rotor);
+define unit_rotor_dim = scale_complex(|metre|, unit_rotor);
+
+define rotee = make_complex(1 * |metre|, 2 * |metre|);
+
+"rotee:";
+complex2str(rotee, |metre|);
+
+"rotor:";
+complex2str(rotor, |1|);
+
+
+"complex_product(unit_rotor_dim, rotee):";
+complex2str(complex_product(unit_rotor_dim, rotee), |metre^2|);
+
+"complex_product(unit_rotor, rotee):";
+complex2str(complex_product(unit_rotor, rotee), |metre|);
+
+define complex_q_rotor = quaternion_representation(unit_rotor);
+define complex_q_rotor_dim = quaternion_representation(unit_rotor_dim);
+define complex_q_rotee = quaternion_representation(rotee);
+
+define q_rotor = unit_quaternion(make_quaternion(1, 2, 3, 4));
+define q_rotor_dim = scale_quaternion( |metre|, unit_quaternion(make_quaternion(1, 2, 3, 4)));
+define q_rotee = make_quaternion(5 * |metre|, 6 * |metre|, 7 * |metre|, 8 * |metre|);
+
+define quaternion_commutes(q1, q2) =
+    quaternion_product(q1, q2) =  quaternion_product(q2, q1);
+
+"quaternion_commutes(q_rotor, q_rotee);";
+quaternion_commutes(q_rotor, q_rotee);
+
+"quaternion_commutes(quaternion_representation(rotor), quaternion_representation(rotee));";
+quaternion_commutes(quaternion_representation(rotor), quaternion_representation(rotee));
+
+"q_rotor_dim * q_rotee:";
+quaternion2str(quaternion_product(q_rotor_dim, q_rotee), |metre|^2);
+
+define complex_sandwich(rotor, rotee) = 
+    complex_product(complex_product(rotor, rotee), complex_inverse(rotor));
+
+
+"complex_sandwich(rotor, rotee)";
+complex2str(complex_sandwich(rotor, rotee), |metre|);
+
+
+"quaternion_sandwich(q_rotor, q_rotee)";
+quaternion2str(quaternion_sandwich(q_rotor, q_rotee), |metre|);
+
+
+
+# Both a complex number represented as a 2x2 matrix and a complex number represented as a quaternion in which j and k are 0
+# are commutative (they form a normal subgroup). Therefore no sandwich formulas are needed for rotations.
+# For the types
+# 
+
+

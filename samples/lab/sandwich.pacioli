@@ -1,3 +1,8 @@
+# THe introduction of Hart's Dimensional Inverse operation raises the question if sandwich 
+# formulas are affected. Based upon Griffoen.
+# Uses the pacioli type system to infer and solve questions about properties of the
+# T, R and D operators.
+
 # The logic of the transpose can be seen by replacing 'per' by multiplication of the inverse as follows:
 # (a * I!u per J!w)^T = (a * I!u * J!w^-1)^T = a * J!w^-1 * I!u = a * J!w^-1 per I!u^-1
 # Transpose: a . I!v per J!w => a . J!w^-1 per I!v^-1
