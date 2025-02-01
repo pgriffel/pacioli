@@ -12,6 +12,7 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
@@ -629,5 +630,12 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(LetNode node) {
         node.asApplication().accept(this);
+    }
+
+    @Override
+    public void visit(DataQueryNode node) {
+        if (true)
+            throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+
     }
 }

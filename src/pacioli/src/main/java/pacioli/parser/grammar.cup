@@ -314,14 +314,14 @@ parser code {:
 
 
 terminal INCLUDE, IMPORT, EXPORT, PUBLIC;
-terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC;
+terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC, DEFDATA;
 terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, DO, ASSIGN, EXCL, TO, FROM;
 terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, FOROP, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
 terminal PLUS, MULT, DIV, MOD, MMULT, HAT, NEG, LEFTDIV, MDIV, MEXPT, MLEFTDIV;
 terminal RSCALEDOWN, RSCALE, LSCALEDOWN, LSCALE, TRANS, DIMINV, RECI;
 terminal EQL, NEQ, EQUIV, LE, GT, LEQ, GTQ, AND, OR, IMPLIES, FOLLOWSFROM;
-terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING, QUESTIONMARKS, WHERE;
+terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING, QUESTIONMARKS, SELECT, QFROM, WHERE, AS;
 
 
 non terminal ProgramNode                     program;
@@ -352,6 +352,10 @@ non terminal TypePredicateNode               condition;
 non terminal List<TypeAssertion>             classmembers, typeassertion;
 non terminal List<ValueEquation>             classmemberdefs;
 non terminal ValueEquation                   valueeq;
+non terminal ExpressionNode                  query;
+non terminal DataDefinitionNode.Binding              data_binding;
+non terminal List<DataDefinitionNode.Binding>        data_bindings;
+non terminal List<ExpressionNode>            select_parts;
 
 precedence right        TO;
 precedence nonassoc     EQUIV, FOLLOWSFROM, IMPLIES;
@@ -444,7 +448,18 @@ definition ::=
  | DOC:d id:kind id:id STRING:s                     {: pacioli.compiler.Location loc = makeLoc(dxleft, sxright);
                                                        RESULT = new Documentation(loc, id.withKind(kind), new StringNode(s, makeLoc(sxleft, sxright))); :}
  | expr:e                                           {: RESULT = new Toplevel(e.location(), e); :}
+ | DEFDATA:d id:id EQL type:e WHERE data_bindings:cs {: ExpressionNode def = new DataDefinitionNode(makeLoc(exleft, csxright), e, cs);
+                                                       RESULT = new ValueDefinition(makeLoc(dxleft, csxright), id, def); :}
  ;
+
+
+data_bindings ::=
+   data_binding:c                                    {: RESULT = new LinkedList<DataDefinitionNode.Binding>(Arrays.asList(c)); :}
+ | data_bindings:cs COMMA data_binding:c                {: cs.add(c); RESULT = cs; :}
+ ;
+ 
+data_binding ::=
+   id:id COLON dim_type:t                           {: RESULT = new DataDefinitionNode.Binding(id, t, makeLoc(idxleft, txright)); :};
 
 //------------------------------------------------------------------------------
 // Include path
@@ -652,6 +667,7 @@ expr_no_id ::=
  | BOOLEAN:b                                        {: RESULT = new ConstNode(b, makeLoc(bxleft, bxright)); :}
  | STRING:s                                         {: RESULT = new StringNode(s, makeLoc(sxleft, sxright)); :}
  | QUESTIONMARKS:s                                  {: RESULT = new ApplicationNode(new IdentifierNode("_three_question_marks", makeLoc(sxleft, sxright)), new ArrayList<ExpressionNode>() , makeLoc(sxleft, sxright)); :}
+ | query:q                                          {: RESULT = q; :}
  ;
 
 //------------------------------------------------------------------------------
@@ -784,6 +800,25 @@ part ::=
                                                             report_fatal_error("Fixme: this string is not used? How to throw an error here?", g);
                                                         } :}
  ;
+
+//------------------------------------------------------------------------------
+// Data query
+//------------------------------------------------------------------------------
+
+query ::=
+    SELECT:s select_parts:x
+        QFROM id:id WHERE:w expr:e                  {: pacioli.compiler.Location loc = makeLoc(sxleft, exright);
+                                                       RESULT = new DataQueryNode(x, new LinkedList<ExpressionNode>(), id, e, loc); :}
+  | SELECT:s select_parts:x PER select_parts:y
+        QFROM id:id WHERE:w expr:e                  {: pacioli.compiler.Location loc = makeLoc(sxleft, exright);
+                                                       RESULT = new DataQueryNode(x, y, id, e, loc); :}
+  ;
+
+select_parts ::=
+    expr:e                                          {: RESULT = new LinkedList<ExpressionNode>(Arrays.asList(e)); :}
+  | expr:e AS id:id                                 {: RESULT = new LinkedList<ExpressionNode>(Arrays.asList(e)); :}
+  | expr:e MOD select_parts:ps                      {: ps.add(e); RESULT = ps; :}
+  ;
 
 //------------------------------------------------------------------------------
 // Types and schemas

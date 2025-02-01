@@ -30,6 +30,8 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.DataDefinitionNode;
+import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
@@ -852,5 +854,18 @@ public class PrintVisitor implements Visitor {
         write("(");
         writeCommaSeparated(node.args);
         write(")");
+    }
+
+    @Override
+    public void visit(DataDefinitionNode node) {
+        mark();
+        write("defdata ");
+        write(" TODO ");
+        unmark();
+    }
+
+    @Override
+    public void visit(DataQueryNode node) {
+        write("TODO: DataQueryNode");
     }
 }

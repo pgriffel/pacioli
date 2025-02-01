@@ -14,6 +14,8 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.DataDefinitionNode;
+import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
@@ -625,5 +627,31 @@ public class TypeInference extends IdentityVisitor {
                 "the body of a while must be a statement");
         returnNode(typing);
 
+    }
+
+    @Override
+    public void visit(DataDefinitionNode node) {
+        // Should the true arg be based on the local property?. Remove the argument!!!!
+        // Is/should be solved during resolve.
+        returnNode(new Typing(
+                new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "Data"), findInfo("Data")),
+                        List.of(node.declaredType.evalType()))));
+
+        // returnNode(new Typing(node.type().evalType()));
+    }
+
+    @Override
+    public void visit(DataQueryNode node) {
+        var body = node.source.info().definition();
+        if (body.isPresent()) {
+            if (body.get().body instanceof DataDefinitionNode b) {
+                // TODO: create proper type from this source type and the query
+                returnNode(new Typing(b.declaredType.evalType()));
+            } else {
+                throw new PacioliException(node.location(), "No data body in query");
+            }
+        } else {
+            throw new PacioliException(node.location(), "No body in query");
+        }
     }
 }
