@@ -1,0 +1,25 @@
+{
+  "name": "pacioli",
+  "displayName": "pacioli",
+  "description": "Pacioli language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "pacioli",
+      "aliases": ["pacioli", "pacioli"],
+      "extensions": ["pacioli"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "pacioli",
+      "scopeName": "pacioli",
+      "path": "./syntaxes/pacioli.tmLanguage.json"
+    }]
+  }
+}
