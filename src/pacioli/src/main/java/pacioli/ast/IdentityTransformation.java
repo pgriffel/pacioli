@@ -24,6 +24,8 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.DataDefinitionNode;
+import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
@@ -519,6 +521,16 @@ public class IdentityTransformation implements Visitor {
             args.add(typeAccept(arg));
         }
         returnNode(new TypePredicateNode(node.location(), node.id, args));
+    }
+
+    @Override
+    public void visit(DataDefinitionNode node) {
+        returnNode(node);
+    }
+
+    @Override
+    public void visit(DataQueryNode node) {
+        returnNode(node);
     }
 
 }

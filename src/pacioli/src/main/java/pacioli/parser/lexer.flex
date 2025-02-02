@@ -107,6 +107,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "defconv"         { return symbol("defconv",DEFCONV); }
   "defclass"        { return symbol("defclass",DEFCLASS); }
   "definstance"     { return symbol("definstance",DEFINSTANCE); }
+  "defdata"         { return symbol("defdata",DEFDATA); }
   "doc"             { return symbol("doc",DOC); }
   "public"          { return symbol("public", PUBLIC); }
   "export"          { return symbol("export", EXPORT); }
@@ -114,7 +115,10 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "for_index"       { return symbol("for_index",FORINDEX); }
   "for_unit"        { return symbol("for_unit",FORUNIT); }
   "for_op"          { return symbol("for_op",FOROP); }
+  "select"          { return symbol("select",SELECT); }
+  "from"            { return symbol("from",QFROM); }
   "where"           { return symbol("where",WHERE); }
+  "as"              { return symbol("as",AS); }
 
   /* literals */
   {Natural}         { return symbol("Natural", NATURAL, yytext()); }

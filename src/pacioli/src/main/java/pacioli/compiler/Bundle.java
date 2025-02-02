@@ -59,7 +59,8 @@ public class Bundle {
             "Identifier",
             "Maybe",
             "Array",
-            "File");
+            "File",
+            "Data");
 
     private final PacioliFile file;
     private final List<File> libs;

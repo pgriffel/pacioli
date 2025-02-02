@@ -23,6 +23,8 @@ import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.DataDefinitionNode;
+import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.KeyNode;
@@ -646,5 +648,22 @@ public class ResolveVisitor extends IdentityVisitor {
     @Override
     public void visit(LetFunctionBindingNode node) {
         throw new RuntimeException("obsolete");
+    }
+
+    @Override
+    public void visit(DataDefinitionNode node) {
+        node.declaredType.accept(this);
+    }
+
+    @Override
+    public void visit(DataQueryNode node) {
+        node.source.accept(this);
+        // for (ExpressionNode expr : node.contraDims) {
+        // expr.accept(this);
+        // }
+        // for (ExpressionNode expr : node.coDims) {
+        // expr.accept(this);
+        // }
+        // node.condition.accept(this);
     }
 }

@@ -55,3 +55,26 @@ defmatrix agg :: Realm! per Region! = {
 
 #nmode(sales, 2, agg);
 #nmode(amount, 2, agg);
+
+declare M :: 1;
+
+defdata csv_sales = 
+    us_dollar * commodity % year % region
+    where
+        commodity: Commodity!unit,
+        year: Year!,
+        region: Region!;
+ 
+define loaded_sales = 
+    select commodity % year
+    from csv_sales
+    where year = 2018;
+ 
+loaded_sales;
+
+define loaded_sales2 = 
+    select commodity % M '*' year as decade
+    from csv_sales
+    where year = 2018;
+
+loaded_sales2;
