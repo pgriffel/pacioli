@@ -1,7 +1,9 @@
 package pacioli.compiler;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,6 +43,9 @@ public class DocumentationGenerator {
     Set<String> functions = new HashSet<>();
     Set<String> values = new HashSet<>();
 
+    // Is a function or value primitive?
+    Set<String> primitives = new HashSet<>();
+
     // Info for type definitions
     Map<String, String> typeDocs = new HashMap<>();
     Map<String, String> typeLHS = new HashMap<>();
@@ -71,6 +76,16 @@ public class DocumentationGenerator {
         values.add(name);
     }
 
+    public void addPrimitiveValue(String name, String type, String documentation) {
+        this.addValue(name, type, documentation);
+        this.primitives.add(name);
+    }
+
+    public void addPrimitiveValue(String name, TypeObject type, String documentation) {
+        this.addValue(name, type, documentation);
+        this.primitives.add(name);
+    }
+
     public void addValue(String name, String type, String documentation) {
         if (argumentsTable.containsKey(name)) {
             throw new RuntimeException(String.format("Cannot add value %s, it is already added as function", name));
@@ -98,6 +113,16 @@ public class DocumentationGenerator {
         documentationTable.put(name, documentation);
         argumentsTable.put(name, arguments);
         functions.add(name);
+    }
+
+    public void addPrimitiveFunction(String name, List<String> arguments, TypeObject type, String documentation) {
+        this.addFunction(name, arguments, type, documentation);
+        this.primitives.add(name);
+    }
+
+    public void addPrimitiveFunction(String name, List<String> arguments, String type, String documentation) {
+        this.addFunction(name, arguments, type, documentation);
+        this.primitives.add(name);
     }
 
     public void addIndexSet(String name, String documentation) {
@@ -246,7 +271,6 @@ public class DocumentationGenerator {
         } else {
             println("<p>Interface for the <code>%s</code> library</p>", module);
         }
-        println("<small>Version %s, %s</small>", version, ZonedDateTime.now());
 
         // Print the types for the values and the function in a synopsis section
         println("<h2>Synopsis</h2>");
@@ -307,6 +331,9 @@ public class DocumentationGenerator {
                 println("<dt id=\"%s\"><code>%s</code></dt>", name, name);
                 println("<dd>");
                 println("<pre>:: %s</pre>", typeTable.get(name));
+                if (this.primitives.contains(name)) {
+                    println("Primitive value");
+                }
                 for (String part : getDocuParts(name)) {
                     println("\n<p>%s</p>\n", part);
                 }
@@ -317,21 +344,43 @@ public class DocumentationGenerator {
 
         // Print details for the functions
         if (funs.size() > 0) {
-            println("<h2>Functions</h2>");
-            println("<dl>");
-            for (String name : funs) {
-                String args = String.format("(%s)", argsString(name));
-                println("<dt id=\"%s\"><code>%s%s</code></dt>", name, name, args);
-                println("<dd>");
-                println("<pre>:: %s</pre>", lookupType(name));
-                for (String part : getDocuParts(name)) {
-                    println("\n<p>%s</p>\n", part);
-                }
-                println("</dd>");
 
+            if (false) {
+                println("<h2>Functions</h2>");
+                println("<dl>");
+                for (String name : funs) {
+                    String args = String.format("(%s)", argsString(name));
+                    println("<dt id=\"%s\"><code>%s%s</code></dt>", name, name, args);
+                    println("<dd>");
+                    println("<pre>:: %s</pre>", lookupType(name));
+                    if (this.primitives.contains(name)) {
+                        println("Primitive function");
+                    }
+                    for (String part : getDocuParts(name)) {
+                        println("\n<p>%s</p>\n", part);
+                    }
+                    println("</dd>");
+
+                }
+                println("</dl>");
+            } else {
+                println("<h2>Functions</h2>");
+
+                for (String name : funs) {
+                    println("<h3 id=\"%s\">%s</h3>", name, name);
+                    println("<p><code>:: %s</code>", lookupType(name));
+                    if (this.primitives.contains(name)) {
+                        println("<p>Primitive function");
+                    }
+                    for (String part : getDocuParts(name)) {
+                        println("\n<p>%s</p>\n", part);
+                    }
+
+                }
             }
-            println("</dl>");
         }
+
+        println("<small>Version %s, %s</small>", version, ZonedDateTime.now());
 
         // Finish the html
         println("</body>");
@@ -342,4 +391,12 @@ public class DocumentationGenerator {
         this.intro = intro;
     }
 
+    public void setIntroFromDocFile(File docFile) throws IOException {
+        List<String> read = Files.readAllLines(docFile.toPath());
+        String total = "";
+        for (String line : read) {
+            total += line + "\n";
+        }
+        this.setIntro(total);
+    }
 }

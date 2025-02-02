@@ -18,31 +18,31 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 export
-    file_writeln,
-    file_newline;
+    writeln,
+    newline;
 
 # ------------------------------------------------------------------------------
 # File IO
 # ------------------------------------------------------------------------------
 
-declare file_writeln :: (File, String) -> Void;
-declare file_newline :: (File) -> Void;
+declare writeln :: (File, String) -> Void;
+declare newline :: (File) -> Void;
 
 # ------------------------------------------------------------------------------
 
-doc file_writeln
+doc writeln
     "Writes a string to a file, followed by a newline.";
 
-define file_writeln(file, text) = 
+define writeln(file, text) = 
     begin
-        file_write(file, text);
-        file_write(file, "\n");
+        write_string(file, text);
+        write_string(file, "\n");
     end;
 
 # ------------------------------------------------------------------------------
 
-doc file_newline
+doc newline
     "Writes a newline to a file.";
 
-define file_newline(file) = 
-    file_write(file, "\n");
+define newline(file) = 
+    write_string(file, "\n");

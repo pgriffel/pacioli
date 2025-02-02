@@ -44,33 +44,84 @@ export
     acos,
     atan,
     atan2,
-    compare_index;
+    compare_index,
+    complement,
+    positives,
+    negatives;
 
 # ------------------------------------------------------------------------------
 # Algebra
 # ------------------------------------------------------------------------------
 
+doc inner
+    "The inner product between two vectors. The usual product
+    <math>
+      <msup>
+        <mi>x</mi>
+        <mi>T</mi>
+      </msup>
+      <mi>y</mi>
+    </math>
+    between a row and column vector.
+    
+    The vectors must be dimensionally uniform.";
+
 declare inner ::
-  for_index P: for_unit a, b, P!u: (a*P!u, b*P!u^-1) -> a*b;
-  
+  for_index P: for_unit a, b, P!u: (a*P!, b*P!) -> a*b;
+
+define inner(x,y) = x^T '*' y;
+
+# ------------------------------------------------------------------------------
+
+doc outer
+    "The outer product between two vectors. The usual product
+    <math>
+      <mi>x</mi>
+      <msup>
+        <mi>y</mi>
+        <mi>T</mi>
+      </msup>
+    </math>
+    between a column and row vector.";
+
 declare outer ::
   for_index P, Q: for_unit a, b, P!u, Q!v: (a*P!u, b*Q!v) -> a*b*P!u per Q!v^-1;
+
+define outer(x,y) = x '*' y^T;
+
+# ------------------------------------------------------------------------------
 
 declare neg :: 
     for_index D, E: for_unit a, D!b, E!c: (a * D!b per E!c) -> a * D!b per E!c;
 
+define neg(x) = -1 '.*' x;  # duplicate of negative. Which of the two names do we want?
+
+# ------------------------------------------------------------------------------
+
+doc norm
+    "The norm of a vector. The square root of the inner product
+    <math>
+      <msqrt>
+        <msup>
+          <mi>x</mi>
+          <mi>T</mi>
+        </msup>
+        <mi>x</mi>
+      </msqrt>
+    </math>.
+    The vector must be dimensionally uniform.";
+
 declare norm :: for_index P: for_unit a: (a*P!) -> a;
 
-declare normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
-
-
-define inner(x,y) = x^T '*' y;
-
-define outer(x,y) = x '*' y^T;
-
-define neg(x) = -1 '.*' x;
-
 define norm(x) = sqrt(inner(x,x));
+
+# ------------------------------------------------------------------------------
+
+doc normalized
+    "Vector in the same direction with norm 1. Scales the vector by dividing
+    by the vector's norm.";
+
+declare normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
 
 define normalized(x) = x '/.' magnitude(norm(x));
 
@@ -78,50 +129,95 @@ define normalized(x) = x '/.' magnitude(norm(x));
 # Matrix Shape
 # ------------------------------------------------------------------------------
 
+doc rows
+    "The rows of a matrix.";
+
 declare rows ::
   for_index P,Q: for_unit a,Q!v: (a*P! per Q!v) -> List(a per Q!v);
-
-declare columns ::
-  for_index P,Q: for_unit a,P!u: (a*P!u per Q!) -> List(a*P!u);
-
-declare unit ::
-  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
-
-declare delta ::
-  for_index P: (P) -> P!;
-
-declare map_matrix ::
-  for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
-
-declare is_zero_row ::
-  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c, D) -> Boole();
-
-declare is_zero_column ::
-  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c, E) -> Boole();
-
 
 define rows(matrix) = 
   [row(matrix,i) | i <- row_domain(matrix)];
 
+# ------------------------------------------------------------------------------
+
+doc columns
+    "The columns of a matrix.";
+
+declare columns ::
+  for_index P,Q: for_unit a,P!u: (a*P!u per Q!) -> List(a*P!u);
+
 define columns(matrix) =
   [column(matrix,j) | j <- column_domain(matrix)];
 
-define unit(mat) =
-  unit_factor(mat) '.*' row_unit(mat) per column_unit(mat);
+# ------------------------------------------------------------------------------
 
-define delta(x) = 
-  make_matrix([tuple(x, _, 1)]);
+doc unit
+    "The unit of a matrix.
+    
+    <code>A = magnitude(A) * unit(A)</code>
 
-define basis(matrix) =
-  [delta(x) | x <- row_domain(matrix)];
+    <code>unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)</code>";
+
+declare unit ::
+  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
+
+define unit(A) =
+  scalar_unit(A) '.*' row_unit(A) per column_unit(A);
+
+# ------------------------------------------------------------------------------
+
+doc delta
+    "Kronecker delta.
+
+    For example <code>delta(Geom3@x)</code> gives a base vector in the x direction
+    in 3D space.
+    
+    <code>get(delta(p), x, _) = if p = x then 1 else 0 end</code>";
+
+declare delta ::
+  for_index P: (P) -> P!;
+
+define delta(p) = 
+  make_matrix([tuple(p, _, 1)]);
+
+# ------------------------------------------------------------------------------
+
+doc map_matrix
+    "Applies a function to every matrix entry.
+    
+    The matrix must be dimensionally uniform.";
+
+declare map_matrix ::
+  for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
 
 define map_matrix(fun, mat) = 
   make_matrix([tuple(i, j, fun(get(mat, i, j))) | i <- row_domain(mat),
                                                   j <- column_domain(mat)]);
 
+# ------------------------------------------------------------------------------
+
+doc is_zero_row
+    "Is every entry in the row zero?";
+
+declare is_zero_row ::
+  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c, D) -> Boole();
+
 define is_zero_row(x, i) = is_zero(row(magnitude(x), i));
 
+# ------------------------------------------------------------------------------
+
+doc is_zero_column
+    "Is every entry in the column zero?";
+
+declare is_zero_column ::
+  for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c, E) -> Boole();
+
 define is_zero_column(x, j) = is_zero(column(magnitude(x), j));
+
+# ------------------------------------------------------------------------------
+
+define basis(matrix) =
+  [delta(x) | x <- row_domain(matrix)];
 
 # ------------------------------------------------------------------------------
 # Bit Vectors
@@ -130,12 +226,24 @@ define is_zero_column(x, j) = is_zero(column(magnitude(x), j));
 declare complement, positives, negatives ::
   for_index P, Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
 
+doc complement
+    "<code>complement(A) = unit(A) - A</code>";
 
-define complement(x) = unit(x) - x;
+define complement(A) = unit(A) - A;
 
-define positives(x) = x * positive_support(x);
+# ------------------------------------------------------------------------------
 
-define negatives(x) = x * negative_support(x);
+doc positives
+    "Matrix with only the positive entries. The negative entries become zero.";
+
+define positives(A) = A * positive_support(A);
+
+# ------------------------------------------------------------------------------
+
+doc negatives
+    "Matrix with only the negative entries. The positive entries become zero.";
+
+define negatives(A) = A * negative_support(A);
 
 # ------------------------------------------------------------------------------
 # Diagonal Matrices
@@ -147,14 +255,18 @@ declare diagonal3 :: for_index P: for_unit a,P!u: (a*P!u) -> P! per P!;
 
 
 define diagonal(x) =
-  let u = row_unit(x), units = unit_factor(x) '.*' u per u in
+  let u = row_unit(x), units = scalar_unit(x) '.*' u per u in
     make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
   end;
+
+# ------------------------------------------------------------------------------
 
 define diagonal2(x) =
   let u = unit(x), units = u per (magnitude(u)) in
     make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]) * units
   end;
+
+# ------------------------------------------------------------------------------
 
 define diagonal3(x) =
   make_matrix([tuple(i,i,get_num(x,i,_)) | i <- row_domain(x)]);
@@ -163,33 +275,150 @@ define diagonal3(x) =
 # Closures
 # ------------------------------------------------------------------------------
 
-declare inverse, right_inverse ::
+doc right_inverse
+    "The right-inverse of a matrix. Solution to
+    <math>
+      <mi>A</mi>
+      <mi>X</mi>
+      <mo>=</mo>
+      <mi>I</mi>
+    </math>.
+    
+    In code:
+
+    <code>A '*' right_inverse(A) = left_identity(A)</code>";
+
+declare right_inverse ::
   for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
+
+define right_inverse(A) = solve(A, left_identity(A));
+
+# ------------------------------------------------------------------------------
+
+doc left_inverse
+    "The left_inverse of a matrix. Solution to
+    <math>
+      <mi>X</mi>
+      <mi>A</mi>
+      <mo>=</mo>
+      <mi>I</mi>
+    </math>.
+    
+    In code:
+
+    <code>left_inverse(A) '*' A = right_identity(A)</code>";
 
 declare left_inverse ::
   for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
 
-declare kleene, closure ::
+define left_inverse(x) = right_inverse(x^T)^T;
+
+# ------------------------------------------------------------------------------
+
+doc inverse
+    "The inverse of a matrix. Solution to
+    <math>
+      <mi>X</mi>
+      <mi>A</mi>
+      <mo>=</mo>
+      <mi>A</mi>
+      <mi>X</mi>
+      <mo>=</mo>
+      <mi>I</mi>
+    </math>.";
+
+declare inverse ::
+  for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
+
+define inverse(x) = right_inverse(x);
+
+# ------------------------------------------------------------------------------
+
+doc kleene
+    "Kleene star for matrices.
+    
+    Equals the series
+    <math>
+      <mi>I</mi>
+      <mo>+</mo>
+      <mi>A</mi>
+      <mo>+</mo>
+      <msup>
+        <mi>A</mi>
+        <mn>2</mn>
+      </msup>
+      <mo>+</mo>
+      <msup>
+        <mi>A</mi>
+        <mn>3</mn>
+      </msup>
+      <mo>+</mo>
+      <ms>...</ms>
+    </math>";
+
+declare kleene ::
   for_index P: for_unit P!u: (P!u per P!u) -> P!u per P!u;
+
+define kleene(x) = inverse(left_identity(x) - x);
+
+# ------------------------------------------------------------------------------
+
+doc closure
+    "Kleene closure for matrices.
+    
+    Equals the series
+    <math>
+      <mi>A</mi>
+      <mo>+</mo>
+      <msup>
+        <mi>A</mi>
+        <mn>2</mn>
+      </msup>
+      <mo>+</mo>
+      <msup>
+        <mi>A</mi>
+        <mn>3</mn>
+      </msup>
+      <mo>+</mo>
+      <ms>...</ms>
+    </math>";
+
+declare closure ::
+  for_index P: for_unit P!u: (P!u per P!u) -> P!u per P!u;
+
+define closure(x) = kleene(x) - left_identity(x);
+
+# ------------------------------------------------------------------------------
+
+doc left_division
+    "Left division of matrices. Matrix division means multiplying with the inverse.
+
+    Corresponds with operator <code>'\\'</code>. Expression <code>A '\\' B</code>
+    is parsed as <code>left_division(A, B)</code>.
+
+    Defined as:
+    
+    <code>left_division(x,y) = inverse(x) '*' y</code>";
 
 declare left_division :: for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w:
     (a*P!u per Q!v, b*P!u per R!w) -> b*Q!v per a*R!w;
 
+define left_division(x,y) = inverse(x) '*' y;
+
+# ------------------------------------------------------------------------------
+
+doc right_division
+    "Division of matrices. Matrix division means multiplying with the inverse.
+
+    Corresponds with operator <code>'/'</code>. Expression <code>A '/' B</code>
+    is parsed as <code>right_division(A, B)</code>.
+
+    Defined as:
+    
+    <code>right_division(x,y) = x '*' inverse(y)</code>";
+
 declare right_division :: for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w:
     (a*P!u per Q!v, b*R!w per Q!v) -> a*P!u per b*R!w;
-
-
-define right_inverse(x) = solve(x, left_identity(x));
-
-define left_inverse(x) = right_inverse(x^T)^T;
-
-define inverse(x) = right_inverse(x);
-
-define kleene(x) = inverse(left_identity(x) - x);
-
-define closure(x) = kleene(x) - left_identity(x);
-
-define left_division(x,y) = inverse(x) '*' y;
 
 define right_division(x,y) = x '*' inverse(y);
 
@@ -197,16 +426,51 @@ define right_division(x,y) = x '*' inverse(y);
 # Radian functons
 # ------------------------------------------------------------------------------
 
-declare asin, acos, atan ::
-  for_index P,Q: (P! per Q!) -> radian * P! per Q!;
+doc asin
+    "Element-wise arcsin. The inverse of the sine function.";
 
-declare atan2 ::
-  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> radian * P! per Q!;
+declare asin ::
+    for_index P,Q: (P! per Q!) -> radian * P! per Q!;
 
-define asin(x) = |radian| '.*' _asin(x);
-define acos(x) = |radian| '.*' _acos(x);
-define atan(x) = |radian| '.*' _atan(x);
-define atan2(x, y) = |radian| '.*' _atan2(x, y);
+define asin(x) =
+    |radian| '.*' _asin(x);
+
+# ------------------------------------------------------------------------------
+
+doc acos
+    "Element-wise arccos. The inverse of the cosine function.";
+
+declare acos ::
+    for_index P,Q: (P! per Q!) -> radian * P! per Q!;
+
+define acos(x) =
+    |radian| '.*' _acos(x);
+
+# ------------------------------------------------------------------------------
+
+doc atan
+    "Element-wise arctan. The inverse of the tangent function.";
+
+declare atan ::
+    for_index P,Q: (P! per Q!) -> radian * P! per Q!;
+
+define atan(x) =
+    |radian| '.*' _atan(x);
+
+# ------------------------------------------------------------------------------
+
+doc atan2
+    "Element-wise arctan2. The complete inverse of the tangent function.";
+
+declare atan2 :: for_index P,Q: for_unit a, P!u, Q!v:
+    (a*P!u per Q!v, a*P!u per Q!v) -> radian * P! per Q!;
+
+define atan2(x, y) =
+    |radian| '.*' _atan2(x, y);
+
+# ------------------------------------------------------------------------------
+# Compare
+# ------------------------------------------------------------------------------
 
 doc compare_index
     "Comparison of indices. Negative if x comes before y, positive if y comes before

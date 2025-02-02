@@ -21,62 +21,103 @@ export
 # ------------------------------------------------------------------------------
 
 doc PetriNet
-    "A Petri net is a vector addition system.";
+    "A dimensioned Petri nets. In a dimensioned Petri net a unit of measurement 
+    is associated with the net's places.";
 
 deftype
   for_index P,T:
     for_unit P!u:
       PetriNet(P!u, T!) = Tuple(P!u per T!, P!u per T!, P!u);
 
+doc make_petri_net
+    "Creates a Petri net from incidence matrices. The net has an empty marking.";
+
 declare make_petri_net ::
   for_index P,T:
     for_unit P!u:
       (P!u per T!, P!u per T!) -> PetriNet(P!u, T!);
+
+doc marked_petri_net
+    "Creates a Petri net from incidence matrices. The net gets the given marking.";
 
 declare marked_petri_net ::
   for_index P,T:
     for_unit P!u:
       (P!u per T!, P!u per T!, P!u) -> PetriNet(P!u, T!);
 
+doc petri_pre
+    "The Petri net's pre matrix.";
+
+doc petri_post
+    "The Petri net's post matrix.";
+
+doc petri_flow
+    "The Petri net's flow matrix. Defined as the difference between the 
+    net's post matrix and the net's pre matrix.";
+
 declare petri_pre, petri_post, petri_flow ::
   for_index P,T:
     for_unit P!u:
       (PetriNet(P!u, T!)) -> P!u per T!;
+
+doc petri_marking
+    "The Petri net's marking, the number of tokens in the places.";
 
 declare petri_marking ::
   for_index P,T:
     for_unit P!u:
       (PetriNet(P!u, T!)) -> P!u;
 
+doc petri_unit
+    "The units of measurement of the Petri net's pre and post matrices.";
+
 declare petri_unit ::
   for_index P,T:
     for_unit P!u:
       (PetriNet(P!u, T!)) -> P!u per T!;
+
+doc place_unit
+    "Unit vector for the net's places.";
 
 declare place_unit ::
   for_index P,T:
     for_unit mon, P!u:
       (PetriNet(P!u, T!)) -> P!u;
 
+doc transition_unit
+    "Unit vector for the net's transitions.";
+
 declare transition_unit ::
   for_index P,T:
     for_unit mon, P!u:
       (PetriNet(P!u, T!)) -> T!;
+
+doc fire_petri_net
+    "Fires the Petri net. Results in a Petri net with the new marking.";
 
 declare fire_petri_net ::
   for_index P,T:
     for_unit P!u:
       (PetriNet(P!u, T!), T!) -> PetriNet(P!u, T!);
 
+doc petri_net_enabled
+    "Is firing the Petri net enabled for the given transition count?";
+
 declare petri_net_enabled ::
   for_index P,T:
     for_unit P!u:
       (PetriNet(P!u, T!), T!) -> Boole();
 
+doc petri_subnet
+    "Filters the net's transitions.";
+
 declare petri_subnet ::
   for_index P,T:
     for_unit P!u:
       (PetriNet(P!u, T!), T!) -> PetriNet(P!u, T!);
+
+doc semi_flows
+    "All transition vector that leaves the net's marking unchanged when fired.";
 
 declare semi_flows ::
   for_index P,T:

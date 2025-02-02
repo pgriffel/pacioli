@@ -15,7 +15,7 @@ public class TypeMultiplyNode extends AbstractTypeNode {
         this.right = right;
     }
 
-    public Node transform(TypeNode left, TypeNode right) {
+    public TypeMultiplyNode transform(TypeNode left, TypeNode right) {
         return new TypeMultiplyNode(location(), left, right);
     }
 

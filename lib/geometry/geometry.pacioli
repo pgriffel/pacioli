@@ -20,11 +20,8 @@
 export
     Geom2,
     Geom3,
-    d2x,
-    d2y,
-    d_x,
-    d_y,
-    d_z,
+    basis2d,
+    basis3d,
     vector2d,
     matrix2d,
     vector3d,
@@ -39,10 +36,8 @@ export
     signed_volume,
     surface_area,
     surface_volume,
-    x_rotation,
-    y_rotation,
-    z_rotation,
     rotation,
+    euler_rotation,
     det2d,
     det3d;
 
@@ -53,45 +48,73 @@ export
 doc Geom2
     "Index set for a 2D geometric space. Defined as the set <code>{x, y}</code>.";
 
+defindex Geom2 = {x, y};
+
+# ----------------------------------------------------------------------------
+
 doc Geom3
     "Index set for a 3D geometric space. Defined as the set <code>{x, y, z}</code>.";
 
-defindex Geom2 = {x, y};
 defindex Geom3 = {x, y, z};
 
-declare d2x :: Geom2!;
-declare d2y :: Geom2!;
+# ----------------------------------------------------------------------------
 
-declare d_x :: Geom3!;
-declare d_y :: Geom3!;
-declare d_z :: Geom3!;
+doc basis2d
+    "Basis vectors for Geom2.
+    
+    Example:
+    
+    <code>let (vx, vy) = basis2d in ... end</code>";
 
-define d2x = delta(Geom2@x);
-define d2y = delta(Geom2@y);
+declare basis2d :: Tuple(Geom2!, Geom2!);
 
-define d_x = delta(Geom3@x);
-define d_y = delta(Geom3@y);
-define d_z = delta(Geom3@z);
+define basis2d =
+    tuple(delta(Geom2@x), delta(Geom2@y));
+
+# ----------------------------------------------------------------------------
+
+doc basis3d
+    "Basis vectors for Geom3.
+    
+    Example:
+    
+    <code>let (i, j, k) = basis3d in ... end</code>";
+
+declare basis3d :: Tuple(Geom3!, Geom3!, Geom3!);
+
+define basis3d =
+    tuple(delta(Geom3@x), delta(Geom3@y), delta(Geom3@z));
 
 # ----------------------------------------------------------------------------
 # Vector construction
 # ----------------------------------------------------------------------------
 
+doc vector2d
+    "Creates a <code>Geom2</code> vector.";
+
 declare vector2d :: for_unit a: (a, a) -> a*Geom2!;
+
+define vector2d(a, b) = 
+    make_matrix([tuple(Geom2@x, _, a), tuple(Geom2@y, _, b)]);
+
+# ----------------------------------------------------------------------------
+
+doc vector3d
+    "Creates a <code>Geom3</code> vector.";
 
 declare vector3d :: for_unit a: (a, a, a) -> a*Geom3!;
 
-define vector2d(a, b) = a '.*' d2x + b '.*' d2y;
+define vector3d(a, b, c) = 
+    make_matrix([tuple(Geom3@x, _, a), tuple(Geom3@y, _, b), tuple(Geom3@z, _, c)]);
 
-define vector3d(x, y, z) =
-#  x '.*' delta(Geom3@x) + y '.*' delta(Geom3@y) + z '.*' delta(Geom3@z);
-  x '.*' delta(Geom3@x) + y '.*' delta(Geom3@y) + z '.*' delta(Geom3@z);
+# ----------------------------------------------------------------------------
 
 # Obsolete. Use vector3d
 
 declare space_vec :: for_unit a: (a, a, a) -> a*Geom3!;
 
-define space_vec(a, b, c) = a '.*' d_x + b '.*' d_y + c '.*' d_z;
+define space_vec(a, b, c) = 
+    vector3d(a, b, c);
 
 # ----------------------------------------------------------------------------
 # Matrix construction
@@ -103,12 +126,13 @@ doc matrix2d
     "Creates a <code>Geom2</code> matrix. The arguments are in row-major order.";
 
 define matrix2d(a, b, c, d) =
-    let x = Geom2@x,
+    let 
+        x = Geom2@x,
         y = Geom2@y
     in
         make_matrix([
-          tuple(x, x, a), tuple(x, y, b),
-          tuple(y, x, c), tuple(y, y, d)
+            tuple(x, x, a), tuple(x, y, b),
+            tuple(y, x, c), tuple(y, y, d)
         ])
     end;
 
@@ -120,7 +144,8 @@ doc matrix3d
     "Creates a <code>Geom3</code> matrix. The arguments are in row-major order.";
 
 define matrix3d(a, b, c, d, e, f, g, h, i) =
-    let x = Geom3@x,
+    let 
+        x = Geom3@x,
         y = Geom3@y,
         z = Geom3@z
     in
@@ -135,59 +160,84 @@ define matrix3d(a, b, c, d, e, f, g, h, i) =
 # Determinants
 # ----------------------------------------------------------------------------
 
-declare det2d :: for_unit a, Geom2!u: (a * Geom2!u per Geom2!u) -> a^2;
+declare det2d :: for_unit a, Geom2!u: (a * Geom2! per Geom2!) -> a^2;
 
 doc det2d
     "Determinant of a <code>Geom2</code> matrix";
 
-define det2d(matrix) =
-    let m = unit_factor(matrix) '.*' magnitude(matrix),
-        a = get(m, Geom2@x, Geom2@x),
-        b = get(m, Geom2@x, Geom2@y),
-        c = get(m, Geom2@y, Geom2@x),
-        d = get(m, Geom2@y, Geom2@y)
+define det2d(A) =
+    let 
+        xx = get(A, Geom2@x, Geom2@x),
+        xy = get(A, Geom2@x, Geom2@y),
+        yx = get(A, Geom2@y, Geom2@x),
+        yy = get(A, Geom2@y, Geom2@y)
     in
-        a*d - b*c
+        xx*yy - xy*yx
     end;
 
 # ----------------------------------------------------------------------------
 
-declare det3d :: for_unit a, Geom3!u: (a * Geom3!u per Geom3!u) -> a^3;
+declare det3d :: for_unit a, Geom3!u: (a * Geom3! per Geom3!) -> a^3;
 
 doc det3d
     "Determinant of a <code>Geom3</code> matrix";
 
-define det3d(matrix) =
-    let m = unit_factor(matrix) '.*' magnitude(matrix),
-        a = get(m, Geom3@x, Geom3@x),
-        b = get(m, Geom3@x, Geom3@y),
-        c = get(m, Geom3@x, Geom3@z),
-        d = get(m, Geom3@y, Geom3@x),
-        e = get(m, Geom3@y, Geom3@y),
-        f = get(m, Geom3@y, Geom3@z),
-        g = get(m, Geom3@z, Geom3@x),
-        h = get(m, Geom3@z, Geom3@y),
-        i = get(m, Geom3@z, Geom3@z)
+define det3d(A) =
+    let 
+        xx = get(A, Geom3@x, Geom3@x),
+        xy = get(A, Geom3@x, Geom3@y),
+        xz = get(A, Geom3@x, Geom3@z),
+        yx = get(A, Geom3@y, Geom3@x),
+        yy = get(A, Geom3@y, Geom3@y),
+        yz = get(A, Geom3@y, Geom3@z),
+        zx = get(A, Geom3@z, Geom3@x),
+        zy = get(A, Geom3@z, Geom3@y),
+        zz = get(A, Geom3@z, Geom3@z)
     in
-        a*e*i + b*f*g + c*d*h - c*e*g - b*d*i - a*f*h
+        xx*yy*zz + xy*yz*zx + xz*yx*zy - xz*yy*zx - xy*yx*zz - xx*yz*zy
     end;
 
 # ----------------------------------------------------------------------------
 # Polar Coordinates
 # ----------------------------------------------------------------------------
 
+doc polar2cartesian
+    "Creates a vector in cartesian coordinates from polar coordinates.
+    
+    <code>v = polar2cartesian(norm(v), inclination(v), azimuth(v))</code>";
+
 declare polar2cartesian :: for_unit a: (a, radian, radian) -> a*Geom3!;
-declare inclination :: for_unit a: (a*Geom3!) -> radian;
-declare azimuth :: for_unit a: (a*Geom3!) -> radian;
 
 define polar2cartesian(radius, inclination, azimuth) =
-  scale(radius, space_vec(sin(inclination) * cos(azimuth),
-			  sin(inclination) * sin(azimuth),
-			  cos(inclination)));
+    scale(radius, 
+        vector3d(
+            sin(inclination) * cos(azimuth),
+            sin(inclination) * sin(azimuth),
+            cos(inclination)));
 
-define inclination(vec) = acos(inner(vec, d_z) / norm(vec));
+# ----------------------------------------------------------------------------
 
-define azimuth(vec) = atan2(inner(vec, d_y), inner(vec, d_x));
+doc inclination
+    "The inclination for polar coordinates.
+    
+    <code>v = polar2cartesian(norm(v), inclination(v), azimuth(v))</code>";
+
+declare inclination :: for_unit a: (a*Geom3!) -> radian;
+
+define inclination(vec) =
+    acos(get(vec, Geom3@z, _) / norm(vec));
+
+# ----------------------------------------------------------------------------
+
+doc azimuth
+    "The azimuth for polar coordinates.
+    
+    <code>v = polar2cartesian(norm(v), inclination(v), azimuth(v))</code>";
+
+declare azimuth :: for_unit a: (a*Geom3!) -> radian;
+
+define azimuth(vec) = 
+    atan2(get(vec, Geom3@y, _), get(vec, Geom3@x, _));
 
 # ----------------------------------------------------------------------------
 # Cross Product
@@ -196,6 +246,9 @@ define azimuth(vec) = atan2(inner(vec, d_y), inner(vec, d_x));
 declare cross :: for_unit a,b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!;
 declare cross_sqrt :: for_unit a: (a*Geom3!, a*Geom3!) -> a*Geom3!;
 
+doc cross
+    "The cross product between two vectors.";
+
 define cross(v,w) =
   let
       vx = get(v, Geom3@x, _), vy = get(v, Geom3@y, _), vz = get(v, Geom3@z, _),
@@ -203,6 +256,11 @@ define cross(v,w) =
   in
       vector3d(vy*wz - vz*wy, vz*wx - vx*wz, vx*wy - vy*wx)
   end;
+
+
+doc cross_sqrt
+    "The cross product between two vectors, but with the norms averaged to keep
+    the same unit of measurement.";
 
 define cross_sqrt(v,w) =
     cross(v,w) '/.' sqrt(norm(v) * norm(w));
@@ -216,14 +274,28 @@ declare signed_volume :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> a^3;
 declare surface_area :: for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!))) -> a^2;
 declare surface_volume :: for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!))) -> a^3;
 
+doc triangle_area
+    "Area of the triangle given by three position vectors.";
+
 define triangle_area(x, y, z) =
   norm(cross(y - x, z - x)) / 2;
+
+doc signed_volume
+    "Volume enclosed by three position vectors.";
 
 define signed_volume(x, y, z) =
   inner(x, cross(y, z)) / 6;
 
+doc surface_area
+    "Total area of a surface build from triangles. Sums the triangle
+    area of the individual triangles.";
+
 define surface_area(surface) =
   sum[apply(triangle_area, x) | x <- surface];
+
+doc surface_volume
+    "Total volume of a body build from triangles. Sums the triangle
+    volume of the individual triangles.";
 
 define surface_volume(surface) =
   abs(sum[apply(signed_volume, x) | x <- surface]);
@@ -238,19 +310,28 @@ declare z_rotation :: (radian) -> Geom3! per Geom3!;
 declare rotation :: (radian, radian, radian) -> Geom3! per Geom3!;
 
 define x_rotation(angle) =
-  (space_vec(1,           0,          0) '*' d_x^T +
-   space_vec(0,  cos(angle), sin(angle)) '*' d_y^T +
-   space_vec(0, -sin(angle), cos(angle)) '*' d_z^T);
+    matrix3d(1,          0,           0,
+             0, cos(angle), -sin(angle),
+             0, sin(angle),  cos(angle));
 
 define y_rotation(angle) =
-  (space_vec(cos(angle), 0, -sin(angle)) '*' d_x^T +
-   space_vec(         0, 1,           0) '*' d_y^T +
-   space_vec(sin(angle), 0,  cos(angle)) '*' d_z^T);
+    matrix3d( cos(angle), 0, sin(angle),
+                       0, 1,          0,
+             -sin(angle), 0, cos(angle));
 
 define z_rotation(angle) =
-  (space_vec( cos(angle), sin(angle), 0) '*' d_x^T +
-   space_vec(-sin(angle), cos(angle), 0) '*' d_y^T +
-   space_vec(         0,           0, 1) '*' d_z^T);
+    matrix3d(cos(angle), -sin(angle), 0,
+             sin(angle),  cos(angle), 0,
+                      0,           0, 1);
+
+doc euler_rotation
+    "Creates a rotation matrix from angles in the x, y and z direction.";
+
+define euler_rotation(x_angle, y_angle, z_angle) =
+  z_rotation(z_angle) '*' y_rotation(y_angle) '*' x_rotation(x_angle);
+
+doc rotation
+    "Deprecated. Use euler_rotation instead.";
 
 define rotation(x_angle, y_angle, z_angle) =
-  z_rotation(z_angle) '*' y_rotation(y_angle) '*' x_rotation(x_angle);
+    error("Function rotation is deprecated. Use euler_rotation instead.");

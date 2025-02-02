@@ -15,7 +15,7 @@ public class TypePerNode extends AbstractTypeNode {
         this.right = right;
     }
 
-    public Node transform(TypeNode left, TypeNode right) {
+    public TypePerNode transform(TypeNode left, TypeNode right) {
         return new TypePerNode(location(), left, right);
     }
 

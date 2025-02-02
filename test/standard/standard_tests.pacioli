@@ -9,7 +9,8 @@ define standard_suites = [
    zip_with_suite,
    flatten_suite,
    is_zero_suite,
-   sort_index_suite
+   sort_index_suite,
+   flat_map_suite
 ];
 
 run_test_suites(standard_suites); 
@@ -122,5 +123,21 @@ define sort_index_suite = test_suite("sort_list", [
 
     test("should sort indices descending", () ->
         sort_list(row_domain(foo), (x, y) -> -1 * compare_index(x, y)) = [Foo@baz, Foo@bar, Foo@foo]
+    )
+]);
+
+
+define flat_map_suite = test_suite("flat_map", [
+
+    test("should sort indices descending", () ->
+        flat_map(naturals, []) = []
+    ),
+ 
+    test("should flatten naturals", () ->
+        flat_map(naturals, [1, 2, 3]) = [0, 0, 1, 0, 1, 2]
+    ),
+
+    test("should flatten only one level", () ->
+        flat_map((x) -> [naturals(x)], [1, 2, 3]) = [[0], [0, 1], [0, 1, 2]]
     )
 ]);

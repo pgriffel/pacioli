@@ -1,6 +1,5 @@
 package pacioli.compiler;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,7 +25,6 @@ import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.definition.ValueEquation;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.IdentifierNode.Kind;
 import pacioli.ast.visitors.TransformConversions;
 import pacioli.parser.Parser;
@@ -280,11 +278,10 @@ public class Program {
                 Kind kind = doc.id.determineKind(valueExists, typeExists);
 
                 // Find the proper info and set the documentation
-                String docu = ((StringNode) doc.body).valueString();
                 if (kind.equals(IdentifierNode.Kind.VALUE)) {
-                    valueBuilders.get(name).documentation(docu);
+                    valueBuilders.get(name).documentation(doc);
                 } else {
-                    typeBuilders.get(name).documentation(docu);
+                    typeBuilders.get(name).documentation(doc);
                 }
             }
         }

@@ -16,6 +16,7 @@ import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.ast.TypePerNode;
 
 public class PrimitivesDocumentation {
 
@@ -53,28 +54,45 @@ public class PrimitivesDocumentation {
             throws Exception {
 
         List<String> paramNames = List.of("x", "y", "z", "u", "v", "w", "a", "b", "c", "d", "e", "f", "g", "h");
+        List<String> matrixParamNames = List.of("A", "B", "C", "D", "E", "F");
 
         List<ValueInfo> infos = new ArrayList<>();
 
+        DocumentationGenerator generator = new DocumentationGenerator(writer, module, version);
+
+        File docFile = null;
+
         if (base) {
             File theFile = new File(libs.get(0), "base/" + module + ".pacioli");
-            PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", "irrelevant", true);
+            PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", module, true);
             PacioliTable program = Program.load(pacioliFile).desugar().generateInfos();
             for (ValueInfo info : program.values().allInfos()) {
                 infos.add(info);
             }
+
+            docFile = pacioliFile.docFile();
         }
 
         if (standard) {
             File theFile = new File(libs.get(0), "standard/" + module + ".pacioli");
-            PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", "irrelevant", true);
+            PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", module, true);
             PacioliTable program = Program.load(pacioliFile).desugar().generateInfos();
             for (ValueInfo info : program.values().allInfos()) {
                 infos.add(info);
             }
+
+            docFile = pacioliFile.docFile();
         }
 
-        DocumentationGenerator generator = new DocumentationGenerator(writer, module, version);
+        if (docFile != null) {
+            if (docFile.exists()) {
+                Pacioli.log("Found doc file %s, including contents...", docFile.getAbsolutePath());
+                generator.setIntroFromDocFile(docFile);
+            } else {
+                Pacioli.log("No doc file found at %s, using standard intro...", docFile.getAbsolutePath());
+            }
+        }
+
         for (ValueInfo info : infos) {
             if (info.isPublic() && info.declaredType().isPresent()) {
 
@@ -99,15 +117,33 @@ public class PrimitivesDocumentation {
                         FunctionTypeNode fun = (FunctionTypeNode) ((SchemaNode) type).type;
                         if (fun.domain instanceof TypeApplicationNode) {
                             TypeApplicationNode tuple = (TypeApplicationNode) fun.domain;
-                            args = paramNames.subList(0, tuple.args.size());
+                            List<String> params = new ArrayList<>();
+                            int p = 0;
+                            int q = 0;
+                            for (TypeNode arg : tuple.args) {
+                                if (arg instanceof TypePerNode) {
+                                    params.add(matrixParamNames.get(q++));
+                                } else {
+                                    params.add(paramNames.get(p++));
+                                }
+                            }
+                            args = params;
+                            // args = paramNames.subList(0, tuple.args.size());
                         } else {
                             // Must be function 'tuple' or 'format'
                             args = List.of("...");
                         }
                     }
 
-                    generator.addFunction(info.name(), args, type.pretty(),
-                            info.generalInfo().documentation().orElse(""));
+                    if (info.definition().isPresent()) { // foute check. acos etc gaat fout. Hebben wel body, maar zijn
+                                                         // primitive!?
+                        generator.addFunction(info.name(), args, type.pretty(),
+                                info.generalInfo().documentation().orElse(""));
+                    } else {
+                        generator.addPrimitiveFunction(info.name(), args, type.pretty(),
+                                info.generalInfo().documentation().orElse(""));
+
+                    }
 
                     if (info.generalInfo().documentation().isEmpty()) {
                         Pacioli.log("  no documentation for function %s", info.name());
@@ -115,7 +151,13 @@ public class PrimitivesDocumentation {
 
                 } else {
 
-                    generator.addValue(info.name(), type.pretty(), info.generalInfo().documentation().orElse(""));
+                    if (info.definition().isPresent()) {
+                        generator.addValue(info.name(), type.pretty(),
+                                info.generalInfo().documentation().orElse(""));
+                    } else {
+                        generator.addPrimitiveValue(info.name(), type.pretty(),
+                                info.generalInfo().documentation().orElse(""));
+                    }
 
                     if (info.generalInfo().documentation().isEmpty()) {
                         Pacioli.log("  no documentation for value %s", info.name());

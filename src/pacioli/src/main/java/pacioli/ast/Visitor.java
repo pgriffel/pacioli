@@ -19,6 +19,8 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.DataDefinitionNode;
+import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
@@ -175,4 +177,8 @@ public interface Visitor {
     void accept(QuantNode node);
 
     void visit(TypePredicateNode node);
+
+    void visit(DataDefinitionNode node);
+
+    void visit(DataQueryNode node);
 }

@@ -304,7 +304,7 @@ public class PythonTranspiler implements SymbolTableVisitor {
             "    return x\n" +
             "\n" +
             "\n" +
-            "def glbl_base_unit_factor(x):\n" +
+            "def glbl_base_scalar_unit(x):\n" +
             "    return np.array([[1]]);\n" +
             "\n" +
             "\n" +

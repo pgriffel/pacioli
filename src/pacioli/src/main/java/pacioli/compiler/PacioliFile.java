@@ -140,7 +140,7 @@ public class PacioliFile extends AbstractPrintable {
     public static final List<String> defaultIncludes = new ArrayList<String>(
             Arrays.asList("base", "standard"));
 
-    public File findDocFile() {
+    public File docFile() {
         return new File(fsFile.getParentFile(), this.moduleName + ".doc");
     }
 

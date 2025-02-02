@@ -21,7 +21,7 @@ export
     set_nr_decimals,
     nr_decimals,
     with_output_file,
-    file_write,
+    write_string,
     print;
 
 # ----------------------------------------------------------------------------
@@ -56,11 +56,11 @@ declare with_output_file :: (String, (File) -> Void) -> Void;
 
 # ----------------------------------------------------------------------------
 
-doc file_write
+doc write_string
     "Write a string to a file. Use <code>with_output_file</code> to get a file
     handle.";
 
-declare file_write :: (File, String) -> Void;
+declare write_string :: (File, String) -> Void;
 
 # ----------------------------------------------------------------------------
 # Terminal IO
