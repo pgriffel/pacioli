@@ -38,8 +38,8 @@ doc make_arrow
 declare make_arrow ::
     for_unit a: (a*Geom3!, a*Geom3!) -> Arrow(a);
 
-define make_arrow(from, to) =
-    tuple(from, to, "", "", nothing());
+define make_arrow(src, dst) =
+    tuple(src, dst, "", "", nothing());
 
 # ------------------------------------------------------------------------------
 
@@ -94,9 +94,9 @@ doc move_arrow
 
 declare move_arrow :: for_unit a: (Arrow(a), a * Geom3!, a * Geom3!) -> Arrow(a);
 
-define move_arrow(arrow, from, to) =
+define move_arrow(arrow, src, dst) =
     let (_, _, color, name, label) = arrow in
-        tuple(from, to, color, name, label)
+        tuple(src, dst, color, name, label)
     end;
 
 # ------------------------------------------------------------------------------
@@ -108,9 +108,10 @@ declare with_arrow_name ::
     for_unit a: (String, Arrow(a)) -> Arrow(a);
 
 define with_arrow_name(name, arrow) =
-    let (from, to, _, label, color) = arrow in
-        tuple(from, to, name, label, color)
+    let (src, dst, _, label, color) = arrow in
+        tuple(src, dst, name, label, color)
     end;
+
 # ------------------------------------------------------------------------------
 
 doc with_arrow_label
@@ -120,9 +121,10 @@ declare with_arrow_label ::
     for_unit a: (String, Arrow(a)) -> Arrow(a);
 
 define with_arrow_label(label, arrow) =
-    let (from, to, name, _, color) = arrow in
-        tuple(from, to, name, label, color)
+    let (src, dst, name, _, color) = arrow in
+        tuple(src, dst, name, label, color)
     end;
+
 # ------------------------------------------------------------------------------
 
 doc with_arrow_color
@@ -131,6 +133,6 @@ doc with_arrow_color
 declare with_arrow_color :: for_unit a: (Color, Arrow(a)) -> Arrow(a);
 
 define with_arrow_color(color, arrow) =
-    let (from, to, name, label, _) = arrow in
-        tuple(from, to, name, label, just(color))
+    let (src, dst, name, label, _) = arrow in
+        tuple(src, dst, name, label, just(color))
     end;
