@@ -9,19 +9,24 @@ include ga_3d;
 
 define scene1(vx, vy, vz, wx, wy, wz, wireframe) =
     let
-        scene = empty_scene("Experiment with rendering a bi-vector plane. Use the last parameter to toggle the wireframe"),
+        scene = empty_scene("Experiment with rendering a bi-vector plane."),
+
         x = make_multivector([make_term(vx, e1), make_term(vy, e2), make_term(vz, e3)]),
         y = make_multivector([make_term(wx, e1), make_term(wy, e2), make_term(wz, e3)]),
+
         origin = 1 * |metre| '.*' space_vec(5,5,5),
+
         vx = |1| '.*' mv2vec(x),
         vy = |1| '.*' mv2vec(y),
+
         mesh = move_mesh(bi_vector_mesh(x, y), origin),
+        
         vecs = [
             with_arrow_color(make_color("blue"), make_arrow(origin, vx)),
             with_arrow_color(make_color("red"), make_arrow(origin + vx, vy))
         ]
     in
-        add_meshes([set_wireframe(mesh, wireframe != 0)], add_arrows(vecs, scene))
+        add_meshes([set_wireframe(mesh, wireframe)], add_arrows(vecs, scene))
     end;
 
 define bi_vector_mesh(x, y) = 
@@ -45,7 +50,8 @@ define bi_vector_mesh(x, y) =
  
 define scene2(a) =
     let
-        scene = empty_scene("Experiment with bi-vectors. The red and the blue bi-vectors are the same. Both equal bi-vector 3e<sub>12</sub> + 4e<sub>13</sub> + 2e<sub>23</sub>. Leo p.34. The parameter toggles the wireframe"),
+        scene = empty_scene("Experiment with rendering bi-vectors."),
+        
         v1 = |metre| '.*' space_vec(2, 1, 0),
         v2 = |metre| '.*' space_vec(-3, 0, 2),
         w1 = |metre| '.*' space_vec(4, 2, 0),
@@ -53,10 +59,11 @@ define scene2(a) =
         o1 = |metre| '.*' space_vec(0,0,0),
         o2 = |metre| '.*' space_vec(0,0,0)
     in
-        add_bi_vectors([tuple(o1, v1, v2, make_color("blue")), tuple(o2, w1, w2, make_color("red"))], scene, a = 0)
+        add_bi_vectors([tuple(o1, v1, v2, make_color("blue")), tuple(o2, w1, w2, make_color("red"))], scene, a)
     end;
  
-declare add_bi_vectors :: for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!, Color)), Scene(a), Boole) -> Scene(a);
+declare add_bi_vectors ::
+    for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!, Color)), Scene(a), Boole) -> Scene(a);
 
 define add_bi_vectors(bi_vectors, scene, wireframe) =
     let
@@ -66,13 +73,18 @@ define add_bi_vectors(bi_vectors, scene, wireframe) =
         add_meshes([set_wireframe(m, wireframe) | m <- meshes], add_arrows(arrows, scene))
     end;
 
-declare bi_vector_mesh_and_arrows :: for_unit a:
-    (a*Geom3!, a*Geom3!, a*Geom3!, Color) -> Tuple(Mesh(a), Tuple(Arrow(a), Arrow(a)));
+declare bi_vector_mesh_and_arrows ::
+    for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!, Color) -> Tuple(Mesh(a), Tuple(Arrow(a), Arrow(a)));
 
 define bi_vector_mesh_and_arrows(origin, v1, v2, color) = 
-    tuple(bi_vector_mesh2(origin, v1, v2), tuple(with_arrow_color(color, make_arrow(origin, v1)), with_arrow_color(color, make_arrow(origin + v1, v2))));
+    tuple(
+        bi_vector_mesh2(origin, v1, v2),
+        tuple(
+            with_arrow_color(color, make_arrow(origin, v1)),
+            with_arrow_color(color, make_arrow(origin + v1, v2))));
 
-declare bi_vector_mesh2 :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> Mesh(a);
+declare bi_vector_mesh2 ::
+    for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> Mesh(a);
 
 define bi_vector_mesh2(origin, v1, v2) = 
     let

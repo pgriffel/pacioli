@@ -20,7 +20,7 @@
 
     <h2>Bi-vector I</h2>
     <p>
-        Experiment with rendering a bi-vector plane. Use the last parameter to toggle the wireframe
+        Experiment with rendering a bi-vector plane.
 
     <div class="example">
         <pacioli-scene id="scene_bivector1" script="bi_vector" definition="scene1" kind="scene" perspective grid axis>
@@ -30,7 +30,7 @@
             <parameter label="x" unit="metre">-3</parameter>
             <parameter label="y" unit="metre">0</parameter>
             <parameter label="z" unit="metre">2</parameter>
-            <parameter label="wireframe">0</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
         </pacioli-scene>
         <pacioli-inputs for="scene_bivector1"></pacioli-inputs>
         <pacioli-controls for="scene_bivector1"></pacioli-controls>
@@ -40,12 +40,11 @@
     <h2>Bi-vector II</h2>
     <p>
         Experiment with bi-vectors. The red and the blue bi-vectors are the same. Both equal
-        bi-vector 3e<sub>12</sub> + 4e<sub>13</sub> + 2e<sub>23</sub>. Leo p.34. The parameter
-        toggles the wireframe.
+        bi-vector 3e<sub>12</sub> + 4e<sub>13</sub> + 2e<sub>23</sub>. Leo p.34.
 
     <div class="example">
         <pacioli-scene id="scene_bivector2" script="bi_vector" definition="scene2" kind="scene" perspective grid axis>
-            <parameter label="wireframe" unit="1">0</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
         </pacioli-scene>
         <pacioli-inputs for="scene_bivector2"></pacioli-inputs>
         <pacioli-controls for="scene_bivector2"></pacioli-controls>
