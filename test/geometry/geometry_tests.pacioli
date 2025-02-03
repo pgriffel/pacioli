@@ -9,7 +9,7 @@ define geometry_suites = [
     vector3d_suite,
     norm_suite,
     normalized_suite,
-    polar2cartesian_suite,
+    to_cartesian3d_suite,
     inclination_suite,
     azimuth_suite,
     polar_equations_suite
@@ -23,6 +23,11 @@ run_test_suites(geometry_suites);
 
 define pick(xs) =
     nth(floor(list_size(xs) * random()), xs);
+
+define random2d(u) =
+    let c() = pick([-3, 0, 3]) * random() * u in
+        vector2d(c() , c())
+    end;
 
 define random3d(u) =
     let c() = pick([-3, 0, 3]) * random() * u in
@@ -99,21 +104,21 @@ define normalized_suite = test_suite("Function normalized", [
 ]);
  
 # ------------------------------------------------------------------------------
-# Functions polar2cartesian
+# Functions to_cartesian3d
 # ------------------------------------------------------------------------------
 
 
-define polar2cartesian_suite = test_suite("Function polar2cartesian", [
+define to_cartesian3d_suite = test_suite("Function to_cartesian3d", [
 
    test("should transform correctly",
       () ->
-         approximates(polar2cartesian(4, pi*|radian|, 2*pi*|radian|), vector3d(0, 0, -4), 15*|decimals|)
+         approximates(to_cartesian3d(4, pi*|radian|, 2*pi*|radian|), vector3d(0, 0, -4), 15*|decimals|)
       ),
 
    test("should transform correctly with units",
       () ->
          approximates_to(15*|decimals|)(
-            polar2cartesian(4*|metre|, pi*|radian|/2, pi*|radian|),
+            to_cartesian3d(4*|metre|, pi*|radian|/2, pi*|radian|),
             |metre| '.*' vector3d(-4, 0, 0))
       )   
 ]);
@@ -148,10 +153,35 @@ define azimuth_suite = test_suite("Function azimuth", [
 
 define polar_equations_suite = test_suite("Polar equations", [
 
-   test("should by okay up to 7 decimals",
+    test("should by okay up to 7 decimals using norm, polar_angle",
+      () ->
+         all[ approximates(v, w, 7*|decimals|) | i <- naturals(100),
+                                                 v := random2d(|metre|), 
+                                                 w := to_cartesian2d(norm(v), polar_angle(v)) ]
+      ),
+      
+    test("should by okay up to 7 decimals using to_polar2d",
+      () ->
+         all[ approximates(v, w, 7*|decimals|) | i <- naturals(100),
+                                                 v := random2d(|metre|), 
+                                                 w := let (nrm, ang) = to_polar2d(v) in
+                                                        to_cartesian2d(nrm, ang) 
+                                                      end ]
+      ),
+
+    test("should by okay up to 7 decimals using norm, inclination, azimuth",
       () ->
          all[ approximates(v, w, 7*|decimals|) | i <- naturals(100),
                                                  v := random3d(|metre|), 
-                                                 w := polar2cartesian(norm(v), inclination(v), azimuth(v)) ]
+                                                 w := to_cartesian3d(norm(v), inclination(v), azimuth(v)) ]
+      ),
+      
+    test("should by okay up to 7 decimals using to_polar3d",
+      () ->
+         all[ approximates(v, w, 7*|decimals|) | i <- naturals(100),
+                                                 v := random3d(|metre|), 
+                                                 w := let (nrm, inc, azi) = to_polar3d(v) in
+                                                        to_cartesian3d(nrm, inc, azi) 
+                                                      end ]
       )
 ]);

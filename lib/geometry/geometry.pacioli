@@ -27,7 +27,11 @@ export
     vector3d,
     matrix3d,
     space_vec,
-    polar2cartesian,
+    to_cartesian2d,
+    to_polar2d,
+    to_cartesian3d,
+    to_polar3d,
+    polar_angle,
     inclination,
     azimuth,
     cross,
@@ -201,14 +205,14 @@ define det3d(A) =
 # Polar Coordinates
 # ----------------------------------------------------------------------------
 
-doc polar2cartesian
+doc to_cartesian3d
     "Creates a vector in cartesian coordinates from polar coordinates.
     
-    <code>v = polar2cartesian(norm(v), inclination(v), azimuth(v))</code>";
+    <code>v = to_cartesian3d(norm(v), inclination(v), azimuth(v))</code>";
 
-declare polar2cartesian :: for_unit a: (a, radian, radian) -> a*Geom3!;
+declare to_cartesian3d :: for_unit a: (a, radian, radian) -> a*Geom3!;
 
-define polar2cartesian(radius, inclination, azimuth) =
+define to_cartesian3d(radius, inclination, azimuth) =
     scale(radius, 
         vector3d(
             sin(inclination) * cos(azimuth),
@@ -220,7 +224,7 @@ define polar2cartesian(radius, inclination, azimuth) =
 doc inclination
     "The inclination for polar coordinates.
     
-    <code>v = polar2cartesian(norm(v), inclination(v), azimuth(v))</code>";
+    <code>v = to_cartesian3d(norm(v), inclination(v), azimuth(v))</code>";
 
 declare inclination :: for_unit a: (a*Geom3!) -> radian;
 
@@ -232,12 +236,67 @@ define inclination(vec) =
 doc azimuth
     "The azimuth for polar coordinates.
     
-    <code>v = polar2cartesian(norm(v), inclination(v), azimuth(v))</code>";
+    <code>v = to_cartesian3d(norm(v), inclination(v), azimuth(v))</code>";
 
 declare azimuth :: for_unit a: (a*Geom3!) -> radian;
 
 define azimuth(vec) = 
     atan2(get(vec, Geom3@y, _), get(vec, Geom3@x, _));
+
+# ----------------------------------------------------------------------------
+
+doc to_polar3d
+    "Gives polar coordinates for a vector in cartesian coordinates. A tuple
+    with the norm, the inclination and the azimuth.
+    
+    For any vector <code>v</code> the following equality holds
+
+    <code>let (nrm, inc, azi) = to_polar3d(v) in to_cartesian3d(nrm, inc, azi) end = v</code>";
+
+declare to_polar3d :: for_unit a: (a*Geom3!) -> Tuple(a, radian, radian);
+
+define to_polar3d(vec) =
+    tuple(norm(vec), inclination(vec), azimuth(vec));
+
+# ----------------------------------------------------------------------------
+
+doc polar_angle
+    "The angle for polar coordinates in <code>Geom2</code>.
+    
+    <code>v = polar2cartesian(norm(v), inclination(v), azimuth(v))</code>";
+
+declare polar_angle :: for_unit a: (a*Geom2!) -> radian;
+
+define polar_angle(vec) = 
+    atan2(get(vec, Geom2@y, _), get(vec, Geom2@x, _));
+
+# ----------------------------------------------------------------------------
+
+doc to_polar2d
+    "Gives polar coordinates for a vector in cartesian coordinates. A tuple
+    with the norm and the angle.
+    
+    For any vector <code>v</code> the following equality holds
+
+    <code>let (nrm, ang) = to_polar2d(v) in to_cartesian2d(nrm, ang) end = v</code>";
+
+declare to_polar2d ::
+    for_unit a: (a*Geom2!) -> Tuple(a, radian);
+
+define to_polar2d(vec) =
+    tuple(norm(vec), polar_angle(vec));
+
+# ----------------------------------------------------------------------------
+
+doc to_cartesian2d
+    "Creates a vector in cartesian coordinates from polar coordinates.
+    
+    <code>v = polar2cartesian(norm(v), inclination(v), azimuth(v))</code>";
+
+declare to_cartesian2d :: for_unit a: (a, radian) -> a*Geom2!;
+
+define to_cartesian2d(radius, angle) =
+    scale(radius, vector2d(cos(angle), sin(angle)));
 
 # ----------------------------------------------------------------------------
 # Cross Product
