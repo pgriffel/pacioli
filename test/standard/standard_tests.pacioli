@@ -10,7 +10,8 @@ define standard_suites = [
    flatten_suite,
    is_zero_suite,
    sort_index_suite,
-   flat_map_suite
+   flat_map_suite,
+   join_strings_suite
 ];
 
 run_test_suites(standard_suites); 
@@ -139,5 +140,25 @@ define flat_map_suite = test_suite("flat_map", [
 
     test("should flatten only one level", () ->
         flat_map((x) -> [naturals(x)], [1, 2, 3]) = [[0], [0, 1], [0, 1, 2]]
+    )
+]);
+
+
+define join_strings_suite = test_suite("join_strings", [
+
+    test("should join three strings correctly", () ->
+        join_strings(["a", "bb", "ccc"], "++") = "a++bb++ccc"
+    ),
+ 
+    test("should join one string correctly", () ->
+        join_strings(["foo"], "++") = "foo"
+    ),
+
+    test("should give the empty string for an empty list", () ->
+        join_strings([], "++") = ""
+    ),
+
+    test("should work with an empty separator", () ->
+        join_strings(["a", "bb", "ccc"], "") = "abbccc"
     )
 ]);

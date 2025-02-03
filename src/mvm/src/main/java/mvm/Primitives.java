@@ -239,6 +239,25 @@ public class Primitives {
                 }
             }
         });
+
+        storePrimitive(store, new Primitive("base_catch") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Callable body = (Callable) params.get(0);
+                try {
+                    return body.apply(new ArrayList<PacioliValue>());
+                } catch (MVMException ex) {
+                    return null;
+                }
+            }
+        });
+
+        storePrimitive(store, new Primitive("base_is_nothing") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliValue value = params.get(0);
+                return new Boole(value == null);
+            }
+        });
+
         // //////////////////////////////////////////////////////////////////////////////
         // Matrix
 

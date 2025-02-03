@@ -42,7 +42,8 @@ export
     error,
     just,
     nothing,
-    is_nothing;
+    is_nothing,
+    catch;
 
 defunit metre "m";
 defunit gram "g";
@@ -123,3 +124,5 @@ declare nothing :: for_type t: () -> Maybe(t);
 declare is_nothing :: for_type t: (Maybe(t)) -> Boole;
 
 declare maybe_get :: for_type t: (Maybe(t)) -> t;
+
+declare catch :: for_type t: (() -> t) -> Maybe(t);

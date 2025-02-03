@@ -1,0 +1,102 @@
+import testing;
+import si;
+
+# ------------------------------------------------------------------------------
+# Comprehension test suites
+# ------------------------------------------------------------------------------
+
+declare comprehension_suites :: List(TestSuite);
+
+define comprehension_suites = [
+   comprehension_suite,
+   all_comprehension_suite,
+   some_comprehension_suite,
+   max_comprehension_suite
+];
+
+run_test_suites(comprehension_suites); 
+
+# ------------------------------------------------------------------------------
+# Test data
+# ------------------------------------------------------------------------------
+
+defindex TestRows = {a, b, c};
+
+defindex TestColumns = {k, l};
+
+define test_matrix(a, b, c, d, e, f) = 
+    make_matrix([
+        tuple(TestRows@a, TestColumns@k, a),
+        tuple(TestRows@b, TestColumns@k, b),
+        tuple(TestRows@c, TestColumns@k, c),
+        tuple(TestRows@a, TestColumns@l, d),
+        tuple(TestRows@b, TestColumns@l, e),
+        tuple(TestRows@c, TestColumns@l, f)
+    ]);
+  
+# ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
+
+define comprehension_suite = test_suite("Comprehension", [
+
+    test("should handle empty list correctly", () ->
+        [x | x <- []] = []
+    )
+]);
+
+
+define all_comprehension_suite = test_suite("All comprehension", [
+
+    test("should handle empty list correctly", () ->
+        all[x | x <- []] = true
+    ),
+
+    test("should handle empty list correctly", () ->
+        all[x | x <- [true, true]] = true
+    ),
+
+    test("should handle empty list correctly", () ->
+        all[x | x <- [true, true, false]] = false
+    )
+]);
+
+
+define some_comprehension_suite = test_suite("Some comprehension", [
+
+    test("should handle empty list correctly", () ->
+        some[x | x <- []] = false
+    ),
+
+    test("should handle empty list correctly", () ->
+        some[x | x <- [false, false]] = false
+    ),
+
+    test("should handle empty list correctly", () ->
+        some[x | x <- [true, true, false]] = true
+    )
+]);
+
+
+
+define max_comprehension_suite = test_suite("Max Comprehension", [
+       
+    test("should give max of three numbers", () ->
+        max[x | x <- [1, 2, 3, 5]] = 5
+    ),
+
+    test("should fail for empty list", () ->
+        is_nothing(catch(() -> max[x | x <- []]))
+    ),
+
+    test("should do element-wise max for three matrices", () ->
+        let 
+            m1 = test_matrix(1,2,3,4,5,6),
+            m2 = test_matrix(6,5,4,3,2,1),
+            m3 = test_matrix(0,0,0,10,0,0),
+            mmax = test_matrix(6,5,4,10,5,6)
+        in
+            max[x | x <- [m1, m2, m3]] = mmax
+        end
+    )
+]);
