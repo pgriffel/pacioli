@@ -30,14 +30,14 @@ export
     approximates,
     approximates_to,
     compare,
-    list_count,
-    list_concat,
-    list_sum,
-    list_min,
-    list_max,
-    list_gcd,
-    list_all,
-    list_some;
+    _list_count,
+    _list_concat,
+    _list_sum,
+    _list_min,
+    _list_max,
+    _list_gcd,
+    _list_all,
+    _list_some;
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -115,24 +115,24 @@ define compare(x, y) =
 # Primitives for Comprehensions (todo: implement properly)
 # ------------------------------------------------------------------------------
 
-declare list_count :: (List(Boole())) -> 1;
+declare _list_count :: (List(Boole())) -> 1;
 
-declare list_concat :: (List(String())) -> String();
+declare _list_concat :: (List(String())) -> String();
 
-declare list_sum, list_min, list_max :: 
+declare _list_sum, _list_min, _list_max :: 
   for_index P, Q: for_unit a, P!u, Q!v: (List(a*P!u per Q!v)) -> a*P!u per Q!v;
 
-declare list_gcd :: 
+declare _list_gcd :: 
   for_index P, Q: for_unit a, P!u, Q!v: (List(P! per Q!)) -> P! per Q!;
 
-declare list_all, list_some :: (List(Boole())) -> Boole();
+declare _list_all, _list_some :: (List(Boole())) -> Boole();
 
 
-define list_count(xs) = list_size([x | x <- xs, x]);
-define list_concat(xs) = if xs = [] then "" else fold_list(concatenate, xs) end;
-define list_sum(x) = fold_list(sum, x);
-define list_min(x) = fold_list(min, x);
-define list_max(x) = fold_list(max, x);
-define list_gcd(x) = fold_list(gcd, x);
-define list_all(x) = if x = [] then true else fold_list((a, b) -> a and b, x) end;
-define list_some(x) = if x = [] then false else fold_list((a, b) -> a or b, x) end;
+define _list_count(xs) = list_size([x | x <- xs, x]);
+define _list_concat(xs) = if xs = [] then "" else fold_list(concatenate, xs) end;
+define _list_sum(x) = fold_list(sum, x);
+define _list_min(x) = fold_list(min, x);
+define _list_max(x) = fold_list(max, x);
+define _list_gcd(x) = fold_list(gcd, x);
+define _list_all(x) = if x = [] then true else fold_list((a, b) -> a and b, x) end;
+define _list_some(x) = if x = [] then false else fold_list((a, b) -> a or b, x) end;

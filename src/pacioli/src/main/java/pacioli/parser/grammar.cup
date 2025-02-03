@@ -294,17 +294,21 @@ parser code {:
         pacioli.compiler.Location opLoc = op.location();
         ExpressionNode body = desugarComprehension(loc, e, ps);
         if (op.name().equals("sum")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_sum", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_sum", eLoc), Arrays.asList(body), opLoc);
         } else if (op.name().equals("count")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_count", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_count", eLoc), Arrays.asList(body), opLoc);
         } else if (op.name().equals("all")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_all", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_all", eLoc), Arrays.asList(body), opLoc);
         } else if (op.name().equals("some")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_some", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_some", eLoc), Arrays.asList(body), opLoc);
         } else if (op.name().equals("gcd")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_gcd", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_gcd", eLoc), Arrays.asList(body), opLoc);
         } else if (op.name().equals("concat")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("list_concat", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_concat", eLoc), Arrays.asList(body), opLoc);
+        } else if (op.name().equals("min")) {
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_min", eLoc), Arrays.asList(body), opLoc);
+        } else if (op.name().equals("max")) {
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_max", eLoc), Arrays.asList(body), opLoc);
         } else {
             throw new PacioliException(op.location(), "Comprehension operator '%s' unknown", op.name());
         }
