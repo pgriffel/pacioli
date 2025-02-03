@@ -207,8 +207,10 @@ define det3d(A) =
 
 doc to_cartesian3d
     "Creates a vector in cartesian coordinates from polar coordinates.
+
+    For any vector <code>v</code> the following equality holds
     
-    <code>v = to_cartesian3d(norm(v), inclination(v), azimuth(v))</code>";
+    <code>to_cartesian3d(norm(v), inclination(v), azimuth(v)) = v</code>";
 
 declare to_cartesian3d :: for_unit a: (a, radian, radian) -> a*Geom3!;
 
@@ -224,7 +226,9 @@ define to_cartesian3d(radius, inclination, azimuth) =
 doc inclination
     "The inclination for polar coordinates.
     
-    <code>v = to_cartesian3d(norm(v), inclination(v), azimuth(v))</code>";
+    For any vector <code>v</code> the following equality holds
+    
+    <code>to_cartesian3d(norm(v), inclination(v), azimuth(v)) = v</code>";
 
 declare inclination :: for_unit a: (a*Geom3!) -> radian;
 
@@ -236,7 +240,9 @@ define inclination(vec) =
 doc azimuth
     "The azimuth for polar coordinates.
     
-    <code>v = to_cartesian3d(norm(v), inclination(v), azimuth(v))</code>";
+    For any vector <code>v</code> the following equality holds
+
+    <code>to_cartesian3d(norm(v), inclination(v), azimuth(v)) = v</code>";
 
 declare azimuth :: for_unit a: (a*Geom3!) -> radian;
 
@@ -263,7 +269,9 @@ define to_polar3d(vec) =
 doc polar_angle
     "The angle for polar coordinates in <code>Geom2</code>.
     
-    <code>v = polar2cartesian(norm(v), inclination(v), azimuth(v))</code>";
+    For any vector <code>v</code> the following equality holds
+
+    <code>to_cartesian2d(norm(v), polar_angle(v)) = v</code>";
 
 declare polar_angle :: for_unit a: (a*Geom2!) -> radian;
 
@@ -291,7 +299,9 @@ define to_polar2d(vec) =
 doc to_cartesian2d
     "Creates a vector in cartesian coordinates from polar coordinates.
     
-    <code>v = polar2cartesian(norm(v), inclination(v), azimuth(v))</code>";
+    For any vector <code>v</code> the following equality holds
+
+    <code>to_cartesian2d(norm(v), polar_angle(v)) = v</code>";
 
 declare to_cartesian2d :: for_unit a: (a, radian) -> a*Geom2!;
 
