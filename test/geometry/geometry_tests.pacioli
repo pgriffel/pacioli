@@ -153,16 +153,16 @@ define azimuth_suite = test_suite("Function azimuth", [
 
 define polar_equations_suite = test_suite("Polar equations", [
 
-    test("should by okay up to 7 decimals using norm, polar_angle",
+    test("should by okay up to 15 decimals using norm, polar_angle",
       () ->
-         all[ approximates(v, w, 7*|decimals|) | i <- naturals(100),
+         all[ approximates(v, w, 15*|decimals|) | i <- naturals(100),
                                                  v := random2d(|metre|), 
                                                  w := to_cartesian2d(norm(v), polar_angle(v)) ]
       ),
       
-    test("should by okay up to 7 decimals using to_polar2d",
+    test("should by okay up to 15 decimals using to_polar2d",
       () ->
-         all[ approximates(v, w, 7*|decimals|) | i <- naturals(100),
+         all[ approximates(v, w, 15*|decimals|) | i <- naturals(100),
                                                  v := random2d(|metre|), 
                                                  w := let (nrm, ang) = to_polar2d(v) in
                                                         to_cartesian2d(nrm, ang) 
