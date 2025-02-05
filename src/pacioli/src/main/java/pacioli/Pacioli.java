@@ -36,8 +36,13 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.Future;
 
 import org.apache.commons.io.FilenameUtils;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.eclipse.lsp4j.services.LanguageClient;
+import org.eclipse.lsp4j.services.LanguageServer;
 
 import mvm.MVMException;
 import mvm.Machine;
@@ -49,6 +54,7 @@ import pacioli.compiler.PrimitivesDocumentation;
 import pacioli.compiler.Program;
 import pacioli.compiler.Project;
 import pacioli.compiler.CompilationSettings.Target;
+import pacioli.lsp.PacioliLanguageServer;
 
 /**
  * The main entry point of the compiler.
@@ -262,6 +268,8 @@ public class Pacioli {
                 helpCommand();
             } else if (command.equals("info")) {
                 infoCommand(libs);
+            } else if (command.equals("lsp")) {
+                lspCommand(libs);
             } else {
                 displayError(String.format("Command '%s' unknown", command));
             }
@@ -557,6 +565,20 @@ public class Pacioli {
         logOptions(true);
 
         println("\nPaul Griffioen 2013 - 2023");
+    }
+
+    private static void lspCommand(List<File> libs) {
+
+        println("Begin lsp command");
+
+        LanguageServer server = new PacioliLanguageServer();
+        Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server,
+                System.in,
+                System.out);
+
+        Future<Void> future = launcher.startListening();
+
+        println("End lsp command");
     }
 
     private static void helpCommand() {
