@@ -36,13 +36,13 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
-import org.eclipse.lsp4j.services.LanguageServer;
 
 import mvm.MVMException;
 import mvm.Machine;
@@ -55,6 +55,8 @@ import pacioli.compiler.Program;
 import pacioli.compiler.Project;
 import pacioli.compiler.CompilationSettings.Target;
 import pacioli.lsp.PacioliLanguageServer;
+import pacioli.lsp.PacioliTextDocumentService;
+import pacioli.lsp.PacioliWorkspaceService;
 
 /**
  * The main entry point of the compiler.
@@ -569,16 +571,30 @@ public class Pacioli {
 
     private static void lspCommand(List<File> libs) {
 
-        println("Begin lsp command");
+        var textDocumentService = new PacioliTextDocumentService();
+        var workspaceService = new PacioliWorkspaceService();
 
-        LanguageServer server = new PacioliLanguageServer();
+        PacioliLanguageServer server = new PacioliLanguageServer(textDocumentService, workspaceService);
+
         Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server,
                 System.in,
                 System.out);
 
+        LanguageClient client = launcher.getRemoteProxy();
+
+        server.connect(client);
+
         Future<Void> future = launcher.startListening();
 
-        println("End lsp command");
+        try {
+            future.get();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
     private static void helpCommand() {
