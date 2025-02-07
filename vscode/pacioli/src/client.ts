@@ -39,6 +39,7 @@ export class PacioliClient {
         command: "java",
         args: [
           "-jar",
+          //   "D:\\code\\pacioli\\src\\pacioli\\target\\pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar",
           path.join(
             String(this.context?.extensionPath),
             "pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar"

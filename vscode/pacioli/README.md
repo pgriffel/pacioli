@@ -2,15 +2,16 @@
 
 Pacioli is a statically typed matrix language.
 
-This extension offers support for the Pacioli language. Visit [Pacioli on Github](http://pgriffel.github.io/pacioli/) for information about the language itself.
+This extension offers editor support for the Pacioli language. Visit [Pacioli on Github](http://pgriffel.github.io/pacioli/) for information about the language itself.
 
 ## Features
 
 - Syntax highlighting
+- Diagnostics for syntax errors
 
 ## Requirements
 
-Not yet
+Java needs to be installed.
 
 ## Extension Settings
 

@@ -9,3 +9,4 @@ Initial release
 ### Added
 
 - Syntax highlighting
+- Diagnostics for syntax errors

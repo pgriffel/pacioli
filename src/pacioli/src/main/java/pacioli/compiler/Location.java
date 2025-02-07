@@ -33,12 +33,12 @@ public class Location {
 
     private final File file;
 
-    private final Integer fromLine;
-    private final Integer fromColumn;
+    public final Integer fromLine;
+    public final Integer fromColumn;
     private final Integer fromOffset;
 
-    private final Integer toLine;
-    private final Integer toColumn;
+    public final Integer toLine;
+    public final Integer toColumn;
     private final Integer toOffset;
 
     /**

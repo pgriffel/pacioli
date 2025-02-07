@@ -4,6 +4,8 @@ import * as vscode from "vscode";
 import { PacioliClient } from "./client";
 
 const pacioliClient = new PacioliClient();
+const diagnosticCollection =
+  vscode.languages.createDiagnosticCollection("pacioli");
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -25,6 +27,8 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(disposable);
+
+  context.subscriptions.push(diagnosticCollection);
 
   //Set the context of the extension instance
   pacioliClient.setContext(context);
