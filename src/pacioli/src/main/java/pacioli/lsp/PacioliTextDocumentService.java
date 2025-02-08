@@ -86,16 +86,16 @@ public class PacioliTextDocumentService implements TextDocumentService {
             // var text = params.getContentChanges().get(0).getText();
             // this.logInfo(text);
 
-            this.logInfo("loading bundle");
+            // this.logInfo("loading bundle");
 
             var prog = Project.load(PacioliFile.get(text, 0).get(), this.libs);
             prog.loadBundle();
 
-            this.logInfo("loaded bundle");
+            // this.logInfo("loaded bundle");
 
-            var prog2 = Program.load(PacioliFile.get(text, 0).get());
+            // var prog2 = Program.load(PacioliFile.get(text, 0).get());
         } catch (PacioliException e) {
-            this.logInfo("%s%s", e.getMessage(), e.getClass().toString());
+            // this.logInfo("%s%s", e.getMessage(), e.getClass().toString());
 
             Location src = e.location();
             Range range = src == null
@@ -107,14 +107,17 @@ public class PacioliTextDocumentService implements TextDocumentService {
             errors.add(d);
 
         } catch (Exception e) {
-            this.logInfo(e.getMessage() + e.getCause().getMessage());
-            for (var x : e.getStackTrace()) {
-                this.logInfo(x.toString());
-            }
+            // this.logInfo(e.getMessage() + e.getCause().getMessage());
+            // for (var x : e.getStackTrace()) {
+            // this.logInfo(x.toString());
+            // }
 
             Location src = null;
+            String message = e.getMessage();
+
             if (e.getCause() instanceof PacioliException pe) {
                 src = pe.location();
+                message += ": " + pe.getMessage();
             }
 
             // todo: fix position. geen diagnostic voor dit geval?!
@@ -122,11 +125,12 @@ public class PacioliTextDocumentService implements TextDocumentService {
                     ? new Range(new Position(0, 0), new Position(10000, 100))
                     : new Range(new Position(src.fromLine, src.fromColumn),
                             new Position(src.toLine, src.toColumn));
-            var d = new Diagnostic(range, e.getMessage());
+            var d = new Diagnostic(range, message);
 
             errors.add(d);
         }
 
+        // Without this call the file gets locked (on Windows)
         System.gc();
 
         PublishDiagnosticsParams diagnosticParams = new PublishDiagnosticsParams(uri, errors);
@@ -151,21 +155,22 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
     }
 
-    @Override
-    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams position) {
-        return CompletableFuture.supplyAsync(() -> {
-            // Example: Provide completions for AsciiDoc elements
+    // @Override
+    // public CompletableFuture<Either<List<CompletionItem>, CompletionList>>
+    // completion(CompletionParams position) {
+    // return CompletableFuture.supplyAsync(() -> {
+    // // Example: Provide completions for AsciiDoc elements
 
-            CompletionItem item1 = new CompletionItem();
-            item1.setLabel("image::");
+    // CompletionItem item1 = new CompletionItem();
+    // item1.setLabel("image::");
 
-            CompletionItem item2 = new CompletionItem();
-            item2.setLabel("include::");
-            List<CompletionItem> completionItems = List.of(item1, item2);
+    // CompletionItem item2 = new CompletionItem();
+    // item2.setLabel("include::");
+    // List<CompletionItem> completionItems = List.of(item1, item2);
 
-            return Either.forLeft(completionItems);
-        });
-    }
+    // return Either.forLeft(completionItems);
+    // });
+    // }
 
     private void logInfo(String string, Object... args) {
         this.languageClient.logMessage(new MessageParams(MessageType.Info, String.format(string, args)));

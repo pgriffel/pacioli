@@ -29,6 +29,7 @@ import java.util.Set;
 
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.compiler.AbstractPrintable;
+import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypeVar;
@@ -45,8 +46,8 @@ public class Typing extends AbstractPrintable {
         this.constraints = new ConstraintSet();
     }
 
-    public void addConstraint(TypeObject lhs, TypeObject rhs, String text) {
-        constraints.addConstraint(lhs, rhs, text);
+    public void addConstraint(TypeObject lhs, TypeObject rhs, String text, Location location) {
+        constraints.addConstraint(lhs, rhs, text, location);
     }
 
     public void addNModeConstraint(TypeObject resultType, TypeObject tensorType, Integer integer,
@@ -54,8 +55,9 @@ public class Typing extends AbstractPrintable {
         constraints.addNModeConstraint(resultType, tensorType, integer, matrixType, node, text);
     }
 
-    public void addInstanceConstraint(TypeObject lhs, TypeObject rhs, Set<Var> freeVars, String text) {
-        constraints.addInstanceConstraint(lhs, rhs, freeVars, text);
+    public void addInstanceConstraint(TypeObject lhs, TypeObject rhs, Set<Var> freeVars, String text,
+            Location location) {
+        constraints.addInstanceConstraint(lhs, rhs, freeVars, text, location);
     }
 
     public void addConstraintsAndAssumptions(Typing other) {

@@ -75,7 +75,7 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
         final InitializeResult response = new InitializeResult(new ServerCapabilities());
         // Set the document synchronization capabilities to full.
         response.getCapabilities().setTextDocumentSync(TextDocumentSyncKind.Full);
-        response.getCapabilities().setCompletionProvider(new CompletionOptions());
+        // response.getCapabilities().setCompletionProvider(new CompletionOptions());
         response.getCapabilities().setDiagnosticProvider(new DiagnosticRegistrationOptions());
 
         var clientCapabilities = params.getCapabilities();
