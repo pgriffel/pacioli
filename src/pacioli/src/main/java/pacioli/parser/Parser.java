@@ -1610,11 +1610,16 @@ public class Parser extends java_cup.runtime.lr_parser {
     }
 
     public static ProgramNode parseFile(File file) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader(file));
+        var fileReader = new FileReader(file);
+        BufferedReader reader = new BufferedReader(fileReader);
         ComplexSymbolFactory csf = new ComplexSymbolFactory();
         Lexer lexer = new Lexer(reader, csf, file, null);
         Parser parser = new Parser(lexer, csf, file);
-        return (ProgramNode) parser.parse().value;
+        var node = (ProgramNode) parser.parse().value;
+        parser.done_parsing();
+        reader.close();
+        fileReader.close();
+        return node;
     }
 
    /* CUP overrides to get error handling with location info */

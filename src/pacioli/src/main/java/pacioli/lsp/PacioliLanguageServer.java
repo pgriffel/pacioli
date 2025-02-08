@@ -1,5 +1,7 @@
 package pacioli.lsp;
 
+import java.io.File;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.CompletionOptions;
@@ -22,13 +24,17 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
     private PacioliWorkspaceService workspaceService;
     private LanguageClient languageClient;
 
+    List<File> libs;
+
     private int shutdown = 1;
 
     public PacioliLanguageServer(
             PacioliTextDocumentService textDocumentService,
-            PacioliWorkspaceService workspaceService) {
+            PacioliWorkspaceService workspaceService,
+            List<File> libs) {
         this.textDocumentService = textDocumentService;
         this.workspaceService = workspaceService;
+        this.libs = libs;
     }
 
     /**
@@ -43,7 +49,7 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
     @Override
     public void connect(LanguageClient client) {
         this.languageClient = client;
-        this.textDocumentService.connect(client);
+        this.textDocumentService.connect(client, this.libs);
         this.workspaceService.connect(client);
     }
 

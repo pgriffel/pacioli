@@ -571,22 +571,25 @@ public class Pacioli {
 
     private static void lspCommand(List<File> libs) {
 
-        var textDocumentService = new PacioliTextDocumentService();
-        var workspaceService = new PacioliWorkspaceService();
-
-        PacioliLanguageServer server = new PacioliLanguageServer(textDocumentService, workspaceService);
-
-        Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server,
-                System.in,
-                System.out);
-
-        LanguageClient client = launcher.getRemoteProxy();
-
-        server.connect(client);
-
-        Future<Void> future = launcher.startListening();
-
         try {
+
+            // Socket clientSocket = new Socket("127.0.0.1", 9925);
+
+            var textDocumentService = new PacioliTextDocumentService();
+            var workspaceService = new PacioliWorkspaceService();
+
+            PacioliLanguageServer server = new PacioliLanguageServer(textDocumentService, workspaceService, libs);
+
+            Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server,
+                    System.in, System.out
+            // clientSocket.getInputStream(), clientSocket.getOutputStream()
+            );
+
+            LanguageClient client = launcher.getRemoteProxy();
+
+            server.connect(client);
+
+            Future<Void> future = launcher.startListening();
             future.get();
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
@@ -803,6 +806,16 @@ public class Pacioli {
     public static void logIf(boolean show, String string, Object... args) {
         if (show) {
             log(string, args);
+        }
+    }
+
+    public static void logToFile(String fileName, String string, Object... args) {
+        try (FileWriter fwriter = new FileWriter(fileName, true); BufferedWriter writer = new BufferedWriter(fwriter)) {
+            writer.newLine();
+            writer.write(String.format(string, args));
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 

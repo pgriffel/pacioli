@@ -1,9 +1,11 @@
 package pacioli.lsp;
 
+import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
@@ -29,10 +31,13 @@ import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.PacioliFile;
 import pacioli.compiler.Program;
+import pacioli.compiler.Project;
 
 public class PacioliTextDocumentService implements TextDocumentService {
 
     private LanguageClient languageClient;
+
+    List<File> libs;
 
     /**
      * Connects the PacioliTextDocumentService, the PacioliWorkspaceService and the
@@ -43,8 +48,9 @@ public class PacioliTextDocumentService implements TextDocumentService {
      * @param client The LanguageClient to connect to. Use getRemoteProxy() on
      *               Launcher<LanguageClient> to get a client.
      */
-    public void connect(LanguageClient client) {
+    public void connect(LanguageClient client, List<File> libs) {
         this.languageClient = client;
+        this.libs = libs;
     }
 
     @Override
@@ -68,6 +74,9 @@ public class PacioliTextDocumentService implements TextDocumentService {
     public void didSave(DidSaveTextDocumentParams params) {
         this.logInfo("Operation 'text/didSave' {fileUri: '%s'} opened", params.getTextDocument().getUri());
 
+        // try {
+        // CompletableFuture.supplyAsync(() -> {
+
         var uri = params.getTextDocument().getUri();
 
         var errors = new ArrayList<Diagnostic>();
@@ -76,24 +85,70 @@ public class PacioliTextDocumentService implements TextDocumentService {
             var text = new URI(uri).getPath();
             // var text = params.getContentChanges().get(0).getText();
             // this.logInfo(text);
-            var prog = Program.load(PacioliFile.get(text, 0).get());
+
+            this.logInfo("loading bundle");
+
+            var prog = Project.load(PacioliFile.get(text, 0).get(), this.libs);
+            prog.loadBundle();
+
+            this.logInfo("loaded bundle");
+
+            var prog2 = Program.load(PacioliFile.get(text, 0).get());
         } catch (PacioliException e) {
+            this.logInfo("%s%s", e.getMessage(), e.getClass().toString());
+
             Location src = e.location();
-            Range range = new Range(new Position(src.fromLine, src.fromColumn), new Position(src.toLine, src.toColumn));
+            Range range = src == null
+                    ? new Range(new Position(0, 0), new Position(10000, 100))
+                    : new Range(new Position(src.fromLine, src.fromColumn),
+                            new Position(src.toLine, src.toColumn));
             var d = new Diagnostic(range, e.getMessage());
 
             errors.add(d);
 
         } catch (Exception e) {
+            this.logInfo(e.getMessage() + e.getCause().getMessage());
+            for (var x : e.getStackTrace()) {
+                this.logInfo(x.toString());
+            }
+
+            Location src = null;
+            if (e.getCause() instanceof PacioliException pe) {
+                src = pe.location();
+            }
+
             // todo: fix position. geen diagnostic voor dit geval?!
-            Range range = new Range(new Position(0, 0), new Position(0, 0));
+            Range range = src == null
+                    ? new Range(new Position(0, 0), new Position(10000, 100))
+                    : new Range(new Position(src.fromLine, src.fromColumn),
+                            new Position(src.toLine, src.toColumn));
             var d = new Diagnostic(range, e.getMessage());
 
             errors.add(d);
         }
 
+        System.gc();
+
         PublishDiagnosticsParams diagnosticParams = new PublishDiagnosticsParams(uri, errors);
         this.languageClient.publishDiagnostics(diagnosticParams);
+
+        // return 1;
+        // }).get();
+        // } catch (InterruptedException e) {
+        // // TODO Auto-generated catch block
+        // // e.printStackTrace();
+        // System.gc();
+        // this.logInfo("interpupted");
+        // } catch (ExecutionException e) {
+        // // TODO Auto-generated catch block
+        // // e.printStackTrace();
+        // System.gc();
+        // this.logInfo(e.getMessage() + e.getCause().getMessage());
+        // for (var x : e.getStackTrace()) {
+        // this.logInfo(x.toString());
+        // }
+        // }
+
     }
 
     @Override

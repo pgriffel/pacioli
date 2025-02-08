@@ -4,7 +4,6 @@ import {
   LanguageClient,
   LanguageClientOptions,
   ServerOptions,
-  State,
 } from "vscode-languageclient/node";
 
 /**
@@ -39,12 +38,14 @@ export class PacioliClient {
         command: "java",
         args: [
           "-jar",
-          //   "D:\\code\\pacioli\\src\\pacioli\\target\\pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar",
-          path.join(
-            String(this.context?.extensionPath),
-            "pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar"
-          ),
+          "D:\\code\\pacioli\\src\\pacioli\\target\\pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar",
+          // path.join(
+          //   String(this.context?.extensionPath),
+          //   "pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar"
+          // ),
           "lsp",
+          "-lib",
+          "D:\\code\\pacioli\\lib\\",
         ],
         options: {},
       };
