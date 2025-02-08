@@ -1,3 +1,4 @@
+import { existsSync } from "fs";
 import path from "path";
 import { ExtensionContext } from "vscode";
 import {
@@ -20,48 +21,50 @@ export class PacioliClient {
   }
 
   init(): Promise<void> {
-    try {
-      let clientId = "pacioli-vscode-lsclient";
-      let clientName = "Pacioli LS Client";
+    let clientId = "pacioli-vscode-lsclient";
+    let clientName = "Pacioli LS Client";
 
-      // Options to control the language client
-      let clientOptions: LanguageClientOptions = {
-        // Register the server for plain text documents
-        documentSelector: [{ scheme: "file", language: "pacioli" }],
-        // synchronize: {
-        //     // Notify the server about file changes to '.clientrc files contained in the workspace
-        //     fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
-        // }
-      };
+    // Options to control the language client
+    let clientOptions: LanguageClientOptions = {
+      // Register the server for plain text documents
+      documentSelector: [{ scheme: "file", language: "pacioli" }],
+      // synchronize: {
+      //     // Notify the server about file changes to '.clientrc files contained in the workspace
+      //     fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
+      // }
+    };
 
-      let serverOptions: ServerOptions = {
-        command: "java",
-        args: [
-          "-jar",
-          // "D:\\code\\pacioli\\src\\pacioli\\target\\pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar",
-          path.join(
-            String(this.context?.extensionPath),
-            "pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar"
-          ),
-          "lsp",
-          "-lib",
-          // "D:\\code\\pacioli\\lib\\",
-          path.join(String(this.context?.extensionPath), "lib"),
-        ],
-        options: {},
-      };
+    // const jarFile =
+    //   "D:\\code\\pacioli\\src\\pacioli\\target\\pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar";
+    // const libDir = "D:\\code\\pacioli\\lib\\";
 
-      this.languageClient = new LanguageClient(
-        clientId,
-        clientName,
-        serverOptions,
-        clientOptions
-      );
+    const jarFile = path.join(
+      String(this.context?.extensionPath),
+      "pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar"
+    );
+    const libDir = path.join(String(this.context?.extensionPath), "lib");
 
-      // Start the client. This will also launch the server
-      return this.languageClient.start();
-    } catch (exception) {
-      return Promise.reject("Extension error!");
+    let serverOptions: ServerOptions = {
+      command: "java",
+      args: ["-jar", jarFile, "lsp", "-lib", libDir],
+      options: {},
+    };
+
+    if (!existsSync(jarFile)) {
+      return Promise.reject(`Jar file ${jarFile} does not exist`);
     }
+
+    if (!existsSync(libDir)) {
+      return Promise.reject(`Library directory ${libDir} does not exist`);
+    }
+
+    this.languageClient = new LanguageClient(
+      clientId,
+      clientName,
+      serverOptions,
+      clientOptions
+    );
+
+    return this.languageClient.start();
   }
 }

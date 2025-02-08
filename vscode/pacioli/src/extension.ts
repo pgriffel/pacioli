@@ -12,7 +12,7 @@ const diagnosticCollection =
 export function activate(context: vscode.ExtensionContext) {
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
-  console.log("Activating pacioli extension");
+  vscode.window.showInformationMessage("Activating Pacioli extension");
 
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with registerCommand
@@ -33,12 +33,19 @@ export function activate(context: vscode.ExtensionContext) {
   //Set the context of the extension instance
   pacioliClient.setContext(context);
   //Initialize the LS Client extension instance.
-  pacioliClient.init().catch((error) => {
-    console.log("Failed to activate pacioli extension. " + error);
-  });
+  pacioliClient
+    .init()
+    .then(() => {
+      vscode.window.showInformationMessage("Pacioli extension activated");
+    })
+    .catch((error) => {
+      vscode.window.showErrorMessage(
+        `Failed to activate pacioli extension: ${error}`
+      );
+    });
 }
 
 // This method is called when your extension is deactivated
 export function deactivate() {
-  console.log("Deactivating pacioli extension");
+  vscode.window.showInformationMessage("Deactivating Pacioli extension");
 }

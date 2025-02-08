@@ -95,7 +95,10 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
             // var prog2 = Program.load(PacioliFile.get(text, 0).get());
         } catch (PacioliException e) {
-            // this.logInfo("%s%s", e.getMessage(), e.getClass().toString());
+            this.logInfo("%s", e.getMessage());
+            for (var x : e.getStackTrace()) {
+                this.logInfo(x.toString());
+            }
 
             Location src = e.location();
             Range range = src == null
@@ -107,10 +110,10 @@ public class PacioliTextDocumentService implements TextDocumentService {
             errors.add(d);
 
         } catch (Exception e) {
-            // this.logInfo(e.getMessage() + e.getCause().getMessage());
-            // for (var x : e.getStackTrace()) {
-            // this.logInfo(x.toString());
-            // }
+            this.logInfo("%s%s", e.getMessage(), e.getCause().getMessage());
+            for (var x : e.getStackTrace()) {
+                this.logInfo(x.toString());
+            }
 
             Location src = null;
             String message = e.getMessage();

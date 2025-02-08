@@ -590,13 +590,13 @@ public class Pacioli {
             server.connect(client);
 
             Future<Void> future = launcher.startListening();
+
+            // Pacioli.logToFile("pacioli_lsp_error.log", "listening");
             future.get();
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Pacioli.logToFile("pacioli_lsp_error.log", e.getMessage());
         } catch (ExecutionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            Pacioli.logToFile("pacioli_lsp_error.log", e.getMessage());
         }
     }
 
