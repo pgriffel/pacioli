@@ -60,6 +60,9 @@ public class ParametricType extends AbstractType {
         return args;
     }
 
+    // Is this used? Since it exists it is used in the exception below, but that
+    // might not be necessary. The issue is whether it is necessary for the
+    // constraint.
     public Location location() {
         return location;
     }
@@ -91,14 +94,15 @@ public class ParametricType extends AbstractType {
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         ParametricType otherType = (ParametricType) other;
         if (args.size() != otherType.args.size()) {
-            throw new PacioliException("Number of arguments for '%s and '%s' differ", this.pretty(),
+            throw new PacioliException(location(),
+                    "Number of arguments for '%s and '%s' differ", this.pretty(),
                     otherType.pretty());
         }
         ConstraintSet constraints = new ConstraintSet();
-        constraints.addConstraint(op, otherType.op, String.format("Type operator must match"));
+        constraints.addConstraint(op, otherType.op, String.format("Type operator must match"), this.location());
         for (int i = 0; i < args.size(); i++) {
             constraints.addConstraint(args.get(i), otherType.args.get(i),
-                    String.format("%s arugment %s must match", name(), i + 1));
+                    String.format("%s arugment %s must match", name(), i + 1), this.location());
         }
         return constraints;
     }

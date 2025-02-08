@@ -36,8 +36,13 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.apache.commons.io.FilenameUtils;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.eclipse.lsp4j.services.LanguageClient;
 
 import mvm.MVMException;
 import mvm.Machine;
@@ -49,6 +54,9 @@ import pacioli.compiler.PrimitivesDocumentation;
 import pacioli.compiler.Program;
 import pacioli.compiler.Project;
 import pacioli.compiler.CompilationSettings.Target;
+import pacioli.lsp.PacioliLanguageServer;
+import pacioli.lsp.PacioliTextDocumentService;
+import pacioli.lsp.PacioliWorkspaceService;
 
 /**
  * The main entry point of the compiler.
@@ -262,6 +270,8 @@ public class Pacioli {
                 helpCommand();
             } else if (command.equals("info")) {
                 infoCommand(libs);
+            } else if (command.equals("lsp")) {
+                lspCommand(libs);
             } else {
                 displayError(String.format("Command '%s' unknown", command));
             }
@@ -559,6 +569,37 @@ public class Pacioli {
         println("\nPaul Griffioen 2013 - 2023");
     }
 
+    private static void lspCommand(List<File> libs) {
+
+        try {
+
+            // Socket clientSocket = new Socket("127.0.0.1", 9925);
+
+            var textDocumentService = new PacioliTextDocumentService();
+            var workspaceService = new PacioliWorkspaceService();
+
+            PacioliLanguageServer server = new PacioliLanguageServer(textDocumentService, workspaceService, libs);
+
+            Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server,
+                    System.in, System.out
+            // clientSocket.getInputStream(), clientSocket.getOutputStream()
+            );
+
+            LanguageClient client = launcher.getRemoteProxy();
+
+            server.connect(client);
+
+            Future<Void> future = launcher.startListening();
+
+            // Pacioli.logToFile("pacioli_lsp_error.log", "listening");
+            future.get();
+        } catch (InterruptedException e) {
+            Pacioli.logToFile("pacioli_lsp_error.log", e.getMessage());
+        } catch (ExecutionException e) {
+            Pacioli.logToFile("pacioli_lsp_error.log", e.getMessage());
+        }
+    }
+
     private static void helpCommand() {
 
         println("\nSyntax: pacioli COMMAND [OPTION]...FILE...  with COMMAND one of:");
@@ -765,6 +806,16 @@ public class Pacioli {
     public static void logIf(boolean show, String string, Object... args) {
         if (show) {
             log(string, args);
+        }
+    }
+
+    public static void logToFile(String fileName, String string, Object... args) {
+        try (FileWriter fwriter = new FileWriter(fileName, true); BufferedWriter writer = new BufferedWriter(fwriter)) {
+            writer.newLine();
+            writer.write(String.format(string, args));
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 

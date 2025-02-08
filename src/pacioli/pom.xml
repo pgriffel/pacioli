@@ -52,6 +52,11 @@
 			<artifactId>cup_runtime</artifactId>
 			<version>11b-20160615</version>
 		</dependency>
+		<dependency>
+			<groupId>org.eclipse.lsp4j</groupId>
+			<artifactId>org.eclipse.lsp4j</artifactId>
+			<version>0.24.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -32,6 +32,7 @@ import pacioli.Pacioli;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.compiler.AbstractPrintable;
+import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Utils;
 import pacioli.types.matrix.MatrixType;
@@ -60,12 +61,14 @@ public class ConstraintSet extends AbstractPrintable {
 
         public final TypeObject lhs;
         public final TypeObject rhs;
-        public String reason;
+        public final String reason;
+        public final Location location;
 
-        public EqualityConstraint(TypeObject lhs, TypeObject rhs, String reason) {
+        public EqualityConstraint(TypeObject lhs, TypeObject rhs, String reason, Location location) {
             this.lhs = lhs;
             this.rhs = rhs;
             this.reason = reason;
+            this.location = location;
         }
     }
 
@@ -74,13 +77,15 @@ public class ConstraintSet extends AbstractPrintable {
         public final TypeObject lhs;
         public final TypeObject rhs;
         public String reason;
+        public Location location;
         public final Set<Var> freeVars;
 
-        public InstanceConstraint(TypeObject lhs, TypeObject rhs, Set<Var> freeVars, String reason) {
+        public InstanceConstraint(TypeObject lhs, TypeObject rhs, Set<Var> freeVars, String reason, Location location) {
             this.lhs = lhs;
             this.rhs = rhs;
             this.reason = reason;
             this.freeVars = freeVars;
+            this.location = location;
         }
 
         // Note that typeVars() is not freeVars(). TODO: use freeVars here or create
@@ -104,7 +109,8 @@ public class ConstraintSet extends AbstractPrintable {
                     lhs.applySubstitution(subs),
                     rhs.applySubstitution(subs),
                     newFreeVars,
-                    reason);
+                    reason,
+                    location);
         }
     }
 
@@ -113,11 +119,13 @@ public class ConstraintSet extends AbstractPrintable {
         public final Unit<TypeBase> lhs;
         public final Unit<TypeBase> rhs;
         public String reason;
+        public Location location;
 
-        public UnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String reason) {
+        public UnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String reason, Location location) {
             this.lhs = lhs;
             this.rhs = rhs;
             this.reason = reason;
+            this.location = location;
         }
     }
 
@@ -161,23 +169,32 @@ public class ConstraintSet extends AbstractPrintable {
     public ConstraintSet() {
     }
 
-    public void addConstraint(TypeObject lhs, TypeObject rhs, String text) {
+    public void addConstraint(TypeObject lhs, TypeObject rhs, String text, Location location) {
         boolean lhsVar = lhs instanceof Var;
         boolean rhsVar = rhs instanceof Var;
         if (lhsVar || rhsVar || lhs.getClass().equals(rhs.getClass())) {
-            this.equalityConstaints.add(new EqualityConstraint(lhs, rhs, text));
+            this.equalityConstaints.add(new EqualityConstraint(lhs, rhs, text, location));
         } else {
-            throw new PacioliException(
+            throw new PacioliException(location,
                     String.format("Cannot unify class %s and class %s", lhs.getClass(), rhs.getClass()));
         }
     }
 
-    public void addInstanceConstraint(TypeObject lhs, TypeObject rhs, Set<Var> freeVars, String reason) {
-        this.instanceConstaints.add(new InstanceConstraint(lhs, rhs, freeVars, reason));
+    public void addConstraint(TypeObject lhs, TypeObject rhs, String text) {
+        this.addConstraint(lhs, rhs, text, null);
+    }
+
+    public void addInstanceConstraint(TypeObject lhs, TypeObject rhs, Set<Var> freeVars, String reason,
+            Location location) {
+        this.instanceConstaints.add(new InstanceConstraint(lhs, rhs, freeVars, reason, location));
+    }
+
+    public void addUnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String text, Location location) {
+        this.unitConstaints.add(new UnitConstraint(lhs, rhs, text, location));
     }
 
     public void addUnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String text) {
-        this.unitConstaints.add(new UnitConstraint(lhs, rhs, text));
+        this.unitConstaints.add(new UnitConstraint(lhs, rhs, text, null));
     }
 
     public void addConstraints(ConstraintSet other) {
@@ -260,7 +277,9 @@ public class ConstraintSet extends AbstractPrintable {
                         Pacioli.log("%s<%s Result=%s", " ".repeat(depth), depth, subs.pretty());
                     }
                 } catch (PacioliException ex) {
-                    throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason, left.unfresh().pretty(),
+                    throw new PacioliException(constraint.location == null ? ex.location() : constraint.location,
+                            "\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason,
+                            left.unfresh().pretty(),
                             right.unfresh().pretty(), ex.getLocalizedMessage());
                 }
             }
@@ -281,7 +300,8 @@ public class ConstraintSet extends AbstractPrintable {
 
                     mgu = UnitUnification.unifyUnits(left, right).compose(mgu);
                 } catch (PacioliException ex) {
-                    throw new PacioliException("\n" + ex.getLocalizedMessage() + "\n\n" + constraint.reason);
+                    throw new PacioliException(constraint.location == null ? ex.location() : constraint.location,
+                            "\n" + ex.getLocalizedMessage() + "\n\n" + constraint.reason);
                 }
             }
 
@@ -461,7 +481,9 @@ public class ConstraintSet extends AbstractPrintable {
                         Pacioli.log("Result=\n%s", subs.pretty());
                     }
                 } catch (PacioliException ex) {
-                    throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason, left.unfresh().pretty(),
+                    throw new PacioliException(constraint.location == null ? ex.location() : constraint.location,
+                            "\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason,
+                            left.unfresh().pretty(),
                             right.unfresh().pretty(), ex.getLocalizedMessage());
                 }
             }

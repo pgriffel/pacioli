@@ -235,7 +235,7 @@ public class TypeInference extends IdentityVisitor {
             // function type.
             String message = String.format("During inference %s\nthe inferred type must match known types",
                     node.sourceDescription());
-            typing.addConstraint(funType, funTyping.type(), message);
+            typing.addConstraint(funType, funTyping.type(), message, node.location());
 
         }
 
@@ -250,7 +250,7 @@ public class TypeInference extends IdentityVisitor {
         Typing typing = new Typing(newVoidType());
         typing.addConstraintsAndAssumptions(valueTyping);
         typing.addConstraint(node.var.info().localType(), valueTyping.type(),
-                "assigned variable must have proper type");
+                "assigned variable must have proper type", node.location());
         returnNode(typing);
     }
 
@@ -272,13 +272,15 @@ public class TypeInference extends IdentityVisitor {
 
         // Add the constraint that the test must be Boolean
         typing.addConstraint(testTyping.type(), newBooleType(), String
-                .format("While infering the type of\n%s\nthe test of an if must be Boolean", node.sourceDescription()));
+                .format("While infering the type of\n%s\nthe test of an if must be Boolean", node.sourceDescription()),
+                node.location());
 
         // Add the constraint that the positive and the negative branch must have the
         // same type
         typing.addConstraint(posTyping.type(), negTyping.type(),
                 String.format("While infering the type of\n%s\nthe branches of an if must have the same type",
-                        node.sourceDescription()));
+                        node.sourceDescription()),
+                node.location());
 
         returnNode(typing);
     }
@@ -340,13 +342,16 @@ public class TypeInference extends IdentityVisitor {
         TypeObject voidType = newVoidType();
 
         typing.addConstraint(testTyping.type(), newBooleType(), String
-                .format("While infering the type of\n%s\nthe test of an if must be Boolean", node.sourceDescription()));
+                .format("While infering the type of\n%s\nthe test of an if must be Boolean", node.sourceDescription()),
+                node.location());
         typing.addConstraint(posTyping.type(), voidType,
                 String.format("While infering the type of\n%s\nthe then branche of an if must be a statement",
-                        node.sourceDescription()));
+                        node.sourceDescription()),
+                node.location());
         typing.addConstraint(negTyping.type(), voidType,
                 String.format("While infering the type of\n%s\nthe else branche of an if must be a statement",
-                        node.sourceDescription()));
+                        node.sourceDescription()),
+                node.location());
 
         returnNode(typing);
     }
@@ -401,7 +406,8 @@ public class TypeInference extends IdentityVisitor {
                     typing.addConstraint(var, info.localType(),
                             String.format("During type inference in %s\nLambda var %s must have the proper type",
                                     node.sourceDescription(),
-                                    name));
+                                    name),
+                            node.location());
                 }
             } else {
                 for (TypeVar var : bodyTyping.assumptions(name)) {
@@ -461,7 +467,8 @@ public class TypeInference extends IdentityVisitor {
                     resultTyping.addInstanceConstraint(var, info.localType(), freeVars,
                             String.format("During type inference in %s\nLet var %s must have the proper type",
                                     node.sourceDescription(),
-                                    name));
+                                    name),
+                            node.location());
                 }
             } else {
                 for (TypeVar var : bodyTyping.assumptions(name)) {
@@ -527,7 +534,7 @@ public class TypeInference extends IdentityVisitor {
         Typing typing = new Typing(voidType);
         typing.addConstraintsAndAssumptions(valueTyping);
         typing.addConstraint(node.resultInfo.localType(), valueTyping.type(),
-                "the types of returned values must agree");
+                "the types of returned values must agree", node.location());
         returnNode(typing);
     }
 
@@ -537,7 +544,7 @@ public class TypeInference extends IdentityVisitor {
         Typing typing = new Typing(voidType);
         for (ExpressionNode item : node.items) {
             Typing itemTyping = typingAccept(item);
-            typing.addConstraint(voidType, itemTyping.type(), "A statement must have type Void()");
+            typing.addConstraint(voidType, itemTyping.type(), "A statement must have type Void()", node.location());
             typing.addConstraintsAndAssumptions(itemTyping);
         }
         returnNode(typing);
@@ -565,7 +572,7 @@ public class TypeInference extends IdentityVisitor {
 
         String stMessage = String.format("During inference %s\na statement must have type Void()",
                 node.sourceDescription());
-        typing.addConstraint(voidType, itemTyping.type(), stMessage);
+        typing.addConstraint(voidType, itemTyping.type(), stMessage, node.location());
         // typing.addConstraintsAndAssumptions(itemTyping);
         typing.addConstraints(itemTyping);
 
@@ -576,7 +583,7 @@ public class TypeInference extends IdentityVisitor {
                     String message = String.format(
                             "During inference %s\nthe inferred parameter type must match the argument",
                             info.location().description());
-                    typing.addConstraint(var, info.localType(), message);
+                    typing.addConstraint(var, info.localType(), message, info.location());
                 }
             } else {
                 for (TypeVar var : itemTyping.assumptions(name)) {
@@ -609,7 +616,7 @@ public class TypeInference extends IdentityVisitor {
         Typing typing = new Typing(voidType);
         typing.addConstraintsAndAssumptions(tupleTyping);
         typing.addConstraint(tupleType, tupleTyping.type(),
-                "assigned variable must have proper type");
+                "assigned variable must have proper type", node.location());
         returnNode(typing);
     }
 
@@ -622,9 +629,9 @@ public class TypeInference extends IdentityVisitor {
         typing.addConstraintsAndAssumptions(testTyping);
         typing.addConstraintsAndAssumptions(bodyTyping);
         typing.addConstraint(testTyping.type(), newBooleType(),
-                "the test of a while must be boolean");
+                "the test of a while must be boolean", node.location());
         typing.addConstraint(bodyTyping.type(), newVoidType(),
-                "the body of a while must be a statement");
+                "the body of a while must be a statement", node.location());
         returnNode(typing);
 
     }
