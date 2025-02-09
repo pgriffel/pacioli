@@ -177,24 +177,25 @@ define has_zero_diagonal(A) =
 # Extra tests. Old minkowski code above not touched.
 # ------------------------------------------------------------------------------
 
-define minkowski_metric = metric; # bad naming fix
-
-define minkowski_inner(x, y) =
-    bilinear_form(minkowski_metric, x, y);
+define minkowski_inner2(x, y) =
+    bilinear_form(spacetime_metric, x, y);
 
 define minkowski_norm(x) =
-    metric_norm(minkowski_metric, x);
+    metric_norm(spacetime_metric, x);
     
-define test_vecs = [vector4d(0,0,0,0), vector4d(1,2,3,4), vector4d(1,2,3,-4)];
+define test_vecs = [
+    spacetime_vector(0,0,0,0),
+    spacetime_vector(1,2,3,4),
+    spacetime_vector(1,2,3,-4)
+];
 
 define minkowski_suite2 = test_suite("Minkowski tests 2", [t | x <- test_vecs, y <- test_vecs, t <- [
-    
     let 
-        actual = minkowski_inner(homogenize '*' x, homogenize '*' y), 
-        expected = inner_minkowski(x, y)
+        actual = minkowski_inner2(uni_spacetime '*' x, uni_spacetime '*' y), 
+        expected = minkowski_inner(x, y)
     in
         test(
-            format("bilinear_form(metric, v, w) equals inner_minkowski after homogenizing %s = %s", actual, expected),
+            format("bilinear_form(metric, v, w) equals minkowski_inner after homogenizing %s = %s", actual, expected),
             () -> actual = expected)
     end
 ]]);
@@ -220,7 +221,7 @@ run_test_suites(minkowski_suites2);
 
 define schwarzschild_vec(time, radius, latitued, longitude) = ???;
 
-#declare schwarzschild_time :: (Minkowski!si) -> second;
+#declare schwarzschild_time :: (SpaceTime!si) -> second;
 
 # ------------------------------------------------------------------------------
 
@@ -238,10 +239,10 @@ define schwarzschild_metric(g, me, r, angle) =
     let
         rs = 2*g*me/c/c,
         # FIXME: juiste coordinaten gebruiken
-        x = delta(Minkowski@x),
-        y = delta(Minkowski@y),
-        z = delta(Minkowski@z),
-        t = delta(Minkowski@t),
+        x = delta(SpaceTime@x),
+        y = delta(SpaceTime@y),
+        z = delta(SpaceTime@z),
+        t = delta(SpaceTime@t),
         a = 1 - r/rs # this forces r to a dimensionless number
     in
         a '.*' x '*' x^T +
@@ -280,7 +281,7 @@ declare is_isometry_predicate ::for_index B, C: for_unit a:
 define is_isometry_predicate(f, metric_x, metric_y) = 
     (a, b) -> metric_distance(metric_x, a, b) = metric_distance(metric_y, f(a), f(b));
 
-is_isometry_predicate(fun, minkowski_metric, minkowski_metric)
-    (nth(0, test_vecs), nth(1, test_vecs));
+# is_isometry_predicate(fun, spacetime_metric, spacetime_metric)
+#     (nth(0, test_vecs), nth(1, test_vecs));
 
 define fun(x) = x;

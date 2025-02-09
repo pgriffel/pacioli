@@ -1,77 +1,299 @@
-
-
-###############################################################
-# Minkowski example to study heterogeneous units
+# ------------------------------------------------------------------------------
+# Minkowski example to study non-uniform units of measurement.
+#
 # This is an example of a non-euclidean metric.
+# ------------------------------------------------------------------------------
 
 import testing;
+import random;
 
 export
-    Minkowski;
-
-defindex Minkowski = {x, y, z, t};
+    SpaceTime;
 
 # high number of decimals because of dividing by c = speed of light
 set_nr_decimals(12);
 
-declare d_x :: Minkowski!si;
-declare d_y :: Minkowski!si;
-declare d_z :: Minkowski!si;
-declare d_t :: Minkowski!si;
+# ------------------------------------------------------------------------------
+# Running all tests
+# ------------------------------------------------------------------------------
 
+run_test_suites(minkowski_suites);
 
-define d_x = delta(Minkowski@x) * |Minkowski!si|;
-define d_y = delta(Minkowski@y) * |Minkowski!si|;
-define d_z = delta(Minkowski@z) * |Minkowski!si|;
-define d_t = delta(Minkowski@t) * |Minkowski!si|;
+define minkowski_suites = [
+    inner_suite,
+    x_like_suite
+];
+ 
+# ------------------------------------------------------------------------------
+# Spacetime
+#
+# Minkowski's spacetime is a 4-dimensional space with three spacial dimensions
+# and one time dimension. This is a space with non-uniform units of measurement.
+# The spacial dimensions have unit 'metre'. The time dimension has unit 'second'.
+# ------------------------------------------------------------------------------
 
-defunit Minkowski!si = {x:metre, y:metre, z:metre, t:second};
+doc SpaceTime
+    "The indices for Minkowski's spacetime. Defined as the set
+    <code>{x, y, z, t}</code>";
 
-declare vector4d :: for_unit a: (a, a, a, a) -> a*Minkowski!si;
+defindex SpaceTime = {x, y, z, t};
 
-define vector4d(x, y, z, t) =
-  x '.*' d_x + y '.*' d_y + z '.*' d_z + t '.*' d_t;
+# ------------------------------------------------------------------------------
 
-#d_x;
-#d_t;
-#d_x + d_t;
+defunit SpaceTime!si =
+    {x:metre, y:metre, z:metre, t:second};
 
-# A matrix = (1,1) tensor
-# TODO how to name this transform/convert (metric?) matrix / (1,1) tensor
-defmatrix convert :: Minkowski!si per Minkowski!si = {
-    x,x -> 1,
-    y,y -> 1,
-    z,z -> 1,
-    t,t -> -300000
-};
+# ------------------------------------------------------------------------------
 
-declare metric :: Minkowski! per Minkowski!;
+doc spacetime_base
+    "Orthogonal basis for spacetime.";
 
-defmatrix metric :: Minkowski! per Minkowski! = {
-    x,x -> 1,
-    y,y -> 1,
-    z,z -> 1,
-    t,t -> -1
-};
+declare spacetime_base ::
+    Tuple(SpaceTime!, SpaceTime!, SpaceTime!, SpaceTime!);
 
-declare homogenize :: metre*Minkowski! per Minkowski!si;
+define spacetime_base = 
+    tuple(
+        delta(SpaceTime@x),
+        delta(SpaceTime@y),
+        delta(SpaceTime@z),
+        delta(SpaceTime@t));
 
-defmatrix homogenize :: metre*Minkowski! per Minkowski!si = {
+# ------------------------------------------------------------------------------
+
+doc spacetime_vector
+    "Creates a dimensioned spacetime vector from the magnitudes of the 
+    individual dimensions.";
+
+declare spacetime_vector ::
+    (1, 1, 1, 1) -> SpaceTime!si;
+
+define spacetime_vector(x, y, z, t) =
+    let
+        (ex, ey, ez, et) = spacetime_base,
+        magnitude = x '.*' ex + y '.*' ey + z '.*' ez + t '.*' et
+    in
+        magnitude * |SpaceTime!si|
+    end;
+
+# ------------------------------------------------------------------------------
+# Unit of measurement conversion
+#
+# bla bla
+# ------------------------------------------------------------------------------
+
+doc uni_spacetime
+    "A matrix that transforms a non-uniform spacetime vector into a uniform
+    spacetime vector.";
+
+declare uni_spacetime ::
+    metre * SpaceTime! per SpaceTime!si;
+
+defmatrix uni_spacetime :: metre * SpaceTime! per SpaceTime!si = {
     x,x -> 1,
     y,y -> 1,
     z,z -> 1,
     t,t -> 300000
 };
 
+# ------------------------------------------------------------------------------
+# Metric
+#
+# Experiment computing the minkowski_inner :
+#
+# Initially we built one convert for both making a homogeneous matrix and for
+# applying the metric of the c speed. We arrived at the type
+# 
+#   minkowski_inner ::
+#       for_unit a, b:  (a*SpaceTime!si, b*SpaceTime!si) -> b/a;
+#
+# This required the left multiplication in inner_minkowsky by the ^D = ^T^R 
+# dimensional inverse. However, the pointwise inner product produces another 
+# value (without units). To fix this we change the inner_product type to 
+#
+#  minkowski_inner ::
+#      for_unit a, b: (a*SpaceTime!si, b*SpaceTime!si) -> a*b*metre^2;
+#
+# Question: how does this result match with the uniform scaling on p102 of Leo?
+#
+# vector_v = (vx, vy, vz, vt)
+# vector_w = (wx, wy, wz, wt)
+# vector_v^T metric vector_w
+#
+# inputs are 2 (1,0) tensors, so 4x1 vectors. (1,4) matrix
+# so a (4,1)^D x (4,4) x (4,1) matrix -> 1,1 
+# 
+# result must be 
+#     vxwx + vywy + vzwz - vtwt OR the opposite -vxwx - vywy - vzwz + vtwt
+# ------------------------------------------------------------------------------
 
-defmatrix permute_xy :: Minkowski!si per Minkowski!si = {
+doc spacetime_metric
+    "The spacetime metric. Uses +1 for the space dimensions and -1 for the
+    time dimension.";
+
+declare spacetime_metric ::
+    SpaceTime! per SpaceTime!;
+
+defmatrix spacetime_metric :: SpaceTime! per SpaceTime! = {
+    x,x -> 1,
+    y,y -> 1,
+    z,z -> 1,
+    t,t -> -1
+};
+
+# ------------------------------------------------------------------------------
+
+declare minkowski_inner ::
+    for_unit a, b: (a*SpaceTime!si, b*SpaceTime!si) -> a*b*metre^2;
+
+define minkowski_inner(vector_v, vector_w) =
+    let
+        vh = uni_spacetime '*' vector_v,
+        wh = uni_spacetime '*' vector_w
+    in
+        vh^T '*' spacetime_metric '*' wh
+    end;
+
+# ------------------------------------------------------------------------------
+
+declare minkowski_inner_indexed1, minkowski_inner_indexed2 ::
+    for_unit a, SpaceTime!b, c, SpaceTime!d: (a*SpaceTime!b, c*SpaceTime!d) -> 1;
+
+define minkowski_inner_indexed1(v,w) =
+let
+    vx = get_num(v, SpaceTime@x, _),
+    vy = get_num(v, SpaceTime@y, _),
+    vz = get_num(v, SpaceTime@z, _),
+    vt = get_num(v, SpaceTime@t, _),
+    wx = get_num(w, SpaceTime@x, _),
+    wy = get_num(w, SpaceTime@y, _),
+    wz = get_num(w, SpaceTime@z, _),
+    wt = get_num(w, SpaceTime@t, _)
+in 
+    vx * wx + vy * wy + vz * wz - vt * wt
+end;
+
+define minkowski_inner_indexed2(v, w) =
+    -minkowski_inner_indexed1(v, w);
+
+# ------------------------------------------------------------------------------
+# Random test data
+# ------------------------------------------------------------------------------
+
+define random_spacetime_vector() = 
+    let r() = random() * pick([-3,0,3]) in
+        spacetime_vector(r(), r(), r(), r())
+    end;
+
+define random_vectors =
+    [random_spacetime_vector() | _ <- naturals(100)];
+
+# ------------------------------------------------------------------------------
+
+define inner_suite = test_suite("Minkowski inner product tests", [
+
+    test("magnitude of minkowski_inner should be vxwx + vywy + vzwz - vtwt", () ->
+        all[magnitude(minkowski_inner(v, w)) = minkowski_inner_indexed1(hv, hw) |
+               v <- random_vectors,
+               w <- random_vectors,
+               hv := uni_spacetime '*' v,
+               hw := uni_spacetime '*' w]
+    )
+]);
+
+# ------------------------------------------------------------------------------
+# Spacelike, lightlike and timelike
+#
+# Ideally
+#   spacelike(v) or lightlike(v) or timelike(v)
+# and
+#   spacelike(v) and lightlike(v) <=> false
+#   lightlike(v) and timelike(v) <=> false
+#   spacelike(v) and timelike(v) <=> false
+# but floating point causes problems.
+#
+# Alternative to force the disjunction:
+#
+# define spacelike(u) =
+#     minkowski_inner(u,u) > 0 * |metre^2| and not(lightlike(u));
+# ------------------------------------------------------------------------------
+
+doc spacelike
+    "Is the spacetime vector spacelike? A vector is spacelike when the inner
+    product is positive.";
+
+declare spacelike ::
+    (SpaceTime!si) -> Boole;
+
+define spacelike(u) =
+    minkowski_inner(u,u) > 0 * |metre^2| and not(lightlike(u));
+
+# ------------------------------------------------------------------------------
+
+doc lightlike
+    "Is the spacetime vector lightlike? A vector is lightlike when the inner
+    product is zero.
+    
+    Uses function approximates to test for zero.";
+
+declare lightlike ::
+    (SpaceTime!si) -> Boole;
+
+define lightlike(u) =
+    approximates(minkowski_inner(u,u), 0 * |metre^2|, 20 * |decimals|);
+
+# ------------------------------------------------------------------------------
+
+doc timelike
+    "Is the spacetime vector timelike? A vector is timelike when the inner
+    product is negative.";
+
+declare timelike ::
+    (SpaceTime!si) -> Boole;
+
+define timelike(u) =
+    minkowski_inner(u,u) < 0 * |metre^2|;
+
+# ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
+
+define x_like_suite = test_suite("Tests for spacelike, lightlike and timelike", [
+
+    test("timelike spacetime_vector(1,2,3,4)", () ->
+        timelike(spacetime_vector(1,2,3,4))
+    ),
+
+    test("spacelike spacetime_vector(300000,1,1,1)", () ->
+        spacelike(spacetime_vector(300000,1,1,1))
+    ),
+
+    test("lightlike spacetime_vector(300000,0,0,1)", () ->
+        lightlike(spacetime_vector(300000,0,0,1))
+    )
+]);
+
+# ------------------------------------------------------------------------------
+# Experiments
+# ------------------------------------------------------------------------------
+
+# A matrix = (1,1) tensor
+# TODO how to name this transform/convert (metric?) matrix / (1,1) tensor
+defmatrix convert :: SpaceTime!si per SpaceTime!si = {
+    x,x -> 1,
+    y,y -> 1,
+    z,z -> 1,
+    t,t -> -300000
+};
+
+
+defmatrix permute_xy :: SpaceTime!si per SpaceTime!si = {
     x,y -> 1,
     y,x -> 1,
     z,z -> 1,
     t,t -> 1
 };
 
-defmatrix permute_zt :: Minkowski!si per Minkowski!si= {
+defmatrix permute_zt :: SpaceTime!si per SpaceTime!si= {
     x,x -> 1,
     y,y -> 1,
     z,t -> 1,
@@ -84,95 +306,6 @@ defmatrix permute_zt :: Minkowski!si per Minkowski!si= {
 #permute_zt;
 #permute_zt '*' v;
 
-#
-# Experiment computing the inner_minkowski :
-# Initially we built one convert for both making a homogeneous matrix and for applying the metric of
-# the c speed. We arrived at the type eclare inner_minkowski :: for_unit a, b: 
-#    (a*Minkowski!si, b*Minkowski!si) -> b/a;
-# This required the left multiplication in inner_minkowsky by the ^D = ^T^R doimensional inverse.
-# However, the pointwise inner product produces another value (without units).
-# To fix this we change the inner_product type to 
-# declare inner_minkowski :: for_unit a, b: 
-#   (a*Minkowski!si, b*Minkowski!si) -> a*b*metre^2;
-#
-# Question: how does this result match with the uniform scaling on p102 of Leo?
-#
-
-declare inner_minkowski :: for_unit a, b: 
-    (a*Minkowski!si, b*Minkowski!si) -> a*b*metre^2;
-
-#
-# vector_v = (vx, vy, vz, vt)
-# vector_w = (wx, wy, wz, wt)
-# vector_v^T metric vector_w
-# inputs are 2 (1,0) tensors, so 4x1 vectors. (1,4) matrix
-# so a (4,1)^D x (4,4) x (4,1) matrix -> 1,1 
-# 
-# result must be vxwx + vywy + vzwz - vtwt OR the opposite -vxwx - vywy - vzwz + vtwt
-#
-define inner_minkowski(vector_v, vector_w) =
-    let
-        vh = homogenize '*' vector_v,
-        wh = homogenize '*' vector_w
-    in
-        vh^T '*' metric '*' wh
-    end;
-
-
-define inner_minkowski_indexed1(v,w) =
-let
-    vx = get_num(v, Minkowski@x, _),
-    vy = get_num(v, Minkowski@y, _),
-    vz = get_num(v, Minkowski@z, _),
-    vt = get_num(v, Minkowski@t, _),
-    wx = get_num(w, Minkowski@x, _),
-    wy = get_num(w, Minkowski@y, _),
-    wz = get_num(w, Minkowski@z, _),
-    wt = get_num(w, Minkowski@t, _)
-in 
-    vx * wx + vy * wy + vz * wz - vt * wt
-end;
-
-inner_minkowski_indexed1(homogenize '*' v, homogenize '*' w);
-
-#-vxwx -vywy -vzwz +vtwt without units
-define inner_minkowski_indexed2(v, w) = -inner_minkowski_indexed1(v, w);
-
-inner_minkowski_indexed2(homogenize '*' v, homogenize '*' w);
-
-define spacelike(u) = inner_minkowski(u,u) > 0 * |metre^2|;
-define lightlike(u) = approximates(inner_minkowski(u,u), 0 * |metre^2|, 20 * |decimals|);
-define timelike(u)  = inner_minkowski(u,u) < 0 * |metre^2|;
-
-
 ###########################################
 
-# A column vector = (1,0) tensor
-define v = vector4d(1,2,3,4);
-define w = vector4d(1,1,1,1);
 
-define minkowski_suite = test_suite("Minkowski tests", [
-
-    test("magnitude of inner_minkowski should be vxwx + vywy + vzwz - vtwt", () ->
-        magnitude(inner_minkowski(v, w)) = inner_minkowski_indexed1(homogenize '*' v, homogenize '*' w)
-    ),
-
-    test("timelike vector4d(1,2,3,4)", () ->
-        timelike(vector4d(1,2,3,4))
-    ),
-
-    test("spacelike vector4d(300000,1,1,1)", () ->
-        spacelike(vector4d(300000,1,1,1))
-    ),
-
-    test("lightlike vector4d(300000,0,0,1)", () ->
-        lightlike(vector4d(300000,0,0,1))
-    )
-]);
-
-define minkowski_suites = [
-    minkowski_suite
-];
- 
-run_test_suites(minkowski_suites);
- 
