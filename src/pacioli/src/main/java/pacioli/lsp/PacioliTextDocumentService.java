@@ -17,6 +17,8 @@ import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
 import org.eclipse.lsp4j.DocumentDiagnosticParams;
 import org.eclipse.lsp4j.DocumentDiagnosticReport;
+import org.eclipse.lsp4j.Hover;
+import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
@@ -183,5 +185,14 @@ public class PacioliTextDocumentService implements TextDocumentService {
     public CompletableFuture<DocumentDiagnosticReport> diagnostic(DocumentDiagnosticParams params) {
         return CompletableFuture
                 .supplyAsync(() -> new DocumentDiagnosticReport(new RelatedUnchangedDocumentDiagnosticReport("foo")));
+    }
+
+    @Override
+    public CompletableFuture<Hover> hover(HoverParams params) {
+        this.logInfo("Operation 'text/hover' {fileUri: '%s', pos: %s, token: %s}",
+                params.getTextDocument().getUri(),
+                params.getPosition(),
+                params.getWorkDoneToken());
+        return CompletableFuture.supplyAsync(() -> new Hover(Either.forLeft("hi there")));
     }
 }
