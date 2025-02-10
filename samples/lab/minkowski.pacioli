@@ -61,16 +61,20 @@ define spacetime_base =
 # ------------------------------------------------------------------------------
 
 doc spacetime_vector
-    "Creates a dimensioned spacetime vector from the magnitudes of the 
-    individual dimensions.";
+    "Creates a dimensioned spacetime vector from the values of the individual
+    dimensions.";
 
 declare spacetime_vector ::
-    (1, 1, 1, 1) -> SpaceTime!si;
+    (metre, metre, metre, second) -> SpaceTime!si;
 
 define spacetime_vector(x, y, z, t) =
     let
         (ex, ey, ez, et) = spacetime_base,
-        magnitude = x '.*' ex + y '.*' ey + z '.*' ez + t '.*' et
+        magnitude =
+            magnitude(x) '.*' ex +
+            magnitude(y) '.*' ey +
+            magnitude(z) '.*' ez +
+            magnitude(t) '.*' et
     in
         magnitude * |SpaceTime!si|
     end;
@@ -159,18 +163,18 @@ declare minkowski_inner_indexed1, minkowski_inner_indexed2 ::
     for_unit a, SpaceTime!b, c, SpaceTime!d: (a*SpaceTime!b, c*SpaceTime!d) -> 1;
 
 define minkowski_inner_indexed1(v,w) =
-let
-    vx = get_num(v, SpaceTime@x, _),
-    vy = get_num(v, SpaceTime@y, _),
-    vz = get_num(v, SpaceTime@z, _),
-    vt = get_num(v, SpaceTime@t, _),
-    wx = get_num(w, SpaceTime@x, _),
-    wy = get_num(w, SpaceTime@y, _),
-    wz = get_num(w, SpaceTime@z, _),
-    wt = get_num(w, SpaceTime@t, _)
-in 
-    vx * wx + vy * wy + vz * wz - vt * wt
-end;
+    let
+        vx = get_num(v, SpaceTime@x, _),
+        vy = get_num(v, SpaceTime@y, _),
+        vz = get_num(v, SpaceTime@z, _),
+        vt = get_num(v, SpaceTime@t, _),
+        wx = get_num(w, SpaceTime@x, _),
+        wy = get_num(w, SpaceTime@y, _),
+        wz = get_num(w, SpaceTime@z, _),
+        wt = get_num(w, SpaceTime@t, _)
+    in 
+        vx*wx + vy*wy + vz*wz - vt*wt
+    end;
 
 define minkowski_inner_indexed2(v, w) =
     -minkowski_inner_indexed1(v, w);
@@ -181,7 +185,7 @@ define minkowski_inner_indexed2(v, w) =
 
 define random_spacetime_vector() = 
     let r() = random() * pick([-3,0,3]) in
-        spacetime_vector(r(), r(), r(), r())
+        spacetime_vector(r()*|metre|, r()*|metre|, r()*|metre|, r()*|second|)
     end;
 
 define random_vectors =
@@ -259,16 +263,16 @@ define timelike(u) =
 
 define x_like_suite = test_suite("Tests for spacelike, lightlike and timelike", [
 
-    test("timelike spacetime_vector(1,2,3,4)", () ->
-        timelike(spacetime_vector(1,2,3,4))
+    test("timelike spacetime_vector(1m,2m,3m,4s)", () ->
+        timelike(spacetime_vector(1*|metre|,2*|metre|,3*|metre|,4*|second|))
     ),
 
-    test("spacelike spacetime_vector(300000,1,1,1)", () ->
-        spacelike(spacetime_vector(300000,1,1,1))
+    test("spacelike spacetime_vector(300000m,1m,1m,1s)", () ->
+        spacelike(spacetime_vector(300000*|metre|,1*|metre|,1*|metre|,1*|second|))
     ),
 
-    test("lightlike spacetime_vector(300000,0,0,1)", () ->
-        lightlike(spacetime_vector(300000,0,0,1))
+    test("lightlike spacetime_vector(300000m,0m,0m,1s)", () ->
+        lightlike(spacetime_vector(300000*|metre|,0*|metre|,0*|metre|,1*|second|))
     )
 ]);
 

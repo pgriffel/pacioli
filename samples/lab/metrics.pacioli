@@ -184,9 +184,9 @@ define minkowski_norm(x) =
     metric_norm(spacetime_metric, x);
     
 define test_vecs = [
-    spacetime_vector(0,0,0,0),
-    spacetime_vector(1,2,3,4),
-    spacetime_vector(1,2,3,-4)
+    spacetime_vector(0*|metre|, 0*|metre|, 0*|metre|, 0*|second|),
+    spacetime_vector(1*|metre|, 2*|metre|, 3*|metre|, 4*|second|),
+    spacetime_vector(1*|metre|, 2*|metre|, 3*|metre|, -4*|second|)
 ];
 
 define minkowski_suite2 = test_suite("Minkowski tests 2", [t | x <- test_vecs, y <- test_vecs, t <- [
