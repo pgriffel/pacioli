@@ -11,6 +11,8 @@ import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
+import org.eclipse.lsp4j.SemanticTokensLegend;
+import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
 import org.eclipse.lsp4j.services.LanguageClient;
@@ -79,6 +81,8 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
         // response.getCapabilities().setCompletionProvider(new CompletionOptions());
         response.getCapabilities().setDiagnosticProvider(new DiagnosticRegistrationOptions());
         response.getCapabilities().setHoverProvider(new HoverOptions());
+        SemanticTokensLegend legend = new SemanticTokensLegend(List.of("function"), List.of("declaration"));
+        response.getCapabilities().setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(legend, true));
 
         var clientCapabilities = params.getCapabilities();
 

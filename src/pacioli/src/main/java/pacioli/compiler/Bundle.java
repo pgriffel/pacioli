@@ -24,6 +24,7 @@ import pacioli.ast.visitors.JSGenerator;
 import pacioli.ast.visitors.MVMGenerator;
 import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.PythonGenerator;
+import pacioli.ast.visitors.AllIdentifiersVisitor.AllIdentifiers;
 import pacioli.compiler.CompilationSettings.Target;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
@@ -481,6 +482,22 @@ public class Bundle {
                     info.inferredType().map(x -> x.pretty()).orElse("N/A"));
         }
 
+    }
+
+    // -------------------------------------------------------------------------
+    // API for lsp
+    // -------------------------------------------------------------------------
+
+    public List<AllIdentifiers> allIdentifiers() {
+        var infos = environment.values().allInfos(info -> info.isFromFile(this.file));
+        List<AllIdentifiers> all = new ArrayList<>();
+        for (Info info : infos) {
+            Optional<AllIdentifiers> identifiers = info.definition().map(def -> def.allIdentifiers());
+            if (identifiers.isPresent()) {
+                all.add(identifiers.get());
+            }
+        }
+        return all;
     }
 
     // -------------------------------------------------------------------------

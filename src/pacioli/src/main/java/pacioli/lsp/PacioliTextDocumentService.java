@@ -3,7 +3,10 @@ package pacioli.lsp;
 import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -19,27 +22,49 @@ import org.eclipse.lsp4j.DocumentDiagnosticParams;
 import org.eclipse.lsp4j.DocumentDiagnosticReport;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
+import org.eclipse.lsp4j.MarkedString;
+import org.eclipse.lsp4j.MarkupContent;
+import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.RelatedUnchangedDocumentDiagnosticReport;
+import org.eclipse.lsp4j.SemanticTokens;
+import org.eclipse.lsp4j.SemanticTokensParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
+import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.visitors.AllIdentifiersVisitor.AllIdentifiers;
+import pacioli.compiler.Bundle;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.PacioliFile;
 import pacioli.compiler.Program;
 import pacioli.compiler.Project;
+import pacioli.symboltable.info.Info;
+import pacioli.symboltable.info.ValueInfo;
 
 public class PacioliTextDocumentService implements TextDocumentService {
+
+    class IdentifierInfo {
+        Location location;
+        Info info;
+
+        IdentifierInfo(Location location, Info info) {
+            this.location = location;
+            this.info = info;
+        }
+    }
 
     private LanguageClient languageClient;
 
     List<File> libs;
+
+    Map<Integer, List<IdentifierInfo>> identifierIndex;
 
     /**
      * Connects the PacioliTextDocumentService, the PacioliWorkspaceService and the
@@ -76,24 +101,16 @@ public class PacioliTextDocumentService implements TextDocumentService {
     public void didSave(DidSaveTextDocumentParams params) {
         this.logInfo("Operation 'text/didSave' {fileUri: '%s'} opened", params.getTextDocument().getUri());
 
-        // try {
-        // CompletableFuture.supplyAsync(() -> {
-
         var uri = params.getTextDocument().getUri();
 
         var errors = new ArrayList<Diagnostic>();
 
         try {
-            var text = new URI(uri).getPath();
-            // var text = params.getContentChanges().get(0).getText();
-            // this.logInfo(text);
+            var path = new URI(uri).getPath();
 
-            // this.logInfo("loading bundle");
-
-            var prog = Project.load(PacioliFile.get(text, 0).get(), this.libs);
-            prog.loadBundle();
-
-            // this.logInfo("loaded bundle");
+            var prog = Project.load(PacioliFile.get(path, 0).get(), this.libs);
+            var bundle = prog.loadBundle();
+            this.identifierIndex = this.buildIdentifierIndex(bundle);
 
             // var prog2 = Program.load(PacioliFile.get(text, 0).get());
         } catch (PacioliException e) {
@@ -141,23 +158,6 @@ public class PacioliTextDocumentService implements TextDocumentService {
         PublishDiagnosticsParams diagnosticParams = new PublishDiagnosticsParams(uri, errors);
         this.languageClient.publishDiagnostics(diagnosticParams);
 
-        // return 1;
-        // }).get();
-        // } catch (InterruptedException e) {
-        // // TODO Auto-generated catch block
-        // // e.printStackTrace();
-        // System.gc();
-        // this.logInfo("interpupted");
-        // } catch (ExecutionException e) {
-        // // TODO Auto-generated catch block
-        // // e.printStackTrace();
-        // System.gc();
-        // this.logInfo(e.getMessage() + e.getCause().getMessage());
-        // for (var x : e.getStackTrace()) {
-        // this.logInfo(x.toString());
-        // }
-        // }
-
     }
 
     // @Override
@@ -189,10 +189,110 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
-        this.logInfo("Operation 'text/hover' {fileUri: '%s', pos: %s, token: %s}",
-                params.getTextDocument().getUri(),
-                params.getPosition(),
-                params.getWorkDoneToken());
-        return CompletableFuture.supplyAsync(() -> new Hover(Either.forLeft("hi there")));
+        var pos = params.getPosition();
+        var info = this.locateInfo(pos.getLine(), pos.getCharacter())
+                .map(inf -> {
+                    if (inf instanceof ValueInfo vi && inf.isGlobal()) {
+                        var type = vi.inferredType().map(x -> x.pretty())
+                                .orElse(vi.declaredType().map(x -> x.pretty()).orElse(""));
+
+                        // Fixme: trying to get html working
+                        var tx = new MarkupContent(MarkupKind.MARKDOWN, String.format("%s :: %s %n %n %s",
+                                inf.name(),
+                                type,
+                                String.join(String.format("%n%n"), vi.getDocuParts())));
+                        tx.setKind("html");
+                        var txt = new MarkedString("html", String.format("%s :: %s %n %n %s",
+                                inf.name(),
+                                type,
+                                String.join(String.format("%n%n"), vi.getDocuParts())));
+                        var h = new Hover();
+                        h.setContents(tx);
+
+                        // return h;
+                        return new Hover(
+                                Either.forRight(txt));
+                        // return new Hover(
+                        // Either.forLeft(
+                        // String.format("%s :: %s %n %n %s",
+                        // inf.name(),
+                        // type,
+                        // String.join(String.format("%n%n"), vi.getDocuParts()))));
+                    }
+                    return new Hover(
+                            Either.forLeft(""));
+                })
+                .orElse(new Hover(Either.forLeft("")));
+        return CompletableFuture.supplyAsync(() -> info);
+    }
+
+    @Override
+    public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
+        this.logInfo("semantic token");
+
+        var tokens = this.buildSemanticTokens();
+
+        return CompletableFuture.supplyAsync(() -> tokens);
+    }
+
+    /**
+     * Builds the identifier index for the hover command.
+     * 
+     * @param bundle The bundle for the current file. Must be analyzed (types
+     *               must have been infered)
+     * @return A map from line number to a list of identifier Infos on that
+     *         line
+     */
+    Map<Integer, List<IdentifierInfo>> buildIdentifierIndex(Bundle bundle) {
+        Map<Integer, List<IdentifierInfo>> index = new HashMap<>();
+        for (AllIdentifiers all : bundle.allIdentifiers()) {
+            for (IdentifierNode node : all.values) {
+                Info info = node.info();
+                Location loc = node.location();
+                List<IdentifierInfo> infos = index.get(loc.fromLine);
+                if (infos == null) {
+                    infos = new ArrayList<IdentifierInfo>();
+                    index.put(loc.fromLine, infos);
+                }
+                infos.add(new IdentifierInfo(loc, info));
+            }
+        }
+        return index;
+    }
+
+    /**
+     * Looks up an identifier for the hover command.
+     * 
+     * @param line   Line number in the current file
+     * @param column Column number in the current file
+     * @return The identifier's Info if it exits.
+     */
+    Optional<Info> locateInfo(Integer line, Integer column) {
+        if (this.identifierIndex != null) {
+            var cands = this.identifierIndex.get(line);
+            if (cands != null) {
+                Info info = null;
+                Integer minSize = null;
+                // Search for the token with the minimum length. This is necessary because the
+                // grammar gives wrong locations. Often they are too wide and overlap with
+                // other tokens (was e.g. the case for binop). This can be removed if the
+                // grammar is fixed.
+                for (IdentifierInfo cand : cands) {
+                    var loc = cand.location;
+                    var size = loc.toColumn - loc.fromColumn;
+                    if (loc.fromColumn < column && column < loc.toColumn && (minSize == null || size < minSize)) {
+                        info = cand.info;
+                        minSize = size;
+                    }
+                }
+                return Optional.ofNullable(info);
+            }
+        }
+        return Optional.empty();
+    }
+
+    SemanticTokens buildSemanticTokens() {
+        var tokens = new SemanticTokens(List.of(4, 0, 10, 0, 1, 15, 7, 4, 0, 0));
+        return tokens;
     }
 }
