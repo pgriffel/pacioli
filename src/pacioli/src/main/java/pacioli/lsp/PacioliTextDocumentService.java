@@ -2,6 +2,7 @@ package pacioli.lsp;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +46,7 @@ import pacioli.compiler.PacioliException;
 import pacioli.compiler.PacioliFile;
 import pacioli.compiler.Program;
 import pacioli.compiler.Project;
+import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.ValueInfo;
 
@@ -64,7 +66,9 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
     List<File> libs;
 
+    // Bundle bundle;
     Map<Integer, List<IdentifierInfo>> identifierIndex;
+    private List<IdentifierInfo> semanticTokenList;
 
     /**
      * Connects the PacioliTextDocumentService, the PacioliWorkspaceService and the
@@ -94,14 +98,16 @@ public class PacioliTextDocumentService implements TextDocumentService {
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
         this.logInfo("Operation 'text/didOpen' {fileUri: '%s'} opened", params.getTextDocument().getUri());
-
+        this.loadBundle(params.getTextDocument().getUri());
     }
 
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
         this.logInfo("Operation 'text/didSave' {fileUri: '%s'} opened", params.getTextDocument().getUri());
+        this.loadBundle(params.getTextDocument().getUri());
+    }
 
-        var uri = params.getTextDocument().getUri();
+    private void loadBundle(String uri) {
 
         var errors = new ArrayList<Diagnostic>();
 
@@ -110,7 +116,9 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
             var prog = Project.load(PacioliFile.get(path, 0).get(), this.libs);
             var bundle = prog.loadBundle();
+            // this.bundle = bundle;
             this.identifierIndex = this.buildIdentifierIndex(bundle);
+            this.semanticTokenList = this.buildIdentifierInfoList(bundle);
 
             // var prog2 = Program.load(PacioliFile.get(text, 0).get());
         } catch (PacioliException e) {
@@ -129,7 +137,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
             errors.add(d);
 
         } catch (Exception e) {
-            this.logInfo("%s%s", e.getMessage(), e.getCause().getMessage());
+            this.logInfo("%s%s", e.getMessage(), e.getCause() == null ? "" : e.getCause().getMessage());
             for (var x : e.getStackTrace()) {
                 this.logInfo(x.toString());
             }
@@ -230,9 +238,27 @@ public class PacioliTextDocumentService implements TextDocumentService {
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
         this.logInfo("semantic token");
 
-        var tokens = this.buildSemanticTokens();
+        try {
+            if (this.semanticTokenList != null) {
+                var uri = params.getTextDocument().getUri();
 
-        return CompletableFuture.supplyAsync(() -> tokens);
+                var path = new URI(uri).getPath();
+                // var prog = Program.load(PacioliFile.get(path, 0).get());
+                // PacioliTable infos = prog.generateInfos();
+                // prog.resolve(infos, infos);
+
+                var tokens = this.buildSemanticTokens(this.semanticTokenList);
+
+                return CompletableFuture.supplyAsync(() -> tokens);
+            }
+
+        } catch (URISyntaxException e) {
+            logInfo("Invalid uri" + e.getMessage());
+        } catch (Exception e) {
+            logInfo("token exception" + e.getMessage());
+        }
+
+        return CompletableFuture.supplyAsync(() -> new SemanticTokens());
     }
 
     /**
@@ -280,7 +306,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 for (IdentifierInfo cand : cands) {
                     var loc = cand.location;
                     var size = loc.toColumn - loc.fromColumn;
-                    if (loc.fromColumn < column && column < loc.toColumn && (minSize == null || size < minSize)) {
+                    if (loc.fromColumn <= column && column < loc.toColumn && (minSize == null || size < minSize)) {
                         info = cand.info;
                         minSize = size;
                     }
@@ -291,8 +317,50 @@ public class PacioliTextDocumentService implements TextDocumentService {
         return Optional.empty();
     }
 
-    SemanticTokens buildSemanticTokens() {
-        var tokens = new SemanticTokens(List.of(4, 0, 10, 0, 1, 15, 7, 4, 0, 0));
+    List<IdentifierInfo> buildIdentifierInfoList(Bundle bundle) throws Exception {
+        List<IdentifierInfo> infos = new ArrayList<>();
+        for (List<IdentifierInfo> records : this.identifierIndex.values()) {
+            for (IdentifierInfo idInfo : records) {
+                infos.add(idInfo);
+            }
+        }
+        var comp = new Location.LocationComparator();
+        infos.sort((x, y) -> comp.compare(x.location, y.location));
+        return infos;
+    }
+
+    SemanticTokens buildSemanticTokens(List<IdentifierInfo> semanticTokenList) throws Exception {
+        int lastLine = 0;
+        int lastColumn = 0;
+        List<Integer> nums = new ArrayList<>();
+
+        // var ls = this.buildIdentifierInfoList(semanticTokenList2);
+
+        for (IdentifierInfo idInfo : semanticTokenList) {
+            var inf = idInfo.info;
+            if (inf instanceof ValueInfo vi && inf.isGlobal()) {
+                var loc = idInfo.location;
+                var line = loc.fromLine - 0; // ofset from 0
+                var lineDiff = line - lastLine;
+                var column = loc.fromColumn;
+                var columnDiff = lineDiff == 0 ? column - lastColumn : column;
+
+                nums.add(lineDiff);
+                nums.add(columnDiff);
+                nums.add(loc.toColumn - loc.fromColumn);
+                nums.add(0);
+                nums.add(0);
+
+                lastLine = line;
+                lastColumn = column;
+                // this.logInfo("token %s %s %s %s", line, column, lineDiff, columnDiff);
+            }
+        }
+
+        // var ids = bundle.allIdentifiers();
+        // this.logInfo("sem ids = %s", ids.size());
+        // var tokens = new SemanticTokens(List.of(47, 22, 10, 0, 1, 15, 7, 4, 0, 0));
+        var tokens = new SemanticTokens(nums);
         return tokens;
     }
 }

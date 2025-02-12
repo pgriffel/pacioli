@@ -23,6 +23,7 @@ package pacioli.compiler;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
 
 /**
  * A location is a range in a file. A position is a location with an equal range
@@ -236,6 +237,18 @@ public class Location {
             }
 
             return String.format("file %s at line %s\n\n%s\n", file, fromLine + 1, sub);
+        }
+    }
+
+    public static class LocationComparator implements Comparator<Location> {
+
+        @Override
+        public int compare(Location o1, Location o2) {
+            int compareLines = o1.fromLine.compareTo(o2.fromLine);
+            if (compareLines == 0) {
+                return o1.fromColumn.compareTo(o2.fromColumn);
+            }
+            return compareLines;
         }
     }
 }
