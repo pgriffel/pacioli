@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -17,6 +16,7 @@ import java.util.stream.Collectors;
 import pacioli.Pacioli;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.visitors.CodeGenerator;
@@ -24,7 +24,8 @@ import pacioli.ast.visitors.JSGenerator;
 import pacioli.ast.visitors.MVMGenerator;
 import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.PythonGenerator;
-import pacioli.ast.visitors.AllIdentifiersVisitor.AllIdentifiers;
+import pacioli.ast.visitors.AllIdentifiersVisitor;
+import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.CompilationSettings.Target;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
@@ -488,13 +489,17 @@ public class Bundle {
     // API for lsp
     // -------------------------------------------------------------------------
 
-    public List<AllIdentifiers> allIdentifiers() {
+    public List<IdentifierInfo> allIdentifiers() {
         var infos = environment.values().allInfos(info -> info.isFromFile(this.file));
-        List<AllIdentifiers> all = new ArrayList<>();
+        List<IdentifierInfo> all = new ArrayList<>();
         for (Info info : infos) {
-            Optional<AllIdentifiers> identifiers = info.definition().map(def -> def.allIdentifiers());
-            if (identifiers.isPresent()) {
-                all.add(identifiers.get());
+            if (info.definition().isPresent()) {
+                var def = info.definition().get();
+                all.addAll(def.allIdentifiers());
+                if (def instanceof ValueDefinition d) {
+                    all.add(new IdentifierInfo(d.id));
+                }
+
             }
         }
         return all;

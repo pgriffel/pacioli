@@ -24,10 +24,11 @@ package pacioli.ast;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import pacioli.ast.visitors.AllIdentifiersVisitor;
-import pacioli.ast.visitors.AllIdentifiersVisitor.AllIdentifiers;
+import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.ast.visitors.CountNodes;
 import pacioli.ast.visitors.DesugarVisitor;
 import pacioli.ast.visitors.JSGenerator;
@@ -102,7 +103,7 @@ public interface Node extends Printable {
         return new UsesVisitor().idsAccept(this);
     }
 
-    default public AllIdentifiers allIdentifiers() {
+    default public List<IdentifierInfo> allIdentifiers() {
         return new AllIdentifiersVisitor().idsAccept(this);
     }
 

@@ -39,7 +39,7 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.visitors.AllIdentifiersVisitor.AllIdentifiers;
+import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Bundle;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
@@ -52,21 +52,10 @@ import pacioli.symboltable.info.ValueInfo;
 
 public class PacioliTextDocumentService implements TextDocumentService {
 
-    class IdentifierInfo {
-        Location location;
-        Info info;
-
-        IdentifierInfo(Location location, Info info) {
-            this.location = location;
-            this.info = info;
-        }
-    }
-
     private LanguageClient languageClient;
 
     List<File> libs;
 
-    // Bundle bundle;
     Map<Integer, List<IdentifierInfo>> identifierIndex;
     private List<IdentifierInfo> semanticTokenList;
 
@@ -87,24 +76,25 @@ public class PacioliTextDocumentService implements TextDocumentService {
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
         var uri = params.getTextDocument().getUri();
-        this.logInfo("Operation 'text/didChange' {fileUri: '%s'} opened", uri);
+        this.logInfo("Operation 'text/didChange' with uri '%s'", uri);
     }
 
     @Override
     public void didClose(DidCloseTextDocumentParams params) {
-        this.logInfo("Operation 'text/didClose' {fileUri: '%s'} opened", params.getTextDocument().getUri());
+        this.logInfo("Operation 'text/didClose' with uri '%s'", params.getTextDocument().getUri());
     }
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
-        this.logInfo("Operation 'text/didOpen' {fileUri: '%s'} opened", params.getTextDocument().getUri());
+        this.logInfo("Operation 'text/didOpen' with uri '%s'", params.getTextDocument().getUri());
         this.loadBundle(params.getTextDocument().getUri());
     }
 
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
-        this.logInfo("Operation 'text/didSave' {fileUri: '%s'} opened", params.getTextDocument().getUri());
+        this.logInfo("Operation 'text/didSave' with uri '%s'", params.getTextDocument().getUri());
         this.loadBundle(params.getTextDocument().getUri());
+        this.languageClient.refreshSemanticTokens();
     }
 
     private void loadBundle(String uri) {
@@ -236,29 +226,18 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
-        this.logInfo("semantic token");
+        // this.logInfo("semantic token %s", params);
 
-        try {
+        return CompletableFuture.supplyAsync(() -> {
             if (this.semanticTokenList != null) {
-                var uri = params.getTextDocument().getUri();
-
-                var path = new URI(uri).getPath();
-                // var prog = Program.load(PacioliFile.get(path, 0).get());
-                // PacioliTable infos = prog.generateInfos();
-                // prog.resolve(infos, infos);
-
-                var tokens = this.buildSemanticTokens(this.semanticTokenList);
-
-                return CompletableFuture.supplyAsync(() -> tokens);
+                try {
+                    return this.buildSemanticTokens(this.semanticTokenList);
+                } catch (Exception e) {
+                    logInfo("token exception" + e.getMessage());
+                }
             }
-
-        } catch (URISyntaxException e) {
-            logInfo("Invalid uri" + e.getMessage());
-        } catch (Exception e) {
-            logInfo("token exception" + e.getMessage());
-        }
-
-        return CompletableFuture.supplyAsync(() -> new SemanticTokens());
+            return new SemanticTokens();
+        });
     }
 
     /**
@@ -271,16 +250,15 @@ public class PacioliTextDocumentService implements TextDocumentService {
      */
     Map<Integer, List<IdentifierInfo>> buildIdentifierIndex(Bundle bundle) {
         Map<Integer, List<IdentifierInfo>> index = new HashMap<>();
-        for (AllIdentifiers all : bundle.allIdentifiers()) {
-            for (IdentifierNode node : all.values) {
-                Info info = node.info();
-                Location loc = node.location();
+        for (IdentifierInfo idInfo : bundle.allIdentifiers()) {
+            if (idInfo.identifier instanceof IdentifierNode id) {
+                Location loc = id.location();
                 List<IdentifierInfo> infos = index.get(loc.fromLine);
                 if (infos == null) {
                     infos = new ArrayList<IdentifierInfo>();
                     index.put(loc.fromLine, infos);
                 }
-                infos.add(new IdentifierInfo(loc, info));
+                infos.add(idInfo);
             }
         }
         return index;
@@ -304,10 +282,10 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 // other tokens (was e.g. the case for binop). This can be removed if the
                 // grammar is fixed.
                 for (IdentifierInfo cand : cands) {
-                    var loc = cand.location;
+                    var loc = cand.location();
                     var size = loc.toColumn - loc.fromColumn;
                     if (loc.fromColumn <= column && column < loc.toColumn && (minSize == null || size < minSize)) {
-                        info = cand.info;
+                        info = cand.info().orElse(null);
                         minSize = size;
                     }
                 }
@@ -325,7 +303,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
             }
         }
         var comp = new Location.LocationComparator();
-        infos.sort((x, y) -> comp.compare(x.location, y.location));
+        infos.sort((x, y) -> comp.compare(x.location(), y.location()));
         return infos;
     }
 
@@ -334,13 +312,11 @@ public class PacioliTextDocumentService implements TextDocumentService {
         int lastColumn = 0;
         List<Integer> nums = new ArrayList<>();
 
-        // var ls = this.buildIdentifierInfoList(semanticTokenList2);
-
         for (IdentifierInfo idInfo : semanticTokenList) {
-            var inf = idInfo.info;
-            if (inf instanceof ValueInfo vi && inf.isGlobal()) {
-                var loc = idInfo.location;
-                var line = loc.fromLine - 0; // ofset from 0
+            var inf = idInfo.info().orElse(null);
+            if (inf == null || (inf instanceof ValueInfo vi && inf.isGlobal())) {
+                var loc = idInfo.location();
+                var line = loc.fromLine;
                 var lineDiff = line - lastLine;
                 var column = loc.fromColumn;
                 var columnDiff = lineDiff == 0 ? column - lastColumn : column;
@@ -357,9 +333,6 @@ public class PacioliTextDocumentService implements TextDocumentService {
             }
         }
 
-        // var ids = bundle.allIdentifiers();
-        // this.logInfo("sem ids = %s", ids.size());
-        // var tokens = new SemanticTokens(List.of(47, 22, 10, 0, 1, 15, 7, 4, 0, 0));
         var tokens = new SemanticTokens(nums);
         return tokens;
     }
