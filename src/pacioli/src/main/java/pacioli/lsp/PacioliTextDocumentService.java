@@ -39,6 +39,7 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Bundle;
 import pacioli.compiler.Location;
@@ -313,27 +314,41 @@ public class PacioliTextDocumentService implements TextDocumentService {
         List<Integer> nums = new ArrayList<>();
 
         for (IdentifierInfo idInfo : semanticTokenList) {
-            var inf = idInfo.info().orElse(null);
-            if (inf == null || (inf instanceof ValueInfo vi && inf.isGlobal())) {
-                var loc = idInfo.location();
-                var line = loc.fromLine;
-                var lineDiff = line - lastLine;
-                var column = loc.fromColumn;
-                var columnDiff = lineDiff == 0 ? column - lastColumn : column;
+            var loc = idInfo.location();
+            var line = loc.fromLine;
+            var lineDiff = line - lastLine;
+            var column = loc.fromColumn;
+            var columnDiff = lineDiff == 0 ? column - lastColumn : column;
 
-                nums.add(lineDiff);
-                nums.add(columnDiff);
-                nums.add(loc.toColumn - loc.fromColumn);
-                nums.add(0);
-                nums.add(0);
+            nums.add(lineDiff);
+            nums.add(columnDiff);
+            nums.add(loc.toColumn - loc.fromColumn);
+            nums.addAll(tokenType(idInfo));
 
-                lastLine = line;
-                lastColumn = column;
-                // this.logInfo("token %s %s %s %s", line, column, lineDiff, columnDiff);
-            }
+            lastLine = line;
+            lastColumn = column;
+            // this.logInfo("token %s %s %s %s", line, column, lineDiff, columnDiff);
         }
 
         var tokens = new SemanticTokens(nums);
         return tokens;
+    }
+
+    List<Integer> tokenType(IdentifierInfo idInfo) {
+        var inf = idInfo.info().orElse(null);
+        if (inf != null && inf instanceof ValueInfo vi) {
+
+            boolean isFunction = vi.definition().map(def -> def.isFunction())
+                    .orElse(false) || (vi.isGlobal() && vi.isFunction());
+            if (isFunction) {
+                return List.of(0, 0);
+            } else {
+                return List.of(vi.isGlobal() ? 2 : 3, 0);
+            }
+        }
+        if (inf == null) {
+            return List.of(0, 2);
+        }
+        return List.of(2, 0);
     }
 }
