@@ -403,8 +403,8 @@ define weird_arrows(n, k) =
         ith_vec(i) = space_vec(expt(-0.5, i) * i, expt(0.5, i) * i^2, expt(0.5, i) * i^3)
     in
         [ arrow | i <- naturals(n),
-                  from := c '.*' ith_vec(i),
-                  to := c '.*' ith_vec(i+1) - from,
+                  src := c '.*' ith_vec(i),
+                  dst := c '.*' ith_vec(i+1) - src,
                   color := let m = mod(i, 3*k) in
                                 if m < k then 
                                     make_color("red")
@@ -417,7 +417,7 @@ define weird_arrows(n, k) =
                   name := format("arr_%s", i),
                   arrow := with_arrow_name(name,
                             with_arrow_color(color,
-                             make_arrow(from, to)))]
+                             make_arrow(src, dst)))]
     end;
 
 define scene_updater(k, freq) = 
@@ -459,7 +459,7 @@ define count_words(text) =
         element_count(
             sort_list(
                 [y | x <- split_string(text, " "), y <- split_string(x, "\n"), y != ""], 
-                string_compare)),
+                compare_string)),
         (x, y) -> second(y) - second(x));
 
 define element_count(xs) =
