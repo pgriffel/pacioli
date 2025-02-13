@@ -50,6 +50,7 @@ import pacioli.compiler.Project;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.ValueInfo;
+import pacioli.types.ast.TypeIdentifierNode;
 
 public class PacioliTextDocumentService implements TextDocumentService {
 
@@ -261,6 +262,15 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 }
                 infos.add(idInfo);
             }
+            if (idInfo.identifier instanceof TypeIdentifierNode id) {
+                Location loc = id.location();
+                List<IdentifierInfo> infos = index.get(loc.fromLine);
+                if (infos == null) {
+                    infos = new ArrayList<IdentifierInfo>();
+                    index.put(loc.fromLine, infos);
+                }
+                infos.add(idInfo);
+            }
         }
         return index;
     }
@@ -336,6 +346,10 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
     List<Integer> tokenType(IdentifierInfo idInfo) {
         var inf = idInfo.info().orElse(null);
+        if (idInfo.identifier instanceof TypeIdentifierNode) {
+            this.logInfo("type %s", inf.name());
+            return List.of(3, 0);
+        }
         if (inf != null && inf instanceof ValueInfo vi) {
 
             boolean isFunction = vi.definition().map(def -> def.isFunction())
@@ -343,7 +357,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
             if (isFunction) {
                 return List.of(0, 0);
             } else {
-                return List.of(vi.isGlobal() ? 2 : 3, 0);
+                return List.of(vi.isGlobal() ? 2 : 4, 0);
             }
         }
         if (inf == null) {

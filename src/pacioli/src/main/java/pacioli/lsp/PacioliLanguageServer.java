@@ -82,7 +82,7 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
         response.getCapabilities().setDiagnosticProvider(new DiagnosticRegistrationOptions());
         response.getCapabilities().setHoverProvider(new HoverOptions());
         SemanticTokensLegend legend = new SemanticTokensLegend(
-                List.of("function", "variable", "parameter"),
+                List.of("function", "variable", "parameter", "type"),
                 List.of("declaration", "definition"));
         response.getCapabilities().setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(legend, true));
 

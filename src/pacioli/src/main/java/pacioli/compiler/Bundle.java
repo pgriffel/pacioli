@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pacioli.Pacioli;
+import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.ValueDefinition;
@@ -493,13 +494,15 @@ public class Bundle {
         var infos = environment.values().allInfos(info -> info.isFromFile(this.file));
         List<IdentifierInfo> all = new ArrayList<>();
         for (Info info : infos) {
+            if (info instanceof ValueInfo vd && vd.declaredType().isPresent()) {
+                all.addAll(vd.declaredType().get().allIdentifiers());
+            }
             if (info.definition().isPresent()) {
                 var def = info.definition().get();
                 all.addAll(def.allIdentifiers());
                 if (def instanceof ValueDefinition d) {
                     all.add(new IdentifierInfo(d.id));
                 }
-
             }
         }
         return all;
