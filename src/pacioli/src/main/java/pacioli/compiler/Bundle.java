@@ -490,6 +490,14 @@ public class Bundle {
     // API for lsp
     // -------------------------------------------------------------------------
 
+    public List<String> allNames() {
+        List<String> names = new ArrayList<>();
+        for (Info info : environment.values().allInfos()) {
+            names.add(info.name());
+        }
+        return names;
+    }
+
     public List<IdentifierInfo> allIdentifiers() {
         var infos = environment.values().allInfos(info -> info.isFromFile(this.file));
         List<IdentifierInfo> all = new ArrayList<>();

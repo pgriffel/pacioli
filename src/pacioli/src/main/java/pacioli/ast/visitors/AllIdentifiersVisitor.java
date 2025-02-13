@@ -67,6 +67,18 @@ public class AllIdentifiersVisitor extends IdentityVisitor {
         public Location location() {
             return this.identifier.location();
         }
+
+        public String name() {
+            if (this.identifier instanceof IdentifierNode n) {
+                return n.name();
+            } else if (this.identifier instanceof TypeIdentifierNode n) {
+                return n.name();
+            } else if (this.identifier instanceof UnitIdentifierNode n) {
+                return n.name();
+            } else {
+                throw new RuntimeException("Unexpected identifier node type");
+            }
+        }
     }
 
     List<IdentifierInfo> identifiers = new ArrayList<>();

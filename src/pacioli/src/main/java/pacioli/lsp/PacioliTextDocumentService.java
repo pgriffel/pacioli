@@ -2,15 +2,14 @@ package pacioli.lsp;
 
 import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
@@ -39,15 +38,12 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Bundle;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.PacioliFile;
-import pacioli.compiler.Program;
 import pacioli.compiler.Project;
-import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.ast.TypeIdentifierNode;
@@ -60,6 +56,8 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
     Map<Integer, List<IdentifierInfo>> identifierIndex;
     private List<IdentifierInfo> semanticTokenList;
+
+    private List<String> autoCompleteList;
 
     /**
      * Connects the PacioliTextDocumentService, the PacioliWorkspaceService and the
@@ -111,6 +109,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
             // this.bundle = bundle;
             this.identifierIndex = this.buildIdentifierIndex(bundle);
             this.semanticTokenList = this.buildIdentifierInfoList(bundle);
+            this.autoCompleteList = this.buildAutoCompleteList(bundle);
 
             // var prog2 = Program.load(PacioliFile.get(text, 0).get());
         } catch (PacioliException e) {
@@ -160,22 +159,20 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
     }
 
-    // @Override
-    // public CompletableFuture<Either<List<CompletionItem>, CompletionList>>
-    // completion(CompletionParams position) {
-    // return CompletableFuture.supplyAsync(() -> {
-    // // Example: Provide completions for AsciiDoc elements
+    @Override
+    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams position) {
+        this.logInfo("complete %s", position);
+        return CompletableFuture.supplyAsync(() -> {
+            List<CompletionItem> completionItems = new ArrayList<>();
+            for (String name : this.autoCompleteList) {
+                CompletionItem item1 = new CompletionItem();
+                item1.setLabel(name);
+                completionItems.add(item1);
+            }
 
-    // CompletionItem item1 = new CompletionItem();
-    // item1.setLabel("image::");
-
-    // CompletionItem item2 = new CompletionItem();
-    // item2.setLabel("include::");
-    // List<CompletionItem> completionItems = List.of(item1, item2);
-
-    // return Either.forLeft(completionItems);
-    // });
-    // }
+            return Either.forLeft(completionItems);
+        });
+    }
 
     private void logInfo(String string, Object... args) {
         this.languageClient.logMessage(new MessageParams(MessageType.Info, String.format(string, args)));
@@ -193,8 +190,8 @@ public class PacioliTextDocumentService implements TextDocumentService {
         var info = this.locateInfo(pos.getLine(), pos.getCharacter())
                 .map(inf -> {
                     if (inf instanceof ValueInfo vi && inf.isGlobal()) {
-                        var type = vi.inferredType().map(x -> x.pretty())
-                                .orElse(vi.declaredType().map(x -> x.pretty()).orElse(""));
+                        var type = vi.declaredType().map(x -> x.pretty())
+                                .orElse(vi.inferredType().map(x -> x.pretty()).orElse(""));
 
                         // Fixme: trying to get html working
                         var tx = new MarkupContent(MarkupKind.MARKDOWN, String.format("%s :: %s %n %n %s",
@@ -228,8 +225,6 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
-        // this.logInfo("semantic token %s", params);
-
         return CompletableFuture.supplyAsync(() -> {
             if (this.semanticTokenList != null) {
                 try {
@@ -318,6 +313,17 @@ public class PacioliTextDocumentService implements TextDocumentService {
         return infos;
     }
 
+    List<String> buildAutoCompleteList(Bundle bundle) throws Exception {
+        Set<String> infos = new HashSet<>();
+        for (String name : bundle.allNames()) {
+            infos.add(name);
+        }
+        for (IdentifierInfo info : bundle.allIdentifiers()) {
+            infos.add(info.name());
+        }
+        return new ArrayList<>(infos);
+    }
+
     SemanticTokens buildSemanticTokens(List<IdentifierInfo> semanticTokenList) throws Exception {
         int lastLine = 0;
         int lastColumn = 0;
@@ -337,7 +343,6 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
             lastLine = line;
             lastColumn = column;
-            // this.logInfo("token %s %s %s %s", line, column, lineDiff, columnDiff);
         }
 
         var tokens = new SemanticTokens(nums);
