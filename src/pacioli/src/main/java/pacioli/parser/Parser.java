@@ -1787,9 +1787,11 @@ public class Parser extends java_cup.runtime.lr_parser {
         String accuName = freshName("_c_accu");
         String tupName = freshName("_c_tup");
 
-        ExpressionNode addMut = new IdentifierNode("_add_mut", e.location());
-        ExpressionNode accu = new IdentifierNode(accuName, e.location());
-        ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), e.location());
+        pacioli.compiler.Location dummyLoc = new pacioli.compiler.Location(loc.file(), loc.fromLine, loc.fromColumn, loc.fromOffset);
+
+        ExpressionNode addMut = new IdentifierNode("_add_mut", dummyLoc);
+        ExpressionNode accu = new IdentifierNode(accuName, dummyLoc);
+        ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), dummyLoc);
  
         for (int i = ps.size() - 1; 0 <= i; i--) {
             Object part = ps.get(i);
@@ -1797,7 +1799,7 @@ public class Parser extends java_cup.runtime.lr_parser {
                 GeneratorClause clause = (GeneratorClause) part;
                 pacioli.compiler.Location loc2 = clause.list.location();
                 body = new ApplicationNode(
-                                new IdentifierNode("loop_list",loc2),
+                                new IdentifierNode("loop_list",dummyLoc),
                                 Arrays.asList((ExpressionNode) new IdentifierNode(accuName, loc2),
                                               new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.name())), body, loc2), clause.list),
                                 loc2);
@@ -1810,10 +1812,10 @@ public class Parser extends java_cup.runtime.lr_parser {
                     args.add(var.name());
                 }
 
-                ExpressionNode apply = new IdentifierNode("apply", loc2);
+                ExpressionNode apply = new IdentifierNode("apply", dummyLoc);
                 ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc2);
                 ExpressionNode tup = new IdentifierNode(tupName, loc2);
-                ExpressionNode loopList = new IdentifierNode("loop_list", loc2);
+                ExpressionNode loopList = new IdentifierNode("loop_list", dummyLoc);
                 ExpressionNode accuId = new IdentifierNode(accuName, loc2);
                 ExpressionNode restApp = new ApplicationNode(apply, Arrays.asList(restLambda, tup), loc2);
                 ExpressionNode restAppLambda = new LambdaNode(Arrays.asList(accuName, tupName), restApp, loc2);
@@ -1832,20 +1834,20 @@ public class Parser extends java_cup.runtime.lr_parser {
                     args.add(var.name());
                 }
 
-                ExpressionNode apply = new IdentifierNode("apply", loc);
+                ExpressionNode apply = new IdentifierNode("apply", dummyLoc);
                 ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc);
 
                 body = new ApplicationNode(apply, Arrays.asList(restLambda, clause.value), clause.value.location());
             } else if (part instanceof ExpressionNode) {
                 ExpressionNode clause = (ExpressionNode) part;
-                body = new BranchNode(clause, body, new IdentifierNode(accuName, loc), loc);
+                body = new BranchNode(clause, body, new IdentifierNode(accuName, dummyLoc), loc);
             } else {
                 throw new PacioliException(loc, "Unexpected clause %s", part);
             }
         }
 
         ExpressionNode lambda = new LambdaNode(Arrays .asList(accuName), body, loc);
-        ExpressionNode emptyListId = new IdentifierNode("empty_list", loc);
+        ExpressionNode emptyListId = new IdentifierNode("empty_list", dummyLoc);
         ExpressionNode emptyList = new ApplicationNode(emptyListId, new ArrayList<ExpressionNode>(), loc);
 
         return new ApplicationNode(lambda, Arrays.asList(emptyList), loc);

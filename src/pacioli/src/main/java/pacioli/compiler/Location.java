@@ -36,7 +36,7 @@ public class Location {
 
     public final Integer fromLine;
     public final Integer fromColumn;
-    private final Integer fromOffset;
+    public final Integer fromOffset;
 
     public final Integer toLine;
     public final Integer toColumn;

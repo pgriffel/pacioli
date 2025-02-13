@@ -96,12 +96,15 @@ public class LiftStatements extends IdentityTransformation {
             }
         }
 
+        Location dummyLoc = new Location(nodeLocation.file(), nodeLocation.fromLine, nodeLocation.fromColumn,
+                nodeLocation.fromOffset);
+
         // A fresh id for the helper function
         String liftedName = node.table.freshSymbolName();
-        IdentifierNode fresh = new IdentifierNode(liftedName, nodeLocation);
+        IdentifierNode fresh = new IdentifierNode(liftedName, dummyLoc);
 
         // Define a helper function for the lifted body
-        LambdaNode lambda = new LambdaNode(args, rec, nodeLocation);
+        LambdaNode lambda = new LambdaNode(args, rec, dummyLoc);
         ValueDefinition vd = new ValueDefinition(nodeLocation, fresh, lambda, false);
         try {
             ValueInfo info = ValueInfo.builder()

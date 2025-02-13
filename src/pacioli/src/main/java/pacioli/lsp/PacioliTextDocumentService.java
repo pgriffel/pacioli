@@ -347,7 +347,6 @@ public class PacioliTextDocumentService implements TextDocumentService {
     List<Integer> tokenType(IdentifierInfo idInfo) {
         var inf = idInfo.info().orElse(null);
         if (idInfo.identifier instanceof TypeIdentifierNode) {
-            this.logInfo("type %s", inf.name());
             return List.of(3, 0);
         }
         if (inf != null && inf instanceof ValueInfo vi) {
