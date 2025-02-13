@@ -45,6 +45,7 @@ import pacioli.compiler.PacioliException;
 import pacioli.compiler.PacioliFile;
 import pacioli.compiler.Project;
 import pacioli.symboltable.info.Info;
+import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.ast.TypeIdentifierNode;
 
@@ -203,6 +204,34 @@ public class PacioliTextDocumentService implements TextDocumentService {
                                 inf.name(),
                                 type,
                                 String.join(String.format("%n%n"), vi.getDocuParts())));
+                        var h = new Hover();
+                        h.setContents(tx);
+
+                        // return h;
+                        return new Hover(
+                                Either.forRight(txt));
+                        // return new Hover(
+                        // Either.forLeft(
+                        // String.format("%s :: %s %n %n %s",
+                        // inf.name(),
+                        // type,
+                        // String.join(String.format("%n%n"), vi.getDocuParts()))));
+                    }
+                    if (inf instanceof TypeInfo vi && inf.isGlobal()) {
+                        List<String> docParts = List.of();
+                        if (vi.generalInfo().documentation().isPresent()) {
+                            String[] parts = vi.generalInfo().documentation().get().split("\\r?\\n\s*\\r?\\n");
+                            docParts = List.of(parts);
+                        }
+                        // Fixme: trying to get html working
+                        var tx = new MarkupContent(MarkupKind.MARKDOWN, String.format("%s %n %n %s",
+                                inf.name(),
+                                String.join(String.format("%n%n"), docParts)));
+                        tx.setKind("html");
+
+                        var txt = new MarkedString("html", String.format("%s %n %n %s",
+                                inf.name(),
+                                String.join(String.format("%n%n"), docParts)));
                         var h = new Hover();
                         h.setContents(tx);
 
