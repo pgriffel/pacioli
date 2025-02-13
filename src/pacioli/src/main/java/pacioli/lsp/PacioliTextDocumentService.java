@@ -248,9 +248,9 @@ public class PacioliTextDocumentService implements TextDocumentService {
     }
 
     static String hoverDoc(List<String> docuParts) {
-        return String.join(String.format("%n%n"), docuParts)
-                .replaceAll("<code>", String.format("%n```pacioli%n"))
-                .replaceAll("</code>", String.format("%n```%n"));
+        return String.join(String.format("  %n"), docuParts)
+                .replaceAll("<code>", String.format(" `"))
+                .replaceAll("</code>", String.format("` "));
     }
 
     @Override
@@ -270,7 +270,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
                                 .orElse(vi.inferredType().map(x -> x.pretty()).orElse(""));
 
                         var content = new MarkupContent(MarkupKind.MARKDOWN,
-                                String.format("```pacioli%n%s :: %s%n``` %n %s",
+                                String.format("`%s :: %s`%n%n%s",
                                         inf.name(),
                                         type,
                                         hoverDoc(vi.getDocuParts())));
