@@ -106,6 +106,10 @@ public class PacioliFile extends AbstractPrintable {
         return modulePath.isEmpty() ? moduleName : modulePath + "_" + moduleName;
     }
 
+    public String modulePath() {
+        return modulePath;
+    }
+
     public Integer version() {
         return version;
     }

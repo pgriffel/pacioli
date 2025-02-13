@@ -269,11 +269,16 @@ public class PacioliTextDocumentService implements TextDocumentService {
                                 .map(x -> x.pretty())
                                 .orElse(vi.inferredType().map(x -> x.pretty()).orElse(""));
 
+                        var modulePath = vi.generalInfo().file().modulePath();
+                        modulePath = modulePath.isEmpty()
+                                ? vi.generalInfo().file().moduleName()
+                                : modulePath.substring(1);
                         var content = new MarkupContent(MarkupKind.MARKDOWN,
-                                String.format("`%s :: %s`%n%n%s",
+                                String.format("`%s :: %s`%n%n%s  %nsource: %s",
                                         inf.name(),
                                         type,
-                                        hoverDoc(vi.getDocuParts())));
+                                        hoverDoc(vi.getDocuParts()),
+                                        modulePath));
 
                         return new Hover(content);
                     }
