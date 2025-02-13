@@ -513,6 +513,9 @@ public class Bundle {
                 }
             }
         }
+        for (Toplevel toplevel : environment.toplevels()) {
+            all.addAll(toplevel.body.allIdentifiers());
+        }
         return all;
     }
 
