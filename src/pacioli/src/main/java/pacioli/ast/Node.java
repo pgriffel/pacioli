@@ -24,8 +24,11 @@ package pacioli.ast;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import pacioli.ast.visitors.AllIdentifiersVisitor;
+import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.ast.visitors.CountNodes;
 import pacioli.ast.visitors.DesugarVisitor;
 import pacioli.ast.visitors.JSGenerator;
@@ -98,6 +101,10 @@ public interface Node extends Printable {
      */
     default public Set<Info> uses() {
         return new UsesVisitor().idsAccept(this);
+    }
+
+    default public List<IdentifierInfo> allIdentifiers() {
+        return new AllIdentifiersVisitor().idsAccept(this);
     }
 
     default public Node liftStatements(PacioliFile file, PacioliTable prog, PacioliTable env) {

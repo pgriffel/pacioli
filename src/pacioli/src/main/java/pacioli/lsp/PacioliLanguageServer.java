@@ -6,10 +6,13 @@ import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.DiagnosticRegistrationOptions;
+import org.eclipse.lsp4j.HoverOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
+import org.eclipse.lsp4j.SemanticTokensLegend;
+import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
 import org.eclipse.lsp4j.services.LanguageClient;
@@ -75,8 +78,13 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
         final InitializeResult response = new InitializeResult(new ServerCapabilities());
         // Set the document synchronization capabilities to full.
         response.getCapabilities().setTextDocumentSync(TextDocumentSyncKind.Full);
-        // response.getCapabilities().setCompletionProvider(new CompletionOptions());
+        response.getCapabilities().setCompletionProvider(new CompletionOptions());
         response.getCapabilities().setDiagnosticProvider(new DiagnosticRegistrationOptions());
+        response.getCapabilities().setHoverProvider(new HoverOptions());
+        SemanticTokensLegend legend = new SemanticTokensLegend(
+                List.of("function", "variable", "parameter", "type"),
+                List.of("declaration", "definition"));
+        response.getCapabilities().setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(legend, true));
 
         var clientCapabilities = params.getCapabilities();
 

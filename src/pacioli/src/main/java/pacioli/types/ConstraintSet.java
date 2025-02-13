@@ -176,7 +176,7 @@ public class ConstraintSet extends AbstractPrintable {
             this.equalityConstaints.add(new EqualityConstraint(lhs, rhs, text, location));
         } else {
             throw new PacioliException(location,
-                    String.format("Cannot unify class %s and class %s", lhs.getClass(), rhs.getClass()));
+                    String.format("Cannot unify %s and %s", lhs.description(), rhs.description()));
         }
     }
 

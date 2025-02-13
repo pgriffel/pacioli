@@ -135,8 +135,15 @@ parser code {:
         return prefix + counter++;
     }
 
-    private static ExpressionNode binop(String name, ExpressionNode left, ExpressionNode right) {
+/*    private static ExpressionNode binop(String name, ExpressionNode left, ExpressionNode right) {
         pacioli.compiler.Location loc = left.location().join(right.location());
+        List<ExpressionNode> args = new ArrayList<ExpressionNode>();
+        args.add(left);
+        args.add(right);
+        return new ApplicationNode(new IdentifierNode(name, loc), args, loc);
+    }
+*/
+    private static ExpressionNode binop(String name, pacioli.compiler.Location loc, ExpressionNode left, ExpressionNode right) {
         List<ExpressionNode> args = new ArrayList<ExpressionNode>();
         args.add(left);
         args.add(right);
@@ -183,10 +190,10 @@ parser code {:
         }
     }
 
-    private static ExpressionNode singleop(String name, ExpressionNode exp, pacioli.compiler.Location loc) {
+    private static ExpressionNode singleop(IdentifierNode id, ExpressionNode exp, pacioli.compiler.Location loc) {
         List<ExpressionNode> args = new ArrayList<ExpressionNode>();
         args.add(exp);
-        return new ApplicationNode(new IdentifierNode(name, loc), args, loc);
+        return new ApplicationNode(id, args, loc);
     }
 
     private static class GeneratorClause {
@@ -230,9 +237,11 @@ parser code {:
         String accuName = freshName("_c_accu");
         String tupName = freshName("_c_tup");
 
-        ExpressionNode addMut = new IdentifierNode("_add_mut", e.location());
-        ExpressionNode accu = new IdentifierNode(accuName, e.location());
-        ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), e.location());
+        pacioli.compiler.Location dummyLoc = loc.collapse();
+
+        ExpressionNode addMut = new IdentifierNode("_add_mut", dummyLoc);
+        ExpressionNode accu = new IdentifierNode(accuName, dummyLoc);
+        ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), dummyLoc);
  
         for (int i = ps.size() - 1; 0 <= i; i--) {
             Object part = ps.get(i);
@@ -240,7 +249,7 @@ parser code {:
                 GeneratorClause clause = (GeneratorClause) part;
                 pacioli.compiler.Location loc2 = clause.list.location();
                 body = new ApplicationNode(
-                                new IdentifierNode("loop_list",loc2),
+                                new IdentifierNode("loop_list",dummyLoc),
                                 Arrays.asList((ExpressionNode) new IdentifierNode(accuName, loc2),
                                               new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.name())), body, loc2), clause.list),
                                 loc2);
@@ -253,10 +262,10 @@ parser code {:
                     args.add(var.name());
                 }
 
-                ExpressionNode apply = new IdentifierNode("apply", loc2);
+                ExpressionNode apply = new IdentifierNode("apply", dummyLoc);
                 ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc2);
                 ExpressionNode tup = new IdentifierNode(tupName, loc2);
-                ExpressionNode loopList = new IdentifierNode("loop_list", loc2);
+                ExpressionNode loopList = new IdentifierNode("loop_list", dummyLoc);
                 ExpressionNode accuId = new IdentifierNode(accuName, loc2);
                 ExpressionNode restApp = new ApplicationNode(apply, Arrays.asList(restLambda, tup), loc2);
                 ExpressionNode restAppLambda = new LambdaNode(Arrays.asList(accuName, tupName), restApp, loc2);
@@ -275,20 +284,20 @@ parser code {:
                     args.add(var.name());
                 }
 
-                ExpressionNode apply = new IdentifierNode("apply", loc);
+                ExpressionNode apply = new IdentifierNode("apply", dummyLoc);
                 ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc);
 
                 body = new ApplicationNode(apply, Arrays.asList(restLambda, clause.value), clause.value.location());
             } else if (part instanceof ExpressionNode) {
                 ExpressionNode clause = (ExpressionNode) part;
-                body = new BranchNode(clause, body, new IdentifierNode(accuName, loc), loc);
+                body = new BranchNode(clause, body, new IdentifierNode(accuName, dummyLoc), loc);
             } else {
                 throw new PacioliException(loc, "Unexpected clause %s", part);
             }
         }
 
         ExpressionNode lambda = new LambdaNode(Arrays .asList(accuName), body, loc);
-        ExpressionNode emptyListId = new IdentifierNode("empty_list", loc);
+        ExpressionNode emptyListId = new IdentifierNode("empty_list", dummyLoc);
         ExpressionNode emptyList = new ApplicationNode(emptyListId, new ArrayList<ExpressionNode>(), loc);
 
         return new ApplicationNode(lambda, Arrays.asList(emptyList), loc);
@@ -297,23 +306,24 @@ parser code {:
     private static ExpressionNode desugarFoldComprehension(pacioli.compiler.Location loc, IdentifierNode op, ExpressionNode e, List<Object> ps) throws PacioliException {
         pacioli.compiler.Location eLoc = e.location(); 
         pacioli.compiler.Location opLoc = op.location();
+        pacioli.compiler.Location dummyLoc = op.location().collapse();
         ExpressionNode body = desugarComprehension(loc, e, ps);
         if (op.name().equals("sum")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_sum", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_sum", dummyLoc), Arrays.asList(body), opLoc);
         } else if (op.name().equals("count")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_count", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_count", dummyLoc), Arrays.asList(body), opLoc);
         } else if (op.name().equals("all")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_all", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_all", dummyLoc), Arrays.asList(body), opLoc);
         } else if (op.name().equals("some")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_some", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_some", dummyLoc), Arrays.asList(body), opLoc);
         } else if (op.name().equals("gcd")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_gcd", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_gcd", dummyLoc), Arrays.asList(body), opLoc);
         } else if (op.name().equals("concat")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_concat", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_concat", dummyLoc), Arrays.asList(body), opLoc);
         } else if (op.name().equals("min")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_min", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_min", dummyLoc), Arrays.asList(body), opLoc);
         } else if (op.name().equals("max")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_max", eLoc), Arrays.asList(body), opLoc);
+            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_max", dummyLoc), Arrays.asList(body), opLoc);
         } else {
             throw new PacioliException(op.location(), "Comprehension operator '%s' unknown", op.name());
         }
@@ -627,38 +637,38 @@ expr ::=
  ;
 
 expr_no_id ::=
-   NEG:n expr:e                                     {: RESULT = singleop("negative", e, makeLoc(nxleft, exright)); :}
+   NEG:n expr:e                                     {: RESULT = singleop(new IdentifierNode("negative", makeLoc(nxleft, nxright)), e, makeLoc(nxleft, exright)); :}
  | idlist:ids                                       {: RESULT = new IdListNode(makeLoc(idsxleft, idsxright), ids); :}   
  | LPAR expr_no_id:e RPAR                           {: RESULT = e; :}
- | expr:e1 NEG expr:e2                              {: RESULT = binop("minus", e1, e2); :}
+ | expr:e1 NEG:op expr:e2                           {: RESULT = binop("minus", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 HAT integer:e2                           {: RESULT = desugarExp("multiply", e1, e2, makeLoc(e1xleft, e2xright), false); :}
- | expr:e1 PER expr:e2                              {: RESULT = binop("dim_div", e1, e2); :}
- | expr:e1 EQL expr:e2                              {: RESULT = binop("equal", e1, e2); :}
- | expr:e TRANS:t                                   {: RESULT = singleop("transpose", e, makeLoc(exleft, txright)); :}
- | expr:e RECI:r                                    {: RESULT = singleop("reciprocal", e, makeLoc(exleft, rxright)); :}
- | expr:e DIMINV:d                                  {: RESULT = singleop("dim_inv", e, makeLoc(exleft, dxright)); :}
- | expr:e1 MULT:op expr:e2                          {: RESULT = binop("multiply", e1, e2); :}
- | expr:e1 PLUS expr:e2                             {: RESULT = binop("sum", e1, e2); :}
- | expr:e1 MMULT expr:e2                            {: RESULT = binop("mmult", e1, e2); :}
+ | expr:e1 PER:op expr:e2                              {: RESULT = binop("dim_div", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 EQL:op expr:e2                              {: RESULT = binop("equal", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e TRANS:t                                   {: RESULT = singleop(new IdentifierNode("transpose", makeLoc(txleft, txright)), e, makeLoc(exleft, txright)); :}
+ | expr:e RECI:r                                    {: RESULT = singleop(new IdentifierNode("reciprocal", makeLoc(rxleft, rxright)), e, makeLoc(exleft, rxright)); :}
+ | expr:e DIMINV:d                                  {: RESULT = singleop(new IdentifierNode("dim_inv", makeLoc(dxleft, dxright)), e, makeLoc(exleft, dxright)); :}
+ | expr:e1 MULT:op expr:e2                          {: RESULT = binop("multiply", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 PLUS:op expr:e2                             {: RESULT = binop("sum", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 MMULT:op expr:e2                         {: RESULT = binop("mmult", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 MEXPT integer:e2                         {: RESULT = desugarExp("mmult", e1, e2, makeLoc(e1xleft, e2xright), false); :}
- | expr:e1 DIV expr:e2                              {: RESULT = binop("divide", e1, e2); :}
- | expr:e1 MDIV expr:e2                             {: RESULT = binop("right_division", e1, e2); :}
- | expr:e1 LEFTDIV expr:e2                          {: RESULT = binop("left_divide", e1, e2); :}
- | expr:e1 MLEFTDIV expr:e2                         {: RESULT = binop("left_division", e1, e2); :}
- | expr:e1 LSCALE expr:e2                           {: RESULT = binop("scale", e1, e2); :}
- | expr:e1 RSCALE expr:e2                           {: RESULT = binop("rscale", e1, e2); :}
- | expr:e1 LSCALEDOWN expr:e2                       {: RESULT = binop("lscale_down", e1, e2); :}
- | expr:e1 RSCALEDOWN expr:e2                       {: RESULT = binop("scale_down", e1, e2); :}
- | expr:e1 LEQ expr:e2                              {: RESULT = binop("less_eq", e1, e2); :}
- | expr:e1 GTQ expr:e2                              {: RESULT = binop("greater_eq", e1, e2); :}
- | expr:e1 NEQ expr:e2                              {: RESULT = binop("not_equal", e1, e2); :}
- | expr:e1 LE expr:e2                               {: RESULT = binop("less", e1, e2); :}
- | expr:e1 GT expr:e2                               {: RESULT = binop("greater", e1, e2); :}
+ | expr:e1 DIV:op expr:e2                              {: RESULT = binop("divide", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 MDIV:op expr:e2                             {: RESULT = binop("right_division", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 LEFTDIV:op expr:e2                          {: RESULT = binop("left_divide", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 MLEFTDIV:op expr:e2                         {: RESULT = binop("left_division", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 LSCALE:op expr:e2                           {: RESULT = binop("scale", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 RSCALE:op expr:e2                           {: RESULT = binop("rscale", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 LSCALEDOWN:op expr:e2                       {: RESULT = binop("lscale_down", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 RSCALEDOWN:op expr:e2                       {: RESULT = binop("scale_down", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 LEQ:op expr:e2                              {: RESULT = binop("less_eq", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 GTQ:op expr:e2                              {: RESULT = binop("greater_eq", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 NEQ:op expr:e2                              {: RESULT = binop("not_equal", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 LE:op expr:e2                               {: RESULT = binop("less", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 GT:op expr:e2                               {: RESULT = binop("greater", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 FOLLOWSFROM expr:e2                      {: pacioli.compiler.Location loc = makeLoc(e1xleft, e2xright);
                                                        RESULT = new BranchNode(e2, e1, new ConstNode("true", loc), loc); :}
  | expr:e1 IMPLIES expr:e2                          {: pacioli.compiler.Location loc = makeLoc(e1xleft, e2xright);
                                                        RESULT = new BranchNode(e1, e2, new ConstNode("true", loc), loc); :}
- | expr:e1 EQUIV expr:e2                            {: RESULT = binop("equiv", e1, e2); :}
+ | expr:e1 EQUIV:op expr:e2                            {: RESULT = binop("equiv", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 AND expr:e2                              {: pacioli.compiler.Location loc = makeLoc(e1xleft, e2xright);
                                                        RESULT = new BranchNode(e1, e2, new ConstNode("false", loc), loc); :}
  | expr:e1 OR expr:e2                               {: pacioli.compiler.Location loc = makeLoc(e1xleft, e2xright);
@@ -706,10 +716,10 @@ lettail ::=
    id:id EQL expr:e letrest:r                       {: List<String> args = freshUnderscores(Arrays.asList(id.name()));  // remove fresh underscors
                                                        BindingNode binding = new LetBindingNode(makeLoc(idxleft, exright), args.get(0), e);
                                                        RESULT = new LetNode(Arrays.asList(binding), r, makeLoc(idxleft, rxright)); :}
- | idlist:ids EQL expr:e letrest:r                  {: List<String> args = freshUnderscores(idNames(ids));
+ | idlist:ids EQL:q expr:e letrest:r                  {: List<String> args = freshUnderscores(idNames(ids));
                                                        pacioli.compiler.Location loc = makeLoc(idsxleft, rxright);
                                                        ExpressionNode fun = new LambdaNode(args, r, r.location());
-                                                       RESULT = new ApplicationNode(new IdentifierNode("apply", e.location()), Arrays.asList(fun, e), loc); :}
+                                                       RESULT = new ApplicationNode(new IdentifierNode("apply", makeLoc(qxleft, qxright)), Arrays.asList(fun, e), loc); :}
  | id:id idlist:ids EQL expr:e letrest:r            {: //List<String> rArgs = freshUnderscores(Arrays.asList(id.name()));
                                                        List<String> eArgs = freshUnderscores(idNames(ids)); // remove fresh underscors
                                                        pacioli.compiler.Location loc = makeLoc(idxleft, rxright);
@@ -766,12 +776,12 @@ listlit ::=
    LBRACK:l RBRACK:r                                {: pacioli.compiler.Location loc = makeLoc(lxleft, rxright);
                                                        RESULT = new ApplicationNode(new IdentifierNode("empty_list", loc), new ArrayList<ExpressionNode>(), loc); :}
  | LBRACK:l exprs:es RBRACK:r                       {: pacioli.compiler.Location loc = makeLoc(lxleft, rxright);
-                                                       ExpressionNode list = new ApplicationNode(new IdentifierNode("empty_list", loc), new ArrayList<ExpressionNode>(), loc);
+                                                       ExpressionNode list = new ApplicationNode(new IdentifierNode("empty_list", loc.collapse()), new ArrayList<ExpressionNode>(), loc);
                                                        for (ExpressionNode item : es) {
                                                            List<ExpressionNode> tup = new ArrayList<ExpressionNode>();
                                                            tup.add(list);
                                                            tup.add(item);
-                                                           list = new ApplicationNode(new IdentifierNode("_add_mut", loc), tup, item.location());
+                                                           list = new ApplicationNode(new IdentifierNode("_add_mut", loc.collapse()), tup, item.location());
                                                        }
                                                        RESULT = list; :}
  ;

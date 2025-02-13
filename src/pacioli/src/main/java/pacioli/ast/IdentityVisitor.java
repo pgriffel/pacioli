@@ -108,8 +108,9 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(Declaration declaration) {
+    public void visit(Declaration node) {
         // Pacioli.log("Decl");
+        node.typeNode.accept(this);
     }
 
     @Override
@@ -120,8 +121,9 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(MultiDeclaration multiDeclaration) {
+    public void visit(MultiDeclaration node) {
         // Pacioli.log("Multidc");
+        node.node.accept(this);
     }
 
     @Override
@@ -295,8 +297,9 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(SchemaNode schemaNode) {
+    public void visit(SchemaNode node) {
         // Pacioli.log("sschema");
+        node.type.accept(this);
     }
 
     @Override

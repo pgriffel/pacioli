@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,8 +14,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pacioli.Pacioli;
+import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.visitors.CodeGenerator;
@@ -24,6 +25,8 @@ import pacioli.ast.visitors.JSGenerator;
 import pacioli.ast.visitors.MVMGenerator;
 import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.PythonGenerator;
+import pacioli.ast.visitors.AllIdentifiersVisitor;
+import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.CompilationSettings.Target;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
@@ -481,6 +484,39 @@ public class Bundle {
                     info.inferredType().map(x -> x.pretty()).orElse("N/A"));
         }
 
+    }
+
+    // -------------------------------------------------------------------------
+    // API for lsp
+    // -------------------------------------------------------------------------
+
+    public List<String> allNames() {
+        List<String> names = new ArrayList<>();
+        for (Info info : environment.values().allInfos()) {
+            names.add(info.name());
+        }
+        return names;
+    }
+
+    public List<IdentifierInfo> allIdentifiers() {
+        var infos = environment.values().allInfos(info -> info.isFromFile(this.file));
+        List<IdentifierInfo> all = new ArrayList<>();
+        for (Info info : infos) {
+            if (info instanceof ValueInfo vd && vd.declaredType().isPresent()) {
+                all.addAll(vd.declaredType().get().allIdentifiers());
+            }
+            if (info.definition().isPresent()) {
+                var def = info.definition().get();
+                all.addAll(def.allIdentifiers());
+                if (def instanceof ValueDefinition d) {
+                    all.add(new IdentifierInfo(d.id));
+                }
+            }
+        }
+        for (Toplevel toplevel : environment.toplevels()) {
+            all.addAll(toplevel.body.allIdentifiers());
+        }
+        return all;
     }
 
     // -------------------------------------------------------------------------

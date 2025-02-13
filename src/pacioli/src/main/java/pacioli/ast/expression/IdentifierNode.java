@@ -38,7 +38,7 @@ public class IdentifierNode extends AbstractExpressionNode {
     private final Kind kind;
 
     // Set during resolving
-    private ValueInfo info;
+    public ValueInfo info;
 
     private IdentifierNode(String name, Kind kind, Location location) {
         super(location);

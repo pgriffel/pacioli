@@ -147,15 +147,20 @@ declare fisher_yates ::
     (1) -> Array(1);
 
 define fisher_yates(n) =
-    begin
-        perm := make_array(n);
-        array_put(perm, 0, 0);
-        i := 1;
-        while i < n do
-            r := random_nat(i + 1);
-            array_put(perm, i, array_get(perm, r));
-            array_put(perm, r, i);
-            i := i + 1;
+    if n = 0 then
+        make_array(0)
+    else
+        begin
+            perm := make_array(n);
+            array_put(perm, 0, 0);
+            i := 1;
+            while i < n do
+                r := random_nat(i + 1);
+                array_put(perm, i, array_get(perm, r));
+                array_put(perm, r, i);
+                i := i + 1;
+            end
+            return perm;
         end
-        return perm;
     end;
+
