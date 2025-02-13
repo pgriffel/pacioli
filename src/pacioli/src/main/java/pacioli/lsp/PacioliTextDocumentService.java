@@ -51,14 +51,32 @@ import pacioli.types.ast.TypeIdentifierNode;
 
 public class PacioliTextDocumentService implements TextDocumentService {
 
+    class UriState {
+        public final String uri;
+        public final Map<Integer, List<IdentifierInfo>> identifierIndex;
+        public final List<IdentifierInfo> semanticTokenList;
+
+        public final List<String> autoCompleteList;
+
+        public UriState(
+                String uri,
+                Map<Integer, List<IdentifierInfo>> identifierIndex,
+                List<IdentifierInfo> semanticTokenList,
+                List<String> autoCompleteList) {
+            this.uri = uri;
+            this.identifierIndex = identifierIndex;
+            this.semanticTokenList = semanticTokenList;
+            this.autoCompleteList = autoCompleteList;
+        }
+    }
+
+    int cacheSize = 5;
+
     private LanguageClient languageClient;
 
     List<File> libs;
 
-    Map<Integer, List<IdentifierInfo>> identifierIndex;
-    private List<IdentifierInfo> semanticTokenList;
-
-    private List<String> autoCompleteList;
+    private List<UriState> state = new ArrayList<>();
 
     /**
      * Connects the PacioliTextDocumentService, the PacioliWorkspaceService and the
@@ -74,26 +92,73 @@ public class PacioliTextDocumentService implements TextDocumentService {
         this.libs = libs;
     }
 
+    private UriState getUriState(String uri) {
+        for (UriState uriState : this.state) {
+            if (uriState.uri.equals(uri)) {
+                return uriState;
+            }
+        }
+        return null;
+    }
+
+    private void setUriState(UriState state) {
+        for (int i = 0; i < this.state.size(); i++) {
+            UriState uriState = this.state.get(i);
+            if (uriState.uri.equals(state.uri)) {
+                this.state.set(i, state);
+                return;
+            }
+        }
+        this.state.add(state);
+        if (this.state.size() > cacheSize) {
+            this.state.remove(0);
+        }
+    }
+
+    private UriState ensureState(String uri) throws Exception {
+        var state = this.getUriState(uri);
+        if (state == null) {
+            var newState = this.buildState(uri);
+            this.setUriState(newState);
+            return newState;
+        }
+        return state;
+    }
+
+    private UriState buildState(String uri) throws Exception {
+        var path = new URI(uri).getPath();
+        var prog = Project.load(PacioliFile.get(path, 0).get(), this.libs);
+        var bundle = prog.loadBundle();
+        // this.bundle = bundle;
+        var identifierIndex = this.buildIdentifierIndex(bundle);
+        var semanticTokenList = this.buildIdentifierInfoList(bundle, identifierIndex);
+        var autoCompleteList = this.buildAutoCompleteList(bundle);
+        return new UriState(uri, identifierIndex, semanticTokenList, autoCompleteList);
+    }
+
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-        var uri = params.getTextDocument().getUri();
-        this.logInfo("Operation 'text/didChange' with uri '%s'", uri);
+        // var uri = params.getTextDocument().getUri();
+        // this.logInfo("Operation 'text/didChange' with uri '%s'", uri);
     }
 
     @Override
     public void didClose(DidCloseTextDocumentParams params) {
-        this.logInfo("Operation 'text/didClose' with uri '%s'", params.getTextDocument().getUri());
+        // this.logInfo("Operation 'text/didClose' with uri '%s'",
+        // params.getTextDocument().getUri());
     }
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
-        this.logInfo("Operation 'text/didOpen' with uri '%s'", params.getTextDocument().getUri());
+        // this.logInfo("Operation 'text/didOpen' with uri '%s'",
+        // params.getTextDocument().getUri());
         this.loadBundle(params.getTextDocument().getUri());
     }
 
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
-        this.logInfo("Operation 'text/didSave' with uri '%s'", params.getTextDocument().getUri());
+        // this.logInfo("Operation 'text/didSave' with uri '%s'",
+        // params.getTextDocument().getUri());
         this.loadBundle(params.getTextDocument().getUri());
         this.languageClient.refreshSemanticTokens();
     }
@@ -103,15 +168,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
         var errors = new ArrayList<Diagnostic>();
 
         try {
-            var path = new URI(uri).getPath();
-
-            var prog = Project.load(PacioliFile.get(path, 0).get(), this.libs);
-            var bundle = prog.loadBundle();
-            // this.bundle = bundle;
-            this.identifierIndex = this.buildIdentifierIndex(bundle);
-            this.semanticTokenList = this.buildIdentifierInfoList(bundle);
-            this.autoCompleteList = this.buildAutoCompleteList(bundle);
-
+            this.setUriState(this.buildState(uri));
             // var prog2 = Program.load(PacioliFile.get(text, 0).get());
         } catch (PacioliException e) {
             this.logInfo("%s", e.getMessage());
@@ -162,13 +219,18 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
     @Override
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams position) {
-        this.logInfo("complete %s", position);
         return CompletableFuture.supplyAsync(() -> {
             List<CompletionItem> completionItems = new ArrayList<>();
-            for (String name : this.autoCompleteList) {
-                CompletionItem item1 = new CompletionItem();
-                item1.setLabel(name);
-                completionItems.add(item1);
+            UriState state;
+            try {
+                state = this.ensureState(position.getTextDocument().getUri());
+                for (String name : state.autoCompleteList) {
+                    CompletionItem item1 = new CompletionItem();
+                    item1.setLabel(name);
+                    completionItems.add(item1);
+                }
+            } catch (Exception e) {
+                this.logInfo("Could not compute completions " + e.getMessage());
             }
 
             return Either.forLeft(completionItems);
@@ -188,7 +250,13 @@ public class PacioliTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
         var pos = params.getPosition();
-        var info = this.locateInfo(pos.getLine(), pos.getCharacter())
+        UriState state;
+        try {
+            state = this.ensureState(params.getTextDocument().getUri());
+        } catch (Exception e) {
+            return CompletableFuture.supplyAsync(() -> new Hover(Either.forLeft("")));
+        }
+        var info = this.locateInfo(state.identifierIndex, pos.getLine(), pos.getCharacter())
                 .map(inf -> {
                     if (inf instanceof ValueInfo vi && inf.isGlobal()) {
                         var type = vi.declaredType().map(x -> x.pretty())
@@ -255,12 +323,14 @@ public class PacioliTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
         return CompletableFuture.supplyAsync(() -> {
-            if (this.semanticTokenList != null) {
-                try {
-                    return this.buildSemanticTokens(this.semanticTokenList);
-                } catch (Exception e) {
-                    logInfo("token exception" + e.getMessage());
+            UriState state;
+            try {
+                state = this.ensureState(params.getTextDocument().getUri());
+                if (state.semanticTokenList != null) {
+                    return this.buildSemanticTokens(state.semanticTokenList);
                 }
+            } catch (Exception e) {
+                logInfo("token exception" + e.getMessage());
             }
             return new SemanticTokens();
         });
@@ -306,9 +376,9 @@ public class PacioliTextDocumentService implements TextDocumentService {
      * @param column Column number in the current file
      * @return The identifier's Info if it exits.
      */
-    Optional<Info> locateInfo(Integer line, Integer column) {
-        if (this.identifierIndex != null) {
-            var cands = this.identifierIndex.get(line);
+    Optional<Info> locateInfo(Map<Integer, List<IdentifierInfo>> identifierIndex, Integer line, Integer column) {
+        if (identifierIndex != null) {
+            var cands = identifierIndex.get(line);
             if (cands != null) {
                 Info info = null;
                 Integer minSize = null;
@@ -330,9 +400,10 @@ public class PacioliTextDocumentService implements TextDocumentService {
         return Optional.empty();
     }
 
-    List<IdentifierInfo> buildIdentifierInfoList(Bundle bundle) throws Exception {
+    List<IdentifierInfo> buildIdentifierInfoList(Bundle bundle, Map<Integer, List<IdentifierInfo>> identifierIndex)
+            throws Exception {
         List<IdentifierInfo> infos = new ArrayList<>();
-        for (List<IdentifierInfo> records : this.identifierIndex.values()) {
+        for (List<IdentifierInfo> records : identifierIndex.values()) {
             for (IdentifierInfo idInfo : records) {
                 infos.add(idInfo);
             }
