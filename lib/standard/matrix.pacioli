@@ -54,15 +54,8 @@ export
 # ------------------------------------------------------------------------------
 
 doc inner
-    "The inner product between two vectors. The usual product
-    <math>
-      <msup>
-        <mi>x</mi>
-        <mi>T</mi>
-      </msup>
-      <mi>y</mi>
-    </math>
-    between a row and column vector.
+    "The inner product between two vectors. The usual product <code>x^T '*' y</code>
+    between two vectors.
     
     The vectors must be dimensionally uniform.";
 
@@ -74,14 +67,7 @@ define inner(x,y) = x^T '*' y;
 # ------------------------------------------------------------------------------
 
 doc outer
-    "The outer product between two vectors. The usual product
-    <math>
-      <mi>x</mi>
-      <msup>
-        <mi>y</mi>
-        <mi>T</mi>
-      </msup>
-    </math>
+    "The outer product between two vectors. The usual product <code>x '*' y^T</code>
     between a column and row vector.";
 
 declare outer ::
@@ -100,15 +86,8 @@ define neg(x) = -1 '.*' x;  # duplicate of negative. Which of the two names do w
 
 doc norm
     "The norm of a vector. The square root of the inner product
-    <math>
-      <msqrt>
-        <msup>
-          <mi>x</mi>
-          <mi>T</mi>
-        </msup>
-        <mi>x</mi>
-      </msqrt>
-    </math>.
+     <code>sqrt(x^T '*' x)</code>
+     
     The vector must be dimensionally uniform.";
 
 declare norm :: for_index P: for_unit a: (a*P!) -> a;
@@ -276,13 +255,7 @@ define diagonal3(x) =
 # ------------------------------------------------------------------------------
 
 doc right_inverse
-    "The right-inverse of a matrix. Solution to
-    <math>
-      <mi>A</mi>
-      <mi>X</mi>
-      <mo>=</mo>
-      <mi>I</mi>
-    </math>.
+    "The right-inverse of a matrix. Solution to AX=I
     
     In code:
 
@@ -296,13 +269,7 @@ define right_inverse(A) = solve(A, left_identity(A));
 # ------------------------------------------------------------------------------
 
 doc left_inverse
-    "The left_inverse of a matrix. Solution to
-    <math>
-      <mi>X</mi>
-      <mi>A</mi>
-      <mo>=</mo>
-      <mi>I</mi>
-    </math>.
+    "The left_inverse of a matrix. Solution to XA=I
     
     In code:
 
@@ -316,16 +283,7 @@ define left_inverse(x) = right_inverse(x^T)^T;
 # ------------------------------------------------------------------------------
 
 doc inverse
-    "The inverse of a matrix. Solution to
-    <math>
-      <mi>X</mi>
-      <mi>A</mi>
-      <mo>=</mo>
-      <mi>A</mi>
-      <mi>X</mi>
-      <mo>=</mo>
-      <mi>I</mi>
-    </math>.";
+    "The inverse of a matrix. Solution to XA=AX=I";
 
 declare inverse ::
   for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
@@ -338,23 +296,7 @@ doc kleene
     "Kleene star for matrices.
     
     Equals the series
-    <math>
-      <mi>I</mi>
-      <mo>+</mo>
-      <mi>A</mi>
-      <mo>+</mo>
-      <msup>
-        <mi>A</mi>
-        <mn>2</mn>
-      </msup>
-      <mo>+</mo>
-      <msup>
-        <mi>A</mi>
-        <mn>3</mn>
-      </msup>
-      <mo>+</mo>
-      <ms>...</ms>
-    </math>";
+    <code>I + A + A'^'2 + A'^'3 ...</code>";
 
 declare kleene ::
   for_index P: for_unit P!u: (P!u per P!u) -> P!u per P!u;
@@ -367,21 +309,7 @@ doc closure
     "Kleene closure for matrices.
     
     Equals the series
-    <math>
-      <mi>A</mi>
-      <mo>+</mo>
-      <msup>
-        <mi>A</mi>
-        <mn>2</mn>
-      </msup>
-      <mo>+</mo>
-      <msup>
-        <mi>A</mi>
-        <mn>3</mn>
-      </msup>
-      <mo>+</mo>
-      <ms>...</ms>
-    </math>";
+    <code>A + A'^'2 + A'^'3 ...</code>";
 
 declare closure ::
   for_index P: for_unit P!u: (P!u per P!u) -> P!u per P!u;

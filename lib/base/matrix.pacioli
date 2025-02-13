@@ -95,19 +95,8 @@ defunit radian "rad" = 1;
 doc _
     "The single entry for the 'empty' index set.
     
-    Use this as index for a column vector
-    (<math>
-      <mi>n</mi>
-      <mo>&times;</mo>
-      <mn>1</mn>
-    </math>
-    matrix) or a row vector
-    (<math>
-      <mn>1</mn>
-      <mo>&times;</mo>
-      <mi>n</mi>
-    </math>
-    matrix).
+    Use this as index for a column vector (n by 1 matrix) or a row vector
+    (1 by n matrix).
 
     For example <code>get(x, 2, _)</code> gets the 2 entry from a column 
     vector. 
@@ -143,25 +132,10 @@ doc magnitude
     "The magnitude of a matrix. The magnitude of a dimensioned number is the
     scaling factor without the unit of measurement.
     
-    A dimensioned matrix
-    <math>
-      <mi>A</mi>
-    </math>
-    is an element-wise product
-    <math>
-      <mi>R</mi>
-      <mi>U</mi>
-    </math>
-    with
-    <math>
-      <mi>R</mi>
-    </math>
-    a dimensionless magnitude matrix and
-    <math>
-      <mi>U</mi>
-    </math>
-    a unit matrix.
-    Using the <code><a href=\"#unit\">unit</a></code> function this can be expressed as:
+    A dimensioned matrix A is an element-wise product RU with R a dimensionless
+    magnitude matrix and U a unit matrix.
+
+    Using function <code>unit</code> this can be expressed as:
 
     <code>A = magnitude(A) * unit(A)</code>";
 
@@ -173,7 +147,7 @@ declare magnitude ::
 doc scalar_unit
     "The scalar unit factor of a matrix.
     
-    Is part of the <code><a href=\"#unit\">unit</a></code> of a matrix.
+    Is part of the unit of a matrix.
 
     <code>unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)</code>";
 
@@ -186,7 +160,7 @@ doc row_unit
     "The matrix's units in row dimension. The contra-variant part of the matrix
     units.
     
-    Is part of the <code><a href=\"#unit\">unit</a></code> of a matrix.
+    Is part of the unit of a matrix.
 
     <code>unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)</code>";
 
@@ -199,7 +173,7 @@ doc column_unit
     "The matrix's units in column dimension. The co-variant part of the matrix
     units.
     
-    Is part of the <code><a href=\"#unit\">unit</a></code> of a matrix.
+    Is part of the unit of a matrix.
 
     <code>unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)</code>";
 
@@ -229,13 +203,7 @@ doc row
 
     The matrix must be dimensionally uniform in the row dimension.
     
-    For all indices
-    <math>
-      <mi>q</mi>
-      <mo>&isin;</mo>
-      <mi>Q</mi>
-    </math>
-    it satisfies
+    For all indices q it satisfies
 
     <code>get_num(row(A, x), _, q) = get_num(A, x, q)</code>";
 
@@ -249,13 +217,7 @@ doc column
 
     The matrix must be dimensionally uniform in the column dimension.
     
-    For all indices
-    <math>
-      <mi>p</mi>
-      <mo>&isin;</mo>
-      <mi>P</mi>
-    </math>
-    it satisfies
+    For all indices p it satisfies
 
     <code>get_num(column(A, x), p, _) = get_num(A, p, x)</code>";
 
@@ -284,13 +246,7 @@ declare get_num ::
 # ----------------------------------------------------------------------------
 
 doc left_identity
-    "The left identify of a matrix. Solution to
-    <math>
-      <mi>X</mi>
-      <mi>A</mi>
-      <mo>=</mo>
-      <mi>A</mi>
-    </math>";
+    "The left identify of a matrix. Solution to XA=A";
 
 declare left_identity ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> P!u per P!u;
@@ -298,13 +254,7 @@ declare left_identity ::
 # ----------------------------------------------------------------------------
 
 doc right_identity
-    "The right identify of a matrix. Solution to
-    <math>
-      <mi>A</mi>
-      <mi>X</mi>
-      <mo>=</mo>
-      <mi>A</mi>
-    </math>";
+    "The right identify of a matrix. Solution to AX=A";
 
 declare right_identity ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Q!v per Q!v;
@@ -372,19 +322,7 @@ doc sum
     Corresponds with operator <code>+</code>. Expression <code>A + B</code>
     is parsed as <code>sum(A, B)</code>.
 
-    For all indices
-    <math>
-      <mi>p</mi>
-      <mo>&isin;</mo>
-      <mi>P</mi>
-    </math>
-    and
-    <math>
-      <mi>q</mi>
-      <mo>&isin;</mo>
-      <mi>Q</mi>
-    </math>
-    it satisfies
+    For all indices p and q it satisfies
     
     <code>get_num(A + B, p, q) = get_num(A, p, q) + get_num(B, p, q)</code>";
 
@@ -399,19 +337,7 @@ doc minus
     Corresponds with operator <code>-</code>. Expression <code>A - B</code>
     is parsed as <code>minus(A, B)</code>.
 
-    For all indices
-    <math>
-      <mi>p</mi>
-      <mo>&isin;</mo>
-      <mi>P</mi>
-    </math>
-    and
-    <math>
-      <mi>q</mi>
-      <mo>&isin;</mo>
-      <mi>Q</mi>
-    </math>
-    it satisfies
+    For all indices p and q it satisfies
     
     <code>get_num(A - B, p, q) = get_num(A, p, q) - get_num(B, p, q)</code>";
 
@@ -426,19 +352,7 @@ doc multiply
     Corresponds with operator <code>*</code>. Expression <code>A * B</code>
     is parsed as <code>multiply(A, B)</code>.
 
-    For all indices
-    <math>
-      <mi>p</mi>
-      <mo>&isin;</mo>
-      <mi>P</mi>
-    </math>
-    and
-    <math>
-      <mi>q</mi>
-      <mo>&isin;</mo>
-      <mi>Q</mi>
-    </math>
-    it satisfies
+    For all indices p and q it satisfies
 
     <code>get(A * B, p, q) = get_num(A, p, q) * get_num(B, p, q)</code>";
 
@@ -453,19 +367,7 @@ doc divide
     Corresponds with operator <code>/</code>. Expression <code>A / B</code>
     is parsed as <code>divide(A, B)</code>.
 
-    For all indices
-    <math>
-      <mi>p</mi>
-      <mo>&isin;</mo>
-      <mi>P</mi>
-    </math>
-    and
-    <math>
-      <mi>q</mi>
-      <mo>&isin;</mo>
-      <mi>Q</mi>
-    </math>
-    it satisfies
+    For all indices p and q it satisfies
     
     <code>get(A / B, p, q) = get_num(A, p, q) / get_num(B, p, q)</code>";
 
@@ -492,19 +394,7 @@ declare left_divide ::
 doc expt
     "Element-wise exponent of the matrix entries.
     
-    For all indices
-    <math>
-      <mi>p</mi>
-      <mo>&isin;</mo>
-      <mi>P</mi>
-    </math>
-    and
-    <math>
-      <mi>q</mi>
-      <mo>&isin;</mo>
-      <mi>Q</mi>
-    </math>
-    it satisfies
+    For all indices p and q it satisfies
     
     <code>get(expt(A, x), p, q) = expt(get(A, p, q), x)</code>";
 
@@ -668,14 +558,7 @@ declare total ::
 # ----------------------------------------------------------------------------
 
 doc less
-    "Is every entry in matrix
-    <math>
-      <mi>A</mi>
-    </math>
-    less than the corresponding entry in matrix
-    <math>
-      <mi>B</mi>
-    </math>?";
+    "Is every entry in matrix A less than the corresponding entry in matrix B?";
 
 declare less ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
@@ -683,14 +566,8 @@ declare less ::
 # ----------------------------------------------------------------------------
 
 doc less_eq
-    "Is every entry in matrix
-    <math>
-      <mi>A</mi>
-    </math>
-    less than or equal to the corresponding entry in matrix
-    <math>
-      <mi>B</mi>
-    </math>?";
+    "Is every entry in matrix A less than or equal to the corresponding entry 
+    in matrix B?";
 
 declare less_eq ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
@@ -698,14 +575,8 @@ declare less_eq ::
 # ----------------------------------------------------------------------------
 
 doc greater
-    "Is every entry in matrix
-    <math>
-      <mi>A</mi>
-    </math>
-    greater than the corresponding entry in matrix
-    <math>
-      <mi>B</mi>
-    </math>?";
+    "Is every entry in matrix A greater than the corresponding entry in matrix
+    B?";
 
 declare greater ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
@@ -713,14 +584,8 @@ declare greater ::
 # ----------------------------------------------------------------------------
 
 doc greater_eq
-    "Is every entry in matrix
-    <math>
-      <mi>A</mi>
-    </math>
-    greater than or equal to the corresponding entry in matrix
-    <math>
-      <mi>B</mi>
-    </math>?";
+    "Is every entry in matrix A greater than or equal to the corresponding entry 
+    in matrix B?";
 
 declare greater_eq ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
@@ -766,14 +631,8 @@ declare log ::
 # ----------------------------------------------------------------------------
 
 doc exp
-    "Element-wise natural exponent
-    <math>
-      <msup>
-        <mi>e</mi>
-        <mi>x</mi>
-      </msup>
-    </math>.
-    Only defined for dimensionless matrices.
+    "Element-wise natural exponent <code>e^x</code>. Only defined for dimensionless
+    matrices.
 
     <code>get(exp(A), p, q) = exp(get(A, p, q))</code>";
 
@@ -924,27 +783,8 @@ declare floor, ceiling ::
 doc plu
     "The PLU factorization of a matrix.
     
-    Decomposes the matrix in product
-    <math>
-      <mi>A</mi>
-      <mo>=</mo>
-      <mi>P</mi>
-      <mi>L</mi>
-      <mi>U</mi>
-    </math>
-    with
-    <math>
-      <mi>P</mi>
-    </math>
-    a permutation matrix,
-    <math>
-      <mi>L</mi>
-    </math>
-    a lower triangular matrix, and
-    <math>
-      <mi>U</mi>
-    </math>
-    an upper triangular matrix.";
+    Decomposes the matrix in product A=PLU with P a permutation matrix,
+    L a lower triangular matrix, and U an upper triangular matrix.";
     
 declare plu ::
   for_index P: for_unit a,P!u: (a*P!u per P!u) -> Tuple(P!u per P!u, P!u per P!u, a*P!u per P!u);
@@ -954,71 +794,11 @@ declare plu ::
 doc svd
     "The singular value decomposition of a matrix.
     
-    List of tuples
-    (<math>
-      <msub>
-        <mi>σ</mi>
-        <mi>i</mi>
-      </msub>
-     </math>,
-     <math>
-      <msub>
-        <mi>v</mi>
-        <mi>i</mi>
-      </msub>
-    </math>,
-    <math>
-      <msub>
-        <mi>w</mi>
-        <mi>i</mi>
-      </msub>
-    </math>)
-    such that
+    List of tuples (s,v,w) such that
 
-    <math>
-      <mi>A</mi>
-      <mo>=</mo>
-      <munder>
-        <mo>&sum;</mo>
-        <mi>i</mi>
-      </munder>
-      <msub>
-        <mi>&sigma;</mi>
-        <mi>i</mi>
-      </msub>
-      <msub>
-        <mi>v</mi>
-        <mi>i</mi>
-      </msub>
-      <msubsup>
-        <mi>w</mi>
-        <mi>i</mi>
-        <mi>T</mi>
-      </msubsup>
-    </math>
+    <code>A = sum[s '.*' v '*' w^T | (s,v,w) <- svd(A)]</code>
 
-    with
-    <math>
-      <msub>
-        <mi>&sigma;</mi>
-        <mi>i</mi>
-      </msub>
-    </math>
-    the singular values, and 
-    <math>
-      <msub>
-        <mi>v</mi>
-        <mi>i</mi>
-      </msub>
-    </math>
-    and
-    <math>
-      <msub>
-        <mi>w</mi>
-        <mi>i</mi>
-      </msub>
-    </math>
-    the singular vectors.";
+    with scalar s the singular values, and vectors v and w the singular vectors.";
     
 declare svd ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> List(Tuple(a, P!u, Q!v^-1));
@@ -1028,22 +808,8 @@ declare svd ::
 doc qr
     "The QR factorization of a matrix.
     
-    Decomposes the matrix in product
-    <math>
-      <mi>A</mi>
-      <mo>=</mo>
-      <mi>Q</mi>
-      <mi>R</mi>
-    </math>
-    with
-    <math>
-      <mi>Q</mi>
-    </math>
-    an orthonormal matrix and
-    <math>
-      <mi>R</mi>
-    </math>
-    an upper triangular matrix.";
+    Decomposes the matrix in product A=QR with Q an orthonormal matrix and R an
+    upper triangular matrix.";
 
 declare qr ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Tuple(P!u per P!u, a*P!u per Q!v);
@@ -1051,8 +817,7 @@ declare qr ::
 # ----------------------------------------------------------------------------
 
 doc solve
-    "Solves <math><mi>A</mi><mi>X</mi><mo>=</mo><mi>B</mi></math>. Generalization of 
-    vector case <math><mi>A</mi><mi>x</mi><mo>=</mo><mi>b</mi></math>.";
+    "Solves AX=B. Generalization of vector case Ax=b.";
 
 declare solve ::
   for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*P!u per R!w) -> a^-1*b*Q!v per R!w;
