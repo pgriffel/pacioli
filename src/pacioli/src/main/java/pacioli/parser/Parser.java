@@ -1708,7 +1708,7 @@ public class Parser extends java_cup.runtime.lr_parser {
         ExpressionNode bas;
         
         if (pow < 0) {
-            bas = new ApplicationNode(new IdentifierNode(op.equals("multiply") ? "reciprocal" : "inverse", loc), Arrays.asList(base), loc);
+            bas = new ApplicationNode(new IdentifierNode(op.equals("multiply") ? "reciprocal" : "inverse", loc.collapse()), Arrays.asList(base), loc);
         } else {
             bas = base;
         }
@@ -1720,19 +1720,19 @@ public class Parser extends java_cup.runtime.lr_parser {
         if (power == 0) {
         List<ExpressionNode> args = new ArrayList<ExpressionNode>();
         args.add(base);
-        return new ApplicationNode(new IdentifierNode(op.equals("multiply")? "unit" : "left_identity", loc), args, loc);
+        return new ApplicationNode(new IdentifierNode(op.equals("multiply")? "unit" : "left_identity", loc.collapse()), args, loc);
         } else if (power == 1) {
         return base;
         } else {
         String fresh = freshName(op);
 
-        ExpressionNode exp = new IdentifierNode(fresh, loc);
+        ExpressionNode exp = new IdentifierNode(fresh, loc.collapse());
 
         for (int i = 1; i < power; i++) {
             List<ExpressionNode> args = new ArrayList<ExpressionNode>();
             args.add(exp);
-            args.add(new IdentifierNode(fresh, loc));
-            exp = new ApplicationNode(new IdentifierNode(op, loc), args, loc);
+            args.add(new IdentifierNode(fresh, loc.collapse()));
+            exp = new ApplicationNode(new IdentifierNode(op, loc.collapse()), args, loc);
         }
 
         BindingNode binding = new LetBindingNode(loc, fresh, base);
