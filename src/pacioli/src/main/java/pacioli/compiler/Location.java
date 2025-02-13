@@ -144,6 +144,10 @@ public class Location {
         this.toColumn = toColumn;
     }
 
+    public Location collapse() {
+        return new Location(this.file, this.fromLine, this.fromColumn, this.fromOffset);
+    }
+
     /**
      * The 'union' of two locations.
      * 

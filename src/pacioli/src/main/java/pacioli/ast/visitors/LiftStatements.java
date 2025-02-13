@@ -96,8 +96,7 @@ public class LiftStatements extends IdentityTransformation {
             }
         }
 
-        Location dummyLoc = new Location(nodeLocation.file(), nodeLocation.fromLine, nodeLocation.fromColumn,
-                nodeLocation.fromOffset);
+        Location dummyLoc = nodeLocation.collapse();
 
         // A fresh id for the helper function
         String liftedName = node.table.freshSymbolName();
