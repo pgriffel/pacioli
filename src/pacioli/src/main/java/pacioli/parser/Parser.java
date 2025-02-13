@@ -1800,7 +1800,7 @@ public class Parser extends java_cup.runtime.lr_parser {
                 pacioli.compiler.Location loc2 = clause.list.location();
                 body = new ApplicationNode(
                                 new IdentifierNode("loop_list",dummyLoc),
-                                Arrays.asList((ExpressionNode) new IdentifierNode(accuName, loc2),
+                                Arrays.asList((ExpressionNode) new IdentifierNode(accuName, dummyLoc),
                                               new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.name())), body, loc2), clause.list),
                                 loc2);
             } else if (part instanceof TupleGeneratorClause) {
