@@ -247,6 +247,12 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 .supplyAsync(() -> new DocumentDiagnosticReport(new RelatedUnchangedDocumentDiagnosticReport("foo")));
     }
 
+    static String hoverDoc(List<String> docuParts) {
+        return String.join(String.format("%n%n"), docuParts)
+                .replaceAll("<code>", String.format("%n```pacioli%n"))
+                .replaceAll("</code>", String.format("%n```%n"));
+    }
+
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
         var pos = params.getPosition();
@@ -259,31 +265,17 @@ public class PacioliTextDocumentService implements TextDocumentService {
         var info = this.locateInfo(state.identifierIndex, pos.getLine(), pos.getCharacter())
                 .map(inf -> {
                     if (inf instanceof ValueInfo vi && inf.isGlobal()) {
-                        var type = vi.declaredType().map(x -> x.pretty())
+                        var type = vi.declaredType()
+                                .map(x -> x.pretty())
                                 .orElse(vi.inferredType().map(x -> x.pretty()).orElse(""));
 
-                        // Fixme: trying to get html working
-                        var tx = new MarkupContent(MarkupKind.MARKDOWN, String.format("%s :: %s %n %n %s",
-                                inf.name(),
-                                type,
-                                String.join(String.format("%n%n"), vi.getDocuParts())));
-                        tx.setKind("html");
-                        var txt = new MarkedString("html", String.format("%s :: %s %n %n %s",
-                                inf.name(),
-                                type,
-                                String.join(String.format("%n%n"), vi.getDocuParts())));
-                        var h = new Hover();
-                        h.setContents(tx);
+                        var content = new MarkupContent(MarkupKind.MARKDOWN,
+                                String.format("```pacioli%n%s :: %s%n``` %n %s",
+                                        inf.name(),
+                                        type,
+                                        hoverDoc(vi.getDocuParts())));
 
-                        // return h;
-                        return new Hover(
-                                Either.forRight(txt));
-                        // return new Hover(
-                        // Either.forLeft(
-                        // String.format("%s :: %s %n %n %s",
-                        // inf.name(),
-                        // type,
-                        // String.join(String.format("%n%n"), vi.getDocuParts()))));
+                        return new Hover(content);
                     }
                     if (inf instanceof TypeInfo vi && inf.isGlobal()) {
                         List<String> docParts = List.of();
@@ -291,32 +283,15 @@ public class PacioliTextDocumentService implements TextDocumentService {
                             String[] parts = vi.generalInfo().documentation().get().split("\\r?\\n\s*\\r?\\n");
                             docParts = List.of(parts);
                         }
-                        // Fixme: trying to get html working
-                        var tx = new MarkupContent(MarkupKind.MARKDOWN, String.format("%s %n %n %s",
+                        var content = new MarkupContent(MarkupKind.MARKDOWN, String.format("%s %n %n %s",
                                 inf.name(),
-                                String.join(String.format("%n%n"), docParts)));
-                        tx.setKind("html");
+                                hoverDoc(docParts)));
 
-                        var txt = new MarkedString("html", String.format("%s %n %n %s",
-                                inf.name(),
-                                String.join(String.format("%n%n"), docParts)));
-                        var h = new Hover();
-                        h.setContents(tx);
-
-                        // return h;
-                        return new Hover(
-                                Either.forRight(txt));
-                        // return new Hover(
-                        // Either.forLeft(
-                        // String.format("%s :: %s %n %n %s",
-                        // inf.name(),
-                        // type,
-                        // String.join(String.format("%n%n"), vi.getDocuParts()))));
+                        return new Hover(content);
                     }
-                    return new Hover(
-                            Either.forLeft(""));
+                    return new Hover(new MarkupContent(MarkupKind.PLAINTEXT, ""));
                 })
-                .orElse(new Hover(Either.forLeft("")));
+                .orElse(new Hover(new MarkupContent(MarkupKind.PLAINTEXT, "")));
         return CompletableFuture.supplyAsync(() -> info);
     }
 
