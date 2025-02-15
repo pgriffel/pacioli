@@ -13,6 +13,8 @@ This extension offers editor support for the Pacioli language. Visit [Pacioli on
 - Go to definition
 - Task definition for pacioli commands
 
+![Command menu](menu.png)
+
 ## Requirements
 
 Java needs to be installed.
