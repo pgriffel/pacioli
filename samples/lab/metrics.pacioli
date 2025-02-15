@@ -1,6 +1,5 @@
 import geometry;
 import testing;
-include minkowski;
 
 # ------------------------------------------------------------------------------
 # Matrix representation of bilinear forms
@@ -173,97 +172,6 @@ define has_zero_diagonal(A) =
 
 
  
-# ------------------------------------------------------------------------------
-# Extra tests. Old minkowski code above not touched.
-# ------------------------------------------------------------------------------
-
-define minkowski_inner2(x, y) =
-    bilinear_form(spacetime_metric, x, y);
-
-define minkowski_norm(x) =
-    metric_norm(spacetime_metric, x);
-    
-define test_vecs = [
-    spacetime_vector(0*|metre|, 0*|metre|, 0*|metre|, 0*|second|),
-    spacetime_vector(1*|metre|, 2*|metre|, 3*|metre|, 4*|second|),
-    spacetime_vector(1*|metre|, 2*|metre|, 3*|metre|, -4*|second|)
-];
-
-define minkowski_suite2 = test_suite("Minkowski tests 2", [t | x <- test_vecs, y <- test_vecs, t <- [
-    let 
-        actual = minkowski_inner2(uni_spacetime '*' x, uni_spacetime '*' y), 
-        expected = minkowski_inner(x, y)
-    in
-        test(
-            format("bilinear_form(metric, v, w) equals minkowski_inner after homogenizing %s = %s", actual, expected),
-            () -> actual = expected)
-    end
-]]);
-
-define minkowski_suites2 = [
-    minkowski_suite2
-];
- 
-set_nr_decimals(2);
-
-run_test_suites(minkowski_suites2);
- 
-# ------------------------------------------------------------------------------
-# Metric tensor
-#
-# See https://en.wikipedia.org/wiki/Metric_tensor#Lorentzian_metrics_from_relativity
-#
-#
-#
-# ------------------------------------------------------------------------------
-
-# TODO: schwarzschild coordinates
-
-define schwarzschild_vec(time, radius, latitued, longitude) = ???;
-
-#declare schwarzschild_time :: (SpaceTime!si) -> second;
-
-# ------------------------------------------------------------------------------
-
-define rs = 2*g*me/c/c;
-
-define g = 6.6743015 * 10^-11 * |metre^3 / kilo:gram / second^2|;
-
-#define me = 100000000000000000000000000 * |kilo:gram / metre|;
-define me = 100000000000000000000000000 * |kilo:gram|;
-
-define c = 300000000 * |metre/second|;
-
-
-define schwarzschild_metric(g, me, r, angle) =
-    let
-        rs = 2*g*me/c/c,
-        # FIXME: juiste coordinaten gebruiken
-        x = delta(SpaceTime@x),
-        y = delta(SpaceTime@y),
-        z = delta(SpaceTime@z),
-        t = delta(SpaceTime@t),
-        a = 1 - r/rs # this forces r to a dimensionless number
-    in
-        a '.*' x '*' x^T +
-        -1/a '.*' y '*' y^T +
-        -r^2 '.*' z '*' z^T +
-        -r^2 * sin(angle) '.*' t '*' t^T
-    end;
-
-
-set_nr_decimals(30);
-
-#schwarzschild_metric(g, me, 10 * |metre|, 0.5 * |radian|);
-
-define r = 100;
-
-#1 - 2*g*me/r/c/c;
-
-2*g*me;
-
-
-2*g*me/c/c;
 
 # ------------------------------------------------------------------------------
 # Isometry definition
@@ -274,6 +182,10 @@ define r = 100;
 
 # A map f: X -> Y is called an isometry or distance-preserving map if for any a,b in X
 # dx(a,b) = dy(f(a), f(b)) [wikipedia]
+#
+# The definition of isometry, and related types of isometries mentioned on the same wikipedia
+# page needs further investigation,
+# the is_isometry_predicate applied to the minkowski metric does not type check.
 
 declare is_isometry_predicate ::for_index B, C: for_unit a: 
     ((a*B!) -> a*C!, B! per B!, C! per C!) -> (a*B!, a*B!) -> Boole;
@@ -281,7 +193,32 @@ declare is_isometry_predicate ::for_index B, C: for_unit a:
 define is_isometry_predicate(f, metric_x, metric_y) = 
     (a, b) -> metric_distance(metric_x, a, b) = metric_distance(metric_y, f(a), f(b));
 
-# is_isometry_predicate(fun, spacetime_metric, spacetime_metric)
-#     (nth(0, test_vecs), nth(1, test_vecs));
+#is_isometry_predicate(fun, minkowski_metric, minkowski_metric)
+#   (nth(0, test_vecs), nth(1, test_vecs));
 
 define fun(x) = x;
+
+# ------------------------------------------------------------------------------
+#
+# Isometry definition as in Roman, Advanced Linear Algebra
+#
+# Isometry is defined through a normed linear space (p209);
+# - the norm(v) = length(v) = sqrt(inner(v, v))
+# - the distance between two vectors u and v given by d(u,v) = norm(u-v)
+# as in the functions metric_norm and metric_distance aboven.
+# We speak of "norm" only When the distance properties match that of a metric space;
+# e.g. d(u,v) = 0 <=> u=v.
+#
+# In this approach the Unitary (complex) and Orthogonal (real) operators represent
+# the isometries, following 10.12 on p240. The adoint equals the inverse T* = T^-1
+# These operators als form special types of normal operators - they commute with their
+# own adjoint TT* = T*T. 
+#
+# We work out the Orthogonal (real) case below.
+# 
+# ------------------------------------------------------------------------------
+
+declare is_orthogonal :: for_index A, B: (A! per B!) -> Boole;
+
+define is_orthogonal(A) = 
+    A^-1 = A;

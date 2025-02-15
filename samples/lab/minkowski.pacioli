@@ -7,6 +7,8 @@
 import testing;
 import random;
 
+include metrics;
+
 export
     SpaceTime;
 
@@ -312,4 +314,97 @@ defmatrix permute_zt :: SpaceTime!si per SpaceTime!si= {
 
 ###########################################
 
+# ------------------------------------------------------------------------------
+# Extra tests. Old minkowski code above not touched.
+# ------------------------------------------------------------------------------
+
+# define minkowski_metric = metric; # bad naming fix
+
+define minkowski_inner2(x, y) =
+    bilinear_form(spacetime_metric, x, y);
+
+define minkowski_seminorm(x) = ???;
+    # metric_norm(minkowski_metric, x);
+    
+define test_vecs = [
+    spacetime_vector(0*|metre|,0*|metre|,0*|metre|,0*|second|), 
+    spacetime_vector(1*|metre|,2*|metre|,3*|metre|,4*|second|), 
+    spacetime_vector(1*|metre|,2*|metre|,3*|metre|,-4*|second|)]; 
+
+define minkowski_suite2 = test_suite("Minkowski tests 2", [t | x <- test_vecs, y <- test_vecs, t <- [
+    
+    let 
+        actual = minkowski_inner2(uni_spacetime '*' x, uni_spacetime '*' y), 
+        expected = minkowski_inner(x, y)
+    in
+        test(
+            format("bilinear_form(metric, v, w) equals inner_minkowski after homogenizing %s = %s", actual, expected),
+            () -> actual = expected)
+    end
+]]);
+
+define minkowski_suites2 = [
+    minkowski_suite2
+];
+ 
+set_nr_decimals(2);
+
+run_test_suites(minkowski_suites2);
+ 
+# ------------------------------------------------------------------------------
+# Metric tensor
+#
+# See https://en.wikipedia.org/wiki/Metric_tensor#Lorentzian_metrics_from_relativity
+#
+#
+#
+# ------------------------------------------------------------------------------
+
+# TODO: schwarzschild coordinates
+
+define schwarzschild_vec(time, radius, latitued, longitude) = ???;
+
+#declare schwarzschild_time :: (Minkowski!si) -> second;
+
+# ------------------------------------------------------------------------------
+
+define rs = 2*g*me/c/c;
+
+define g = 6.6743015 * 10^-11 * |metre^3 / kilo:gram / second^2|;
+
+#define me = 100000000000000000000000000 * |kilo:gram / metre|;
+define me = 100000000000000000000000000 * |kilo:gram|;
+
+define c = 300000000 * |metre/second|;
+
+
+define schwarzschild_metric(g, me, r, angle) =
+    let
+        rs = 2*g*me/c/c,
+        # FIXME: juiste coordinaten gebruiken
+        x = delta(SpaceTime@x),
+        y = delta(SpaceTime@y),
+        z = delta(SpaceTime@z),
+        t = delta(SpaceTime@t),
+        a = 1 - r/rs # this forces r to a dimensionless number
+    in
+        a '.*' x '*' x^T +
+        -1/a '.*' y '*' y^T +
+        -r^2 '.*' z '*' z^T +
+        -r^2 * sin(angle) '.*' t '*' t^T
+    end;
+
+
+set_nr_decimals(30);
+
+#schwarzschild_metric(g, me, 10 * |metre|, 0.5 * |radian|);
+
+define r = 100;
+
+#1 - 2*g*me/r/c/c;
+
+2*g*me;
+
+
+2*g*me/c/c;
 
