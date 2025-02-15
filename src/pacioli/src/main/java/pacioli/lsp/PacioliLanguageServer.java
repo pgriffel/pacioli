@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.CompletionOptions;
+import org.eclipse.lsp4j.DefinitionOptions;
 import org.eclipse.lsp4j.DiagnosticRegistrationOptions;
 import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.HoverOptions;
@@ -78,6 +79,7 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
 
         final InitializeResult response = new InitializeResult(new ServerCapabilities());
         // Set the document synchronization capabilities to full.
+        response.getCapabilities().setDefinitionProvider(new DefinitionOptions());
         response.getCapabilities().setTextDocumentSync(TextDocumentSyncKind.Full);
         response.getCapabilities().setCompletionProvider(new CompletionOptions());
         response.getCapabilities().setDiagnosticProvider(new DiagnosticRegistrationOptions());

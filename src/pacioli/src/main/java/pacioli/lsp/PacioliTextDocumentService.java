@@ -13,6 +13,7 @@ import java.util.concurrent.CompletableFuture;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
@@ -22,6 +23,7 @@ import org.eclipse.lsp4j.DocumentDiagnosticParams;
 import org.eclipse.lsp4j.DocumentDiagnosticReport;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
+import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.MarkedString;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
@@ -235,6 +237,30 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
             return Either.forLeft(completionItems);
         });
+    }
+
+    @Override
+    public CompletableFuture<Either<List<? extends org.eclipse.lsp4j.Location>, List<? extends LocationLink>>> definition(
+            DefinitionParams params) {
+
+        var pos = params.getPosition();
+        UriState state;
+        try {
+            state = this.ensureState(params.getTextDocument().getUri());
+        } catch (Exception e) {
+            return CompletableFuture.supplyAsync(() -> Either.forLeft(List.of()));
+        }
+        var info = this.locateInfo(state.identifierIndex, pos.getLine(), pos.getCharacter())
+                .map(inf -> {
+                    var loc = inf.location();
+                    var uri = String.format("file:///%s", loc.file());
+
+                    var range = new Range(new Position(loc.fromLine, loc.fromColumn),
+                            new Position(loc.toLine, loc.toColumn));
+                    return List.of(new org.eclipse.lsp4j.Location(uri, range));
+                })
+                .orElse(List.of());
+        return CompletableFuture.supplyAsync(() -> Either.forLeft(info));
     }
 
     private void logInfo(String string, Object... args) {
