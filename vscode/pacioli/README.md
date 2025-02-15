@@ -7,7 +7,11 @@ This extension offers editor support for the Pacioli language. Visit [Pacioli on
 ## Features
 
 - Syntax highlighting
-- Diagnostics for syntax errors
+- Error diagnostics
+- Menus for compiling and running pacioli files
+- Documentation on hover
+- Go to definition
+- Task definition for pacioli commands
 
 ## Requirements
 
@@ -26,4 +30,4 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-Not yet
+- No debugger support
