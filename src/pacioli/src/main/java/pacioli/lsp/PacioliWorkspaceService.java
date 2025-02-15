@@ -1,11 +1,17 @@
 package pacioli.lsp;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.eclipse.lsp4j.DidChangeConfigurationParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
+import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
+import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.WorkspaceService;
+
+import pacioli.lsp.PacioliTextDocumentService.UriState;
 
 public class PacioliWorkspaceService implements WorkspaceService {
 
@@ -34,7 +40,16 @@ public class PacioliWorkspaceService implements WorkspaceService {
         this.logInfo("Operation 'workspace/didChangeWatchedFiles' Ack");
     }
 
+    @Override
+    public CompletableFuture<Object> executeCommand(ExecuteCommandParams params) {
+        this.logInfo("Operation 'workspace/executeCommand' %s", params);
+        return CompletableFuture.supplyAsync(() -> {
+            return null;
+        });
+    }
+
     private void logInfo(String string, Object... args) {
         this.languageClient.logMessage(new MessageParams(MessageType.Info, String.format(string, args)));
+
     }
 }

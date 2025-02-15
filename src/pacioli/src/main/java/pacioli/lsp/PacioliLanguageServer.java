@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.DiagnosticRegistrationOptions;
+import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.HoverOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
@@ -85,6 +86,9 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
                 List.of("function", "variable", "parameter", "type"),
                 List.of("declaration", "definition"));
         response.getCapabilities().setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(legend, true));
+        // response.getCapabilities()
+        // .setExecuteCommandProvider(new ExecuteCommandOptions(List.of("pacioli.run",
+        // "compile")));
 
         var clientCapabilities = params.getCapabilities();
 

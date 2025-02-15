@@ -34,10 +34,89 @@
         "path": "./syntaxes/pacioli.tmLanguage.json"
       }
     ],
+    "taskDefinitions": [
+      {
+        "type": "pacioli",
+        "required": [
+          "command"
+        ],
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The pacioli compiler command to execute. Valid Pacioli compiler commands are 'run', 'compile', 'types', 'symbols', 'api', and 'baseapi'."
+          },
+          "target": {
+            "type": "string",
+            "description": "The target for the compile command. One of 'mvm', 'javascript', 'matlab', or 'python'"
+          }
+        }
+      }
+    ],
     "commands": [
       {
-        "command": "pacioli.helloWorld",
-        "title": "Hello World"
+        "command": "pacioli.run",
+        "title": "Pacioli run"
+      },
+      {
+        "command": "pacioli.types",
+        "title": "Pacioli types"
+      },
+      {
+        "command": "pacioli.compilejs",
+        "title": "Pacioli compile to js"
+      },
+      {
+        "command": "pacioli.compilemvm",
+        "title": "Pacioli compile to mvm"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "resourceLangId == pacioli",
+          "submenu": "pacioli.compile",
+          "group": "navigation"
+        },
+        {
+          "when": "resourceLangId == pacioli",
+          "command": "pacioli.types",
+          "group": "navigation"
+        },
+        {
+          "when": "resourceLangId == pacioli",
+          "command": "pacioli.run",
+          "group": "navigation"
+        }
+      ],
+      "pacioli.compile": [
+        {
+          "command": "pacioli.compilejs",
+          "group": "navigation"
+        },
+        {
+          "command": "pacioli.compilemvm",
+          "group": "navigation"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "pacioli.compile",
+        "label": "Pacioli compile"
+      }
+    ],
+    "keybindings": [
+      {
+        "key": "ctrl+f9",
+        "command": "pacioli.run"
+      },
+      {
+        "key": "ctrl+f10",
+        "command": "pacioli.types"
+      },
+      {
+        "key": "ctrl+f11",
+        "command": "pacioli.compilejs"
       }
     ]
   },

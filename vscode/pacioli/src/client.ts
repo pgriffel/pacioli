@@ -22,7 +22,7 @@ export class PacioliClient {
 
   init(): Promise<void> {
     let clientId = "pacioli-vscode-lsclient";
-    let clientName = "Pacioli LS Client";
+    let clientName = "Pacioli Language Server";
 
     // Options to control the language client
     let clientOptions: LanguageClientOptions = {
