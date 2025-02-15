@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import { PacioliClient } from "./client";
+import { PacioliTaskProvider } from "./task-provider";
 
 const pacioliClient = new PacioliClient();
 const diagnosticCollection =
@@ -17,16 +18,51 @@ export function activate(context: vscode.ExtensionContext) {
   // The command has been defined in the package.json file
   // Now provide the implementation of the command with registerCommand
   // The commandId parameter must match the command field in package.json
-  const disposable = vscode.commands.registerCommand(
-    "pacioli.helloWorld",
-    () => {
-      // The code you place here will be executed every time your command is executed
-      // Display a message box to the user
-      vscode.window.showInformationMessage("Hello World from pacioli!");
+  const disposable2 = vscode.commands.registerCommand("pacioli.run", (args) => {
+    vscode.commands.executeCommand(
+      "workbench.action.tasks.runTask",
+      "pacioli: Run pacioli file"
+    );
+  });
+  const disposable2c = vscode.commands.registerCommand(
+    "pacioli.types",
+    (args) => {
+      vscode.commands.executeCommand(
+        "workbench.action.tasks.runTask",
+        "pacioli: Types pacioli file"
+      );
     }
   );
 
-  context.subscriptions.push(disposable);
+  const disposable2b = vscode.commands.registerCommand(
+    "pacioli.compilejs",
+    (args) => {
+      // The code you place here will be executed every time your command is executed
+      // Display a message box to the user
+      vscode.window.showInformationMessage(
+        "Run from pacioli!" +
+          vscode.window.activeTextEditor?.document.uri +
+          "  " +
+          args
+      );
+      vscode.commands.executeCommand(
+        "workbench.action.tasks.runTask",
+        "pacioli: Compile pacioli file to js"
+      );
+    }
+  );
+
+  let channel = vscode.window.createOutputChannel("Pacioli LS Client");
+
+  const disposable3 = vscode.tasks.registerTaskProvider(
+    "pacioli",
+    new PacioliTaskProvider(context!, channel)
+  );
+
+  context.subscriptions.push(disposable2c);
+  context.subscriptions.push(disposable2);
+  context.subscriptions.push(disposable2b);
+  context.subscriptions.push(disposable3);
 
   context.subscriptions.push(diagnosticCollection);
 
