@@ -108,18 +108,15 @@
     "keybindings": [
       {
         "key": "ctrl+f9",
-        "command": "workbench.action.tasks.runTask",
-        "args": "pacioli: Run pacioli file"
+        "command": "pacioli.run"
       },
       {
         "key": "ctrl+f10",
-        "command": "workbench.action.tasks.runTask",
-        "args": "pacioli: Types pacioli file"
+        "command": "pacioli.types"
       },
       {
         "key": "ctrl+f11",
-        "command": "workbench.action.tasks.runTask",
-        "args": "pacioli: Compile pacioli file to js"
+        "command": "pacioli.compilejs"
       }
     ]
   },
