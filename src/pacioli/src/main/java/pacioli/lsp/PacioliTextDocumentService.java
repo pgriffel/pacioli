@@ -253,11 +253,11 @@ public class PacioliTextDocumentService implements TextDocumentService {
         var info = this.locateInfo(state.identifierIndex, pos.getLine(), pos.getCharacter())
                 .map(inf -> {
                     var loc = inf.location();
-                    var uri = String.format("file:///%s", loc.file());
+                    var uri = loc.file().toURI();
 
                     var range = new Range(new Position(loc.fromLine, loc.fromColumn),
                             new Position(loc.toLine, loc.toColumn));
-                    return List.of(new org.eclipse.lsp4j.Location(uri, range));
+                    return List.of(new org.eclipse.lsp4j.Location(uri.toString(), range));
                 })
                 .orElse(List.of());
         return CompletableFuture.supplyAsync(() -> Either.forLeft(info));
