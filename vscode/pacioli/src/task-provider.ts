@@ -47,8 +47,12 @@ export class PacioliTaskProvider implements TaskProvider {
     );
   }
 
+  private libDir(): string {
+    return path.join(String(this.context.extensionPath), "lib");
+  }
+
   public async provideTasks(): Promise<Task[]> {
-    return predefinedTasks(this.jarFile());
+    return predefinedTasks(this.jarFile(), this.libDir());
   }
 
   public resolveTask(task: Task): Task | undefined {
@@ -57,7 +61,7 @@ export class PacioliTaskProvider implements TaskProvider {
       target: task.definition.target,
     } as PacioliTask;
 
-    const cmd = shellCommand(pacioliTask, this.jarFile());
+    const cmd = shellCommand(pacioliTask, this.jarFile(), this.libDir());
 
     if (cmd === undefined) {
       window.showErrorMessage(
@@ -86,9 +90,9 @@ export class PacioliTaskProvider implements TaskProvider {
   }
 }
 
-function predefinedTasks(jarFile: string) {
+function predefinedTasks(jarFile: string, libDir: string) {
   return PREDEFINED_TASKS.map((pacioliTask: PacioliTask) => {
-    const cmd = shellCommand(pacioliTask, jarFile);
+    const cmd = shellCommand(pacioliTask, jarFile, libDir);
     if (cmd) {
       const task = new Task(
         {
@@ -115,18 +119,22 @@ function predefinedTasks(jarFile: string) {
   });
 }
 
-function shellCommand(task: PacioliTask, jarFile: string): string | undefined {
+function shellCommand(
+  task: PacioliTask,
+  jarFile: string,
+  libDir: string
+): string | undefined {
   switch (task.command) {
     case "run": {
-      return `java -jar ${jarFile} run \${file} -debug -lib lib/`;
+      return `java -jar ${jarFile} run \${file} -debug -lib ${libDir}`;
     }
     case "compile": {
       switch (task.target) {
         case "mvm": {
-          return `java -jar ${jarFile} compile \${file} -target mvm -debug -lib lib/`;
+          return `java -jar ${jarFile} compile \${file} -target mvm -debug -lib ${libDir}`;
         }
         case "javascript": {
-          return `java -jar ${jarFile} compile \${file} -target javascript -debug -lib lib/`;
+          return `java -jar ${jarFile} compile \${file} -target javascript -debug -lib ${libDir}`;
         }
         default: {
           return undefined;
@@ -134,7 +142,7 @@ function shellCommand(task: PacioliTask, jarFile: string): string | undefined {
       }
     }
     case "types": {
-      return `java -jar ${jarFile} types \${file} -debug -lib lib/`;
+      return `java -jar ${jarFile} types \${file} -debug -lib ${libDir}`;
     }
     default: {
       return undefined;
