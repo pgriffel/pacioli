@@ -1,0 +1,46 @@
+
+
+import geometry;
+
+
+# ------------------------------------------------------------------------------
+
+# defunit Geom3!si =
+#     {x:metre, y:metre, z:metre};
+
+# # @@@ centi:metre must be inch
+# defunit Geom3!imperial =
+#     {x:centi:metre, y:centi:metre, z:centi:metre};
+
+define velocity_vector = |metre / second| '.*' vector3d(1,2,3);
+
+define acceleration_vector = |metre / second^2| '.*' vector3d(2,3,4);
+
+# transform from si to imperial
+defmatrix si_to_imperial:: centi:metre/metre * Geom3! per Geom3! = {
+    x,x -> 39.37, #inches in a metre
+    y,y -> 39.37,
+    z,z -> 39.37  
+};
+
+"transform velocity";
+si_to_imperial '*' velocity_vector;
+
+
+define acceleration_imperial = si_to_imperial '*' acceleration_vector;
+
+# time interval
+define duration = 5 * |second|;
+
+define average_velocity_si = duration '.*' acceleration_vector;
+
+define average_velocity_imperial = duration '.*' acceleration_imperial;
+
+"acceleration_imperial";
+acceleration_imperial;
+
+"average_velocity_si";
+average_velocity_si;
+
+"average_velocity_imperial";
+average_velocity_imperial;
