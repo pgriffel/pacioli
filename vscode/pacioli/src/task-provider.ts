@@ -28,7 +28,7 @@ const PREDEFINED_TASKS: PacioliTask[] = [
   },
   {
     label: "Compile pacioli file to mvm",
-    command: "run",
+    command: "compile",
     target: "mvm",
   },
   {
@@ -48,42 +48,41 @@ export class PacioliTaskProvider implements TaskProvider {
   }
 
   public async provideTasks(): Promise<Task[]> {
-    this.out.appendLine(`provising tasks`);
     return predefinedTasks(this.jarFile());
   }
 
-  public resolveTask(_task: Task): Task | undefined {
-    this.out.appendLine(`resolving task ${JSON.stringify(_task)}`);
+  public resolveTask(task: Task): Task | undefined {
     const pacioliTask = {
-      command: _task.definition.command,
-      target: _task.definition.target,
+      command: task.definition.command,
+      target: task.definition.target,
     } as PacioliTask;
 
     const cmd = shellCommand(pacioliTask, this.jarFile());
 
     if (cmd === undefined) {
       window.showErrorMessage(
-        `Task definition '${_task.name}' is invalid.
+        `Task definition '${task.name}' is invalid.
          A pacioli task definition is of the form {type: 'pacioli', command: string, target?: string} with property command one of run', 'compile', 'types', 'symbols', 'api', and 'baseapi'. 
          Property target is required for the compile command. Its value is 'mvm' or 'javascript'.`
       );
       return undefined;
     }
 
-    const task = new Task(
-      _task.definition,
+    const resolved = new Task(
+      task.definition,
       TaskScope.Workspace,
-      _task.name,
+      task.name,
       "pacioli",
       new ShellExecution(cmd),
       []
     );
 
-    task.group = {
+    resolved.group = {
       id: TaskGroup.Build.id,
       isDefault: pacioliTask.command === "run",
     };
-    return task;
+
+    return resolved;
   }
 }
 
