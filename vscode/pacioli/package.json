@@ -75,27 +75,27 @@
         {
           "when": "resourceLangId == pacioli",
           "submenu": "pacioli.compile",
-          "group": "navigation"
+          "group": "z_commands"
         },
         {
           "when": "resourceLangId == pacioli",
           "command": "pacioli.types",
-          "group": "navigation"
+          "group": "z_commands"
         },
         {
           "when": "resourceLangId == pacioli",
           "command": "pacioli.run",
-          "group": "navigation"
+          "group": "z_commands"
         }
       ],
       "pacioli.compile": [
         {
           "command": "pacioli.compilejs",
-          "group": "navigation"
+          "group": "z_commands"
         },
         {
           "command": "pacioli.compilemvm",
-          "group": "navigation"
+          "group": "z_commands"
         }
       ]
     },
