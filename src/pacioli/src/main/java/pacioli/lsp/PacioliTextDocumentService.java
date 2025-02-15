@@ -1,6 +1,7 @@
 package pacioli.lsp;
 
 import java.io.File;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -165,6 +166,14 @@ public class PacioliTextDocumentService implements TextDocumentService {
         this.languageClient.refreshSemanticTokens();
     }
 
+    boolean isOtherFile(Location errorSrc, String vsCodeUri) {
+        try {
+            return !errorSrc.file().equals(new File(new URI(vsCodeUri)));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private void loadBundle(String uri) {
 
         var errors = new ArrayList<Diagnostic>();
@@ -173,19 +182,32 @@ public class PacioliTextDocumentService implements TextDocumentService {
             this.setUriState(this.buildState(uri));
             // var prog2 = Program.load(PacioliFile.get(text, 0).get());
         } catch (PacioliException e) {
+
             this.logInfo("%s", e.getMessage());
             for (var x : e.getStackTrace()) {
                 this.logInfo(x.toString());
             }
 
             Location src = e.location();
-            Range range = src == null
-                    ? new Range(new Position(0, 0), new Position(10000, 100))
-                    : new Range(new Position(src.fromLine, src.fromColumn),
-                            new Position(src.toLine, src.toColumn));
-            var d = new Diagnostic(range, e.getMessage());
 
-            errors.add(d);
+            if (!isOtherFile(src, uri)) {
+
+                Range range = src == null
+                        ? new Range(new Position(0, 0), new Position(10000, 100))
+                        : new Range(new Position(src.fromLine, src.fromColumn),
+                                new Position(src.toLine, src.toColumn));
+                var d = new Diagnostic(range, e.getMessage());
+
+                errors.add(d);
+            } else {
+
+                Range range = new Range(new Position(0, 0), new Position(10000, 0));
+                var d = new Diagnostic(range, String.format("Error in file %s:%n%n%s",
+                        src.file().toString(),
+                        e.getMessage()));
+
+                errors.add(d);
+            }
 
         } catch (Exception e) {
             this.logInfo("%s%s", e.getMessage(), e.getCause() == null ? "" : e.getCause().getMessage());
@@ -200,15 +222,26 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 src = pe.location();
                 message += ": " + pe.getMessage();
             }
-
             // todo: fix position. geen diagnostic voor dit geval?!
-            Range range = src == null
-                    ? new Range(new Position(0, 0), new Position(10000, 100))
-                    : new Range(new Position(src.fromLine, src.fromColumn),
-                            new Position(src.toLine, src.toColumn));
-            var d = new Diagnostic(range, message);
+            if (!isOtherFile(src, uri)) {
 
-            errors.add(d);
+                Range range = src == null
+                        ? new Range(new Position(0, 0), new Position(10000, 100))
+                        : new Range(new Position(src.fromLine, src.fromColumn),
+                                new Position(src.toLine, src.toColumn));
+                var d = new Diagnostic(range, message);
+
+                errors.add(d);
+            } else {
+
+                Range range = new Range(new Position(0, 0), new Position(10000, 100));
+                var d = new Diagnostic(range, String.format("Error in file %s:%n%n%s",
+                        src.file(),
+                        message));
+
+                errors.add(d);
+            }
+
         }
 
         // Without this call the file gets locked (on Windows)
