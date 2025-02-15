@@ -9,4 +9,8 @@ Initial release
 ### Added
 
 - Syntax highlighting
-- Diagnostics for syntax errors
+- Error diagnostics
+- Menus for compiling and running
+- Documentation on hover
+- Go to definition
+- Task definition for pacioli commands

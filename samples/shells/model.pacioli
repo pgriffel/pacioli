@@ -78,7 +78,7 @@ define initial_shell(coords, offset, displacement, roz, mu,
       landmarks = borders(coords),
       s = scale_curve(curve, roz),
       t = translate_curve(s, offset),
-      u = transform_curve(t, x_rotation(mu)),
+      u = transform_curve(t, euler_rotation(mu, 0*|radian|, 0*|radian|)),
       r = rotation(theta_x, theta_y, theta_z),
       gvm = growth_vector_map(u, displacement, growth_constant, r, landmarks)
   in
