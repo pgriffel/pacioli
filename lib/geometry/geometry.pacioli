@@ -376,7 +376,7 @@ define surface_volume(surface) =
 declare x_rotation :: (radian) -> Geom3! per Geom3!;
 declare y_rotation :: (radian) -> Geom3! per Geom3!;
 declare z_rotation :: (radian) -> Geom3! per Geom3!;
-declare rotation :: (radian, radian, radian) -> Geom3! per Geom3!;
+declare euler_rotation, rotation :: (radian, radian, radian) -> Geom3! per Geom3!;
 
 define x_rotation(angle) =
     matrix3d(1,          0,           0,
