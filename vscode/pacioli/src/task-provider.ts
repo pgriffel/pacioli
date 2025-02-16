@@ -8,6 +8,7 @@ import {
   TaskProvider,
   TaskScope,
   window,
+  workspace,
 } from "vscode";
 
 interface PacioliTask {
@@ -48,7 +49,10 @@ export class PacioliTaskProvider implements TaskProvider {
   }
 
   private libDir(): string {
-    return path.join(String(this.context.extensionPath), "lib");
+    const libdirConfig = workspace.getConfiguration("pacioli").get("libdir") as
+      | string
+      | null;
+    return libdirConfig ?? path.join(String(this.context.extensionPath), "lib");
   }
 
   public async provideTasks(): Promise<Task[]> {
