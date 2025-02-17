@@ -912,7 +912,9 @@ public class Matrix extends AbstractPacioliValue {
         Matrix matrix = new Matrix(shape);
         for (int i = 0; i < nrRows(); i++) {
             for (int j = 0; j < nrColumns(); j++) {
-                matrix.numbers.setEntry(i, j, numbers.getEntry(i, j) % other.numbers.getEntry(i, j));
+                var div = other.numbers.getEntry(i, j);
+                var val = numbers.getEntry(i, j);
+                matrix.numbers.setEntry(i, j, div == 0 ? val : val % div);
             }
         }
         return matrix;
@@ -923,8 +925,13 @@ public class Matrix extends AbstractPacioliValue {
         for (int i = 0; i < nrRows(); i++) {
             for (int j = 0; j < nrColumns(); j++) {
                 var div = other.numbers.getEntry(i, j);
-                var rem = numbers.getEntry(i, j) % div;
-                matrix.numbers.setEntry(i, j, rem < 0 ? rem + div : rem);
+                var val = numbers.getEntry(i, j);
+                if (div == 0) {
+                    matrix.numbers.setEntry(i, j, val);
+                } else {
+                    var rem = val % div;
+                    matrix.numbers.setEntry(i, j, rem < 0 ? rem + Math.abs(div) : rem);
+                }
             }
         }
         return matrix;
@@ -935,10 +942,12 @@ public class Matrix extends AbstractPacioliValue {
         for (int i = 0; i < nrRows(); i++) {
             for (int j = 0; j < nrColumns(); j++) {
                 var div = other.numbers.getEntry(i, j);
-                var rem = numbers.getEntry(i, j) % div;
-                var mod = rem < 0 ? rem + div : rem;
-                var neg = mod - div;
-                matrix.numbers.setEntry(i, j, Math.abs(neg) < Math.abs(mod) ? neg : mod);
+                var val = numbers.getEntry(i, j);
+                if (div == 0) {
+                    matrix.numbers.setEntry(i, j, val);
+                } else {
+                    matrix.numbers.setEntry(i, j, val - div * Math.round(val / div));
+                }
             }
         }
         return matrix;

@@ -694,19 +694,18 @@ doc mod
     
     Could be defined as
 
-    <code>mod(A, B) = A - B*floor(A/B)</code>";
+    <code>mod(A, B) = A - abs(B)*floor(A/abs(B))</code>";
 
 
 doc abs_min
     "Element-wise absolute minimum.
     
-    Of the following two values, the one with the smallest absolute value:
+    The difference with the mod and rem functions is that the value is always
+    between -B/2 and B/2.
 
-    <code>mod(a, b)</code>
-    
-    and
+    Could be defined as
 
-    <code>mod(a, b) - b</code>";
+    <code>abs_min(A, B) = A - B*round(A/B)</code>";
 
 declare mod, abs_min ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v;
@@ -814,7 +813,7 @@ doc ceiling
     "Element-wise ceiling.";
 
 doc truncate
-    "Truncates the fractional part of every matrix entry.
+    "Gives the integral part of every matrix entry. Rounds towards zero.
 
     Could be defined as
     
