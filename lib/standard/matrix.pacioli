@@ -213,14 +213,22 @@ define complement(A) = unit(A) - A;
 # ------------------------------------------------------------------------------
 
 doc positives
-    "Matrix with only the positive entries. The negative entries become zero.";
+    "Matrix with only the positive entries. The negative entries become zero.
+
+    A matrix A can be factored in a positive and negative part as follows:
+    
+    <code>A = positives(A) + negatives(A)</code>";
 
 define positives(A) = A * positive_support(A);
 
 # ------------------------------------------------------------------------------
 
 doc negatives
-    "Matrix with only the negative entries. The positive entries become zero.";
+    "Matrix with only the negative entries. The positive entries become zero.
+    
+    A matrix A can be factored in a positive and negative part as follows:
+    
+    <code>A = positives(A) + negatives(A)</code>";
 
 define negatives(A) = A * negative_support(A);
 

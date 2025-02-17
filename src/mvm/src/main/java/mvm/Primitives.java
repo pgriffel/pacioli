@@ -446,11 +446,27 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("matrix_rem") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                Matrix y = (Matrix) params.get(1);
+                return x.rem(y);
+            }
+        });
+
         storePrimitive(store, new Primitive("matrix_mod") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 Matrix y = (Matrix) params.get(1);
                 return x.mod(y);
+            }
+        });
+
+        storePrimitive(store, new Primitive("matrix_abs_min") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                Matrix y = (Matrix) params.get(1);
+                return x.absMin(y);
             }
         });
 
@@ -867,6 +883,20 @@ public class Primitives {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 return x.ceiling();
+            }
+        });
+
+        storePrimitive(store, new Primitive("matrix_truncate") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.truncate();
+            }
+        });
+
+        storePrimitive(store, new Primitive("matrix_round") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.round();
             }
         });
 
