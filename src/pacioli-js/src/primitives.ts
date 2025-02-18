@@ -980,6 +980,10 @@ export function $base_list_cons(item: any, list: any) {
   return $base_list_append($base_list_singleton_list(item), list);
 }
 
+export function $base_list_contains(list: PacioliValue[], item: PacioliValue) {
+  return list.some((val) => $base_base_equal(val, item));
+}
+
 export function $base_list_empty_list() {
   return tagKind([], "list");
 }

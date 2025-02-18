@@ -209,6 +209,7 @@ export {
   $base_matrix_scalar_unit,
   $base_base__while,
   $base_list_zip,
+  $base_list_contains,
   $base_string_unit2string,
   compute_$base_matrix__,
   ONE,
