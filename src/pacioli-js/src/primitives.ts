@@ -30,13 +30,11 @@ import {
   ccsmul,
   ccssub,
   cos,
-  div,
   exp,
   inv,
   log,
   max,
   min,
-  mod,
   pow,
   sin,
   tan,
@@ -133,6 +131,19 @@ export function $base_base_just(value: any) {
 
 export function $base_base_error(value: any) {
   throw Error(value);
+}
+
+export function $base_base_catch(code: any, _: any[]) {
+  if (false) {
+    // dev switch to debug exceptions in a catch block
+    return code();
+  } else {
+    try {
+      return code();
+    } catch (err) {
+      return undefined;
+    }
+  }
 }
 
 export function $base_base_nothing() {
@@ -325,6 +336,12 @@ export function $base_matrix_make_matrix(tuples: any[]) {
     set(numbers, tup[0].position, tup[1].position, getNumber(tup[2], 0, 0));
   }
   return numbers;
+}
+
+export function $base_matrix_signum(x: any) {
+  return unaryNumbers(x, function (val: number) {
+    return val < 0 ? -1 : val > 0 ? 1 : 0;
+  });
 }
 
 export function $base_matrix_support(x: any) {
@@ -611,21 +628,36 @@ export function $base_matrix_total(x: any) {
 }
 
 export function $base_matrix_mod(x: any, y: any) {
-  return tagNumbers(
-    mod(getFullNumbers(x), getFullNumbers(y)),
-    x.nrRows,
-    x.nrColumns,
-    0
-  );
+  return elementWiseNumbers(x, y, function (a: number, b: number) {
+    if (b === 0) {
+      return a;
+    } else {
+      const rem = a % b;
+      return rem < 0 ? rem + Math.abs(b) : rem;
+    }
+  });
+}
+
+export function $base_matrix_abs_min(x: any, y: any) {
+  return elementWiseNumbers(x, y, function (a: number, b: number) {
+    if (b === 0) {
+      return a;
+    } else {
+      return a - b * Math.round(a / b);
+    }
+  });
+}
+
+export function $base_matrix_rem(x: any, y: any) {
+  return elementWiseNumbers(x, y, function (a: number, b: number) {
+    return b === 0 ? a : a % b;
+  });
 }
 
 export function $base_matrix_div(x: any, y: any) {
-  return tagNumbers(
-    div(getFullNumbers(x), getFullNumbers(y)),
-    x.nrRows,
-    x.nrColumns,
-    0
-  );
+  return elementWiseNumbers(x, y, function (a: number, b: number) {
+    return b === 0 ? 0 : Math.trunc(a / b);
+  });
 }
 
 export function $base_matrix_max(x: any, y: any) {
@@ -688,6 +720,18 @@ export function $base_matrix_floor(x: any) {
 export function $base_matrix_ceiling(x: any) {
   return unaryNumbers(x, function (val: number) {
     return Math.ceil(val);
+  });
+}
+
+export function $base_matrix_truncate(x: any) {
+  return unaryNumbers(x, function (val: number) {
+    return Math.trunc(val);
+  });
+}
+
+export function $base_matrix_round(x: any) {
+  return unaryNumbers(x, function (val: number) {
+    return Math.round(val);
   });
 }
 
