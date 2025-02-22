@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Pacioli-js Tests</title>
+
+    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="surfaces.js"></script>
+
+</head>
+
+<body>
+    <div id="console"></div>
+
+    <h1>Parametrization examples</h1>
+
+    These examples show parametrically rendered two-dimensional surfaces.
+
+    <p>
+        A surface is described parametrically with a function from parameters (u, v) to a three-dimensional
+        position vector. The domains of u and v vary per parametrization.
+
+    <p>
+        Parameter n is the number of samples in each of the two directions. The computation complexity is therefore n
+        squared.
+
+        Parameter m is the density of the normal and other vectors. If m equals 1 then arrows are shown for every line
+        segment. If m equals 2 then are shown every other segment. For m equals 3 every third segment. And so on.
+        Reducing the number of arrows helps performance.
+
+        Parameter d is a scaling factor for the arrows. Increasing d increases the arrow sizes.
+
+    <h2>Ellipsoid</h2>
+    <p>
+        Parametrization of an ellipsoid surface.
+
+    <div class="example">
+        <pacioli-scene width="1200" height="800" id="ellipsoid_scene" script="surfaces" definition="ellipsoid_scene"
+            kind="scene" perspective axis>
+            <parameter label="x size" unit="metre">5</parameter>
+            <parameter label="y size" unit="metre">5</parameter>
+            <parameter label="z size" unit="metre">5</parameter>
+            <parameter label="n" unit="1">24</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">10</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="partial vecors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="ellipsoid_scene"></pacioli-inputs>
+        <pacioli-controls for="ellipsoid_scene"></pacioli-controls>
+    </div>
+
+
+
+    <h2>Torus</h2>
+    <p>
+        Parametrization of a torus surface.
+
+    <div class="example">
+        <pacioli-scene width="1200" height="800" id="torus_scene" script="surfaces" definition="torus_scene"
+            kind="scene" perspective grid axis>
+            <parameter label="major" unit="metre">4</parameter>
+            <parameter label="minor" unit="metre">3</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">10</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="torus_scene"></pacioli-inputs>
+        <pacioli-controls for="torus_scene"></pacioli-controls>
+
+    </div>
+
+
+    <h2>Cosine</h2>
+    <p>
+        Plot of a surface built from the cosine function
+
+    <div class="example">
+        <pacioli-scene width="1200" height="800" id="cosine_scene" script="surfaces" definition="cosine_scene"
+            kind="scene" perspective grid axis>
+            <parameter label="n" unit="1">50</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">50</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="cosine_scene"></pacioli-inputs>
+        <pacioli-controls for="cosine_scene"></pacioli-controls>
+
+    </div>
+
+
+    <h2>Moebius</h2>
+
+    The well-known Moebius strip.
+
+    <p>
+        The blue and purple paths are in a diagonal direction, yet they terminate at the starting point.
+
+    <p>
+        The orange line along the surface also terminates a its starting point, showing there is just
+        one edge.
+
+    <p>
+    <div class="example">
+        <pacioli-scene width="1200" height="800" id="moebius_scene" script="surfaces" definition="moebius_scene"
+            kind="scene" perspective grid axis>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">10</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="moebius_scene"></pacioli-inputs>
+        <pacioli-controls for="moebius_scene"></pacioli-controls>
+
+    </div>
+
+
+</body>
+
+
+</html>

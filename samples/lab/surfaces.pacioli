@@ -1,0 +1,363 @@
+import geometry;
+import graphics;
+
+define normal_color = make_color("green");
+define field_color = make_color("red");
+define path_color = make_color("red");
+define line_color = make_color("steelblue");
+
+# ------------------------------------------------------------------------------
+# The scenes
+# ------------------------------------------------------------------------------
+
+define ellipsoid_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    let
+        fun =
+            ellipsoid_parametrization(a, b, c),
+
+        options =
+            tuple(d, show_parts, show_sum, show_normals)
+    in
+        build_scene(fun, ellipsoid_range, n, m, show_surface, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
+define torus_scene(major, minor, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    let
+        fun =
+            torus_parametrization(major, minor),
+
+        options =
+            tuple(d, show_parts, show_sum, show_normals)
+    in
+        build_scene(fun, torus_range, n, m, show_surface, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
+define cosine_scene(n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    let 
+        c = 1 * |radian/metre|,
+
+        f(x, y) = 
+            let r = sqrt(x^2 + y^2) in
+                vector3d(y, x, cos(r * c) * |metre|)
+            end,
+
+        range = 
+            make_range(
+                -10 * |metre|, 10 * |metre|,
+                -10 * |metre|, 10 * |metre|),
+
+        options =
+            tuple(d, show_parts, show_sum, show_normals)
+    in
+        build_scene(f, range, n, m, show_surface, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
+define moebius_scene(n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    let 
+        moebius_fun = moebius_parametrization(),
+
+        f(u, v) =
+            moebius_fun(u,v) * vector3d(5, 5, 10),
+
+        path_options =
+            tuple(d, show_parts, show_sum, show_normals),
+
+        surface_options =
+            tuple(d, show_surface and show_parts, show_surface and show_sum, show_surface and show_normals),
+
+        u = range_ustart(moebius_range),
+        v = range_vstart(moebius_range),
+
+        du = range_width(moebius_range) / n,
+        dv = range_height(moebius_range) / n
+    in
+        begin
+            scene := build_scene(f, moebius_range, n, m, show_surface, surface_options);
+            scene := plot_path(f, u, v, du, 0*dv, n, m, path_options, make_color("orange"), scene);
+            scene := plot_path(f, u, v+n*dv, du, 0*dv, n, m, path_options, make_color("orange"), scene);
+            scene := plot_path(f, u, v, du, dv, n, m, path_options, make_color("purple"), scene);
+            scene := plot_path(f, u + n*du, v, -du, dv, n, m, path_options, make_color("blue"), scene);
+            return scene;
+        end
+    end;
+
+# ------------------------------------------------------------------------------
+# Ellopsoid parametrization
+# ------------------------------------------------------------------------------
+
+define ellipsoid_range = 
+    make_range(
+        0 * |radian|, 2 * pi * |radian|,
+        0 * |radian|, 1 * pi * |radian|);
+
+define ellipsoid_parametrization(a, b, c) =
+    (u, v) ->
+        vector3d(
+            a * cos(u) * sin(v),
+            b * sin(u) * sin(v),
+            c * cos(v));
+
+define sphere_parametrization(r) =
+    ellipsoid_parametrization(r, r, r);
+
+# ------------------------------------------------------------------------------
+# Torus parametrization
+# ------------------------------------------------------------------------------
+
+define torus_range = 
+    make_range(
+        0 * |radian|, 2 * pi * |radian|,
+        0 * |radian|, 2 * pi * |radian|);
+
+define torus_parametrization(major, minor) =
+    (u, v) ->
+        vector3d(
+            (major + minor * cos(u)) * cos(v),
+            (major + minor * cos(u)) * sin(v),
+            minor * sin(u));
+
+# ------------------------------------------------------------------------------
+# Moebius parametrization
+# ------------------------------------------------------------------------------
+
+define moebius_range = 
+    make_range(
+        -pi * |radian|, pi * |radian|,
+        -0.5 * |metre|, 0.5 * |metre|);
+
+define moebius_parametrization() =
+    (u, v) ->
+        let 
+            c = 1 * |metre|
+        in
+            vector3d(
+                cos(u) * (c + cos(u / 2) * v),
+                sin(u) * (c + cos(u / 2) * v),
+                sin(u / 2) * v)
+        end;
+
+# ------------------------------------------------------------------------------
+# Computing the scene
+# ------------------------------------------------------------------------------
+
+define build_scene(fun, range, n, m, show_surface, options) =
+    begin
+        scene := empty_scene("surface parametrization");
+
+        if show_surface then
+            scene := plot_surface_lines(fun, range, n, scene);
+        end
+
+        return plot_surface_arrows(fun, range, n, m, options, scene);
+    end;
+
+# ------------------------------------------------------------------------------
+# Paths
+# ------------------------------------------------------------------------------
+
+define plot_path(fun, u, v, du, dv, n, m, options, color, scene) =
+    begin
+        new_scene := add_arrows(path_lines(fun, u, v, du, dv, n, color), scene);
+        return add_arrows(path_arrows(fun, u, v, du, dv, n, m, options), new_scene);
+    end;
+
+define path_lines(fun, u, v, du, dv, n, color) =
+    [arrow |
+        sample := path(fun, u, v, du, dv, n),
+        (pos, du) <- zip(sample, tail(sample)),
+        arrow := with_arrow_color(color, make_arrow(pos, du - pos))];
+
+define path_arrows(fun, u, v, du, dv, n, m, options) =
+    [arrow |
+        (pos, vu, vv) <- path_deltas(fun, u, v, du, dv, n, m),
+        arrow <- field_arrows(pos, vu - pos, vv - pos, options)];
+
+define path_deltas(fun, u, v, du, dv, n, m) =
+    [tuple(fun(uu, vv), fun(uu + 0.01*unit(uu), vv), fun(uu, vv + 0.01*unit(vv))) |
+        i <- naturals(n + 1),
+        mod(i, m) = 0,
+        uu := u + du * i,
+        vv := v + dv * i];
+
+# ------------------------------------------------------------------------------
+# Computing the field
+# ------------------------------------------------------------------------------
+
+define plot_surface_arrows(fun, range, n, m, options, scene) =
+    add_arrows(compute_surface_arrows(fun, range, n, m, options), scene);
+
+define compute_surface_arrows(fun, range, n, m, options) =
+    [arrow |
+        (pos, vu, vv) <- compute_deltas(fun, range, n, m),
+        arrow <- field_arrows(pos, vu - pos, vv - pos, options)];
+
+define compute_deltas(fun, range, n, m) =
+    let
+        u_start = range_ustart(range),
+        v_start = range_vstart(range),
+        u_step = range_width(range) / n,
+        v_step = range_height(range) / n,
+        delta = 0.01
+    in
+        [tuple(pos, vu, vv) | 
+            indices := naturals(n),
+            i <- indices,
+            j <- indices,
+            mod(i, m) = 0 and mod(j, m) = 0,
+            u := u_start + u_step * i,
+            v := v_start + v_step * j,
+            pos := fun(u, v),
+            vu := fun(u + delta * unit(u), v),
+            vv := fun(u, v + delta * unit(v))]
+    end;
+
+# ------------------------------------------------------------------------------
+# Computing the surface
+# ------------------------------------------------------------------------------
+
+define plot_surface_lines(fun, range, n, scene) =
+    add_paths(compute_surface_lines(fun, range, n), scene);
+
+define compute_surface_lines(fun, range, n) =
+    [ with_path_color(make_path(lines), line_color) |
+        lines <- surface_lines(fun, range, n)];
+
+define surface_lines(fun, range, n) =
+    let
+        u = range_ustart(range),
+        v  = range_vstart(range),
+        du = range_width(range) / n,
+        dv = range_height(range) / n,
+        indices = naturals(n + 1)
+    in
+        append(
+            [path(fun, uu, v, 0 * du, dv, n) |
+                i <- indices,
+                uu := u + du * i],
+            [path(fun, u, vv, du, 0 * dv, n) |
+                i <- indices,
+                vv := v + dv * i])
+    end;
+
+define path(fun, u, v, du, dv, n) =
+    [fun(u, v) |
+        i <- naturals(n + 1),
+        u := u + du * i,
+        v := v + dv * i];
+
+# ------------------------------------------------------------------------------
+# Visualization
+# ------------------------------------------------------------------------------
+
+define field_arrows(pos, du, dv, options) =
+    let 
+        (scale_factor, show_parts, show_sum, show_normals) = options,
+        du = scale_factor '.*' du,
+        dv = scale_factor '.*' dv
+    in
+        begin
+            arrows := [];
+
+            if show_parts then
+                arrows := cons(with_arrow_color(field_color, make_arrow(pos, du)), arrows);
+                arrows := cons(with_arrow_color(field_color, make_arrow(pos, dv)), arrows);
+            end
+
+            if show_sum then
+                arrows := cons(with_arrow_color(field_color, make_arrow(pos, du + dv)), arrows);
+            end
+
+            if show_normals then
+                arrows := cons(with_arrow_color(normal_color, make_arrow(pos, cross_sqrt(dv, du))), arrows);
+            end
+
+            return arrows;
+        end
+    end;
+
+# ------------------------------------------------------------------------------
+# Ranges
+# ------------------------------------------------------------------------------
+
+declare make_range ::
+    for_unit a, b: (a, a, b, b) -> Tuple(Tuple(a, a), Tuple(b, b));
+
+declare range_width, range_ustart ::
+    for_unit a, b: (Tuple(Tuple(a, a), Tuple(b, b))) -> a;
+
+declare range_height, range_vstart ::
+    for_unit a, b: (Tuple(Tuple(a, a), Tuple(b, b))) -> b;
+
+declare scale_range ::
+    for_unit a, b, c, d:
+        (a, b, Tuple(Tuple(c, c), Tuple(d, d))) -> Tuple(Tuple(a*c, a*c), Tuple(b*d, b*d));
+
+define make_range(u_start, u_end, v_start, v_end) =
+    tuple(make_interval(u_start, u_end), make_interval(v_start, v_end));
+
+define range_width(range) = 
+    let (u_interval, _) = range in
+        interval_length(u_interval)
+    end;
+
+define range_height(range) = 
+    let (_, v_interval) = range in
+        interval_length(v_interval)
+    end;
+
+define range_ustart(range) = 
+    let (u_interval, _) = range in
+        interval_lower(u_interval)
+    end;
+
+define range_vstart(range) = 
+    let (_ , v_interval) = range in
+        interval_lower(v_interval)
+    end;
+
+define scale_range(left_factor, right_factor, range) =
+    let (left, right) = range in
+        tuple(scale_interval(left_factor, left), scale_interval(right_factor, right))
+    end;
+
+# ------------------------------------------------------------------------------
+# Intervals
+# ------------------------------------------------------------------------------
+
+declare make_interval ::
+    for_unit a: (a, a) -> Tuple(a, a);
+
+declare interval_length, interval_lower, interval_upper ::
+    for_unit a: (Tuple(a, a)) -> a;
+
+declare scale_interval ::
+    for_unit a, b: (a, Tuple(b, b)) -> Tuple(a*b, a*b);
+
+define make_interval(lower, upper) =
+    tuple(lower, upper);
+
+define interval_length(interval) =
+    let (lower, upper) = interval in
+        upper - lower
+    end;
+
+define interval_lower(interval) =
+    let (lower, _) = interval in
+        lower
+    end;
+
+define interval_upper(interval) =
+    let (_, upper) = interval in
+        upper
+    end;
+
+define scale_interval(factor, interval) =
+    let (lower, upper) = interval in
+        tuple(factor * lower, factor * upper)
+    end;
