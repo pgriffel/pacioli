@@ -63,7 +63,7 @@ define moebius_scene(n, m, d, show_surface, show_parts, show_sum, show_normals) 
         moebius_fun = moebius_parametrization(),
 
         f(u, v) =
-            moebius_fun(u,v) * vector3d(5, 5, 10),
+            moebius_fun(u,v) * vector3d(2, 2, 4),
 
         path_options =
             tuple(d, show_parts, show_sum, show_normals),
@@ -134,7 +134,7 @@ define moebius_range =
 define moebius_parametrization() =
     (u, v) ->
         let 
-            c = 1 * |metre|
+            c = 4 * |metre|
         in
             vector3d(
                 cos(u) * (c + cos(u / 2) * v),
