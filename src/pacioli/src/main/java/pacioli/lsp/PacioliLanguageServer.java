@@ -7,7 +7,6 @@ import java.util.concurrent.CompletableFuture;
 import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.DefinitionOptions;
 import org.eclipse.lsp4j.DiagnosticRegistrationOptions;
-import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.HoverOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
@@ -16,6 +15,7 @@ import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.SemanticTokensLegend;
 import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
 import org.eclipse.lsp4j.ServerCapabilities;
+import org.eclipse.lsp4j.SignatureHelpOptions;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageClientAware;
@@ -30,8 +30,6 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
     private LanguageClient languageClient;
 
     List<File> libs;
-
-    private int shutdown = 1;
 
     public PacioliLanguageServer(
             PacioliTextDocumentService textDocumentService,
@@ -78,7 +76,7 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
         this.logInfo("initializing PacioliLanguageServer");
 
         final InitializeResult response = new InitializeResult(new ServerCapabilities());
-        // Set the document synchronization capabilities to full.
+
         response.getCapabilities().setDefinitionProvider(new DefinitionOptions());
         response.getCapabilities().setTextDocumentSync(TextDocumentSyncKind.Full);
         response.getCapabilities().setCompletionProvider(new CompletionOptions());
@@ -88,27 +86,16 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
                 List.of("function", "variable", "parameter", "type"),
                 List.of("declaration", "definition"));
         response.getCapabilities().setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(legend, true));
-        // response.getCapabilities()
-        // .setExecuteCommandProvider(new ExecuteCommandOptions(List.of("pacioli.run",
-        // "compile")));
+        response.getCapabilities().setSignatureHelpProvider(new SignatureHelpOptions(List.of("(")));
 
+        // Todo: check capabilities
         var clientCapabilities = params.getCapabilities();
-
-        /*
-         * Check if dynamic registration of completion capability is allowed by the
-         * client. If so we don't register the capability.
-         * Else, we register the completion capability.
-         */
-        // if (!isDynamicCompletionRegistration()) {
-        // response.getCapabilities().setCompletionProvider(new CompletionOptions());
-        // }
 
         return CompletableFuture.supplyAsync(() -> response);
     }
 
     @Override
     public CompletableFuture<Object> shutdown() {
-        shutdown = 0;
         return CompletableFuture.supplyAsync(Object::new);
     }
 

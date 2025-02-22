@@ -765,7 +765,7 @@ stm_if_tail ::=
                                                        RESULT = new IfStatementNode(loc, e, s, t); :}
  | ELSE:l sequence:s END:e                          {: RESULT = s; :}
  | END:e                                            {: pacioli.compiler.Location loc = makeLoc(exleft, exright);
-                                                       RESULT = new ApplicationNode(new IdentifierNode("_skip", loc), new ArrayList<ExpressionNode>(), loc); :}
+                                                       RESULT = new ApplicationNode(new IdentifierNode("_skip", loc.collapse()), new ArrayList<ExpressionNode>(), loc); :}
  ;
 
 //------------------------------------------------------------------------------

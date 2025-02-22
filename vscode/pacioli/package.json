@@ -35,6 +35,19 @@
         "path": "./syntaxes/pacioli.tmLanguage.json"
       }
     ],
+    "configuration": {
+      "title": "Pacioli",
+      "properties": {
+        "pacioli.libdir": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "The directory containing the Pacioli libraries."
+        }
+      }
+    },
     "taskDefinitions": [
       {
         "type": "pacioli",

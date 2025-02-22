@@ -7,10 +7,12 @@ This extension offers editor support for the Pacioli language. Visit [Pacioli on
 ## Features
 
 - Syntax highlighting
+- Autocomplete
+- Signature help
 - Error diagnostics
+- Hover support
+- Jump to definition
 - Menus for compiling and running pacioli files
-- Documentation on hover
-- Go to definition
 - Task definition for pacioli commands
 
 ![Command menu](menu.png)
@@ -21,14 +23,9 @@ Java needs to be installed.
 
 ## Extension Settings
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
 This extension contributes the following settings:
 
-- `myExtension.enable`: Enable/disable this extension.
-- `myExtension.thing`: Set to `blah` to do something.
+- `pacioli.libdir`: directory containing the Pacioli libraries.
 
 ## Known Issues
 

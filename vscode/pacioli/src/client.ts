@@ -1,6 +1,6 @@
 import { existsSync } from "fs";
 import path from "path";
-import { ExtensionContext } from "vscode";
+import { ExtensionContext, workspace } from "vscode";
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -18,6 +18,15 @@ export class PacioliClient {
 
   setContext(context: ExtensionContext) {
     this.context = context;
+  }
+
+  private libDir(): string {
+    const libdirConfig = workspace.getConfiguration("pacioli").get("libdir") as
+      | string
+      | null;
+    return (
+      libdirConfig ?? path.join(String(this.context?.extensionPath), "lib")
+    );
   }
 
   init(): Promise<void> {
@@ -42,7 +51,7 @@ export class PacioliClient {
       String(this.context?.extensionPath),
       "pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar"
     );
-    const libDir = path.join(String(this.context?.extensionPath), "lib");
+    const libDir = this.libDir();
 
     let serverOptions: ServerOptions = {
       command: "java",

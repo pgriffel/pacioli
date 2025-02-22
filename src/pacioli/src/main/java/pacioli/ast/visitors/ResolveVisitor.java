@@ -137,6 +137,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(ValueDefinition node) {
+        node.id.accept(this);
         node.body.accept(this);
     }
 

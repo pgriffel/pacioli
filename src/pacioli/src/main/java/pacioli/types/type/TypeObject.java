@@ -159,7 +159,6 @@ public interface TypeObject extends Printable {
             TypeObject unified = unified(sub, sup);
             return alphaEqual(sub, unified);
         } catch (PacioliException ex) {
-            System.out.println(ex);
             return false;
         }
     }

@@ -70,7 +70,9 @@ export
     min,
     gcd,
     mod,
+    abs_min,
     div,
+    rem,
     sin,
     cos,
     tan,
@@ -84,7 +86,9 @@ export
     solve,
     mapnz,
     floor,
-    ceiling;
+    ceiling,
+    truncate,
+    round;
 
 defunit radian "rad" = 1;
 
@@ -686,19 +690,54 @@ declare gcd ::
 # ----------------------------------------------------------------------------
 
 doc mod
-    "Element-wise mod of two matrices.";
+    "Element-wise mod of two matrices.
+    
+    Could be defined as
 
-declare mod ::
+    <code>mod(A, B) = A - abs(B)*floor(A/abs(B))</code>";
+
+
+doc abs_min
+    "Element-wise absolute minimum.
+    
+    The difference with the mod and rem functions is that the value is always
+    between -B/2 and B/2.
+
+    Could be defined as
+
+    <code>abs_min(A, B) = A - B*round(A/B)</code>";
+
+declare mod, abs_min ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
 
 doc div
-    "Element-wise division of two matrices, but with result zero for division by zero. Except
-    for the zero case it is the same as function <a href=\"#divide\"><code>divide</code></a>.";
+    "Element-wise integer division of two matrices.
+    
+    For any a and b the following holds:
+
+    <code>a = div(a, b) * b + rem(a, b) </code>";
     
 declare div ::
-  for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b/Q!v/Q!y;
+  for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y;
+
+# ----------------------------------------------------------------------------
+
+doc rem
+    "Element-wise integer division remainder of two matrices.
+    
+    Could be defined as
+
+    <code>rem(A, B) = A - B*truncate(A/B)</code>
+    
+    For any a and b the following holds:
+
+    <code>a = div(a, b) * b + rem(a, b) </code>";
+
+declare rem ::
+    for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q:
+        (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
 
@@ -773,7 +812,21 @@ doc floor
 doc ceiling
     "Element-wise ceiling.";
 
-declare floor, ceiling ::
+doc truncate
+    "Gives the integral part of every matrix entry. Rounds towards zero.
+
+    Could be defined as
+    
+    <code>ceiling(negatives(A)) + floor(positives(A))</code>";
+    
+doc round
+    "Rounds every matrix entry to the nearest integer. Halves are rounded up.
+    
+    Could be defined as
+    
+    <code>round(A) = floor(A + 0.5 '.*' unit(A))</code>";
+
+declare floor, ceiling, truncate, round ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------

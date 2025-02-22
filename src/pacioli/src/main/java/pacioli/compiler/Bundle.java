@@ -490,12 +490,8 @@ public class Bundle {
     // API for lsp
     // -------------------------------------------------------------------------
 
-    public List<String> allNames() {
-        List<String> names = new ArrayList<>();
-        for (Info info : environment.values().allInfos()) {
-            names.add(info.name());
-        }
-        return names;
+    public List<ValueInfo> allValueInfos() {
+        return environment.values().allInfos();
     }
 
     public List<IdentifierInfo> allIdentifiers() {
@@ -517,6 +513,18 @@ public class Bundle {
             all.addAll(toplevel.body.allIdentifiers());
         }
         return all;
+    }
+
+    public ValueInfo lookupValue(String name) {
+        for (Info info : environment.values().allInfos()) {
+            if (info instanceof ValueInfo vi && info.name().equals(name)) {
+                return vi;
+            }
+        }
+
+        // why does this not work? Does the name differ from info.name()?
+        ValueInfo info = environment.values().lookup(name);
+        return info;
     }
 
     // -------------------------------------------------------------------------

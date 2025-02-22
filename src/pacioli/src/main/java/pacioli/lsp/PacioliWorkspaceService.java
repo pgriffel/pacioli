@@ -11,7 +11,7 @@ import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
-import pacioli.lsp.PacioliTextDocumentService.UriState;
+import pacioli.lsp.PacioliTextDocumentService.DocumentState;
 
 public class PacioliWorkspaceService implements WorkspaceService {
 
