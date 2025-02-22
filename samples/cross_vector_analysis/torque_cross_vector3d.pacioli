@@ -133,7 +133,7 @@ define force_field_alternating(time, pos) =
     end;
 
 define force_field_constant(time, pos) =
-    if inner(pos, d_x) < 0 * |metre| then
+    if get(pos, Geom3@x, _) < 0 * |metre| then
         force_vector(1, 0, 0)
     else 
         force_vector(0, 0, 0)
