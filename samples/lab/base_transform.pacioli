@@ -12,9 +12,9 @@ import geometry;
 # defunit Geom3!imperial =
 #     {x:centi:metre, y:centi:metre, z:centi:metre};
 
-define velocity_vector = |metre / second| '.*' vector3d(1,2,3);
+define velocity_si = |metre / second| '.*' vector3d(1,2,3);
 
-define acceleration_vector = |metre / second^2| '.*' vector3d(2,3,4);
+define acceleration_si = |metre / second^2| '.*' vector3d(2,3,4);
 
 # transform from si to imperial
 defmatrix si_to_imperial:: centi:metre/metre * Geom3! per Geom3! = {
@@ -24,23 +24,136 @@ defmatrix si_to_imperial:: centi:metre/metre * Geom3! per Geom3! = {
 };
 
 "transform velocity";
-si_to_imperial '*' velocity_vector;
+define velocity_imperial = si_to_imperial '*' velocity_si;
 
 
-define acceleration_imperial = si_to_imperial '*' acceleration_vector;
+define acceleration_imperial = si_to_imperial '*' acceleration_si;
 
 # time interval
 define duration = 5 * |second|;
 
-define average_velocity_si = duration '.*' acceleration_vector;
+declare delta_velocity :: for_unit a, b, Geom3!c: (a, b*Geom3!c) -> a*b*Geom3!c;
 
-define average_velocity_imperial = duration '.*' acceleration_imperial;
+define delta_velocity(duration, constant_acceleration) = duration '.*' constant_acceleration;
+
+define delta_velocity_si = delta_velocity(duration, acceleration_si);
+
+# Commuting calcultions of the delta_velocity for the imperial units
+define delta_velocity_imperial = delta_velocity(duration, si_to_imperial '*' acceleration_si);
+define delta_velocity_imperial2 = si_to_imperial '*' delta_velocity(duration, acceleration_si);
+
+"velocity_si";
+velocity_si;
+
+"velocity_imperial";
+velocity_imperial;
+
+"acceleration_si";
+acceleration_si;
 
 "acceleration_imperial";
 acceleration_imperial;
 
-"average_velocity_si";
-average_velocity_si;
+"delta_velocity_si";
+delta_velocity_si;
 
-"average_velocity_imperial";
-average_velocity_imperial;
+"delta_velocity_imperial";
+delta_velocity_imperial;
+
+"delta_velocity_imperial2";
+delta_velocity_imperial2;
+
+"delta_velocity_imperial = delta_velocity_imperial2";
+delta_velocity_imperial = delta_velocity_imperial2;
+
+
+######
+
+# 
+# The type inference on the defined function gives:
+# delta_ang_velocity :: for_unit a, b, c: (a, b*Geom3!, c*Geom3!, b*c*second*Geom3!) ->
+#       b*second/a*Geom3!
+#
+# This is too generic for our purpose, since we know the dimensional formulae of force, position,
+# and the resulting velocity; these dimensional formulae require length, time, mass.
+# For the angular momentum we find that it has length squared in the formula.
+# 
+# We have rewritten the type inference as follows:
+# 1) a -> gram (since the first parameter is mass)
+# 2) b -> gram * b  (since force is mass * acceleration)
+# 3) b -> b * second^2 (since acceleration is length /duration^2)
+#           b now represents length / distance
+# 4) c -> b (since b and are now both length)
+#
+declare delta_ang_velocity :: 
+    for_unit b: (gram, gram*b/second^2*Geom3!, b*Geom3!, b^2/second*gram*Geom3!) -> b/second*Geom3!;
+
+define delta_ang_velocity(mass, force, position, angular_momentum) =
+    let
+        dt = duration,
+        radius = norm(position),
+        moment_of_inertia = radius * radius * mass,
+        # force = force_field(time, position),
+        torque = cross(position, force),
+        new_angular_momentum = angular_momentum + dt '.*' torque,
+        orbital_velocity = angular_momentum '/.' moment_of_inertia,
+        tangential_velocity = cross(orbital_velocity, position)
+        # new_pos = position + tangential_velocity '*.' dt,
+        # correction = radius / norm(new_pos),
+        # true_pos = new_pos '*.' correction,
+    in
+        tangential_velocity
+    end;
+
+define mass_si = 50 * |gram|;
+define force_si = 20 * |gram*metre/second^2| '.*' vector3d(1,2,3);
+define position_si = |metre| '.*' vector3d(4,5,6);
+define ang_momentum_si = 6 * |metre^2/second*gram| '.*' vector3d(7,8,9);
+
+define delta_ang_velocity_si = 
+    delta_ang_velocity(mass_si, force_si, position_si, ang_momentum_si);
+
+define delta_ang_velocity_imperial = 
+     delta_ang_velocity(mass_si,
+        si_to_imperial '*' force_si,
+        si_to_imperial '*' position_si,
+        si_to_imperial '*' si_to_imperial '*' ang_momentum_si);
+
+# 
+# We need to apply si_to_imperial twice to the ang_momentum_si in order to change both length factors
+# of ang_momentum_si to imperial units.
+# If we only apply once (as we need to do for the other arguments force and position) then we run
+# into the following type inference error:
+#
+# Type error: 
+# During inference file /home/ott/pacioli-git/pacioli/samples/lab/base_transform.pacioli at line 117
+# >      delta_ang_velocity(mass_si,
+# the inferred type must match known types:
+# (gram, centi:metre*gram/second^2*Geom3!, centi:metre*Geom3!, centi:metre*gram*metre/second*Geom3!) -> a
+#  =
+# (gram, a*gram/second^2*Geom3!, a*Geom3!, a^2*gram/second*Geom3!) -> a/second*Geom3! 
+#
+# The inferred resulting type a is a scalar. @@@ Explanation of this phenomenenon can be found
+# on p69 in [Griffioen]. @@@ Tbd.
+#
+
+"si_to_imperial '*' ang_momentum_si;";
+# We need to apply si_to_imprial twice in order to change both length factors of ang_momentum_si
+# to imperial units.
+define foo      = si_to_imperial '*' ang_momentum_si;
+define foofoo   = si_to_imperial '*' si_to_imperial '*' ang_momentum_si;
+
+
+#define delta_ang_velocity_imperial2 = 
+
+
+# declare delta_angular_velocity :: for_unit a, b, Geom3!c: (a, b*Geom3!c) -> a*b*Geom3!c;
+
+# define delta_angular_velocity(duration, constant_angular_acceleration) = duration '.*' constant_angular_acceleration;
+
+# define delta_velocity_si = delta_velocity(duration, acceleration_angular_si);
+
+# # Commuting calcultions of the delta_velocity for the imperial units
+# define delta_velocity_imperial = delta_velocity(duration, si_to_imperial '*' acceleration_angular_si);
+# define delta_velocity_imperial2 = si_to_imperial '*' delta_velocity(duration, acceleration_angular_si);
+
