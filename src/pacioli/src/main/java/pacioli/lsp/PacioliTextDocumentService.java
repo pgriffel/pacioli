@@ -1,17 +1,22 @@
 package pacioli.lsp;
 
+import java.io.BufferedReader;
 import java.io.File;
-
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.eclipse.lsp4j.CompletionItem;
+import org.eclipse.lsp4j.CompletionItemLabelDetails;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.DefinitionParams;
@@ -25,7 +30,6 @@ import org.eclipse.lsp4j.DocumentDiagnosticReport;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.LocationLink;
-import org.eclipse.lsp4j.MarkedString;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 import org.eclipse.lsp4j.MessageParams;
@@ -36,6 +40,9 @@ import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.RelatedUnchangedDocumentDiagnosticReport;
 import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SemanticTokensParams;
+import org.eclipse.lsp4j.SignatureHelp;
+import org.eclipse.lsp4j.SignatureHelpParams;
+import org.eclipse.lsp4j.SignatureInformation;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
@@ -54,32 +61,59 @@ import pacioli.types.ast.TypeIdentifierNode;
 
 public class PacioliTextDocumentService implements TextDocumentService {
 
-    class UriState {
+    /**
+     * For how many documents is a DocumentState kept in memory?
+     */
+    int CACHE_SIZE = 5;
+
+    /**
+     * Data stored per open pacioli document
+     */
+    class DocumentState {
         public final String uri;
+        public final Bundle bundle;
         public final Map<Integer, List<IdentifierInfo>> identifierIndex;
         public final List<IdentifierInfo> semanticTokenList;
+        public final List<CompletionItem> autoCompleteList;
 
-        public final List<String> autoCompleteList;
-
-        public UriState(
+        public DocumentState(
                 String uri,
+                Bundle bundle,
                 Map<Integer, List<IdentifierInfo>> identifierIndex,
                 List<IdentifierInfo> semanticTokenList,
-                List<String> autoCompleteList) {
+                List<CompletionItem> autoCompleteList) {
             this.uri = uri;
+            this.bundle = bundle;
             this.identifierIndex = identifierIndex;
             this.semanticTokenList = semanticTokenList;
             this.autoCompleteList = autoCompleteList;
         }
     }
 
-    int cacheSize = 5;
-
+    /**
+     * Link to the language client
+     */
     private LanguageClient languageClient;
 
+    /**
+     * The library directories for the pacioli compiler. Is an extension setting.
+     */
     List<File> libs;
 
-    private List<UriState> state = new ArrayList<>();
+    /**
+     * Contains the state for the open documents. Contains at most CACHE_SIZE items.
+     */
+    private List<DocumentState> state = new ArrayList<>();
+
+    /**
+     * The latest text that was received by the didChange event. Currently not used
+     * by the compiler. It is stored for the signature helper. That event refers to
+     * unsaved text, so to find the identifier at the cursor we store this text.
+     * 
+     * Is not stored per document. Only the currently edited is needed. Since
+     * didChange is sent before the signature helper event this works okey.
+     */
+    private String latestText;
 
     /**
      * Connects the PacioliTextDocumentService, the PacioliWorkspaceService and the
@@ -95,8 +129,8 @@ public class PacioliTextDocumentService implements TextDocumentService {
         this.libs = libs;
     }
 
-    private UriState getUriState(String uri) {
-        for (UriState uriState : this.state) {
+    private DocumentState getUriState(String uri) {
+        for (DocumentState uriState : this.state) {
             if (uriState.uri.equals(uri)) {
                 return uriState;
             }
@@ -104,21 +138,21 @@ public class PacioliTextDocumentService implements TextDocumentService {
         return null;
     }
 
-    private void setUriState(UriState state) {
+    private void setUriState(DocumentState state) {
         for (int i = 0; i < this.state.size(); i++) {
-            UriState uriState = this.state.get(i);
+            DocumentState uriState = this.state.get(i);
             if (uriState.uri.equals(state.uri)) {
                 this.state.set(i, state);
                 return;
             }
         }
         this.state.add(state);
-        if (this.state.size() > cacheSize) {
+        if (this.state.size() > CACHE_SIZE) {
             this.state.remove(0);
         }
     }
 
-    private UriState ensureState(String uri) throws Exception {
+    private DocumentState ensureState(String uri) throws Exception {
         var state = this.getUriState(uri);
         if (state == null) {
             var newState = this.buildState(uri);
@@ -128,7 +162,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
         return state;
     }
 
-    private UriState buildState(String uri) throws Exception {
+    private DocumentState buildState(String uri) throws Exception {
         var path = new URI(uri).getPath();
         var prog = Project.load(PacioliFile.get(path, 0).get(), this.libs);
         var bundle = prog.loadBundle();
@@ -136,32 +170,28 @@ public class PacioliTextDocumentService implements TextDocumentService {
         var identifierIndex = this.buildIdentifierIndex(bundle);
         var semanticTokenList = this.buildIdentifierInfoList(bundle, identifierIndex);
         var autoCompleteList = this.buildAutoCompleteList(bundle);
-        return new UriState(uri, identifierIndex, semanticTokenList, autoCompleteList);
+        return new DocumentState(uri, bundle, identifierIndex, semanticTokenList, autoCompleteList);
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-        // var uri = params.getTextDocument().getUri();
-        // this.logInfo("Operation 'text/didChange' with uri '%s'", uri);
+        // Store the latest text for the signature help.
+        this.latestText = params.getContentChanges().get(0).getText();
     }
 
     @Override
     public void didClose(DidCloseTextDocumentParams params) {
-        // this.logInfo("Operation 'text/didClose' with uri '%s'",
-        // params.getTextDocument().getUri());
     }
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
-        // this.logInfo("Operation 'text/didOpen' with uri '%s'",
-        // params.getTextDocument().getUri());
+        // No need for error handling here. Is done in loadBundle.
         this.loadBundle(params.getTextDocument().getUri());
     }
 
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
-        // this.logInfo("Operation 'text/didSave' with uri '%s'",
-        // params.getTextDocument().getUri());
+        // No need for error handling here. Is done in loadBundle.
         this.loadBundle(params.getTextDocument().getUri());
         this.languageClient.refreshSemanticTokens();
     }
@@ -256,12 +286,10 @@ public class PacioliTextDocumentService implements TextDocumentService {
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams position) {
         return CompletableFuture.supplyAsync(() -> {
             List<CompletionItem> completionItems = new ArrayList<>();
-            UriState state;
+            DocumentState state;
             try {
                 state = this.ensureState(position.getTextDocument().getUri());
-                for (String name : state.autoCompleteList) {
-                    CompletionItem item1 = new CompletionItem();
-                    item1.setLabel(name);
+                for (CompletionItem item1 : state.autoCompleteList) {
                     completionItems.add(item1);
                 }
             } catch (Exception e) {
@@ -277,7 +305,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
             DefinitionParams params) {
 
         var pos = params.getPosition();
-        UriState state;
+        DocumentState state;
         try {
             state = this.ensureState(params.getTextDocument().getUri());
         } catch (Exception e) {
@@ -296,6 +324,69 @@ public class PacioliTextDocumentService implements TextDocumentService {
         return CompletableFuture.supplyAsync(() -> Either.forLeft(info));
     }
 
+    @Override
+    public CompletableFuture<SignatureHelp> signatureHelp(SignatureHelpParams params) {
+        return CompletableFuture.supplyAsync(() -> {
+
+            var lineNr = params.getPosition().getLine();
+            var columnNr = params.getPosition().getCharacter();
+
+            BufferedReader br = new BufferedReader(new StringReader(this.latestText));
+
+            try {
+                String line = br.readLine();
+                int counter = 0;
+                while (counter != lineNr && line != null) {
+                    line = br.readLine();
+                    counter++;
+                }
+                if (line != null) {
+
+                    var sub = line.substring(0, columnNr); // includes the ( that triggered this
+
+                    Pattern p = Pattern.compile("([a-zA-Z][a-zA-Z0-9_]*)\\($");
+                    Matcher m = p.matcher(sub);
+
+                    if (m.find()) {
+                        var id = m.group(1);
+
+                        var state = this.ensureState(params.getTextDocument().getUri());
+                        var info = state.bundle.lookupValue(id);
+
+                        if (info != null) {
+
+                            var modulePath = infoModulePath(info);
+                            var type = infoType(info);
+
+                            var content = new MarkupContent(MarkupKind.MARKDOWN,
+                                    String.format("`%s :: %s`%n%n%s  %nsource: %s",
+                                            info.name(),
+                                            type,
+                                            hoverDoc(info.getDocuParts()),
+                                            modulePath));
+
+                            var infos = List.of(new SignatureInformation(id, content, List.of()));
+
+                            System.gc();
+                            return new SignatureHelp(infos, 0, 0);
+                        }
+                    }
+
+                }
+            } catch (IOException e) {
+                this.logInfo("Error during signature help: %s", e.getMessage());
+            } catch (URISyntaxException e) {
+                this.logInfo("Error during signature help: %s", e.getMessage());
+            } catch (Exception e) {
+                this.logInfo("Error during signature help: %s", e.getMessage());
+            }
+
+            System.gc();
+
+            return new SignatureHelp();
+        });
+    }
+
     private void logInfo(String string, Object... args) {
         this.languageClient.logMessage(new MessageParams(MessageType.Info, String.format(string, args)));
     }
@@ -312,10 +403,25 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 .replaceAll("</code>", String.format("` "));
     }
 
+    String infoModulePath(Info vi) {
+        var modulePath = vi.generalInfo().file().modulePath();
+        modulePath = modulePath.isEmpty()
+                ? vi.generalInfo().file().moduleName()
+                : modulePath.substring(1);
+        return modulePath;
+    }
+
+    String infoType(ValueInfo vi) {
+        var type = vi.declaredType()
+                .map(x -> x.pretty())
+                .orElse(vi.inferredType().map(x -> x.pretty()).orElse(""));
+        return type;
+    }
+
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
         var pos = params.getPosition();
-        UriState state;
+        DocumentState state;
         try {
             state = this.ensureState(params.getTextDocument().getUri());
         } catch (Exception e) {
@@ -324,14 +430,8 @@ public class PacioliTextDocumentService implements TextDocumentService {
         var info = this.locateInfo(state.identifierIndex, pos.getLine(), pos.getCharacter())
                 .map(inf -> {
                     if (inf instanceof ValueInfo vi && inf.isGlobal()) {
-                        var type = vi.declaredType()
-                                .map(x -> x.pretty())
-                                .orElse(vi.inferredType().map(x -> x.pretty()).orElse(""));
-
-                        var modulePath = vi.generalInfo().file().modulePath();
-                        modulePath = modulePath.isEmpty()
-                                ? vi.generalInfo().file().moduleName()
-                                : modulePath.substring(1);
+                        var type = infoType(vi);
+                        var modulePath = infoModulePath(vi);
                         var content = new MarkupContent(MarkupKind.MARKDOWN,
                                 String.format("`%s :: %s`%n%n%s  %nsource: %s",
                                         inf.name(),
@@ -362,7 +462,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
         return CompletableFuture.supplyAsync(() -> {
-            UriState state;
+            DocumentState state;
             try {
                 state = this.ensureState(params.getTextDocument().getUri());
                 if (state.semanticTokenList != null) {
@@ -452,15 +552,53 @@ public class PacioliTextDocumentService implements TextDocumentService {
         return infos;
     }
 
-    List<String> buildAutoCompleteList(Bundle bundle) throws Exception {
-        Set<String> infos = new HashSet<>();
-        for (String name : bundle.allNames()) {
-            infos.add(name);
+    List<CompletionItem> buildAutoCompleteList(Bundle bundle) throws Exception {
+        Map<String, CompletionItem> completionItems = new HashMap<>();
+
+        // Add all identifiers in the document first. The local identifiers have
+        // no info. For global identifiers that have an info the map entry will
+        // be overwritten below.
+        for (IdentifierInfo idInfo : bundle.allIdentifiers()) {
+
+            CompletionItem item1 = new CompletionItem();
+            item1.setLabel(idInfo.name());
+            completionItems.put(idInfo.name(), item1);
         }
-        for (IdentifierInfo info : bundle.allIdentifiers()) {
-            infos.add(info.name());
+
+        for (ValueInfo info : bundle.allValueInfos()) {
+
+            CompletionItem item1 = new CompletionItem();
+            item1.setLabel(info.name());
+
+            var details = new CompletionItemLabelDetails();
+
+            details.setDescription(infoModulePath(info));
+            details.setDetail(": " + infoType(info));
+
+            item1.setLabelDetails(details);
+
+            completionItems.put(info.name(), item1);
         }
-        return new ArrayList<>(infos);
+
+        // At (at least) the keywords that typically appear at the end of a line. It is
+        // annoying when an editor suggests something else and that gets chosen when
+        // enter is pressed.
+        var keywords = List.of("let", "in", "end", "then", "do");
+
+        for (String keyword : keywords) {
+            CompletionItem item1 = new CompletionItem();
+            item1.setLabel(keyword);
+
+            var details = new CompletionItemLabelDetails();
+
+            details.setDescription("keyword");
+            details.setDetail("");
+
+            item1.setLabelDetails(details);
+
+            completionItems.put(keyword, item1);
+        }
+        return new ArrayList<>(completionItems.values());
     }
 
     SemanticTokens buildSemanticTokens(List<IdentifierInfo> semanticTokenList) throws Exception {
