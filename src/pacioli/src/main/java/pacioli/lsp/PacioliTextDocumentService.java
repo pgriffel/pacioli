@@ -560,24 +560,32 @@ public class PacioliTextDocumentService implements TextDocumentService {
         // be overwritten below.
         for (IdentifierInfo idInfo : bundle.allIdentifiers()) {
 
-            CompletionItem item1 = new CompletionItem();
-            item1.setLabel(idInfo.name());
-            completionItems.put(idInfo.name(), item1);
+            var name = idInfo.name();
+
+            if (!name.startsWith("_")) {
+                CompletionItem item1 = new CompletionItem();
+                item1.setLabel(name);
+                completionItems.put(idInfo.name(), item1);
+            }
         }
 
         for (ValueInfo info : bundle.allValueInfos()) {
 
-            CompletionItem item1 = new CompletionItem();
-            item1.setLabel(info.name());
+            var name = info.name();
 
-            var details = new CompletionItemLabelDetails();
+            if (!name.startsWith("_")) {
+                CompletionItem item1 = new CompletionItem();
+                item1.setLabel(info.name());
 
-            details.setDescription(infoModulePath(info));
-            details.setDetail(": " + infoType(info));
+                var details = new CompletionItemLabelDetails();
 
-            item1.setLabelDetails(details);
+                details.setDescription(infoModulePath(info));
+                details.setDetail(": " + infoType(info));
 
-            completionItems.put(info.name(), item1);
+                item1.setLabelDetails(details);
+
+                completionItems.put(info.name(), item1);
+            }
         }
 
         // At (at least) the keywords that typically appear at the end of a line. It is
