@@ -293,9 +293,9 @@ public class PacioliTextDocumentService implements TextDocumentService {
                     completionItems.add(item1);
                 }
             } catch (Exception e) {
+                System.gc();
                 this.logInfo("Could not compute completions " + e.getMessage());
             }
-
             return Either.forLeft(completionItems);
         });
     }
@@ -309,6 +309,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
         try {
             state = this.ensureState(params.getTextDocument().getUri());
         } catch (Exception e) {
+            System.gc();
             return CompletableFuture.supplyAsync(() -> Either.forLeft(List.of()));
         }
         var info = this.locateInfo(state.identifierIndex, pos.getLine(), pos.getCharacter())
@@ -425,6 +426,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
         try {
             state = this.ensureState(params.getTextDocument().getUri());
         } catch (Exception e) {
+            System.gc();
             return CompletableFuture.supplyAsync(() -> new Hover(Either.forLeft("")));
         }
         var info = this.locateInfo(state.identifierIndex, pos.getLine(), pos.getCharacter())
@@ -469,6 +471,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
                     return this.buildSemanticTokens(state.semanticTokenList);
                 }
             } catch (Exception e) {
+                System.gc();
                 logInfo("token exception" + e.getMessage());
             }
             return new SemanticTokens();
