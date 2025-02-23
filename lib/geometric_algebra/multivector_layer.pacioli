@@ -392,7 +392,7 @@ define multivector2string(mv) =
     if mv = [] then
         num2str(0, |1|)
     else
-        let unit = format("%s", unit_factor(term_weight(nth(0, mv)))) in
+        let unit = format("%s", scalar_unit(term_weight(nth(0, mv)))) in
             format("%s %s", join_strings([term2string(term) | term <- mv], " + "), if unit = "1" then "" else unit end)
         end
         #intercalate([concatenate(let w = term_weight(term) in if w = 1 then "" else if w = -1 then "-" else num2str(w, |1|) end end, let t = term_base_blade(term) in if t = e0 then "" else base_blade_name(t) end end) | term <- mv], " + ")

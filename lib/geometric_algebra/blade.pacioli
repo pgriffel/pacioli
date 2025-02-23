@@ -54,7 +54,7 @@ declare context_unit :: for_index I: for_unit a: (Context(a, I!)) -> a;
 
 # we take the e1 entry from the list of blades, then the 0th element from that list to obtain the e1 vector. 
 define context_unit(context) = 
-    unit_factor(nth(0, context_blade_vectors(context, 1)));     
+    scalar_unit(nth(0, context_blade_vectors(context, 1)));     
 
 # ----------------------------------------------------------------------------
 

@@ -112,7 +112,7 @@ define parse_base_blade(input, unit) =
 declare vec2mv :: for_unit a: (a * Geom3!) -> MultiVector(a, Geom3!);
 
 define vec2mv(vec) =
-    let u = unit_factor(vec) in
+    let u = scalar_unit(vec) in
         let mag = magnitude(vec) in
             make_multivector([
                 scale_term(u,make_term(get(mag, Geom3@x, _), e1)),

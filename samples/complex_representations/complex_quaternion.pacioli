@@ -36,7 +36,7 @@
 # The rotor needs to be a dimensionless complex number, in order to make the result have the 
 # same unit type as the rotee.
 #  
-Just as quaternions complex numbers can be seen both as numbers and as rotating operators.
+# Just as quaternions complex numbers can be seen both as numbers and as rotating operators.
 # We call the acting rotating operator the rotor; the rotor acts upon the 'rotee'. Both can be
 # represented as either a quaternion or a complex number.
 # A rotation is the product of a rotor and a rotee, however for complex numbers this is a commutative operation,
