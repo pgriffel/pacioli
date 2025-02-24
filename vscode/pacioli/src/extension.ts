@@ -56,14 +56,9 @@ export function activate(context: ExtensionContext) {
   pacioliClient.setContext(context);
 
   //Initialize the LS Client extension instance.
-  pacioliClient
-    .init()
-    .then(() => {
-      window.showInformationMessage("Pacioli extension activated");
-    })
-    .catch((error) => {
-      window.showErrorMessage(`Failed to activate pacioli extension: ${error}`);
-    });
+  pacioliClient.init().catch((error) => {
+    window.showErrorMessage(`Failed to activate pacioli extension: ${error}`);
+  });
 }
 
 // This method is called when your extension is deactivated
