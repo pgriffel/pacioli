@@ -48,6 +48,7 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Bundle;
 import pacioli.compiler.Location;
@@ -357,16 +358,26 @@ public class PacioliTextDocumentService implements TextDocumentService {
                         if (info != null) {
 
                             var modulePath = infoModulePath(info);
-                            var type = infoType(info);
+
+                            String sig = info.name();
+                            if (info.isFunction()) {
+                                if (info.definition().isPresent()) {
+                                    var def = info.definition().get();
+                                    if (def.body instanceof LambdaNode lambda) {
+                                        sig = String.format("%s(%s)", info.name(),
+                                                String.join(", ", lambda.arguments));
+                                    }
+                                }
+                            }
 
                             var content = new MarkupContent(MarkupKind.MARKDOWN,
-                                    String.format("`%s :: %s`%n%n%s  %nsource: %s",
+                                    String.format("`%s :: %s`  %n  %n%s  %n  %nsource: %s",
                                             info.name(),
-                                            type,
+                                            infoType(info),
                                             hoverDoc(info.getDocuParts()),
                                             modulePath));
 
-                            var infos = List.of(new SignatureInformation(id, content, List.of()));
+                            var infos = List.of(new SignatureInformation(sig, content, List.of()));
 
                             System.gc();
                             return new SignatureHelp(infos, 0, 0);
@@ -435,7 +446,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
                         var type = infoType(vi);
                         var modulePath = infoModulePath(vi);
                         var content = new MarkupContent(MarkupKind.MARKDOWN,
-                                String.format("`%s :: %s`%n%n%s  %nsource: %s",
+                                String.format("`%s :: %s`%n%n%s  %n  %nsource: %s",
                                         inf.name(),
                                         type,
                                         hoverDoc(vi.getDocuParts()),
