@@ -357,9 +357,10 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
                         if (info != null) {
 
-                            var modulePath = infoModulePath(info);
-
+                            // Worst case signature is just the name
                             String sig = info.name();
+
+                            // Try to extend the signature with parameters
                             if (info.isFunction()) {
                                 if (info.definition().isPresent()) {
                                     var def = info.definition().get();
@@ -370,16 +371,14 @@ public class PacioliTextDocumentService implements TextDocumentService {
                                 }
                             }
 
-                            var content = new MarkupContent(MarkupKind.MARKDOWN,
-                                    String.format("`%s :: %s`  %n  %n%s  %n  %nsource: %s",
-                                            info.name(),
-                                            infoType(info),
-                                            hoverDoc(info.getDocuParts()),
-                                            modulePath));
+                            // Create markup content
+                            var content = new MarkupContent(MarkupKind.MARKDOWN, infoMarkup(info));
 
+                            // Combine the signature and the markup into a lsp SignatureInformation
                             var infos = List.of(new SignatureInformation(sig, content, List.of()));
 
                             System.gc();
+
                             return new SignatureHelp(infos, 0, 0);
                         }
                     }
@@ -410,9 +409,31 @@ public class PacioliTextDocumentService implements TextDocumentService {
     }
 
     static String hoverDoc(List<String> docuParts) {
-        return String.join(String.format("  %n"), docuParts)
-                .replaceAll("<code>", String.format(" `"))
-                .replaceAll("</code>", String.format("` "));
+
+        Pattern p = Pattern.compile("^<code>(.*)</code>$");
+
+        List<String> markupLines = new ArrayList<>();
+
+        for (String part : docuParts) {
+
+            // Remove leading spaces because they have meaning in markup
+            var line = part.trim();
+
+            // If the entire line is code then make a code block.
+            Matcher m = p.matcher(line);
+            if (m.find()) {
+                line = String.format("%n```pacioli%n%s%n```%n", m.group(1));
+            }
+
+            // Replace all inline code html tags with markdown backticks.
+            line = line
+                    .replaceAll("<code>", String.format("`"))
+                    .replaceAll("</code>", String.format("`"));
+
+            markupLines.add(line);
+        }
+
+        return String.join(String.format("%n%n"), markupLines);
     }
 
     String infoModulePath(Info vi) {
@@ -430,6 +451,15 @@ public class PacioliTextDocumentService implements TextDocumentService {
         return type;
     }
 
+    String infoMarkup(ValueInfo info) {
+        return String.format(
+                "```pacioli%n%s :: %s%n```%n%n%s%n%nsource: %s%n",
+                info.name(),
+                infoType(info),
+                hoverDoc(info.getDocuParts()),
+                infoModulePath(info));
+    }
+
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
         var pos = params.getPosition();
@@ -443,14 +473,8 @@ public class PacioliTextDocumentService implements TextDocumentService {
         var info = this.locateInfo(state.identifierIndex, pos.getLine(), pos.getCharacter())
                 .map(inf -> {
                     if (inf instanceof ValueInfo vi && inf.isGlobal()) {
-                        var type = infoType(vi);
-                        var modulePath = infoModulePath(vi);
-                        var content = new MarkupContent(MarkupKind.MARKDOWN,
-                                String.format("`%s :: %s`%n%n%s  %n  %nsource: %s",
-                                        inf.name(),
-                                        type,
-                                        hoverDoc(vi.getDocuParts()),
-                                        modulePath));
+
+                        var content = new MarkupContent(MarkupKind.MARKDOWN, infoMarkup(vi));
 
                         return new Hover(content);
                     }
