@@ -2,21 +2,17 @@ package pacioli.lsp;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.CompletionItemLabelDetails;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.DefinitionParams;
@@ -25,40 +21,24 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 import org.eclipse.lsp4j.DidSaveTextDocumentParams;
-import org.eclipse.lsp4j.DocumentDiagnosticParams;
-import org.eclipse.lsp4j.DocumentDiagnosticReport;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
-import org.eclipse.lsp4j.MessageParams;
-import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.RelatedUnchangedDocumentDiagnosticReport;
 import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SemanticTokensParams;
 import org.eclipse.lsp4j.SignatureHelp;
 import org.eclipse.lsp4j.SignatureHelpParams;
-import org.eclipse.lsp4j.SignatureInformation;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
-import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.expression.LambdaNode;
-import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
-import pacioli.compiler.Bundle;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.compiler.PacioliFile;
-import pacioli.compiler.Project;
-import pacioli.symboltable.info.Info;
-import pacioli.symboltable.info.TypeInfo;
-import pacioli.symboltable.info.ValueInfo;
-import pacioli.types.ast.TypeIdentifierNode;
 
 public class PacioliTextDocumentService implements TextDocumentService {
 
@@ -66,30 +46,6 @@ public class PacioliTextDocumentService implements TextDocumentService {
      * For how many documents is a DocumentState kept in memory?
      */
     int CACHE_SIZE = 5;
-
-    /**
-     * Data stored per open pacioli document
-     */
-    class DocumentState {
-        public final String uri;
-        public final Bundle bundle;
-        public final Map<Integer, List<IdentifierInfo>> identifierIndex;
-        public final List<IdentifierInfo> semanticTokenList;
-        public final List<CompletionItem> autoCompleteList;
-
-        public DocumentState(
-                String uri,
-                Bundle bundle,
-                Map<Integer, List<IdentifierInfo>> identifierIndex,
-                List<IdentifierInfo> semanticTokenList,
-                List<CompletionItem> autoCompleteList) {
-            this.uri = uri;
-            this.bundle = bundle;
-            this.identifierIndex = identifierIndex;
-            this.semanticTokenList = semanticTokenList;
-            this.autoCompleteList = autoCompleteList;
-        }
-    }
 
     /**
      * Link to the language client
@@ -104,7 +60,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
     /**
      * Contains the state for the open documents. Contains at most CACHE_SIZE items.
      */
-    private List<DocumentState> state = new ArrayList<>();
+    private List<DocumentState> documentStates = new ArrayList<>();
 
     /**
      * The latest text that was received by the didChange event. Currently not used
@@ -112,7 +68,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
      * unsaved text, so to find the identifier at the cursor we store this text.
      * 
      * Is not stored per document. Only the currently edited is needed. Since
-     * didChange is sent before the signature helper event this works okey.
+     * didChange is sent before the signature helper event this works okay.
      */
     private String latestText;
 
@@ -130,66 +86,34 @@ public class PacioliTextDocumentService implements TextDocumentService {
         this.libs = libs;
     }
 
-    private DocumentState getUriState(String uri) {
-        for (DocumentState uriState : this.state) {
-            if (uriState.uri.equals(uri)) {
-                return uriState;
-            }
-        }
-        return null;
-    }
-
-    private void setUriState(DocumentState state) {
-        for (int i = 0; i < this.state.size(); i++) {
-            DocumentState uriState = this.state.get(i);
-            if (uriState.uri.equals(state.uri)) {
-                this.state.set(i, state);
-                return;
-            }
-        }
-        this.state.add(state);
-        if (this.state.size() > CACHE_SIZE) {
-            this.state.remove(0);
-        }
-    }
-
-    private DocumentState ensureState(String uri) throws Exception {
-        var state = this.getUriState(uri);
-        if (state == null) {
-            var newState = this.buildState(uri);
-            this.setUriState(newState);
-            return newState;
-        }
-        return state;
-    }
-
-    private DocumentState buildState(String uri) throws Exception {
-        var path = new URI(uri).getPath();
-        var prog = Project.load(PacioliFile.get(path, 0).get(), this.libs);
-        var bundle = prog.loadBundle();
-        // this.bundle = bundle;
-        var identifierIndex = this.buildIdentifierIndex(bundle);
-        var semanticTokenList = this.buildIdentifierInfoList(bundle, identifierIndex);
-        var autoCompleteList = this.buildAutoCompleteList(bundle);
-        return new DocumentState(uri, bundle, identifierIndex, semanticTokenList, autoCompleteList);
-    }
-
+    /**
+     * Implementation of the LSP notification.
+     */
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
         // Store the latest text for the signature help.
         this.latestText = params.getContentChanges().get(0).getText();
     }
 
+    /**
+     * Implementation of the LSP notification.
+     */
     @Override
     public void didClose(DidCloseTextDocumentParams params) {
     }
 
+    /**
+     * Implementation of the LSP notification.
+     */
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
         // No need for error handling here. Is done in loadBundle.
         this.loadBundle(params.getTextDocument().getUri());
     }
 
+    /**
+     * Implementation of the LSP notification.
+     */
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
         // No need for error handling here. Is done in loadBundle.
@@ -197,78 +121,152 @@ public class PacioliTextDocumentService implements TextDocumentService {
         this.languageClient.refreshSemanticTokens();
     }
 
-    boolean isOtherFile(Location errorSrc, String vsCodeUri) {
-        try {
-            return !errorSrc.file().equals(new File(new URI(vsCodeUri)));
-        } catch (Exception e) {
-            return false;
-        }
+    /**
+     * Implementation of the LSP request.
+     */
+    @Override
+    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams position) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String uri = position.getTextDocument().getUri();
+
+                return Either.forLeft(this.getState(uri).completionItems());
+
+            } catch (Exception e) {
+                System.gc();
+                return Either.forLeft(List.of());
+            }
+        });
     }
 
+    /**
+     * Implementation of the LSP request.
+     */
+    @Override
+    public CompletableFuture<Either<List<? extends org.eclipse.lsp4j.Location>, List<? extends LocationLink>>> definition(
+            DefinitionParams params) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var uri = params.getTextDocument().getUri();
+                var pos = params.getPosition();
+
+                return Either.forLeft(this.getState(uri).definitionLocation(pos));
+
+            } catch (Exception e) {
+                System.gc();
+                throw new CompletionException("Failed to find source location", e);
+            }
+        });
+    }
+
+    /**
+     * Implementation of the LSP request.
+     */
+    @Override
+    public CompletableFuture<SignatureHelp> signatureHelp(SignatureHelpParams params) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var uri = params.getTextDocument().getUri();
+                var position = params.getPosition();
+
+                Optional<String> identifier = identifierTriggeringSignatureHelp(uri, position);
+
+                if (identifier.isEmpty()) {
+                    return new SignatureHelp();
+                }
+
+                return this.getState(uri).signatureHelp(identifier.get());
+
+            } catch (Exception e) {
+                throw new CompletionException("Error in signature help", e);
+            }
+        });
+    }
+
+    /**
+     * Implementation of the LSP request.
+     */
+    @Override
+    public CompletableFuture<Hover> hover(HoverParams params) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Position pos = params.getPosition();
+                String uri = params.getTextDocument().getUri();
+
+                return this.getState(uri).hover(pos);
+            } catch (Exception e) {
+                System.gc();
+                return new Hover(new MarkupContent(MarkupKind.PLAINTEXT, ""));
+            }
+        });
+    }
+
+    /**
+     * Implementation of the LSP request.
+     */
+    @Override
+    public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                String uri = params.getTextDocument().getUri();
+                return this.getState(uri).semanticTokens();
+            } catch (Exception e) {
+                System.gc();
+                return new SemanticTokens();
+            }
+        });
+    }
+
+    /**
+     * Loads the bundle, computes the DocumentState for it, and stores it in
+     * the state cache.
+     * 
+     * If a compilation error is thrown it is published as a diagnostic. This
+     * method handles all errors.
+     * 
+     * @param uri The uri of the bundle to load.
+     */
     private void loadBundle(String uri) {
 
         var errors = new ArrayList<Diagnostic>();
 
         try {
-            this.setUriState(this.buildState(uri));
-            // var prog2 = Program.load(PacioliFile.get(text, 0).get());
-        } catch (PacioliException e) {
-
-            this.logInfo("%s", e.getMessage());
-            for (var x : e.getStackTrace()) {
-                this.logInfo(x.toString());
-            }
-
-            Location src = e.location();
-
-            if (!isOtherFile(src, uri)) {
-
-                Range range = src == null
-                        ? new Range(new Position(0, 0), new Position(10000, 100))
-                        : new Range(new Position(src.fromLine, src.fromColumn),
-                                new Position(src.toLine, src.toColumn));
-                var d = new Diagnostic(range, e.getMessage());
-
-                errors.add(d);
-            } else {
-
-                Range range = new Range(new Position(0, 0), new Position(10000, 0));
-                var d = new Diagnostic(range, String.format("Error in file %s:%n%n%s",
-                        src.file().toString(),
-                        e.getMessage()));
-
-                errors.add(d);
-            }
-
+            this.storeState(uri);
         } catch (Exception e) {
-            this.logInfo("%s%s", e.getMessage(), e.getCause() == null ? "" : e.getCause().getMessage());
-            for (var x : e.getStackTrace()) {
-                this.logInfo(x.toString());
-            }
 
             Location src = null;
             String message = e.getMessage();
+
+            if (e instanceof PacioliException pe) {
+                src = pe.location();
+            }
 
             if (e.getCause() instanceof PacioliException pe) {
                 src = pe.location();
                 message += ": " + pe.getMessage();
             }
-            // todo: fix position. geen diagnostic voor dit geval?!
-            if (!isOtherFile(src, uri)) {
 
+            if (differentFile(src, uri)) {
+
+                // An error in an imported or included file. Just mark this entire file.
+                // A fancier solution would be to see which import or include causes
+                // the error.
+                Range range = new Range(new Position(0, 0), new Position(10000, 100));
+                var d = new Diagnostic(range, String.format("Error in file %s:%n%n%s",
+                        src.file(),
+                        message));
+
+                errors.add(d);
+
+            } else {
+
+                // Location information should be available. Mark the whole file
+                // as fallback.
                 Range range = src == null
                         ? new Range(new Position(0, 0), new Position(10000, 100))
                         : new Range(new Position(src.fromLine, src.fromColumn),
                                 new Position(src.toLine, src.toColumn));
                 var d = new Diagnostic(range, message);
-
-                errors.add(d);
-            } else {
-
-                Range range = new Range(new Position(0, 0), new Position(10000, 100));
-                var d = new Diagnostic(range, String.format("Error in file %s:%n%n%s",
-                        src.file(),
-                        message));
 
                 errors.add(d);
             }
@@ -283,413 +281,98 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
     }
 
-    @Override
-    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams position) {
-        return CompletableFuture.supplyAsync(() -> {
-            List<CompletionItem> completionItems = new ArrayList<>();
-            DocumentState state;
-            try {
-                state = this.ensureState(position.getTextDocument().getUri());
-                for (CompletionItem item1 : state.autoCompleteList) {
-                    completionItems.add(item1);
-                }
-            } catch (Exception e) {
-                System.gc();
-                this.logInfo("Could not compute completions " + e.getMessage());
-            }
-            return Either.forLeft(completionItems);
-        });
-    }
-
-    @Override
-    public CompletableFuture<Either<List<? extends org.eclipse.lsp4j.Location>, List<? extends LocationLink>>> definition(
-            DefinitionParams params) {
-
-        var pos = params.getPosition();
-        DocumentState state;
+    private boolean differentFile(Location errorSrc, String vsCodeUri) {
         try {
-            state = this.ensureState(params.getTextDocument().getUri());
+            return !errorSrc.file().equals(new File(new URI(vsCodeUri)));
         } catch (Exception e) {
-            System.gc();
-            return CompletableFuture.supplyAsync(() -> Either.forLeft(List.of()));
+            return false;
         }
-        var info = this.locateInfo(state.identifierIndex, pos.getLine(), pos.getCharacter())
-                .map(inf -> {
-                    var loc = inf.location();
-                    var uri = loc.file().toURI();
-
-                    var range = new Range(new Position(loc.fromLine, loc.fromColumn),
-                            new Position(loc.toLine, loc.toColumn));
-                    return List.of(new org.eclipse.lsp4j.Location(uri.toString(), range));
-                })
-                .orElse(List.of());
-        return CompletableFuture.supplyAsync(() -> Either.forLeft(info));
     }
 
-    @Override
-    public CompletableFuture<SignatureHelp> signatureHelp(SignatureHelpParams params) {
-        return CompletableFuture.supplyAsync(() -> {
+    private Optional<String> identifierTriggeringSignatureHelp(String uri, Position position) throws Exception {
 
-            var lineNr = params.getPosition().getLine();
-            var columnNr = params.getPosition().getCharacter();
+        var lineNr = position.getLine();
+        var columnNr = position.getCharacter();
 
-            BufferedReader br = new BufferedReader(new StringReader(this.latestText));
+        try (BufferedReader br = new BufferedReader(new StringReader(this.latestText))) {
 
-            try {
-                String line = br.readLine();
-                int counter = 0;
-                while (counter != lineNr && line != null) {
-                    line = br.readLine();
-                    counter++;
-                }
-                if (line != null) {
-
-                    var sub = line.substring(0, columnNr); // includes the ( that triggered this
-
-                    Pattern p = Pattern.compile("([a-zA-Z][a-zA-Z0-9_]*)\\($");
-                    Matcher m = p.matcher(sub);
-
-                    if (m.find()) {
-                        var id = m.group(1);
-
-                        var state = this.ensureState(params.getTextDocument().getUri());
-                        var info = state.bundle.lookupValue(id);
-
-                        if (info != null) {
-
-                            // Worst case signature is just the name
-                            String sig = info.name();
-
-                            // Try to extend the signature with parameters
-                            if (info.isFunction()) {
-                                if (info.definition().isPresent()) {
-                                    var def = info.definition().get();
-                                    if (def.body instanceof LambdaNode lambda) {
-                                        sig = String.format("%s(%s)", info.name(),
-                                                String.join(", ", lambda.arguments));
-                                    }
-                                }
-                            }
-
-                            // Create markup content
-                            var content = new MarkupContent(MarkupKind.MARKDOWN, infoMarkup(info));
-
-                            // Combine the signature and the markup into a lsp SignatureInformation
-                            var infos = List.of(new SignatureInformation(sig, content, List.of()));
-
-                            System.gc();
-
-                            return new SignatureHelp(infos, 0, 0);
-                        }
-                    }
-
-                }
-            } catch (IOException e) {
-                this.logInfo("Error during signature help: %s", e.getMessage());
-            } catch (URISyntaxException e) {
-                this.logInfo("Error during signature help: %s", e.getMessage());
-            } catch (Exception e) {
-                this.logInfo("Error during signature help: %s", e.getMessage());
+            // Find the line in the latest text where the user cursor is located
+            String line = br.readLine();
+            int counter = 0;
+            while (counter != lineNr && line != null) {
+                line = br.readLine();
+                counter++;
             }
 
-            System.gc();
+            if (line != null) {
 
-            return new SignatureHelp();
-        });
-    }
+                // Get the string from the beginning of the line to the cursor position.
+                // This includes the ( that triggered this request.
+                var sub = line.substring(0, columnNr);
 
-    private void logInfo(String string, Object... args) {
-        this.languageClient.logMessage(new MessageParams(MessageType.Info, String.format(string, args)));
-    }
+                // Look for an identifier just before the ( that triggered this request
+                Pattern p = Pattern.compile("([a-zA-Z][a-zA-Z0-9_]*)\\($");
+                Matcher m = p.matcher(sub);
 
-    @Override
-    public CompletableFuture<DocumentDiagnosticReport> diagnostic(DocumentDiagnosticParams params) {
-        return CompletableFuture
-                .supplyAsync(() -> new DocumentDiagnosticReport(new RelatedUnchangedDocumentDiagnosticReport("foo")));
-    }
+                if (m.find()) {
+                    return Optional.of(m.group(1));
+                }
 
-    static String hoverDoc(List<String> docuParts) {
-
-        Pattern p = Pattern.compile("^<code>(.*)</code>$");
-
-        List<String> markupLines = new ArrayList<>();
-
-        for (String part : docuParts) {
-
-            // Remove leading spaces because they have meaning in markup
-            var line = part.trim();
-
-            // If the entire line is code then make a code block.
-            Matcher m = p.matcher(line);
-            if (m.find()) {
-                line = String.format("%n```pacioli%n%s%n```%n", m.group(1));
             }
-
-            // Replace all inline code html tags with markdown backticks.
-            line = line
-                    .replaceAll("<code>", String.format("`"))
-                    .replaceAll("</code>", String.format("`"));
-
-            markupLines.add(line);
         }
 
-        return String.join(String.format("%n%n"), markupLines);
-    }
-
-    String infoModulePath(Info vi) {
-        var modulePath = vi.generalInfo().file().modulePath();
-        modulePath = modulePath.isEmpty()
-                ? vi.generalInfo().file().moduleName()
-                : modulePath.substring(1);
-        return modulePath;
-    }
-
-    String infoType(ValueInfo vi) {
-        var type = vi.declaredType()
-                .map(x -> x.pretty())
-                .orElse(vi.inferredType().map(x -> x.pretty()).orElse(""));
-        return type;
-    }
-
-    String infoMarkup(ValueInfo info) {
-        return String.format(
-                "```pacioli%n%s :: %s%n```%n%n%s%n%nsource: %s%n",
-                info.name(),
-                infoType(info),
-                hoverDoc(info.getDocuParts()),
-                infoModulePath(info));
-    }
-
-    @Override
-    public CompletableFuture<Hover> hover(HoverParams params) {
-        var pos = params.getPosition();
-        DocumentState state;
-        try {
-            state = this.ensureState(params.getTextDocument().getUri());
-        } catch (Exception e) {
-            System.gc();
-            return CompletableFuture.supplyAsync(() -> new Hover(Either.forLeft("")));
-        }
-        var info = this.locateInfo(state.identifierIndex, pos.getLine(), pos.getCharacter())
-                .map(inf -> {
-                    if (inf instanceof ValueInfo vi && inf.isGlobal()) {
-
-                        var content = new MarkupContent(MarkupKind.MARKDOWN, infoMarkup(vi));
-
-                        return new Hover(content);
-                    }
-                    if (inf instanceof TypeInfo vi && inf.isGlobal()) {
-                        List<String> docParts = List.of();
-                        if (vi.generalInfo().documentation().isPresent()) {
-                            String[] parts = vi.generalInfo().documentation().get().split("\\r?\\n\s*\\r?\\n");
-                            docParts = List.of(parts);
-                        }
-                        var content = new MarkupContent(MarkupKind.MARKDOWN, String.format("%s %n %n %s",
-                                inf.name(),
-                                hoverDoc(docParts)));
-
-                        return new Hover(content);
-                    }
-                    return new Hover(new MarkupContent(MarkupKind.PLAINTEXT, ""));
-                })
-                .orElse(new Hover(new MarkupContent(MarkupKind.PLAINTEXT, "")));
-        return CompletableFuture.supplyAsync(() -> info);
-    }
-
-    @Override
-    public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
-        return CompletableFuture.supplyAsync(() -> {
-            DocumentState state;
-            try {
-                state = this.ensureState(params.getTextDocument().getUri());
-                if (state.semanticTokenList != null) {
-                    return this.buildSemanticTokens(state.semanticTokenList);
-                }
-            } catch (Exception e) {
-                System.gc();
-                logInfo("token exception" + e.getMessage());
-            }
-            return new SemanticTokens();
-        });
-    }
-
-    /**
-     * Builds the identifier index for the hover command.
-     * 
-     * @param bundle The bundle for the current file. Must be analyzed (types
-     *               must have been infered)
-     * @return A map from line number to a list of identifier Infos on that
-     *         line
-     */
-    Map<Integer, List<IdentifierInfo>> buildIdentifierIndex(Bundle bundle) {
-        Map<Integer, List<IdentifierInfo>> index = new HashMap<>();
-        for (IdentifierInfo idInfo : bundle.allIdentifiers()) {
-            if (idInfo.identifier instanceof IdentifierNode id) {
-                Location loc = id.location();
-                List<IdentifierInfo> infos = index.get(loc.fromLine);
-                if (infos == null) {
-                    infos = new ArrayList<IdentifierInfo>();
-                    index.put(loc.fromLine, infos);
-                }
-                infos.add(idInfo);
-            }
-            if (idInfo.identifier instanceof TypeIdentifierNode id) {
-                Location loc = id.location();
-                List<IdentifierInfo> infos = index.get(loc.fromLine);
-                if (infos == null) {
-                    infos = new ArrayList<IdentifierInfo>();
-                    index.put(loc.fromLine, infos);
-                }
-                infos.add(idInfo);
-            }
-        }
-        return index;
-    }
-
-    /**
-     * Looks up an identifier for the hover command.
-     * 
-     * @param line   Line number in the current file
-     * @param column Column number in the current file
-     * @return The identifier's Info if it exits.
-     */
-    Optional<Info> locateInfo(Map<Integer, List<IdentifierInfo>> identifierIndex, Integer line, Integer column) {
-        if (identifierIndex != null) {
-            var cands = identifierIndex.get(line);
-            if (cands != null) {
-                Info info = null;
-                Integer minSize = null;
-                // Search for the token with the minimum length. This is necessary because the
-                // grammar gives wrong locations. Often they are too wide and overlap with
-                // other tokens (was e.g. the case for binop). This can be removed if the
-                // grammar is fixed.
-                for (IdentifierInfo cand : cands) {
-                    var loc = cand.location();
-                    var size = loc.toColumn - loc.fromColumn;
-                    if (loc.fromColumn <= column && column < loc.toColumn && (minSize == null || size < minSize)) {
-                        info = cand.info().orElse(null);
-                        minSize = size;
-                    }
-                }
-                return Optional.ofNullable(info);
-            }
-        }
         return Optional.empty();
     }
 
-    List<IdentifierInfo> buildIdentifierInfoList(Bundle bundle, Map<Integer, List<IdentifierInfo>> identifierIndex)
-            throws Exception {
-        List<IdentifierInfo> infos = new ArrayList<>();
-        for (List<IdentifierInfo> records : identifierIndex.values()) {
-            for (IdentifierInfo idInfo : records) {
-                infos.add(idInfo);
-            }
-        }
-        var comp = new Location.LocationComparator();
-        infos.sort((x, y) -> comp.compare(x.location(), y.location()));
-        return infos;
-    }
+    /**
+     * Loads the file, builds the state for it and stores it.
+     * 
+     * This method generates the compiler errors for the diagonstics.
+     * 
+     * @param uri The pacioli file to load
+     * @return The created state
+     * @throws Exception Compilation errors
+     */
+    private DocumentState storeState(String uri) throws Exception {
 
-    List<CompletionItem> buildAutoCompleteList(Bundle bundle) throws Exception {
-        Map<String, CompletionItem> completionItems = new HashMap<>();
+        var state = DocumentState.buildState(uri, this.libs);
 
-        // Add all identifiers in the document first. The local identifiers have
-        // no info. For global identifiers that have an info the map entry will
-        // be overwritten below.
-        for (IdentifierInfo idInfo : bundle.allIdentifiers()) {
-
-            var name = idInfo.name();
-
-            if (!name.startsWith("_")) {
-                CompletionItem item1 = new CompletionItem();
-                item1.setLabel(name);
-                completionItems.put(idInfo.name(), item1);
+        for (int i = 0; i < this.documentStates.size(); i++) {
+            DocumentState uriState = this.documentStates.get(i);
+            if (uriState.uri.equals(uri)) {
+                this.documentStates.set(i, state);
+                return state;
             }
         }
 
-        for (ValueInfo info : bundle.allValueInfos()) {
+        this.documentStates.add(state);
 
-            var name = info.name();
+        if (this.documentStates.size() > CACHE_SIZE) {
+            this.documentStates.remove(0);
+        }
 
-            if (!name.startsWith("_")) {
-                CompletionItem item1 = new CompletionItem();
-                item1.setLabel(info.name());
+        return state;
+    }
 
-                var details = new CompletionItemLabelDetails();
+    /**
+     * Checks if a state is stored for the uri. If so it is returned, otherwise the
+     * bundle for the uri is loaded and the newly build state is returned.
+     * 
+     * This method generates compiler errors, since it calls storeState.
+     * 
+     * @param uri A pacioli file
+     * @return The state for the uri
+     * @throws Exception Compilation errors
+     */
+    private DocumentState getState(String uri) throws Exception {
 
-                details.setDescription(infoModulePath(info));
-                details.setDetail(": " + infoType(info));
-
-                item1.setLabelDetails(details);
-
-                completionItems.put(info.name(), item1);
+        for (DocumentState uriState : this.documentStates) {
+            if (uriState.uri.equals(uri)) {
+                return uriState;
             }
         }
 
-        // At (at least) the keywords that typically appear at the end of a line. It is
-        // annoying when an editor suggests something else and that gets chosen when
-        // enter is pressed.
-        var keywords = List.of("let", "in", "end", "then", "do");
-
-        for (String keyword : keywords) {
-            CompletionItem item1 = new CompletionItem();
-            item1.setLabel(keyword);
-
-            var details = new CompletionItemLabelDetails();
-
-            details.setDescription("keyword");
-            details.setDetail("");
-
-            item1.setLabelDetails(details);
-
-            completionItems.put(keyword, item1);
-        }
-        return new ArrayList<>(completionItems.values());
+        return this.storeState(uri);
     }
 
-    SemanticTokens buildSemanticTokens(List<IdentifierInfo> semanticTokenList) throws Exception {
-        int lastLine = 0;
-        int lastColumn = 0;
-        List<Integer> nums = new ArrayList<>();
-
-        for (IdentifierInfo idInfo : semanticTokenList) {
-            var loc = idInfo.location();
-            var line = loc.fromLine;
-            var lineDiff = line - lastLine;
-            var column = loc.fromColumn;
-            var columnDiff = lineDiff == 0 ? column - lastColumn : column;
-
-            nums.add(lineDiff);
-            nums.add(columnDiff);
-            nums.add(loc.toColumn - loc.fromColumn);
-            nums.addAll(tokenType(idInfo));
-
-            lastLine = line;
-            lastColumn = column;
-        }
-
-        var tokens = new SemanticTokens(nums);
-        return tokens;
-    }
-
-    List<Integer> tokenType(IdentifierInfo idInfo) {
-        var inf = idInfo.info().orElse(null);
-        if (idInfo.identifier instanceof TypeIdentifierNode) {
-            return List.of(3, 0);
-        }
-        if (inf != null && inf instanceof ValueInfo vi) {
-
-            boolean isFunction = vi.definition().map(def -> def.isFunction())
-                    .orElse(false) || (vi.isGlobal() && vi.isFunction());
-            if (isFunction) {
-                return List.of(0, 0);
-            } else {
-                return List.of(vi.isGlobal() ? 2 : 4, 0);
-            }
-        }
-        if (inf == null) {
-            return List.of(0, 2);
-        }
-        return List.of(2, 0);
-    }
 }
