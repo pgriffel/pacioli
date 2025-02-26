@@ -79,11 +79,16 @@ public class DocumentState {
                 .locateInfo(position.getLine(), position.getCharacter())
                 .map(info -> {
                     var loc = info.location();
-                    var uri = loc.file().toURI();
+                    if (loc.file().isPresent()) {
+                        var uri = loc.file().get().toURI();
 
-                    var range = new Range(new Position(loc.fromLine, loc.fromColumn),
-                            new Position(loc.toLine, loc.toColumn));
-                    return List.of(new org.eclipse.lsp4j.Location(uri.toString(), range));
+                        var range = new Range(new Position(loc.fromLine, loc.fromColumn),
+                                new Position(loc.toLine, loc.toColumn));
+                        return List.of(new org.eclipse.lsp4j.Location(uri.toString(), range));
+                    }
+                    List<org.eclipse.lsp4j.Location> empty = List.of();
+                    return empty;
+
                 })
                 .orElse(List.of());
     }
