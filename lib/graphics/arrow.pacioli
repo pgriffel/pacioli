@@ -27,8 +27,8 @@ doc Arrow
     with an arrowhead at the end. Is an element of a <code>Scene(a)</code> 
     scene.";
 
-deftype for_unit a:
-    Arrow(a) = Tuple(a*Geom3!, a*Geom3!, String, String, Maybe(Color));
+deftype for_unit a, Geom3!u:
+    Arrow(a, Geom3!u) = Tuple(a*Geom3!u, a*Geom3!u, String, String, Maybe(Color));
 
 # ------------------------------------------------------------------------------
 
@@ -36,7 +36,7 @@ doc make_arrow
     "Creates an arrow between two points.";
 
 declare make_arrow ::
-    for_unit a: (a*Geom3!, a*Geom3!) -> Arrow(a);
+    for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u) -> Arrow(a, Geom3!u);
 
 define make_arrow(src, dst) =
     tuple(src, dst, "", "", nothing());
@@ -46,7 +46,7 @@ define make_arrow(src, dst) =
 doc origin_arrow
     "Creates an arrow from the origin to some point.";
 
-declare origin_arrow :: for_unit a: (a*Geom3!) -> Arrow(a);
+declare origin_arrow :: for_unit a, Geom3!u: (a*Geom3!u) -> Arrow(a, Geom3!u);
 
 define origin_arrow(vector) =
     make_arrow(0 '.*' vector, vector);
@@ -56,7 +56,7 @@ define origin_arrow(vector) =
 doc arrow_name
     "An arrow's name.";
 
-declare arrow_name :: for_unit a: (Arrow(a)) -> String;
+declare arrow_name :: for_unit a, Geom3!u: (Arrow(a, Geom3!u)) -> String;
 
 define arrow_name(arrow) =
     let (_, _, name, _, _) = arrow in
@@ -68,7 +68,7 @@ define arrow_name(arrow) =
 doc arrow_label
     "An arrow's color.";
 
-declare arrow_label :: for_unit a: (Arrow(a)) -> String;
+declare arrow_label :: for_unit a, Geom3!u: (Arrow(a, Geom3!u)) -> String;
 
 define arrow_label(arrow) =
     let (_, _, _, label, _) = arrow in
@@ -80,7 +80,7 @@ define arrow_label(arrow) =
 doc arrow_color
     "An arrow's color.";
 
-declare arrow_color :: for_unit a: (Arrow(a)) -> Maybe(Color);
+declare arrow_color :: for_unit a, Geom3!u: (Arrow(a, Geom3!u)) -> Maybe(Color);
 
 define arrow_color(arrow) =
     let (_, _, _, _, color) = arrow in
@@ -92,7 +92,7 @@ define arrow_color(arrow) =
 doc move_arrow
     "Updates the start and end position of the arrow";
 
-declare move_arrow :: for_unit a: (Arrow(a), a * Geom3!, a * Geom3!) -> Arrow(a);
+declare move_arrow :: for_unit a, Geom3!u: (Arrow(a, Geom3!u), a * Geom3!u, a * Geom3!u) -> Arrow(a, Geom3!u);
 
 define move_arrow(arrow, src, dst) =
     let (_, _, color, name, label) = arrow in
@@ -105,7 +105,7 @@ doc with_arrow_name
     "A copy of the arrow, but with the label.";
 
 declare with_arrow_name ::
-    for_unit a: (String, Arrow(a)) -> Arrow(a);
+    for_unit a, Geom3!u: (String, Arrow(a, Geom3!u)) -> Arrow(a, Geom3!u);
 
 define with_arrow_name(name, arrow) =
     let (src, dst, _, label, color) = arrow in
@@ -118,7 +118,7 @@ doc with_arrow_label
     "A copy of the arrow, but with the label.";
 
 declare with_arrow_label ::
-    for_unit a: (String, Arrow(a)) -> Arrow(a);
+    for_unit a, Geom3!u: (String, Arrow(a, Geom3!u)) -> Arrow(a, Geom3!u);
 
 define with_arrow_label(label, arrow) =
     let (src, dst, name, _, color) = arrow in
@@ -130,7 +130,7 @@ define with_arrow_label(label, arrow) =
 doc with_arrow_color
     "Copy of the arrow, but with a different color.";
 
-declare with_arrow_color :: for_unit a: (Color, Arrow(a)) -> Arrow(a);
+declare with_arrow_color :: for_unit a, Geom3!u: (Color, Arrow(a, Geom3!u)) -> Arrow(a, Geom3!u);
 
 define with_arrow_color(color, arrow) =
     let (src, dst, name, label, _) = arrow in

@@ -18,10 +18,10 @@ export
 
 doc Path
     "A series of lines between succesive points. Is an element of a 
-    <code>Scene(a)</code> scene.";
+    <code>Scene(a, Geom3!u)</code> scene.";
 
-deftype for_unit a:
-    Path(a) = Tuple(List(a * Geom3!), Color);
+deftype for_unit a, Geom3!u:
+    Path(a, Geom3!u) = Tuple(List(a * Geom3!u), Color);
 
 # ------------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ doc make_path
     "Constructs a path from a list of points.";
 
 declare make_path ::
-    for_unit a: (List(a * Geom3!)) -> Path(a);
+    for_unit a, Geom3!u: (List(a * Geom3!u)) -> Path(a, Geom3!u);
 
 define make_path(vecs) =
     tuple(vecs, make_color("blue"));
@@ -40,7 +40,7 @@ doc make_line
     "A line between two points. Each point is indicated by a vector.";
 
 declare make_line ::
-    for_unit a: (a * Geom3!, a * Geom3!) -> Path(a);
+    for_unit a, Geom3!u: (a * Geom3!u, a * Geom3!u) -> Path(a, Geom3!u);
 
 define make_line(v0, v1) =
     make_path([v0, v1]);
@@ -48,7 +48,7 @@ define make_line(v0, v1) =
 # ------------------------------------------------------------------------------
 
 declare with_path_color ::
-    for_unit a: (Path(a), Color) -> Path(a);
+    for_unit a, Geom3!u: (Path(a, Geom3!u), Color) -> Path(a, Geom3!u);
 
 define with_path_color(path, color) =
     let (vecs, _) = path in

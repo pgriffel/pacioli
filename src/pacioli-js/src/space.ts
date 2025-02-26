@@ -121,7 +121,9 @@ export interface SpaceOptions {
   axisColorsZ: string;
   width: number;
   height: number;
-  unit: SIUnit;
+  unitX: SIUnit;
+  unitY: SIUnit;
+  unitZ: SIUnit;
   verbose: boolean; // undocumented feature
   fps: number;
   background: string;
@@ -155,7 +157,9 @@ const defaultOptions: SpaceOptions = {
   axisColorsZ: "#aaaaee",
   width: 800,
   height: 450,
-  unit: UOM.ONE,
+  unitX: UOM.ONE,
+  unitY: UOM.ONE,
+  unitZ: UOM.ONE,
   verbose: false,
   fps: 60,
   background: "#eeeeee",
@@ -174,6 +178,14 @@ const defaultOptions: SpaceOptions = {
   autoRotation: false,
   secondsPerRotation: 30,
 };
+
+function units(options: SpaceOptions): { x: SIUnit; y: SIUnit; z: SIUnit } {
+  return {
+    x: options.unitX,
+    y: options.unitY,
+    z: options.unitZ,
+  };
+}
 
 /**
  * A 3D environment for graphical display with Three.js.
@@ -609,16 +621,18 @@ export class Space {
   showAxisLabels() {
     if (this.axisLabels.length === 0) {
       // Create axis labels
-      const unit = this.options.unit.toText();
+      const unitx = this.options.unitX.toText();
+      const unity = this.options.unitY.toText();
+      const unitz = this.options.unitZ.toText();
       const offset = this.options.axisSize * 1.05;
       this.axisLabels.push(
-        makeLabelObject(`x[${unit}]`, offset, 0, 0, this.options.labelColor)
+        makeLabelObject(`x[${unitx}]`, offset, 0, 0, this.options.labelColor)
       );
       this.axisLabels.push(
-        makeLabelObject(`z[${unit}]`, 0, offset, 0, this.options.labelColor)
+        makeLabelObject(`z[${unitz}]`, 0, offset, 0, this.options.labelColor)
       );
       this.axisLabels.push(
-        makeLabelObject(`y[${unit}]`, 0, 0, offset, this.options.labelColor)
+        makeLabelObject(`y[${unity}]`, 0, 0, offset, this.options.labelColor)
       );
 
       // Add the labels
@@ -804,7 +818,7 @@ export class Space {
     this.log(`Adding mesh ${mesh}`);
 
     // Create a THREE mesh object from the Pacioli mesh and add it to the body
-    const meshObject = createTHREEMesh(mesh, this.options.unit);
+    const meshObject = createTHREEMesh(mesh, units(this.options));
     this.body.add(meshObject);
 
     this.addedMeshes.push(meshObject);
@@ -818,7 +832,7 @@ export class Space {
   private updateMesh(name: string, vector: Matrix) {
     const mesh = this.scene.getObjectByName(name);
     if (mesh) {
-      const jsVector = vector2THREE(vector, this.options.unit);
+      const jsVector = vector2THREE(vector, units(this.options));
       mesh.position.set(jsVector.x, jsVector.y, jsVector.z);
     }
   }
@@ -827,7 +841,7 @@ export class Space {
     this.log(`Adding path ${path[0].map(vec2String)}`);
 
     // Create a THREE line object from the Pacioli path and add it to the body
-    var lineObject = createTHREEPath(path, this.options.unit);
+    var lineObject = createTHREEPath(path, units(this.options));
     this.body.add(lineObject);
   }
 
@@ -837,8 +851,8 @@ export class Space {
     color: PacioliString,
     intensity: Matrix
   ) {
-    const positionVector = vector2THREE(position, this.options.unit);
-    const targetVector = vector2THREE(target, this.options.unit);
+    const positionVector = vector2THREE(position, units(this.options));
+    const targetVector = vector2THREE(target, units(this.options));
 
     const light = new THREE.SpotLight(
       new THREE.Color(color.value),
@@ -877,7 +891,7 @@ export class Space {
       vector,
       name,
       color,
-      this.options.unit
+      units(this.options)
     );
     this.body.add(arrowHelper);
 
@@ -888,7 +902,7 @@ export class Space {
         vector,
         name,
         label,
-        this.options.unit,
+        units(this.options),
         this.options.labelColor
       );
       this.body.add(arrowLabel);
@@ -916,10 +930,10 @@ export class Space {
     if (arrow) {
       const [dirVec, vectorLength] = arrowDirectionAndLength(
         to,
-        this.options.unit
+        units(this.options)
       );
       const vectorColor = color.value ? color.value.value : "blue";
-      const jsVector = vector2THREE(from, this.options.unit);
+      const jsVector = vector2THREE(from, units(this.options));
 
       arrow.position.set(jsVector.x, jsVector.y, jsVector.z);
       arrow.setDirection(dirVec);
@@ -930,8 +944,8 @@ export class Space {
     // Update the label if needed
     const labelObj = this.scene.getObjectByName(name + "_label") as CSS2DObject;
     if (labelObj) {
-      const vec = vector2THREE(to, this.options.unit);
-      const labelPos = vector2THREE(from, this.options.unit)
+      const vec = vector2THREE(to, units(this.options));
+      const labelPos = vector2THREE(from, units(this.options))
         .multiplyScalar(1.1)
         .add(vec);
 
@@ -1041,7 +1055,7 @@ function createGridHelper(gridX: number, gridY: number, color: string) {
 
 function createTHREEMesh(
   mesh: PacioliMesh,
-  unit: SIUnit
+  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
 ): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
   const [vs, fs, pos, name, hasWireframe, materialOption] = mesh;
 
@@ -1093,7 +1107,7 @@ function createTHREEMesh(
 function mesh2THREE(
   mesh: [[Matrix, PacioliString][], [Matrix, Matrix, Matrix][]],
   material: THREE.Material,
-  unit: SIUnit,
+  unit: { x: SIUnit; y: SIUnit; z: SIUnit },
   wireframe: boolean
 ) {
   const [vertices, faces] = mesh;
@@ -1166,7 +1180,10 @@ function mesh2THREE(
   }
 }
 
-function createTHREEPath(path: PacioliPath, unit: SIUnit) {
+function createTHREEPath(
+  path: PacioliPath,
+  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
+) {
   var geometry = new THREE.BufferGeometry();
   var material = new THREE.LineBasicMaterial({
     color: path[1].value,
@@ -1188,7 +1205,7 @@ function createTHREELabel(
   vector: Matrix,
   name: PacioliString,
   label: PacioliString,
-  unit: SIUnit,
+  unit: { x: SIUnit; y: SIUnit; z: SIUnit },
   color: string
 ) {
   const vec = vector2THREE(vector, unit);
@@ -1216,7 +1233,7 @@ function createTHREEArrowHelper(
   vector: Matrix,
   name: PacioliString,
   color: Maybe<PacioliString>,
-  unit: SIUnit
+  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
 ): THREE.ArrowHelper {
   const vectorColor = color.value ? color.value.value : "blue";
   const from = vector2THREE(origin, unit);
@@ -1234,7 +1251,7 @@ function createTHREEArrowHelper(
 
 function arrowDirectionAndLength(
   vector: Matrix,
-  unit: SIUnit
+  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
 ): [THREE.Vector3, number] {
   const threeVector = vector2THREE(vector, unit);
 
@@ -1254,20 +1271,31 @@ function arrowDirectionAndLength(
  * @param factor A fudge factor
  * @returns A THREE vector
  */
-function vector2THREE(vector: Matrix, unit: SIUnit, scale?: number) {
+function vector2THREE(
+  vector: Matrix,
+  unit: { x: SIUnit; y: SIUnit; z: SIUnit },
+  scale?: number
+) {
   const extraFactor = scale ?? 1;
   const numbers = vector.numbers;
 
   // Find the conversion factor between the vectors' units and the space's unit. Assume
   // that the vector units are homogeneous (the same for x, y and z), and the unit is in
   // the type's multiplier.
-  var factor =
-    extraFactor * si.conversionFactor(vector.shape.multiplier, unit).toNumber();
+  var factorx =
+    extraFactor *
+    si.conversionFactor(vector.shape.unitAt(0, 0), unit.x).toNumber();
+  var factory =
+    extraFactor *
+    si.conversionFactor(vector.shape.unitAt(1, 0), unit.y).toNumber();
+  var factorz =
+    extraFactor *
+    si.conversionFactor(vector.shape.unitAt(2, 0), unit.z).toNumber();
 
   return new THREE.Vector3(
-    getNumber(numbers, 0, 0) * factor,
-    getNumber(numbers, 2, 0) * factor,
-    getNumber(numbers, 1, 0) * factor
+    getNumber(numbers, 0, 0) * factorx,
+    getNumber(numbers, 2, 0) * factory,
+    getNumber(numbers, 1, 0) * factorz
   );
 }
 
