@@ -10,6 +10,26 @@ define line_color = make_color("steelblue");
 # The scenes
 # ------------------------------------------------------------------------------
 
+define plane_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    let 
+        f(x, y) = 
+            let z = a + b*x + c*y in
+                vector3d(x, y, z)
+            end,
+
+        range = 
+            make_range(
+                -8 * |metre|, 8 * |metre|,
+                -8 * |metre|, 8 * |metre|),
+
+        options =
+            tuple(d, show_parts, show_sum, show_normals)
+    in
+        build_scene(f, range, n, m, show_surface, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
 define ellipsoid_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
     let
         fun =
@@ -36,19 +56,17 @@ define torus_scene(major, minor, n, m, d, show_surface, show_parts, show_sum, sh
 
 # ------------------------------------------------------------------------------
 
-define cosine_scene(n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define cosine_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
     let 
-        c = 1 * |radian/metre|,
-
         f(x, y) = 
             let r = sqrt(x^2 + y^2) in
-                vector3d(y, x, cos(r * c) * |metre|)
+                vector3d(y, x, a * cos(r * c) * |metre|)
             end,
 
         range = 
             make_range(
-                -10 * |metre|, 10 * |metre|,
-                -10 * |metre|, 10 * |metre|),
+                -8 * |metre|, 8 * |metre|,
+                -8 * |metre|, 8 * |metre|),
 
         options =
             tuple(d, show_parts, show_sum, show_normals)
@@ -58,12 +76,13 @@ define cosine_scene(n, m, d, show_surface, show_parts, show_sum, show_normals) =
 
 # ------------------------------------------------------------------------------
 
-define moebius_scene(n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define moebius_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
     let 
-        moebius_fun = moebius_parametrization(),
+        moebius_fun =
+            moebius_parametrization(c),
 
         f(u, v) =
-            moebius_fun(u,v) * vector3d(2, 2, 4),
+            a '.*' moebius_fun(u,v),
 
         path_options =
             tuple(d, show_parts, show_sum, show_normals),
@@ -85,6 +104,26 @@ define moebius_scene(n, m, d, show_surface, show_parts, show_sum, show_normals) 
             scene := plot_path(f, u + n*du, v, -du, dv, n, m, path_options, make_color("blue"), scene);
             return scene;
         end
+    end;
+
+# ------------------------------------------------------------------------------
+
+declare saddle_scene :: for_type a: for_unit b:
+    (radian, 1, 1, b, 1, Boole, Boole, Boole, Boole) -> Scene(1, Geom3!zsquared);
+
+define saddle_scene(angle, a, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    let 
+        f = saddle_parametrization(angle, a),
+            
+        range = 
+            make_range(
+                -5 * |metre|, 5 * |metre|,
+                -5 * |metre|, 5 * |metre|),
+
+        options =
+            tuple(d, show_parts, show_sum, show_normals)
+    in
+        build_scene(f, range, n, m, show_surface, options)
     end;
 
 # ------------------------------------------------------------------------------
@@ -131,16 +170,54 @@ define moebius_range =
         -pi * |radian|, pi * |radian|,
         -0.5 * |metre|, 0.5 * |metre|);
 
-define moebius_parametrization() =
+define moebius_parametrization(c) =
+    (u, v) ->
+        vector3d(
+            cos(u) * (c + cos(u / 2) * v),
+            sin(u) * (c + cos(u / 2) * v),
+            sin(u / 2) * v);
+
+# ------------------------------------------------------------------------------
+# Saddle suface parametrization
+# ------------------------------------------------------------------------------
+
+define saddle_parametrization(angle, a) =
     (u, v) ->
         let 
-            c = 4 * |metre|
+            x = u * cos(angle) - v * sin(angle),
+            y = u * sin(angle) + v * cos(angle)
         in
-            vector3d(
-                cos(u) * (c + cos(u / 2) * v),
-                sin(u) * (c + cos(u / 2) * v),
-                sin(u / 2) * v)
+            make_zsquared(x, y, a * x * y)
         end;
+
+# ------------------------------------------------------------------------------
+
+defunit Geom3!zsquared = {
+    x: metre,
+    y: metre,
+    z: metre^2
+};
+
+# Make special syntax to generate the following from above defunit?!
+
+declare make_zsquared ::
+    for_unit a, b, c: (metre, metre, metre^2) -> Geom3!zsquared;
+
+define make_zsquared(a, b, c) = 
+    vector3d(magnitude(a), magnitude(b), magnitude(c)) * |Geom3!zsquared|;
+
+declare zsquared_x :: for_unit a: (a*Geom3!zsquared) -> a*metre;
+declare zsquared_y :: for_unit a: (a*Geom3!zsquared) -> a*metre;
+declare zsquared_z :: for_unit a: (a*Geom3!zsquared) -> a*metre^2;
+
+define zsquared_x(v) = 
+    get_num(v, Geom3@x, _) * scalar_unit(v) * |metre|;
+
+define zsquared_y(v) = 
+    get_num(v, Geom3@y, _) * scalar_unit(v) * |metre|;
+
+define zsquared_z(v) = 
+    get_num(v, Geom3@z, _) * scalar_unit(v) * |metre^2|;
 
 # ------------------------------------------------------------------------------
 # Computing the scene
@@ -255,6 +332,9 @@ define path(fun, u, v, du, dv, n) =
 # Visualization
 # ------------------------------------------------------------------------------
 
+declare field_arrows :: for_unit a, Geom3!u:
+    (a*Geom3!u, a*Geom3!u, a*Geom3!u, Tuple(1, Boole, Boole, Boole)) -> List(Arrow(a, Geom3!u));
+
 define field_arrows(pos, du, dv, options) =
     let 
         (scale_factor, show_parts, show_sum, show_normals) = options,
@@ -274,7 +354,7 @@ define field_arrows(pos, du, dv, options) =
             end
 
             if show_normals then
-                arrows := cons(with_arrow_color(normal_color, make_arrow(pos, cross_sqrt(dv, du))), arrows);
+                arrows := cons(with_arrow_color(normal_color, make_arrow(pos, cross_sqrt(magnitude(dv), magnitude(du)) * unit(pos))), arrows);
             end
 
             return arrows;

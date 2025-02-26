@@ -23,12 +23,37 @@
     These examples show parametrically rendered two-dimensional surfaces.
 
     <p>
-        A surface is described parametrically with a function from parameters (u, v) to a three-dimensional
-        position vector. The domains of u and v vary per parametrization.
+        A surface is described parametrically with a function
+        <math>
+            <mi>f</mi>
+            (
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            )
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    (
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    )
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        from parameters
+        <math>
+            (<mi>u</mi>, <mi>v</mi>)
+        </math>
+        to a three-dimensional position vector. The domains of u and v vary per parametrization.
 
     <p>
-        Parameter n is the number of samples in each of the two directions. The computation complexity is therefore n
-        squared.
+        In the examples below, parameter n is the number of samples in each of the two directions. The computation
+        complexity is therefore n squared.
 
         Parameter m is the density of the normal and other vectors. If m equals 1 then arrows are shown for every line
         segment. If m equals 2 then are shown every other segment. For m equals 3 every third segment. And so on.
@@ -36,12 +61,433 @@
 
         Parameter d is a scaling factor for the arrows. Increasing d increases the arrow sizes.
 
+    <h2>Plane</h2>
+    <p>
+        Parametrization of a plane.
+
+    <p>
+        <math>
+            <mi>f</mi>
+            (
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            )
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    (
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    )
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>u</mi>
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                <mi>v</mi>
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mo>+</mo>
+                <mi>b</mi>
+                <mi>x</mi>
+                <mo>+</mo>
+                <mi>c</mi>
+                <mi>y</mi>
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>a</mi>
+    </math>
+    is an offset,
+    <math>
+        <mi>b</mi>
+    </math>
+    , and
+    <math>
+        <mi>c</mi>
+    </math>
+    are scaling factors,
+    <math>
+        <mn>-8</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>8</mn>
+    </math>
+    , and
+    <math>
+        <mn>-8</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>8</mn>
+    </math>
+
+    <p>
+    <div class="example">
+        <pacioli-scene width="1200" height="600" id="plane_scene" script="surfaces" definition="plane_scene"
+            kind="scene" perspective axis>
+            <parameter label="a" unit="metre">1</parameter>
+            <parameter label="b" unit="1">-0.5</parameter>
+            <parameter label="c" unit="1">-0.2</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">50</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="partial vecors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="plane_scene"></pacioli-inputs>
+        <pacioli-controls for="plane_scene"></pacioli-controls>
+    </div>
+
+
+    <h2>Wave</h2>
+    <p>
+        Plot of a surface built from the cosine function.
+
+    <p>
+        <math>
+            <mi>f</mi>
+            <mo>(</mo>
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            <mo>)</mo>
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    <mo>(</mo>
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    <mo>)</mo>
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>u</mi>
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                <mi>v</mi>
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>cos</mi>
+                <mo>(</mo>
+                <mi>r</mi>
+                <mi>c</mi>
+                <mo>)</mo>
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>r</mi>
+        <mo>=</mo>
+        <msqrt>
+            <msup>
+                <mi>u</mi>
+                <mn>2</mn>
+            </msup>
+            <mo>+</mo>
+            <msup>
+                <mi>v</mi>
+                <mn>2</mn>
+            </msup>
+        </msqrt>
+    </math>
+    ,
+    <math>
+        <mi>a</mi>
+    </math>
+    and
+    <math>
+        <mi>c</mi>
+    </math>
+    are scaling factors,
+    <math>
+        <mn>-10</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>10</mn>
+    </math>
+    , and
+    <math>
+        <mn>-10</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>10</mn>
+    </math>
+
+
+    <p>
+    <div class="example">
+        <pacioli-scene width="1200" height="600" id="cosine_scene" script="surfaces" definition="cosine_scene"
+            kind="scene" perspective grid axis>
+            <parameter label="a" unit="1">1</parameter>
+            <parameter label="c" unit="radian/metre">1</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">50</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="cosine_scene"></pacioli-inputs>
+        <pacioli-controls for="cosine_scene"></pacioli-controls>
+
+    </div>
+
+
+    <h2>Saddle</h2>
+    <p>
+        Plot of a saddle surface. The surface is rotated around the z-axis.
+
+    <p>
+        Note that the product for z make the unit of the z dimensions metre squared.
+
+    <p>
+        <math>
+            <mi>f</mi>
+            <mo>(</mo>
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            <mo>)</mo>
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    <mo>(</mo>
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    <mo>)</mo>
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>u</mi>
+                <mi>cos</mi>
+                (<mi>&alpha;</mi>)
+                <mo>-</mo>
+                <mi>v</mi>
+                <mi>sin</mi>
+                (<mi>&alpha;</mi>)
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                <mi>u</mi>
+                <mi>sin</mi>
+                (<mi>&alpha;</mi>)
+                <mo>+</mo>
+                <mi>v</mi>
+                <mi>cos</mi>
+                (<mi>&alpha;</mi>)
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>x</mi>
+                <mi>y</mi>
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>&alpha;</mi>
+    </math>
+    is the angle of rotation,
+    <math>
+        <mi>a</mi>
+    </math>
+    is a scaling factor,
+    <math>
+        <mn>-5</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>5</mn>
+    </math>
+    , and
+    <math>
+        <mn>-5</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>5</mn>
+    </math>
+
+
+    <p>
+    <div class="example">
+        <pacioli-scene width="1200" height="600" id="saddle_scene" script="surfaces" definition="saddle_scene"
+            kind="scene" perspective grid axis unitZ="metre^2">
+            <parameter label="angle" unit="radian">0.79</parameter>
+            <parameter label="a" unit="1">0.4</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">50</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="saddle_scene"></pacioli-inputs>
+        <pacioli-controls for="saddle_scene"></pacioli-controls>
+
+    </div>
+
+
     <h2>Ellipsoid</h2>
     <p>
         Parametrization of an ellipsoid surface.
 
+    <p>
+        <math>
+            <mi>f</mi>
+            (
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            )
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    (
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    )
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>cos</mi>
+                (<mi>u</mi>)
+                <mi>sin</mi>
+                (<mi>v</mi>)
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                <mi>b</mi>
+                <mi>sin</mi>
+                (<mi>u</mi>)
+                <mi>sin</mi>
+                (<mi>v</mi>)
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>c</mi>
+                <mi>cos</mi>
+                (<mi>v</mi>)
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>a</mi>
+    </math>
+    ,
+    <math>
+        <mi>b</mi>
+    </math>
+    , and
+    <math>
+        <mi>c</mi>
+    </math>
+    are scaling factors in the three dimensions,
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>2&pi;</mn>
+    </math>
+    , and
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>&pi;</mn>
+    </math>
+
+    <p>
     <div class="example">
-        <pacioli-scene width="1200" height="800" id="ellipsoid_scene" script="surfaces" definition="ellipsoid_scene"
+        <pacioli-scene width="1200" height="600" id="ellipsoid_scene" script="surfaces" definition="ellipsoid_scene"
             kind="scene" perspective axis>
             <parameter label="x size" unit="metre">5</parameter>
             <parameter label="y size" unit="metre">5</parameter>
@@ -64,8 +510,103 @@
     <p>
         Parametrization of a torus surface.
 
+    <p>
+        <math>
+            <mi>f</mi>
+            (
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            )
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    (
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    )
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                ( <mi>a</mi>
+                <mo>+</mo>
+                <mi>b</mi>
+                <mi>cos</mi>
+                ( <mi>u</mi> ))
+                <mi>cos</mi>
+                <mo>(</mo>
+                <mi>v</mi>
+                <mo>)</mo>
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                (
+                <mi>a</mi>
+                <mo>+</mo>
+                <mi>b</mi>
+                <mi>cos</mi>
+                (
+                <mi>u</mi>
+                ))
+                <mi>sin</mi>
+                <mo>(</mo>
+                <mi>v</mi>
+                <mo>)</mo>
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>b</mi>
+                <mi>sin</mi>
+                <mo>(</mo>
+                <mi>u</mi>
+                <mo>)</mo>
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>a</mi>
+    </math>
+    is the major radius, and
+    <math>
+        <mi>b</mi>
+    </math>
+    the minor radius,
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>2&pi;</mn>
+    </math>
+    , and
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>2&pi;</mn>
+    </math>
+
+    <p>
     <div class="example">
-        <pacioli-scene width="1200" height="800" id="torus_scene" script="surfaces" definition="torus_scene"
+        <pacioli-scene width="1200" height="600" id="torus_scene" script="surfaces" definition="torus_scene"
             kind="scene" perspective grid axis>
             <parameter label="major" unit="metre">4</parameter>
             <parameter label="minor" unit="metre">3</parameter>
@@ -83,30 +624,115 @@
     </div>
 
 
-    <h2>Cosine</h2>
+    <h2>Möbius</h2>
+
+    The Möbius strip.
+
     <p>
-        Plot of a surface built from the cosine function
-
-    <div class="example">
-        <pacioli-scene width="1200" height="800" id="cosine_scene" script="surfaces" definition="cosine_scene"
-            kind="scene" perspective grid axis>
-            <parameter label="n" unit="1">50</parameter>
-            <parameter label="m" unit="1">1</parameter>
-            <parameter label="d" unit="1">50</parameter>
-            <parameter label="surface" type="boole">true</parameter>
-            <parameter label="partial vectors" type="boole">false</parameter>
-            <parameter label="sum vector" type="boole">false</parameter>
-            <parameter label="normals" type="boole">false</parameter>
-        </pacioli-scene>
-        <pacioli-inputs for="cosine_scene"></pacioli-inputs>
-        <pacioli-controls for="cosine_scene"></pacioli-controls>
-
-    </div>
-
-
-    <h2>Moebius</h2>
-
-    The well-known Moebius strip.
+        <math>
+            <mi>f</mi>
+            (
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            )
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    (
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    )
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>cos</mi>
+                ( <mi>u</mi> )
+                ( <mi>c</mi>
+                <mo>+</mo>
+                <mi>v</mi>
+                <mi>cos</mi>
+                (
+                <mfrac>
+                    <mn>1</mn>
+                    <mn>2</mn>
+                </mfrac>
+                <mi>u</mi>
+                ))
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>sin</mi>
+                ( <mi>u</mi> )
+                ( <mi>c</mi>
+                <mo>+</mo>
+                <mi>v</mi>
+                <mi>cos</mi>
+                (
+                <mfrac>
+                    <mn>1</mn>
+                    <mn>2</mn>
+                </mfrac>
+                <mi>u</mi>
+                ))
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>v</mi>
+                <mi>sin</mi>
+                (
+                <mfrac>
+                    <mn>1</mn>
+                    <mn>2</mn>
+                </mfrac>
+                <mi>u</mi>
+                )
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>a</mi>
+    </math>
+    and
+    <math>
+        <mi>c</mi>
+    </math>
+    are scaling factors,
+    <math>
+        <mn>-&pi;</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>&pi;</mn>
+    </math>
+    , and
+    <math>
+        <mn>-0.5</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>0.5</mn>
+    </math>
 
     <p>
         The blue and purple paths are in a diagonal direction, yet they terminate at the starting point.
@@ -117,11 +743,13 @@
 
     <p>
     <div class="example">
-        <pacioli-scene width="1200" height="800" id="moebius_scene" script="surfaces" definition="moebius_scene"
+        <pacioli-scene width="1200" height="600" id="moebius_scene" script="surfaces" definition="moebius_scene"
             kind="scene" perspective grid axis>
+            <parameter label="a" unit="1">5</parameter>
+            <parameter label="c" unit="metre">1</parameter>
             <parameter label="n" unit="1">30</parameter>
             <parameter label="m" unit="1">1</parameter>
-            <parameter label="d" unit="1">10</parameter>
+            <parameter label="d" unit="1">2</parameter>
             <parameter label="surface" type="boole">true</parameter>
             <parameter label="partial vectors" type="boole">false</parameter>
             <parameter label="sum vector" type="boole">false</parameter>
