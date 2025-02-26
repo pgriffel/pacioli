@@ -26,10 +26,10 @@ doc scene_cross_oscillate
 
 # A tuple for states of (x,y,z) vectors
 declare scene_cross_oscillate :: (metre, metre) ->
-    Animation(metre);
+    Animation(metre, Geom3!);
 
 declare scene_cross_dimless_oscillate :: (1, 1) ->
-    Animation(1);  # Geom3 dimensionless
+    Animation(1, Geom3!);  # Geom3 dimensionless
 
 
 define scene_cross_oscillate(x1, y1) =

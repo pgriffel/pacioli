@@ -63,7 +63,7 @@ define scene2(a) =
     end;
  
 declare add_bi_vectors ::
-    for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!, Color)), Scene(a), Boole) -> Scene(a);
+    for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!, Color)), Scene(a, Geom3!), Boole) -> Scene(a, Geom3!);
 
 define add_bi_vectors(bi_vectors, scene, wireframe) =
     let
@@ -74,7 +74,7 @@ define add_bi_vectors(bi_vectors, scene, wireframe) =
     end;
 
 declare bi_vector_mesh_and_arrows ::
-    for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!, Color) -> Tuple(Mesh(a), Tuple(Arrow(a), Arrow(a)));
+    for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!, Color) -> Tuple(Mesh(a, Geom3!), Tuple(Arrow(a, Geom3!), Arrow(a, Geom3!)));
 
 define bi_vector_mesh_and_arrows(origin, v1, v2, color) = 
     tuple(
@@ -84,7 +84,7 @@ define bi_vector_mesh_and_arrows(origin, v1, v2, color) =
             with_arrow_color(color, make_arrow(origin + v1, v2))));
 
 declare bi_vector_mesh2 ::
-    for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> Mesh(a);
+    for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> Mesh(a, Geom3!);
 
 define bi_vector_mesh2(origin, v1, v2) = 
     let

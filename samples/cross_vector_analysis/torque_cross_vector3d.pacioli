@@ -21,7 +21,7 @@ declare scene_orbit_point_mass :: (
     second^2/gram,
     second/gram/metre,
     second
-) -> StatefulAnimation(metre, State);
+) -> StatefulAnimation(metre, Geom3!, State);
 
 define scene_orbit_point_mass(
     mass,
@@ -69,8 +69,8 @@ define scene_orbit_point_mass(
 # ------------------------------------------------------------------------------
 
 declare animation_callback ::
-    (gram, ForceField, (State, Scene(metre)) -> Scene(metre)) -> 
-        (second, State, Scene(metre)) -> Tuple(State, Scene(metre));
+    (gram, ForceField, (State, Scene(metre, Geom3!)) -> Scene(metre, Geom3!)) -> 
+        (second, State, Scene(metre, Geom3!)) -> Tuple(State, Scene(metre, Geom3!));
 
 define animation_callback(mass, force_field, scene_fn) = 
     (time, state, scene) ->
@@ -266,7 +266,7 @@ doc scene_update_fn
 
 declare scene_update_fn ::
     (gram, second^2/gram/metre, second^2/gram, second/gram/metre, second) ->
-        (State, Scene(metre)) -> Scene(metre);
+        (State, Scene(metre, Geom3!)) -> Scene(metre, Geom3!);
 
 define scene_update_fn(mass, torque_factor, force_factor, momentum_factor, velocity_factor) = 
     let

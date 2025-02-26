@@ -14,7 +14,7 @@ import quaternion;
 # Scene for a first display of quanternion operations and working of rotations
 # ------------------------------------------------------------------------------
 
-declare scene_quaternion_sandbox :: (1,1,1,1, 1,1,1,1) -> Scene(1);
+declare scene_quaternion_sandbox :: (1,1,1,1, 1,1,1,1) -> Scene(1, Geom3!);
 
 define scene_quaternion_sandbox(
     a1, i1, j1, k1,
@@ -42,7 +42,7 @@ define scene_quaternion_sandbox(
     end;
 
 # Tuples of quaternions and strings for the labels
-declare add_quaternions :: (List(Tuple(Quaternion(1), String)), Scene(1)) -> Scene(1);
+declare add_quaternions :: (List(Tuple(Quaternion(1), String)), Scene(1, Geom3!)) -> Scene(1, Geom3!);
 
 define add_quaternions(qs, scene) =
     add_arrows(

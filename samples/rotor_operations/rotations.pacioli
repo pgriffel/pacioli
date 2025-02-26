@@ -129,7 +129,7 @@ define scene_rotation_rotor(ax, ay, az, bx, by, bz, xx, xy, xz) =
 
 
 declare scene_rotor_composition :: (String, String, String, String, String, String, String) ->
-    StatefulAnimation(metre, List(MultiVector(metre, Geom3!)));
+    StatefulAnimation(metre, Geom3!, List(MultiVector(metre, Geom3!)));
 
 define scene_rotor_composition(r11, r12, r21, r22, iframe1, iframe2, iframe3) =
     let
@@ -167,7 +167,7 @@ define animation_callback_state_composition(rotor) =
 
 
 declare scene_rotor_nesting :: (String, String, String, String, String, String, String) ->
-    StatefulAnimation(metre, State(metre));
+    StatefulAnimation(metre, Geom3!, State(metre));
 
 define scene_rotor_nesting(r11, r12, r21, r22, iframe1, iframe2, iframe3) =
     let
@@ -194,7 +194,7 @@ define scene_rotor_nesting(r11, r12, r21, r22, iframe1, iframe2, iframe3) =
     end;
 
 declare animation_callback_nesting :: for_unit a:
-    (second, State(a), Scene(a)) -> Tuple(State(a), Scene(a));
+    (second, State(a), Scene(a, Geom3!)) -> Tuple(State(a), Scene(a, Geom3!));
 
 define animation_callback_nesting(time, state, scene) =
     let next = next_state(state) in
@@ -247,7 +247,7 @@ define next_state(state) =
 
 # ------------------------------------------------------------------------------
 
-declare state_arrows :: for_unit a: (State(a)) -> List(Arrow(a));
+declare state_arrows :: for_unit a: (State(a)) -> List(Arrow(a, Geom3!));
 
 define state_arrows(state) = 
     let
@@ -267,7 +267,7 @@ define state_arrows(state) =
 
 
 declare frame_arrows :: for_unit a:
-    (List(MultiVector(a, Geom3!)), Color, Boole) -> List(Arrow(a));
+    (List(MultiVector(a, Geom3!)), Color, Boole) -> List(Arrow(a, Geom3!));
 
 define frame_arrows(frame, color, show_label) = 
     [arrow | j <- naturals(list_size(frame)), 

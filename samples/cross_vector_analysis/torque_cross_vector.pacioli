@@ -32,7 +32,7 @@ doc scene_torque_orbital2d_pointmass
 
 # A tuple for states of (x,y,z) vectors
 declare scene_torque_orbital2d_pointmass :: (gram, metre) ->
-    StatefulAnimation(metre, State);
+    StatefulAnimation(metre, Geom3!, State);
 
 # TODO: make spherical 3D version
 #declare scene_torque_spherical3d_pointmass :: (metre, metre) ->
@@ -135,7 +135,7 @@ define next_state(state, mass, time, radius) =
         tuple(time, newAngle, newAngularMomentum)
     end;
 
-declare state_arrows :: (State) -> List(Arrow(metre));
+declare state_arrows :: (State) -> List(Arrow(metre, Geom3!));
 
 define state_arrows(state) = 
     let
