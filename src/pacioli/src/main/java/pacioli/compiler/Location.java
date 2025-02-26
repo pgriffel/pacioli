@@ -24,6 +24,7 @@ package pacioli.compiler;
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.Optional;
 
 /**
  * A location is a range in a file. A position is a location with an equal range
@@ -172,8 +173,8 @@ public class Location {
         }
     }
 
-    public File file() {
-        return file;
+    public Optional<File> file() {
+        return Optional.ofNullable(file);
     }
 
     public String fragment() {

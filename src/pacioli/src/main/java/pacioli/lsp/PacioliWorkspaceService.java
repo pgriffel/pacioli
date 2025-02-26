@@ -7,11 +7,8 @@ import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
-import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.WorkspaceService;
-
-import pacioli.lsp.PacioliTextDocumentService.DocumentState;
 
 public class PacioliWorkspaceService implements WorkspaceService {
 

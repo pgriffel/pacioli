@@ -64,6 +64,9 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    * is given.
    */
   unit?: SIUnit;
+  unitX?: SIUnit;
+  unitY?: SIUnit;
+  unitZ?: SIUnit;
 
   /**
    * The Pacioli space
@@ -78,7 +81,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = ["unit"];
+  static observedAttributes = ["unit", "unitx", "unity", "unitz"];
 
   /**
    * Web component life-cycle event.
@@ -98,6 +101,18 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
       switch (name) {
         case "unit": {
           this.unit = si.parseDimNum(newValue).unit;
+          break;
+        }
+        case "unitx": {
+          this.unitX = si.parseDimNum(newValue).unit;
+          break;
+        }
+        case "unity": {
+          this.unitY = si.parseDimNum(newValue).unit;
+          break;
+        }
+        case "unitz": {
+          this.unitZ = si.parseDimNum(newValue).unit;
           break;
         }
       }
@@ -153,7 +168,9 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    */
   spaceOptions(): Partial<SpaceOptions> {
     return {
-      unit: this.unit || si.parseDimNum("metre").unit,
+      unitX: this.unitX || this.unit || si.parseDimNum("metre").unit,
+      unitY: this.unitY || this.unit || si.parseDimNum("metre").unit,
+      unitZ: this.unitZ || this.unit || si.parseDimNum("metre").unit,
       ...optionsFromAttributes<SpaceOptions>(this, SUPPORTED_ATTRIBUTES),
     };
   }

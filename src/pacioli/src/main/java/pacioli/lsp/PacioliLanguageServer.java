@@ -6,13 +6,11 @@ import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.DefinitionOptions;
-import org.eclipse.lsp4j.DiagnosticRegistrationOptions;
 import org.eclipse.lsp4j.HoverOptions;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
-import org.eclipse.lsp4j.SemanticTokensLegend;
 import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.SignatureHelpOptions;
@@ -25,8 +23,12 @@ import org.eclipse.lsp4j.services.WorkspaceService;
 
 public class PacioliLanguageServer implements LanguageServer, LanguageClientAware {
 
+    static List<String> SIGNATURE_HELP_TRIGGER_CHARACTERS = List.of("(");
+
     private PacioliTextDocumentService textDocumentService;
+
     private PacioliWorkspaceService workspaceService;
+
     private LanguageClient languageClient;
 
     List<File> libs;
@@ -57,8 +59,27 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
     }
 
     @Override
-    public void exit() {
-        this.logInfo("exit language server");
+    public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
+        return CompletableFuture.supplyAsync(() -> {
+
+            // Todo: check capabilities
+            var clientCapabilities = params.getCapabilities();
+
+            var serverCapabilities = new ServerCapabilities();
+
+            serverCapabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
+
+            serverCapabilities.setDefinitionProvider(new DefinitionOptions());
+            serverCapabilities.setCompletionProvider(new CompletionOptions());
+            serverCapabilities.setHoverProvider(new HoverOptions());
+            serverCapabilities.setSemanticTokensProvider(
+                    new SemanticTokensWithRegistrationOptions(DocumentState.SEMANTIC_TOKEN_LEGEND, true));
+            serverCapabilities.setSignatureHelpProvider(new SignatureHelpOptions(SIGNATURE_HELP_TRIGGER_CHARACTERS));
+
+            this.logInfo("PacioliLanguageServer initialized, waiting for requests...");
+
+            return new InitializeResult(serverCapabilities);
+        });
     }
 
     @Override
@@ -72,26 +93,8 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
     }
 
     @Override
-    public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-        this.logInfo("initializing PacioliLanguageServer");
-
-        final InitializeResult response = new InitializeResult(new ServerCapabilities());
-
-        response.getCapabilities().setDefinitionProvider(new DefinitionOptions());
-        response.getCapabilities().setTextDocumentSync(TextDocumentSyncKind.Full);
-        response.getCapabilities().setCompletionProvider(new CompletionOptions());
-        response.getCapabilities().setDiagnosticProvider(new DiagnosticRegistrationOptions());
-        response.getCapabilities().setHoverProvider(new HoverOptions());
-        SemanticTokensLegend legend = new SemanticTokensLegend(
-                List.of("function", "variable", "parameter", "type"),
-                List.of("declaration", "definition"));
-        response.getCapabilities().setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(legend, true));
-        response.getCapabilities().setSignatureHelpProvider(new SignatureHelpOptions(List.of("(")));
-
-        // Todo: check capabilities
-        var clientCapabilities = params.getCapabilities();
-
-        return CompletableFuture.supplyAsync(() -> response);
+    public void exit() {
+        this.logInfo("Exit Pacioli language server");
     }
 
     @Override
