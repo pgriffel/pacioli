@@ -154,7 +154,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
             } catch (Exception e) {
                 System.gc();
-                throw new CompletionException("Failed to find source location", e);
+                return Either.forLeft(List.of());
             }
         });
     }
@@ -178,6 +178,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 return this.getState(uri).signatureHelp(identifier.get());
 
             } catch (Exception e) {
+                System.gc();
                 throw new CompletionException("Error in signature help", e);
             }
         });
