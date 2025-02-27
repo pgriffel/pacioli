@@ -399,6 +399,13 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("matrix_cbrt") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.cbrt();
+            }
+        });
+
         storePrimitive(store, new Primitive("matrix_sum") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);

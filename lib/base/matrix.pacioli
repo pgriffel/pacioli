@@ -61,6 +61,7 @@ export
     greater_eq,
     is_zero,
     sqrt,
+    cbrt,
     log,
     exp,
     ln,
@@ -612,10 +613,23 @@ doc sqrt
     
     or using the element-wise product <code>*</code>
     
-    <code>sqrt(A) * sqrt(A) = A</code>";
+    <code>sqrt(A) * sqrt(A) = sqrt(A)^2 = A</code>";
 
 declare sqrt ::
   for_index P,Q: for_unit a, P!u, Q!v: (a^2*P!u^2 per Q!v^2) -> a*P!u per Q!v;
+
+
+doc cbrt
+    "Element-wise cube root.
+    
+    <code>get_num(cbrt(A), p, q) = cbrt(get_num(A, p, q))</code>
+    
+    or using the element-wise product <code>*</code>
+    
+    <code>cbrt(A) * cbrt(A) * cbrt(A) = cbrt(A)^3 = A</code>";
+
+declare cbrt ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a^3*P!u^3 per Q!v^3) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
 

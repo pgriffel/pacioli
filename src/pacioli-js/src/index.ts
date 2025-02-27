@@ -195,6 +195,7 @@ export {
   $base_list_sort_list,
   $base_string_split_string,
   $base_matrix_sqrt,
+  $base_matrix_cbrt,
   $base_matrix_sum,
   $base_matrix_signum,
   $base_matrix_support,
