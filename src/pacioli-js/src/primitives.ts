@@ -831,6 +831,12 @@ export function $base_matrix_sqrt(x: any) {
   });
 }
 
+export function $base_matrix_cbrt(x: any) {
+  return unaryNumbers(x, function (val: number) {
+    return Math.cbrt(val);
+  });
+}
+
 export function $base_matrix_solve(x: any, _ignored: any) {
   // https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse
   // Maybe use svd to compute pseudo-inverse?

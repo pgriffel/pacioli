@@ -799,6 +799,24 @@ public class Matrix extends AbstractPacioliValue {
         return matrix;
     }
 
+    public PacioliValue cbrt() throws MVMException {
+        Matrix matrix = new Matrix(shape.sqrt());
+        for (int i = 0; i < nrRows(); i++) {
+            for (int j = 0; j < nrColumns(); j++) {
+                double num2 = numbers.getEntry(i, j);
+                if (num2 < 0) {
+                    throw new MVMException("Cannot take cube root of negative number %s", num2);
+                }
+                if (Double.isNaN(num2)) {
+                    throw new MVMException("Cannot take cube root of number %s", num2);
+                }
+                double num3 = Math.cbrt(num2);
+                matrix.numbers.setEntry(i, j, num3);
+            }
+        }
+        return matrix;
+    }
+
     public PacioliValue expt(Matrix y) {
         Matrix matrix = new Matrix(shape);
         for (int i = 0; i < nrRows(); i++) {
