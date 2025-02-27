@@ -13,9 +13,7 @@ define line_color = make_color("steelblue");
 define plane_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
     let 
         f(x, y) = 
-            let z = a + b*x + c*y in
-                vector3d(x, y, z)
-            end,
+            vector3d(x, y, a + b*x + c*y),
 
         range = 
             make_range(
@@ -25,33 +23,7 @@ define plane_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_no
         options =
             tuple(d, show_parts, show_sum, show_normals)
     in
-        build_scene(f, range, n, m, show_surface, options)
-    end;
-
-# ------------------------------------------------------------------------------
-
-define ellipsoid_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
-    let
-        fun =
-            ellipsoid_parametrization(a, b, c),
-
-        options =
-            tuple(d, show_parts, show_sum, show_normals)
-    in
-        build_scene(fun, ellipsoid_range, n, m, show_surface, options)
-    end;
-
-# ------------------------------------------------------------------------------
-
-define torus_scene(major, minor, n, m, d, show_surface, show_parts, show_sum, show_normals) =
-    let
-        fun =
-            torus_parametrization(major, minor),
-
-        options =
-            tuple(d, show_parts, show_sum, show_normals)
-    in
-        build_scene(fun, torus_range, n, m, show_surface, options)
+        build_example_scene(f, range, n, m, show_surface, options)
     end;
 
 # ------------------------------------------------------------------------------
@@ -60,7 +32,7 @@ define cosine_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_norm
     let 
         f(x, y) = 
             let r = sqrt(x^2 + y^2) in
-                vector3d(y, x, a * cos(r * c) * |metre|)
+                vector3d(y, x, a * cos(r * c))
             end,
 
         range = 
@@ -71,50 +43,34 @@ define cosine_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_norm
         options =
             tuple(d, show_parts, show_sum, show_normals)
     in
-        build_scene(f, range, n, m, show_surface, options)
+        build_example_scene(f, range, n, m, show_surface, options)
     end;
-
+    
 # ------------------------------------------------------------------------------
 
-define moebius_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define paraboloid_scene(a, n, m, d, show_surface, show_parts, show_sum, show_normals) =
     let 
-        moebius_fun =
-            moebius_parametrization(c),
-
         f(u, v) =
-            a '.*' moebius_fun(u,v),
+            make_zsquared(u*cos(v), u*sin(v), a * u^2),
+            
+        range = 
+            make_range(
+                -5 * |metre|, 5 * |metre|,
+                -0.5 * pi * |radian|, 0.5 * pi * |radian|),
 
-        path_options =
-            tuple(d, show_parts, show_sum, show_normals),
-
-        surface_options =
-            tuple(d, show_surface and show_parts, show_surface and show_sum, show_surface and show_normals),
-
-        u = range_ustart(moebius_range),
-        v = range_vstart(moebius_range),
-
-        du = range_width(moebius_range) / n,
-        dv = range_height(moebius_range) / n
+        options =
+            tuple(d, show_parts, show_sum, show_normals)
     in
-        begin
-            scene := build_scene(f, moebius_range, n, m, show_surface, surface_options);
-            scene := plot_path(f, u, v, du, 0*dv, n, m, path_options, make_color("orange"), scene);
-            scene := plot_path(f, u, v+n*dv, du, 0*dv, n, m, path_options, make_color("orange"), scene);
-            scene := plot_path(f, u, v, du, dv, n, m, path_options, make_color("purple"), scene);
-            scene := plot_path(f, u + n*du, v, -du, dv, n, m, path_options, make_color("blue"), scene);
-            return scene;
-        end
+        build_example_scene(f, range, n, m, show_surface, options)
     end;
 
 # ------------------------------------------------------------------------------
 
-declare saddle_scene :: for_type a: for_unit b:
-    (radian, 1, 1, b, 1, Boole, Boole, Boole, Boole) -> Scene(1, Geom3!zsquared);
-
-define saddle_scene(angle, a, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define saddle_scene(a, b, n, m, d, show_surface, show_parts, show_sum, show_normals) =
     let 
-        f = saddle_parametrization(angle, a),
-            
+        f(u, v) =
+            make_zsquared(u, v, a*u^2 + b*v^2),
+
         range = 
             make_range(
                 -5 * |metre|, 5 * |metre|,
@@ -123,73 +79,89 @@ define saddle_scene(angle, a, n, m, d, show_surface, show_parts, show_sum, show_
         options =
             tuple(d, show_parts, show_sum, show_normals)
     in
-        build_scene(f, range, n, m, show_surface, options)
+        build_example_scene(f, range, n, m, show_surface, options)
     end;
 
 # ------------------------------------------------------------------------------
-# Ellopsoid parametrization
-# ------------------------------------------------------------------------------
 
-define ellipsoid_range = 
-    make_range(
-        0 * |radian|, 2 * pi * |radian|,
-        0 * |radian|, 1 * pi * |radian|);
+define ellipsoid_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    let
+        fun(u, v) =
+            vector3d(
+                a * cos(u) * sin(v),
+                b * sin(u) * sin(v),
+                c * cos(v)),
 
-define ellipsoid_parametrization(a, b, c) =
-    (u, v) ->
-        vector3d(
-            a * cos(u) * sin(v),
-            b * sin(u) * sin(v),
-            c * cos(v));
+        range = 
+            make_range(
+                0 * |radian|, 2 * pi * |radian|,
+                0 * |radian|, 1 * pi * |radian|),
 
-define sphere_parametrization(r) =
-    ellipsoid_parametrization(r, r, r);
-
-# ------------------------------------------------------------------------------
-# Torus parametrization
-# ------------------------------------------------------------------------------
-
-define torus_range = 
-    make_range(
-        0 * |radian|, 2 * pi * |radian|,
-        0 * |radian|, 2 * pi * |radian|);
-
-define torus_parametrization(major, minor) =
-    (u, v) ->
-        vector3d(
-            (major + minor * cos(u)) * cos(v),
-            (major + minor * cos(u)) * sin(v),
-            minor * sin(u));
+        options =
+            tuple(d, show_parts, show_sum, show_normals)
+    in
+        build_example_scene(fun, range, n, m, show_surface, options)
+    end;
 
 # ------------------------------------------------------------------------------
-# Moebius parametrization
+
+define torus_scene(major, minor, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    let
+        fun(u,v) =
+            vector3d(
+                (major + minor * cos(u)) * cos(v),
+                (major + minor * cos(u)) * sin(v),
+                minor * sin(u)),
+
+        range = 
+            make_range(
+                0 * |radian|, 2 * pi * |radian|,
+                0 * |radian|, 2 * pi * |radian|),
+
+        options =
+            tuple(d, show_parts, show_sum, show_normals)
+    in
+        build_example_scene(fun, range, n, m, show_surface, options)
+    end;
+
 # ------------------------------------------------------------------------------
 
-define moebius_range = 
-    make_range(
-        -pi * |radian|, pi * |radian|,
-        -0.5 * |metre|, 0.5 * |metre|);
+define moebius_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    let 
+        f(u, v) =
+            vector3d(
+                a * cos(u) * (c + cos(u / 2) * v),
+                a * sin(u) * (c + cos(u / 2) * v),
+                a * sin(u / 2) * v),
+        range = 
+            make_range(
+                -pi * |radian|, pi * |radian|,
+                -0.5 * |metre|, 0.5 * |metre|),
 
-define moebius_parametrization(c) =
-    (u, v) ->
-        vector3d(
-            cos(u) * (c + cos(u / 2) * v),
-            sin(u) * (c + cos(u / 2) * v),
-            sin(u / 2) * v);
+        path_options =
+            tuple(d, show_parts, show_sum, show_normals),
+
+        surface_options =
+            tuple(d, show_surface and show_parts, show_surface and show_sum, show_surface and show_normals),
+
+        u = range_ustart(range),
+        v = range_vstart(range),
+
+        du = range_width(range) / n,
+        dv = range_height(range) / n
+    in
+        begin
+            scene := build_example_scene(f, range, n, m, show_surface, surface_options);
+            scene := plot_path(f, u, v, du, 0*dv, 2*n, m, path_options, make_color("orange"), scene);
+            scene := plot_path(f, u, v+n*dv, du, 0*dv, 2*n, m, path_options, make_color("orange"), scene);
+            scene := plot_path(f, u, v, du, dv, n, m, path_options, make_color("purple"), scene);
+            scene := plot_path(f, u + n*du, v, -du, dv, n, m, path_options, make_color("blue"), scene);
+            return scene;
+        end
+    end;
 
 # ------------------------------------------------------------------------------
-# Saddle suface parametrization
-# ------------------------------------------------------------------------------
-
-define saddle_parametrization(angle, a) =
-    (u, v) ->
-        let 
-            x = u * cos(angle) - v * sin(angle),
-            y = u * sin(angle) + v * cos(angle)
-        in
-            make_zsquared(x, y, a * x * y)
-        end;
-
+# Unit Geom3!zsquared
 # ------------------------------------------------------------------------------
 
 defunit Geom3!zsquared = {
@@ -206,6 +178,10 @@ declare make_zsquared ::
 define make_zsquared(a, b, c) = 
     vector3d(magnitude(a), magnitude(b), magnitude(c)) * |Geom3!zsquared|;
 
+# Limited use, what about Geom3!zsquared^2? You can de zsquared_z(sqrt(v))^2, but
+# what about higher powers? With cube_root you can also generate powers 3, 4 and 6,
+# and so on. All prime powers will leave gaps.
+
 declare zsquared_x :: for_unit a: (a*Geom3!zsquared) -> a*metre;
 declare zsquared_y :: for_unit a: (a*Geom3!zsquared) -> a*metre;
 declare zsquared_z :: for_unit a: (a*Geom3!zsquared) -> a*metre^2;
@@ -219,11 +195,29 @@ define zsquared_y(v) =
 define zsquared_z(v) = 
     get_num(v, Geom3@z, _) * scalar_unit(v) * |metre^2|;
 
+# Not generated:
+
+declare zsquared_z2 :: for_unit a: (a^2*Geom3!zsquared^2) -> a^2*metre^4;
+
+define zsquared_z2(v) = 
+    zsquared_z(sqrt(v))^2;
+
+define zsquared_z3(v) = 
+    zsquared_z(cbrt(v))^3;
+
+define zsquared_z4(v) = 
+    zsquared_z(sqrt(sqrt(v)))^4;
+
+define zsquared_z6(v) = 
+    zsquared_z(sqrt(cbrt(v)))^6;
+
+# zsquared_z5(make_zsquared(2*|metre|, 2*|metre|, 2*|metre^2|)^5);
+define yo(x) = cbrt(x)^3;
 # ------------------------------------------------------------------------------
 # Computing the scene
 # ------------------------------------------------------------------------------
 
-define build_scene(fun, range, n, m, show_surface, options) =
+define build_example_scene(fun, range, n, m, show_surface, options) =
     begin
         scene := empty_scene("surface parametrization");
 
@@ -237,6 +231,11 @@ define build_scene(fun, range, n, m, show_surface, options) =
 # ------------------------------------------------------------------------------
 # Paths
 # ------------------------------------------------------------------------------
+
+declare plot_path ::
+    for_unit a, b, c, Geom3!u:
+        ((a, b) -> c*Geom3!u, a, b, a, b, 1, 1, Tuple(1, Boole, Boole, Boole), Color, Scene(c, Geom3!u))
+            -> Scene(c, Geom3!u);
 
 define plot_path(fun, u, v, du, dv, n, m, options, color, scene) =
     begin
@@ -265,6 +264,11 @@ define path_deltas(fun, u, v, du, dv, n, m) =
 # ------------------------------------------------------------------------------
 # Computing the field
 # ------------------------------------------------------------------------------
+
+declare plot_surface_arrows ::
+    for_unit a, b, c, Geom3!u:
+        ((a, b) -> c*Geom3!u, Tuple(Tuple(a, a), Tuple(b, b)), 1, 1, Tuple(1, Boole, Boole, Boole), Scene(c, Geom3!u))
+            -> Scene(c, Geom3!u);
 
 define plot_surface_arrows(fun, range, n, m, options, scene) =
     add_arrows(compute_surface_arrows(fun, range, n, m, options), scene);
@@ -297,6 +301,11 @@ define compute_deltas(fun, range, n, m) =
 # ------------------------------------------------------------------------------
 # Computing the surface
 # ------------------------------------------------------------------------------
+
+declare plot_surface_lines ::
+    for_unit a, b, c, Geom3!u:
+        ((a, b) -> c*Geom3!u, Tuple(Tuple(a, a), Tuple(b, b)), 1, Scene(c, Geom3!u))
+            -> Scene(c, Geom3!u);
 
 define plot_surface_lines(fun, range, n, scene) =
     add_paths(compute_surface_lines(fun, range, n), scene);
