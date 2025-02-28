@@ -17,6 +17,7 @@ import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.MultiDeclaration;
+import pacioli.ast.definition.RecordDefinition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
@@ -866,6 +867,11 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(DataQueryNode node) {
+        write("TODO: DataQueryNode");
+    }
+
+    @Override
+    public void visit(RecordDefinition node) {
         write("TODO: DataQueryNode");
     }
 }

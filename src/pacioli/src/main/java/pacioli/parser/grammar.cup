@@ -339,7 +339,7 @@ parser code {:
 
 
 terminal INCLUDE, IMPORT, EXPORT, PUBLIC;
-terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC, DEFDATA;
+terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC, DEFDATA, DEFRECORD;
 terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, DO, ASSIGN, EXCL, TO, FROM;
 terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, FOROP, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
@@ -380,6 +380,8 @@ non terminal ValueEquation                   valueeq;
 non terminal ExpressionNode                  query;
 non terminal DataDefinitionNode.Binding              data_binding;
 non terminal List<DataDefinitionNode.Binding>        data_bindings;
+non terminal DataDefinitionNode.Binding              record_binding;
+non terminal List<DataDefinitionNode.Binding>        record_bindings;
 non terminal List<ExpressionNode>            select_parts;
 
 precedence right        TO;
@@ -475,6 +477,7 @@ definition ::=
  | expr:e                                           {: RESULT = new Toplevel(e.location(), e); :}
  | DEFDATA:d id:id EQL type:e WHERE data_bindings:cs {: ExpressionNode def = new DataDefinitionNode(makeLoc(exleft, csxright), e, cs);
                                                        RESULT = new ValueDefinition(makeLoc(dxleft, csxright), id, def); :}
+| DEFRECORD:d vardecls:c type:e AS id:id WHERE record_bindings:cs {: RESULT = new RecordDefinition(makeLoc(dxleft, csxright), c, e, id, cs); :}
  ;
 
 
@@ -485,6 +488,14 @@ data_bindings ::=
  
 data_binding ::=
    id:id COLON dim_type:t                           {: RESULT = new DataDefinitionNode.Binding(id, t, makeLoc(idxleft, txright)); :};
+
+record_bindings ::=
+   record_binding:c                                    {: RESULT = new LinkedList<DataDefinitionNode.Binding>(Arrays.asList(c)); :}
+ | record_bindings:cs COMMA record_binding:c                {: cs.add(c); RESULT = cs; :}
+ ;
+ 
+record_binding ::=
+   id:id COLON type:t                           {: RESULT = new DataDefinitionNode.Binding(id, t, makeLoc(idxleft, txright)); :};
 
 //------------------------------------------------------------------------------
 // Include path
