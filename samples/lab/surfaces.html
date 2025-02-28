@@ -777,6 +777,123 @@
     </div>
 
 
+    <h2>Cone</h2>
+    <p>
+        Parametrization of a cone surface.
+
+    <p>
+        <math>
+            <mi>f</mi>
+            (
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            )
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    (
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    )
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mfrac>
+                    <mrow>
+                        <mi>h</mi>
+                        <mo>-</mo>
+                        <mi>u</mi>
+                    </mrow>
+                    <mi>h</mi>
+                </mfrac>
+                <mi>r</mi>
+                <mi>cos</mi>
+                ( <mi>v</mi> )
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                <mfrac>
+                    <mrow>
+                        <mi>h</mi>
+                        <mo>-</mo>
+                        <mi>u</mi>
+                    </mrow>
+                    <mi>h</mi>
+                </mfrac>
+                <mi>r</mi>
+                <mi>sin</mi>
+                ( <mi>v</mi> )
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>u</mi>
+                <mo>-</mo>
+                <mi>h</mi>
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>h</mi>
+    </math>
+    is the height,
+    <math>
+        <mi>r</mi>
+    </math>
+    the radius,
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>2h</mn>
+    </math>
+    , and
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>2&pi;</mn>
+    </math>
+
+    <p>
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="cone_scene" script="surfaces" definition="cone_scene" kind="scene"
+            perspective grid axis>
+            <parameter label="h" unit="metre">4</parameter>
+            <parameter label="r" unit="metre">3</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">10</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="cone_scene"></pacioli-inputs>
+        <pacioli-controls for="cone_scene"></pacioli-controls>
+
+    </div>
+
+
     <h2>Möbius</h2>
 
     The Möbius strip.
@@ -916,6 +1033,80 @@
         <pacioli-inputs for="moebius_scene"></pacioli-inputs>
         <pacioli-controls for="moebius_scene"></pacioli-controls>
 
+    </div>
+
+
+    <h2>Alternative sphere</h2>
+    <p>
+        Parametrization of a sphere.
+
+    <p>
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="alternative_sphere_scene" script="surfaces"
+            definition="alternative_sphere_scene" kind="scene" perspective axis>
+            <parameter label="a" unit="metre">5</parameter>
+            <parameter label="b" unit="metre">5</parameter>
+            <parameter label="c" unit="metre">5</parameter>
+            <parameter label="n" unit="1">50</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">10</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="partial vecors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="alternative_sphere_scene"></pacioli-inputs>
+        <pacioli-controls for="alternative_sphere_scene"></pacioli-controls>
+    </div>
+
+
+    <h2>Alternative cone</h2>
+    <p>
+        Parametrization of a cone.
+
+    <p>
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="alternative_cone_scene" script="surfaces"
+            definition="alternative_cone_scene" kind="scene" perspective axis>
+            <parameter label="a" unit="metre">5</parameter>
+            <parameter label="b" unit="metre">5</parameter>
+            <parameter label="c" unit="metre">5</parameter>
+            <parameter label="n" unit="1">50</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">10</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="partial vecors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="alternative_cone_scene"></pacioli-inputs>
+        <pacioli-controls for="alternative_cone_scene"></pacioli-controls>
+    </div>
+
+
+
+    <h2>Flower</h2>
+    <p>
+        Parametrization of a flower.
+
+    <p>
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="flower_scene" script="surfaces" definition="flower_scene"
+            kind="scene" perspective axis>
+            <parameter label="a" unit="metre">5</parameter>
+            <parameter label="b" unit="1">4</parameter>
+            <parameter label="c" unit="1">1</parameter>
+            <parameter label="k" unit="1">8</parameter>
+            <parameter label="n" unit="1">50</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">10</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="partial vecors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="flower_scene"></pacioli-inputs>
+        <pacioli-controls for="flower_scene"></pacioli-controls>
     </div>
 
 

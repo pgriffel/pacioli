@@ -126,6 +126,27 @@ define torus_scene(major, minor, n, m, d, show_surface, show_parts, show_sum, sh
 
 # ------------------------------------------------------------------------------
 
+define cone_scene(h, r, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    let 
+        f(u, v) =
+            vector3d(
+                r*(h - u)/h * cos(v),
+                r*(h - u)/h * sin(v),
+                u - h),
+
+        range = 
+            make_range(
+                0*h, 2*h,
+                0 * pi * |radian|, 2 * pi * |radian|),
+
+        options =
+            tuple(d, show_parts, show_sum, show_normals)
+    in
+        build_example_scene(f, range, n, m, show_surface, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
 define moebius_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
     let 
         f(u, v) =
@@ -158,6 +179,59 @@ define moebius_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_nor
             scene := plot_path(f, u + n*du, v, -du, dv, n, m, path_options, make_color("blue"), scene);
             return scene;
         end
+    end;
+
+# ------------------------------------------------------------------------------
+
+# From https://math.stackexchange.com/questions/1209858/what-equation-will-create-a-3d-rose-curve
+
+define flower_scene(a, b, c, k, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    let 
+        f(u, v) =
+            vector3d(
+                a * cos(b * v) * expt(cos(c * u), k) * cos(v) * cos(u), 
+                a * cos(b * v) * expt(cos(c * u), k) * sin(v) * cos(u), 
+                a * cos(b * v) * expt(cos(c * u), k) * sin(u)),
+
+        range = 
+            make_range(
+                0 * pi * |radian|, 2 * pi * |radian|,
+                0 * pi * |radian|, 2 * pi * |radian|),
+
+        options =
+            tuple(d, show_parts, show_sum, show_normals)
+    in
+        build_example_scene(f, range, n, m, show_surface, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
+# From https://math.stackexchange.com/questions/238520/parametric-equation-of-a-cone
+
+define alternative_sphere_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    alternative_scene(cos, a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals);
+
+define alternative_cone_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    alternative_scene(sin, a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals);
+
+define alternative_scene(fun, a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+    let 
+        f(u, v) =
+            vector3d(
+                a * sin(u * atan(v/u)) * sin(v * atan(v/u)),
+                b * sin(u * atan(v/u)) * cos(v * atan(v/u)),
+                c * fun(u * atan(v/u))
+            ),
+
+        range = 
+            make_range(
+                -5, 5,
+                -5, 5),
+
+        options =
+            tuple(d, show_parts, show_sum, show_normals)
+    in
+        build_example_scene(f, range, n, m, show_surface, options)
     end;
 
 # ------------------------------------------------------------------------------
@@ -211,8 +285,6 @@ define zsquared_z4(v) =
 define zsquared_z6(v) = 
     zsquared_z(sqrt(cbrt(v)))^6;
 
-# zsquared_z5(make_zsquared(2*|metre|, 2*|metre|, 2*|metre^2|)^5);
-define yo(x) = cbrt(x)^3;
 # ------------------------------------------------------------------------------
 # Computing the scene
 # ------------------------------------------------------------------------------
