@@ -237,18 +237,53 @@ public class Bundle {
             }
         }
 
-        // Collect all functions and values from the value table
+        // Collect all functions and values with a definition from the value table
         var shakeCallTree = true; // feature flag
-        var valueInfos = shakeCallTree
-                ? usesValueClosure(
-                        environment.values().allInfos(info -> info.isFromFile(this.file) && info instanceof ValueInfo))
-                : environment.values().allInfos();
-        for (ValueInfo info : valueInfos) {
-            if (info.definition().isPresent()) {
-                if (info.definition().get().isFunction()) {
-                    functionsToCompile.add(info);
-                } else {
-                    infosToCompile.add(info);
+        if (shakeCallTree) {
+
+            // Add the 'uses' closure of all value definitions from the file we are
+            // compiling
+            var valueInfos = usesValueClosure(
+                    environment.values()
+                            .allInfos(info -> info.isFromFile(this.file) && info instanceof ValueInfo
+                                    && info.definition().isPresent()));
+            var infoSet = new HashSet<>(valueInfos);
+
+            // Add the 'uses' closure of all toplevels from the file we are compiling
+            for (Toplevel def : environment.toplevels()) {
+                List<Info> used = new ArrayList<>();
+                for (Info info : def.body.uses()) {
+                    if (info instanceof ValueInfo vi && vi.definition().isPresent()) {
+                        used.add(vi);
+                    }
+                }
+
+                for (Info info : usesValueClosure(used)) {
+                    if (info instanceof ValueInfo vi) {
+                        infoSet.add(vi);
+                    }
+                }
+            }
+
+            // Split all value infos into functions and non-functions
+            for (ValueInfo info : infoSet) {
+                if (info.definition().isPresent()) {
+                    if (info.definition().get().isFunction()) {
+                        functionsToCompile.add(info);
+                    } else {
+                        infosToCompile.add(info);
+                    }
+                }
+            }
+        } else {
+            // Split all value infos into functions and non-functions
+            for (ValueInfo info : environment.values().allInfos()) {
+                if (info.definition().isPresent()) {
+                    if (info.definition().get().isFunction()) {
+                        functionsToCompile.add(info);
+                    } else {
+                        infosToCompile.add(info);
+                    }
                 }
             }
         }
