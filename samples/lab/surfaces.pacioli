@@ -173,10 +173,10 @@ define moebius_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_nor
     in
         begin
             scene := build_example_scene(f, range, n, m, show_surface, surface_options);
-            scene := plot_path(f, u, v, du, 0*dv, 2*n, m, path_options, make_color("orange"), scene);
-            scene := plot_path(f, u, v+n*dv, du, 0*dv, 2*n, m, path_options, make_color("orange"), scene);
-            scene := plot_path(f, u, v, du, dv, n, m, path_options, make_color("purple"), scene);
-            scene := plot_path(f, u + n*du, v, -du, dv, n, m, path_options, make_color("blue"), scene);
+            scene := plot_path(f, make_path_definition(u, v, du, 0*dv), 2*n, m, path_options, make_color("orange"), scene);
+            scene := plot_path(f, make_path_definition(u, v+n*dv, du, 0*dv), 2*n, m, path_options, make_color("orange"), scene);
+            scene := plot_path(f, make_path_definition(u, v, du, dv), n, m, path_options, make_color("purple"), scene);
+            scene := plot_path(f, make_path_definition(u + n*du, v, -du, dv), n, m, path_options, make_color("blue"), scene);
             return scene;
         end
     end;
@@ -304,34 +304,47 @@ define build_example_scene(fun, range, n, m, show_surface, options) =
 # Paths
 # ------------------------------------------------------------------------------
 
+defrecord for_unit a, b: PathDefinition(a, b) as path_definition where
+    u0: a,
+    v0: b,
+    du: a,
+    dv: b;
+
 declare plot_path ::
     for_unit a, b, c, Geom3!u:
-        ((a, b) -> c*Geom3!u, a, b, a, b, 1, 1, FieldPlotOptions, Color, Scene(c, Geom3!u))
+        ((a, b) -> c*Geom3!u, PathDefinition(a, b), 1, 1, FieldPlotOptions, Color, Scene(c, Geom3!u))
             -> Scene(c, Geom3!u);
 
-define plot_path(fun, u, v, du, dv, n, m, options, color, scene) =
+define plot_path(fun, path_def, n, m, options, color, scene) =
     begin
-        new_scene := add_arrows(path_lines(fun, u, v, du, dv, n, color), scene);
-        return add_arrows(path_arrows(fun, u, v, du, dv, n, m, options), new_scene);
+        new_scene := add_arrows(path_lines(fun, path_def, n, color), scene);
+        return add_arrows(path_arrows(fun, path_def, n, m, options), new_scene);
     end;
 
-define path_lines(fun, u, v, du, dv, n, color) =
+define path_lines(fun, path_def, n, color) =
     [arrow |
-        sample := path(fun, u, v, du, dv, n),
+        sample := path(fun, path_def, n),
         (pos, du) <- zip(sample, tail(sample)),
         arrow := with_arrow_color(color, make_arrow(pos, du - pos))];
 
-define path_arrows(fun, u, v, du, dv, n, m, options) =
+define path_arrows(fun, path_def, n, m, options) =
     [arrow |
-        (pos, vu, vv) <- path_deltas(fun, u, v, du, dv, n, m),
+        (pos, vu, vv) <- path_deltas(fun, path_def, n, m),
         arrow <- field_arrows(pos, vu - pos, vv - pos, options)];
 
-define path_deltas(fun, u, v, du, dv, n, m) =
-    [tuple(fun(uu, vv), fun(uu + 0.01*unit(uu), vv), fun(uu, vv + 0.01*unit(vv))) |
-        i <- naturals(n + 1),
-        mod(i, m) = 0,
-        uu := u + du * i,
-        vv := v + dv * i];
+define path_deltas(fun, path_def, n, m) =
+    let 
+        u0 = path_definition_u0(path_def),
+        v0 = path_definition_v0(path_def),
+        du = path_definition_du(path_def),
+        dv = path_definition_dv(path_def)
+    in
+        [tuple(fun(u, v), fun(u + 0.01*unit(u), v), fun(u, v + 0.01*unit(v))) |
+            i <- naturals(n + 1),
+            mod(i, m) = 0,
+            u := u0 + du * i,
+            v := v0 + dv * i]
+    end;
 
 # ------------------------------------------------------------------------------
 # Computing the field
@@ -407,19 +420,26 @@ define surface_lines(fun, range, n) =
         indices = naturals(n + 1)
     in
         append(
-            [path(fun, uu, v, 0 * du, dv, n) |
+            [path(fun, make_path_definition(uu, v, 0 * du, dv), n) |
                 i <- indices,
                 uu := u + du * i],
-            [path(fun, u, vv, du, 0 * dv, n) |
+            [path(fun, make_path_definition(u, vv, du, 0 * dv), n) |
                 i <- indices,
                 vv := v + dv * i])
     end;
 
-define path(fun, u, v, du, dv, n) =
-    [fun(u, v) |
-        i <- naturals(n + 1),
-        u := u + du * i,
-        v := v + dv * i];
+define path(fun, path_def, n) =
+    let
+        u0 = path_definition_u0(path_def),
+        v0 = path_definition_v0(path_def),
+        du = path_definition_du(path_def),
+        dv = path_definition_dv(path_def)
+    in
+        [fun(u, v) |
+            i <- naturals(n + 1),
+            u := u0 + du * i,
+            v := v0 + dv * i]
+    end;
 
 # ------------------------------------------------------------------------------
 # Visualization
