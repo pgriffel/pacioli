@@ -294,7 +294,7 @@ define build_example_scene(fun, range, n, m, show_surface, options) =
         scene := empty_scene("surface parametrization");
 
         if show_surface then
-            scene := plot_surface_lines(fun, range, n, scene);
+            scene := plot_surface_lines(fun, range, tuple(n, line_color), scene);
         end
 
         return plot_surface_arrows(fun, range, n, m, options, scene);
@@ -306,7 +306,7 @@ define build_example_scene(fun, range, n, m, show_surface, options) =
 
 declare plot_path ::
     for_unit a, b, c, Geom3!u:
-        ((a, b) -> c*Geom3!u, a, b, a, b, 1, 1, Tuple(1, Boole, Boole, Boole), Color, Scene(c, Geom3!u))
+        ((a, b) -> c*Geom3!u, a, b, a, b, 1, 1, FieldPlotOptions, Color, Scene(c, Geom3!u))
             -> Scene(c, Geom3!u);
 
 define plot_path(fun, u, v, du, dv, n, m, options, color, scene) =
@@ -339,7 +339,7 @@ define path_deltas(fun, u, v, du, dv, n, m) =
 
 declare plot_surface_arrows ::
     for_unit a, b, c, Geom3!u:
-        ((a, b) -> c*Geom3!u, Tuple(Tuple(a, a), Tuple(b, b)), 1, 1, Tuple(1, Boole, Boole, Boole), Scene(c, Geom3!u))
+        ((a, b) -> c*Geom3!u, Range2D(a, b), 1, 1, FieldPlotOptions, Scene(c, Geom3!u))
             -> Scene(c, Geom3!u);
 
 define plot_surface_arrows(fun, range, n, m, options, scene) =
@@ -374,17 +374,29 @@ define compute_deltas(fun, range, n, m) =
 # Computing the surface
 # ------------------------------------------------------------------------------
 
+defrecord SurfacePlotOptions() as surface_plot_options where 
+    n: 1,
+    color: Color;
+
+define default_surface_plot_options =
+    make_surface_plot_options(25, make_color("steelblue"));
+
 declare plot_surface_lines ::
     for_unit a, b, c, Geom3!u:
-        ((a, b) -> c*Geom3!u, Tuple(Tuple(a, a), Tuple(b, b)), 1, Scene(c, Geom3!u))
+        ((a, b) -> c*Geom3!u, Range2D(a, b), SurfacePlotOptions, Scene(c, Geom3!u))
             -> Scene(c, Geom3!u);
 
-define plot_surface_lines(fun, range, n, scene) =
-    add_paths(compute_surface_lines(fun, range, n), scene);
+define plot_surface_lines(fun, range, options, scene) =
+    add_paths(compute_surface_lines(fun, range, options), scene);
 
-define compute_surface_lines(fun, range, n) =
-    [ with_path_color(make_path(lines), line_color) |
-        lines <- surface_lines(fun, range, n)];
+define compute_surface_lines(fun, range, options) =
+    let 
+        n = surface_plot_options_n(options),
+        color = surface_plot_options_color(options)
+    in
+        [ with_path_color(make_path(lines), color) |
+            lines <- surface_lines(fun, range, n)]
+    end;
 
 define surface_lines(fun, range, n) =
     let
@@ -413,28 +425,37 @@ define path(fun, u, v, du, dv, n) =
 # Visualization
 # ------------------------------------------------------------------------------
 
+defrecord FieldPlotOptions() as field_plot_options where
+    scale_factor: 1,
+    show_parts: Boole,
+    show_sum: Boole,
+    show_normals: Boole;
+
+define default_field_plot_options =
+    make_field_plot_options(1, false, false, false);
+
 declare field_arrows :: for_unit a, Geom3!u:
-    (a*Geom3!u, a*Geom3!u, a*Geom3!u, Tuple(1, Boole, Boole, Boole)) -> List(Arrow(a, Geom3!u));
+    (a*Geom3!u, a*Geom3!u, a*Geom3!u, FieldPlotOptions) -> List(Arrow(a, Geom3!u));
 
 define field_arrows(pos, du, dv, options) =
     let 
-        (scale_factor, show_parts, show_sum, show_normals) = options,
+        scale_factor = field_plot_options_scale_factor(options),
         du = scale_factor '.*' du,
         dv = scale_factor '.*' dv
     in
         begin
             arrows := [];
 
-            if show_parts then
+            if field_plot_options_show_parts(options) then
                 arrows := cons(with_arrow_color(field_color, make_arrow(pos, du)), arrows);
                 arrows := cons(with_arrow_color(field_color, make_arrow(pos, dv)), arrows);
             end
 
-            if show_sum then
+            if field_plot_options_show_sum(options) then
                 arrows := cons(with_arrow_color(field_color, make_arrow(pos, du + dv)), arrows);
             end
 
-            if show_normals then
+            if field_plot_options_show_normals(options) then
                 arrows := cons(with_arrow_color(normal_color, make_arrow(pos, cross_sqrt(magnitude(dv), magnitude(du)) * unit(pos))), arrows);
             end
 
@@ -446,79 +467,73 @@ define field_arrows(pos, du, dv, options) =
 # Ranges
 # ------------------------------------------------------------------------------
 
-declare make_range ::
-    for_unit a, b: (a, a, b, b) -> Tuple(Tuple(a, a), Tuple(b, b));
+defrecord for_unit a, b: Range2D(a, b) as range2d where
+    u: Interval(a),
+    v: Interval(b);
+
+# ------------------------------------------------------------------------------
 
 declare range_width, range_ustart ::
-    for_unit a, b: (Tuple(Tuple(a, a), Tuple(b, b))) -> a;
+    for_unit a, b: (Range2D(a, b)) -> a;
+
+define range_ustart(range) = 
+    interval_lower(range2d_u(range));
+
+define range_width(range) = 
+    interval_length(range2d_u(range));
+
+# ------------------------------------------------------------------------------
 
 declare range_height, range_vstart ::
-    for_unit a, b: (Tuple(Tuple(a, a), Tuple(b, b))) -> b;
+    for_unit a, b: (Range2D(a, b)) -> b;
+
+define range_height(range) = 
+    interval_length(range2d_v(range));
+
+define range_vstart(range) = 
+    interval_lower(range2d_v(range));
+
+# ------------------------------------------------------------------------------
 
 declare scale_range ::
     for_unit a, b, c, d:
-        (a, b, Tuple(Tuple(c, c), Tuple(d, d))) -> Tuple(Tuple(a*c, a*c), Tuple(b*d, b*d));
-
-define make_range(u_start, u_end, v_start, v_end) =
-    tuple(make_interval(u_start, u_end), make_interval(v_start, v_end));
-
-define range_width(range) = 
-    let (u_interval, _) = range in
-        interval_length(u_interval)
-    end;
-
-define range_height(range) = 
-    let (_, v_interval) = range in
-        interval_length(v_interval)
-    end;
-
-define range_ustart(range) = 
-    let (u_interval, _) = range in
-        interval_lower(u_interval)
-    end;
-
-define range_vstart(range) = 
-    let (_ , v_interval) = range in
-        interval_lower(v_interval)
-    end;
+        (a, b, Range2D(c, d)) -> Range2D(a*c, b*d);
 
 define scale_range(left_factor, right_factor, range) =
-    let (left, right) = range in
-        tuple(scale_interval(left_factor, left), scale_interval(right_factor, right))
-    end;
+    make_range2d(
+        scale_interval(left_factor, range2d_u(range)),
+        scale_interval(right_factor, range2d_v(range)));
+
+# ------------------------------------------------------------------------------
+
+declare make_range ::
+    for_unit a, b: (a, a, b, b) -> Range2D(a, b);
+
+define make_range(a, b, c, d) =
+    make_range2d(make_interval(a, b), make_interval(c, d));
 
 # ------------------------------------------------------------------------------
 # Intervals
 # ------------------------------------------------------------------------------
 
-declare make_interval ::
-    for_unit a: (a, a) -> Tuple(a, a);
+defrecord for_unit a: Interval(a) as interval where
+    lower: a,
+    upper: a;
 
-declare interval_length, interval_lower, interval_upper ::
-    for_unit a: (Tuple(a, a)) -> a;
-
-declare scale_interval ::
-    for_unit a, b: (a, Tuple(b, b)) -> Tuple(a*b, a*b);
-
-define make_interval(lower, upper) =
-    tuple(lower, upper);
+# ------------------------------------------------------------------------------
+ 
+declare interval_length ::
+    for_unit a: (Interval(a)) -> a;
 
 define interval_length(interval) =
-    let (lower, upper) = interval in
-        upper - lower
-    end;
+    interval_upper(interval) - interval_lower(interval);
 
-define interval_lower(interval) =
-    let (lower, _) = interval in
-        lower
-    end;
+# ------------------------------------------------------------------------------
 
-define interval_upper(interval) =
-    let (_, upper) = interval in
-        upper
-    end;
+declare scale_interval ::
+    for_unit a, b: (a, Interval(b)) -> Interval(a*b);
 
 define scale_interval(factor, interval) =
-    let (lower, upper) = interval in
-        tuple(factor * lower, factor * upper)
-    end;
+    make_interval(
+        factor * interval_lower(interval),
+        factor * interval_upper(interval));
