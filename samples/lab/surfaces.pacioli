@@ -2,7 +2,7 @@ import geometry;
 import graphics;
 
 define normal_color = make_color("green");
-define field_color = make_color("red");
+define delta_color = make_color("red");
 define path_color = make_color("red");
 define line_color = make_color("steelblue");
 
@@ -10,7 +10,7 @@ define line_color = make_color("steelblue");
 # The scenes
 # ------------------------------------------------------------------------------
 
-define plane_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define plane_scene(a, b, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let 
         f(x, y) = 
             vector3d(x, y, a + b*x + c*y),
@@ -21,14 +21,14 @@ define plane_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_no
                 -8 * |metre|, 8 * |metre|),
 
         options =
-            tuple(d, show_parts, show_sum, show_normals)
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
     in
-        build_example_scene(f, range, n, m, show_surface, options)
+        build_example_scene(f, range, options)
     end;
 
 # ------------------------------------------------------------------------------
 
-define cosine_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define cosine_scene(a, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let 
         f(x, y) = 
             let r = sqrt(x^2 + y^2) in
@@ -41,14 +41,14 @@ define cosine_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_norm
                 -8 * |metre|, 8 * |metre|),
 
         options =
-            tuple(d, show_parts, show_sum, show_normals)
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
     in
-        build_example_scene(f, range, n, m, show_surface, options)
+        build_example_scene(f, range, options)
     end;
     
 # ------------------------------------------------------------------------------
 
-define paraboloid_scene(a, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define paraboloid_scene(a, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let 
         f(u, v) =
             make_zsquared(u*cos(v), u*sin(v), a * u^2),
@@ -59,14 +59,14 @@ define paraboloid_scene(a, n, m, d, show_surface, show_parts, show_sum, show_nor
                 -0.5 * pi * |radian|, 0.5 * pi * |radian|),
 
         options =
-            tuple(d, show_parts, show_sum, show_normals)
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
     in
-        build_example_scene(f, range, n, m, show_surface, options)
+        build_example_scene(f, range, options)
     end;
 
 # ------------------------------------------------------------------------------
 
-define saddle_scene(a, b, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define saddle_scene(a, b, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let 
         f(u, v) =
             make_zsquared(u, v, a*u^2 + b*v^2),
@@ -77,14 +77,14 @@ define saddle_scene(a, b, n, m, d, show_surface, show_parts, show_sum, show_norm
                 -5 * |metre|, 5 * |metre|),
 
         options =
-            tuple(d, show_parts, show_sum, show_normals)
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
     in
-        build_example_scene(f, range, n, m, show_surface, options)
+        build_example_scene(f, range, options)
     end;
 
 # ------------------------------------------------------------------------------
 
-define ellipsoid_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define ellipsoid_scene(a, b, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let
         fun(u, v) =
             vector3d(
@@ -98,14 +98,14 @@ define ellipsoid_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, sho
                 0 * |radian|, 1 * pi * |radian|),
 
         options =
-            tuple(d, show_parts, show_sum, show_normals)
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
     in
-        build_example_scene(fun, range, n, m, show_surface, options)
+        build_example_scene(fun, range, options)
     end;
 
 # ------------------------------------------------------------------------------
 
-define torus_scene(major, minor, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define torus_scene(major, minor, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let
         fun(u,v) =
             vector3d(
@@ -119,14 +119,14 @@ define torus_scene(major, minor, n, m, d, show_surface, show_parts, show_sum, sh
                 0 * |radian|, 2 * pi * |radian|),
 
         options =
-            tuple(d, show_parts, show_sum, show_normals)
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
     in
-        build_example_scene(fun, range, n, m, show_surface, options)
+        build_example_scene(fun, range, options)
     end;
 
 # ------------------------------------------------------------------------------
 
-define cone_scene(h, r, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define cone_scene(h, r, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let 
         f(u, v) =
             vector3d(
@@ -140,14 +140,14 @@ define cone_scene(h, r, n, m, d, show_surface, show_parts, show_sum, show_normal
                 0 * pi * |radian|, 2 * pi * |radian|),
 
         options =
-            tuple(d, show_parts, show_sum, show_normals)
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
     in
-        build_example_scene(f, range, n, m, show_surface, options)
+        build_example_scene(f, range, options)
     end;
 
 # ------------------------------------------------------------------------------
 
-define moebius_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define moebius_scene(a, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let 
         f(u, v) =
             vector3d(
@@ -159,24 +159,35 @@ define moebius_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_nor
                 -pi * |radian|, pi * |radian|,
                 -0.5 * |metre|, 0.5 * |metre|),
 
-        path_options =
-            tuple(d, show_parts, show_sum, show_normals),
-
-        surface_options =
-            tuple(d, show_surface and show_parts, show_surface and show_sum, show_surface and show_normals),
+        options =
+            let arrows = surface or grid in
+                tuple(
+                    n, m, d,
+                    grid,
+                    surface,
+                    wireframe,
+                    arrows and parts, arrows and total, arrows and normals)
+            end,
 
         u = range_ustart(range),
         v = range_vstart(range),
 
         du = range_width(range) / n,
-        dv = range_height(range) / n
+        dv = range_height(range) / n,
+
+        plot_path(u0, v0, du, dv, n, color, scene) = 
+            let path_options = make_parametric_plot_options(n, m, make_color(color), d, parts, total, normals, wireframe, delta_color, normal_color) in
+                plot_parametric_path(f, u0, v0, du, dv, path_options, scene)
+            end
     in
         begin
-            scene := build_example_scene(f, range, n, m, show_surface, surface_options);
-            scene := plot_path(f, make_path_definition(u, v, du, 0*dv), 2*n, m, path_options, make_color("orange"), scene);
-            scene := plot_path(f, make_path_definition(u, v+n*dv, du, 0*dv), 2*n, m, path_options, make_color("orange"), scene);
-            scene := plot_path(f, make_path_definition(u, v, du, dv), n, m, path_options, make_color("purple"), scene);
-            scene := plot_path(f, make_path_definition(u + n*du, v, -du, dv), n, m, path_options, make_color("blue"), scene);
+            scene := build_example_scene(f, range, options);
+            
+            scene := plot_path(u, v, du, 0*dv, 2 * n, "orange", scene);
+            scene := plot_path(u, v+n*dv, du, 0*dv, 2 * n, "orange", scene);
+            scene := plot_path(u, v, du, dv, n, "purple", scene);
+            scene := plot_path(u, v + n*dv, du, -dv, n, "blue", scene);
+
             return scene;
         end
     end;
@@ -185,7 +196,7 @@ define moebius_scene(a, c, n, m, d, show_surface, show_parts, show_sum, show_nor
 
 # From https://math.stackexchange.com/questions/1209858/what-equation-will-create-a-3d-rose-curve
 
-define flower_scene(a, b, c, k, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define flower_scene(a, b, c, k, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let 
         f(u, v) =
             vector3d(
@@ -199,22 +210,22 @@ define flower_scene(a, b, c, k, n, m, d, show_surface, show_parts, show_sum, sho
                 0 * pi * |radian|, 2 * pi * |radian|),
 
         options =
-            tuple(d, show_parts, show_sum, show_normals)
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
     in
-        build_example_scene(f, range, n, m, show_surface, options)
+        build_example_scene(f, range, options)
     end;
 
 # ------------------------------------------------------------------------------
 
 # From https://math.stackexchange.com/questions/238520/parametric-equation-of-a-cone
 
-define alternative_sphere_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
-    alternative_scene(cos, a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals);
+define alternative_sphere_scene(a, b, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    alternative_scene(cos, a, b, c, tuple(n, m, d, grid, surface, wireframe, parts, total, normals));
 
-define alternative_cone_scene(a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
-    alternative_scene(sin, a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals);
+define alternative_cone_scene(a, b, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    alternative_scene(sin, a, b, c, tuple(n, m, d, grid, surface, wireframe, parts, total, normals));
 
-define alternative_scene(fun, a, b, c, n, m, d, show_surface, show_parts, show_sum, show_normals) =
+define alternative_scene(fun, a, b, c, options) =
     let 
         f(u, v) =
             vector3d(
@@ -226,12 +237,9 @@ define alternative_scene(fun, a, b, c, n, m, d, show_surface, show_parts, show_s
         range = 
             make_range(
                 -5, 5,
-                -5, 5),
-
-        options =
-            tuple(d, show_parts, show_sum, show_normals)
+                -5, 5)
     in
-        build_example_scene(f, range, n, m, show_surface, options)
+        build_example_scene(f, range, options)
     end;
 
 # ------------------------------------------------------------------------------
@@ -256,156 +264,149 @@ define make_zsquared(a, b, c) =
 # what about higher powers? With cube_root you can also generate powers 3, 4 and 6,
 # and so on. All prime powers will leave gaps.
 
-declare zsquared_x :: for_unit a: (a*Geom3!zsquared) -> a*metre;
-declare zsquared_y :: for_unit a: (a*Geom3!zsquared) -> a*metre;
-declare zsquared_z :: for_unit a: (a*Geom3!zsquared) -> a*metre^2;
+# declare zsquared_x :: for_unit a: (a*Geom3!zsquared) -> a*metre;
+# declare zsquared_y :: for_unit a: (a*Geom3!zsquared) -> a*metre;
+# declare zsquared_z :: for_unit a: (a*Geom3!zsquared) -> a*metre^2;
 
-define zsquared_x(v) = 
-    get_num(v, Geom3@x, _) * scalar_unit(v) * |metre|;
+# define zsquared_x(v) = 
+#     get_num(v, Geom3@x, _) * scalar_unit(v) * |metre|;
 
-define zsquared_y(v) = 
-    get_num(v, Geom3@y, _) * scalar_unit(v) * |metre|;
+# define zsquared_y(v) = 
+#     get_num(v, Geom3@y, _) * scalar_unit(v) * |metre|;
 
-define zsquared_z(v) = 
-    get_num(v, Geom3@z, _) * scalar_unit(v) * |metre^2|;
+# define zsquared_z(v) = 
+#     get_num(v, Geom3@z, _) * scalar_unit(v) * |metre^2|;
 
-# Not generated:
+# # Not generated:
 
-declare zsquared_z2 :: for_unit a: (a^2*Geom3!zsquared^2) -> a^2*metre^4;
+# declare zsquared_z2 :: for_unit a: (a^2*Geom3!zsquared^2) -> a^2*metre^4;
 
-define zsquared_z2(v) = 
-    zsquared_z(sqrt(v))^2;
+# define zsquared_z2(v) = 
+#     zsquared_z(sqrt(v))^2;
 
-define zsquared_z3(v) = 
-    zsquared_z(cbrt(v))^3;
+# define zsquared_z3(v) = 
+#     zsquared_z(cbrt(v))^3;
 
-define zsquared_z4(v) = 
-    zsquared_z(sqrt(sqrt(v)))^4;
+# define zsquared_z4(v) = 
+#     zsquared_z(sqrt(sqrt(v)))^4;
 
-define zsquared_z6(v) = 
-    zsquared_z(sqrt(cbrt(v)))^6;
+# define zsquared_z6(v) = 
+#     zsquared_z(sqrt(cbrt(v)))^6;
 
 # ------------------------------------------------------------------------------
 # Computing the scene
 # ------------------------------------------------------------------------------
 
-define build_example_scene(fun, range, n, m, show_surface, options) =
-    begin
-        scene := empty_scene("surface parametrization");
-
-        if show_surface then
-            scene := plot_surface_lines(fun, range, tuple(n, line_color), scene);
-        end
-
-        return plot_surface_arrows(fun, range, n, m, options, scene);
-    end;
-
-# ------------------------------------------------------------------------------
-# Paths
-# ------------------------------------------------------------------------------
-
-defrecord for_unit a, b: PathDefinition(a, b) as path_definition where
-    u0: a,
-    v0: b,
-    du: a,
-    dv: b;
-
-declare plot_path ::
-    for_unit a, b, c, Geom3!u:
-        ((a, b) -> c*Geom3!u, PathDefinition(a, b), 1, 1, FieldPlotOptions, Color, Scene(c, Geom3!u))
-            -> Scene(c, Geom3!u);
-
-define plot_path(fun, path_def, n, m, options, color, scene) =
-    begin
-        new_scene := add_arrows(path_lines(fun, path_def, n, color), scene);
-        return add_arrows(path_arrows(fun, path_def, n, m, options), new_scene);
-    end;
-
-define path_lines(fun, path_def, n, color) =
-    [arrow |
-        sample := path(fun, path_def, n),
-        (pos, du) <- zip(sample, tail(sample)),
-        arrow := with_arrow_color(color, make_arrow(pos, du - pos))];
-
-define path_arrows(fun, path_def, n, m, options) =
-    [arrow |
-        (pos, vu, vv) <- path_deltas(fun, path_def, n, m),
-        arrow <- field_arrows(pos, vu - pos, vv - pos, options)];
-
-define path_deltas(fun, path_def, n, m) =
-    let 
-        u0 = path_definition_u0(path_def),
-        v0 = path_definition_v0(path_def),
-        du = path_definition_du(path_def),
-        dv = path_definition_dv(path_def)
-    in
-        [tuple(fun(u, v), fun(u + 0.01*unit(u), v), fun(u, v + 0.01*unit(v))) |
-            i <- naturals(n + 1),
-            mod(i, m) = 0,
-            u := u0 + du * i,
-            v := v0 + dv * i]
-    end;
-
-# ------------------------------------------------------------------------------
-# Computing the field
-# ------------------------------------------------------------------------------
-
-declare plot_surface_arrows ::
-    for_unit a, b, c, Geom3!u:
-        ((a, b) -> c*Geom3!u, Range2D(a, b), 1, 1, FieldPlotOptions, Scene(c, Geom3!u))
-            -> Scene(c, Geom3!u);
-
-define plot_surface_arrows(fun, range, n, m, options, scene) =
-    add_arrows(compute_surface_arrows(fun, range, n, m, options), scene);
-
-define compute_surface_arrows(fun, range, n, m, options) =
-    [arrow |
-        (pos, vu, vv) <- compute_deltas(fun, range, n, m),
-        arrow <- field_arrows(pos, vu - pos, vv - pos, options)];
-
-define compute_deltas(fun, range, n, m) =
+define build_example_scene(fun, range, options) =
     let
-        u_start = range_ustart(range),
-        v_start = range_vstart(range),
-        u_step = range_width(range) / n,
-        v_step = range_height(range) / n,
-        delta = 0.01
+        (n, m, d, grid, surface, wireframe, parts, total, normals) = options,
+
+        plot_options =
+            make_parametric_plot_options(
+                n, m, line_color, d,
+                parts, total, normals, wireframe,
+                delta_color, normal_color),
+
+        light_sources = [
+            vector3d(50, 50, 50),
+            vector3d(50, -50, 50),
+            vector3d(-50, 50, 50),
+            vector3d(-50, -50, 50)
+        ],
+
+        uom = unit(fun(range_ustart(range), range_vstart(range))),
+
+        lights = [make_center_spot_light(vec * uom, 1000*|candela|) | vec <- light_sources]
     in
-        [tuple(pos, vu, vv) | 
-            indices := naturals(n),
-            i <- indices,
-            j <- indices,
-            mod(i, m) = 0 and mod(j, m) = 0,
-            u := u_start + u_step * i,
-            v := v_start + v_step * j,
-            pos := fun(u, v),
-            vu := fun(u + delta * unit(u), v),
-            vv := fun(u, v + delta * unit(v))]
+        begin
+            scene := empty_scene("surface parametrization");
+
+            scene := with_ambient_light("white", 0.3, scene);
+            scene := add_spotlights(lights, scene);
+
+            if surface then
+                scene := plot_parametric_surface(fun, range, plot_options, scene);
+            end
+    
+            if grid then
+                scene := plot_parametric_surface_grid(fun, range, plot_options, scene);
+            end
+
+            if parts or total or normals then
+                scene := plot_parametric_surface_deltas(fun, range, plot_options, scene);
+            end
+
+            return scene;
+        end
     end;
 
+declare make_center_spot_light :: 
+    for_unit a, Geom3!u: (a*Geom3!u, candela) -> SpotLight(a, Geom3!u);
+
+define make_center_spot_light(position, intensity) =
+    make_spotlight(position, 0 '.*' position, make_color("white"), intensity);
+
 # ------------------------------------------------------------------------------
-# Computing the surface
+# ParametricPlotOptions
 # ------------------------------------------------------------------------------
 
-defrecord SurfacePlotOptions() as surface_plot_options where 
+defrecord ParametricPlotOptions() as parametric_plot_options where
     n: 1,
-    color: Color;
+    m: 1,
+    color: Color,
+    scale_factor: 1,
+    show_parts: Boole,
+    show_total: Boole,
+    show_normals: Boole,
+    wireframe: Boole,
+    delta_color: Color,
+    normal_color: Color;
 
-define default_surface_plot_options =
-    make_surface_plot_options(25, make_color("steelblue"));
+define default_parametric_plot_options = 
+    make_parametric_plot_options(25, 1, line_color, 1, false, false, false, false, delta_color, normal_color);
 
-declare plot_surface_lines ::
+# ------------------------------------------------------------------------------
+# Plotting the surface and the grid
+# ------------------------------------------------------------------------------
+
+declare plot_parametric_surface, plot_parametric_surface_grid ::
     for_unit a, b, c, Geom3!u:
-        ((a, b) -> c*Geom3!u, Range2D(a, b), SurfacePlotOptions, Scene(c, Geom3!u))
+        ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u))
             -> Scene(c, Geom3!u);
 
-define plot_surface_lines(fun, range, options, scene) =
+define plot_parametric_surface(fun, range, options, scene) =
+    begin
+        mesh := compute_surface_mesh(fun, range, options);
+        mesh := set_wireframe(mesh, parametric_plot_options_wireframe(options));
+        mesh := with_material(mesh, "Normal");
+        return add_meshes([mesh], scene);
+    end;
+
+define compute_surface_mesh(fun, range, options) =
+    let 
+        n = parametric_plot_options_n(options),
+        color = parametric_plot_options_color(options),
+
+        u0 = range_ustart(range),
+        v0 = range_vstart(range),
+        du = range_width(range) / n,
+        dv = range_height(range) / n,
+
+        indices = naturals(n+1),
+      
+        vertices = [vertex(fun(u, v), color) | i <- indices, j <- indices, u := u0 + i * du, v := v0 + j * dv],
+        faces = [f | i <- naturals(n), j <- naturals(n), k := j * (n+1), f <- [face(k+i, k+i+1, k+n+1+i), face(k+i+1, k+n+1+i, k+n+2+i)]]
+    in
+        make_mesh(vertices, faces)
+    end;
+
+define plot_parametric_surface_grid(fun, range, options, scene) =
     add_paths(compute_surface_lines(fun, range, options), scene);
 
 define compute_surface_lines(fun, range, options) =
     let 
-        n = surface_plot_options_n(options),
-        color = surface_plot_options_color(options)
+        n = parametric_plot_options_n(options),
+        color = parametric_plot_options_color(options)
     in
         [ with_path_color(make_path(lines), color) |
             lines <- surface_lines(fun, range, n)]
@@ -420,68 +421,146 @@ define surface_lines(fun, range, n) =
         indices = naturals(n + 1)
     in
         append(
-            [path(fun, make_path_definition(uu, v, 0 * du, dv), n) |
+            [path(fun, uu, v, 0 * du, dv, n) |
                 i <- indices,
                 uu := u + du * i],
-            [path(fun, make_path_definition(u, vv, du, 0 * dv), n) |
+            [path(fun, u, vv, du, 0 * dv, n) |
                 i <- indices,
                 vv := v + dv * i])
     end;
 
-define path(fun, path_def, n) =
+define path(fun, u0, v0, du, dv, n) =
+    [fun(u, v) |
+        i <- naturals(n + 1),
+        u := u0 + du * i,
+        v := v0 + dv * i];
+
+# ------------------------------------------------------------------------------
+# Plotting the surface deltas
+# ------------------------------------------------------------------------------
+
+declare plot_parametric_surface_deltas ::
+    for_unit a, b, c, Geom3!u:
+        ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u))
+            -> Scene(c, Geom3!u);
+
+define plot_parametric_surface_deltas(fun, range, options, scene) =
     let
-        u0 = path_definition_u0(path_def),
-        v0 = path_definition_v0(path_def),
-        du = path_definition_du(path_def),
-        dv = path_definition_dv(path_def)
-    in
-        [fun(u, v) |
-            i <- naturals(n + 1),
-            u := u0 + du * i,
-            v := v0 + dv * i]
-    end;
-
-# ------------------------------------------------------------------------------
-# Visualization
-# ------------------------------------------------------------------------------
-
-defrecord FieldPlotOptions() as field_plot_options where
-    scale_factor: 1,
-    show_parts: Boole,
-    show_sum: Boole,
-    show_normals: Boole;
-
-define default_field_plot_options =
-    make_field_plot_options(1, false, false, false);
-
-declare field_arrows :: for_unit a, Geom3!u:
-    (a*Geom3!u, a*Geom3!u, a*Geom3!u, FieldPlotOptions) -> List(Arrow(a, Geom3!u));
-
-define field_arrows(pos, du, dv, options) =
-    let 
-        scale_factor = field_plot_options_scale_factor(options),
-        du = scale_factor '.*' du,
-        dv = scale_factor '.*' dv
+        n = parametric_plot_options_n(options),
+        m = parametric_plot_options_m(options),
+        d = parametric_plot_options_scale_factor(options),
+        deltas = compute_deltas(fun, range, n, m, d)
     in
         begin
-            arrows := [];
-
-            if field_plot_options_show_parts(options) then
-                arrows := cons(with_arrow_color(field_color, make_arrow(pos, du)), arrows);
-                arrows := cons(with_arrow_color(field_color, make_arrow(pos, dv)), arrows);
-            end
-
-            if field_plot_options_show_sum(options) then
-                arrows := cons(with_arrow_color(field_color, make_arrow(pos, du + dv)), arrows);
-            end
-
-            if field_plot_options_show_normals(options) then
-                arrows := cons(with_arrow_color(normal_color, make_arrow(pos, cross_sqrt(magnitude(dv), magnitude(du)) * unit(pos))), arrows);
-            end
-
-            return arrows;
+            new_scene := scene;
+            new_scene := plot_delta_arrows(deltas, options, new_scene);
+            return new_scene;
         end
     end;
+
+define compute_deltas(fun, range, n, m, c) =
+    let
+        u_start = range_ustart(range),
+        v_start = range_vstart(range),
+        u_step = range_width(range) / n,
+        v_step = range_height(range) / n,
+        delta = 0.01
+    in
+        [tuple(pos, c '.*' vu, c '.*' vv) | 
+            indices := naturals(n),
+            i <- indices,
+            j <- indices,
+            mod(i, m) = 0 and mod(j, m) = 0,
+            u := u_start + u_step * i,
+            v := v_start + v_step * j,
+            pos := fun(u, v),
+            vu := fun(u + delta * unit(u), v) - pos,
+            vv := fun(u, v + delta * unit(v)) - pos]
+    end;
+
+# ------------------------------------------------------------------------------
+# Plotting paths, including deltas
+# ------------------------------------------------------------------------------
+
+declare plot_parametric_path ::
+    for_unit a, b, c, Geom3!u:
+        ((a, b) -> c*Geom3!u, a, b, a, b, ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u);
+
+define plot_parametric_path(fun, u0, v0, du, dv, options, scene) =
+    let
+        n = parametric_plot_options_n(options),
+        m = parametric_plot_options_m(options),
+        color = parametric_plot_options_color(options),
+
+        deltas = path_deltas(fun, u0, v0, du, dv, n, 1, 0.01, parametric_plot_options_scale_factor(options))
+    in
+        begin
+            new_scene := add_arrows(path_arrows([pos | (pos, _, _) <- deltas], color), scene);
+            new_scene := 
+                let
+                    deltas2 =
+                        if m = 1 then
+                            deltas
+                        else
+                            path_deltas(fun, u0, v0, du, dv, n, m, 0.01, parametric_plot_options_scale_factor(options)) 
+                        end
+                in
+                    plot_delta_arrows(deltas2, options, new_scene)
+                end;
+            return new_scene;
+        end
+    end;
+
+define path_arrows(positions, color) =
+    [ with_arrow_color(color, make_arrow(pos, du - pos)) | (pos, du) <- zip(positions, tail(positions))];
+
+define path_deltas(fun, u0, v0, du, dv, n, m, d, c) =
+    [tuple(pos, c '.*' vv, c '.*' vu) |
+        i <- naturals(n + 1),
+        mod(i, m) = 0,
+        u := u0 + du * i,
+        v := v0 + dv * i,
+        pos := fun(u, v),
+        vv := fun(u + d*unit(u), v) - pos,
+        vu := fun(u, v + d*unit(v)) - pos];
+
+# ------------------------------------------------------------------------------
+# Plotting deltas for surfaces or paths
+# ------------------------------------------------------------------------------
+
+define plot_delta_arrows(deltas, options, scene) =
+    begin
+        new_scene := scene;
+
+        if parametric_plot_options_show_normals(options) then
+            new_scene := add_arrows(normal_arrows(deltas, parametric_plot_options_normal_color(options)), new_scene);
+        end
+
+        if parametric_plot_options_show_parts(options) then
+            new_scene := add_arrows(partial_arrows(deltas, parametric_plot_options_delta_color(options)), new_scene);
+        end
+
+        if parametric_plot_options_show_total(options) then
+            new_scene := add_arrows(total_arrows(deltas, parametric_plot_options_delta_color(options)), new_scene);
+        end
+
+        return new_scene;
+    end;
+    
+define total_arrows(deltas, color) =
+    [ with_arrow_color(color, arrow) |
+        (pos, du, dv) <- deltas,
+        arrow := make_arrow(pos, du + dv)];
+
+define partial_arrows(deltas, color) =
+    [ with_arrow_color(color, arrow) |
+        (pos, du, dv) <- deltas,
+        arrow <- [make_arrow(pos, du), make_arrow(pos, dv)]];
+
+define normal_arrows(deltas, color) =
+    [ with_arrow_color(color, arrow) |
+        (pos, du, dv) <- deltas,
+        arrow := make_arrow(pos, cross_sqrt(magnitude(dv), magnitude(du)) * unit(pos))];
 
 # ------------------------------------------------------------------------------
 # Ranges

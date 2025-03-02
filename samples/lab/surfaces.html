@@ -158,7 +158,9 @@
             <parameter label="n" unit="1">30</parameter>
             <parameter label="m" unit="1">1</parameter>
             <parameter label="d" unit="1">50</parameter>
+            <parameter label="grid" type="boole">true</parameter>
             <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
             <parameter label="partial vecors" type="boole">false</parameter>
             <parameter label="sum vector" type="boole">false</parameter>
             <parameter label="normals" type="boole">false</parameter>
@@ -268,13 +270,15 @@
     <p>
     <div class="example">
         <pacioli-scene width="900" height="600" id="cosine_scene" script="surfaces" definition="cosine_scene"
-            kind="scene" perspective grid axis>
+            kind="scene" perspective axis>
             <parameter label="a" unit="metre">1</parameter>
             <parameter label="c" unit="radian/metre">1</parameter>
             <parameter label="n" unit="1">30</parameter>
             <parameter label="m" unit="1">1</parameter>
             <parameter label="d" unit="1">50</parameter>
+            <parameter label="grid" type="boole">true</parameter>
             <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
             <parameter label="partial vectors" type="boole">false</parameter>
             <parameter label="sum vector" type="boole">false</parameter>
             <parameter label="normals" type="boole">false</parameter>
@@ -394,11 +398,13 @@
     <div class="example">
         <pacioli-scene width="900" height="600" id="paraboloid_scene" script="surfaces" definition="paraboloid_scene"
             kind="scene" perspective grid axis unitZ="metre^2">
-            <parameter label="a" unit="1">0.2</parameter>
+            <parameter label="a" unit="1">0.3</parameter>
             <parameter label="n" unit="1">30</parameter>
             <parameter label="m" unit="1">1</parameter>
-            <parameter label="d" unit="1">50</parameter>
+            <parameter label="d" unit="1">10</parameter>
+            <parameter label="grid" type="boole">true</parameter>
             <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
             <parameter label="partial vectors" type="boole">false</parameter>
             <parameter label="sum vector" type="boole">false</parameter>
             <parameter label="normals" type="boole">false</parameter>
@@ -532,13 +538,15 @@
 
     <div class="example">
         <pacioli-scene width="900" height="600" id="saddle_scene" script="surfaces" definition="saddle_scene"
-            kind="scene" perspective grid axis unitZ="metre^2">
+            kind="scene" perspective axis unitZ="metre^2">
             <parameter label="a" unit="1">0.1</parameter>
             <parameter label="b" unit="1">-0.2</parameter>
             <parameter label="n" unit="1">30</parameter>
             <parameter label="m" unit="1">1</parameter>
             <parameter label="d" unit="1">50</parameter>
+            <parameter label="grid" type="boole">true</parameter>
             <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
             <parameter label="partial vectors" type="boole">false</parameter>
             <parameter label="sum vector" type="boole">false</parameter>
             <parameter label="normals" type="boole">false</parameter>
@@ -648,7 +656,9 @@
             <parameter label="n" unit="1">24</parameter>
             <parameter label="m" unit="1">1</parameter>
             <parameter label="d" unit="1">10</parameter>
+            <parameter label="grid" type="boole">true</parameter>
             <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
             <parameter label="partial vecors" type="boole">false</parameter>
             <parameter label="sum vector" type="boole">false</parameter>
             <parameter label="normals" type="boole">false</parameter>
@@ -760,13 +770,15 @@
     <p>
     <div class="example">
         <pacioli-scene width="900" height="600" id="torus_scene" script="surfaces" definition="torus_scene" kind="scene"
-            perspective grid axis>
+            perspective axis>
             <parameter label="major" unit="metre">4</parameter>
             <parameter label="minor" unit="metre">3</parameter>
             <parameter label="n" unit="1">30</parameter>
             <parameter label="m" unit="1">1</parameter>
             <parameter label="d" unit="1">10</parameter>
+            <parameter label="grid" type="boole">true</parameter>
             <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
             <parameter label="partial vectors" type="boole">false</parameter>
             <parameter label="sum vector" type="boole">false</parameter>
             <parameter label="normals" type="boole">false</parameter>
@@ -878,12 +890,14 @@
     <div class="example">
         <pacioli-scene width="900" height="600" id="cone_scene" script="surfaces" definition="cone_scene" kind="scene"
             perspective grid axis>
-            <parameter label="h" unit="metre">4</parameter>
-            <parameter label="r" unit="metre">3</parameter>
+            <parameter label="h" unit="metre">5</parameter>
+            <parameter label="r" unit="metre">5</parameter>
             <parameter label="n" unit="1">30</parameter>
             <parameter label="m" unit="1">1</parameter>
             <parameter label="d" unit="1">10</parameter>
+            <parameter label="grid" type="boole">true</parameter>
             <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
             <parameter label="partial vectors" type="boole">false</parameter>
             <parameter label="sum vector" type="boole">false</parameter>
             <parameter label="normals" type="boole">false</parameter>
@@ -1019,13 +1033,15 @@
     <p>
     <div class="example">
         <pacioli-scene width="900" height="600" id="moebius_scene" script="surfaces" definition="moebius_scene"
-            kind="scene" perspective grid axis>
-            <parameter label="a" unit="1">5</parameter>
+            kind="scene" perspective>
+            <parameter label="a" unit="1">10</parameter>
             <parameter label="c" unit="metre">1</parameter>
             <parameter label="n" unit="1">30</parameter>
             <parameter label="m" unit="1">1</parameter>
             <parameter label="d" unit="1">2</parameter>
+            <parameter label="grid" type="boole">false</parameter>
             <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
             <parameter label="partial vectors" type="boole">false</parameter>
             <parameter label="sum vector" type="boole">false</parameter>
             <parameter label="normals" type="boole">false</parameter>
@@ -1050,7 +1066,9 @@
             <parameter label="n" unit="1">50</parameter>
             <parameter label="m" unit="1">1</parameter>
             <parameter label="d" unit="1">10</parameter>
+            <parameter label="grid" type="boole">true</parameter>
             <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
             <parameter label="partial vecors" type="boole">false</parameter>
             <parameter label="sum vector" type="boole">false</parameter>
             <parameter label="normals" type="boole">false</parameter>
@@ -1074,7 +1092,9 @@
             <parameter label="n" unit="1">50</parameter>
             <parameter label="m" unit="1">1</parameter>
             <parameter label="d" unit="1">10</parameter>
+            <parameter label="grid" type="boole">true</parameter>
             <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
             <parameter label="partial vecors" type="boole">false</parameter>
             <parameter label="sum vector" type="boole">false</parameter>
             <parameter label="normals" type="boole">false</parameter>
@@ -1100,7 +1120,9 @@
             <parameter label="n" unit="1">50</parameter>
             <parameter label="m" unit="1">1</parameter>
             <parameter label="d" unit="1">10</parameter>
+            <parameter label="grid" type="boole">true</parameter>
             <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
             <parameter label="partial vecors" type="boole">false</parameter>
             <parameter label="sum vector" type="boole">false</parameter>
             <parameter label="normals" type="boole">false</parameter>
