@@ -12,6 +12,7 @@ import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.InstanceDefinition;
 import pacioli.ast.definition.MultiDeclaration;
+import pacioli.ast.definition.RecordDefinition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
@@ -530,6 +531,11 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(DataQueryNode node) {
+        returnNode(node);
+    }
+
+    @Override
+    public void visit(RecordDefinition node) {
         returnNode(node);
     }
 

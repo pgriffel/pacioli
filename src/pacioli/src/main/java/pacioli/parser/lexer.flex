@@ -108,6 +108,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "defclass"        { return symbol("defclass",DEFCLASS); }
   "definstance"     { return symbol("definstance",DEFINSTANCE); }
   "defdata"         { return symbol("defdata",DEFDATA); }
+  "defrecord"       { return symbol("defrecord",DEFRECORD); }
   "doc"             { return symbol("doc",DOC); }
   "public"          { return symbol("public", PUBLIC); }
   "export"          { return symbol("export", EXPORT); }
