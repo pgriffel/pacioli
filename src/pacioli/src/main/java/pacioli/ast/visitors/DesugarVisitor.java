@@ -8,6 +8,7 @@ import pacioli.ast.IdentityTransformation;
 import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
+import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.MultiDeclaration;
 import pacioli.ast.definition.RecordDefinition;
 import pacioli.ast.definition.TypeDefinition;
@@ -22,6 +23,7 @@ import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetTupleBindingNode;
+import pacioli.ast.expression.StringNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.types.ast.FunctionTypeNode;
@@ -137,7 +139,7 @@ public class DesugarVisitor extends IdentityTransformation {
                 String name = binding.id.name();
                 Location loc = binding.id.location().collapse();
 
-                // Accessor
+                // Accessor definition
                 var acrId = new IdentifierNode(nodeIdName + "_" + name, binding.id.location());
 
                 var accessor = new LambdaNode(funParams, new IdentifierNode(name, loc), loc);
@@ -160,8 +162,15 @@ public class DesugarVisitor extends IdentityTransformation {
                 var fun = new FunctionTypeNode(loc, tup, binding.dimType);
                 var schema = new SchemaNode(nodeLocation.collapse(), node.quantNodes, fun);
                 var decl = new Declaration(loc, new IdentifierNode(nodeIdName + "_" + name, loc), schema);
-
                 this.desugared.add(decl);
+
+                // Accessor documentation
+                var docSetter = new Documentation(
+                        nodeLocation.collapse(),
+                        new IdentifierNode(nodeIdName + "_" + name, loc),
+                        new StringNode(String.format("Getter for record <code>%s</code>", node.type.pretty()),
+                                nodeLocation.collapse()));
+                this.desugared.add(docSetter);
 
                 // Setter definition
                 var setterId = new IdentifierNode("with_" + nodeIdName + "_" + name, loc);
@@ -199,6 +208,14 @@ public class DesugarVisitor extends IdentityTransformation {
                         loc), sschema);
 
                 this.desugared.add(sdecl);
+
+                // Setter documentation
+                var docGetter = new Documentation(
+                        nodeLocation.collapse(),
+                        new IdentifierNode("with_" + nodeIdName + "_" + name, loc),
+                        new StringNode(String.format("Setter for record <code>%s</code>", node.type.pretty()),
+                                nodeLocation.collapse()));
+                this.desugared.add(docGetter);
             }
 
             // Constructor definition
@@ -224,6 +241,14 @@ public class DesugarVisitor extends IdentityTransformation {
                     new IdentifierNode("make_" + nodeIdName, nodeLocation.collapse()), schema);
 
             this.desugared.add(decl);
+
+            // Constructor documentation
+            var docCtr = new Documentation(
+                    nodeLocation.collapse(),
+                    new IdentifierNode("make_" + nodeIdName, nodeLocation.collapse()),
+                    new StringNode(String.format("Constructor for record <code>%s</code>", node.type.pretty()),
+                            nodeLocation.collapse()));
+            this.desugared.add(docCtr);
 
             // The type definitions
             // var app = new TypeApplicationNode(nodeLocation.collapse(), node.type,

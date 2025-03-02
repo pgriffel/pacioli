@@ -742,9 +742,14 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(Documentation docu) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public void visit(Documentation node) {
+        out.print("doc ");
+        node.id.accept(this);
+
+        out.newlineUp();
+        node.body.accept(this);
+        write(";");
+        out.newlineDown();
     }
 
     @Override
