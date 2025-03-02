@@ -243,57 +243,6 @@ define alternative_scene(fun, a, b, c, options) =
     end;
 
 # ------------------------------------------------------------------------------
-# Unit Geom3!zsquared
-# ------------------------------------------------------------------------------
-
-defunit Geom3!zsquared = {
-    x: metre,
-    y: metre,
-    z: metre^2
-};
-
-# Make special syntax to generate the following from above defunit?!
-
-declare make_zsquared ::
-    for_unit a, b, c: (metre, metre, metre^2) -> Geom3!zsquared;
-
-define make_zsquared(a, b, c) = 
-    vector3d(magnitude(a), magnitude(b), magnitude(c)) * |Geom3!zsquared|;
-
-# Limited use, what about Geom3!zsquared^2? You can de zsquared_z(sqrt(v))^2, but
-# what about higher powers? With cube_root you can also generate powers 3, 4 and 6,
-# and so on. All prime powers will leave gaps.
-
-# declare zsquared_x :: for_unit a: (a*Geom3!zsquared) -> a*metre;
-# declare zsquared_y :: for_unit a: (a*Geom3!zsquared) -> a*metre;
-# declare zsquared_z :: for_unit a: (a*Geom3!zsquared) -> a*metre^2;
-
-# define zsquared_x(v) = 
-#     get_num(v, Geom3@x, _) * scalar_unit(v) * |metre|;
-
-# define zsquared_y(v) = 
-#     get_num(v, Geom3@y, _) * scalar_unit(v) * |metre|;
-
-# define zsquared_z(v) = 
-#     get_num(v, Geom3@z, _) * scalar_unit(v) * |metre^2|;
-
-# # Not generated:
-
-# declare zsquared_z2 :: for_unit a: (a^2*Geom3!zsquared^2) -> a^2*metre^4;
-
-# define zsquared_z2(v) = 
-#     zsquared_z(sqrt(v))^2;
-
-# define zsquared_z3(v) = 
-#     zsquared_z(cbrt(v))^3;
-
-# define zsquared_z4(v) = 
-#     zsquared_z(sqrt(sqrt(v)))^4;
-
-# define zsquared_z6(v) = 
-#     zsquared_z(sqrt(cbrt(v)))^6;
-
-# ------------------------------------------------------------------------------
 # Computing the scene
 # ------------------------------------------------------------------------------
 
@@ -347,292 +296,52 @@ define make_center_spot_light(position, intensity) =
     make_spotlight(position, 0 '.*' position, make_color("white"), intensity);
 
 # ------------------------------------------------------------------------------
-# ParametricPlotOptions
+# Unit Geom3!zsquared
 # ------------------------------------------------------------------------------
 
-defrecord ParametricPlotOptions() as parametric_plot_options where
-    n: 1,
-    m: 1,
-    color: Color,
-    scale_factor: 1,
-    show_parts: Boole,
-    show_total: Boole,
-    show_normals: Boole,
-    wireframe: Boole,
-    delta_color: Color,
-    normal_color: Color;
+defunit Geom3!zsquared = {
+    x: metre,
+    y: metre,
+    z: metre^2
+};
 
-define default_parametric_plot_options = 
-    make_parametric_plot_options(25, 1, line_color, 1, false, false, false, false, delta_color, normal_color);
+# Make special syntax to generate the following from above defunit?!
 
-# ------------------------------------------------------------------------------
-# Plotting the surface and the grid
-# ------------------------------------------------------------------------------
+declare make_zsquared ::
+    for_unit a, b, c: (metre, metre, metre^2) -> Geom3!zsquared;
 
-declare plot_parametric_surface, plot_parametric_surface_grid ::
-    for_unit a, b, c, Geom3!u:
-        ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u))
-            -> Scene(c, Geom3!u);
+define make_zsquared(a, b, c) = 
+    vector3d(magnitude(a), magnitude(b), magnitude(c)) * |Geom3!zsquared|;
 
-define plot_parametric_surface(fun, range, options, scene) =
-    begin
-        mesh := compute_surface_mesh(fun, range, options);
-        mesh := set_wireframe(mesh, parametric_plot_options_wireframe(options));
-        mesh := with_material(mesh, "Normal");
-        return add_meshes([mesh], scene);
-    end;
+# Limited use, what about Geom3!zsquared^2? You can de zsquared_z(sqrt(v))^2, but
+# what about higher powers? With cube_root you can also generate powers 3, 4 and 6,
+# and so on. All prime powers will leave gaps.
 
-define compute_surface_mesh(fun, range, options) =
-    let 
-        n = parametric_plot_options_n(options),
-        color = parametric_plot_options_color(options),
+# declare zsquared_x :: for_unit a: (a*Geom3!zsquared) -> a*metre;
+# declare zsquared_y :: for_unit a: (a*Geom3!zsquared) -> a*metre;
+# declare zsquared_z :: for_unit a: (a*Geom3!zsquared) -> a*metre^2;
 
-        u0 = range_ustart(range),
-        v0 = range_vstart(range),
-        du = range_width(range) / n,
-        dv = range_height(range) / n,
+# define zsquared_x(v) = 
+#     get_num(v, Geom3@x, _) * scalar_unit(v) * |metre|;
 
-        indices = naturals(n+1),
-      
-        vertices = [vertex(fun(u, v), color) | i <- indices, j <- indices, u := u0 + i * du, v := v0 + j * dv],
-        faces = [f | i <- naturals(n), j <- naturals(n), k := j * (n+1), f <- [face(k+i, k+i+1, k+n+1+i), face(k+i+1, k+n+1+i, k+n+2+i)]]
-    in
-        make_mesh(vertices, faces)
-    end;
+# define zsquared_y(v) = 
+#     get_num(v, Geom3@y, _) * scalar_unit(v) * |metre|;
 
-define plot_parametric_surface_grid(fun, range, options, scene) =
-    add_paths(compute_surface_lines(fun, range, options), scene);
+# define zsquared_z(v) = 
+#     get_num(v, Geom3@z, _) * scalar_unit(v) * |metre^2|;
 
-define compute_surface_lines(fun, range, options) =
-    let 
-        n = parametric_plot_options_n(options),
-        color = parametric_plot_options_color(options)
-    in
-        [ with_path_color(make_path(lines), color) |
-            lines <- surface_lines(fun, range, n)]
-    end;
+# # Not generated:
 
-define surface_lines(fun, range, n) =
-    let
-        u = range_ustart(range),
-        v  = range_vstart(range),
-        du = range_width(range) / n,
-        dv = range_height(range) / n,
-        indices = naturals(n + 1)
-    in
-        append(
-            [path(fun, uu, v, 0 * du, dv, n) |
-                i <- indices,
-                uu := u + du * i],
-            [path(fun, u, vv, du, 0 * dv, n) |
-                i <- indices,
-                vv := v + dv * i])
-    end;
+# declare zsquared_z2 :: for_unit a: (a^2*Geom3!zsquared^2) -> a^2*metre^4;
 
-define path(fun, u0, v0, du, dv, n) =
-    [fun(u, v) |
-        i <- naturals(n + 1),
-        u := u0 + du * i,
-        v := v0 + dv * i];
+# define zsquared_z2(v) = 
+#     zsquared_z(sqrt(v))^2;
 
-# ------------------------------------------------------------------------------
-# Plotting the surface deltas
-# ------------------------------------------------------------------------------
+# define zsquared_z3(v) = 
+#     zsquared_z(cbrt(v))^3;
 
-declare plot_parametric_surface_deltas ::
-    for_unit a, b, c, Geom3!u:
-        ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u))
-            -> Scene(c, Geom3!u);
+# define zsquared_z4(v) = 
+#     zsquared_z(sqrt(sqrt(v)))^4;
 
-define plot_parametric_surface_deltas(fun, range, options, scene) =
-    let
-        n = parametric_plot_options_n(options),
-        m = parametric_plot_options_m(options),
-        d = parametric_plot_options_scale_factor(options),
-        deltas = compute_deltas(fun, range, n, m, d)
-    in
-        begin
-            new_scene := scene;
-            new_scene := plot_delta_arrows(deltas, options, new_scene);
-            return new_scene;
-        end
-    end;
-
-define compute_deltas(fun, range, n, m, c) =
-    let
-        u_start = range_ustart(range),
-        v_start = range_vstart(range),
-        u_step = range_width(range) / n,
-        v_step = range_height(range) / n,
-        delta = 0.01
-    in
-        [tuple(pos, c '.*' vu, c '.*' vv) | 
-            indices := naturals(n),
-            i <- indices,
-            j <- indices,
-            mod(i, m) = 0 and mod(j, m) = 0,
-            u := u_start + u_step * i,
-            v := v_start + v_step * j,
-            pos := fun(u, v),
-            vu := fun(u + delta * unit(u), v) - pos,
-            vv := fun(u, v + delta * unit(v)) - pos]
-    end;
-
-# ------------------------------------------------------------------------------
-# Plotting paths, including deltas
-# ------------------------------------------------------------------------------
-
-declare plot_parametric_path ::
-    for_unit a, b, c, Geom3!u:
-        ((a, b) -> c*Geom3!u, a, b, a, b, ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u);
-
-define plot_parametric_path(fun, u0, v0, du, dv, options, scene) =
-    let
-        n = parametric_plot_options_n(options),
-        m = parametric_plot_options_m(options),
-        color = parametric_plot_options_color(options),
-
-        deltas = path_deltas(fun, u0, v0, du, dv, n, 1, 0.01, parametric_plot_options_scale_factor(options))
-    in
-        begin
-            new_scene := add_arrows(path_arrows([pos | (pos, _, _) <- deltas], color), scene);
-            new_scene := 
-                let
-                    deltas2 =
-                        if m = 1 then
-                            deltas
-                        else
-                            path_deltas(fun, u0, v0, du, dv, n, m, 0.01, parametric_plot_options_scale_factor(options)) 
-                        end
-                in
-                    plot_delta_arrows(deltas2, options, new_scene)
-                end;
-            return new_scene;
-        end
-    end;
-
-define path_arrows(positions, color) =
-    [ with_arrow_color(color, make_arrow(pos, du - pos)) | (pos, du) <- zip(positions, tail(positions))];
-
-define path_deltas(fun, u0, v0, du, dv, n, m, d, c) =
-    [tuple(pos, c '.*' vv, c '.*' vu) |
-        i <- naturals(n + 1),
-        mod(i, m) = 0,
-        u := u0 + du * i,
-        v := v0 + dv * i,
-        pos := fun(u, v),
-        vv := fun(u + d*unit(u), v) - pos,
-        vu := fun(u, v + d*unit(v)) - pos];
-
-# ------------------------------------------------------------------------------
-# Plotting deltas for surfaces or paths
-# ------------------------------------------------------------------------------
-
-define plot_delta_arrows(deltas, options, scene) =
-    begin
-        new_scene := scene;
-
-        if parametric_plot_options_show_normals(options) then
-            new_scene := add_arrows(normal_arrows(deltas, parametric_plot_options_normal_color(options)), new_scene);
-        end
-
-        if parametric_plot_options_show_parts(options) then
-            new_scene := add_arrows(partial_arrows(deltas, parametric_plot_options_delta_color(options)), new_scene);
-        end
-
-        if parametric_plot_options_show_total(options) then
-            new_scene := add_arrows(total_arrows(deltas, parametric_plot_options_delta_color(options)), new_scene);
-        end
-
-        return new_scene;
-    end;
-    
-define total_arrows(deltas, color) =
-    [ with_arrow_color(color, arrow) |
-        (pos, du, dv) <- deltas,
-        arrow := make_arrow(pos, du + dv)];
-
-define partial_arrows(deltas, color) =
-    [ with_arrow_color(color, arrow) |
-        (pos, du, dv) <- deltas,
-        arrow <- [make_arrow(pos, du), make_arrow(pos, dv)]];
-
-define normal_arrows(deltas, color) =
-    [ with_arrow_color(color, arrow) |
-        (pos, du, dv) <- deltas,
-        arrow := make_arrow(pos, cross_sqrt(magnitude(dv), magnitude(du)) * unit(pos))];
-
-# ------------------------------------------------------------------------------
-# Ranges
-# ------------------------------------------------------------------------------
-
-defrecord for_unit a, b: Range2D(a, b) as range2d where
-    u: Interval(a),
-    v: Interval(b);
-
-# ------------------------------------------------------------------------------
-
-declare range_width, range_ustart ::
-    for_unit a, b: (Range2D(a, b)) -> a;
-
-define range_ustart(range) = 
-    interval_lower(range2d_u(range));
-
-define range_width(range) = 
-    interval_length(range2d_u(range));
-
-# ------------------------------------------------------------------------------
-
-declare range_height, range_vstart ::
-    for_unit a, b: (Range2D(a, b)) -> b;
-
-define range_height(range) = 
-    interval_length(range2d_v(range));
-
-define range_vstart(range) = 
-    interval_lower(range2d_v(range));
-
-# ------------------------------------------------------------------------------
-
-declare scale_range ::
-    for_unit a, b, c, d:
-        (a, b, Range2D(c, d)) -> Range2D(a*c, b*d);
-
-define scale_range(left_factor, right_factor, range) =
-    make_range2d(
-        scale_interval(left_factor, range2d_u(range)),
-        scale_interval(right_factor, range2d_v(range)));
-
-# ------------------------------------------------------------------------------
-
-declare make_range ::
-    for_unit a, b: (a, a, b, b) -> Range2D(a, b);
-
-define make_range(a, b, c, d) =
-    make_range2d(make_interval(a, b), make_interval(c, d));
-
-# ------------------------------------------------------------------------------
-# Intervals
-# ------------------------------------------------------------------------------
-
-defrecord for_unit a: Interval(a) as interval where
-    lower: a,
-    upper: a;
-
-# ------------------------------------------------------------------------------
- 
-declare interval_length ::
-    for_unit a: (Interval(a)) -> a;
-
-define interval_length(interval) =
-    interval_upper(interval) - interval_lower(interval);
-
-# ------------------------------------------------------------------------------
-
-declare scale_interval ::
-    for_unit a, b: (a, Interval(b)) -> Interval(a*b);
-
-define scale_interval(factor, interval) =
-    make_interval(
-        factor * interval_lower(interval),
-        factor * interval_upper(interval));
+# define zsquared_z6(v) = 
+#     zsquared_z(sqrt(cbrt(v)))^6;
