@@ -354,7 +354,7 @@
     </math>
     is a scaling factor,
     <math>
-        <mn>-5</mn>
+        <mn>0</mn>
         <mo>&le;</mo>
         <mi>u</mi>
         <mo>&le;</mo>
@@ -362,20 +362,11 @@
     </math>
     , and
     <math>
-        <mn>-</mn>
-        <mfrac>
-            <mn>1</mn>
-            <mn>2</mn>
-        </mfrac>
-        <mn>&pi;</mn>
+        <mn>0</mn>
         <mo>&le;</mo>
         <mi>v</mi>
         <mo>&le;</mo>
-        <mfrac>
-            <mn>1</mn>
-            <mn>2</mn>
-        </mfrac>
-        <mn>&pi;</mn>
+        <mn>2&pi;</mn>
     </math>
 
     <p>
@@ -591,9 +582,9 @@
                 <mi>x</mi>
                 <mo>=</mo>
                 <mi>a</mi>
-                <mi>cos</mi>
-                (<mi>u</mi>)
                 <mi>sin</mi>
+                (<mi>u</mi>)
+                <mi>cos</mi>
                 (<mi>v</mi>)
             </math>
         </li>
@@ -614,7 +605,7 @@
                 <mo>=</mo>
                 <mi>c</mi>
                 <mi>cos</mi>
-                (<mi>v</mi>)
+                (<mi>u</mi>)
             </math>
         </li>
     </ul>
@@ -635,7 +626,7 @@
         <mo>&le;</mo>
         <mi>u</mi>
         <mo>&le;</mo>
-        <mn>2&pi;</mn>
+        <mn>&pi;</mn>
     </math>
     , and
     <math>
@@ -643,7 +634,7 @@
         <mo>&le;</mo>
         <mi>v</mi>
         <mo>&le;</mo>
-        <mn>&pi;</mn>
+        <mn>2&pi;</mn>
     </math>
 
     <p>
@@ -706,7 +697,7 @@
                 <mi>b</mi>
                 <mi>cos</mi>
                 ( <mi>u</mi> ))
-                <mi>cos</mi>
+                <mi>sin</mi>
                 <mo>(</mo>
                 <mi>v</mi>
                 <mo>)</mo>
@@ -724,7 +715,7 @@
                 (
                 <mi>u</mi>
                 ))
-                <mi>sin</mi>
+                <mi>cos</mi>
                 <mo>(</mo>
                 <mi>v</mi>
                 <mo>)</mo>
@@ -1057,6 +1048,117 @@
         Parametrization of a sphere.
 
     <p>
+        <math>
+            <mi>f</mi>
+            (
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            )
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    (
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    )
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>sin</mi>
+                (<mi>u</mi>
+                <mi>atan</mi>
+                (<mfrac>
+                    <mi>v</mi>
+                    <mi>u</mi>
+                </mfrac>
+                ))
+                <mi>sin</mi>
+                (<mi>v</mi>
+                <mi>atan</mi>
+                (<mfrac>
+                    <mi>v</mi>
+                    <mi>u</mi>
+                </mfrac>))
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                <mi>b</mi>
+                <mi>sin</mi>
+                (<mi>u</mi>
+                <mi>atan</mi>
+                (<mfrac>
+                    <mi>v</mi>
+                    <mi>u</mi>
+                </mfrac>
+                ))
+                <mi>cos</mi>
+                (<mi>v</mi>
+                <mi>atan</mi>
+                (<mfrac>
+                    <mi>v</mi>
+                    <mi>u</mi>
+                </mfrac>))
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>c</mi>
+                <mi>cos</mi>
+                (<mi>u</mi>
+                <mi>atan</mi>
+                (<mfrac>
+                    <mi>v</mi>
+                    <mi>u</mi>
+                </mfrac>))
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>a</mi>
+    </math>,
+    <math>
+        <mi>b</mi>
+    </math>,
+    and
+    <math>
+        <mi>c</mi>
+    </math>
+    are scaling factors,
+    <math>
+        <mn>0</mn>
+        <mo>-5</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>5</mn>
+    </math>
+    , and
+    <math>
+        <mn>-5</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>5</mn>
+    </math>
+
+    <p>
     <div class="example">
         <pacioli-scene width="900" height="600" id="alternative_sphere_scene" script="surfaces"
             definition="alternative_sphere_scene" kind="scene" perspective axis>
@@ -1081,6 +1183,117 @@
     <h2>Alternative cone</h2>
     <p>
         Parametrization of a cone.
+
+    <p>
+        <math>
+            <mi>f</mi>
+            (
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            )
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    (
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    )
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>sin</mi>
+                (<mi>u</mi>
+                <mi>atan</mi>
+                (<mfrac>
+                    <mi>v</mi>
+                    <mi>u</mi>
+                </mfrac>
+                ))
+                <mi>sin</mi>
+                (<mi>v</mi>
+                <mi>atan</mi>
+                (<mfrac>
+                    <mi>v</mi>
+                    <mi>u</mi>
+                </mfrac>))
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                <mi>b</mi>
+                <mi>sin</mi>
+                (<mi>u</mi>
+                <mi>atan</mi>
+                (<mfrac>
+                    <mi>v</mi>
+                    <mi>u</mi>
+                </mfrac>
+                ))
+                <mi>cos</mi>
+                (<mi>v</mi>
+                <mi>atan</mi>
+                (<mfrac>
+                    <mi>v</mi>
+                    <mi>u</mi>
+                </mfrac>))
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>c</mi>
+                <mi>sin</mi>
+                (<mi>u</mi>
+                <mi>atan</mi>
+                (<mfrac>
+                    <mi>v</mi>
+                    <mi>u</mi>
+                </mfrac>))
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>a</mi>
+    </math>,
+    <math>
+        <mi>b</mi>
+    </math>,
+    and
+    <math>
+        <mi>c</mi>
+    </math>
+    are scaling factors,
+    <math>
+        <mn>0</mn>
+        <mo>-5</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>5</mn>
+    </math>
+    , and
+    <math>
+        <mn>-5</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>5</mn>
+    </math>
 
     <p>
     <div class="example">
@@ -1108,6 +1321,118 @@
     <h2>Flower</h2>
     <p>
         Parametrization of a flower.
+
+    <p>
+        <math>
+            <mi>f</mi>
+            (
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            )
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    (
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    )
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>cos</mi>
+                (<mi>b</mi>
+                <mi>v</mi>)
+                <msup>
+                    <mi>cos</mi>
+                    <mi>k</mi>
+                </msup>
+                (<mi>c</mi>
+                <mi>u</mi>)
+                <mi>cos</mi>
+                (<mi>u</mi>)
+                <mi>cos</mi>
+                (<mi>v</mi>)
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>cos</mi>
+                (<mi>b</mi>
+                <mi>v</mi>)
+                <msup>
+                    <mi>cos</mi>
+                    <mi>k</mi>
+                </msup>
+                (<mi>c</mi>
+                <mi>u</mi>)
+                <mi>cos</mi>
+                (<mi>u</mi>)
+                <mi>sin</mi>
+                (<mi>v</mi>)
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>cos</mi>
+                (<mi>b</mi>
+                <mi>v</mi>)
+                <msup>
+                    <mi>cos</mi>
+                    <mi>k</mi>
+                </msup>
+                (<mi>c</mi>
+                <mi>u</mi>)
+                <mi>sin</mi>
+                (<mi>u</mi>)
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>a</mi>
+    </math>,
+    <math>
+        <mi>b</mi>
+    </math>,
+    and
+    <math>
+        <mi>c</mi>
+    </math>
+    are scaling factors,
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>2&pi;</mn>
+    </math>
+    , and
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>2&pi;</mn>
+    </math>
+
 
     <p>
     <div class="example">

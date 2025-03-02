@@ -32,7 +32,7 @@ define cosine_scene(a, c, n, m, d, grid, surface, wireframe, parts, total, norma
     let 
         f(x, y) = 
             let r = sqrt(x^2 + y^2) in
-                vector3d(y, x, a * cos(r * c))
+                vector3d(x, y, a * cos(r * c))
             end,
 
         range = 
@@ -55,8 +55,8 @@ define paraboloid_scene(a, n, m, d, grid, surface, wireframe, parts, total, norm
             
         range = 
             make_range(
-                -5 * |metre|, 5 * |metre|,
-                -0.5 * pi * |radian|, 0.5 * pi * |radian|),
+                0*|metre|, 5*|metre|,
+                0*|radian|, 2*pi*|radian|),
 
         options =
             tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
@@ -88,14 +88,14 @@ define ellipsoid_scene(a, b, c, n, m, d, grid, surface, wireframe, parts, total,
     let
         fun(u, v) =
             vector3d(
-                a * cos(u) * sin(v),
+                a * sin(u) * cos(v),
                 b * sin(u) * sin(v),
-                c * cos(v)),
+                c * cos(u)),
 
         range = 
             make_range(
-                0 * |radian|, 2 * pi * |radian|,
-                0 * |radian|, 1 * pi * |radian|),
+                0*|radian|, pi*|radian|,
+                0*|radian|, 2*pi*|radian|),
 
         options =
             tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
@@ -109,8 +109,8 @@ define torus_scene(major, minor, n, m, d, grid, surface, wireframe, parts, total
     let
         fun(u,v) =
             vector3d(
-                (major + minor * cos(u)) * cos(v),
                 (major + minor * cos(u)) * sin(v),
+                (major + minor * cos(u)) * cos(v),
                 minor * sin(u)),
 
         range = 
@@ -130,8 +130,8 @@ define cone_scene(h, r, n, m, d, grid, surface, wireframe, parts, total, normals
     let 
         f(u, v) =
             vector3d(
-                r*(h - u)/h * cos(v),
-                r*(h - u)/h * sin(v),
+                r * (h - u)/h * cos(v),
+                r * (h - u)/h * sin(v),
                 u - h),
 
         range = 
