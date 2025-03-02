@@ -61,34 +61,77 @@ export
 
 define normal_color = make_color("green");
 define delta_color = make_color("red");
-define path_color = make_color("red");
 define line_color = make_color("steelblue");
 
 # ------------------------------------------------------------------------------
 # ParametricPlotOptions
 # ------------------------------------------------------------------------------
 
+doc ParametricPlotOptions
+    "Options for plotting parametric surfaces, grids and deltas.";
+
 defrecord ParametricPlotOptions() as parametric_plot_options where
     n: 1,
     m: 1,
-    color: Color,
+    delta: 1,
     scale_factor: 1,
     show_parts: Boole,
     show_total: Boole,
     show_normals: Boole,
     wireframe: Boole,
+    color: Color,
     delta_color: Color,
     normal_color: Color;
 
+declare default_parametric_plot_options :: ParametricPlotOptions;
+
 define default_parametric_plot_options = 
-    make_parametric_plot_options(25, 1, line_color, 1, false, false, false, false, delta_color, normal_color);
+    make_parametric_plot_options(
+        25, 1, 1, 0.01,
+        false, false, false, false,
+        line_color, delta_color, normal_color);
 
 # ------------------------------------------------------------------------------
 # Plotting the surface and the grid
 # ------------------------------------------------------------------------------
 
 doc plot_parametric_surface
-    "Plots a parametric surface in a 3D space.";
+    "Plots a parametric surface in a 3D space.
+
+    The function parameter is a function from the given range to <code>Geom3</code>
+    vectors. The function is sampled for the given range to give the surface points.
+    
+    The number of samples, and other parameters like color, can be set in the options.
+
+    For example
+
+    <code>
+    let
+        u_interval = make_interval(-5*|metre|, 5*|metre|),  
+        v_interval = make_interval(-5*|metre|, 5*|metre|)
+    in  
+        plot_parametric_surface(
+            (u, v) -> vector3d(u, v, 3*|metre| - 0.5*u - 0.2*v),
+            make_range2d(u_interval, v_interval),
+            default_parametric_plot_options,
+            scene)
+    end  
+    </code>
+
+    plots a part of a plane, using default options. It yields a scene of
+    type <code>Scene(metre, Geom3!)</code>";
+
+
+doc plot_parametric_surface_grid
+    "Plots a parametric grid in a 3D space.
+
+    The function parameter is a function from the given range to <code>Geom3</code>
+    vectors. The function is sampled for the given range to give the grid points.
+    
+    The number of samples, and other parameters like color, can be set in the options.
+
+    It is similar to plotting a surface using <code>plot_parametric_surface</code> with
+    the option wireframe, but it displays rectangles instead of triangles.";
 
 declare plot_parametric_surface, plot_parametric_surface_grid ::
     for_unit a, b, c, Geom3!u:
@@ -170,7 +213,8 @@ define plot_parametric_surface_deltas(fun, range, options, scene) =
         n = parametric_plot_options_n(options),
         m = parametric_plot_options_m(options),
         d = parametric_plot_options_scale_factor(options),
-        deltas = compute_deltas(fun, range, n, m, d)
+        delta = parametric_plot_options_delta(options),
+        deltas = compute_deltas(fun, range, n, m, d, delta)
     in
         begin
             new_scene := scene;
@@ -179,13 +223,12 @@ define plot_parametric_surface_deltas(fun, range, options, scene) =
         end
     end;
 
-define compute_deltas(fun, range, n, m, c) =
+define compute_deltas(fun, range, n, m, c, delta) =
     let
         u_start = range_ustart(range),
         v_start = range_vstart(range),
         u_step = range_width(range) / n,
-        v_step = range_height(range) / n,
-        delta = 0.01
+        v_step = range_height(range) / n
     in
         [tuple(pos, c '.*' vu, c '.*' vv) | 
             indices := naturals(n),
@@ -211,9 +254,10 @@ define plot_parametric_path(fun, u0, v0, du, dv, options, scene) =
     let
         n = parametric_plot_options_n(options),
         m = parametric_plot_options_m(options),
+        delta = parametric_plot_options_delta(options),
         color = parametric_plot_options_color(options),
 
-        deltas = path_deltas(fun, u0, v0, du, dv, n, 1, 0.01, parametric_plot_options_scale_factor(options))
+        deltas = path_deltas(fun, u0, v0, du, dv, n, 1, delta, parametric_plot_options_scale_factor(options))
     in
         begin
             new_scene := add_arrows(path_arrows([pos | (pos, _, _) <- deltas], color), scene);
@@ -223,7 +267,7 @@ define plot_parametric_path(fun, u0, v0, du, dv, options, scene) =
                         if m = 1 then
                             deltas
                         else
-                            path_deltas(fun, u0, v0, du, dv, n, m, 0.01, parametric_plot_options_scale_factor(options)) 
+                            path_deltas(fun, u0, v0, du, dv, n, m, delta, parametric_plot_options_scale_factor(options)) 
                         end
                 in
                     plot_delta_arrows(deltas2, options, new_scene)
