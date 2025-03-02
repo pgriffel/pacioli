@@ -87,7 +87,7 @@ declare default_parametric_plot_options :: ParametricPlotOptions;
 
 define default_parametric_plot_options = 
     make_parametric_plot_options(
-        25, 1, 1, 0.01,
+        25, 1, 0.01, 1,
         false, false, false, false,
         line_color, delta_color, normal_color);
 
