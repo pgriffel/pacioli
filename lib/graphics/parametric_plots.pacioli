@@ -214,7 +214,7 @@ define plot_parametric_surface_deltas(fun, range, options, scene) =
         m = parametric_plot_options_m(options),
         d = parametric_plot_options_scale_factor(options),
         delta = parametric_plot_options_delta(options),
-        deltas = compute_deltas(fun, range, n, m, d, delta)
+        deltas = compute_deltas(fun, range, n, m, delta)
     in
         begin
             new_scene := scene;
@@ -223,14 +223,14 @@ define plot_parametric_surface_deltas(fun, range, options, scene) =
         end
     end;
 
-define compute_deltas(fun, range, n, m, c, delta) =
+define compute_deltas(fun, range, n, m, delta) =
     let
         u_start = range_ustart(range),
         v_start = range_vstart(range),
         u_step = range_width(range) / n,
         v_step = range_height(range) / n
     in
-        [tuple(pos, c '.*' vu, c '.*' vv) | 
+        [tuple(pos, vu, vv) | 
             indices := naturals(n),
             i <- indices,
             j <- indices,
@@ -257,7 +257,7 @@ define plot_parametric_path(fun, u0, v0, du, dv, options, scene) =
         delta = parametric_plot_options_delta(options),
         color = parametric_plot_options_color(options),
 
-        deltas = path_deltas(fun, u0, v0, du, dv, n, 1, delta, parametric_plot_options_scale_factor(options))
+        deltas = path_deltas(fun, u0, v0, du, dv, n, 1, delta)
     in
         begin
             new_scene := add_arrows(path_arrows([pos | (pos, _, _) <- deltas], color), scene);
@@ -267,7 +267,7 @@ define plot_parametric_path(fun, u0, v0, du, dv, options, scene) =
                         if m = 1 then
                             deltas
                         else
-                            path_deltas(fun, u0, v0, du, dv, n, m, delta, parametric_plot_options_scale_factor(options)) 
+                            path_deltas(fun, u0, v0, du, dv, n, m, delta) 
                         end
                 in
                     plot_delta_arrows(deltas2, options, new_scene)
@@ -279,8 +279,8 @@ define plot_parametric_path(fun, u0, v0, du, dv, options, scene) =
 define path_arrows(positions, color) =
     [ with_arrow_color(color, make_arrow(pos, du - pos)) | (pos, du) <- zip(positions, tail(positions))];
 
-define path_deltas(fun, u0, v0, du, dv, n, m, d, c) =
-    [tuple(pos, c '.*' vv, c '.*' vu) |
+define path_deltas(fun, u0, v0, du, dv, n, m, d) =
+    [tuple(pos, vv, vu) |
         i <- naturals(n + 1),
         mod(i, m) = 0,
         u := u0 + du * i,
@@ -294,38 +294,42 @@ define path_deltas(fun, u0, v0, du, dv, n, m, d, c) =
 # ------------------------------------------------------------------------------
 
 define plot_delta_arrows(deltas, options, scene) =
+    let 
+        d = parametric_plot_options_scale_factor(options)
+    in
     begin
         new_scene := scene;
 
         if parametric_plot_options_show_normals(options) then
-            new_scene := add_arrows(normal_arrows(deltas, parametric_plot_options_normal_color(options)), new_scene);
+            new_scene := add_arrows(normal_arrows(deltas, parametric_plot_options_normal_color(options), d), new_scene);
         end
 
         if parametric_plot_options_show_parts(options) then
-            new_scene := add_arrows(partial_arrows(deltas, parametric_plot_options_delta_color(options)), new_scene);
+            new_scene := add_arrows(partial_arrows(deltas, parametric_plot_options_delta_color(options), d), new_scene);
         end
 
         if parametric_plot_options_show_total(options) then
-            new_scene := add_arrows(total_arrows(deltas, parametric_plot_options_delta_color(options)), new_scene);
+            new_scene := add_arrows(total_arrows(deltas, parametric_plot_options_delta_color(options), d), new_scene);
         end
 
         return new_scene;
+    end
     end;
     
-define total_arrows(deltas, color) =
+define total_arrows(deltas, color, d) =
     [ with_arrow_color(color, arrow) |
         (pos, du, dv) <- deltas,
-        arrow := make_arrow(pos, du + dv)];
+        arrow := make_arrow(pos, d '.*' (du + dv))];
 
-define partial_arrows(deltas, color) =
+define partial_arrows(deltas, color, d) =
     [ with_arrow_color(color, arrow) |
         (pos, du, dv) <- deltas,
-        arrow <- [make_arrow(pos, du), make_arrow(pos, dv)]];
+        arrow <- [make_arrow(pos, d '.*' du), make_arrow(pos, d '.*' dv)]];
 
-define normal_arrows(deltas, color) =
+define normal_arrows(deltas, color, d) =
     [ with_arrow_color(color, arrow) |
         (pos, du, dv) <- deltas,
-        arrow := make_arrow(pos, cross_sqrt(magnitude(du), magnitude(dv)) * unit(pos))];
+        arrow := make_arrow(pos, d '.*' cross_sqrt(magnitude(du), magnitude(dv)) * unit(pos))];
 
 # ------------------------------------------------------------------------------
 # Ranges
