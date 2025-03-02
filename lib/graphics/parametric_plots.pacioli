@@ -325,7 +325,7 @@ define partial_arrows(deltas, color) =
 define normal_arrows(deltas, color) =
     [ with_arrow_color(color, arrow) |
         (pos, du, dv) <- deltas,
-        arrow := make_arrow(pos, cross_sqrt(magnitude(dv), magnitude(du)) * unit(pos))];
+        arrow := make_arrow(pos, cross_sqrt(magnitude(du), magnitude(dv)) * unit(pos))];
 
 # ------------------------------------------------------------------------------
 # Ranges
