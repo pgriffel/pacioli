@@ -176,7 +176,7 @@ define moebius_scene(a, c, n, m, d, grid, surface, wireframe, parts, total, norm
         dv = range_height(range) / n,
 
         plot_path(u0, v0, du, dv, n, color, scene) = 
-            let path_options = make_parametric_plot_options(n, m, make_color(color), d, parts, total, normals, wireframe, delta_color, normal_color) in
+            let path_options = make_parametric_plot_options(n, m, 0.01, d, parts, total, normals, wireframe, make_color(color), delta_color, normal_color) in
                 plot_parametric_path(f, u0, v0, du, dv, path_options, scene)
             end
     in
@@ -252,9 +252,9 @@ define build_example_scene(fun, range, options) =
 
         plot_options =
             make_parametric_plot_options(
-                n, m, line_color, d,
+                n, m, 0.01, d,
                 parts, total, normals, wireframe,
-                delta_color, normal_color),
+                line_color, delta_color, normal_color),
 
         light_sources = [
             vector3d(50, 50, 50),
