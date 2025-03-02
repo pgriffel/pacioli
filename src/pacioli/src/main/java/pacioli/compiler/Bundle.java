@@ -301,6 +301,7 @@ public class Bundle {
 
         // Generate code for the toplevels
         for (Toplevel def : environment.toplevels()) {
+            assert (def.location().file().isPresent());
             if (def.location().file().get().equals(file.fsFile())) {
                 if (settings.target() == Target.MVM ||
                         settings.target() == Target.MATLAB) {
@@ -407,6 +408,7 @@ public class Bundle {
         for (String name : environment.values().allNames()) {
             ValueInfo info = environment.values().lookup(name);
             if (info.isPublic()
+                    && info.location().file().isPresent()
                     && includes.contains(info.location().file().get())
                     && info.definition().isPresent()
                     && info.isUserDefined()) {
@@ -431,7 +433,7 @@ public class Bundle {
 
         for (String name : environment.types().allNames()) {
             TypeInfo info = environment.types().lookup(name);
-            if (includes.contains(info.location().file().get())
+            if (info.location().file().isPresent() && includes.contains(info.location().file().get())
                     && info.definition().isPresent() && info.isPublic()) {
                 if (info instanceof ParametricInfo def) {
                     generator.addType(info.name(),

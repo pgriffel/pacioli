@@ -347,7 +347,7 @@ public class DocumentState {
 
     static String hoverDoc(List<String> docuParts) {
 
-        Pattern p = Pattern.compile("^<code>(.*)</code>$");
+        Pattern p = Pattern.compile("^<code>([\\s\\S]*)</code>$");
 
         List<String> markupLines = new ArrayList<>();
 
@@ -359,7 +359,7 @@ public class DocumentState {
             // If the entire line is code then make a code block.
             Matcher m = p.matcher(line);
             if (m.find()) {
-                line = String.format("%n```pacioli%n%s%n```%n", m.group(1));
+                line = String.format("```pacioli%n    %s%n```", m.group(1).trim());
             }
 
             // Replace all inline code html tags with markdown backticks.

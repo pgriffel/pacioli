@@ -254,7 +254,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 // the error.
                 Range range = new Range(new Position(0, 0), new Position(10000, 100));
                 var d = new Diagnostic(range, String.format("Error in file %s:%n%n%s",
-                        src.file().get(),
+                        src.file().orElse(null),
                         message));
 
                 errors.add(d);
