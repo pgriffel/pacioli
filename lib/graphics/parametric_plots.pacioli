@@ -85,6 +85,9 @@ defrecord ParametricPlotOptions() as parametric_plot_options where
 
 declare default_parametric_plot_options :: ParametricPlotOptions;
 
+doc default_parametric_plot_options
+    "Default values for the options for parametric plots.";
+
 define default_parametric_plot_options = 
     make_parametric_plot_options(
         25, 1, 0.01, 1,

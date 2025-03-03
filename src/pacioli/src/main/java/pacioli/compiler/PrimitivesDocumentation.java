@@ -137,11 +137,16 @@ public class PrimitivesDocumentation {
 
                     if (info.definition().isPresent()) { // foute check. acos etc gaat fout. Hebben wel body, maar zijn
                                                          // primitive!?
-                        generator.addFunction(info.name(), args, type.pretty(),
-                                info.generalInfo().documentation().orElse(""));
+                        generator.addFunction(info.name(), args, type.pretty());
+                        if (info.generalInfo().documentation().isPresent()) {
+                            generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
+                        }
+
                     } else {
-                        generator.addPrimitiveFunction(info.name(), args, type.pretty(),
-                                info.generalInfo().documentation().orElse(""));
+                        generator.addPrimitiveFunction(info.name(), args, type.pretty());
+                        if (info.generalInfo().documentation().isPresent()) {
+                            generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
+                        }
 
                     }
 
@@ -152,11 +157,15 @@ public class PrimitivesDocumentation {
                 } else {
 
                     if (info.definition().isPresent()) {
-                        generator.addValue(info.name(), type.pretty(),
-                                info.generalInfo().documentation().orElse(""));
+                        generator.addValue(info.name(), type.pretty());
+                        if (info.generalInfo().documentation().isPresent()) {
+                            generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
+                        }
                     } else {
-                        generator.addPrimitiveValue(info.name(), type.pretty(),
-                                info.generalInfo().documentation().orElse(""));
+                        generator.addPrimitiveValue(info.name(), type.pretty());
+                        if (info.generalInfo().documentation().isPresent()) {
+                            generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
+                        }
                     }
 
                     if (info.generalInfo().documentation().isEmpty()) {

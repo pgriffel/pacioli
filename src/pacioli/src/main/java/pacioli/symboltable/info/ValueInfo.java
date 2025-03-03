@@ -73,15 +73,6 @@ public class ValueInfo extends AbstractInfo {
         return Optional.ofNullable(this.typeClass);
     }
 
-    public List<String> getDocuParts() {
-        if (this.generalInfo().documentation().isPresent()) {
-            String[] parts = this.generalInfo().documentation().get().split("\\r?\\n\s*\\r?\\n");
-            return List.of(parts);
-        } else {
-            return List.of();
-        }
-    }
-
     public boolean isRef() {
         return isRef;
     }

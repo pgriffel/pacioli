@@ -7,9 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemLabelDetails;
 import org.eclipse.lsp4j.Hover;
@@ -30,8 +27,10 @@ import pacioli.compiler.PacioliFile;
 import pacioli.compiler.Project;
 import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeInfo;
+import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.ast.TypeIdentifierNode;
+import pacioli.types.type.TypeObject;
 
 public class DocumentState {
 
@@ -49,7 +48,7 @@ public class DocumentState {
     static int MODIFIER_DEFINITION = 1;
     static int MODIFIER_NONE = 2;
 
-    static List<String> KEYWORDS_IN_AUTOCOMPLETE = List.of("let", "in", "end", "then", "do");
+    static List<String> KEYWORDS_IN_AUTOCOMPLETE = List.of("let", "in", "end", "then", "do", "where");
 
     public final String uri;
     private final Bundle bundle;
@@ -87,26 +86,8 @@ public class DocumentState {
                         new Position(loc.toLine, loc.toColumn));
                 locations.add(new org.eclipse.lsp4j.Location(uri.toString(), range));
             }
-            // List<org.eclipse.lsp4j.Location> empty = List.of();
-            // return empty;
         }
         return locations;
-        // return this
-        // .locateInfo(position.getLine(), position.getCharacter())
-        // .map(info -> {
-        // var loc = info.location();
-        // if (loc.file().isPresent()) {
-        // var uri = loc.file().get().toURI();
-
-        // var range = new Range(new Position(loc.fromLine, loc.fromColumn),
-        // new Position(loc.toLine, loc.toColumn));
-        // return List.of(new org.eclipse.lsp4j.Location(uri.toString(), range));
-        // }
-        // List<org.eclipse.lsp4j.Location> empty = List.of();
-        // return empty;
-
-        // })
-        // .orElse(List.of());
     }
 
     public SemanticTokens semanticTokens() {
@@ -150,29 +131,20 @@ public class DocumentState {
             List<String> markups = new ArrayList<>();
             for (Info inf : infos) {
                 if (inf instanceof ValueInfo vi && inf.isGlobal()) {
-
                     markups.add(infoMarkup(vi));
-                    // var content = new MarkupContent(MarkupKind.MARKDOWN, infoMarkup(vi));
-
-                    // return new Hover(content);
                 }
                 if (inf instanceof TypeInfo vi && inf.isGlobal()) {
-                    List<String> docParts = List.of();
-                    if (vi.generalInfo().documentation().isPresent()) {
-                        String[] parts = vi.generalInfo().documentation().get().split("\\r?\\n\s*\\r?\\n");
-                        docParts = List.of(parts);
-                    }
-
-                    String markup = String.format("### Type%n%n%s %n %n %s%n%nsource: %s%n",
+                    String markup = String.format("### %s%n%n%s %n %n %s%n%nsource: %s%n",
+                            inf instanceof UnitInfo ? "Unit" : "Type",
                             inf.name(),
-                            hoverDoc(docParts),
+                            vi.generalInfo().documentation().map(doc -> doc.asMarkdown()).orElse(""),
                             infoModulePath(inf));
 
-                    // We get multiple results here. Hover over a record type to reproduce.
+                    // We get multiple results here. Remove the return and hover over a record type
+                    // to reproduce.
                     // markups.add(markup);
 
                     var content = new MarkupContent(MarkupKind.MARKDOWN, markup);
-
                     return new Hover(content);
                 }
             }
@@ -183,33 +155,6 @@ public class DocumentState {
         } else {
             return new Hover(new MarkupContent(MarkupKind.PLAINTEXT, ""));
         }
-        // var info = this
-        // .locateInfo(position.getLine(), position.getCharacter())
-        // .map(inf -> {
-        // if (inf instanceof ValueInfo vi && inf.isGlobal()) {
-
-        // var content = new MarkupContent(MarkupKind.MARKDOWN, infoMarkup(vi));
-
-        // return new Hover(content);
-        // }
-        // if (inf instanceof TypeInfo vi && inf.isGlobal()) {
-        // List<String> docParts = List.of();
-        // if (vi.generalInfo().documentation().isPresent()) {
-        // String[] parts =
-        // vi.generalInfo().documentation().get().split("\\r?\\n\s*\\r?\\n");
-        // docParts = List.of(parts);
-        // }
-        // var content = new MarkupContent(MarkupKind.MARKDOWN, String.format("%s %n %n
-        // %s",
-        // inf.name(),
-        // hoverDoc(docParts)));
-
-        // return new Hover(content);
-        // }
-        // return new Hover(new MarkupContent(MarkupKind.PLAINTEXT, ""));
-        // })
-        // .orElse(new Hover(new MarkupContent(MarkupKind.PLAINTEXT, "")));
-        // return info;
     }
 
     private List<Info> locateInfo(Integer line, Integer column) {
@@ -235,11 +180,9 @@ public class DocumentState {
                         infos.add(candidate.info().get());
                     }
                 }
-                // return Optional.ofNullable(info);
                 return infos;
             }
         }
-        // return Optional.empty();
         return List.of();
     }
 
@@ -408,39 +351,6 @@ public class DocumentState {
         return List.of(TOKEN_PARAMETER, MODIFIER_DECLARATION);
     }
 
-    static String hoverDoc(List<String> docuParts) {
-
-        Pattern p = Pattern.compile("^<code>([\\s\\S]*)</code>$");
-        Pattern p2 = Pattern.compile("^<pre>([\\s\\S]*)</pre>$");
-
-        List<String> markupLines = new ArrayList<>();
-
-        for (String part : docuParts) {
-
-            // Remove leading spaces because they have meaning in markup
-            var line = part.trim();
-
-            // If the entire line is code then make a code block.
-            // Matcher m = p.matcher(line);
-            // if (m.find()) {
-            // line = String.format("```pacioli%n %s%n```", m.group(1).trim());
-            // }
-            Matcher m2 = p2.matcher(line);
-            if (m2.find()) {
-                line = String.format("```pacioli%n    %s%n```", m2.group(1).trim());
-            }
-
-            // Replace all inline code html tags with markdown backticks.
-            line = line
-                    .replaceAll("<code>", String.format("`"))
-                    .replaceAll("</code>", String.format("`"));
-
-            markupLines.add(line);
-        }
-
-        return String.join(String.format("%n%n"), markupLines);
-    }
-
     static String infoModulePath(Info vi) {
         var modulePath = vi.generalInfo().file().modulePath();
         modulePath = modulePath.isEmpty()
@@ -449,13 +359,13 @@ public class DocumentState {
         return modulePath;
     }
 
-    static String infoType(ValueInfo vi) {
-        var typ = vi.declaredType().map(ty -> Optional.of(ty.evalType())).orElse(vi.inferredType());
-        var type = typ.map(t -> t.pretty()).orElse("");
-        // var type = vi.declaredType()
-        // .map(x -> x.pretty())
-        // .orElse(vi.inferredType().map(x -> x.pretty()).orElse(""));
-        return type;
+    static String infoType(ValueInfo info) {
+        Optional<TypeObject> type = info
+                .declaredType()
+                .map(declared -> Optional.of(declared.evalType()))
+                .orElse(info.inferredType());
+
+        return type.map(t -> t.pretty()).orElse("");
     }
 
     static String infoMarkup(ValueInfo info) {
@@ -464,7 +374,7 @@ public class DocumentState {
                 info.isFunction() ? "Function" : "Value",
                 info.name(),
                 infoType(info),
-                hoverDoc(info.getDocuParts()),
+                info.generalInfo().documentation().map(x -> x.asMarkdown()).orElse(""),
                 infoModulePath(info));
     }
 }
