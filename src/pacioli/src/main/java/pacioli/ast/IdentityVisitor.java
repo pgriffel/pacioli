@@ -111,11 +111,13 @@ public class IdentityVisitor implements Visitor {
     @Override
     public void visit(Declaration node) {
         // Pacioli.log("Decl");
+        node.id.accept(this);
         node.typeNode.accept(this);
     }
 
     @Override
     public void visit(IndexSetDefinition indexSetDefinition) {
+        indexSetDefinition.id.accept(this);
         if (indexSetDefinition.isDynamic()) {
             indexSetDefinition.body().accept(this);
         }
@@ -124,6 +126,9 @@ public class IdentityVisitor implements Visitor {
     @Override
     public void visit(MultiDeclaration node) {
         // Pacioli.log("Multidc");
+        for (IdentifierNode id : node.ids) {
+            id.accept(this);
+        }
         node.node.accept(this);
     }
 
@@ -232,8 +237,9 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(MatrixLiteralNode matrixLiteralNode) {
+    public void visit(MatrixLiteralNode node) {
         // Pacioli.log("matrix");
+        node.typeNode.accept(this);
     }
 
     @Override
@@ -402,6 +408,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(Documentation node) {
+        // node.id.accept(this);
         node.body.accept(this);
     }
 

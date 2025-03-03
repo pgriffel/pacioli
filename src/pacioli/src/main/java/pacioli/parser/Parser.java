@@ -186,13 +186,13 @@ public class Parser extends java_cup.runtime.lr_parser {
     "\101\uffab\102\uffab\103\uffab\104\uffab\105\uffab\106\uffab\107" +
     "\uffab\110\uffab\111\uffab\112\uffab\113\uffab\114\uffab\115\uffab" +
     "\116\uffab\117\uffab\120\uffab\121\uffab\131\uffab\133\uffab\001" +
-    "\002\000\004\125\066\001\002\000\014\025\u0195\032\u0191" +
+    "\002\000\004\125\070\001\002\000\014\025\u0195\032\u0191" +
     "\044\u0198\056\u0101\125\066\001\002\000\036\025\033\030" +
     "\031\041\055\056\060\062\047\064\040\073\052\122\035" +
     "\123\022\124\037\125\066\126\061\127\045\130\032\001" +
     "\002\000\036\025\033\030\031\041\055\056\060\062\047" +
     "\064\040\073\052\122\035\123\022\124\037\125\066\126" +
-    "\061\127\045\130\032\001\002\000\004\125\066\001\002" +
+    "\061\127\045\130\032\001\002\000\004\125\070\001\002" +
     "\000\136\026\uff7f\027\uff7f\031\uff7f\033\uff7f\034\uff7f\037" +
     "\uff7f\040\uff7f\042\uff7f\043\uff7f\053\uff7f\055\uff7f\056\uff7f" +
     "\057\uff7f\063\uff7f\064\uff7f\065\uff7f\066\uff7f\067\uff7f\070" +
@@ -1287,13 +1287,13 @@ public class Parser extends java_cup.runtime.lr_parser {
     "\000\002\001\001\000\002\001\001\000\002\001\001\000" +
     "\002\001\001\000\002\001\001\000\002\001\001\000\002" +
     "\001\001\000\002\001\001\000\002\001\001\000\004\022" +
-    "\u01bd\001\001\000\002\001\001\000\004\022\u01b6\001\001" +
+    "\u01bd\001\001\000\002\001\001\000\004\024\u01b6\001\001" +
     "\000\014\015\u0196\021\u0195\022\u0192\030\u0191\066\u0193\001" +
     "\001\000\030\006\u0181\007\026\013\041\014\035\022\050" +
     "\023\024\030\023\042\040\063\020\076\062\103\u0180\001" +
     "\001\000\026\006\u0174\007\026\013\041\014\035\022\050" +
     "\023\024\030\023\042\040\063\020\076\062\001\001\000" +
-    "\004\022\u0171\001\001\000\002\001\001\000\002\001\001" +
+    "\004\024\u0171\001\001\000\002\001\001\000\002\001\001" +
     "\000\002\001\001\000\010\024\152\055\u016f\056\137\001" +
     "\001\000\002\001\001\000\002\001\001\000\004\022\u016c" +
     "\001\001\000\006\022\124\026\u0167\001\001\000\002\001" +
@@ -2169,7 +2169,7 @@ class CUP$Parser$actions {
           return CUP$Parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
-          case 15: // definition ::= DEFINDEX id 
+          case 15: // definition ::= DEFINDEX typeid 
             {
               Definition RESULT =null;
 		Location dxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).xleft;
@@ -2177,7 +2177,7 @@ class CUP$Parser$actions {
 		Object d = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
-		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		TypeIdentifierNode id = (TypeIdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		 List<String> names = new ArrayList<String>();
                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, idxright), id, names); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("definition",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
@@ -2185,7 +2185,7 @@ class CUP$Parser$actions {
           return CUP$Parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
-          case 16: // definition ::= DEFINDEX id EQL LBRC names RBRC 
+          case 16: // definition ::= DEFINDEX typeid EQL LBRC names RBRC 
             {
               Definition RESULT =null;
 		Location dxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-5)).xleft;
@@ -2193,7 +2193,7 @@ class CUP$Parser$actions {
 		Object d = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-5)).value;
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)).xright;
-		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-4)).value;
+		TypeIdentifierNode id = (TypeIdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-4)).value;
 		Location idsxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).xleft;
 		Location idsxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).xright;
 		List<IdentifierNode> ids = (List<IdentifierNode>)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
@@ -2206,7 +2206,7 @@ class CUP$Parser$actions {
           return CUP$Parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
-          case 17: // definition ::= DEFINDEX id EQL LBRC RBRC 
+          case 17: // definition ::= DEFINDEX typeid EQL LBRC RBRC 
             {
               Definition RESULT =null;
 		Location dxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)).xleft;
@@ -2214,7 +2214,7 @@ class CUP$Parser$actions {
 		Object d = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-4)).value;
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)).xright;
-		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-3)).value;
+		TypeIdentifierNode id = (TypeIdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-3)).value;
 		Location pxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location pxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		Object p = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
@@ -2224,7 +2224,7 @@ class CUP$Parser$actions {
           return CUP$Parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
-          case 18: // definition ::= DEFINDEX id EQL expr 
+          case 18: // definition ::= DEFINDEX typeid EQL expr 
             {
               Definition RESULT =null;
 		Location dxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)).xleft;
@@ -2232,7 +2232,7 @@ class CUP$Parser$actions {
 		Object d = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-3)).value;
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).xright;
-		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
+		TypeIdentifierNode id = (TypeIdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
 		Location exleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location exright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		ExpressionNode e = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
@@ -2263,7 +2263,7 @@ class CUP$Parser$actions {
           return CUP$Parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
-          case 20: // definition ::= DEFALIAS id EQL unit 
+          case 20: // definition ::= DEFALIAS typeid EQL unit 
             {
               Definition RESULT =null;
 		Location dxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)).xleft;
@@ -2271,7 +2271,7 @@ class CUP$Parser$actions {
 		Object d = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-3)).value;
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).xright;
-		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
+		TypeIdentifierNode id = (TypeIdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
 		Location uxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location uxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		UnitNode u = (UnitNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
@@ -4985,7 +4985,7 @@ class CUP$Parser$actions {
 		Location bxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		TypeNode b = (TypeNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		 TypeNode domain = new TypeApplicationNode(makeLoc(asxleft, bxright), 
-                                                                            new TypeIdentifierNode(makeLoc(asxleft, asxright), "Tuple"), as);
+                                                                            new TypeIdentifierNode(makeLoc(asxleft, asxright).collapse(), "Tuple"), as);
                                                        RESULT = new FunctionTypeNode(makeLoc(asxleft, bxright), domain, b); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("function_type",42, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }

@@ -3,6 +3,7 @@ package pacioli.symboltable.info;
 import java.util.List;
 import java.util.Optional;
 
+import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
@@ -17,7 +18,7 @@ public class ValueInfo extends AbstractInfo {
     private final boolean isMonomorphic;
     private final boolean isRef;
     private final ValueDefinition definition;
-    private final TypeNode declaredType;
+    private final Declaration declaredType;
     private final ClassInfo typeClass;
 
     // Set during type inference
@@ -29,7 +30,7 @@ public class ValueInfo extends AbstractInfo {
             boolean isRef,
             ValueDefinition definition,
             ClassInfo typeClass,
-            TypeNode declaredType) {
+            Declaration declaredType) {
         super(info);
         this.isMonomorphic = isMonomorphic;
         this.definition = definition;
@@ -62,6 +63,10 @@ public class ValueInfo extends AbstractInfo {
     }
 
     public Optional<TypeNode> declaredType() {
+        return Optional.ofNullable(this.declaredType).map(decl -> decl.typeNode);
+    }
+
+    public Optional<Declaration> declaration() {
         return Optional.ofNullable(this.declaredType);
     }
 
@@ -85,7 +90,7 @@ public class ValueInfo extends AbstractInfo {
      */
     public TypeObject publicType() {
         if (declaredType != null) {
-            return declaredType.evalType();
+            return declaredType.typeNode.evalType();
         } else if (inferredType != null) {
             return inferredType;
         } else {
@@ -130,7 +135,7 @@ public class ValueInfo extends AbstractInfo {
         public Boolean isMonomorphic;
         public boolean isRef = false;
         public ValueDefinition definition;
-        public TypeNode declaredType;
+        public Declaration declaredType;
         public ClassInfo typeClass;
 
         @Override
@@ -148,7 +153,7 @@ public class ValueInfo extends AbstractInfo {
             return this;
         }
 
-        public Builder declaredType(TypeNode declaredType) {
+        public Builder declaredType(Declaration declaredType) {
             this.declaredType = declaredType;
             return this;
         }

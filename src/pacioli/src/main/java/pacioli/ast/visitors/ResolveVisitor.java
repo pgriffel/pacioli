@@ -92,16 +92,19 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(AliasDefinition node) {
+        node.id.accept(this);
         node.unit.accept(this);
     }
 
     @Override
     public void visit(Declaration node) {
+        node.id.accept(this);
         node.typeNode.accept(this);
     }
 
     @Override
     public void visit(IndexSetDefinition node) {
+        node.id.accept(this);
         if (node.isDynamic()) {
             node.body().accept(this);
         }

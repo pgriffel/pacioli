@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import pacioli.ast.definition.ClassDefinition;
+import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.ValueDefinition;
@@ -97,10 +98,11 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
 
         // Create a type schema for the constructor
         builder.declaredType(
-                new SchemaNode(
-                        defLocation,
-                        this.definition.quantNodesWithoutConditions(),
-                        new FunctionTypeNode(defLocation, this.dictTypeRHS(), this.dictTypeLHS())));
+                new Declaration(defLocation, new IdentifierNode(this.constructorName(), defLocation),
+                        new SchemaNode(
+                                defLocation,
+                                this.definition.quantNodesWithoutConditions(),
+                                new FunctionTypeNode(defLocation, this.dictTypeRHS(), this.dictTypeLHS()))));
 
         return builder.build();
     }
@@ -135,7 +137,7 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
                         .isMonomorphic(false)
                         .location(this.definition.location())
                         .isPublic(true)
-                        .declaredType(this.memberType(member))
+                        .declaredType(new Declaration(this.definition.location(), member.id, this.memberType(member)))
                         .definition(new ValueDefinition(
                                 memberLocation,
                                 member.id,

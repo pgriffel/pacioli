@@ -52,7 +52,7 @@ public class DocumentState {
 
     public final String uri;
     private final Bundle bundle;
-    private final Map<Integer, List<IdentifierInfo>> identifierIndex;
+    public final Map<Integer, List<IdentifierInfo>> identifierIndex;
     private final SemanticTokens semanticTokenList;
     private final List<CompletionItem> autoCompleteList;
 

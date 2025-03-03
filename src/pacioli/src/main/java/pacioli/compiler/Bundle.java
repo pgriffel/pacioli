@@ -543,11 +543,12 @@ public class Bundle {
     }
 
     public List<IdentifierInfo> allIdentifiers() {
-        var infos = environment.values().allInfos(info -> info.isFromFile(this.file));
         List<IdentifierInfo> all = new ArrayList<>();
+
+        var infos = environment.values().allInfos(info -> info.isFromFile(this.file));
         for (Info info : infos) {
-            if (info instanceof ValueInfo vd && vd.declaredType().isPresent()) {
-                all.addAll(vd.declaredType().get().allIdentifiers());
+            if (info instanceof ValueInfo vd && vd.declaration().isPresent()) {
+                all.addAll(vd.declaration().get().allIdentifiers());
             }
             if (info.definition().isPresent()) {
                 var def = info.definition().get();
@@ -556,10 +557,29 @@ public class Bundle {
                     all.add(new IdentifierInfo(d.id));
                 }
             }
+            if (info.generalInfo().documentation().isPresent()) {
+                all.addAll(info.generalInfo().documentation().get().allIdentifiers());
+            }
         }
+
+        var typeInfos = environment.types().allInfos(info -> info.isFromFile(this.file));
+        for (Info info : typeInfos) {
+            // if (info instanceof ValueInfo vd && vd.declaredType().isPresent()) {
+            // all.addAll(vd.declaredType().get().allIdentifiers());
+            // }
+            if (info.definition().isPresent()) {
+                var def = info.definition().get();
+                all.addAll(def.allIdentifiers());
+                if (def instanceof ValueDefinition d) {
+                    all.add(new IdentifierInfo(d.id));
+                }
+            }
+        }
+
         for (Toplevel toplevel : environment.toplevels()) {
             all.addAll(toplevel.body.allIdentifiers());
         }
+
         return all;
     }
 
@@ -607,7 +627,8 @@ public class Bundle {
             // Pacioli.log("uses %s %s %s", info.globalName(), info.getClass(), def.uses());
             for (Info other : def.uses()) {
 
-                if ((all.contains(other.globalName())) && other.definition().isPresent()) {
+                if ((all.contains(other.globalName())) && other.definition().isPresent()
+                        && other.definition().get() != def) {
                     insertInfo((T) other, definitions, discovered, finished, all);
                 }
             }

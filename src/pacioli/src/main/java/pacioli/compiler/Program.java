@@ -208,7 +208,7 @@ public class Program {
                         .isMonomorphic(false)
                         .file(this.file)
                         .isGlobal(true)
-                        .declaredType(def.typeNode)
+                        .declaredType(def)
                         .isPublic(false);
             }
         }
@@ -414,6 +414,11 @@ public class Program {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving type %s", nfo.globalName());
                 nfo.definition().get().resolve(this.file, prog);
             }
+            // This would be needed for hover info etc. How is resolving the doc identifier
+            // done? It can be a value or a type!
+            // if (nfo.generalInfo().documentation().isPresent()) {
+            // nfo.generalInfo().documentation().get().resolve(this.file, prog);
+            // }
         }
 
         for (ValueInfo nfo : prog.values().allInfos(info -> info.isFromFile(this.file))) {
@@ -422,10 +427,15 @@ public class Program {
                         nfo.globalName());
                 nfo.definition().get().resolve(this.file, prog);
             }
-            if (nfo.declaredType().isPresent()) {
+            if (nfo.declaration().isPresent()) {
                 Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Resolving declaration %s", nfo.globalName());
-                nfo.declaredType().get().resolve(this.file, prog);
+                nfo.declaration().get().resolve(this.file, prog);
             }
+            // This would be needed for hover info etc. How is resolving the doc identifier
+            // done? It can be a value or a type!
+            // if (nfo.generalInfo().documentation().isPresent()) {
+            // nfo.generalInfo().documentation().get().resolve(this.file, prog);
+            // }
 
         }
         for (Toplevel definition : prog.toplevels()) {

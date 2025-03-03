@@ -440,14 +440,14 @@ definition ::=
    DEFINE:d id:id EQL expr:e                        {: RESULT = new ValueDefinition(makeLoc(dxleft, exright), id, e); :}
  | DEFINE:d id:id idlist:ids EQL expr:e             {: RESULT = functionDefinition(makeLoc(dxleft, exright), id, ids, e); :}
  | DECLARE:d ids:ids DBLCLN schema:s                {: RESULT = new MultiDeclaration(makeLoc(dxleft, sxright), ids, s); :}
- | DEFINDEX:d id:id                                 {: List<String> names = new ArrayList<String>();
+ | DEFINDEX:d typeid:id                                 {: List<String> names = new ArrayList<String>();
                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, idxright), id, names); :}
- | DEFINDEX:d id:id EQL LBRC names:ids RBRC:p       {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
- | DEFINDEX:d id:id EQL LBRC RBRC:p                 {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(new ArrayList<>())); :}
- | DEFINDEX:d id:id EQL expr:e                      {: RESULT = new IndexSetDefinition(makeLoc(dxleft, exright), id, e); :}
+ | DEFINDEX:d typeid:id EQL LBRC names:ids RBRC:p       {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
+ | DEFINDEX:d typeid:id EQL LBRC RBRC:p                 {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(new ArrayList<>())); :}
+ | DEFINDEX:d typeid:id EQL expr:e                      {: RESULT = new IndexSetDefinition(makeLoc(dxleft, exright), id, e); :}
 
  | DEFTYPE:d vardecls:c type:e EQL type:t           {: RESULT = new TypeDefinition(makeLoc(dxleft, txright), c, e, t); :}
- | DEFALIAS:d id:id EQL unit:u                      {: RESULT = new AliasDefinition(makeLoc(dxleft, uxright), id, u); :}
+ | DEFALIAS:d typeid:id EQL unit:u                      {: RESULT = new AliasDefinition(makeLoc(dxleft, uxright), id, u); :}
  | DEFUNIT:d typeid:id EXCL typeid:n EQL unitvec:ps {: /* Todo: remove hashmap and use pair list directly in UnitVectorDefinition */
                                                        java.util.Map<String, UnitNode> unitVector = new HashMap<String, UnitNode>();
                                                        for (UnitDecl pair: ps) {
@@ -925,7 +925,7 @@ type_app ::=
 
 function_type ::=
    typelist:as TO type:b                            {: TypeNode domain = new TypeApplicationNode(makeLoc(asxleft, bxright), 
-                                                                            new TypeIdentifierNode(makeLoc(asxleft, asxright), "Tuple"), as);
+                                                                            new TypeIdentifierNode(makeLoc(asxleft, asxright).collapse(), "Tuple"), as);
                                                        RESULT = new FunctionTypeNode(makeLoc(asxleft, bxright), domain, b); :}
  | typeid:a TO type:b                               {: RESULT = new FunctionTypeNode(makeLoc(axleft, bxright), a, b); :}
  ;
