@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import pacioli.ast.definition.Documentation;
 import pacioli.types.type.TypeObject;
 
 /**
@@ -37,7 +38,7 @@ public class DocumentationGenerator {
 
     // Info per value/function
     Map<String, String> typeTable = new HashMap<>();
-    Map<String, String> documentationTable = new HashMap<>();
+    Map<String, Documentation> documentationTable = new HashMap<>();
     Map<String, List<String>> argumentsTable = new HashMap<>();
 
     Set<String> functions = new HashSet<>();
@@ -47,13 +48,13 @@ public class DocumentationGenerator {
     Set<String> primitives = new HashSet<>();
 
     // Info for type definitions
-    Map<String, String> typeDocs = new HashMap<>();
+    Map<String, Documentation> typeDocs = new HashMap<>();
     Map<String, String> typeLHS = new HashMap<>();
     Map<String, String> typeRHS = new HashMap<>();
     Map<String, String> typeDecl = new HashMap<>();
 
     // Info for index sets
-    Map<String, String> indexSetDocs = new HashMap<>();
+    Map<String, Documentation> indexSetDocs = new HashMap<>();
 
     private String intro;
 
@@ -67,78 +68,85 @@ public class DocumentationGenerator {
         this.writer = writer;
     }
 
-    public void addValue(String name, TypeObject type, String documentation) {
+    public void addValue(String name, TypeObject type) {
         if (argumentsTable.containsKey(name)) {
             throw new RuntimeException(String.format("Cannot add value %s, it is already added as function", name));
         }
         typeTable.put(name, type.pretty());
-        documentationTable.put(name, documentation);
         values.add(name);
     }
 
-    public void addPrimitiveValue(String name, String type, String documentation) {
-        this.addValue(name, type, documentation);
+    public void addPrimitiveValue(String name, String type) {
+        this.addValue(name, type);
         this.primitives.add(name);
     }
 
-    public void addPrimitiveValue(String name, TypeObject type, String documentation) {
-        this.addValue(name, type, documentation);
+    public void addPrimitiveValue(String name, TypeObject type) {
+        this.addValue(name, type);
         this.primitives.add(name);
     }
 
-    public void addValue(String name, String type, String documentation) {
+    public void addValue(String name, String type) {
         if (argumentsTable.containsKey(name)) {
             throw new RuntimeException(String.format("Cannot add value %s, it is already added as function", name));
         }
         typeTable.put(name, type);
-        documentationTable.put(name, documentation);
         values.add(name);
     }
 
-    public void addFunction(String name, List<String> arguments, TypeObject type, String documentation) {
+    public void addFunction(String name, List<String> arguments, TypeObject type) {
         if (argumentsTable.containsKey(name)) {
             throw new RuntimeException(String.format("Cannot add function %s, it is already added", name));
         }
         typeTable.put(name, type.pretty());
-        documentationTable.put(name, documentation);
         argumentsTable.put(name, arguments);
         functions.add(name);
     }
 
-    public void addFunction(String name, List<String> arguments, String type, String documentation) {
+    public void addFunction(String name, List<String> arguments, String type) {
         if (argumentsTable.containsKey(name)) {
             throw new RuntimeException(String.format("Cannot add function %s, it is already added", name));
         }
         typeTable.put(name, type);
-        documentationTable.put(name, documentation);
         argumentsTable.put(name, arguments);
         functions.add(name);
     }
 
-    public void addPrimitiveFunction(String name, List<String> arguments, TypeObject type, String documentation) {
-        this.addFunction(name, arguments, type, documentation);
+    public void addValueDoc(String name, Documentation documentation) {
+        documentationTable.put(name, documentation);
+    }
+
+    public void addPrimitiveFunction(String name, List<String> arguments, TypeObject type,
+            Documentation documentation) {
+        this.addFunction(name, arguments, type);
         this.primitives.add(name);
     }
 
-    public void addPrimitiveFunction(String name, List<String> arguments, String type, String documentation) {
-        this.addFunction(name, arguments, type, documentation);
+    public void addPrimitiveFunction(String name, List<String> arguments, String type) {
+        this.addFunction(name, arguments, type);
         this.primitives.add(name);
     }
 
-    public void addIndexSet(String name, String documentation) {
+    public void addIndexSet(String name) {
         if (typeDocs.containsKey(name)) {
             throw new RuntimeException(String.format("Cannot add type %s, it is already added", name));
         }
+    }
+
+    public void addIndexSetDoc(String name, Documentation documentation) {
         indexSetDocs.put(name, documentation);
     }
 
-    public void addType(String name, String vars, String lhs, String rhs, String documentation) {
+    public void addType(String name, String vars, String lhs, String rhs) {
         if (typeDocs.containsKey(name)) {
             throw new RuntimeException(String.format("Cannot add type %s, it is already added", name));
         }
         typeDecl.put(name, vars);
         typeLHS.put(name, lhs);
         typeRHS.put(name, rhs);
+    }
+
+    public void addTypeDoc(String name, Documentation documentation) {
         typeDocs.put(name, documentation);
     }
 
@@ -146,15 +154,20 @@ public class DocumentationGenerator {
         return typeTable.get(name);
     }
 
-    private List<String> getDocuParts(String name) {
-        String docu = documentationTable.get(name);
-        String[] parts = docu.split("\\r?\\n\s*\\r?\\n");
-        return List.of(parts);
+    // todo: Parts van naam af.
+    private String getDoc(String name) {
+        Documentation docu = documentationTable.get(name);
+        return docu == null ? "" : docu.asHtml();
     }
 
-    private static List<String> docuParts(String docu) {
-        String[] parts = docu.split("\\r?\\n\s*\\r?\\n");
-        return List.of(parts);
+    private String getIndexSetDoc(String name) {
+        Documentation docu = indexSetDocs.get(name);
+        return docu == null ? "" : docu.asHtml();
+    }
+
+    private String getTypeDoc(String name) {
+        Documentation docu = typeDocs.get(name);
+        return docu == null ? "" : docu.asHtml();
     }
 
     public String argsString(String name) {
@@ -175,69 +188,69 @@ public class DocumentationGenerator {
      * @throws PacioliException
      * @throws IOException
      */
-    void generateMarkdown() throws PacioliException, IOException {
+    // void generateMarkdown() throws PacioliException, IOException {
 
-        List<String> vals = new ArrayList<String>(values);
-        Collections.sort(vals);
+    // List<String> vals = new ArrayList<String>(values);
+    // Collections.sort(vals);
 
-        List<String> funs = new ArrayList<String>(functions);
-        Collections.sort(funs);
+    // List<String> funs = new ArrayList<String>(functions);
+    // Collections.sort(funs);
 
-        // Generate a general section about the module
-        println("# Module %s", module);
-        println("Interface for the %s module", module);
-        println("");
-        println("Version %s, %s", version, ZonedDateTime.now());
+    // // Generate a general section about the module
+    // println("# Module %s", module);
+    // println("Interface for the %s module", module);
+    // println("");
+    // println("Version %s, %s", version, ZonedDateTime.now());
 
-        // Print the types for the values and the function in a synopsis section
-        println("## Synopsis");
-        println("");
-        for (String value : vals) {
-            println("%s :: %s", value, typeTable.get(value));
-        }
-        if (values.size() > 0) {
-            println("");
-        }
-        for (String function : funs) {
-            println("%s :: %s", function, typeTable.get(function));
-        }
-        println("");
+    // // Print the types for the values and the function in a synopsis section
+    // println("## Synopsis");
+    // println("");
+    // for (String value : vals) {
+    // println("%s :: %s", value, typeTable.get(value));
+    // }
+    // if (values.size() > 0) {
+    // println("");
+    // }
+    // for (String function : funs) {
+    // println("%s :: %s", function, typeTable.get(function));
+    // }
+    // println("");
 
-        // Print details for the values
-        println("## Values");
-        if (values.size() == 0) {
-            println("n/a");
-        } else {
-            println("");
-            for (String value : vals) {
-                println("### %s", value);
-                println("");
-                println(":: %s", typeTable.get(value));
-                for (String part : getDocuParts(value)) {
-                    println("\n%s\n", part);
-                }
-                println("");
-            }
-            println("");
-        }
+    // // Print details for the values
+    // println("## Values");
+    // if (values.size() == 0) {
+    // println("n/a");
+    // } else {
+    // println("");
+    // for (String value : vals) {
+    // println("### %s", value);
+    // println("");
+    // println(":: %s", typeTable.get(value));
+    // for (String part : getDocuParts(value)) {
+    // println("\n%s\n", part);
+    // }
+    // println("");
+    // }
+    // println("");
+    // }
 
-        // Print details for the functions
-        println("## Functions");
-        println("");
-        for (String function : funs) {
-            String args = String.format("(%s)", argsString(function));
-            println("### %s%s", function, args);
-            println("");
-            println(":: %s", lookupType(function));
-            for (String part : getDocuParts(function)) {
-                println("\n%s\n", part);
-            }
-            println("");
+    // // Print details for the functions
+    // println("## Functions");
+    // println("");
+    // for (String function : funs) {
+    // String args = String.format("(%s)", argsString(function));
+    // println("### %s%s", function, args);
+    // println("");
+    // println(":: %s", lookupType(function));
+    // for (String part : getDocuParts(function)) {
+    // println("\n%s\n", part);
+    // }
+    // println("");
 
-        }
-        println("");
+    // }
+    // println("");
 
-    }
+    // }
 
     /**
      * Generates a html page with documentation for the bundle's module.
@@ -294,9 +307,7 @@ public class DocumentationGenerator {
                 println("<dt id=\"%s\"><code>%s</code></dt>",
                         name, name);
                 println("<dd>");
-                for (String part : docuParts(indexSetDocs.get(name))) {
-                    println("\n<p>%s</p>\n", part);
-                }
+                println("%s", getIndexSetDoc(name));
                 println("</dd>");
             }
             println("</dl>");
@@ -315,9 +326,7 @@ public class DocumentationGenerator {
                 } else {
                     println("<pre>%s%s</pre>", typeDecl.get(name), typeLHS.get(name));
                 }
-                for (String part : docuParts(typeDocs.get(name))) {
-                    println("\n<p>%s</p>\n", part);
-                }
+                println("%s", getTypeDoc(name));
                 println("</dd>");
             }
             println("</dl>");
@@ -334,9 +343,7 @@ public class DocumentationGenerator {
                 if (this.primitives.contains(name)) {
                     println("Primitive value");
                 }
-                for (String part : getDocuParts(name)) {
-                    println("\n<p>%s</p>\n", part);
-                }
+                println("%s", getDoc(name));
                 println("</dd>");
             }
             println("</dl>");
@@ -356,9 +363,7 @@ public class DocumentationGenerator {
                     if (this.primitives.contains(name)) {
                         println("Primitive function");
                     }
-                    for (String part : getDocuParts(name)) {
-                        println("\n<p>%s</p>\n", part);
-                    }
+                    println(getDoc(name));
                     println("</dd>");
 
                 }
@@ -372,15 +377,12 @@ public class DocumentationGenerator {
                     if (this.primitives.contains(name)) {
                         println("<p>Primitive function");
                     }
-                    for (String part : getDocuParts(name)) {
-                        println("\n<p>%s</p>\n", part);
-                    }
-
+                    println("%s", getDoc(name));
                 }
             }
         }
 
-        println("<small>Version %s, %s</small>", version, ZonedDateTime.now());
+        println("<p><small>Version %s, %s</small>", version, ZonedDateTime.now());
 
         // Finish the html
         println("</body>");

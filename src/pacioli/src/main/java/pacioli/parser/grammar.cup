@@ -38,6 +38,7 @@ import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
 import pacioli.ast.expression.*;
 import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.unit.*;
+import pacioli.ast.sugar.*;
 import pacioli.types.ast.*;
 import pacioli.types.ast.TypeIdentifierNode.Kind;
 import pacioli.types.TypeContext;
@@ -380,8 +381,8 @@ non terminal ValueEquation                   valueeq;
 non terminal ExpressionNode                  query;
 non terminal DataDefinitionNode.Binding              data_binding;
 non terminal List<DataDefinitionNode.Binding>        data_bindings;
-non terminal DataDefinitionNode.Binding              record_binding;
-non terminal List<DataDefinitionNode.Binding>        record_bindings;
+non terminal RecordDefinition.FieldDefinition        field_definition;
+non terminal List<RecordDefinition.FieldDefinition>  field_definitions;
 non terminal List<ExpressionNode>            select_parts;
 
 precedence right        TO;
@@ -475,27 +476,29 @@ definition ::=
  | DOC:d id:kind id:id STRING:s                     {: pacioli.compiler.Location loc = makeLoc(dxleft, sxright);
                                                        RESULT = new Documentation(loc, id.withKind(kind), new StringNode(s, makeLoc(sxleft, sxright))); :}
  | expr:e                                           {: RESULT = new Toplevel(e.location(), e); :}
- | DEFDATA:d id:id EQL type:e WHERE data_bindings:cs {: ExpressionNode def = new DataDefinitionNode(makeLoc(exleft, csxright), e, cs);
+ | DEFDATA:d id:id EQL type:e 
+       WHERE data_bindings:cs                       {: ExpressionNode def = new DataDefinitionNode(makeLoc(exleft, csxright), e, cs);
                                                        RESULT = new ValueDefinition(makeLoc(dxleft, csxright), id, def); :}
-| DEFRECORD:d vardecls:c type:e AS id:id WHERE record_bindings:cs {: RESULT = new RecordDefinition(makeLoc(dxleft, csxright), c, e, id, cs); :}
+| DEFRECORD:d vardecls:c type:e AS id:id
+       WHERE field_definitions:cs                   {: RESULT = new RecordDefinition(makeLoc(dxleft, csxright), c, e, id, cs); :}
  ;
 
 
 data_bindings ::=
-   data_binding:c                                    {: RESULT = new LinkedList<DataDefinitionNode.Binding>(Arrays.asList(c)); :}
+   data_binding:c                                   {: RESULT = new LinkedList<DataDefinitionNode.Binding>(Arrays.asList(c)); :}
  | data_bindings:cs COMMA data_binding:c                {: cs.add(c); RESULT = cs; :}
  ;
  
 data_binding ::=
    id:id COLON dim_type:t                           {: RESULT = new DataDefinitionNode.Binding(id, t, makeLoc(idxleft, txright)); :};
 
-record_bindings ::=
-   record_binding:c                                    {: RESULT = new LinkedList<DataDefinitionNode.Binding>(Arrays.asList(c)); :}
- | record_bindings:cs COMMA record_binding:c                {: cs.add(c); RESULT = cs; :}
+field_definitions ::=
+   field_definition:c                               {: RESULT = new LinkedList<RecordDefinition.FieldDefinition>(Arrays.asList(c)); :}
+ | field_definitions:cs COMMA field_definition:c    {: cs.add(c); RESULT = cs; :}
  ;
  
-record_binding ::=
-   id:id COLON type:t                           {: RESULT = new DataDefinitionNode.Binding(id, t, makeLoc(idxleft, txright)); :};
+field_definition ::=
+   id:id COLON type:t                               {: RESULT = new RecordDefinition.FieldDefinition(id, t, makeLoc(idxleft, txright)); :};
 
 //------------------------------------------------------------------------------
 // Include path

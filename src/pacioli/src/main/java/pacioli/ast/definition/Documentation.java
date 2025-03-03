@@ -21,21 +21,28 @@
 
 package pacioli.ast.definition;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IdentifierNode.Kind;
+import pacioli.ast.expression.StringNode;
 import pacioli.compiler.Location;
 
 public class Documentation extends AbstractDefinition {
 
     public final IdentifierNode id;
-    public final ExpressionNode body;
+    public final StringNode body;
 
-    public Documentation(Location location, IdentifierNode id, ExpressionNode body) {
+    public Documentation(Location location, IdentifierNode id, StringNode body) {
         super(location);
         this.id = id;
         this.body = body;
@@ -52,10 +59,80 @@ public class Documentation extends AbstractDefinition {
     }
 
     public Node transform(ExpressionNode body) {
-        return new Documentation(location(), id, body);
+        if (body instanceof StringNode node) {
+            return new Documentation(location(), id, node);
+
+        } else {
+            throw new RuntimeException("StringNode exptected in documentation transform");
+        }
     }
 
     public Optional<Kind> kind() {
         return this.id.kind();
+    }
+
+    public String rawText() {
+        return this.body.valueString();
+    }
+
+    public String asMarkdown() {
+        var content = new StringBuilder();
+
+        for (Either<String, String> part : splitCodeBlocks(stripLeftMargin(this.rawText()))) {
+            if (part.isLeft()) {
+                content.append(part.getLeft());
+            } else {
+                content.append(String.format("```pacioli%s```", part.getRight()));
+            }
+        }
+
+        return replaceCodeFragments(content.toString());
+    }
+
+    public String asHtml() {
+        var content = new StringBuilder();
+
+        for (Either<String, String> part : splitCodeBlocks(stripLeftMargin(this.rawText()))) {
+            if (part.isLeft()) {
+                String[] parts = part.getLeft().split("\\r?\\n\s*\\r?\\n");
+                for (String par : parts) {
+                    content.append(String.format("%n<p>%s", par));
+                }
+            } else {
+                content.append(String.format("<pre>%s</pre>", part.getRight()));
+            }
+        }
+
+        return content.toString();
+    }
+
+    static private String stripLeftMargin(String doc) {
+        return doc.replaceAll("\\r?\\n[ ][ ][ ][ ]", String.format("%n"));
+    }
+
+    static private String replaceCodeFragments(String doc) {
+        return doc
+                .replaceAll("<code>", String.format("`"))
+                .replaceAll("</code>", String.format("`"));
+    }
+
+    static private List<Either<String, String>> splitCodeBlocks(String doc) {
+
+        Pattern regex = Pattern.compile("([\\s\\S]*)<pre>([\\s\\S]*)</pre>([\\s\\S]*)");
+
+        List<Either<String, String>> parts = new ArrayList<>();
+        String todo = doc;
+
+        Matcher matcher = regex.matcher(todo);
+
+        while (matcher.find()) {
+            parts.add(Either.forLeft(matcher.group(1)));
+            parts.add(Either.forRight(matcher.group(2)));
+            todo = matcher.group(3);
+        }
+
+        parts.add(Either.forLeft(todo));
+
+        return parts;
     }
 }

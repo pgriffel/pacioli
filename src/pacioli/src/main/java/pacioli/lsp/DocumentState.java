@@ -7,9 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemLabelDetails;
 import org.eclipse.lsp4j.Hover;
@@ -30,8 +27,10 @@ import pacioli.compiler.PacioliFile;
 import pacioli.compiler.Project;
 import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeInfo;
+import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.ast.TypeIdentifierNode;
+import pacioli.types.type.TypeObject;
 
 public class DocumentState {
 
@@ -49,7 +48,7 @@ public class DocumentState {
     static int MODIFIER_DEFINITION = 1;
     static int MODIFIER_NONE = 2;
 
-    static List<String> KEYWORDS_IN_AUTOCOMPLETE = List.of("let", "in", "end", "then", "do");
+    static List<String> KEYWORDS_IN_AUTOCOMPLETE = List.of("let", "in", "end", "then", "do", "where");
 
     public final String uri;
     private final Bundle bundle;
@@ -75,22 +74,20 @@ public class DocumentState {
     }
 
     public List<org.eclipse.lsp4j.Location> definitionLocation(Position position) {
-        return this
-                .locateInfo(position.getLine(), position.getCharacter())
-                .map(info -> {
-                    var loc = info.location();
-                    if (loc.file().isPresent()) {
-                        var uri = loc.file().get().toURI();
+        List<Info> infos = this.locateInfo(position.getLine(), position.getCharacter());
+        List<org.eclipse.lsp4j.Location> locations = new ArrayList<>();
 
-                        var range = new Range(new Position(loc.fromLine, loc.fromColumn),
-                                new Position(loc.toLine, loc.toColumn));
-                        return List.of(new org.eclipse.lsp4j.Location(uri.toString(), range));
-                    }
-                    List<org.eclipse.lsp4j.Location> empty = List.of();
-                    return empty;
+        for (Info info : infos) {
+            var loc = info.location();
+            if (loc.file().isPresent()) {
+                var uri = loc.file().get().toURI();
 
-                })
-                .orElse(List.of());
+                var range = new Range(new Position(loc.fromLine, loc.fromColumn),
+                        new Position(loc.toLine, loc.toColumn));
+                locations.add(new org.eclipse.lsp4j.Location(uri.toString(), range));
+            }
+        }
+        return locations;
     }
 
     public SemanticTokens semanticTokens() {
@@ -129,55 +126,64 @@ public class DocumentState {
     }
 
     public Hover hover(Position position) {
-        var info = this
-                .locateInfo(position.getLine(), position.getCharacter())
-                .map(inf -> {
-                    if (inf instanceof ValueInfo vi && inf.isGlobal()) {
+        List<Info> infos = this.locateInfo(position.getLine(), position.getCharacter());
+        if (infos.size() > 0) {
+            List<String> markups = new ArrayList<>();
+            for (Info inf : infos) {
+                if (inf instanceof ValueInfo vi && inf.isGlobal()) {
+                    markups.add(infoMarkup(vi));
+                }
+                if (inf instanceof TypeInfo vi && inf.isGlobal()) {
+                    String markup = String.format("### %s%n%n%s %n %n %s%n%nsource: %s%n",
+                            inf instanceof UnitInfo ? "Unit" : "Type",
+                            inf.name(),
+                            vi.generalInfo().documentation().map(doc -> doc.asMarkdown()).orElse(""),
+                            infoModulePath(inf));
 
-                        var content = new MarkupContent(MarkupKind.MARKDOWN, infoMarkup(vi));
+                    // We get multiple results here. Remove the return and hover over a record type
+                    // to reproduce.
+                    // markups.add(markup);
 
-                        return new Hover(content);
-                    }
-                    if (inf instanceof TypeInfo vi && inf.isGlobal()) {
-                        List<String> docParts = List.of();
-                        if (vi.generalInfo().documentation().isPresent()) {
-                            String[] parts = vi.generalInfo().documentation().get().split("\\r?\\n\s*\\r?\\n");
-                            docParts = List.of(parts);
-                        }
-                        var content = new MarkupContent(MarkupKind.MARKDOWN, String.format("%s %n %n %s",
-                                inf.name(),
-                                hoverDoc(docParts)));
+                    var content = new MarkupContent(MarkupKind.MARKDOWN, markup);
+                    return new Hover(content);
+                }
+            }
 
-                        return new Hover(content);
-                    }
-                    return new Hover(new MarkupContent(MarkupKind.PLAINTEXT, ""));
-                })
-                .orElse(new Hover(new MarkupContent(MarkupKind.PLAINTEXT, "")));
-        return info;
+            return new Hover(
+                    new MarkupContent(MarkupKind.MARKDOWN,
+                            String.join(String.format("%n%n   ---%n%n"), markups)));
+        } else {
+            return new Hover(new MarkupContent(MarkupKind.PLAINTEXT, ""));
+        }
     }
 
-    private Optional<Info> locateInfo(Integer line, Integer column) {
+    private List<Info> locateInfo(Integer line, Integer column) {
         if (this.identifierIndex != null) {
             var candidates = this.identifierIndex.get(line);
+            List<Info> infos = new ArrayList<>();
             if (candidates != null) {
-                Info info = null;
-                Integer minSize = null;
+                // Info info = null;
+                // Integer minSize = null;
                 // Search for the token with the minimum length. This is necessary because the
                 // grammar gives wrong locations. Often they are too wide and overlap with
                 // other tokens (was e.g. the case for binop). This can be removed if the
                 // grammar is fixed.
                 for (IdentifierInfo candidate : candidates) {
                     var loc = candidate.location();
-                    var size = loc.toColumn - loc.fromColumn;
-                    if (loc.fromColumn <= column && column < loc.toColumn && (minSize == null || size < minSize)) {
-                        info = candidate.info().orElse(null);
-                        minSize = size;
+                    // var size = loc.toColumn - loc.fromColumn;
+                    // if (loc.fromColumn <= column && column < loc.toColumn && (minSize == null ||
+                    // size < minSize)) {
+                    // info = candidate.info().orElse(null);
+                    // minSize = size;
+                    // }
+                    if (loc.fromColumn <= column && column < loc.toColumn && candidate.info().isPresent()) {
+                        infos.add(candidate.info().get());
                     }
                 }
-                return Optional.ofNullable(info);
+                return infos;
             }
         }
-        return Optional.empty();
+        return List.of();
     }
 
     static public DocumentState buildState(String uri, List<File> libs) throws Exception {
@@ -345,34 +351,6 @@ public class DocumentState {
         return List.of(TOKEN_PARAMETER, MODIFIER_DECLARATION);
     }
 
-    static String hoverDoc(List<String> docuParts) {
-
-        Pattern p = Pattern.compile("^<code>([\\s\\S]*)</code>$");
-
-        List<String> markupLines = new ArrayList<>();
-
-        for (String part : docuParts) {
-
-            // Remove leading spaces because they have meaning in markup
-            var line = part.trim();
-
-            // If the entire line is code then make a code block.
-            Matcher m = p.matcher(line);
-            if (m.find()) {
-                line = String.format("```pacioli%n    %s%n```", m.group(1).trim());
-            }
-
-            // Replace all inline code html tags with markdown backticks.
-            line = line
-                    .replaceAll("<code>", String.format("`"))
-                    .replaceAll("</code>", String.format("`"));
-
-            markupLines.add(line);
-        }
-
-        return String.join(String.format("%n%n"), markupLines);
-    }
-
     static String infoModulePath(Info vi) {
         var modulePath = vi.generalInfo().file().modulePath();
         modulePath = modulePath.isEmpty()
@@ -381,21 +359,22 @@ public class DocumentState {
         return modulePath;
     }
 
-    static String infoType(ValueInfo vi) {
-        var typ = vi.declaredType().map(ty -> Optional.of(ty.evalType())).orElse(vi.inferredType());
-        var type = typ.map(t -> t.pretty()).orElse("");
-        // var type = vi.declaredType()
-        // .map(x -> x.pretty())
-        // .orElse(vi.inferredType().map(x -> x.pretty()).orElse(""));
-        return type;
+    static String infoType(ValueInfo info) {
+        Optional<TypeObject> type = info
+                .declaredType()
+                .map(declared -> Optional.of(declared.evalType()))
+                .orElse(info.inferredType());
+
+        return type.map(t -> t.pretty()).orElse("");
     }
 
     static String infoMarkup(ValueInfo info) {
         return String.format(
-                "```pacioli%n%s :: %s%n```%n%n%s%n%nsource: %s%n",
+                "### %s%n%n```pacioli%n%s :: %s%n```%n%n%s%n%nsource: %s%n",
+                info.isFunction() ? "Function" : "Value",
                 info.name(),
                 infoType(info),
-                hoverDoc(info.getDocuParts()),
+                info.generalInfo().documentation().map(x -> x.asMarkdown()).orElse(""),
                 infoModulePath(info));
     }
 }

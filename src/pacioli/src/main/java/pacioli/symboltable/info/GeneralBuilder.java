@@ -60,7 +60,6 @@ public abstract class GeneralBuilder<S, T> implements InfoBuilder<S, T> {
                 location == null) {
             throw new RuntimeException("Field missing");
         }
-        String docu = this.documentation == null ? null : ((StringNode) this.documentation.body).valueString();
-        return new GeneralInfo(name, file, isGlobal, isPublic, location, docu);
+        return new GeneralInfo(name, file, isGlobal, isPublic, location, this.documentation);
     }
 }

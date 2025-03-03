@@ -3,6 +3,7 @@ package pacioli.symboltable.info;
 import java.io.File;
 import java.util.Optional;
 
+import pacioli.ast.definition.Documentation;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliFile;
 
@@ -13,10 +14,10 @@ public class GeneralInfo {
     private final Location location;
     private final boolean isGlobal;
     private final boolean isPublic;
-    private final String documentation;
+    private final Documentation documentation;
 
     public GeneralInfo(String name, PacioliFile file, boolean isGlobal, boolean isPublic, Location location,
-            String documentation) {
+            Documentation documentation) {
         assert (location != null);
         this.name = name;
         this.file = file;
@@ -68,11 +69,11 @@ public class GeneralInfo {
         return !isGlobal;
     }
 
-    public GeneralInfo withDocumentation(String documentation) {
+    public GeneralInfo withDocumentation(Documentation documentation) {
         return new GeneralInfo(this.name, this.file, this.isGlobal, this.isPublic, this.location, documentation);
     }
 
-    public Optional<String> documentation() {
+    public Optional<Documentation> documentation() {
         return Optional.ofNullable(this.documentation);
     }
 }

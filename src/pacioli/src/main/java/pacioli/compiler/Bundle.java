@@ -415,15 +415,18 @@ public class Bundle {
                 ExpressionNode body = info.definition().get().body;
                 if (body instanceof LambdaNode) {
                     LambdaNode lambda = (LambdaNode) body;
-                    generator.addFunction(info.name(), lambda.arguments, info.publicType(),
-                            info.generalInfo().documentation().orElse(""));
-                    if (info.generalInfo().documentation().isEmpty()) {
+                    generator.addFunction(info.name(), lambda.arguments, info.publicType());
+                    if (info.generalInfo().documentation().isPresent()) {
+                        generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
+                    } else {
                         Pacioli.log("  no documentation for function %s", info.name());
                     }
                     nrFunctions++;
                 } else {
-                    generator.addValue(info.name(), info.publicType(), info.generalInfo().documentation().orElse(""));
-                    if (info.generalInfo().documentation().isEmpty()) {
+                    generator.addValue(info.name(), info.publicType());
+                    if (info.generalInfo().documentation().isPresent()) {
+                        generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
+                    } else {
                         Pacioli.log("  no documentation for value %s", info.name());
                     }
                     nrValues++;
@@ -439,16 +442,19 @@ public class Bundle {
                     generator.addType(info.name(),
                             def.definition().get().createContext().pretty(),
                             def.definition().get().lhs.pretty(),
-                            def.definition().get().rhs.pretty(),
-                            info.generalInfo().documentation().orElse("n/a"));
-                    if (info.generalInfo().documentation().isEmpty()) {
+                            def.definition().get().rhs.pretty());
+                    if (info.generalInfo().documentation().isPresent()) {
+                        generator.addTypeDoc(info.name(), info.generalInfo().documentation().get());
+                    } else {
                         Pacioli.log("  no documentation for type %s", info.name());
                     }
                     nrTypes++;
                 }
                 if (info instanceof IndexSetInfo def) {
-                    generator.addIndexSet(info.name(), info.generalInfo().documentation().orElse("n/a"));
-                    if (info.generalInfo().documentation().isEmpty()) {
+                    generator.addIndexSet(info.name());
+                    if (info.generalInfo().documentation().isPresent()) {
+                        generator.addIndexSetDoc(info.name(), info.generalInfo().documentation().get());
+                    } else {
                         Pacioli.log("  no documentation for index set %s", info.name());
                     }
                     nrIndexSets++;

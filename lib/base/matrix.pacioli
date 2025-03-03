@@ -125,7 +125,20 @@ declare index_less :: for_index P: (P, P) -> Boole;
 
 doc make_matrix
     "Constructs a dimensionally uniform matrix from a list of entries. Each entry
-    is a tuple with the entry's indices and the value.";
+    is a tuple with the entry's indices and the value.
+
+    For example
+
+    <pre>
+    defindex Direction = {longitude, lattitude};
+
+    define foo =
+        make_matrix([
+            tuple(Direction@longitude, _, 10*|degree|), 
+            tuple(Direction@lattitude, _, 20*|degree|)]);
+    </pre>
+
+    creates a vector of type <code>degree*Direction!</code>";
 
 declare make_matrix ::
   for_index P,Q: for_unit a: (List(Tuple(P, Q, a))) -> a*P! per Q!;
@@ -141,7 +154,9 @@ doc magnitude
 
     Using function <code>unit</code> this can be expressed as:
 
-    <code>A = magnitude(A) * unit(A)</code>";
+    <pre>
+    A = magnitude(A) * unit(A)
+    </pre>";
 
 declare magnitude ::
   for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> P! per Q!;
@@ -149,11 +164,13 @@ declare magnitude ::
 # ----------------------------------------------------------------------------
 
 doc scalar_unit
-    "The scalar unit factor of a matrix.
+    "The scalar unit factor of a matrix. 
     
-    Is part of the unit of a matrix.
+    Is part of the unit of a matrix. For any matrix A:
 
-    <code>unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)</code>";
+    <pre>
+    unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
+    </pre>";
 
 declare scalar_unit ::
   for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> a;
@@ -164,9 +181,11 @@ doc row_unit
     "The matrix's units in row dimension. The contra-variant part of the matrix
     units.
     
-    Is part of the unit of a matrix.
+    Is part of the unit of a matrix. For any matrix A:
 
-    <code>unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)</code>";
+    <pre>
+    unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
+    </pre>";
 
 declare row_unit ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> P!u;
@@ -177,9 +196,11 @@ doc column_unit
     "The matrix's units in column dimension. The co-variant part of the matrix
     units.
     
-    Is part of the unit of a matrix.
+    Is part of the unit of a matrix. For any matrix A:
 
-    <code>unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)</code>";
+    <pre>
+    unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
+    </pre>";
 
 declare column_unit ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Q!v;
@@ -209,7 +230,9 @@ doc row
     
     For all indices q it satisfies
 
-    <code>get_num(row(A, x), _, q) = get_num(A, x, q)</code>";
+    <pre>
+    get_num(row(A, x), _, q) = get_num(A, x, q)
+    </pre>";
 
 declare row ::
   for_index P,Q: for_unit a,Q!v: (a*P! per Q!v, P) -> a per Q!v;
@@ -223,7 +246,9 @@ doc column
     
     For all indices p it satisfies
 
-    <code>get_num(column(A, x), p, _) = get_num(A, p, x)</code>";
+    <pre>
+    get_num(column(A, x), p, _) = get_num(A, p, x)
+    </pre>";
 
 declare column ::
   for_index P,Q: for_unit a,P!v: (a*P!v per Q!, Q) -> a*P!v;
@@ -271,7 +296,9 @@ doc signum
 
     Satisfies:
   
-    <code>signum(A) = positive_support(A) - negative_support(A)</code>";
+    <pre>
+    signum(A) = positive_support(A) - negative_support(A)
+    </pre>";
 
 declare signum ::
   for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
@@ -284,7 +311,9 @@ doc support
     
     Satisfies:
 
-    <code>get(support(A), p, q) = if get_num(A, p, q) = 0 then 0 else 1 end</code>";
+    <pre>
+    get(support(A), p, q) = if get_num(A, p, q) = 0 then 0 else 1 end
+    </pre>";
 
 declare support ::
   for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
@@ -298,7 +327,9 @@ doc positive_support
     
     Satisfies:
     
-    <code>get(support(A), p, q) = if get_num(A, p, q) > 0 then 1 else 0 end</code>";
+    <pre>
+    get(support(A), p, q) = if get_num(A, p, q) > 0 then 1 else 0 end
+    </pre>";
 
 declare positive_support ::
   for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
@@ -311,7 +342,9 @@ doc negative_support
     
     Satisfies:
     
-    <code>get(support(A), p, q) = if get_num(A, p, q) < 0 then 1 else 0 end</code>";
+    <pre>
+    get(support(A), p, q) = if get_num(A, p, q) < 0 then 1 else 0 end
+    </pre>";
 
 declare negative_support ::
   for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
@@ -328,7 +361,9 @@ doc sum
 
     For all indices p and q it satisfies
     
-    <code>get_num(A + B, p, q) = get_num(A, p, q) + get_num(B, p, q)</code>";
+    <pre>
+    get_num(A + B, p, q) = get_num(A, p, q) + get_num(B, p, q)
+    </pre>";
 
 declare sum ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
@@ -343,7 +378,9 @@ doc minus
 
     For all indices p and q it satisfies
     
-    <code>get_num(A - B, p, q) = get_num(A, p, q) - get_num(B, p, q)</code>";
+    <pre>
+    get_num(A - B, p, q) = get_num(A, p, q) - get_num(B, p, q)
+    </pre>";
 
 declare minus ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
@@ -358,7 +395,9 @@ doc multiply
 
     For all indices p and q it satisfies
 
-    <code>get(A * B, p, q) = get_num(A, p, q) * get_num(B, p, q)</code>";
+    <pre>
+    get(A * B, p, q) = get_num(A, p, q) * get_num(B, p, q)
+    </pre>";
 
 declare multiply ::
   for_index P,Q: for_unit a,b,P!u,P!w,Q!v,Q!z: (a*P!u per Q!v, b*P!w per Q!z) -> a*b*P!u*P!w per Q!v*Q!z;
@@ -373,7 +412,9 @@ doc divide
 
     For all indices p and q it satisfies
     
-    <code>get(A / B, p, q) = get_num(A, p, q) / get_num(B, p, q)</code>";
+    <pre>
+    get(A / B, p, q) = get_num(A, p, q) / get_num(B, p, q)
+    </pre>";
 
 declare divide ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y;
@@ -388,7 +429,9 @@ doc left_divide
 
     Satisfies
     
-    <code>left_divide(A, B) = divide(B, A)</code>";
+    <pre>
+    left_divide(A, B) = divide(B, A)
+    </pre>";
 
 declare left_divide ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!x/P!u per b*Q!y/Q!v;
@@ -400,7 +443,9 @@ doc expt
     
     For all indices p and q it satisfies
     
-    <code>get(expt(A, x), p, q) = expt(get(A, p, q), x)</code>";
+    <pre>
+    get(expt(A, x), p, q) = expt(get(A, p, q), x)
+    </pre>";
 
 declare expt ::
   for_index P,Q: (P! per Q!, 1) -> P! per Q!;
@@ -412,7 +457,9 @@ doc mexpt
     
     For any matrices <code>A</code> and <code>B</code> it satisfies
     
-    <code>get(expt(A, x), p, q) = expt(get(A, p, q), x)</code>";
+    <pre>
+    get(expt(A, x), p, q) = expt(get(A, p, q), x)
+    </pre>";
 
 declare mexpt ::
   for_index P: for_unit P!u: (P!u per P!u, 1) -> P!u per P!u;
@@ -437,7 +484,9 @@ doc scale
     Corresponds with operator <code>'.*'</code>. Expression <code>x '.*' A</code>
     is parsed as <code>scale(x, A)</code>.
 
-    <code>get_num(scale(x, A), p, q) = x * get_num(A, p, q)</code>";
+    <pre>
+    get_num(scale(x, A), p, q) = x * get_num(A, p, q)
+    </pre>";
 
 declare scale ::
   for_index P,Q: for_unit a,b,P!u,Q!v: (a, b*P!u per Q!v) -> a*b*P!u per Q!v;
@@ -450,7 +499,9 @@ doc rscale
     Corresponds with operator <code>'*.'</code>. Expression <code>A '*.' x</code>
     is parsed as <code>rscale(A, x)</code>.
 
-    <code>get_num(rscale(A, x), p, q) = get_num(A, p, q) * x</code>";
+    <pre>
+    get_num(rscale(A, x), p, q) = get_num(A, p, q) * x
+    </pre>";
 
 declare rscale ::
   for_index P,Q: for_unit a,b,P!u,Q!v: (a*P!u per Q!v, b) -> a*b*P!u per Q!v;
@@ -463,7 +514,9 @@ doc scale_down
     Corresponds with operator <code>'/.'</code>. Expression <code>A '/.' x</code>
     is parsed as <code>scale_down(A, x)</code>.    
 
-    <code>get_num(scale_down(A, x), p, q) = get_num(A, p, q) / x</code>";
+    <pre>
+    get_num(scale_down(A, x), p, q) = get_num(A, p, q) / x
+    </pre>";
 
 declare scale_down ::
   for_index P,Q: for_unit a,b,P!u,Q!v: (a*P!u per Q!v, b) -> a*P!u per b*Q!v;
@@ -476,7 +529,9 @@ doc lscale_down
     Corresponds with operator <code>'./'</code>. Expression <code>x '/.' A</code>
     is parsed as <code>lscale_down(x, A)</code>.
 
-    <code>get_num(lscale_down(x, A), p, q) = x / get_num(A, p, q)</code>";
+    <pre>
+    get_num(lscale_down(x, A), p, q) = x / get_num(A, p, q)
+    </pre>";
 
 declare lscale_down ::
   for_index P,Q: for_unit a,b,P!u,Q!v: (a, b*P!u per Q!v) -> a*P!u per b*Q!v;
@@ -489,7 +544,9 @@ doc negative
     Corresponds with prefix operator <code>'-'</code>. Expression <code>-A</code>
     is parsed as <code>negative(A)</code>.
 
-    <code>get_num(negative(A), p, q) = -get_num(A, p, q)</code>";
+    <pre>
+    get_num(negative(A), p, q) = -get_num(A, p, q)
+    </pre>";
 
 declare negative ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
@@ -502,7 +559,9 @@ doc reciprocal
     Corresponds with postfix operator <code>^R</code>. Expression <code>A^R</code>
     is parsed as <code>reciprocal(A)</code>.
     
-    <code>get_num(reciprocal(A), p, q) = 1/get_num(A, p, q)</code>";
+    <pre>
+    get_num(reciprocal(A), p, q) = 1/get_num(A, p, q)
+    </pre>";
 
 declare reciprocal ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a^-1*P!u^-1 per Q!v^-1;
@@ -541,8 +600,9 @@ doc dim_div
     Corresponds with symbol <code>per</code>: <code>A per B</code> is parsed as
     <code>dim_div(A, B)</code>.
     
-    <code>dim_div(A, B) = A '*' B^D</code>
-    ";
+    <pre>
+    dim_div(A, B) = A '*' B^D
+    </pre>";
 
 declare dim_div ::
   for_index D,E,H: for_unit a,D!b,E!c,f,H!g: (a*D!b per E!c, f*H!g per E!c) -> a*D!b per f*H!g;
@@ -613,7 +673,9 @@ doc sqrt
     
     or using the element-wise product <code>*</code>
     
-    <code>sqrt(A) * sqrt(A) = sqrt(A)^2 = A</code>";
+    <pre>
+    sqrt(A) * sqrt(A) = sqrt(A)^2 = A
+    </pre>";
 
 declare sqrt ::
   for_index P,Q: for_unit a, P!u, Q!v: (a^2*P!u^2 per Q!v^2) -> a*P!u per Q!v;
@@ -626,7 +688,9 @@ doc cbrt
     
     or using the element-wise product <code>*</code>
     
-    <code>cbrt(A) * cbrt(A) * cbrt(A) = cbrt(A)^3 = A</code>";
+    <pre>
+    cbrt(A) * cbrt(A) * cbrt(A) = cbrt(A)^3 = A
+    </pre>";
 
 declare cbrt ::
   for_index P,Q: for_unit a, P!u, Q!v: (a^3*P!u^3 per Q!v^3) -> a*P!u per Q!v;
@@ -640,7 +704,9 @@ doc log
     
     Inverse of the exponent <code>exp</code> function
     
-    <code>expt(log(A, x), x) = A</code>";
+    <pre>
+    expt(log(A, x), x) = A
+    </pre>";
 
 declare log ::
   for_index P,Q: (P! per Q!, 1) -> P! per Q!;
@@ -651,7 +717,9 @@ doc exp
     "Element-wise natural exponent <code>e^x</code>. Only defined for dimensionless
     matrices.
 
-    <code>get(exp(A), p, q) = exp(get(A, p, q))</code>";
+    <pre>
+    get(exp(A), p, q) = exp(get(A, p, q))
+    </pre>";
 
 declare exp ::
   for_index P,Q: (P! per Q!) -> P! per Q!;
@@ -661,7 +729,9 @@ declare exp ::
 doc ln
     "Element-wise natural logarithm
 
-    <code>get(ln(A), p, q) = ln(get(A, p, q))</code>";
+    <pre>
+    get(ln(A), p, q) = ln(get(A, p, q))
+    </pre>";
 
 declare ln ::
   for_index P,Q: (P! per Q!) -> P! per Q!;
@@ -671,7 +741,9 @@ declare ln ::
 doc abs
     "Absolute value of a matrix. Each entry is negated if it is negative.
 
-    <code>get(abs(A), p, q) = abs(get(A, p, q))</code>";
+    <pre>
+    get(abs(A), p, q) = abs(get(A, p, q))
+    </pre>";
 
 declare abs ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
@@ -707,7 +779,9 @@ doc mod
     
     Could be defined as
 
-    <code>mod(A, B) = A - abs(B)*floor(A/abs(B))</code>";
+    <pre>
+    mod(A, B) = A - abs(B)*floor(A/abs(B))
+    </pre>";
 
 
 doc abs_min
@@ -718,7 +792,9 @@ doc abs_min
 
     Could be defined as
 
-    <code>abs_min(A, B) = A - B*round(A/B)</code>";
+    <pre>
+    abs_min(A, B) = A - B*round(A/B)
+    </pre>";
 
 declare mod, abs_min ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v;
@@ -730,7 +806,9 @@ doc div
     
     For any a and b the following holds:
 
-    <code>a = div(a, b) * b + rem(a, b) </code>";
+    <pre>
+    a = div(a, b) * b + rem(a, b)
+    </pre>";
     
 declare div ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y;
@@ -742,11 +820,15 @@ doc rem
     
     Could be defined as
 
-    <code>rem(A, B) = A - B*truncate(A/B)</code>
+    <pre>
+    rem(A, B) = A - B*truncate(A/B)
+    </pre>
     
     For any a and b the following holds:
 
-    <code>a = div(a, b) * b + rem(a, b) </code>";
+    <pre>
+    a = div(a, b) * b + rem(a, b)
+    </pre>";
 
 declare rem ::
     for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q:
@@ -757,7 +839,9 @@ declare rem ::
 doc sin
     "Element-wise sine function.
     
-    <code>get(sin(A), p, q) = sin(get(A, p, q))</code>";
+    <pre>
+    get(sin(A), p, q) = sin(get(A, p, q))
+    </pre>";
 
 declare sin ::
   for_index P,Q: (radian * P! per Q!) -> P! per Q!;
@@ -767,7 +851,9 @@ declare sin ::
 doc cos
     "Element-wise cosine function.
     
-    <code>get(cos(A), p, q) = cos(get(A, p, q))</code>";
+    <pre>
+    get(cos(A), p, q) = cos(get(A, p, q))
+    </pre>";
 
 declare cos ::
   for_index P,Q: (radian * P! per Q!) -> P! per Q!;
@@ -777,7 +863,9 @@ declare cos ::
 doc tan
     "Element-wise tangent function.
     
-    <code>get(tan(A), p, q) = tan(get(A, p, q))</code>";
+    <pre>
+    get(tan(A), p, q) = tan(get(A, p, q))
+    </pre>";
 
 declare tan ::
   for_index P,Q: (radian * P! per Q!) -> P! per Q!;
@@ -830,14 +918,18 @@ doc truncate
 
     Could be defined as
     
-    <code>ceiling(negatives(A)) + floor(positives(A))</code>";
+    <pre>
+    ceiling(negatives(A)) + floor(positives(A))
+    </pre>";
     
 doc round
     "Rounds every matrix entry to the nearest integer. Halves are rounded up.
     
     Could be defined as
     
-    <code>round(A) = floor(A + 0.5 '.*' unit(A))</code>";
+    <pre>
+    round(A) = floor(A + 0.5 '.*' unit(A))
+    </pre>";
 
 declare floor, ceiling, truncate, round ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
@@ -862,7 +954,9 @@ doc svd
     
     List of tuples (s,v,w) such that
 
-    <code>A = sum[s '.*' v '*' w^T | (s,v,w) <- svd(A)]</code>
+    <pre>
+    A = sum[s '.*' v '*' w^T | (s,v,w) <- svd(A)]
+    </pre>
 
     with scalar s the singular values, and vectors v and w the singular vectors.";
     
