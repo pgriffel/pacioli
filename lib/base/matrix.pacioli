@@ -358,7 +358,7 @@ doc multiply
 
     For all indices p and q it satisfies
 
-    <code>get(A * B, p, q) = get_num(A, p, q) * get_num(B, p, q)</code>";
+    <pre>get(A * B, p, q) = get_num(A, p, q) * get_num(B, p, q)</pre>";
 
 declare multiply ::
   for_index P,Q: for_unit a,b,P!u,P!w,Q!v,Q!z: (a*P!u per Q!v, b*P!w per Q!z) -> a*b*P!u*P!w per Q!v*Q!z;

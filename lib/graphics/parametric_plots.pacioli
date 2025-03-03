@@ -105,7 +105,7 @@ doc plot_parametric_surface
 
     For example
 
-    <code>
+    <pre>
     let
         u_interval = make_interval(-5*|metre|, 5*|metre|),  
         v_interval = make_interval(-5*|metre|, 5*|metre|)
@@ -116,7 +116,7 @@ doc plot_parametric_surface
             default_parametric_plot_options,
             scene)
     end  
-    </code>
+    </pre>
 
     plots a part of a plane, using default options. It yields a scene of
     type <code>Scene(metre, Geom3!)</code>";

@@ -25,6 +25,7 @@ import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
 import pacioli.ast.expression.*;
 import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.unit.*;
+import pacioli.ast.sugar.*;
 import pacioli.types.ast.*;
 import pacioli.types.ast.TypeIdentifierNode.Kind;
 import pacioli.types.TypeContext;
@@ -2510,7 +2511,7 @@ class CUP$Parser$actions {
           return CUP$Parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
-          case 32: // definition ::= DEFRECORD vardecls type AS id WHERE record_bindings 
+          case 32: // definition ::= DEFRECORD vardecls type AS id WHERE field_definitions 
             {
               Definition RESULT =null;
 		Location dxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-6)).xleft;
@@ -2527,7 +2528,7 @@ class CUP$Parser$actions {
 		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
 		Location csxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location csxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
-		List<DataDefinitionNode.Binding> cs = (List<DataDefinitionNode.Binding>)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		List<RecordDefinition.FieldDefinition> cs = (List<RecordDefinition.FieldDefinition>)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		 RESULT = new RecordDefinition(makeLoc(dxleft, csxright), c, e, id, cs); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("definition",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-6)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
@@ -2576,44 +2577,44 @@ class CUP$Parser$actions {
           return CUP$Parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
-          case 36: // record_bindings ::= record_binding 
+          case 36: // field_definitions ::= field_definition 
             {
-              List<DataDefinitionNode.Binding> RESULT =null;
+              List<RecordDefinition.FieldDefinition> RESULT =null;
 		Location cxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location cxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
-		DataDefinitionNode.Binding c = (DataDefinitionNode.Binding)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new LinkedList<DataDefinitionNode.Binding>(Arrays.asList(c)); 
-              CUP$Parser$result = parser.getSymbolFactory().newSymbol("record_bindings",64, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
+		RecordDefinition.FieldDefinition c = (RecordDefinition.FieldDefinition)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		 RESULT = new LinkedList<RecordDefinition.FieldDefinition>(Arrays.asList(c)); 
+              CUP$Parser$result = parser.getSymbolFactory().newSymbol("field_definitions",64, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
-          case 37: // record_bindings ::= record_bindings COMMA record_binding 
+          case 37: // field_definitions ::= field_definitions COMMA field_definition 
             {
-              List<DataDefinitionNode.Binding> RESULT =null;
+              List<RecordDefinition.FieldDefinition> RESULT =null;
 		Location csxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).xleft;
 		Location csxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).xright;
-		List<DataDefinitionNode.Binding> cs = (List<DataDefinitionNode.Binding>)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
+		List<RecordDefinition.FieldDefinition> cs = (List<RecordDefinition.FieldDefinition>)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
 		Location cxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location cxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
-		DataDefinitionNode.Binding c = (DataDefinitionNode.Binding)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
+		RecordDefinition.FieldDefinition c = (RecordDefinition.FieldDefinition)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		 cs.add(c); RESULT = cs; 
-              CUP$Parser$result = parser.getSymbolFactory().newSymbol("record_bindings",64, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
+              CUP$Parser$result = parser.getSymbolFactory().newSymbol("field_definitions",64, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
 
           /*. . . . . . . . . . . . . . . . . . . .*/
-          case 38: // record_binding ::= id COLON type 
+          case 38: // field_definition ::= id COLON type 
             {
-              DataDefinitionNode.Binding RESULT =null;
+              RecordDefinition.FieldDefinition RESULT =null;
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)).xright;
 		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
 		Location txleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location txright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		TypeNode t = (TypeNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new DataDefinitionNode.Binding(id, t, makeLoc(idxleft, txright)); 
-              CUP$Parser$result = parser.getSymbolFactory().newSymbol("record_binding",63, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
+		 RESULT = new RecordDefinition.FieldDefinition(id, t, makeLoc(idxleft, txright)); 
+              CUP$Parser$result = parser.getSymbolFactory().newSymbol("field_definition",63, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
 
