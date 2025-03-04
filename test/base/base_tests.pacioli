@@ -383,6 +383,21 @@ define expt_suite = test_suite("Function expt", [
             2 ^ 3 = 8
          ),
 
+    test("should be correct for scalars and power zero",
+         () ->
+            2 ^ 0 = 1
+         ),
+
+   test("should be correct for scalars and a negative power",
+         () ->
+            2 ^ -1 = 1/2
+         ),
+
+   test("should be correct for negative scalars and a negative power",
+         () ->
+            -2 ^ -1 = -1/2
+         ),         
+
     test("should be correct matrices without units",
          () ->
             let mat = test_vec(1,2,3,4,5,6) '*' test_vec(1,2,3,4,5,6)^T in
@@ -409,10 +424,25 @@ define expt_suite = test_suite("Function expt", [
 
 define mexpt_suite = test_suite("Function mexpt", [
     
-    test("should be correct for scalars",
+   test("should be correct for scalars",
          () ->
             2 '^' 3 = 8
          ),
+
+   test("should be correct for scalars and power zero",
+         () ->
+            2 '^' 0 = 1
+         ),
+
+   test("should be correct for scalars and a negative power",
+         () ->
+            2 '^' -1 = 1/2
+         ),
+ 
+   test("should be correct for negative scalars and a negative power",
+         () ->
+            -2 '^' -1 = -1/2
+         ),    
 
    test("should be correct matrices without units",
          () ->

@@ -142,14 +142,6 @@ parser code {:
         return prefix + counter++;
     }
 
-/*    private static ExpressionNode binop(String name, ExpressionNode left, ExpressionNode right) {
-        pacioli.compiler.Location loc = left.location().join(right.location());
-        List<ExpressionNode> args = new ArrayList<ExpressionNode>();
-        args.add(left);
-        args.add(right);
-        return new ApplicationNode(new IdentifierNode(name, loc), args, loc);
-    }
-*/
     private static ExpressionNode binop(String name, pacioli.compiler.Location loc, ExpressionNode left, ExpressionNode right) {
         List<ExpressionNode> args = new ArrayList<ExpressionNode>();
         args.add(left);
@@ -157,183 +149,10 @@ parser code {:
         return new ApplicationNode(new IdentifierNode(name, loc), args, loc);
     }
 
-    private static ExpressionNode desugarExp(String op, ExpressionNode base, String power,
-        pacioli.compiler.Location loc, boolean swapSign) {
-      
-          int pow = Integer.parseInt(power);
-          
-        ExpressionNode bas;
-        
-        if (pow < 0) {
-            bas = new ApplicationNode(new IdentifierNode(op.equals("multiply") ? "reciprocal" : "inverse", loc.collapse()), Arrays.asList(base), loc);
-        } else {
-            bas = base;
-        }
-        return desugarExpHelper(op, bas, (pow < 0) ? -pow : pow, loc);
-    }
-
-    private static ExpressionNode desugarExpHelper(String op, ExpressionNode base, int power, pacioli.compiler.Location loc) {
-
-        if (power == 0) {
-        List<ExpressionNode> args = new ArrayList<ExpressionNode>();
-        args.add(base);
-        return new ApplicationNode(new IdentifierNode(op.equals("multiply")? "unit" : "left_identity", loc.collapse()), args, loc);
-        } else if (power == 1) {
-        return base;
-        } else {
-        String fresh = freshName(op);
-
-        ExpressionNode exp = new IdentifierNode(fresh, loc.collapse());
-
-        for (int i = 1; i < power; i++) {
-            List<ExpressionNode> args = new ArrayList<ExpressionNode>();
-            args.add(exp);
-            args.add(new IdentifierNode(fresh, loc.collapse()));
-            exp = new ApplicationNode(new IdentifierNode(op, loc.collapse()), args, loc);
-        }
-
-        BindingNode binding = new LetBindingNode(loc, fresh, base);
-        return new LetNode(Arrays.asList(binding), exp, loc);
-        }
-    }
-
     private static ExpressionNode singleop(IdentifierNode id, ExpressionNode exp, pacioli.compiler.Location loc) {
         List<ExpressionNode> args = new ArrayList<ExpressionNode>();
         args.add(exp);
         return new ApplicationNode(id, args, loc);
-    }
-
-    private static class GeneratorClause {
-        public final IdentifierNode id;
-        public final ExpressionNode list;
-        public GeneratorClause(IdentifierNode id, ExpressionNode list) {
-            this.id = id;
-            this.list = list;
-        }
-    }
-
-    private static class TupleGeneratorClause {
-        public final List<IdentifierNode> ids;
-        public final ExpressionNode list;
-        public TupleGeneratorClause(List<IdentifierNode> ids, ExpressionNode list) {
-            this.ids = ids;
-            this.list = list;
-        }
-    }
-
-    private static class AssignmentClause {
-        public final IdentifierNode id;
-        public final ExpressionNode value;
-        public AssignmentClause(IdentifierNode id, ExpressionNode value) {
-            this.id = id;
-            this.value = value;
-        }
-    }
-
-    private static class TupleAssignmentClause {
-        public final List<IdentifierNode> ids;
-        public final ExpressionNode value;
-        public TupleAssignmentClause(List<IdentifierNode> ids, ExpressionNode value) {
-            this.ids = ids;
-            this.value = value;
-        }
-    }
-
-    private static ExpressionNode desugarComprehension(pacioli.compiler.Location loc, ExpressionNode e, List<Object> ps) throws PacioliException {
-
-        String accuName = freshName("_c_accu");
-        String tupName = freshName("_c_tup");
-
-        pacioli.compiler.Location dummyLoc = loc.collapse();
-
-        ExpressionNode addMut = new IdentifierNode("_add_mut", dummyLoc);
-        ExpressionNode accu = new IdentifierNode(accuName, dummyLoc);
-        ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), dummyLoc);
- 
-        for (int i = ps.size() - 1; 0 <= i; i--) {
-            Object part = ps.get(i);
-            if (part instanceof GeneratorClause) {
-                GeneratorClause clause = (GeneratorClause) part;
-                pacioli.compiler.Location loc2 = clause.list.location();
-                body = new ApplicationNode(
-                                new IdentifierNode("loop_list",dummyLoc),
-                                Arrays.asList((ExpressionNode) new IdentifierNode(accuName, dummyLoc),
-                                              new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.name())), body, loc2), clause.list),
-                                loc2);
-            } else if (part instanceof TupleGeneratorClause) {
-                TupleGeneratorClause clause = (TupleGeneratorClause) part;
-                pacioli.compiler.Location loc2 = clause.list.location();
-
-                List<String> args = new ArrayList<String>();
-                for (IdentifierNode var : clause.ids) {
-                    args.add(var.name());
-                }
-
-                ExpressionNode apply = new IdentifierNode("apply", dummyLoc);
-                ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc2);
-                ExpressionNode tup = new IdentifierNode(tupName, loc2);
-                ExpressionNode loopList = new IdentifierNode("loop_list", dummyLoc);
-                ExpressionNode accuId = new IdentifierNode(accuName, loc2);
-                ExpressionNode restApp = new ApplicationNode(apply, Arrays.asList(restLambda, tup), loc2);
-                ExpressionNode restAppLambda = new LambdaNode(Arrays.asList(accuName, tupName), restApp, loc2);
-
-                body = new ApplicationNode(loopList, Arrays.asList(accuId, restAppLambda, clause.list), loc2);
-            } else if (part instanceof AssignmentClause) {
-                AssignmentClause clause = (AssignmentClause) part;
-
-                body = new ApplicationNode(new LambdaNode(freshUnderscores(Arrays.asList(clause.id.name())), body, body.location()), Arrays.asList(clause.value), clause.value.location());
-            } else if (part instanceof TupleAssignmentClause) {
-
-                TupleAssignmentClause clause = (TupleAssignmentClause) part;
-
-                List<String> args = new ArrayList<String>();
-                for (IdentifierNode var : clause.ids) {
-                    args.add(var.name());
-                }
-
-                ExpressionNode apply = new IdentifierNode("apply", dummyLoc);
-                ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc);
-
-                body = new ApplicationNode(apply, Arrays.asList(restLambda, clause.value), clause.value.location());
-            } else if (part instanceof ExpressionNode) {
-                ExpressionNode clause = (ExpressionNode) part;
-                body = new BranchNode(clause, body, new IdentifierNode(accuName, dummyLoc), loc);
-            } else {
-                throw new PacioliException(loc, "Unexpected clause %s", part);
-            }
-        }
-
-        ExpressionNode lambda = new LambdaNode(Arrays .asList(accuName), body, loc);
-        ExpressionNode emptyListId = new IdentifierNode("empty_list", dummyLoc);
-        ExpressionNode emptyList = new ApplicationNode(emptyListId, new ArrayList<ExpressionNode>(), loc);
-
-        return new ApplicationNode(lambda, Arrays.asList(emptyList), loc);
-    }
-
-    private static ExpressionNode desugarFoldComprehension(pacioli.compiler.Location loc, IdentifierNode op, ExpressionNode e, List<Object> ps) throws PacioliException {
-        pacioli.compiler.Location eLoc = e.location(); 
-        pacioli.compiler.Location opLoc = op.location();
-        pacioli.compiler.Location dummyLoc = op.location().collapse();
-        ExpressionNode body = desugarComprehension(loc, e, ps);
-        if (op.name().equals("sum")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_sum", dummyLoc), Arrays.asList(body), opLoc);
-        } else if (op.name().equals("count")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_count", dummyLoc), Arrays.asList(body), opLoc);
-        } else if (op.name().equals("all")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_all", dummyLoc), Arrays.asList(body), opLoc);
-        } else if (op.name().equals("some")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_some", dummyLoc), Arrays.asList(body), opLoc);
-        } else if (op.name().equals("gcd")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_gcd", dummyLoc), Arrays.asList(body), opLoc);
-        } else if (op.name().equals("concat")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_concat", dummyLoc), Arrays.asList(body), opLoc);
-        } else if (op.name().equals("min")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_min", dummyLoc), Arrays.asList(body), opLoc);
-        } else if (op.name().equals("max")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_max", dummyLoc), Arrays.asList(body), opLoc);
-        } else {
-            throw new PacioliException(op.location(), "Comprehension operator '%s' unknown", op.name());
-        }
     }
 
 :};
@@ -370,8 +189,8 @@ non terminal SchemaNode                      schema;
 non terminal List<QuantNode>                 vardecls;
 non terminal List<TypeNode>                  types, typelist;
 non terminal KeyNode                         indexkey;
-non terminal List<Object>                    parts;
-non terminal Object                          part;
+non terminal List<ComprehensionNode.Clause>  parts;
+non terminal ComprehensionNode.Clause        part;
 non terminal SequenceNode                    sequence;
 non terminal List<TypePredicateNode>         classcondition, conditions;
 non terminal TypePredicateNode               condition;
@@ -661,7 +480,7 @@ expr_no_id ::=
  | idlist:ids                                       {: RESULT = new IdListNode(makeLoc(idsxleft, idsxright), ids); :}   
  | LPAR expr_no_id:e RPAR                           {: RESULT = e; :}
  | expr:e1 NEG:op expr:e2                           {: RESULT = binop("minus", makeLoc(opxleft, opxright), e1, e2); :}
- | expr:e1 HAT integer:e2                           {: RESULT = desugarExp("multiply", e1, e2, makeLoc(e1xleft, e2xright), false); :}
+ | expr:e1 HAT integer:e2                           {: RESULT = new ExponentNode("multiply", e1, e2, makeLoc(e1xleft, e2xright)); :}
  | expr:e1 PER:op expr:e2                              {: RESULT = binop("dim_div", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 EQL:op expr:e2                              {: RESULT = binop("equal", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e TRANS:t                                   {: RESULT = singleop(new IdentifierNode("transpose", makeLoc(txleft, txright)), e, makeLoc(exleft, txright)); :}
@@ -670,7 +489,7 @@ expr_no_id ::=
  | expr:e1 MULT:op expr:e2                          {: RESULT = binop("multiply", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 PLUS:op expr:e2                             {: RESULT = binop("sum", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 MMULT:op expr:e2                         {: RESULT = binop("mmult", makeLoc(opxleft, opxright), e1, e2); :}
- | expr:e1 MEXPT integer:e2                         {: RESULT = desugarExp("mmult", e1, e2, makeLoc(e1xleft, e2xright), false); :}
+ | expr:e1 MEXPT integer:e2                         {: RESULT = new ExponentNode("mmult", e1, e2, makeLoc(e1xleft, e2xright)); :}
  | expr:e1 DIV:op expr:e2                              {: RESULT = binop("divide", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 MDIV:op expr:e2                             {: RESULT = binop("right_division", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 LEFTDIV:op expr:e2                          {: RESULT = binop("left_divide", makeLoc(opxleft, opxright), e1, e2); :}
@@ -808,31 +627,31 @@ listlit ::=
 
 comprehension ::= 
    LBRACK:l expr:e PIPE parts:ps RBRACK:r           {: pacioli.compiler.Location loc = makeLoc(lxleft, rxright);
-                                                       RESULT = desugarComprehension(loc, e, ps); :}
+                                                       RESULT = new ComprehensionNode(e, ps, loc); :}
  | id:id LBRACK expr:e PIPE parts:ps RBRACK:r       {: pacioli.compiler.Location loc = makeLoc(idxleft, rxright);
-                                                       RESULT = desugarFoldComprehension(loc, id, e, ps); :}
+                                                       RESULT = new ComprehensionNode(id, e, ps, loc); :}
  ;
 
 parts ::= 
-    part:p                                          {: RESULT = new LinkedList<Object>(Arrays.asList(p)); :}
+    part:p                                          {: RESULT = new LinkedList<ComprehensionNode.Clause>(Arrays.asList(p)); :}
   | parts:ps COMMA part:p                           {: ps.add(p); RESULT = ps; :}
   ;
 
 part ::= 
- | expr:f                                           {: RESULT = f; :}
+ | expr:f                                           {: RESULT = new ComprehensionNode.FilterClause(f, makeLoc(fxleft, fxright)); :}
  | expr:g FROM expr:e                               {:  if (g instanceof IdListNode) {
-                                                           RESULT = new TupleGeneratorClause(((IdListNode)g).ids, e);
+                                                           RESULT = new ComprehensionNode.TupleGeneratorClause(((IdListNode)g).ids, e, makeLoc(gxleft, exright));
                                                         } else if (g instanceof IdentifierNode) {
-                                                            RESULT = new GeneratorClause((IdentifierNode) g, e);
+                                                            RESULT = new ComprehensionNode.GeneratorClause((IdentifierNode) g, e,  makeLoc(gxleft, exright));
                                                         } else {
                                                             errorLocation = g.location();
                                                             errorMessage = "Expected a variable or tuple";
                                                             report_fatal_error("Fixme: this string is not used? How to throw an error here?", g);
                                                         } :}
  | expr:g ASSIGN expr:e                             {:  if (g instanceof IdListNode) {
-                                                           RESULT = new TupleAssignmentClause(((IdListNode)g).ids, e);
+                                                           RESULT = new ComprehensionNode.TupleAssignmentClause(((IdListNode)g).ids, e, makeLoc(gxleft, exright));
                                                         } else if (g instanceof IdentifierNode) {
-                                                            RESULT = new AssignmentClause((IdentifierNode) g, e);
+                                                            RESULT = new ComprehensionNode.AssignmentClause((IdentifierNode) g, e, makeLoc(gxleft, exright));
                                                         } else {
                                                             errorLocation = g.location();
                                                             errorMessage = "Expected a variable or tuple";

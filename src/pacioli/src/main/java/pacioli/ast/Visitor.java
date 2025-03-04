@@ -39,6 +39,13 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
+import pacioli.ast.sugar.ComprehensionNode;
+import pacioli.ast.sugar.ComprehensionNode.AssignmentClause;
+import pacioli.ast.sugar.ComprehensionNode.FilterClause;
+import pacioli.ast.sugar.ComprehensionNode.GeneratorClause;
+import pacioli.ast.sugar.ComprehensionNode.TupleAssignmentClause;
+import pacioli.ast.sugar.ComprehensionNode.TupleGeneratorClause;
+import pacioli.ast.sugar.ExponentNode;
 import pacioli.ast.sugar.RecordDefinition;
 import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
@@ -184,4 +191,18 @@ public interface Visitor {
     void visit(DataQueryNode node);
 
     void visit(RecordDefinition node);
+
+    void visit(ExponentNode exponentNode);
+
+    void visit(ComprehensionNode comprehensionNode);
+
+    void visit(GeneratorClause generatorClause);
+
+    void visit(FilterClause filterClause);
+
+    void visit(TupleGeneratorClause tupleGeneratorClause);
+
+    void visit(AssignmentClause assignmentClause);
+
+    void visit(TupleAssignmentClause tupleAssignmentClause);
 }

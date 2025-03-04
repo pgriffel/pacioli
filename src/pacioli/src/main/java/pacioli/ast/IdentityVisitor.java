@@ -43,6 +43,8 @@ import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
 import pacioli.ast.expression.LetNode.BindingNode;
+import pacioli.ast.sugar.ComprehensionNode;
+import pacioli.ast.sugar.ExponentNode;
 import pacioli.ast.sugar.RecordDefinition;
 import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
@@ -457,6 +459,52 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(RecordDefinition node) {
+    }
+
+    @Override
+    public void visit(ExponentNode node) {
+        node.base.accept(this);
+    }
+
+    @Override
+    public void visit(ComprehensionNode node) {
+        node.expression.accept(this);
+        for (ComprehensionNode.Clause clause : node.clauses) {
+            clause.accept(this);
+        }
+    }
+
+    @Override
+    public void visit(ComprehensionNode.GeneratorClause clause) {
+        clause.id.accept(this);
+        clause.list.accept(this);
+    }
+
+    @Override
+    public void visit(ComprehensionNode.FilterClause clause) {
+        clause.list.accept(this);
+    }
+
+    @Override
+    public void visit(ComprehensionNode.TupleGeneratorClause clause) {
+        for (IdentifierNode id : clause.ids) {
+            id.accept(this);
+        }
+        clause.list.accept(this);
+    }
+
+    @Override
+    public void visit(ComprehensionNode.AssignmentClause clause) {
+        clause.id.accept(this);
+        clause.value.accept(this);
+    }
+
+    @Override
+    public void visit(ComprehensionNode.TupleAssignmentClause clause) {
+        for (IdentifierNode id : clause.ids) {
+            id.accept(this);
+        }
+        clause.value.accept(this);
     }
 
 }
