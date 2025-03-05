@@ -209,7 +209,8 @@ public class Program {
                         .file(this.file)
                         .isGlobal(true)
                         .declaredType(def)
-                        .isPublic(false);
+                        .isPublic(false)
+                        .primitiveArgs(def.arguments().orElse(null));
             }
         }
 

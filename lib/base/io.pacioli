@@ -33,7 +33,7 @@ doc set_nr_decimals
     
     This is a global effect.";
 
-declare set_nr_decimals :: (1) -> Void;
+declare_primitive set_nr_decimals(n) :: (1) -> Void;
 
 # ----------------------------------------------------------------------------
 
@@ -42,7 +42,7 @@ doc nr_decimals
     
     See <code>set_nr_decimals</code>";
 
-declare nr_decimals :: () -> 1;
+declare_primitive nr_decimals() :: () -> 1;
 
 # ----------------------------------------------------------------------------
 # File IO
@@ -52,7 +52,7 @@ doc with_output_file
     "Opens a file for writing and calls the callback with a handle to
     the file";
     
-declare with_output_file :: (String, (File) -> Void) -> Void;
+declare_primitive with_output_file(path, body) :: (String, (File) -> Void) -> Void;
 
 # ----------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ doc write_string
     "Write a string to a file. Use <code>with_output_file</code> to get a file
     handle.";
 
-declare write_string :: (File, String) -> Void;
+declare_primitive write_string(file, text) :: (File, String) -> Void;
 
 # ----------------------------------------------------------------------------
 # Terminal IO
@@ -69,4 +69,4 @@ declare write_string :: (File, String) -> Void;
 doc print
     "Writes a string to standard output.";
 
-declare print :: (String) -> Void;
+declare_primitive print(text) :: (String) -> Void;

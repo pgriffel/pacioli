@@ -108,7 +108,7 @@ doc _
     If <code>x</code> is a scalar then <code>get(x, _, _)</code> equals
     <code>x</code>.";
 
-declare _ :: Index();
+declare_primitive _ :: Index();
 
 # ----------------------------------------------------------------------------
 
@@ -117,7 +117,7 @@ doc index_less
     
     Is the order of the indices in the index set definition.";
 
-declare index_less :: for_index P: (P, P) -> Boole;
+declare_primitive index_less(p0, p1) :: for_index P: (P, P) -> Boole;
 
 # ----------------------------------------------------------------------------
 # Matrix Shape
@@ -140,7 +140,7 @@ doc make_matrix
 
     creates a vector of type <code>degree*Direction!</code>";
 
-declare make_matrix ::
+declare_primitive make_matrix(entries) ::
   for_index P,Q: for_unit a: (List(Tuple(P, Q, a))) -> a*P! per Q!;
 
 # ----------------------------------------------------------------------------
@@ -158,7 +158,7 @@ doc magnitude
     A = magnitude(A) * unit(A)
     </pre>";
 
-declare magnitude ::
+declare_primitive magnitude(A) ::
   for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
@@ -172,7 +172,7 @@ doc scalar_unit
     unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
     </pre>";
 
-declare scalar_unit ::
+declare_primitive scalar_unit(A) ::
   for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> a;
 
 # ----------------------------------------------------------------------------
@@ -187,7 +187,7 @@ doc row_unit
     unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
     </pre>";
 
-declare row_unit ::
+declare_primitive row_unit(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> P!u;
 
 # ----------------------------------------------------------------------------
@@ -202,7 +202,7 @@ doc column_unit
     unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
     </pre>";
 
-declare column_unit ::
+declare_primitive column_unit(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Q!v;
 
 # ----------------------------------------------------------------------------
@@ -210,7 +210,7 @@ declare column_unit ::
 doc row_domain
     "The matrix row domain. The index set elements for the row dimension.";
 
-declare row_domain ::
+declare_primitive row_domain(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> List(P);
 
 # ----------------------------------------------------------------------------
@@ -218,7 +218,7 @@ declare row_domain ::
 doc column_domain
     "The matrix column domain. The index set elements for the column dimension.";
 
-declare column_domain ::
+declare_primitive column_domain(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> List(Q);
 
 # ----------------------------------------------------------------------------
@@ -234,7 +234,7 @@ doc row
     get_num(row(A, x), _, q) = get_num(A, x, q)
     </pre>";
 
-declare row ::
+declare_primitive row(A, p) ::
   for_index P,Q: for_unit a,Q!v: (a*P! per Q!v, P) -> a per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -250,7 +250,7 @@ doc column
     get_num(column(A, x), p, _) = get_num(A, p, x)
     </pre>";
 
-declare column ::
+declare_primitive column(A, q) ::
   for_index P,Q: for_unit a,P!v: (a*P!v per Q!, Q) -> a*P!v;
 
 # ----------------------------------------------------------------------------
@@ -260,7 +260,7 @@ doc get
     
     The matrix must be dimensionally uniform.";
 
-declare get ::
+declare_primitive get(A, p, q) ::
   for_index P,Q: for_unit a: (a*P! per Q!, P, Q) -> a;
 
 # ----------------------------------------------------------------------------
@@ -269,23 +269,23 @@ doc get_num
     "Gets the magnitude of a single entry from a matrix. Using it 
     breaks unit safety so use with care!";
 
-declare get_num ::
+declare_primitive get_num(A, p, q) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, P, Q) -> 1;
 
 # ----------------------------------------------------------------------------
 
 doc left_identity
-    "The left identify of a matrix. Solution to XA=A";
+    "The left identify of a matrix. Solution to <code>X '*' A = A</code>";
 
-declare left_identity ::
+declare_primitive left_identity(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> P!u per P!u;
 
 # ----------------------------------------------------------------------------
 
 doc right_identity
-    "The right identify of a matrix. Solution to AX=A";
+    "The right identify of a matrix. Solution to <code>A '*' X = A</code>";
 
-declare right_identity ::
+declare_primitive right_identity(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Q!v per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -300,7 +300,7 @@ doc signum
     signum(A) = positive_support(A) - negative_support(A)
     </pre>";
 
-declare signum ::
+declare_primitive signum(A) ::
   for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
 
 # ----------------------------------------------------------------------------
@@ -315,7 +315,7 @@ doc support
     get(support(A), p, q) = if get_num(A, p, q) = 0 then 0 else 1 end
     </pre>";
 
-declare support ::
+declare_primitive support(A) ::
   for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
 
 # ----------------------------------------------------------------------------
@@ -331,7 +331,7 @@ doc positive_support
     get(support(A), p, q) = if get_num(A, p, q) > 0 then 1 else 0 end
     </pre>";
 
-declare positive_support ::
+declare_primitive positive_support(A) ::
   for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
 
 # ----------------------------------------------------------------------------
@@ -346,7 +346,7 @@ doc negative_support
     get(support(A), p, q) = if get_num(A, p, q) < 0 then 1 else 0 end
     </pre>";
 
-declare negative_support ::
+declare_primitive negative_support(A) ::
   for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
 
 # ----------------------------------------------------------------------------
@@ -365,7 +365,7 @@ doc sum
     get_num(A + B, p, q) = get_num(A, p, q) + get_num(B, p, q)
     </pre>";
 
-declare sum ::
+declare_primitive sum(A, B) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -382,7 +382,7 @@ doc minus
     get_num(A - B, p, q) = get_num(A, p, q) - get_num(B, p, q)
     </pre>";
 
-declare minus ::
+declare_primitive minus(A, B) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -399,7 +399,7 @@ doc multiply
     get(A * B, p, q) = get_num(A, p, q) * get_num(B, p, q)
     </pre>";
 
-declare multiply ::
+declare_primitive multiply(A, B) ::
   for_index P,Q: for_unit a,b,P!u,P!w,Q!v,Q!z: (a*P!u per Q!v, b*P!w per Q!z) -> a*b*P!u*P!w per Q!v*Q!z;
 
 # ----------------------------------------------------------------------------
@@ -416,7 +416,7 @@ doc divide
     get(A / B, p, q) = get_num(A, p, q) / get_num(B, p, q)
     </pre>";
 
-declare divide ::
+declare_primitive divide(A, B) ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y;
 
 # ----------------------------------------------------------------------------
@@ -433,7 +433,7 @@ doc left_divide
     left_divide(A, B) = divide(B, A)
     </pre>";
 
-declare left_divide ::
+declare_primitive left_divide(A, B) ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!x/P!u per b*Q!y/Q!v;
 
 # ----------------------------------------------------------------------------
@@ -447,7 +447,7 @@ doc expt
     get(expt(A, x), p, q) = expt(get(A, p, q), x)
     </pre>";
 
-declare expt ::
+declare_primitive expt(A, n) ::
   for_index P,Q: (P! per Q!, 1) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
@@ -461,7 +461,7 @@ doc mexpt
     get(expt(A, x), p, q) = expt(get(A, p, q), x)
     </pre>";
 
-declare mexpt ::
+declare_primitive mexpt(A, n) ::
   for_index P: for_unit P!u: (P!u per P!u, 1) -> P!u per P!u;
 
 # ----------------------------------------------------------------------------
@@ -473,7 +473,7 @@ doc mmult
     is parsed as <code>mmult(A, B)</code>.
     ";
 
-declare mmult ::
+declare_primitive mmult(A, B) ::
   for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*Q!v per R!w) -> a*b*P!u per R!w;
 
 # ----------------------------------------------------------------------------
@@ -488,7 +488,7 @@ doc scale
     get_num(scale(x, A), p, q) = x * get_num(A, p, q)
     </pre>";
 
-declare scale ::
+declare_primitive scale(c, A) ::
   for_index P,Q: for_unit a,b,P!u,Q!v: (a, b*P!u per Q!v) -> a*b*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -503,7 +503,7 @@ doc rscale
     get_num(rscale(A, x), p, q) = get_num(A, p, q) * x
     </pre>";
 
-declare rscale ::
+declare_primitive rscale(A, c) ::
   for_index P,Q: for_unit a,b,P!u,Q!v: (a*P!u per Q!v, b) -> a*b*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -518,7 +518,7 @@ doc scale_down
     get_num(scale_down(A, x), p, q) = get_num(A, p, q) / x
     </pre>";
 
-declare scale_down ::
+declare_primitive scale_down(A, c) ::
   for_index P,Q: for_unit a,b,P!u,Q!v: (a*P!u per Q!v, b) -> a*P!u per b*Q!v;
 
 # ----------------------------------------------------------------------------
@@ -533,7 +533,7 @@ doc lscale_down
     get_num(lscale_down(x, A), p, q) = x / get_num(A, p, q)
     </pre>";
 
-declare lscale_down ::
+declare_primitive lscale_down(c, A) ::
   for_index P,Q: for_unit a,b,P!u,Q!v: (a, b*P!u per Q!v) -> a*P!u per b*Q!v;
 
 # ----------------------------------------------------------------------------
@@ -548,7 +548,7 @@ doc negative
     get_num(negative(A), p, q) = -get_num(A, p, q)
     </pre>";
 
-declare negative ::
+declare_primitive negative(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -563,7 +563,7 @@ doc reciprocal
     get_num(reciprocal(A), p, q) = 1/get_num(A, p, q)
     </pre>";
 
-declare reciprocal ::
+declare_primitive reciprocal(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a^-1*P!u^-1 per Q!v^-1;
 
 # ----------------------------------------------------------------------------
@@ -574,7 +574,7 @@ doc transpose
     Corresponds with postfix operator <code>^T</code>: <code>A^T</code>
     is parsed as <code>transpose(A)</code>.";
 
-declare transpose ::
+declare_primitive transpose(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*Q!v^-1 per P!u^-1;
 
 # ----------------------------------------------------------------------------
@@ -588,7 +588,7 @@ doc dim_inv
     
     ";
 
-declare dim_inv ::
+declare_primitive dim_inv(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
 
 # ----------------------------------------------------------------------------
@@ -604,7 +604,7 @@ doc dim_div
     dim_div(A, B) = A '*' B^D
     </pre>";
 
-declare dim_div ::
+declare_primitive dim_div(A, B) ::
   for_index D,E,H: for_unit a,D!b,E!c,f,H!g: (a*D!b per E!c, f*H!g per E!c) -> a*D!b per f*H!g;
 
 # ----------------------------------------------------------------------------
@@ -614,7 +614,7 @@ doc total
     
     The matrix must be dimensionally uniform.";
 
-declare total ::
+declare_primitive total(A) ::
   for_index P,Q: for_unit a: (a*P! per Q!) -> a;
 
 # ----------------------------------------------------------------------------
@@ -624,7 +624,7 @@ declare total ::
 doc less
     "Is every entry in matrix A less than the corresponding entry in matrix B?";
 
-declare less ::
+declare_primitive less(A, B) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
 
 # ----------------------------------------------------------------------------
@@ -633,7 +633,7 @@ doc less_eq
     "Is every entry in matrix A less than or equal to the corresponding entry 
     in matrix B?";
 
-declare less_eq ::
+declare_primitive less_eq(A, B) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
 
 # ----------------------------------------------------------------------------
@@ -642,7 +642,7 @@ doc greater
     "Is every entry in matrix A greater than the corresponding entry in matrix
     B?";
 
-declare greater ::
+declare_primitive greater(A, B) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
 
 # ----------------------------------------------------------------------------
@@ -651,7 +651,7 @@ doc greater_eq
     "Is every entry in matrix A greater than or equal to the corresponding entry 
     in matrix B?";
 
-declare greater_eq ::
+declare_primitive greater_eq(A, B) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
 
 # ----------------------------------------------------------------------------
@@ -659,7 +659,7 @@ declare greater_eq ::
 doc is_zero
     "Is every entry in the matrix zero?";
 
-declare is_zero ::
+declare_primitive is_zero(A) ::
   for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> Boole;
 
 # ----------------------------------------------------------------------------
@@ -677,7 +677,7 @@ doc sqrt
     sqrt(A) * sqrt(A) = sqrt(A)^2 = A
     </pre>";
 
-declare sqrt ::
+declare_primitive sqrt(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a^2*P!u^2 per Q!v^2) -> a*P!u per Q!v;
 
 
@@ -692,7 +692,7 @@ doc cbrt
     cbrt(A) * cbrt(A) * cbrt(A) = cbrt(A)^3 = A
     </pre>";
 
-declare cbrt ::
+declare_primitive cbrt(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a^3*P!u^3 per Q!v^3) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -702,13 +702,14 @@ doc log
     
     <code>get_num(log(A), p, q) = log(get_num(A, p, q))</code>
     
-    Inverse of the exponent <code>exp</code> function
+    Inverse of the exponent <code>exp</code> function. For scalars the following
+    holds:
     
     <pre>
-    expt(log(A, x), x) = A
+    expt(b, log(x, b)) = x
     </pre>";
 
-declare log ::
+declare_primitive log(A, base) ::
   for_index P,Q: (P! per Q!, 1) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
@@ -721,7 +722,7 @@ doc exp
     get(exp(A), p, q) = exp(get(A, p, q))
     </pre>";
 
-declare exp ::
+declare_primitive exp(A) ::
   for_index P,Q: (P! per Q!) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
@@ -733,7 +734,7 @@ doc ln
     get(ln(A), p, q) = ln(get(A, p, q))
     </pre>";
 
-declare ln ::
+declare_primitive ln(A) ::
   for_index P,Q: (P! per Q!) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
@@ -745,7 +746,7 @@ doc abs
     get(abs(A), p, q) = abs(get(A, p, q))
     </pre>";
 
-declare abs ::
+declare_primitive abs(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -753,7 +754,7 @@ declare abs ::
 doc max
     "Element-wise maximum of two matrices.";
 
-declare max ::
+declare_primitive max(A, B) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -761,7 +762,7 @@ declare max ::
 doc min
     "Element-wise minimum of two matrices.";
 
-declare min ::
+declare_primitive min(A, B) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -769,7 +770,7 @@ declare min ::
 doc gcd
     "Element-wise greatest common divisor of two matrices.";
 
-declare gcd ::
+declare_primitive gcd(A, B) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
@@ -796,7 +797,10 @@ doc abs_min
     abs_min(A, B) = A - B*round(A/B)
     </pre>";
 
-declare mod, abs_min ::
+declare_primitive mod(A, B) ::
+  for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v;
+
+declare_primitive abs_min(A, B) ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -810,7 +814,7 @@ doc div
     a = div(a, b) * b + rem(a, b)
     </pre>";
     
-declare div ::
+declare_primitive div(A, B) ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y;
 
 # ----------------------------------------------------------------------------
@@ -830,7 +834,7 @@ doc rem
     a = div(a, b) * b + rem(a, b)
     </pre>";
 
-declare rem ::
+declare_primitive rem(A, B) ::
     for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q:
         (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v;
 
@@ -843,7 +847,7 @@ doc sin
     get(sin(A), p, q) = sin(get(A, p, q))
     </pre>";
 
-declare sin ::
+declare_primitive sin(A) ::
   for_index P,Q: (radian * P! per Q!) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
@@ -855,7 +859,7 @@ doc cos
     get(cos(A), p, q) = cos(get(A, p, q))
     </pre>";
 
-declare cos ::
+declare_primitive cos(A) ::
   for_index P,Q: (radian * P! per Q!) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
@@ -867,7 +871,7 @@ doc tan
     get(tan(A), p, q) = tan(get(A, p, q))
     </pre>";
 
-declare tan ::
+declare_primitive tan(A) ::
   for_index P,Q: (radian * P! per Q!) -> P! per Q!;
 
 # ----------------------------------------------------------------------------
@@ -876,7 +880,7 @@ doc top
     "Matrix with only the x greates elements. Every entry not in the top x is
     changed to zero.";
 
-declare top ::
+declare_primitive top(n, A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (1, a*P!u per Q!v) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -885,7 +889,7 @@ doc bottom
     "Matrix with only the x least elements. Every entry not in the bottom x is
     changed to zero.";
 
-declare bottom ::
+declare_primitive bottom(n, A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (1, a*P!u per Q!v) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -893,7 +897,7 @@ declare bottom ::
 doc random
     "A random number at least zero and below one.";
 
-declare random ::
+declare_primitive random() ::
   () -> 1;
 
 # ----------------------------------------------------------------------------
@@ -901,7 +905,7 @@ declare random ::
 doc ranking
     "Replaces each entry with its position when ordered.";
 
-declare ranking ::
+declare_primitive ranking(A) ::
   #for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> P! per Q!;
   for_index P,Q: for_unit a: (a*P! per Q!) -> P! per Q!;
 
@@ -931,7 +935,16 @@ doc round
     round(A) = floor(A + 0.5 '.*' unit(A))
     </pre>";
 
-declare floor, ceiling, truncate, round ::
+declare_primitive floor(A) ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare_primitive ceiling(A) ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare_primitive truncate(A) ::
+  for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
+
+declare_primitive round(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
 
 # ----------------------------------------------------------------------------
@@ -944,7 +957,7 @@ doc plu
     Decomposes the matrix in product A=PLU with P a permutation matrix,
     L a lower triangular matrix, and U an upper triangular matrix.";
     
-declare plu ::
+declare_primitive plu(A) ::
   for_index P: for_unit a,P!u: (a*P!u per P!u) -> Tuple(P!u per P!u, P!u per P!u, a*P!u per P!u);
 
 # ----------------------------------------------------------------------------
@@ -960,7 +973,7 @@ doc svd
 
     with scalar s the singular values, and vectors v and w the singular vectors.";
     
-declare svd ::
+declare_primitive svd(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> List(Tuple(a, P!u, Q!v^-1));
 
 # ----------------------------------------------------------------------------
@@ -971,7 +984,7 @@ doc qr
     Decomposes the matrix in product A=QR with Q an orthonormal matrix and R an
     upper triangular matrix.";
 
-declare qr ::
+declare_primitive qr(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Tuple(P!u per P!u, a*P!u per Q!v);
 
 # ----------------------------------------------------------------------------
@@ -979,7 +992,7 @@ declare qr ::
 doc solve
     "Solves AX=B. Generalization of vector case Ax=b.";
 
-declare solve ::
+declare_primitive solve(A, B) ::
   for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*P!u per R!w) -> a^-1*b*Q!v per R!w;
 
 # ----------------------------------------------------------------------------
@@ -990,6 +1003,6 @@ doc mapnz
     "Maps only the non-zero matrix elements. Experiment for more efficient handling
     of sparse matrices.";
 
-declare mapnz ::
+declare_primitive mapnz(fun, A) ::
 #  for_index P,Q: for_unit a,b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
   for_index P,Q: for_unit a, P!u, Q!v: ((1) -> 1, a*P!u per Q!v) -> a*P!u per Q!v;

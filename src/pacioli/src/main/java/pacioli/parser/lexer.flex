@@ -99,6 +99,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "import"          { return symbol("import",IMPORT); }
   "define"          { return symbol("define",DEFINE); }
   "declare"         { return symbol("declare",DECLARE); }
+  "declare_primitive"        { return symbol("declare_primitive",DECLARE_PRIMITIVE); }
   "defindex"        { return symbol("defindex",DEFINDEX); }
   "deftype"         { return symbol("deftype",DEFTYPE); }
   "defunit"         { return symbol("defunit",DEFUNIT); }

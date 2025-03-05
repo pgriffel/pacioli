@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.ast.expression.LambdaNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTableVisitor;
@@ -20,6 +21,7 @@ public class ValueInfo extends AbstractInfo {
     private final ValueDefinition definition;
     private final Declaration declaredType;
     private final ClassInfo typeClass;
+    private final List<String> primitiveArgs;
 
     // Set during type inference
     private TypeObject inferredType;
@@ -30,13 +32,15 @@ public class ValueInfo extends AbstractInfo {
             boolean isRef,
             ValueDefinition definition,
             ClassInfo typeClass,
-            Declaration declaredType) {
+            Declaration declaredType,
+            List<String> primitiveArgs) {
         super(info);
         this.isMonomorphic = isMonomorphic;
         this.definition = definition;
         this.typeClass = typeClass;
         this.declaredType = declaredType;
         this.isRef = isRef;
+        this.primitiveArgs = primitiveArgs;
     }
 
     @Override
@@ -80,6 +84,18 @@ public class ValueInfo extends AbstractInfo {
 
     public boolean isRef() {
         return isRef;
+    }
+
+    public Optional<List<String>> arguments() {
+        if (this.isFunction()) {
+            if (this.definition().isPresent()) {
+                var def = this.definition().get();
+                if (def.body instanceof LambdaNode lambda) {
+                    return Optional.of(lambda.arguments);
+                }
+            }
+        }
+        return Optional.ofNullable(this.primitiveArgs);
     }
 
     /**
@@ -137,6 +153,7 @@ public class ValueInfo extends AbstractInfo {
         public ValueDefinition definition;
         public Declaration declaredType;
         public ClassInfo typeClass;
+        public List<String> primitiveArgs;
 
         @Override
         protected Builder self() {
@@ -168,6 +185,11 @@ public class ValueInfo extends AbstractInfo {
             return this;
         }
 
+        public Builder primitiveArgs(List<String> primitiveArgs) {
+            this.primitiveArgs = primitiveArgs;
+            return this;
+        }
+
         @Override
         public Optional<Location> definitionLocation() {
             return Optional.ofNullable(this.definition).map(def -> def.location());
@@ -183,7 +205,8 @@ public class ValueInfo extends AbstractInfo {
                     this.isRef,
                     this.definition,
                     this.typeClass,
-                    this.declaredType);
+                    this.declaredType,
+                    this.primitiveArgs);
         }
     }
 

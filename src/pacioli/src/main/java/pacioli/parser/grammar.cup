@@ -159,7 +159,7 @@ parser code {:
 
 
 terminal INCLUDE, IMPORT, EXPORT, PUBLIC;
-terminal DEFINE, DECLARE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC, DEFDATA, DEFRECORD;
+terminal DEFINE, DECLARE, DECLARE_PRIMITIVE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC, DEFDATA, DEFRECORD;
 terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, DO, ASSIGN, EXCL, TO, FROM, LAMBDA;
 terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, FOROP, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
@@ -259,6 +259,8 @@ definition ::=
    DEFINE:d id:id EQL expr:e                        {: RESULT = new ValueDefinition(makeLoc(dxleft, exright), id, e); :}
  | DEFINE:d id:id idlist:ids EQL expr:e             {: RESULT = functionDefinition(makeLoc(dxleft, exright), id, ids, e); :}
  | DECLARE:d ids:ids DBLCLN schema:s                {: RESULT = new MultiDeclaration(makeLoc(dxleft, sxright), ids, s); :}
+ | DECLARE_PRIMITIVE:d id:id DBLCLN schema:s                {: RESULT = new Declaration(makeLoc(dxleft, sxright), id, s); :}
+ | DECLARE_PRIMITIVE:d id:id idlist:ids DBLCLN schema:s     {: RESULT = new Declaration(makeLoc(dxleft, sxright), id, s, ids); :}
  | DEFINDEX:d typeid:id                                 {: List<String> names = new ArrayList<String>();
                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, idxright), id, names); :}
  | DEFINDEX:d typeid:id EQL LBRC names:ids RBRC:p       {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}

@@ -185,7 +185,8 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
             } catch (Exception e) {
                 System.gc();
-                throw new CompletionException("Error in signature help", e);
+                // throw new CompletionException("Error in signature help", e);
+                return new SignatureHelp();
             }
         });
     }
