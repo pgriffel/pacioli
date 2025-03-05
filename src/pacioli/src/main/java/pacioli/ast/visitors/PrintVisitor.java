@@ -44,6 +44,13 @@ import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
+import pacioli.ast.sugar.ComprehensionNode;
+import pacioli.ast.sugar.ComprehensionNode.AssignmentClause;
+import pacioli.ast.sugar.ComprehensionNode.FilterClause;
+import pacioli.ast.sugar.ComprehensionNode.GeneratorClause;
+import pacioli.ast.sugar.ComprehensionNode.TupleAssignmentClause;
+import pacioli.ast.sugar.ComprehensionNode.TupleGeneratorClause;
+import pacioli.ast.sugar.ExponentNode;
 import pacioli.ast.sugar.RecordDefinition;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -393,6 +400,13 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(LambdaNode node) {
+        if (node.varArgs) {
+            out.format("_lambda %s ", node.arguments.get(0));
+            node.expression.accept(this);
+            out.format(" end");
+            return;
+        }
+
         boolean wrap = node.countNodes() > 10;
         mark();
         write("(");
@@ -878,5 +892,40 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(RecordDefinition node) {
         write("TODO: DataQueryNode");
+    }
+
+    @Override
+    public void visit(ExponentNode exponentNode) {
+        write("TODO: ExponentNode");
+    }
+
+    @Override
+    public void visit(ComprehensionNode comprehensionNode) {
+        write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(GeneratorClause generatorClause) {
+        write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(FilterClause filterClause) {
+        write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(TupleGeneratorClause tupleGeneratorClause) {
+        write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(AssignmentClause assignmentClause) {
+        write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(TupleAssignmentClause tupleAssignmentClause) {
+        write("TODO: comprehensionNode");
     }
 }

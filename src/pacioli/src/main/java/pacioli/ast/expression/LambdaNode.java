@@ -26,6 +26,7 @@ import java.util.List;
 
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
+import pacioli.compiler.PacioliException;
 import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ValueInfo;
@@ -35,6 +36,8 @@ public class LambdaNode extends AbstractExpressionNode {
     public final List<String> arguments;
     public final ExpressionNode expression;
 
+    public final boolean varArgs;
+
     public SymbolTable<ValueInfo> table;
 
     public LambdaNode(List<String> args, ExpressionNode body, Location location) {
@@ -42,6 +45,7 @@ public class LambdaNode extends AbstractExpressionNode {
         arguments = args;
         expression = body;
         table = null;
+        this.varArgs = false;
     }
 
     public LambdaNode(LambdaNode old, ExpressionNode body) {
@@ -49,6 +53,15 @@ public class LambdaNode extends AbstractExpressionNode {
         arguments = old.arguments;
         expression = body;
         table = old.table;
+        this.varArgs = old.varArgs;
+    }
+
+    public LambdaNode(List<String> args, ExpressionNode body, Location location, boolean varArgs) {
+        super(location);
+        arguments = args;
+        expression = body;
+        table = null;
+        this.varArgs = varArgs;
     }
 
     @Override
@@ -57,6 +70,15 @@ public class LambdaNode extends AbstractExpressionNode {
     }
 
     public String argsString(String prefix) {
+        if (this.varArgs) {
+            if (this.arguments.size() == 1) {
+                throw new PacioliException(this.location(),
+                        "TODO: voor js uitwerken. Alleen JSTranspiler roept dit aan");
+                // return this.arguments.get(0);
+            } else {
+                throw new PacioliException(this.location(), "Varargs lambda must have 1 argument");
+            }
+        }
         List<String> args = new ArrayList<String>();
         for (String arg : arguments) {
             args.add(prefix + arg + "");

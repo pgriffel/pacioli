@@ -36,6 +36,9 @@ import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetNode.BindingNode;
+import pacioli.ast.sugar.ComprehensionNode;
+import pacioli.ast.sugar.ComprehensionNode.GeneratorClause;
+import pacioli.ast.sugar.ExponentNode;
 import pacioli.ast.sugar.RecordDefinition;
 import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
@@ -311,7 +314,9 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(ReturnNode node) {
-        returnNode(node.transform(expAccept(node.value)));
+        ReturnNode transformed = (ReturnNode) node.transform(expAccept(node.value));
+        transformed.resultInfo = node.resultInfo;
+        returnNode(transformed);
     }
 
     @Override
@@ -325,8 +330,11 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(StatementNode node) {
-        returnNode(node);
-        // throw new RuntimeException("todo");
+        StatementNode statement = new StatementNode(node.location(), (SequenceNode) expAccept(node.body));
+        statement.table = node.table;
+        statement.resultInfo = node.resultInfo;
+        statement.shadowed = node.shadowed;
+        returnNode(statement);
     }
 
     @Override
@@ -537,6 +545,76 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(RecordDefinition node) {
         returnNode(node);
+    }
+
+    @Override
+    public void visit(ExponentNode node) {
+        returnNode(node.transform(expAccept(node.base)));
+    }
+
+    @Override
+    public void visit(ComprehensionNode node) {
+
+        ExpressionNode expr = expAccept(node.expression);
+
+        List<ComprehensionNode.Clause> transformed = new ArrayList<>();
+        for (ComprehensionNode.Clause clause : node.clauses) {
+            Node cl = nodeAccept(clause);
+            assert (cl instanceof ComprehensionNode.Clause);
+            transformed.add((ComprehensionNode.Clause) cl);
+        }
+
+        returnNode(new ComprehensionNode(expr, transformed, node.location()));
+    }
+
+    @Override
+    public void visit(GeneratorClause clause) {
+        Node id = nodeAccept(clause.id);
+        ExpressionNode cl = expAccept(clause.list);
+        assert (id instanceof IdentifierNode);
+        returnNode(new ComprehensionNode.GeneratorClause((IdentifierNode) id, cl, clause.location()));
+    }
+
+    @Override
+    public void visit(ComprehensionNode.FilterClause clause) {
+        ExpressionNode cl = expAccept(clause.list);
+        returnNode(new ComprehensionNode.FilterClause(cl, clause.location()));
+    }
+
+    @Override
+    public void visit(ComprehensionNode.TupleGeneratorClause clause) {
+
+        List<IdentifierNode> transformed = new ArrayList<>();
+        for (IdentifierNode id : clause.ids) {
+            Node tr = nodeAccept(id);
+            assert (tr instanceof IdentifierNode);
+            transformed.add((IdentifierNode) tr);
+        }
+        ExpressionNode cl = expAccept(clause.list);
+
+        returnNode(new ComprehensionNode.TupleGeneratorClause(transformed, cl, clause.location()));
+    }
+
+    @Override
+    public void visit(ComprehensionNode.AssignmentClause clause) {
+        Node id = nodeAccept(clause.id);
+        ExpressionNode cl = expAccept(clause.value);
+        assert (id instanceof IdentifierNode);
+        returnNode(new ComprehensionNode.AssignmentClause((IdentifierNode) id, cl, clause.location()));
+    }
+
+    @Override
+    public void visit(ComprehensionNode.TupleAssignmentClause clause) {
+
+        List<IdentifierNode> transformed = new ArrayList<>();
+        for (IdentifierNode id : clause.ids) {
+            Node tr = nodeAccept(id);
+            assert (tr instanceof IdentifierNode);
+            transformed.add((IdentifierNode) tr);
+        }
+        ExpressionNode cl = expAccept(clause.value);
+
+        returnNode(new ComprehensionNode.TupleAssignmentClause(transformed, cl, clause.location()));
     }
 
 }

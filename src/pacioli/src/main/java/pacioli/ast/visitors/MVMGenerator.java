@@ -232,13 +232,27 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(LambdaNode node) {
         List<String> quoted = new ArrayList<String>();
-        for (String arg : node.arguments) {
-            quoted.add("\"" + arg + "\"");
+        if (node.varArgs) {
+            if (node.arguments.size() == 1) {
+                quoted.add("\"" + node.arguments.get(0) + "\"");
+            } else {
+                throw new PacioliException(node.location(), "Varargs function must have 1 argument (for now), got %s",
+                        node.arguments.size());
+            }
+        } else {
+            for (String arg : node.arguments) {
+                quoted.add("\"" + arg + "\"");
+            }
         }
         String args = Utils.intercalate(", ", quoted);
-        out.print("lambda (");
+        out.print("lambda ");
+        if (!node.varArgs) {
+            out.print("(");
+        }
         out.print(args);
-        out.print(")");
+        if (!node.varArgs) {
+            out.print(")");
+        }
         out.newlineUp();
         node.expression.accept(this);
         out.newlineDown();

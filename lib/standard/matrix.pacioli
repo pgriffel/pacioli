@@ -232,7 +232,25 @@ doc complement
     complement(A) = unit(A) - A
     </pre>
     
-    For example <code>complement(0.75*|metre|)</code> equals <code>0.25 m</code>";
+    For example, with definitions
+
+    <pre>
+    defindex Nibble = {bit0, bit1, bit2, bit3};
+
+    defmatrix nibble :: Nibble! = {
+        bit0 -> 1,
+        bit3 -> 1
+    };
+    </pre>
+
+    expression <code>complement(nibble)</code> yields
+    
+    <pre>
+    Nibble        Value
+    -------------------
+    bit1              1
+    bit2              1
+    </pre>";
 
 define complement(A) = unit(A) - A;
 

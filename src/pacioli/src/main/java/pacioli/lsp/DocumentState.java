@@ -52,7 +52,7 @@ public class DocumentState {
 
     public final String uri;
     private final Bundle bundle;
-    private final Map<Integer, List<IdentifierInfo>> identifierIndex;
+    public final Map<Integer, List<IdentifierInfo>> identifierIndex;
     private final SemanticTokens semanticTokenList;
     private final List<CompletionItem> autoCompleteList;
 
@@ -95,7 +95,7 @@ public class DocumentState {
     }
 
     public SignatureHelp signatureHelp(String identifier) {
-        var info = this.bundle.lookupValue(identifier);
+        ValueInfo info = this.bundle.lookupValue(identifier);
 
         if (info != null) {
 
@@ -103,15 +103,8 @@ public class DocumentState {
             String sig = info.name();
 
             // Try to extend the signature with parameters
-            if (info.isFunction()) {
-                if (info.definition().isPresent()) {
-                    var def = info.definition().get();
-                    if (def.body instanceof LambdaNode lambda) {
-                        sig = String.format("%s(%s)", info.name(),
-                                String.join(", ", lambda.arguments));
-                    }
-                }
-            }
+            sig = info.name() +
+                    info.arguments().map(args -> String.format("(%s)", String.join(", ", args))).orElse("");
 
             // Create markup content
             var content = new MarkupContent(MarkupKind.MARKDOWN, infoMarkup(info));

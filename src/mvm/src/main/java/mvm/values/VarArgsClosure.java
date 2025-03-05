@@ -19,48 +19,55 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package mvm.ast.expression;
+package mvm.values;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
-import mvm.AbstractPrintable;
 import mvm.Environment;
-import mvm.values.Closure;
-import mvm.values.PacioliValue;
-import mvm.values.VarArgsClosure;
+import mvm.MVMException;
+import mvm.ast.expression.Expression;
 
-public class Lambda extends AbstractPrintable implements Expression {
+public class VarArgsClosure extends AbstractPacioliValue implements Callable {
 
-    private final List<String> arguments;
-    private final Expression expression;
-    private final boolean varArgs;
+    public final List<String> arguments;
+    public final Expression code;
+    public final Environment environment;
 
-    public Lambda(List<String> args, Expression body) {
+    public VarArgsClosure(List<String> args, Expression expression, Environment env) {
         arguments = args;
-        expression = body;
-        this.varArgs = false;
-    }
-
-    public Lambda(List<String> args, Expression body, boolean varArgs) {
-        arguments = args;
-        expression = body;
-        this.varArgs = varArgs;
+        code = expression;
+        environment = env;
     }
 
     @Override
-    public PacioliValue eval(Environment environment) {
-        if (this.varArgs) {
-            return new VarArgsClosure(arguments, expression, environment);
-        } else {
-            return new Closure(arguments, expression, environment);
+    public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+
+        int nrArgs = this.arguments.size();
+        int nrParams = params.size();
+
+        if (nrParams < nrArgs - 1) {
+            throw new MVMException(String.format("too few arguments for variable arguments function."));
         }
+
+        List<PacioliValue> actualParams = new ArrayList<>();
+        List<PacioliValue> tupleParams = new ArrayList<>();
+        for (int i = 0; i < nrParams; i++) {
+            if (i < nrArgs - 1) {
+                actualParams.add(params.get(i));
+            } else {
+                tupleParams.add(params.get(i));
+            }
+        }
+
+        actualParams.add(new PacioliTuple(tupleParams));
+
+        Environment frame = new Environment(arguments, actualParams);
+        return code.eval(frame.pushUnto(environment));
     }
 
     @Override
     public void printText(PrintWriter out) {
-        out.print("lambda (");
-        out.print(AbstractPrintable.intercalate(", ", arguments));
-        out.print(") ");
-        expression.printText(out);
+        out.print("|some varargs closure|");
     }
 }

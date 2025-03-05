@@ -149,7 +149,7 @@ public class RecordDefinition extends AbstractDefinition {
         Location location = this.id.location();
         Location invisible = location.collapse();
 
-        var constructorId = new IdentifierNode("make_" + this.baseName(), location);
+        var constructorId = new IdentifierNode("make_" + this.baseName(), invisible);
 
         var schema = new SchemaNode(
                 invisible,

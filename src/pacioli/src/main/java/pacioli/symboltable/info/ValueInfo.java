@@ -3,7 +3,9 @@ package pacioli.symboltable.info;
 import java.util.List;
 import java.util.Optional;
 
+import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.ValueDefinition;
+import pacioli.ast.expression.LambdaNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTableVisitor;
@@ -17,8 +19,9 @@ public class ValueInfo extends AbstractInfo {
     private final boolean isMonomorphic;
     private final boolean isRef;
     private final ValueDefinition definition;
-    private final TypeNode declaredType;
+    private final Declaration declaredType;
     private final ClassInfo typeClass;
+    private final List<String> primitiveArgs;
 
     // Set during type inference
     private TypeObject inferredType;
@@ -29,13 +32,15 @@ public class ValueInfo extends AbstractInfo {
             boolean isRef,
             ValueDefinition definition,
             ClassInfo typeClass,
-            TypeNode declaredType) {
+            Declaration declaredType,
+            List<String> primitiveArgs) {
         super(info);
         this.isMonomorphic = isMonomorphic;
         this.definition = definition;
         this.typeClass = typeClass;
         this.declaredType = declaredType;
         this.isRef = isRef;
+        this.primitiveArgs = primitiveArgs;
     }
 
     @Override
@@ -62,6 +67,10 @@ public class ValueInfo extends AbstractInfo {
     }
 
     public Optional<TypeNode> declaredType() {
+        return Optional.ofNullable(this.declaredType).map(decl -> decl.typeNode);
+    }
+
+    public Optional<Declaration> declaration() {
         return Optional.ofNullable(this.declaredType);
     }
 
@@ -77,6 +86,18 @@ public class ValueInfo extends AbstractInfo {
         return isRef;
     }
 
+    public Optional<List<String>> arguments() {
+        if (this.isFunction()) {
+            if (this.definition().isPresent()) {
+                var def = this.definition().get();
+                if (def.body instanceof LambdaNode lambda) {
+                    return Optional.of(lambda.arguments);
+                }
+            }
+        }
+        return Optional.ofNullable(this.primitiveArgs);
+    }
+
     /**
      * The declared type if available, otherwise the inferred type. Throws an error
      * if no type is known.
@@ -85,7 +106,7 @@ public class ValueInfo extends AbstractInfo {
      */
     public TypeObject publicType() {
         if (declaredType != null) {
-            return declaredType.evalType();
+            return declaredType.typeNode.evalType();
         } else if (inferredType != null) {
             return inferredType;
         } else {
@@ -130,8 +151,9 @@ public class ValueInfo extends AbstractInfo {
         public Boolean isMonomorphic;
         public boolean isRef = false;
         public ValueDefinition definition;
-        public TypeNode declaredType;
+        public Declaration declaredType;
         public ClassInfo typeClass;
+        public List<String> primitiveArgs;
 
         @Override
         protected Builder self() {
@@ -148,7 +170,7 @@ public class ValueInfo extends AbstractInfo {
             return this;
         }
 
-        public Builder declaredType(TypeNode declaredType) {
+        public Builder declaredType(Declaration declaredType) {
             this.declaredType = declaredType;
             return this;
         }
@@ -160,6 +182,11 @@ public class ValueInfo extends AbstractInfo {
 
         public Builder typeClass(ClassInfo typeClass) {
             this.typeClass = typeClass;
+            return this;
+        }
+
+        public Builder primitiveArgs(List<String> primitiveArgs) {
+            this.primitiveArgs = primitiveArgs;
             return this;
         }
 
@@ -178,7 +205,8 @@ public class ValueInfo extends AbstractInfo {
                     this.isRef,
                     this.definition,
                     this.typeClass,
-                    this.declaredType);
+                    this.declaredType,
+                    this.primitiveArgs);
         }
     }
 

@@ -30,7 +30,8 @@ export
 doc make_array
     "Constructs an array of the asked size.";
 
-declare make_array :: for_type t: (1) -> Array(t);
+declare_primitive make_array(size) ::
+    for_type t: (1) -> Array(t);
 
 # ----------------------------------------------------------------------------
 
@@ -40,18 +41,18 @@ doc array_get
     It is an error if the index is out of bounds or no item was stored
     previously.";
 
-declare array_get :: for_type t: (Array(t), 1) -> t;
+declare_primitive array_get(array, index) :: for_type t: (Array(t), 1) -> t;
 
 # ----------------------------------------------------------------------------
 
 doc array_put
     "Stores an item in the array at the asked position.";
 
-declare array_put :: for_type t: (Array(t), 1, t) -> Void;
+declare_primitive array_put(array, index, element) :: for_type t: (Array(t), 1, t) -> Void;
 
 # ----------------------------------------------------------------------------
 
 doc array_size
     "The size of the array that was given at construction.";
 
-declare array_size :: for_type t: (Array(t)) -> 1;
+declare_primitive array_size(array) :: for_type t: (Array(t)) -> 1;

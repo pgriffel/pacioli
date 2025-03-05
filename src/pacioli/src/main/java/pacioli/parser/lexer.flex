@@ -99,6 +99,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "import"          { return symbol("import",IMPORT); }
   "define"          { return symbol("define",DEFINE); }
   "declare"         { return symbol("declare",DECLARE); }
+  "declare_primitive"        { return symbol("declare_primitive",DECLARE_PRIMITIVE); }
   "defindex"        { return symbol("defindex",DEFINDEX); }
   "deftype"         { return symbol("deftype",DEFTYPE); }
   "defunit"         { return symbol("defunit",DEFUNIT); }
@@ -120,6 +121,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "from"            { return symbol("from",QFROM); }
   "where"           { return symbol("where",WHERE); }
   "as"              { return symbol("as",AS); }
+  "_lambda"         { return symbol("lambda", LAMBDA); }
 
   /* literals */
   {Natural}         { return symbol("Natural", NATURAL, yytext()); }

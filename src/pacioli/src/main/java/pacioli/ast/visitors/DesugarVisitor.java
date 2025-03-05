@@ -18,6 +18,8 @@ import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetTupleBindingNode;
+import pacioli.ast.sugar.ComprehensionNode;
+import pacioli.ast.sugar.ExponentNode;
 import pacioli.ast.sugar.RecordDefinition;
 import pacioli.compiler.PacioliException;
 
@@ -126,4 +128,13 @@ public class DesugarVisitor extends IdentityTransformation {
 
     }
 
+    @Override
+    public void visit(ExponentNode node) {
+        returnNode(node.asProducts());
+    }
+
+    @Override
+    public void visit(ComprehensionNode node) {
+        returnNode(node.asLambdas());
+    }
 }

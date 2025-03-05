@@ -6,6 +6,7 @@ import java.io.StringReader;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -26,6 +27,8 @@ import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
+import org.eclipse.lsp4j.MessageParams;
+import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
@@ -37,8 +40,11 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 
+import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
+import pacioli.symboltable.info.ValueInfo;
 
 public class PacioliTextDocumentService implements TextDocumentService {
 
@@ -179,7 +185,8 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
             } catch (Exception e) {
                 System.gc();
-                throw new CompletionException("Error in signature help", e);
+                // throw new CompletionException("Error in signature help", e);
+                return new SignatureHelp();
             }
         });
     }
@@ -232,7 +239,19 @@ public class PacioliTextDocumentService implements TextDocumentService {
         var errors = new ArrayList<Diagnostic>();
 
         try {
-            this.storeState(uri);
+            boolean debugLocations = false; // dev feature
+
+            var state = this.storeState(uri);
+
+            if (debugLocations) {
+                for (Entry<Integer, List<IdentifierInfo>> entry : state.identifierIndex.entrySet()) {
+                    for (IdentifierInfo idInfo : entry.getValue()) {
+                        if (true || !(idInfo.identifier instanceof IdentifierNode)) {
+                            this.logInfo("%s ->%s %s", entry.getKey(), idInfo.name(), idInfo.location().description());
+                        }
+                    }
+                }
+            }
         } catch (Exception e) {
 
             Location src = null;
@@ -376,4 +395,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
         return this.storeState(uri);
     }
 
+    private void logInfo(String string, Object... args) {
+        this.languageClient.logMessage(new MessageParams(MessageType.Info, String.format(string, args)));
+    }
 }

@@ -1,6 +1,6 @@
 import si;
 import geometry;
-import geometric_algebra;
+# import geometric_algebra;
 import graphics;
 
 # ------------------------------------------------------------------------------
@@ -151,7 +151,7 @@ defconv c2 :: mega:people/people;
 # Cubes I - My nice scene!
 # ------------------------------------------------------------------------------
 
-declare scene3 :: for_unit a: (metre, metre, metre) -> Scene(metre);
+declare scene3 :: for_unit a: (metre, metre, metre) -> Scene(metre, Geom3!);
 
 define scene3(a, b, c) =
     let scene = empty_scene("My nice scene!") in
@@ -169,7 +169,7 @@ define my_arrows(a, b, c) =
 # Cubes II - A simple static cube
 # ------------------------------------------------------------------------------
 
-declare scene2 :: () -> Scene(metre);
+declare scene2 :: () -> Scene(metre, Geom3!);
     
 define scene2() =
     let 
@@ -200,7 +200,7 @@ define path2 = make_path([5 * |metre| '.*' x | x <- pathPoints]);
 # Cubes III - Flying cubes
 # ------------------------------------------------------------------------------
 
-declare scene1 :: (1, 1, 1) -> StatefulAnimation(metre, Tuple(1, radian, 1));
+declare scene1 :: (1, 1, 1) -> StatefulAnimation(metre, Geom3!, Tuple(1, radian, 1));
 
 define scene1(n, k, f) =
     let 
@@ -252,7 +252,7 @@ define scene1(n, k, f) =
     end;
 
 declare make_center_spot_light :: 
-    for_unit a: (a*Geom3!, candela) -> SpotLight(a);
+    for_unit a: (a*Geom3!, candela) -> SpotLight(a, Geom3!);
 
 define make_center_spot_light(position, intensity) =
     make_spotlight(position, 0 '.*' position, make_color("white"), intensity);
@@ -274,7 +274,7 @@ define color_generator() =
 # Cubes IV - An icosahedron
 # ------------------------------------------------------------------------------
 
-declare scene4 :: (Boole, Boole, Boole, Boole, 1, metre) -> Scene(metre);
+declare scene4 :: (Boole, Boole, Boole, Boole, 1, metre) -> Scene(metre, Geom3!);
     
 define scene4(arrows, planes, faces, fill, gap, size) =
     let 
@@ -385,7 +385,7 @@ define make_triangle_mesh(a, b, c, gap) =
 # Weird arrows
 # ------------------------------------------------------------------------------
 
-declare the_scene :: (1, 1, hertz) -> Animation(metre);
+declare the_scene :: (1, 1, hertz) -> Animation(metre, Geom3!);
 
 define the_scene(n, k, freq) =
     let 

@@ -150,7 +150,10 @@ public class Matrix extends AbstractPacioliValue {
             out.print(" ");
         }
         out.print(" ");
-        for (int i = 0; i < numWidth + unitWidth - 3; i++) {
+        for (int i = 0; i < numWidth + unitWidth - 4; i++) {
+            out.print(" ");
+        }
+        if (unitWidth != 0) {
             out.print(" ");
         }
         out.print("Value");

@@ -26,23 +26,23 @@ import java.util.List;
 import mvm.values.matrix.IndexSet;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
-import pacioli.ast.expression.IdentifierNode;
 import pacioli.compiler.Location;
+import pacioli.types.ast.TypeIdentifierNode;
 
 public class IndexSetDefinition extends AbstractDefinition {
 
-    public final IdentifierNode id;
+    public final TypeIdentifierNode id;
     private final List<String> items;
     private final ExpressionNode body;
 
-    public IndexSetDefinition(Location location, IdentifierNode id, List<String> items) {
+    public IndexSetDefinition(Location location, TypeIdentifierNode id, List<String> items) {
         super(location);
         this.id = id;
         this.items = items;
         this.body = null;
     }
 
-    public IndexSetDefinition(Location location, IdentifierNode id, ExpressionNode body) {
+    public IndexSetDefinition(Location location, TypeIdentifierNode id, ExpressionNode body) {
         super(location);
         this.id = id;
         this.items = null;

@@ -118,20 +118,21 @@ public class Documentation extends AbstractDefinition {
 
     static private List<Either<String, String>> splitCodeBlocks(String doc) {
 
-        Pattern regex = Pattern.compile("([\\s\\S]*)<pre>([\\s\\S]*)</pre>([\\s\\S]*)");
+        Pattern regex = Pattern.compile("<pre>(.*?)</pre>", Pattern.DOTALL);
 
         List<Either<String, String>> parts = new ArrayList<>();
-        String todo = doc;
 
-        Matcher matcher = regex.matcher(todo);
+        int beginRemainder = 0;
+
+        Matcher matcher = regex.matcher(doc);
 
         while (matcher.find()) {
-            parts.add(Either.forLeft(matcher.group(1)));
-            parts.add(Either.forRight(matcher.group(2)));
-            todo = matcher.group(3);
+            parts.add(Either.forLeft(doc.substring(beginRemainder, matcher.start())));
+            parts.add(Either.forRight(matcher.group(1)));
+            beginRemainder = matcher.end();
         }
 
-        parts.add(Either.forLeft(todo));
+        parts.add(Either.forLeft(doc.substring(beginRemainder)));
 
         return parts;
     }

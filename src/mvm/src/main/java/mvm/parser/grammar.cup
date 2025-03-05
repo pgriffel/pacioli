@@ -245,6 +245,7 @@ expr ::=
  | APPLICATION_DEBUG LPAR STR:a COMMA STR:b COMMA STR:trace COMMA expr:fun COMMA exprs:args RPAR          {: RESULT = new ApplicationDebug(a,b,trace.equals("true"),fun, args); :}
  | APPLICATION_DEBUG LPAR STR:a COMMA STR:b COMMA STR:trace COMMA expr:fun RPAR          {: RESULT = new ApplicationDebug(a,b,trace.equals("true"),fun, new ArrayList<Expression>()); :}
  | LAMBDA string_list:ids expr:b                         {: RESULT = new Lambda(ids, b); :}
+ | LAMBDA STR:id expr:b                         {: RESULT = new Lambda(List.of(id), b, true); :}
  | IF LPAR expr:t COMMA expr:p COMMA expr:n RPAR         {: RESULT = new Branch(t, p, n); :}
  | VAR LPAR STR:id RPAR                               {: RESULT = new Identifier(id); :}
  | CONST LPAR STR:value RPAR                          {: if (value.equals("true")) {
