@@ -79,6 +79,7 @@ defrecord ParametricPlotOptions() as parametric_plot_options where
     show_total: Boole,
     show_normals: Boole,
     wireframe: Boole,
+    material: String,
     color: Color,
     delta_color: Color,
     normal_color: Color;
@@ -91,7 +92,7 @@ doc default_parametric_plot_options
 define default_parametric_plot_options = 
     make_parametric_plot_options(
         25, 1, 0.01, 1,
-        false, false, false, false,
+        false, false, false, false, "Normal",
         line_color, delta_color, normal_color);
 
 # ------------------------------------------------------------------------------
@@ -145,7 +146,7 @@ define plot_parametric_surface(fun, range, options, scene) =
     begin
         mesh := compute_surface_mesh(fun, range, options);
         mesh := set_wireframe(mesh, parametric_plot_options_wireframe(options));
-        mesh := with_material(mesh, "Normal");
+        mesh := with_material(mesh, parametric_plot_options_material(options));
         return add_meshes([mesh], scene);
     end;
 
