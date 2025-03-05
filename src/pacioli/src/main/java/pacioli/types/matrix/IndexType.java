@@ -35,7 +35,9 @@ public class IndexType extends AbstractType {
 
     public IndexType(TypeObject type) {
         if (!(type instanceof Var || type instanceof IndexList)) {
-            throw new RuntimeException(String.format("Expected index list of var"));
+            throw new PacioliException(
+                    String.format("Index type mixup. An index is mixed up with a %s",
+                            type.description()));
         }
         indexSet = type;
     }

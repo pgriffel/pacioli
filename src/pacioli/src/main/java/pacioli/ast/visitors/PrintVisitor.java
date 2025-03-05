@@ -400,6 +400,13 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(LambdaNode node) {
+        if (node.varArgs) {
+            out.format("_lambda %s ", node.arguments.get(0));
+            node.expression.accept(this);
+            out.format(" end");
+            return;
+        }
+
         boolean wrap = node.countNodes() > 10;
         mark();
         write("(");

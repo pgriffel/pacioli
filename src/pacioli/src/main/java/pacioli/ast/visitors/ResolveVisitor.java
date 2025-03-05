@@ -214,7 +214,7 @@ public class ResolveVisitor extends IdentityVisitor {
                 ValueDefinition def = (ValueDefinition) id.info().definition().get();
                 if (def.body instanceof LambdaNode) {
                     LambdaNode lambda = (LambdaNode) def.body;
-                    if (lambda.arguments.size() != node.arguments.size()) {
+                    if (lambda.arguments.size() != node.arguments.size() && !lambda.varArgs) {
                         throw new RuntimeException("Cannot resolve",
                                 new PacioliException(node.location(),
                                         "Number of arguments %s do not match required %s",

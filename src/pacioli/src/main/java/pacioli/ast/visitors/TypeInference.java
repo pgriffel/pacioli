@@ -396,7 +396,9 @@ public class TypeInference extends IdentityVisitor {
 
         // Create a typing for the lambda and add the constraints from the body's
         // inference
-        Typing typing = new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.type()));
+        Typing typing = node.varArgs
+                ? new Typing(new FunctionType(argTypes.get(0), bodyTyping.type()))
+                : new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.type()));
         typing.addConstraints(bodyTyping);
 
         for (String name : bodyTyping.assumedNames()) {

@@ -120,6 +120,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "from"            { return symbol("from",QFROM); }
   "where"           { return symbol("where",WHERE); }
   "as"              { return symbol("as",AS); }
+  "_lambda"         { return symbol("lambda", LAMBDA); }
 
   /* literals */
   {Natural}         { return symbol("Natural", NATURAL, yytext()); }
