@@ -111,7 +111,7 @@ public class Program {
         PacioliTable infos = this.generateInfos();
         checkForDuplicates(infos, environment);
         resolve(infos, environment);
-        liftStatements(infos, environment);
+        // liftStatements(infos, environment);
         resolve(infos, environment);
         transformConversions(infos);
         inferTypes(infos, environment);

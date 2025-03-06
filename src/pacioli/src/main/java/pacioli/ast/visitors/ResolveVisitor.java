@@ -394,7 +394,7 @@ public class ResolveVisitor extends IdentityVisitor {
             ValueInfo info = node.table.lookupLocally(id.name());
 
             // Create a value info record for the mutable (IsRef == true) variable
-            if (info == null) {
+            if (info == null) { // Equality in the set is not on names. The set does not make sense.
                 info = ValueInfo.builder()
                         .name(id.name())
                         .file(file)
