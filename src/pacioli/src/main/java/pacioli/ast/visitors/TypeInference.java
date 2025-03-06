@@ -32,6 +32,7 @@ import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
@@ -531,13 +532,23 @@ public class TypeInference extends IdentityVisitor {
 
     @Override
     public void visit(ReturnNode node) {
-        TypeObject voidType = newVoidType();
+
+        // Recur
         Typing valueTyping = typingAccept(node.value);
-        Typing typing = new Typing(voidType);
+
+        // The return itself is of type void. The result type of the entire statement
+        // is contrained to the type of the expression.
+        Typing typing = new Typing(newVoidType());
         typing.addConstraintsAndAssumptions(valueTyping);
         typing.addConstraint(node.resultInfo.localType(), valueTyping.type(),
                 "the types of returned values must agree", node.location());
+
         returnNode(typing);
+    }
+
+    @Override
+    public void visit(ReturnVoidNode node) {
+        returnNode(new Typing(newVoidType()));
     }
 
     @Override
@@ -555,27 +566,36 @@ public class TypeInference extends IdentityVisitor {
     @Override
     public void visit(StatementNode node) {
 
-        List<String> localNames = node.table.localNames();
-        for (String name : localNames) {
-            ValueInfo info = node.table.lookup(name);
-            info.setinferredType(new TypeVar());
-        }
-
         TypeObject resultType = new TypeVar();
 
-        // ValueInfo resultInfo = node.table.lookup("result");
         ValueInfo resultInfo = node.resultInfo;
         resultInfo.setinferredType(resultType);
 
         TypeObject voidType = newVoidType();
         Typing typing = new Typing(resultType);
 
+        Set<String> localNames = node.body.locallyAssignedNames();
+        for (String name : localNames) {
+            ValueInfo info = node.table.lookup(name);
+            var var = new TypeVar();
+            info.setinferredType(var);
+
+            var shadowed = node.shadowed.lookup(info.name());
+            if (shadowed != null) {
+                typing.addAssumption(info.name(), var);
+            }
+        }
+
         Typing itemTyping = typingAccept(node.body);
 
         String stMessage = String.format("During inference %s\na statement must have type Void()",
                 node.sourceDescription());
         typing.addConstraint(voidType, itemTyping.type(), stMessage, node.location());
-        // typing.addConstraintsAndAssumptions(itemTyping);
+
+        if (node.isVoid) {
+            typing.addConstraint(voidType, resultType, stMessage, node.location());
+        }
+
         typing.addConstraints(itemTyping);
 
         for (String name : itemTyping.assumedNames()) {

@@ -22,6 +22,7 @@ import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
@@ -296,6 +297,14 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     public void visit(ReturnNode node) {
         out.format("application(var(\"%s\"), var(\"result\"), ", ValueInfo.global("$base_base", "_throw_result"));
         node.value.accept(this);
+        out.print(")");
+    }
+
+    @Override
+    public void visit(ReturnVoidNode node) {
+        out.format("application(var(\"%s\"), var(\"result\"), ", ValueInfo.global("$base_base", "_throw_result"));
+        // Quick fix for node.value.accept(this); above
+        out.print("application(var(\"$base_base_nothing\"))");
         out.print(")");
     }
 

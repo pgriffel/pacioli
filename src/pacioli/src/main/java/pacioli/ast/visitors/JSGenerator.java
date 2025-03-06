@@ -20,6 +20,7 @@ import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
@@ -306,6 +307,13 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     public void visit(ReturnNode node) {
         format("Pacioli.%s(%s, ", ValueInfo.global("$base_base", "_throw_result"), node.resultInfo.name());
         node.value.accept(this);
+        write(")");
+    }
+
+    @Override
+    public void visit(ReturnVoidNode node) {
+        format("Pacioli.%s(%s, ", ValueInfo.global("$base_base", "_throw_result"), node.resultInfo.name());
+        write("Pacioli.fetchValue('$base_base', 'nothing')");
         write(")");
     }
 

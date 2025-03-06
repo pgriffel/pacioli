@@ -661,7 +661,7 @@ public class Program {
                     info.name(),
                     solved.simplify().generalize().pretty());
 
-            info.setinferredType(solved.simplify().generalize());
+            info.setinferredType(solved.simplify().normalizeMatrixTypes().generalize());
 
             Optional<TypeNode> declared = info.declaredType();
 

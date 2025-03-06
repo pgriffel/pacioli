@@ -22,10 +22,13 @@
 package pacioli.ast.expression;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import pacioli.ast.Node;
 import pacioli.ast.visitors.AssignedVariablesVisitor;
+import pacioli.ast.visitors.CollectStatementsVisitor;
 import pacioli.ast.visitors.TypeInference;
 import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.PacioliTable;
@@ -51,6 +54,20 @@ public interface ExpressionNode extends Node {
     default public Set<IdentifierNode> locallyAssignedVariables() {
         AssignedVariablesVisitor visitor = new AssignedVariablesVisitor();
         return visitor.idsAccept(this);
+    }
+
+    default public Set<String> locallyAssignedNames() {
+        // kan met mutatingStatements ipv locallyAssignedVariables
+        Set<String> names = new HashSet<>();
+        for (IdentifierNode id : this.locallyAssignedVariables()) {
+            names.add(id.name());
+        }
+        return names;
+    }
+
+    default public List<Node> mutatingStatements() {
+        CollectStatementsVisitor visitor = new CollectStatementsVisitor();
+        return visitor.nodeAccept(this);
     }
 
 }

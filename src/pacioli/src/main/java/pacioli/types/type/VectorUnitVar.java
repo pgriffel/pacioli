@@ -53,11 +53,17 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
 
     @Override
     public TypeObject fresh() {
-        return new VectorUnitVar(SymbolTable.freshVarName() + "!" + SymbolTable.freshVarName());
+        return new VectorUnitVar(this.indexSetPart() + "!" + SymbolTable.freshVarName());
     }
 
     public TypeObject rename(String name) {
         return new VectorUnitVar(name);
+    }
+
+    public VectorUnitVar withIndexSetName(String name) {
+        var var = new VectorUnitVar(name + "!" + this.unitPart());
+        var.info = this.info;
+        return var;
     }
 
     // Equality
@@ -81,10 +87,14 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
 
     @Override
     public String toString() {
-        return "<uvar " + name + ">";
+        return "<vvar " + name + ">";
     }
 
     // Properties
+    public String indexSetPart() {
+        String[] parts = name.split("!");
+        return parts[0];
+    }
 
     public String unitPart() {
         String[] parts = name.split("!");

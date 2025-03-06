@@ -9,6 +9,7 @@ import java.util.Stack;
 import mvm.values.matrix.IndexSet;
 import mvm.values.matrix.MatrixDimension;
 import pacioli.ast.IdentityVisitor;
+import pacioli.ast.Node;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Declaration;
@@ -37,6 +38,7 @@ import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.unit.UnitIdentifierNode;
@@ -362,30 +364,66 @@ public class ResolveVisitor extends IdentityVisitor {
         if (statementResult.isEmpty()) {
             throw new RuntimeException("No result place for return");
         } else {
-
+            // Pick up the name for the result place that was set by the StatementNode
+            // visit.
             String resultName = statementResult.peek();
             assert (resultName != null);
 
+            // Find the info for the result place
             SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>(valueTables.peek());
             ValueInfo info = table.lookup(resultName);
             assert (info != null);
+
+            // Store the info for later use.
             node.resultInfo = info;
-            // IdentifierNode result = IdentifierNode.newLocalMutableVar(resultName,
-            // node.getLocation());
-            // returnNode(node.resolve(expAccept(node.value), result));
+
+            // Recur
             node.value.accept(this);
+        }
+    }
+
+    @Override
+    public void visit(ReturnVoidNode node) {
+        if (statementResult.isEmpty()) {
+            throw new RuntimeException("No result place for return");
+        } else {
+
+            // Pick up the name for the result place that was set by the StatementNode
+            // visit.
+            String resultName = statementResult.peek();
+            assert (resultName != null);
+
+            // Find the info for the result place
+            SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>(valueTables.peek());
+            ValueInfo info = table.lookup(resultName);
+            assert (info != null);
+
+            // Store the info for later use.
+            node.resultInfo = info;
         }
     }
 
     @Override
     public void visit(StatementNode node) {
 
+        boolean returnsValue = false;
+
+        // TODO: locallyAssignedVariables can be solved with this loop.
+        for (Node nd : node.body.mutatingStatements()) {
+            if (nd instanceof AssignmentNode as) {
+            } else if (nd instanceof ReturnNode as) {
+                returnsValue = true;
+            } else if (nd instanceof ReturnVoidNode as) {
+            } else if (nd instanceof TupleAssignmentNode as) {
+            } else {
+            }
+        }
+
+        node.isVoid = !returnsValue;
+
         // Create a symbol table for all assigned variables in scope and the result
-        // place
+        // place, and a table for the shadowed variables
         node.table = new SymbolTable<ValueInfo>(valueTables.peek());
-
-        String resultName = node.table.freshSymbolName();
-
         node.shadowed = new SymbolTable<ValueInfo>();
 
         // Find all assigned variables
@@ -408,20 +446,21 @@ public class ResolveVisitor extends IdentityVisitor {
                 // If it shadows another value then remember that for initialization in
                 // generated code
                 ValueInfo shadowedInfo = valueTables.peek().lookup(id.name());
-                // TODO: fix shadowing. The test !shadowedInfo.isGlobal() below prevents a
-                // shadowing issue with names
-                // like rows and pi in fourier_motzkin. Turn off uncertainQuickSolution and run
-                // fourier_motzkin_tests.pacioli
-                // to reproduce the error.
-                boolean uncertainQuickSolution = true;
-                if (shadowedInfo != null && (uncertainQuickSolution && !shadowedInfo.isGlobal())) {
-                    node.shadowed.put(id.name(), shadowedInfo);
+                if (shadowedInfo != null) {
+
+                    if (!shadowedInfo.isGlobal()) {
+                        node.shadowed.put(id.name(), shadowedInfo);
+                    }
+
                 }
 
                 // Put the info in the symbol table
                 node.table.put(id.name(), info);
             }
         }
+
+        // Create a place for the statement result
+        String resultName = node.table.freshSymbolName();
 
         // Create an info record for the result and put it in the symbol table
         ValueInfo info = ValueInfo.builder()
@@ -434,11 +473,6 @@ public class ResolveVisitor extends IdentityVisitor {
                 .build();
         node.table.put(resultName, info);
         node.resultInfo = info;
-
-        // Create a place for the statement result and attach the info record
-        // info.resultPlace = IdentifierNode.newLocalMutableVar("result",
-        // node.getLocation());
-        // info.resultPlace.setInfo(info);
 
         // Resolve the body
         statementResult.push(resultName);
