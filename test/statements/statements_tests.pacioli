@@ -1,0 +1,173 @@
+import testing;
+
+# ------------------------------------------------------------------------------
+# Statements
+# ==========
+#
+# Statements in Pacioli allows embedding blocks of imperative code in expressions.
+#
+#
+# # Syntax
+#
+# expression ::= ... | "begin" sequence "end" | ...
+#
+# sequence := statement | statement squence
+#
+# statement ::=
+#     id ":=" expression ";" |                                        Assignment
+#     "(" id,..., id ")" ":=" expression ";" |                        Tuple assignment
+#     "return" expression ";" |                                       Return with value
+#     "return" ";" |                                                  Return without value (Void)
+#     "while" expression "do" squence "end" |                         Loop
+#     "if" expression "then" sequence "else" squence "end"            Condition
+#      id "(" exp, ..., exp ")" |                                     Application
+#      "skip"                                                         Empty statement
+#
+#
+# # Semantics
+#
+# Statements are executed sequentially and mutate state by assigning mutable variables.
+#
+# Statement can return a value, or can be void. Void statements are run just for the
+# side-effect. For example printing something.
+#
+# A return statement stops execution of the statement and yields the statement's result.
+# It is an error if a non-void statement ends without a return.
+# 
+# The statement implementation uses an environment for the mutable state. It creates a new
+# environment with a mutable place for each assigned variable, and one place for the return 
+# value. All assigned variables in the lexical scope are known at compile time and can be
+# determined statically.
+#
+#
+# # Effects
+#
+# The mutations in a statement are side-effects. Mutating statements are the assignment and 
+# the non-void return statements. They mutate places that have been created in the statement's
+# environment. The rest only read the statement's state.
+#
+# The return is also an effect. It is a jump in the control flow.
+#
+#
+# ## Void statements
+#
+# A void statement has only empty return statements. Returning/not returning is irrelevant.#
+#
+#
+# ### Statements returning a value
+#
+# A statement can have a value, and thus a type. The value is given by an effect. A return
+# statment triggers the end of the statement. The value in the return statement becomes the value 
+# of the statement.
+#
+# A sequence can have at most one return, and it must be the last statement. All statement after 
+# the first return are irrelevant.
+#
+#
+# # Nested expression and shadowing
+#
+# Statements can be nested in other expressions and have nested expressions.
+#
+# All access from nested scopes require a deref. This can be determined stattically. All free vars 
+# in an expression that are bound in the statement's environment.
+#
+# Shadowing is solved by proper initialization of the mutable variables. The statement's mutable 
+# variables can shadow variable in a surrounding expression:
+# 
+# let foo = 0 in
+#     begin
+#         while true do
+#             foo := foo + 1;    <--- In the first iteration foo must refer too the let var, later to the mutable loop var.
+#         end
+#     end
+# end
+#
+# Shadowing variables are initialized with the value from the shadowed variable to give 
+# above effect.
+#
+#
+# # Types
+#
+# Statements have type Void. Nothing useful can be done with something of type Void.
+#
+# Rules
+# 1) In an assignment the mutated variable's type must agree with the assigned value's type
+# 2) All returns in a statement must have the same type. This is also the statement's type
+# 3) Statements themselves have type Void. Functions in an application must have type Void.
+# 4) Shadowing variable's types must agree with the shadowed type.
+#
+#
+# # Linting
+#
+# Some issues we can analyze statically:
+#
+# 1) Statements might be useless (dead code). A statement in a sequence after a return is useless.
+# 2) Statement might be shown not to return anything. That is certainly an error (show as warning!).
+# 3) Use before assignment
+# 4) Mixing void and non-void returns. This is catched by the type system, but a better error message 
+#    can be given. No warning since it triggers an error anyway.
+#
+# A statement must end in a return, or a returning sub statement.
+#
+# An assignment is not returning
+# A return is returning
+# A sequence is returning if it contains a returning statement.
+# An if is returning if one of its branches is returning
+# A while is returning if its body is returning
+# An application is not returning
+#
+# ------------------------------------------------------------------------------
+
+
+declare statement_suites :: List(TestSuite);
+
+define statement_suites = [
+    statement_suite
+];
+
+run_test_suites(statement_suites);
+ 
+# ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
+
+define statement_suite = test_suite("Statement", [
+
+     test("should give the emtpy array for n = 0", () -> 
+       ( begin 
+            foo := 1;
+            return 1;
+        end = 1)),
+
+    test("should give the emtpy array for n = 0", () -> 
+        begin 
+            foo := 1;
+            yo := begin foo := 12; end;
+            return foo;
+        end = 1),
+
+    test("should give the emtpy array for n = 0", () -> 
+        begin
+                # foo2 := begin return 12; end; 
+                foo2 := begin bar := 2; foo3 := 12; return bar; end; 
+                return foo2;  
+            end = 2),
+ 
+    test("should give the emtpy array for n = 0", () -> 
+        let foo = 1 in
+            begin
+                bar := foo;
+                foo := begin bar := 2; foo := 12; return bar; end; 
+                return bar;
+            end
+        end = 1),
+
+    test("should use before assignment error", () -> 
+         let foo = 1 in
+            begin
+                foo := 2;
+                bar := foo;
+                return bar;
+            end
+        end = 2)
+]); 
