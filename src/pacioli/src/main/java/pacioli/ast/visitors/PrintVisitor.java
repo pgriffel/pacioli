@@ -55,6 +55,7 @@ import pacioli.ast.sugar.RecordDefinition;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
@@ -501,6 +502,11 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
+    public void visit(ReturnVoidNode returnVoidNode) {
+        write("return;");
+    }
+
+    @Override
     public void visit(SequenceNode node) {
         mark();
         Boolean first = true;
@@ -928,4 +934,5 @@ public class PrintVisitor implements Visitor {
     public void visit(TupleAssignmentClause tupleAssignmentClause) {
         write("TODO: comprehensionNode");
     }
+
 }

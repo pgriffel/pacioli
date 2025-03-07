@@ -32,6 +32,7 @@ import pacioli.types.type.AbstractType;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
+import pacioli.types.type.VectorUnitVar;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitMap;
@@ -75,6 +76,48 @@ public class MatrixType extends AbstractType {
         this.rowUnit = rowUnit;
         this.columnDimension = new IndexType();
         this.columnUnit = TypeBase.ONE;
+    }
+
+    public MatrixType properIndexSets() {
+        Unit<TypeBase> rowUnit = this.rowUnit;
+        Unit<TypeBase> columnUnit = this.columnUnit;
+
+        if (this.rowDimension.isVar() || this.rowDimension.width() > 0) {
+
+            // If a unit var exists, then there is at most one dimension.
+            String idx = this.rowDimension.isVar() ? this.rowDimension.varName()
+                    : this.rowDimension.nthIndexSet(0).name();
+
+            rowUnit = this.rowUnit.map(new UnitMap<TypeBase>() {
+                public Unit<TypeBase> map(TypeBase base) {
+                    if (base instanceof VectorUnitVar b) {
+                        return b.withIndexSetName(idx);
+                    } else {
+                        return base;
+                    }
+                }
+            });
+
+        }
+
+        if (this.columnDimension.isVar() || this.columnDimension.width() > 0) {
+
+            // If a unit var exists, then there is at most one dimension.
+            String idx = this.columnDimension.isVar() ? this.columnDimension.varName()
+                    : this.columnDimension.nthIndexSet(0).name();
+
+            columnUnit = this.columnUnit.map(new UnitMap<TypeBase>() {
+                public Unit<TypeBase> map(TypeBase base) {
+                    if (base instanceof VectorUnitVar b) {
+                        return b.withIndexSetName(idx);
+                    } else {
+                        return base;
+                    }
+                }
+            });
+
+        }
+        return new MatrixType(this.factor, this.rowDimension, rowUnit, this.columnDimension, columnUnit);
     }
 
     @Override
@@ -321,6 +364,10 @@ public class MatrixType extends AbstractType {
 
                 String idx = dimType.nthIndexSet(i).name();
                 String devaluated = filtered.pretty();
+                String[] pair = devaluated.split("!");
+                if (pair.length == 2) {
+                    devaluated = idx + "!" + pair[1];
+                }
                 devaluated = devaluated.equals("1") ? idx + "!" : devaluated;
                 if (i == 0) {
                     node = devaluated;

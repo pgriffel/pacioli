@@ -34,6 +34,7 @@ import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
@@ -205,4 +206,6 @@ public interface Visitor {
     void visit(AssignmentClause assignmentClause);
 
     void visit(TupleAssignmentClause tupleAssignmentClause);
+
+    void visit(ReturnVoidNode returnVoidNode);
 }

@@ -4190,7 +4190,7 @@ class CUP$Parser$actions {
 		Location sxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		Object s = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		 pacioli.compiler.Location loc = makeLoc(rxleft, sxright);
-                                                       RESULT = new ReturnNode(loc, new IdentifierNode("nothing", loc)); 
+                                                       RESULT = new ReturnVoidNode(loc); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("statement",11, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

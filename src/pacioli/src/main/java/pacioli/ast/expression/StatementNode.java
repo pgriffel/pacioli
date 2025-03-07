@@ -13,6 +13,7 @@ public class StatementNode extends AbstractExpressionNode {
     // Filled during resolve
     public SymbolTable<ValueInfo> table;
     public SymbolTable<ValueInfo> shadowed;
+    public boolean isVoid;
 
     // Is the value info for the result place
     public ValueInfo resultInfo;

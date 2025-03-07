@@ -23,27 +23,17 @@ package pacioli.ast.expression;
 
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
-import pacioli.symboltable.info.ValueInfo;
+import pacioli.symboltable.info.ValueInfo;;
 
-public class ReturnNode extends AbstractExpressionNode {
-
-    /**
-     * Expression for the returned value.
-     */
-    public final ExpressionNode value;
+public class ReturnVoidNode extends AbstractExpressionNode {
 
     /**
      * The value info for the result place. Is created during resolving.
      */
     public ValueInfo resultInfo;
 
-    public ReturnNode(Location location, ExpressionNode value) {
+    public ReturnVoidNode(Location location) {
         super(location);
-        this.value = value;
-    }
-
-    public ExpressionNode transform(ExpressionNode value) {
-        return new ReturnNode(location(), value);
     }
 
     @Override

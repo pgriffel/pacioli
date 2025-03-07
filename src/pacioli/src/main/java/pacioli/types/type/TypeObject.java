@@ -41,6 +41,7 @@ import pacioli.types.matrix.MatrixType;
 import pacioli.types.visitors.VectorVarNames;
 import pacioli.types.visitors.JSGenerator;
 import pacioli.types.visitors.MVMGenerator;
+import pacioli.types.visitors.MatrixNormalizeVisitor;
 import pacioli.types.visitors.PrettyPrinter;
 import pacioli.types.visitors.ReduceTypes;
 import pacioli.types.visitors.SimplificationParts;
@@ -74,6 +75,10 @@ public interface TypeObject extends Printable {
 
     public default TypeObject applySubstitution(Substitution subs) {
         return new SubstituteVisitor(subs).typeNodeAccept(this);
+    };
+
+    public default TypeObject normalizeMatrixTypes() {
+        return new MatrixNormalizeVisitor().typeNodeAccept(this);
     };
 
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException;
@@ -191,7 +196,8 @@ public interface TypeObject extends Printable {
             // TypeVar var = (TypeVar) gvar; //fixme
             if (var instanceof VectorUnitVar) {
                 char ch = (char) character++;
-                // Results in weird types like b!b. Is that okay?
+                // Results in weird types like b!b. Is that okay? Yes: output in quantifiers etc
+                // is fixed by MatrixNormalizeVisitor
                 map = map.compose(new Substitution(var, var.rename(String.format("%s!%s", ch, ch))));
             } else if (var instanceof IndexSetVar) {
                 map = map.compose(
@@ -211,7 +217,7 @@ public interface TypeObject extends Printable {
             String[] parts = name.split("!");
             assert (parts.length == 2);
             if (parts.length == 2) {
-                Var var1 = new VectorUnitVar(parts[1] + "!" + parts[1]);
+                Var var1 = new VectorUnitVar(parts[0] + "!" + parts[1]);
                 Var var2 = new VectorUnitVar(name);
                 map = map.compose(new Substitution(var1, var2));
             }

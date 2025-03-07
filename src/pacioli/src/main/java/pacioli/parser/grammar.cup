@@ -595,7 +595,7 @@ statement ::=
   | RETURN:r expr:e SEMICOLON:s                     {: pacioli.compiler.Location loc = makeLoc(rxleft, sxright);
                                                        RESULT = new ReturnNode(loc, e); :}
   | RETURN:r SEMICOLON:s                            {: pacioli.compiler.Location loc = makeLoc(rxleft, sxright);
-                                                       RESULT = new ReturnNode(loc, new IdentifierNode("nothing", loc)); :}
+                                                       RESULT = new ReturnVoidNode(loc); :}
   | WHILE:w expr:e DO sequence:s END:n              {: RESULT = new WhileNode(makeLoc(wxleft, nxright), e, s); :}
 
   | IF:i expr:e THEN sequence:s stm_if_tail:t       {: pacioli.compiler.Location loc = makeLoc(ixleft, txright);

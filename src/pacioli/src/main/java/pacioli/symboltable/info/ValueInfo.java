@@ -135,6 +135,7 @@ public class ValueInfo extends AbstractInfo {
     }
 
     public void setinferredType(TypeObject type) {
+        assert (this.inferredType == null);
         this.inferredType = type;
     }
 

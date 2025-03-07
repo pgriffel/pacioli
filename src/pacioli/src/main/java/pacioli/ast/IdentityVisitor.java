@@ -37,6 +37,7 @@ import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
@@ -258,6 +259,10 @@ public class IdentityVisitor implements Visitor {
     @Override
     public void visit(ReturnNode node) {
         node.value.accept(this);
+    }
+
+    @Override
+    public void visit(ReturnVoidNode node) {
     }
 
     @Override

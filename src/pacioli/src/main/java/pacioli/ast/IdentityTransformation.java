@@ -45,6 +45,7 @@ import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
@@ -168,7 +169,11 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(IndexSetDefinition node) {
-        returnNode(node);
+        if (node.isDynamic()) {
+            returnNode(new IndexSetDefinition(node.location(), node.id, expAccept(node.body())));
+        } else {
+            returnNode(new IndexSetDefinition(node.location(), node.id, node.items()));
+        }
     }
 
     @Override
@@ -320,6 +325,11 @@ public class IdentityTransformation implements Visitor {
     }
 
     @Override
+    public void visit(ReturnVoidNode node) {
+        returnNode(node);
+    }
+
+    @Override
     public void visit(SequenceNode node) {
         List<ExpressionNode> items = new ArrayList<ExpressionNode>();
         for (ExpressionNode item : node.items) {
@@ -334,6 +344,7 @@ public class IdentityTransformation implements Visitor {
         statement.table = node.table;
         statement.resultInfo = node.resultInfo;
         statement.shadowed = node.shadowed;
+        statement.isVoid = node.isVoid;
         returnNode(statement);
     }
 
