@@ -132,6 +132,12 @@
         "key": "ctrl+f11",
         "command": "pacioli.compilejs"
       }
+    ],
+    "snippets": [
+      {
+        "language": "pacioli",
+        "path": "./snippets.json"
+      }
     ]
   },
   "scripts": {

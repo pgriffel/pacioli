@@ -9,11 +9,12 @@ This extension offers editor support for the Pacioli language. Visit [Pacioli on
 - Syntax highlighting
 - Autocomplete
 - Signature help
+- Code snippets
 - Error diagnostics
-- Hover support
-- Jump to definition
-- Menus for compiling and running pacioli files
-- Task definition for pacioli commands
+- Hover info
+- Jump to source
+- Menus for compiling and running .pacioli files
+- Task definition for Pacioli commands
 
 ![Command menu](menu.png)
 

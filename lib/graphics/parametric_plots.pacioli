@@ -235,7 +235,7 @@ define compute_deltas(fun, range, n, m, delta) =
         v_step = range_height(range) / n
     in
         [tuple(pos, vu, vv) | 
-            indices := naturals(n),
+            indices := naturals(n+1),
             i <- indices,
             j <- indices,
             mod(i, m) = 0 and mod(j, m) = 0,
