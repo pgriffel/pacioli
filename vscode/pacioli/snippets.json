@@ -1,0 +1,117 @@
+{
+  "Value definition": {
+    "prefix": ["define"],
+    "body": ["define ${1:name} =", "\t${0:expression};"],
+    "description": "A value definition"
+  },
+  "Function definition": {
+    "prefix": ["define"],
+    "body": ["define ${1:name}(${2:arguments}) =", "\t${0:expression};"],
+    "description": "A function definition"
+  },
+  "Documentation": {
+    "prefix": ["doc"],
+    "body": ["doc ${1:name}", "\t\"${0:text}\";"],
+    "description": "A documentation entry"
+  },
+  "Declaration": {
+    "prefix": ["declare"],
+    "body": ["declare ${1:name} :: ${0:type};"],
+    "description": "A type declaration"
+  },
+  "Index set definition": {
+    "prefix": ["defindex"],
+    "body": ["defindex ${1:name} = {${2:element}, ${0:element}};"],
+    "description": "An index set definition"
+  },
+  "Matrix definition": {
+    "prefix": ["defmatrix"],
+    "body": [
+      "defmatrix ${1:name} :: ${2:type} = {",
+      "\t${3:names} -> ${4:value},",
+      "\t${5:names} -> ${0:value}",
+      "};"
+    ],
+    "description": "A matrix definition"
+  },
+  "Type definition": {
+    "prefix": ["deftype"],
+    "body": ["deftype ${1:type}(${2:arguments}) = ${0:type};"],
+    "description": "A type definition"
+  },
+  "Unit definition": {
+    "prefix": ["defunit"],
+    "body": ["defunit ${1:name} \"${2:symbol}\" = ${0:unit};"],
+    "description": "A unit definition"
+  },
+  "Unit vector definition": {
+    "prefix": ["defunit"],
+    "body": [
+      "defunit ${1:index}!${2:name} = {",
+      "\t${3:names}: ${4:unit},",
+      "\t${5:names}: ${0:unit}",
+      "};"
+    ],
+    "description": "A unit vector definition"
+  },
+  "Base unit definition": {
+    "prefix": ["defunit"],
+    "body": ["defunit ${1:name} \"${0:symbol}\";"],
+    "description": "A base unit definition"
+  },
+  "Unit alias definition": {
+    "prefix": ["defalias"],
+    "body": ["defalias ${1:name} = ${0:unit};"],
+    "description": "A unit alias definition"
+  },
+  "Record definition": {
+    "prefix": ["defrecord"],
+    "body": [
+      "defrecord ${1:type} as ${2:basename} where",
+      "\t${3:field}: ${4:type},",
+      "\t${5:field}: ${0:type};"
+    ],
+    "description": "A record definition"
+  },
+  "Import": {
+    "prefix": ["import"],
+    "body": ["import ${0:path};"],
+    "description": "An import declaration"
+  },
+  "Include": {
+    "prefix": ["include"],
+    "body": ["include ${0:path};"],
+    "description": "An include declaration"
+  },
+  "Export": {
+    "prefix": ["export"],
+    "body": ["export", "\t${0:name};"],
+    "description": "An export declaration"
+  },
+  "Let in": {
+    "prefix": ["let"],
+    "body": ["let", "\t${1:name} = ${2:value}", "in", "\t${0:body}", "end"],
+    "description": "A let contruct"
+  },
+  "If then else": {
+    "prefix": ["if"],
+    "body": [
+      "if ${1:condition} then",
+      "\t${2:positive}",
+      "else",
+      "\t${0:negative}",
+      "end"
+    ],
+    "description": "An if then else experession or statement"
+  },
+  "While do": {
+    "prefix": ["while"],
+    "body": ["while ${1:condition} do", "\t${0:body}", "end"],
+    "description": "A while do statement"
+  },
+  "Imperative block": {
+    "prefix": ["begin"],
+    "body": ["begin", "\t${0:body}", "end"],
+    "description": "An imperative block"
+  }
+}

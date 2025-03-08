@@ -48,7 +48,7 @@ public class DocumentState {
     static int MODIFIER_DEFINITION = 1;
     static int MODIFIER_NONE = 2;
 
-    static List<String> KEYWORDS_IN_AUTOCOMPLETE = List.of("let", "in", "end", "then", "do", "where");
+    static List<String> KEYWORDS_IN_AUTOCOMPLETE = List.of("in", "end", "then", "else", "do", "where");
 
     public final String uri;
     private final Bundle bundle;
