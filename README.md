@@ -2,8 +2,6 @@
 
 A Java implementation of the Pacioli programming language.
 
----
-
 ## Introduction
 
 The matrix language Pacioli adds type safety and dimensional analysis
@@ -27,8 +25,10 @@ After the extension is installed VS Code will recognize .pacioli files. No other
 
 ## Command line
 
-This implementation is a Java application that compiles and runs Pacioli programs.
-The compiler is completely written in Java and compiled to a single jar file.
+The compiler is a Java application that compiles and runs Pacioli programs. See also the [installation][install] and [building from source][build] pages.
+
+[install]: install
+[build]: build
 
 ### Running the compiler
 
@@ -61,100 +61,6 @@ tell the jar file the location of the libraries.
 
 Replace the dots with your compiler command.
 
-### Installation
-
-Some suggestions to create a `pacioli` command are given. No build on
-install scripts or detailed procedures are available. Some manual work
-and knowledge of the Java environment is required.
-
-It is assumed that the `pacioli.jar` file and the `lib` directory are
-in some directory `pacioli`.
-
-#### Windows
-
-1. Place the `pacioli` directory in `program files`
-
-2. Add this directory to the PATH variable
-
-3. Create a file `pacioli.bat` in this directory with the following content:
-
-<code>
-@ECHO OFF  
-java -jar "%~dp0\pacioli.jar" -lib "%~dp0\lib" %*
-</code>
-
-The command `pacioli` should now be available in a command
-prompt. Adjust the bat file to add extra library directories or
-override default compiler settings.
-
-#### Linux alias
-
-To create a `pacioli` command locally you can add a shell alias like:
-
-    alias pacioli='java -jar ~/pacioli/pacioli.jar -lib ~/pacioli/lib'
-
-Adjust the paths to your own situation.
-
-#### Linux /usr/local
-
-1. Copy the `pacioli` directory to /usr/local/lib/
-
-2. Create file pacioli in /usr/local/bin with content
-
-<code>
-\#!/bin/sh  
-exec java -jar /usr/local/lib/pacioli/pacioli.jar -lib /usr/local/lib/pacioli/lib "$@"
-</code>
-
-To add extra library paths or override default compiler settings per
-user you can create an alias like:
-
-    alias pacioli='pacioli -lib my_pacioli_lib -warnings'
-
-## Building from source
-
-Three artifacts are build from the sources, a .jar file for the compiler, a javascript bundle for running in the browser, and a .vsix extension installation file.
-
-### Building the compiler
-
-To build the .jar file do the following:
-
-1. Clone the sources
-
-2. cd src/pacioli
-
-3. ./mvnw install
-
-This produces the .jar file in the src/pacioli/target directory.
-
-### Building the javascript runtime
-
-This requires nodejs to be installed.
-
-1. Clone the sources
-
-2. cd src/pacioli-js
-
-3. npm run bundle
-
-This produces the bundle .js file in the src/pacioli-js/dist directory
-
-### Building the extension
-
-This requires nodejs to be installed.
-
-1. Clone the sources
-
-2. Build the .jar file and copy it to the vscode/pacioli/ directory
-
-3. Copy the lib directory to the vscode/pacioli/ directory
-
-4. cd vscode/pacioli/
-
-5. npm run package
-
-This produces the .vsix file in the vscode/pacioli/ directory
-
 ## Download
 
 Binaries are included in zip file `pacioli.zip` for the current
@@ -184,9 +90,8 @@ root directory of the sources.
 
 ## Status
 
-Pacioli is still an experimental language. It focuses on the core concepts of matrix programming and is pretty bare bones.
-
-This implementation does however have some nice features
+Pacioli is still an experimental language. The current version focuses on the core concepts of matrix programming and is pretty bare bones.
+It does however have some nice features
 
 - It runs in the browser
 - It provides web components for easy publishing
@@ -197,8 +102,7 @@ Notable missing features that are on the roadmap
 
 - Multilinear algebra and data-frames
 - Ad-hoc polymorphism (typeclasses/traits/implicits)
-- Some data abstraction mechanisme
-- Support for writing libraries
-- Better integration with other tools and libraries
+- Some data abstraction mechanism
+- Better support for writing libraries and integration with other environments
 
 2013-2025 Paul Griffioen (pgriffel@gmail)
