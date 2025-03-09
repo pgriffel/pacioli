@@ -21,7 +21,13 @@
  */
 
 import { ccsFull, ccsGather, ccsScatter, ccsSparse, sscatter } from "numeric";
-import { RawMatrix } from "../value";
+import {
+  MatrixStorage,
+  RawMatrix,
+  STORAGE_CCS,
+  STORAGE_COO,
+  STORAGE_FULL,
+} from "../value";
 
 // -----------------------------------------------------------------------------
 // Matrix Numbers
@@ -38,7 +44,7 @@ export function tagNumbers(
   numbers: any,
   nrRows: number,
   nrColumns: number,
-  storage: any
+  storage: MatrixStorage
 ): RawMatrix {
   numbers.nrRows = nrRows;
   numbers.nrColumns = nrColumns;
@@ -60,7 +66,7 @@ export function getFullNumbers(numbers: any) {
       }
       array[i] = inner;
     }
-    return tagNumbers(array, m, n, 0);
+    return tagNumbers(array, m, n, STORAGE_FULL);
   };
 
   switch (numbers.storage) {
@@ -89,7 +95,7 @@ export function getFullNumbers(numbers: any) {
         }
       }
 
-      return tagNumbers(full, m, n, 0);
+      return tagNumbers(full, m, n, STORAGE_FULL);
   }
 }
 
@@ -177,7 +183,7 @@ export function getCCSNumbers(numbers: any) {
     case 3:
       return numbers;
   }
-  return tagNumbers(ccsNumbers, numbers.nrRows, numbers.nrColumns, 3);
+  return tagNumbers(ccsNumbers, numbers.nrRows, numbers.nrColumns, STORAGE_CCS);
 }
 
 function DOK2COO(numbers: any): RawMatrix {
@@ -223,12 +229,12 @@ function DOK2COO(numbers: any): RawMatrix {
     [rows, columns, values],
     numbers.nrRows,
     numbers.nrColumns,
-    2
+    STORAGE_COO
   );
 }
 
 export function get(numbers: any, i: any, j: any) {
-  return tagNumbers([[getNumber(numbers, i, j)]], 1, 1, 0);
+  return tagNumbers([[getNumber(numbers, i, j)]], 1, 1, STORAGE_FULL);
 }
 
 export function set(numbers: any, row: number, column: number, value: number) {
@@ -319,7 +325,7 @@ export function unaryNumbers(
     [coo[0], coo[1], coo[2].map(fun)],
     numbers.nrRows,
     numbers.nrColumns,
-    2
+    STORAGE_COO
   );
 }
 
@@ -394,7 +400,7 @@ export function elementWiseNumbers(xNumbers: any, yNumbers: any, fun: any) {
     [rows, columns, values],
     xNumbers.nrRows,
     xNumbers.nrColumns,
-    2
+    STORAGE_COO
   );
 }
 

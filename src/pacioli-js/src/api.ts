@@ -39,7 +39,7 @@ import { PacioliUnit, PacioliVector } from "./type";
 import { PacioliContext } from "./context";
 import { PacioliFunction } from "./values/function";
 import { MatrixType, PacioliIndex } from "./types/matrix";
-import { RawCoordinates, RawMatrix } from "./value";
+import { RawCoordinates, RawMatrix, RawValue, STORAGE_DOK } from "./value";
 import {
   boxRawValue,
   internUnit,
@@ -63,7 +63,7 @@ export function createMatrixType(
   rowUnit: PacioliVector,
   columnSets: PacioliIndex,
   columnUnit: PacioliVector
-) {
+): MatrixType {
   return new MatrixType(multiplier, rowSets, rowUnit, columnSets, columnUnit);
 }
 
@@ -75,7 +75,7 @@ export function value(
   module: string,
   name: string,
   context: PacioliContext = defaultContext
-) {
+): PacioliValue {
   return boxRawValue(
     lookupItem(module + "_" + name, context),
     lookupItem("u_" + module + "_" + name, context),
@@ -88,7 +88,7 @@ export function fun(
   module: string,
   name: string,
   context: PacioliContext = defaultContext
-) {
+): PacioliFunction {
   const type = lookupItem("u_" + module + "_" + name, context);
   const value = lookupItem(module + "_" + name, context);
   const box = boxRawValue(value, type, context);
@@ -101,15 +101,19 @@ export function fun(
   }
 }
 
-export function unit(name1: string, name2?: string) {
+export function unit(name1: string, name2?: string): SIUnit {
   return si.getUnit(name2 ? name1 + ":" + name2 : name1);
 }
 
-export function unitType(name1: string, name2?: string) {
+export function unitType(name1: string, name2?: string): UOM<SIBaseType> {
   return UOM.fromBase(new SIBaseType(name2 ? name1 : "", name2 ?? name1));
 }
 
-export function unitVectorType(module: string, type: string, position: number) {
+export function unitVectorType(
+  module: string,
+  type: string,
+  position: number
+): UOM<VectorBaseType> {
   return UOM.fromBase(new VectorBaseType(module + "_" + type, position));
 }
 
@@ -125,7 +129,7 @@ export function typeFromVarName(varName: string): TypeVar {
   return new TypeVar("_" + varName + "_");
 }
 
-export function num(num: string | number, unit: SIUnit = UOM.ONE) {
+export function num(num: string | number, unit: SIUnit = UOM.ONE): Matrix {
   const shape = MatrixShape.scalar(unit === undefined ? UOM.ONE : unit);
   const numbers = initialNumbers(1, 1, [
     [0, 0, typeof num === "string" ? parseFloat(num) : num],
@@ -221,12 +225,12 @@ export function createCoordinates(
 // }
 
 export function zeroNumbers(m: number, n: number): RawMatrix {
-  return tagNumbers([], m, n, 1);
+  return tagNumbers([], m, n, STORAGE_DOK);
 }
 
 // No longer needs to export this since oneNumbersFromShape is used.
 export function oneNumbers(m: number, n: number): RawMatrix {
-  var numbers = tagNumbers([], m, n, 1);
+  var numbers = tagNumbers([], m, n, STORAGE_DOK);
   for (var i = 0; i < m; i++) {
     for (var j = 0; j < n; j++) {
       set(numbers, i, j, 1);
@@ -257,10 +261,14 @@ export function oneNumbersFromShape(
 //                            Pacioli.initialNumbers(shape.nrRows(), shape.nrColumns(), data))
 // }
 
-export function initialNumbers(m: number, n: number, data: number[][]): any {
+export function initialNumbers(
+  m: number,
+  n: number,
+  data: number[][]
+): RawMatrix {
   // Use an efficient representation. DOK!? And probably there is already
   // some function to do this. See e.g. the make_matrix implementation.
-  var numbers = tagNumbers([], m, n, 1);
+  var numbers = tagNumbers([], m, n, STORAGE_DOK);
   for (var i = 0; i < data.length; i++) {
     set(numbers, data[i][0], data[i][1], data[i][2]);
   }
@@ -294,7 +302,7 @@ export function initialNumbers(m: number, n: number, data: number[][]): any {
 //     return new Pacioli.Type("matrix", shape);
 // }
 
-export function printValue(x: any) {
+export function printValue(x: RawValue) {
   const cons = document.getElementById("console");
   if (cons) {
     const body = DOM(x);
@@ -334,7 +342,7 @@ export function fetchValue(
 export function fetchIndex(
   id: string,
   context: PacioliContext = defaultContext
-) {
+): IndexSet {
   const indexSet = context.findIndexSet(id);
   if (indexSet == undefined) {
     const computed = findFunction("compute_index_" + id)();

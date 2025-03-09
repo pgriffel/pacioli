@@ -24,7 +24,7 @@ import { DimNum } from "uom-ts";
 import { Context, SIUnit } from "uom-ts";
 import { getCOONumbers, getNumber, tagNumbers } from "./numbers";
 import { MatrixShape } from "./matrix-shape";
-import { RawMatrix } from "../value";
+import { RawMatrix, STORAGE_COO } from "../value";
 
 /**
  * A matrix combines a shape and numbers.
@@ -237,7 +237,12 @@ export function filter_matrix(
       filteredValues.push(values[i]);
     }
   }
-  return tagNumbers([filteredRows, filteredColumns, filteredValues], m, n, 2);
+  return tagNumbers(
+    [filteredRows, filteredColumns, filteredValues],
+    m,
+    n,
+    STORAGE_COO
+  );
 }
 
 /**
@@ -268,5 +273,5 @@ export function convert_unit(
     );
     convertedValues.push(values[i] * factor.toNumber());
   }
-  return tagNumbers([rows, columns, convertedValues], m, n, 2);
+  return tagNumbers([rows, columns, convertedValues], m, n, STORAGE_COO);
 }
