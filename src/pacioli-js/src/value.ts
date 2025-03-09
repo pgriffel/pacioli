@@ -102,7 +102,7 @@ export type RawValue =
  *   (...RawTuple) => RawValue.
  *
  */
-export type RawFunction = (...args: RawTuple) => RawValue;
+export type RawFunction = (...args: RawValue[]) => RawValue;
 
 export interface RawTuple extends Array<RawValue> {
   kind: "tuple";

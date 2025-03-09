@@ -940,13 +940,16 @@ export function $base_list_mapnz(fun: RawFunction, x: RawMatrix): RawMatrix {
 
   for (var i = 0; i < rows.length; i++) {
     // Again the fun arg to fun.call. See apply
-    throw new Error("todo: check mapnz in pacioli-js");
-    // set(
-    //   result,
-    //   rows[i],
-    //   columns[i],
-    //   getNumber(fun.call(fun, tagNumbers([[values[i]]], 1, 1, 0)), 0, 0)
-    // );
+    set(
+      result,
+      rows[i],
+      columns[i],
+      getNumber(
+        fun.call(fun, tagNumbers([[values[i]]], 1, 1, 0)) as RawMatrix,
+        0,
+        0
+      )
+    );
   }
   return result;
 }
@@ -960,11 +963,10 @@ export function $base_list_zip(x: RawList, y: RawList): RawList {
 }
 
 export function $base_list_map_list(fun: RawFunction, items: RawList): RawList {
-  var list = new Array(items.length);
-  throw new Error("todo: check mapnz in map_list");
-  // for (var i = 0; i < items.length; i++) {
-  //   list[i] = fun(items[i]);
-  // }
+  var list = tagList(new Array(items.length));
+  for (var i = 0; i < items.length; i++) {
+    list[i] = fun(items[i]);
+  }
   return tagList(list);
 }
 
@@ -1013,7 +1015,8 @@ export function $base_list_loop_list(
 ): RawValue {
   var accu: RawValue = init;
   for (var i = 0; i < list.length; i++) {
-    accu = $base_base_apply(fun, [accu, list[i]] as RawTuple); // could also call makeRawTuple([accu, list[i]])
+    // accu = $base_base_apply(fun, [accu, list[i]] as RawTuple); // could also call makeRawTuple([accu, list[i]])
+    accu = fun.apply(fun, [accu, list[i]]);
   }
   return accu;
 }
@@ -1035,7 +1038,8 @@ export function $base_list_fold_list(
   }
   var accu = list[0];
   for (var i = 1; i < list.length; i++) {
-    accu = $base_base_apply(fun, [accu, list[i]] as RawTuple);
+    // accu = $base_base_apply(fun, [accu, list[i]] as RawTuple);
+    accu = fun.apply(fun, [accu, list[i]]);
   }
   return accu;
 }
@@ -1044,7 +1048,8 @@ export function $base_list_sort_list(list: RawList, fun: RawFunction): RawList {
   return tagList(
     list.slice(0).sort(function (a: RawValue, b: RawValue) {
       return getNumber(
-        $base_base_apply(fun, [a, b] as RawTuple) as unknown as RawMatrix, // TODO: Is the unknown cast necesarry? Is there a better solution?
+        //$base_base_apply(fun, [a, b] as RawTuple) as unknown as RawMatrix, // TODO: Is the unknown cast necesarry? Is there a better solution?
+        fun.apply(fun, [a, b]) as RawMatrix,
         0,
         0
       );
