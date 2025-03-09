@@ -22,4 +22,4 @@
 
 export type Void = { readonly kind: "void" };
 
-export const nothing: Void = { kind: "void" };
+export const VOID: Void = { kind: "void" };

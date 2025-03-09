@@ -39,7 +39,7 @@ import { PacioliUnit, PacioliVector } from "./type";
 import { PacioliContext } from "./context";
 import { PacioliFunction } from "./values/function";
 import { MatrixType, PacioliIndex } from "./types/matrix";
-import { PacioliValue } from "./value";
+import { PacioliValue, RawCoordinates, RawMatrix } from "./value";
 import { boxRawValue, internUnit, matrixShapeFromType } from "./boxing";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
@@ -192,7 +192,7 @@ export function makeIndexSet(id: string, name: string, items: string[]) {
 export function createCoordinates(
   pairs: string[][],
   context: PacioliContext = defaultContext
-) {
+): RawCoordinates {
   var names = [];
   var indexSets = [];
   for (var i = 0; i < pairs.length; i++) {
@@ -215,12 +215,12 @@ export function createCoordinates(
 //     return result;
 // }
 
-export function zeroNumbers(m: number, n: number) {
+export function zeroNumbers(m: number, n: number): RawMatrix {
   return tagNumbers([], m, n, 1);
 }
 
 // No longer needs to export this since oneNumbersFromShape is used.
-export function oneNumbers(m: number, n: number) {
+export function oneNumbers(m: number, n: number): RawMatrix {
   var numbers = tagNumbers([], m, n, 1);
   for (var i = 0; i < m; i++) {
     for (var j = 0; j < n; j++) {
@@ -233,9 +233,11 @@ export function oneNumbers(m: number, n: number) {
 export function oneNumbersFromShape(
   type: MatrixType,
   context: PacioliContext = defaultContext
-) {
+): RawMatrix {
   const shape = matrixShapeFromType(type, context);
   const numbers = oneNumbers(shape.nrRows(), shape.nrColumns());
+  // TODO: check this. Was always in the code, but typing seems to show it is not necessary. Is it not used? Time wil tell.
+  // THIS IS USED!!!
   numbers.shape = shape;
   return numbers;
 }

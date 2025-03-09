@@ -24,6 +24,7 @@ import { DimNum } from "uom-ts";
 import { Context, SIUnit } from "uom-ts";
 import { getCOONumbers, getNumber, tagNumbers } from "./numbers";
 import { MatrixShape } from "./matrix-shape";
+import { RawMatrix } from "../value";
 
 /**
  * A matrix combines a shape and numbers.
@@ -38,7 +39,7 @@ import { MatrixShape } from "./matrix-shape";
 export class Matrix {
   readonly kind = "matrix";
 
-  constructor(public shape: MatrixShape, public numbers: any) {}
+  constructor(public shape: MatrixShape, public numbers: RawMatrix) {}
 
   /**
    * Filters the matrix entries. Only entries satisfying the predicate remain.

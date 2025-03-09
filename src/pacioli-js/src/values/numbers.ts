@@ -21,6 +21,7 @@
  */
 
 import { ccsFull, ccsGather, ccsScatter, ccsSparse, sscatter } from "numeric";
+import { RawMatrix } from "../value";
 
 // -----------------------------------------------------------------------------
 // Matrix Numbers
@@ -38,7 +39,7 @@ export function tagNumbers(
   nrRows: number,
   nrColumns: number,
   storage: any
-) {
+): RawMatrix {
   numbers.nrRows = nrRows;
   numbers.nrColumns = nrColumns;
   numbers.storage = storage;
@@ -160,7 +161,10 @@ export function getCCSNumbers(numbers: any) {
       if (gathered[0].length === 0) {
         ccsNumbers = ccsScatter([[0], [0], [0]]);
       } else {
-        ccsNumbers = ccsScatter(gathered);
+        ccsNumbers = ccsScatter(
+          // TODO: better type. This is wat DOK2COO puts in the any in RawMatrix
+          gathered as unknown as [number[], number[], number[]]
+        );
       }
       break;
     case 2:
@@ -176,7 +180,7 @@ export function getCCSNumbers(numbers: any) {
   return tagNumbers(ccsNumbers, numbers.nrRows, numbers.nrColumns, 3);
 }
 
-function DOK2COO(numbers: any) {
+function DOK2COO(numbers: any): RawMatrix {
   var rows = [];
   var columns = [];
   var values = [];
@@ -266,8 +270,8 @@ export function set(numbers: any, row: number, column: number, value: number) {
   }
 }
 
-export function getNumber(numbers: number[][], row: number, column: number) {
-  switch ((numbers as any).storage) {
+export function getNumber(numbers: RawMatrix, row: number, column: number) {
+  switch (numbers.storage) {
     case 0:
       return numbers[row][column];
     case 1:
@@ -306,7 +310,10 @@ export function getNumber(numbers: number[][], row: number, column: number) {
   }
 }
 
-export function unaryNumbers(numbers: any, fun: any) {
+export function unaryNumbers(
+  numbers: RawMatrix,
+  fun: (val: number) => number
+): RawMatrix {
   var coo = getCOONumbers(numbers);
   return tagNumbers(
     [coo[0], coo[1], coo[2].map(fun)],

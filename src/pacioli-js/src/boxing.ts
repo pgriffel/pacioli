@@ -24,7 +24,7 @@ import { SIUnit, UOM } from "uom-ts";
 import { fetchIndex, fetchUnit, fetchUnitVector } from "./api";
 import { PacioliType, PacioliUnit, PacioliVector } from "./type";
 import { IndexType, MatrixType, PacioliIndex } from "./types/matrix";
-import { PacioliValue, RawValue, tagKind, tagType } from "./value";
+import { PacioliValue, RawMatrix, RawValue, tagKind, tagType } from "./value";
 import { pacioliFalse, pacioliTrue } from "./values/boole";
 import { PacioliFunction } from "./values/function";
 import { Matrix } from "./values/matrix";
@@ -32,7 +32,7 @@ import { MatrixDimension } from "./values/matrix-dimension";
 import { MatrixShape, SIVector } from "./values/matrix-shape";
 import { PacioliString } from "./values/string";
 import { VectorBase } from "./values/vector-base";
-import { nothing } from "./values/void";
+import { VOID } from "./values/void";
 import { GenericType } from "./types/generic";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { Maybe } from "./values/maybe";
@@ -69,7 +69,7 @@ export function boxRawValue(
           );
         }
       } else if (type.name === "Void") {
-        return nothing;
+        return VOID;
       } else if (type.name === "Maybe") {
         return new Maybe(
           type,
@@ -103,7 +103,8 @@ export function boxRawValue(
       }
     }
     case "matrix": {
-      return new Matrix(matrixShapeFromType(type, context), value);
+      // Cast assumes the value is a matrix. Type system should guarantee that.
+      return new Matrix(matrixShapeFromType(type, context), value as RawMatrix);
     }
     case "typevar": {
       throw Error(
@@ -112,6 +113,7 @@ export function boxRawValue(
         }' for type ${typeof value} with value ${value} `
       );
     }
+    // TODO: "coordinates"
     default: {
       throw new Error(
         `Unxpected kind '${

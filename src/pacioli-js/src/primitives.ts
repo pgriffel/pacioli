@@ -59,9 +59,23 @@ import {
   tagNumbers,
   unaryNumbers,
 } from "./values/numbers";
-import { PacioliFunction } from "./values/function";
-import { PacioliValue, tagKind } from "./value";
-import { nothing } from "./values/void";
+import {
+  makeRawTuple,
+  NOTHING,
+  RawArray,
+  RawBoole,
+  RawCoordinates,
+  RawFunction,
+  RawList,
+  RawMatrix,
+  RawRef,
+  RawString,
+  RawTuple,
+  RawValue,
+  tagArray,
+  tagList,
+} from "./value";
+import { Void, VOID } from "./values/void";
 import { Matrix } from "./values/matrix";
 
 // -----------------------------------------------------------------------------
@@ -99,40 +113,41 @@ export const prefix = {
 // Each primitive function is named '<module>_<name>'.
 // -----------------------------------------------------------------------------
 
-export const $base_base_tuple = function (...args: PacioliValue[]) {
-  return tagKind(Array.prototype.slice.call(args), "tuple");
+export const $base_base_tuple = function (...args: RawValue[]): RawTuple {
+  return makeRawTuple(args);
 };
 
-export const $base_base_apply = function (fun: any, arg: PacioliValue[]) {
-  // TODO: check first arg of apply. what is 'this'? Does it matter?
+export const $base_base_apply = function (fun: RawFunction, arg: RawTuple) {
   return fun.apply(fun, arg);
 };
 
-export function $base_base__new_ref(value: any) {
-  return [value];
+export function $base_base__new_ref(value: RawValue): RawRef {
+  return [value]; // TODO: tag
 }
 
-export function $base_base__empty_ref() {
-  return new Array(1);
+export function $base_base__empty_ref(): RawRef {
+  return new Array(1); // TODO: tag
 }
 
-export function $base_base__ref_set(ref: any[], value: any) {
+export function $base_base__ref_set(ref: RawRef, value: RawValue): RawRef {
   ref[0] = value;
   return ref;
 }
 
-export function $base_base__ref_get(ref: any[]) {
+export function $base_base__ref_get(ref: RawRef): RawValue {
   return ref[0];
 }
 
-export function $base_base_just(value: any) {
+export function $base_base_just(value: RawValue): RawValue {
   return value;
 }
 
-export function $base_base_error(value: any) {
+export function $base_base_error(value: RawString): unknown {
   throw Error(value);
 }
 
+// Fixme: decide on return value (is nothing now) and give
+// a proper type.
 export function $base_base_catch(code: any, _: any[]) {
   if (false) {
     // dev switch to debug exceptions in a catch block
@@ -141,48 +156,61 @@ export function $base_base_catch(code: any, _: any[]) {
     try {
       return code();
     } catch (err) {
-      return undefined;
+      return NOTHING;
     }
   }
 }
 
-export function $base_base_nothing() {
-  return undefined;
+// TODO: give a type
+export function $base_base_nothing(): RawValue {
+  return NOTHING as unknown as RawValue; // Nasty cast because NOTHING is undefined. Reconsider undefined as value?!
 }
 
-export function $base_base_is_nothing(value: any) {
-  return value === undefined;
+export function $base_base_is_nothing(value: RawValue): RawBoole {
+  return value === NOTHING;
 }
 
-export function $base_base_maybe_get(value: any) {
-  if (value === undefined) {
+export function $base_base_maybe_get(value: RawValue): RawValue {
+  if (value === NOTHING) {
     throw new Error("Cannot get empty Maybe value");
   }
   return value;
 }
 
-export function $base_base_not(boole: boolean) {
+export function $base_base_not(boole: RawBoole): RawBoole {
   return !boole;
 }
 
-export function $base_system__skip() {
-  return nothing;
+export function $base_system__skip(): Void {
+  return VOID;
 }
 
-export function $base_base__while(test: any, body: any) {
+export function $base_base__while(
+  test: () => RawBoole,
+  body: () => Void
+): Void {
   while (test()) {
     body();
   }
-  return nothing;
+  return VOID;
 }
 
-export function $base_base__catch_result(code: any, ref: any[]) {
+export function $base_base__catch_result(
+  code: () => Void,
+  ref: RawRef
+): RawValue | Void {
+  // dev switch to debug exceptions in a catch block
   if (false) {
-    // dev switch to debug exceptions in a catch block
     code();
+    // TODO: check if this is a Void statement. If not we have to throw an error.
+    // We need this information from the compiler?!
+    return VOID;
   } else {
     try {
       code();
+      // TODO: check if this is a Void statement. If not we have to throw an error.
+      // We need this information from the compiler?!
+      return VOID;
     } catch (err) {
       if (err == "jump") {
         return ref[0];
@@ -193,30 +221,30 @@ export function $base_base__catch_result(code: any, ref: any[]) {
   }
 }
 
-export function $base_base__throw_result(ref: any[], value: any) {
+export function $base_base__throw_result(ref: RawRef, value: RawValue) {
   ref[0] = value;
   throw "jump";
 }
 
-export function $base_base__seq(_x: any, y: any) {
+export function $base_base__seq(_x: Void, y: Void): Void {
   return y;
 }
 
-export function $base_base_not_equal(x: any, y: any) {
+export function $base_base_not_equal(x: RawValue, y: RawValue): RawBoole {
   return !$base_base_equal(x, y);
 }
 
-export function $base_base_equal(x: any, y: any) {
+export function $base_base_equal(x: RawValue, y: RawValue): RawBoole {
   if (x.kind !== y.kind) return false;
 
   if (x === y) {
     return true;
-  } else if (x.kind === "coordinates") {
+  } else if (x.kind === "coordinates" && y.kind === "coordinates") {
     //(x instanceof Pacioli.Coordinates && y instanceof Pacioli.Coordinates) {
     // alert("duh");
     //return x.equals(y);
     return x.position === y.position;
-  } else if (x.kind === "matrix") {
+  } else if (x.kind === "matrix" && y.kind === "matrix") {
     //(x instanceof Pacioli.Matrix && y instanceof Pacioli.Matrix) {
     return !findNonZero(
       x,
@@ -233,7 +261,13 @@ export function $base_base_equal(x: any, y: any) {
       return false;
     }
     for (var i = 0; i < n; i++) {
-      if (!$base_base_equal(x[i], y[i])) {
+      if (
+        // TODO: remove casts. Split this if case into tuple, list, etc., instead of instanceof Array!?
+        !$base_base_equal(
+          x[i] as unknown as RawValue,
+          y[i] as unknown as RawValue
+        )
+      ) {
         return false;
       }
     }
@@ -243,12 +277,12 @@ export function $base_base_equal(x: any, y: any) {
   }
 }
 
-export function $base_io_print(x: any) {
+export function $base_io_print(x: RawValue): Void {
   printValue(x);
-  return nothing;
+  return VOID;
 }
 
-export function $base_matrix_is_zero(x: any) {
+export function $base_matrix_is_zero(x: RawMatrix): RawBoole {
   var values = getCOONumbers(x)[2];
   for (var i = 0; i < values.length; i++) {
     if (values[i] != 0) return false;
@@ -256,19 +290,22 @@ export function $base_matrix_is_zero(x: any) {
   return true;
 }
 
-export function compute_$base_matrix__() {
+export function compute_$base_matrix__(): RawCoordinates {
   return createCoordinates([]);
 }
 
-export function $base_matrix_scalar_unit(_x: any) {
+export function $base_matrix_scalar_unit(_x: RawMatrix): RawMatrix {
   return oneNumbers(1, 1);
 }
 
-export function $base_matrix_magnitude(x: any) {
+export function $base_matrix_magnitude(x: RawMatrix): RawMatrix {
   return x;
 }
 
-export function $base_matrix_row(x: any, coord: any) {
+export function $base_matrix_row(
+  x: RawMatrix,
+  coord: RawCoordinates
+): RawMatrix {
   var row = coord.position;
   var matrix = zeroNumbers(1, x.nrColumns);
   var numbers = getCOONumbers(x);
@@ -283,86 +320,108 @@ export function $base_matrix_row(x: any, coord: any) {
   return matrix;
 }
 
-export function $base_matrix_row_unit(x: any) {
+export function $base_matrix_row_unit(x: RawMatrix): RawMatrix {
   return oneNumbers(x.nrRows, 1);
 }
 
-export function $base_matrix_row_domain(matrix: any) {
+export function $base_matrix_row_domain(matrix: RawMatrix): RawList {
   var n = matrix.nrRows;
-  var domain = new Array(n);
+  var domain = new Array<RawCoordinates>(n);
   for (var i = 0; i < n; i++) {
     domain[i] = { kind: "coordinates", position: i, size: n };
   }
-  return tagKind(domain, "list");
+  return tagList(domain);
 }
 
-export function $base_matrix_index_less(x: any, y: any) {
+export function $base_matrix_index_less(
+  x: RawCoordinates,
+  y: RawCoordinates
+): RawBoole {
   return x.position < y.position;
 }
 
-export function $base_matrix_column(x: any, coord: any) {
+export function $base_matrix_column(
+  x: RawMatrix,
+  coord: RawCoordinates
+): RawMatrix {
   // todo: reconsider this and the $base_matrix_row implementation
   return $base_matrix_transpose(
     $base_matrix_row($base_matrix_transpose(x), coord)
   );
 }
 
-export function $base_matrix_column_domain(matrix: any) {
+export function $base_matrix_column_domain(matrix: RawMatrix): RawList {
   var n = matrix.nrColumns;
   var domain = new Array(n);
   for (var i = 0; i < n; i++) {
     domain[i] = { kind: "coordinates", position: i, size: n };
   }
-  return tagKind(domain, "list");
+  return tagList(domain);
 }
 
-export function $base_matrix_column_unit(x: any) {
+export function $base_matrix_column_unit(x: RawMatrix): RawMatrix {
   return oneNumbers(x.nrColumns, 1);
 }
 
-export function $base_matrix_get_num(matrix: any, i: any, j: any) {
+export function $base_matrix_get_num(
+  matrix: RawMatrix,
+  i: RawCoordinates,
+  j: RawCoordinates
+): RawMatrix {
   return get(matrix, i.position, j.position);
 }
 
-export function $base_matrix_get(matrix: any, i: any, j: any) {
+export function $base_matrix_get(
+  matrix: RawMatrix,
+  i: RawCoordinates,
+  j: RawCoordinates
+): RawMatrix {
   return get(matrix, i.position, j.position);
 }
 
-export function $base_matrix_make_matrix(tuples: any[]) {
-  var first = tuples[0];
+export function $base_matrix_make_matrix(tuples: RawList): RawMatrix {
+  var first = tuples[0] as unknown as [
+    RawCoordinates,
+    RawCoordinates,
+    RawMatrix
+  ];
   var numbers = zeroNumbers(first[0].size, first[1].size);
   for (var i = 0; i < tuples.length; i++) {
-    var tup = tuples[i];
+    var tup = tuples[i] as unknown as [
+      RawCoordinates,
+      RawCoordinates,
+      RawMatrix
+    ];
     set(numbers, tup[0].position, tup[1].position, getNumber(tup[2], 0, 0));
   }
   return numbers;
 }
 
-export function $base_matrix_signum(x: any) {
+export function $base_matrix_signum(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
     return val < 0 ? -1 : val > 0 ? 1 : 0;
   });
 }
 
-export function $base_matrix_support(x: any) {
+export function $base_matrix_support(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (_val: number) {
     return 1;
   });
 }
 
-export function $base_matrix_positive_support(x: any) {
+export function $base_matrix_positive_support(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
     return 0 < val ? 1 : 0;
   });
 }
 
-export function $base_matrix_negative_support(x: any) {
+export function $base_matrix_negative_support(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
     return val < 0 ? 1 : 0;
   });
 }
 
-export function $base_matrix_top(cnt: any, x: any) {
+export function $base_matrix_top(cnt: RawMatrix, x: RawMatrix): RawMatrix {
   var n = getNumber(cnt, 0, 0);
 
   if (n === 0) {
@@ -404,7 +463,7 @@ export function $base_matrix_top(cnt: any, x: any) {
   return matrix;
 }
 
-export function $base_matrix_bottom(cnt: any, x: any) {
+export function $base_matrix_bottom(cnt: RawMatrix, x: RawMatrix): RawMatrix {
   var n = getNumber(cnt, 0, 0);
 
   if (n === 0) {
@@ -446,7 +505,7 @@ export function $base_matrix_bottom(cnt: any, x: any) {
   return matrix;
 }
 
-export function $base_matrix_left_identity(x: any) {
+export function $base_matrix_left_identity(x: RawMatrix): RawMatrix {
   var numbers = zeroNumbers(x.nrRows, x.nrRows);
   for (var i = 0; i < x.nrRows; i++) {
     set(numbers, i, i, 1);
@@ -454,7 +513,7 @@ export function $base_matrix_left_identity(x: any) {
   return numbers;
 }
 
-export function $base_matrix_right_identity(x: any) {
+export function $base_matrix_right_identity(x: RawMatrix): RawMatrix {
   var numbers = zeroNumbers(x.nrColumns, x.nrColumns);
   for (var i = 0; i < x.nrColumns; i++) {
     set(numbers, i, i, 1);
@@ -462,13 +521,13 @@ export function $base_matrix_right_identity(x: any) {
   return numbers;
 }
 
-export function $base_matrix_reciprocal(x: any) {
+export function $base_matrix_reciprocal(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
     return val == 0 ? 0 : 1 / val;
   });
 }
 
-export function $base_matrix_transpose(x: any) {
+export function $base_matrix_transpose(x: RawMatrix): RawMatrix {
   var result = zeroNumbers(x.nrColumns, x.nrRows);
   var numbers = getCOONumbers(x);
   var rows = numbers[0];
@@ -480,15 +539,15 @@ export function $base_matrix_transpose(x: any) {
   return result;
 }
 
-export function $base_matrix_dim_inv(x: any) {
+export function $base_matrix_dim_inv(x: RawMatrix): RawMatrix {
   return $base_matrix_transpose($base_matrix_reciprocal(x));
 }
 
-export function $base_matrix_dim_div(x: any, y: any) {
+export function $base_matrix_dim_div(x: RawMatrix, y: RawMatrix): RawMatrix {
   return $base_matrix_mmult(x, $base_matrix_dim_inv(y));
 }
 
-export function $base_matrix_mmult(x: any, y: any) {
+export function $base_matrix_mmult(x: RawMatrix, y: RawMatrix): RawMatrix {
   return tagNumbers(
     ccsDot(getCCSNumbers(x), getCCSNumbers(y)),
     x.nrRows,
@@ -497,8 +556,9 @@ export function $base_matrix_mmult(x: any, y: any) {
   );
 }
 
-export function $base_matrix_multiply(x: any, y: any) {
-  if (x.storage === 13) {
+export function $base_matrix_multiply(x: RawMatrix, y: RawMatrix): RawMatrix {
+  // TODO: 13?????
+  if ((x.storage as any) === 13) {
     return tagNumbers(
       ccsmul(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
@@ -535,13 +595,13 @@ export function $base_matrix_multiply(x: any, y: any) {
 //     return matrix;
 // }
 
-export function $base_matrix_divide(x: any, y: any) {
+export function $base_matrix_divide(x: RawMatrix, y: RawMatrix): RawMatrix {
   return elementWiseNumbers(x, y, function (a: number, b: number) {
     return b !== 0 ? a / b : 0;
   });
 }
 
-export function $base_matrix_gcd(x: any, y: any) {
+export function $base_matrix_gcd(x: RawMatrix, y: RawMatrix): RawMatrix {
   return elementWiseNumbers(x, y, function (a: number, b: number) {
     if (a < 0) a = -a;
     if (b < 0) b = -b;
@@ -561,8 +621,9 @@ export function $base_matrix_gcd(x: any, y: any) {
   });
 }
 
-export function $base_matrix_sum(x: any, y: any) {
-  if (x.storage === 13) {
+export function $base_matrix_sum(x: RawMatrix, y: RawMatrix): RawMatrix {
+  // TODO: 13?????
+  if ((x.storage as any) === 13) {
     return tagNumbers(
       ccsadd(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
@@ -576,9 +637,10 @@ export function $base_matrix_sum(x: any, y: any) {
   }
 }
 
-export function $base_matrix_minus(x: any, y: any) {
+export function $base_matrix_minus(x: RawMatrix, y: RawMatrix): RawMatrix {
   //return Pacioli.elementWiseNumbers(x, y, function(a, b) { return a-b})
-  if (x.storage === 13) {
+  // TODO: 13?????
+  if ((x.storage as any) === 13) {
     return tagNumbers(
       ccssub(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
@@ -592,31 +654,31 @@ export function $base_matrix_minus(x: any, y: any) {
   }
 }
 
-export function $base_matrix_negative(x: any) {
+export function $base_matrix_negative(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
     return -val;
   });
 }
 
-export function $base_matrix_scale(x: any, y: any) {
+export function $base_matrix_scale(x: RawMatrix, y: RawMatrix): RawMatrix {
   var factor = getNumber(x, 0, 0);
-  return unaryNumbers(y, function (val: any) {
+  return unaryNumbers(y, function (val: number): number {
     return factor * val;
   });
 }
 
-export function $base_matrix_rscale(x: any, y: any) {
+export function $base_matrix_rscale(x: RawMatrix, y: RawMatrix): RawMatrix {
   var factor = getNumber(y, 0, 0);
-  return unaryNumbers(x, function (val: any) {
+  return unaryNumbers(x, function (val: number): number {
     return factor * val;
   });
 }
 
-export function $base_matrix_scale_down(x: any, y: any) {
+export function $base_matrix_scale_down(x: RawMatrix, y: RawMatrix): RawMatrix {
   return $base_matrix_scale($base_matrix_reciprocal(y), x);
 }
 
-export function $base_matrix_total(x: any) {
+export function $base_matrix_total(x: RawMatrix): RawMatrix {
   var values = getCOONumbers(x)[2];
   var total = 0;
   for (var i = 0; i < values.length; i++) {
@@ -627,7 +689,7 @@ export function $base_matrix_total(x: any) {
   return result;
 }
 
-export function $base_matrix_mod(x: any, y: any) {
+export function $base_matrix_mod(x: RawMatrix, y: RawMatrix): RawMatrix {
   return elementWiseNumbers(x, y, function (a: number, b: number) {
     if (b === 0) {
       return a;
@@ -638,7 +700,7 @@ export function $base_matrix_mod(x: any, y: any) {
   });
 }
 
-export function $base_matrix_abs_min(x: any, y: any) {
+export function $base_matrix_abs_min(x: RawMatrix, y: RawMatrix): RawMatrix {
   return elementWiseNumbers(x, y, function (a: number, b: number) {
     if (b === 0) {
       return a;
@@ -648,19 +710,19 @@ export function $base_matrix_abs_min(x: any, y: any) {
   });
 }
 
-export function $base_matrix_rem(x: any, y: any) {
+export function $base_matrix_rem(x: RawMatrix, y: RawMatrix): RawMatrix {
   return elementWiseNumbers(x, y, function (a: number, b: number) {
     return b === 0 ? a : a % b;
   });
 }
 
-export function $base_matrix_div(x: any, y: any) {
+export function $base_matrix_div(x: RawMatrix, y: RawMatrix): RawMatrix {
   return elementWiseNumbers(x, y, function (a: number, b: number) {
     return b === 0 ? 0 : Math.trunc(a / b);
   });
 }
 
-export function $base_matrix_max(x: any, y: any) {
+export function $base_matrix_max(x: RawMatrix, y: RawMatrix): RawMatrix {
   return tagNumbers(
     max(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
@@ -669,7 +731,7 @@ export function $base_matrix_max(x: any, y: any) {
   );
 }
 
-export function $base_matrix_min(x: any, y: any) {
+export function $base_matrix_min(x: RawMatrix, y: RawMatrix): RawMatrix {
   return tagNumbers(
     min(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
@@ -678,31 +740,31 @@ export function $base_matrix_min(x: any, y: any) {
   );
 }
 
-export function $base_matrix_sin(x: any) {
+export function $base_matrix_sin(x: RawMatrix): RawMatrix {
   return tagNumbers(sin(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function $base_matrix_cos(x: any) {
+export function $base_matrix_cos(x: RawMatrix): RawMatrix {
   return tagNumbers(cos(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function $base_matrix_tan(x: any) {
+export function $base_matrix_tan(x: RawMatrix): RawMatrix {
   return tagNumbers(tan(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function $base_system__asin(x: any) {
+export function $base_system__asin(x: RawMatrix): RawMatrix {
   return tagNumbers(asin(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function $base_system__acos(x: any) {
+export function $base_system__acos(x: RawMatrix): RawMatrix {
   return tagNumbers(acos(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function $base_system__atan(x: any) {
+export function $base_system__atan(x: RawMatrix): RawMatrix {
   return tagNumbers(atan(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function $base_system__atan2(x: any, y: any) {
+export function $base_system__atan2(x: RawMatrix, y: RawMatrix): RawMatrix {
   return tagNumbers(
     atan2(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
@@ -711,37 +773,37 @@ export function $base_system__atan2(x: any, y: any) {
   );
 }
 
-export function $base_matrix_floor(x: any) {
+export function $base_matrix_floor(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
     return Math.floor(val);
   });
 }
 
-export function $base_matrix_ceiling(x: any) {
+export function $base_matrix_ceiling(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
     return Math.ceil(val);
   });
 }
 
-export function $base_matrix_truncate(x: any) {
+export function $base_matrix_truncate(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
     return Math.trunc(val);
   });
 }
 
-export function $base_matrix_round(x: any) {
+export function $base_matrix_round(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
     return Math.round(val);
   });
 }
 
-export function $base_matrix_abs(x: any) {
+export function $base_matrix_abs(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
     return Math.abs(val);
   });
 }
 
-export function $base_matrix_mexpt(x: any, y: any): any {
+export function $base_matrix_mexpt(x: RawMatrix, y: RawMatrix): RawMatrix {
   var n = getNumber(y, 0, 0);
   if (n === 0) {
     return $base_matrix_left_identity(x);
@@ -761,27 +823,27 @@ export function $base_matrix_mexpt(x: any, y: any): any {
   }
 }
 
-export function $base_matrix_expt(x: any, y: any) {
+export function $base_matrix_expt(x: RawMatrix, y: RawMatrix): RawMatrix {
   var n = getNumber(y, 0, 0);
   return tagNumbers(pow(getFullNumbers(x), n), x.nrRows, x.nrColumns, 0);
 }
 
-export function $base_matrix_log(x: any, y: any) {
+export function $base_matrix_log(x: RawMatrix, y: RawMatrix): RawMatrix {
   return $base_matrix_divide(
     tagNumbers(log(getFullNumbers(x)), x.nrRows, x.nrColumns, 0),
     tagNumbers(log(getFullNumbers(y)), x.nrRows, x.nrColumns, 0)
   );
 }
 
-export function $base_matrix_exp(x: any) {
+export function $base_matrix_exp(x: RawMatrix): RawMatrix {
   return tagNumbers(exp(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function $base_matrix_ln(x: any) {
+export function $base_matrix_ln(x: RawMatrix): RawMatrix {
   return tagNumbers(log(getFullNumbers(x)), x.nrRows, x.nrColumns, 0);
 }
 
-export function $base_matrix_less(x: any, y: any) {
+export function $base_matrix_less(x: RawMatrix, y: RawMatrix): RawBoole {
   return !findNonZero(
     x,
     y,
@@ -792,7 +854,7 @@ export function $base_matrix_less(x: any, y: any) {
   ); //=== null
 }
 
-export function $base_matrix_less_eq(x: any, y: any) {
+export function $base_matrix_less_eq(x: RawMatrix, y: RawMatrix): RawBoole {
   return !findNonZero(
     x,
     y,
@@ -803,7 +865,7 @@ export function $base_matrix_less_eq(x: any, y: any) {
   ); //=== null
 }
 
-export function $base_matrix_greater(x: any, y: any) {
+export function $base_matrix_greater(x: RawMatrix, y: RawMatrix): RawBoole {
   return !findNonZero(
     x,
     y,
@@ -814,7 +876,7 @@ export function $base_matrix_greater(x: any, y: any) {
   ); //=== null
 }
 
-export function $base_matrix_greater_eq(x: any, y: any) {
+export function $base_matrix_greater_eq(x: RawMatrix, y: RawMatrix): RawBoole {
   return !findNonZero(
     x,
     y,
@@ -825,29 +887,29 @@ export function $base_matrix_greater_eq(x: any, y: any) {
   ); //=== null
 }
 
-export function $base_matrix_sqrt(x: any) {
+export function $base_matrix_sqrt(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
     return Math.sqrt(val);
   });
 }
 
-export function $base_matrix_cbrt(x: any) {
+export function $base_matrix_cbrt(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
     return Math.cbrt(val);
   });
 }
 
-export function $base_matrix_solve(x: any, _ignored: any) {
+export function $base_matrix_solve(x: RawMatrix, _ignored: any): RawMatrix {
   // https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse
   // Maybe use svd to compute pseudo-inverse?
   return tagNumbers(inv(getFullNumbers(x)), x.nrColumns, x.nrRows, 0);
 }
 
-export function $base_matrix_random() {
+export function $base_matrix_random(): RawMatrix {
   return tagNumbers([[Math.random()]], 1, 1, 0);
 }
 
-export function $base_matrix_ranking(x: any) {
+export function $base_matrix_ranking(x: RawMatrix): RawMatrix {
   var result = zeroNumbers(x.nrRows, x.nrColumns);
   var numbers = getCOONumbers(x);
   var rows = numbers[0];
@@ -869,7 +931,7 @@ export function $base_matrix_ranking(x: any) {
   return result;
 }
 
-export function $base_list_mapnz(fun: any, x: any) {
+export function $base_list_mapnz(fun: RawFunction, x: RawMatrix): RawMatrix {
   var result = zeroNumbers(x.nrRows, x.nrColumns);
   var numbers = getCOONumbers(x);
   var rows = numbers[0];
@@ -878,144 +940,153 @@ export function $base_list_mapnz(fun: any, x: any) {
 
   for (var i = 0; i < rows.length; i++) {
     // Again the fun arg to fun.call. See apply
-    set(
-      result,
-      rows[i],
-      columns[i],
-      getNumber(fun.call(fun, tagNumbers([[values[i]]], 1, 1, 0)), 0, 0)
-    );
+    throw new Error("todo: check mapnz in pacioli-js");
+    // set(
+    //   result,
+    //   rows[i],
+    //   columns[i],
+    //   getNumber(fun.call(fun, tagNumbers([[values[i]]], 1, 1, 0)), 0, 0)
+    // );
   }
   return result;
 }
 
-export function $base_list_zip(x: any, y: any) {
+export function $base_list_zip(x: RawList, y: RawList): RawList {
   var list = new Array(Math.min(x.length, y.length));
   for (var i = 0; i < list.length; i++) {
     list[i] = [x[i], y[i]];
   }
-  return tagKind(list, "list");
+  return tagList(list);
 }
 
-export function $base_list_map_list(fun: any, items: any) {
+export function $base_list_map_list(fun: RawFunction, items: RawList): RawList {
   var list = new Array(items.length);
-  for (var i = 0; i < items.length; i++) {
-    list[i] = fun(items[i]);
-  }
-  return tagKind(list, "list");
+  throw new Error("todo: check mapnz in map_list");
+  // for (var i = 0; i < items.length; i++) {
+  //   list[i] = fun(items[i]);
+  // }
+  return tagList(list);
 }
 
-export function $base_system__add_mut(list: any, item: PacioliValue) {
-  (list as PacioliValue[]).push(item);
+export function $base_system__add_mut(list: RawList, item: RawValue): RawList {
+  list.push(item);
   return list;
 }
 
-export function $base_list_append(x: any, y: any) {
-  return tagKind(x.concat(y), "list");
+export function $base_list_append(x: RawList, y: RawList): RawList {
+  return tagList(x.concat(y));
 }
 
-export function $base_list_reverse(x: any) {
-  return tagKind(x.slice(0).reverse(), "list");
+export function $base_list_reverse(x: RawList): RawList {
+  return tagList(x.slice(0).reverse());
 }
 
-export function $base_list_tail(x: any) {
+export function $base_list_tail(x: RawList): RawList {
   var array = new Array(x.length - 1);
   for (var i = 0; i < array.length; i++) {
     array[i] = x[i + 1];
   }
-  return tagKind(array, "list");
+  return tagList(array);
 }
 
-export function $base_list_singleton_list(x: any) {
-  return tagKind([x], "list");
+export function $base_list_singleton_list(x: RawValue): RawList {
+  return tagList([x]);
 }
 
-export function $base_list_nth(x: any, y: any) {
+export function $base_list_nth(x: RawMatrix, y: RawList): RawValue {
   return y[getNumber(x, 0, 0)];
 }
 
-export function $base_list_naturals(num: any) {
+export function $base_list_naturals(num: RawMatrix): RawList {
   var n = getNumber(num, 0, 0);
   var list = new Array(n);
   for (var i = 0; i < n; i++) {
     list[i] = initialNumbers(1, 1, [[0, 0, i]]);
   }
-  return tagKind(list, "list");
+  return tagList(list);
 }
 
 export function $base_list_loop_list(
-  init: PacioliValue,
-  fun: PacioliFunction,
-  list: PacioliValue[]
-) {
-  var accu: PacioliValue = init;
+  init: RawValue,
+  fun: RawFunction,
+  list: RawList
+): RawValue {
+  var accu: RawValue = init;
   for (var i = 0; i < list.length; i++) {
-    accu = $base_base_apply(fun, [accu, list[i]]);
+    accu = $base_base_apply(fun, [accu, list[i]] as RawTuple); // could also call makeRawTuple([accu, list[i]])
   }
   return accu;
 }
 
-export function $base_list_list_size(x: any) {
+export function $base_list_list_size(x: RawList): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, x.length]]);
 }
 
-export function $base_list_head(x: any) {
+export function $base_list_head(x: RawList): RawValue {
   return x[0];
 }
 
-export function $base_list_fold_list(fun: any, list: any) {
+export function $base_list_fold_list(
+  fun: RawFunction,
+  list: RawList
+): RawValue {
   if (list.length == 0) {
     throw new Error("Cannot fold an empty list");
   }
   var accu = list[0];
   for (var i = 1; i < list.length; i++) {
-    accu = $base_base_apply(fun, [accu, list[i]]);
+    accu = $base_base_apply(fun, [accu, list[i]] as RawTuple);
   }
   return accu;
 }
 
-export function $base_list_sort_list(list: any, fun: any) {
-  return tagKind(
-    list.slice(0).sort(function (a: any, b: any) {
-      return getNumber($base_base_apply(fun, [a, b]), 0, 0);
-    }),
-    "list"
+export function $base_list_sort_list(list: RawList, fun: RawFunction): RawList {
+  return tagList(
+    list.slice(0).sort(function (a: RawValue, b: RawValue) {
+      return getNumber(
+        $base_base_apply(fun, [a, b] as RawTuple) as unknown as RawMatrix, // TODO: Is the unknown cast necesarry? Is there a better solution?
+        0,
+        0
+      );
+    })
   );
 }
 
-export function $base_list_cons(item: any, list: any) {
+export function $base_list_cons(item: RawValue, list: RawList): RawList {
   return $base_list_append($base_list_singleton_list(item), list);
 }
 
-export function $base_list_contains(list: PacioliValue[], item: PacioliValue) {
+export function $base_list_contains(list: RawList, item: RawValue): RawBoole {
   return list.some((val) => $base_base_equal(val, item));
 }
 
-export function $base_list_empty_list() {
-  return tagKind([], "list");
+export function $base_list_empty_list(): RawList {
+  return tagList([]);
 }
 
-export function $base_string_format(formatter: any, ...args: any[]) {
+export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
   // Quick and dirty format implementation. Does not handle escaped percentages. So
   // format("\%s %s", "foo") gives "\foo %s" instead of "%s foo"
-  let output = formatter;
+  // TODO: better runtime error handling instead of casts
+  let output = formatter as unknown as RawString;
   for (const arg of args) {
-    output = output.replace(/%s/, arg);
+    output = output.replace(/%s/, arg as unknown as RawString);
   }
   return output;
 }
 
 let NR_DECIMALS = 2;
 
-export function $base_io_nr_decimals() {
+export function $base_io_nr_decimals(): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, NR_DECIMALS]]);
 }
 
-export function $base_io_set_nr_decimals(num: any) {
+export function $base_io_set_nr_decimals(num: RawMatrix): Void {
   NR_DECIMALS = getNumber(num, 0, 0);
-  return nothing;
+  return VOID;
 }
 
-export function $base_string_unit2string(unit: any) {
+export function $base_string_unit2string(unit: RawMatrix): RawString {
   const shape = unit.shape;
   if (shape === undefined) {
     throw Error("shape undefined");
@@ -1030,7 +1101,11 @@ export function $base_string_unit2string(unit: any) {
   }
 }
 
-export function $base_string_num2string(num: any, decimals: any, unit: any) {
+export function $base_string_num2string(
+  num: RawMatrix,
+  decimals: RawMatrix,
+  unit: RawMatrix
+): RawString {
   const shape = unit.shape;
   if (shape === undefined) {
     throw Error("shape undefined");
@@ -1039,7 +1114,10 @@ export function $base_string_num2string(num: any, decimals: any, unit: any) {
   return matrix.toDecimal(getNumber(decimals, 0, 0));
 }
 
-export function $base_string_num2str(num: any, unit: any) {
+export function $base_string_num2str(
+  num: RawMatrix,
+  unit: RawMatrix
+): RawString {
   const shape = unit.shape;
   if (shape === undefined) {
     throw Error("shape undefined");
@@ -1048,51 +1126,70 @@ export function $base_string_num2str(num: any, unit: any) {
   return matrix.toDecimal(NR_DECIMALS);
 }
 
-export function $base_string_compare_string(x: any, y: any) {
+export function $base_string_compare_string(
+  x: RawString,
+  y: RawString
+): RawBoole {
   return initialNumbers(1, 1, [[0, 0, x < y ? -1 : x > y ? 1 : 0]]);
 }
 
-export function $base_string_concatenate(x: any, y: any) {
+export function $base_string_concatenate(
+  x: RawString,
+  y: RawString
+): RawString {
   return x.concat(y);
 }
 
-export function $base_string_split_string(x: any, y: any) {
-  return tagKind(x.split(y), "list");
+export function $base_string_split_string(x: RawString, y: RawString): RawList {
+  return tagList(x.split(y) as unknown as RawValue[]);
 }
 
-export function $base_string_pad_left(x: any, n: any, sub: any) {
+export function $base_string_pad_left(
+  x: RawString,
+  n: RawMatrix,
+  sub: RawString
+): RawString {
   return x.padStart(getNumber(n, 0, 0), sub);
 }
 
-export function $base_string_pad_right(x: any, n: any, sub: any) {
+export function $base_string_pad_right(
+  x: RawString,
+  n: RawMatrix,
+  sub: RawString
+): RawString {
   return x.padEnd(getNumber(n, 0, 0), sub);
 }
 
-export function $base_string_trim(x: any) {
+export function $base_string_trim(x: RawString): RawString {
   return x.trim();
 }
 
-export function $base_string_parse_num(x: any) {
+export function $base_string_parse_num(x: RawString): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, Number(x)]]);
 }
 
-export function $base_system__system_time() {
+export function $base_system__system_time(): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, Date.now()]]);
 }
 
-export function $base_array_make_array(n: any) {
-  return tagKind(new Array(getNumber(n, 0, 0)), "list"); // TODO: make 'array' kind
+export function $base_array_make_array(n: RawMatrix): RawArray {
+  return tagArray(new Array(getNumber(n, 0, 0)));
 }
 
-export function $base_array_array_get(arr: any, pos: any) {
+export function $base_array_array_get(arr: RawArray, pos: RawMatrix): RawValue {
   return arr[getNumber(pos, 0, 0)];
 }
 
-export function $base_array_array_put(arr: any, pos: any, val: any) {
+export function $base_array_array_put(
+  arr: RawArray,
+  pos: RawMatrix,
+  val: RawValue
+): Void {
   arr[getNumber(pos, 0, 0)] = val;
+  return VOID;
 }
 
-export function $base_array_array_size(arr: any) {
+export function $base_array_array_size(arr: RawArray): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, arr.length]]);
 }
 
