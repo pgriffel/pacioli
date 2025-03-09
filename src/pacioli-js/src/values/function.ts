@@ -22,7 +22,7 @@
 
 import { typeFromValue, rawValueFromValue, boxRawValue } from "../boxing";
 import { FunctionType } from "../types/function";
-import { PacioliValue } from "../value";
+import { PacioliValue } from "../boxing";
 import { PacioliContext } from "../context";
 import { GenericType } from "../types/generic";
 

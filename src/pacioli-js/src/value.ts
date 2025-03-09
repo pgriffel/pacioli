@@ -20,15 +20,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliType } from "./type";
-import { PacioliBoole } from "./values/boole";
 import { Coordinates } from "./values/coordinates";
-import { PacioliFunction } from "./values/function";
-import { Matrix } from "./values/matrix";
 import { MatrixShape } from "./values/matrix-shape";
-import { Maybe } from "./values/maybe";
-import { PacioliString } from "./values/string";
-import { Void } from "./values/void";
 
 /* Runtime Types
  *
@@ -59,18 +52,18 @@ import { Void } from "./values/void";
  * discriminating union.
  */
 
-// TODO: strip!
-export type RawTag =
-  // | "numbers"
-  | "position"
-  | "boole"
-  | "function"
-  // | "tuple"
-  // | "list"
-  | "reference"
-  | "void"
-  | "maybe"
-  | "primitive";
+// // TODO: strip!
+// export type RawTag =
+//   // | "numbers"
+//   | "position"
+//   | "boole"
+//   | "function"
+//   // | "tuple"
+//   // | "list"
+//   | "reference"
+//   | "void"
+//   | "maybe"
+//   | "primitive";
 
 // should be somehting like  type RawValue = RawTagged | string | boole | function
 // export type RawMatrix = number[][];
@@ -83,11 +76,8 @@ export interface RawMatrix extends Array<Array<number>> {
 }
 
 export type RawValue =
-  | RawTagged
-  | RawCoordinates
-  | RawMatrix
-  | RawList
-  | RawTuple;
+  // | RawTagged
+  RawCoordinates | RawMatrix | RawList | RawTuple;
 // export type RawTuple = RawValue[];
 
 /**
@@ -100,6 +90,10 @@ export type RawValue =
  * The compiler maps this to a vararg function:
  *
  *   (...RawTuple) => RawValue.
+ *
+ * To avoid having to tag args as tuple in primitives.ts this is relaxed to:
+ *
+ *   (...RawValue[]) => RawValue.
  *
  */
 export type RawFunction = (...args: RawValue[]) => RawValue;
@@ -124,30 +118,15 @@ export type RawBoole = boolean;
 export const NOTHING = undefined;
 export const VOID = undefined;
 
-export interface RawTagged {
-  readonly kind: RawTag;
-}
+// export interface RawTagged {
+//   readonly kind: RawTag;
+// }
 
 export interface RawCoordinates {
   kind: "coordinates";
   position: number;
   size: number;
   coords?: Coordinates; // TODO: check when it exists. $base_matrix_row_domain does not provide it!
-}
-
-/**
- * Not typesafe!
- *
- * @param value
- * @param kind
- * @returns
- */
-export function tagKind(
-  value: any,
-  kind: "tuple" | "list" | "reference" | "void"
-): Tagged {
-  value.kind = kind;
-  return value as Tagged;
 }
 
 export function tagList(value: Array<RawValue>): RawList {
@@ -169,28 +148,4 @@ export function makeRawTuple(args: RawValue[]): RawTuple {
   let arr = Array.prototype.slice.call(args) as RawTuple;
   arr.kind = "tuple";
   return arr;
-}
-
-export function tagType(value: any, type: PacioliType): Tagged {
-  value.type = type;
-  return value as Tagged;
-}
-
-// TaggedArray noemen
-export interface Tagged {
-  readonly kind: "tuple" | "list" | "reference";
-}
-
-export type PacioliValue =
-  | Matrix
-  | Coordinates
-  | Tagged
-  | PacioliBoole
-  | PacioliFunction
-  | PacioliString
-  | Void
-  | Maybe<any>;
-
-export interface ToText {
-  toText(): string;
 }

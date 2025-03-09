@@ -1,4 +1,4 @@
-import { PacioliValue } from "../value";
+import { PacioliValue } from "../boxing";
 import { PacioliWebComponent } from "./pacioli-web-component";
 
 /**

@@ -1,5 +1,5 @@
 import { WordCloud, WordCloudOptions } from "../../charts/d3-wordcloud";
-import { PacioliValue } from "../../value";
+import { PacioliValue } from "../../boxing";
 import { Matrix } from "../../values/matrix";
 import { getNumber } from "../../values/numbers";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";

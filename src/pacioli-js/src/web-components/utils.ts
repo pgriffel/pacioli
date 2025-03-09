@@ -3,7 +3,7 @@ import { PacioliString } from "../values/string";
 import { Matrix } from "../values/matrix";
 import { num, string, value } from "../api";
 import { PacioliFunction } from "../values/function";
-import { PacioliValue } from "../value";
+import { PacioliValue } from "../boxing";
 import { PacioliWebComponent } from "./pacioli-web-component";
 import { PacioliBoole, pacioliFalse, pacioliTrue } from "../values/boole";
 

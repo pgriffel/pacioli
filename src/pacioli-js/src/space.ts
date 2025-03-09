@@ -30,12 +30,12 @@ import { num, unit } from "./api";
 import { Maybe } from "./values/maybe";
 import { PacioliBoole } from "./values/boole";
 import { PacioliFunction } from "./values/function";
-import { PacioliValue } from "./value";
 import {
   CSS2DObject,
   CSS2DRenderer,
 } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper.js";
+import { PacioliValue } from "./boxing";
 
 /**
  * Matches the Scene type from the graphics Pacioli library

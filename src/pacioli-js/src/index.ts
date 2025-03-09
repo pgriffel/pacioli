@@ -22,8 +22,6 @@
 
 export { DimNum, si } from "uom-ts";
 
-export { tagKind } from "./value";
-
 export {
   initialNumbers,
   unit,

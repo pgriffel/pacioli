@@ -22,7 +22,7 @@
 
 import * as d3 from "d3";
 import { PieArcDatum } from "d3";
-import { PacioliValue } from "../value";
+import { PacioliValue } from "../boxing";
 import { PacioliContext } from "../context";
 import {
   dataUnit,

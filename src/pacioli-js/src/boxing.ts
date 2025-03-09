@@ -24,19 +24,59 @@ import { SIUnit, UOM } from "uom-ts";
 import { fetchIndex, fetchUnit, fetchUnitVector } from "./api";
 import { PacioliType, PacioliUnit, PacioliVector } from "./type";
 import { IndexType, MatrixType, PacioliIndex } from "./types/matrix";
-import { PacioliValue, RawMatrix, RawValue, tagKind, tagType } from "./value";
-import { pacioliFalse, pacioliTrue } from "./values/boole";
+import { RawMatrix, RawValue } from "./value";
+import { PacioliBoole, pacioliFalse, pacioliTrue } from "./values/boole";
 import { PacioliFunction } from "./values/function";
 import { Matrix } from "./values/matrix";
 import { MatrixDimension } from "./values/matrix-dimension";
 import { MatrixShape, SIVector } from "./values/matrix-shape";
 import { PacioliString } from "./values/string";
 import { VectorBase } from "./values/vector-base";
-import { VOID } from "./values/void";
+import { Void, VOID } from "./values/void";
 import { GenericType } from "./types/generic";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { Maybe } from "./values/maybe";
 import { PacioliContext } from "./context";
+import { Coordinates } from "./values/coordinates";
+
+export function tagType(value: any, type: PacioliType): Tagged {
+  value.type = type;
+  return value as Tagged;
+}
+
+// TaggedArray noemen
+export interface Tagged {
+  readonly kind: "tuple" | "list" | "reference";
+}
+
+export type PacioliValue =
+  | Matrix
+  | Coordinates
+  | Tagged
+  | PacioliBoole
+  | PacioliFunction
+  | PacioliString
+  | Void
+  | Maybe<any>;
+
+export interface ToText {
+  toText(): string;
+}
+
+/**
+ * Not typesafe!
+ *
+ * @param value
+ * @param kind
+ * @returns
+ */
+export function tagKind(
+  value: any,
+  kind: "tuple" | "list" | "reference" | "void"
+): Tagged {
+  value.kind = kind;
+  return value as Tagged;
+}
 
 export function boxRawValue(
   value: RawValue,

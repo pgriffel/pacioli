@@ -39,8 +39,13 @@ import { PacioliUnit, PacioliVector } from "./type";
 import { PacioliContext } from "./context";
 import { PacioliFunction } from "./values/function";
 import { MatrixType, PacioliIndex } from "./types/matrix";
-import { PacioliValue, RawCoordinates, RawMatrix } from "./value";
-import { boxRawValue, internUnit, matrixShapeFromType } from "./boxing";
+import { RawCoordinates, RawMatrix } from "./value";
+import {
+  boxRawValue,
+  internUnit,
+  matrixShapeFromType,
+  PacioliValue,
+} from "./boxing";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
 import { UnitVector } from "./values/unit-vector";
