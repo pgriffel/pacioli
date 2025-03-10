@@ -34,10 +34,13 @@ import { PacioliUnit, PacioliVector } from "./type";
 import { PacioliContext } from "./context";
 import { PacioliFunction } from "./values/function";
 import { MatrixType, PacioliIndex } from "./types/matrix";
-import { boxRawValue, PacioliValue } from "./boxing";
+import { boxRawValue, PacioliValue, typeFromValue } from "./boxing";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
 import { defaultContext, fetchUnit, initialNumbers, lookupItem } from "./cache";
+import { PacioliTuple } from "./values/tuple";
+import { PacioliList } from "./values/list";
+import { GenericType } from "./types/generic";
 
 // -----------------------------------------------------------------------------
 // New
@@ -152,12 +155,23 @@ export function parseDimNum(
 //     return new Pacioli.Box(new Pacioli.Type('tuple', uTuple), vTuple)
 // }
 
-export function list(array: any[]): PacioliValue {
+export function tuple(array: PacioliValue[]): PacioliValue {
+  return new PacioliTuple(...array);
+}
+
+export function list(array: PacioliValue[]): PacioliValue {
   if (array.length === 0) {
     throw new Error("Cannot make empty list (yet)");
   }
+  var vList = array.map(function (elt) {
+    return elt; //.value;
+  });
+  return new PacioliList(
+    new GenericType("List", [typeFromValue(array[0])]),
+    ...vList
+  );
 
-  throw new Error("Is Pacioli.list(...) used?");
+  // throw new Error("Is Pacioli.list(...) used?");
 
   // // var uList = array[0].type
   // var vList = array.map(function (elt) {return elt.value})

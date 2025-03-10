@@ -196,7 +196,7 @@ export function typeFromValue(value: PacioliValue): PacioliType {
       return new GenericType("Boole", []);
     }
     default: {
-      throw new Error("TODO");
+      throw new Error(`Unexpected value kind ${value.kind} in value ${value}`);
     }
   }
 }
@@ -227,7 +227,9 @@ export function rawValueFromValue(value: PacioliValue): any {
         : rawValueFromValue(value.value);
     }
     default: {
-      throw new Error("TODO");
+      throw new Error(
+        `unexpected value kind ${value.kind} in Pacioli value ${value}`
+      );
     }
   }
 }

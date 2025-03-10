@@ -111,7 +111,7 @@ declare shell_unit ::
     for_unit a: (Shell(a)) -> a;
               
 define shell_unit(shell) =
-  scalar_unit(curve_nth(0, shell_initial_curve(shell)));
+  scalar_unit(curve_nth(0, settings_initial(shell_settings(shell))));
 
 # ----------------------------------------------------------------------------
 
@@ -123,16 +123,16 @@ define shell_current_size(shell) =
 
 # ----------------------------------------------------------------------------
 
-declare shell_full_size ::
-    for_unit a: (Shell(a)) -> 1;
+declare shell_initial_curve ::
+    for_unit a: (Shell(a)) -> Path(a, Geom3!);
 
 define shell_initial_curve(shell) = 
-    settings_initial(shell_settings(shell));
+    make_path(settings_initial(shell_settings(shell)));
 
 # ----------------------------------------------------------------------------
 
-declare shell_initial_curve ::
-    for_unit a: (Shell(a)) -> Curve(a);
+declare shell_full_size ::
+    for_unit a: (Shell(a)) -> 1;
 
 define shell_full_size(shell) = 
     settings_nr_ticks(shell_settings(shell));

@@ -23,7 +23,9 @@ define dont_shake = tuple(
   empty_shell_info,
   shell_meshes,
   shell_current_size,
-  extend_shell_info,last_segment_info
+  extend_shell_info,last_segment_info,
+  shell_initial_curve,
+  axis_point
 );
 
 # ----------------------------------------------------------------------------
@@ -46,10 +48,25 @@ defalias shell_unit = milli:metre;
 # Function shell_body is only used in the test below.
 # ----------------------------------------------------------------------------
 
-define create_shell(aperture, offset, displacement, roz, mu,
-                       growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
+define create_shell(
+    aperture,
+    offset,
+    displacement,
+    roz, mu,
+    growth_constant,
+    theta_x, theta_y, theta_z,
+    segments,
+    fudge) =
   let coords = path_coords(aperture, |shell_unit|) in
-      initial_shell(coords, offset, displacement, roz, mu, growth_constant, theta_x, theta_y, theta_z, segments, fudge)
+      initial_shell(
+          coords,
+          offset,
+          displacement,
+          roz, mu,
+          growth_constant,
+          theta_x, theta_y, theta_z,
+          segments,
+          fudge)
   end;
 
 define get_shell_body(aperture, offset, displacement, roz, mu,

@@ -34,6 +34,7 @@ export {
   unitFromVarName,
   typeFromVarName,
   list,
+  tuple,
   parseDimNum,
   parseUnit,
 } from "./api";
