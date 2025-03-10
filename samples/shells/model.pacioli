@@ -5,6 +5,7 @@
 # ----------------------------------------------------------------------------
 
 import geometry;
+import graphics;
 
 # ----------------------------------------------------------------------------
 # Types
@@ -19,14 +20,14 @@ import geometry;
 # keeps growth faster for cases where the info is not needed.
 # ----------------------------------------------------------------------------
 
-deftype for_unit a: Shell(a) = Tuple(Settings(a), Body(a), List(Mesh(a)));
+deftype for_unit a: Shell(a) = Tuple(Settings(a), Body(a), List(Mesh(a, Geom3!)));
 deftype for_unit a: Settings(a) = Tuple(Curve(a), Curve(a), 1, 1, List(1));
 deftype for_unit a: Body(a) = List(Curve(a));
 deftype for_unit a: Curve(a) = List(a*Geom3!);
 
 deftype for_unit a: Info(a) = Tuple(List(a^2), List(a^2), List(a^2), List(a^3), List(a^3));
 
-deftype for_unit a: Mesh(a) = Tuple(List(a*Geom3!), List(Tuple(1, 1, 1, 1)));
+# deftype for_unit a: Mesh(a) = Tuple(List(a*Geom3!), List(Tuple(1, 1, 1, 1)));
 
 # ----------------------------------------------------------------------------
 # Added because tests have no access to the shell internals
@@ -51,7 +52,7 @@ declare initial_shell :: for_unit a:
 
 declare get_settings :: for_unit a: (Shell(a)) -> Settings(a);
 declare get_body :: for_unit a: (Shell(a)) -> Body(a);
-declare get_meshes :: for_unit a: (Shell(a)) -> List(Mesh(a));
+declare get_shell_meshes :: for_unit a: (Shell(a)) -> List(Mesh(a, Geom3!));
 declare shell_current_size :: for_unit a: (Shell(a)) -> 1;
 declare shell_full_size :: for_unit a: (Shell(a)) -> 1;
 declare shell_initial_curve :: for_unit a: (Shell(a)) -> Curve(a);
@@ -79,7 +80,7 @@ define initial_shell(coords, offset, displacement, roz, mu,
       s = scale_curve(curve, roz),
       t = translate_curve(s, offset),
       u = transform_curve(t, euler_rotation(mu, 0*|radian|, 0*|radian|)),
-      r = rotation(theta_x, theta_y, theta_z),
+      r = euler_rotation(theta_x, theta_y, theta_z),
       gvm = growth_vector_map(u, displacement, growth_constant, r, landmarks)
   in
       tuple(tuple(u, gvm, growth_constant, segments, landmarks), [], [])
@@ -111,7 +112,7 @@ define get_settings(shell) =
 define get_body(shell) =
   let (_, x, _) = shell in x end;
   
-define get_meshes(shell) =
+define get_shell_meshes(shell) =
   let (_, _, x) = shell in x end;
 
 define shell_current_size(shell) =
@@ -297,7 +298,7 @@ declare segment_area :: for_unit a: (Curve(a), Curve(a)) -> a^2;
 declare segment_volume :: for_unit a: (Curve(a), Curve(a)) -> a^3;
 declare compute_rotation :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!, a*Geom3!) -> Geom3! per Geom3!;
 declare curve_rotation :: for_unit a: (Curve(a), List(1)) -> Geom3! per Geom3!;
-declare segment_mesh :: for_unit a: (Curve(a), Curve(a)) -> Mesh(a); 
+declare segment_mesh :: for_unit a: (Curve(a), Curve(a)) -> Mesh(a, Geom3!); 
 
 define make_curve(vs) = append(vs, [head(vs)]);
 
@@ -362,8 +363,21 @@ define compute_rotation(left, top, right, bottom) =
   end;
 
 define segment_mesh(curvea, curveb) =
-  let n = list_size(curvea) in
-      tuple(append(curvea, curveb), [tuple(i, mod(i+1, n), n + mod(i+1, n), n + mod(i, n)) | i <- naturals(n)])
+  let n = list_size(curvea),
+    color = make_color("steelblue") in
+      with_material(
+      make_mesh(
+          [vertex(v, color) | v <- append(curvea, curveb)],
+          [ f | 
+              i <- naturals(n),
+              a := i,
+              b := mod(i+1, n),
+              c := n + mod(i+1, n),
+              d := n + mod(i, n),
+              f <- [ face(a, b, c) , face(a, c, d)
+              ]]),
+              "Normal")
+      # tuple(append(curvea, curveb), [tuple(i, mod(i+1, n), n + mod(i+1, n), n + mod(i, n)) | i <- naturals(n)])
   end;
 
 # ----------------------------------------------------------------------------

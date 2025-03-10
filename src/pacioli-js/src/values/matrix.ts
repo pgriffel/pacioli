@@ -97,6 +97,10 @@ export class Matrix {
     };
   }
 
+  public number(): number {
+    return getNumber(this.numbers, 0, 0);
+  }
+
   public toDecimal(decimals: number) {
     function columnSize(rows: string[][], column: number) {
       return rows

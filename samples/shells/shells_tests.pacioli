@@ -63,7 +63,7 @@ define shells_suite = test_suite("Shells", [
 
     test("should have the correct meshes for some initial shell", () ->
         let shell = run() in
-            get_meshes(shell) = ???
+            get_shell_meshes(shell) = ???
         end
     )
 ]);
