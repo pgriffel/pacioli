@@ -126,11 +126,6 @@ export type RawBoole = boolean;
  */
 export const NOTHING = undefined;
 
-/**
- * Pacioli's void value.
- */
-export const VOID = undefined;
-
 export function tagList(value: Array<RawValue>): RawList {
   (value as RawList).kind = "list";
   return value as RawList;

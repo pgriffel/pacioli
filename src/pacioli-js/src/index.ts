@@ -23,22 +23,13 @@
 export { DimNum, si } from "uom-ts";
 
 export {
-  initialNumbers,
   unit,
   unitType,
   unitVectorType,
   value,
   fun,
   num,
-  string,
-  lookupItem,
   createMatrixType,
-  fetchIndex,
-  makeIndexSet,
-  oneNumbers,
-  oneNumbersFromShape,
-  fetchValue,
-  createCoordinates,
   unitFromBase,
   unitFromVarName,
   typeFromVarName,
@@ -46,6 +37,18 @@ export {
   parseDimNum,
   parseUnit,
 } from "./api";
+
+export {
+  initialNumbers,
+  string,
+  lookupItem,
+  fetchIndex,
+  makeIndexSet,
+  oneNumbers,
+  oneNumbersFromShape,
+  fetchValue,
+  createCoordinates,
+} from "./cache";
 
 export { findNonZero } from "./values/numbers";
 

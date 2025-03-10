@@ -20,9 +20,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-export type Void = { readonly kind: "void" };
+import { PacioliValue } from "../boxing";
 
-/**
- * Pacioli's void value.
- */
-export const VOID: Void = { kind: "void" };
+export class PacioliTuple extends Array<PacioliValue> {
+  readonly kind = "tuple";
+
+  constructor(...elements: PacioliValue[]) {
+    super();
+    this.push(...elements);
+  }
+}

@@ -46,7 +46,7 @@ import {
   oneNumbers,
   printValue,
   zeroNumbers,
-} from "./api";
+} from "./cache";
 import {
   elementWiseNumbers,
   findNonZero,
