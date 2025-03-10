@@ -316,9 +316,9 @@
 
     function onAxes(event) {
       if (event.checked) {
-        space.showAxes()
+        space.showAxis()
       } else {
-        space.hideAxes()
+        space.hideAxis()
       }
     }
 
@@ -361,8 +361,8 @@
     }
 
     function onWindowResize() {
-      // space.resize(window.innerWidth - 50, window.innerHeight - 50)
-      space.draw()
+      space.resize(window.innerWidth - 0 * 50, window.innerHeight - 0 * 50)
+      // space.draw()
     }
 
     function startAnimation(targetSize, stepSize) {
@@ -413,7 +413,7 @@
       space.clear()
 
       // Add the shell's segments
-      var meshes = Pacioli.fun("model", "get_shell_meshes").call(shell)
+      var meshes = Pacioli.fun("model", "shell_meshes").call(shell)
       for (var i = 0; i < meshes.length; i++) {
         space.addMesh(meshes[i], graphics);
       }
@@ -428,7 +428,7 @@
     function updateSpaceBody(space, shell, graphics, n) {
 
       // Add the requested meshes
-      var meshes = Pacioli.fun("model", "get_shell_meshes").call(shell)
+      var meshes = Pacioli.fun("model", "shell_meshes").call(shell)
       for (var i = 0; i < n; i++) {
         space.addMesh(meshes[meshes.length - i - 1], graphics);
       }
@@ -507,7 +507,7 @@
       }
 
       // Create the initial shell
-      var shell = Pacioli.fun("shells", "make_shell").call(
+      var shell = Pacioli.fun("shells", "create_shell").call(
         initial_aperture,
         Pacioli.fun("$geometry_geometry", "vector3d").call(offset, Pacioli.num(0.0, shellUnit), Pacioli.num(0.0, shellUnit)),
         Pacioli.fun("$geometry_geometry", "vector3d").call(outward, Pacioli.num(0.0, shellUnit), upward),

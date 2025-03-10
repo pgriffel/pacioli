@@ -10,13 +10,21 @@
 # The shell model is in file 'model.pacioli'. This file is mostly a small
 # wrapper around the model functions.
 #
-# Paul Griffioen 2012-2020
+# Paul Griffioen 2012-2025
 # ----------------------------------------------------------------------------
 
 import geometry;
 import si;
 
 include model;
+
+define dont_shake = tuple(
+  growth_factors,
+  empty_shell_info,
+  shell_meshes,
+  shell_current_size,
+  extend_shell_info,last_segment_info
+);
 
 # ----------------------------------------------------------------------------
 # Unit Definitions
@@ -38,21 +46,15 @@ defalias shell_unit = milli:metre;
 # Function shell_body is only used in the test below.
 # ----------------------------------------------------------------------------
 
-define make_shell(aperture, offset, displacement, roz, mu,
+define create_shell(aperture, offset, displacement, roz, mu,
                        growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
-  let coords = path_coords(aperture, |shell_unit|),
-  dummy = growth_factors(1,1),
-  dummy2 = empty_shell_info,
-  dummy3 = get_shell_meshes,
-  dummy4 = shell_current_size,
-  dummy5 = extend_shell_info,
-  dummy6 = last_segment_info in
+  let coords = path_coords(aperture, |shell_unit|) in
       initial_shell(coords, offset, displacement, roz, mu, growth_constant, theta_x, theta_y, theta_z, segments, fudge)
   end;
 
-define shell_body(aperture, offset, displacement, roz, mu,
+define get_shell_body(aperture, offset, displacement, roz, mu,
                        growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
-  grow(make_shell(aperture, offset, displacement, roz, mu,
+  grow(create_shell(aperture, offset, displacement, roz, mu,
                        growth_constant, theta_x, theta_y, theta_z, segments, fudge), segments);
 
 # ----------------------------------------------------------------------------
@@ -130,7 +132,7 @@ define run() =
       deg = 2*pi*|radian|/360,
       shell_vec(x, y, z) = space_vec(x*|shell_unit|, y*|shell_unit|, z*|shell_unit|)
   in
-      shell_body(my_path_a(), shell_vec(0, 0, 0), shell_vec(-0.05, 0, -0.02),
+      get_shell_body(my_path_a(), shell_vec(0, 0, 0), shell_vec(-0.05, 0, -0.02),
                     1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, 2, 1)
   end;
 

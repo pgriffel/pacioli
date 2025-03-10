@@ -518,6 +518,12 @@ export class Space {
     }
   }
 
+  resize(width: number, height: number) {
+    // this.camera.aspect = width / height;
+    // this.camera.updateProjectionMatrix();
+    this.renderer.setSize(width, height);
+    this.draw();
+  }
   hasLabels(): boolean {
     // The label renderer is the second renderer. Is it present?
     return this.renderersDiv.childElementCount === 2;

@@ -1,6 +1,6 @@
 /* Paul Griffioen 2013 */
 
-#canvasparent .space {
+#canvasparent {
     z-index:-1;
     position: fixed;
     outline: 0;
