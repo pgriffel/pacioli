@@ -39,11 +39,11 @@ define funcall_suite = test_suite("funcall", [
        ((a, b, c) -> sum_trip(a, b, c))(1, 2, 3) = 6),
        
     test("should work for apply lambda", () -> 
-       apply(((a, b, c) -> sum_trip(a, b, c)), tuple(1, 2, 3)) = 6)
+       apply(((a, b, c) -> sum_trip(a, b, c)), tuple(1, 2, 3)) = 6),
 
-    # test("should work for _lambda", () -> 
-    #    _lambda args apply(sum_trip, args) end(1, 2, 3) = 6),
+    test("should work for _lambda", () -> 
+       _lambda args apply(sum_trip, args) end(1, 2, 3) = 6),
        
-    # test("should work for apply _lambda", () -> 
-    #    apply(_lambda args apply(sum_trip, args) end, tuple(1, 2, 3)) = 6)
+    test("should work for apply _lambda", () -> 
+       apply(_lambda args apply(sum_trip, args) end, tuple(1, 2, 3)) = 6)
 ]); 

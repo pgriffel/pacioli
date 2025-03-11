@@ -72,9 +72,8 @@ public class LambdaNode extends AbstractExpressionNode {
     public String argsString(String prefix) {
         if (this.varArgs) {
             if (this.arguments.size() == 1) {
-                throw new PacioliException(this.location(),
-                        "TODO: voor js uitwerken. Alleen JSTranspiler roept dit aan");
-                // return this.arguments.get(0);
+                // TODO: Wegwerken hier. Alleen JSTranspiler roept dit aan
+                return "..." + prefix + this.arguments.get(0);
             } else {
                 throw new PacioliException(this.location(), "Varargs lambda must have 1 argument");
             }

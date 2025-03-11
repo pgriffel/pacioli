@@ -37,7 +37,7 @@ define expected_shell = [
         shell_vec(-0.013085,  0.006509, -0.220527)
     ]
 ];
-
+ 
 define check_curves(x, y) = 
     list_size(x) = list_size(y) and
     all[approximates(a, b, 6*|decimals|) | (a, b) <- zip(x, y)];
@@ -46,7 +46,7 @@ define shells_suite = test_suite("Shells", [
 
     test("should have the correct settings for some initial shell", () ->
         let shell = run() in
-            get_settings(shell) = ???
+            shell_settings(shell) = ???
         end
     ),
     
@@ -63,7 +63,7 @@ define shells_suite = test_suite("Shells", [
 
     test("should have the correct meshes for some initial shell", () ->
         let shell = run() in
-            get_shell_meshes(shell) = ???
+            shell_meshes(shell) = ???
         end
     )
 ]);

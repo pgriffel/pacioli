@@ -656,12 +656,8 @@ public class Pacioli {
 
         Path dstPath = project.bundlePath(settings.target());
 
-        Bundle bundle = project.loadBundle();
-
         try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())))) {
-
-            bundle.generateCode(writer, settings);
-
+            project.generateCode(writer, settings);
         }
 
         return dstPath;

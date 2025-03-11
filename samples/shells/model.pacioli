@@ -12,7 +12,7 @@ import graphics;
 # ----------------------------------------------------------------------------
 
 doc Shell
-    "A shell is a tiple (settings, body, meshes). The settings are derived
+    "A shell is a triple (settings, body, meshes). The settings are derived
     from the shell's parameters. The body and polygon meshes are computed
     during growth.
     
@@ -421,7 +421,6 @@ define segment_mesh(curvea, curveb) =
               f <- [ face(a, b, c) , face(a, c, d)
               ]]),
               "Normal")
-      # tuple(append(curvea, curveb), [tuple(i, mod(i+1, n), n + mod(i+1, n), n + mod(i, n)) | i <- naturals(n)])
   end;
 
 # ----------------------------------------------------------------------------

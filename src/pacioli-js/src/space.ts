@@ -522,6 +522,7 @@ export class Space {
     // this.camera.aspect = width / height;
     // this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
+    this.labelRenderer.setSize(width, height);
     this.draw();
   }
   hasLabels(): boolean {
