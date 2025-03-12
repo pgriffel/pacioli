@@ -1,4 +1,4 @@
-import { si, SIUnit } from "uom-ts";
+import { SIUnit } from "uom-ts";
 import {
   PacioliScene,
   Space,
@@ -9,6 +9,7 @@ import {
 import { PacioliValue } from "../../boxing";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
+import { parseUnit } from "../../api";
 
 /**
  * Attribues supported by the 3D scene component
@@ -100,19 +101,19 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
     try {
       switch (name) {
         case "unit": {
-          this.unit = si.parseDimNum(newValue).unit;
+          this.unit = parseUnit(newValue);
           break;
         }
         case "unitx": {
-          this.unitX = si.parseDimNum(newValue).unit;
+          this.unitX = parseUnit(newValue);
           break;
         }
         case "unity": {
-          this.unitY = si.parseDimNum(newValue).unit;
+          this.unitY = parseUnit(newValue);
           break;
         }
         case "unitz": {
-          this.unitZ = si.parseDimNum(newValue).unit;
+          this.unitZ = parseUnit(newValue);
           break;
         }
       }
@@ -168,9 +169,9 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    */
   spaceOptions(): Partial<SpaceOptions> {
     return {
-      unitX: this.unitX || this.unit || si.parseDimNum("metre").unit,
-      unitY: this.unitY || this.unit || si.parseDimNum("metre").unit,
-      unitZ: this.unitZ || this.unit || si.parseDimNum("metre").unit,
+      unitX: this.unitX || this.unit || parseUnit("metre"),
+      unitY: this.unitY || this.unit || parseUnit("metre"),
+      unitZ: this.unitZ || this.unit || parseUnit("metre"),
       ...optionsFromAttributes<SpaceOptions>(this, SUPPORTED_ATTRIBUTES),
     };
   }

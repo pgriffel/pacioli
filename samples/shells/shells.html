@@ -230,7 +230,7 @@
 
     <script>
 
-        Pacioli.si.addBase("degree", "deg", Pacioli.parseDimNum("0.0174532925 * radian"))
+        // Pacioli.si.addBase("degree", "deg", Pacioli.parseDimNum("0.0174532925 * radian"))
 
         const RAD = Pacioli.unit("radian")
 
@@ -475,9 +475,9 @@
         function makeShell(params) {
 
             function readDimensionedParam(name, unit) {
-                return Pacioli.num(
+                return Pacioli.convertUnit(Pacioli.num(
                     params[name].value,
-                    Pacioli.unit(params[name + '_unit'].value)).convertUnit(unit, Pacioli.si);
+                    Pacioli.unit(params[name + '_unit'].value)), unit);
             }
 
             // Read the user's parameter settings
@@ -534,17 +534,17 @@
             if (pairs[0] == "circle") {
                 return Pacioli.fun("shells", "circle_path").call(
                     Pacioli.num(pairs[1]),
-                    Pacioli.num(pairs[2], APERTURE_DISTANCE_UNIT).convertUnit(unit, Pacioli.si));
+                    Pacioli.convertUnit(Pacioli.num(pairs[2], APERTURE_DISTANCE_UNIT), unit));
             } else if (pairs[0] == "rectangle") {
                 return Pacioli.fun("shells", "rectangle_path").call(
-                    Pacioli.num(pairs[1], APERTURE_DISTANCE_UNIT).convertUnit(unit, Pacioli.si),
-                    Pacioli.num(pairs[2], APERTURE_DISTANCE_UNIT).convertUnit(unit, Pacioli.si));
+                    Pacioli.convertUnit(Pacioli.num(pairs[1], APERTURE_DISTANCE_UNIT), unit),
+                    Pacioli.convertUnit(Pacioli.num(pairs[2], APERTURE_DISTANCE_UNIT), unit));
             } else {
                 var tuples = new Array();
                 for (var i = 0; i < pairs.length; i += 2) {
                     var tup = [
-                        Pacioli.num(pairs[i], APERTURE_ANGLE_UNIT).convertUnit(RAD, Pacioli.si),
-                        Pacioli.num(pairs[i + 1], APERTURE_DISTANCE_UNIT).convertUnit(unit, Pacioli.si)
+                        Pacioli.convertUnit(Pacioli.num(pairs[i], APERTURE_ANGLE_UNIT), RAD),
+                        Pacioli.convertUnit(Pacioli.num(pairs[i + 1], APERTURE_DISTANCE_UNIT), unit)
                     ]
                     tuples.push(Pacioli.tuple(tup));
                 }

@@ -20,9 +20,43 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Context, Context as UOMContext, siDef, SIUnit, DimNum } from "uom-ts";
+import {
+  Context,
+  Context as UOMContext,
+  siDef,
+  SIUnit,
+  DimNum,
+  Definition,
+} from "uom-ts";
 import { IndexSet } from "./values/index-set";
 import { UnitVector } from "./values/unit-vector";
+
+export const emptyDef: Definition = {
+  prefixes: [
+    { name: "yocto", power: -24, symbol: "y" },
+    { name: "zepto", power: -21, symbol: "z" },
+    { name: "atto", power: -18, symbol: "a" },
+    { name: "femto", power: -15, symbol: "f" },
+    { name: "pico", power: -12, symbol: "p" },
+    { name: "nano", power: -9, symbol: "n" },
+    { name: "micro", power: -6, symbol: "µ" },
+    { name: "milli", power: -3, symbol: "m" },
+    { name: "centi", power: -2, symbol: "c" },
+    { name: "deci", power: -1, symbol: "d" },
+    { name: "kilo", power: 3, symbol: "k" },
+    { name: "mega", power: 6, symbol: "M" },
+    { name: "giga", power: 9, symbol: "G" },
+    { name: "tera", power: 12, symbol: "T" },
+    { name: "peta", power: 15, symbol: "P" },
+    { name: "exa", power: 18, symbol: "E" },
+    { name: "zetta", power: 21, symbol: "Z" },
+    { name: "yotta", power: 24, symbol: "Y" },
+  ],
+
+  bases: [],
+
+  equations: [],
+};
 
 /**
  * Static information for the matrix shape.
@@ -36,7 +70,11 @@ export class PacioliContext {
   }
 
   public static empty() {
-    return new PacioliContext(UOMContext.empty(), new Map(), new Map());
+    return new PacioliContext(
+      UOMContext.fromDef(emptyDef),
+      new Map(),
+      new Map()
+    );
   }
 
   public static fromUOMContext(context: UOMContext) {

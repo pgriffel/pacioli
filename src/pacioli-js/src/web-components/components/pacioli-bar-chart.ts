@@ -1,9 +1,10 @@
-import { si, SIUnit, UOM } from "uom-ts";
+import { SIUnit, UOM } from "uom-ts";
 import { PacioliContext } from "../../context";
 import { BarChart, BarChartOptions } from "../../charts/d3-bar-chart";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
 import { dataUnit } from "../../charts/chart-utils";
+import { parseUnit } from "../../api";
 
 /**
  * Attribues supported by the bar chart component
@@ -54,7 +55,7 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
     try {
       switch (name) {
         case "unit": {
-          this.unit = si.parseDimNum(newValue).unit;
+          this.unit = parseUnit(newValue);
           break;
         }
       }

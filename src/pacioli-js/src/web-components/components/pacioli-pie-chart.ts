@@ -1,9 +1,10 @@
-import { si, SIUnit, UOM } from "uom-ts";
+import { SIUnit, UOM } from "uom-ts";
 import { PieChart, PieChartOptions } from "../../charts/d3-pie-chart";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { dataUnit } from "../../charts/chart-utils";
 import { optionsFromAttributes } from "../utils";
+import { parseUnit } from "../../api";
 
 /**
  * Attribues supported by the pie chart component
@@ -53,7 +54,7 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
     try {
       switch (name) {
         case "unit": {
-          this.unit = si.parseDimNum(newValue).unit;
+          this.unit = parseUnit(newValue);
           break;
         }
       }

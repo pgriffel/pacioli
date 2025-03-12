@@ -20,14 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import {
-  DimNum,
-  si,
-  SIUnit,
-  UOM,
-  UOMBase,
-  parseDimNum as uomParseDimNum,
-} from "uom-ts";
+import { DimNum, SIUnit, UOM, parseDimNum as uomParseDimNum } from "uom-ts";
 import { Matrix } from "./values/matrix";
 import { MatrixShape } from "./values/matrix-shape";
 import { PacioliUnit, PacioliVector } from "./type";
@@ -41,6 +34,7 @@ import { defaultContext, fetchUnit, initialNumbers, lookupItem } from "./cache";
 import { PacioliTuple } from "./values/tuple";
 import { PacioliList } from "./values/list";
 import { GenericType } from "./types/generic";
+import BigNumber from "bignumber.js";
 
 // -----------------------------------------------------------------------------
 // New
@@ -90,14 +84,30 @@ export function fun(
   }
 }
 
-export function unit(name1: string, name2?: string): SIUnit {
-  return si.getUnit(name2 ? name1 + ":" + name2 : name1);
+export function convertUnit(matrix: Matrix, unit: SIUnit): Matrix {
+  return matrix.convertUnit(unit, defaultContext.unitContext);
 }
 
+export function conversionFactor(from: SIUnit, to: SIUnit): BigNumber {
+  return defaultContext.unitContext.conversionFactor(from, to);
+}
+
+export function unit(name: string): SIUnit {
+  const parts = name.split(":");
+
+  const prefix = parts.length === 2 ? parts[0] : "";
+  const base = parts.length === 2 ? parts[1] : name;
+
+  return fetchUnit(prefix, base);
+  // return si.getUnit(name2 ? name1 + ":" + name2 : name1);
+}
+
+// Used in generated code
 export function unitType(name1: string, name2?: string): UOM<SIBaseType> {
   return UOM.fromBase(new SIBaseType(name2 ? name1 : "", name2 ?? name1));
 }
 
+// Used only by VectorBase. In asJs method.
 export function unitVectorType(
   module: string,
   type: string,
@@ -106,10 +116,11 @@ export function unitVectorType(
   return UOM.fromBase(new VectorBaseType(module + "_" + type, position));
 }
 
-export function unitFromBase<T extends UOMBase>(base: T): UOM<T> {
-  return UOM.fromBase(base);
-}
+// export function unitFromBase<T extends UOMBase>(base: T): UOM<T> {
+//   return UOM.fromBase(base);
+// }
 
+// Used only by ScalarUnitVar. In asJs method.
 export function unitFromVarName(varName: string): PacioliUnit {
   return UOM.fromBase(new UnitVar("_" + varName + "_"));
 }
