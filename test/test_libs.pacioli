@@ -5,6 +5,8 @@ include standard/standard_tests;
 include geometry/geometry_tests;
 include comprehensions/comprehension_tests;
 include statements/statements_tests;
+include funcall/funcall;
+
 #include geometric_algebra/geometric_algebra_tests;
 
 run_test_suites(all_suites);
@@ -17,6 +19,7 @@ define all_suite_collections = [
     standard_suites,   
     geometry_suites,
     comprehension_suites,
-    statement_suites
+    statement_suites,
+    funcall_suites
 #    geometric_algebra_suites
 ];

@@ -21,7 +21,8 @@ define base_suites = [
    random_suite,
    equal_suite,
    pad_left_suite,
-   pad_right_suite
+   pad_right_suite,
+   index_element_suite
    #mapnz_suite       does not exist in MVM yet
    #kronecker_suite   TODO port in pacioli-ts
 ];
@@ -575,3 +576,53 @@ define kronecker_suite = test_suite("Function kronecker", [
             false
          )
    ]);
+
+# ------------------------------------------------------------------------------
+# Index elements suite
+# ------------------------------------------------------------------------------
+
+
+defindex Foo = {foo, bar, baz};
+
+defmatrix foo :: metre * Foo! = {
+   foo -> 12,
+   bar -> 13
+};
+
+define index_element_suite = test_suite("Index element", [
+    
+    test("should do something",
+         () ->
+            get(foo, Foo@foo, _) = 12*|metre|
+         ),
+         
+   test("should work with row_domain",
+         () ->
+            [get(foo, x, _) | x <- row_domain(foo)] = [12*|metre|, 13*|metre|, 0*|metre|]
+         ),
+
+   test("should work with row_domain and assignment",
+         () ->
+            [value | x <- row_domain(foo), value := get(foo, x, _)] = [12*|metre|, 13*|metre|, 0*|metre|]
+         ),
+         
+   test("should work with column_domain",
+         () ->
+            [get(foo^T, _, y) | y <- column_domain(foo^T)] = [12*|metre|, 13*|metre|, 0*|metre|]
+         ),
+
+   test("should work with column_domain and assignment",
+         () ->
+            [value | y <- column_domain(foo^T), value := get(foo^T, _, y)] = [12*|metre|, 13*|metre|, 0*|metre|]
+         ),
+         
+   test("should print test",
+         () ->
+            begin print_test(); return "foo"; end = "foo"
+         )
+   ]);
+
+declare print_test :: () -> Void;
+
+define print_test() =
+   print(format("Testing %s", Foo@foo));

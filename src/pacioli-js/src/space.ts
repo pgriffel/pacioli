@@ -30,12 +30,12 @@ import { num, unit } from "./api";
 import { Maybe } from "./values/maybe";
 import { PacioliBoole } from "./values/boole";
 import { PacioliFunction } from "./values/function";
-import { PacioliValue } from "./value";
 import {
   CSS2DObject,
   CSS2DRenderer,
 } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper.js";
+import { PacioliValue } from "./boxing";
 
 /**
  * Matches the Scene type from the graphics Pacioli library
@@ -518,6 +518,13 @@ export class Space {
     }
   }
 
+  resize(width: number, height: number) {
+    // this.camera.aspect = width / height;
+    // this.camera.updateProjectionMatrix();
+    this.renderer.setSize(width, height);
+    this.labelRenderer.setSize(width, height);
+    this.draw();
+  }
   hasLabels(): boolean {
     // The label renderer is the second renderer. Is it present?
     return this.renderersDiv.childElementCount === 2;

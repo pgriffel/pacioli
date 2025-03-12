@@ -1,0 +1,49 @@
+import testing;
+
+# ------------------------------------------------------------------------------
+# Funcall
+# ------------------------------------------------------------------------------
+
+
+declare funcall_suites :: List(TestSuite);
+
+define funcall_suites = [
+    funcall_suite
+];
+
+run_test_suites(funcall_suites);
+ 
+# ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
+
+define inc(x) = x + 1;
+
+define sum_trip(x, y, z) = x + y + z;
+
+define funcall_suite = test_suite("funcall", [
+
+     test("should work for inc", () -> 
+       inc(0) = 1),
+
+    test("should work for sum_trip", () -> 
+       sum_trip(1, 2, 3) = 6),
+
+    test("should work for apply inc", () -> 
+       apply(inc, tuple(0)) = 1),
+
+    test("should work for apply sum_trip", () -> 
+       apply(sum_trip, tuple(1, 2, 3)) = 6),
+
+    test("should work for lambda", () -> 
+       ((a, b, c) -> sum_trip(a, b, c))(1, 2, 3) = 6),
+       
+    test("should work for apply lambda", () -> 
+       apply(((a, b, c) -> sum_trip(a, b, c)), tuple(1, 2, 3)) = 6),
+
+    test("should work for _lambda", () -> 
+       _lambda args apply(sum_trip, args) end(1, 2, 3) = 6),
+       
+    test("should work for apply _lambda", () -> 
+       apply(_lambda args apply(sum_trip, args) end, tuple(1, 2, 3)) = 6)
+]); 

@@ -21,6 +21,13 @@
  */
 
 import { ccsFull, ccsGather, ccsScatter, ccsSparse, sscatter } from "numeric";
+import {
+  MatrixStorage,
+  RawMatrix,
+  STORAGE_CCS,
+  STORAGE_COO,
+  STORAGE_FULL,
+} from "../value";
 
 // -----------------------------------------------------------------------------
 // Matrix Numbers
@@ -37,8 +44,8 @@ export function tagNumbers(
   numbers: any,
   nrRows: number,
   nrColumns: number,
-  storage: any
-) {
+  storage: MatrixStorage
+): RawMatrix {
   numbers.nrRows = nrRows;
   numbers.nrColumns = nrColumns;
   numbers.storage = storage;
@@ -59,7 +66,7 @@ export function getFullNumbers(numbers: any) {
       }
       array[i] = inner;
     }
-    return tagNumbers(array, m, n, 0);
+    return tagNumbers(array, m, n, STORAGE_FULL);
   };
 
   switch (numbers.storage) {
@@ -88,7 +95,7 @@ export function getFullNumbers(numbers: any) {
         }
       }
 
-      return tagNumbers(full, m, n, 0);
+      return tagNumbers(full, m, n, STORAGE_FULL);
   }
 }
 
@@ -160,7 +167,10 @@ export function getCCSNumbers(numbers: any) {
       if (gathered[0].length === 0) {
         ccsNumbers = ccsScatter([[0], [0], [0]]);
       } else {
-        ccsNumbers = ccsScatter(gathered);
+        ccsNumbers = ccsScatter(
+          // TODO: better type. This is wat DOK2COO puts in the any in RawMatrix
+          gathered as unknown as [number[], number[], number[]]
+        );
       }
       break;
     case 2:
@@ -173,10 +183,10 @@ export function getCCSNumbers(numbers: any) {
     case 3:
       return numbers;
   }
-  return tagNumbers(ccsNumbers, numbers.nrRows, numbers.nrColumns, 3);
+  return tagNumbers(ccsNumbers, numbers.nrRows, numbers.nrColumns, STORAGE_CCS);
 }
 
-function DOK2COO(numbers: any) {
+function DOK2COO(numbers: any): RawMatrix {
   var rows = [];
   var columns = [];
   var values = [];
@@ -219,12 +229,12 @@ function DOK2COO(numbers: any) {
     [rows, columns, values],
     numbers.nrRows,
     numbers.nrColumns,
-    2
+    STORAGE_COO
   );
 }
 
 export function get(numbers: any, i: any, j: any) {
-  return tagNumbers([[getNumber(numbers, i, j)]], 1, 1, 0);
+  return tagNumbers([[getNumber(numbers, i, j)]], 1, 1, STORAGE_FULL);
 }
 
 export function set(numbers: any, row: number, column: number, value: number) {
@@ -266,8 +276,8 @@ export function set(numbers: any, row: number, column: number, value: number) {
   }
 }
 
-export function getNumber(numbers: number[][], row: number, column: number) {
-  switch ((numbers as any).storage) {
+export function getNumber(numbers: RawMatrix, row: number, column: number) {
+  switch (numbers.storage) {
     case 0:
       return numbers[row][column];
     case 1:
@@ -306,13 +316,16 @@ export function getNumber(numbers: number[][], row: number, column: number) {
   }
 }
 
-export function unaryNumbers(numbers: any, fun: any) {
+export function unaryNumbers(
+  numbers: RawMatrix,
+  fun: (val: number) => number
+): RawMatrix {
   var coo = getCOONumbers(numbers);
   return tagNumbers(
     [coo[0], coo[1], coo[2].map(fun)],
     numbers.nrRows,
     numbers.nrColumns,
-    2
+    STORAGE_COO
   );
 }
 
@@ -387,7 +400,7 @@ export function elementWiseNumbers(xNumbers: any, yNumbers: any, fun: any) {
     [rows, columns, values],
     xNumbers.nrRows,
     xNumbers.nrColumns,
-    2
+    STORAGE_COO
   );
 }
 

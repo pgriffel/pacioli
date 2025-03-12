@@ -22,4 +22,7 @@
 
 export type Void = { readonly kind: "void" };
 
-export const nothing: Void = { kind: "void" };
+/**
+ * Pacioli's void value.
+ */
+export const VOID: Void = { kind: "void" };

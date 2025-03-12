@@ -23,30 +23,24 @@
 import {
   DimNum,
   si,
-  SIBase,
   SIUnit,
   UOM,
   UOMBase,
   parseDimNum as uomParseDimNum,
 } from "uom-ts";
-import { Coordinates } from "./values/coordinates";
-import { DOM } from "./dom";
-import { IndexSet } from "./values/index-set";
 import { Matrix } from "./values/matrix";
-import { set, tagNumbers } from "./values/numbers";
 import { MatrixShape } from "./values/matrix-shape";
 import { PacioliUnit, PacioliVector } from "./type";
 import { PacioliContext } from "./context";
 import { PacioliFunction } from "./values/function";
 import { MatrixType, PacioliIndex } from "./types/matrix";
-import { PacioliValue } from "./value";
-import { boxRawValue, internUnit, matrixShapeFromType } from "./boxing";
+import { boxRawValue, PacioliValue, typeFromValue } from "./boxing";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
-import { UnitVector } from "./values/unit-vector";
-import { PacioliString } from "./values/string";
-
-const defaultContext = PacioliContext.si();
+import { defaultContext, fetchUnit, initialNumbers, lookupItem } from "./cache";
+import { PacioliTuple } from "./values/tuple";
+import { PacioliList } from "./values/list";
+import { GenericType } from "./types/generic";
 
 // -----------------------------------------------------------------------------
 // New
@@ -58,7 +52,7 @@ export function createMatrixType(
   rowUnit: PacioliVector,
   columnSets: PacioliIndex,
   columnUnit: PacioliVector
-) {
+): MatrixType {
   return new MatrixType(multiplier, rowSets, rowUnit, columnSets, columnUnit);
 }
 
@@ -70,7 +64,7 @@ export function value(
   module: string,
   name: string,
   context: PacioliContext = defaultContext
-) {
+): PacioliValue {
   return boxRawValue(
     lookupItem(module + "_" + name, context),
     lookupItem("u_" + module + "_" + name, context),
@@ -83,7 +77,7 @@ export function fun(
   module: string,
   name: string,
   context: PacioliContext = defaultContext
-) {
+): PacioliFunction {
   const type = lookupItem("u_" + module + "_" + name, context);
   const value = lookupItem(module + "_" + name, context);
   const box = boxRawValue(value, type, context);
@@ -96,15 +90,19 @@ export function fun(
   }
 }
 
-export function unit(name1: string, name2?: string) {
+export function unit(name1: string, name2?: string): SIUnit {
   return si.getUnit(name2 ? name1 + ":" + name2 : name1);
 }
 
-export function unitType(name1: string, name2?: string) {
+export function unitType(name1: string, name2?: string): UOM<SIBaseType> {
   return UOM.fromBase(new SIBaseType(name2 ? name1 : "", name2 ?? name1));
 }
 
-export function unitVectorType(module: string, type: string, position: number) {
+export function unitVectorType(
+  module: string,
+  type: string,
+  position: number
+): UOM<VectorBaseType> {
   return UOM.fromBase(new VectorBaseType(module + "_" + type, position));
 }
 
@@ -120,7 +118,7 @@ export function typeFromVarName(varName: string): TypeVar {
   return new TypeVar("_" + varName + "_");
 }
 
-export function num(num: string | number, unit: SIUnit = UOM.ONE) {
+export function num(num: string | number, unit: SIUnit = UOM.ONE): Matrix {
   const shape = MatrixShape.scalar(unit === undefined ? UOM.ONE : unit);
   const numbers = initialNumbers(1, 1, [
     [0, 0, typeof num === "string" ? parseFloat(num) : num],
@@ -157,12 +155,23 @@ export function parseDimNum(
 //     return new Pacioli.Box(new Pacioli.Type('tuple', uTuple), vTuple)
 // }
 
-export function list(array: any[]): PacioliValue {
+export function tuple(array: PacioliValue[]): PacioliValue {
+  return new PacioliTuple(...array);
+}
+
+export function list(array: PacioliValue[]): PacioliValue {
   if (array.length === 0) {
     throw new Error("Cannot make empty list (yet)");
   }
+  var vList = array.map(function (elt) {
+    return elt; //.value;
+  });
+  return new PacioliList(
+    new GenericType("List", [typeFromValue(array[0])]),
+    ...vList
+  );
 
-  throw new Error("Is Pacioli.list(...) used?");
+  // throw new Error("Is Pacioli.list(...) used?");
 
   // // var uList = array[0].type
   // var vList = array.map(function (elt) {return elt.value})
@@ -178,305 +187,4 @@ export function list(array: any[]): PacioliValue {
   //     //array.push(boxRawValue(values[i], type.items[0]));
   // }
   // return tagKind(array, 'list') // Cast!!!
-}
-
-// -----------------------------------------------------------------------------
-// 0. Functions used by generated code
-// -----------------------------------------------------------------------------
-
-export function makeIndexSet(id: string, name: string, items: string[]) {
-  // TODO: wat is de id?
-  return IndexSet.fromItems(id, name, items);
-}
-
-export function createCoordinates(
-  pairs: string[][],
-  context: PacioliContext = defaultContext
-) {
-  var names = [];
-  var indexSets = [];
-  for (var i = 0; i < pairs.length; i++) {
-    names[i] = pairs[i][0];
-    indexSets[i] = lookupItem(pairs[i][1], context);
-  }
-  var coords = new Coordinates(names, indexSets);
-  // added coords for b_Matrix_make_matrix
-  return {
-    kind: "coordinates",
-    position: coords.position(),
-    size: coords.size(),
-    coords: coords,
-  };
-}
-
-// Pacioli.scalarShape = function (unit) {
-//     var result = new Pacioli.Shape();
-//     result.multiplier = unit;
-//     return result;
-// }
-
-export function zeroNumbers(m: number, n: number) {
-  return tagNumbers([], m, n, 1);
-}
-
-// No longer needs to export this since oneNumbersFromShape is used.
-export function oneNumbers(m: number, n: number) {
-  var numbers = tagNumbers([], m, n, 1);
-  for (var i = 0; i < m; i++) {
-    for (var j = 0; j < n; j++) {
-      set(numbers, i, j, 1);
-    }
-  }
-  return numbers;
-}
-
-export function oneNumbersFromShape(
-  type: MatrixType,
-  context: PacioliContext = defaultContext
-) {
-  const shape = matrixShapeFromType(type, context);
-  const numbers = oneNumbers(shape.nrRows(), shape.nrColumns());
-  numbers.shape = shape;
-  return numbers;
-}
-
-// Pacioli.oneMatrix = function (shape) {
-//     return new Pacioli.Box(new Pacioli.Type("matrix", shape),
-//                            Pacioli.oneNumbers(shape.nrRows(), shape.nrColumns()))
-// }
-
-// Pacioli.initialMatrix = function (shape, data) {
-//     return new Pacioli.Box(new Pacioli.Type("matrix", shape),
-//                            Pacioli.initialNumbers(shape.nrRows(), shape.nrColumns(), data))
-// }
-
-export function initialNumbers(m: number, n: number, data: number[][]): any {
-  // Use an efficient representation. DOK!? And probably there is already
-  // some function to do this. See e.g. the make_matrix implementation.
-  var numbers = tagNumbers([], m, n, 1);
-  for (var i = 0; i < data.length; i++) {
-    set(numbers, data[i][0], data[i][1], data[i][2]);
-  }
-  return numbers;
-}
-
-// Pacioli.conversionNumbers = function (shape) {
-//     var numbers = Pacioli.zeroNumbers(shape.nrRows(), shape.nrColumns())
-//     for (var i = 0; i < shape.nrRows(); i++) {
-//         var flat = shape.unitAt(i, i).reciprocal().flat()
-//         if (flat.isDimensionless()) {
-//             Pacioli.set(numbers, i, i, flat.factor)
-//         } else {
-//             /* throw new Error("Cannot convert unit '" +
-//                             shape.findColumnUnit(i).toText() +
-//                             "' to unit '" +
-//                             shape.findRowUnit(i).toText() +
-//                             "' for entry '" +
-//                             shape.rowCoordinates(i).toText() +
-//                             "' during the construction of a matrix of type '" +
-//                             shape.toText() +
-//                             "'.") */
-//             Pacioli.set(numbers, i, i, "unit conversion error")
-//         }
-
-//     }
-//     return numbers
-// }
-
-// Pacioli.conversionMatrixType = function (shape) {
-//     return new Pacioli.Type("matrix", shape);
-// }
-
-export function printValue(x: any) {
-  const cons = document.getElementById("console");
-  if (cons) {
-    const body = DOM(x);
-    const elt = document.createElement(
-      typeof x === "string" && x.toString() === "" ? "pre" : "pre"
-    );
-    elt.appendChild(body);
-    cons.appendChild(elt);
-  } else {
-    console.log(x);
-  }
-  return x;
-}
-
-// Pacioli.dimNum = function (a, b) {
-//     return new Pacioli.DimensionedNumber(a, b);
-// }
-
-export function string(value: string): PacioliString {
-  return new PacioliString(value);
-}
-
-// -----------------------------------------------------------------------------
-// 1. The Store
-// -----------------------------------------------------------------------------
-
-const cache: any = {};
-
-export function fetchValue(
-  home: string,
-  name: string,
-  context: PacioliContext = defaultContext
-) {
-  return lookupItem(home + "_" + name, context);
-}
-
-export function fetchIndex(
-  id: string,
-  context: PacioliContext = defaultContext
-) {
-  const indexSet = context.findIndexSet(id);
-  if (indexSet == undefined) {
-    const computed = findFunction("compute_index_" + id)();
-    context.addIndexSet(computed);
-    return computed;
-  } else {
-    return indexSet;
-  }
-}
-
-export function fetchScalarBase(
-  id: string,
-  context: PacioliContext = defaultContext
-): SIBase {
-  console.log("who uses fetchScalarBase?");
-  return lookupItem("sbase_" + id, context);
-}
-
-export function fetchUnit(
-  prefix: string,
-  base: string,
-  context: PacioliContext = defaultContext
-): SIUnit {
-  const unit = context.lookupUnit(prefix, base);
-  if (unit === undefined) {
-    const def: { definition?: DimNum; symbol: string } = computeItem(
-      "sbase_" + base
-    );
-    // TODO
-    context.addBase(base, def.symbol, def.definition);
-    const retry = context.getUnit(prefix, base);
-    if (retry === undefined) {
-      throw new Error(`Could not add base ${base}`);
-    } else {
-      return retry;
-    }
-  } else {
-    return unit;
-  }
-}
-
-export function fetchUnitVector(
-  id: string,
-  indexSet: IndexSet,
-  context: PacioliContext = defaultContext
-): UnitVector {
-  const vec = context.findUnitVector(id);
-  if (vec == undefined) {
-    const unitObject = findFunction("compute_vbase_" + id)().units;
-    const unitMap = new Map<string, SIUnit>();
-    for (const [key, value] of Object.entries(unitObject)) {
-      unitMap.set(key, internUnit(value as PacioliUnit, context));
-    }
-    const computed = UnitVector.fromMap(id, indexSet, unitMap);
-    context.addUnitVector(computed);
-    return computed;
-  } else {
-    return vec;
-  }
-}
-
-export function lookupItem(
-  full: string,
-  _context: PacioliContext = defaultContext
-) {
-  if (cache[full] == undefined) {
-    if (window["Pacioli" as any][full as any]) {
-      cache[full] = window["Pacioli" as any][full as any];
-    } else if (window["Pacioli" as any][("compute_" + full) as any]) {
-      const fn = window["Pacioli" as any][("compute_" + full) as any];
-      if (typeof fn === "function") {
-        cache[full] = (fn as any)();
-      }
-    } else {
-      throw new Error(
-        "no function found to compute Pacioli item '" + full + "'"
-      );
-    }
-  }
-  if (cache[full] === undefined || cache[full] === null) {
-    throw new Error(
-      "result of Pacioli item '" + full + "' computation is undefined"
-    );
-  }
-  return cache[full];
-}
-
-export function lookupBase(
-  full: string,
-  context: PacioliContext = defaultContext
-) {
-  if (cache(full) == undefined) {
-    if (window["Pacioli" as any][full as any]) {
-      context.addIndexSet(window["Pacioli" as any][full as any] as any);
-    } else if (window["Pacioli" as any][("compute_" + full) as any]) {
-      const fn = window["Pacioli" as any][("compute_" + full) as any];
-      if (typeof fn === "function") {
-        context.addIndexSet((fn as any)());
-      }
-    } else {
-      throw new Error(
-        "no function found to compute Pacioli item '" + full + "'"
-      );
-    }
-  }
-  if (
-    context.findIndexSet(full) === undefined ||
-    context.findIndexSet(full) === null
-  ) {
-    throw new Error(
-      "result of Pacioli item '" + full + "' computation is undefined"
-    );
-  }
-  return context.findIndexSet(full);
-}
-
-function computeItem(full: string): { symbol: string; definition?: DimNum } {
-  if (window["Pacioli" as any][full as any]) {
-    return window["Pacioli" as any][full as any] as any;
-  } else if (window["Pacioli" as any][("compute_" + full) as any]) {
-    const fn = window["Pacioli" as any][("compute_" + full) as any];
-    if (typeof fn === "function") {
-      return (fn as any)();
-    } else {
-      throw new Error(
-        "expected a function to compute Pacioli item '" + full + "'"
-      );
-    }
-  } else {
-    throw new Error("no function found to compute Pacioli item '" + full + "'");
-  }
-}
-
-function findFunction(name: string): () => any {
-  const nameSpace = window["Pacioli" as any];
-  if (nameSpace === undefined) {
-    throw new Error(
-      `No 'Pacioli' namespace found, cannot compute Pacioli item '${name}'`
-    );
-  }
-  const fun = nameSpace[name as any] as unknown as () => any;
-  if (fun === undefined) {
-    throw new Error(`No function found to compute Pacioli item '${name}'`);
-  }
-  if (typeof fun === "function") {
-    return fun;
-  } else {
-    throw new Error(
-      `Expected a function to compute Pacioli item '${name}', but found a ${typeof fun}`
-    );
-  }
 }

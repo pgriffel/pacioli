@@ -1,6 +1,7 @@
 package pacioli.compiler;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -232,6 +233,15 @@ public class Project {
         }
 
         return bundle;
+    }
+
+    public void generateCode(PrintWriter writer, CompilationSettings settings) throws Exception {
+        List<String> modules = new ArrayList<>();
+        for (PacioliFile file : includeTree(this.file)) {
+            modules.add(file.module());
+        }
+        Bundle bundle = this.loadBundle();
+        bundle.generateCode(writer, settings, modules);
     }
 
     private List<String> importedModules(ProgramNode programNode) {

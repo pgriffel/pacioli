@@ -1,131 +1,153 @@
 # ----------------------------------------------------------------------------
 # Shell Model
 #
-# Paul Griffioen 2012-2014
+# Paul Griffioen 2012-2025
 # ----------------------------------------------------------------------------
 
 import geometry;
+import graphics;
 
 # ----------------------------------------------------------------------------
 # Types
-#
-# A shell is a tiple (settings, body, meshes). The settings are derived
-# from the shell's parameters. The body and polygon meshes are computed
-# during growth.
-#
-# For performance reasones the area and volume info has been kept seperate 
-# from the shell model. Instead of computing the info during growth, it can 
-# be computed with functions empty_shell_info and extend_shell_info. This
-# keeps growth faster for cases where the info is not needed.
 # ----------------------------------------------------------------------------
 
-deftype for_unit a: Shell(a) = Tuple(Settings(a), Body(a), List(Mesh(a)));
-deftype for_unit a: Settings(a) = Tuple(Curve(a), Curve(a), 1, 1, List(1));
-deftype for_unit a: Body(a) = List(Curve(a));
-deftype for_unit a: Curve(a) = List(a*Geom3!);
+doc Shell
+    "A shell is a triple (settings, body, meshes). The settings are derived
+    from the shell's parameters. The body and polygon meshes are computed
+    during growth.
+    
+    For performance reasones the area and volume info has been kept seperate 
+    from the shell model. Instead of computing the info during growth, it can 
+    be computed with functions empty_shell_info and extend_shell_info. This
+    keeps growth faster for cases where the info is not needed.";
 
-deftype for_unit a: Info(a) = Tuple(List(a^2), List(a^2), List(a^2), List(a^3), List(a^3));
-
-deftype for_unit a: Mesh(a) = Tuple(List(a*Geom3!), List(Tuple(1, 1, 1, 1)));
-
-# ----------------------------------------------------------------------------
-# Added because tests have no access to the shell internals
-# ----------------------------------------------------------------------------
-
-declare shell_body_internals :: for_unit a: (Shell(a)) -> List(List(a*Geom3!));
-
-define shell_body_internals(shell) = 
-  get_body(shell);
+defrecord for_unit a: Shell(a) as shell where
+    settings: Settings(a),
+    body: Body(a),
+    meshes: List(Mesh(a, Geom3!));
 
 # ----------------------------------------------------------------------------
-# Function Signatures
+
+defrecord for_unit a: Settings(a) as settings where
+    initial: Curve(a),
+    gvm: Curve(a),
+    factor: 1,
+    nr_ticks: 1,
+    landmarks: List(1);
+
 # ----------------------------------------------------------------------------
 
-declare shell_unit :: for_unit a: (Shell(a)) -> a;
+deftype for_unit a: Body(a) =
+    List(Curve(a));
 
-declare growth_factor :: (1, 1, 1) -> 1;
-declare growth_factors :: (1, 1) -> List(1);
+# ----------------------------------------------------------------------------
 
-declare initial_shell :: for_unit a:
-  (List(Tuple(a, a)), a*Geom3!, a*Geom3!, 1, radian, 1, radian, radian, radian, 1, 1) -> Shell(a);
+deftype for_unit a: Curve(a) = 
+    List(a*Geom3!);
 
-declare get_settings :: for_unit a: (Shell(a)) -> Settings(a);
-declare get_body :: for_unit a: (Shell(a)) -> Body(a);
-declare get_meshes :: for_unit a: (Shell(a)) -> List(Mesh(a));
-declare shell_current_size :: for_unit a: (Shell(a)) -> 1;
-declare shell_full_size :: for_unit a: (Shell(a)) -> 1;
-declare shell_initial_curve :: for_unit a: (Shell(a)) -> Curve(a);
+# ----------------------------------------------------------------------------
 
-declare axis_point :: for_unit a: (Shell(a)) -> a*Geom3!;
+doc Info
+    "A shell's info is a tuple with information about the shell:
+    - aperture area
+    - body area growth
+    - body area
+    - body volume growth
+    - body volume";
 
-declare grow :: for_unit a: (Shell(a), 1) -> Shell(a);
+defrecord for_unit a: Info(a) as info where
+    aperture_area: List(a^2),
+    body_area_growth: List(a^2),
+    body_area: List(a^2),
+    body_volume_growth: List(a^3),
+    body_volume: List(a^3);
 
-declare empty_shell_info :: for_unit a: (Shell(a)) -> Info(a);
-declare extend_shell_info :: for_unit a: (Shell(a), Info(a), 1) -> Info(a);
-declare last_segment_info :: for_unit a: (Info(a)) -> Tuple(a^2, a^2, a^2, a^3, a^3);
+# ----------------------------------------------------------------------------
+# Observers
+# ----------------------------------------------------------------------------
+         
+declare shell_unit ::
+    for_unit a: (Shell(a)) -> a;
+              
+define shell_unit(shell) =
+  scalar_unit(curve_nth(0, settings_initial(shell_settings(shell))));
+
+# ----------------------------------------------------------------------------
+
+declare shell_current_size ::
+    for_unit a: (Shell(a)) -> 1;
+
+define shell_current_size(shell) =
+  list_size(shell_body(shell));
+
+# ----------------------------------------------------------------------------
+
+declare shell_initial_curve ::
+    for_unit a: (Shell(a)) -> Path(a, Geom3!);
+
+define shell_initial_curve(shell) = 
+    make_path(settings_initial(shell_settings(shell)));
+
+# ----------------------------------------------------------------------------
+
+declare shell_full_size ::
+    for_unit a: (Shell(a)) -> 1;
+
+define shell_full_size(shell) = 
+    settings_nr_ticks(shell_settings(shell));
 
 # ----------------------------------------------------------------------------
 # Shell Construction
-#
-# Function initial_shell constructs an empty shell. The shell contains an
-# initial aperture and all other parameteres needed for growth.
 # ----------------------------------------------------------------------------
+
+doc initial_shell
+    "Function initial_shell constructs an empty shell. The shell contains an
+    initial aperture and all other parameteres needed for growth.";
+
+declare initial_shell :: for_unit a:
+    (List(Tuple(a, a)), a*Geom3!, a*Geom3!, 1, radian, 1, radian, radian, radian, 1, 1) -> Shell(a);
 
 define initial_shell(coords, offset, displacement, roz, mu,
                        growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
-  let
-      curve = make_curve([space_vec(x, 0*x, z) | (x, z) <- coords]),
-      landmarks = borders(coords),
-      s = scale_curve(curve, roz),
-      t = translate_curve(s, offset),
-      u = transform_curve(t, euler_rotation(mu, 0*|radian|, 0*|radian|)),
-      r = rotation(theta_x, theta_y, theta_z),
-      gvm = growth_vector_map(u, displacement, growth_constant, r, landmarks)
-  in
-      tuple(tuple(u, gvm, growth_constant, segments, landmarks), [], [])
-  end;
+    let
+        curve = make_curve([space_vec(x, 0*x, z) | (x, z) <- coords]),
+        
+        landmarks = borders(coords),
+        
+        s = scale_curve(curve, roz),
+        t = translate_curve(s, offset),
+        u = transform_curve(t, euler_rotation(mu, 0*|radian|, 0*|radian|)),
 
-declare growth_vector_map :: for_unit a: (Curve(a), a*Geom3!, 1, Geom3! per Geom3!, List(1)) -> Curve(a);
+        r = euler_rotation(theta_x, theta_y, theta_z),
+
+        gvm = growth_vector_map(u, displacement, growth_constant, r, landmarks)
+    in
+        make_shell(make_settings(u, gvm, growth_constant, segments, landmarks), [], [])
+    end;
+
+# ----------------------------------------------------------------------------
+
+declare growth_vector_map ::
+    for_unit a: (Curve(a), a*Geom3!, 1, Geom3! per Geom3!, List(1)) -> Curve(a);
 
 define growth_vector_map(curve, translation, growth_constant, rotation, landmarks) =
   let
       inv_rot = inverse(curve_rotation(curve, landmarks)),
+
       s = scale_curve(curve, growth_constant),
       t = transform_curve(s, rotation),
       u = translate_curve(t, translation),
+
       diff = sum_curves(u, scale_curve(curve, -1))
   in
       transform_curve(diff, inv_rot)
   end;
 
 # ----------------------------------------------------------------------------
-# Observers
-# ----------------------------------------------------------------------------
-                       
-define shell_unit(shell) =
-  scalar_unit(curve_nth(0, shell_initial_curve(shell)));
-
-define get_settings(shell) = 
-  let (x, _, _) = shell in x end;
-
-define get_body(shell) =
-  let (_, x, _) = shell in x end;
-  
-define get_meshes(shell) =
-  let (_, _, x) = shell in x end;
-
-define shell_current_size(shell) =
-  list_size(get_body(shell));
-
-define shell_initial_curve(shell) = 
-  let (x, _, _, _, _) = get_settings(shell) in x end;
-
-define shell_full_size(shell) = 
-  let (_, _, _, x, _) = get_settings(shell) in x end;
-
-# ----------------------------------------------------------------------------
 # Size factors
 # ----------------------------------------------------------------------------
+
+declare growth_factor :: (1, 1, 1) -> 1;
 
 define growth_factor(t, growth_constant, nr_ticks) =
   let 
@@ -143,6 +165,10 @@ define growth_factor(t, growth_constant, nr_ticks) =
 define logistic(r, t, k, y) =
   k*y / ((k-y) * exp(-r*t) + y);
 
+# ----------------------------------------------------------------------------
+
+declare growth_factors :: (1, 1) -> List(1);
+
 define growth_factors(growth_constant, n) =
   [growth_factor(t, growth_constant, n) | t <- naturals(n)];
 
@@ -153,33 +179,53 @@ define growth_factors(growth_constant, n) =
 
 # ----------------------------------------------------------------------------
 # Shell Growth
-#
-# Application grow(s, n) grows shell s by n segments.
 # ----------------------------------------------------------------------------
+
+doc grow
+    "Application grow(s, n) grows shell s by n segments.";
+
+declare grow ::
+    for_unit a: (Shell(a), 1) -> Shell(a);
 
 define grow(shell, n) =
   let
-      (settings, body, meshes) = shell,
-      (initial, gvm, factor, nr_ticks, landmarks) = settings,
+      body = shell_body(shell),
+      meshes = shell_meshes(shell),
+      settings = shell_settings(shell),
+
+      initial = settings_initial(settings),
+      gvm = settings_gvm(settings),
+      factor = settings_factor(settings),
+      nr_ticks = settings_nr_ticks(settings),
+      landmarks = settings_landmarks(settings),
+
       m = list_size(body)
   in
       begin
           b := [x | x <- body]; # copy for add_mut
           me := [x | x <- meshes]; # copy for add_mut
+
           s := if m = 0 then initial else last(body) end;
           i := 0;
+          
           while i != n do
               t := step(s, gvm, growth_factor(m+i, factor, nr_ticks), landmarks);
+
               me := _add_mut(me, segment_mesh(s, t));
               b := _add_mut(b, t);
+
               s := t;
               i := i + 1;
           end
-          return tuple(settings, b, me);
+
+          return make_shell(settings, b, me);
       end
   end;
 
-declare step :: for_unit a: (Curve(a), Curve(a), 1, List(1)) -> Curve(a);
+# ----------------------------------------------------------------------------
+
+declare step ::
+    for_unit a: (Curve(a), Curve(a), 1, List(1)) -> Curve(a);
 
 define step(curve, gvm, growth_factor, landmarks) =
   let
@@ -191,13 +237,16 @@ define step(curve, gvm, growth_factor, landmarks) =
 
 # ----------------------------------------------------------------------------
 # Axis Point
-#
-# Function axis_point gives a point that is approximately somewhere on
-# an imaginary coiling axis.
 # ----------------------------------------------------------------------------
 
+doc axis_point
+    "A point that is approximately somewhere on an imaginary coiling axis.";
+
+declare axis_point ::
+    for_unit a: (Shell(a)) -> a*Geom3!;
+
 define axis_point(shell) =
-  let body = get_body(shell) in
+  let body = shell_body(shell) in
       if body = [] then
           0 * shell_unit(shell) '.*' |Geom3!|
       else
@@ -207,49 +256,62 @@ define axis_point(shell) =
 
 # ----------------------------------------------------------------------------
 # Shell Info 
-#
-# A shell's info is a tuple with information about the shell:
-#   - aperture area
-#   - body area growth
-#   - body area
-#   - body volume growth
-#   - body_volume
 # ----------------------------------------------------------------------------
+
+declare empty_shell_info ::
+    for_unit a: (Shell(a)) -> Info(a);
 
 define empty_shell_info(shell) =
   let u = shell_unit(shell) in 
-      tuple([0 * u^2], [0 * u^2], [0 * u^2], [0 * u^3], [0 * u^3])
+      make_info([0 * u^2], [0 * u^2], [0 * u^2], [0 * u^3], [0 * u^3])
   end;
 
+# ----------------------------------------------------------------------------
+
+declare extend_shell_info ::
+    for_unit a: (Shell(a), Info(a), 1) -> Info(a);
+
 define extend_shell_info(shell, info, n) =
-  let
-     (aperture_area, body_area_growth, body_area, body_volume_growth, body_volume) = info,
-      body = get_body(shell) 
-  in
-      begin
-          start := list_size(aperture_area) - 1;
-          i := 0;
-          area := last(body_area);
-          volume := last(body_volume);
-          while i != n do
-              a := nth(max(0, start+i-1), body);
-              b := nth(start+i, body);
-              cb := curve_surface(curve_reverse(b));
-              ss := segment_surface(a, b);
-              sass := surface_area(ss);
-              area := area + sass;
-              vss := surface_volume(append(ss, append(curve_surface(a), cb)));
-              volume := volume + vss;
-              aperture_area := _add_mut(aperture_area, surface_area(cb));
-              body_area_growth := _add_mut(body_area_growth, sass);
-              body_area := _add_mut(body_area, area);
-              body_volume_growth := _add_mut(body_volume_growth, vss);
-              body_volume := _add_mut(body_volume, volume);
-              i := i + 1;
-          end
-          return tuple(aperture_area, body_area_growth, body_area, body_volume_growth, body_volume);
-      end
-  end;
+    let
+        (aperture_area, body_area_growth, body_area, body_volume_growth, body_volume) = info,
+        body = shell_body(shell) 
+    in
+        begin
+            start := list_size(aperture_area) - 1;
+          
+            area := last(body_area);
+            volume := last(body_volume);
+
+            i := 0;
+            while i != n do
+                a := nth(max(0, start+i-1), body);
+                b := nth(start+i, body);
+                
+                cb := curve_surface(curve_reverse(b));
+                ss := segment_surface(a, b);
+                sass := surface_area(ss);
+                vss := surface_volume(append(ss, append(curve_surface(a), cb)));
+                
+                area := area + sass;
+                volume := volume + vss;
+
+                aperture_area := _add_mut(aperture_area, surface_area(cb));
+                body_area_growth := _add_mut(body_area_growth, sass);
+                body_area := _add_mut(body_area, area);
+                body_volume_growth := _add_mut(body_volume_growth, vss);
+                body_volume := _add_mut(body_volume, volume);
+
+                i := i + 1;
+            end
+            
+            return make_info(aperture_area, body_area_growth, body_area, body_volume_growth, body_volume);
+        end
+    end;
+
+# ----------------------------------------------------------------------------
+
+declare last_segment_info ::
+    for_unit a: (Info(a)) -> Tuple(a^2, a^2, a^2, a^3, a^3);
 
 define last_segment_info(info) =
   let (aperture_area, body_area_growth, body_area, body_volume_growth, body_volume) = info in
@@ -264,13 +326,16 @@ define last_segment_info(info) =
 # Aperture Borders
 # ----------------------------------------------------------------------------
 
-declare borders :: for_unit a: (List(Tuple(a, a))) -> List(1);
+declare borders ::
+    for_unit a: (List(Tuple(a, a))) -> List(1);
 
 define borders(coords) =
   let
       indices = naturals(list_size(coords)),
+      
       x_less(a, b) = let (ax, _) = a, (bx, _) = b in ax < bx end,
       y_less(a, b) = let (_, ay) = a, (_, by) = b in ay < by end,
+
       left = fold_list((i,j) -> if x_less(nth(i, coords), nth(j, coords)) then i else j end, indices),
       top = fold_list((i,j) -> if y_less(nth(i, coords), nth(j, coords)) then i else j end, indices),
       right = fold_list((i,j) -> if x_less(nth(i, coords), nth(j, coords)) then j else i end, indices),
@@ -297,7 +362,7 @@ declare segment_area :: for_unit a: (Curve(a), Curve(a)) -> a^2;
 declare segment_volume :: for_unit a: (Curve(a), Curve(a)) -> a^3;
 declare compute_rotation :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!, a*Geom3!) -> Geom3! per Geom3!;
 declare curve_rotation :: for_unit a: (Curve(a), List(1)) -> Geom3! per Geom3!;
-declare segment_mesh :: for_unit a: (Curve(a), Curve(a)) -> Mesh(a); 
+declare segment_mesh :: for_unit a: (Curve(a), Curve(a)) -> Mesh(a, Geom3!); 
 
 define make_curve(vs) = append(vs, [head(vs)]);
 
@@ -362,8 +427,20 @@ define compute_rotation(left, top, right, bottom) =
   end;
 
 define segment_mesh(curvea, curveb) =
-  let n = list_size(curvea) in
-      tuple(append(curvea, curveb), [tuple(i, mod(i+1, n), n + mod(i+1, n), n + mod(i, n)) | i <- naturals(n)])
+  let n = list_size(curvea),
+    color = make_color("steelblue") in
+      with_material(
+      make_mesh(
+          [vertex(v, color) | v <- append(curvea, curveb)],
+          [ f | 
+              i <- naturals(n),
+              a := i,
+              b := mod(i+1, n),
+              c := n + mod(i+1, n),
+              d := n + mod(i, n),
+              f <- [ face(a, b, c) , face(a, c, d)
+              ]]),
+              "Normal")
   end;
 
 # ----------------------------------------------------------------------------
@@ -371,3 +448,13 @@ define segment_mesh(curvea, curveb) =
 # ----------------------------------------------------------------------------
 
 define last(x) = nth(list_size(x) - 1, x);
+
+# ----------------------------------------------------------------------------
+# Added because tests have no access to the shell internals
+# ----------------------------------------------------------------------------
+
+declare shell_body_internals ::
+    for_unit a: (Shell(a)) -> List(List(a*Geom3!));
+
+define shell_body_internals(shell) = 
+    shell_body(shell);

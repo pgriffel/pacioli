@@ -221,8 +221,16 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(LambdaNode node) {
         List<String> quoted = new ArrayList<String>();
-        for (String arg : node.arguments) {
-            quoted.add("lcl_" + arg + "");
+        if (node.varArgs) {
+            if (node.arguments.size() == 1) {
+                quoted.add("...lcl_" + node.arguments.get(0) + "");
+            } else {
+                throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
+            }
+        } else {
+            for (String arg : node.arguments) {
+                quoted.add("lcl_" + arg + "");
+            }
         }
         String args = Utils.intercalate(", ", quoted);
         write("function (");

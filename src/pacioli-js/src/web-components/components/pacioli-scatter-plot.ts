@@ -1,7 +1,7 @@
 import { si, SIUnit, UOM } from "uom-ts";
 import { ScatterPlot, ScatterPlotOptions } from "../../charts/d3-scatter-plot";
 import { PacioliContext } from "../../context";
-import { PacioliValue } from "../../value";
+import { PacioliValue } from "../../boxing";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { dataUnit } from "../../charts/chart-utils";
 import { optionsFromAttributes } from "../utils";

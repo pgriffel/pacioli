@@ -4,7 +4,7 @@ import { Histogram, HistogramOptions } from "../../charts/d3-histogram";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
 import { dataUnit } from "../../charts/chart-utils";
-import { PacioliValue } from "../../value";
+import { PacioliValue } from "../../boxing";
 
 /**
  * Attribues supported by the histogram component

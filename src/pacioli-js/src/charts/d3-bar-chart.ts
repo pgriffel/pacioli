@@ -22,7 +22,7 @@
 
 import * as d3 from "d3";
 import { DimNum, SIUnit } from "uom-ts";
-import { PacioliValue } from "../value";
+import { PacioliValue } from "../boxing";
 import { PacioliContext } from "../context";
 import {
   dataUnit,

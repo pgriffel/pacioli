@@ -180,7 +180,7 @@ public class Bundle {
         }
     }
 
-    public void generateCode(PrintWriter writer, CompilationSettings settings) {
+    public void generateCode(PrintWriter writer, CompilationSettings settings, List<String> includeTreeModules) {
 
         Pacioli.trace("Generating code for %s", this.file.module());
 
@@ -245,8 +245,10 @@ public class Bundle {
             // compiling
             var valueInfos = usesValueClosure(
                     environment.values()
-                            .allInfos(info -> info.isFromFile(this.file) && info instanceof ValueInfo
-                                    && info.definition().isPresent()));
+                            .allInfos(
+                                    info -> includeTreeModules.contains(info.generalInfo().module())
+                                            && info instanceof ValueInfo
+                                            && info.definition().isPresent()));
             var infoSet = new HashSet<>(valueInfos);
 
             // Add the 'uses' closure of all toplevels from the file we are compiling

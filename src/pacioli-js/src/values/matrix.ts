@@ -24,6 +24,7 @@ import { DimNum } from "uom-ts";
 import { Context, SIUnit } from "uom-ts";
 import { getCOONumbers, getNumber, tagNumbers } from "./numbers";
 import { MatrixShape } from "./matrix-shape";
+import { RawMatrix, STORAGE_COO } from "../value";
 
 /**
  * A matrix combines a shape and numbers.
@@ -38,7 +39,7 @@ import { MatrixShape } from "./matrix-shape";
 export class Matrix {
   readonly kind = "matrix";
 
-  constructor(public shape: MatrixShape, public numbers: any) {}
+  constructor(public shape: MatrixShape, public numbers: RawMatrix) {}
 
   /**
    * Filters the matrix entries. Only entries satisfying the predicate remain.
@@ -94,6 +95,10 @@ export class Matrix {
       rows: this.shape.rowNames(),
       columns: this.shape.columnNames(),
     };
+  }
+
+  public number(): number {
+    return getNumber(this.numbers, 0, 0);
   }
 
   public toDecimal(decimals: number) {
@@ -236,7 +241,12 @@ export function filter_matrix(
       filteredValues.push(values[i]);
     }
   }
-  return tagNumbers([filteredRows, filteredColumns, filteredValues], m, n, 2);
+  return tagNumbers(
+    [filteredRows, filteredColumns, filteredValues],
+    m,
+    n,
+    STORAGE_COO
+  );
 }
 
 /**
@@ -267,5 +277,5 @@ export function convert_unit(
     );
     convertedValues.push(values[i] * factor.toNumber());
   }
-  return tagNumbers([rows, columns, convertedValues], m, n, 2);
+  return tagNumbers([rows, columns, convertedValues], m, n, STORAGE_COO);
 }

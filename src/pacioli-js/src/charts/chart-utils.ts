@@ -24,7 +24,7 @@ import { UOM, SIBase } from "uom-ts";
 import { PacioliContext } from "../context";
 import { getNumber, getCOONumbers } from "../values/numbers";
 import * as d3 from "d3";
-import { PacioliValue } from "../value";
+import { PacioliValue } from "../boxing";
 import { Matrix } from "../values/matrix";
 
 export interface DefaultChartOptions {

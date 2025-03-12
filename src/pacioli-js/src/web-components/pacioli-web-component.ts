@@ -1,5 +1,5 @@
 import { computeWebComponentValue, setParameterNodes } from "./utils";
-import { PacioliValue } from "../value";
+import { PacioliValue } from "../boxing";
 import {
   Callable,
   ErrorOutput,

@@ -20,30 +20,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOMBase } from "uom-ts";
-import { UnitVector } from "./unit-vector";
-import { ToText } from "../boxing";
+import { PacioliValue } from "../boxing";
+import { PacioliType } from "../type";
 
-export class VectorBase implements UOMBase, ToText {
-  constructor(
-    public vector: UnitVector,
-    public position: number,
-    public name: string
-  ) {}
+export class PacioliList extends Array<PacioliValue> {
+  readonly kind = "list";
 
-  getName(): string {
-    return this.name;
-  }
-
-  public toText(): string {
-    return this.name;
-  }
-
-  public get(position: number): SIUnit {
-    return this.vector.get(position);
-  }
-
-  public shift(delta: number): VectorBase {
-    return new VectorBase(this.vector, this.position + delta, this.name);
+  constructor(public type: PacioliType, ...elements: PacioliValue[]) {
+    super();
+    this.push(...elements);
   }
 }
