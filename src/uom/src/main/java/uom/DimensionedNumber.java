@@ -94,7 +94,9 @@ public class DimensionedNumber<B> {
     }
 
     public DimensionedNumber<B> divide(DimensionedNumber<B> other) {
-        return new DimensionedNumber<B>(factor.divide(other.factor), unit.multiply(other.unit.reciprocal()));
+        // TODO: what to do for scale. The current 25 is not based on anything
+        return new DimensionedNumber<B>(factor.divide(other.factor, 25, RoundingMode.HALF_UP),
+                unit.multiply(other.unit.reciprocal()));
     }
 
     public DimensionedNumber<B> raise(Fraction power) {
@@ -104,6 +106,7 @@ public class DimensionedNumber<B> {
             if (0 < pow) {
                 raisedFactor = factor.pow(pow, MathContext.DECIMAL128);
             } else {
+                // TODO: what to do for scale. The current 25 is not based on anything
                 raisedFactor = BigDecimal.ONE.divide(factor.pow(-pow, MathContext.DECIMAL128), 25,
                         RoundingMode.HALF_UP);
             }

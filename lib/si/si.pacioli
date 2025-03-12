@@ -75,9 +75,10 @@ defunit hour "hr" = 60*minute;
 #
 defunit day "d" = 24*hour;
 #
-# defunit pi "pi" = 3.141592653589793;
+defunit pi "pi" = 3.141592653589793;
 
-defunit degree "°" = 0.017453292519943295 * radian;
+defunit degree "°" = pi * radian / 180;
+# defunit degree "°" = 0.017453292519943295 * radian;
 
 #defunit degree "°" = / (* (extern pi) radian) 180);
 #
