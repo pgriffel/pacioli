@@ -41,15 +41,8 @@ defalias shell_unit = milli:metre;
 # Function shell_body is only used in the test below.
 # ----------------------------------------------------------------------------
 
-define create_shell(
-    aperture,
-    offset,
-    displacement,
-    roz, mu,
-    growth_constant,
-    theta_x, theta_y, theta_z,
-    segments,
-    fudge) =
+define create_shell(aperture, offset, displacement, roz, mu,
+               growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
     initial_shell(
         absolute_aperture_coords(aperture, |shell_unit|),
         offset,
@@ -61,40 +54,6 @@ define create_shell(
         fudge);
 
 # ----------------------------------------------------------------------------
-# Apertures
-#
-# This interface provides convenience functions to create circular and
-# rectangular apertures. The Shell interface expects a list of
-# (angle, distance) pairs as initial aperture. Such pairs outline a
-# path in the x-z plane. The functions in this section create such
-# paths.
-#
-# Application circle_path(n, d) creates a circle of n line segments
-# each of lenght d. Call rectangle_path(w, h) creates a rectangle of
-# width w and height h.
-# ----------------------------------------------------------------------------
-
-declare circle_path :: for_unit a: (1, a) -> List(Tuple(radian, a));
-declare rectangle_path :: for_unit a: (a, a) -> List(Tuple(radian, a));
-
-
-# ----------------------------------------------------------------------------
-
-define circle_path(n, d) =
-  let angle = 2*pi*|radian|/n in
-    [tuple(a, d) | i <- naturals(n-1), a := if i = 0 then angle/2 else angle end]
-  end;
-
-# ----------------------------------------------------------------------------
-
-define rectangle_path(w, h) =
-  let turn = pi*|radian|/2 in
-    [tuple(0*|radian|, h/2), tuple(turn, w), tuple(turn, h), tuple(turn, w)]
-  end;
-
-# ----------------------------------------------------------------------------
-
-# rename to absolute_aperture_coords?
 
 doc absolute_aperture_coords
     "Creates absolute coordinates from a list of (angle, dinstance) pairs."; 
@@ -122,6 +81,38 @@ define absolute_aperture_coords(path, unit) =
       end
 
       return coords;
+  end;
+
+# ----------------------------------------------------------------------------
+# Apertures
+#
+# Convenience functions to create circular and rectangular apertures.
+#
+# The Shell interface expects a list of (angle, distance) pairs as initial 
+# aperture. Such pairs outline a path in the x-z plane. The functions in this
+# section create such paths.
+# ----------------------------------------------------------------------------
+
+doc circle_path
+    "circle_path(n, d) creates a circle of n line segments each of lenght d";
+
+declare circle_path :: for_unit a: (1, a) -> List(Tuple(radian, a));
+
+define circle_path(n, d) =
+  let angle = 2*pi*|radian|/n in
+    [tuple(a, d) | i <- naturals(n-1), a := if i = 0 then angle/2 else angle end]
+  end;
+
+# ----------------------------------------------------------------------------
+
+doc rectangle_path
+    "rectangle_path(w, h) creates a rectangle of width w and height h";
+
+declare rectangle_path :: for_unit a: (a, a) -> List(Tuple(radian, a));
+
+define rectangle_path(w, h) =
+  let turn = pi*|radian|/2 in
+    [tuple(0*|radian|, h/2), tuple(turn, w), tuple(turn, h), tuple(turn, w)]
   end;
 
 # ----------------------------------------------------------------------------

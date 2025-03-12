@@ -53,7 +53,7 @@ doc Info
     - body area growth
     - body area
     - body volume growth
-    - body_volume";
+    - body volume";
 
 defrecord for_unit a: Info(a) as info where
     aperture_area: List(a^2),
@@ -61,47 +61,6 @@ defrecord for_unit a: Info(a) as info where
     body_area: List(a^2),
     body_volume_growth: List(a^3),
     body_volume: List(a^3);
-
-# ----------------------------------------------------------------------------
-# Shell Construction
-# ----------------------------------------------------------------------------
-
-doc initial_shell
-    "Function initial_shell constructs an empty shell. The shell contains an
-    initial aperture and all other parameteres needed for growth.";
-
-declare initial_shell :: for_unit a:
-  (List(Tuple(a, a)), a*Geom3!, a*Geom3!, 1, radian, 1, radian, radian, radian, 1, 1) -> Shell(a);
-
-define initial_shell(coords, offset, displacement, roz, mu,
-                       growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
-  let
-      curve = make_curve([space_vec(x, 0*x, z) | (x, z) <- coords]),
-      landmarks = borders(coords),
-      s = scale_curve(curve, roz),
-      t = translate_curve(s, offset),
-      u = transform_curve(t, euler_rotation(mu, 0*|radian|, 0*|radian|)),
-      r = euler_rotation(theta_x, theta_y, theta_z),
-      gvm = growth_vector_map(u, displacement, growth_constant, r, landmarks)
-  in
-      tuple(tuple(u, gvm, growth_constant, segments, landmarks), [], [])
-  end;
-
-# ----------------------------------------------------------------------------
-
-declare growth_vector_map ::
-    for_unit a: (Curve(a), a*Geom3!, 1, Geom3! per Geom3!, List(1)) -> Curve(a);
-
-define growth_vector_map(curve, translation, growth_constant, rotation, landmarks) =
-  let
-      inv_rot = inverse(curve_rotation(curve, landmarks)),
-      s = scale_curve(curve, growth_constant),
-      t = transform_curve(s, rotation),
-      u = translate_curve(t, translation),
-      diff = sum_curves(u, scale_curve(curve, -1))
-  in
-      transform_curve(diff, inv_rot)
-  end;
 
 # ----------------------------------------------------------------------------
 # Observers
@@ -136,6 +95,53 @@ declare shell_full_size ::
 
 define shell_full_size(shell) = 
     settings_nr_ticks(shell_settings(shell));
+
+# ----------------------------------------------------------------------------
+# Shell Construction
+# ----------------------------------------------------------------------------
+
+doc initial_shell
+    "Function initial_shell constructs an empty shell. The shell contains an
+    initial aperture and all other parameteres needed for growth.";
+
+declare initial_shell :: for_unit a:
+    (List(Tuple(a, a)), a*Geom3!, a*Geom3!, 1, radian, 1, radian, radian, radian, 1, 1) -> Shell(a);
+
+define initial_shell(coords, offset, displacement, roz, mu,
+                       growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
+    let
+        curve = make_curve([space_vec(x, 0*x, z) | (x, z) <- coords]),
+        
+        landmarks = borders(coords),
+        
+        s = scale_curve(curve, roz),
+        t = translate_curve(s, offset),
+        u = transform_curve(t, euler_rotation(mu, 0*|radian|, 0*|radian|)),
+
+        r = euler_rotation(theta_x, theta_y, theta_z),
+
+        gvm = growth_vector_map(u, displacement, growth_constant, r, landmarks)
+    in
+        make_shell(make_settings(u, gvm, growth_constant, segments, landmarks), [], [])
+    end;
+
+# ----------------------------------------------------------------------------
+
+declare growth_vector_map ::
+    for_unit a: (Curve(a), a*Geom3!, 1, Geom3! per Geom3!, List(1)) -> Curve(a);
+
+define growth_vector_map(curve, translation, growth_constant, rotation, landmarks) =
+  let
+      inv_rot = inverse(curve_rotation(curve, landmarks)),
+
+      s = scale_curve(curve, growth_constant),
+      t = transform_curve(s, rotation),
+      u = translate_curve(t, translation),
+
+      diff = sum_curves(u, scale_curve(curve, -1))
+  in
+      transform_curve(diff, inv_rot)
+  end;
 
 # ----------------------------------------------------------------------------
 # Size factors
@@ -198,16 +204,21 @@ define grow(shell, n) =
       begin
           b := [x | x <- body]; # copy for add_mut
           me := [x | x <- meshes]; # copy for add_mut
+
           s := if m = 0 then initial else last(body) end;
           i := 0;
+          
           while i != n do
               t := step(s, gvm, growth_factor(m+i, factor, nr_ticks), landmarks);
+
               me := _add_mut(me, segment_mesh(s, t));
               b := _add_mut(b, t);
+
               s := t;
               i := i + 1;
           end
-          return tuple(settings, b, me);
+
+          return make_shell(settings, b, me);
       end
   end;
 
@@ -261,34 +272,41 @@ declare extend_shell_info ::
     for_unit a: (Shell(a), Info(a), 1) -> Info(a);
 
 define extend_shell_info(shell, info, n) =
-  let
-     (aperture_area, body_area_growth, body_area, body_volume_growth, body_volume) = info,
-      body = shell_body(shell) 
-  in
-      begin
-          start := list_size(aperture_area) - 1;
-          i := 0;
-          area := last(body_area);
-          volume := last(body_volume);
-          while i != n do
-              a := nth(max(0, start+i-1), body);
-              b := nth(start+i, body);
-              cb := curve_surface(curve_reverse(b));
-              ss := segment_surface(a, b);
-              sass := surface_area(ss);
-              area := area + sass;
-              vss := surface_volume(append(ss, append(curve_surface(a), cb)));
-              volume := volume + vss;
-              aperture_area := _add_mut(aperture_area, surface_area(cb));
-              body_area_growth := _add_mut(body_area_growth, sass);
-              body_area := _add_mut(body_area, area);
-              body_volume_growth := _add_mut(body_volume_growth, vss);
-              body_volume := _add_mut(body_volume, volume);
-              i := i + 1;
-          end
-          return make_info(aperture_area, body_area_growth, body_area, body_volume_growth, body_volume);
-      end
-  end;
+    let
+        (aperture_area, body_area_growth, body_area, body_volume_growth, body_volume) = info,
+        body = shell_body(shell) 
+    in
+        begin
+            start := list_size(aperture_area) - 1;
+          
+            area := last(body_area);
+            volume := last(body_volume);
+
+            i := 0;
+            while i != n do
+                a := nth(max(0, start+i-1), body);
+                b := nth(start+i, body);
+                
+                cb := curve_surface(curve_reverse(b));
+                ss := segment_surface(a, b);
+                sass := surface_area(ss);
+                vss := surface_volume(append(ss, append(curve_surface(a), cb)));
+                
+                area := area + sass;
+                volume := volume + vss;
+
+                aperture_area := _add_mut(aperture_area, surface_area(cb));
+                body_area_growth := _add_mut(body_area_growth, sass);
+                body_area := _add_mut(body_area, area);
+                body_volume_growth := _add_mut(body_volume_growth, vss);
+                body_volume := _add_mut(body_volume, volume);
+
+                i := i + 1;
+            end
+            
+            return make_info(aperture_area, body_area_growth, body_area, body_volume_growth, body_volume);
+        end
+    end;
 
 # ----------------------------------------------------------------------------
 
@@ -314,8 +332,10 @@ declare borders ::
 define borders(coords) =
   let
       indices = naturals(list_size(coords)),
+      
       x_less(a, b) = let (ax, _) = a, (bx, _) = b in ax < bx end,
       y_less(a, b) = let (_, ay) = a, (_, by) = b in ay < by end,
+
       left = fold_list((i,j) -> if x_less(nth(i, coords), nth(j, coords)) then i else j end, indices),
       top = fold_list((i,j) -> if y_less(nth(i, coords), nth(j, coords)) then i else j end, indices),
       right = fold_list((i,j) -> if x_less(nth(i, coords), nth(j, coords)) then j else i end, indices),

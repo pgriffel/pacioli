@@ -672,9 +672,8 @@
         }
 
         /*
-         *  Utilities
+         *  Utilitiy
          */
-
         function getParameter(paramName, urlParams) {
             var result;
             var params = urlParams.split("&");
@@ -685,19 +684,6 @@
                 }
             }
             return result;
-        }
-
-        function getCSS(element, property) {
-            var elem = document.getElementById(element);
-            var css = null;
-
-            if (elem.currentStyle) {
-                css = elem.currentStyle[property];
-            } else if (window.getComputedStyle) {
-                css = document.defaultView.getComputedStyle(elem, null).
-                    getPropertyValue(property);
-            }
-            return css;
         }
 
     </script>
