@@ -184,14 +184,16 @@ public class Bundle {
 
         Pacioli.trace("Generating code for %s", this.file.module());
 
+        boolean indentCode = false; // feature flag
+
         // Declare a compiler (symbol table visitor) instance
-        Printer printer = new Printer(writer);
+        Printer printer = new Printer(writer, indentCode);
         SymbolTableVisitor compiler;
         CodeGenerator gen;
 
         switch (settings.target()) {
             case JS:
-                gen = new JSGenerator(new Printer(writer), settings, false);
+                gen = new JSGenerator(printer, settings);
                 compiler = new JSTranspiler(printer, settings);
                 break;
             case MATLAB:

@@ -104,7 +104,7 @@ public class JSTranspiler implements SymbolTableVisitor {
             out.format("Pacioli.%s = function (%s) {", info.globalName(), code.argsString("lcl_"));
             out.newlineUp();
             out.format("return ");
-            code.expression.compileToJS(out, settings, false);
+            code.expression.compileToJS(out, settings);
             out.format(";");
             out.newlineDown();
             out.format("}");
@@ -118,7 +118,7 @@ public class JSTranspiler implements SymbolTableVisitor {
                     info.globalName(),
                     info.localType().reduce(i -> true).compileToJS(),
                     info.globalName());
-            transformedBody.compileToJS(out, settings, false);
+            transformedBody.compileToJS(out, settings);
             out.format(";\n}\n");
             // out.format("Pacioli.compute_b_%s = function () {\n return ",
             // info.globalName());
@@ -141,7 +141,7 @@ public class JSTranspiler implements SymbolTableVisitor {
                     info.globalName(),
                     info.globalName(),
                     definition.name());
-            definition.body().compileToJS(out, settings, false);
+            definition.body().compileToJS(out, settings);
             out.format(")}\n");
         } else {
 

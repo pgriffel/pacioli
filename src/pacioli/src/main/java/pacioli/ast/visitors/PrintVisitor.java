@@ -88,9 +88,8 @@ public class PrintVisitor implements Visitor {
 
     Printer out;
 
-    public PrintVisitor(Printer printWriter) {
-        // out = new Printer(printWriter);
-        out = printWriter;
+    public PrintVisitor(Printer printer) {
+        out = printer;
     }
 
     public void write(String text) {
@@ -272,7 +271,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(ValueDefinition node) {
-        if (node.body instanceof MatrixLiteralNode lit) {
+        if (node.body instanceof MatrixLiteralNode) {
             mark();
             write("defmatrix");
             node.body.accept(this);

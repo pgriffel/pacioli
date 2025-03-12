@@ -36,70 +36,29 @@ import pacioli.types.matrix.MatrixType;
 
 public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
-    // Members
     CompilationSettings settings;
-    Boolean boxed;
 
-    // Constructor
-    public JSGenerator(Printer printWriter, CompilationSettings settings, boolean boxed) {
+    public JSGenerator(Printer printWriter, CompilationSettings settings) {
         super(printWriter);
         this.settings = settings;
-        this.boxed = boxed;
     }
 
     // Visitors
 
     @Override
     public void visit(ApplicationNode node) {
-        // if (settings.debug() && node.function instanceof IdentifierNode) {
-        mark();
-        if (false && node.function instanceof IdentifierNode) {
-            IdentifierNode id = (IdentifierNode) node.function;
-            String stackText = id.name();
-            String fullText = node.location().description();
-            boolean traceOn = settings.isTracing(id.name());
-            out.format("application_debug(\"%s\", \"%s\", \"%s\", ", escapeString(stackText), escapeString(fullText),
-                    traceOn);
-            id.accept(this);
-            // boolean traceOn = settings.trace(id.fullName());
-            // out.format("application_debug(\"%s\", \"%s\", \"%s\", %s%s)",
-            // escapeString(stackText), escapeString(fullText), traceOn, code, args);
-        } else {
 
-            if (node.function instanceof IdentifierNode && ((IdentifierNode) node.function).isGlobal()) {
-                String fullName = ((IdentifierNode) node.function).info().globalName();
-                if (!boxed ||
-                        fullName.equals(ValueInfo.global("base_base", "empty_list")) ||
-                        fullName.equals(ValueInfo.global("base_base", "loop_list")) ||
-                        fullName.equals(ValueInfo.global("base_base", "fold_list")) ||
-                        fullName.equals(ValueInfo.global("base_base", "cons")) ||
-                        fullName.equals(ValueInfo.global("base_base", "zip")) ||
-                        fullName.equals(ValueInfo.global("base_base", "tail")) ||
-                        fullName.equals(ValueInfo.global("base_base", "head")) ||
-                        fullName.equals(ValueInfo.global("base_base", "_add_mut")) ||
-                        fullName.equals(ValueInfo.global("base_base", "append")) ||
-                        fullName.equals(ValueInfo.global("base_base", "reverse")) ||
-                        fullName.equals(ValueInfo.global("base_base", "tuple")) ||
-                        fullName.equals(ValueInfo.global("base_base", "new_ref")) ||
-                        fullName.equals(ValueInfo.global("base_base", "empty_ref")) ||
-                        fullName.equals(ValueInfo.global("base_base", "throw_result")) ||
-                        fullName.equals(ValueInfo.global("base_base", "catch_result")) ||
-                        fullName.equals(ValueInfo.global("base_base", "seq")) ||
-                        fullName.equals(ValueInfo.global("base_base", "ref_set")) ||
-                        fullName.equals(ValueInfo.global("base_base", "ref_get")) ||
-                        fullName.equals(ValueInfo.global("base_base", "while_function")) ||
-                        fullName.equals(ValueInfo.global("base_base", "apply"))) {
-                    out.format("Pacioli.%s", fullName);
-                } else {
-                    out.format("Pacioli.b_%s", fullName);
-                }
-            } else {
-                out.print("(");
-                node.function.accept(this);
-                out.print(")");
-            }
-            out.write("(");
+        mark();
+
+        if (node.function instanceof IdentifierNode funId && funId.isGlobal()) {
+            out.format("Pacioli.%s", funId.info().globalName());
+        } else {
+            out.print("(");
+            node.function.accept(this);
+            out.print(")");
         }
+
+        out.write("(");
         newlineUp();
         Boolean sep = false;
         for (Node arg : node.arguments) {
@@ -159,11 +118,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         if (value.equals("true") || value.equals("false")) {
             out.format("%s", value);
         } else {
-            if (boxed) {
-                out.format("Pacioli.num(%s)", value);
-            } else {
-                out.format("Pacioli.initialNumbers(1, 1, [[0, 0, %s]])", value);
-            }
+            out.format("Pacioli.initialNumbers(1, 1, [[0, 0, %s]])", value);
         }
     }
 
@@ -176,10 +131,9 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(IdentifierNode node) {
         ValueInfo info = node.info();
-        // String prefix = settings.debug() && node.debugable() ? "debug_" : "global_";
-        String fun = boxed ? "bfetchValue" : "fetchValue";
+
         String full = info.isGlobal()
-                ? "Pacioli." + fun + "('" + info.generalInfo().module() + "', '" + node.name() + "')"
+                ? "Pacioli.fetchValue('" + info.generalInfo().module() + "', '" + node.name() + "')"
                 : "lcl_" + node.name();
 
         if (node.info().isRef()) {
@@ -203,18 +157,22 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(KeyNode node) {
         StringBuilder builder = new StringBuilder();
+
         builder.append("Pacioli.createCoordinates([");
+
         for (int i = 0; i < node.keys.size(); i++) {
-            if (0 < i)
+            if (0 < i) {
                 builder.append(",");
+            }
             builder.append("['");
             builder.append(node.keys.get(i));
             builder.append("','");
-            // builder.append(node.info.get(i).definition.globalName());
             builder.append(node.getInfo(i).globalName());
             builder.append("']");
         }
+
         builder.append("])");
+
         out.print(builder.toString());
     }
 
@@ -249,30 +207,21 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         // see mvm generator!!!
         StringBuilder builder = new StringBuilder();
         String sep = "";
-        // for (int i = 0; i < node.values.size(); i++) {
+
         for (MatrixLiteralNode.PositionedValueDecl decl : node.positionedValueDecls()) {
             builder.append(sep);
             builder.append("[");
             builder.append(decl.row);
-            // builder.append(node.rowIndices.get(i));
             builder.append(",");
             builder.append(decl.column);
-            // builder.append(node.columnIndices.get(i));
             builder.append(",");
             builder.append(decl.valueDecl.value);
-            // builder.append(node.values.get(i));
             builder.append("]");
             sep = ",";
         }
-        if (boxed) {
-            // TODO: should this type be reduced?
-            out.print(
-                    "Pacioli.initialMatrix(" + node.typeNode.evalType().compileToJS() + "," + builder.toString() + ")");
-        } else {
-            out.format("Pacioli.initialNumbers(%s, %s, [%s])",
-                    node.rowDim.size(), node.columnDim.size(),
-                    builder.toString());
-        }
+        out.format("Pacioli.initialNumbers(%s, %s, [%s])",
+                node.rowDim.size(), node.columnDim.size(),
+                builder.toString());
     }
 
     @Override
@@ -286,17 +235,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             throw new RuntimeException(e);
         }
 
-        if (boxed) {
-            out.print("Pacioli.oneMatrix(" + type.compileToJS() + ")");
-
-        } else {
-            out.print("Pacioli.oneNumbersFromShape(" + type.compileToJS() + ")");
-
-            // // Obsolete code
-            // // throw new PacioliException(node.getLocation(), " huh %s", type.pretty());
-            // out.print("Pacioli.oneNumbers(" + node.rowDim.size() + ", " +
-            // node.columnDim.size() + ")");
-        }
+        out.print("Pacioli.oneNumbersFromShape(" + type.compileToJS() + ")");
     }
 
     @Override

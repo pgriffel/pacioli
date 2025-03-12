@@ -122,14 +122,8 @@ public interface Node extends Printable {
         return outputStream.toString();
     }
 
-    default public String compileToJS(CompilationSettings settings, boolean boxed) {
-        StringWriter outputStream = new StringWriter();
-        this.accept(new JSGenerator(new Printer(new PrintWriter(outputStream)), settings, boxed));
-        return outputStream.toString();
-    }
-
-    default public void compileToJS(Printer writer, CompilationSettings settings, boolean boxed) {
-        this.accept(new JSGenerator(writer, settings, boxed));
+    default public void compileToJS(Printer writer, CompilationSettings settings) {
+        this.accept(new JSGenerator(writer, settings));
     }
 
     default public String compileToMATLAB(CompilationSettings settings) {
