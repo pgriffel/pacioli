@@ -21,7 +21,7 @@ define all_suite_collections = [
     bom_suites,
     kirchhof_suites,
     apply_mag_suites,
-    # shells_suites,
+    shells_suites,
     # commodity_suites,
     # shock_tube_suites,
     net_suites,
