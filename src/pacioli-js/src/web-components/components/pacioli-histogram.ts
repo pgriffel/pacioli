@@ -1,10 +1,11 @@
-import { si, SIUnit, UOM } from "uom-ts";
+import { SIUnit, UOM } from "uom-ts";
 import { PacioliContext } from "../../context";
 import { Histogram, HistogramOptions } from "../../charts/d3-histogram";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
 import { dataUnit } from "../../charts/chart-utils";
 import { PacioliValue } from "../../boxing";
+import { parseUnit } from "../../api";
 
 /**
  * Attribues supported by the histogram component
@@ -82,7 +83,7 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
       // Store the unit as soon as it gets known. Otherwise it will be
       // derived from the data.
       if (name === "unit") {
-        this.unit = si.parseDimNum(newValue).unit;
+        this.unit = parseUnit(newValue);
       }
 
       // Refresh the chart if this is an update and we have data to display

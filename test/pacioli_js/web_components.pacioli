@@ -96,7 +96,7 @@ define sines(n, k) =
 # ------------------------------------------------------------------------------
 
 # FIXME: units defined in a script are not known at runtime in js.
-#defunit people "ppl";
+defunit people "ppl";
 
 defindex Continent = {
     Africa,
@@ -136,7 +136,11 @@ defmatrix population :: people * Continent! = {
     Oceania -> 44491724
 };
 
-define get_population() = population;
+define get_population() = 
+    begin
+        printf("test unit %s", |people|);
+        return population;
+    end;
 
 define test_columns() = 
     tuple(

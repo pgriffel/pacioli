@@ -1,9 +1,10 @@
-import { si, SIUnit, UOM } from "uom-ts";
+import { SIUnit, UOM } from "uom-ts";
 import { LineChart, LineChartOptions } from "../../charts/d3-line-chart";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { dataUnit } from "../../charts/chart-utils";
 import { optionsFromAttributes } from "../utils";
+import { parseUnit } from "../../api";
 
 /**
  * Attribues supported by the histogram component
@@ -90,7 +91,7 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
     try {
       switch (name) {
         case "unit": {
-          this.unit = si.parseDimNum(newValue).unit;
+          this.unit = parseUnit(newValue);
           break;
         }
       }

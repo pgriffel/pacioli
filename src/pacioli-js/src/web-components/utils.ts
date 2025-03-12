@@ -1,7 +1,7 @@
-import { si, SIUnit } from "uom-ts";
+import { SIUnit } from "uom-ts";
 import { PacioliString } from "../values/string";
 import { Matrix } from "../values/matrix";
-import { num, value } from "../api";
+import { num, parseDimNum, value } from "../api";
 import { PacioliFunction } from "../values/function";
 import { PacioliValue } from "../boxing";
 import { PacioliWebComponent } from "./pacioli-web-component";
@@ -143,7 +143,7 @@ export function parseParameterNode(
         }
 
         // Parse the number and the unit
-        const dimNum = si.parseDimNum(value + " * " + unit);
+        const dimNum = parseDimNum(value + " * " + unit);
 
         // Create a NumberParameter
         return {

@@ -1,10 +1,11 @@
-import { si, SIUnit, UOM } from "uom-ts";
+import { SIUnit, UOM } from "uom-ts";
 import { ScatterPlot, ScatterPlotOptions } from "../../charts/d3-scatter-plot";
 import { PacioliContext } from "../../context";
 import { PacioliValue } from "../../boxing";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { dataUnit } from "../../charts/chart-utils";
 import { optionsFromAttributes } from "../utils";
+import { parseUnit } from "../../api";
 
 /**
  * Attribues supported by the scatter plot component
@@ -78,11 +79,11 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
     try {
       switch (name) {
         case "xunit": {
-          this.xunit = si.parseDimNum(newValue).unit;
+          this.xunit = parseUnit(newValue);
           break;
         }
         case "yunit": {
-          this.yunit = si.parseDimNum(newValue).unit;
+          this.yunit = parseUnit(newValue);
           break;
         }
       }

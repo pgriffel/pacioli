@@ -33,7 +33,7 @@ import { internUnit, matrixShapeFromType } from "./boxing";
 import { UnitVector } from "./values/unit-vector";
 import { PacioliString } from "./values/string";
 
-export const defaultContext = PacioliContext.si();
+export const defaultContext = PacioliContext.empty();
 
 // -----------------------------------------------------------------------------
 // 0. Functions used by generated code
@@ -214,14 +214,20 @@ export function fetchUnit(
 ): SIUnit {
   const unit = context.lookupUnit(prefix, base);
   if (unit === undefined) {
+    const parts = base.split(":");
+    const baseName = parts.length === 2 ? parts[1] : base;
+    // const prefix2 =
+    //   prefix.length === 0 && parts.length === 2 ? parts[0] : prefix;
+
     const def: { definition?: DimNum; symbol: string } = computeItem(
-      "sbase_" + base
+      "sbase_" + baseName
     );
     // TODO
-    context.addBase(base, def.symbol, def.definition);
+    context.addBase(baseName, def.symbol, def.definition);
+
     const retry = context.getUnit(prefix, base);
     if (retry === undefined) {
-      throw new Error(`Could not add base ${base}`);
+      throw new Error(`Could not add base ${baseName}`);
     } else {
       return retry;
     }

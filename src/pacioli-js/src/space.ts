@@ -20,13 +20,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { si, SIUnit, UOM } from "uom-ts";
+import { SIUnit, UOM } from "uom-ts";
 import { getNumber } from "./values/numbers";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Matrix } from "./values/matrix";
 import { PacioliString } from "./values/string";
-import { num, unit } from "./api";
+import { conversionFactor, num, unit } from "./api";
 import { Maybe } from "./values/maybe";
 import { PacioliBoole } from "./values/boole";
 import { PacioliFunction } from "./values/function";
@@ -1291,13 +1291,13 @@ function vector2THREE(
   // the type's multiplier.
   var factorx =
     extraFactor *
-    si.conversionFactor(vector.shape.unitAt(0, 0), unit.x).toNumber();
+    conversionFactor(vector.shape.unitAt(0, 0), unit.x).toNumber();
   var factory =
     extraFactor *
-    si.conversionFactor(vector.shape.unitAt(1, 0), unit.y).toNumber();
+    conversionFactor(vector.shape.unitAt(1, 0), unit.y).toNumber();
   var factorz =
     extraFactor *
-    si.conversionFactor(vector.shape.unitAt(2, 0), unit.z).toNumber();
+    conversionFactor(vector.shape.unitAt(2, 0), unit.z).toNumber();
 
   return new THREE.Vector3(
     getNumber(numbers, 0, 0) * factorx,
