@@ -226,13 +226,16 @@ public class Primitives {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Callable first = (Callable) params.get(0);
                 Callable second = (Callable) params.get(1);
-                Boole test = (Boole) first.apply(new ArrayList<PacioliValue>());
-                PacioliValue result = VOID;
+
+                List<PacioliValue> empty = new ArrayList<>();
+
+                Boole test = (Boole) first.apply(empty);
                 while (test.positive()) {
-                    result = second.apply(new ArrayList<PacioliValue>());
-                    test = (Boole) first.apply(new ArrayList<PacioliValue>());
+                    second.apply(empty);
+                    test = (Boole) first.apply(empty);
                 }
-                return result;
+
+                return VOID;
             }
         });
 
