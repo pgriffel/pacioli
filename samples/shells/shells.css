@@ -15,13 +15,14 @@
 }
 
 #parameters td.key {
+    width:5em;
     text-align: right;
 }
 
 #parameters td.value {
 }
 
-#parameters td.value input {
+#parameters td.value {
     width: 80px;
 }
 
@@ -36,7 +37,7 @@
 
 #graphics {
     position: fixed;
-    top: 65%;
+    top: 75%;
 }
 
 

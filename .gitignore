@@ -1,5 +1,6 @@
 **/*.mvm
 **/*.js
+!/samples/shells/parameters.js
 **/*.pacioli~
 **/*.java~
 /src/uom/target/

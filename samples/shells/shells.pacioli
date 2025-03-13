@@ -10,77 +10,20 @@
 # The shell model is in file 'model.pacioli'. This file is mostly a small
 # wrapper around the model functions.
 #
-# This second version . The first version followed the original MATLAB script
-# more closely
+# This improved second version uses some new Pacioli features. The model 
+# computation hasn't changed and still follows the original MATLAB script
+# closely.
 #
 # Paul Griffioen 2012-2025
 # ----------------------------------------------------------------------------
 
 import geometry;
 import si;
+import graphics;
 
 include model;
-
-# ----------------------------------------------------------------------------
-# Unit Definitions
-# ----------------------------------------------------------------------------
-
-# ----------------------------------------------------------------------------
-# Interface
-#
-# Function make_shell is called from shells.html. Is is a wrapper around
-# initial_shell that handles the initial aperture. Unfortunately it currently
-# fixes the unit here instead of in shells.html.
-#
-# Function shell_body is only used in the test below.
-# ----------------------------------------------------------------------------
-
-declare create_shell ::
-    for_unit a:
-        (List(Tuple(radian, a)), a*Geom3!, a*Geom3!, 1, radian, 1, radian, radian, radian, 1, a)
-          -> Shell(a);
-
-define create_shell(aperture, offset, displacement, roz, mu,
-               growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
-    initial_shell(
-        absolute_aperture_coords(aperture, fudge),
-        offset,
-        displacement,
-        roz, mu,
-        growth_constant,
-        theta_x, theta_y, theta_z,
-        segments,
-        1);
-
-# ----------------------------------------------------------------------------
-
-doc absolute_aperture_coords
-    "Creates absolute coordinates from a list of (angle, dinstance) pairs."; 
-
-declare absolute_aperture_coords ::
-  for_unit a: (List(Tuple(radian, a)), a) -> List(Tuple(a, a));
-
-define absolute_aperture_coords(path, unit) =
-  begin
-      direction := 0*|radian|;
-      x := 0*unit;
-      y := 0*unit;
-
-      coords := [tuple(x,y)];
-
-      while path != [] do
-          (angle, distance) := head(path);
-
-          direction := direction + angle;
-          x := x + distance * sin(direction);
-          y := y + distance * cos(direction);
-          
-          coords := cons(tuple(x, y), coords);
-          path := tail(path);
-      end
-
-      return coords;
-  end;
+include info;
+include curve;
 
 # ----------------------------------------------------------------------------
 # Apertures
@@ -95,24 +38,32 @@ define absolute_aperture_coords(path, unit) =
 doc circle_path
     "circle_path(n, d) creates a circle of n line segments each of lenght d";
 
-declare circle_path :: for_unit a: (1, a) -> List(Tuple(radian, a));
+declare circle_path ::
+    for_unit a: (1, a) -> List(Tuple(radian, a));
 
 define circle_path(n, d) =
-  let angle = 2*pi*|radian|/n in
-    [tuple(a, d) | i <- naturals(n-1), a := if i = 0 then angle/2 else angle end]
-  end;
+    let 
+        angle = 2*pi*|radian|/n
+    in
+        [tuple(a, d) |
+            i <- naturals(n-1),
+            a := if i = 0 then angle/2 else angle end]
+    end;
 
 # ----------------------------------------------------------------------------
 
 doc rectangle_path
     "rectangle_path(w, h) creates a rectangle of width w and height h";
 
-declare rectangle_path :: for_unit a: (a, a) -> List(Tuple(radian, a));
+declare rectangle_path ::
+    for_unit a: (a, a) -> List(Tuple(radian, a));
 
 define rectangle_path(w, h) =
-  let turn = pi*|radian|/2 in
-    [tuple(0*|radian|, h/2), tuple(turn, w), tuple(turn, h), tuple(turn, w)]
-  end;
+    let
+        turn = pi*|radian|/2
+    in
+        [tuple(0*|radian|, h/2), tuple(turn, w), tuple(turn, h), tuple(turn, w)]
+    end;
 
 # ----------------------------------------------------------------------------
 # A test
@@ -120,39 +71,40 @@ define rectangle_path(w, h) =
 
 defalias shell_unit = milli:metre;
 
-define get_shell_body(aperture, offset, displacement, roz, mu,
-                       growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
-  grow(create_shell(aperture, offset, displacement, roz, mu,
-                       growth_constant, theta_x, theta_y, theta_z, segments, fudge), segments);
+define my_path_a() =
+  circle_path(17, 0.2*|shell_unit|);
 
-define my_path_a() = circle_path(17, 0.2*|shell_unit|);
+define my_path_b() = [
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.6*|radian|, 0.25*|shell_unit|),
+    tuple(-0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.6*|radian|, 1.25*|shell_unit|),
+    tuple(-0.6*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|)
+];
 
-define my_path_b() = [tuple( 0.3*|radian|, 0.25*|shell_unit|),
-                      tuple( 0.6*|radian|, 0.25*|shell_unit|),
-                      tuple(-0.3*|radian|, 0.25*|shell_unit|),
-                      tuple( 0.6*|radian|, 1.25*|shell_unit|),
-                      tuple(-0.6*|radian|, 0.25*|shell_unit|),
-                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
-                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
-                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
-                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
-                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
-                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
-                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
-                      tuple( 0.3*|radian|, 0.25*|shell_unit|),
-                      tuple( 0.3*|radian|, 0.25*|shell_unit|)];
+define my_path_c() =
+    rectangle_path(0.5*|shell_unit|, 0.5*|shell_unit|);
 
-define my_path_c() = rectangle_path(0.5*|shell_unit|, 0.5*|shell_unit|);
+declare test_shell ::
+    () -> Shell(shell_unit);
 
-declare run :: () -> Shell(shell_unit);
-
-define run() = 
+define test_shell() = 
   let 
       deg = 2*pi*|radian|/360,
-      shell_vec(x, y, z) = space_vec(x*|shell_unit|, y*|shell_unit|, z*|shell_unit|)
+      shell_vec(x, y, z) = vector3d(x*|shell_unit|, y*|shell_unit|, z*|shell_unit|),
+      aperture_coords = absolute_aperture_coords(my_path_a(), |shell_unit|)
   in
-      get_shell_body(my_path_a(), shell_vec(0, 0, 0), shell_vec(-0.05, 0, -0.02),
-                    1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, 2, |shell_unit|)
+      grow(initial_shell(aperture_coords, shell_vec(0, 0, 0), shell_vec(-0.05, 0, -0.02),
+                    1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, 2, 1), 2)
   end;
 
-run();
+test_shell();
