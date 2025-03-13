@@ -274,7 +274,7 @@ export function internUnit(unit: PacioliUnit, context: PacioliContext): SIUnit {
     if (base.isVar) {
       throw new Error("cannot have variable");
     } else {
-      const siUnit = fetchUnit(base.prefix, base.name, context);
+      const siUnit = fetchUnit(base.prefix, base.base, context);
       if (siUnit) {
         return siUnit;
       } else {

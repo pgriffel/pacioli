@@ -30,7 +30,6 @@ public class TheVoid extends AbstractPacioliValue {
 
     @Override
     public void printText(PrintWriter out) {
-        out.print("void");
     }
 
 }

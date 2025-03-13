@@ -177,7 +177,7 @@ public class JSTranspiler implements SymbolTableVisitor {
                 DimensionedNumber<TypeBase> number = body.evalUnit();
                 number = number.flat();
                 out.format("Pacioli.compute_%s = function () {\n", info.globalName());
-                out.format("    return {definition: new Pacioli.DimNum(%s, %s), symbol: '%s'}\n",
+                out.format("    return {definition: Pacioli.DimNum.fromNumber(%s, %s), symbol: '%s'}\n",
                         number.factor(), TypeBase.compileUnitToJS(number.unit()), info.symbol());
                 out.format("}\n");
             } else {

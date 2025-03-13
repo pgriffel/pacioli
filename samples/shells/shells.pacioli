@@ -25,12 +25,6 @@ include model;
 # Unit Definitions
 # ----------------------------------------------------------------------------
 
-#defunit pi "pi" = 3.141592653589793;
-#defunit degree "deg" = pi/180;
-#defunit millimetre "mm" = milli:metre;
-
-defalias shell_unit = milli:metre;
-
 # ----------------------------------------------------------------------------
 # Interface
 #
@@ -41,17 +35,22 @@ defalias shell_unit = milli:metre;
 # Function shell_body is only used in the test below.
 # ----------------------------------------------------------------------------
 
+declare create_shell ::
+    for_unit a:
+        (List(Tuple(radian, a)), a*Geom3!, a*Geom3!, 1, radian, 1, radian, radian, radian, 1, a)
+          -> Shell(a);
+
 define create_shell(aperture, offset, displacement, roz, mu,
                growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
     initial_shell(
-        absolute_aperture_coords(aperture, |shell_unit|),
+        absolute_aperture_coords(aperture, fudge),
         offset,
         displacement,
         roz, mu,
         growth_constant,
         theta_x, theta_y, theta_z,
         segments,
-        fudge);
+        1);
 
 # ----------------------------------------------------------------------------
 
@@ -119,6 +118,8 @@ define rectangle_path(w, h) =
 # A test
 # ----------------------------------------------------------------------------
 
+defalias shell_unit = milli:metre;
+
 define get_shell_body(aperture, offset, displacement, roz, mu,
                        growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
   grow(create_shell(aperture, offset, displacement, roz, mu,
@@ -143,7 +144,7 @@ define my_path_b() = [tuple( 0.3*|radian|, 0.25*|shell_unit|),
 
 define my_path_c() = rectangle_path(0.5*|shell_unit|, 0.5*|shell_unit|);
 
-declare run :: () -> Shell(milli:metre);
+declare run :: () -> Shell(shell_unit);
 
 define run() = 
   let 
@@ -151,7 +152,7 @@ define run() =
       shell_vec(x, y, z) = space_vec(x*|shell_unit|, y*|shell_unit|, z*|shell_unit|)
   in
       get_shell_body(my_path_a(), shell_vec(0, 0, 0), shell_vec(-0.05, 0, -0.02),
-                    1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, 2, 1)
+                    1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, 2, |shell_unit|)
   end;
 
 run();
