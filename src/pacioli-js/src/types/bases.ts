@@ -29,11 +29,16 @@ export interface PacioliBase extends UOMBase {
 export class SIBaseType implements PacioliBase {
   readonly kind = "sibasetype";
   readonly isVar = false;
+  readonly name: string;
 
-  constructor(public readonly prefix: string, public readonly name: string) {
+  constructor(public readonly prefix: string, public readonly base: string) {
     if (typeof prefix !== "string") {
       throw new Error("prefix error");
     }
+    if (base.indexOf(":") >= 0) {
+      throw new Error(`Double colon: prefix=${prefix} name=${base}`);
+    }
+    this.name = prefix.length === 0 ? base : prefix + ":" + base;
   }
 
   public toText(): string {
