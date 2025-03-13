@@ -102,7 +102,19 @@ function solveEquations(eqs: PacioliEquation[]) {
       }
       case "uniteq": {
         const binding = new Binding();
-        binding.unitMap = matchUnits(eq.lhs, eq.rhs);
+        binding.unitMap = matchUnits(
+          subsUnit(eq.lhs, map.unitMap),
+          subsUnit(eq.rhs, map.unitMap)
+        );
+        map = binding.compose(map);
+        break;
+      }
+      case "vectoreq": {
+        const binding = new Binding();
+        binding.vectorMap = matchUnits(
+          subsUnit(eq.lhs, map.vectorMap),
+          subsUnit(eq.rhs, map.vectorMap)
+        );
         map = binding.compose(map);
         break;
       }
