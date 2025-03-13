@@ -504,7 +504,7 @@
                 growth,
                 rotation_x, rotation_y, rotation_z,
                 ticks,
-                Pacioli.num(SCALE_FUDGE)
+                Pacioli.num(SCALE_FUDGE, SHELL_UNIT)
             );
 
             growthFactors = Pacioli.fun("model", "growth_factors").call(Pacioli.num(params.growth.value), Pacioli.num(params.segments.value))
