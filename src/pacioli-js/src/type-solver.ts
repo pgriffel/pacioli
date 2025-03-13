@@ -245,9 +245,7 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
 }
 
 /**
- *
- * Assumes that the types are already correctly checked. For example if type
- * x is a list, then type y is also a list.
+ * A set of type equations that match two types. Input for the type solver.
  *
  * @param x
  * @param y
@@ -274,6 +272,9 @@ export function collectTypeEquations(
       eqs.push(new VectorEquation(x.columnUnit, y.columnUnit));
     return eqs;
   } else if (x.kind === "generic" && y.kind === "generic") {
+    if (x.name !== y.name) {
+      throw new Error(`Mixup of types ${x.name} and ${y.name}`);
+    }
     var eqs: PacioliEquation[] = [];
     for (var i = 0; i < x.items.length; i++) {
       eqs = eqs.concat(...collectTypeEquations(x.items[i], y.items[i]));
