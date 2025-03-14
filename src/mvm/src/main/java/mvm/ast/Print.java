@@ -7,6 +7,7 @@ import mvm.Machine;
 import mvm.ast.expression.Expression;
 import mvm.values.PacioliValue;
 // import pacioli.Pacioli;
+import mvm.values.TheVoid;
 
 public class Print extends AbstractPrintable implements Instruction {
 
@@ -24,7 +25,7 @@ public class Print extends AbstractPrintable implements Instruction {
     @Override
     public void eval(Machine machine) throws MVMException {
         PacioliValue result = body.eval(machine.store);
-        if (result != null) {
+        if (!(result instanceof TheVoid)) {
             // Pacioli.logln("%s", result.toText());
             if (System.console() == null) {
                 System.out.println(result.toText());
