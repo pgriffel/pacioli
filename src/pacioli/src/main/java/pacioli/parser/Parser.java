@@ -28,7 +28,6 @@ import pacioli.ast.unit.*;
 import pacioli.ast.sugar.*;
 import pacioli.types.ast.*;
 import pacioli.types.ast.TypeIdentifierNode.Kind;
-import pacioli.types.TypeContext;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java_cup.runtime.XMLElement;
 
@@ -1666,32 +1665,27 @@ public class Parser extends java_cup.runtime.lr_parser {
     String errorMessage;
     pacioli.compiler.Location errorLocation;
 
-   /* Public interface */
+    /* Public interface */
     public Parser(Lexer lex, ComplexSymbolFactory sf, File file) {
         super(lex,sf);
         this.file = file;
     }
-
+   
     public static ProgramNode parseFile(File file) throws Exception {
-    Parser parser = null;
-    ProgramNode node;
-    try (var fileReader = new FileReader(file);
-        BufferedReader reader = new BufferedReader(fileReader)) {
-      ComplexSymbolFactory csf = new ComplexSymbolFactory();
-      Lexer lexer = new Lexer(reader, csf, file, null);
-      parser = new Parser(lexer, csf, file);
-      node = (ProgramNode) parser.parse().value;
-    } finally {
-      if (parser != null) {
-        parser.done_parsing();
-      }
-      // reader.close();
-      // fileReader.close();
-    }
-    return node;
-  }
+      ProgramNode node;
 
-   /* CUP overrides to get error handling with location info */
+      try (var fileReader = new FileReader(file);
+          var reader = new BufferedReader(fileReader)) {
+        var csf = new ComplexSymbolFactory();
+        var lexer = new Lexer(reader, csf, file, null);
+        var parser = new Parser(lexer, csf, file);
+        node = (ProgramNode) parser.parse().value;
+      }
+
+      return node;
+    }
+
+    /* CUP overrides to get error handling with location info */
     public void report_error(String message, Object info) {
     }
 
