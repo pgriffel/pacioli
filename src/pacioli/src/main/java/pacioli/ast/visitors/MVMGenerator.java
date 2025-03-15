@@ -302,7 +302,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnVoidNode node) {
-        out.format("application(var(\"%s\"), var(\"result\"), ", ValueInfo.global("$base_base", "_throw_result"));
+        out.format("application(var(\"%s\"), var(\"result\"), ", ValueInfo.global("$base_base", "_throw_void"));
         // Quick fix for node.value.accept(this); above
         out.print("application(var(\"$base__void\"))");
         out.print(")");
@@ -369,7 +369,8 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.newlineUp();
 
         // A catch to get the result
-        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", "_catch_result"));
+        String catcher = node.isVoid ? "_catch_void" : "_catch_result";
+        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", catcher));
 
         out.newlineUp();
 

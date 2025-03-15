@@ -43,6 +43,7 @@ export
     just,
     nothing,
     is_nothing,
+    maybe_get,
     catch;
 
 defunit metre "m";
