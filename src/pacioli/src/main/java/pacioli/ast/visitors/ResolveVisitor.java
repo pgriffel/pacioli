@@ -406,20 +406,28 @@ public class ResolveVisitor extends IdentityVisitor {
     @Override
     public void visit(StatementNode node) {
 
-        boolean returnsValue = false;
+        ReturnNode returnsValueWitness = null;
+        ReturnVoidNode returnsVoiditness = null;
 
         // TODO: locallyAssignedVariables can be solved with this loop.
         for (Node nd : node.body.mutatingStatements()) {
             if (nd instanceof AssignmentNode as) {
             } else if (nd instanceof ReturnNode as) {
-                returnsValue = true;
+                returnsValueWitness = as;
             } else if (nd instanceof ReturnVoidNode as) {
+                returnsVoiditness = as;
             } else if (nd instanceof TupleAssignmentNode as) {
             } else {
             }
         }
 
-        node.isVoid = !returnsValue;
+        if (returnsValueWitness != null && returnsVoiditness != null) {
+            throw new PacioliException(returnsValueWitness.location(),
+                    "Cannot return a value while there is an empty return in %s",
+                    returnsVoiditness.location().description());
+        }
+
+        node.isVoid = returnsValueWitness == null;
 
         // Create a symbol table for all assigned variables in scope and the result
         // place, and a table for the shadowed variables
