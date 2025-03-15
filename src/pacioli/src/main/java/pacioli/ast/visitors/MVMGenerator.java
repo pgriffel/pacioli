@@ -304,7 +304,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     public void visit(ReturnVoidNode node) {
         out.format("application(var(\"%s\"), var(\"result\"), ", ValueInfo.global("$base_base", "_throw_result"));
         // Quick fix for node.value.accept(this); above
-        out.print("application(var(\"$base_base_nothing\"))");
+        out.print("application(var(\"$base__void\"))");
         out.print(")");
     }
 

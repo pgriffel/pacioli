@@ -21,26 +21,13 @@
 
 package pacioli.compiler;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Utils {
 
     public static String intercalate(String seperator, List<String> strings) {
-        StringBuilder builder = new StringBuilder();
-        String sep = "";
-        for (String string : strings) {
-            builder.append(sep);
-            builder.append(string);
-            sep = seperator;
-        }
-        return builder.toString();
+        return String.join(seperator, strings);
     }
 
     public static String intercalateText(String seperator, List<? extends Printable> printables) {
@@ -49,15 +36,5 @@ public class Utils {
             strings.add(printable.pretty());
         }
         return intercalate(seperator, strings);
-    }
-
-    // http://stackoverflow.com/questions/326390/how-to-create-a-java-string-from-the-contents-of-a-file
-    public static String readFile(File path) throws IOException {
-        try (FileInputStream stream = new FileInputStream(path)) {
-            FileChannel fc = stream.getChannel();
-            MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
-            /* Instead of using default, pass in a decoder. */
-            return Charset.defaultCharset().decode(bb).toString();
-        }
     }
 }

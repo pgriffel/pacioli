@@ -19,7 +19,6 @@ import org.eclipse.lsp4j.SemanticTokensLegend;
 import org.eclipse.lsp4j.SignatureHelp;
 import org.eclipse.lsp4j.SignatureInformation;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Bundle;
 import pacioli.compiler.Location;

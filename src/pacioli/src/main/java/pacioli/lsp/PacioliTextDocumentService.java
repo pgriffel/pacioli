@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +43,6 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.symboltable.info.ValueInfo;
 
 public class PacioliTextDocumentService implements TextDocumentService {
 
@@ -139,7 +137,6 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 return Either.forLeft(this.getState(uri).completionItems());
 
             } catch (Exception e) {
-                System.gc();
                 return Either.forLeft(List.of());
             }
         });
@@ -159,7 +156,6 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 return Either.forLeft(this.getState(uri).definitionLocation(pos));
 
             } catch (Exception e) {
-                System.gc();
                 return Either.forLeft(List.of());
             }
         });
@@ -184,8 +180,6 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 return this.getState(uri).signatureHelp(identifier.get());
 
             } catch (Exception e) {
-                System.gc();
-                // throw new CompletionException("Error in signature help", e);
                 return new SignatureHelp();
             }
         });
@@ -203,7 +197,6 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
                 return this.getState(uri).hover(pos);
             } catch (Exception e) {
-                System.gc();
                 return new Hover(new MarkupContent(MarkupKind.PLAINTEXT, ""));
             }
         });
@@ -219,7 +212,6 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 String uri = params.getTextDocument().getUri();
                 return this.getState(uri).semanticTokens();
             } catch (Exception e) {
-                System.gc();
                 return new SemanticTokens();
             }
         });
@@ -292,9 +284,6 @@ public class PacioliTextDocumentService implements TextDocumentService {
             }
 
         }
-
-        // Without this call the file gets locked (on Windows)
-        System.gc();
 
         PublishDiagnosticsParams diagnosticParams = new PublishDiagnosticsParams(uri, errors);
         this.languageClient.publishDiagnostics(diagnosticParams);

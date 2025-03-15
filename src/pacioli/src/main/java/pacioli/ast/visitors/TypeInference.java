@@ -548,7 +548,10 @@ public class TypeInference extends IdentityVisitor {
 
     @Override
     public void visit(ReturnVoidNode node) {
-        returnNode(new Typing(newVoidType()));
+        Typing typing = new Typing(newVoidType());
+        typing.addConstraint(node.resultInfo.localType(), typing.type(),
+                "a void statement, no value is returned", node.location());
+        returnNode(typing);
     }
 
     @Override

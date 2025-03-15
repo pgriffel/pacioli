@@ -23,6 +23,7 @@ package pacioli.compiler;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Comparator;
 import java.util.Optional;
 
@@ -179,7 +180,7 @@ public class Location {
 
     public String fragment() {
         try {
-            return Utils.readFile(file).substring(fromOffset, toOffset);
+            return Files.readString(file.toPath()).substring(fromOffset, toOffset);
         } catch (IOException e) {
             return "No source for file" + file + ": " + e.getMessage();
         }
@@ -193,7 +194,7 @@ public class Location {
 
         String source;
         try {
-            source = Utils.readFile(file);
+            source = Files.readString(file.toPath());
         } catch (IOException e) {
             return "No source for file" + file + ": " + e.getMessage();
         }

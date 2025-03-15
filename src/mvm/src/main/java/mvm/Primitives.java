@@ -253,7 +253,7 @@ public class Primitives {
                 Reference place = (Reference) params.get(1);
                 try {
                     body.apply(new ArrayList<PacioliValue>());
-                    return NOTHING;
+                    return VOID;
                 } catch (ControlTransfer ex) {
                     return place.value();
                 }
@@ -275,6 +275,12 @@ public class Primitives {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliValue value = params.get(0);
                 return new Boole(value instanceof Nothing);
+            }
+        });
+
+        storePrimitive(store, new Primitive("_void") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return VOID;
             }
         });
 

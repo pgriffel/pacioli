@@ -14,6 +14,7 @@
 
     <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
     <script type="text/javascript" src="shells.js"></script>
+    <script type="text/javascript" src="parameters.js"></script>
     <!-- <script type="text/javascript" src="csg.js"></script> -->
 
     <div id="canvasparent">
@@ -22,129 +23,25 @@
     <form id="parameters">
         <table>
             <tr>
-                <td class="key"><label for="growth">growth</label></td>
-                <td class="value"><input type="number" title="Growth constant of the logistic growth curve"
-                        name="growth" value="1.02" onkeydown="onFormKey(event);"></td>
-                <td class="unit"></td>
-            </tr>
-
-            <tr>
-                <td class="key"><label for="rotation_x">rotation x</label></td>
-                <td class="value"><input type="number" title="Rotation around the x-axis per segment" name="rotation_x"
-                        value="0" onkeydown="onFormKey(event);"></td>
-                <td class="unit">
-                    <select name="rotation_x_unit" onkeydown="onFormKey(event);">
-                        <option value="degree">deg</option>
-                        <option value="pi">pi</option>
-                        <option value="radian">rad</option>
-                    </select>
-                </td>
-            </tr>
-
-            <tr>
-                <td class="key"><label for="rotation_y">rotation y</label></td>
-                <td class="value"><input type="number" title="Rotation around the y-axis per segment" name="rotation_y"
-                        value="0" onkeydown="onFormKey(event);"></td>
-                <td class="unit">
-                    <select name="rotation_y_unit" onkeydown="onFormKey(event);">
-                        <option value="degree">deg</option>
-                        <option value="pi">pi</option>
-                        <option value="radian">rad</option>
-                    </select>
-                </td>
-            </tr>
-
-            <tr>
-                <td class="key"><label for="rotation_z">rotation z</label></td>
-                <td class="value"><input type="number" title="Rotation around the z-axis per segment" name="rotation_z"
-                        value="10" onkeydown="onFormKey(event);"></td>
-                <td class="unit">
-                    <select name="rotation_z_unit" onkeydown="onFormKey(event);">
-                        <option value="degree">deg</option>
-                        <option value="pi">pi</option>
-                        <option value="radian">rad</option>
-                    </select>
-                </td>
-            </tr>
-            <tr>
-                <td class="key"><label for="upward">upward</label></td>
-                <td class="value"><input type="number" title="Upward displacment during the growth of the first segment"
-                        name="upward" value="-0.02" onkeydown="onFormKey(event);"></td>
-                <td class="unit">
-                    <select name="upward_unit" onkeydown="onFormKey(event);">
-                        <option value="milli:metre">mm</option>
-                        <option value="metre">m</option>
-                    </select>
-                </td>
-            </tr>
-
-            <tr>
-                <td class="key"><label for="outward">outward</label></td>
-                <td class="value"><input type="number"
-                        title="Outward displacment during the growth of the first segment" name="outward" value="-0.05"
-                        onkeydown="onFormKey(event);"></td>
-                <td class="unit">
-                    <select name="outward_unit" onkeydown="onFormKey(event);">
-                        <option value="milli:metre">mm</option>
-                        <option value="metre">m</option>
-                    </select>
-                </td>
-            </tr>
-
-            <tr>
-                <td class="key"><label for="segments">segments</label></td>
-                <td class="value"><input type="number" name="segments" title="Number of segments" value="200"
-                        onkeydown="onFormKey(event);"></td>
-                <td class="unit"></td>
-            </tr>
-
-            <tr>
                 <td class="key"><label for="aperture">aperture</label></td>
-                <td class="value"><input type="text" name="aperture"
+                <td class="value"><input type="text" name="aperture" size="50"
                         title="Alternating list of angles (deg) and distances (mm) that maps out the initial aperture in the x-z plane. Special forms are circle,_,_ and rectangle,_,_. The circle parameters are the number of segments and the length per segment (mm). The rectangle parameters are the width (mm) and the height (mm)."
                         value="circle,17,0.2" onkeydown="onFormKey(event);"></td>
                 <td class="unit"></td>
             </tr>
+        </table>
+        <table id="parameter_table">
 
-            <tr>
-                <td class="key"><label for="offset">offset</label></td>
-                <td class="value"><input type="number" title="Distance of the initial aperture from the z-axis"
-                        name="offset" value="0" onkeydown="onFormKey(event);"></td>
-                <td class="unit">
-                    <select name="offset_unit" onkeydown="onFormKey(event);">
-                        <option value="milli:metre">mm</option>
-                        <option value="metre">m</option>
-                    </select>
-                </td>
-            </tr>
+            <!-- Filled in onLoad below -->
 
-            <tr>
-                <td class="key"><label for="orientation">orientation</label></td>
-                <td class="value"><input type="number" name="orientation"
-                        title="Rotation of the initial aperture around the x-axis" value="0"
-                        onkeydown="onFormKey(event);"></td>
-                <td class="unit">
-                    <select name="orientation_unit" onkeydown="onFormKey(event);">
-                        <option value="degree">deg</option>
-                        <option value="pi">pi</option>
-                        <option value="radian">rad</option>
-                    </select>
-                </td>
-            </tr>
-
-            <tr>
-                <td class="key"><label for="scale">scale</label></td>
-                <td class="value"><input type="number" name="scale" title="Scale factor for the initial aperture"
-                        value="1" onkeydown="onFormKey(event);"></td>
-                <td class="unit"></td>
-            </tr>
         </table>
         <button type="button" title="Create an initial shell from the parameters" id="formcreate"
-            onclick="onForm(this);">Create</button>
+            onclick="onSubmit(this);">Create</button>
+        <button type="button" title="Grow the shell's number of segements by one" id="formincgo"
+            onclick="onIncrease(this);">Grow</button>
+        <button type="button" title="Grow all the shell's segments" id="formgo" onclick="onGrowAll(this);">Go</button>
     </form>
-    <button type="button" title="Grow the shell's number of segements by one" id="formincgo"
-        onclick="onIncrease(this);">Grow</button>
-    <button type="button" title="Grow all the shell's segments" id="formgo" onclick="onGrowAll(this);">Go</button>
+
 
     <div id="links">
         <ul>
@@ -193,24 +90,6 @@
                         id="perspective" onclick="onPerspective(this);" unchecked></td>
             </tr>
 
-            <tr>
-                <td class="key"><label for="webgl">WebGL</label></td>
-                <td class="value"><input type="checkbox" title="Use WebGL instead of the canvas" id="webgl"
-                        onclick="onWebGL(this);" unchecked></td>
-            </tr>
-
-            <tr>
-                <td class="key"><label for="material">material</label></td>
-                <td class="value">
-                    <select id="material" onchange="onMaterial(this);">
-                        <option value="normal">Normal</option>
-                        <option value="Lambert">Lambert</option>
-                        <option value="Phong">Phong</option>
-                        <option value="basic">Basic</option>
-                    </select>
-                </td>
-            </tr>
-
         </table>
         <button type="button" title="Zoom in" name="zoomin" onclick="onZoomIn();">+</button>
         <button type="button" title="Zoom out" name="zoomout" onclick="onZoomOut();">-</button>
@@ -230,18 +109,86 @@
 
     <script>
 
-        // Pacioli.si.addBase("degree", "deg", Pacioli.parseDimNum("0.0174532925 * radian"))
-
         const RAD = Pacioli.unit("radian")
+        const DEGREE = Pacioli.unit("degree")
 
-        // The unit of measurement of the shell. Must correspond with alias in script.
-        // Can we get this from the script?
         const SHELL_UNIT = Pacioli.unit("milli:metre")
-
         const APERTURE_ANGLE_UNIT = Pacioli.unit('degree');
         const APERTURE_DISTANCE_UNIT = Pacioli.unit('milli:metre');
 
-        const SCALE_FUDGE = 1
+        const PARAMS_SCHEMA = [
+            {
+                name: "growth",
+                default: 1.02,
+                description: "Growth constant of the logistic growth curve"
+            },
+            {
+                name: "rotation_x",
+                unitField: "rotation_x_unit",
+                unitOptions: ["degree", "radian", "pi"],
+                unit: RAD,
+                default: 0,
+                description: "Rotation around the x-axis per segment"
+            },
+            {
+                name: "rotation_y",
+                unitField: "rotation_y_unit",
+                unitOptions: ["degree", "radian", "pi"],
+                unit: RAD,
+                default: 0,
+                description: "Rotation around the y-axis per segment"
+            },
+            {
+                name: "rotation_z",
+                unitField: "rotation_z_unit",
+                unitOptions: ["degree", "radian", "pi"],
+                unit: RAD,
+                default: 10,
+                description: "Rotation around the z-axis per segment"
+            },
+            {
+                name: "upward",
+                unitField: "upward_unit",
+                unitOptions: ["milli:metre", "metre"],
+                unit: SHELL_UNIT,
+                default: -0.02,
+                description: "Upward displacement during the growth of the first segment"
+            },
+            {
+                name: "outward",
+                unitField: "outward_unit",
+                unitOptions: ["milli:metre", "metre"],
+                unit: SHELL_UNIT,
+                default: -0.05,
+                description: "Outward displacement during the growth of the first segment"
+            },
+            {
+                name: "segments",
+                default: 200,
+                description: "Number of segments"
+            },
+            {
+                name: "offset",
+                unitField: "offset_unit",
+                unitOptions: ["milli:metre", "metre"],
+                unit: SHELL_UNIT,
+                default: 0,
+                description: "Distance of the initial aperture from the z-axis"
+            },
+            {
+                name: "orientation",
+                unitField: "orientation_unit",
+                unitOptions: ["degree", "radian", "pi"],
+                unit: RAD,
+                default: 0,
+                description: "Rotation of the initial aperture around the x-axis"
+            },
+            {
+                name: "scale",
+                default: 1,
+                description: "Scale factor for the initial aperture"
+            }
+        ]
 
         var shell            // The shell model computed by the shells.js Pacioli script
         var space            // A Pacioli 3D geometric space for the shell
@@ -254,11 +201,11 @@
         function onLoad() {
 
             var parent = document.getElementById("canvasparent")
-            var parameters = document.getElementById("parameters");
+            var form = document.getElementById("parameters");
+            var parameterTable = document.getElementById("parameter_table");
             var current = document.getElementById("current");
             var charts = document.getElementById("charts");
 
-            var urlParams = window.location.search.substring(1);
             var graphics = graphicsParameters()
 
             // Create the Pacioli Space element. Options must match the default values for checkboxes, units, etc.
@@ -267,14 +214,25 @@
             // Set resize handler to adjust the canvas size to the window size
             window.addEventListener('resize', onWindowResize, false);
 
-            // Update the parameters to the url
-            fillFormFromUrl(parameters, urlParams);
-            current.href = currentHRef(parameters);
+            // Fill the parameter table from the schema
+            parameterTable.innerHTML = parameterTableHTML(PARAMS_SCHEMA)
+
+            // Update the form to the url
+            fillFormFromUrl(form, window.location.search.substring(1));
+
+            // Update the 'current' url to reflect the current form
+            current.href = currentHRef(form, PARAMS_SCHEMA);
 
             // Start computing the initial shell
-            shell = makeShell(parameters)
+            shell = makeShell(form)
+            growthFactors = getGrowthFactor(form)
+
             resetSpace(space, shell, graphics)
-            startAnimation(parameters.segments.value)
+            startAnimation(form.segments.value)
+        }
+
+        function formChanged(form) {
+
         }
 
         /**
@@ -300,20 +258,21 @@
          */
         function onFormKey(event) {
             if (event.keyCode == 13) {
-                onForm(event);
+                onSubmit(event);
             }
         }
 
         /**
          * Create button pressed
          */
-        function onForm(event) {
+        function onSubmit(event) {
             var parameters = document.getElementById("parameters");
             var graphics = document.getElementById("graphics");
             var current = document.getElementById("current");
 
-            current.href = currentHRef(parameters);
+            current.href = currentHRef(parameters, PARAMS_SCHEMA);
             shell = makeShell(parameters)
+            growthFactors = getGrowthFactor(parameters)
             resetSpaceBody(space, shell, graphics)
             target = 0
             updateInfo();
@@ -342,14 +301,6 @@
 
         function onPerspective(event) {
             resetSpace(space, shell, graphicsParameters());
-        }
-
-        function onWebGL(event) {
-            resetSpace(space, shell, graphicsParameters());
-        }
-
-        function onMaterial(event) {
-            resetSpaceBody(space, shell, graphicsParameters());  // Todo: the scene needs a light to view the various materials
         }
 
         function onZoomIn() {
@@ -461,56 +412,44 @@
             }
         }
 
+
         function graphicsParameters() {
             return {
                 axisSize: 10,
                 wireframe: document.getElementById("wireframe").checked,
-                webgl: document.getElementById("webgl").checked,
+                // webgl: document.getElementById("webgl").checked,
                 perspective: document.getElementById("perspective").checked,
-                material: document.getElementById("material").value,
+                // material: document.getElementById("material").value,
                 transparent: document.getElementById("transparent").checked
             }
         }
 
         function makeShell(params) {
 
-            function readDimensionedParam(name, unit) {
-                return Pacioli.convertUnit(Pacioli.num(
-                    params[name].value,
-                    Pacioli.unit(params[name + '_unit'].value)), unit);
-            }
-
-            // Read the user's parameter settings
-            var growth = Pacioli.num(params.growth.value);
-            var scale = Pacioli.num(params.scale.value);
-            var ticks = Pacioli.num(params.segments.value);
-            var offset = readDimensionedParam('offset', SHELL_UNIT)
-            var upward = readDimensionedParam('upward', SHELL_UNIT)
-            var outward = readDimensionedParam('outward', SHELL_UNIT)
-            var orientation = readDimensionedParam('orientation', RAD)
-            var rotation_x = readDimensionedParam('rotation_x', RAD)
-            var rotation_y = readDimensionedParam('rotation_y', RAD)
-            var rotation_z = readDimensionedParam('rotation_z', RAD)
+            const paramss = readParams(params, PARAMS_SCHEMA)
 
             // Read the aperture
             var initial_aperture = readAperture(params.aperture, SHELL_UNIT)
 
             // Create the initial shell
-            var shell = Pacioli.fun("shells", "create_shell").call(
+            var shell = Pacioli.fun("model", "create_shell").call(
                 initial_aperture,
-                Pacioli.fun("$geometry_geometry", "vector3d").call(offset, Pacioli.num(0.0, SHELL_UNIT), Pacioli.num(0.0, SHELL_UNIT)),
-                Pacioli.fun("$geometry_geometry", "vector3d").call(outward, Pacioli.num(0.0, SHELL_UNIT), upward),
-                scale, orientation,
-                growth,
-                rotation_x, rotation_y, rotation_z,
-                ticks,
-                Pacioli.num(SCALE_FUDGE, SHELL_UNIT)
+                paramss.offset,
+                paramss.outward, paramss.upward,
+                paramss.scale, paramss.orientation, paramss.growth,
+                paramss.rotation_x, paramss.rotation_y, paramss.rotation_z,
+                paramss.segments,
+                Pacioli.num(1, SHELL_UNIT)
             );
 
-            growthFactors = Pacioli.fun("model", "growth_factors").call(Pacioli.num(params.growth.value), Pacioli.num(params.segments.value))
-            shell.info = Pacioli.fun("model", "empty_shell_info").call(shell)
+            // Attach the shell info
+            shell.info = Pacioli.fun("info", "empty_shell_info").call(shell)
 
             return shell
+        }
+
+        function getGrowthFactor(params) {
+            return Pacioli.fun("model", "growth_factors").call(Pacioli.num(params.growth.value), Pacioli.num(params.segments.value))
         }
 
         function orientUp(shell, space) {
@@ -550,69 +489,6 @@
                 }
                 return Pacioli.list(tuples)
             }
-        }
-
-        function fillFormFromUrl(form, urlParams) {
-            for (var i = 0; i < form.elements.length; i++) {
-                var element = form.elements[i];
-                if (element.tagName == "INPUT") {
-                    var param = getParameter(element.name, urlParams);
-                    if (param != undefined) {
-                        var matches = param.match(/([^a-zA-Z_]+)([a-zA-Z_]+)/);
-                        if (matches) {
-                            element.value = matches[1];
-                            var unitElement = form.elements[element.name + "_unit"];
-                            if (unitElement) {
-                                var options = unitElement.options;
-                                for (var k = 0; k < options.length; k++) {
-                                    if (options[k].text == matches[2]) {
-                                        ;
-                                        unitElement.value = options[k].value;
-                                    }
-                                }
-                            }
-                        } else {
-                            element.value = param;
-                        }
-                    }
-                } else if (element.tagName == "TEXTAREA") {
-                    var param = getParameter(element.name, urlParams);
-                    if (param != undefined) {
-                        element.value = param;
-                    }
-                }
-            }
-        }
-
-        function currentHRef(form) {
-            var table = [["offset", "offset_unit", 0],
-            ["growth", ""],
-            ["upward", "upward_unit"],
-            ["outward", "outward_unit"],
-            ["scale", "", 1],
-            ["orientation", "orientation_unit", 0],
-            ["rotation_x", "rotation_x_unit", 0],
-            ["rotation_y", "rotation_y_unit", 0],
-            ["rotation_z", "rotation_z_unit"],
-            ["segments", ""],
-            ["aperture", ""]];
-            var href = "shells.html";
-            var sep = "?";
-            for (var i = 0; i < table.length; i++) {
-                var name = table[i][0];
-                var unit = table[i][1];
-                var def = table[i][2];
-                var value = form.elements[name].value;
-                if (def == undefined || value != def) {
-                    href += sep + name + "=" + value;
-                    if (unit != "") {
-                        var unitElt = form.elements[unit];
-                        href += unitElt.options[unitElt.selectedIndex].text;
-                    }
-                    sep = "&";
-                }
-            }
-            return href;
         }
 
         function appendOrReplaceCharts(shell, params) {    // params wegwerken!!!
@@ -669,21 +545,6 @@
                 chart.draw()
             }
 
-        }
-
-        /*
-         *  Utilitiy
-         */
-        function getParameter(paramName, urlParams) {
-            var result;
-            var params = urlParams.split("&");
-            for (var i = 0; i < params.length; i++) {
-                var val = params[i].split("=");
-                if (val[0] == paramName) {
-                    result = unescape(val[1]);
-                }
-            }
-            return result;
         }
 
     </script>
