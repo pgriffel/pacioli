@@ -213,7 +213,7 @@ export function $base_base__catch_result(
       code();
       // TODO: check if this is a Void statement. If not we have to throw an error.
       // We need this information from the compiler?!
-      return VOID;
+      throw new Error("Statement ends without returning a value");
     } catch (err) {
       if (err == "jump") {
         return ref[0];
@@ -225,6 +225,37 @@ export function $base_base__catch_result(
 }
 
 export function $base_base__throw_result(ref: RawRef, value: RawValue) {
+  ref[0] = value;
+  throw "jump";
+}
+
+export function $base_base__catch_void(
+  code: () => Void,
+  ref: RawRef
+): RawValue | Void {
+  // dev switch to debug exceptions in a catch block
+  if (false) {
+    code();
+    // TODO: check if this is a Void statement. If not we have to throw an error.
+    // We need this information from the compiler?!
+    return VOID;
+  } else {
+    try {
+      code();
+      // TODO: check if this is a Void statement. If not we have to throw an error.
+      // We need this information from the compiler?!
+      return VOID;
+    } catch (err) {
+      if (err == "jump") {
+        return ref[0];
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
+export function $base_base__throw_void(ref: RawRef, value: RawValue) {
   ref[0] = value;
   throw "jump";
 }

@@ -259,7 +259,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnVoidNode node) {
-        format("Pacioli.%s(%s, ", ValueInfo.global("$base_base", "_throw_result"), node.resultInfo.name());
+        format("Pacioli.%s(%s, ", ValueInfo.global("$base_base", "_throw_void"), node.resultInfo.name());
         write("Pacioli.fetchValue('$base_base', 'nothing')");
         write(")");
     }
@@ -313,7 +313,8 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         write("return ");
 
         // A catch to get the result
-        format("Pacioli.%s(", ValueInfo.global("$base_base", "_catch_result"));
+        String catcher = node.isVoid ? "_catch_void" : "_catch_result";
+        format("Pacioli.%s(", ValueInfo.global("$base_base", catcher));
 
         newlineUp();
 

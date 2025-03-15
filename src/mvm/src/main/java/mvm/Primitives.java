@@ -110,6 +110,12 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("base_maybe_get") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return params.get(0);
+            }
+        });
+
         storePrimitive(store, new Primitive("base_tuple") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 return new PacioliTuple(params);
@@ -248,6 +254,27 @@ public class Primitives {
         });
 
         storePrimitive(store, new Primitive("base__catch_result") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Callable body = (Callable) params.get(0);
+                Reference place = (Reference) params.get(1);
+                try {
+                    body.apply(new ArrayList<PacioliValue>());
+                    throw new MVMException("Statement ends without returning a value");
+                } catch (ControlTransfer ex) {
+                    return place.value();
+                }
+            }
+        });
+
+        storePrimitive(store, new Primitive("base__throw_void") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Reference first = (Reference) params.get(0);
+                first.setValue(params.get(1));
+                throw new ControlTransfer();
+            }
+        });
+
+        storePrimitive(store, new Primitive("base__catch_void") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Callable body = (Callable) params.get(0);
                 Reference place = (Reference) params.get(1);

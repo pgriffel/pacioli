@@ -169,5 +169,22 @@ define statement_suite = test_suite("Statement", [
                 bar := foo;
                 return bar;
             end
-        end = 2)
+        end = 2),
+
+    test("Error when no value is returned", () ->
+        is_nothing(catch(() -> foo(0) + 12))),
+
+    test("Not error when a value is returned", () ->
+        let value = catch(() -> foo(1) + 12) in
+            is_something(value) and maybe_get(value) = 22
+        end)
 ]); 
+
+define foo(x) = 
+    begin
+        if x = 1 then
+            return 10;
+        else
+            a := 10;
+        end
+    end;

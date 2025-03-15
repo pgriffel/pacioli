@@ -38,7 +38,8 @@ export
     _list_max,
     _list_gcd,
     _list_all,
-    _list_some;
+    _list_some,
+    is_something;
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -170,3 +171,12 @@ define printf =
     _lambda args
       print(apply(format, args)) 
     end;
+
+# ------------------------------------------------------------------------------
+# Function printf
+# ------------------------------------------------------------------------------
+
+declare is_something :: for_type a: (Maybe(a)) -> Boole;
+
+define is_something(maybe) =
+    not(is_nothing(maybe));
