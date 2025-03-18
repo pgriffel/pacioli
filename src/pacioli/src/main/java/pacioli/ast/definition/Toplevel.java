@@ -1,11 +1,12 @@
 package pacioli.ast.definition;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.compiler.Location;
 import pacioli.types.type.TypeObject;
 
-public class Toplevel extends AbstractDefinition {
+public class Toplevel extends AbstractNode implements Definition {
 
     public final ExpressionNode body;
 

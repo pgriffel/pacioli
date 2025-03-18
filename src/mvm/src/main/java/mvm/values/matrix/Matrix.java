@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import mvm.MVMException;
-import mvm.values.AbstractPacioliValue;
 import mvm.values.PacioliList;
 import mvm.values.PacioliTuple;
 import mvm.values.PacioliValue;
@@ -47,7 +46,7 @@ import uom.DimensionedNumber;
 import uom.Unit;
 import uom.UnitMap;
 
-public class Matrix extends AbstractPacioliValue {
+public class Matrix implements PacioliValue {
 
     public final MatrixShape shape;
     private RealMatrix numbers;

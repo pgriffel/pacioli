@@ -21,11 +21,12 @@
 
 package pacioli.ast.expression;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.symboltable.info.ValueInfo;
 
-public class ReturnNode extends AbstractExpressionNode {
+public class ReturnNode extends AbstractNode implements ExpressionNode {
 
     /**
      * Expression for the returned value.

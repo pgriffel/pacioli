@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import mvm.MVMException;
 
-public class FileHandle extends AbstractPacioliValue implements AutoCloseable {
+public class FileHandle implements PacioliValue, AutoCloseable {
 
     private FileWriter handle;
     private String path;

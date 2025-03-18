@@ -4,9 +4,9 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import pacioli.compiler.AbstractPrintable;
+import pacioli.compiler.Printable;
 
-public class ValueContext extends AbstractPrintable {
+public class ValueContext implements Printable {
 
     private final List<String> vars = new ArrayList<String>();
     private final List<String> refVars = new ArrayList<String>();

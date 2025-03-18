@@ -1,10 +1,11 @@
 package pacioli.ast.unit;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class UnitOperationNode extends AbstractUnitNode {
+public class UnitOperationNode extends AbstractNode implements UnitNode {
 
     public final String operator;
     public final UnitNode left;

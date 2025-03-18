@@ -21,10 +21,11 @@
 
 package pacioli.types.ast;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class NumberTypeNode extends AbstractTypeNode {
+public class NumberTypeNode extends AbstractNode implements TypeNode {
 
     public final String number;
 

@@ -1,7 +1,6 @@
 package mvm.ast;
 
 import java.io.PrintWriter;
-import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.ast.expression.Expression;
@@ -9,7 +8,7 @@ import mvm.values.PacioliValue;
 // import pacioli.Pacioli;
 import mvm.values.TheVoid;
 
-public class Print extends AbstractPrintable implements Instruction {
+public class Print implements Instruction {
 
     private Expression body;
 

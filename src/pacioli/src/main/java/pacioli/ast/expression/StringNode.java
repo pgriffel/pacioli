@@ -1,9 +1,10 @@
 package pacioli.ast.expression;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class StringNode extends AbstractExpressionNode {
+public class StringNode extends AbstractNode implements ExpressionNode {
 
     private final String value;
 

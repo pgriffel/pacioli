@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import mvm.AbstractPrintable;
 import mvm.Environment;
 import mvm.MVMException;
 import mvm.values.PacioliValue;
@@ -13,7 +12,7 @@ import mvm.values.matrix.IndexSet;
 import mvm.values.matrix.Key;
 import mvm.values.matrix.MatrixDimension;
 
-public class LitKey extends AbstractPrintable implements Expression {
+public class LitKey implements Expression {
 
     private List<String> entities;
     private List<String> items;

@@ -1,12 +1,13 @@
 package pacioli.ast.expression;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.ValueContext;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ValueInfo;
 
-public class StatementNode extends AbstractExpressionNode {
+public class StatementNode extends AbstractNode implements ExpressionNode {
 
     public final SequenceNode body;
 

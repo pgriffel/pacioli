@@ -4,9 +4,9 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import mvm.AbstractPrintable;
+import mvm.Printable;
 
-public class Program extends AbstractPrintable {
+public class Program implements Printable {
 
     public List<String> requires = new ArrayList<String>();
     public List<Instruction> instructions = new ArrayList<Instruction>();

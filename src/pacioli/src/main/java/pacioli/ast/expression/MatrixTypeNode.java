@@ -22,6 +22,7 @@
 package pacioli.ast.expression;
 
 import mvm.values.matrix.MatrixDimension;
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
@@ -29,7 +30,7 @@ import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.TypeObject;
 
-public class MatrixTypeNode extends AbstractExpressionNode {
+public class MatrixTypeNode extends AbstractNode implements ExpressionNode {
 
     public final TypeNode typeNode;
 

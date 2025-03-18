@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
-import pacioli.ast.expression.AbstractExpressionNode;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
@@ -35,7 +35,7 @@ import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.compiler.Location;
 
-public class ExponentNode extends AbstractExpressionNode {
+public class ExponentNode extends AbstractNode implements ExpressionNode {
 
     public final String op;
     public final ExpressionNode base;

@@ -3,14 +3,13 @@ package mvm.ast.expression;
 import java.io.PrintWriter;
 import java.util.List;
 
-import mvm.AbstractPrintable;
 import mvm.Environment;
 import mvm.MVMException;
 import mvm.ast.shape.ShapeNode;
 import mvm.values.PacioliValue;
 import mvm.values.matrix.Matrix;
 
-public class LitMat extends AbstractPrintable implements Expression {
+public class LitMat implements Expression {
 
     private ShapeNode shape;
     private List<String> rows;

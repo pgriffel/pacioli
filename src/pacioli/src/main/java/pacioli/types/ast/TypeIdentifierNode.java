@@ -20,11 +20,12 @@
  */
 package pacioli.types.ast;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.symboltable.info.Info;
 
-public class TypeIdentifierNode extends AbstractTypeNode {
+public class TypeIdentifierNode extends AbstractNode implements TypeNode {
 
     @Override
     public String toString() {

@@ -21,10 +21,11 @@
 
 package pacioli.ast.expression;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class ConstNode extends AbstractExpressionNode {
+public class ConstNode extends AbstractNode implements ExpressionNode {
 
     private final String value;
 

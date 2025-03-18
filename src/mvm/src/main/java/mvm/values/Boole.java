@@ -23,7 +23,7 @@ package mvm.values;
 
 import java.io.PrintWriter;
 
-public class Boole extends AbstractPacioliValue {
+public class Boole implements PacioliValue {
 
     private final boolean value;
 

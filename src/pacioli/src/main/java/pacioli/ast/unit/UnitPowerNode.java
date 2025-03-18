@@ -1,10 +1,11 @@
 package pacioli.ast.unit;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class UnitPowerNode extends AbstractUnitNode {
+public class UnitPowerNode extends AbstractNode implements UnitNode {
 
     public final UnitNode base;
     public final NumberUnitNode power;

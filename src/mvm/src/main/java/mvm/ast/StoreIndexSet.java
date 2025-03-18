@@ -3,12 +3,11 @@ package mvm.ast;
 import java.io.PrintWriter;
 import java.util.List;
 
-import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.values.matrix.IndexSet;
 
-public class StoreIndexSet extends AbstractPrintable implements Instruction {
+public class StoreIndexSet implements Instruction {
 
     private String full;
     private String name;

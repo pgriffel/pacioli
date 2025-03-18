@@ -3,12 +3,13 @@ package pacioli.ast.expression;
 import java.util.ArrayList;
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
 
-public class ProjectionNode extends AbstractExpressionNode {
+public class ProjectionNode extends AbstractNode implements ExpressionNode {
 
     public final List<ConstNode> columns;
     public final ExpressionNode body;

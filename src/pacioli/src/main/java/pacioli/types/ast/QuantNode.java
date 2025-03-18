@@ -3,10 +3,11 @@ package pacioli.types.ast;
 import java.util.ArrayList;
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class QuantNode extends AbstractTypeNode {
+public class QuantNode extends AbstractNode implements TypeNode {
 
     public final TypeIdentifierNode.Kind kind;
     public final List<TypeIdentifierNode> ids;

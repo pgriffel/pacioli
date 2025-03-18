@@ -21,16 +21,15 @@
 
 package pacioli.ast.expression;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
-import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ValueInfo;
 
-public class LambdaNode extends AbstractExpressionNode {
+public class LambdaNode extends AbstractNode implements ExpressionNode {
 
     public final List<String> arguments;
     public final ExpressionNode expression;

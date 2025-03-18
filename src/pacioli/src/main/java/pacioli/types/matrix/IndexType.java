@@ -7,13 +7,12 @@ import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.types.ConstraintSet;
 import pacioli.types.TypeVisitor;
-import pacioli.types.type.AbstractType;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
 
-public class IndexType extends AbstractType {
+public class IndexType implements TypeObject {
 
     private final TypeObject indexSet;
 

@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.Printable;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
@@ -38,7 +37,7 @@ import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitMap;
 
-public class Substitution extends AbstractPrintable {
+public class Substitution implements Printable {
 
     // Map van strings van maken. Dan is geen equality op Vars nodig en kun je ze
     // collecten in een set etc.

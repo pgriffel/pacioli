@@ -24,11 +24,11 @@ package mvm.values.matrix;
 import java.io.PrintWriter;
 import java.util.List;
 
-import mvm.AbstractPrintable;
+import mvm.Printable;
 import uom.Fraction;
 import uom.Unit;
 
-public class MatrixShape extends AbstractPrintable {
+public class MatrixShape implements Printable {
 
     private final Unit<MatrixBase> factor;
     private final MatrixDimension rowDimension;

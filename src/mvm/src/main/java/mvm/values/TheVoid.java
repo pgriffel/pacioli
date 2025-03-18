@@ -23,7 +23,7 @@ package mvm.values;
 
 import java.io.PrintWriter;
 
-public class TheVoid extends AbstractPacioliValue {
+public class TheVoid implements PacioliValue {
 
     public TheVoid() {
     }

@@ -8,14 +8,13 @@ import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.types.ConstraintSet;
 import pacioli.types.TypeVisitor;
-import pacioli.types.type.AbstractType;
 import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
 
 /*
  *  Not really a type, but otherwise it cannot be put in a substitution.
  */
-public class IndexList extends AbstractType {
+public class IndexList implements TypeObject {
 
     private final List<TypeIdentifier> indexSets;
     private final List<IndexSetInfo> indexSetInfos;

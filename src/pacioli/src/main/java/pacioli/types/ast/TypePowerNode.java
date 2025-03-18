@@ -21,12 +21,13 @@
 
 package pacioli.types.ast;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.unit.NumberUnitNode;
 import pacioli.compiler.Location;
 
-public class TypePowerNode extends AbstractTypeNode {
+public class TypePowerNode extends AbstractNode implements TypeNode {
 
     public final TypeNode base;
     public final NumberTypeNode power;

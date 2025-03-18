@@ -25,7 +25,7 @@ import pacioli.compiler.PacioliException;
 import pacioli.types.ConstraintSet;
 import pacioli.types.TypeVisitor;
 
-public class FunctionType extends AbstractType {
+public class FunctionType implements TypeObject {
 
     private final TypeObject domain;
     private final TypeObject range;

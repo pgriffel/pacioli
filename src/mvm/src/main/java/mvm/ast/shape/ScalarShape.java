@@ -2,13 +2,12 @@ package mvm.ast.shape;
 
 import java.io.PrintWriter;
 
-import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.ast.unit.UnitNode;
 import mvm.values.matrix.MatrixShape;
 
-public class ScalarShape extends AbstractPrintable implements ShapeNode {
+public class ScalarShape implements ShapeNode {
 
     private UnitNode unit;
 

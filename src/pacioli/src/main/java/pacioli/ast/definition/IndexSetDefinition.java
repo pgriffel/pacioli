@@ -24,12 +24,13 @@ package pacioli.ast.definition;
 import java.util.List;
 
 import mvm.values.matrix.IndexSet;
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.compiler.Location;
 import pacioli.types.ast.TypeIdentifierNode;
 
-public class IndexSetDefinition extends AbstractDefinition {
+public class IndexSetDefinition extends AbstractNode implements Definition {
 
     public final TypeIdentifierNode id;
     private final List<String> items;

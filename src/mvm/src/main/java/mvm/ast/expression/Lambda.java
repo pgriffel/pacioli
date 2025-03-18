@@ -23,13 +23,12 @@ package mvm.ast.expression;
 
 import java.io.PrintWriter;
 import java.util.List;
-import mvm.AbstractPrintable;
 import mvm.Environment;
 import mvm.values.Closure;
 import mvm.values.PacioliValue;
 import mvm.values.VarArgsClosure;
 
-public class Lambda extends AbstractPrintable implements Expression {
+public class Lambda implements Expression {
 
     private final List<String> arguments;
     private final Expression expression;
@@ -59,7 +58,7 @@ public class Lambda extends AbstractPrintable implements Expression {
     @Override
     public void printText(PrintWriter out) {
         out.print("lambda (");
-        out.print(AbstractPrintable.intercalate(", ", arguments));
+        out.print(String.join(", ", arguments));
         out.print(") ");
         expression.printText(out);
     }

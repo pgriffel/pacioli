@@ -23,9 +23,11 @@ package pacioli.ast.sugar;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
-import pacioli.ast.definition.AbstractDefinition;
 import pacioli.ast.definition.Declaration;
+import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Documentation;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.ValueDefinition;
@@ -59,7 +61,7 @@ import pacioli.types.ast.TypeNode;
  * 
  * - N setters of type (TypeX, Record) -> Record
  */
-public class RecordDefinition extends AbstractDefinition {
+public class RecordDefinition extends AbstractNode implements Definition {
 
     public static class FieldDefinition {
 

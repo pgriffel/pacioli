@@ -24,9 +24,9 @@ package mvm.values;
 import java.io.PrintWriter;
 import java.util.List;
 
-import mvm.AbstractPrintable;
+import mvm.Printable;
 
-public class PacioliTuple extends AbstractPacioliValue {
+public class PacioliTuple implements PacioliValue {
 
     private final List<PacioliValue> items;
 
@@ -37,7 +37,7 @@ public class PacioliTuple extends AbstractPacioliValue {
     @Override
     public void printText(PrintWriter out) {
         out.print("(");
-        out.print(AbstractPrintable.intercalateText(", ", items));
+        out.print(Printable.joinText(", ", items));
         out.print(")");
 
     }

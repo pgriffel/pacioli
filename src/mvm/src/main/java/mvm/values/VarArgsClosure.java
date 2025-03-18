@@ -28,7 +28,7 @@ import mvm.Environment;
 import mvm.MVMException;
 import mvm.ast.expression.Expression;
 
-public class VarArgsClosure extends AbstractPacioliValue implements Callable {
+public class VarArgsClosure implements PacioliValue, Callable {
 
     public final List<String> arguments;
     public final Expression code;

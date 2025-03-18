@@ -25,10 +25,10 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import mvm.AbstractPrintable;
 import mvm.MVMException;
+import mvm.Printable;
 
-public class PacioliList extends AbstractPacioliValue {
+public class PacioliList implements PacioliValue {
 
     private final List<PacioliValue> items;
 
@@ -48,7 +48,7 @@ public class PacioliList extends AbstractPacioliValue {
     @Override
     public void printText(PrintWriter out) {
         out.print("[");
-        out.print(AbstractPrintable.intercalateText(", ", items));
+        out.print(Printable.joinText(", ", items));
         out.print("]");
     }
 

@@ -2,10 +2,11 @@ package pacioli.ast.expression;
 
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class DataQueryNode extends AbstractExpressionNode {
+public class DataQueryNode extends AbstractNode implements ExpressionNode {
 
     public final List<ExpressionNode> contraDims;
     public final List<ExpressionNode> coDims;

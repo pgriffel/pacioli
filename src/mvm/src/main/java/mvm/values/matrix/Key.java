@@ -24,9 +24,9 @@ package mvm.values.matrix;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import mvm.values.AbstractPacioliValue;
+import mvm.values.PacioliValue;
 
-public class Key extends AbstractPacioliValue {
+public class Key implements PacioliValue {
 
     private final List<String> names;
     private final int position;

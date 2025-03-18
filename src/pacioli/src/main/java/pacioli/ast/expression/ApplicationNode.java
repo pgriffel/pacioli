@@ -23,10 +23,11 @@ package pacioli.ast.expression;
 
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class ApplicationNode extends AbstractExpressionNode {
+public class ApplicationNode extends AbstractNode implements ExpressionNode {
 
     public final ExpressionNode function;
     public final List<ExpressionNode> arguments;

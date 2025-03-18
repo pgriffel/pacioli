@@ -1,10 +1,10 @@
 package pacioli.types.ast;
 
-import pacioli.ast.Node;
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class TypePerNode extends AbstractTypeNode {
+public class TypePerNode extends AbstractNode implements TypeNode {
 
     public final TypeNode left;
     public final TypeNode right;

@@ -29,7 +29,7 @@ import pacioli.types.ConstraintSet;
 import pacioli.types.Substitution;
 import pacioli.types.TypeVisitor;
 
-public class Schema extends AbstractType {
+public class Schema implements TypeObject {
 
     private final Set<Var> variables;
     private final TypeObject type;

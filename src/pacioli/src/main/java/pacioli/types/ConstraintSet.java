@@ -31,7 +31,6 @@ import java.util.Set;
 import pacioli.Pacioli;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
-import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printable;
@@ -48,7 +47,7 @@ import uom.Unit;
  * Bastiaan J. Heeren, Top Quality Type Error Messages, PhD Thesis,
  * Universiteit Utrecht, The Netherlands, 2005
  */
-public class ConstraintSet extends AbstractPrintable {
+public class ConstraintSet implements Printable {
 
     public static int DEPTH = 0;
 

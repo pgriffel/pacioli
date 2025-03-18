@@ -24,9 +24,9 @@ package mvm.values.matrix;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import mvm.AbstractPrintable;
+import mvm.Printable;
 
-public class MatrixDimension extends AbstractPrintable {
+public class MatrixDimension implements Printable {
 
     private final List<IndexSet> indexSets;
 
@@ -129,7 +129,7 @@ public class MatrixDimension extends AbstractPrintable {
     @Override
     public void printText(PrintWriter out) {
         out.print("dim(");
-        out.print(AbstractPrintable.intercalateText(",", indexSets));
+        out.print(Printable.joinText(",", indexSets));
         out.print(")");
     }
 
@@ -138,7 +138,7 @@ public class MatrixDimension extends AbstractPrintable {
         for (IndexSet set : indexSets) {
             names.add(set.name);
         }
-        return AbstractPrintable.intercalate(",", names);
+        return String.join(",", names);
     }
 
     public MatrixDimension project(List<Integer> cols) {

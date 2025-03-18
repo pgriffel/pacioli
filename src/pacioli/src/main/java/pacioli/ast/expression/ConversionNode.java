@@ -1,6 +1,7 @@
 package pacioli.ast.expression;
 
 import mvm.values.matrix.MatrixDimension;
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
@@ -9,7 +10,7 @@ import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.TypeObject;
 
-public class ConversionNode extends AbstractExpressionNode {
+public class ConversionNode extends AbstractNode implements ExpressionNode {
 
     // Set during contruction
     public final TypeNode typeNode;

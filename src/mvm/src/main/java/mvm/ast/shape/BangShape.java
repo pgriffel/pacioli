@@ -2,7 +2,6 @@ package mvm.ast.shape;
 
 import java.io.PrintWriter;
 
-import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.values.matrix.MatrixBase;
@@ -10,7 +9,7 @@ import mvm.values.matrix.MatrixDimension;
 import mvm.values.matrix.MatrixShape;
 import mvm.values.matrix.UnitVector;
 
-public class BangShape extends AbstractPrintable implements ShapeNode {
+public class BangShape implements ShapeNode {
 
     private String entity;
     private String unit;

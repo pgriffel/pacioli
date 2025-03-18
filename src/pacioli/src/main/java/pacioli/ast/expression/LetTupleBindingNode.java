@@ -23,11 +23,12 @@ package pacioli.ast.expression;
 
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class LetTupleBindingNode extends AbstractExpressionNode implements LetNode.BindingNode {
+public class LetTupleBindingNode extends AbstractNode implements ExpressionNode, LetNode.BindingNode {
 
     public final List<String> vars;
     public final ExpressionNode value;

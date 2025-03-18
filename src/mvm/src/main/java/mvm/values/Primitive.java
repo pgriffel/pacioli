@@ -28,7 +28,7 @@ import mvm.MVMException;
 import mvm.values.matrix.Key;
 import mvm.values.matrix.Matrix;
 
-public abstract class Primitive extends AbstractPacioliValue implements Callable {
+public abstract class Primitive implements PacioliValue, Callable {
 
     private final String name;
 

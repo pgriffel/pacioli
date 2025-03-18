@@ -23,14 +23,14 @@ package pacioli.ast.definition;
 
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.compiler.Location;
-import pacioli.types.ast.AbstractTypeNode;
 import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeNode;
 
-public class TypeAssertion extends AbstractTypeNode {
+public class TypeAssertion extends AbstractNode implements TypeNode {
 
     public final IdentifierNode id;
     public final List<QuantNode> quantNodes;

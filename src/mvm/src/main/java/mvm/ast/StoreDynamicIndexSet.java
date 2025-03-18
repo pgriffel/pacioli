@@ -4,7 +4,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.ast.expression.Expression;
@@ -13,7 +12,7 @@ import mvm.values.PacioliString;
 import mvm.values.PacioliValue;
 import mvm.values.matrix.IndexSet;
 
-public class StoreDynamicIndexSet extends AbstractPrintable implements Instruction {
+public class StoreDynamicIndexSet implements Instruction {
 
     private String full;
     private String name;
@@ -37,7 +36,7 @@ public class StoreDynamicIndexSet extends AbstractPrintable implements Instructi
         if (machine.indexSets.containsKey(full)) {
             throw new MVMException("Redefining index set '%s'", name);
         }
-                
+
         // Evaluate the body. It should produce a list of strings.
         PacioliValue result = body.eval(machine.store);
 
@@ -55,7 +54,9 @@ public class StoreDynamicIndexSet extends AbstractPrintable implements Instructi
                     listValues.add(string.toText());
 
                 } else {
-                    throw new MVMException("Index set body must evaluate to a list of strings, but the list contains a '%s'", item.getClass());
+                    throw new MVMException(
+                            "Index set body must evaluate to a list of strings, but the list contains a '%s'",
+                            item.getClass());
                 }
             }
 

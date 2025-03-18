@@ -3,7 +3,6 @@ package mvm.ast;
 import java.io.PrintWriter;
 import java.util.List;
 
-import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.ast.unit.UnitNode;
@@ -12,7 +11,7 @@ import mvm.values.matrix.MatrixBase;
 import mvm.values.matrix.UnitVector;
 import uom.Unit;
 
-public class StoreUnitVector extends AbstractPrintable implements Instruction {
+public class StoreUnitVector implements Instruction {
 
     private String entity;
     private String name;

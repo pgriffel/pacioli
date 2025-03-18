@@ -37,7 +37,7 @@ import pacioli.compiler.CompilationSettings.Target;
  * A wrapper around a file path that stores extra information about the file's
  * role in a program or project.
  */
-public class PacioliFile extends AbstractPrintable {
+public class PacioliFile implements Printable {
 
     private final File fsFile;
     private final String modulePath;

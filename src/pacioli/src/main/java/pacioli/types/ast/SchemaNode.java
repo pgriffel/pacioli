@@ -23,13 +23,14 @@ package pacioli.types.ast;
 
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.TypeInfo;
 import pacioli.types.TypeContext;
 
-public class SchemaNode extends AbstractTypeNode {
+public class SchemaNode extends AbstractNode implements TypeNode {
 
     public final List<QuantNode> quantNodes;
     public final TypeNode type;

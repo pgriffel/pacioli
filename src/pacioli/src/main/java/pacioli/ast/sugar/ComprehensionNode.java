@@ -28,7 +28,6 @@ import java.util.List;
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
-import pacioli.ast.expression.AbstractExpressionNode;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ExpressionNode;
@@ -37,7 +36,7 @@ import pacioli.ast.expression.LambdaNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 
-public class ComprehensionNode extends AbstractExpressionNode {
+public class ComprehensionNode extends AbstractNode implements ExpressionNode {
 
     public final IdentifierNode op; // maybe null
     public final ExpressionNode expression;

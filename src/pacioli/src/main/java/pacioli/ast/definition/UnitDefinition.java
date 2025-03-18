@@ -23,6 +23,7 @@ package pacioli.ast.definition;
 
 import java.util.Optional;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
@@ -30,7 +31,7 @@ import pacioli.compiler.Location;
 import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
 
-public class UnitDefinition extends AbstractDefinition {
+public class UnitDefinition extends AbstractNode implements Definition {
 
     public final IdentifierNode id;
     public final String symbol;

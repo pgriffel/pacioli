@@ -23,13 +23,14 @@ package pacioli.ast.expression;
 
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ValueInfo;
 
-public class LetFunctionBindingNode extends AbstractExpressionNode implements LetNode.BindingNode {
+public class LetFunctionBindingNode extends AbstractNode implements ExpressionNode, LetNode.BindingNode {
 
     public final String name;
     public final List<String> args;

@@ -2,6 +2,7 @@ package pacioli.ast.definition;
 
 import java.math.BigDecimal;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.unit.UnitNode;
 import pacioli.compiler.Location;
@@ -11,7 +12,7 @@ import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
 import uom.Unit;
 
-public class AliasDefinition extends AbstractDefinition {
+public class AliasDefinition extends AbstractNode implements Definition {
 
     public final TypeIdentifierNode id;
     public final UnitNode unit;

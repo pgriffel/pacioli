@@ -26,13 +26,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypePredicateNode;
 
-public class ClassDefinition extends AbstractDefinition {
+public class ClassDefinition extends AbstractNode implements Definition {
 
     /**
      * The type of the type class

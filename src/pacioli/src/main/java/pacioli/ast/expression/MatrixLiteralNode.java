@@ -10,15 +10,16 @@ import java.util.Set;
 
 import mvm.values.matrix.MatrixDimension;
 import pacioli.Pacioli;
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
-import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
+import pacioli.compiler.Printable;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.TypeObject;
 
-public class MatrixLiteralNode extends AbstractExpressionNode {
+public class MatrixLiteralNode extends AbstractNode implements ExpressionNode {
 
     public final TypeNode typeNode;
 
@@ -35,7 +36,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
     public final List<String> values = new ArrayList<String>();
 
     // Obsolete? Move to parser if necessary.
-    public static class ValueDecl extends AbstractPrintable {
+    public static class ValueDecl implements Printable {
         public List<IdentifierNode> key;
         public String value;
 

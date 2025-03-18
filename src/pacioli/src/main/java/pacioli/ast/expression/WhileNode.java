@@ -21,10 +21,11 @@
 
 package pacioli.ast.expression;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class WhileNode extends AbstractExpressionNode {
+public class WhileNode extends AbstractNode implements ExpressionNode {
 
     public final ExpressionNode test;
     public final ExpressionNode body;
