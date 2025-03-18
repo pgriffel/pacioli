@@ -68,22 +68,6 @@ public class LambdaNode extends AbstractExpressionNode {
         return "LambdaNode [arguments=" + arguments + ", expression=" + expression + "]";
     }
 
-    public String argsString(String prefix) {
-        if (this.varArgs) {
-            if (this.arguments.size() == 1) {
-                // TODO: Wegwerken hier. Alleen JSTranspiler roept dit aan
-                return "..." + prefix + this.arguments.get(0);
-            } else {
-                throw new PacioliException(this.location(), "Varargs lambda must have 1 argument");
-            }
-        }
-        List<String> args = new ArrayList<String>();
-        for (String arg : arguments) {
-            args.add(prefix + arg + "");
-        }
-        return String.join(", ", args);
-    }
-
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
