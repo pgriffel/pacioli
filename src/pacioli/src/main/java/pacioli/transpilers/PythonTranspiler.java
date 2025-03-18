@@ -11,7 +11,6 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.visitors.PythonGenerator;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.Printer;
-import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ClassInfo;
@@ -61,7 +60,7 @@ public class PythonTranspiler implements SymbolTableVisitor {
             }
             if (code.expression instanceof StatementNode) {
                 out.newline();
-                out.format("def %s (%s):", info.globalName().toLowerCase(), Utils.intercalate(",", args));
+                out.format("def %s (%s):", info.globalName().toLowerCase(), String.join(",", args));
                 out.newlineUp();
 
                 if (usedGlobals.size() > 0) {
@@ -79,7 +78,7 @@ public class PythonTranspiler implements SymbolTableVisitor {
                 out.newline();
             } else {
                 out.newline();
-                out.format("def %s (%s):", info.globalName().toLowerCase(), Utils.intercalate(",", args));
+                out.format("def %s (%s):", info.globalName().toLowerCase(), String.join(",", args));
                 out.newlineUp();
 
                 if (usedGlobals.size() > 0) {

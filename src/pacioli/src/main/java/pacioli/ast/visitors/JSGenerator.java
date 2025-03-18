@@ -29,7 +29,6 @@ import pacioli.ast.expression.WhileNode;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printer;
-import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.matrix.MatrixType;
@@ -190,7 +189,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
                 quoted.add("lcl_" + arg + "");
             }
         }
-        String args = Utils.intercalate(", ", quoted);
+        String args = String.join(", ", quoted);
         write("function (");
         write(args);
         write(") { return ");

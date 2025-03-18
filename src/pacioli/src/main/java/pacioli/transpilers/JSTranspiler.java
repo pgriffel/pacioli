@@ -14,7 +14,6 @@ import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.Printer;
-import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ClassInfo;
@@ -153,7 +152,7 @@ public class JSTranspiler implements SymbolTableVisitor {
                     info.globalName(),
                     info.globalName(),
                     definition.name(),
-                    Utils.intercalate(",", quotedItems));
+                    String.join(",", quotedItems));
         }
 
     }
@@ -207,7 +206,7 @@ public class JSTranspiler implements SymbolTableVisitor {
 
         String globalName = // info.globalName();//setInfo.globalName();
                 String.format("vbase_%s_%s", setInfo.generalInfo().module(), info.name().replace("!", "_"));
-        String args = Utils.intercalate(", ", unitTexts);
+        String args = String.join(", ", unitTexts);
 
         out.format("Pacioli.compute_%s = function () { return {units: { %s }}};\n", globalName, args);
     }

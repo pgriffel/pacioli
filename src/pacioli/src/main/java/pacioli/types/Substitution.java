@@ -31,7 +31,6 @@ import java.util.Set;
 
 import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.Printable;
-import pacioli.compiler.Utils;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
@@ -168,7 +167,7 @@ public class Substitution extends AbstractPrintable {
 
         }
         out.print("subs{");
-        out.print(Utils.intercalate(", ", elements));
+        out.print(String.join(", ", elements));
         out.print("}");
     }
 }

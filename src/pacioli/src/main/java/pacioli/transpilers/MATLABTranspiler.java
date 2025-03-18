@@ -11,7 +11,6 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.Printer;
-import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ClassInfo;
@@ -61,7 +60,7 @@ public class MATLABTranspiler implements SymbolTableVisitor {
             }
             if (code.expression instanceof StatementNode) {
                 out.newline();
-                out.format("function result = %s (%s)", info.globalName().toLowerCase(), Utils.intercalate(",", args));
+                out.format("function result = %s (%s)", info.globalName().toLowerCase(), String.join(",", args));
                 out.newlineUp();
 
                 for (String gl : usedGlobals) {
@@ -75,7 +74,7 @@ public class MATLABTranspiler implements SymbolTableVisitor {
                 out.newline();
             } else {
                 out.newline();
-                out.format("function retval = %s (%s)", info.globalName().toLowerCase(), Utils.intercalate(",", args));
+                out.format("function retval = %s (%s)", info.globalName().toLowerCase(), String.join(",", args));
                 out.newlineUp();
 
                 for (String gl : usedGlobals) {

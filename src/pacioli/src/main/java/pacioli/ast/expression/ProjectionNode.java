@@ -5,7 +5,6 @@ import java.util.List;
 
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
-import pacioli.compiler.Utils;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
 
@@ -37,7 +36,7 @@ public class ProjectionNode extends AbstractExpressionNode {
         for (ConstNode node : this.columns) {
             columns.add(node.valueString());
         }
-        return Utils.intercalate(",", columns);
+        return String.join(",", columns);
     }
 
     @Override

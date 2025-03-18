@@ -27,7 +27,6 @@ import java.util.List;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ValueInfo;
 
@@ -82,7 +81,7 @@ public class LambdaNode extends AbstractExpressionNode {
         for (String arg : arguments) {
             args.add(prefix + arg + "");
         }
-        return Utils.intercalate(", ", args);
+        return String.join(", ", args);
     }
 
     @Override

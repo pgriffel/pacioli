@@ -171,7 +171,7 @@ public class DocumentationGenerator {
     }
 
     public String argsString(String name) {
-        return Utils.intercalate(", ", argumentsTable.get(name));
+        return String.join(", ", argumentsTable.get(name));
     }
 
     private void println(String string, Object... args) throws IOException {

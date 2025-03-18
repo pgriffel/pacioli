@@ -29,7 +29,6 @@ import java.util.Set;
 
 import pacioli.Pacioli;
 import pacioli.compiler.AbstractPrintable;
-import pacioli.compiler.Utils;
 import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.type.IndexSetVar;
@@ -191,7 +190,7 @@ public class TypeContext extends AbstractPrintable {
 
     private static String quantified(String quantifier, List<String> names) {
         if (!names.isEmpty()) {
-            return quantifier + " " + Utils.intercalate(", ", names) + ": ";
+            return quantifier + " " + String.join(", ", names) + ": ";
         } else {
             return "";
         }

@@ -14,7 +14,6 @@ import pacioli.ast.Visitor;
 import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.compiler.Utils;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.TypeObject;
@@ -55,7 +54,7 @@ public class MatrixLiteralNode extends AbstractExpressionNode {
 
         @Override
         public void printPretty(PrintWriter out) {
-            out.printf("%s -> %s", Utils.intercalate(", ", keys()), value);
+            out.printf("%s -> %s", String.join(", ", keys()), value);
         }
     }
 
