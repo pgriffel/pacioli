@@ -19,26 +19,34 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli.ast.expression;
+package pacioli.ast.sugar;
 
 import java.util.List;
 
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
+import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.expression.LetNode;
 import pacioli.compiler.Location;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ValueInfo;
 
+/**
+ * Syntactic sugar. Gets desugared into a normal LetBindingNode bound to a
+ * LambdaNode.
+ */
 public class LetFunctionBindingNode extends AbstractNode implements ExpressionNode, LetNode.BindingNode {
 
-    public final String name;
-    public final List<String> args;
+    public final IdentifierNode name;
+    public final List<IdentifierNode> args;
     public final ExpressionNode body;
 
     public SymbolTable<ValueInfo> table;
 
-    public LetFunctionBindingNode(Location location, String name, List<String> args, ExpressionNode body) {
+    public LetFunctionBindingNode(Location location, IdentifierNode name, List<IdentifierNode> args,
+            ExpressionNode body) {
         super(location);
         this.name = name;
         this.args = args;

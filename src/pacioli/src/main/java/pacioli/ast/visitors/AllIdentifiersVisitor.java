@@ -7,11 +7,6 @@ import java.util.Optional;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.expression.LetBindingNode;
-import pacioli.ast.expression.LetFunctionBindingNode;
-import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.LetTupleBindingNode;
-import pacioli.ast.expression.IdentifierNode.Kind;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
@@ -23,12 +18,6 @@ import pacioli.types.ast.TypeIdentifierNode;
  * in an AST.
  */
 public class AllIdentifiersVisitor extends IdentityVisitor {
-
-    // @Override
-    // public void visit(LetBindingNode node) {
-    // // identifiers.add(new IdentifierInfo(new IdentifierNode(node.var,
-    // // node.location())));
-    // }
 
     public static class IdentifierInfo {
         public final Node identifier;
@@ -112,13 +101,4 @@ public class AllIdentifiersVisitor extends IdentityVisitor {
         assert (node.info.definition().isPresent());
         identifiers.add(new IdentifierInfo(node));
     }
-
-    // TODO: do we need to implement this?
-    // @Override
-    // public void visit(StatementNode node) {
-    // node.body.accept(this);
-    // for (Info info : node.shadowed.allInfos()) {
-    // infos.add(info);
-    // }
-    // }
 }

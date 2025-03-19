@@ -21,7 +21,6 @@
 
 package pacioli.ast.expression;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import pacioli.ast.AbstractNode;
@@ -33,7 +32,7 @@ import pacioli.symboltable.info.ValueInfo;
 
 public class LetNode extends AbstractNode implements ExpressionNode {
 
-    public final List<BindingNode> binding;
+    public final BindingNode binding;
     public final ExpressionNode body;
 
     public interface BindingNode extends Node {
@@ -41,44 +40,35 @@ public class LetNode extends AbstractNode implements ExpressionNode {
 
     public SymbolTable<ValueInfo> table;
 
-    public LetNode(List<BindingNode> bindings, ExpressionNode body, Location location) {
+    public LetNode(BindingNode binding, ExpressionNode body, Location location) {
         super(location);
-        this.binding = bindings;
+        this.binding = binding;
         this.body = body;
     }
-
-    // public LetNode(LetNode old, ExpressionNode body) {
-    // super(old.getLocation());
-    // binding = old.binding;
-    // this.body = body;
-    // }
 
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
 
-    public Node transform(List<BindingNode> bindings, ExpressionNode body) {
-        LetNode node = new LetNode(bindings, body, location());
+    public Node transform(BindingNode binding, ExpressionNode body) {
+        LetNode node = new LetNode(binding, body, location());
         node.table = table;
         return node;
     }
 
     public ApplicationNode asApplication() {
 
-        List<String> argsNames = new ArrayList<String>();
-        List<ExpressionNode> args = new ArrayList<ExpressionNode>();
-        ;
-        for (BindingNode binding : binding) {
-            LetBindingNode letBinding = (LetBindingNode) binding;
-            argsNames.add(letBinding.var);
-            args.add(letBinding.value);
+        if (this.binding instanceof LetBindingNode bnd) {
+
+            LambdaNode fun = new LambdaNode(List.of(bnd.var), body, body.location());
+            fun.table = this.table;
+
+            return new ApplicationNode(fun, List.of(bnd.value), location());
+        } else {
+            throw new RuntimeException("Let binding node is not desugared");
         }
 
-        LambdaNode fun = new LambdaNode(argsNames, body, body.location());
-        fun.table = table;
-
-        return new ApplicationNode(fun, args, location());
     }
 
 }

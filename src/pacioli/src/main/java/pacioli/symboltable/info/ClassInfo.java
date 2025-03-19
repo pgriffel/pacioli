@@ -14,7 +14,7 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.LetTupleBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
@@ -251,11 +251,16 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
             memberDictAndArgNames.add(freshName);
         }
 
+        List<IdentifierNode> args = new ArrayList<>();
+        for (String name : argNames) {
+            args.add(new IdentifierNode(name, memberLocation));
+        }
+
         LambdaNode genFun = new LambdaNode(
                 memberDictAndArgNames,
                 new LetNode(
-                        List.of(new LetTupleBindingNode(memberLocation, argNames,
-                                new IdentifierNode(dictVar, memberLocation))),
+                        new LetTupleBindingNode(memberLocation, args,
+                                new IdentifierNode(dictVar, memberLocation)),
                         new ApplicationNode(
                                 new IdentifierNode(argNames.get(argIndex), memberLocation),
                                 memberArgNames,

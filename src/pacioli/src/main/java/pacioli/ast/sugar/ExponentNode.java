@@ -101,7 +101,7 @@ public class ExponentNode extends AbstractNode implements ExpressionNode {
             }
 
             BindingNode binding = new LetBindingNode(loc, fresh, base);
-            return new LetNode(Arrays.asList(binding), exp, loc);
+            return new LetNode(binding, exp, loc);
         }
     }
 

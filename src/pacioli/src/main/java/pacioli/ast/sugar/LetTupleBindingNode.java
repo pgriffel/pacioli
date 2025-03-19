@@ -19,21 +19,24 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli.ast.expression;
+package pacioli.ast.sugar;
 
 import java.util.List;
 
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
+import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.expression.LetNode;
 import pacioli.compiler.Location;
 
 public class LetTupleBindingNode extends AbstractNode implements ExpressionNode, LetNode.BindingNode {
 
-    public final List<String> vars;
+    public final List<IdentifierNode> vars;
     public final ExpressionNode value;
 
-    public LetTupleBindingNode(Location location, List<String> vars, ExpressionNode value) {
+    public LetTupleBindingNode(Location location, List<IdentifierNode> vars, ExpressionNode value) {
         super(location);
         this.vars = vars;
         this.value = value;
