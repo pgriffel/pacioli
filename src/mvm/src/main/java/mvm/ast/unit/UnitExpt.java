@@ -2,14 +2,13 @@ package mvm.ast.unit;
 
 import java.io.PrintWriter;
 
-import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.values.matrix.MatrixBase;
 import uom.Fraction;
 import uom.Unit;
 
-public class UnitExpt extends AbstractPrintable implements UnitNode {
+public class UnitExpt implements UnitNode {
 
     private UnitNode unit;
     private Fraction power;

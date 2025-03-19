@@ -21,11 +21,12 @@
 
 package pacioli.ast.expression;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class LetBindingNode extends AbstractExpressionNode implements LetNode.BindingNode {
+public class LetBindingNode extends AbstractNode implements ExpressionNode, LetNode.BindingNode {
 
     public final String var;
     public final ExpressionNode value;

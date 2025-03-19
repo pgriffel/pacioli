@@ -26,13 +26,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.IndexSetInfo;
 
-public class KeyNode extends AbstractExpressionNode {
+public class KeyNode extends AbstractNode implements ExpressionNode {
 
     public final List<String> indexSets;
     public final List<String> keys;

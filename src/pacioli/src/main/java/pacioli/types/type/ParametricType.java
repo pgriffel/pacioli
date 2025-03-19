@@ -30,7 +30,7 @@ import pacioli.compiler.PacioliException;
 import pacioli.types.ConstraintSet;
 import pacioli.types.TypeVisitor;
 
-public class ParametricType extends AbstractType {
+public class ParametricType implements TypeObject {
 
     private final Operator op;
     private final List<TypeObject> args;

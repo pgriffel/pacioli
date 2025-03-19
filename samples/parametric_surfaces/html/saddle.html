@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Saddle</title>
+
+    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="../surfaces.js"></script>
+
+</head>
+
+<body>
+    <div id="console"></div>
+
+    <h1>Saddle</h1>
+    <p>
+        Plot of a saddle surface.
+
+
+    <p>
+        <math>
+            <mi>f</mi>
+            <mo>(</mo>
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            <mo>)</mo>
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    <mo>(</mo>
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    <mo>)</mo>
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>u</mi>
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                <mi>v</mi>
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <msup>
+                    <mi>u</mi>
+                    <mn>2</mn>
+                </msup>
+                <mo>+</mo>
+                <mi>b</mi>
+                <msup>
+                    <mi>v</mi>
+                    <mn>2</mn>
+                </msup>
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>a</mi>
+    </math>
+    and
+    <math>
+        <mi>b</mi>
+    </math>
+    are a scaling factors,
+    <math>
+        <mn>-5</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>5</mn>
+    </math>
+    , and
+    <math>
+        <mn>-5</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>5</mn>
+    </math>
+
+    <p>
+        The squares
+        <math>
+            <msup>
+                <mi>u</mi>
+                <mn>2</mn>
+            </msup>
+        </math>
+        and
+        <math>
+            <msup>
+                <mi>v</mi>
+                <mn>2</mn>
+            </msup>
+        </math>
+        for
+        <math>
+            <mi>z</mi>
+        </math>
+        makes its unit metre squared.
+
+    <p>
+        Setting
+        <math>
+            <mi>a</mi>
+        </math>
+        and
+        <math>
+            <mi>b</mi>
+        </math>
+        to the parameter of the paraboloid gives the same surface, but parameterized differently.
+
+    <p>
+
+
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="saddle_scene" script="surfaces" definition="saddle_scene"
+            kind="scene" perspective axis unitZ="metre^2">
+            <parameter label="a" unit="1">0.1</parameter>
+            <parameter label="b" unit="1">-0.2</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">50</parameter>
+            <parameter label="grid" type="boole">true</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="saddle_scene"></pacioli-inputs>
+        <pacioli-controls for="saddle_scene"></pacioli-controls>
+
+    </div>
+
+
+</body>
+
+
+</html>

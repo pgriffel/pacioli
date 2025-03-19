@@ -39,9 +39,7 @@ import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
-import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
 import pacioli.ast.sugar.ComprehensionNode;
@@ -51,6 +49,8 @@ import pacioli.ast.sugar.ComprehensionNode.GeneratorClause;
 import pacioli.ast.sugar.ComprehensionNode.TupleAssignmentClause;
 import pacioli.ast.sugar.ComprehensionNode.TupleGeneratorClause;
 import pacioli.ast.sugar.ExponentNode;
+import pacioli.ast.sugar.LetFunctionBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.ast.sugar.RecordDefinition;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -61,7 +61,6 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
-import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
@@ -687,19 +686,9 @@ public class PrintVisitor implements Visitor {
         write("let ");
 
         newlineUp();
-
-        boolean first = true;
-        for (BindingNode binding : node.binding) {
-            if (!first) {
-                write(",");
-                newline();
-            } else {
-                first = false;
-            }
-            binding.accept(this);
-        }
-
+        node.binding.accept(this);
         newlineDown();
+
         write("in");
         newlineUp();
 
@@ -721,11 +710,11 @@ public class PrintVisitor implements Visitor {
     public void visit(LetTupleBindingNode node) {
         write("(");
         Boolean first = true;
-        for (String var : node.vars) {
+        for (IdentifierNode var : node.vars) {
             if (!first)
                 write(",");
             first = false;
-            out.write(var);
+            out.write(var.name());
         }
         write(") = ");
         node.value.accept(this);
@@ -735,17 +724,17 @@ public class PrintVisitor implements Visitor {
     public void visit(LetFunctionBindingNode node) {
 
         // Write the function name
-        out.write(node.name);
+        out.write(node.name.name());
 
         write("(");
 
         // Write the function parameters
         Boolean first = true;
-        for (String arg : node.args) {
+        for (IdentifierNode arg : node.args) {
             if (!first)
                 write(",");
             first = false;
-            out.write(arg);
+            out.write(arg.name());
         }
 
         write(") = ");

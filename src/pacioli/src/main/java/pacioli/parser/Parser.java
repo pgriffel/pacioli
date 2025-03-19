@@ -3982,7 +3982,7 @@ class CUP$Parser$actions {
 		ExpressionNode r = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		 List<String> args = freshUnderscores(Arrays.asList(id.name()));  // remove fresh underscors
                                                        BindingNode binding = new LetBindingNode(makeLoc(idxleft, exright), args.get(0), e);
-                                                       RESULT = new LetNode(Arrays.asList(binding), r, makeLoc(idxleft, rxright)); 
+                                                       RESULT = new LetNode(binding, r, makeLoc(idxleft, rxright)); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("lettail",7, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -4003,10 +4003,8 @@ class CUP$Parser$actions {
 		Location rxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location rxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		ExpressionNode r = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 List<String> args = freshUnderscores(idNames(ids));
-                                                       pacioli.compiler.Location loc = makeLoc(idsxleft, rxright);
-                                                       ExpressionNode fun = new LambdaNode(args, r, r.location());
-                                                       RESULT = new ApplicationNode(new IdentifierNode("apply", makeLoc(qxleft, qxright)), Arrays.asList(fun, e), loc); 
+		 var binding = new LetTupleBindingNode(makeLoc(idsxleft, exright), ids, e);
+                                                       RESULT = new LetNode(binding, r, makeLoc(idsxleft, rxright)); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("lettail",7, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -4027,12 +4025,8 @@ class CUP$Parser$actions {
 		Location rxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location rxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		ExpressionNode r = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 //List<String> rArgs = freshUnderscores(Arrays.asList(id.name()));
-                                                       List<String> eArgs = freshUnderscores(idNames(ids)); // remove fresh underscors
-                                                       pacioli.compiler.Location loc = makeLoc(idxleft, rxright);
-                                                       ExpressionNode eFun = new LambdaNode(eArgs, e, e.location());
-                                                       BindingNode binding = new LetBindingNode(makeLoc(idsxleft, exright), id.name(), eFun);
-                                                       RESULT = new LetNode(Arrays.asList(binding), r, loc); 
+		 var binding = new LetFunctionBindingNode(makeLoc(idxleft, exright), id, ids, e);
+                                                       RESULT = new LetNode(binding, r, makeLoc(idxleft, rxright)); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("lettail",7, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

@@ -23,10 +23,11 @@ package pacioli.types.ast;
 
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class TypeApplicationNode extends AbstractTypeNode {
+public class TypeApplicationNode extends AbstractNode implements TypeNode {
 
     public final TypeIdentifierNode op;
     public final List<TypeNode> args;

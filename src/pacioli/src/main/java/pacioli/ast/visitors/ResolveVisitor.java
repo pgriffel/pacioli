@@ -31,10 +31,9 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
-import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.LetNode.BindingNode;
-import pacioli.ast.expression.LetTupleBindingNode;
+import pacioli.ast.sugar.LetFunctionBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ReturnNode;
@@ -653,26 +652,24 @@ public class ResolveVisitor extends IdentityVisitor {
 
         // Create a symbol info record for each lambda parameter and store it in the
         // table
-        for (BindingNode binding : node.binding) {
-            binding.accept(this);
-            assert (binding instanceof LetBindingNode);
-            LetBindingNode functionBinding = (LetBindingNode) binding;
-            String arg = functionBinding.var;
+        node.binding.accept(this);
+        assert (node.binding instanceof LetBindingNode);
+        LetBindingNode functionBinding = (LetBindingNode) node.binding;
+        String arg = functionBinding.var;
 
-            ValueInfo info = ValueInfo.builder()
-                    .name(arg)
-                    .file(file)
-                    .isGlobal(false)
-                    .isMonomorphic(false)
-                    .location(node.location())
-                    .isPublic(false)
-                    .build();
+        ValueInfo info = ValueInfo.builder()
+                .name(arg)
+                .file(file)
+                .isGlobal(false)
+                .isMonomorphic(false)
+                .location(node.location())
+                .isPublic(false)
+                .build();
 
-            // todo: set the definition!!!!!!!
-            // Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");
+        // todo: set the definition!!!!!!!
+        // Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");
 
-            node.table.put(arg, info);
-        }
+        node.table.put(arg, info);
 
         // Push the symboltable on the stack and resolve the body
         valueTables.push(node.table);
@@ -693,7 +690,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(LetFunctionBindingNode node) {
-        throw new RuntimeException("obsolete");
+        throw new PacioliException(node.location(), "obsolete");
     }
 
     @Override

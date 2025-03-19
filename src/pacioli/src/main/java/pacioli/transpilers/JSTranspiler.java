@@ -13,8 +13,8 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printer;
-import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ClassInfo;
@@ -101,7 +101,7 @@ public class JSTranspiler implements SymbolTableVisitor {
             // out.newlineDown();
             // out.format("}");
             out.newline();
-            out.format("Pacioli.%s = function (%s) {", info.globalName(), code.argsString("lcl_"));
+            out.format("Pacioli.%s = function (%s) {", info.globalName(), argsString(code, "lcl_"));
             out.newlineUp();
             out.format("return ");
             code.expression.compileToJS(out, settings);
@@ -125,6 +125,22 @@ public class JSTranspiler implements SymbolTableVisitor {
             // transformedBody.compileToJS(out, settings, true);
             // out.format(";\n}\n");
         }
+    }
+
+    private static String argsString(LambdaNode node, String prefix) {
+        if (node.varArgs) {
+            if (node.arguments.size() == 1) {
+                // TODO: Wegwerken hier. Alleen JSTranspiler roept dit aan
+                return "..." + prefix + node.arguments.get(0);
+            } else {
+                throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
+            }
+        }
+        List<String> args = new ArrayList<String>();
+        for (String arg : node.arguments) {
+            args.add(prefix + arg + "");
+        }
+        return String.join(", ", args);
     }
 
     @Override
@@ -153,7 +169,7 @@ public class JSTranspiler implements SymbolTableVisitor {
                     info.globalName(),
                     info.globalName(),
                     definition.name(),
-                    Utils.intercalate(",", quotedItems));
+                    String.join(",", quotedItems));
         }
 
     }
@@ -207,7 +223,7 @@ public class JSTranspiler implements SymbolTableVisitor {
 
         String globalName = // info.globalName();//setInfo.globalName();
                 String.format("vbase_%s_%s", setInfo.generalInfo().module(), info.name().replace("!", "_"));
-        String args = Utils.intercalate(", ", unitTexts);
+        String args = String.join(", ", unitTexts);
 
         out.format("Pacioli.compute_%s = function () { return {units: { %s }}};\n", globalName, args);
     }

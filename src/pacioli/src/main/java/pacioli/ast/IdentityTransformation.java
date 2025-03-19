@@ -33,14 +33,14 @@ import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
-import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.sugar.ComprehensionNode;
 import pacioli.ast.sugar.ComprehensionNode.GeneratorClause;
 import pacioli.ast.sugar.ExponentNode;
+import pacioli.ast.sugar.LetFunctionBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.ast.sugar.RecordDefinition;
-import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -453,13 +453,9 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(LetNode node) {
-        List<BindingNode> newBindings = new ArrayList<BindingNode>();
-        for (BindingNode binding : node.binding) {
-            Node accepted = nodeAccept(binding);
-            assert (accepted instanceof BindingNode);
-            newBindings.add((BindingNode) accepted);
-        }
-        returnNode(node.transform(newBindings, expAccept(node.body)));
+        Node accepted = nodeAccept(node.binding);
+        assert (accepted instanceof BindingNode);
+        returnNode(node.transform((BindingNode) accepted, expAccept(node.body)));
     }
 
     @Override

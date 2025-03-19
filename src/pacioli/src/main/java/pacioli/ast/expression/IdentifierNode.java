@@ -23,12 +23,13 @@ package pacioli.ast.expression;
 
 import java.util.Optional;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.ValueInfo;
 
-public class IdentifierNode extends AbstractExpressionNode {
+public class IdentifierNode extends AbstractNode implements ExpressionNode {
 
     public enum Kind {
         VALUE, TYPE

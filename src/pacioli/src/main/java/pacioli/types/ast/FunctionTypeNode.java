@@ -21,10 +21,11 @@
 
 package pacioli.types.ast;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class FunctionTypeNode extends AbstractTypeNode {
+public class FunctionTypeNode extends AbstractNode implements TypeNode {
 
     public final TypeNode domain;
     public final TypeNode range;

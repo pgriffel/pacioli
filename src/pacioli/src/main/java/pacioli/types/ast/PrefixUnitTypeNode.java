@@ -1,9 +1,10 @@
 package pacioli.types.ast;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class PrefixUnitTypeNode extends AbstractTypeNode {
+public class PrefixUnitTypeNode extends AbstractNode implements TypeNode {
 
     public final TypeIdentifierNode prefix;
     public final TypeIdentifierNode unit;

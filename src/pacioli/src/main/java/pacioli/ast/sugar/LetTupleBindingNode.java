@@ -19,22 +19,36 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package pacioli.compiler;
+package pacioli.ast.sugar;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class Utils {
+import pacioli.ast.AbstractNode;
+import pacioli.ast.Node;
+import pacioli.ast.Visitor;
+import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.expression.LetNode;
+import pacioli.compiler.Location;
 
-    public static String intercalate(String seperator, List<String> strings) {
-        return String.join(seperator, strings);
+public class LetTupleBindingNode extends AbstractNode implements ExpressionNode, LetNode.BindingNode {
+
+    public final List<IdentifierNode> vars;
+    public final ExpressionNode value;
+
+    public LetTupleBindingNode(Location location, List<IdentifierNode> vars, ExpressionNode value) {
+        super(location);
+        this.vars = vars;
+        this.value = value;
     }
 
-    public static String intercalateText(String seperator, List<? extends Printable> printables) {
-        List<String> strings = new ArrayList<String>();
-        for (Printable printable : printables) {
-            strings.add(printable.pretty());
-        }
-        return intercalate(seperator, strings);
+    @Override
+    public void accept(Visitor visitor) {
+        visitor.visit(this);
     }
+
+    public Node transform(ExpressionNode value) {
+        return new LetTupleBindingNode(location(), vars, value);
+    }
+
 }

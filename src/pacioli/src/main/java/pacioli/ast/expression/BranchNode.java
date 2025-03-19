@@ -21,10 +21,11 @@
 
 package pacioli.ast.expression;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class BranchNode extends AbstractExpressionNode {
+public class BranchNode extends AbstractNode implements ExpressionNode {
 
     public final ExpressionNode test;
     public final ExpressionNode positive;

@@ -24,7 +24,7 @@ package mvm.values;
 import java.io.PrintWriter;
 import mvm.MVMException;
 
-public class Reference extends AbstractPacioliValue {
+public class Reference implements PacioliValue {
 
     private PacioliValue value;
 

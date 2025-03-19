@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
@@ -37,7 +38,7 @@ import pacioli.ast.expression.IdentifierNode.Kind;
 import pacioli.ast.expression.StringNode;
 import pacioli.compiler.Location;
 
-public class Documentation extends AbstractDefinition {
+public class Documentation extends AbstractNode implements Definition {
 
     public final IdentifierNode id;
     public final StringNode body;

@@ -21,10 +21,11 @@
 
 package pacioli.types.ast;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class TypeOperationNode extends AbstractTypeNode {
+public class TypeOperationNode extends AbstractNode implements TypeNode {
 
     // private final String operator;
     // private final TypeNode left;

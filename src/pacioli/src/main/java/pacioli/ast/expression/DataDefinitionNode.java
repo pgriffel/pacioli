@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
@@ -39,7 +40,7 @@ import pacioli.types.ast.TypePerNode;
  * defines the data's type and additionally a name for each dimension
  * in the type. These names can be used in data queries.
  */
-public class DataDefinitionNode extends AbstractExpressionNode {
+public class DataDefinitionNode extends AbstractNode implements ExpressionNode {
 
     public static class Binding {
 

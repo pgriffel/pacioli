@@ -35,7 +35,6 @@ import pacioli.ast.unit.UnitPowerNode;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printer;
-import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ValueInfo;
@@ -245,7 +244,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
                 quoted.add("\"" + arg + "\"");
             }
         }
-        String args = Utils.intercalate(", ", quoted);
+        String args = String.join(", ", quoted);
         out.print("lambda ");
         if (!node.varArgs) {
             out.print("(");

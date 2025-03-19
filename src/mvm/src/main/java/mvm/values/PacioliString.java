@@ -2,7 +2,7 @@ package mvm.values;
 
 import java.io.PrintWriter;
 
-public class PacioliString extends AbstractPacioliValue {
+public class PacioliString implements PacioliValue {
 
     private final String value;
 

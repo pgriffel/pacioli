@@ -3,7 +3,6 @@ package mvm.ast;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 
-import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.ast.unit.UnitNode;
@@ -11,7 +10,7 @@ import mvm.values.matrix.MatrixBase;
 import uom.DimensionedNumber;
 import uom.NamedUnit;
 
-public class StoreUnit extends AbstractPrintable implements Instruction {
+public class StoreUnit implements Instruction {
 
     private String name;
     private String symbol;

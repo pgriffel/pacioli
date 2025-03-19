@@ -23,10 +23,11 @@ package pacioli.ast.expression;
 
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class TupleAssignmentNode extends AbstractExpressionNode {
+public class TupleAssignmentNode extends AbstractNode implements ExpressionNode {
 
     public final List<IdentifierNode> vars;
     public final ExpressionNode tuple;

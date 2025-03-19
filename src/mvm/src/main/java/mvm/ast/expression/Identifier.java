@@ -22,12 +22,11 @@
 package mvm.ast.expression;
 
 import java.io.PrintWriter;
-import mvm.AbstractPrintable;
 import mvm.Environment;
 import mvm.MVMException;
 import mvm.values.PacioliValue;
 
-public class Identifier extends AbstractPrintable implements Expression {
+public class Identifier implements Expression {
 
     private final String name;
 

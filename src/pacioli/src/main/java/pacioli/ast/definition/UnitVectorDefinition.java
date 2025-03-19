@@ -23,13 +23,14 @@ package pacioli.ast.definition;
 
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.compiler.Location;
 import pacioli.types.ast.TypeIdentifierNode;
 
-public class UnitVectorDefinition extends AbstractDefinition {
+public class UnitVectorDefinition extends AbstractNode implements Definition {
 
     public final TypeIdentifierNode indexSetNode;
     public final TypeIdentifierNode unitNode;

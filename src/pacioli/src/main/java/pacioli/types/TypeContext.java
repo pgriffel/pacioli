@@ -28,8 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.Pacioli;
-import pacioli.compiler.AbstractPrintable;
-import pacioli.compiler.Utils;
+import pacioli.compiler.Printable;
 import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.type.IndexSetVar;
@@ -39,7 +38,7 @@ import pacioli.types.type.TypeVar;
 import pacioli.types.type.Var;
 import pacioli.types.type.VectorUnitVar;
 
-public class TypeContext extends AbstractPrintable {
+public class TypeContext implements Printable {
 
     private final List<String> typeVars;
     private final List<String> unitVars;
@@ -191,7 +190,7 @@ public class TypeContext extends AbstractPrintable {
 
     private static String quantified(String quantifier, List<String> names) {
         if (!names.isEmpty()) {
-            return quantifier + " " + Utils.intercalate(", ", names) + ": ";
+            return quantifier + " " + String.join(", ", names) + ": ";
         } else {
             return "";
         }

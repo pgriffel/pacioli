@@ -2,12 +2,11 @@ package mvm.ast.shape;
 
 import java.io.PrintWriter;
 
-import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.values.matrix.MatrixShape;
 
-public class ShapeBinop extends AbstractPrintable implements ShapeNode {
+public class ShapeBinop implements ShapeNode {
 
     private String op;
     private ShapeNode left;

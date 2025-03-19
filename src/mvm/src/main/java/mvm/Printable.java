@@ -22,12 +22,27 @@
 package mvm;
 
 import java.io.PrintWriter;
-
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface Printable {
 
-    public String toText();
+    // public String toText();
 
     public void printText(PrintWriter out);
 
+    default public String toText() {
+        StringWriter out = new StringWriter();
+        printText(new PrintWriter(out));
+        return out.toString();
+    }
+
+    public static String joinText(String seperator, List<? extends Printable> printables) {
+        List<String> strings = new ArrayList<String>();
+        for (Printable printable : printables) {
+            strings.add(printable.toText());
+        }
+        return String.join(seperator, strings);
+    }
 }

@@ -24,9 +24,9 @@ package mvm.values.matrix;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
-import mvm.AbstractPrintable;
+import mvm.Printable;
 
-public class IndexSet extends AbstractPrintable {
+public class IndexSet implements Printable {
 
     public final String name;
     private final HashMap<String, Integer> positions;

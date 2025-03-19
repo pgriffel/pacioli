@@ -24,6 +24,7 @@ package pacioli.ast.definition;
 import java.util.ArrayList;
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.compiler.Location;
@@ -38,7 +39,7 @@ import pacioli.types.ast.TypePredicateNode;
  * end up in the symbol table. The name would clash with the class name.
  * Instead the instances are part of the class (and visited via the class).
  */
-public class InstanceDefinition extends AbstractDefinition {
+public class InstanceDefinition extends AbstractNode implements Definition {
 
     /**
      * The type of the type instance

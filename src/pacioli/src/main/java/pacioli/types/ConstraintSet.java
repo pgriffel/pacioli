@@ -31,10 +31,9 @@ import java.util.Set;
 import pacioli.Pacioli;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
-import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.compiler.Utils;
+import pacioli.compiler.Printable;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
@@ -48,7 +47,7 @@ import uom.Unit;
  * Bastiaan J. Heeren, Top Quality Type Error Messages, PhD Thesis,
  * Universiteit Utrecht, The Netherlands, 2005
  */
-public class ConstraintSet extends AbstractPrintable {
+public class ConstraintSet implements Printable {
 
     public static int DEPTH = 0;
 
@@ -228,7 +227,7 @@ public class ConstraintSet extends AbstractPrintable {
         for (InstanceConstraint constraint : instanceConstaints) {
             out.format("  %s <: for %s: %s\n",
                     constraint.lhs.pretty(),
-                    Utils.intercalateText(", ", new ArrayList<Var>(constraint.freeVars)),
+                    joinTexts(", ", new ArrayList<Var>(constraint.freeVars)),
                     constraint.rhs.pretty());
         }
         for (UnitConstraint constraint : unitConstaints) {
@@ -243,6 +242,14 @@ public class ConstraintSet extends AbstractPrintable {
                     constraint.dimension,
                     constraint.matrixType.pretty());
         }
+    }
+
+    public static String joinTexts(String seperator, List<? extends Printable> printables) {
+        List<String> strings = new ArrayList<String>();
+        for (Printable printable : printables) {
+            strings.add(printable.pretty());
+        }
+        return String.join(seperator, strings);
     }
 
     public Substitution solve(Boolean verbose) throws PacioliException {

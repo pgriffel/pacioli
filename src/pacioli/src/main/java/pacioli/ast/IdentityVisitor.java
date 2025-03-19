@@ -30,9 +30,7 @@ import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
-import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -43,9 +41,10 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
-import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.sugar.ComprehensionNode;
 import pacioli.ast.sugar.ExponentNode;
+import pacioli.ast.sugar.LetFunctionBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.ast.sugar.RecordDefinition;
 import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
@@ -385,9 +384,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(LetNode node) {
-        for (BindingNode binding : node.binding) {
-            binding.accept(this);
-        }
+        node.binding.accept(this);
         node.body.accept(this);
     }
 

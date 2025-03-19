@@ -28,14 +28,14 @@ import java.util.Map;
 import java.util.Set;
 
 import pacioli.ast.expression.ApplicationNode;
-import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
+import pacioli.compiler.Printable;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.Var;
 
-public class Typing extends AbstractPrintable {
+public class Typing implements Printable {
 
     private final TypeObject type;
     private final ConstraintSet constraints;

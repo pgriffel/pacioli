@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.compiler.Location;
 import pacioli.types.ast.TypeNode;
 
-public class Declaration extends AbstractDefinition {
+public class Declaration extends AbstractNode implements Definition {
 
     public final IdentifierNode id;
     public final TypeNode typeNode;

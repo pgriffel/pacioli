@@ -2,11 +2,12 @@ package pacioli.ast.unit;
 
 import java.util.Optional;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.symboltable.info.UnitInfo;
 
-public class UnitIdentifierNode extends AbstractUnitNode {
+public class UnitIdentifierNode extends AbstractNode implements UnitNode {
 
     private final String name;
     private final String prefix;

@@ -22,10 +22,10 @@
 package mvm.values.matrix;
 
 import java.io.PrintWriter;
-import mvm.AbstractPrintable;
+import mvm.Printable;
 import uom.Unit;
 
-public class UnitVector extends AbstractPrintable {
+public class UnitVector implements Printable {
 
     public final String name;
     public final IndexSet indexSet;

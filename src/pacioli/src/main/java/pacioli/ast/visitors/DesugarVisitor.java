@@ -15,11 +15,11 @@ import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
-import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.sugar.ComprehensionNode;
 import pacioli.ast.sugar.ExponentNode;
+import pacioli.ast.sugar.LetFunctionBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.ast.sugar.RecordDefinition;
 import pacioli.compiler.PacioliException;
 
@@ -75,35 +75,62 @@ public class DesugarVisitor extends IdentityTransformation {
     @Override
     public void visit(LetNode node) {
 
-        // The grammar makes a new LetNode for each binding so the binding is always
-        // size 1
-        if (node.binding.size() > 1) {
-            throw new RuntimeException("Visit error: TODO LetNode with multiple bindings.");
-        }
-
         ExpressionNode desugaredBody = (ExpressionNode) nodeAccept(node.body);
-        LetNode.BindingNode binding = node.binding.get(0);
 
-        if (binding instanceof LetTupleBindingNode tup) {
-            // The grammar already desugars this, but it is created somewhere else
-            ExpressionNode fun = new LambdaNode(tup.vars, desugaredBody, tup.location());
+        if (node.binding instanceof LetTupleBindingNode tup) {
+            ExpressionNode fun = new LambdaNode(freshUnderscores(idNames(tup.vars)), desugaredBody, tup.location());
+
             returnNode(new ApplicationNode(
                     new IdentifierNode("apply", tup.location()),
-                    Arrays.asList(fun, (ExpressionNode) nodeAccept(tup.value)),
+                    Arrays.asList(fun, expAccept(tup.value)),
                     tup.location()));
-        } else if (binding instanceof LetFunctionBindingNode) {
-            // The grammar already desugars this
-            throw new RuntimeException("TODO: desugar function let");
-        } else if (binding instanceof LetBindingNode bind) {
+
+        } else if (node.binding instanceof LetFunctionBindingNode nd) {
+            List<String> eArgs = freshUnderscores(idNames(nd.args)); // remove fresh underscors
+            ExpressionNode eFun = new LambdaNode(eArgs, expAccept(nd.body), nd.location());
+            LetBindingNode bind = new LetBindingNode(nd.location(), nd.name.name(), eFun);
+
+            returnNode(new LetNode(bind, expAccept(node.body), node.location()));
+
+        } else if (node.binding instanceof LetBindingNode bind) {
             LetBindingNode desugaredBinding = new LetBindingNode(
-                    binding.location(),
+                    node.binding.location(),
                     bind.var,
-                    (ExpressionNode) nodeAccept(bind.value));
-            returnNode(new LetNode(Arrays.asList(desugaredBinding), desugaredBody, node.location()));
+                    expAccept(bind.value));
+
+            returnNode(new LetNode(desugaredBinding, desugaredBody, node.location()));
+
         } else {
             throw new RuntimeException("Unexpected binding");
         }
 
+    }
+
+    // Copied from grammar.cup. TODO: solve this at one place
+    private static List<String> freshUnderscores(List<String> names) {
+        List<String> fresh = new ArrayList<String>();
+        for (String name : names) {
+            if (name.equals("_")) {
+                fresh.add(freshUnderscore());
+            } else {
+                fresh.add(name);
+            }
+        }
+        return fresh;
+    }
+
+    private static String freshUnderscore() {
+        return "_" + counter++;
+    }
+
+    private static int counter = 0;
+
+    private static List<String> idNames(List<IdentifierNode> ids) {
+        List<String> names = new ArrayList<String>();
+        for (IdentifierNode id : ids) {
+            names.add(id.name());
+        }
+        return names;
     }
 
     @Override

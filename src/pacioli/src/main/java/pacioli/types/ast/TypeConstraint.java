@@ -27,8 +27,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import pacioli.Pacioli;
-import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.PacioliException;
+import pacioli.compiler.Printable;
 import pacioli.types.Substitution;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
@@ -39,7 +39,7 @@ import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
 import pacioli.types.type.VectorUnitVar;
 
-public class TypeConstraint extends AbstractPrintable {
+public class TypeConstraint implements Printable {
 
     private final TypeApplicationNode lhs;
     private final TypeObject rhs;

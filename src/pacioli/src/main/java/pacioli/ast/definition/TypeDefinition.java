@@ -24,6 +24,7 @@ package pacioli.ast.definition;
 import java.util.ArrayList;
 import java.util.List;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
@@ -40,7 +41,7 @@ import pacioli.types.type.ParametricType;
 import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
 
-public class TypeDefinition extends AbstractDefinition {
+public class TypeDefinition extends AbstractNode implements Definition {
 
     public final List<QuantNode> quantNodes;
     public final TypeNode lhs;

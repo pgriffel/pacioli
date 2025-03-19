@@ -1,9 +1,10 @@
 package pacioli.ast.unit;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class NumberUnitNode extends AbstractUnitNode {
+public class NumberUnitNode extends AbstractNode implements UnitNode {
 
     public final String number;
 

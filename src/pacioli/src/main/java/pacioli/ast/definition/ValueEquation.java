@@ -21,13 +21,14 @@
 
 package pacioli.ast.definition;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.compiler.Location;
-import pacioli.types.ast.AbstractTypeNode;
+import pacioli.types.ast.TypeNode;
 
-public class ValueEquation extends AbstractTypeNode {
+public class ValueEquation extends AbstractNode implements TypeNode {
 
     public final IdentifierNode id;
     public final ExpressionNode body;

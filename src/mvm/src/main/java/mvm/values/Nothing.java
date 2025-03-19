@@ -23,7 +23,7 @@ package mvm.values;
 
 import java.io.PrintWriter;
 
-public class Nothing extends AbstractPacioliValue {
+public class Nothing implements PacioliValue {
 
     public Nothing() {
     }

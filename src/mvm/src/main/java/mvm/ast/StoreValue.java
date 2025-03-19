@@ -2,12 +2,11 @@ package mvm.ast;
 
 import java.io.PrintWriter;
 
-import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.ast.expression.Expression;
 
-public class StoreValue extends AbstractPrintable implements Instruction {
+public class StoreValue implements Instruction {
 
     private String name;
     private Expression body;

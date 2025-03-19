@@ -25,14 +25,14 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import mvm.Machine;
-import mvm.AbstractPrintable;
+import mvm.Printable;
 import mvm.ControlTransfer;
 import mvm.Environment;
 import mvm.MVMException;
 import mvm.values.Callable;
 import mvm.values.PacioliValue;
 
-public class ApplicationDebug extends AbstractPrintable implements Expression {
+public class ApplicationDebug implements Expression {
 
     private final Expression function;
     private final List<Expression> arguments;
@@ -61,7 +61,7 @@ public class ApplicationDebug extends AbstractPrintable implements Expression {
             }
             if (trace) {
                 Machine.logln("\nCalling %s with arguments (%s)", stackText,
-                        AbstractPrintable.intercalateText(", ", params));
+                        Printable.joinText(", ", params));
             }
             PacioliValue result = fun.apply(params);
             if (trace) {

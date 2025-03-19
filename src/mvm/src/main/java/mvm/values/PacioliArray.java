@@ -24,7 +24,7 @@ package mvm.values;
 import java.io.PrintWriter;
 import mvm.MVMException;
 
-public class PacioliArray extends AbstractPacioliValue {
+public class PacioliArray implements PacioliValue {
 
     private final PacioliValue[] array;
 
@@ -67,7 +67,7 @@ public class PacioliArray extends AbstractPacioliValue {
     public PacioliValue put(int index, PacioliValue value) throws MVMException {
         if (index < array.length) {
             array[index] = value;
-        return this;
+            return this;
         } else {
             throw new MVMException("Index %s for function 'put' out of bounds. Array size is %s", index, array.length);
         }

@@ -2,13 +2,12 @@ package mvm.ast.shape;
 
 import java.io.PrintWriter;
 
-import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.values.matrix.MatrixShape;
 import uom.Fraction;
 
-public class ShapeExpt extends AbstractPrintable implements ShapeNode {
+public class ShapeExpt implements ShapeNode {
 
     private ShapeNode shape;
     private Fraction power;

@@ -26,9 +26,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import mvm.AbstractPrintable;
+import mvm.Printable;
 
-public class PacioliSet extends AbstractPacioliValue {
+public class PacioliSet implements PacioliValue {
 
     private final Set<PacioliValue> items;
 
@@ -68,7 +68,7 @@ public class PacioliSet extends AbstractPacioliValue {
     @Override
     public void printText(PrintWriter out) {
         out.print("{");
-        out.print(AbstractPrintable.intercalateText(", ", new ArrayList<PacioliValue>(items)));
+        out.print(Printable.joinText(", ", new ArrayList<PacioliValue>(items)));
         out.print("}");
     }
 

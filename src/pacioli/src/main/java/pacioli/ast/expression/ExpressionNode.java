@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.ast.Node;
-import pacioli.ast.visitors.AssignedVariablesVisitor;
 import pacioli.ast.visitors.CollectStatementsVisitor;
 import pacioli.ast.visitors.TypeInference;
 import pacioli.compiler.PacioliFile;
@@ -52,12 +51,21 @@ public interface ExpressionNode extends Node {
     }
 
     default public Set<IdentifierNode> locallyAssignedVariables() {
-        AssignedVariablesVisitor visitor = new AssignedVariablesVisitor();
-        return visitor.idsAccept(this);
+        Set<IdentifierNode> names = new HashSet<>();
+        for (Node node : this.mutatingStatements()) {
+            if (node instanceof AssignmentNode assignment) {
+                names.add(assignment.var);
+            }
+            if (node instanceof TupleAssignmentNode assignment) {
+                for (IdentifierNode var : assignment.vars) {
+                    names.add(var);
+                }
+            }
+        }
+        return names;
     }
 
     default public Set<String> locallyAssignedNames() {
-        // kan met mutatingStatements ipv locallyAssignedVariables
         Set<String> names = new HashSet<>();
         for (IdentifierNode id : this.locallyAssignedVariables()) {
             names.add(id.name());

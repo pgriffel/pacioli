@@ -1,14 +1,13 @@
 package mvm.ast.expression;
 
 import java.io.PrintWriter;
-import mvm.AbstractPrintable;
 import mvm.Environment;
 import mvm.MVMException;
 import mvm.ast.shape.ShapeNode;
 import mvm.values.PacioliValue;
 import mvm.values.matrix.Matrix;
 
-public class MatrixConstructor extends AbstractPrintable implements Expression {
+public class MatrixConstructor implements Expression {
 
     private String op;
     private ShapeNode shape;

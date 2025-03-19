@@ -23,10 +23,11 @@ package pacioli.types.ast;
 
 import java.util.Optional;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 
-public class BangTypeNode extends AbstractTypeNode {
+public class BangTypeNode extends AbstractNode implements TypeNode {
 
     private final TypeIdentifierNode indexSet;
     private final Optional<TypeIdentifierNode> unit;

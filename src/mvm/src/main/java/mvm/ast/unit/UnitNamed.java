@@ -2,13 +2,12 @@ package mvm.ast.unit;
 
 import java.io.PrintWriter;
 
-import mvm.AbstractPrintable;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.values.matrix.MatrixBase;
 import uom.Unit;
 
-public class UnitNamed extends AbstractPrintable implements UnitNode {
+public class UnitNamed implements UnitNode {
 
     private String name;
 

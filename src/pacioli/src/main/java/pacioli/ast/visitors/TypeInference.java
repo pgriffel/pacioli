@@ -22,12 +22,11 @@ import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
-import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.LetNode.BindingNode;
+import pacioli.ast.sugar.LetFunctionBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.PacioliFile;
-import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -443,15 +442,13 @@ public class TypeInference extends IdentityVisitor {
 
         // Fill the types in the symbol table before the body's type
         // is inferred to make the variable types available.
-        for (BindingNode binding : node.binding) {
-            assert (binding instanceof LetBindingNode);
-            LetBindingNode letBinding = (LetBindingNode) binding;
-            vars.add(letBinding.var);
-            Typing bindingTyping = typingAccept(letBinding);
-            tmpTyping.addConstraintsAndAssumptions(bindingTyping);
-            ValueInfo info = node.table.lookup(letBinding.var);
-            info.setinferredType(bindingTyping.type());
-        }
+        assert (node.binding instanceof LetBindingNode);
+        LetBindingNode letBinding = (LetBindingNode) node.binding;
+        vars.add(letBinding.var);
+        Typing bindingTyping = typingAccept(letBinding);
+        tmpTyping.addConstraintsAndAssumptions(bindingTyping);
+        ValueInfo binfo = node.table.lookup(letBinding.var);
+        binfo.setinferredType(bindingTyping.type());
 
         // Infer the body's typing
         Typing bodyTyping = typingAccept(node.body);
