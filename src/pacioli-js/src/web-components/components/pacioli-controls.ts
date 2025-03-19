@@ -32,6 +32,7 @@ TEMPLATE.innerHTML = `
     <label class="rotate">rotate
       <input type="checkbox"></input>
     </label>
+    <button class="snapshot">Snapshot</button>
   </div>
 `;
 
@@ -138,6 +139,9 @@ export class PacioliControlsComponent extends PacioliWebController {
     addCheckBoxEventListener(this.configurationLabel(".rotate"), (checked) =>
       this.autoRotateCheckboxClicked(checked)
     );
+    addButtonEventListener(this.configurationButton(".snapshot"), () => {
+      this.snapshotButtonClicked();
+    });
   }
 
   /**
@@ -260,6 +264,23 @@ export class PacioliControlsComponent extends PacioliWebController {
   }
 
   /**
+   * Handler for the snapshot button
+   */
+  private snapshotButtonClicked() {
+    const followedId = this.getAttribute("for");
+    const scene = this.sceneElement();
+    if (scene && followedId) {
+      scene.openImage(followedId);
+    } else {
+      if (scene) {
+        scene.displayError("No scene to take snapshot of");
+      } else {
+        alert("No scene to take snapshot of");
+      }
+    }
+  }
+
+  /**
    * Set the disabled and hidden state of the controls. Also set the
    * button labels for the animation buttons.
    */
@@ -321,6 +342,12 @@ export class PacioliControlsComponent extends PacioliWebController {
 
   private configurationCheckbox(className: string): HTMLInputElement {
     return this.configurationLabel(className).children[0] as HTMLInputElement;
+  }
+
+  private configurationButton(className: string): HTMLButtonElement {
+    return this.findElement(
+      `.pacioli-controls-configuration ${className}`
+    ) as HTMLButtonElement;
   }
 }
 

@@ -260,7 +260,10 @@ export class Space {
     this.renderersDiv = renderersDiv;
 
     // Create the 3D WebGL renderer and append it to the given parent
-    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      preserveDrawingBuffer: true, // Required for snaphshot images
+    });
     this.renderer.setSize(width, height);
     renderersDiv.appendChild(this.renderer.domElement);
 

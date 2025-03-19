@@ -230,6 +230,35 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   }
 
   /**
+   * Creates a snapshot of the displayed scene.
+   *
+   * If a name is provided the image is downloaded under that name. Otherwise
+   * a new window is opened displaying the image.
+   *
+   * @param name Optional name for the download file
+   */
+  openImage(name?: string) {
+    const canvas: HTMLCanvasElement = this.findElement(
+      "canvas"
+    ) as HTMLCanvasElement;
+
+    if (canvas) {
+      const dataURL = canvas.toDataURL("image/png");
+
+      if (name) {
+        const link = document.createElement("a");
+        link.href = dataURL;
+        link.download = `${name}.png`;
+        link.click();
+      } else {
+        window.open(dataURL, "_blank");
+      }
+    } else {
+      throw Error("Cannot create image of scene, no canvas found");
+    }
+  }
+
+  /**
    * Loads the fetched data into the Pacioli space.
    */
   private loadData(space: Space) {
