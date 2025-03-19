@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Möbius</title>
+
+    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="../surfaces.js"></script>
+
+</head>
+
+<body>
+    <div id="console"></div>
+
+    <h1>Möbius</h1>
+
+    The Möbius strip.
+
+    <p>
+        <math>
+            <mi>f</mi>
+            (
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            )
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    (
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    )
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>cos</mi>
+                ( <mi>u</mi> )
+                ( <mi>c</mi>
+                <mo>+</mo>
+                <mi>v</mi>
+                <mi>cos</mi>
+                (
+                <mfrac>
+                    <mn>u</mn>
+                    <mn>2</mn>
+                </mfrac>
+                ))
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>sin</mi>
+                ( <mi>u</mi> )
+                ( <mi>c</mi>
+                <mo>+</mo>
+                <mi>v</mi>
+                <mi>cos</mi>
+                (
+                <mfrac>
+                    <mn>u</mn>
+                    <mn>2</mn>
+                </mfrac>
+                ))
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mi>v</mi>
+                <mi>sin</mi>
+                (
+                <mfrac>
+                    <mn>u</mn>
+                    <mn>2</mn>
+                </mfrac>
+                )
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>a</mi>
+    </math>
+    and
+    <math>
+        <mi>c</mi>
+    </math>
+    are scaling factors,
+    <math>
+        <mn>-&pi;</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>&pi;</mn>
+    </math>
+    , and
+    <math>
+        <mn>-0.5</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>0.5</mn>
+    </math>
+
+    <p>
+        The surface is non-orientable. A consequence is that no smooth varying normals exist. In the image a
+        discontinuity can be seen where the normals 'jump' to the other side.
+
+    <p>
+        The blue and purple paths are in a diagonal direction, yet they terminate at the starting point.
+
+
+    <p>
+        The orange line along the surface also terminates a its starting point, showing there is just
+        one edge. The orange edge path has double length, therefore it has normals on both sides.
+
+    <p>
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="moebius_scene" script="surfaces" definition="moebius_scene"
+            kind="scene" perspective>
+            <parameter label="a" unit="1">10</parameter>
+            <parameter label="c" unit="metre">1</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">2</parameter>
+            <parameter label="grid" type="boole">false</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="moebius_scene"></pacioli-inputs>
+        <pacioli-controls for="moebius_scene"></pacioli-controls>
+
+    </div>
+
+
+
+</body>
+
+
+</html>

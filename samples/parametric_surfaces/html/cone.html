@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Cone</title>
+
+    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="../surfaces.js"></script>
+
+</head>
+
+<body>
+    <div id="console"></div>
+
+    <h1>Cone</h1>
+    <p>
+        Parametrization of a cone surface.
+
+    <p>
+        <math>
+            <mi>f</mi>
+            (
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            )
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    (
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    )
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mfrac>
+                    <mrow>
+                        <mi>h</mi>
+                        <mo>-</mo>
+                        <mi>u</mi>
+                    </mrow>
+                    <mi>h</mi>
+                </mfrac>
+                <mi>r</mi>
+                <mi>cos</mi>
+                ( <mi>v</mi> )
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                <mfrac>
+                    <mrow>
+                        <mi>h</mi>
+                        <mo>-</mo>
+                        <mi>u</mi>
+                    </mrow>
+                    <mi>h</mi>
+                </mfrac>
+                <mi>r</mi>
+                <mi>sin</mi>
+                ( <mi>v</mi> )
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>u</mi>
+                <mo>-</mo>
+                <mi>h</mi>
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>h</mi>
+    </math>
+    is the height,
+    <math>
+        <mi>r</mi>
+    </math>
+    the radius,
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>2h</mn>
+    </math>
+    , and
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>2&pi;</mn>
+    </math>
+
+    <p>
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="cone_scene" script="surfaces" definition="cone_scene" kind="scene"
+            perspective grid axis background="#222222" labelcolor="#eeeeee">
+            <parameter label="h" unit="metre">5</parameter>
+            <parameter label="r" unit="metre">5</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">10</parameter>
+            <parameter label="grid" type="boole">true</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="cone_scene"></pacioli-inputs>
+        <pacioli-controls for="cone_scene"></pacioli-controls>
+
+    </div>
+
+
+</body>
+
+
+</html>
