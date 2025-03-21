@@ -8,7 +8,7 @@ Three artifacts are build from the sources, a .jar file for the compiler, a java
 
 ### Building the compiler
 
-To build the .jar file do the following:
+This requires Java version 17 or above. To build the .jar file do the following:
 
 1. Clone the sources
 
@@ -20,19 +20,22 @@ This produces the .jar file in the src/pacioli/target directory.
 
 ### Building the javascript runtime
 
-This requires nodejs to be installed.
+This requires nodejs version 18 or above.
 
 1. Clone the sources
 
 2. cd src/pacioli-js
 
-3. npm run bundle
+3. npm install
 
-This produces the bundle .js file in the src/pacioli-js/dist directory
+4. npm run bundle
+
+This produces the bundle .js file in the src/pacioli-js/dist directory. Copy this file to the test
+and relevant samples directories to
 
 ### Building the extension
 
-This requires nodejs to be installed.
+This requires nodejs version 18 or above.
 
 1. Clone the sources
 
@@ -42,6 +45,8 @@ This requires nodejs to be installed.
 
 4. cd vscode/pacioli/
 
-5. npm run package
+5. npm install
+
+6. npm run package
 
 This produces the .vsix file in the vscode/pacioli/ directory
