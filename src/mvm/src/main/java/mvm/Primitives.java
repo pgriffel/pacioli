@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.MissingFormatArgumentException;
+import java.util.UnknownFormatConversionException;
 
 import mvm.values.Boole;
 import mvm.values.Callable;
@@ -1320,19 +1322,45 @@ public class Primitives {
         storePrimitive(store, new Primitive("string_format") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 if (params.isEmpty()) {
-                    return new PacioliString("No format string found. The first argument to format must be a string.");
-                } else {
-                    checkStringArg(params, 0);
-                    PacioliString formatString = (PacioliString) params.get(0);
-                    // List<String> paramStrings = new ArrayList<String>();
-                    Object[] paramStrings = new String[params.size() - 1];
-                    for (int i = 0; i < params.size() - 1; i++) {
-                        // paramStrings.add(value.toText());
-                        paramStrings[i] = params.get(i + 1).toText();
+                    throw new MVMException(
+                            "No format string found. The format function cannot be called without arguments.");
+
+                } else if (params.get(0) instanceof PacioliString str) {
+                    try {
+                        Object[] paramStrings = new String[params.size() - 1];
+
+                        for (int i = 0; i < params.size() - 1; i++) {
+                            paramStrings[i] = params.get(i + 1).toText();
+                        }
+
+                        String text = String.format(str.toText(), paramStrings);
+
+                        return new PacioliString(text);
+
+                    } catch (UnknownFormatConversionException ex) {
+                        throw new MVMException(
+                                String.format(
+                                        "Illegal format string syntax in \"%s\": %s. \n\nIs the first argument a format string?",
+                                        str.toText(),
+                                        ex.getMessage()));
+
+                    } catch (MissingFormatArgumentException ex) {
+                        throw new MVMException(
+                                String.format(
+                                        "Missing format argument in \"%s\": %s. \n\nForgot a format argument?",
+                                        str.toText(),
+                                        ex.getMessage()));
+
+                    } catch (Exception ex) {
+                        throw new MVMException(
+                                String.format("Unexpected error while formatting string \"%s\": %s",
+                                        str.toText(),
+                                        ex.getMessage()));
                     }
-                    String text = String.format(formatString.toText(), paramStrings);
-                    // String text = String.format("yo %s", "delo");
-                    return new PacioliString(text);
+                } else {
+                    throw new MVMException(
+                            "Illegal format string. The first argument to format must be a string. Found: \n\n%s",
+                            params.get(0).toText());
                 }
             }
         });
