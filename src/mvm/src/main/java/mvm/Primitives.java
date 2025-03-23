@@ -1202,47 +1202,19 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("string_pad_left") {
+        storePrimitive(store, new Primitive("string_pad") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliString string = (PacioliString) params.get(0);
-                Matrix n = (Matrix) params.get(1);
-                PacioliString sub = (PacioliString) params.get(2);
+                PacioliString left = (PacioliString) params.get(0);
+                PacioliString right = (PacioliString) params.get(1);
+                Matrix n = (Matrix) params.get(2);
+                PacioliString sub = (PacioliString) params.get(3);
 
-                double size = n.SingletonNumber();
-                String str = string.toText();
+                int size = (int) n.SingletonNumber();
+                String str = left.toText();
+                String rightStr = right.toText();
                 String subs = sub.toText();
-                int mod = subs.length();
-                double missing = size - str.length();
 
-                // todo: use pad method
-                StringBuilder padded = new StringBuilder();
-                int i = 0;
-                while (i < missing) {
-                    padded.append(subs.charAt(i++ % mod));
-                }
-                padded.append(str);
-                return new PacioliString(padded.toString());
-            }
-        });
-
-        storePrimitive(store, new Primitive("string_pad_right") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliString string = (PacioliString) params.get(0);
-                Matrix n = (Matrix) params.get(1);
-                PacioliString sub = (PacioliString) params.get(2);
-
-                double size = n.SingletonNumber();
-                String str = string.toText();
-                String subs = sub.toText();
-                int mod = subs.length();
-                double missing = size - str.length();
-                // todo: use pad method
-                StringBuilder padded = new StringBuilder(str);
-                int i = 0;
-                while (i < missing) {
-                    padded.append(subs.charAt(i++ % mod));
-                }
-                return new PacioliString(padded.toString());
+                return new PacioliString(pad(str, rightStr, size, subs));
             }
         });
 

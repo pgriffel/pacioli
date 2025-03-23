@@ -1343,20 +1343,15 @@ export function $base_string_split_string(x: RawString, y: RawString): RawList {
   return tagList(x.split(y) as unknown as RawValue[]);
 }
 
-export function $base_string_pad_left(
-  x: RawString,
+export function $base_string_pad(
+  left: RawString,
+  right: RawString,
   n: RawMatrix,
   sub: RawString
 ): RawString {
-  return x.padStart(getNumber(n, 0, 0), sub);
-}
-
-export function $base_string_pad_right(
-  x: RawString,
-  n: RawMatrix,
-  sub: RawString
-): RawString {
-  return x.padEnd(getNumber(n, 0, 0), sub);
+  return (
+    left + right.padStart(Math.max(0, getNumber(n, 0, 0) - left.length), sub)
+  );
 }
 
 export function $base_string_trim(x: RawString): RawString {

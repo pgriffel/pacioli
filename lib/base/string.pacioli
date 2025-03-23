@@ -22,8 +22,7 @@ export
     concatenate,
     split_string,
     trim,
-    pad_left,
-    pad_right,
+    pad,
     format,
     parse_num,
     unit2string,
@@ -67,31 +66,18 @@ declare_primitive trim(string) :: (String) -> String;
 
 # ----------------------------------------------------------------------------
 
-doc pad_left
-    "Adds characters to the left of a string to make it at least  as long
-    as the requested size.
+doc pad
+    "Adds characters between the left and the right string to make the 
+    concatenation at least as long as the requested size.
     
-    For example <code>pad_left(\"foo\", 8, \"abc\")</code> is
-    <code>\"abcabfoo\"</code>
-    
-    Returns the string unchanged if it is not smaller than the requested
-    size";
-
-declare_primitive pad_left(string, size, padding) :: (String, 1, String) -> String;
-
-# ----------------------------------------------------------------------------
-
-doc pad_right
-    "Adds characters to the right of a string to make it at least  as long
-    as the requested size.
-    
-    For example <code>pad_right(\"foo\", 8, \"abc\")</code> is
-    <code>\"fooabcab\"</code>
+    For example <code>pad_left(\"foo\", \"bar\", 10, \"abc\")</code> is
+    <code>\"fooabcabar\"</code>
     
     Returns the string unchanged if it is not smaller than the requested
     size";
 
-declare_primitive pad_right(string, size, padding) :: (String, 1, String) -> String;
+declare_primitive pad(left, right, size, padding) ::
+    (String, String, 1, String) -> String;
 
 # ----------------------------------------------------------------------------
 # String interpolation

@@ -19,7 +19,9 @@
 
 export
     join_strings,
-    int2str;
+    int2str,
+    pad_left,
+    pad_right;
 
 # ----------------------------------------------------------------------------
 # String
@@ -38,7 +40,6 @@ define join_strings(items, seperator) =
     fold_list((x, y) -> concatenate(x, concatenate(seperator, y)), items)
   end;
 
-
 # ------------------------------------------------------------------------------
 # String formatting
 # ------------------------------------------------------------------------------
@@ -51,3 +52,41 @@ declare int2str :: for_index D, E: for_unit a, D!b, E!c:
 
 define int2str(x, unit) =
     num2string(x, 0, unit);
+
+# ------------------------------------------------------------------------------
+# Padding
+# ------------------------------------------------------------------------------
+
+doc pad_left
+    "Adds characters to the left of a string to make it at least  as long
+    as the requested size.
+    
+    For example <code>pad_left(\"foo\", 8, \"abc\")</code> is
+    <code>\"abcabfoo\"</code>
+    
+    Returns the string unchanged if it is not smaller than the requested
+    size";
+
+declare pad_left ::
+    (String, 1, String) -> String;
+
+define pad_left(string, size, padding) =
+    pad("", string, size, padding);
+
+# ------------------------------------------------------------------------------
+
+doc pad_right
+    "Adds characters to the right of a string to make it at least  as long
+    as the requested size.
+    
+    For example <code>pad_right(\"foo\", 8, \"abc\")</code> is
+    <code>\"fooabcab\"</code>
+    
+    Returns the string unchanged if it is not smaller than the requested
+    size";
+
+declare pad_right ::
+    (String, 1, String) -> String;
+
+define pad_right(string, size, padding) =
+    pad(string, "", size, padding);
