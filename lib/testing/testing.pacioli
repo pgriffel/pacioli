@@ -159,9 +159,9 @@ define run_test_suites(suites) =
     results := [tuple(suite_description(s), run_test_suite(s)) | s <- to_test];
 
     # Print a status message
-    print(format("\nTests finished, %s suites tested%s\n",
-      int2str(list_size(to_test), |1|),
-      skipped_message(nr_skipped_suites)));
+    printf("\nTests finished, %d suites tested%s\n",
+      list_size(to_test),
+      skipped_message(nr_skipped_suites));
 
     # Print a summary of the results per suite. Also calculate totals.
     toprint := results;
@@ -175,12 +175,12 @@ define run_test_suites(suites) =
       nr_successes := nr_tests - nr_errors;
 
       # Print the result
-      print(format(" %s%s -> %s/%s success%s", 
+      printf(" %s%s -> %d/%d success%s", 
         if nr_successes = nr_tests then " " else "*" end,
         description,
-        int2str(nr_successes, |1|),
-        int2str(nr_tests, |1|),
-        skipped_message(nr_skipped)));
+        nr_successes,
+        nr_tests,
+        skipped_message(nr_skipped));
 
       # Update the totals
       total_nr_tests := total_nr_tests + nr_tests;
@@ -193,10 +193,10 @@ define run_test_suites(suites) =
     total_nr_skipped := count[ true | s <- suites, t <- suite_tests(s)] - total_nr_tests;
 
     # Print the totals
-    print(format("\nTotal tests -> %s/%s success%s",
-      int2str(total_nr_successes, |1|),
-      int2str(total_nr_tests, |1|),
-      skipped_message(total_nr_skipped)));
+    printf("\nTotal tests -> %d/%d success%s",
+      total_nr_successes,
+      total_nr_tests,
+      skipped_message(total_nr_skipped));
   end;
 
 # ------------------------------------------------------------------------------
@@ -227,23 +227,26 @@ define run_test_suite(suite) =
                             result := if okay then "ok" else "FAIL!" end,
                             message := format("  %s -> %s", description, result)],
     summary = if nr_failures = 0 then
-                format("All %s tests succeeded", int2str(nr_tests, |1|))
+                format("All %d tests succeeded", nr_tests)
               else
                 format("\nTEST FAILURES!!!!!\n\n  %s of %s tests failed",
-                  int2str(nr_failures, |1|), 
-                  int2str(nr_tests, |1|))
+                  nr_failures, 
+                  nr_tests)
               end
                       
   in
     begin
       print(description);
+
       todo := messages;
       while todo != [] do
         frst := head(todo);
         todo := tail(todo);
         print(frst);
       end
-      print(format("%s%s\n", summary, skipped_message(nr_skipped)));
+
+      printf("%s%s\n", summary, skipped_message(nr_skipped));
+
       return tuple(nr_tests, nr_failures, nr_skipped);
     end
   end;
@@ -255,5 +258,5 @@ define skipped_message(nr_skipped) =
   if nr_skipped = 0 then
     ""
   else
-    format(", %s skipped", int2str(nr_skipped, |1|))
+    format(", %d skipped", nr_skipped)
   end;
