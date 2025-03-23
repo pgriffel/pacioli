@@ -22,12 +22,13 @@
 package mvm;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.MissingFormatArgumentException;
-import java.util.UnknownFormatConversionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import mvm.values.Boole;
 import mvm.values.Callable;
@@ -1213,6 +1214,7 @@ public class Primitives {
                 int mod = subs.length();
                 double missing = size - str.length();
 
+                // todo: use pad method
                 StringBuilder padded = new StringBuilder();
                 int i = 0;
                 while (i < missing) {
@@ -1234,7 +1236,7 @@ public class Primitives {
                 String subs = sub.toText();
                 int mod = subs.length();
                 double missing = size - str.length();
-
+                // todo: use pad method
                 StringBuilder padded = new StringBuilder(str);
                 int i = 0;
                 while (i < missing) {
@@ -1320,36 +1322,135 @@ public class Primitives {
         });
 
         storePrimitive(store, new Primitive("string_format") {
+
+            Pattern DECIMAL_PATTERN = Pattern.compile("^%([0-9]*)d");
+            Pattern FLOAT_PATTERN = Pattern.compile("^%([0-9]*)([.]?)([0-9]*)f");
+
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 if (params.isEmpty()) {
                     throw new MVMException(
                             "No format string found. The format function cannot be called without arguments.");
 
                 } else if (params.get(0) instanceof PacioliString str) {
-                    try {
-                        Object[] paramStrings = new String[params.size() - 1];
 
-                        for (int i = 0; i < params.size() - 1; i++) {
-                            paramStrings[i] = params.get(i + 1).toText();
+                    String formatString = str.toText();
+                    int nrCharacters = formatString.length();
+
+                    try {
+
+                        var builder = new StringBuilder();
+
+                        int position = 0;
+                        int argumentIndex = 1;
+
+                        while (position < nrCharacters) {
+
+                            char firstChar = formatString.charAt(position);
+
+                            if (firstChar == '%') {
+
+                                if (position + 1 == nrCharacters) {
+                                    throw new MVMException("unfinished format directive at end of format string %s",
+                                            formatString);
+                                }
+
+                                char secondChar = formatString.charAt(position + 1);
+
+                                if (secondChar == '%') {
+
+                                    builder.append("%");
+                                    position += 2;
+
+                                } else if (secondChar == 's') {
+
+                                    // Very permissive
+                                    builder.append(params.get(argumentIndex++).toText());
+                                    position += 2;
+
+                                } else {
+
+                                    Matcher matcher = DECIMAL_PATTERN.matcher(formatString);
+
+                                    if (matcher.region(position, nrCharacters).find()) {
+
+                                        var value = params.get(argumentIndex++);
+
+                                        if (value instanceof Matrix mat) {
+
+                                            Integer size;
+                                            try {
+                                                size = Integer.parseInt(matcher.group(1));
+                                            } catch (Exception e) {
+                                                size = null;
+                                            }
+
+                                            String val = mat.toText(0);
+                                            var pd = size == null ? val : pad("", val, size, " ");
+
+                                            builder.append(pd);
+                                            position += matcher.end() - matcher.start();
+
+                                        } else {
+                                            throw new MVMException(
+                                                    "argument %s to decimal directive at position %s is not a number",
+                                                    value.toText(),
+                                                    position);
+                                        }
+
+                                    } else {
+                                        Matcher floatMatcher = FLOAT_PATTERN.matcher(formatString);
+
+                                        if (floatMatcher.region(position, nrCharacters).find()) {
+
+                                            var value = params.get(argumentIndex++);
+
+                                            if (value instanceof Matrix mat) {
+
+                                                Integer size;
+                                                Integer nrDecimals;
+
+                                                try {
+                                                    size = Integer.parseInt(floatMatcher.group(1));
+                                                } catch (Exception e) {
+                                                    size = null;
+                                                }
+
+                                                try {
+                                                    nrDecimals = Integer.parseInt(floatMatcher.group(3));
+                                                } catch (Exception e) {
+                                                    nrDecimals = null;
+                                                }
+
+                                                String val = nrDecimals == null ? mat.toText() : mat.toText(nrDecimals);
+
+                                                builder.append(size == null ? val : pad("", val, size, " "));
+                                                position += floatMatcher.end() - floatMatcher.start();
+
+                                            } else {
+                                                throw new MVMException(
+                                                        "argument %s to float directive at position %s is not a number",
+                                                        value.toText(),
+                                                        position);
+                                            }
+
+                                        } else {
+                                            throw new RuntimeException(
+                                                    String.format(
+                                                            "invalid format directive at position %s: %s",
+                                                            position, formatString.substring(position)));
+                                        }
+                                    }
+
+                                }
+
+                            } else {
+                                builder.append(firstChar);
+                                position++;
+                            }
+
                         }
 
-                        String text = String.format(str.toText(), paramStrings);
-
-                        return new PacioliString(text);
-
-                    } catch (UnknownFormatConversionException ex) {
-                        throw new MVMException(
-                                String.format(
-                                        "Illegal format string syntax in \"%s\": %s. \n\nIs the first argument a format string?",
-                                        str.toText(),
-                                        ex.getMessage()));
-
-                    } catch (MissingFormatArgumentException ex) {
-                        throw new MVMException(
-                                String.format(
-                                        "Missing format argument in \"%s\": %s. \n\nForgot a format argument?",
-                                        str.toText(),
-                                        ex.getMessage()));
+                        return new PacioliString(builder.toString());
 
                     } catch (Exception ex) {
                         throw new MVMException(
@@ -1446,5 +1547,41 @@ public class Primitives {
 
     private static void storePrimitive(Environment store, Primitive primitive) {
         storeBaseValue(store, primitive.name(), primitive);
+    }
+
+    /**
+     * Concatenates the left and right string, padding it in the middle to make the
+     * result
+     * at least the asked size.
+     * 
+     * pad("foo", "12.34", 15, ".") yields
+     * 
+     * "foo.......12.34"
+     * 
+     * pad("", "12.34", 10, "_") yields
+     * 
+     * "_____12.34"
+     * 
+     * @param left
+     * @param right
+     * @param size
+     * @param subs
+     * @return
+     */
+    static String pad(String left, String right, int size, String subs) {
+
+        int mod = subs.length();
+        double missing = size - left.length() - right.length();
+
+        StringBuilder padded = new StringBuilder(left);
+
+        int i = 0;
+        while (i < missing) {
+            padded.append(subs.charAt(i++ % mod));
+        }
+
+        padded.append(right);
+
+        return padded.toString();
     }
 }

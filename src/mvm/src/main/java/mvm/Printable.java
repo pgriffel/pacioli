@@ -26,6 +26,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import mvm.values.matrix.Matrix;
+
 public interface Printable {
 
     // public String toText();
@@ -35,6 +37,18 @@ public interface Printable {
     default public String toText() {
         StringWriter out = new StringWriter();
         printText(new PrintWriter(out));
+        return out.toString();
+    }
+
+    default public String toText(int nrDecimals) {
+        int currentNrDecimals = Matrix.nrDecimals;
+        Matrix.nrDecimals = nrDecimals;
+        StringWriter out = new StringWriter();
+        try {
+            printText(new PrintWriter(out));
+        } finally {
+            Matrix.nrDecimals = currentNrDecimals;
+        }
         return out.toString();
     }
 

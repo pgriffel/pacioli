@@ -22,7 +22,8 @@ define base_suites = [
    equal_suite,
    pad_left_suite,
    pad_right_suite,
-   index_element_suite
+   index_element_suite,
+   format_suite
    #mapnz_suite       does not exist in MVM yet
    #kronecker_suite   TODO port in pacioli-ts
 ];
@@ -622,7 +623,66 @@ define index_element_suite = test_suite("Index element", [
          )
    ]);
 
+# ------------------------------------------------------------------------------
+# Index elements suite
+# ------------------------------------------------------------------------------
+
+define format_suite = test_suite("Function format", [
+    
+    test("should format empty string", () ->
+        format("") = ""
+    ),
+         
+    test("should format %s with a string", () ->
+        format("prefix%ssuffix", "foo") = "prefixfoosuffix"
+    ),
+      
+    test("should format %d with a dimensionless number", () ->
+        format("prefix%dsuffix", 12) = "prefix12suffix"
+    ),   
+
+    test("should format %10d with a dimensionless number", () ->
+        format("prefix%10dsuffix", 12) = "prefix        12suffix"
+    ),   
+
+    test("should format %10d with a dimensioned number", () ->
+        format("prefix%10dsuffix", 12 * |metre|) = "prefix       12msuffix" or
+        (is_js and format("prefix%10dsuffix", 12 * |metre|) = "prefix        12suffix")
+    ),   
+
+    test("should format %f with a dimensionless number", () ->
+        format("prefix%fsuffix", 12) = "prefix12,00suffix" or
+        format("prefix%fsuffix", 12) = "prefix12.00suffix"
+    ),   
+
+    test("should format %7.3f with a dimensionless number", () ->
+        format("prefix%7.3fsuffix", 12) = "prefix 12,000suffix" or
+        format("prefix%7.3fsuffix", 12) = "prefix 12.000suffix"
+    ),   
+
+    test("should format %7.3f with a dimensioned number", () ->
+        format("prefix%17.3fsuffix", 12 * |metre/second^2|) = "prefix      12,000m/s^2suffix" or
+        (is_js and format("prefix%17.3fsuffix", 12 * |metre/second^2|) = "prefix           12.000suffix")
+    ),   
+
+    test("should error on not number for %f", () ->
+        is_nothing(catch(() -> format("%f", "foo")))
+    ),   
+
+    test("should error on not number for %d", () ->
+        is_nothing(catch(() -> format("%d", "foo")))
+    ),   
+         
+    test("should error on trailing percentage character", () ->
+         is_nothing(catch(() -> format("%")))
+    )
+]);
+
 declare print_test :: () -> Void;
 
 define print_test() =
    print(format("Testing %s", Foo@foo));
+
+declare is_js :: Boole;
+
+define is_js = format("%d", |metre|) = "1";

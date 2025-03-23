@@ -1150,7 +1150,120 @@ export function $base_list_empty_list(): RawList {
   return tagList([]);
 }
 
+/**
+ * Format in pacioli-js is not really supported. It only works for dimensionless
+ * scalars. No unit information is available, so all units are dropped from the
+ * output. Matrices are not supported (yet).
+ *
+ * The format function is implemented for debugging and testing purposes. Regular
+ * output in the browser is via the boxed pacioli-js api and the DOM.
+ *
+ * @param formatter
+ * @param args
+ * @returns
+ */
 export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
+  if (typeof formatter !== "string") {
+    throw new Error(
+      `Illegal format string. The first argument to format must be a string. Found: \n\n${formatter}`
+    );
+  }
+
+  const formatString: string = formatter;
+
+  let out = "";
+  let argumentIndex = 0;
+
+  const n = formatString.length;
+  let i = 0;
+
+  while (i < n) {
+    const char = formatString[i];
+
+    if (char === "%") {
+      if (i + 1 === n) {
+        throw new Error(
+          `unfinished format directive at end of format string ${formatString}`
+        );
+      }
+
+      const secondChar = formatString[i + 1];
+
+      if (secondChar === "%") {
+        out += "%";
+        i += 2;
+      } else if (secondChar === "s") {
+        out += args[argumentIndex++];
+        i += 2;
+      } else {
+        const regex = /^%([0-9]*)d/;
+
+        const match = regex.exec(formatString.slice(i));
+
+        if (match !== null && match[0].length > 0) {
+          let size: number | null;
+          try {
+            size = match[1] === "" ? null : parseInt(match[1]);
+          } catch (ex: unknown) {
+            size = null;
+          }
+
+          const mat = args[argumentIndex++] as any as RawMatrix;
+
+          if (mat.kind !== "matrix") {
+            throw new Error("Expected matrix for %d format argument");
+          }
+
+          // TODO: make dimensionless output for mat.
+          const txt = getNumber(mat, 0, 0).toFixed(0);
+
+          out += size === null ? txt : txt.padStart(size, " ");
+          i += match[0].length;
+        } else {
+          const regex = /^%([0-9]*)([.]?)([0-9]*)f/;
+
+          const match = regex.exec(formatString.slice(i));
+
+          if (match !== null && match[0].length > 0) {
+            let nrDecs: number;
+            try {
+              nrDecs = match[3] === "" ? NR_DECIMALS : parseInt(match[3]);
+            } catch (ex: unknown) {
+              nrDecs = NR_DECIMALS;
+            }
+
+            let size: number | null;
+            try {
+              size = match[1] === "" ? null : parseInt(match[1]);
+            } catch (ex: unknown) {
+              size = null;
+            }
+
+            const mat = args[argumentIndex++] as any as RawMatrix;
+
+            if (mat.kind !== "matrix") {
+              throw new Error("Expected matrix for %d format argument");
+            }
+
+            // TODO: make dimensionless output for mat.
+            const txt = getNumber(mat, 0, 0).toFixed(nrDecs);
+
+            out += size === null ? txt : txt.padStart(size, " ");
+            i += match[0].length;
+          } else {
+            out += char;
+            i++;
+          }
+        }
+      }
+    } else {
+      out += char;
+      i++;
+    }
+  }
+
+  return out;
+
   // Quick and dirty format implementation. Does not handle escaped percentages. So
   // format("\%s %s", "foo") gives "\foo %s" instead of "%s foo"
   // TODO: better runtime error handling instead of casts
