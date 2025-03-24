@@ -18,31 +18,9 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 export
-    set_nr_decimals,
-    nr_decimals,
     with_output_file,
     write_string,
     print;
-
-# ----------------------------------------------------------------------------
-# Number of decimals
-# ----------------------------------------------------------------------------
-
-doc set_nr_decimals
-    "Sets the number of decimals that is used when printing numbers.
-    
-    This is a global effect.";
-
-declare_primitive set_nr_decimals(n) :: (1) -> Void;
-
-# ----------------------------------------------------------------------------
-
-doc nr_decimals
-    "The number of decimals that is used when printing numbers.
-    
-    See <code>set_nr_decimals</code>";
-
-declare_primitive nr_decimals() :: () -> 1;
 
 # ----------------------------------------------------------------------------
 # File IO

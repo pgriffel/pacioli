@@ -1275,13 +1275,23 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
 }
 
 let NR_DECIMALS = 2;
+let PRECISION = 14;
 
-export function $base_io_nr_decimals(): RawMatrix {
+export function $base_system__nr_decimals(): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, NR_DECIMALS]]);
 }
 
-export function $base_io_set_nr_decimals(num: RawMatrix): Void {
+export function $base_system__set_nr_decimals(num: RawMatrix): Void {
   NR_DECIMALS = getNumber(num, 0, 0);
+  return VOID;
+}
+
+export function $base_system__precision(): RawMatrix {
+  return initialNumbers(1, 1, [[0, 0, PRECISION]]);
+}
+
+export function $base_system__set_precision(num: RawMatrix): Void {
+  PRECISION = getNumber(num, 0, 0);
   return VOID;
 }
 

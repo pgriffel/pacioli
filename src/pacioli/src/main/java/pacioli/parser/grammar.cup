@@ -159,7 +159,7 @@ terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, FOROP, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
 terminal PLUS, MULT, DIV, MOD, MMULT, HAT, NEG, LEFTDIV, MDIV, MEXPT, MLEFTDIV;
 terminal RSCALEDOWN, RSCALE, LSCALEDOWN, LSCALE, TRANS, DIMINV, RECI;
-terminal EQL, NEQ, EQUIV, LE, GT, LEQ, GTQ, AND, OR, IMPLIES, FOLLOWSFROM;
+terminal EQL, APPR_EQL, NEQ, EQUIV, LE, GT, LEQ, GTQ, AND, OR, IMPLIES, FOLLOWSFROM;
 terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING, QUESTIONMARKS, SELECT, QFROM, WHERE, AS;
 
 
@@ -201,7 +201,7 @@ non terminal List<ExpressionNode>            select_parts;
 precedence right        TO;
 precedence nonassoc     EQUIV, FOLLOWSFROM, IMPLIES;
 precedence left         AND, OR;
-precedence nonassoc     EQL, LEQ, GTQ, NEQ, LE, GT;
+precedence nonassoc     EQL, APPR_EQL, LEQ, GTQ, NEQ, LE, GT;
 precedence left         PLUS, NEG;
 precedence left         MOD;
 precedence left         MULT, MMULT, DIV, MDIV, LEFTDIV, MLEFTDIV, LSCALE, RSCALE, LSCALEDOWN, RSCALEDOWN;
@@ -479,6 +479,7 @@ expr_no_id ::=
  | expr:e1 HAT integer:e2                           {: RESULT = new ExponentNode("multiply", e1, e2, makeLoc(e1xleft, e2xright)); :}
  | expr:e1 PER:op expr:e2                              {: RESULT = binop("dim_div", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 EQL:op expr:e2                              {: RESULT = binop("equal", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 APPR_EQL:op expr:e2                      {: RESULT = binop("approx_equal", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e TRANS:t                                   {: RESULT = singleop(new IdentifierNode("transpose", makeLoc(txleft, txright)), e, makeLoc(exleft, txright)); :}
  | expr:e RECI:r                                    {: RESULT = singleop(new IdentifierNode("reciprocal", makeLoc(rxleft, rxright)), e, makeLoc(exleft, rxright)); :}
  | expr:e DIMINV:d                                  {: RESULT = singleop(new IdentifierNode("dim_inv", makeLoc(dxleft, dxright)), e, makeLoc(exleft, dxright)); :}

@@ -29,6 +29,7 @@ export
     from_percentage,
     approximates,
     approximates_to,
+    approx_equal,
     compare,
     printf,
     _list_count,
@@ -79,8 +80,6 @@ define fraction(x, y) = to_percentage(x / y);
 # Approximate equality
 # ------------------------------------------------------------------------------
 
-defunit decimals "decs";
-
 declare approximates :: for_index I, J: for_unit a, I!u, J!v:
     (a*I!u per J!v, a*I!u per J!v, decimals) -> Boole;
 
@@ -97,6 +96,26 @@ define approximates_to(decs) =
         let diff = abs(x - y) in
             magnitude(diff) <= support(diff) '/.' expt(10, magnitude(decs))
         end;
+
+doc approx_equal
+    "Are two matrices approximately equal?
+
+    Check that the difference between each corresponding entry from the two
+    matrices is below some treshold. Uses the global precision().
+
+    TODO: check IEEE standards etc. This is a quick solution.
+
+    Defined as
+    <pre>
+    approximates(A, B, precision())
+    </pre>";
+
+declare approx_equal ::
+    for_unit a, P!u, Q!v: for_index P, Q:
+        (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
+
+define approx_equal(A, B) =
+    approximates(A, B, precision());
 
 # ----------------------------------------------------------------------------
 # Comparison

@@ -53,6 +53,8 @@ public class Matrix implements PacioliValue {
 
     static public int nrDecimals = 2;
 
+    static public int precision = 14;
+
     ////////////////////////////////////////////////////////////////////////////
     // Constructors
     public Matrix(int num) {
@@ -112,11 +114,12 @@ public class Matrix implements PacioliValue {
         int numWidth = len + 2;
         int unitWidth = 0;
 
+        double treshold = Math.pow(10, -Matrix.precision);
+
         for (int i = 0; i < rowDimension().size(); i++) {
             for (int j = 0; j < columnDimension().size(); j++) {
                 double num = numbers.getEntry(i, j);
-                if (num < -0.0000000001 || 0.0000000001 < num) {
-                    // if (num != 0) {
+                if (Math.abs(num) >= treshold) {
 
                     String numString = format.format(num);
                     numList.add(numString);

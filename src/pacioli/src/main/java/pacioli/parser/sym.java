@@ -9,19 +9,19 @@ package pacioli.parser;
 public interface sym {
   /* terminals */
   public static final int AT = 41;
-  public static final int AS = 91;
-  public static final int IDENTIFIER = 85;
+  public static final int AS = 92;
+  public static final int IDENTIFIER = 86;
   public static final int DEFRECORD = 19;
   public static final int FROM = 30;
-  public static final int GT = 75;
+  public static final int GT = 76;
   public static final int FOROP = 40;
   public static final int MMULT = 57;
-  public static final int NATURAL = 83;
+  public static final int NATURAL = 84;
   public static final int MEXPT = 62;
   public static final int EXPORT = 4;
   public static final int LAMBDA = 31;
   public static final int RSCALE = 65;
-  public static final int EQUIV = 73;
+  public static final int EQUIV = 74;
   public static final int RBRACK = 51;
   public static final int DEFDATA = 18;
   public static final int TRANS = 68;
@@ -33,29 +33,29 @@ public interface sym {
   public static final int DECLARE_PRIMITIVE = 8;
   public static final int LBRC = 48;
   public static final int EQL = 71;
-  public static final int LE = 74;
+  public static final int LE = 75;
   public static final int ELSEIF = 22;
   public static final int THEN = 35;
   public static final int DBLCLN = 44;
   public static final int FORTYPE = 37;
   public static final int LSCALEDOWN = 66;
   public static final int MOD = 56;
-  public static final int FOLLOWSFROM = 81;
+  public static final int FOLLOWSFROM = 82;
   public static final int RBRC = 49;
   public static final int INCLUDE = 2;
-  public static final int SELECT = 88;
+  public static final int SELECT = 89;
   public static final int DEFINSTANCE = 16;
   public static final int PIPE = 52;
   public static final int DEFTYPE = 10;
   public static final int PLUS = 53;
   public static final int LPAR = 46;
   public static final int WHILE = 25;
-  public static final int DECIMAL = 84;
+  public static final int DECIMAL = 85;
   public static final int ASSIGN = 27;
-  public static final int BOOLEAN = 82;
+  public static final int BOOLEAN = 83;
   public static final int DIMINV = 69;
   public static final int DO = 26;
-  public static final int QUESTIONMARKS = 87;
+  public static final int QUESTIONMARKS = 88;
   public static final int DEFCONV = 14;
   public static final int DIV = 55;
   public static final int PUBLIC = 5;
@@ -66,18 +66,18 @@ public interface sym {
   public static final int RSCALEDOWN = 64;
   public static final int EOF = 0;
   public static final int SEMICOLON = 43;
-  public static final int WHERE = 90;
+  public static final int WHERE = 91;
   public static final int RPAR = 47;
   public static final int DOC = 17;
   public static final int DEFMATRIX = 12;
   public static final int IMPORT = 3;
-  public static final int GTQ = 77;
+  public static final int GTQ = 78;
   public static final int RECI = 70;
   public static final int IN = 32;
-  public static final int OR = 79;
+  public static final int OR = 80;
   public static final int HAT = 58;
   public static final int error = 1;
-  public static final int QFROM = 89;
+  public static final int QFROM = 90;
   public static final int MLEFTDIV = 63;
   public static final int EXCL = 28;
   public static final int LEFTDIV = 60;
@@ -92,14 +92,15 @@ public interface sym {
   public static final int FORINDEX = 39;
   public static final int BEGIN = 23;
   public static final int DEFUNIT = 11;
-  public static final int STRING = 86;
-  public static final int NEQ = 72;
-  public static final int AND = 78;
-  public static final int IMPLIES = 80;
+  public static final int STRING = 87;
+  public static final int APPR_EQL = 72;
+  public static final int NEQ = 73;
+  public static final int AND = 79;
+  public static final int IMPLIES = 81;
   public static final int TO = 29;
   public static final int LET = 33;
   public static final int NEG = 59;
-  public static final int LEQ = 76;
+  public static final int LEQ = 77;
   public static final String[] terminalNames = new String[] {
   "EOF",
   "error",
@@ -173,6 +174,7 @@ public interface sym {
   "DIMINV",
   "RECI",
   "EQL",
+  "APPR_EQL",
   "NEQ",
   "EQUIV",
   "LE",

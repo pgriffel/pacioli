@@ -18,8 +18,37 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 export
+    set_nr_decimals,
+    nr_decimals,
     writeln,
     newline;
+
+# ----------------------------------------------------------------------------
+# Number of decimals
+# ----------------------------------------------------------------------------
+
+doc set_nr_decimals
+    "Sets the number of decimals that is used when printing numbers.
+    
+    This is a global effect.";
+
+declare set_nr_decimals ::
+    (decimals) -> Void;
+
+define set_nr_decimals(n) =
+    _set_nr_decimals(magnitude(n));
+
+# ----------------------------------------------------------------------------
+
+doc nr_decimals
+    "The number of decimals that is used when printing numbers.
+    
+    See <code>set_nr_decimals</code>";
+
+declare nr_decimals :: () -> decimals;
+
+define nr_decimals() =
+    _nr_decimals() * |decimals|;
 
 # ------------------------------------------------------------------------------
 # File IO

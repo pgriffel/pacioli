@@ -344,7 +344,8 @@ public class Primitives {
         storePrimitive(store, new Primitive("matrix_qr") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
-                return x.qrZeroSub();
+                // return x.qrZeroSub();
+                return x.qr();
             }
         });
 
@@ -963,6 +964,20 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("system__precision") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return new Matrix(Matrix.precision);
+            }
+        });
+
+        storePrimitive(store, new Primitive("system__set_precision") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix n = (Matrix) params.get(0);
+                Matrix.precision = (int) n.SingletonNumber();
+                return VOID;
+            }
+        });
+
         // //////////////////////////////////////////////////////////////////////////////
         // List
 
@@ -1251,13 +1266,13 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("io_nr_decimals") {
+        storePrimitive(store, new Primitive("system__nr_decimals") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 return new Matrix(Matrix.nrDecimals);
             }
         });
 
-        storePrimitive(store, new Primitive("io_set_nr_decimals") {
+        storePrimitive(store, new Primitive("system__set_nr_decimals") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix n = (Matrix) params.get(0);
                 Matrix.nrDecimals = (int) n.SingletonNumber();
