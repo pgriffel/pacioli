@@ -219,6 +219,7 @@ export {
   $base_list_contains,
   $base_string_unit2string,
   compute_$base_matrix__,
+  $base_matrix_svd,
   ONE,
 } from "./primitives";
 

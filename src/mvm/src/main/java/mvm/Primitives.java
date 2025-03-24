@@ -337,7 +337,8 @@ public class Primitives {
         storePrimitive(store, new Primitive("matrix_svd") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
-                return x.svdNonZero();
+                return x.svd();
+                // return x.svdNonZero();
             }
         });
 

@@ -37,6 +37,7 @@ import {
   min,
   pow,
   sin,
+  svd,
   tan,
 } from "numeric";
 import { UOM } from "uom-ts";
@@ -992,6 +993,46 @@ export function $base_matrix_solve(x: RawMatrix, _ignored: any): RawMatrix {
     x.nrRows,
     STORAGE_FULL
   );
+}
+
+export function $base_matrix_svd(x: RawMatrix): RawList {
+  // https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse
+  // Maybe use svd to compute pseudo-inverse?
+
+  // If x is mxn then we should get vectors of size m and size n
+
+  // numerics requires that the number of rows is at least as large
+  // as the number of columns. Transpose to fix this if needed.
+  const needsTranspose = x.nrRows < x.nrColumns;
+
+  const m = needsTranspose ? x.nrColumns : x.nrRows;
+  const n = needsTranspose ? x.nrRows : x.nrColumns;
+
+  const full = getFullNumbers(needsTranspose ? $base_matrix_transpose(x) : x);
+  const trip = svd(full);
+  const r = trip.S.length;
+
+  let tuples = [];
+
+  for (let i = 0; i < r; i++) {
+    const sv = initialNumbers(1, 1, [[0, 0, trip.S[i]]]);
+
+    var left = zeroNumbers(m, 1);
+    for (let j = 0; j < m; j++) {
+      set(left, j, 0, trip.U[j][i]);
+    }
+
+    var right = zeroNumbers(n, 1);
+    for (let j = 0; j < n; j++) {
+      set(right, j, 0, trip.V[j][i]);
+    }
+
+    tuples.push(
+      tagTuple(needsTranspose ? [sv, right, left] : [sv, left, right])
+    );
+  }
+
+  return tagList(tuples);
 }
 
 export function $base_matrix_random(): RawMatrix {

@@ -856,12 +856,42 @@ define plu_suite = test_suite("Function plu", [
 
 define svd_suite = test_suite("Function svd", [
 
-   random_test("should be a proper factorization II", () ->
+   test("should give factor 0 for svd(0)", () ->
+      let (a, _, _) = nth(0, svd(0)) in a = 0 end),
+      
+   random_test("should give the correct factor for scalars", () ->
+      let
+         num = random() * |metre|,
+         svd_result = svd(num)
+      in
+         if list_size(svd_result) = 1 then
+            let (a, _, _) = nth(0, svd_result) in
+               just(a = num)
+            end
+         else
+            just(false)
+         end
+      end
+   ),
+
+   random_test("should be a proper factorization", () ->
       let
          # Doesn't make the default 14 decimals
          precision = 10*|decimals|,
 
-         A = random_matrix()
+         A = random_ractangle_matrix()
+      in
+         map_maybe(
+            (trips) -> approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- trips], precision),
+            catch(() -> svd(A)))
+      end),
+      
+   random_test("should be a proper factorization when nr column > nr rows", () ->
+      let
+         # Doesn't make the default 14 decimals
+         precision = 10*|decimals|,
+
+         A = random_ractangle_matrix()^T
       in
          map_maybe(
             (trips) -> approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- trips], precision),
@@ -894,6 +924,14 @@ define random_matrix() =
    outer(random_four_vector(four_vector), random_four_vector(four_vector)) +
    outer(random_four_vector(four_vector), random_four_vector(four_vector)) +
    outer(random_four_vector(four_vector), random_four_vector(four_vector));
+
+define random_ractangle_matrix() =
+   outer(random_four_vector(four_vector), random_three_vector(three_vector)) +
+   outer(random_four_vector(four_vector), random_three_vector(three_vector)) +
+   outer(random_four_vector(four_vector), random_three_vector(three_vector)) +
+   outer(random_four_vector(four_vector), random_three_vector(three_vector)) +
+   outer(random_four_vector(four_vector), random_three_vector(three_vector));
+
 
 define qr_suite = test_suite("Function qr", [
    
