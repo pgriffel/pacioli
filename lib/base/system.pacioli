@@ -29,7 +29,8 @@ export
     _precision,
     _set_precision,
     _nr_decimals,
-    _set_nr_decimals;
+    _set_nr_decimals,
+    _num2string;
 
 # ----------------------------------------------------------------------------
 # System functions
@@ -84,3 +85,8 @@ declare_primitive _set_nr_decimals(n) :: (1) -> Void;
 # ----------------------------------------------------------------------------
 
 declare_primitive _nr_decimals() :: () -> 1;
+
+# ----------------------------------------------------------------------------
+
+declare_primitive _num2string(A, decimals, U) :: for_index I, J: for_unit a, I!u, J!v:
+    (a*I!u per J!v, 1, a*I!u per J!v) -> String;

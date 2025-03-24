@@ -1314,7 +1314,7 @@ export function $base_string_unit2string(unit: RawMatrix): RawString {
   }
 }
 
-export function $base_string_num2string(
+export function $base_system__num2string(
   num: RawMatrix,
   decimals: RawMatrix,
   unit: RawMatrix
@@ -1325,18 +1325,6 @@ export function $base_string_num2string(
   }
   const matrix = new Matrix(shape, num);
   return matrix.toDecimal(getNumber(decimals, 0, 0));
-}
-
-export function $base_string_num2str(
-  num: RawMatrix,
-  unit: RawMatrix
-): RawString {
-  const shape = unit.shape;
-  if (shape === undefined) {
-    throw Error("shape undefined");
-  }
-  const matrix = new Matrix(shape, num);
-  return matrix.toDecimal(NR_DECIMALS);
 }
 
 export function $base_string_compare_string(

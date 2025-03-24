@@ -1243,7 +1243,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("string_num2string") {
+        storePrimitive(store, new Primitive("system__num2string") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 // Just ignore the unit in the third parameter. The MVM is already typed.
                 // The unit is for targets that compute with numbers only.
@@ -1254,15 +1254,6 @@ public class Primitives {
                 PacioliString string = new PacioliString(num.toText());
                 Matrix.nrDecimals = nrDecs;
                 return string;
-            }
-        });
-
-        storePrimitive(store, new Primitive("string_num2str") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                // Just ignore the unit in the second parameter. The MVM is already typed.
-                // The unit is for targets that compute with numbers only.
-                Matrix num = (Matrix) params.get(0);
-                return new PacioliString(num.toText());
             }
         });
 
