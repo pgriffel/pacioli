@@ -1,4 +1,5 @@
 import testing;
+import random;
 import si;
 
 declare base_suites :: List(TestSuite);
@@ -24,12 +25,94 @@ define base_suites = [
    pad_left_suite,
    pad_right_suite,
    index_element_suite,
-   format_suite
+   format_suite,
+   plu_suite,
+   svd_suite,
+   qr_suite,
+   solve_suite
    #mapnz_suite       does not exist in MVM yet
    #kronecker_suite   TODO port in pacioli-ts
 ];
-
+# set_precision(20*|decimals|);
 run_test_suites(base_suites); 
+
+# ------------------------------------------------------------------------------
+# Random test data
+# ------------------------------------------------------------------------------
+
+defindex Three = {one, two, three};
+
+defunit Three!unit = {
+    one: metre,
+    two: metre,
+    three: metre^2
+};
+
+define three_vector(one, two, three) =
+   make_matrix([
+      tuple(Three@one, _, one),
+      tuple(Three@two, _, two), 
+      tuple(Three@three, _, three)
+   ]);
+
+define three_dim_vector(one, two, three) = 
+    three_vector(one, two, three) * |Three!unit|;
+
+define random_three_vector(f) = 
+    let r() = random() * pick([-3,0,3]) in
+        f(r(), r(), r())
+    end;
+
+define random_three_vectors =
+    [random_three_vector(three_vector) | _ <- naturals(100)];
+
+define random_three_dim_vectors =
+    [random_three_vector(three_dim_vector) | _ <- naturals(100)];
+
+# ------------------------------------------------------------------------------
+
+defindex Four = {one, two, three, four};
+
+defunit Four!unit = {
+    one: metre,
+    two: metre,
+    four: metre^2
+};
+
+define four_vector(one, two, three, four) =
+   make_matrix([
+      tuple(Four@one, _, one),
+      tuple(Four@two, _, two), 
+      tuple(Four@three, _, three),
+      tuple(Four@four, _, four)
+   ]);
+
+define four_dim_vector(one, two, three, four) = 
+    four_vector(one, two, three, four) * |Four!unit|;
+
+define random_four_vector(f) = 
+    let r() = random() * pick([-3,0,3]) in
+        f(r(), r(), r(), r())
+    end;
+
+define random_four_vectors =
+    [random_four_vector(four_vector) | _ <- naturals(100)];
+
+define random_four_dim_vectors =
+    [random_four_vector(four_dim_vector) | _ <- naturals(100)];
+
+# ------------------------------------------------------------------------------
+
+# define inner_suite = test_suite("Minkowski inner product tests", [
+
+#     test("magnitude of minkowski_inner should be vxwx + vywy + vzwz - vtwt", () ->
+#         all[magnitude(minkowski_inner(v, w)) = minkowski_inner_indexed1(hv, hw) |
+#                v <- random_vectors,
+#                w <- random_vectors,
+#                hv := uni_spacetime '*' v,
+#                hw := uni_spacetime '*' w]
+#     )
+# ]);
 
 # ------------------------------------------------------------------------------
 # Test vectors
@@ -710,3 +793,132 @@ define print_test() =
 declare is_js :: Boole;
 
 define is_js = format("%d", |metre|) = "1";
+
+# ------------------------------------------------------------------------------
+# Function plu
+# ------------------------------------------------------------------------------
+
+define plu_suite = test_suite("Function plu", [
+
+   random_test("should be a proper factorization", () ->
+      let
+         A = random_matrix()
+      in
+         map_maybe(
+            (tup) ->
+               let (P, L, U) = tup in
+                  P '*' A ~= L '*' U
+               end,
+            catch(() -> plu(A)))
+      end),
+
+   random_test("should give upper triangular U", () ->
+      let
+         A = random_matrix()
+      in
+         map_maybe(
+            (tup) ->
+               let (_, _, U) = tup in
+                  is_upper_trianular(U)
+               end,
+            catch(() -> plu(A)))
+      end),
+
+   random_test("should give lower triangular L", () ->
+      let
+         A = random_matrix()
+      in
+         map_maybe(
+            (tup) ->
+               let (_, L, _) = tup in
+                  is_lower_trianular(L)
+               end,
+            catch(() -> plu(A)))
+      end),
+
+   random_test("should give permutation matrix P", () ->
+      let
+         A = random_matrix()
+      in
+         map_maybe(
+            (tup) ->
+               let (P, _, _) = tup in
+                  # TODO: proper test
+                  P '*' P^T = left_identity(A)
+               end,
+            catch(() -> plu(A)))
+      end)
+]);
+
+# ------------------------------------------------------------------------------
+# Function svd
+# ------------------------------------------------------------------------------
+
+define svd_suite = test_suite("Function svd", [
+
+   random_test("should be a proper factorization II", () ->
+      let
+         # Doesn't make the default 14 decimals
+         precision = 10*|decimals|,
+
+         A = random_matrix()
+      in
+         map_maybe(
+            (trips) -> approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- trips], precision),
+            catch(() -> svd(A)))
+      end)
+]);
+
+# ------------------------------------------------------------------------------
+# Function qr
+# ------------------------------------------------------------------------------
+
+define is_upper_trianular(A) = 
+    all[ get_num(A, i, j) = 0 |
+        i <- row_domain(A),
+        j <- column_domain(A),
+        index_less(j, i)];
+
+define is_lower_trianular(A) = 
+    all[ get_num(A, i, j) = 0 |
+        i <- row_domain(A),
+        j <- column_domain(A),
+        index_less(i, j)];
+
+# define random_matrix() =
+   # outer(random_three_vector(three_vector), random_three_vector(three_vector));
+
+define random_matrix() =
+   outer(random_four_vector(four_vector), random_four_vector(four_vector)) +
+   outer(random_four_vector(four_vector), random_four_vector(four_vector)) +
+   outer(random_four_vector(four_vector), random_four_vector(four_vector)) +
+   outer(random_four_vector(four_vector), random_four_vector(four_vector)) +
+   outer(random_four_vector(four_vector), random_four_vector(four_vector));
+
+define qr_suite = test_suite("Function qr", [
+   
+   test("should be a proper factorization", () ->
+      all[A ~= Q '*' R |
+         _ <- naturals(10),
+         A := random_matrix(),
+         (Q, R) := qr(A) ]),
+
+    test("should give an upper triangular R", () ->
+      all[is_upper_trianular(R) |
+         _ <- naturals(10),
+         A := random_matrix(),
+         (Q, R) := qr(A) ]),
+
+    test("should give an orthonormal Q", () ->
+      all[Q '*' Q^T ~= I and Q^T '*' Q ~= I |
+         _ <- naturals(10),
+         A := random_matrix(),
+         I := left_identity(A),
+         (Q, R) := qr(A) ])
+]);
+
+# ------------------------------------------------------------------------------
+# Function solve
+# ------------------------------------------------------------------------------
+
+define solve_suite = test_suite("Function solve", []);
