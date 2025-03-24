@@ -113,7 +113,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("base_maybe_get") {
+        storePrimitive(store, new Primitive("base_from_just") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 return params.get(0);
             }
@@ -1453,7 +1453,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("error") {
+        storePrimitive(store, new Primitive("base_error") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliString string = (PacioliString) params.get(0);
                 throw new MVMException(string.toText());

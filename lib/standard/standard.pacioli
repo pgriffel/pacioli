@@ -40,7 +40,11 @@ export
     _list_gcd,
     _list_all,
     _list_some,
-    is_something;
+    maybe,
+    is_just,
+    from_maybe,
+    from_maybe_get,
+    map_maybe;
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -192,10 +196,39 @@ define printf =
     end;
 
 # ------------------------------------------------------------------------------
-# Function printf
+# Maybe
 # ------------------------------------------------------------------------------
 
-declare is_something :: for_type a: (Maybe(a)) -> Boole;
+declare maybe :: for_type s, t: (() -> t, (s) -> t, Maybe(s)) -> t;
 
-define is_something(maybe) =
+define maybe(alt, fun, maybe) = 
+    if is_nothing(maybe) then alt() else fun(from_just(maybe)) end;
+
+# ------------------------------------------------------------------------------    
+
+declare is_just :: for_type a: (Maybe(a)) -> Boole;
+
+define is_just(maybe) =
     not(is_nothing(maybe));
+
+# ------------------------------------------------------------------------------    
+
+declare from_maybe :: for_type t: (t, Maybe(t)) -> t;
+
+define from_maybe(alt, value) = 
+    maybe(() -> alt, identity, value);
+
+# ------------------------------------------------------------------------------    
+
+declare from_maybe_get :: for_type t: (() -> t, Maybe(t)) -> t;
+
+define from_maybe_get(alt, value) = 
+    maybe(alt, identity, value);
+
+# ------------------------------------------------------------------------------    
+
+declare map_maybe ::
+   for_type a, b: ((a) -> b, Maybe(a)) -> Maybe(b);
+
+define map_maybe(fun, value) =
+    maybe(() -> nothing(), (x) -> just(fun(x)), value);

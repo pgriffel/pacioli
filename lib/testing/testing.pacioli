@@ -65,21 +65,18 @@ define run_body(body) =
         successes := 0;
         target := 100;
         limit := 10000;
-        failed := false;
+        okay := true;
 
-        while not(failed) and successes != target and i < limit do
+        while okay and successes != target and i < limit do
             result := body();
-            if is_something(result) then
-                if maybe_get(result) then
-                    successes := successes + 1;
-                else 
-                    failed := true;
-                end
+            if from_maybe(false, result) then
+                successes := successes + 1;
             end
+            okay := from_maybe(true, result);
             i := i + 1;
         end
 
-        return not(failed) and successes = target;
+        return okay and successes = target;
     end;
 
 # ------------------------------------------------------------------------------

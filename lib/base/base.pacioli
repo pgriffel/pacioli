@@ -43,7 +43,7 @@ export
     just,
     nothing,
     is_nothing,
-    maybe_get,
+    from_just,
     catch;
 
 defunit metre "m";
@@ -109,7 +109,7 @@ declare_primitive not(x) :: (Boole) -> Boole;
 # ----------------------------------------------------------------------------
 
 doc error
-    "Signals an error.";
+    "Temporary stub for a proper error handling mechanism. Signals an error.";
 
 declare_primitive error(message) :: for_type t: (String) -> t;
 
@@ -123,6 +123,11 @@ declare_primitive nothing :: for_type t: () -> Maybe(t);
 
 declare_primitive is_nothing(maybe) :: for_type t: (Maybe(t)) -> Boole;
 
-declare_primitive maybe_get(maybe) :: for_type t: (Maybe(t)) -> t;
+declare_primitive from_just(maybe) :: for_type t: (Maybe(t)) -> t;
+
+doc catch
+    "Temporary stub for a proper error handling mechanism. Turns an error into a Maybe.";
 
 declare_primitive catch(fun) :: for_type t: (() -> t) -> Maybe(t);
+
+
