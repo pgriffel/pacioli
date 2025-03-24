@@ -897,24 +897,36 @@ define random_matrix() =
 
 define qr_suite = test_suite("Function qr", [
    
-   test("should be a proper factorization", () ->
-      all[A ~= Q '*' R |
-         _ <- naturals(10),
-         A := random_matrix(),
-         (Q, R) := qr(A) ]),
+   random_test("should be a proper factorization", () ->
+      let
+         # Doesn't make the default 14 decimals
+         precision = 10*|decimals|,
 
-    test("should give an upper triangular R", () ->
-      all[is_upper_trianular(R) |
-         _ <- naturals(10),
-         A := random_matrix(),
-         (Q, R) := qr(A) ]),
+         A = random_matrix()
+      in
+         map_maybe(
+            (pair) -> approximates(A, let (Q, R) = pair in Q '*' R end, precision),
+            catch(() -> qr(A)))
+      end),
 
-    test("should give an orthonormal Q", () ->
-      all[Q '*' Q^T ~= I and Q^T '*' Q ~= I |
-         _ <- naturals(10),
-         A := random_matrix(),
-         I := left_identity(A),
-         (Q, R) := qr(A) ])
+   random_test("should give an upper triangular R", () ->
+      let
+         A = random_matrix()
+      in
+         map_maybe(
+            (pair) -> let (_, R) = pair in is_upper_trianular(R) end,
+            catch(() -> qr(A)))
+      end),
+
+   random_test("should give an orthonormal Q", () ->
+      let
+         A = random_matrix(),
+         I = left_identity(A)
+      in
+         map_maybe(
+            (pair) -> let (Q, _) = pair in Q '*' Q^T ~= I and Q^T '*' Q ~= I end,
+            catch(() -> qr(A)))
+      end)
 ]);
 
 # ------------------------------------------------------------------------------

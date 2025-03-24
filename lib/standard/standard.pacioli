@@ -41,9 +41,9 @@ export
     _list_all,
     _list_some,
     maybe,
-    is_just,
-    from_maybe,
-    from_maybe_get,
+    is_something,
+    or_else,
+    or_else_get,
     map_maybe;
 
 # ------------------------------------------------------------------------------
@@ -199,33 +199,78 @@ define printf =
 # Maybe
 # ------------------------------------------------------------------------------
 
-declare maybe :: for_type s, t: (() -> t, (s) -> t, Maybe(s)) -> t;
+doc maybe
+    "Temporary stub for a proper Maybe type.
+    
+    Get a value from a Maybe.
+    
+    The first argument is a function that provides a default value. If the Maybe
+    is noting then this function is called and the result is returned.
+    
+    If the Maybe has a value, then the function from the second argument is called
+    on the value and the result is returned.";
 
-define maybe(alt, fun, maybe) = 
-    if is_nothing(maybe) then alt() else fun(from_just(maybe)) end;
+declare maybe ::
+    for_type s, t: (() -> t, (s) -> t, Maybe(s)) -> t;
+
+define maybe(alt, fun, value) = 
+    if is_nothing(value) then
+        alt()
+    else
+        fun(from_just(value))
+    end;
 
 # ------------------------------------------------------------------------------    
 
-declare is_just :: for_type a: (Maybe(a)) -> Boole;
+doc is_something
+    "Temporary stub for a proper Maybe type.
+    
+    Is the Maybe not nothing?";
 
-define is_just(maybe) =
-    not(is_nothing(maybe));
+declare is_something ::
+    for_type a: (Maybe(a)) -> Boole;
+
+define is_something(value) =
+    not(is_nothing(value));
 
 # ------------------------------------------------------------------------------    
 
-declare from_maybe :: for_type t: (t, Maybe(t)) -> t;
+doc or_else
+    "Temporary stub for a proper Maybe type.
+    
+    The first argument is a default value. If the Maybe is noting then this value
+    is returned.
+    
+    If the Maybe has a value, then that value is returned.";
 
-define from_maybe(alt, value) = 
+declare or_else ::
+    for_type t: (t, Maybe(t)) -> t;
+
+define or_else(alt, value) = 
     maybe(() -> alt, identity, value);
 
 # ------------------------------------------------------------------------------    
 
-declare from_maybe_get :: for_type t: (() -> t, Maybe(t)) -> t;
+doc or_else_get
+    "Temporary stub for a proper Maybe type.
+    
+    The first argument is a function that provides a default value. If the Maybe
+    is noting then this function is called and the result is returned.
 
-define from_maybe_get(alt, value) = 
+    If the Maybe has a value, then that value is returned.";
+
+declare or_else_get ::
+    for_type t: (() -> t, Maybe(t)) -> t;
+
+define or_else_get(alt, value) = 
     maybe(alt, identity, value);
 
 # ------------------------------------------------------------------------------    
+
+doc map_maybe
+    "Temporary stub for a proper Maybe type.
+    
+    Applies a function to a Maybe value.";
 
 declare map_maybe ::
    for_type a, b: ((a) -> b, Maybe(a)) -> Maybe(b);

@@ -117,17 +117,35 @@ declare_primitive error(message) :: for_type t: (String) -> t;
 # Maybe
 # ----------------------------------------------------------------------------
 
+doc just
+    "Temporary stub for a proper Maybe type.";
+
 declare_primitive just(x) :: for_type t: (t) -> Maybe(t);
+
+# ----------------------------------------------------------------------------
+
+doc nothing
+    "Temporary stub for a proper Maybe type.";
 
 declare_primitive nothing :: for_type t: () -> Maybe(t);
 
+# ----------------------------------------------------------------------------
+
+doc is_nothing
+    "Temporary stub for a proper Maybe type.";
+
 declare_primitive is_nothing(maybe) :: for_type t: (Maybe(t)) -> Boole;
 
+# ----------------------------------------------------------------------------
+
+doc from_just
+    "Temporary stub for a proper Maybe type.";
+
 declare_primitive from_just(maybe) :: for_type t: (Maybe(t)) -> t;
+
+# ----------------------------------------------------------------------------
 
 doc catch
     "Temporary stub for a proper error handling mechanism. Turns an error into a Maybe.";
 
 declare_primitive catch(fun) :: for_type t: (() -> t) -> Maybe(t);
-
-

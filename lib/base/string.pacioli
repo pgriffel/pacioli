@@ -84,11 +84,18 @@ declare_primitive pad(left, right, size, padding) ::
 # ----------------------------------------------------------------------------
 
 doc format
-    "Crappy string interpolation.
+    "Limited string interpolation. Supports limited forms of the %s, %d and %f
+    directives.
     
-    All arguments must be strings. Replaces occurences of <code>%s</code> in the
-    first string by the strings in the rest of the arguments.
+    The <code>%s</code> directive prints any value, not just strings.
     
+    The <code>%nd</code> directive prints a matrix. If the n parameter is
+    provided the string is padded to size n.
+    
+    The <code>%n.kf</code> directive prints a matrix. If the n parameter is
+    provided the string is padded to size n. If the k parameter is provided
+    the string is pritned with k number of decimals.
+
     This function is unsafe as the type shows. Any error is thrown at runtime.";
 
 declare_primitive format :: for_type t: t -> String;

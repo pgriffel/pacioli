@@ -124,6 +124,10 @@ export const $base_base_apply = function (fun: RawFunction, arg: RawTuple) {
   return fun.apply(fun, arg);
 };
 
+export function $base_base_identity(x: RawMatrix): RawMatrix {
+  return x;
+}
+
 export function $base_base__new_ref(value: RawValue): RawRef {
   return tagRef([value]);
 }
@@ -173,7 +177,7 @@ export function $base_base_is_nothing(value: RawValue): RawBoole {
   return value === NOTHING;
 }
 
-export function $base_base_maybe_get(value: RawValue): RawValue {
+export function $base_base_from_just(value: RawValue): RawValue {
   if (value === NOTHING) {
     throw new Error("Cannot get empty Maybe value");
   }
