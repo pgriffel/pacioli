@@ -6,6 +6,7 @@ export
     Test,
     TestSuite,
     test,
+    random_test,
     test_focus,
     test_description,
     is_test_focused,
@@ -51,6 +52,35 @@ doc test
 
 define test(description, body) =
   tuple(description , body, false);
+
+declare random_test ::
+    (String, () -> Maybe(Boole)) -> Test;
+
+define random_test(description, body) =
+  tuple(description , () -> run_body(body), false);
+
+define run_body(body) =
+    begin
+        i := 0;
+        successes := 0;
+        target := 100;
+        limit := 10000;
+        failed := false;
+
+        while not(failed) and successes != target and i < limit do
+            result := body();
+            if is_something(result) then
+                if maybe_get(result) then
+                    successes := successes + 1;
+                else 
+                    failed := true;
+                end
+            end
+            i := i + 1;
+        end
+
+        return not(failed) and successes = target;
+    end;
 
 # ------------------------------------------------------------------------------
 
