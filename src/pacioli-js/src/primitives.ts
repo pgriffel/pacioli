@@ -33,6 +33,7 @@ import {
   exp,
   inv,
   log,
+  LU,
   max,
   min,
   pow,
@@ -985,6 +986,45 @@ export function $base_matrix_cbrt(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
     return Math.cbrt(val);
   });
+}
+
+export function $base_matrix_qr(_: RawMatrix): RawTuple {
+  throw new Error("Function qr is not implemented in pacioli-js");
+}
+
+export function $base_matrix_plu(x: RawMatrix): RawTuple {
+  throw new Error("Function plu is not implemented in pacioli-js");
+
+  // Does numeric provide serparate L and U?
+
+  const decomposition = LU(getFullNumbers(x));
+
+  const m = x.nrRows;
+  const n = x.nrColumns;
+
+  var Pmat = zeroNumbers(m, m);
+  var LUmat = zeroNumbers(m, n);
+
+  for (let i = 0; i < m; i++) {
+    set(Pmat, i, i, 1);
+
+    for (let j = 0; j < n; j++) {
+      set(LUmat, i, j, decomposition.LU[i][j]);
+    }
+  }
+
+  for (let i = 0; i < m; i++) {
+    const Pi = decomposition.P[i];
+    if (Pi !== i) {
+      for (let j = 0; j < n; j++) {
+        const tmp = Pmat[i][j];
+        set(Pmat, i, j, Pmat[Pi][j]);
+        set(Pmat, Pi, j, tmp);
+      }
+    }
+  }
+
+  return tagTuple([Pmat, LUmat]);
 }
 
 export function $base_matrix_solve(x: RawMatrix, y: any): RawMatrix {
