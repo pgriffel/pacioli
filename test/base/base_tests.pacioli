@@ -971,4 +971,63 @@ define qr_suite = test_suite("Function qr", [
 # Function solve
 # ------------------------------------------------------------------------------
 
-define solve_suite = test_suite("Function solve", []);
+define solve_suite = test_suite("Function solve", [
+
+   
+   random_test("should solve ax=b", () ->
+      let
+         a = random(),
+         b = random()
+      in
+         map_maybe(
+            (x) -> a'*'x ~= b,
+            catch(() -> solve(a, b)))
+      end),
+      
+   
+   random_test("should solve AX=B for square matrices", () ->
+      let
+         # Doesn't make the default 14 decimals
+         precision = 8*|decimals|,
+
+         A = random_matrix(),
+         B = random_matrix(),
+         R = catch(() -> solve(A, B))
+      in
+         map_maybe(
+            # Gives least squares solution
+            (X) -> approximates(A^T '*' A '*' X, A^T '*' B, precision),
+            catch(() -> solve(A, B)))
+      end),
+      
+
+   random_test("should fail to solve AX=B when nr column < nr rows", () ->
+      let
+         # Doesn't make the default 14 decimals
+         precision = 8*|decimals|,
+
+         A = random_ractangle_matrix(),
+         B = random_ractangle_matrix(),
+         R = catch(() -> solve(A, B))
+      in
+         map_maybe(
+            # Gives least squares solution
+            (X) -> approximates(A^T '*' A '*' X, A^T '*' B, precision),
+            catch(() -> solve(A, B)))
+      end),
+      
+   random_test("should solve AX=B when nr column > nr rows", () ->
+      let
+         # Doesn't make the default 14 decimals
+         precision = 8*|decimals|,
+
+         A = random_ractangle_matrix()^T,
+         B = random_ractangle_matrix()^T,
+         R = catch(() -> solve(A, B))
+      in
+         map_maybe(
+            # Gives least squares solution
+            (X) -> approximates(A^T '*' A '*' X, A^T '*' B, precision),
+            catch(() -> solve(A, B)))
+      end)
+]);
