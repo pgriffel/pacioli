@@ -766,7 +766,7 @@ export function $base_matrix_max(x: RawMatrix, y: RawMatrix): RawMatrix {
   return tagNumbers(
     max(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
-    y.nrRows,
+    x.nrColumns,
     STORAGE_FULL
   );
 }
@@ -775,7 +775,7 @@ export function $base_matrix_min(x: RawMatrix, y: RawMatrix): RawMatrix {
   return tagNumbers(
     min(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
-    y.nrRows,
+    x.nrColumns,
     STORAGE_FULL
   );
 }
@@ -881,7 +881,8 @@ export function $base_matrix_mexpt(x: RawMatrix, y: RawMatrix): RawMatrix {
     return x;
   } else if (n < 0) {
     return $base_matrix_mexpt(
-      $base_matrix_solve(x, $base_matrix_left_identity(x)),
+      tagNumbers(inv(getFullNumbers(x)), x.nrColumns, x.nrRows, STORAGE_FULL),
+      // $base_matrix_solve(x, $base_matrix_left_identity(x)),
       $base_matrix_negative(y)
     );
   } else {
@@ -904,9 +905,11 @@ export function $base_matrix_expt(x: RawMatrix, y: RawMatrix): RawMatrix {
 }
 
 export function $base_matrix_log(x: RawMatrix, y: RawMatrix): RawMatrix {
-  return $base_matrix_divide(
+  const yLogged = log(getFullNumbers(y));
+  const yLog = initialNumbers(1, 1, [[0, 0, yLogged[0][0]]]);
+  return $base_matrix_scale_down(
     tagNumbers(log(getFullNumbers(x)), x.nrRows, x.nrColumns, STORAGE_FULL),
-    tagNumbers(log(getFullNumbers(y)), x.nrRows, x.nrColumns, STORAGE_FULL)
+    yLog
   );
 }
 
@@ -984,21 +987,27 @@ export function $base_matrix_cbrt(x: RawMatrix): RawMatrix {
   });
 }
 
-export function $base_matrix_solve(x: RawMatrix, _ignored: any): RawMatrix {
+export function $base_matrix_solve(x: RawMatrix, y: any): RawMatrix {
   // https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse
   // Maybe use svd to compute pseudo-inverse?
-  return tagNumbers(
-    inv(getFullNumbers(x)),
-    x.nrColumns,
-    x.nrRows,
-    STORAGE_FULL
-  );
+
+  const svd = $base_matrix_svd(x);
+
+  var result = zeroNumbers(x.nrColumns, y.nrColumns);
+  for (let elt of svd) {
+    const tup = elt as RawTuple;
+    const [a, v, w] = tup as unknown as [RawMatrix, RawMatrix, RawMatrix];
+    const m = $base_matrix_scale(
+      $base_matrix_reciprocal(a),
+      $base_matrix_mmult(w, $base_matrix_transpose(v))
+    );
+    result = $base_matrix_sum(result, m);
+  }
+
+  return $base_matrix_mmult(result, y);
 }
 
 export function $base_matrix_svd(x: RawMatrix): RawList {
-  // https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse
-  // Maybe use svd to compute pseudo-inverse?
-
   // If x is mxn then we should get vectors of size m and size n
 
   // numerics requires that the number of rows is at least as large
