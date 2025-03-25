@@ -152,10 +152,7 @@ public class Matrix implements PacioliValue {
             out.print(" ");
         }
         out.print(" ");
-        for (int i = 0; i < numWidth + unitWidth - 4; i++) {
-            out.print(" ");
-        }
-        if (unitWidth != 0) {
+        for (int i = 0; i < numWidth - 4; i++) {
             out.print(" ");
         }
         out.print("Value");
@@ -164,10 +161,7 @@ public class Matrix implements PacioliValue {
             out.print("-");
         }
         out.print("-");
-        for (int i = 0; i < numWidth + unitWidth + 1; i++) {
-            out.print("-");
-        }
-        if (unitWidth != 0) {
+        for (int i = 0; i < numWidth + 1; i++) {
             out.print("-");
         }
         for (int i = 0; i < idxList.size(); i++) {
