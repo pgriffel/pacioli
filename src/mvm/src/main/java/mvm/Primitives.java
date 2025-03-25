@@ -113,7 +113,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("base_maybe_get") {
+        storePrimitive(store, new Primitive("base_from_just") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 return params.get(0);
             }
@@ -337,14 +337,16 @@ public class Primitives {
         storePrimitive(store, new Primitive("matrix_svd") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
-                return x.svdNonZero();
+                return x.svd();
+                // return x.svdNonZero();
             }
         });
 
         storePrimitive(store, new Primitive("matrix_qr") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
-                return x.qrZeroSub();
+                // return x.qrZeroSub();
+                return x.qr();
             }
         });
 
@@ -963,6 +965,20 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("system__precision") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return new Matrix(Matrix.precision);
+            }
+        });
+
+        storePrimitive(store, new Primitive("system__set_precision") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix n = (Matrix) params.get(0);
+                Matrix.precision = (int) n.SingletonNumber();
+                return VOID;
+            }
+        });
+
         // //////////////////////////////////////////////////////////////////////////////
         // List
 
@@ -1228,7 +1244,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("string_num2string") {
+        storePrimitive(store, new Primitive("system__num2string") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 // Just ignore the unit in the third parameter. The MVM is already typed.
                 // The unit is for targets that compute with numbers only.
@@ -1242,22 +1258,13 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("string_num2str") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                // Just ignore the unit in the second parameter. The MVM is already typed.
-                // The unit is for targets that compute with numbers only.
-                Matrix num = (Matrix) params.get(0);
-                return new PacioliString(num.toText());
-            }
-        });
-
-        storePrimitive(store, new Primitive("io_nr_decimals") {
+        storePrimitive(store, new Primitive("system__nr_decimals") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 return new Matrix(Matrix.nrDecimals);
             }
         });
 
-        storePrimitive(store, new Primitive("io_set_nr_decimals") {
+        storePrimitive(store, new Primitive("system__set_nr_decimals") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix n = (Matrix) params.get(0);
                 Matrix.nrDecimals = (int) n.SingletonNumber();
@@ -1438,7 +1445,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("error") {
+        storePrimitive(store, new Primitive("base_error") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliString string = (PacioliString) params.get(0);
                 throw new MVMException(string.toText());

@@ -150,6 +150,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "^R"              { return symbol("reci", RECI); }
 
   "="               { return symbol("eql", EQL, EQL); }
+  "~="              { return symbol("appr_eql", APPR_EQL, APPR_EQL); }
   "!"               { return symbol("excl", EXCL); }
   "^"               { return symbol("hat", HAT, HAT); }
   "-"               { return symbol("neg", NEG, NEG); }

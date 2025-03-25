@@ -29,6 +29,7 @@ export
     from_percentage,
     approximates,
     approximates_to,
+    approx_equal,
     compare,
     printf,
     _list_count,
@@ -39,7 +40,11 @@ export
     _list_gcd,
     _list_all,
     _list_some,
-    is_something;
+    maybe,
+    is_something,
+    or_else,
+    or_else_get,
+    map_maybe;
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -79,8 +84,6 @@ define fraction(x, y) = to_percentage(x / y);
 # Approximate equality
 # ------------------------------------------------------------------------------
 
-defunit decimals "decs";
-
 declare approximates :: for_index I, J: for_unit a, I!u, J!v:
     (a*I!u per J!v, a*I!u per J!v, decimals) -> Boole;
 
@@ -97,6 +100,26 @@ define approximates_to(decs) =
         let diff = abs(x - y) in
             magnitude(diff) <= support(diff) '/.' expt(10, magnitude(decs))
         end;
+
+doc approx_equal
+    "Are two matrices approximately equal?
+
+    Check that the difference between each corresponding entry from the two
+    matrices is below some treshold. Uses the global precision().
+
+    TODO: check IEEE standards etc. This is a quick solution.
+
+    Defined as
+    <pre>
+    approximates(A, B, precision())
+    </pre>";
+
+declare approx_equal ::
+    for_unit a, P!u, Q!v: for_index P, Q:
+        (a*P!u per Q!v, a*P!u per Q!v) -> Boole;
+
+define approx_equal(A, B) =
+    approximates(A, B, precision());
 
 # ----------------------------------------------------------------------------
 # Comparison
@@ -173,10 +196,84 @@ define printf =
     end;
 
 # ------------------------------------------------------------------------------
-# Function printf
+# Maybe
 # ------------------------------------------------------------------------------
 
-declare is_something :: for_type a: (Maybe(a)) -> Boole;
+doc maybe
+    "Temporary stub for a proper Maybe type.
+    
+    Get a value from a Maybe.
+    
+    The first argument is a function that provides a default value. If the Maybe
+    is noting then this function is called and the result is returned.
+    
+    If the Maybe has a value, then the function from the second argument is called
+    on the value and the result is returned.";
 
-define is_something(maybe) =
-    not(is_nothing(maybe));
+declare maybe ::
+    for_type s, t: (() -> t, (s) -> t, Maybe(s)) -> t;
+
+define maybe(alt, fun, value) = 
+    if is_nothing(value) then
+        alt()
+    else
+        fun(from_just(value))
+    end;
+
+# ------------------------------------------------------------------------------    
+
+doc is_something
+    "Temporary stub for a proper Maybe type.
+    
+    Is the Maybe not nothing?";
+
+declare is_something ::
+    for_type a: (Maybe(a)) -> Boole;
+
+define is_something(value) =
+    not(is_nothing(value));
+
+# ------------------------------------------------------------------------------    
+
+doc or_else
+    "Temporary stub for a proper Maybe type.
+    
+    The first argument is a default value. If the Maybe is noting then this value
+    is returned.
+    
+    If the Maybe has a value, then that value is returned.";
+
+declare or_else ::
+    for_type t: (t, Maybe(t)) -> t;
+
+define or_else(alt, value) = 
+    maybe(() -> alt, identity, value);
+
+# ------------------------------------------------------------------------------    
+
+doc or_else_get
+    "Temporary stub for a proper Maybe type.
+    
+    The first argument is a function that provides a default value. If the Maybe
+    is noting then this function is called and the result is returned.
+
+    If the Maybe has a value, then that value is returned.";
+
+declare or_else_get ::
+    for_type t: (() -> t, Maybe(t)) -> t;
+
+define or_else_get(alt, value) = 
+    maybe(alt, identity, value);
+
+# ------------------------------------------------------------------------------    
+
+doc map_maybe
+    "Temporary stub for a proper Maybe type.
+    
+    Applies a function to a Maybe value.";
+
+declare map_maybe ::
+   for_type a, b: ((a) -> b, Maybe(a)) -> Maybe(b);
+
+define map_maybe(fun, value) =
+    maybe(() -> nothing(), (x) -> just(fun(x)), value);

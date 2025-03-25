@@ -25,7 +25,12 @@ export
     _acos,
     _atan,
     _atan2,
-    _add_mut;
+    _add_mut,
+    _precision,
+    _set_precision,
+    _nr_decimals,
+    _set_nr_decimals,
+    _num2string;
 
 # ----------------------------------------------------------------------------
 # System functions
@@ -64,3 +69,24 @@ declare_primitive _atan2(A) ::
 # ----------------------------------------------------------------------------
 
 declare_primitive _add_mut(list, element) :: for_type a: (List(a), a) -> List(a);
+
+# ----------------------------------------------------------------------------
+
+declare_primitive _set_precision(n) :: (1) -> Void;
+
+# ----------------------------------------------------------------------------
+
+declare_primitive _precision() :: () -> 1;
+
+# ----------------------------------------------------------------------------
+
+declare_primitive _set_nr_decimals(n) :: (1) -> Void;
+
+# ----------------------------------------------------------------------------
+
+declare_primitive _nr_decimals() :: () -> 1;
+
+# ----------------------------------------------------------------------------
+
+declare_primitive _num2string(A, decimals, U) :: for_index I, J: for_unit a, I!u, J!v:
+    (a*I!u per J!v, 1, a*I!u per J!v) -> String;

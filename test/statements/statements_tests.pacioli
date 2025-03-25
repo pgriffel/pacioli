@@ -175,9 +175,9 @@ define statement_suite = test_suite("Statement", [
         is_nothing(catch(() -> foo(0) + 12))),
 
     test("Not error when a value is returned", () ->
-        let value = catch(() -> foo(1) + 12) in
-            is_something(value) and maybe_get(value) = 22
-        end)
+        or_else(false,
+            map_maybe((value) -> value = 22,
+                catch(() -> foo(1) + 12))))
 ]); 
 
 define foo(x) = 

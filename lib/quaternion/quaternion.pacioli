@@ -201,7 +201,7 @@ doc quaternion2string
     "String representation of a quaternion.";
 
 declare quaternion2string ::
-    for_unit a: (Quaternion(a), 1, a) -> String;
+    for_unit a: (Quaternion(a), decimals, a) -> String;
 
 define quaternion2string(q, decimals, u) =
     let

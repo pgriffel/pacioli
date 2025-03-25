@@ -103,6 +103,7 @@ Notable missing features that are on the roadmap
 - Multilinear algebra and data-frames
 - Ad-hoc polymorphism (typeclasses/traits/implicits)
 - Some data abstraction mechanism
+- Error handling
 - Better support for writing libraries and integration with other environments
 
 2013-2025 Paul Griffioen (pgriffel@gmail)

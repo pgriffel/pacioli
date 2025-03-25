@@ -33,10 +33,12 @@ import {
   exp,
   inv,
   log,
+  LU,
   max,
   min,
   pow,
   sin,
+  svd,
   tan,
 } from "numeric";
 import { UOM } from "uom-ts";
@@ -124,6 +126,10 @@ export const $base_base_apply = function (fun: RawFunction, arg: RawTuple) {
   return fun.apply(fun, arg);
 };
 
+export function $base_base_identity(x: RawMatrix): RawMatrix {
+  return x;
+}
+
 export function $base_base__new_ref(value: RawValue): RawRef {
   return tagRef([value]);
 }
@@ -173,7 +179,7 @@ export function $base_base_is_nothing(value: RawValue): RawBoole {
   return value === NOTHING;
 }
 
-export function $base_base_maybe_get(value: RawValue): RawValue {
+export function $base_base_from_just(value: RawValue): RawValue {
   if (value === NOTHING) {
     throw new Error("Cannot get empty Maybe value");
   }
@@ -761,7 +767,7 @@ export function $base_matrix_max(x: RawMatrix, y: RawMatrix): RawMatrix {
   return tagNumbers(
     max(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
-    y.nrRows,
+    x.nrColumns,
     STORAGE_FULL
   );
 }
@@ -770,7 +776,7 @@ export function $base_matrix_min(x: RawMatrix, y: RawMatrix): RawMatrix {
   return tagNumbers(
     min(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
-    y.nrRows,
+    x.nrColumns,
     STORAGE_FULL
   );
 }
@@ -876,7 +882,8 @@ export function $base_matrix_mexpt(x: RawMatrix, y: RawMatrix): RawMatrix {
     return x;
   } else if (n < 0) {
     return $base_matrix_mexpt(
-      $base_matrix_solve(x, $base_matrix_left_identity(x)),
+      tagNumbers(inv(getFullNumbers(x)), x.nrColumns, x.nrRows, STORAGE_FULL),
+      // $base_matrix_solve(x, $base_matrix_left_identity(x)),
       $base_matrix_negative(y)
     );
   } else {
@@ -899,9 +906,11 @@ export function $base_matrix_expt(x: RawMatrix, y: RawMatrix): RawMatrix {
 }
 
 export function $base_matrix_log(x: RawMatrix, y: RawMatrix): RawMatrix {
-  return $base_matrix_divide(
+  const yLogged = log(getFullNumbers(y));
+  const yLog = initialNumbers(1, 1, [[0, 0, yLogged[0][0]]]);
+  return $base_matrix_scale_down(
     tagNumbers(log(getFullNumbers(x)), x.nrRows, x.nrColumns, STORAGE_FULL),
-    tagNumbers(log(getFullNumbers(y)), x.nrRows, x.nrColumns, STORAGE_FULL)
+    yLog
   );
 }
 
@@ -979,15 +988,100 @@ export function $base_matrix_cbrt(x: RawMatrix): RawMatrix {
   });
 }
 
-export function $base_matrix_solve(x: RawMatrix, _ignored: any): RawMatrix {
+export function $base_matrix_qr(_: RawMatrix): RawTuple {
+  throw new Error("Function qr is not implemented in pacioli-js");
+}
+
+export function $base_matrix_plu(x: RawMatrix): RawTuple {
+  throw new Error("Function plu is not implemented in pacioli-js");
+
+  // Does numeric provide serparate L and U?
+
+  const decomposition = LU(getFullNumbers(x));
+
+  const m = x.nrRows;
+  const n = x.nrColumns;
+
+  var Pmat = zeroNumbers(m, m);
+  var LUmat = zeroNumbers(m, n);
+
+  for (let i = 0; i < m; i++) {
+    set(Pmat, i, i, 1);
+
+    for (let j = 0; j < n; j++) {
+      set(LUmat, i, j, decomposition.LU[i][j]);
+    }
+  }
+
+  for (let i = 0; i < m; i++) {
+    const Pi = decomposition.P[i];
+    if (Pi !== i) {
+      for (let j = 0; j < n; j++) {
+        const tmp = Pmat[i][j];
+        set(Pmat, i, j, Pmat[Pi][j]);
+        set(Pmat, Pi, j, tmp);
+      }
+    }
+  }
+
+  return tagTuple([Pmat, LUmat]);
+}
+
+export function $base_matrix_solve(x: RawMatrix, y: any): RawMatrix {
   // https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse
   // Maybe use svd to compute pseudo-inverse?
-  return tagNumbers(
-    inv(getFullNumbers(x)),
-    x.nrColumns,
-    x.nrRows,
-    STORAGE_FULL
-  );
+
+  const svd = $base_matrix_svd(x);
+
+  var result = zeroNumbers(x.nrColumns, y.nrColumns);
+  for (let elt of svd) {
+    const tup = elt as RawTuple;
+    const [a, v, w] = tup as unknown as [RawMatrix, RawMatrix, RawMatrix];
+    const m = $base_matrix_scale(
+      $base_matrix_reciprocal(a),
+      $base_matrix_mmult(w, $base_matrix_transpose(v))
+    );
+    result = $base_matrix_sum(result, m);
+  }
+
+  return $base_matrix_mmult(result, y);
+}
+
+export function $base_matrix_svd(x: RawMatrix): RawList {
+  // If x is mxn then we should get vectors of size m and size n
+
+  // numerics requires that the number of rows is at least as large
+  // as the number of columns. Transpose to fix this if needed.
+  const needsTranspose = x.nrRows < x.nrColumns;
+
+  const m = needsTranspose ? x.nrColumns : x.nrRows;
+  const n = needsTranspose ? x.nrRows : x.nrColumns;
+
+  const full = getFullNumbers(needsTranspose ? $base_matrix_transpose(x) : x);
+  const trip = svd(full);
+  const r = trip.S.length;
+
+  let tuples = [];
+
+  for (let i = 0; i < r; i++) {
+    const sv = initialNumbers(1, 1, [[0, 0, trip.S[i]]]);
+
+    var left = zeroNumbers(m, 1);
+    for (let j = 0; j < m; j++) {
+      set(left, j, 0, trip.U[j][i]);
+    }
+
+    var right = zeroNumbers(n, 1);
+    for (let j = 0; j < n; j++) {
+      set(right, j, 0, trip.V[j][i]);
+    }
+
+    tuples.push(
+      tagTuple(needsTranspose ? [sv, right, left] : [sv, left, right])
+    );
+  }
+
+  return tagList(tuples);
 }
 
 export function $base_matrix_random(): RawMatrix {
@@ -1275,13 +1369,23 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
 }
 
 let NR_DECIMALS = 2;
+let PRECISION = 14;
 
-export function $base_io_nr_decimals(): RawMatrix {
+export function $base_system__nr_decimals(): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, NR_DECIMALS]]);
 }
 
-export function $base_io_set_nr_decimals(num: RawMatrix): Void {
+export function $base_system__set_nr_decimals(num: RawMatrix): Void {
   NR_DECIMALS = getNumber(num, 0, 0);
+  return VOID;
+}
+
+export function $base_system__precision(): RawMatrix {
+  return initialNumbers(1, 1, [[0, 0, PRECISION]]);
+}
+
+export function $base_system__set_precision(num: RawMatrix): Void {
+  PRECISION = getNumber(num, 0, 0);
   return VOID;
 }
 
@@ -1300,7 +1404,7 @@ export function $base_string_unit2string(unit: RawMatrix): RawString {
   }
 }
 
-export function $base_string_num2string(
+export function $base_system__num2string(
   num: RawMatrix,
   decimals: RawMatrix,
   unit: RawMatrix
@@ -1311,18 +1415,6 @@ export function $base_string_num2string(
   }
   const matrix = new Matrix(shape, num);
   return matrix.toDecimal(getNumber(decimals, 0, 0));
-}
-
-export function $base_string_num2str(
-  num: RawMatrix,
-  unit: RawMatrix
-): RawString {
-  const shape = unit.shape;
-  if (shape === undefined) {
-    throw Error("shape undefined");
-  }
-  const matrix = new Matrix(shape, num);
-  return matrix.toDecimal(NR_DECIMALS);
 }
 
 export function $base_string_compare_string(

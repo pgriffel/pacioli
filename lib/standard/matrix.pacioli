@@ -47,7 +47,42 @@ export
     compare_index,
     complement,
     positives,
-    negatives;
+    negatives,
+    precision,
+    set_precision;
+
+# ----------------------------------------------------------------------------
+# Precision
+# ----------------------------------------------------------------------------
+
+doc set_precision
+    "Sets the number of decimals that is used in approximations.
+
+    It is also used as a treshold to determine if a matrix entry is printed.
+    
+    This is a global effect.
+
+    See function <code>precision</code>";
+
+declare set_precision :: (decimals) -> Void;
+
+define set_precision(n) =
+    _set_precision(magnitude(n));
+
+# ----------------------------------------------------------------------------
+
+doc precision
+    "The number of decimals that is used as treshold in approximations.
+
+    It is also used as a treshold to determine if a matrix entry is printed.
+
+    See <code>set_precision</code>";
+
+declare precision ::
+    () -> decimals;
+
+define precision() =
+    _precision() * |decimals|;
 
 # ------------------------------------------------------------------------------
 # Algebra

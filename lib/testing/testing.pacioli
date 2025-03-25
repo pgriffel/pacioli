@@ -6,7 +6,9 @@ export
     Test,
     TestSuite,
     test,
+    random_test,
     test_focus,
+    random_test_focus,
     test_description,
     is_test_focused,
     run_test,
@@ -18,6 +20,7 @@ export
     run_test_suites;
 
 declare test, test_focus :: (String, () -> Boole) -> Test;
+declare random_test, random_test_focus :: (String, () -> Maybe(Boole)) -> Test;
 declare test_description :: (Test) -> String;
 declare is_test_focused :: (Test) -> Boole;
 declare run_test :: (Test) -> Boole;
@@ -62,6 +65,36 @@ doc test_focus
 
 define test_focus(description, body) =
   tuple(description , body, true);
+
+# ------------------------------------------------------------------------------
+
+doc random_test
+    "Creates a random test. 
+    
+    The first argument is a description of the test case. The second argument is
+    a Maybe with a condition that that test must satisfy.
+    
+    The test evaluates the condition repeatedly until hunderd successes have
+    been achieved, or until a faillure occurs. The test also fails after thousand
+    attempts.
+    
+    When the condition is the nothing Maybe then it doesn't count as test. This can
+    be used as a pre-condition for the test.";
+
+define random_test(description, body) =
+  tuple(description , () -> run_random_test_body(body), false);
+
+# ------------------------------------------------------------------------------
+
+doc random_test_focus
+    "Creates a random test, just like function <code>random_test</code>, but marks
+    it as 'focused'.
+    
+    When at least one test is marked as 'focused' then function <code>run_test_suites</code>
+    will only run the marked tests and skip all others.";
+
+define random_test_focus(description, body) =
+  tuple(description , () -> run_random_test_body(body), true);
 
 # ------------------------------------------------------------------------------
 
@@ -229,7 +262,7 @@ define run_test_suite(suite) =
     summary = if nr_failures = 0 then
                 format("All %d tests succeeded", nr_tests)
               else
-                format("\nTEST FAILURES!!!!!\n\n  %s of %s tests failed",
+                format("\nTEST FAILURES!!!!!\n\n  %d of %d tests failed",
                   nr_failures, 
                   nr_tests)
               end
@@ -251,6 +284,27 @@ define run_test_suite(suite) =
     end
   end;
 
+# Helper for random tests
+
+define run_random_test_body(body) =
+    begin
+        i := 0;
+        successes := 0;
+        target := 100;
+        limit := 1000;
+        okay := true;
+
+        while okay and successes != target and i < limit do
+            result := body();
+            if or_else(false, result) then
+                successes := successes + 1;
+            end
+            okay := or_else(true, result);
+            i := i + 1;
+        end
+
+        return okay and successes = target;
+    end;
 
 # Helper to print the number of skipped tests or suites.
 
