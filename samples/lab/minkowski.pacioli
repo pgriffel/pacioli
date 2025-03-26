@@ -13,7 +13,7 @@ export
     SpaceTime;
 
 # high number of decimals because of dividing by c = speed of light
-set_nr_decimals(12);
+set_nr_decimals(12*|decimals|);
 
 # ------------------------------------------------------------------------------
 # Running all tests
@@ -347,7 +347,7 @@ define minkowski_suites2 = [
     minkowski_suite2
 ];
  
-set_nr_decimals(2);
+set_nr_decimals(2*|decimals|);
 
 run_test_suites(minkowski_suites2);
  
@@ -395,7 +395,7 @@ define schwarzschild_metric(g, me, r, angle) =
     end;
 
 
-set_nr_decimals(30);
+set_nr_decimals(30*|decimals|);
 
 #schwarzschild_metric(g, me, 10 * |metre|, 0.5 * |radian|);
 

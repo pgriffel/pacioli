@@ -40,7 +40,7 @@ define blades =
 define terms = 
     [make_term(|geometric_unit|, blade) | blade <- blades];
 
-set_nr_decimals(0);
+set_nr_decimals(0*|decimals|);
 
 table(terms, terms, outer_product, "^");
 table(terms, terms, geometric_product, "*");

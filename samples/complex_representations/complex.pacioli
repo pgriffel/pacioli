@@ -160,7 +160,7 @@ doc complex2string
     "String representation of a complex number.";
 
 declare complex2string ::
-    for_unit a: (Complex(a), 1, a) -> String;
+    for_unit a: (Complex(a), decimals, a) -> String;
 
 define complex2string(c, decimals, u) =
     let
