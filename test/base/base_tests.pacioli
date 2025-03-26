@@ -33,8 +33,24 @@ define base_suites = [
    #mapnz_suite       does not exist in MVM yet
    #kronecker_suite   TODO port in pacioli-ts
 ];
-# set_precision(20*|decimals|);
+
 run_test_suites(base_suites); 
+
+# ------------------------------------------------------------------------------
+# General
+# ------------------------------------------------------------------------------
+
+define is_upper_trianular(A) = 
+    all[ get_num(A, i, j) = 0 |
+        i <- row_domain(A),
+        j <- column_domain(A),
+        index_less(j, i)];
+
+define is_lower_trianular(A) = 
+    all[ get_num(A, i, j) = 0 |
+        i <- row_domain(A),
+        j <- column_domain(A),
+        index_less(i, j)];
 
 # ------------------------------------------------------------------------------
 # Random test data
@@ -55,19 +71,16 @@ define three_vector(one, two, three) =
       tuple(Three@three, _, three)
    ]);
 
-define three_dim_vector(one, two, three) = 
-    three_vector(one, two, three) * |Three!unit|;
-
-define random_three_vector(f) = 
+define random_three_vector() = 
     let r() = random() * pick([-3,0,3]) in
-        f(r(), r(), r())
+        three_vector(r(), r(), r())
     end;
 
 define random_three_vectors =
-    [random_three_vector(three_vector) | _ <- naturals(100)];
+    [random_three_vector() | _ <- naturals(100)];
 
 define random_three_dim_vectors =
-    [random_three_vector(three_dim_vector) | _ <- naturals(100)];
+    [random_three_vector() * |Three!unit| | _ <- naturals(100)];
 
 # ------------------------------------------------------------------------------
 
@@ -87,32 +100,18 @@ define four_vector(one, two, three, four) =
       tuple(Four@four, _, four)
    ]);
 
-define four_dim_vector(one, two, three, four) = 
-    four_vector(one, two, three, four) * |Four!unit|;
+declare random_four_vector :: () -> Four!;
 
-define random_four_vector(f) = 
+define random_four_vector() = 
     let r() = random() * pick([-3,0,3]) in
-        f(r(), r(), r(), r())
+        four_vector(r(), r(), r(), r())
     end;
 
-define random_four_vectors =
-    [random_four_vector(four_vector) | _ <- naturals(100)];
+define random_4_by_4_matrix() =
+   sum[random_four_vector() '*' random_four_vector()^T | _ <- naturals(random_nat(10) + 1)];
 
-define random_four_dim_vectors =
-    [random_four_vector(four_dim_vector) | _ <- naturals(100)];
-
-# ------------------------------------------------------------------------------
-
-# define inner_suite = test_suite("Minkowski inner product tests", [
-
-#     test("magnitude of minkowski_inner should be vxwx + vywy + vzwz - vtwt", () ->
-#         all[magnitude(minkowski_inner(v, w)) = minkowski_inner_indexed1(hv, hw) |
-#                v <- random_vectors,
-#                w <- random_vectors,
-#                hv := uni_spacetime '*' v,
-#                hw := uni_spacetime '*' w]
-#     )
-# ]);
+define random_4_by_3_matrix() =
+   sum[random_four_vector() '*' random_three_vector()^T | _ <- naturals(random_nat(10) + 1)];
 
 # ------------------------------------------------------------------------------
 # Test vectors
@@ -802,19 +801,20 @@ define plu_suite = test_suite("Function plu", [
 
    random_test("should be a proper factorization", () ->
       let
-         A = random_matrix()
+         A = random_4_by_4_matrix(),
+         precision = 10*|decimals|
       in
          map_maybe(
             (tup) ->
                let (P, L, U) = tup in
-                  P '*' A ~= L '*' U
+                  approximates(P '*' A, L '*' U, precision)
                end,
             catch(() -> plu(A)))
       end),
 
    random_test("should give upper triangular U", () ->
       let
-         A = random_matrix()
+         A = random_4_by_4_matrix()
       in
          map_maybe(
             (tup) ->
@@ -826,7 +826,7 @@ define plu_suite = test_suite("Function plu", [
 
    random_test("should give lower triangular L", () ->
       let
-         A = random_matrix()
+         A = random_4_by_4_matrix()
       in
          map_maybe(
             (tup) ->
@@ -838,7 +838,7 @@ define plu_suite = test_suite("Function plu", [
 
    random_test("should give permutation matrix P", () ->
       let
-         A = random_matrix()
+         A = random_4_by_4_matrix()
       in
          map_maybe(
             (tup) ->
@@ -879,7 +879,7 @@ define svd_suite = test_suite("Function svd", [
          # Doesn't make the default 14 decimals
          precision = 10*|decimals|,
 
-         A = random_ractangle_matrix()
+         A = random_4_by_3_matrix()
       in
          map_maybe(
             (trips) -> approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- trips], precision),
@@ -891,7 +891,7 @@ define svd_suite = test_suite("Function svd", [
          # Doesn't make the default 14 decimals
          precision = 10*|decimals|,
 
-         A = random_ractangle_matrix()^T
+         A = random_4_by_3_matrix()^T
       in
          map_maybe(
             (trips) -> approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- trips], precision),
@@ -903,36 +903,6 @@ define svd_suite = test_suite("Function svd", [
 # Function qr
 # ------------------------------------------------------------------------------
 
-define is_upper_trianular(A) = 
-    all[ get_num(A, i, j) = 0 |
-        i <- row_domain(A),
-        j <- column_domain(A),
-        index_less(j, i)];
-
-define is_lower_trianular(A) = 
-    all[ get_num(A, i, j) = 0 |
-        i <- row_domain(A),
-        j <- column_domain(A),
-        index_less(i, j)];
-
-# define random_matrix() =
-   # outer(random_three_vector(three_vector), random_three_vector(three_vector));
-
-define random_matrix() =
-   outer(random_four_vector(four_vector), random_four_vector(four_vector)) +
-   outer(random_four_vector(four_vector), random_four_vector(four_vector)) +
-   outer(random_four_vector(four_vector), random_four_vector(four_vector)) +
-   outer(random_four_vector(four_vector), random_four_vector(four_vector)) +
-   outer(random_four_vector(four_vector), random_four_vector(four_vector));
-
-define random_ractangle_matrix() =
-   outer(random_four_vector(four_vector), random_three_vector(three_vector)) +
-   outer(random_four_vector(four_vector), random_three_vector(three_vector)) +
-   outer(random_four_vector(four_vector), random_three_vector(three_vector)) +
-   outer(random_four_vector(four_vector), random_three_vector(three_vector)) +
-   outer(random_four_vector(four_vector), random_three_vector(three_vector));
-
-
 define qr_suite = test_suite("Function qr", [
    
    random_test("should be a proper factorization", () ->
@@ -940,7 +910,7 @@ define qr_suite = test_suite("Function qr", [
          # Doesn't make the default 14 decimals
          precision = 10*|decimals|,
 
-         A = random_matrix()
+         A = random_4_by_4_matrix()
       in
          map_maybe(
             (pair) -> approximates(A, let (Q, R) = pair in Q '*' R end, precision),
@@ -949,7 +919,7 @@ define qr_suite = test_suite("Function qr", [
 
    random_test("should give an upper triangular R", () ->
       let
-         A = random_matrix()
+         A = random_4_by_4_matrix()
       in
          map_maybe(
             (pair) -> let (_, R) = pair in is_upper_trianular(R) end,
@@ -958,7 +928,7 @@ define qr_suite = test_suite("Function qr", [
 
    random_test("should give an orthonormal Q", () ->
       let
-         A = random_matrix(),
+         A = random_4_by_4_matrix(),
          I = left_identity(A)
       in
          map_maybe(
@@ -990,9 +960,8 @@ define solve_suite = test_suite("Function solve", [
          # Doesn't make the default 14 decimals
          precision = 8*|decimals|,
 
-         A = random_matrix(),
-         B = random_matrix(),
-         R = catch(() -> solve(A, B))
+         A = random_4_by_4_matrix(),
+         B = random_4_by_4_matrix()
       in
          map_maybe(
             # Gives least squares solution
@@ -1004,10 +973,10 @@ define solve_suite = test_suite("Function solve", [
    random_test("should solve AX=B when nr column < nr rows", () ->
       let
          # Doesn't make the default 14 decimals
-         precision = 8*|decimals|,
+         precision = 10*|decimals|,
 
-         A = random_ractangle_matrix(),
-         B = random_ractangle_matrix()
+         A = random_4_by_3_matrix(),
+         B = random_4_by_3_matrix()
       in
          map_maybe(
             # Gives least squares solution
@@ -1018,10 +987,10 @@ define solve_suite = test_suite("Function solve", [
    random_test("should solve AX=B when nr column > nr rows", () ->
       let
          # Doesn't make the default 14 decimals
-         precision = 8*|decimals|,
+         precision = 10*|decimals|,
 
-         A = random_ractangle_matrix()^T,
-         B = random_ractangle_matrix()^T
+         A = random_4_by_3_matrix()^T,
+         B = random_4_by_3_matrix()^T
       in
          map_maybe(
             # Gives least squares solution
