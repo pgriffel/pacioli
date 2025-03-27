@@ -245,13 +245,26 @@ public class Bundle {
 
             // Add the 'uses' closure of all value definitions from the file we are
             // compiling
-            var valueInfos = usesValueClosure(
+            List<ValueInfo> valueInfos = usesValueClosure(
                     environment.values()
                             .allInfos(
                                     info -> includeTreeModules.contains(info.generalInfo().module())
                                             && info instanceof ValueInfo
                                             && info.definition().isPresent()));
-            var infoSet = new HashSet<>(valueInfos);
+            Set<ValueInfo> infoSet = new HashSet<>(valueInfos);
+
+            // Add the 'uses' closure of all type definitions from the file we are
+            // compiling. The dynamic index set definitions use value definitions.
+            List<TypeInfo> typeInfos = environment.types()
+                    .allInfos(info -> includeTreeModules.contains(info.generalInfo().module())
+                            && info.definition().isPresent());
+            for (TypeInfo info : typeInfos) {
+                for (Info x : info.definition().map(def -> def.uses()).orElse(Set.of())) {
+                    if (x instanceof ValueInfo v) {
+                        infoSet.add(v);
+                    }
+                }
+            }
 
             // Add the 'uses' closure of all toplevels from the file we are compiling
             for (Toplevel def : environment.toplevels()) {

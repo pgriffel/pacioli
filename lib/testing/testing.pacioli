@@ -12,6 +12,8 @@ export
     test_description,
     is_test_focused,
     run_test,
+    catch_with_fail, 
+    catch_with_skip,
     test_suite,
     test_suite_focus,
     suite_description,
@@ -21,13 +23,10 @@ export
 
 declare test, test_focus :: (String, () -> Boole) -> Test;
 declare random_test, random_test_focus :: (String, () -> Maybe(Boole)) -> Test;
-declare test_description :: (Test) -> String;
 declare is_test_focused :: (Test) -> Boole;
 declare run_test :: (Test) -> Boole;
 
 declare test_suite, test_suite_focus :: (String, List(Test)) -> TestSuite;
-declare suite_description :: (TestSuite) -> String;
-declare suite_tests :: (TestSuite) -> List(Test);
 declare is_suite_focused :: (TestSuite) -> Boole;
 declare run_test_suites :: (List(TestSuite)) -> Void;
 
@@ -42,7 +41,10 @@ doc Test
     test. The focused flag indicates whether this test is marked as 
     'focused'.";
 
-deftype Test() = Tuple(String, () -> Boole, Boole);
+defrecord Test() as test where
+    description: String,
+    body: () -> Boole,
+    focused: Boole;
 
 # ------------------------------------------------------------------------------
 
@@ -53,7 +55,7 @@ doc test
     a condition that that test must satisfy.";
 
 define test(description, body) =
-  tuple(description , body, false);
+    make_test(description , body, false);
 
 # ------------------------------------------------------------------------------
 
@@ -64,7 +66,7 @@ doc test_focus
     will only run the marked tests and skip all others.";
 
 define test_focus(description, body) =
-  tuple(description , body, true);
+    make_test(description , body, true);
 
 # ------------------------------------------------------------------------------
 
@@ -82,7 +84,7 @@ doc random_test
     be used as a pre-condition for the test.";
 
 define random_test(description, body) =
-  tuple(description , () -> run_random_test_body(body), false);
+    make_test(description , () -> run_random_test_body(description, body), false);
 
 # ------------------------------------------------------------------------------
 
@@ -94,15 +96,7 @@ doc random_test_focus
     will only run the marked tests and skip all others.";
 
 define random_test_focus(description, body) =
-  tuple(description , () -> run_random_test_body(body), true);
-
-# ------------------------------------------------------------------------------
-
-doc test_description
-    "A test's description";
-
-define test_description(test) = 
-  let (description, _, _) = test in description end;
+    make_test(description , () -> run_random_test_body(description, body), true);
 
 # ------------------------------------------------------------------------------
 
@@ -110,15 +104,15 @@ doc is_test_focused
     "Is the test marked as 'focused'.";
 
 define is_test_focused(test) = 
-  let (_, _, is_focused) = test in is_focused end;
+    test_focused(test);
 
 # ------------------------------------------------------------------------------
 
 doc run_test
     "Executes the test.";
 
-define run_test(test) = 
-  let (_, body, _) = test in body() end;
+define run_test(test) =
+    test_body(test)();
 
 # ------------------------------------------------------------------------------
 # Tests suite
@@ -127,7 +121,10 @@ define run_test(test) =
 doc TestSuite
     "A test suite is a collection of tests.";
 
-deftype TestSuite() = Tuple(String, List(Test), Boole);
+defrecord TestSuite() as suite where
+    description: String,
+    tests: List(Test),
+    focused: Boole;
 
 # ------------------------------------------------------------------------------
 
@@ -135,7 +132,7 @@ doc test_suite
     "Creates a test suite.";
 
 define test_suite(description, tests) = 
-    tuple(description, tests, false);
+    make_suite(description, tests, false);
 
 # ------------------------------------------------------------------------------
 
@@ -144,23 +141,7 @@ doc test_suite_focus
     marks it as 'focused'";
 
 define test_suite_focus(description, tests) = 
-    tuple(description, tests, true);
-
-# ------------------------------------------------------------------------------
-
-doc suite_description
-    "A test suite's description.";
-
-define suite_description(suite) = 
-  let (description, _, _) = suite in description end;
-
-# ------------------------------------------------------------------------------
-
-doc suite_tests
-    "All tests in a test suite.";
-
-define suite_tests(suite) = 
-  let (_, tests, _) = suite in tests end;
+    make_suite(description, tests, true);
 
 # ------------------------------------------------------------------------------
 
@@ -168,7 +149,7 @@ doc is_suite_focused
     "Is the test suite marked as 'focused'";
 
 define is_suite_focused(suite) = 
-  let (_, _, is_focused) = suite in is_focused end;
+    suite_focused(suite);
 
 # ------------------------------------------------------------------------------
 
@@ -180,57 +161,58 @@ doc run_test_suites
     marked tests and skip all others.";
 
 define run_test_suites(suites) =
-  begin
-    print("\nRuning test suites\n");
+    begin
+        print("\nRuning test suites\n");
 
-    # Determine which suites to run
-    suites_with_focus := [s | s <- suites, is_suite_focused(s)];
-    to_test := if suites_with_focus = [] then suites else suites_with_focus end;
-    nr_skipped_suites := list_size(suites) - list_size(to_test);
+        # Determine which suites to run
+        suites_with_focus := [s | s <- suites, is_suite_focused(s)];
+        to_test := if suites_with_focus = [] then suites else suites_with_focus end;
+        nr_skipped_suites := list_size(suites) - list_size(to_test);
 
-    # Run the tests. Collect the results as a list of (description, result) pairs
-    results := [tuple(suite_description(s), run_test_suite(s)) | s <- to_test];
+        # Run the tests. Collect the results as a list of (description, result) pairs
+        results := [tuple(suite_description(s), run_test_suite(s)) | s <- to_test];
 
-    # Print a status message
-    printf("\nTests finished, %d suites tested%s\n",
-      list_size(to_test),
-      skipped_message(nr_skipped_suites));
+        # Print a status message
+        printf("\nTests finished, %d suites tested%s\n",
+            list_size(to_test),
+            skipped_message(nr_skipped_suites));
 
-    # Print a summary of the results per suite. Also calculate totals.
-    toprint := results;
-    total_nr_tests := 0;
-    total_nr_successes := 0;
-    while toprint != [] do
+        # Print a summary of the results per suite. Also calculate totals.
+        toprint := results;
+        total_nr_tests := 0;
+        total_nr_successes := 0;
 
-      # Get the result for this suite
-      (description, result) := head(toprint);
-      (nr_tests, nr_errors, nr_skipped) := result;
-      nr_successes := nr_tests - nr_errors;
+        while toprint != [] do
 
-      # Print the result
-      printf(" %s%s -> %d/%d success%s", 
-        if nr_successes = nr_tests then " " else "*" end,
-        description,
-        nr_successes,
-        nr_tests,
-        skipped_message(nr_skipped));
+            # Get the result for this suite
+            (description, result) := head(toprint);
+            (nr_tests, nr_errors, nr_skipped) := result;
+            nr_successes := nr_tests - nr_errors;
 
-      # Update the totals
-      total_nr_tests := total_nr_tests + nr_tests;
-      total_nr_successes := total_nr_successes + nr_successes;
+            # Print the result
+            printf(" %s%s -> %d/%d success%s", 
+                if nr_successes = nr_tests then " " else "*" end,
+                description,
+                nr_successes,
+                nr_tests,
+                skipped_message(nr_skipped));
 
-      toprint := tail(toprint);
-    end
+            # Update the totals
+            total_nr_tests := total_nr_tests + nr_tests;
+            total_nr_successes := total_nr_successes + nr_successes;
 
-    # Determine total number of skipped
-    total_nr_skipped := count[ true | s <- suites, t <- suite_tests(s)] - total_nr_tests;
+            toprint := tail(toprint);
+        end
 
-    # Print the totals
-    printf("\nTotal tests -> %d/%d success%s",
-      total_nr_successes,
-      total_nr_tests,
-      skipped_message(total_nr_skipped));
-  end;
+        # Determine total number of skipped
+        total_nr_skipped := count[ true | s <- suites, t <- suite_tests(s)] - total_nr_tests;
+
+        # Print the totals
+        printf("\nTotal tests -> %d/%d success%s",
+            total_nr_successes,
+            total_nr_tests,
+            skipped_message(total_nr_skipped));
+    end;
 
 # ------------------------------------------------------------------------------
 # Helpers
@@ -247,46 +229,55 @@ doc run_test_suite
     the marked tests and skip all others.";
 
 define run_test_suite(suite) =
-  let
-    (description, all_tests, _) = suite,
-    nr_focuss = count[is_test_focused(t) | t <- all_tests],
-    tests_with_focus = [t | t <- all_tests, is_test_focused(t)],
-    tests = if tests_with_focus = [] then all_tests else tests_with_focus end,
-    results = [ tuple(test_description(test), run_test(test)) | test <- tests ],
-    nr_tests = list_size(tests),
-    nr_failures = count[ not(okay) | (_, okay) <- results ],
-    nr_skipped = list_size(all_tests) - nr_tests,
-    messages = [ message | (description, okay) <- results,
-                            result := if okay then "ok" else "FAIL!" end,
-                            message := format("  %s -> %s", description, result)],
-    summary = if nr_failures = 0 then
-                format("All %d tests succeeded", nr_tests)
-              else
-                format("\nTEST FAILURES!!!!!\n\n  %d of %d tests failed",
-                  nr_failures, 
-                  nr_tests)
-              end
-                      
-  in
-    begin
-      print(description);
+    let
+        (description, all_tests, _) = suite,
 
-      todo := messages;
-      while todo != [] do
-        frst := head(todo);
-        todo := tail(todo);
-        print(frst);
-      end
+        nr_focuss = count[is_test_focused(t) | t <- all_tests],
+        tests_with_focus = [t | t <- all_tests, is_test_focused(t)],
+        tests = if tests_with_focus = [] then all_tests else tests_with_focus end,
+        
+        nr_tests = list_size(tests),
+        nr_skipped = list_size(all_tests) - nr_tests
+                        
+    in
+        begin
+            print(description);
 
-      printf("%s%s\n", summary, skipped_message(nr_skipped));
+            todo := tests;
+            nr_failures := 0;
 
-      return tuple(nr_tests, nr_failures, nr_skipped);
-    end
-  end;
+            while todo != [] do
+                test := head(todo);
+                
+                okay := run_test(test);
+                
+                if not(okay) then
+                    nr_failures := nr_failures + 1;
+                end
+
+                printf("  %s -> %s", 
+                    test_description(test),
+                    if okay then "ok" else "FAIL!" end);
+
+                todo := tail(todo);
+            end
+
+            if nr_failures = 0 then
+                printf("All %d tests succeeded%s\n", nr_tests, skipped_message(nr_skipped));
+            else
+                printf("\nTEST FAILURES!!!!!\n\n  %d of %d tests failed%s\n",
+                    nr_failures, 
+                    nr_tests,
+                    skipped_message(nr_skipped));
+            end
+
+            return tuple(nr_tests, nr_failures, nr_skipped);
+        end
+    end;
 
 # Helper for random tests
 
-define run_random_test_body(body) =
+define run_random_test_body(description, body) =
     begin
         i := 0;
         successes := 0;
@@ -303,14 +294,58 @@ define run_random_test_body(body) =
             i := i + 1;
         end
 
+        if okay and not(successes = target) then
+            printf("  ...random test '%s' reached limit %d with only %d successes of target %d",
+                description, limit, successes, target);
+        end
+
+        if okay and successes = target and i != successes then
+            printf("  ...random test '%s' reached target %d in %d steps. Limit is %d.",
+                description, target, i, limit);
+        end
+
+        if not(okay) then
+            printf("  ...random test '%s' failed on step %d after %d successes of target %d. Limit is %d.",
+                description, i, successes, target, limit);
+        end
+
         return okay and successes = target;
     end;
 
 # Helper to print the number of skipped tests or suites.
 
 define skipped_message(nr_skipped) =
-  if nr_skipped = 0 then
-    ""
-  else
-    format(", %d skipped", nr_skipped)
-  end;
+    if nr_skipped = 0 then
+        ""
+    else
+        format(", %d skipped", nr_skipped)
+    end;
+
+# ------------------------------------------------------------------------------
+# Catch wrappers
+# ------------------------------------------------------------------------------
+
+declare catch_with_fail, catch_with_skip ::
+    (() -> Boole) -> Maybe(Boole);
+
+doc catch_with_skip
+    "Alias for catch intended for use in random tests. If an error occurs the
+    test is skipped.
+
+    See also <code>catch_with_fail</code>.
+   
+    Temporary stub until better error handling is added.";
+
+define catch_with_skip(f) =
+    catch(f);
+
+doc catch_with_fail
+    "Wrapper around catch intended for use in random tests. If an error occurs the
+    test fails.
+   
+    See also <code>catch_with_skip</code>.
+
+    Temporary stub until better error handling is added.";
+
+define catch_with_fail(f) = 
+    just(or_else(false, catch(f)));

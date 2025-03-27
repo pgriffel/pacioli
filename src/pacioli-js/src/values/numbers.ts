@@ -26,6 +26,7 @@ import {
   RawMatrix,
   STORAGE_CCS,
   STORAGE_COO,
+  STORAGE_DOK,
   STORAGE_FULL,
 } from "../value";
 
@@ -38,6 +39,15 @@ import {
 // DOK (Dictionary Of Keys format) - Sparse two-dimensional JavaScript array
 // COO (Coordinate format) - Triple of lists
 // CCS (Column Compressed Storage format) - Triple of lists
+//
+// numeric has two flavours of functions, i) functions that operate on Full
+// matrices and ii) functions that operate on CCS matrices
+//
+// For case i) the primitives call getFullNumbers
+// For case ii) the primitives call getCCSNumbers
+//
+// Currently both variants are used. Function $base_matrix_mmult uses CCS. Other
+// CCS calls are disabled by checking === 13 instead of === 3.
 // -----------------------------------------------------------------------------
 
 export function tagNumbers(
@@ -70,15 +80,15 @@ export function getFullNumbers(numbers: any) {
   };
 
   switch (numbers.storage) {
-    case 0:
+    case STORAGE_FULL:
       return numbers;
-    case 1:
+    case STORAGE_DOK:
       return fillDOK(numbers);
-    case 2:
+    case STORAGE_COO:
       return fillDOK(sscatter(numbers));
     // or:
     // return numeric.ccsFull(numeric.ccsScatter(this.numbers))
-    case 3:
+    case STORAGE_CCS:
       // Let numeric create a full matrix, although it might be too small
       var full = ccsFull(numbers);
 
