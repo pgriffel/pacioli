@@ -1,3 +1,22 @@
+# Copyright (c) 2025 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 # ------------------------------------------------------------------------------
 # 3D graphics
 # ------------------------------------------------------------------------------
@@ -13,7 +32,10 @@ export
 # ------------------------------------------------------------------------------
 
 doc Color
-    "The color of a graphics element.";
+    "The color of a graphics element.
+    
+    Uses the html color format. For example \"#ffffff\" and \"white\" both 
+    represent the color white";
 
 deftype Color() = String();
 
@@ -22,13 +44,15 @@ deftype Color() = String();
 doc rgb
     "Create a color from rgb values in the range 0 to 255.";
 
-declare rgb :: (1, 1, 1) -> Color;
+declare rgb ::
+    (1, 1, 1) -> Color;
+
+define hex_nums =
+    ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
 
 define rgb(r, g, b) = 
     let 
-        nums = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"],
-        # Bug in js primitives: div does not round!!!
-        hex(x) = concatenate(nth(floor(div(x, 16)), nums), nth(mod(x, 16), nums))
+        hex(x) = concatenate(nth(div(x, 16), hex_nums), nth(rem(x, 16), hex_nums))
     in
         format("#%s%s%s", hex(r), hex(g), hex(b))
     end;
@@ -39,7 +63,8 @@ doc make_color
     "Create a color from a html color string. For example <code>make_color(\"#ffffff\")</code> 
     and <code>make_color(\"white\")</code> both create the color white.";
 
-declare make_color :: (String) -> Color;
+declare make_color ::
+    (String) -> Color;
 
 define make_color(color) = 
     color;
@@ -49,7 +74,8 @@ define make_color(color) =
 doc color_string
     "The html string representation of the color.";
 
-declare color_string :: (Color) -> String;
+declare color_string ::
+    (Color) -> String;
 
 define color_string(color) = 
     color;

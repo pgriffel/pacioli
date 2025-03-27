@@ -1,3 +1,22 @@
+# Copyright (c) 2025 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 # ------------------------------------------------------------------------------
 # 3D graphics
 # ------------------------------------------------------------------------------
@@ -11,14 +30,15 @@ export
     Vertex,
     Face,
     make_mesh,
+    default_mesh,
     named_mesh,
     move_mesh,
     cube_mesh,
     named_cube_mesh,
     vertex,
     face,
-    mesh_position,
-    with_material,
+    with_mesh_material,
+    with_mesh_wireframe,
     set_wireframe;
 
 # ------------------------------------------------------------------------------
@@ -29,20 +49,23 @@ doc Mesh
     "A 3D shape composed from faces and vertices. Is an element of a 
     <code>Scene(a, Geom3!u)</code> scene.";
 
-deftype for_unit a, Geom3!u:
-    Mesh(a, Geom3!u) = Tuple(
-                List(Tuple(a*Geom3!u, Color)),
-                List(Tuple(1, 1, 1)),
-                a*Geom3!u,
-                Maybe(String),
-                Boole,
-                String);
+defrecord for_unit a, Geom3!u: Mesh(a, Geom3!u) as mesh where
+    vertices: List(Vertex(a, Geom3!u)),
+    faces: List(Face),
+    optional_position: Maybe(a*Geom3!u),
+    name: String,
+    wireframe: Boole,
+    material: String;
+
+# ------------------------------------------------------------------------------
 
 doc Vertex
     "A point in a <code>Mesh(a, Geom3!u)</code> mesh.";
 
 deftype for_unit a, Geom3!u:
     Vertex(a, Geom3!u) = Tuple(a*Geom3!u, Color);
+
+# ------------------------------------------------------------------------------
 
 doc Face
     "A suface between a mesh's vertices.";
@@ -74,65 +97,66 @@ define face(i, j, k) =
 
 # ------------------------------------------------------------------------------
 
-doc make_mesh
+doc default_mesh
     "Creates a mesh from vertices and faces";
 
-declare make_mesh :: for_unit a, Geom3!u: (List(Vertex(a, Geom3!u)), List(Face)) -> Mesh(a, Geom3!u);
+declare default_mesh ::
+    for_unit a, Geom3!u:
+        (List(Vertex(a, Geom3!u)), List(Face)) -> Mesh(a, Geom3!u);
 
-define make_mesh(vertices, faces) = 
-    tuple(vertices, faces, 0 '.*' let (v,_) = nth(0, vertices) in v end, nothing(), false, "none");
+define default_mesh(vertices, faces) = 
+    tuple(vertices, faces, nothing(), "", false, "none");
+
+# ------------------------------------------------------------------------------
 
 doc named_mesh
     "The same as <code>make_mesh</code> except the mesh is also given a name. The name is used
     during animation to locate it when updating the scene.";
 
-declare named_mesh :: for_unit a, Geom3!u: (List(Vertex(a, Geom3!u)), List(Face), String) -> Mesh(a, Geom3!u);
+declare named_mesh ::
+    for_unit a, Geom3!u:
+        (List(Vertex(a, Geom3!u)), List(Face), String) -> Mesh(a, Geom3!u);
 
 define named_mesh(vertices, faces, name) = 
-    tuple(vertices, faces, 0 '.*' let (v,_) = nth(0, vertices) in v end, just(name), false, "none");
-
-doc with_material
-    "Changes the mesh's material. Currently the only supported values are 'normal' and
-    'none'.";
-
-declare with_material :: for_unit a, Geom3!u: (Mesh(a, Geom3!u), String) -> Mesh(a, Geom3!u);
-
-define with_material(mesh, material) = 
-    let (vs, fs, pos, name, wireframe, _) = mesh in
-        tuple(vs, fs, pos, name, wireframe, material)
-    end;
+    tuple(vertices, faces, nothing(), name, false, "none");
 
 # ------------------------------------------------------------------------------
 
-doc mesh_position
-    "A mesh's position";
+# doc with_material
+#     "Changes the mesh's material. Currently the only supported values are 'normal' and
+#     'none'.";
 
-define mesh_position(mesh) =
-    let (_, _, pos, _, _, _) = mesh in
-        pos
-    end;
+# declare with_material ::
+#     for_unit a, Geom3!u: (Mesh(a, Geom3!u), String) -> Mesh(a, Geom3!u);
 
-declare mesh_position :: for_unit a, Geom3!u: (Mesh(a, Geom3!u)) -> a * Geom3!u;
+# define with_material(mesh, material) = 
+#     let (vs, fs, pos, name, wireframe, _) = mesh in
+#         tuple(vs, fs, pos, name, wireframe, material)
+#     end;
+
+# ------------------------------------------------------------------------------
 
 doc move_mesh
-    "Moves a mesh by offset 'vec'";
+    "Moves a mesh by offset 'vec'.";
 
-declare move_mesh :: for_unit a, Geom3!u: (Mesh(a, Geom3!u), a*Geom3!u) -> Mesh(a, Geom3!u);
+declare move_mesh ::
+    for_unit a, Geom3!u: (Mesh(a, Geom3!u), a*Geom3!u) -> Mesh(a, Geom3!u);
 
 define move_mesh(mesh, vec) =
-    let (vertices, faces, _, name, wireframe, material) = mesh in
-        tuple(vertices, faces, vec, name, wireframe, material)
-    end;
+    with_mesh_optional_position(just(vec), mesh);
 
 # ------------------------------------------------------------------------------
 
 doc set_wireframe
-    "Copy of the mesh, but with the wireframe property changed.";
+    "Copy of the mesh, but with the wireframe property changed.
+    
+    Deprecated. Use <code>with_mesh_wireframe</code> instead";
 
-declare set_wireframe :: for_unit a, Geom3!u: (Mesh(a, Geom3!u), Boole) -> Mesh(a, Geom3!u);
+declare set_wireframe ::
+    for_unit a, Geom3!u: (Mesh(a, Geom3!u), Boole) -> Mesh(a, Geom3!u);
 
 define set_wireframe(mesh, status) = 
-  let (vs, fs, pos, name, _, material) = mesh in tuple(vs, fs, pos, name, status, material) end;
+    with_mesh_wireframe(status, mesh);
 
 # ------------------------------------------------------------------------------
 # Cube mesh
@@ -141,21 +165,23 @@ define set_wireframe(mesh, status) =
 doc cube_mesh
     "Creates a cube mesh, a mesh with lengths of 'size' positioned at the origin.";
 
-declare cube_mesh :: for_unit a: (a, Color) -> Mesh(a, Geom3!);
+declare cube_mesh ::
+    for_unit a: (a, Color) -> Mesh(a, Geom3!);
 
 define cube_mesh(size, color) =
-    make_cube_mesh(nothing(), size, color);
+    make_cube_mesh("", size, color);
 
 # ------------------------------------------------------------------------------
-
-declare named_cube_mesh :: for_unit a: (String, a, Color) -> Mesh(a, Geom3!);
 
 doc named_cube_mesh
     "The same as <code>make_cube_mesh</code> except the cube is also given a name. The name is used
     during animation to locate it when updating the scene.";
 
+declare named_cube_mesh ::
+    for_unit a: (String, a, Color) -> Mesh(a, Geom3!);
+
 define named_cube_mesh(name, size, color) =
-    make_cube_mesh(just(name), size, color);
+    make_cube_mesh(name, size, color);
 
 # ------------------------------------------------------------------------------
 
@@ -184,5 +210,5 @@ define make_cube_mesh(name, size, color) =
             face(3,0,4)
         ]
     in
-        tuple([tuple(size '.*' x, c) | (x, c) <- vertices], faces, 0 '.*' size '.*' vector3d(0,0,0), name, false, "none")
+        named_mesh([tuple(size '.*' x, c) | (x, c) <- vertices], faces, name)
     end;

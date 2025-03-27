@@ -1,3 +1,22 @@
+# Copyright (c) 2025 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 # ------------------------------------------------------------------------------
 # 3D graphics
 # ------------------------------------------------------------------------------
@@ -9,6 +28,7 @@ import geometry;
 export
     Arrow,
     make_arrow,
+    default_arrow,
     origin_arrow,
     move_arrow,
     arrow_name,
@@ -27,19 +47,30 @@ doc Arrow
     with an arrowhead at the end. Is an element of a <code>Scene(a)</code> 
     scene.";
 
-deftype for_unit a, Geom3!u:
-    Arrow(a, Geom3!u) = Tuple(a*Geom3!u, a*Geom3!u, String, String, Maybe(Color));
+defrecord for_unit a, Geom3!u: Arrow(a, Geom3!u) as arrow where
+    src: a*Geom3!u,
+    dst: a*Geom3!u,
+    name: String,
+    label: String,
+    color: Color;
 
 # ------------------------------------------------------------------------------
 
-doc make_arrow
+declare default_arrow_color :: Color; 
+
+define default_arrow_color =
+    make_color("blue");
+
+# ------------------------------------------------------------------------------
+
+doc default_arrow
     "Creates an arrow between two points.";
 
-declare make_arrow ::
+declare default_arrow ::
     for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u) -> Arrow(a, Geom3!u);
 
-define make_arrow(src, dst) =
-    tuple(src, dst, "", "", nothing());
+define default_arrow(src, dst) =
+    tuple(src, dst, "", "", default_arrow_color);
 
 # ------------------------------------------------------------------------------
 
@@ -49,43 +80,7 @@ doc origin_arrow
 declare origin_arrow :: for_unit a, Geom3!u: (a*Geom3!u) -> Arrow(a, Geom3!u);
 
 define origin_arrow(vector) =
-    make_arrow(0 '.*' vector, vector);
-
-# ------------------------------------------------------------------------------
-
-doc arrow_name
-    "An arrow's name.";
-
-declare arrow_name :: for_unit a, Geom3!u: (Arrow(a, Geom3!u)) -> String;
-
-define arrow_name(arrow) =
-    let (_, _, name, _, _) = arrow in
-        name
-    end;
-
-# ------------------------------------------------------------------------------
-
-doc arrow_label
-    "An arrow's color.";
-
-declare arrow_label :: for_unit a, Geom3!u: (Arrow(a, Geom3!u)) -> String;
-
-define arrow_label(arrow) =
-    let (_, _, _, label, _) = arrow in
-        label
-    end;
-
-# ------------------------------------------------------------------------------
-
-doc arrow_color
-    "An arrow's color.";
-
-declare arrow_color :: for_unit a, Geom3!u: (Arrow(a, Geom3!u)) -> Maybe(Color);
-
-define arrow_color(arrow) =
-    let (_, _, _, _, color) = arrow in
-        color
-    end;
+    default_arrow(0 '.*' vector, vector);
 
 # ------------------------------------------------------------------------------
 
@@ -95,44 +90,6 @@ doc move_arrow
 declare move_arrow :: for_unit a, Geom3!u: (Arrow(a, Geom3!u), a * Geom3!u, a * Geom3!u) -> Arrow(a, Geom3!u);
 
 define move_arrow(arrow, src, dst) =
-    let (_, _, color, name, label) = arrow in
-        tuple(src, dst, color, name, label)
-    end;
-
-# ------------------------------------------------------------------------------
-
-doc with_arrow_name
-    "A copy of the arrow, but with the label.";
-
-declare with_arrow_name ::
-    for_unit a, Geom3!u: (String, Arrow(a, Geom3!u)) -> Arrow(a, Geom3!u);
-
-define with_arrow_name(name, arrow) =
-    let (src, dst, _, label, color) = arrow in
+    let (_, _, name, label, color) = arrow in
         tuple(src, dst, name, label, color)
-    end;
-
-# ------------------------------------------------------------------------------
-
-doc with_arrow_label
-    "A copy of the arrow, but with the label.";
-
-declare with_arrow_label ::
-    for_unit a, Geom3!u: (String, Arrow(a, Geom3!u)) -> Arrow(a, Geom3!u);
-
-define with_arrow_label(label, arrow) =
-    let (src, dst, name, _, color) = arrow in
-        tuple(src, dst, name, label, color)
-    end;
-
-# ------------------------------------------------------------------------------
-
-doc with_arrow_color
-    "Copy of the arrow, but with a different color.";
-
-declare with_arrow_color :: for_unit a, Geom3!u: (Color, Arrow(a, Geom3!u)) -> Arrow(a, Geom3!u);
-
-define with_arrow_color(color, arrow) =
-    let (src, dst, name, label, _) = arrow in
-        tuple(src, dst, name, label, just(color))
     end;

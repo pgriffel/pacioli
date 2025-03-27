@@ -1,3 +1,22 @@
+# Copyright (c) 2025 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 # ------------------------------------------------------------------------------
 # 3D graphics
 # ------------------------------------------------------------------------------
@@ -9,7 +28,9 @@ include color;
 export
     Path,
     make_path,
+    default_path,
     make_line,
+    default_line,
     with_path_color;
 
 # ------------------------------------------------------------------------------
@@ -20,19 +41,27 @@ doc Path
     "A series of lines between succesive points. Is an element of a 
     <code>Scene(a, Geom3!u)</code> scene.";
 
-deftype for_unit a, Geom3!u:
-    Path(a, Geom3!u) = Tuple(List(a * Geom3!u), Color);
+defrecord for_unit a, Geom3!u: Path(a, Geom3!u) as path where
+    points: List(a * Geom3!u),
+    color: Color;
 
 # ------------------------------------------------------------------------------
 
-doc make_path
+declare default_path_color :: Color; 
+
+define default_path_color =
+    make_color("#222222");
+
+# ------------------------------------------------------------------------------
+
+doc default_path
     "Constructs a path from a list of points.";
 
-declare make_path ::
+declare default_path ::
     for_unit a, Geom3!u: (List(a * Geom3!u)) -> Path(a, Geom3!u);
 
-define make_path(vecs) =
-    tuple(vecs, make_color("blue"));
+define default_path(vecs) =
+    tuple(vecs, default_path_color);
 
 # ------------------------------------------------------------------------------
 
@@ -40,17 +69,19 @@ doc make_line
     "A line between two points. Each point is indicated by a vector.";
 
 declare make_line ::
-    for_unit a, Geom3!u: (a * Geom3!u, a * Geom3!u) -> Path(a, Geom3!u);
+    for_unit a, Geom3!u:
+        (a * Geom3!u, a * Geom3!u, Color) -> Path(a, Geom3!u);
 
-define make_line(v0, v1) =
-    make_path([v0, v1]);
+define make_line(v0, v1, color) =
+    make_path([v0, v1], color);
 
 # ------------------------------------------------------------------------------
 
-declare with_path_color ::
-    for_unit a, Geom3!u: (Path(a, Geom3!u), Color) -> Path(a, Geom3!u);
+doc default_line
+    "A line between two points. Each point is indicated by a vector.";
 
-define with_path_color(path, color) =
-    let (vecs, _) = path in
-        tuple(vecs, color)
-    end;
+declare default_line ::
+    for_unit a, Geom3!u: (a * Geom3!u, a * Geom3!u) -> Path(a, Geom3!u);
+
+define default_line(v0, v1) =
+    default_path([v0, v1]);

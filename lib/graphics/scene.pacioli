@@ -38,14 +38,13 @@ doc Scene
     
     Currently it can only be displayed in a browser.";
 
-deftype for_unit a, Geom3!u: Scene(a, Geom3!u) = 
-    Tuple(
-        String,
-        List(Arrow(a, Geom3!u)),
-        List(Mesh(a, Geom3!u)),
-        List(Path(a, Geom3!u)),
-        List(SpotLight(a, Geom3!u)),
-        Tuple(String, 1));
+defrecord for_unit a, Geom3!u: Scene(a, Geom3!u) as scene where 
+    description: String,
+    arrows: List(Arrow(a, Geom3!u)),
+    meshes: List(Mesh(a, Geom3!u)),
+    paths: List(Path(a, Geom3!u)),
+    lights:List(SpotLight(a, Geom3!u)),
+    ambient_light: Tuple(String, 1);
 
 # ------------------------------------------------------------------------------
 
@@ -86,8 +85,11 @@ doc get_arrows
 doc set_arrows
     "Replaces the arrows in the scene.";
 
-declare get_arrows :: for_unit a, Geom3!u: (Scene(a, Geom3!u)) -> List(Arrow(a, Geom3!u));
-declare set_arrows :: for_unit a, Geom3!u: (Scene(a, Geom3!u), List(Arrow(a, Geom3!u))) -> Scene(a, Geom3!u);
+declare get_arrows ::
+    for_unit a, Geom3!u: (Scene(a, Geom3!u)) -> List(Arrow(a, Geom3!u));
+
+declare set_arrows ::
+    for_unit a, Geom3!u: (Scene(a, Geom3!u), List(Arrow(a, Geom3!u))) -> Scene(a, Geom3!u);
 
 define get_arrows(data) =
     let (_, vectors, _, _, _, _) = data in

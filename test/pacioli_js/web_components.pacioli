@@ -197,8 +197,8 @@ define pathPoints = [
     space_vec( 1, 1, 1)
 ];
 
-define path1 = make_path([2.5 * |metre| '.*' x | x <- pathPoints]);
-define path2 = make_path([5 * |metre| '.*' x | x <- pathPoints]);
+define path1 = default_path([2.5 * |metre| '.*' x | x <- pathPoints]);
+define path2 = default_path([5 * |metre| '.*' x | x <- pathPoints]);
 
 # ------------------------------------------------------------------------------
 # Cubes III - Flying cubes
@@ -262,7 +262,7 @@ define make_center_spot_light(position, intensity) =
     make_spotlight(position, 0 '.*' position, make_color("white"), intensity);
 
 define mesh1(name, color_gen) =
-    with_material(named_cube_mesh(name, 1*|metre|, color_gen()), "Phong");
+    with_mesh_material("Phong", named_cube_mesh(name, 1*|metre|, color_gen()));
 
 define color_generator() =
     let
@@ -353,9 +353,7 @@ define icosahedron_planes(size) =
     let
         coords = pacioli_plane_coordinates(size),
         plane_path(a,b,c,d) =
-            with_path_color(
-                make_path([nth(a, coords), nth(b, coords), nth(c, coords), nth(d, coords), nth(a, coords)]), 
-                make_color("green"))
+            make_path([nth(a, coords), nth(b, coords), nth(c, coords), nth(d, coords), nth(a, coords)], make_color("green"))
     in
         [
             plane_path(0, 3, 9, 6),
@@ -371,7 +369,7 @@ define icosahedron_arrows(size) =
 
 define make_triangle_lines(a, b, c, gap) =
     let dir = gap '.*' (a + b + c) '/.' 3 in
-        with_path_color(make_path([a + dir, b + dir, c + dir, a + dir]), make_color("steelblue"))
+        make_path([a + dir, b + dir, c + dir, a + dir], make_color("steelblue"))
     end;
 
 define make_triangle_mesh(a, b, c, gap) =
@@ -382,7 +380,9 @@ define make_triangle_mesh(a, b, c, gap) =
         v1 = vertex(b + dir, color),
         v2 = vertex(c + dir, color)
     in
-        set_wireframe(with_material(make_mesh([v0, v2, v1], [face(0, 1, 2)]), "normal"), false)
+        with_mesh_wireframe(false,
+            with_mesh_material("normal",
+                default_mesh([v0, v2, v1], [face(0, 1, 2)])))
     end;
 
 # ------------------------------------------------------------------------------
@@ -421,7 +421,7 @@ define weird_arrows(n, k) =
                   name := format("arr_%s", i),
                   arrow := with_arrow_name(name,
                             with_arrow_color(color,
-                             make_arrow(src, dst)))]
+                             default_arrow(src, dst)))]
     end;
 
 define scene_updater(k, freq) = 
