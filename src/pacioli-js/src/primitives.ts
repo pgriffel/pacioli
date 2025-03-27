@@ -589,6 +589,14 @@ export function $base_matrix_dim_div(x: RawMatrix, y: RawMatrix): RawMatrix {
 }
 
 export function $base_matrix_mmult(x: RawMatrix, y: RawMatrix): RawMatrix {
+  // Currently the only function that uses CCS. The others have been disabled with
+  // the === 13 hack. See note in numbers.ts
+  // return tagNumbers(
+  //   dot(getFullNumbers(x), getFullNumbers(y)),
+  //   x.nrRows,
+  //   y.nrColumns,
+  //   STORAGE_FULL
+  // );
   return tagNumbers(
     ccsDot(getCCSNumbers(x), getCCSNumbers(y)),
     x.nrRows,
@@ -598,7 +606,7 @@ export function $base_matrix_mmult(x: RawMatrix, y: RawMatrix): RawMatrix {
 }
 
 export function $base_matrix_multiply(x: RawMatrix, y: RawMatrix): RawMatrix {
-  // TODO: 13?????
+  // TODO: 13????? See note in numbers.ts
   if ((x.storage as any) === 13) {
     return tagNumbers(
       ccsmul(getCCSNumbers(x), getCCSNumbers(y)),
@@ -663,7 +671,7 @@ export function $base_matrix_gcd(x: RawMatrix, y: RawMatrix): RawMatrix {
 }
 
 export function $base_matrix_sum(x: RawMatrix, y: RawMatrix): RawMatrix {
-  // TODO: 13?????
+  // TODO: 13????? See note in numbers.ts
   if ((x.storage as any) === 13) {
     return tagNumbers(
       ccsadd(getCCSNumbers(x), getCCSNumbers(y)),
@@ -680,7 +688,7 @@ export function $base_matrix_sum(x: RawMatrix, y: RawMatrix): RawMatrix {
 
 export function $base_matrix_minus(x: RawMatrix, y: RawMatrix): RawMatrix {
   //return Pacioli.elementWiseNumbers(x, y, function(a, b) { return a-b})
-  // TODO: 13?????
+  // TODO: 13????? See note in numbers.ts
   if ((x.storage as any) === 13) {
     return tagNumbers(
       ccssub(getCCSNumbers(x), getCCSNumbers(y)),
@@ -1027,24 +1035,92 @@ export function $base_matrix_plu(x: RawMatrix): RawTuple {
   return tagTuple([Pmat, LUmat]);
 }
 
-export function $base_matrix_solve(x: RawMatrix, y: any): RawMatrix {
+export function $base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
   // https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse
-  // Maybe use svd to compute pseudo-inverse?
+  // See https://github.com/Fylax/Apache-Commons-Math3-C-/blob/master/linear/SingularValueDecomposition.cs for the Java implementation
 
-  const svd = $base_matrix_svd(x);
+  // Doesn't give the same results as the Java variant. Gives NaN numbers in the current random tests for
+  // cases that the Java variant has not issue with.
 
-  var result = zeroNumbers(x.nrColumns, y.nrColumns);
-  for (let elt of svd) {
-    const tup = elt as RawTuple;
-    const [a, v, w] = tup as unknown as [RawMatrix, RawMatrix, RawMatrix];
-    const m = $base_matrix_scale(
-      $base_matrix_reciprocal(a),
-      $base_matrix_mmult(w, $base_matrix_transpose(v))
+  const EPS = 1.0 * Math.pow(2, -52);
+
+  try {
+    const svd = $base_matrix_svd(x) as unknown as [
+      RawMatrix,
+      RawMatrix,
+      RawMatrix
+    ][];
+
+    // Copied from SingularValueDecomposition.cs
+    const treshold = Math.max(
+      EPS,
+      EPS * getNumber(svd[0][0], 0, 0) * Math.max(x.nrRows, x.nrColumns)
     );
-    result = $base_matrix_sum(result, m);
-  }
 
-  return $base_matrix_mmult(result, y);
+    var inv = zeroNumbers(x.nrColumns, x.nrRows);
+    for (let elt of svd) {
+      // This loop swaps storage 2 and 3
+      const tup = elt;
+      const [a, v, w] = tup as unknown as [RawMatrix, RawMatrix, RawMatrix];
+      if (Math.abs(getNumber(a, 0, 0)) > treshold) {
+        const m = $base_matrix_scale(
+          $base_matrix_reciprocal(a),
+          $base_matrix_mmult(w, $base_matrix_transpose(v))
+        );
+
+        inv = $base_matrix_sum(inv, m);
+      }
+    }
+
+    const res = $base_matrix_mmult(inv, y);
+
+    if (res.nrColumns !== y.nrColumns) {
+      throw new Error("Incorrect matrix shape issue in solve");
+    }
+
+    if (res.nrRows !== x.nrColumns) {
+      throw new Error("Incorrect matrix shape issue in solve");
+    }
+
+    return res;
+  } catch (ex: unknown) {
+    // Debugging svd issues. Uncomment the following and place a breakpoint:
+
+    // console.log("oeps", ex);
+
+    // const svd = $base_matrix_svd(x) as unknown as [
+    //   RawMatrix,
+    //   RawMatrix,
+    //   RawMatrix
+    // ][];
+
+    // // Copied from SingularValueDecomposition.cs
+    // const treshold = Math.max(
+    //   EPS,
+    //   EPS * getNumber(svd[0][0], 0, 0) * Math.max(x.nrRows, x.nrColumns)
+    // );
+
+    // var inv = zeroNumbers(x.nrColumns, x.nrRows);
+    // for (let elt of svd) {
+    //   // This loop swaps storage 2 and 3
+    //   const tup = elt;
+    //   const [a, v, w] = tup as unknown as [RawMatrix, RawMatrix, RawMatrix];
+    //   if (Math.abs(getNumber(a, 0, 0)) > treshold) {
+    //     const m = $base_matrix_scale(
+    //       $base_matrix_reciprocal(a),
+    //       $base_matrix_mmult(w, $base_matrix_transpose(v))
+    //     );
+
+    //     inv = $base_matrix_sum(inv, m);
+    //   }
+    // }
+
+    // const res = $base_matrix_mmult(inv, y);
+
+    // console.log(res);
+
+    throw ex;
+  }
 }
 
 export function $base_matrix_svd(x: RawMatrix): RawList {
@@ -1058,22 +1134,40 @@ export function $base_matrix_svd(x: RawMatrix): RawList {
   const n = needsTranspose ? x.nrRows : x.nrColumns;
 
   const full = getFullNumbers(needsTranspose ? $base_matrix_transpose(x) : x);
+
+  // Experiment with svd-js. Also gives NaN numbers.
+  // const alt = SVD(full);
+  // console.log("svd-js output", alt);
+
   const trip = svd(full);
   const r = trip.S.length;
 
   let tuples = [];
 
-  for (let i = 0; i < r; i++) {
-    const sv = initialNumbers(1, 1, [[0, 0, trip.S[i]]]);
+  for (let j = 0; j < r; j++) {
+    const si = trip.S[j];
+    if (isNaN(si)) {
+      throw Error("Cannot compute svd. Insufficient numerical precision.");
+    }
+    const sv = initialNumbers(1, 1, [[0, 0, si]]);
 
     var left = zeroNumbers(m, 1);
-    for (let j = 0; j < m; j++) {
-      set(left, j, 0, trip.U[j][i]);
+
+    for (let i = 0; i < m; i++) {
+      const uij = trip.U[i][j];
+      if (isNaN(uij)) {
+        throw Error("Cannot compute svd. Insufficient numerical precision.");
+      }
+      set(left, i, 0, uij);
     }
 
     var right = zeroNumbers(n, 1);
-    for (let j = 0; j < n; j++) {
-      set(right, j, 0, trip.V[j][i]);
+    for (let i = 0; i < n; i++) {
+      const vij = trip.V[i][j];
+      if (isNaN(vij)) {
+        throw Error("Cannot compute svd. Insufficient numerical precision.");
+      }
+      set(right, i, 0, vij);
     }
 
     tuples.push(
@@ -1287,7 +1381,17 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
         out += "%";
         i += 2;
       } else if (secondChar === "s") {
-        out += args[argumentIndex++];
+        const debugHack = false;
+
+        const arg = args[argumentIndex++];
+        const mat = arg as any as RawMatrix;
+        if (debugHack && mat.kind === "matrix") {
+          out += `mat(${mat.nrRows}, ${mat.nrColumns}) ${mat.join(" + ")} ${
+            mat.storage
+          }`;
+        } else {
+          out += arg;
+        }
         i += 2;
       } else {
         const regex = /^%([0-9]*)d/;
