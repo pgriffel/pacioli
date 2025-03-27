@@ -1,4 +1,4 @@
-# Copyright (c) 2018 Paul Griffioen
+# Copyright (c) 2018-2025 Paul Griffioen
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -41,18 +41,21 @@ doc array_get
     It is an error if the index is out of bounds or no item was stored
     previously.";
 
-declare_primitive array_get(array, index) :: for_type t: (Array(t), 1) -> t;
+declare_primitive array_get(array, index) ::
+    for_type t: (Array(t), 1) -> t;
 
 # ----------------------------------------------------------------------------
 
 doc array_put
     "Stores an item in the array at the asked position.";
 
-declare_primitive array_put(array, index, element) :: for_type t: (Array(t), 1, t) -> Void;
+declare_primitive array_put(array, index, element) ::
+    for_type t: (Array(t), 1, t) -> Void;
 
 # ----------------------------------------------------------------------------
 
 doc array_size
     "The size of the array that was given at construction.";
 
-declare_primitive array_size(array) :: for_type t: (Array(t)) -> 1;
+declare_primitive array_size(array) ::
+    for_type t: (Array(t)) -> 1;

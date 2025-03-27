@@ -119,7 +119,8 @@ doc index_less
     
     Is the order of the indices in the index set definition.";
 
-declare_primitive index_less(p0, p1) :: for_index P: (P, P) -> Boole;
+declare_primitive index_less(p0, p1) ::
+  for_index P: (P, P) -> Boole;
 
 # ----------------------------------------------------------------------------
 # Matrix Shape

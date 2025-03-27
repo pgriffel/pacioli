@@ -58,6 +58,9 @@ define pi = 3.141592653589793;
 # System time
 # ------------------------------------------------------------------------------
 
+doc now
+    "Number of milliseconds since some starting point.";
+
 declare now :: () -> milli:second;
 
 define now() =
