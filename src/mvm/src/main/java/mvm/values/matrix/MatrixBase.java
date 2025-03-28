@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright (c) 2013 - 2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -29,8 +29,7 @@ import uom.UnitMap;
 public class MatrixBase extends BaseUnit<MatrixBase> {
 
     public final static Unit<MatrixBase> ONE = new PowerProduct<MatrixBase>();
-    
-    
+
     private final UnitVector vector;
     public final int position;
 

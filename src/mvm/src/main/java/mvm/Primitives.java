@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - 2023 Paul Griffioen
+ * Copyright (c) 2013 - 2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,7 +22,6 @@
 package mvm;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
