@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright (c) 2013 - 2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,7 +25,7 @@ import java.math.BigDecimal;
 import java.util.Set;
 
 public interface Unit<B> {
-    
+
     public Set<B> bases();
 
     public Fraction power(B base);
@@ -43,6 +43,6 @@ public interface Unit<B> {
     public String pretty();
 
     public Unit<B> map(UnitMap<B> map);
-    
+
     public <T> T fold(UnitFold<B, T> fold);
 }
