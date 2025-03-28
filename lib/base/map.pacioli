@@ -29,7 +29,7 @@ export
 # ----------------------------------------------------------------------------
 
 doc empty_map
-    "Constructs an map of the asked size.";
+    "Constructs an empty map.";
 
 declare_primitive empty_map() ::
     for_type s, t: () -> Map(s, t);

@@ -21,11 +21,11 @@
  */
 
 import { WordCloud, WordCloudOptions } from "../../charts/d3-wordcloud";
-import { PacioliValue } from "../../boxing";
 import { Matrix } from "../../values/matrix";
 import { getNumber } from "../../values/numbers";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
+import { PacioliString } from "../../values/string";
 
 /**
  * Attribues supported by the word cloud component
@@ -35,6 +35,11 @@ const SUPPORTED_ATTRIBUTES = {
   booleans: [],
   numbers: ["width", "height"],
 };
+
+/**
+ * Pacioli format for wordcloud data. A list of tuples.
+ */
+type WordCloudData = [PacioliString, Matrix][];
 
 /**
  * Style sheet for the word cloud component
@@ -60,8 +65,8 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
    */
   override parametersChanged() {
     try {
-      // Compute the words
-      const words = wordData(this.fetchData());
+      // Compute the words.
+      const words = wordData(this.fetchData() as unknown as WordCloudData);
 
       // Add a new word cloud to the content parent
       this.clearContent();
@@ -89,15 +94,11 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
  * @param data word cloud data in Pacioli format
  * @returns word cloud data in word cloud component format
  */
-function wordData(data: PacioliValue): [string, number][] {
-  const words = data as unknown as [any, Matrix][];
-  return words.map(
-    (word) =>
-      [word[0].value, getNumber(word[1].numbers, 0, 0)] as unknown as [
-        string,
-        number
-      ]
-  );
+function wordData(data: WordCloudData): [string, number][] {
+  return data.map(([key, value]) => [
+    key.value,
+    getNumber(value.numbers, 0, 0),
+  ]);
 }
 
 customElements.define("pacioli-wordcloud", PacioliWordCloudComponent);

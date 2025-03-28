@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Paul Griffioen
+# Copyright (c) 2023-2025 Paul Griffioen
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -79,7 +79,8 @@ doc vertex
     "Creates a mesh vertex. Expects x, y and z coordinates and a color. Is an 
     element of a <code>Scene(a, Geom3!u)</code> scene.";
 
-declare vertex :: for_unit a, Geom3!u: (a * Geom3!u, Color) -> Vertex(a, Geom3!u);
+declare vertex ::
+    for_unit a, Geom3!u: (a * Geom3!u, Color) -> Vertex(a, Geom3!u);
 
 define vertex(vec, color) =
     tuple(vec, color);
@@ -90,7 +91,8 @@ doc face
     "Creates a mesh face. Each argument is the index of a vertex. The mesh must
     contains sufficient vertices.";
 
-declare face :: (1, 1, 1) -> Face;
+declare face ::
+    (1, 1, 1) -> Face;
 
 define face(i, j, k) =
     tuple(i, j, k);
@@ -119,20 +121,6 @@ declare named_mesh ::
 
 define named_mesh(vertices, faces, name) = 
     tuple(vertices, faces, nothing(), name, false, "none");
-
-# ------------------------------------------------------------------------------
-
-# doc with_material
-#     "Changes the mesh's material. Currently the only supported values are 'normal' and
-#     'none'.";
-
-# declare with_material ::
-#     for_unit a, Geom3!u: (Mesh(a, Geom3!u), String) -> Mesh(a, Geom3!u);
-
-# define with_material(mesh, material) = 
-#     let (vs, fs, pos, name, wireframe, _) = mesh in
-#         tuple(vs, fs, pos, name, wireframe, material)
-#     end;
 
 # ------------------------------------------------------------------------------
 
@@ -187,14 +175,17 @@ define named_cube_mesh(name, size, color) =
 
 define make_cube_mesh(name, size, color) =
     let
-        vertices = [vertex(space_vec(0,0,0),color),
-                    vertex(space_vec(1,0,0),color),
-                    vertex(space_vec(1,0,1),color),
-                    vertex(space_vec(0,0,1),color),
-                    vertex(space_vec(0,1,0),color),
-                    vertex(space_vec(1,1,0),color),
-                    vertex(space_vec(1,1,1),color),
-                    vertex(space_vec(0,1,1),color)],
+        vertex_points = [
+            vector3d(0,0,0),
+            vector3d(1,0,0),
+            vector3d(1,0,1),
+            vector3d(0,0,1),
+            vector3d(0,1,0),
+            vector3d(1,1,0),
+            vector3d(1,1,1),
+            vector3d(0,1,1)
+        ],
+
         faces = [
             face(0,2,1),
             face(0,3,2),                 
@@ -210,5 +201,5 @@ define make_cube_mesh(name, size, color) =
             face(3,0,4)
         ]
     in
-        named_mesh([tuple(size '.*' x, c) | (x, c) <- vertices], faces, name)
+        named_mesh([vertex(size '.*' v, color) | v <- vertex_points], faces, name)
     end;

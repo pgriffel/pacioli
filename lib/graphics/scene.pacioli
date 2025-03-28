@@ -1,3 +1,22 @@
+# Copyright (c) 2023-2025 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 # ------------------------------------------------------------------------------
 # 3D graphics
 # ------------------------------------------------------------------------------
@@ -17,10 +36,12 @@ export
     add_meshes,
     add_paths,
     add_spotlights,
-    get_arrows,
-    set_arrows,
-    get_meshes,
-    set_meshes;
+    scene_arrows,
+    with_scene_arrows,
+    scene_paths,
+    with_scene_paths,
+    scene_meshes,
+    with_scene_meshes;
 
 export
     Animation,
@@ -70,57 +91,11 @@ doc with_ambient_light
     (it seems).";
 
 declare with_ambient_light :: 
-    for_unit a, Geom3!u: (String, 1, Scene(a, Geom3!u)) -> Scene(a, Geom3!u);
+    for_unit a, Geom3!u:
+        (String, 1, Scene(a, Geom3!u)) -> Scene(a, Geom3!u);
 
 define with_ambient_light(color, intensity, scene) =
-    let (description, arrows, meshes, paths, lights, _) = scene in
-        tuple(description, arrows, meshes, paths, lights, tuple(color, intensity))
-    end;
-
-# ------------------------------------------------------------------------------
-
-doc get_arrows
-    "Gets the arrows in the scene.";
-
-doc set_arrows
-    "Replaces the arrows in the scene.";
-
-declare get_arrows ::
-    for_unit a, Geom3!u: (Scene(a, Geom3!u)) -> List(Arrow(a, Geom3!u));
-
-declare set_arrows ::
-    for_unit a, Geom3!u: (Scene(a, Geom3!u), List(Arrow(a, Geom3!u))) -> Scene(a, Geom3!u);
-
-define get_arrows(data) =
-    let (_, vectors, _, _, _, _) = data in
-        vectors
-    end;
-
-define set_arrows(data, vectors) =
-    let (description, _, meshes, paths, lights, ambient_light) = data in
-        tuple(description, vectors, meshes, paths, lights, ambient_light)
-    end;
-
-# ------------------------------------------------------------------------------
-
-doc get_meshes
-    "Gets the meshes in the scene.";
-
-doc set_meshes
-    "Replaces the meshes in the scene.";
-
-declare get_meshes :: for_unit a, Geom3!u: (Scene(a, Geom3!u)) -> List(Mesh(a, Geom3!u));
-declare set_meshes :: for_unit a, Geom3!u: (Scene(a, Geom3!u), List(Mesh(a, Geom3!u))) -> Scene(a, Geom3!u);
-
-define get_meshes(data) =
-    let (_, _, meshes, _, _, _) = data in
-        meshes
-    end;
-
-define set_meshes(data, meshes) =
-    let (description, vectors, _, paths, lights, ambient_light) = data in
-        tuple(description, vectors, meshes, paths, lights, ambient_light)
-    end;
+    with_scene_ambient_light(tuple(color, intensity), scene);
 
 # ------------------------------------------------------------------------------
 
@@ -128,10 +103,11 @@ doc add_arrows
     "Adds arrows to a scene";
 
 declare add_arrows ::
-    for_unit a, Geom3!u: (List(Arrow(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u);
+    for_unit a, Geom3!u:
+        (List(Arrow(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u);
 
 define add_arrows(vs, scene) =
-    set_arrows(scene, append(vs, get_arrows(scene)));
+    with_scene_arrows(append(vs, scene_arrows(scene)), scene);
 
 # ------------------------------------------------------------------------------
 
@@ -139,10 +115,11 @@ doc add_meshes
     "Adds meshes to a scene";
 
 declare add_meshes ::
-    for_unit a, Geom3!u: (List(Mesh(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u);
+    for_unit a, Geom3!u:
+        (List(Mesh(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u);
 
 define add_meshes(ms, scene) =
-    set_meshes(scene, append(ms, get_meshes(scene)));
+    with_scene_meshes(append(ms, scene_meshes(scene)), scene);
 
 # ------------------------------------------------------------------------------
 
@@ -150,12 +127,11 @@ doc add_paths
     "Adds paths to a scene";
 
 declare add_paths ::
-    for_unit a, Geom3!u: (List(Path(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u);
+    for_unit a, Geom3!u:
+        (List(Path(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u);
 
 define add_paths(ps, scene) =
-    let (description, vectors, meshes, paths, lights, ambient_light) = scene in
-        tuple(description, vectors, meshes, append(ps, paths), lights, ambient_light)
-    end;
+    with_scene_paths(append(ps, scene_paths(scene)), scene);
 
 # ------------------------------------------------------------------------------
 
@@ -163,12 +139,11 @@ doc add_spotlights
     "Adds spotlights to a scene";
 
 declare add_spotlights ::
-    for_unit a, Geom3!u: (List(SpotLight(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u);
+    for_unit a, Geom3!u:
+        (List(SpotLight(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u);
 
 define add_spotlights(ls, scene) =
-    let (description, vectors, meshes, paths, lights, ambient_light) = scene in
-        tuple(description, vectors, meshes, paths, append(ls, lights), ambient_light)
-    end;
+    with_scene_lights(append(ls, scene_lights(scene)), scene);
 
 # ------------------------------------------------------------------------------
 # Animation
@@ -177,16 +152,9 @@ define add_spotlights(ls, scene) =
 doc Animation
     "Combines a Scene with an animation callback.";
 
-deftype for_unit a, Geom3!u: Animation(a, Geom3!u) = 
-    Tuple(
-        (second, Scene(a, Geom3!u)) -> Scene(a, Geom3!u),
-        Scene(a, Geom3!u));
-
-declare animation_scene ::
-    for_unit a, Geom3!u: for_type t: (Animation(a, Geom3!u)) -> Scene(a, Geom3!u);
-
-define animation_scene(animation) = 
-    let (_, scene) = animation in scene end;
+defrecord for_unit a, Geom3!u: Animation(a, Geom3!u) as animation where
+    callback: (second, Scene(a, Geom3!u)) -> Scene(a, Geom3!u),
+    scene: Scene(a, Geom3!u);
 
 # ------------------------------------------------------------------------------
 
@@ -200,10 +168,12 @@ doc add_animation_callback
     The scene is filtered for named elements.";
 
 declare add_animation_callback ::
-    for_unit a, Geom3!u: ((second, Scene(a, Geom3!u)) -> Scene(a, Geom3!u), Scene(a, Geom3!u)) -> Animation(a, Geom3!u);
+    for_unit a, Geom3!u:
+        ((second, Scene(a, Geom3!u)) -> Scene(a, Geom3!u), Scene(a, Geom3!u))
+            -> Animation(a, Geom3!u);
 
 define add_animation_callback(callback, scene) =
-    tuple(callback, scene);
+    make_animation(callback, scene);
 
 # ------------------------------------------------------------------------------
 # Animation with state
@@ -212,18 +182,12 @@ define add_animation_callback(callback, scene) =
 doc StatefulAnimation
     "Combines a Scene with an animation callback that accepts a state parameter.";
 
-deftype for_unit a, Geom3!u, Geom3!u: for_type t: StatefulAnimation(a, Geom3!u, t) = 
-    Tuple(
-        t,
-        (second, t, Scene(a, Geom3!u)) -> Tuple(t, Scene(a, Geom3!u)),
-        Scene(a, Geom3!u));
-
-declare stateful_animation_scene ::
-    for_unit a, Geom3!u, Geom3!u: for_type t: (StatefulAnimation(a, Geom3!u, t)) -> Scene(a, Geom3!u);
-
-define stateful_animation_scene(animation) = 
-    let (_, _, scene) = animation in scene end;
-    
+defrecord for_unit a, Geom3!u: for_type t:
+    StatefulAnimation(a, Geom3!u, t) as stateful_animation where
+        state: t,
+        callback: (second, t, Scene(a, Geom3!u)) -> Tuple(t, Scene(a, Geom3!u)),
+        scene: Scene(a, Geom3!u);
+   
 # ------------------------------------------------------------------------------
 
 doc add_stateful_animation_callback
@@ -238,44 +202,9 @@ doc add_stateful_animation_callback
     The scene is filtered for named elements.";
 
 declare add_stateful_animation_callback ::
-    for_unit a, Geom3!u: for_type t: (t, (second, t, Scene(a, Geom3!u)) -> Tuple(t, Scene(a, Geom3!u)), Scene(a, Geom3!u)) -> StatefulAnimation(a, Geom3!u, t);
+    for_unit a, Geom3!u: for_type t:
+        (t, (second, t, Scene(a, Geom3!u)) -> Tuple(t, Scene(a, Geom3!u)), Scene(a, Geom3!u))
+            -> StatefulAnimation(a, Geom3!u, t);
 
 define add_stateful_animation_callback(initial, callback, scene) =
     tuple(initial, callback, scene);
-    
-# ------------------------------------------------------------------------------
-# Parallelogram (not used)
-# ------------------------------------------------------------------------------
-
-doc Parallelogram
-    "A parallelogram is a tuple (vector1, vector2, color). It is a colored area 
-    spanned by the two vectors. Is an element of a <code>Scene(a, Geom3!u)</code> scene.
-
-    Unused at the moment";
-
-deftype for_unit a, Geom3!u:
-    Parallelogram(a, Geom3!u) = Tuple(a*Geom3!u, a*Geom3!u, String);
-
-# ------------------------------------------------------------------------------
-
-doc make_parallelogram
-    "A colored parallelogram spanned by vector1 and vector2";
-
-declare make_parallelogram ::
-    for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u, String) -> Parallelogram(a, Geom3!u);
-
-define make_parallelogram(vector1, vector2, color) =
-    tuple(vector1, vector2, color);
-
-# ------------------------------------------------------------------------------
-
-doc move_parallelogram
-    "Change the parallelogram's position by delta";
-    
-declare move_parallelogram :: 
-    for_unit a, Geom3!u: (Parallelogram(a, Geom3!u), a*Geom3!u) -> Parallelogram(a, Geom3!u);
-
-define move_parallelogram(parallelogram, delta) =
-    let (v1, v2, color) = parallelogram in
-        make_parallelogram(v1 + delta, v2 + delta, color)
-    end;
