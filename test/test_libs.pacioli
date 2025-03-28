@@ -24,6 +24,7 @@ include standard/standard_tests;
 include geometry/geometry_tests;
 include comprehensions/comprehension_tests;
 include statements/statements_tests;
+include fourier_motzkin/fourier_motzkin_tests;
 include funcall/funcall;
 
 #include geometric_algebra/geometric_algebra_tests;
@@ -39,6 +40,7 @@ define all_suite_collections = [
     geometry_suites,
     comprehension_suites,
     statement_suites,
-    funcall_suites
+    funcall_suites,
+    fourier_motzkin_suites
 #    geometric_algebra_suites
 ];
