@@ -35,6 +35,7 @@ import mvm.values.FileHandle;
 import mvm.values.Nothing;
 import mvm.values.PacioliArray;
 import mvm.values.PacioliList;
+import mvm.values.PacioliMap;
 import mvm.values.PacioliString;
 import mvm.values.PacioliTuple;
 import mvm.values.PacioliValue;
@@ -1486,6 +1487,54 @@ public class Primitives {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliArray array = (PacioliArray) params.get(0);
                 return new Matrix(array.size());
+            }
+        });
+
+        storePrimitive(store, new Primitive("map_empty_map") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return new PacioliMap();
+            }
+        });
+
+        storePrimitive(store, new Primitive("map_store") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                if (params.get(2) instanceof PacioliMap map) {
+                    map.put(params.get(0), params.get(1));
+                    return VOID;
+                } else {
+                    throw new MVMException("Function store expects a map");
+                }
+            }
+        });
+
+        storePrimitive(store, new Primitive("map_lookup") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                if (params.get(1) instanceof PacioliMap map) {
+                    return map.get(params.get(0)).orElse(NOTHING);
+                } else {
+                    throw new MVMException("Function lookup expects a map");
+                }
+            }
+        });
+
+        storePrimitive(store, new Primitive("map_keys") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                if (params.get(0) instanceof PacioliMap map) {
+                    return new PacioliList(new ArrayList<>(map.keys()));
+                } else {
+                    throw new MVMException("Function keys expects a map");
+                }
+            }
+        });
+
+        storePrimitive(store, new Primitive("map_map_size") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                if (params.get(0) instanceof PacioliMap map) {
+                    return new Matrix(map.size());
+                } else {
+                    throw new MVMException("Function map_size expects a map");
+                }
+
             }
         });
 

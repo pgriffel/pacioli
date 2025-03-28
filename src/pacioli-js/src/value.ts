@@ -80,6 +80,13 @@ export interface RawArray extends Array<RawValue> {
 }
 
 /**
+ * Type of an unboxed Pacioli map. A javascript map tagged with kind 'map'.
+ */
+export interface RawMap extends Map<RawValue, RawValue> {
+  kind: "map";
+}
+
+/**
  * Type of an unboxed mutable Pacioli value. A javascript array tagged with kind 'ref'.
  */
 export interface RawRef extends Array<RawValue> {
@@ -139,6 +146,11 @@ export function tagTuple(value: Array<RawValue>): RawTuple {
 export function tagArray(value: Array<RawValue>): RawArray {
   (value as RawArray).kind = "array";
   return value as RawArray;
+}
+
+export function tagMap(value: Map<RawValue, RawValue>): RawMap {
+  (value as RawMap).kind = "map";
+  return value as RawMap;
 }
 
 export function tagRef(value: Array<RawValue>): RawRef {

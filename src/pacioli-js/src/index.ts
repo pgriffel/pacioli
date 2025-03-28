@@ -222,6 +222,10 @@ export {
   $base_matrix_svd,
   $base_matrix_plu,
   $base_matrix_qr,
+  $base_map_empty_map,
+  $base_map_keys,
+  $base_map_lookup,
+  $base_map_store,
   ONE,
 } from "./primitives";
 

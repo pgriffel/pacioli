@@ -20,6 +20,7 @@
 include string;
 include list;
 include matrix;
+include map;
 include io;
 
 export

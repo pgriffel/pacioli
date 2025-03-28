@@ -68,6 +68,7 @@ import {
   RawCoordinates,
   RawFunction,
   RawList,
+  RawMap,
   RawMatrix,
   RawRef,
   RawString,
@@ -77,6 +78,7 @@ import {
   STORAGE_FULL,
   tagArray,
   tagList,
+  tagMap,
   tagRef,
   tagTuple,
 } from "./value";
@@ -1581,6 +1583,35 @@ export function $base_array_array_put(
 
 export function $base_array_array_size(arr: RawArray): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, arr.length]]);
+}
+
+export function $base_map_empty_map(): RawMap {
+  return tagMap(new Map<RawValue, RawValue>());
+}
+
+export function $base_map_lookup(key: RawValue, map: RawMap): RawValue {
+  if (map.has(key)) {
+    return map.get(key) as unknown as RawValue;
+  } else {
+    return NOTHING as unknown as RawValue;
+  }
+}
+
+export function $base_map_store(
+  key: RawValue,
+  value: RawValue,
+  map: RawMap
+): Void {
+  map.set(key, value);
+  return VOID;
+}
+
+export function $base_map_keys(map: RawMap): RawList {
+  let keys: RawValue[] = [];
+  for (let key of map.keys()) {
+    keys.push(key);
+  }
+  return tagList(keys);
 }
 
 // Abandoned experiment
