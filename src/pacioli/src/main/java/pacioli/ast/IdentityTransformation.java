@@ -48,6 +48,8 @@ import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.DataDefinitionNode;
 import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
@@ -385,6 +387,22 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(WhileNode node) {
         returnNode(node.transform(expAccept(node.test), expAccept(node.body)));
+    }
+
+    @Override
+    public void visit(ForNode node) {
+        ForNode forNode = node.transform(node.var, expAccept(node.items), expAccept(node.body));
+        forNode.table = node.table;
+        forNode.lambdaBody = node.lambdaBody;
+        returnNode(forNode);
+    }
+
+    @Override
+    public void visit(ForTupleNode node) {
+        ForTupleNode forNode = node.transform(node.vars, expAccept(node.items), expAccept(node.body));
+        forNode.table = node.table;
+        forNode.lambdaBody = node.lambdaBody;
+        returnNode(forNode);
     }
 
     @Override

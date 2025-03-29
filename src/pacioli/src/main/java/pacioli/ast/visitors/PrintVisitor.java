@@ -21,6 +21,7 @@
 
 package pacioli.ast.visitors;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,6 +55,8 @@ import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.DataDefinitionNode;
 import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
@@ -576,6 +579,38 @@ public class PrintVisitor implements Visitor {
         newlineUp();
         node.body.accept(this);
         newlineDown();
+    }
+
+    @Override
+    public void visit(ForNode node) {
+        write("for ");
+        node.var.accept(this);
+        write(" <- ");
+        node.items.accept(this);
+        write(" do");
+        newlineUp();
+        node.body.accept(this);
+        newlineDown();
+        write("end");
+    }
+
+    @Override
+    public void visit(ForTupleNode node) {
+
+        List<String> argNames = new ArrayList<>();
+        for (IdentifierNode arg : node.vars) {
+            argNames.add(arg.name());
+        }
+
+        write("for (");
+        write(String.join(", ", argNames));
+        write(") <- ");
+        node.items.accept(this);
+        write(" do");
+        newlineUp();
+        node.body.accept(this);
+        newlineDown();
+        write("end");
     }
 
     @Override

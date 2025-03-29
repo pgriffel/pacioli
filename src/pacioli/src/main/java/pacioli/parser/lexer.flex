@@ -90,6 +90,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "begin"           { return symbol("begin",BEGIN); }
   "end"             { return symbol("end",END); }
   "while"           { return symbol("while",WHILE); }
+  "for"             { return symbol("for",FOR); }
   "do"              { return symbol("do",DO); }
   "let"             { return symbol("let",LET); }
   "in"              { return symbol("in",IN); }

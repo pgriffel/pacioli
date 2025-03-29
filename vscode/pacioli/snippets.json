@@ -109,6 +109,11 @@
     "body": ["while ${1:condition} do", "\t${0:body}", "end"],
     "description": "A while do statement"
   },
+  "For do": {
+    "prefix": ["for"],
+    "body": ["for ${1:var} <- ${2:list} do", "\t${0:body}", "end"],
+    "description": "A for loop statement"
+  },
   "Imperative block": {
     "prefix": ["begin"],
     "body": ["begin", "\t${0:body}", "end"],

@@ -122,7 +122,7 @@ parser code {:
         return pacioliFrom.join(pacioliTo);
     }
 
-    private static List<String> idNames(List<IdentifierNode> ids) {
+    public static List<String> idNames(List<IdentifierNode> ids) {
         List<String> names = new ArrayList<String>();
         for (IdentifierNode id: ids) {
             names.add(id.name());
@@ -135,7 +135,7 @@ parser code {:
         return new ValueDefinition(loc, id, function);
     }
 
-    private static List<String> freshUnderscores(List<String> names) {
+    public static List<String> freshUnderscores(List<String> names) {
           List<String> fresh = new ArrayList<String>();
           for (String name : names) {
               if (name.equals("_")) {
@@ -153,7 +153,7 @@ parser code {:
         return "_" + counter++;
     }
     
-    private static String freshName(String prefix) {
+    public static String freshName(String prefix) {
         return prefix + counter++;
     }
 
@@ -175,7 +175,7 @@ parser code {:
 
 terminal INCLUDE, IMPORT, EXPORT, PUBLIC;
 terminal DEFINE, DECLARE, DECLARE_PRIMITIVE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC, DEFDATA, DEFRECORD;
-terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, DO, ASSIGN, EXCL, TO, FROM, LAMBDA;
+terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, FOR, DO, ASSIGN, EXCL, TO, FROM, LAMBDA;
 terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, FOROP, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
 terminal PLUS, MULT, DIV, MOD, MMULT, HAT, NEG, LEFTDIV, MDIV, MEXPT, MLEFTDIV;
@@ -607,6 +607,9 @@ statement ::=
   | RETURN:r SEMICOLON:s                            {: pacioli.compiler.Location loc = makeLoc(rxleft, sxright);
                                                        RESULT = new ReturnVoidNode(loc); :}
   | WHILE:w expr:e DO sequence:s END:n              {: RESULT = new WhileNode(makeLoc(wxleft, nxright), e, s); :}
+
+  | FOR:f id:id FROM expr:e DO sequence:s END:n     {: RESULT = new ForNode(makeLoc(fxleft, nxright), id, e, s); :}
+  | FOR:f idlist:ids FROM expr:e DO sequence:s END:n{: RESULT = new ForTupleNode(makeLoc(fxleft, nxright), ids, e, s); :}
 
   | IF:i expr:e THEN sequence:s stm_if_tail:t       {: pacioli.compiler.Location loc = makeLoc(ixleft, txright);
                                                        RESULT = new IfStatementNode(loc, e, s, t); :}

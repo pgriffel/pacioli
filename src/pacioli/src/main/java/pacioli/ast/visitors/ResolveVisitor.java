@@ -48,6 +48,8 @@ import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.DataDefinitionNode;
 import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
@@ -205,6 +207,61 @@ public class ResolveVisitor extends IdentityVisitor {
         // Push the symboltable on the stack and resolve the body
         valueTables.push(node.table);
         node.expression.accept(this);
+        valueTables.pop();
+    }
+
+    public void visit(ForTupleNode node) {
+
+        node.items.accept(this);
+        node.lambdaBody.accept(this);
+
+        // Create the node's symbol table
+        node.table = new SymbolTable<ValueInfo>(valueTables.peek());
+
+        // Create a symbol info record for each lambda parameter and store it in the
+        // table
+        for (IdentifierNode arg : node.vars) {
+            // TODO: check that definition is left empty is okay
+            Builder builder = ValueInfo.builder()
+                    .name(arg.name())
+                    .file(file)
+                    .isGlobal(false)
+                    .isMonomorphic(true)
+                    .location(node.location())
+                    .isPublic(false);
+            node.table.put(arg.name(), builder.build());
+        }
+
+        // Push the symboltable on the stack and resolve the body
+        valueTables.push(node.table);
+        node.body.accept(this);
+        valueTables.pop();
+    }
+
+    public void visit(ForNode node) {
+
+        node.items.accept(this);
+        node.lambdaBody.accept(this);
+
+        // Create the node's symbol table
+        node.table = new SymbolTable<ValueInfo>(valueTables.peek());
+
+        // Create a symbol info record for each lambda parameter and store it in the
+        // table
+        String arg = node.var.name();
+        // TODO: check that definition is left empty is okay
+        Builder builder = ValueInfo.builder()
+                .name(arg)
+                .file(file)
+                .isGlobal(false)
+                .isMonomorphic(true)
+                .location(node.location())
+                .isPublic(false);
+        node.table.put(arg, builder.build());
+
+        // Push the symboltable on the stack and resolve the body
+        valueTables.push(node.table);
+        node.body.accept(this);
         valueTables.pop();
     }
 

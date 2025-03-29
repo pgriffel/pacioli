@@ -17,7 +17,7 @@
       "patterns": [
         {
           "name": "keyword.control.pacioli",
-          "match": "\\b(define|declare|declare_primitive|defindex|defmatrix|defunit|deftype|defalias|defconv|defrecord|defdata|doc|end|else|import|export|include|for_index|for_unit|for_type|if|then|while|do|begin|return|let|in|and|or|where|select|from|as|_lambda)\\b"
+          "match": "\\b(define|declare|declare_primitive|defindex|defmatrix|defunit|deftype|defalias|defconv|defrecord|defdata|doc|end|else|import|export|include|for_index|for_unit|for_type|if|then|while|for|do|begin|return|let|in|and|or|where|select|from|as|_lambda)\\b"
         }
       ]
     },

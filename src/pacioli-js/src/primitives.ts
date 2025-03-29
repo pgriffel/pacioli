@@ -206,6 +206,17 @@ export function $base_base__while(
   return VOID;
 }
 
+export function $base_base__for(
+  items: RawList,
+  body: (arg: RawValue) => Void
+): Void {
+  for (let item of items) {
+    body(item);
+  }
+
+  return VOID;
+}
+
 export function $base_base__catch_result(
   code: () => Void,
   ref: RawRef

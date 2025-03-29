@@ -30,6 +30,8 @@ import pacioli.ast.IdentityVisitor;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.ReturnNode;
 import pacioli.ast.expression.ReturnVoidNode;
@@ -109,6 +111,16 @@ public class CollectStatementsVisitor extends IdentityVisitor {
 
     @Override
     public void visit(WhileNode node) {
+        typeStack.peek().addAll(nodeAccept(node.body));
+    }
+
+    @Override
+    public void visit(ForNode node) {
+        typeStack.peek().addAll(nodeAccept(node.body));
+    }
+
+    @Override
+    public void visit(ForTupleNode node) {
         typeStack.peek().addAll(nodeAccept(node.body));
     }
 

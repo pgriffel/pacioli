@@ -34,6 +34,8 @@ import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.DataQueryNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
@@ -525,6 +527,30 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.print("lambda ()");
         out.newlineUp();
         node.body.accept(this);
+        out.print(")");
+        out.unmark();
+    }
+
+    @Override
+    public void visit(ForNode node) {
+
+        out.mark();
+        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", "_for"));
+        node.items.accept(this);
+        out.print(",");
+        node.lambdaBody.accept(this);
+        out.print(")");
+        out.unmark();
+    }
+
+    @Override
+    public void visit(ForTupleNode node) {
+
+        out.mark();
+        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", "_for"));
+        node.items.accept(this);
+        out.print(",");
+        node.lambdaBody.accept(this);
         out.print(")");
         out.unmark();
     }

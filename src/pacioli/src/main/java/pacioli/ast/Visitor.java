@@ -42,6 +42,8 @@ import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.DataDefinitionNode;
 import pacioli.ast.expression.DataQueryNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
@@ -151,6 +153,10 @@ public interface Visitor {
     void visit(TupleAssignmentNode node);
 
     void visit(WhileNode node);
+
+    void visit(ForNode node);
+
+    void visit(ForTupleNode node);
 
     void visit(BangTypeNode node);
 

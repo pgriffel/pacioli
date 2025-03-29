@@ -32,6 +32,8 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
@@ -478,6 +480,30 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         write("return ");
         node.body.accept(this);
         write(";})");
+        unmark();
+    }
+
+    @Override
+    public void visit(ForNode node) {
+
+        mark();
+        format("Pacioli.%s(", ValueInfo.global("$base_base", "_for"));
+        node.items.accept(this);
+        write(",");
+        node.lambdaBody.accept(this);
+        write(")");
+        unmark();
+    }
+
+    @Override
+    public void visit(ForTupleNode node) {
+
+        mark();
+        format("Pacioli.%s(", ValueInfo.global("$base_base", "_for"));
+        node.items.accept(this);
+        write(",");
+        node.lambdaBody.accept(this);
+        write(")");
         unmark();
     }
 
