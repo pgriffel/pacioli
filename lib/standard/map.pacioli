@@ -18,7 +18,8 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 export
-    as_tuples;
+    as_tuples,
+    from_tuples;
 
 # ----------------------------------------------------------------------------
 # map
@@ -32,3 +33,20 @@ declare as_tuples ::
 
 define as_tuples(map) =
     [tuple(key, from_just(lookup(key, map))) | key <- keys(map)];
+
+# ----------------------------------------------------------------------------
+
+doc from_tuples
+    "Create a map from a list of key value pairs.";
+
+declare from_tuples ::
+    for_type a, b: (List(Tuple(a, b))) -> Map(a, b);
+
+define from_tuples(tuples) =
+    begin
+        map := empty_map();
+        for (key, value) <- tuples do
+            store(key, value, map);
+        end
+        return map;
+    end;

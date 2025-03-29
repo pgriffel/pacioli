@@ -48,7 +48,8 @@ define base_suites = [
     plu_suite,
     svd_suite,
     qr_suite,
-    solve_suite
+    solve_suite,
+    map_suite
     #mapnz_suite       does not exist in MVM yet
     #kronecker_suite   TODO port in pacioli-ts
 ];
@@ -982,4 +983,155 @@ define solve_suite = test_suite("Function solve", [
             in
                 approximates(A^T '*' A '*' X, A^T '*' B, precision)
             end))
+]);
+
+
+# ------------------------------------------------------------------------------
+# Map contracts
+# 
+# empty_map - constructor
+# store - mutator
+# lookup - observer
+# keys - observer
+#
+# map_size - observer
+#   map_size(map) = list_size(keys(map))
+#
+# store(key, val, map)
+#  pre: true
+#  pst: keys(map') = union(keys(map'), {key}) and
+#       lookup(k, map') = if k = key then val else lookup(k, map) end
+#
+# map := empty_map()
+#  pre: true
+#  pst: keys(map) = {} and
+#       lookup(k, map) = nothing()
+#
+# Lists test_keys and test_values must be without duplicates.
+# ------------------------------------------------------------------------------
+
+define test_store_contract_for_lookup(test_keys, test_values) =
+    let
+        map = random_map(test_keys, test_values),
+
+        key = pick(test_keys()),
+        value = pick(test_values())
+    in
+        begin
+            old_values := [tuple(k, lookup(k, map)) | k <- keys(map)];
+
+            store(key, value, map);
+
+            return
+                from_just(lookup(key, map)) = value and
+                all[ k != key ==> lookup(k, map) = v | (k, v) <- old_values];
+
+        end
+    end;
+
+define test_store_contract_for_keys(test_keys, test_values) =
+    let
+        map = random_map(test_keys, test_values),
+        key = pick(test_keys()),
+        value = pick(test_values())
+    in
+        begin
+            old_keys := keys(map);
+
+            store(key, value, map);
+            
+            new_keys := keys(map);
+
+            return
+                all[ contains(old_keys, k) or k = key | k <- new_keys] and
+                all[ contains(new_keys, k) | k <- old_keys] and
+                contains(new_keys, key) and
+                if contains(old_keys, key) then
+                    list_size(old_keys) = list_size(new_keys)
+                else
+                    list_size(old_keys) + 1 = list_size(new_keys) 
+                end;
+
+        end
+    end;
+
+# ------------------------------------------------------------------------------
+# Random test data for maps
+#
+# The test data is in the form of functions to enforce re-evaulating the values.
+# By re-evaluating test_keys and test_values the tests test test equality well.
+# There is a difference between to identical matrices and two different matrices 
+# with the same contents. The map should handle deep equality well.
+
+# ------------------------------------------------------------------------------
+
+define test_strings(base) =
+    () ->[format("%s_%d", base, i) | i <- naturals(5)];
+
+# ------------------------------------------------------------------------------
+
+defindex Idx = {i0, i1, i2, i3, i4};
+
+define test_indices() =
+    [Idx@i0, Idx@i1, Idx@i2, Idx@i3, Idx@i4];
+
+# ------------------------------------------------------------------------------
+
+define test_pairs(lefts, rights) =
+    () -> zip(lefts(), rights());
+
+# ------------------------------------------------------------------------------
+
+define random_map(test_keys, test_values) =
+    let
+        mapped_keys = choose(test_keys()),
+        mapped_values = [pick(test_values()) | _ <- naturals(list_size(mapped_keys))]
+    in        
+        from_tuples(zip(mapped_keys, mapped_values))
+    end;
+
+define random_list(n, options) =
+    [pick(options) | _ <- naturals(n)];
+
+# ------------------------------------------------------------------------------
+# Random tests for maps
+# ------------------------------------------------------------------------------
+
+define map_suite = test_suite_focus("Type Map", [
+
+    test("should give empty keys() for the empty map", () ->
+        keys(empty_map()) = []
+    ),
+
+    random_test("should store correct values for string keys", () ->
+        just(test_store_contract_for_lookup(test_strings("key"), test_strings("val")))
+    ),
+
+    random_test("should use correct keys for string keys", () ->
+        just(test_store_contract_for_keys(test_strings("key"), test_strings("val")))
+    ),
+
+    random_test("should store correct values for scalar keys", () ->
+        just(test_store_contract_for_lookup(() -> naturals(5), test_strings("val")))
+    ),
+
+    random_test("should use correct keys for scalar keys", () ->
+        just(test_store_contract_for_keys(() -> naturals(5), test_strings("val")))
+    ),
+
+    random_test("should store correct values for index keys", () ->
+        just(test_store_contract_for_lookup(test_indices, test_strings("val")))
+    ),
+
+    random_test("should use correct keys for index keys", () ->
+        just(test_store_contract_for_keys(test_indices, test_strings("val")))
+    ),
+
+    random_test("should store correct values for string pairs", () ->
+        just(test_store_contract_for_lookup(test_pairs(test_strings("left"), test_strings("right")), test_strings("val")))
+    ),
+
+    random_test("should use correct keys for string pairs", () ->
+        just(test_store_contract_for_keys(test_pairs(test_strings("left"), test_strings("right")), test_strings("val")))
+    )
 ]);
