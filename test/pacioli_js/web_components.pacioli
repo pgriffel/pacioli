@@ -491,15 +491,14 @@ define count_words(text) =
              y <- split_string(x, newline_char), 
              y != ""]);
 
+declare element_count :: for_type a: (List(a)) -> List(Tuple(a, 1));
+
 define element_count(elements) =
     begin
         map := empty_map();
         
-        todo := elements;
-        while todo != [] do
-            key := head(todo);
-            store(key, or_else(0, lookup(key, map)) + 1, map);
-            todo := tail(todo);
+        for elt <- elements do
+            store(elt, 1 + or_else(0, lookup(elt, map)), map);
         end
 
         return as_tuples(map);
