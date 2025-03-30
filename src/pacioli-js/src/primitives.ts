@@ -1,6 +1,6 @@
 /* Runtime Support for the Pacioli language
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Copyright (c) 2023-2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -68,6 +68,7 @@ import {
   RawCoordinates,
   RawFunction,
   RawList,
+  RawMap,
   RawMatrix,
   RawRef,
   RawString,
@@ -80,8 +81,10 @@ import {
   tagRef,
   tagTuple,
 } from "./value";
-import { Void, VOID } from "./values/void";
-import { Matrix } from "./values/matrix";
+import { PacioliVoid, VOID } from "./values/void";
+import { PacioliMatrix } from "./values/matrix";
+import { PacioliMap } from "./values/map";
+import { RawMaybe } from "./values/maybe";
 
 // -----------------------------------------------------------------------------
 // 1. Primitive Units Unit Prefixes
@@ -148,7 +151,7 @@ export function $base_base__ref_get(ref: RawRef): RawValue {
 }
 
 export function $base_base_just(value: RawValue): RawValue {
-  return value;
+  return new RawMaybe(value);
 }
 
 export function $base_base_error(value: RawString): unknown {
@@ -163,7 +166,7 @@ export function $base_base_catch(code: any, _: any[]) {
     return code();
   } else {
     try {
-      return code();
+      return new RawMaybe(code());
     } catch (err) {
       return NOTHING;
     }
@@ -172,42 +175,53 @@ export function $base_base_catch(code: any, _: any[]) {
 
 // TODO: give a type
 export function $base_base_nothing(): RawValue {
-  return NOTHING as unknown as RawValue; // Nasty cast because NOTHING is undefined. Reconsider undefined as value?!
+  return NOTHING; // Nasty cast because NOTHING is undefined. Reconsider undefined as value?!
 }
 
-export function $base_base_is_nothing(value: RawValue): RawBoole {
-  return value === NOTHING;
+export function $base_base_is_nothing(maybe: RawMaybe): RawBoole {
+  return maybe.value === undefined;
 }
 
-export function $base_base_from_just(value: RawValue): RawValue {
-  if (value === NOTHING) {
+export function $base_base_from_just(maybe: RawMaybe): RawValue {
+  if (maybe.value === undefined) {
     throw new Error("Cannot get empty Maybe value");
   }
-  return value;
+  return maybe.value;
 }
 
 export function $base_base_not(boole: RawBoole): RawBoole {
   return !boole;
 }
 
-export function $base_system__skip(): Void {
+export function $base_system__skip(): PacioliVoid {
   return VOID;
 }
 
 export function $base_base__while(
   test: () => RawBoole,
-  body: () => Void
-): Void {
+  body: () => PacioliVoid
+): PacioliVoid {
   while (test()) {
     body();
   }
   return VOID;
 }
 
+export function $base_base__for(
+  items: RawList,
+  body: (arg: RawValue) => PacioliVoid
+): PacioliVoid {
+  for (let item of items) {
+    body(item);
+  }
+
+  return VOID;
+}
+
 export function $base_base__catch_result(
-  code: () => Void,
+  code: () => PacioliVoid,
   ref: RawRef
-): RawValue | Void {
+): RawValue | PacioliVoid {
   // dev switch to debug exceptions in a catch block
   if (false) {
     code();
@@ -236,9 +250,9 @@ export function $base_base__throw_result(ref: RawRef, value: RawValue) {
 }
 
 export function $base_base__catch_void(
-  code: () => Void,
+  code: () => PacioliVoid,
   ref: RawRef
-): RawValue | Void {
+): RawValue | PacioliVoid {
   // dev switch to debug exceptions in a catch block
   if (false) {
     code();
@@ -266,7 +280,7 @@ export function $base_base__throw_void(ref: RawRef, value: RawValue) {
   throw "jump";
 }
 
-export function $base_base__seq(_x: Void, y: Void): Void {
+export function $base_base__seq(_x: PacioliVoid, y: PacioliVoid): PacioliVoid {
   return y;
 }
 
@@ -287,6 +301,13 @@ export function $base_base_equal(x: RawValue, y: RawValue): RawBoole {
     return x === y;
   } else if (x.kind === "coordinates" && y.kind === "coordinates") {
     return x.position === y.position;
+  } else if (x.kind === "maybe" && y.kind === "maybe") {
+    return (
+      (x.value === undefined && y.value === undefined) ||
+      (x.value !== undefined &&
+        y.value !== undefined &&
+        $base_base_equal(x.value, y.value))
+    );
   } else if (x.kind === "matrix" && y.kind === "matrix") {
     return !findNonZero(
       x,
@@ -318,7 +339,7 @@ export function $base_base_equal(x: RawValue, y: RawValue): RawBoole {
   }
 }
 
-export function $base_io_print(x: RawValue): Void {
+export function $base_io_print(x: RawValue): PacioliVoid {
   printValue(x);
   return VOID;
 }
@@ -1233,7 +1254,7 @@ export function $base_list_mapnz(fun: RawFunction, x: RawMatrix): RawMatrix {
 export function $base_list_zip(x: RawList, y: RawList): RawList {
   var list = new Array(Math.min(x.length, y.length));
   for (var i = 0; i < list.length; i++) {
-    list[i] = [x[i], y[i]];
+    list[i] = tagTuple([x[i], y[i]]);
   }
   return tagList(list);
 }
@@ -1479,7 +1500,7 @@ export function $base_system__nr_decimals(): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, NR_DECIMALS]]);
 }
 
-export function $base_system__set_nr_decimals(num: RawMatrix): Void {
+export function $base_system__set_nr_decimals(num: RawMatrix): PacioliVoid {
   NR_DECIMALS = getNumber(num, 0, 0);
   return VOID;
 }
@@ -1488,7 +1509,7 @@ export function $base_system__precision(): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, PRECISION]]);
 }
 
-export function $base_system__set_precision(num: RawMatrix): Void {
+export function $base_system__set_precision(num: RawMatrix): PacioliVoid {
   PRECISION = getNumber(num, 0, 0);
   return VOID;
 }
@@ -1517,7 +1538,7 @@ export function $base_system__num2string(
   if (shape === undefined) {
     throw Error("shape undefined");
   }
-  const matrix = new Matrix(shape, num);
+  const matrix = new PacioliMatrix(shape, num);
   return matrix.toDecimal(getNumber(decimals, 0, 0));
 }
 
@@ -1574,13 +1595,34 @@ export function $base_array_array_put(
   arr: RawArray,
   pos: RawMatrix,
   val: RawValue
-): Void {
+): PacioliVoid {
   arr[getNumber(pos, 0, 0)] = val;
   return VOID;
 }
 
 export function $base_array_array_size(arr: RawArray): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, arr.length]]);
+}
+
+export function $base_map_empty_map(): RawMap {
+  // return tagMap(new Map<RawValue, RawValue>());
+  return new PacioliMap();
+}
+
+export function $base_map_lookup(key: RawValue, map: RawMap): RawValue {
+  return map.lookup(key);
+}
+
+export function $base_map_store(
+  key: RawValue,
+  value: RawValue,
+  map: RawMap
+): PacioliVoid {
+  return map.store(key, value);
+}
+
+export function $base_map_keys(map: RawMap): RawList {
+  return map.keys();
 }
 
 // Abandoned experiment

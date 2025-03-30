@@ -1,6 +1,6 @@
 /* Runtime Support for the Pacioli language
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Copyright (c) 2023-2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,8 +20,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Coordinates } from "./values/coordinates";
+import { PacioliCoordinates } from "./values/coordinates";
+import { PacioliMap } from "./values/map";
 import { MatrixShape } from "./values/matrix-shape";
+import { RawMaybe } from "./values/maybe";
+import { PacioliVoid } from "./values/void";
 
 /**
  * All possible raw Pacioli values. The unboxed values used by the primitive
@@ -36,7 +39,10 @@ export type RawValue =
   | RawCoordinates
   | RawFunction
   | RawBoole
-  | RawString;
+  | RawString
+  | RawMap
+  | RawMaybe
+  | RawVoid;
 
 export type MatrixStorage = 0 | 1 | 2 | 3; // Full, DOK, COO or CCS
 
@@ -80,6 +86,16 @@ export interface RawArray extends Array<RawValue> {
 }
 
 /**
+ * Type of an unboxed Pacioli map. The same as a non-raw map.
+ */
+export type RawMap = PacioliMap;
+
+/**
+ * Type of raw Void. The same as the non-raw type.
+ */
+export type RawVoid = PacioliVoid;
+
+/**
  * Type of an unboxed mutable Pacioli value. A javascript array tagged with kind 'ref'.
  */
 export interface RawRef extends Array<RawValue> {
@@ -94,7 +110,7 @@ export interface RawCoordinates {
   kind: "coordinates";
   position: number;
   size: number;
-  coords?: Coordinates; // TODO: check when it exists. $base_matrix_row_domain does not provide it!
+  coords?: PacioliCoordinates; // TODO: check when it exists. $base_matrix_row_domain does not provide it!
 }
 
 /**
@@ -124,7 +140,7 @@ export type RawBoole = boolean;
 /**
  * Pacioli's nothing value.
  */
-export const NOTHING = undefined;
+export const NOTHING = new RawMaybe();
 
 export function tagList(value: Array<RawValue>): RawList {
   (value as RawList).kind = "list";

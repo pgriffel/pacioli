@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright (c) 2013 - 2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,11 +23,11 @@ package uom;
 
 public class ScaledUnit<B> extends BaseUnit<B> {
 
-    //private final NamedUnit unit;
+    // private final NamedUnit unit;
     private final Unit<B> unit;
     private final Prefix prefix;
 
-    //public ScaledUnit(Prefix scale, NamedUnit scaled) {
+    // public ScaledUnit(Prefix scale, NamedUnit scaled) {
     public ScaledUnit(Prefix scale, Unit<B> scaled) {
         prefix = scale;
         unit = scaled;

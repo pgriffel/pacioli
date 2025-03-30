@@ -1,6 +1,6 @@
 /* Runtime Support for the Pacioli language
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Copyright (c) 2023-2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,7 +23,9 @@
 import { ccsFull, ccsGather, ccsScatter, ccsSparse, sscatter } from "numeric";
 import {
   MatrixStorage,
+  RawList,
   RawMatrix,
+  RawTuple,
   STORAGE_CCS,
   STORAGE_COO,
   STORAGE_DOK,
@@ -49,6 +51,25 @@ import {
 // Currently both variants are used. Function $base_matrix_mmult uses CCS. Other
 // CCS calls are disabled by checking === 13 instead of === 3.
 // -----------------------------------------------------------------------------
+
+Array.prototype.toString = function () {
+  const array = this as RawMatrix | RawTuple | RawList;
+  if (array.kind === "matrix") {
+    if (array.nrRows === 1 && array.nrColumns === 1) {
+      return getNumber(array, 0, 0).toString();
+    } else {
+      const nums = getFullNumbers(array) as number[][];
+      return (
+        "[" + nums.map((row) => "[" + row.join(", ") + "]").join(", ") + "]"
+      );
+    }
+  } else if (array.kind === "tuple") {
+    return "(" + array.map((x) => x.toString()).join(", ") + ")";
+  } else if (array.kind === "list") {
+    return "[" + array.map((x) => x.toString()).join(", ") + "]";
+  }
+  return this.map((x) => x.toString()).join(",");
+};
 
 export function tagNumbers(
   numbers: any,

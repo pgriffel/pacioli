@@ -1,4 +1,4 @@
-# Copyright (c) 2018 Paul Griffioen
+# Copyright (c) 2018-2025 Paul Griffioen
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -35,14 +35,16 @@ doc compare_string
     "Alphanumerical ordering of strings. Returns -1 if x comes before y, returns 1
     if x comes after y and returns 0 if x equals y.";
 
-declare_primitive compare_string(string0, string1) :: (String, String) -> 1;
+declare_primitive compare_string(string0, string1) ::
+    (String, String) -> 1;
 
 # ----------------------------------------------------------------------------
 
 doc concatenate
     "A string that is the concatenation of the given strings.";
 
-declare_primitive concatenate(string0, string1) :: (String, String) -> String;
+declare_primitive concatenate(string0, string1) ::
+    (String, String) -> String;
 
 # ----------------------------------------------------------------------------
 
@@ -52,7 +54,8 @@ doc split_string
     For example <code>split_string(\"x + y++ + z--\", \"+\")</code> is
     <code>[\"x \", \" y\", \"\",  \" \", \" \", \"z--\"]</code>";
 
-declare_primitive split_string(string, separator) :: (String, String) -> List(String);
+declare_primitive split_string(string, separator) ::
+    (String, String) -> List(String);
 
 # ----------------------------------------------------------------------------
 
@@ -60,7 +63,8 @@ doc trim
     "Copy of the given string with any whitespace removed from the start and 
     from the end.";
 
-declare_primitive trim(string) :: (String) -> String;
+declare_primitive trim(string) ::
+    (String) -> String;
 
 # ----------------------------------------------------------------------------
 
@@ -96,7 +100,8 @@ doc format
 
     This function is unsafe as the type shows. Any error is thrown at runtime.";
 
-declare_primitive format :: for_type t: t -> String;
+declare_primitive format ::
+    for_type t: t -> String;
 
 # ----------------------------------------------------------------------------
 # Number conversions
@@ -105,7 +110,8 @@ declare_primitive format :: for_type t: t -> String;
 doc parse_num
     "Reads a number from a string.";
 
-declare_primitive parse_num(string) :: (String) -> 1;
+declare_primitive parse_num(string) ::
+    (String) -> 1;
 
 # ----------------------------------------------------------------------------
 
@@ -119,5 +125,5 @@ doc unit2string
 
     For example <code>num2string(1/3*|metre|, 5, |metre|)</code> <code>\"0,33333m\"</code>";
 
-declare_primitive unit2string(unit) :: for_unit a:
-    (a) -> String;
+declare_primitive unit2string(unit) ::
+    for_unit a: (a) -> String;

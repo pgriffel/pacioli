@@ -1,6 +1,6 @@
 /* Runtime Support for the Pacioli language
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Copyright (c) 2023-2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -62,7 +62,7 @@ export { DOM } from "./dom";
 
 export { IndexSet } from "./values/index-set";
 
-export { Matrix } from "./values/matrix";
+export { PacioliMatrix as Matrix } from "./values/matrix";
 
 export { MatrixShape as Shape } from "./values/matrix-shape";
 
@@ -215,6 +215,7 @@ export {
   $base_base_tuple,
   $base_matrix_scalar_unit,
   $base_base__while,
+  $base_base__for,
   $base_list_zip,
   $base_list_contains,
   $base_string_unit2string,
@@ -222,6 +223,10 @@ export {
   $base_matrix_svd,
   $base_matrix_plu,
   $base_matrix_qr,
+  $base_map_empty_map,
+  $base_map_keys,
+  $base_map_lookup,
+  $base_map_store,
   ONE,
 } from "./primitives";
 

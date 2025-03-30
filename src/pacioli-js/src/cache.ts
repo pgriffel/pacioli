@@ -1,6 +1,6 @@
 /* Runtime Support for the Pacioli language
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Copyright (c) 2023-2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,7 @@
  */
 
 import { DimNum, SIBase, SIUnit } from "uom-ts";
-import { Coordinates } from "./values/coordinates";
+import { PacioliCoordinates } from "./values/coordinates";
 import { DOM } from "./dom";
 import { IndexSet } from "./values/index-set";
 import { set, tagNumbers } from "./values/numbers";
@@ -54,7 +54,7 @@ export function createCoordinates(
     names[i] = pairs[i][0];
     indexSets[i] = lookupItem(pairs[i][1], context);
   }
-  var coords = new Coordinates(names, indexSets);
+  var coords = new PacioliCoordinates(names, indexSets);
   // added coords for b_Matrix_make_matrix
   return {
     kind: "coordinates",

@@ -171,8 +171,8 @@ define segment_mesh(curvea, curveb) =
     let 
         n = list_size(curvea)
     in
-        with_material(
-            make_mesh(
+        with_mesh_material("Normal",
+            default_mesh(
                 [vertex(v, SEGMENT_VERTEX_COLOR) | v <- append(curvea, curveb)],
                 [ f | 
                     i <- naturals(n),
@@ -180,7 +180,7 @@ define segment_mesh(curvea, curveb) =
                     b := mod(i+1, n),
                     c := n + mod(i+1, n),
                     d := n + mod(i, n),
-                    f <- [ face(a, b, c) , face(a, c, d)]]), "Normal")
+                    f <- [ face(a, b, c) , face(a, c, d)]]))
   end;
 
 # ----------------------------------------------------------------------------
@@ -189,7 +189,7 @@ declare curve_path ::
     for_unit a: (Curve(a)) -> Path(a, Geom3!);
 
 define curve_path(curve) =
-    make_path(curve);
+    default_path(curve);
 
 # ----------------------------------------------------------------------------
 

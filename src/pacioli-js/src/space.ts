@@ -1,6 +1,6 @@
 /* Runtime Support for the Pacioli language
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Copyright (c) 2023-2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,10 +24,10 @@ import { SIUnit, UOM } from "uom-ts";
 import { getNumber } from "./values/numbers";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { Matrix } from "./values/matrix";
+import { PacioliMatrix } from "./values/matrix";
 import { PacioliString } from "./values/string";
 import { conversionFactor, num, unit } from "./api";
-import { Maybe } from "./values/maybe";
+import { PacioliMaybe } from "./values/maybe";
 import { PacioliBoole } from "./values/boole";
 import { PacioliFunction } from "./values/function";
 import {
@@ -63,21 +63,21 @@ export type StatefulAnimation = [PacioliValue, PacioliFunction, PacioliScene];
  * Matches the Arrow type from the graphics Pacioli library
  */
 type PacioliArrow = [
-  Matrix, // from
-  Matrix, // to
+  PacioliMatrix, // from
+  PacioliMatrix, // to
   PacioliString, // name
   PacioliString, // label
-  Maybe<PacioliString> // color
+  PacioliString // color
 ];
 
 /**
  * Matches the Mesh type from the graphics Pacioli library
  */
 type PacioliMesh = [
-  [Matrix, PacioliString][], // vertices
-  [Matrix, Matrix, Matrix][], // faces
-  Matrix, // position
-  Maybe<PacioliString>, // name
+  [PacioliMatrix, PacioliString][], // vertices
+  [PacioliMatrix, PacioliMatrix, PacioliMatrix][], // faces
+  PacioliMaybe, // position
+  PacioliString, // name
   PacioliBoole, // wireframe
   PacioliString // material
 ];
@@ -86,7 +86,7 @@ type PacioliMesh = [
  * Matches the Path type from the graphics Pacioli library
  */
 type PacioliPath = [
-  Matrix[], // path points
+  PacioliMatrix[], // path points
   PacioliString // color
 ];
 
@@ -94,10 +94,10 @@ type PacioliPath = [
  * Matches the SpotLight type from the graphics Pacioli library
  */
 type PacioliSpotLight = [
-  Matrix, // position
-  Matrix, // target
+  PacioliMatrix, // position
+  PacioliMatrix, // target
   PacioliString, // color
-  Matrix // intensity
+  PacioliMatrix // intensity
 ];
 
 /**
@@ -106,7 +106,7 @@ type PacioliSpotLight = [
  */
 type AmbientLight = [
   PacioliString, // color
-  Matrix // intensity
+  PacioliMatrix // intensity
 ];
 
 /**
@@ -805,8 +805,12 @@ export class Space {
     }
     for (const mesh of meshes) {
       const [, , position, name] = mesh;
-      if (name.value) {
-        this.updateMesh(name.value.value, position);
+      if (name.value !== "" && position.value) {
+        if (position.value.kind === "matrix") {
+          this.updateMesh(name.value, position.value);
+        } else {
+          throw Error("Mesh position must be a matrix");
+        }
       }
     }
   }
@@ -839,10 +843,10 @@ export class Space {
     }
   }
 
-  private updateMesh(name: string, vector: Matrix) {
+  private updateMesh(name: string, position: PacioliMatrix) {
     const mesh = this.scene.getObjectByName(name);
     if (mesh) {
-      const jsVector = vector2THREE(vector, units(this.options));
+      const jsVector = vector2THREE(position, units(this.options));
       mesh.position.set(jsVector.x, jsVector.y, jsVector.z);
     }
   }
@@ -856,10 +860,10 @@ export class Space {
   }
 
   private addSpotLight(
-    position: Matrix,
-    target: Matrix,
+    position: PacioliMatrix,
+    target: PacioliMatrix,
     color: PacioliString,
-    intensity: Matrix
+    intensity: PacioliMatrix
   ) {
     const positionVector = vector2THREE(position, units(this.options));
     const targetVector = vector2THREE(target, units(this.options));
@@ -879,13 +883,13 @@ export class Space {
   // TODO: updatePath
 
   private addVector(
-    origin: Matrix,
-    vector: Matrix,
+    origin: PacioliMatrix,
+    vector: PacioliMatrix,
     name: PacioliString,
     label: PacioliString,
-    color: Maybe<PacioliString>
+    color: PacioliString
   ) {
-    const vectorColor = color.value ? color.value.value : "blue";
+    const vectorColor = color.value === "" ? "blue" : color.value;
 
     this.log(
       `Adding vector from ${vec2String(origin)} to ${vec2String(
@@ -930,10 +934,10 @@ export class Space {
    */
   private updateVector(
     name: string,
-    from: Matrix,
-    to: Matrix,
+    from: PacioliMatrix,
+    to: PacioliMatrix,
     label: PacioliString,
-    color: Maybe<PacioliString>
+    color: PacioliString
   ) {
     // Update the ArrowHelper if needed
     const arrow = this.scene.getObjectByName(name) as THREE.ArrowHelper;
@@ -942,7 +946,7 @@ export class Space {
         to,
         units(this.options)
       );
-      const vectorColor = color.value ? color.value.value : "blue";
+      const vectorColor = color.value === "" ? "blue" : color.value;
       const jsVector = vector2THREE(from, units(this.options));
 
       arrow.position.set(jsVector.x, jsVector.y, jsVector.z);
@@ -1100,22 +1104,37 @@ function createTHREEMesh(
     hasWireframe.value
   ) as THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
 
-  if (name.value) {
-    meshObject.name = (name.value as unknown as PacioliString).value;
+  if (name.value !== "") {
+    meshObject.name = name.value;
   }
 
-  // Place the mesh at the proper position
-  const jsVector = vector2THREE(pos, unit);
-  meshObject.position.x = jsVector.x;
-  meshObject.position.y = jsVector.y;
-  meshObject.position.z = jsVector.z;
+  // Place the mesh at the origin. This is default.
+  meshObject.position.x = 0;
+  meshObject.position.y = 0;
+  meshObject.position.z = 0;
+
+  // Place the mesh at the proper position if it is given
+  if (pos.value) {
+    if (pos.value.kind === "matrix") {
+      const jsVector = vector2THREE(pos.value, unit);
+
+      meshObject.position.x = jsVector.x;
+      meshObject.position.y = jsVector.y;
+      meshObject.position.z = jsVector.z;
+    } else {
+      throw Error("Mesh position must be a matrix");
+    }
+  }
 
   // Return the mesh object to the caller as reference
   return meshObject;
 }
 
 function mesh2THREE(
-  mesh: [[Matrix, PacioliString][], [Matrix, Matrix, Matrix][]],
+  mesh: [
+    [PacioliMatrix, PacioliString][],
+    [PacioliMatrix, PacioliMatrix, PacioliMatrix][]
+  ],
   material: THREE.Material,
   unit: { x: SIUnit; y: SIUnit; z: SIUnit },
   wireframe: boolean
@@ -1196,13 +1215,13 @@ function createTHREEPath(
 ) {
   var geometry = new THREE.BufferGeometry();
   var material = new THREE.LineBasicMaterial({
-    color: path[1].value,
+    color: path[1].value === "" ? "#222222" : path[1].value,
     transparent: true,
     opacity: 1.0,
   });
 
   geometry.setFromPoints(
-    path[0].map((point: Matrix) => vector2THREE(point, unit))
+    path[0].map((point: PacioliMatrix) => vector2THREE(point, unit))
   );
 
   var lineObject = new THREE.Line(geometry, material);
@@ -1211,8 +1230,8 @@ function createTHREEPath(
 }
 
 function createTHREELabel(
-  origin: Matrix,
-  vector: Matrix,
+  origin: PacioliMatrix,
+  vector: PacioliMatrix,
   name: PacioliString,
   label: PacioliString,
   unit: { x: SIUnit; y: SIUnit; z: SIUnit },
@@ -1239,13 +1258,13 @@ function createTHREELabel(
 }
 
 function createTHREEArrowHelper(
-  origin: Matrix,
-  vector: Matrix,
+  origin: PacioliMatrix,
+  vector: PacioliMatrix,
   name: PacioliString,
-  color: Maybe<PacioliString>,
+  color: PacioliString,
   unit: { x: SIUnit; y: SIUnit; z: SIUnit }
 ): THREE.ArrowHelper {
-  const vectorColor = color.value ? color.value.value : "blue";
+  const vectorColor = color.value === "" ? "blue" : color.value;
   const from = vector2THREE(origin, unit);
   const [dirVec, vectorLength] = arrowDirectionAndLength(vector, unit);
 
@@ -1260,7 +1279,7 @@ function createTHREEArrowHelper(
 }
 
 function arrowDirectionAndLength(
-  vector: Matrix,
+  vector: PacioliMatrix,
   unit: { x: SIUnit; y: SIUnit; z: SIUnit }
 ): [THREE.Vector3, number] {
   const threeVector = vector2THREE(vector, unit);
@@ -1282,7 +1301,7 @@ function arrowDirectionAndLength(
  * @returns A THREE vector
  */
 function vector2THREE(
-  vector: Matrix,
+  vector: PacioliMatrix,
   unit: { x: SIUnit; y: SIUnit; z: SIUnit },
   scale?: number
 ) {
@@ -1315,7 +1334,7 @@ function vector2THREE(
  * @param vector A matrix's numbers
  * @returns A string of the form (x, y, z)
  */
-function vec2String(vector: Matrix) {
+function vec2String(vector: PacioliMatrix) {
   return `(${getNumber(vector.numbers, 0, 0).toFixed(5)}, ${getNumber(
     vector.numbers,
     1,

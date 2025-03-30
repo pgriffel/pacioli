@@ -22,8 +22,8 @@ define my_arrows(a, b, c) =
 </pre>
 
 <p>
-After compilation the function <code>my_scene</code> can be called from javascript code to create the scene at runtime. 
-See the <code>pacioli.js</code> library for the runtime API. 
+After compilation the function <code>my_scene</code> can be used to connect the scene to a web component or it can be called directly
+from javascript code to create the scene at runtime. See the <code>pacioli.js</code> library for the runtime API. 
 </p>
 
 <p>

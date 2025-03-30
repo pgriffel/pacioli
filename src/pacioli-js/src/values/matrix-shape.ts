@@ -1,6 +1,6 @@
 /* Runtime Support for the Pacioli language
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Copyright (c) 2023-2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,7 @@
  */
 
 import { SIUnit, UOM } from "uom-ts";
-import { Coordinates } from "./coordinates";
+import { PacioliCoordinates } from "./coordinates";
 import { MatrixDimension } from "./matrix-dimension";
 import { VectorBase } from "./vector-base";
 
@@ -278,11 +278,14 @@ export class MatrixShape {
   }
 
   public rowCoordinates(position: number) {
-    return Coordinates.fromIndex(this.rowDimension.indexSets, position);
+    return PacioliCoordinates.fromIndex(this.rowDimension.indexSets, position);
   }
 
   public columnCoordinates(position: number) {
-    return Coordinates.fromIndex(this.columnDimension.indexSets, position);
+    return PacioliCoordinates.fromIndex(
+      this.columnDimension.indexSets,
+      position
+    );
   }
 
   public rowNames(): string[] {

@@ -1,4 +1,4 @@
-# Copyright (c) 2018 Paul Griffioen
+# Copyright (c) 2018-2025 Paul Griffioen
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -30,7 +30,8 @@ doc with_output_file
     "Opens a file for writing and calls the callback with a handle to
     the file";
     
-declare_primitive with_output_file(path, body) :: (String, (File) -> Void) -> Void;
+declare_primitive with_output_file(path, body) ::
+    (String, (File) -> Void) -> Void;
 
 # ----------------------------------------------------------------------------
 
@@ -38,7 +39,8 @@ doc write_string
     "Write a string to a file. Use <code>with_output_file</code> to get a file
     handle.";
 
-declare_primitive write_string(file, text) :: (File, String) -> Void;
+declare_primitive write_string(file, text) ::
+    (File, String) -> Void;
 
 # ----------------------------------------------------------------------------
 # Terminal IO
@@ -47,4 +49,5 @@ declare_primitive write_string(file, text) :: (File, String) -> Void;
 doc print
     "Writes a string to standard output.";
 
-declare_primitive print(text) :: (String) -> Void;
+declare_primitive print(text) ::
+    (String) -> Void;

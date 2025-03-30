@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2013 - 2025 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package pacioli.ast.visitors;
 
 import java.util.ArrayList;
@@ -17,6 +38,8 @@ import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.DataDefinitionNode;
 import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
@@ -370,6 +393,126 @@ public class TypeInference extends IdentityVisitor {
 
         // Create a typing with an index type from the type identifies.
         returnNode(new Typing(new IndexList(typeIds, typeInfos)));
+    }
+
+    @Override
+    public void visit(ForNode node) {
+
+        String argName = node.var.name();
+
+        // Create the type variable
+        String freshName = node.table.freshSymbolName();
+        TypeObject freshType = new TypeVar(freshName);
+        TypeObject argType = freshType;
+
+        // Also store the type in the for node's symbol table
+        ValueInfo argInfo = node.table.lookup(argName);
+
+        argInfo.setinferredType(freshType);
+
+        Typing itemsTyping = typingAccept(node.items);
+        Typing bodyTyping = typingAccept(node.body);
+
+        Typing typing = new Typing(newVoidType());
+
+        typing.addConstraintsAndAssumptions(itemsTyping);
+
+        var itemsType = new ParametricType(
+                null,
+                new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
+                List.of(argType));
+        typing.addConstraint(itemsType, itemsTyping.type(),
+                "the variables in a for loop must match the list items", node.location());
+
+        typing.addConstraint(bodyTyping.type(), newVoidType(),
+                "the body of a for loop must be a statement", node.location());
+
+        typing.addConstraints(bodyTyping);
+
+        for (String name : bodyTyping.assumedNames()) {
+            ValueInfo info = node.table.lookup(name);
+            if (argName.equals(name)) {
+                for (TypeVar var : bodyTyping.assumptions(name)) {
+                    typing.addConstraint(var, info.localType(),
+                            String.format("During type inference in %s\nLambda var %s must have the proper type",
+                                    node.sourceDescription(),
+                                    name),
+                            node.location());
+                }
+            } else {
+                for (TypeVar var : bodyTyping.assumptions(name)) {
+                    typing.addAssumption(name, var);
+                }
+            }
+        }
+
+        returnNode(typing);
+
+    }
+
+    @Override
+    public void visit(ForTupleNode node) {
+
+        // A list for the argument types
+        List<TypeObject> argTypes = new ArrayList<TypeObject>();
+
+        List<String> argNames = new ArrayList<>();
+
+        for (IdentifierNode arg : node.vars) {
+            argNames.add(arg.name());
+        }
+
+        for (String arg : argNames) {
+
+            // Create the type variable and add it to the list
+            String freshName = node.table.freshSymbolName();
+            TypeObject freshType = new TypeVar(freshName);
+            argTypes.add(freshType);
+
+            // Also store the type in the for node's symbol table
+            ValueInfo info = node.table.lookup(arg);
+            info.setinferredType(freshType);
+
+        }
+
+        Typing itemsTyping = typingAccept(node.items);
+        Typing bodyTyping = typingAccept(node.body);
+
+        Typing typing = new Typing(newVoidType());
+
+        typing.addConstraintsAndAssumptions(itemsTyping);
+
+        var itemsType = new ParametricType(
+                null,
+                new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
+                List.of(newTupleType(argTypes)));
+        typing.addConstraint(itemsType, itemsTyping.type(),
+                "the variables in a for loop must match the list items", node.location());
+
+        typing.addConstraint(bodyTyping.type(), newVoidType(),
+                "the body of a for loop must be a statement", node.location());
+
+        typing.addConstraints(bodyTyping);
+
+        for (String name : bodyTyping.assumedNames()) {
+            ValueInfo info = node.table.lookup(name);
+            if (argNames.contains(name)) {
+                for (TypeVar var : bodyTyping.assumptions(name)) {
+                    typing.addConstraint(var, info.localType(),
+                            String.format("During type inference in %s\nLambda var %s must have the proper type",
+                                    node.sourceDescription(),
+                                    name),
+                            node.location());
+                }
+            } else {
+                for (TypeVar var : bodyTyping.assumptions(name)) {
+                    typing.addAssumption(name, var);
+                }
+            }
+        }
+
+        returnNode(typing);
+
     }
 
     @Override

@@ -1,6 +1,6 @@
 /* Runtime Support for the Pacioli language
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Copyright (c) 2023-2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,9 +20,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-export type Void = { readonly kind: "void" };
+export type PacioliVoid = { readonly kind: "void" };
 
 /**
  * Pacioli's void value.
  */
-export const VOID: Void = { kind: "void" };
+export const VOID: PacioliVoid = { kind: "void" };

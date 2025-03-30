@@ -1,6 +1,6 @@
 /* Runtime Support for the Pacioli language
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Copyright (c) 2023-2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,9 +20,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Matrix } from "./values/matrix";
+import { PacioliMatrix } from "./values/matrix";
 import { getCOONumbers, getFullNumbers, getNumber } from "./values/numbers";
-import { Coordinates } from "./values/coordinates";
+import { PacioliCoordinates } from "./values/coordinates";
 import { SIUnit } from "uom-ts";
 
 // TODO: remove any type
@@ -43,7 +43,7 @@ export function DOM(
           return document.createTextNode(getFullNumbers(x));
         }
       case "coordinates":
-        const coords = x as Coordinates;
+        const coords = x as PacioliCoordinates;
         return document.createTextNode(coords.shortText());
       // case "ref":
       //     return Pacioli.DOM(x.value[0])
@@ -73,7 +73,7 @@ export function DOM(
 
 // TODO Use tableRows from Matrix
 export function DOMmatrixTable(
-  matrix: Matrix,
+  matrix: PacioliMatrix,
   options?: { decimals?: number; zero?: string; zeroRows?: boolean }
 ) {
   var shape = matrix.shape;
@@ -191,7 +191,7 @@ export function DOMmatrixTable(
 export function DOMTable(
   columns: {
     title: string;
-    value: Matrix;
+    value: PacioliMatrix;
     decimals: number;
     zero?: string;
   }[],

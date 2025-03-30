@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Paul Griffioen
+# Copyright (c) 2013-2025 Paul Griffioen
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -20,6 +20,7 @@
 include string;
 include list;
 include matrix;
+include map;
 include io;
 
 export
@@ -57,6 +58,9 @@ define pi = 3.141592653589793;
 # ------------------------------------------------------------------------------
 # System time
 # ------------------------------------------------------------------------------
+
+doc now
+    "Number of milliseconds since some starting point.";
 
 declare now :: () -> milli:second;
 

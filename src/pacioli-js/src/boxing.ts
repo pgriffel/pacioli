@@ -1,6 +1,6 @@
 /* Runtime Support for the Pacioli language
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Copyright (c) 2023-2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -23,29 +23,30 @@
 import { SIUnit, UOM } from "uom-ts";
 import { PacioliType, PacioliUnit, PacioliVector } from "./type";
 import { IndexType, MatrixType, PacioliIndex } from "./types/matrix";
-import { RawList, RawMatrix, RawTuple, RawValue } from "./value";
+import { NOTHING, RawList, RawMatrix, RawTuple, RawValue } from "./value";
 import { PacioliBoole, pacioliFalse, pacioliTrue } from "./values/boole";
 import { PacioliFunction } from "./values/function";
-import { Matrix } from "./values/matrix";
+import { PacioliMatrix } from "./values/matrix";
 import { MatrixDimension } from "./values/matrix-dimension";
 import { MatrixShape, SIVector } from "./values/matrix-shape";
 import { PacioliString } from "./values/string";
 import { VectorBase } from "./values/vector-base";
-import { Void, VOID } from "./values/void";
+import { PacioliVoid, VOID } from "./values/void";
 import { GenericType } from "./types/generic";
 import { SIBaseType, VectorBaseType } from "./types/bases";
-import { Maybe } from "./values/maybe";
+import { PacioliMaybe, RawMaybe } from "./values/maybe";
 import { PacioliContext } from "./context";
-import { Coordinates } from "./values/coordinates";
+import { PacioliCoordinates } from "./values/coordinates";
 import { fetchIndex, fetchUnit, fetchUnitVector } from "./cache";
 import { PacioliTuple } from "./values/tuple";
 import { PacioliList } from "./values/list";
 import { PacioliArray } from "./values/array";
 import { PacioliRef } from "./values/ref";
+import { PacioliMap } from "./values/map";
 
 export type PacioliValue =
-  | Matrix
-  | Coordinates
+  | PacioliMatrix
+  | PacioliCoordinates
   | PacioliTuple
   | PacioliList
   | PacioliArray
@@ -53,8 +54,9 @@ export type PacioliValue =
   | PacioliBoole
   | PacioliFunction
   | PacioliString
-  | Void
-  | Maybe<any>;
+  | PacioliMap
+  | PacioliVoid
+  | PacioliMaybe;
 
 export interface ToText {
   toText(): string;
@@ -101,9 +103,10 @@ export function boxRawValue(
       } else if (type.name === "Void") {
         return VOID;
       } else if (type.name === "Maybe") {
-        return new Maybe(
+        const val = (value as RawMaybe).value;
+        return new PacioliMaybe(
           type,
-          value ? boxRawValue(value, type.items[0], context) : undefined
+          val ? boxRawValue(val, type.items[0], context) : undefined
         );
       } else if (type.name === "List") {
         if (typeof value === "object") {
@@ -132,7 +135,10 @@ export function boxRawValue(
       }
     }
     case "matrix": {
-      return new Matrix(matrixShapeFromType(type, context), value as RawMatrix);
+      return new PacioliMatrix(
+        matrixShapeFromType(type, context),
+        value as RawMatrix
+      );
     }
     case "typevar": {
       throw Error(
@@ -223,8 +229,8 @@ export function rawValueFromValue(value: PacioliValue): any {
     }
     case "maybe": {
       return value.value === undefined
-        ? undefined
-        : rawValueFromValue(value.value);
+        ? NOTHING
+        : new RawMaybe(rawValueFromValue(value.value));
     }
     default: {
       throw new Error(

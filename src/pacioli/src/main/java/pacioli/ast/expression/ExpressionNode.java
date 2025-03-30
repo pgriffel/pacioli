@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright (c) 2013 - 2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -45,6 +45,7 @@ public interface ExpressionNode extends Node {
         defaultTypes.put("String", (ParametricInfo) prog.types().lookup("String"));
         defaultTypes.put("Boole", (ParametricInfo) prog.types().lookup("Boole"));
         defaultTypes.put("Data", (ParametricInfo) prog.types().lookup("Data"));
+        defaultTypes.put("List", (ParametricInfo) prog.types().lookup("List"));
 
         TypeInference visitor = new TypeInference(defaultTypes, file);
         return visitor.typingAccept(this);

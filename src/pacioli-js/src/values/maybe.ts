@@ -1,6 +1,6 @@
 /* Runtime Support for the Pacioli language
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Copyright (c) 2023-2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,10 +20,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { PacioliValue } from "../boxing";
 import { PacioliType } from "../type";
+import { RawValue } from "../value";
 
-export class Maybe<T> {
+export class PacioliMaybe {
   readonly kind = "maybe";
 
-  constructor(public type: PacioliType, public value?: T) {}
+  constructor(public type: PacioliType, public value?: PacioliValue) {}
+}
+
+export class RawMaybe {
+  readonly kind = "maybe";
+
+  constructor(public value?: RawValue) {}
+
+  toString(): string {
+    return this.value === undefined ? "nothing" : this.value.toString();
+  }
 }

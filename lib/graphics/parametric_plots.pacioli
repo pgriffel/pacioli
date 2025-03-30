@@ -1,3 +1,26 @@
+# Copyright (c) 2023-2025 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+# ------------------------------------------------------------------------------
+# 3D graphics
+# ------------------------------------------------------------------------------
+
 import geometry;
 
 include color;
@@ -146,7 +169,7 @@ define plot_parametric_surface(fun, range, options, scene) =
     begin
         mesh := compute_surface_mesh(fun, range, options);
         mesh := set_wireframe(mesh, parametric_plot_options_wireframe(options));
-        mesh := with_material(mesh, parametric_plot_options_material(options));
+        mesh := with_mesh_material(parametric_plot_options_material(options), mesh);
         return add_meshes([mesh], scene);
     end;
 
@@ -165,7 +188,7 @@ define compute_surface_mesh(fun, range, options) =
         vertices = [vertex(fun(u, v), color) | i <- indices, j <- indices, u := u0 + i * du, v := v0 + j * dv],
         faces = [f | i <- naturals(n), j <- naturals(n), k := j * (n+1), f <- [face(k+i, k+i+1, k+n+1+i), face(k+i+1, k+n+1+i, k+n+2+i)]]
     in
-        make_mesh(vertices, faces)
+        default_mesh(vertices, faces)
     end;
 
 define plot_parametric_surface_grid(fun, range, options, scene) =
@@ -176,8 +199,7 @@ define compute_surface_lines(fun, range, options) =
         n = parametric_plot_options_n(options),
         color = parametric_plot_options_color(options)
     in
-        [ with_path_color(make_path(lines), color) |
-            lines <- surface_lines(fun, range, n)]
+        [ make_path(lines, color) | lines <- surface_lines(fun, range, n)]
     end;
 
 define surface_lines(fun, range, n) =
@@ -281,7 +303,7 @@ define plot_parametric_path(fun, u0, v0, du, dv, options, scene) =
     end;
 
 define path_arrows(positions, color) =
-    [ with_arrow_color(color, make_arrow(pos, du - pos)) | (pos, du) <- zip(positions, tail(positions))];
+    [ with_arrow_color(color, default_arrow(pos, du - pos)) | (pos, du) <- zip(positions, tail(positions))];
 
 define path_deltas(fun, u0, v0, du, dv, n, m, d) =
     [tuple(pos, vv, vu) |
@@ -323,17 +345,17 @@ define plot_delta_arrows(deltas, options, scene) =
 define total_arrows(deltas, color, d) =
     [ with_arrow_color(color, arrow) |
         (pos, du, dv) <- deltas,
-        arrow := make_arrow(pos, d '.*' (du + dv))];
+        arrow := default_arrow(pos, d '.*' (du + dv))];
 
 define partial_arrows(deltas, color, d) =
     [ with_arrow_color(color, arrow) |
         (pos, du, dv) <- deltas,
-        arrow <- [make_arrow(pos, d '.*' du), make_arrow(pos, d '.*' dv)]];
+        arrow <- [default_arrow(pos, d '.*' du), default_arrow(pos, d '.*' dv)]];
 
 define normal_arrows(deltas, color, d) =
     [ with_arrow_color(color, arrow) |
         (pos, du, dv) <- deltas,
-        arrow := make_arrow(pos, d '.*' cross_sqrt(magnitude(du), magnitude(dv)) * unit(pos))];
+        arrow := default_arrow(pos, d '.*' cross_sqrt(magnitude(du), magnitude(dv)) * unit(pos))];
 
 # ------------------------------------------------------------------------------
 # Ranges
