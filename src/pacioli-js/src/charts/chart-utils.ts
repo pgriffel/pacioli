@@ -25,7 +25,7 @@ import { PacioliContext } from "../context";
 import { getNumber, getCOONumbers } from "../values/numbers";
 import * as d3 from "d3";
 import { PacioliValue } from "../boxing";
-import { Matrix } from "../values/matrix";
+import { PacioliMatrix } from "../values/matrix";
 
 export interface DefaultChartOptions {
   width?: number;
@@ -81,7 +81,8 @@ export function transformData(
               .toNumber()
           : 1;
         for (var i = 0; i < items.length; i++) {
-          var value = getNumber((items[i] as Matrix).numbers, 0, 0) * factor;
+          var value =
+            getNumber((items[i] as PacioliMatrix).numbers, 0, 0) * factor;
           if (includeZeros || value !== 0) {
             values.push(value);
             labels.push(i.toString());

@@ -1097,7 +1097,7 @@ define random_list(n, options) =
 # Random tests for maps
 # ------------------------------------------------------------------------------
 
-define map_suite = test_suite_focus("Type Map", [
+define map_suite = test_suite("Type Map", [
 
     test("should give empty keys() for the empty map", () ->
         keys(empty_map()) = []
@@ -1133,5 +1133,13 @@ define map_suite = test_suite_focus("Type Map", [
 
     random_test("should use correct keys for string pairs", () ->
         just(test_store_contract_for_keys(test_pairs(test_strings("left"), test_strings("right")), test_strings("val")))
+    ),
+    
+    random_test("should store correct values for scalar pairs", () ->
+        just(test_store_contract_for_lookup(test_pairs(() -> [x/3 | x <- naturals(5)], () -> naturals(5)), test_strings("val")))
+    ),
+
+    random_test("should use correct keys for scalar pairs", () ->
+        just(test_store_contract_for_keys(test_pairs(() -> naturals(5), () -> naturals(5)), test_strings("val")))
     )
 ]);

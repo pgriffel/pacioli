@@ -22,7 +22,7 @@
 
 import { SIUnit } from "uom-ts";
 import { PacioliString } from "../values/string";
-import { Matrix } from "../values/matrix";
+import { PacioliMatrix } from "../values/matrix";
 import { num, parseDimNum, value } from "../api";
 import { PacioliFunction } from "../values/function";
 import { PacioliValue } from "../boxing";
@@ -44,7 +44,7 @@ export type NumberParameter = {
   label: string;
   value: string;
   unit: string;
-  pacioliValue: Matrix;
+  pacioliValue: PacioliMatrix;
   pacioliUnit: SIUnit;
 };
 

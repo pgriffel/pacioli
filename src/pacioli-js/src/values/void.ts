@@ -20,9 +20,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-export type Void = { readonly kind: "void" };
+export type PacioliVoid = { readonly kind: "void" };
 
 /**
  * Pacioli's void value.
  */
-export const VOID: Void = { kind: "void" };
+export const VOID: PacioliVoid = { kind: "void" };

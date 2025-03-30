@@ -62,7 +62,7 @@ export { DOM } from "./dom";
 
 export { IndexSet } from "./values/index-set";
 
-export { Matrix } from "./values/matrix";
+export { PacioliMatrix as Matrix } from "./values/matrix";
 
 export { MatrixShape as Shape } from "./values/matrix-shape";
 

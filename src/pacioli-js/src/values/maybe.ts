@@ -20,10 +20,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { PacioliValue } from "../boxing";
 import { PacioliType } from "../type";
+import { RawValue } from "../value";
 
-export class Maybe<T> {
+export class PacioliMaybe {
   readonly kind = "maybe";
 
-  constructor(public type: PacioliType, public value?: T) {}
+  constructor(public type: PacioliType, public value?: PacioliValue) {}
+}
+
+export class RawMaybe {
+  readonly kind = "maybe";
+
+  constructor(public value?: RawValue) {}
+
+  toString(): string {
+    return this.value === undefined ? "nothing" : this.value.toString();
+  }
 }

@@ -36,7 +36,7 @@ import { RawMatrix, STORAGE_COO } from "../value";
  * TODO: define a proper API. Expose all primitives?
  *
  */
-export class Matrix {
+export class PacioliMatrix {
   readonly kind = "matrix";
 
   constructor(public shape: MatrixShape, public numbers: RawMatrix) {}
@@ -48,7 +48,10 @@ export class Matrix {
    * @returns A new matrix of the same shape
    */
   public filter(predicate: (value: number, i: any, j: any) => boolean) {
-    return new Matrix(this.shape, filter_matrix(this.numbers, predicate));
+    return new PacioliMatrix(
+      this.shape,
+      filter_matrix(this.numbers, predicate)
+    );
     // }
 
     return this;
@@ -56,7 +59,7 @@ export class Matrix {
 
   public convertUnit(unit: SIUnit, context: Context) {
     const unitShape = MatrixShape.scalar(unit);
-    return new Matrix(
+    return new PacioliMatrix(
       this.shape.dimensionless().scale(unitShape),
       convert_unit(this.numbers, this.shape, unit, context)
     );
@@ -118,7 +121,7 @@ export class Matrix {
       var n = getNumber(num, 0, 0);
       return n.toFixed(decimals) + "" + shape.unitAt(0, 0).toText();
     } else {
-      const matrix = new Matrix(shape, num);
+      const matrix = new PacioliMatrix(shape, num);
       const rows = matrix.tableRows(decimals) as string[][];
       const colSize0 = columnSize(rows, 0);
 

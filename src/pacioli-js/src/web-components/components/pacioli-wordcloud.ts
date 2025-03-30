@@ -21,7 +21,7 @@
  */
 
 import { WordCloud, WordCloudOptions } from "../../charts/d3-wordcloud";
-import { Matrix } from "../../values/matrix";
+import { PacioliMatrix } from "../../values/matrix";
 import { getNumber } from "../../values/numbers";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
@@ -39,7 +39,7 @@ const SUPPORTED_ATTRIBUTES = {
 /**
  * Pacioli format for wordcloud data. A list of tuples.
  */
-type WordCloudData = [PacioliString, Matrix][];
+type WordCloudData = [PacioliString, PacioliMatrix][];
 
 /**
  * Style sheet for the word cloud component

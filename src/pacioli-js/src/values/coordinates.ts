@@ -26,7 +26,7 @@ import { IndexSet } from "./index-set";
 import { MatrixDimension } from "./matrix-dimension";
 import { MatrixShape, SIVector } from "./matrix-shape";
 
-export class Coordinates {
+export class PacioliCoordinates {
   readonly kind = "coordinates";
 
   public static fromIndex(indexSets: IndexSet[], n: number) {
@@ -37,7 +37,7 @@ export class Coordinates {
       names[i] = indexSets[i].items[pos % l];
       pos = Math.floor(pos / l);
     }
-    return new Coordinates(names, indexSets);
+    return new PacioliCoordinates(names, indexSets);
   }
 
   constructor(public names: string[], public indexSets: IndexSet[]) {}
@@ -51,14 +51,14 @@ export class Coordinates {
     return position;
   }
 
-  public project(cols: number[]): Coordinates {
+  public project(cols: number[]): PacioliCoordinates {
     var names = [];
     var indexSets = [];
     for (var i = 0; i < cols.length; i++) {
       names.push(this.names[cols[i]]);
       indexSets.push(this.indexSets[cols[i]]);
     }
-    return new Coordinates(names, indexSets);
+    return new PacioliCoordinates(names, indexSets);
   }
 
   public toText(): string {
@@ -91,7 +91,7 @@ export class Coordinates {
     return this.indexSets.length;
   }
 
-  public equals(other: Coordinates): boolean {
+  public equals(other: PacioliCoordinates): boolean {
     const n = this.order();
     if (other.order() !== n) {
       return false;

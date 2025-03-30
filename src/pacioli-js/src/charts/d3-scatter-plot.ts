@@ -26,7 +26,7 @@ import { PacioliValue } from "../boxing";
 import { getCOONumbers } from "../values/numbers";
 import { dataUnit, displayChartError } from "./chart-utils";
 import { PacioliContext } from "./../context";
-import { Coordinates } from "../values/coordinates";
+import { PacioliCoordinates } from "../values/coordinates";
 import { SIUnit } from "uom-ts";
 import { DefaultChartOptions, ToolTip } from "./chart-utils";
 
@@ -48,8 +48,16 @@ export interface ScatterPlotOptions extends DefaultChartOptions {
   radius?: number;
   trendline?: boolean;
   decimals?: number;
-  onclick?: (data: { x: DimNum; y: DimNum; element: Coordinates }) => void;
-  tooltip?: (valueX: DimNum, valueY: DimNum, element: Coordinates) => string;
+  onclick?: (data: {
+    x: DimNum;
+    y: DimNum;
+    element: PacioliCoordinates;
+  }) => void;
+  tooltip?: (
+    valueX: DimNum,
+    valueY: DimNum,
+    element: PacioliCoordinates
+  ) => string;
   tooltipOffset?: { dx: number; dy: number };
 }
 
@@ -86,8 +94,16 @@ export class ScatterPlot {
     radius: number;
     trendline: boolean;
     decimals: number;
-    onclick?: (data: { x: DimNum; y: DimNum; element: Coordinates }) => void;
-    tooltip?: (valueX: DimNum, valueY: DimNum, element: Coordinates) => string;
+    onclick?: (data: {
+      x: DimNum;
+      y: DimNum;
+      element: PacioliCoordinates;
+    }) => void;
+    tooltip?: (
+      valueX: DimNum,
+      valueY: DimNum,
+      element: PacioliCoordinates
+    ) => string;
     tooltipOffset: { dx: number; dy: number };
   };
 
@@ -109,14 +125,22 @@ export class ScatterPlot {
     tooltipOffset: { dx: -50, dy: -120 },
   };
 
-  public defaultTooltip(x: DimNum, y: DimNum, element: Coordinates): string {
+  public defaultTooltip(
+    x: DimNum,
+    y: DimNum,
+    element: PacioliCoordinates
+  ): string {
     return `${element.names}:<br>
     ${this.options.xlabel} = ${x.toFixed(this.options.decimals)}
     <br>
     ${this.options.ylabel} = ${y.toFixed(this.options.decimals)}`;
   }
 
-  public clickHandler(data: { x: DimNum; y: DimNum; element: Coordinates }) {
+  public clickHandler(data: {
+    x: DimNum;
+    y: DimNum;
+    element: PacioliCoordinates;
+  }) {
     const indexSets = data.element.indexSets.map(function (x: any) {
       return x.name;
     });
@@ -363,7 +387,8 @@ function mergeData(
   context: PacioliContext,
   convert: boolean
 ) {
-  const values: { x: number; y: number; coordinates: Coordinates }[] = [];
+  const values: { x: number; y: number; coordinates: PacioliCoordinates }[] =
+    [];
   const labels: string[] = []; // todo X and Y
   let minX, maxX, minY, maxY: number | undefined;
 

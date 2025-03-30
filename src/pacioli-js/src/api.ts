@@ -21,7 +21,7 @@
  */
 
 import { DimNum, SIUnit, UOM, parseDimNum as uomParseDimNum } from "uom-ts";
-import { Matrix } from "./values/matrix";
+import { PacioliMatrix } from "./values/matrix";
 import { MatrixShape } from "./values/matrix-shape";
 import { PacioliUnit, PacioliVector } from "./type";
 import { PacioliContext } from "./context";
@@ -84,7 +84,10 @@ export function fun(
   }
 }
 
-export function convertUnit(matrix: Matrix, unit: SIUnit): Matrix {
+export function convertUnit(
+  matrix: PacioliMatrix,
+  unit: SIUnit
+): PacioliMatrix {
   return matrix.convertUnit(unit, defaultContext.unitContext);
 }
 
@@ -129,12 +132,15 @@ export function typeFromVarName(varName: string): TypeVar {
   return new TypeVar("_" + varName + "_");
 }
 
-export function num(num: string | number, unit: SIUnit = UOM.ONE): Matrix {
+export function num(
+  num: string | number,
+  unit: SIUnit = UOM.ONE
+): PacioliMatrix {
   const shape = MatrixShape.scalar(unit === undefined ? UOM.ONE : unit);
   const numbers = initialNumbers(1, 1, [
     [0, 0, typeof num === "string" ? parseFloat(num) : num],
   ]);
-  return new Matrix(shape, numbers);
+  return new PacioliMatrix(shape, numbers);
 }
 
 export function parseUnit(
