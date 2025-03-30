@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Surfaces</title>
+
+    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="quadratic_surfaces.js"></script>
+
+</head>
+
+<body>
+    <div id="console"></div>
+
+    <h1>Paraboloid examples</h1>
+
+    These examples render two-dimensional surfaces.
+    First by means of a quadratic forms.
+    Next by means of a parametrically defined function.
+
+    <p>
+        A surface is described parametrically with a function
+        <math>
+            <mi>f</mi>
+            (
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            )
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    (
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    )
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        from parameters
+        <math>
+            (<mi>u</mi>, <mi>v</mi>)
+        </math>
+        to a three-dimensional position vector. The domains of u and v vary per parametrization.
+
+    <p>
+        In the examples below, parameter n is the number of samples in each of the two directions. The computation
+        complexity is therefore n squared.
+
+    <p>
+        Parameter m is the density of the normal and other vectors. If m equals 1 then arrows are shown for every line
+        segment. If m equals 2 then are shown every other segment, and so on.
+        Reducing the number of arrows helps performance.
+
+    <p>
+        Parameter d is a scaling factor for the arrows. Increasing d increases the arrow sizes.
+
+
+
+    <h2>Paraboloid as quadric</h2>
+    <p>
+        Plot of a paraboloid surface by revolutions.
+
+
+    <p>
+        <math>
+            <mi>f</mi>
+            <mo>(</mo>
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            <mo>)</mo>
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    <mo>(</mo>
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    <mo>)</mo>
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>u</mi>
+                <mi>cos</mi>
+                (<mi>v</mi>)
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                <mi>u</mi>
+                <mi>sin</mi>
+                (<mi>v</mi>)
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <msup>
+                    <mi>u</mi>
+                    <mn>2</mn>
+                </msup>
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>a</mi>
+    </math>
+    is a scaling factor,
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>5</mn>
+    </math>
+    , and
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>2&pi;</mn>
+    </math>
+
+    <p>
+        The square
+        <math>
+            <msup>
+                <mi>u</mi>
+                <mn>2</mn>
+            </msup>
+        </math>
+        for
+        <math>
+            <mi>z</mi>
+        </math>
+        makes its unit metre squared.
+
+    <p>
+
+
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="paraboloid_scene2" script="quadratic_surfaces"
+            definition="paraboloid_scene2" kind="scene" perspective grid axis unitZ="metre^2">
+            <parameter label="a" unit="1">0.3</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">10</parameter>
+
+            <parameter label="Axx" unit="1">1</parameter>
+            <parameter label="Axy" unit="1">0</parameter>
+            <parameter label="Ayx" unit="1">0</parameter>
+            <parameter label="Ayy" unit="1">1</parameter>
+
+            <parameter label="grid" type="boole">true</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="paraboloid_scene2"></pacioli-inputs>
+        <pacioli-controls for="paraboloid_scene2"></pacioli-controls>
+
+    </div>
+
+    <h2>Paraboloid</h2>
+    <p>
+        Plot of a paraboloid surface by revolutions.
+
+
+    <p>
+        <math>
+            <mi>f</mi>
+            <mo>(</mo>
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            <mo>)</mo>
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    <mo>(</mo>
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    <mo>)</mo>
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>u</mi>
+                <mi>cos</mi>
+                (<mi>v</mi>)
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                <mi>u</mi>
+                <mi>sin</mi>
+                (<mi>v</mi>)
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <msup>
+                    <mi>u</mi>
+                    <mn>2</mn>
+                </msup>
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>a</mi>
+    </math>
+    is a scaling factor,
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>5</mn>
+    </math>
+    , and
+    <math>
+        <mn>0</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>2&pi;</mn>
+    </math>
+
+    <p>
+        The square
+        <math>
+            <msup>
+                <mi>u</mi>
+                <mn>2</mn>
+            </msup>
+        </math>
+        for
+        <math>
+            <mi>z</mi>
+        </math>
+        makes its unit metre squared.
+
+    <p>
+
+
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="paraboloid_scene" script="quadratic_surfaces"
+            definition="paraboloid_scene" kind="scene" perspective grid axis unitZ="metre^2">
+            <parameter label="a" unit="1">0.3</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">10</parameter>
+            <parameter label="grid" type="boole">true</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="paraboloid_scene"></pacioli-inputs>
+        <pacioli-controls for="paraboloid_scene"></pacioli-controls>
+
+    </div>
+
+
+
+
+</body>
+
+
+</html>

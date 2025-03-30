@@ -1,0 +1,246 @@
+import geometry;
+import graphics;
+include metrics;
+
+define NORMAL_COLOR = make_color("green");
+define DELTA_COLOR = make_color("red");
+define PATH_COLOR = make_color("red");
+define LINE_COLOR = make_color("steelblue");
+
+define MATERIAL = "Normal";
+
+# ------------------------------------------------------------------------------
+# Experiment with paraboloid as a quadratic form - a bilinear form with two identical arguments
+# - to complement the (already existing) parametric solution based upon sin / cos functions
+# ------------------------------------------------------------------------------
+
+defmatrix A :: Geom2! per Geom2! = {
+    x,x -> 1,
+    x,y -> 0,
+    y,x -> 0,
+    y,y -> 1
+};
+
+define test_quadratic_circle_values = 
+    let
+        angles = [
+            0 * |radian|,
+            1 * |radian| * 2 * pi / 12,
+            2 * |radian| * 2 * pi / 12,
+            3 * |radian| * 2 * pi / 12,
+            4 * |radian| * 2 * pi / 12,
+            5 * |radian| * 2 * pi / 12,
+            6 * |radian| * 2 * pi / 12,
+            7 * |radian| * 2 * pi / 12,
+            8 * |radian| * 2 * pi / 12,
+            9 * |radian| * 2 * pi / 12,
+            10* |radian| * 2 * pi / 12,
+            11* |radian| * 2 * pi / 12]
+    in
+        # [cos(v) | v <- angles]
+        [circle_value(v) | v <- angles]
+        # [x1 = cos(v), x2 = sin(v), x = vector2d(x1, x2), make_zsquared(x1, x2, quadratic_form(A, x)) | v <- angles]
+    end;
+
+define circle_value(v) = 
+    let
+        x1 = cos(v) * |metre|,
+        x2 = sin(v) * |metre|,
+        x =  vector2d(x1, x2)
+    in
+        make_zsquared(x1, x2, quadratic_form(A, x))
+    end;
+
+test_quadratic_circle_values;
+
+
+declare quadratic_form :: for_index C: for_unit a, C!b, d: (a*C!b per 1/C!b, d*1/C!b) -> a*d^2;
+define quadratic_form(M, x) = bilinear_form(M, x, x);
+
+declare quadratic_form_D :: for_index C: for_unit a, C!b, d: (a*C!b per C!b, d*C!b) -> a;
+define quadratic_form_D(M, x) = bilinear_form_D(M, x, x);
+
+# "quadratic_form(left_identity(vector2d(1,0) '*.' |metre|), vector2d(2,3) '*.' |metre|)";
+# quadratic_form(left_identity(vector2d(1,0) '*.' |metre|), vector2d(2,3) '*.' |metre|);
+
+# "quadratic_form_D(left_identity(vector2d(1,0) '*.' |metre|), vector2d(2,3) '*.' |metre|)";
+# quadratic_form_D(left_identity(vector2d(1,0) '*.' |metre|), vector2d(2,3) '*.' |metre|);
+
+# "left_identity(vector2d(1,0))";
+# left_identity(vector2d(1,0));
+
+# "A";
+# A;
+
+# "A = left_identity(vector2d(1,0))";
+# A = left_identity(vector2d(1,0));
+
+# "make_zsquared(1,1,1)";
+# make_zsquared(1 * |metre|, 1 * |metre|, 1 * |metre^2|);
+
+# "make_zsquared(1 * |metre|, 1 * |metre|, quadratic_form(A, vector2d(2,3) '*.' |metre|)))";
+# make_zsquared(1 * |metre|, 1 * |metre|, quadratic_form(A, vector2d(2,3) '*.' |metre|));
+
+
+define paraboloid_scene2(a, n, m, d, Axx, Axy, Ayx, Ayy, grid, surface, wireframe, parts, total, normals) =
+    # Any quadratic form CAN be written as a symmetric matrix, but it MUST nog be written as such
+    let 
+
+        # f(u, v) = 
+        #     make_zsquared(u*cos(v), u*sin(v), a * u^2),
+        f(u, v) =
+        let 
+            x1 = -u*cos(v),
+            x2 = u*sin(v),
+            x = a '.*' vector2d(x1, x2),
+            A = make_matrix([
+                    tuple(Geom2@x, Geom2@x, Axx), 
+                    tuple(Geom2@x, Geom2@y, Axy), 
+                    tuple(Geom2@y, Geom2@x, Ayx),   
+                    tuple(Geom2@y, Geom2@y, Ayy)])
+        in
+            make_zsquared(x1, x2, quadratic_form(A, x))
+        end,
+            
+            range = 
+                make_range(
+                    0*|metre|, 5*|metre|,
+                    0*|radian|, 2*pi*|radian|),
+            # range =
+            #     make_range(
+            #         0*|metre|, 5*|metre|,
+            #         0*|metre|, 5*|metre|),
+
+        options =
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
+    in
+        build_example_scene(f, range, options)
+    end;
+    
+define yo(A, x, x1, x2) = make_zsquared(x1, x2, quadratic_form(A, x));
+
+# ------------------------------------------------------------------------------
+
+define paraboloid_scene(a, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    let 
+        f(u, v) =
+            make_zsquared(u*cos(v), u*sin(v), a * u^2),
+            
+        range = 
+            make_range(
+                0*|metre|, 5*|metre|,
+                0*|radian|, 2*pi*|radian|),
+
+        options =
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
+    in
+        build_example_scene(f, range, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
+
+
+# ------------------------------------------------------------------------------
+# Computing the scene
+# ------------------------------------------------------------------------------
+
+define build_example_scene(fun, range, options) =
+    let
+        (n, m, d, grid, surface, wireframe, parts, total, normals) = options,
+
+        plot_options =
+            make_parametric_plot_options(
+                n, m, 0.01, d,
+                parts, total, normals, wireframe, MATERIAL,
+                LINE_COLOR, DELTA_COLOR, NORMAL_COLOR),
+
+        light_sources = [
+            vector3d(50, 50, 50),
+            vector3d(50, -50, 50),
+            vector3d(-50, 50, 50),
+            vector3d(-50, -50, 50)
+        ],
+
+        uom = unit(fun(range_ustart(range), range_vstart(range))),
+
+        lights = [make_center_spot_light(vec * uom, 1000*|candela|) | vec <- light_sources]
+    in
+        begin
+            scene := empty_scene("surface parametrization");
+
+            scene := with_ambient_light("white", 0.3, scene);
+            scene := add_spotlights(lights, scene);
+
+            if surface then
+                scene := plot_parametric_surface(fun, range, plot_options, scene);
+            end
+    
+            if grid then
+                scene := plot_parametric_surface_grid(fun, range, plot_options, scene);
+            end
+
+            if parts or total or normals then
+                scene := plot_parametric_surface_deltas(fun, range, plot_options, scene);
+            end
+
+            return scene;
+        end
+    end;
+
+declare make_center_spot_light :: 
+    for_unit a, Geom3!u: (a*Geom3!u, candela) -> SpotLight(a, Geom3!u);
+
+define make_center_spot_light(position, intensity) =
+    make_spotlight(position, 0 '.*' position, make_color("white"), intensity);
+
+# ------------------------------------------------------------------------------
+# Unit Geom3!zsquared
+# ------------------------------------------------------------------------------
+
+defunit Geom3!zsquared = {
+    x: metre,
+    y: metre,
+    z: metre^2
+};
+
+# Make special syntax to generate the following from above defunit?!
+
+declare make_zsquared ::
+    for_unit a, b, c: (metre, metre, metre^2) -> Geom3!zsquared;
+
+define make_zsquared(a, b, c) = 
+    vector3d(magnitude(a), magnitude(b), magnitude(c)) * |Geom3!zsquared|;
+
+# Limited use, what about Geom3!zsquared^2? You can de zsquared_z(sqrt(v))^2, but
+# what about higher powers? With cube_root you can also generate powers 3, 4 and 6,
+# and so on. All prime powers will leave gaps.
+
+# declare zsquared_x :: for_unit a: (a*Geom3!zsquared) -> a*metre;
+# declare zsquared_y :: for_unit a: (a*Geom3!zsquared) -> a*metre;
+# declare zsquared_z :: for_unit a: (a*Geom3!zsquared) -> a*metre^2;
+
+# define zsquared_x(v) = 
+#     get_num(v, Geom3@x, _) * scalar_unit(v) * |metre|;
+
+# define zsquared_y(v) = 
+#     get_num(v, Geom3@y, _) * scalar_unit(v) * |metre|;
+
+# define zsquared_z(v) = 
+#     get_num(v, Geom3@z, _) * scalar_unit(v) * |metre^2|;
+
+# # Not generated:
+
+# declare zsquared_z2 :: for_unit a: (a^2*Geom3!zsquared^2) -> a^2*metre^4;
+
+# define zsquared_z2(v) = 
+#     zsquared_z(sqrt(v))^2;
+
+# define zsquared_z3(v) = 
+#     zsquared_z(cbrt(v))^3;
+
+# define zsquared_z4(v) = 
+#     zsquared_z(sqrt(sqrt(v)))^4;
+
+# define zsquared_z6(v) = 
+#     zsquared_z(sqrt(cbrt(v)))^6;
