@@ -23,8 +23,8 @@ defmatrix si_to_imperial:: centi:metre/metre * Geom3! per Geom3! = {
     z,z -> 39.37  
 };
 
-"transform velocity";
-define velocity_imperial = si_to_imperial '*' velocity_si;
+# "transform velocity";
+# define velocity_imperial = si_to_imperial '*' velocity_si;
 
 
 define acceleration_imperial = si_to_imperial '*' acceleration_si;
@@ -42,32 +42,214 @@ define delta_velocity_si = delta_velocity(duration, acceleration_si);
 define delta_velocity_imperial = delta_velocity(duration, si_to_imperial '*' acceleration_si);
 define delta_velocity_imperial2 = si_to_imperial '*' delta_velocity(duration, acceleration_si);
 
-"velocity_si";
-velocity_si;
+# "velocity_si";
+# velocity_si;
 
-"velocity_imperial";
-velocity_imperial;
+# "velocity_imperial";
+# velocity_imperial;
 
-"acceleration_si";
-acceleration_si;
+# "acceleration_si";
+# acceleration_si;
 
-"acceleration_imperial";
-acceleration_imperial;
+# "acceleration_imperial";
+# acceleration_imperial;
 
-"delta_velocity_si";
-delta_velocity_si;
+# "delta_velocity_si";
+# delta_velocity_si;
 
-"delta_velocity_imperial";
-delta_velocity_imperial;
+# "delta_velocity_imperial";
+# delta_velocity_imperial;
 
-"delta_velocity_imperial2";
-delta_velocity_imperial2;
+# "delta_velocity_imperial2";
+# delta_velocity_imperial2;
 
-"delta_velocity_imperial = delta_velocity_imperial2";
-delta_velocity_imperial = delta_velocity_imperial2;
-
+# "delta_velocity_imperial = delta_velocity_imperial2";
+# delta_velocity_imperial = delta_velocity_imperial2;
 
 ######
+# Galilean transform
+######
+
+deftype for_unit a: Frame(a) = (second, ObState(a)) -> Tuple(a * Geom3!, a * Geom3!, a * Geom3!);
+
+#
+# @@@ Nette data structuur - hoe en waar de states bijhouden - in System? 
+#
+defrecord for_unit a: ObState(a) as state where
+    # frame:  Frame(a),  
+    position: a * Geom3!,
+    velocity: a * Geom3! / second;
+
+# define initial_state_observer(observer) =
+#     make_state(observer_start_position(observer), observer_start_velocity(observer));
+
+# define initial_state_observed(observed) =
+#     make_state(observed_start_position(observed), observed_start_velocity(observed));
+
+
+define new_position(state, dt) = state_position(state) + state_velocity(state) '*.' dt;
+define new_velocity(state, dt, acceleration) = state_velocity(state) + acceleration '*.' dt;
+
+define step_state(state, dt, acceleration) = 
+    make_state(new_position(state, dt), new_velocity(state, dt, acceleration));
+
+define step_observer(observer, dt) =
+    let
+        frame = observer_frame(observer),
+        start_state = observer_start_state(observer),
+        acceleration = observer_acceleration(observer),
+        state = observer_state(observer)
+    in
+        make_observer(frame, start_state, step_state(state, dt, acceleration), acceleration)
+    end;
+
+define step_observed(observed, dt) =
+    let
+        frame = observed_frame(observed),
+        start_state = observed_start_state(observed),
+        acceleration = observed_acceleration(observed),
+        state = observer_state(observed)
+    in
+        make_observed(frame, start_state, step_state(state, dt, acceleration), acceleration)
+    end;
+
+define step_system(system, dt) =
+    make_system(
+        [step_observer(observer, dt) | observer <- system_observers(system)],
+        [step_observed(observed, dt) | observed <- system_observed(system)]);
+
+
+# Observer and Observed both have description AND state.
+defrecord for_unit a: Observer(a) as observer where
+    frame:  Frame(a),  
+    start_state: ObState(a),
+    state: ObState(a),
+    acceleration: a * Geom3! / second^2;
+
+defrecord for_unit a: Observed(a) as observed where
+    frame:  Frame(a),  
+    start_state: ObState(a),
+    state: ObState(a),
+    acceleration: a * Geom3! / second^2;
+
+defrecord for_unit a: System(a) as system where
+    observers:  List(Observer(a)),
+    observed:   List(Observed(a));
+
+# #
+# # We have:
+# # - the screen coordinate system that is absolute
+# # - 2 frames of reference for eacht observer
+# # - the coordinates of the observed object
+# #
+define create_observer(frame, state, acceleration) = make_observed(frame, state, state, acceleration);
+define create_observed(frame, state, acceleration) = make_observed(frame, state, state, acceleration);
+
+define observed = create_observed(frame_observer2(0 * |second|),
+        make_state(vector3d(10,11,12)'*.' |metre|, vector3d(1,1,0)'*.' |metre/second|), acceleration_si);
+
+define observer1 = create_observer(frame_observer1(0 * |second|),
+        make_state(vector3d(0,0,0)'*.' |metre|, vector3d(0,0,0) '*.' |metre/second|), acceleration_si);
+define observer2 = create_observer(frame_observer2(0 * |second|),
+        make_state(vector3d(10,0,0)'*.' |metre|, vector3d(1,1,0) '*.' |metre/second|), acceleration_si);
+
+define system = make_system([observer1, observer2], [observed]);
+
+"step_system(system, 1 * |second|)";
+step_system(system, 1 * |second|);
+
+# @@@ print_system_observers nog!
+
+
+declare frame_observer1:: (second) -> Frame(metre);
+
+define frame_observer1(dt) = 
+    (time, state) -> 
+        tuple(|metre| '.*' vector3d(1,0,0), |metre| '.*' vector3d(0,1,0), |metre| '.*' vector3d(0,0,1));
+
+define frame_observer2(dt) = 
+    (time, state) -> 
+    let
+        newpos = new_position(state, dt)
+    in
+        tuple(newpos, |metre| '.*' vector3d(0,1,0), |metre| '.*' vector3d(0,0,1))
+    end;
+
+########
+
+
+
+
+
+define expected_observed_velocity(state_observer, state_observed) = 
+    state_velocity(state_observed) - state_velocity(state_observer);
+
+define actual_observed_velocity(dt, state_observer, state_observed) = 
+    let
+        t0_pos_observer = state_position(state_observer),
+        t0_pos_observed = state_position(state_observed),
+        t1_pos_observer = new_position(state_observer, dt),
+        t1_pos_observed = new_position(state_observed, dt),
+        t0_distance = t0_pos_observed - t0_pos_observer,
+        t1_distance = t1_pos_observed - t1_pos_observer
+    in
+        (t1_distance - t0_distance) '/.' dt
+    end;
+
+# define start_state_observer1 = make_state(observer1_startpos, observer1_velocity);
+# define start_state_observer2 = make_state(observer2_startpos, observer2_velocity);
+# # scenario: observer2 and observed have the same frame of reference 
+# define start_state_observed  = make_state(observed_startpos, observed_velocity);
+
+
+
+
+# "observer1 actual observed velocity";
+# actual_observed_velocity(1 * |second|, start_state_observer1, start_state_observed);
+# "observer2 actual observed velocity";
+# actual_observed_velocity(1 * |second|, start_state_observer2, start_state_observed);
+
+declare galilean_transform:: for_unit a: (a * Geom3!, a * Geom3! / second, second) ->
+    a * Geom3!;
+
+define galilean_transform(position, velocity, time) = 
+    position + velocity '*.' time;
+
+"galilean transform";
+galilean_transform(vector3d(10,11,12) '*.' |metre|, velocity_si, 2 * |second|);
+
+# define observed_velocity(time, velocity, acceleration) = 
+#     velocity + delta_velocity(time, acceleration);
+
+"observed_velocity 1";
+#
+
+"observed_velocity 2";
+# observed_velocity(0 * |second|, vector3d(0,0,0) '*.' |metre/second|, acceleration_si);
+
+define start_position_si = vector3d(1,2,3) '*.' |metre|;
+
+
+
+# define position_observer_1(position, velocity, dt, acceleration) = 
+#     let 
+#         new_velocity = new_velocity(velocity, dt, acceleration)
+#     in
+#         new_position(position, new_velocity, dt)
+#     end;
+
+# define position_observer(state, velocity, dt, acceleration) = 
+#     let 
+#         new_velocity = new_velocity(velocity, dt, acceleration)
+#     in
+#         galilean_transform(new_position(state, dt), new_velocity, dt)
+#     end; 
+
+"position observer 1";
+# position_observer(make_state(start_position_si,  observer1_velocity), velocity_si, 1 * |second|, acceleration_si);
+
+"position observer 2";
+# position_observer(make_state(start_position_si, observer2_velocity), velocity_si,  1 * |second|, acceleration_si);
 
 # 
 # The type inference on the defined function gives:
