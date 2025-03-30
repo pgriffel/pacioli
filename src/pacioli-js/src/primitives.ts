@@ -26,10 +26,10 @@ import {
   atan,
   atan2,
   ccsadd,
-  ccsDot,
   ccsmul,
   ccssub,
   cos,
+  dot,
   exp,
   inv,
   log,
@@ -610,20 +610,23 @@ export function $base_matrix_dim_div(x: RawMatrix, y: RawMatrix): RawMatrix {
 }
 
 export function $base_matrix_mmult(x: RawMatrix, y: RawMatrix): RawMatrix {
+  if (x.nrColumns !== y.nrRows) {
+    throw Error("Invalid mmult");
+  }
   // Currently the only function that uses CCS. The others have been disabled with
   // the === 13 hack. See note in numbers.ts
-  // return tagNumbers(
-  //   dot(getFullNumbers(x), getFullNumbers(y)),
-  //   x.nrRows,
-  //   y.nrColumns,
-  //   STORAGE_FULL
-  // );
   return tagNumbers(
-    ccsDot(getCCSNumbers(x), getCCSNumbers(y)),
+    dot(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
     y.nrColumns,
-    STORAGE_CCS
+    STORAGE_FULL
   );
+  // return tagNumbers(
+  //   ccsDot(getCCSNumbers(x), getCCSNumbers(y)),
+  //   x.nrRows,
+  //   y.nrColumns,
+  //   STORAGE_CCS
+  // );
 }
 
 export function $base_matrix_multiply(x: RawMatrix, y: RawMatrix): RawMatrix {
