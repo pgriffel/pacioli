@@ -96,6 +96,17 @@ public interface TypeObject extends Printable {
             return new Substitution();
         }
 
+        // Do the TypeVars first. A TypeVar could for example refer to an index set. In
+        // that case the more specific IndexSetVar is prefered. Always substituting
+        // typevars first is an attempt to force this. Is this sufficient?
+        if (x instanceof TypeVar) {
+            return new Substitution((Var) x, y);
+        }
+
+        if (y instanceof TypeVar) {
+            return new Substitution((Var) y, x);
+        }
+
         if (x instanceof Var) {
             return new Substitution((Var) x, y);
         }
