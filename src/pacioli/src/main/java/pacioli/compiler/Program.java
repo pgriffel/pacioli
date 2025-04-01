@@ -704,8 +704,8 @@ public class Program {
                             new PacioliException(info.location(),
                                     String.format(
                                             "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
-                                            declaredType.unfresh().pretty(),
-                                            inferredType.unfresh().pretty())));
+                                            declaredType.unfresh().normalizeMatrixTypes().pretty(),
+                                            inferredType.unfresh().normalizeMatrixTypes().pretty())));
                 }
             }
 

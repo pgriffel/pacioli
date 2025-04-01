@@ -304,8 +304,9 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(TupleAssignmentNode tupleAssignmentNode) {
+    public void visit(TupleAssignmentNode node) {
         // Pacioli.log("tup");
+        node.tuple.accept(this);
     }
 
     @Override

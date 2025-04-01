@@ -331,7 +331,7 @@ public class ResolveVisitor extends IdentityVisitor {
                 IndexSetInfo info = (IndexSetInfo) symbolInfo;
                 infoList.add(info);
             } else {
-                throw new RuntimeException(String.format("%s", name));
+                throw new PacioliException(node.location(), String.format("Index set '%s' unknown", name));
             }
         }
 
