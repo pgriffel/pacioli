@@ -219,7 +219,6 @@ export {
   $base_list_zip,
   $base_list_contains,
   $base_string_unit2string,
-  compute_$base_matrix__,
   $base_matrix_svd,
   $base_matrix_plu,
   $base_matrix_qr,

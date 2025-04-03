@@ -330,8 +330,6 @@ public class Primitives {
         // //////////////////////////////////////////////////////////////////////////////
         // Matrix
 
-        storeBaseValue(store, "matrix__", new Key());
-
         storePrimitive(store, new Primitive("matrix_solve") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);

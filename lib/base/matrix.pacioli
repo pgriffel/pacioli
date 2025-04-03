@@ -18,6 +18,7 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 export
+    One,
     _,
     index_less,
     make_matrix,
@@ -98,8 +99,18 @@ defunit decimals "decs";
 # Indices
 # ----------------------------------------------------------------------------
 
+doc One
+    "The 'empty' index set. Contains just the element <code>_</code>.
+    
+    Value <code>_</code> is used as index for a column vector (n by 1 matrix) 
+    or a row vector (1 by n matrix).
+    
+    Satisfies <code>One % X = X % One = X</code>.";
+
+defindex One = {_};
+
 doc _
-    "The single entry for the 'empty' index set.
+    "The single entry for the One index set. Shorthand for  <code>One@_</code>
     
     Use this as index for a column vector (n by 1 matrix) or a row vector
     (1 by n matrix).
@@ -110,7 +121,9 @@ doc _
     If <code>x</code> is a scalar then <code>get(x, _, _)</code> equals
     <code>x</code>.";
 
-declare_primitive _ :: Index();
+declare _ :: One;
+
+define _ = One@_;
 
 # ----------------------------------------------------------------------------
 

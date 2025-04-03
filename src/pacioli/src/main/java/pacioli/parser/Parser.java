@@ -4026,7 +4026,7 @@ class CUP$Parser$actions {
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new KeyNode(idx.name(), id.name(), makeLoc(idxxleft, idxright)); 
+		 RESULT = idx.name().equals("One") && id.name().equals("_") ? new KeyNode(makeLoc(idxxleft, idxright)) : new KeyNode(idx.name(), id.name(), makeLoc(idxxleft, idxright)); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("indexkey",49, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

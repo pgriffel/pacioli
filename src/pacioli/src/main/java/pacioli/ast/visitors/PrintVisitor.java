@@ -144,10 +144,14 @@ public class PrintVisitor implements Visitor {
     }
 
     protected void writeCommaSeparated(List<? extends Node> nodes) {
+        writeSeparated(nodes, ", ");
+    }
+
+    protected void writeSeparated(List<? extends Node> nodes, String delimiter) {
         Boolean sep = false;
         for (Node node : nodes) {
             if (sep) {
-                write(", ");
+                write(delimiter);
             } else {
                 sep = true;
             }

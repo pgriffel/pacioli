@@ -42,13 +42,7 @@ import {
   tan,
 } from "numeric";
 import { UOM } from "uom-ts";
-import {
-  createCoordinates,
-  initialNumbers,
-  oneNumbers,
-  printValue,
-  zeroNumbers,
-} from "./cache";
+import { initialNumbers, oneNumbers, printValue, zeroNumbers } from "./cache";
 import {
   elementWiseNumbers,
   findNonZero,
@@ -350,10 +344,6 @@ export function $base_matrix_is_zero(x: RawMatrix): RawBoole {
     if (values[i] != 0) return false;
   }
   return true;
-}
-
-export function compute_$base_matrix__(): RawCoordinates {
-  return createCoordinates([]);
 }
 
 export function $base_matrix_scalar_unit(_x: RawMatrix): RawMatrix {
