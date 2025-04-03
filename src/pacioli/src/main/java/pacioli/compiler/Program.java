@@ -702,10 +702,9 @@ public class Program {
                 if (!declaredType.isInstanceOf(inferredType)) {
                     throw new RuntimeException("Type error",
                             new PacioliException(info.location(),
-                                    String.format(
-                                            "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
-                                            declaredType.unfresh().normalizeMatrixTypes().pretty(),
-                                            inferredType.unfresh().normalizeMatrixTypes().pretty())));
+                                    "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
+                                    declaredType.unfresh().normalizeMatrixTypes().pretty(),
+                                    inferredType.unfresh().normalizeMatrixTypes().pretty()));
                 }
             }
 

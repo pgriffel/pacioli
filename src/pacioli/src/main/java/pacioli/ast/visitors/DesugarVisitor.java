@@ -102,7 +102,7 @@ public class DesugarVisitor extends IdentityTransformation {
             ExpressionNode fun = new LambdaNode(freshUnderscores(idNames(tup.vars)), desugaredBody, tup.location());
 
             returnNode(new ApplicationNode(
-                    new IdentifierNode("apply", tup.location()),
+                    new IdentifierNode("apply", tup.location().collapse()),
                     Arrays.asList(fun, expAccept(tup.value)),
                     tup.location()));
 
