@@ -32,18 +32,20 @@ import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.IndexSetInfo;
+import pacioli.types.ast.TypeIdentifierNode;
 
 public class KeyNode extends AbstractNode implements ExpressionNode {
 
-    public final List<String> indexSets;
-    public final List<String> keys;
+    public final List<TypeIdentifierNode> indexSets;
 
-    private Optional<List<IndexSetInfo>> infos = Optional.empty();
+    // The keys are not resolved. Could also be List<String>, but
+    // the IdentifierNode carries location info.
+    public final List<IdentifierNode> keys;
 
     public KeyNode(Location location) {
         super(location);
-        indexSets = new ArrayList<String>();
-        keys = new ArrayList<String>();
+        indexSets = new ArrayList<TypeIdentifierNode>();
+        keys = new ArrayList<IdentifierNode>();
     }
 
     public KeyNode(KeyNode old) {
@@ -52,25 +54,22 @@ public class KeyNode extends AbstractNode implements ExpressionNode {
         keys = old.keys;
     }
 
-    public KeyNode(String indexSet, String key, Location location) {
+    public KeyNode(TypeIdentifierNode indexSet, IdentifierNode key, Location location) {
         super(location);
         indexSets = Arrays.asList(indexSet);
         keys = Arrays.asList(key);
     }
 
-    public KeyNode(Location location, List<String> indexSets, List<String> keys) {
+    public KeyNode(Location location, List<TypeIdentifierNode> indexSets, List<IdentifierNode> keys) {
         super(location);
-        this.indexSets = new ArrayList<String>(indexSets);
-        this.keys = new ArrayList<String>(keys);
+        this.indexSets = new ArrayList<TypeIdentifierNode>(indexSets);
+        this.keys = new ArrayList<IdentifierNode>(keys);
     }
 
     public KeyNode merge(KeyNode other) {
 
-        assert (!infos.isPresent());
-        assert (!other.infos.isPresent());
-
-        List<String> mergedIndexSets = new ArrayList<String>(indexSets);
-        List<String> mergedKeys = new ArrayList<String>(keys);
+        List<TypeIdentifierNode> mergedIndexSets = new ArrayList<>(indexSets);
+        List<IdentifierNode> mergedKeys = new ArrayList<IdentifierNode>(keys);
 
         Location mergedLocation = location().join(other.location());
 
@@ -80,20 +79,8 @@ public class KeyNode extends AbstractNode implements ExpressionNode {
         return new KeyNode(mergedLocation, mergedIndexSets, mergedKeys);
     }
 
-    public List<IndexSetInfo> infos() {
-        if (infos.isPresent()) {
-            return infos.get();
-        } else {
-            throw new RuntimeException("Cannot get infos, key has not been resolved.");
-        }
-    }
-
     public IndexSetInfo getInfo(Integer index) {
-        return infos().get(index);
-    }
-
-    public void setInfos(List<IndexSetInfo> infos) {
-        this.infos = Optional.of(infos);
+        return (IndexSetInfo) this.indexSets.get(index).info;
     }
 
     @Override
@@ -103,7 +90,7 @@ public class KeyNode extends AbstractNode implements ExpressionNode {
 
     public Integer position(Integer index) {
 
-        String key = keys.get(index);
+        String key = keys.get(index).name();
 
         Optional<IndexSetDefinition> definition = getInfo(index).definition();
         assert (definition.isPresent());
@@ -114,9 +101,12 @@ public class KeyNode extends AbstractNode implements ExpressionNode {
                 return i;
             }
         }
-        // throw new RuntimeException("Key not found", new
-        // PacioliException(getLocation(), "index = %s", index));
+
         throw new PacioliException(location(), "Key %s not found", index);
+    }
+
+    public Integer width() {
+        return this.indexSets.size();
     }
 
     public Integer size(Integer index) {

@@ -305,8 +305,15 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(KeyNode node) {
-        // returnValue(new KeyNode(node));
-        returnNode(node);
+
+        List<TypeIdentifierNode> transformedIndexSets = new ArrayList<>();
+        for (TypeIdentifierNode id : node.indexSets) {
+            Node accepted = nodeAccept(id);
+            assert (accepted instanceof TypeIdentifierNode);
+            transformedIndexSets.add((TypeIdentifierNode) accepted);
+        }
+
+        returnNode(new KeyNode(node.location(), transformedIndexSets, node.keys));
     }
 
     @Override

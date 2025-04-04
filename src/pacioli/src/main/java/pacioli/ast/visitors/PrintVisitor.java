@@ -412,7 +412,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(KeyNode node) {
-        int size = node.indexSets.size();
+        int size = node.width();
         if (size == 0) {
             write("_");
         } else {
@@ -420,7 +420,7 @@ public class PrintVisitor implements Visitor {
                 if (0 < i) {
                     write("%");
                 }
-                format("%s@%s", node.indexSets.get(i), node.keys.get(i));
+                format("%s@%s", node.indexSets.get(i).name(), node.keys.get(i).name());
             }
         }
     }

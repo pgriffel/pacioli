@@ -323,19 +323,15 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(KeyNode node) {
+        for (TypeIdentifierNode name : node.indexSets) {
+            TypeInfo symbolInfo = typeTables.peek().lookup(name.name());
 
-        List<IndexSetInfo> infoList = new ArrayList<IndexSetInfo>();
-        for (String name : node.indexSets) {
-            TypeInfo symbolInfo = typeTables.peek().lookup(name);
-            if (symbolInfo instanceof IndexSetInfo) {
-                IndexSetInfo info = (IndexSetInfo) symbolInfo;
-                infoList.add(info);
+            if (symbolInfo instanceof IndexSetInfo indexSetInfo) {
+                name.info = indexSetInfo;
             } else {
                 throw new PacioliException(node.location(), String.format("Index set '%s' unknown", name));
             }
         }
-
-        node.setInfos(infoList);
     }
 
     public MatrixDimension compileTimeMatrixDimension(IndexType dimType) {

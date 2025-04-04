@@ -253,7 +253,10 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(KeyNode keyNode) {
+    public void visit(KeyNode node) {
+        for (TypeIdentifierNode id : node.indexSets) {
+            id.accept(this);
+        }
     }
 
     @Override
