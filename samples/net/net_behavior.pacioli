@@ -1,0 +1,320 @@
+# Copyright (c) 2025 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+import petri_net;
+import random;
+import si;
+
+# ------------------------------------------------------------------------------
+# Running a Petri net
+# ------------------------------------------------------------------------------
+
+doc run_petri_net_trace
+    "Fires all transitions in the trace. Halts if one of the firings is not enabled.
+    
+    Returns a tuple (final_net, valid, count, fired, not_fired).
+    
+    Petri net final_net is the net with the final marking.
+
+    Boolean valid is true if the trace was run successfuly, false if it was halted.
+    
+    Scalar count is the number of fired transitions. Should equal the trace size
+    when the run is successful.
+    
+    Vectors fired and non_fired contain counts for the individual transitons.";
+
+declare run_petri_net_trace, run_petri_net_trace_verbose ::
+    for_index C, D: for_unit a, C!b:
+        (PetriNet(a, C!b, D!), List(D!)) -> Tuple(PetriNet(a, C!b, D!), Boole, 1, D!, D!);
+
+define run_petri_net_trace(net, trace) =
+    run_petri_net_trace_aux(net, trace, false);
+
+define run_petri_net_trace_verbose(net, trace) =
+    run_petri_net_trace_aux(net, trace, true);
+
+define run_petri_net_trace_aux(net, trace, verbose) =
+    begin
+        if verbose then
+            printf("Running Petri net with initial state\n%d", petri_net_marking(net));
+        end
+
+        valid := true;
+        count := 0;
+        fired := 0 '.*' transition_unit(net);
+        not_fired := 0 '.*' transition_unit(net);
+
+        for v <- trace do
+            
+            if verbose then
+                printf("\n--- Step %d ---\n", count);
+            end
+
+            if valid and petri_net_enabled(net, v) then
+
+                net := fire_petri_net(net, v);
+
+                if verbose then
+                    print_firing(net, v, count);
+                end
+
+                fired := fired + v;
+                count := count + 1;
+            else
+
+                if verbose and valid then
+                    printf("HALT!");
+                end
+
+                valid := false;
+
+                not_fired := not_fired + v;
+            end
+        end
+
+        return tuple(net, valid, count, fired, not_fired);
+    end;
+
+# ------------------------------------------------------------------------------
+# run_petri_net_mini_max
+# ------------------------------------------------------------------------------
+
+doc run_petri_net_mini_max
+    "Runs a Petri-net with the mini-max algorithm.
+    
+    Assumes a two-person turn-based game. On each step it either minimizes or 
+    maximizes the score by trying all enabled transitions. When a final state
+    is encountered (no enabled transitions) the evaluation function is called
+    to determine that state's score.";
+
+declare run_petri_net_mini_max ::
+    for_index P, T: for_unit a, P!u:
+        (PetriNet(a, P!u, T!), Boole, (a*P!u, Boole) -> 1) -> Tuple(1, List(T!));
+
+define run_petri_net_mini_max(net, maximizing, evaluation) =
+    begin
+        marking := petri_net_marking(net);
+        enabled := simple_trace(enabled_transitions(net));
+
+        if enabled = [] then
+            return tuple(evaluation(marking, maximizing), []);
+        else
+            (best_score, best_trace) :=
+                run_petri_net_mini_max(fire_petri_net(net, head(enabled)), not(maximizing), evaluation);
+
+            for firing <- tail(enabled) do
+
+                (score, trace) :=
+                    run_petri_net_mini_max(fire_petri_net(net, firing), not(maximizing), evaluation);
+
+                if (maximizing and score > best_score) or (not(maximizing) and score < best_score) then
+                    best_score := score;
+                    best_trace := trace;
+                end
+            end
+
+            return tuple(best_score, best_trace);
+        end
+    end;
+
+# ------------------------------------------------------------------------------
+# run_petri_net_random
+# ------------------------------------------------------------------------------
+
+doc run_petri_net_random
+    "Runs a Petri net by firing one of the enabled transitions. Halts if no
+    transition is enabled.";
+
+declare run_petri_net_random ::
+    for_index C, D: for_unit a, C!b: (PetriNet(a, C!b, D!), 1) -> Tuple(Boole, a*C!b, 1, D!);
+
+define run_petri_net_random(net, n) =
+    begin
+        m := expt(10, ceiling(log(n, 10)) - 1);
+
+        todo := simple_trace(enabled_transitions(net));
+        i := 0;
+        available := 0;
+        total := 0 '.*' transition_unit(net);
+
+        while todo != [] and i < n do
+            
+            printf("\n--- Step %d ---\n", i);
+                
+            available := available + list_size(todo);
+
+            firing := pick(todo);
+            
+            if petri_net_enabled(net, firing) then
+                total := total + firing;
+                net := fire_petri_net(net, firing);
+                
+                if mod(i, m) = 0 or true then
+                    print_firing(net, total, i);
+                end
+
+                todo := simple_trace(enabled_transitions(net));
+            else
+                printf("HALT!");
+                todo := [];
+            end
+
+            i := i + 1;
+        end
+
+        printf("\nAverage available transitions per step: %.1f", available / n);
+
+        return tuple(false, petri_net_marking(net), i, total);
+
+    end;
+
+# ------------------------------------------------------------------------------
+# Traces
+# ------------------------------------------------------------------------------
+
+doc simple_trace
+    "Constructs a trace from a list of transition index set elements. Each
+    transition fires once.
+    
+    For example
+
+    [Transition@t0, Transition@t4, Transition@t2]";
+
+declare simple_trace :: 
+    for_index A: (List(A)) -> List(A!);
+
+define simple_trace(events) = 
+    [ delta(transition) | transition <- events ];
+
+# ------------------------------------------------------------------------------
+
+doc trace
+    "Constructs a trace from a list of (transition index set element, freq) pairs. 
+    Each transition fires freq times.
+    
+    For example
+    
+    [tuple(Transition@t0, 1), tuple(Transition@t4, 3), tuple(Transition@t2, 10)]";
+
+declare trace :: 
+    for_index A: for_unit b: (List(Tuple(A, b))) -> List(b*A!);
+
+define trace(events) = 
+    [ amount '.*' delta(transition) | (transition, amount) <- events ];
+
+# ------------------------------------------------------------------------------
+
+doc parallel_trace
+    "Constructs a trace from a list of (transition index set element, freq) pair
+    lists. Each transition fires freq times.
+    
+    For example
+    
+    [tuple(Transition@t0, 1), tuple(Transition@t4, 3), tuple(Transition@t2, 10)]";
+
+declare parallel_trace ::
+    for_index A: for_unit b: (List(List(Tuple(A, b)))) -> List(b*A!);
+
+define parallel_trace(xs) =
+    [sum[f | f <- trace(x)] | x <- xs];
+
+# ------------------------------------------------------------------------------
+# Petri net as graph
+# ------------------------------------------------------------------------------
+
+define graph(net) =
+    let 
+        C = petri_net_pre(net),
+        P = petri_net_post(net),
+
+        arrows(A, t) =
+            [ tuple(p, val) |
+                p <- petri_net_places(net),
+                val := get_num(A, p, t),
+                val > 0]
+    in  
+        [ tuple(t, cons, prod) |
+
+            t <- petri_net_transitions(net),
+
+            cons := arrows(C, t),
+            prod := arrows(P, t),
+
+            cons != [] or prod != []]
+    end;
+
+# ------------------------------------------------------------------------------
+
+define print_net_structure(net) = 
+    begin
+        print("Petri net with places");
+        printf("  %s", row_domain(petri_net_pre(net)));
+
+        print("and transitions");
+        printf("  %s", column_domain(petri_net_pre(net)));
+
+        for transition <- graph(net) do
+            apply(print_transition, transition);
+        end
+    end;
+
+define print_transition(t, cons, prod) =
+    let
+        text(x) = 
+            if x = [] then
+                "  nothing"
+            else
+                join_strings([txt | (p,v) <- x, txt := format("  %d from %s", v, p)], "\n")
+            end
+    in
+        begin
+            printf("Transition %s consumes", t);
+            print(text(cons));
+
+            print("and produces");
+            print(text(prod));
+        end
+    end;
+
+# ------------------------------------------------------------------------------
+# Local
+# ------------------------------------------------------------------------------
+
+
+declare enabled_transitions ::
+    for_index C, D: for_unit a, C!b: (PetriNet(a, C!b, D!)) -> List(D);
+
+define enabled_transitions(net) =
+    [ t |
+        t <- petri_net_transitions(net), 
+        vec := delta(t),
+        petri_net_enabled(net, vec)];
+
+define print_firing(net, firing, count) =
+    let
+         enabled = [format("\n  transition %s %d times", t, val) | 
+                    t <- petri_net_transitions(net),
+                    val := get_num(firing, t, _),
+                    val > 0]
+    in
+        begin
+            printf("Firing %s\nleads to state", join_strings(enabled, ", and "));
+            printf("%d", petri_net_marking(net));
+        end
+    end;

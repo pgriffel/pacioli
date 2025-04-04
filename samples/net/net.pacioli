@@ -1,0 +1,115 @@
+import petri_net;
+import random;
+import si;
+
+include net_behavior;
+
+# ------------------------------------------------------------------------------
+# Simple net
+#
+# A test net with three places and three transitions:
+#                       
+#       +-----------> p1 -----------+
+#       |                           |
+#       |        +---------+        |
+#       |        |   t0    |        |
+#       |        +---------+        |
+#       |             |             v
+#   +--------+        V         +--------+ 
+#   |   t1   |<-----> p0 <----->|   t2   |
+#   +--------+                  +--------+ 
+#       ^                          |   |
+#       |                          |   |
+#       +------------ p2 <---------+---+
+#
+#
+# - Initially only t0 is enabled
+# - If p0 contains no tokens then t1 and t2 cannot run
+# - If p0 contains one token then t1 and t2 cannot run in parallel
+# - If p0 contains n tokens then t1 and t2 can run in parallel. The sum of
+#   their frequencies is bounded by n.
+#
+# ------------------------------------------------------------------------------
+
+defunit token "tkn";
+
+defindex Place = {p0, p1, p2};
+
+defindex Transition = {t0, t1, t2};
+
+defmatrix pre :: token * Place! per Transition! = {
+    p0, t1 -> 1,
+    p2, t1 -> 1,
+    p0, t2 -> 1,
+    p1, t2 -> 1
+};
+
+defmatrix post :: token * Place! per Transition! = {
+    p0, t0 -> 1,
+    p0, t1 -> 1,
+    p1, t1 -> 1,
+    p0, t2 -> 1,
+    p2, t2 -> 2
+};
+
+defmatrix initial_state :: token * Place! = {
+  p1 -> 10,
+  p2 -> 10
+};
+
+declare test_net ::
+    PetriNet(token, Place!, Transition!);
+
+define test_net =
+    make_petri_net(pre, post, initial_state);
+
+
+declare my_trace :: List(Transition!);
+
+define my_trace =
+    trace([
+        tuple(Transition@t0, 2),
+        tuple(Transition@t1, 3),
+        tuple(Transition@t0, 2)
+    ]);
+
+
+define f3 = parallel_trace([
+    [tuple(Transition@t0, 2)],
+    [tuple(Transition@t1, 1), tuple(Transition@t2, 1)],
+    [tuple(Transition@t1, 2)]
+]);
+f3;
+print_summary(run_petri_net_trace_verbose(test_net, f3));
+
+define print_summary(outcome) =
+    let
+        (final_net, valid, count, fired, not_fired) = outcome
+    in
+        begin
+            printf("Trace is %s. Final marking is\n%d\nSteps performed is %d\nFired%d\nNot fired%d\n\nConsumed%d",
+                if valid then "valid" else "invalid" end,
+                petri_net_marking(final_net),
+                count,
+                fired,
+                not_fired,
+                petri_net_pre(test_net) '*' fired);
+
+            printf("\n\nProduced%d",
+                petri_net_post(test_net) '*' fired);
+        end
+    end;
+
+# define make_firing(t0, t1, t2) = 
+#     make_matrix([
+#         tuple(Transition@t0, _, t0),
+#         tuple(Transition@t1, _, t1),
+#         tuple(Transition@t2, _, t2)
+#     ]);
+
+# define my_firings = [
+#     make_firing(0,0,2),
+#     make_firing(1,0,2),
+#     make_firing(0,2,1),
+#     make_firing(0,2,1)
+# ];
