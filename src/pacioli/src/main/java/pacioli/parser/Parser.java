@@ -4032,7 +4032,12 @@ class CUP$Parser$actions {
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = idx.name().equals("One") && id.name().equals("_") ? new KeyNode(makeLoc(idxxleft, idxright)) : new KeyNode(idx, id, makeLoc(idxxleft, idxright)); 
+		 // The stretched location and partOfKeyNode is for syntax highlighting in the extension
+                                                         TypeIdentifierNode stretchedId = new TypeIdentifierNode(makeLoc(idxxleft, idxright), idx.name());
+                                                         stretchedId.partOfKeyNode = true;
+                                                         RESULT = idx.name().equals("One") && id.name().equals("_") 
+                                                             ? new KeyNode(makeLoc(idxxleft, idxright)) 
+                                                             : new KeyNode(stretchedId, id, makeLoc(idxxleft, idxright)); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("indexkey",49, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -4050,8 +4055,13 @@ class CUP$Parser$actions {
 		Location idxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location idxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		IdentifierNode id = (IdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 KeyNode node = idx.name().equals("One") && id.name().equals("_") ? new KeyNode(makeLoc(idxxleft, idxright)) : new KeyNode(idx, id, makeLoc(idxxleft, idxright));
-                                                       RESULT = k.merge(node); 
+		 // The stretched location and partOfKeyNode is for syntax highlighting in the extension
+                                                         TypeIdentifierNode stretchedId = new TypeIdentifierNode(makeLoc(idxxleft, idxright), idx.name());
+                                                         stretchedId.partOfKeyNode = true;
+                                                         KeyNode node = idx.name().equals("One") && id.name().equals("_") 
+                                                            ? new KeyNode(makeLoc(idxxleft, idxright)) 
+                                                            : new KeyNode(stretchedId, id, makeLoc(idxxleft, idxright));
+                                                         RESULT = k.merge(node); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("indexkey",49, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

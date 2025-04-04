@@ -213,7 +213,12 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(TypeDefinition node) {
-        returnNode(node);
+        List<QuantNode> quantNodes = new ArrayList<>();
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNodes.add((QuantNode) nodeAccept(quantNode));
+        }
+
+        returnNode(new TypeDefinition(node.location(), quantNodes, typeAccept(node.lhs), typeAccept(node.rhs)));
     }
 
     @Override

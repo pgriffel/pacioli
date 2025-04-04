@@ -163,8 +163,12 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(TypeDefinition typeDefinition) {
-        // Pacioli.log("TYpeD");
+    public void visit(TypeDefinition node) {
+        for (QuantNode id : node.quantNodes) {
+            id.accept(this);
+        }
+        node.lhs.accept(this);
+        node.rhs.accept(this);
     }
 
     @Override

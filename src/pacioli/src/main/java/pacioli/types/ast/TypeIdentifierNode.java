@@ -69,6 +69,9 @@ public class TypeIdentifierNode extends AbstractNode implements TypeNode {
     // Set during resolving
     public Info info;
 
+    // Hack for syntax highlightihg. See DocumentState.tokenType.
+    public boolean partOfKeyNode = false;
+
     public TypeIdentifierNode(Location location, String name) {
         super(location);
         this.name = name;

@@ -561,9 +561,19 @@ expr_no_id ::=
 //------------------------------------------------------------------------------
 
 indexkey ::=
-   typeid:idx AT name:id                              {: RESULT = idx.name().equals("One") && id.name().equals("_") ? new KeyNode(makeLoc(idxxleft, idxright)) : new KeyNode(idx, id, makeLoc(idxxleft, idxright)); :}
- | indexkey:k MOD typeid:idx AT name:id               {: KeyNode node = idx.name().equals("One") && id.name().equals("_") ? new KeyNode(makeLoc(idxxleft, idxright)) : new KeyNode(idx, id, makeLoc(idxxleft, idxright));
-                                                       RESULT = k.merge(node); :}
+   typeid:idx AT name:id                              {: // The stretched location and partOfKeyNode is for syntax highlighting in the extension
+                                                         TypeIdentifierNode stretchedId = new TypeIdentifierNode(makeLoc(idxxleft, idxright), idx.name());
+                                                         stretchedId.partOfKeyNode = true;
+                                                         RESULT = idx.name().equals("One") && id.name().equals("_") 
+                                                             ? new KeyNode(makeLoc(idxxleft, idxright)) 
+                                                             : new KeyNode(stretchedId, id, makeLoc(idxxleft, idxright)); :}
+ | indexkey:k MOD typeid:idx AT name:id               {: // The stretched location and partOfKeyNode is for syntax highlighting in the extension
+                                                         TypeIdentifierNode stretchedId = new TypeIdentifierNode(makeLoc(idxxleft, idxright), idx.name());
+                                                         stretchedId.partOfKeyNode = true;
+                                                         KeyNode node = idx.name().equals("One") && id.name().equals("_") 
+                                                            ? new KeyNode(makeLoc(idxxleft, idxright)) 
+                                                            : new KeyNode(stretchedId, id, makeLoc(idxxleft, idxright));
+                                                         RESULT = k.merge(node); :}
  ;
 
 //------------------------------------------------------------------------------

@@ -339,7 +339,10 @@ public class DocumentState {
     static private List<Integer> tokenType(IdentifierInfo idInfo) {
         var inf = idInfo.info().orElse(null);
 
-        if (idInfo.identifier instanceof TypeIdentifierNode) {
+        if (idInfo.identifier instanceof TypeIdentifierNode idNode) {
+            if (idNode.partOfKeyNode) {
+                return List.of(TOKEN_PARAMETER, MODIFIER_DECLARATION);
+            }
             return List.of(TOKEN_TYPE, MODIFIER_DECLARATION);
         }
 
