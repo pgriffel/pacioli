@@ -354,7 +354,9 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(SchemaNode node) {
-        // Pacioli.log("sschema");
+        for (QuantNode arg : node.quantNodes) {
+            arg.accept(this);
+        }
         node.type.accept(this);
     }
 

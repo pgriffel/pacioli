@@ -142,6 +142,9 @@ public class ResolveVisitor extends IdentityVisitor {
     @Override
     public void visit(TypeDefinition node) {
         pushTypeContext(node.createContext(), node.location());
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNode.accept(this);
+        }
         node.lhs.accept(this);
         node.rhs.accept(this);
         typeTables.pop();
