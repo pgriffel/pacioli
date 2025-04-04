@@ -28,6 +28,7 @@ import java.util.Optional;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.expression.KeyNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
@@ -121,5 +122,13 @@ public class AllIdentifiersVisitor extends IdentityVisitor {
         assert (node.info != null);
         assert (node.info.definition().isPresent());
         identifiers.add(new IdentifierInfo(node));
+    }
+
+    @Override
+    public void visit(KeyNode node) {
+        // Just the Index set ids. Skip the keys.
+        for (TypeIdentifierNode id : node.indexSets) {
+            id.accept(this);
+        }
     }
 }

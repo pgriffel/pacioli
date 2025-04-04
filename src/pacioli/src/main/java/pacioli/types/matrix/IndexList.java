@@ -123,7 +123,7 @@ public class IndexList implements TypeObject {
         }
     }
 
-    IndexList kronecker(IndexList other) {
+    public IndexList kronecker(IndexList other) {
         List<TypeIdentifier> sets = new ArrayList<TypeIdentifier>();
         sets.addAll(indexSets);
         sets.addAll(other.indexSets());

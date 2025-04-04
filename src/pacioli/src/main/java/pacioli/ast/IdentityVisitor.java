@@ -163,8 +163,12 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(TypeDefinition typeDefinition) {
-        // Pacioli.log("TYpeD");
+    public void visit(TypeDefinition node) {
+        for (QuantNode id : node.quantNodes) {
+            id.accept(this);
+        }
+        node.lhs.accept(this);
+        node.rhs.accept(this);
     }
 
     @Override
@@ -253,7 +257,10 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(KeyNode keyNode) {
+    public void visit(KeyNode node) {
+        for (TypeIdentifierNode id : node.indexSets) {
+            id.accept(this);
+        }
     }
 
     @Override
@@ -304,8 +311,9 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(TupleAssignmentNode tupleAssignmentNode) {
+    public void visit(TupleAssignmentNode node) {
         // Pacioli.log("tup");
+        node.tuple.accept(this);
     }
 
     @Override

@@ -1,0 +1,76 @@
+import si;
+import testing;
+import petri_net;
+include net;
+include net_behavior;
+
+declare equiv :: (Boole, Boole) -> Boole;
+
+define equiv(x, y) = x = y;
+
+run_test_suites(net_suites);
+
+declare net_suites :: List(TestSuite);
+
+define net_suites = [
+    net_suite
+];
+
+defmatrix expected_initial_marking :: token * Place! = {
+  p1 -> 1,
+  p2 -> 1
+};
+
+defmatrix expected_final_marking :: token * Place! = {
+  p1 -> 1,
+  p2 -> 1
+};
+
+define test_firing(t0, t1, t2) =
+    t0 '.*' delta(Transition@t0)  +  t1 '.*' delta(Transition@t1)  +  t2 '.*' delta(Transition@t2);
+
+define net_suite = test_suite("The test Petri net should", [
+
+    test("start with the correct initial marking", () ->
+        [test_firing(1,2,3), test_firing(4,5,0)] =
+            parallel_trace([
+                [tuple(Transition@t0, 1), tuple(Transition@t1, 2), tuple(Transition@t2, 3)],
+                [tuple(Transition@t0, 4), tuple(Transition@t1, 5)]])
+    ),
+
+    test("start with the correct initial marking", () ->
+        petri_net_marking(test_net) = expected_initial_marking
+    ),
+
+    test("start with only transition t0 enabled", () ->
+        enabled_transitions(test_net) = [Transition@t0]
+    ),
+
+    test("enable t1 and t2 after firing t0", () ->
+        let 
+            (net, _, _, _, _) = run_petri_net_trace(test_net, trace([tuple(Transition@t0, 1)]))
+        in
+            enabled_transitions(net) = [Transition@t0, Transition@t1, Transition@t2]
+        end
+    ),
+
+    test("not enable 2*t2 after firing t0 once", () ->
+        let
+            (net, _, _, _, _) = run_petri_net_trace(test_net, trace([tuple(Transition@t0, 1)]))
+        in
+            not(petri_net_enabled(net, 2 '.*' delta(Transition@t1))) and
+            not(petri_net_enabled(net, 2 '.*' delta(Transition@t2)))
+        end
+    ),
+
+    test("enable i*ti + j*t2 after firing t0 > i+j times", () ->
+        let 
+            n = 5,
+            (net, _, _, _, _) = run_petri_net_trace(test_net, trace([tuple(Transition@t0, 5)]))
+        in
+            all[ petri_net_enabled(net, test_firing(0, i, j))  <=>  i + j <= n |
+                    i <- naturals(n),
+                    j <- naturals(n)]
+        end
+    )
+]);

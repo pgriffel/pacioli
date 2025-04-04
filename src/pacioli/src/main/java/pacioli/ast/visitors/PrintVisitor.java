@@ -144,10 +144,14 @@ public class PrintVisitor implements Visitor {
     }
 
     protected void writeCommaSeparated(List<? extends Node> nodes) {
+        writeSeparated(nodes, ", ");
+    }
+
+    protected void writeSeparated(List<? extends Node> nodes, String delimiter) {
         Boolean sep = false;
         for (Node node : nodes) {
             if (sep) {
-                write(", ");
+                write(delimiter);
             } else {
                 sep = true;
             }
@@ -408,7 +412,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(KeyNode node) {
-        int size = node.indexSets.size();
+        int size = node.width();
         if (size == 0) {
             write("_");
         } else {
@@ -416,7 +420,7 @@ public class PrintVisitor implements Visitor {
                 if (0 < i) {
                     write("%");
                 }
-                format("%s@%s", node.indexSets.get(i), node.keys.get(i));
+                format("%s@%s", node.indexSets.get(i).name(), node.keys.get(i).name());
             }
         }
     }

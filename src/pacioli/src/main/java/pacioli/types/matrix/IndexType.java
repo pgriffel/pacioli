@@ -162,8 +162,8 @@ public class IndexType implements TypeObject {
         return constraints;
     }
 
-    IndexType kronecker(IndexType other) {
-        if (isVar()) {
+    public IndexType kronecker(IndexType other) {
+        if (isVar() || other.isVar()) {
             throw new RuntimeException("Method not available for an index variable");
         } else {
             return new IndexType(indexList().kronecker(other.indexList()));

@@ -90,14 +90,18 @@ public class PrettyPrinter implements TypeVisitor {
         // This must be an parameric "Index" type, otherwise it would be handled
         // by the matrix type.
 
-        out.print("[");
+        // out.print("Index(");
+        if (type.indexSets().size() == 0) {
+            out.print("One");
+        }
+
         String sep = "";
         for (TypeIdentifier id : type.indexSets()) {
             out.print(sep);
             out.print(id.name());
-            sep = ", ";
+            sep = " % ";
         }
-        out.print("]");
+        // out.print(")");
     }
 
     @Override
@@ -106,9 +110,11 @@ public class PrettyPrinter implements TypeVisitor {
         // // This must be an parameric "Index" type, otherwise it would be handled
         // // by the matrix type.
 
-        out.print("Index(");
+        // Update. This seems to no longer be used outside a matrix type
+
+        // out.print("Index(");
         type.indexSet().accept(this);
-        out.print(")");
+        // out.print(")");
     }
 
     @Override

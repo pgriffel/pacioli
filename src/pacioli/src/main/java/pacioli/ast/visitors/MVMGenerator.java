@@ -238,7 +238,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(KeyNode node) {
         out.write("key(");
-        int size = node.indexSets.size();
+        int size = node.width();
         for (int i = 0; i < size; i++) {
             if (0 < i) {
                 out.write(", ");
@@ -247,7 +247,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             // out.write("\"" + info.definition.globalName() + "\"");
             out.write("\"" + info.globalName() + "\"");
             out.write(", ");
-            out.write("\"" + node.keys.get(i) + "\"");
+            out.write("\"" + node.keys.get(i).name() + "\"");
         }
         out.write(")");
     }

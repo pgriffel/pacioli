@@ -670,17 +670,20 @@ public class Program {
 
         try {
 
-            TypeObject solved = typing.solve(verbose).unfresh();
+            TypeObject solvedTyping = typing.solve(verbose);
+            TypeObject solved = solvedTyping.unfresh();
 
             Pacioli.logIf(verbose, "Solved type of %s is\n    %s",
                     info.name(),
-                    solved.pretty());
+                    Pacioli.Options.printTypesAsString ? solvedTyping.toString() : solved.pretty());
             Pacioli.logIf(verbose, "Simple type of %s is\n    %s",
                     info.name(),
-                    solved.simplify().pretty());
+                    Pacioli.Options.printTypesAsString ? solvedTyping.simplify().toString()
+                            : solved.simplify().pretty());
             Pacioli.logIf(Pacioli.Options.showTypeInference || verbose, "Generalized type of %s is\n    %s",
                     info.name(),
-                    solved.simplify().generalize().pretty());
+                    Pacioli.Options.printTypesAsString ? solvedTyping.simplify().generalize().toString()
+                            : solved.simplify().generalize().pretty());
 
             info.setinferredType(solved.simplify().normalizeMatrixTypes().generalize());
 
@@ -699,10 +702,9 @@ public class Program {
                 if (!declaredType.isInstanceOf(inferredType)) {
                     throw new RuntimeException("Type error",
                             new PacioliException(info.location(),
-                                    String.format(
-                                            "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
-                                            declaredType.unfresh().pretty(),
-                                            inferredType.unfresh().pretty())));
+                                    "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
+                                    declaredType.unfresh().normalizeMatrixTypes().pretty(),
+                                    inferredType.unfresh().normalizeMatrixTypes().pretty()));
                 }
             }
 

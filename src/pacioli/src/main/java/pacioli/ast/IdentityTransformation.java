@@ -213,7 +213,12 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(TypeDefinition node) {
-        returnNode(node);
+        List<QuantNode> quantNodes = new ArrayList<>();
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNodes.add((QuantNode) nodeAccept(quantNode));
+        }
+
+        returnNode(new TypeDefinition(node.location(), quantNodes, typeAccept(node.lhs), typeAccept(node.rhs)));
     }
 
     @Override
@@ -305,8 +310,15 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(KeyNode node) {
-        // returnValue(new KeyNode(node));
-        returnNode(node);
+
+        List<TypeIdentifierNode> transformedIndexSets = new ArrayList<>();
+        for (TypeIdentifierNode id : node.indexSets) {
+            Node accepted = nodeAccept(id);
+            assert (accepted instanceof TypeIdentifierNode);
+            transformedIndexSets.add((TypeIdentifierNode) accepted);
+        }
+
+        returnNode(new KeyNode(node.location(), transformedIndexSets, node.keys));
     }
 
     @Override

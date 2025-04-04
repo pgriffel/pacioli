@@ -32,10 +32,10 @@ export
 #   sklearn.neighbors library.
 # ------------------------------------------------------------------------------
 
-declare numpy_iris_list :: List(Tuple(Feature!unit, Index(Target)));
+declare numpy_iris_list :: List(Tuple(Feature!unit, Target));
 declare numpy_iris_array :: Tuple(Sample! % Feature!unit, Sample! % Target!);
 
-declare iris_list :: List(Tuple(Feature!unit, Index(Target)));
+declare iris_list :: List(Tuple(Feature!unit, Target));
 
 declare iris_data :: Sample! % Feature!unit;
 declare iris_target :: Sample! % Target!;
