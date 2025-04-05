@@ -26,6 +26,7 @@ import java.util.Set;
 
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
+import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.unit.UnitIdentifierNode;
@@ -61,6 +62,13 @@ public class UsesVisitor extends IdentityVisitor {
         } else {
             throw new RuntimeException("Visit error", new PacioliException(node.location(),
                     "Definition or declaration missing for '%s'", node.name()));
+        }
+    }
+
+    @Override
+    public void visit(UnitDefinition node) {
+        if (node.body.isPresent()) {
+            node.body.get().accept(this);
         }
     }
 

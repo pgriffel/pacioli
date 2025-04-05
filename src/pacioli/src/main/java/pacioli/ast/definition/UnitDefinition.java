@@ -25,26 +25,26 @@ import java.util.Optional;
 
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
-import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.compiler.Location;
+import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
 
 public class UnitDefinition extends AbstractNode implements Definition {
 
-    public final IdentifierNode id;
+    public final TypeIdentifierNode id;
     public final String symbol;
     public final Optional<UnitNode> body;
 
-    public UnitDefinition(Location location, IdentifierNode id, String symbol) {
+    public UnitDefinition(Location location, TypeIdentifierNode id, String symbol) {
         super(location);
         this.id = id;
         this.symbol = symbol;
         this.body = Optional.empty();
     }
 
-    public UnitDefinition(Location location, IdentifierNode id, String symbol, UnitNode body) {
+    public UnitDefinition(Location location, TypeIdentifierNode id, String symbol, UnitNode body) {
         super(location);
         this.id = id;
         this.symbol = symbol;

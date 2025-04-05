@@ -291,8 +291,8 @@ definition ::=
                                                            unitVector.put(pair.key.name(), pair.value);
                                                        }
                                                        RESULT = new UnitVectorDefinition(makeLoc(dxleft, psxright), id, n, ps); :}
- | DEFUNIT:d id:id STRING:s                         {: RESULT = new UnitDefinition(makeLoc(dxleft, sxright), id, s); :}
- | DEFUNIT:d id:id STRING:s EQL dimnum:def          {: RESULT = new UnitDefinition(makeLoc(dxleft, defxright), id, s, def); :}
+ | DEFUNIT:d typeid:id STRING:s                     {: RESULT = new UnitDefinition(makeLoc(dxleft, sxright), id, s); :}
+ | DEFUNIT:d typeid:id STRING:s EQL dimnum:def      {: RESULT = new UnitDefinition(makeLoc(dxleft, defxright), id, s, def); :}
  | DEFMATRIX:d id:id DBLCLN type:s EQL matrix:m     {: /* Change MatrixLiteralNode to accept a ValueDecl list */
                                                        //List<Pair<List<String>, String>> stringPairs = new ArrayList<Pair<List<String>, String>>();
                                                        //for (ValueDecl decl: m) {
@@ -812,8 +812,8 @@ unit ::=
 
 unit_term ::= 
    LPAR unit_term:t RPAR                            {: RESULT = t; :}
- | id:id                                            {: RESULT = new UnitIdentifierNode(id.location(), id.name()); :}
- | id:pre COLON id:id                               {: RESULT = new UnitIdentifierNode(pre.location().join(id.location()), pre.name(), id.name()); :}
+ | typeid:id                                        {: RESULT = new UnitIdentifierNode(id.location(), id); :}
+ | typeid:pre COLON typeid:id                           {: RESULT = new UnitIdentifierNode(pre.location().join(id.location()), pre.name(), id); :}
  | unsigned:n                                       {: RESULT = new NumberUnitNode(n, makeLoc(nxleft, nxright)); :}
  ;
 

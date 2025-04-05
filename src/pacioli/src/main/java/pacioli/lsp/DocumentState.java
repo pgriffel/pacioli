@@ -40,6 +40,7 @@ import org.eclipse.lsp4j.SemanticTokensLegend;
 import org.eclipse.lsp4j.SignatureHelp;
 import org.eclipse.lsp4j.SignatureInformation;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Bundle;
 import pacioli.compiler.Location;
@@ -241,6 +242,15 @@ public class DocumentState {
                 }
                 infos.add(idInfo);
             }
+            if (idInfo.identifier instanceof UnitIdentifierNode id) {
+                Location loc = id.location();
+                List<IdentifierInfo> infos = index.get(loc.fromLine);
+                if (infos == null) {
+                    infos = new ArrayList<IdentifierInfo>();
+                    index.put(loc.fromLine, infos);
+                }
+                infos.add(idInfo);
+            }
         }
         return index;
     }
@@ -343,6 +353,10 @@ public class DocumentState {
             if (idNode.partOfKeyNode) {
                 return List.of(TOKEN_PARAMETER, MODIFIER_DECLARATION);
             }
+            return List.of(TOKEN_TYPE, MODIFIER_DECLARATION);
+        }
+
+        if (idInfo.identifier instanceof UnitIdentifierNode) {
             return List.of(TOKEN_TYPE, MODIFIER_DECLARATION);
         }
 
