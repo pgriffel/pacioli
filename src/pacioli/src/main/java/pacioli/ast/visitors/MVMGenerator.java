@@ -163,7 +163,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.unmark();
     }
 
-    private String escapeString(String in) {
+    public static String escapeString(String in) {
         // Quick fix for the debug option for string literals
         // return in.replaceAll("\"", "\\\\\"");
 
@@ -199,7 +199,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(ConstNode node) {
-        out.format("const(\"%s\")", node.valueString());
+        out.format("const(\"%s\")", escapeString(node.valueString()));
     }
 
     @Override
