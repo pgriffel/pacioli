@@ -8,6 +8,7 @@ package mvm.parser;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -335,8 +336,8 @@ public class Parser extends java_cup.runtime.lr_parser {
         this.file = file;
     }
 
-    public static Program parseFile(File file) throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader(file));
+    public static Program parseFile(File file, Charset charset) throws Exception {
+        BufferedReader reader = new BufferedReader(new FileReader(file, charset));
         ComplexSymbolFactory csf = new ComplexSymbolFactory();
         Lexer lexer = new Lexer(reader, csf, file, null);
         Parser parser = new Parser(lexer, csf, file);

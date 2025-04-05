@@ -1559,7 +1559,7 @@ public class Primitives {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliString path = (PacioliString) params.get(0);
                 Callable fun = (Callable) params.get(1);
-                try (FileHandle handle = new FileHandle(path.toText())) {
+                try (FileHandle handle = new FileHandle(path.toText(), Machine.CHARSET)) {
                     fun.apply(List.of(handle));
                 } catch (IOException exception) {
                     throw new MVMException(exception.getLocalizedMessage());
