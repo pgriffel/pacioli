@@ -24,6 +24,8 @@ package mvm;
 import java.io.File;
 import java.io.PrintStream;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -51,6 +53,8 @@ public class Machine {
     private static final LinkedList<String> debugStack = new LinkedList<String>();
     private static boolean atLineStart = false;
     private final List<File> loadedFiles;
+
+    public static Charset CHARSET = StandardCharsets.UTF_8;
 
     public Machine() {
         store = new Environment(this);
@@ -163,10 +167,10 @@ public class Machine {
         /// runRec(PacioliFile.findFile(include + ".mvm", libs, file.getParentFile()),
         //// out, libs);
         //// }
-        runRec(file, out, libs);
+        runRec(file, out, libs, CHARSET);
     }
 
-    public void runRec(File file, PrintStream out, List<File> libs) throws Exception {
+    public void runRec(File file, PrintStream out, List<File> libs, Charset charset) throws Exception {
 
         // Check if the file was already loaded
         if (!loadedFiles.contains(file)) {
@@ -175,7 +179,7 @@ public class Machine {
             loadedFiles.add(file);
 
             // Load the file
-            mvm.ast.Program code = mvm.parser.Parser.parseFile(file);
+            mvm.ast.Program code = mvm.parser.Parser.parseFile(file, charset);
 
             // Run the requires
             // for (String require : code.requires) {

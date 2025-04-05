@@ -336,7 +336,7 @@ public class Project {
             if (!done.contains(current)) {
 
                 // Load the current file
-                ProgramNode programNode = Parser.parseFile(current.fsFile());
+                ProgramNode programNode = Parser.parseFile(current.fsFile(), Pacioli.CHARSET);
 
                 // Add the current file to the graph if not already found by some include
                 if (!graph.containsVertex(current)) {

@@ -8,6 +8,7 @@ package pacioli.parser;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Arrays;
@@ -1742,10 +1743,10 @@ public class Parser extends java_cup.runtime.lr_parser {
         this.file = file;
     }
    
-    public static ProgramNode parseFile(File file) throws Exception {
+    public static ProgramNode parseFile(File file, Charset charset) throws Exception {
       ProgramNode node;
 
-      try (var fileReader = new FileReader(file);
+      try (var fileReader = new FileReader(file, charset);
           var reader = new BufferedReader(fileReader)) {
         var csf = new ComplexSymbolFactory();
         var lexer = new Lexer(reader, csf, file, null);

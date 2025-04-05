@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
+
 import mvm.MVMException;
 
 public class FileHandle implements PacioliValue, AutoCloseable {
@@ -32,10 +34,10 @@ public class FileHandle implements PacioliValue, AutoCloseable {
     private FileWriter handle;
     private String path;
 
-    public FileHandle(String path) throws IOException {
+    public FileHandle(String path, Charset charset) throws IOException {
         this.path = path;
         File file = new File(path);
-        this.handle = new FileWriter(file);
+        this.handle = new FileWriter(file, charset);
     }
 
     public void write(PacioliString text) throws MVMException {

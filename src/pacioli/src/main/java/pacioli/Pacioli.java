@@ -29,6 +29,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -47,7 +49,6 @@ import org.eclipse.lsp4j.services.LanguageClient;
 
 import mvm.MVMException;
 import mvm.Machine;
-import pacioli.compiler.Bundle;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.PacioliFile;
@@ -69,6 +70,9 @@ public class Pacioli {
     // Constants
     private static String OPTIONS_FILE = "debug.options";
     private static String VERSION = "v0.5.0-SNAPSHOT";
+
+    // Make command line parameter?
+    public static Charset CHARSET = StandardCharsets.UTF_8;
 
     // Internal settings for log messages. Actual values depend on values in the
     // options file.
@@ -657,7 +661,7 @@ public class Pacioli {
 
         Path dstPath = project.bundlePath(settings.target());
 
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())))) {
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile(), CHARSET)))) {
             project.generateCode(writer, settings);
         }
 
@@ -687,6 +691,7 @@ public class Pacioli {
 
         Machine vm = new Machine();
         try {
+            Machine.CHARSET = CHARSET;
             vm.init();
             vm.run(file, System.out, libs);
         } catch (Exception ex) {
@@ -807,7 +812,8 @@ public class Pacioli {
     }
 
     public static void logToFile(String fileName, String string, Object... args) {
-        try (FileWriter fwriter = new FileWriter(fileName, true); BufferedWriter writer = new BufferedWriter(fwriter)) {
+        try (FileWriter fwriter = new FileWriter(fileName, CHARSET, true);
+                BufferedWriter writer = new BufferedWriter(fwriter)) {
             writer.newLine();
             writer.write(String.format(string, args));
         } catch (IOException e) {

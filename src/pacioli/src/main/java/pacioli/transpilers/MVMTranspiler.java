@@ -115,7 +115,8 @@ public class MVMTranspiler implements SymbolTableVisitor {
             } else {
                 DimensionedNumber<TypeBase> number = definition.get().body.get().evalUnit();
                 number = number.flat();
-                out.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol(), number.factor(),
+                out.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), MVMGenerator.escapeString(info.symbol()),
+                        number.factor(),
                         MVMGenerator.compileUnitToMVM(number.unit()));
             }
         } else {

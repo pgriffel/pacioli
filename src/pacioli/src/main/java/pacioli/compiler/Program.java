@@ -105,7 +105,7 @@ public class Program {
     // -------------------------------------------------------------------------
 
     public static Program load(PacioliFile file) throws Exception {
-        ProgramNode ast = Parser.parseFile(file.fsFile());
+        ProgramNode ast = Parser.parseFile(file.fsFile(), Pacioli.CHARSET);
         return new Program(file, ast);
     }
 

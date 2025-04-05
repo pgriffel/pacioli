@@ -424,7 +424,7 @@ public class Bundle {
             String version,
             File docFile) throws PacioliException, IOException {
 
-        FileWriter out = new FileWriter(output, false);
+        FileWriter out = new FileWriter(output, Pacioli.CHARSET, false);
         PrintWriter writer = new PrintWriter(out);
         DocumentationGenerator generator = new DocumentationGenerator(writer, file.moduleName(), version);
 

@@ -31,7 +31,9 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.Info;
+import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeIdentifierNode;
+import pacioli.types.ast.TypePredicateNode;
 
 public class UsesVisitor extends IdentityVisitor {
 
@@ -45,8 +47,10 @@ public class UsesVisitor extends IdentityVisitor {
     @Override
     public void visit(TypeIdentifierNode node) {
         assert (node.info != null);
-        assert (node.info.definition().isPresent());
-        infos.add(node.info);
+        // assert (node.info.definition().isPresent());
+        if (node.info.definition().isPresent()) {
+            infos.add(node.info);
+        }
     }
 
     @Override
@@ -72,6 +76,14 @@ public class UsesVisitor extends IdentityVisitor {
         node.body.accept(this);
         for (Info info : node.shadowed.allInfos()) {
             infos.add(info);
+        }
+    }
+
+    @Override
+    public void accept(QuantNode node) {
+        // Skip the ids
+        for (TypePredicateNode condition : node.conditions) {
+            condition.accept(this);
         }
     }
 }
