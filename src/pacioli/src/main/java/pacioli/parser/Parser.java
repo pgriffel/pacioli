@@ -5171,7 +5171,9 @@ class CUP$Parser$actions {
 		Location uxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location uxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		TypeIdentifierNode u = (TypeIdentifierNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new PrefixUnitTypeNode(makeLoc(pxleft, uxright), p, u); 
+		 // The stretched location and partOfKeyNode is for syntax highlighting in the extension
+                                                       TypeIdentifierNode stretchedId = new TypeIdentifierNode(makeLoc(pxleft, uxright), u.name());
+                                                       RESULT = new PrefixUnitTypeNode(makeLoc(pxleft, uxright), p, stretchedId); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("dim_type",44, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

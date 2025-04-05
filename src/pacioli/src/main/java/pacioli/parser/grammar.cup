@@ -786,7 +786,9 @@ dim_type ::=
  | dim_type:x HAT integer:n                         {: RESULT = new TypePowerNode(makeLoc(xxleft, nxright), x, new NumberTypeNode(makeLoc(nxleft, nxright), n)); :}
  | dim_type:x MOD dim_type:y                        {: RESULT = new TypeKroneckerNode(makeLoc(xxleft, yxright), x, y); :}
  | typeid:id                                        {: RESULT = id; :}
- | typeid:p COLON typeid:u                          {: RESULT = new PrefixUnitTypeNode(makeLoc(pxleft, uxright), p, u); :}
+ | typeid:p COLON typeid:u                          {: // The stretched location and partOfKeyNode is for syntax highlighting in the extension
+                                                       TypeIdentifierNode stretchedId = new TypeIdentifierNode(makeLoc(pxleft, uxright), u.name());
+                                                       RESULT = new PrefixUnitTypeNode(makeLoc(pxleft, uxright), p, stretchedId); :}
  | typeid:i EXCL:e                                  {: RESULT = new BangTypeNode(makeLoc(ixleft, exright), i); :}
  | typeid:i EXCL typeid:u                           {: RESULT = new BangTypeNode(makeLoc(ixleft, uxright), i, u); :}
  | NATURAL:n                                        {: if (n.equals("1")) {
