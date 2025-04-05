@@ -21,17 +21,45 @@
 
 package pacioli.types.ast;
 
+import java.util.List;
+
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
+import pacioli.compiler.PacioliException;
 
 public class PrefixUnitTypeNode extends AbstractNode implements TypeNode {
+
+    public final static List<String> PREFIXES = List.of(
+            "yocto",
+            "zepto",
+            "atto",
+            "femto",
+            "pico",
+            "nano",
+            "micro",
+            "milli",
+            "centi",
+            "deci",
+            "kilo",
+            "mega",
+            "giga",
+            "tera",
+            "peta",
+            "exa",
+            "zetta",
+            "yotta");
 
     public final TypeIdentifierNode prefix;
     public final TypeIdentifierNode unit;
 
     public PrefixUnitTypeNode(Location location, TypeIdentifierNode prefix, TypeIdentifierNode unit) {
         super(location);
+
+        if (!PREFIXES.contains(prefix.name())) {
+            throw new PacioliException(location, "Invalid prefix. A prefix is one of %s", PREFIXES);
+        }
+
         this.prefix = prefix;
         this.unit = unit;
     }
