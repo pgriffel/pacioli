@@ -58,7 +58,7 @@ define animation_callback_state_composition(mass, radius) =
         let newState = next_state(state, mass, time, radius)
         in
         tuple(newState,
-            set_arrows(scene, state_arrows(newState)))
+            with_scene_arrows(state_arrows(newState), scene))
     end;
 
 
@@ -170,4 +170,4 @@ define frame_arrow(vector_from, vector_to, color, label, name) =
     with_arrow_label(label,
         with_arrow_name(name,
             with_arrow_color(color,
-                make_arrow(vector_from, vector_to))));
+                default_arrow(vector_from, vector_to))));

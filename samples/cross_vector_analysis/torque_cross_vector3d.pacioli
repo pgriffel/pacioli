@@ -291,15 +291,13 @@ define scene_update_fn(mass, torque_factor, force_factor, momentum_factor, veloc
                 momentum_label = format("p=%s", num2str(norm(angular_momentum), |gram * metre^2 / second|)),
                 velocity_label = format("v=%s", num2str(norm(velocity), |metre/second|))
             in
-                set_arrows(
-                    scene, 
+                with_scene_arrows(
                     [
                         arrow("position", position_color, position_label, origin_arrow(position)),
                         arrow("torque", torque_color, torque_label, origin_arrow(torque_factor '.*' torque)),
-                        arrow("force", force_color, force_label, make_arrow(position, force_factor '.*' force)),
+                        arrow("force", force_color, force_label, default_arrow(position, force_factor '.*' force)),
                         arrow("momentum", momentum_color, momentum_label, origin_arrow(momentum_factor '.*' angular_momentum)),
-                        arrow("velocity", velocity_color, velocity_label, make_arrow(position, velocity_factor '.*' velocity))
-                    ]
-                )
+                        arrow("velocity", velocity_color, velocity_label, default_arrow(position, velocity_factor '.*' velocity))
+                    ], scene)
             end
     end;

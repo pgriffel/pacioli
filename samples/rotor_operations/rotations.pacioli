@@ -154,14 +154,21 @@ define scene_rotor_composition(r11, r12, r21, r22, iframe1, iframe2, iframe3) =
 
 # Stateful callback, using the updated state=frame 
 define animation_callback_state_composition(rotor) = 
-    (time, frame, scene) ->
-        let new_frame = [rotate(x, rotor) | x <- frame]
-        in
-        tuple(new_frame,
-            set_arrows(scene, 
-            append(
-                    frame_arrows(new_frame, make_color("blue"), true),
-                    frame_arrows(frame, make_color("red"), false))))
+    let
+        blue = make_color("blue"),
+        red = make_color("red")
+    in
+        (time, frame, scene) ->
+            let 
+                new_frame = [rotate(x, rotor) | x <- frame]
+            in
+                tuple(new_frame,
+                    with_scene_arrows( 
+                        append(
+                            frame_arrows(new_frame, blue, true),
+                            frame_arrows(frame, red, false)),
+                        scene))
+            end
     end;
 
 
@@ -198,7 +205,7 @@ declare animation_callback_nesting :: for_unit a:
 
 define animation_callback_nesting(time, state, scene) =
     let next = next_state(state) in
-        tuple(next, set_arrows(scene, state_arrows(next)))
+        tuple(next, with_scene_arrows(state_arrows(next), scene))
     end;
 
 # ------------------------------------------------------------------------------

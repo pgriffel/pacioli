@@ -19,8 +19,8 @@ define the_scene(a, b, c, x, y, z) =
             with_arrow_color(make_color("#AAAAFF"), origin_arrow(p2))
         ],
         lines = [
-            make_line(v1, p1),
-            make_line(v2, p2)
+            default_line(v1, p1),
+            default_line(v2, p2)
         ]
     in
         add_paths(lines, add_arrows(arrows, scene))

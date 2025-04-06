@@ -82,14 +82,16 @@ define time_frame_oscillate_dimless(time, x1, y1, w) =
 # Time dependent callback oscillate with dimension
 define animation_callback_oscillate(x1, y1, w) = 
     (time, scene) ->
-        set_arrows(scene, 
-                make_arrows_from_vectors(time_frame_oscillate(time, x1, y1, w)));
+        with_scene_arrows(
+            make_arrows_from_vectors(time_frame_oscillate(time, x1, y1, w)),
+            scene);
 
 # Time dependent callback oscillate dimensionless
 define animation_callback_oscillate_dimless(x1, y1, w) = 
     (time, scene) ->
-        set_arrows(scene, 
-                make_arrows_from_vectors(time_frame_oscillate_dimless(time, x1, y1, w)));
+        with_scene_arrows( 
+                make_arrows_from_vectors(time_frame_oscillate_dimless(time, x1, y1, w)),
+                scene);
 
 
 define make_arrows_from_vectors(triple_vector) =
