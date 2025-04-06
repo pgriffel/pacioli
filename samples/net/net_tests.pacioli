@@ -1,12 +1,27 @@
+# Copyright (c) 2025 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 import si;
 import testing;
 import petri_net;
 include net;
 include net_behavior;
-
-declare equiv :: (Boole, Boole) -> Boole;
-
-define equiv(x, y) = x = y;
 
 run_test_suites(net_suites);
 
@@ -15,6 +30,10 @@ declare net_suites :: List(TestSuite);
 define net_suites = [
     net_suite
 ];
+
+# ------------------------------------------------------------------------------
+# Test data
+# ------------------------------------------------------------------------------
 
 defmatrix expected_initial_marking :: token * Place! = {
   p1 -> 1,
@@ -27,26 +46,32 @@ defmatrix expected_final_marking :: token * Place! = {
 };
 
 define test_firing(t0, t1, t2) =
-    t0 '.*' delta(Transition@t0)  +  t1 '.*' delta(Transition@t1)  +  t2 '.*' delta(Transition@t2);
+    t0 '.*' delta(Transition@t0) +
+    t1 '.*' delta(Transition@t1) +
+    t2 '.*' delta(Transition@t2);
 
-define net_suite = test_suite("The test Petri net should", [
+# ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
 
-    test("start with the correct initial marking", () ->
+define net_suite = test_suite("Petri net", [
+
+    test("test_firing should give the correct trace", () ->
         [test_firing(1,2,3), test_firing(4,5,0)] =
             parallel_trace([
                 [tuple(Transition@t0, 1), tuple(Transition@t1, 2), tuple(Transition@t2, 3)],
                 [tuple(Transition@t0, 4), tuple(Transition@t1, 5)]])
     ),
 
-    test("start with the correct initial marking", () ->
+    test("should start with the correct initial marking", () ->
         petri_net_marking(test_net) = expected_initial_marking
     ),
 
-    test("start with only transition t0 enabled", () ->
+    test("should start with only transition t0 enabled", () ->
         enabled_transitions(test_net) = [Transition@t0]
     ),
 
-    test("enable t1 and t2 after firing t0", () ->
+    test("should enable t1 and t2 after firing t0", () ->
         let 
             (net, _, _, _, _) = run_petri_net_trace(test_net, trace([tuple(Transition@t0, 1)]))
         in
@@ -54,7 +79,7 @@ define net_suite = test_suite("The test Petri net should", [
         end
     ),
 
-    test("not enable 2*t2 after firing t0 once", () ->
+    test("should not enable 2*t2 after firing t0 once", () ->
         let
             (net, _, _, _, _) = run_petri_net_trace(test_net, trace([tuple(Transition@t0, 1)]))
         in
@@ -63,7 +88,7 @@ define net_suite = test_suite("The test Petri net should", [
         end
     ),
 
-    test("enable i*ti + j*t2 after firing t0 > i+j times", () ->
+    test("should enable i*ti + j*t2 after firing t0 > i+j times", () ->
         let 
             n = 5,
             (net, _, _, _, _) = run_petri_net_trace(test_net, trace([tuple(Transition@t0, 5)]))

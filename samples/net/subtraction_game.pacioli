@@ -93,6 +93,57 @@ define run_subtraction_game_mini_max(n) =
     end;
 
 # ------------------------------------------------------------------------------
+# The subtraction game
+# ------------------------------------------------------------------------------
+
+declare subtraction_game ::
+    (1) -> PetriNet(1, GameState!unit, Move!);
+
+define subtraction_game(n) =
+    let 
+        initial_marking =
+            n '.*' delta(GameState@pile) + delta(GameState@player_one_to_play),
+
+        pile_consume =
+            take_from_pile_player_one + take_from_pile_player_two,
+
+        token_produce =
+            release_token_player_one + release_token_player_two,
+
+        token_consume =
+            claim_token_player_one + claim_token_player_two
+    in
+        make_petri_net(
+            pile_consume + token_consume,
+            token_produce,
+            initial_marking * |GameState!unit|)
+    end;
+
+# ------------------------------------------------------------------------------
+
+declare run_subtraction_game ::
+    for_index D: for_unit a, GameState!b:
+        (PetriNet(a, GameState!b, D!), List(D)) -> Void;
+
+define run_subtraction_game(net, moves) =
+    begin
+        print("\nRunning subtraction game\n");
+
+        trace := [ delta(m) | m <- moves ];
+
+        (final_net, valid, count, _, _) := run_petri_net_trace_verbose(net, trace);
+
+        player_one_wins := is_zero(delta(GameState@player_two_to_play) * petri_net_marking(final_net));
+
+        if valid then
+            printf("\nThe winner is %s", if player_one_wins then "player 1" else "player 2" end);
+        else
+            printf("\nMove %d was invalid: %s", count + 1, nth(count, moves));
+        end
+
+    end;
+
+# ------------------------------------------------------------------------------
 # Petri Net Structure
 # ------------------------------------------------------------------------------
 
@@ -161,54 +212,3 @@ defmatrix release_token_player_two :: GameState!unit per Move! = {
     player_one_to_play, player_two_take_two -> 1,
     player_one_to_play, player_two_take_three -> 1
 };
-
-# ------------------------------------------------------------------------------
-# The subtraction game
-# ------------------------------------------------------------------------------
-
-declare subtraction_game ::
-    (1) -> PetriNet(1, GameState!unit, Move!);
-
-define subtraction_game(n) =
-    let 
-        initial_marking =
-            n '.*' delta(GameState@pile) + delta(GameState@player_one_to_play),
-
-        pile_consume =
-            take_from_pile_player_one + take_from_pile_player_two,
-
-        token_produce =
-            release_token_player_one + release_token_player_two,
-
-        token_consume =
-            claim_token_player_one + claim_token_player_two
-    in
-        make_petri_net(
-            pile_consume + token_consume,
-            token_produce,
-            initial_marking * |GameState!unit|)
-    end;
-
-# ------------------------------------------------------------------------------
-
-declare run_subtraction_game ::
-    for_index D: for_unit a, GameState!b:
-        (PetriNet(a, GameState!b, D!), List(D)) -> Void;
-
-define run_subtraction_game(net, moves) =
-    begin
-        print("\nRunning subtraction game\n");
-
-        trace := [ delta(m) | m <- moves ];
-
-        (final_net, valid, count, _, _) := run_petri_net_trace_verbose(net, trace);
-
-        player_one_wins := is_zero(delta(GameState@player_two_to_play) * petri_net_marking(final_net));
-
-        if valid then
-            printf("\nThe winner is %s", if player_one_wins then "player 1" else "player 2" end);
-        else
-            printf("\nMove %d was invalid: %s", count + 1, nth(count, moves));
-        end
-
-    end;

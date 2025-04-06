@@ -26,6 +26,7 @@ include io;
 export
     pi,
     now,
+    equiv,
     to_percentage,
     from_percentage,
     approximates,
@@ -54,6 +55,14 @@ export
 declare pi :: 1;
 
 define pi = 3.141592653589793;
+
+# ------------------------------------------------------------------------------
+# Predicate 'equiv'
+# ------------------------------------------------------------------------------
+
+declare equiv :: (Boole, Boole) -> Boole;
+
+define equiv(x, y) = x = y;
 
 # ------------------------------------------------------------------------------
 # System time
