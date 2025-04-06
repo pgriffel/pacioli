@@ -1,0 +1,19 @@
+import si;
+import testing;
+import numpy/iris;
+include numpy;
+
+run_test_suites(numpy_suites);
+
+declare numpy_suites :: List(TestSuite);
+
+define numpy_suites = [
+    numpy_suite
+];
+
+define numpy_suite = test_suite("Function nn_predict", [
+
+    test("should predict Setosa for my_test", () ->
+        nn_predict(list_classifier, my_test) = Target@"Setosa"
+    )
+]);
