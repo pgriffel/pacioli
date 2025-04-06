@@ -27,28 +27,29 @@ import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.symboltable.info.UnitInfo;
+import pacioli.types.ast.TypeIdentifierNode;
 
 public class UnitIdentifierNode extends AbstractNode implements UnitNode {
 
-    private final String name;
-    private final String prefix;
+    public final TypeIdentifierNode name;
+    public final String prefix;
 
     public UnitInfo info;
 
-    public UnitIdentifierNode(Location location, String name) {
+    public UnitIdentifierNode(Location location, TypeIdentifierNode name) {
         super(location);
         this.name = name;
         this.prefix = null;
     }
 
-    public UnitIdentifierNode(Location location, String prefix, String name) {
+    public UnitIdentifierNode(Location location, String prefix, TypeIdentifierNode name) {
         super(location);
         this.prefix = prefix;
         this.name = name;
     }
 
     public String name() {
-        return name;
+        return name.name();
     }
 
     public Optional<String> prefix() {

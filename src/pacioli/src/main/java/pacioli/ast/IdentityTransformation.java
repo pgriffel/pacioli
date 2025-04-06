@@ -223,6 +223,16 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(UnitDefinition node) {
+        if (nodeAccept(node.id) instanceof TypeIdentifierNode id) {
+            if (node.body.isPresent()) {
+                returnNode(new UnitDefinition(node.location(), id, node.symbol,
+                        (UnitNode) nodeAccept(node.body.get())));
+            } else {
+                returnNode(new UnitDefinition(node.location(), id, node.symbol));
+            }
+        } else {
+            throw new RuntimeException("Expected an IdentifierNode");
+        }
         returnNode(node);
     }
 
@@ -489,7 +499,11 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(UnitIdentifierNode node) {
-        returnNode(node);
+        if (nodeAccept(node.name) instanceof TypeIdentifierNode id) {
+            returnNode(new UnitIdentifierNode(node.location(), node.prefix, id));
+        } else {
+            throw new RuntimeException("expected a TypeIdentifierNode");
+        }
     }
 
     @Override

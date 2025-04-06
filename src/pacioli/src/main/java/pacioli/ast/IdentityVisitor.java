@@ -173,7 +173,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(UnitDefinition node) {
-        // Pacioli.log("Unitdef");
+        node.id.accept(this);
         if (node.body.isPresent()) {
             node.body.get().accept(this);
         }
@@ -413,7 +413,8 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(UnitIdentifierNode unitIdentifierNode) {
+    public void visit(UnitIdentifierNode node) {
+        node.name.accept(this);
     }
 
     @Override

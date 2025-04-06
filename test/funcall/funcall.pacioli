@@ -27,7 +27,8 @@ import testing;
 declare funcall_suites :: List(TestSuite);
 
 define funcall_suites = [
-    funcall_suite
+    funcall_suite,
+    currying_suite
 ];
 
 run_test_suites(funcall_suites);
@@ -66,3 +67,54 @@ define funcall_suite = test_suite("funcall", [
     test("should work for apply _lambda", () -> 
        apply(_lambda args apply(sum_trip, args) end, tuple(1, 2, 3)) = 6)
 ]); 
+
+# ------------------------------------------------------------------------------
+# Currying tests
+# ------------------------------------------------------------------------------
+
+declare currying_suite :: TestSuite;
+
+define currying_suite = test_suite("Function application", [
+
+    test("should work for a dimensionless curried function", () ->
+        f(1)(2)(3)(4) = 10
+    ),
+
+    test("should work for a curried function", () ->
+        g(1)(2)(3)(4) = 11
+    ),
+
+    test("should work for a curried function with units", () ->
+        h (f (1*|metre|) (2*|metre|) (3*|metre|) (4*|metre|))
+            (2*|metre|)
+            (3*|metre|)
+            (h (1*|metre|) (2*|metre|) (3*|metre|) (4*|metre|)) = 25*|metre|
+    )
+]);
+
+# ------------------------------------------------------------------------------
+# Test functions
+# ------------------------------------------------------------------------------
+
+declare f :: for_index D, E: for_unit a, D!b, E!c:
+     (a*D!b per E!c) ->
+        (a*D!b per E!c) ->
+            (a*D!b per E!c) ->
+                (a*D!b per E!c) -> a*D!b per E!c;
+
+define f(a) =
+    (b) -> (c) -> (d) -> a + b + c + d;
+
+# ------------------------------------------------------------------------------
+
+declare g :: (1) -> (1) -> (1) -> (1) -> 1;
+
+define g = 
+    (a) -> (b) -> (c) -> (d) -> 1 + a + b + c + d;
+
+# ------------------------------------------------------------------------------
+
+declare h :: for_unit a: (a) -> (a) -> (a) -> (a) -> a;
+
+define h =
+    (a) -> (b) -> (c) -> (d) -> 1 * a + b + c + d;

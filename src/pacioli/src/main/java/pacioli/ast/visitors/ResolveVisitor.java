@@ -152,6 +152,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(UnitDefinition node) {
+        node.id.accept(this);
         if (node.body.isPresent()) {
             node.body.get().accept(this);
         }
