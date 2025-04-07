@@ -157,6 +157,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "-"               { return symbol("neg", NEG, NEG); }
   "->"              { return symbol("to", TO, TO); }
 
+  "++"              { return symbol("append", APPEND); }
   "+"               { return symbol("plus", PLUS); }
   "*"               { return symbol("mult", MULT); }
   "'*'"             { return symbol("mmult", MMULT); }

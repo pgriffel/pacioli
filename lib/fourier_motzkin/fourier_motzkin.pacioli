@@ -62,7 +62,7 @@ declare fourier_motzkin ::
 define fourier_motzkin(matrix) = 
     fourier_motzkin_fast(matrix);
   
-#define fourier_motzkin(matrix) =
+# define fourier_motzkin(matrix) =
 #    fourier_motzkin_naive(matrix);
 
 # ------------------------------------------------------------------------------
@@ -75,12 +75,15 @@ define fourier_motzkin(matrix) =
 # ------------------------------------------------------------------------------
   
 define fourier_motzkin_naive(matrix) =
-    let
-        rows = row_domain(matrix),
-        quads = [initial_quad(v,w) |
-                    (v,w) <- zip(columns(matrix), columns(right_identity(matrix)))]
-    in
-        [quad_right(q) | q <- loop_list(quads, eliminate, rows)]
+    begin
+        quads := [initial_quad(v,w) |
+                    (v,w) <- zip(columns(matrix), columns(right_identity(matrix)))];
+
+        for row <- row_domain(matrix) do
+            quads := eliminate(quads, row);
+        end
+
+        return [quad_right(q) | q <- quads];
     end;
 
 
@@ -97,8 +100,7 @@ define eliminate(quads, row) =
     end;
   
 define minimize(quads) =
-#  [q | q <- quads, all[support_sub(r,q) ==> r = q | r <- quads]];
-  [q | q <- quads, all[r = q | r <- quads, support_sub(r,q)]];
+    [q | q <- quads, all[r = q | r <- quads, support_sub(r,q)]];
 
 # ------------------------------------------------------------------------------
 # Faster implementation
@@ -122,7 +124,7 @@ define fourier_motzkin_fast(matrix) =
         end
 
         # Eliminate all remaining nodes.
-        while rows != [] do
+        while rows != [] and quads != [] do
 
             # Determine the number of positive and negative entries
             pi := sum[quad_pos_count(q) | q <- quads];
@@ -187,8 +189,6 @@ define find_seq(quads, rows) =
 
 define eliminate_fast(quads, row) =
     begin
-        #print(tuple(row, list_size(quads)));
-
         n := list_size(quads);
 
         i := 0;

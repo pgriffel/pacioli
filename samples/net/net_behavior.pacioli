@@ -19,7 +19,6 @@
 
 import petri_net;
 import random;
-import si;
 
 # ------------------------------------------------------------------------------
 # Running a Petri net
@@ -89,6 +88,32 @@ define run_petri_net_trace_aux(net, trace, verbose) =
         end
 
         return tuple(net, valid, count, fired, not_fired);
+    end;
+
+# ------------------------------------------------------------------------------
+
+declare print_summary ::
+    for_index C, D: for_unit a, C!b:
+        (Tuple(PetriNet(a, C!b, D!), Boole, 1, D!, D!)) -> Void;
+
+define print_summary(outcome) =
+    let
+        (final_net, valid, count, fired, not_fired) = outcome
+    in
+        begin
+            printf("\nTrace is %s. Steps performed is %d. Final marking is%d",
+                if valid then "valid" else "invalid" end,
+                count,
+                petri_net_marking(final_net));
+
+            printf("\nFired transitions%d", fired);
+
+            printf("\nNot fired transitions%d", not_fired);
+
+            printf("\nConsumed%d", petri_net_pre(final_net) '*' fired);
+
+            printf("\nProduced%d", petri_net_post(final_net) '*' fired);
+        end
     end;
 
 # ------------------------------------------------------------------------------
@@ -295,7 +320,6 @@ define print_transition(t, cons, prod) =
 # ------------------------------------------------------------------------------
 # Local
 # ------------------------------------------------------------------------------
-
 
 declare enabled_transitions ::
     for_index C, D: for_unit a, C!b: (PetriNet(a, C!b, D!)) -> List(D);
