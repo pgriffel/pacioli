@@ -19,7 +19,6 @@
 
 import petri_net;
 import random;
-import si;
 
 # ------------------------------------------------------------------------------
 # Running a Petri net

@@ -19,7 +19,7 @@
 
 import petri_net;
 import random;
-import si;
+import fourier_motzkin;
 
 include net_behavior;
 
@@ -27,13 +27,21 @@ run_examples();
 example_random_run();
 mini_max_test();
 
+# This should give all pairs of moves for player 1 and player 2. The token clain
+# and release part of the net alternates between two states. When both players 
+# have made a move the net ends up in the same state. This means the moves form 
+# a nullifier of the net.
+fourier_motzkin(
+    release_token_player_one + release_token_player_two -
+    claim_token_player_one - claim_token_player_two);
+
 # ------------------------------------------------------------------------------
-#  Subtraction game (simple Nim variant)
+#  Subtraction game tests
 # ------------------------------------------------------------------------------
 
-declare examples_game_moves_1 :: List(Move);
+declare valid_game_moves :: List(Move);
 
-define examples_game_moves_1 = [
+define valid_game_moves = [
     Move@player_one_take_one,
     Move@player_two_take_two,
     Move@player_one_take_one,
@@ -42,7 +50,7 @@ define examples_game_moves_1 = [
     Move@player_two_take_one
 ];
 
-define examples_game_moves_2 = [
+define invalid_game_moves = [
     Move@player_one_take_one,
     Move@player_one_take_one
 ];
@@ -51,11 +59,11 @@ define run_examples() =
     begin
         print("\nRunning example 1");
         print("=================");
-        run_subtraction_game(subtraction_game(10), examples_game_moves_1);
+        run_subtraction_game(subtraction_game(10), valid_game_moves);
 
         print("\nRunning example 2");
         print("=================");
-        run_subtraction_game(subtraction_game(10), examples_game_moves_2);
+        run_subtraction_game(subtraction_game(10), invalid_game_moves);
     end;
 
 # ------------------------------------------------------------------------------
@@ -93,7 +101,7 @@ define run_subtraction_game_mini_max(n) =
     end;
 
 # ------------------------------------------------------------------------------
-# The subtraction game
+# The subtraction game (simple Nim variant)
 # ------------------------------------------------------------------------------
 
 declare subtraction_game ::
@@ -122,8 +130,7 @@ define subtraction_game(n) =
 # ------------------------------------------------------------------------------
 
 declare run_subtraction_game ::
-    for_index D: for_unit a, GameState!b:
-        (PetriNet(a, GameState!b, D!), List(D)) -> Void;
+    (PetriNet(1, GameState!unit, Move!), List(Move)) -> Void;
 
 define run_subtraction_game(net, moves) =
     begin
