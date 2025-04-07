@@ -179,7 +179,7 @@ terminal DEFINE, DECLARE, DECLARE_PRIMITIVE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATR
 terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, FOR, DO, ASSIGN, EXCL, TO, FROM, LAMBDA;
 terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, FOROP, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
-terminal PLUS, MULT, DIV, MOD, MMULT, HAT, NEG, LEFTDIV, MDIV, MEXPT, MLEFTDIV;
+terminal PLUS, MULT, DIV, MOD, MMULT, HAT, NEG, LEFTDIV, MDIV, MEXPT, MLEFTDIV, APPEND;
 terminal RSCALEDOWN, RSCALE, LSCALEDOWN, LSCALE, TRANS, DIMINV, RECI;
 terminal EQL, APPR_EQL, NEQ, EQUIV, LE, GT, LEQ, GTQ, AND, OR, IMPLIES, FOLLOWSFROM;
 terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING, QUESTIONMARKS, SELECT, QFROM, WHERE, AS;
@@ -224,6 +224,7 @@ precedence right        TO;
 precedence nonassoc     EQUIV, FOLLOWSFROM, IMPLIES;
 precedence left         AND, OR;
 precedence nonassoc     EQL, APPR_EQL, LEQ, GTQ, NEQ, LE, GT;
+precedence left         APPEND;
 precedence left         PLUS, NEG;
 precedence left         MOD;
 precedence left         MULT, MMULT, DIV, MDIV, LEFTDIV, MLEFTDIV, LSCALE, RSCALE, LSCALEDOWN, RSCALEDOWN;
@@ -517,6 +518,7 @@ expr_no_id ::=
  | expr:e1 RSCALE:op expr:e2                           {: RESULT = binop("rscale", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 LSCALEDOWN:op expr:e2                       {: RESULT = binop("lscale_down", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 RSCALEDOWN:op expr:e2                       {: RESULT = binop("scale_down", makeLoc(opxleft, opxright), e1, e2); :}
+ | expr:e1 APPEND:op expr:e2                             {: RESULT = binop("append", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 LEQ:op expr:e2                              {: RESULT = binop("less_eq", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 GTQ:op expr:e2                              {: RESULT = binop("greater_eq", makeLoc(opxleft, opxright), e1, e2); :}
  | expr:e1 NEQ:op expr:e2                              {: RESULT = binop("not_equal", makeLoc(opxleft, opxright), e1, e2); :}
