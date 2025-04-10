@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>BoM</title>
+
+    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <script type="text/javascript" src="../viz-standalone.js"></script>
+    <script type="text/javascript" src="bom.js"></script>
+</head>
+
+<body>
+    <h2>Bill of Material</h2>
+
+    <div id="bom"></div>
+
+    <h2>Exploded Bill of Material</h2>
+
+    <div id="exploded"></div>
+
+    <script>
+
+        function asDot(matrix) {
+
+            let out = "digraph{ nodesep=0.5; ranksep=1;"
+
+            for (const entry of matrix.keyValueList().values) {
+                if (entry.value.magnitude.gte(0.000001)) {
+                    out += `${entry.row} -> ${entry.column} [label="${entry.value.toFixed(3)}"];`
+                }
+            }
+
+            out += "}"
+
+            return out
+        }
+
+        Viz.instance().then(function (viz) {
+
+            const bomElt = document.getElementById("bom");
+            const explodedElt = document.getElementById("exploded");
+
+            bomElt.appendChild(viz.renderSVGElement(asDot(Pacioli.value("bom", "BoM"))));
+            explodedElt.appendChild(viz.renderSVGElement(asDot(Pacioli.value("bom", "BoM_closure"))));
+        });
+
+    </script>
+
+</body>
+
+
+</html>

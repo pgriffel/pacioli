@@ -64,6 +64,10 @@ defmatrix BoM :: Product!unit per Product!unit = {
 # Computations
 # ----------------------------------------------------------------------------
 
+declare BoM_closure :: Product!unit per Product!unit;
+
+define BoM_closure = closure(BoM);
+
 declare trade_BoM ::
     Product!trade_unit per Product!trade_unit;
 
