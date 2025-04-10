@@ -286,6 +286,9 @@ define graph(net) =
 
 # ------------------------------------------------------------------------------
 
+declare print_net_structure ::
+    for_index C, D: for_unit a, C!b: (PetriNet(a, C!b, D!)) -> Void;
+
 define print_net_structure(net) = 
     begin
         print("Petri net with places");

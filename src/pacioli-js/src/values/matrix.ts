@@ -22,7 +22,12 @@
 
 import { DimNum } from "uom-ts";
 import { Context, SIUnit } from "uom-ts";
-import { getCOONumbers, getNumber, tagNumbers } from "./numbers";
+import {
+  getCOONumbers,
+  getFullNumbers,
+  getNumber,
+  tagNumbers,
+} from "./numbers";
 import { MatrixShape } from "./matrix-shape";
 import { RawMatrix, STORAGE_COO } from "../value";
 
@@ -70,26 +75,42 @@ export class PacioliMatrix {
     rows: string[];
     columns: string[];
   } {
-    // Get the COO numbers
-    var coo = getCOONumbers(this.numbers);
-    var rows = coo[0];
-    var columns = coo[1];
-    var values = coo[2];
-
     // The key value list we will return
     const kvList: { row: string[]; column: string[]; value: DimNum }[] = [];
 
-    // Fill the list with all [non-zero] values
-    for (var i = 0; i < rows.length; i++) {
-      if (zeros || values[i] !== 0) {
-        kvList.push({
-          row: this.shape.rowCoordinates(rows[i]).names,
-          column: this.shape.columnCoordinates(columns[i]).names,
-          value: DimNum.fromNumber(
-            values[i],
-            this.shape.unitAt(rows[i], columns[i])
-          ),
-        });
+    if (zeros) {
+      // Get the full numbers
+      var full = getFullNumbers(this.numbers);
+
+      // Fill the list with all values
+      for (var i = 0; i < this.shape.nrRows(); i++) {
+        for (var j = 0; j < this.shape.nrColumns(); j++) {
+          kvList.push({
+            row: this.shape.rowCoordinates(i).names,
+            column: this.shape.columnCoordinates(j).names,
+            value: DimNum.fromNumber(full[i][j], this.shape.unitAt(i, j)),
+          });
+        }
+      }
+    } else {
+      // Get the COO numbers
+      var coo = getCOONumbers(this.numbers);
+      var rows = coo[0];
+      var columns = coo[1];
+      var values = coo[2];
+
+      // Fill the list with all non-zero values
+      for (var i = 0; i < rows.length; i++) {
+        if (values[i] !== 0) {
+          kvList.push({
+            row: this.shape.rowCoordinates(rows[i]).names,
+            column: this.shape.columnCoordinates(columns[i]).names,
+            value: DimNum.fromNumber(
+              values[i],
+              this.shape.unitAt(rows[i], columns[i])
+            ),
+          });
+        }
       }
     }
 

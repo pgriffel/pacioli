@@ -1,6 +1,7 @@
 **/*.mvm
 **/*.js
 !/samples/shells/parameters.js
+!/samples/viz-standalone.js
 **/*.pacioli~
 **/*.java~
 /src/uom/target/
