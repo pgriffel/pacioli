@@ -100,7 +100,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     // // Quick fix for the debug option for string literals
     // return in.replaceAll("\"", "\\\\\"");
     // }
-    private String escapeString(String in) {
+    public static String escapeString(String in) {
         // Quick fix for the debug option for string literals
         // return in.replaceAll("\"", "\\\\\"");
 

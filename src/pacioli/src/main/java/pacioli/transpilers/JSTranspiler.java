@@ -33,6 +33,7 @@ import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.unit.UnitNode;
+import pacioli.ast.visitors.JSGenerator;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printer;
@@ -214,12 +215,13 @@ public class JSTranspiler implements SymbolTableVisitor {
                 DimensionedNumber<TypeBase> number = body.evalUnit();
                 number = number.flat();
                 out.format("Pacioli.compute_%s = function () {\n", info.globalName());
-                out.format("    return {definition: Pacioli.DimNum.fromNumber(%s, %s), symbol: '%s'}\n",
-                        number.factor(), TypeBase.compileUnitToJS(number.unit()), info.symbol());
+                out.format("    return {definition: Pacioli.DimNum.fromNumber(%s, %s), symbol: \"%s\"}\n",
+                        number.factor(), TypeBase.compileUnitToJS(number.unit()),
+                        JSGenerator.escapeString(info.symbol()));
                 out.format("}\n");
             } else {
-                out.format("Pacioli.compute_%s = function () { return {symbol: '%s'}};\n",
-                        info.globalName(), info.symbol());
+                out.format("Pacioli.compute_%s = function () { return {symbol: \"%s\"}};\n",
+                        info.globalName(), JSGenerator.escapeString(info.symbol()));
             }
         } else {
             throw new RuntimeException("ScalarUnitInfo misses definition");
