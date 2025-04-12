@@ -18,11 +18,17 @@
 <body>
     <div id="console"></div>
 
-    <h1>Paraboloid examples</h1>
-
+    <h1>Quadratic and paraboloid examples</h1>
+ <p>
     These examples render two-dimensional surfaces.
-    First by means of a quadratic forms.
-    Next by means of a parametrically defined function.
+</p>
+<p>
+    First we express a class of quadratic forms that can be used to render either a paraboloid or a saddle surface.
+</p>
+<p>
+    Next, for comparison, we show the parametrically defined paraboloid function.
+</p>
+    In both cases we observe that the <math><mi>z</mi></math> axis has a metre squared as its unit.
 
     <p>
         A surface is described parametrically with a function
@@ -67,39 +73,115 @@
 
 
 
-    <h2>Paraboloid as quadric</h2>
+    <h2>Paraboloid and saddle surface as quadratic form</h2>
     <p>
-        Plot of a paraboloid surface by revolutions.
+        We consider the class of quadratic forms that is expressed as:
 
-
-    <p>
-        <math>
-            <mi>f</mi>
-            <mo>(</mo>
-            <mi>u</mi>
-            <mo>,</mo>
-            <mi>v</mi>
-            <mo>)</mo>
+    </p>
+        <math >
+            <mi>z</mi>
             <mo>=</mo>
-            <msup>
-                <mrow>
-                    <mo>(</mo>
+            <mrow>
+                <mo>(</mo>
+                    <mtable>
+                        <mtr>
+                            <mi>x</mi>
+                            <mi>y</mi>
+                        </mtr>
+                    </mtable>
+                <mo>)</mo>
+            </mrow>
+            <mrow>
+              <mo>(</mo>
+              <mtable>
+                <mtr>
+                  <mtd>
+                    <msub>
+                        <mi>A</mi>
+                        <msub>
+                            <mi>x</mi>  
+                        </msub>
+                        <msub>
+                            <mi>x</mi>  
+                        </msub>                         
+                    </msub>
+                  </mtd>
+                  <mtd>
+                    <msub>
+                        <mi>A</mi>
+                        <msub>
+                            <mi>x</mi>  
+                        </msub>
+                        <msub>
+                            <mi>y</mi>  
+                        </msub>                         
+                    </msub>
+                  </mtd>
+                </mtr>
+                <mtr>
+                  <mtd>
+                    <msub>
+                        <mi>A</mi>
+                        <msub>
+                            <mi>y</mi>  
+                        </msub>
+                        <msub>
+                            <mi>x</mi>  
+                        </msub>                         
+                    </msub>
+                  </mtd>
+                  <mtd>
+                    <msub>
+                        <mi>A</mi>
+                        <msub>
+                            <mi>y</mi>  
+                        </msub>
+                        <msub>
+                            <mi>y</mi>  
+                        </msub>                         
+                    </msub>
+                  </mtd>
+                </mtr>
+              </mtable>
+              <mo>)</mo>
+            </mrow>
+            <mrow>
+                <mo>(</mo>
+                    <mtable>
+                        <mtr>
+                            <mi>x</mi>
+                        </mtr>
+                        <mtr>
+                            <mi>y</mi>
+                        </mtr>
+                    </mtable>
+                <mo>)</mo>
+            </mrow>
+          </math>
+
+<p>
+    <mrow>
+        <mo>(</mo>
+            <mtable>
+                <mtr>
                     <mi>x</mi>
-                    <mo>,</mo>
                     <mi>y</mi>
-                    <mo>,</mo>
-                    <mi>z</mi>
-                    <mo>)</mo>
-                </mrow>
-                <mi>T</mi>
-            </msup>
-        </math>
-        with
+                </mtr>
+            </mtable>
+        <mo>)</mo>
+    </mrow> in this case is computed as the "normal" transpose operator (as opposed to the reciprocal or dimensional inverse).
+</p>
+<p>
+We let the variables <math><mi>x</mi></math> and <math><mi>y</mi></math> be parametrically defined as follows:
+</p>
+
+    <p>
     <ul>
         <li>
             <math>
                 <mi>x</mi>
                 <mo>=</mo>
+                <mi>a</mi>
                 <mi>u</mi>
                 <mi>cos</mi>
                 (<mi>v</mi>)
@@ -109,22 +191,13 @@
             <math>
                 <mi>y</mi>
                 <mo>=</mo>
+                <mi>a</mi>
                 <mi>u</mi>
                 <mi>sin</mi>
                 (<mi>v</mi>)
             </math>
         </li>
-        <li>
-            <math>
-                <mi>z</mi>
-                <mo>=</mo>
-                <mi>a</mi>
-                <msup>
-                    <mi>u</mi>
-                    <mn>2</mn>
-                </msup>
-            </math>
-        </li>
+
     </ul>
     where
     <math>
@@ -148,19 +221,9 @@
     </math>
 
     <p>
-        The square
-        <math>
-            <msup>
-                <mi>u</mi>
-                <mn>2</mn>
-            </msup>
-        </math>
-        for
-        <math>
-            <mi>z</mi>
-        </math>
-        makes its unit metre squared.
-
+        As the quadratic form has both <math><mi>x</mi></math> and <math><mi>y</mi></math> squared, 
+        <math><mi>z</mi></math>'s unit is metre squared. 
+     
     <p>
 
 
