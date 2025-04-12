@@ -111,7 +111,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
         if (definition.isPresent()) {
 
             if (!definition.get().body.isPresent()) {
-                out.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol());
+                out.format("baseunit \"%s\" \"%s\";\n", info.name(), MVMGenerator.escapeString(info.symbol()));
             } else {
                 DimensionedNumber<TypeBase> number = definition.get().body.get().evalUnit();
                 number = number.flat();

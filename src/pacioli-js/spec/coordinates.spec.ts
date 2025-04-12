@@ -27,26 +27,23 @@ import {
 } from "./index-set.spec.js";
 import { arrayEqual } from "./util";
 import { UOM } from "uom-ts";
-import { Coordinates } from "../src/values/coordinates.js";
+import { PacioliCoordinates } from "../src/values/coordinates.js";
 import { IndexSet } from "../src/values/index-set.js";
 
 /**
- * A fast check Arbitrary for the {@link Coordinates} class.
+ * A fast check Arbitrary for the {@link PacioliCoordinates} class.
  *
- * @returns An arbitray Coordinates instance
+ * @returns An arbitray PacioliCoordinates instance
  */
-export function arbitraryCoordinates(): fc.Arbitrary<Coordinates> {
-  return fc
-    .array(arbitraryIndexSet())
-    .chain((indexSets) =>
-      fc
-        .integer({
-          min: 0,
-          max:
-            indexSets.map((set) => set.size()).reduce((x, y) => x * y, 1) - 1,
-        })
-        .map((n) => Coordinates.fromIndex(indexSets, n))
-    );
+export function arbitraryCoordinates(): fc.Arbitrary<PacioliCoordinates> {
+  return fc.array(arbitraryIndexSet()).chain((indexSets) =>
+    fc
+      .integer({
+        min: 0,
+        max: indexSets.map((set) => set.size()).reduce((x, y) => x * y, 1) - 1,
+      })
+      .map((n) => PacioliCoordinates.fromIndex(indexSets, n))
+  );
 }
 
 function arbitraryCoordinatesParams(): fc.Arbitrary<[IndexSet[], string[]]> {
@@ -59,14 +56,14 @@ function arbitraryCoordinatesParams(): fc.Arbitrary<[IndexSet[], string[]]> {
     .map((pairs) => [pairs.map(([x, _]) => x), pairs.map(([_, y]) => y)]);
 }
 
-describe("Coordinates", () => {
+describe("PacioliCoordinates", () => {
   describe("equals", () => {
-    it("should be true for Coordinates constructed with the same arguments", () => {
+    it("should be true for PacioliCoordinates constructed with the same arguments", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // when a dimensioned number is created with dimless
-          const coordinatesA = new Coordinates(elements, indexSets);
-          const coordinatesB = new Coordinates(elements, indexSets);
+          const coordinatesA = new PacioliCoordinates(elements, indexSets);
+          const coordinatesB = new PacioliCoordinates(elements, indexSets);
 
           // then
           expect(coordinatesA.equals(coordinatesB)).toEqual(true);
@@ -97,13 +94,13 @@ describe("Coordinates", () => {
   });
 
   describe("position", () => {
-    it("should give the same coordinates when passed to Coordinates.fromIndex", () => {
+    it("should give the same coordinates when passed to PacioliCoordinates.fromIndex", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // when a dimensioned number is created with dimless
-          const coordinates = new Coordinates(elements, indexSets);
+          const coordinates = new PacioliCoordinates(elements, indexSets);
 
-          const fromPostion = Coordinates.fromIndex(
+          const fromPostion = PacioliCoordinates.fromIndex(
             indexSets,
             coordinates.position()
           );
@@ -122,7 +119,7 @@ describe("Coordinates", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // when a dimensioned number is created with dimless
-          const coordinates = new Coordinates(elements, indexSets);
+          const coordinates = new PacioliCoordinates(elements, indexSets);
 
           // and the factor should be the given factor
           expect(coordinates.order()).toEqual(elements.length);
@@ -144,7 +141,7 @@ describe("Coordinates", () => {
           ),
           ([indexSets, elements, indices]) => {
             // Given some coordinates from some index sets and some elements
-            const coordinates = new Coordinates(elements, indexSets);
+            const coordinates = new PacioliCoordinates(elements, indexSets);
 
             // When the coordinates is project for some indices
             const projected = coordinates.project(indices);
@@ -165,7 +162,7 @@ describe("Coordinates", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // Given some coordinates from some index sets and some elements
-          const coordinates = new Coordinates(elements, indexSets);
+          const coordinates = new PacioliCoordinates(elements, indexSets);
 
           const text = coordinates.toText();
 
@@ -189,7 +186,7 @@ describe("Coordinates", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // Given some coordinates from some index sets and some elements
-          const coordinates = new Coordinates(elements, indexSets);
+          const coordinates = new PacioliCoordinates(elements, indexSets);
 
           const text = coordinates.shortText();
 
@@ -208,7 +205,7 @@ describe("Coordinates", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // Given some coordinates from some index sets and some elements
-          const coordinates = new Coordinates(elements, indexSets);
+          const coordinates = new PacioliCoordinates(elements, indexSets);
 
           expect(
             indexSets.map((set) => set.size()).reduce((x, y) => x * y, 1)
@@ -223,7 +220,7 @@ describe("Coordinates", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // Given some coordinates from some index sets and some elements
-          const coordinates = new Coordinates(elements, indexSets);
+          const coordinates = new PacioliCoordinates(elements, indexSets);
 
           // When a shape is contructed from the coordinates
           const shape = coordinates.shape();

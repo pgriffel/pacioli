@@ -71,6 +71,10 @@ defunit day "d" = 24*hour;
 #
 defunit pi "pi" = 3.141592653589793;
 
+defunit inch "\"" = 0.0254 * metre;
+
+defunit foot "'" = 0.3048 * metre;
+
 defunit degree "°" = pi * radian / 180;
 # defunit degree "°" = 0.017453292519943295 * radian;
 

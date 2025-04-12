@@ -24,6 +24,11 @@
 
     <script>
 
+        function valueString(dimNum) {
+            // Unit symbol string can contain " (e.g. inch)
+            return dimNum.toFixed(0).replace("\"", "\\\"");
+        }
+
         function asDot(net) {
 
             const ZERO_MARKINGS = true;
@@ -37,7 +42,7 @@
             // Store the marking per place
             for (const entry of marking.keyValueList(ZERO_MARKINGS).values) {
                 places.add(entry.row.join(","))
-                placeNumber.set(entry.row.join(","), entry.value.toFixed(0))
+                placeNumber.set(entry.row.join(","), valueString(entry.value))
             }
 
             const preKVList = pre.keyValueList();
@@ -70,10 +75,10 @@
 
             // Dot statements for the arrows
             for (const entry of preKVList.values) {
-                out += `${entry.row.join(",")} -> ${entry.column.join(",")} [label="${entry.value.toFixed(0)}"];`
+                out += `${entry.row.join(",")} -> ${entry.column.join(",")} [label="${valueString(entry.value)}"];`
             }
             for (const entry of pstKVList.values) {
-                out += `${entry.column.join(",")} -> ${entry.row.join(",")} [label="${entry.value.toFixed(0)}"];`
+                out += `${entry.column.join(",")} -> ${entry.row.join(",")} [label="${valueString(entry.value)}"];`
             }
 
             out += "}"
