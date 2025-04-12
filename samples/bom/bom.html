@@ -17,15 +17,30 @@
 
     <div id="bom"></div>
 
+
     <h2>Exploded Bill of Material</h2>
 
     <div id="exploded"></div>
+
+
+    <h2>Cost Breakdown</h2>
+
+    Cost breakdown for one peace of apple pie
+
+    <h3>In dollar</h3>
+
+    <pacioli-value script="bom" definition="cost_breakdown"></pacioli-value>
+
+    <h3>In percentages</h3>
+
+    <pacioli-value script="bom" definition="cost_breakdown_in_percentages"></pacioli-value>
+
 
     <script>
 
         function asDot(matrix) {
 
-            let out = "digraph{ nodesep=0.5; ranksep=1;"
+            let out = "digraph{ nodesep=0.5; ranksep=1; rankdir=BT;"
 
             for (const entry of matrix.keyValueList().values) {
                 if (entry.value.magnitude.gte(0.000001)) {
