@@ -38,13 +38,18 @@
 
     <script>
 
+        function valueString(dimNum) {
+            // Unit symbol string can contain " (e.g. inch)
+            return dimNum.toFixed(0).replace("\"", "\\\"");
+        }
+
         function asDot(matrix) {
 
             let out = "digraph{ nodesep=0.5; ranksep=1; rankdir=BT;"
 
             for (const entry of matrix.keyValueList().values) {
                 if (entry.value.magnitude.gte(0.000001)) {
-                    out += `${entry.row} -> ${entry.column} [label="${entry.value.toFixed(3)}"];`
+                    out += `${entry.row} -> ${entry.column} [label="${valueString(entry.value)}"];`
                 }
             }
 
