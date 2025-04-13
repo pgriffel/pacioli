@@ -2138,7 +2138,7 @@ class CUP$Parser$actions {
 		Location sxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location sxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		SchemaNode s = (SchemaNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new Declaration(makeLoc(dxleft, sxright), id, s); 
+		 RESULT = new Declaration(makeLoc(dxleft, sxright), id, s, true); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("definition",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-3)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -2159,7 +2159,7 @@ class CUP$Parser$actions {
 		Location sxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location sxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		SchemaNode s = (SchemaNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 RESULT = new Declaration(makeLoc(dxleft, sxright), id, s, ids); 
+		 RESULT = new Declaration(makeLoc(dxleft, sxright), id, s, ids, true); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("definition",3, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-4)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

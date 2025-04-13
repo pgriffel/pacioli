@@ -265,6 +265,17 @@ public class Program {
             }
         }
 
+        // Check declarations
+        for (Definition definition : this.ast.definitions()) {
+            if (definition instanceof Declaration def) {
+                ValueInfo.Builder builder = valueBuilders.get(def.name());
+                if (!def.isPrimitive() && builder.definition == null) {
+                    throw new PacioliException(def.id.location(), "No definition found for declared name %s",
+                            def.name());
+                }
+            }
+        }
+
         // Set the isPublic flag for exported identifiers
         for (ExportNode exportNode : this.ast.exports()) {
 
