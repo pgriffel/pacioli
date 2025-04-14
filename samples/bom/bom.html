@@ -40,7 +40,7 @@
 
         function valueString(dimNum) {
             // Unit symbol string can contain " (e.g. inch)
-            return dimNum.toFixed(0).replace("\"", "\\\"");
+            return dimNum.toFixed(3).replace("\"", "\\\"");
         }
 
         function asDot(matrix) {

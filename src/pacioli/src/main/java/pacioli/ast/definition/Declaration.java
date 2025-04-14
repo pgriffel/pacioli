@@ -37,23 +37,35 @@ public class Declaration extends AbstractNode implements Definition {
     public final TypeNode typeNode;
 
     private final List<IdentifierNode> arguments; // can be null
+    private final boolean isPrimitive;
 
     public Declaration(Location location, IdentifierNode id, TypeNode typeNode) {
         super(location);
         this.id = id;
         this.typeNode = typeNode;
         this.arguments = null;
+        this.isPrimitive = false;
     }
 
-    public Declaration(Location location, IdentifierNode id, TypeNode typeNode, List<IdentifierNode> arguments) {
+    public Declaration(Location location, IdentifierNode id, TypeNode typeNode, boolean isPrimitive) {
+        super(location);
+        this.id = id;
+        this.typeNode = typeNode;
+        this.arguments = null;
+        this.isPrimitive = isPrimitive;
+    }
+
+    public Declaration(Location location, IdentifierNode id, TypeNode typeNode, List<IdentifierNode> arguments,
+            boolean isPrimitive) {
         super(location);
         this.id = id;
         this.typeNode = typeNode;
         this.arguments = arguments;
+        this.isPrimitive = isPrimitive;
     }
 
     public Declaration transform(TypeNode node) {
-        return new Declaration(location(), id, node, this.arguments);
+        return new Declaration(location(), id, node, this.arguments, this.isPrimitive);
     }
 
     @Override
@@ -67,7 +79,7 @@ public class Declaration extends AbstractNode implements Definition {
     }
 
     public boolean isPrimitive() {
-        return this.arguments == null;
+        return this.isPrimitive;
     }
 
     public Optional<List<String>> arguments() {
