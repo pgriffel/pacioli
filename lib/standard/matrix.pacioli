@@ -90,12 +90,10 @@ define precision() =
 
 doc inner
     "The inner product between two vectors. The usual product <code>x^T '*' y</code>
-    between two vectors.
-    
-    The vectors must be dimensionally uniform.";
+    between two vectors.";
 
 declare inner ::
-  for_index P: for_unit a, b, P!u: (a*P!, b*P!) -> a*b;
+  for_index P: for_unit a, b, P!u: (a*P!u, b/P!u) -> a*b;
 
 define inner(x,y) = x^T '*' y;
 
