@@ -196,16 +196,24 @@ public class PacioliFile implements Printable {
         // See if a candidate exists
         for (File candidate : candidates) {
             if (candidate.exists()) {
-                Pacioli.logIf(Pacioli.Options.showIncludeSearches, "Library '%s' found in file '%s'", name, candidate);
+
+                if (Pacioli.Options.showIncludeSearches) {
+                    Pacioli.log("Library '%s' found in file '%s'", name, candidate);
+                }
+
                 if (theFile == null) {
                     theFile = candidate;
                 } else {
-                    Pacioli.logIf(Pacioli.Options.showIncludeSearches, "Shadowed '%s' library '%s' is ignored", name,
-                            candidate);
+
+                    if (Pacioli.Options.showIncludeSearches) {
+                        Pacioli.log("Shadowed '%s' library '%s' is ignored", name,
+                                candidate);
+                    }
                 }
-            } else {
-                Pacioli.logIf(Pacioli.Options.showIncludeSearches, "Library candidate '%s' does not exist", candidate);
+            } else if (Pacioli.Options.showIncludeSearches) {
+                Pacioli.log("Library candidate '%s' does not exist", candidate);
             }
+
         }
 
         if (theFile == null) {

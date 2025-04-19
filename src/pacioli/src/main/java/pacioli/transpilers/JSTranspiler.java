@@ -65,7 +65,9 @@ public class JSTranspiler implements SymbolTableVisitor {
         // Infos without definition are filtered by the caller
         assert (info.definition().isPresent());
 
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling value %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling value %s", info.globalName());
+        }
 
         ValueDefinition definition = info.definition().get();
         ExpressionNode transformedBody = definition.body;
@@ -168,7 +170,9 @@ public class JSTranspiler implements SymbolTableVisitor {
     @Override
     public void visit(IndexSetInfo info) {
 
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling index set %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling index set %s", info.globalName());
+        }
 
         assert (info.definition().isPresent());
 
@@ -204,7 +208,9 @@ public class JSTranspiler implements SymbolTableVisitor {
     @Override
     public void visit(ScalarBaseInfo info) {
 
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling unit %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling unit %s", info.globalName());
+        }
 
         Optional<UnitDefinition> optionalDefinition = info.definition();
 
@@ -233,7 +239,9 @@ public class JSTranspiler implements SymbolTableVisitor {
 
         assert (info.definition().isPresent());
 
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling vector unit %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling vector unit %s", info.globalName());
+        }
 
         IndexSetInfo setInfo = (IndexSetInfo) info.definition().get().indexSetNode.info;
         List<String> unitTexts = new ArrayList<String>();

@@ -239,8 +239,11 @@ public class Project {
 
         for (PacioliFile current : orderedFiles()) {
 
+            if (Options.showFileLoads) {
+                Pacioli.log("Loading %s", current.moduleName());
+            }
+
             // Parse the file
-            Pacioli.logIf(Options.showFileLoads, "Loading %s", current.moduleName());
             Program program = Program.load(current).desugar();
 
             // Filter the bundle's total symbol tables for the directly used modules of the
