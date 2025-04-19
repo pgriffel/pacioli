@@ -120,21 +120,31 @@ public class PrettyPrinter implements TypeVisitor {
     @Override
     public void visit(MatrixType type) {
 
+        MatrixType properType = type.properIndexSets();
+
         // Empty string or something
-        String left = type.prettyDimensionUnitPair(type.rowDimension(), type.rowUnit());
-        String right = type.prettyDimensionUnitPair(type.columnDimension(), type.columnUnit());
+        String left = properType.prettyDimensionUnitPair(properType.rowDimension(), properType.rowUnit());
+        String right = properType.prettyDimensionUnitPair(properType.columnDimension(), properType.columnUnit());
 
         // 1 or something
-        String factorString = type.factor().pretty();
+        String factorString = properType.factor().pretty();
 
         boolean hasFactor = !factorString.equals("1");
         boolean hasLeft = !left.isEmpty();
         boolean hasRight = !right.isEmpty();
 
         if (hasFactor && hasLeft && hasRight) {
-            out.format("%s*%s per %s", factorString, left, right);
+            if (left.startsWith("1/")) {
+                out.format("%s/%s per %s", factorString, left.substring(2), right);
+            } else {
+                out.format("%s*%s per %s", factorString, left, right);
+            }
         } else if (hasFactor && hasLeft) {
-            out.format("%s*%s", factorString, left);
+            if (left.startsWith("1/")) {
+                out.format("%s/%s", factorString, left.substring(2));
+            } else {
+                out.format("%s*%s", factorString, left);
+            }
         } else if (hasFactor && hasRight) {
             out.format("%s per %s", factorString, right);
         } else if (hasFactor) {
