@@ -36,6 +36,7 @@ import {
 } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper.js";
 import { PacioliValue } from "./boxing";
+import { PacioliTuple } from "./values/tuple";
 
 /**
  * Matches the Scene type from the graphics Pacioli library
@@ -77,6 +78,7 @@ type PacioliMesh = [
   [PacioliMatrix, PacioliString][], // vertices
   [PacioliMatrix, PacioliMatrix, PacioliMatrix][], // faces
   PacioliMaybe, // position
+  PacioliTuple, // rotations
   PacioliString, // name
   PacioliBoole, // wireframe
   PacioliString // material
@@ -804,10 +806,17 @@ export class Space {
       }
     }
     for (const mesh of meshes) {
-      const [, , position, name] = mesh;
+      const [, , position, rotations, name] = mesh;
       if (name.value !== "" && position.value) {
         if (position.value.kind === "matrix") {
+          const [x, y, z] = rotations;
           this.updateMesh(name.value, position.value);
+          this.rotateMesh(
+            name.value,
+            x as PacioliMatrix,
+            z as PacioliMatrix,
+            y as PacioliMatrix
+          );
         } else {
           throw Error("Mesh position must be a matrix");
         }
@@ -848,6 +857,20 @@ export class Space {
     if (mesh) {
       const jsVector = vector2THREE(position, units(this.options));
       mesh.position.set(jsVector.x, jsVector.y, jsVector.z);
+    }
+  }
+
+  private rotateMesh(
+    name: string,
+    x: PacioliMatrix,
+    y: PacioliMatrix,
+    z: PacioliMatrix
+  ) {
+    const mesh = this.scene.getObjectByName(name);
+    if (mesh) {
+      mesh.rotation.x = getNumber(x.numbers, 0, 0);
+      mesh.rotation.y = getNumber(y.numbers, 0, 0);
+      mesh.rotation.z = getNumber(z.numbers, 0, 0);
     }
   }
 
@@ -1071,7 +1094,7 @@ function createTHREEMesh(
   mesh: PacioliMesh,
   unit: { x: SIUnit; y: SIUnit; z: SIUnit }
 ): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
-  const [vs, fs, pos, name, hasWireframe, materialOption] = mesh;
+  const [vs, fs, pos, rotations, name, hasWireframe, materialOption] = mesh;
 
   var material = materialOption.value.toLowerCase();
 
@@ -1112,6 +1135,15 @@ function createTHREEMesh(
   meshObject.position.x = 0;
   meshObject.position.y = 0;
   meshObject.position.z = 0;
+
+  const [x, y, z] = rotations;
+  const xRot = x as PacioliMatrix;
+  const yRot = z as PacioliMatrix;
+  const zRot = y as PacioliMatrix;
+
+  meshObject.rotation.x = getNumber(xRot.numbers, 0, 0);
+  meshObject.rotation.y = getNumber(yRot.numbers, 0, 0);
+  meshObject.rotation.z = getNumber(zRot.numbers, 0, 0);
 
   // Place the mesh at the proper position if it is given
   if (pos.value) {
