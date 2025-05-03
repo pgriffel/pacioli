@@ -167,9 +167,8 @@ export function $base_base_catch(code: any, _: any[]) {
   }
 }
 
-// TODO: give a type
 export function $base_base_nothing(): RawValue {
-  return NOTHING; // Nasty cast because NOTHING is undefined. Reconsider undefined as value?!
+  return NOTHING;
 }
 
 export function $base_base_is_nothing(maybe: RawMaybe): RawBoole {
@@ -189,93 +188,6 @@ export function $base_base_not(boole: RawBoole): RawBoole {
 
 export function $base_system__skip(): PacioliVoid {
   return VOID;
-}
-
-export function $base_base__while(
-  test: () => RawBoole,
-  body: () => PacioliVoid
-): PacioliVoid {
-  while (test()) {
-    body();
-  }
-  return VOID;
-}
-
-export function $base_base__for(
-  items: RawList,
-  body: (arg: RawValue) => PacioliVoid
-): PacioliVoid {
-  for (let item of items) {
-    body(item);
-  }
-
-  return VOID;
-}
-
-export function $base_base__catch_result(
-  code: () => PacioliVoid,
-  ref: RawRef
-): RawValue | PacioliVoid {
-  // dev switch to debug exceptions in a catch block
-  if (false) {
-    code();
-    // TODO: check if this is a Void statement. If not we have to throw an error.
-    // We need this information from the compiler?!
-    return VOID;
-  } else {
-    try {
-      code();
-      // TODO: check if this is a Void statement. If not we have to throw an error.
-      // We need this information from the compiler?!
-      throw new Error("Statement ends without returning a value");
-    } catch (err) {
-      if (err == "jump") {
-        return ref[0];
-      } else {
-        throw err;
-      }
-    }
-  }
-}
-
-export function $base_base__throw_result(ref: RawRef, value: RawValue) {
-  ref[0] = value;
-  throw "jump";
-}
-
-export function $base_base__catch_void(
-  code: () => PacioliVoid,
-  ref: RawRef
-): RawValue | PacioliVoid {
-  // dev switch to debug exceptions in a catch block
-  if (false) {
-    code();
-    // TODO: check if this is a Void statement. If not we have to throw an error.
-    // We need this information from the compiler?!
-    return VOID;
-  } else {
-    try {
-      code();
-      // TODO: check if this is a Void statement. If not we have to throw an error.
-      // We need this information from the compiler?!
-      return VOID;
-    } catch (err) {
-      if (err == "jump") {
-        return ref[0];
-      } else {
-        throw err;
-      }
-    }
-  }
-}
-
-export function $base_base__throw_void(ref: RawRef, value: RawValue) {
-  ref[0] = value;
-  throw "jump";
-}
-
-export function $base_base__seq(_x: PacioliVoid, y: PacioliVoid): PacioliVoid {
-  return y;
 }
 
 export function $base_base_not_equal(x: RawValue, y: RawValue): RawBoole {

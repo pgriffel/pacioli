@@ -23,6 +23,7 @@ package pacioli.ast.visitors;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -52,7 +53,6 @@ import pacioli.ast.expression.WhileNode;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printer;
-import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.matrix.MatrixType;
 
@@ -116,11 +116,10 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(AssignmentNode node) {
-        out.format("Pacioli.%s(", ValueInfo.global("$base_base", "_ref_set"));
         out.print("lcl_" + node.var.name());
-        out.print(", ");
+        out.print(" = ");
         node.value.accept(this);
-        out.print(")");
+        out.print(";");
     }
 
     @Override
@@ -158,7 +157,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
                 ? "Pacioli.fetchValue('" + info.generalInfo().module() + "', '" + node.name() + "')"
                 : "lcl_" + node.name();
 
-        if (node.info().isRef()) {
+        if (node.info().isRef() && false) {
             out.format("Pacioli.%s(%s)", ValueInfo.global("$base_base", "_ref_get"), full);
         } else {
             out.format("%s", full);
@@ -167,13 +166,20 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(IfStatementNode node) {
-        out.write("(");
+        mark();
+        out.write("if (");
         node.test.accept(this);
-        out.write(" ? ");
+        out.write(") {");
+        newlineUp();
         node.positive.accept(this);
-        out.write(" : ");
+        newlineDown();
+        out.write("} else {");
+        newlineUp();
         node.negative.accept(this);
-        out.write(" )");
+        newlineDown();
+        out.write("}");
+        newline();
+        unmark();
     }
 
     @Override
@@ -274,39 +280,26 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnNode node) {
-        format("Pacioli.%s(%s, ", ValueInfo.global("$base_base", "_throw_result"), node.resultInfo.name());
+        write("return ");
         node.value.accept(this);
-        write(")");
+        write(";");
+        newline();
     }
 
     @Override
     public void visit(ReturnVoidNode node) {
-        format("Pacioli.%s(%s, ", ValueInfo.global("$base_base", "_throw_void"), node.resultInfo.name());
-        write("Pacioli.fetchValue('$base_base', 'nothing')");
-        write(")");
+        write("return;");
     }
 
     @Override
     public void visit(SequenceNode node) {
 
-        if (node.items.isEmpty()) {
-            throw new RuntimeException("todo: MVM generator for empty sequence");
-        } else {
-            Integer n = node.items.size();
-            mark();
-            for (int i = 0; i < n - 1; i++) {
-                format("Pacioli.%s(", ValueInfo.global("$base_base", "_seq"));
-                newlineUp();
-                node.items.get(i).accept(this);
-                write(", ");
-                newline();
+        Integer n = node.items.size();
 
-            }
-            node.items.get(n - 1).accept(this);
-            for (int i = 0; i < n - 1; i++) {
-                out.print(")");
-            }
-            unmark();
+        for (int i = 0; i < n; i++) {
+            node.items.get(i).accept(this);
+            newline();
+
         }
     }
 
@@ -316,75 +309,41 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         mark();
 
         // Find all assigned variables
-        Set<IdentifierNode> assignedVariables = node.body.locallyAssignedVariables();
-
-        // A lambda to bind the result place and the assigned variables places
-        write("function (");
-
-        // Write the result lambda param
-        write(node.resultInfo.name());
-
-        // Write the other lambda params
-        for (IdentifierNode id : assignedVariables) {
-            write(", ");
-            write("lcl_" + id.name());
+        Set<String> assignedVariables = new HashSet<>();
+        for (IdentifierNode id : node.body.locallyAssignedVariables()) {
+            assignedVariables.add(id.name());
         }
-        write(") {");
 
-        newlineUp();
-        write("return ");
+        List<String> shadowed = new ArrayList<>();
+        List<String> nonShadowed = new ArrayList<>();
 
-        // A catch to get the result
-        String catcher = node.isVoid ? "_catch_void" : "_catch_result";
-        format("Pacioli.%s(", ValueInfo.global("$base_base", catcher));
-
-        newlineUp();
-
-        // Catch expect a lambda
-        write("function () {");
-
-        newlineUp();
-        write("return ");
-        // The body
-        node.body.accept(this);
-        write("; } ,");
-
-        newline();
-
-        // Catch's second argument is the place name
-        write(node.resultInfo.name());
-
-        // Close the catch application
-        write("); }( ");
-
-        newlineDown();
-
-        // The initial result place
-        format("Pacioli.%s()", ValueInfo.global("$base_base", "_empty_ref"));
-
-        for (IdentifierNode id : assignedVariables) {
-            write(", ");
-
-            if (node.shadowed.contains(id.name())) {
-                if (node.shadowed.lookup(id.name()).isRef()) {
-                    format("Pacioli.%s(Pacioli.%s(",
-                            ValueInfo.global("$base_base", "_new_ref"),
-                            ValueInfo.global("$base_base", "_ref_get"));
-                    write("lcl_" + id.name());
-                    // id.accept(this);
-                    write("))");
-                } else {
-                    format("Pacioli.%s(", ValueInfo.global("$base_base", "_new_ref"));
-                    write("lcl_" + id.name());
-                    // id.accept(this);
-                    write(")");
-                }
+        for (String id : assignedVariables) {
+            if (node.shadowed.contains(id)) {
+                shadowed.add("lcl_" + id);
             } else {
-                format("Pacioli.%s()", ValueInfo.global("$base_base", "_empty_ref"));
+                nonShadowed.add("lcl_" + id);
             }
         }
 
+        // A lambda to bind the shadowed variables
+        write("((");
+        write(String.join(", ", shadowed));
+        write(") => {");
+        newline();
+
+        for (String id : nonShadowed) {
+            write("let " + id);
+            write(";");
+            newline();
+        }
+
+        // The body
+        node.body.accept(this);
+        newline();
+
         // Close the lambda application
+        write("})(");
+        write(String.join(", ", shadowed));
         write(")");
 
         unmark();
@@ -402,84 +361,30 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(TupleAssignmentNode node) {
 
-        // Some tuple properties
-        List<IdentifierNode> vars = node.vars;
-        Integer size = vars.size();
-
-        assert (0 < size); // het 'skip' statement als 0
-
-        // Create a list of fresh names for the assigned names
         final List<String> names = new ArrayList<String>();
-        for (IdentifierNode id : vars) {
-            names.add(id.name());
-        }
-        final List<String> freshNames = SymbolTable.freshNames(names);
-
-        // Create an application of apply to a lambda with two arguments:
-        // the fresh names and the tuple. The freshnames get bound to the
-        // tuple elements and are used in the lambda body to assign the
-        // variables. The lambda body is a sequence of these assignments.
-        mark();
-        format("Pacioli.%s(function (", ValueInfo.global("$base_base", "apply"));
-
-        // The lambda arguments
-        Boolean first = true;
-        for (String name : freshNames) {
-            if (!first)
-                out.print(", ");
-            out.print(name);
-            first = false;
-        }
-        out.print(") {");
-
-        newlineUp();
-        out.print("return ");
-
-        // The sequence of assignments
-        for (int i = 0; i < size; i++) {
-            if (i < size - 1)
-                format("Pacioli.%s(", ValueInfo.global("$base_base", "_seq"));
-            format("Pacioli.%s(", ValueInfo.global("$base_base", "_ref_set"));
-            write("lcl_" + names.get(i));
-            write(", ");
-            write(freshNames.get(i));
-            write(")");
-            if (i < size - 1)
-                write(",");
-            newline();
+        for (IdentifierNode id : node.vars) {
+            names.add("lcl_" + id.name());
         }
 
-        // Close the sequences
-        for (int i = 0; i < size - 1; i++) {
-            out.print(")");
-        }
-
-        write("; }, ");
+        write("[");
+        write(String.join(",", names));
+        write("] = ");
         node.tuple.accept(this);
-
-        // Close the apply
-        write(")");
-
-        unmark();
-
+        write(";");
+        newline();
     }
 
     @Override
     public void visit(WhileNode node) {
         mark();
-        format("Pacioli.%s(", ValueInfo.global("$base_base", "_while"));
-        newlineUp();
-        write("function () {");
-        newlineUp();
-        write("return ");
+        format("while (");
         node.test.accept(this);
-        write(";} ,");
-        newlineDown();
-        write("function () {");
+        write(") {");
         newlineUp();
-        write("return ");
         node.body.accept(this);
-        write(";})");
+        newlineDown();
+        write("}");
+        newline();
         unmark();
     }
 
@@ -487,23 +392,37 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     public void visit(ForNode node) {
 
         mark();
-        format("Pacioli.%s(", ValueInfo.global("$base_base", "_for"));
+        write("for (let ");
+        write("lcl_" + node.var.name());
+        write(" of ");
         node.items.accept(this);
-        write(",");
-        node.lambdaBody.accept(this);
-        write(")");
+        write(") {");
+        newlineUp();
+        node.body.accept(this);
+        newlineDown();
+        write("}");
         unmark();
+
     }
 
     @Override
     public void visit(ForTupleNode node) {
 
+        final List<String> names = new ArrayList<String>();
+        for (IdentifierNode id : node.vars) {
+            names.add("lcl_" + id.name());
+        }
+
         mark();
-        format("Pacioli.%s(", ValueInfo.global("$base_base", "_for"));
+        write("for(const [");
+        write(String.join(",", names));
+        write("] of ");
         node.items.accept(this);
-        write(",");
-        node.lambdaBody.accept(this);
-        write(")");
+        write(") {");
+        newlineUp();
+        node.body.accept(this);
+        newlineDown();
+        write("}");
         unmark();
     }
 
