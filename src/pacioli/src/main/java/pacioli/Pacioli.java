@@ -502,15 +502,22 @@ public class Pacioli {
             Project project = Project.load(file.get(), libs);
 
             List<PacioliFile> modifiedFiles = project.modifiedFiles(settings.target());
+
             if (modifiedFiles.size() > 0) {
-                Pacioli.logIf(Pacioli.Options.showModifiedFiles, "Found modified files");
-                for (PacioliFile modified : modifiedFiles) {
-                    Pacioli.logIf(Pacioli.Options.showModifiedFiles, "    %s", modified.fsFile());
+
+                if (Pacioli.Options.showModifiedFiles) {
+                    Pacioli.log("Found modified files");
+                    for (PacioliFile modified : modifiedFiles) {
+                        Pacioli.log("    %s", modified.fsFile());
+                    }
                 }
+
                 log("Compiling file '%s'", file.get().fsFile());
                 bundle(project, settings);
             }
+
             Path mvmFile = project.bundlePath(Target.MVM);
+
             log("Running mvm file '%s'\n", mvmFile);
             interpretMVMText(mvmFile.toFile(), libs);
 
@@ -805,7 +812,7 @@ public class Pacioli {
      * @param args
      *               Format arguments
      */
-    public static void logIf(boolean show, String string, Object... args) {
+    private static void logIf(boolean show, String string, Object... args) {
         if (show) {
             log(string, args);
         }
@@ -832,12 +839,13 @@ public class Pacioli {
      *               Format arguments
      */
     public static void trace(String string, Object... args) {
-        logIf(Options.trace,
-                "[TRACE "
-                        + new SimpleDateFormat("HH:mm:ss.SSS").format(Calendar.getInstance().getTime())
-                        + "] "
-                        + string,
-                args);
+        if (Options.trace) {
+            log("[TRACE "
+                    + new SimpleDateFormat("HH:mm:ss.SSS").format(Calendar.getInstance().getTime())
+                    + "] "
+                    + string,
+                    args);
+        }
     }
 
     /**

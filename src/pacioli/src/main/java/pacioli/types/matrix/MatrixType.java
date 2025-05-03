@@ -357,21 +357,16 @@ public class MatrixType implements TypeObject {
             final IndexType dimType = (IndexType) dimension;
             String node = "";
             for (int i = 0; i < dimType.width(); i++) {
-                // IndexType ty = dimType.project(Arrays.asList(i));
-                // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
+
                 Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
 
                 String idx = dimType.nthIndexSet(i).name();
-                String devaluated = filtered.pretty();
-                String[] pair = devaluated.split("!");
-                if (pair.length == 2) {
-                    devaluated = idx + "!" + pair[1];
-                }
-                devaluated = devaluated.equals("1") ? idx + "!" : devaluated;
+                String pretty = filtered.pretty();
+                pretty = pretty.equals("1") ? idx + "!" : pretty;
                 if (i == 0) {
-                    node = devaluated;
+                    node = pretty;
                 } else {
-                    node = node + " % " + devaluated;
+                    node = node + " % " + pretty;
                 }
             }
             return node;

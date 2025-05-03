@@ -33,6 +33,7 @@ export
     default_mesh,
     named_mesh,
     move_mesh,
+    rotate_mesh,
     cube_mesh,
     named_cube_mesh,
     vertex,
@@ -53,6 +54,7 @@ defrecord for_unit a, Geom3!u: Mesh(a, Geom3!u) as mesh where
     vertices: List(Vertex(a, Geom3!u)),
     faces: List(Face),
     optional_position: Maybe(a*Geom3!u),
+    rotation: Tuple(radian, radian, radian),
     name: String,
     wireframe: Boole,
     material: String;
@@ -107,7 +109,7 @@ declare default_mesh ::
         (List(Vertex(a, Geom3!u)), List(Face)) -> Mesh(a, Geom3!u);
 
 define default_mesh(vertices, faces) = 
-    tuple(vertices, faces, nothing(), "", false, "none");
+    tuple(vertices, faces, nothing(), tuple(0*|radian|, 0*|radian|, 0*|radian|), "", false, "none");
 
 # ------------------------------------------------------------------------------
 
@@ -120,7 +122,7 @@ declare named_mesh ::
         (List(Vertex(a, Geom3!u)), List(Face), String) -> Mesh(a, Geom3!u);
 
 define named_mesh(vertices, faces, name) = 
-    tuple(vertices, faces, nothing(), name, false, "none");
+    tuple(vertices, faces, nothing(), tuple(0*|radian|, 0*|radian|, 0*|radian|), name, false, "none");
 
 # ------------------------------------------------------------------------------
 
@@ -132,6 +134,17 @@ declare move_mesh ::
 
 define move_mesh(mesh, vec) =
     with_mesh_optional_position(just(vec), mesh);
+
+# ------------------------------------------------------------------------------
+
+doc rotate_mesh
+    "Rotates a mesh by radians.";
+
+declare rotate_mesh ::
+    for_unit a, Geom3!u: (Mesh(a, Geom3!u), radian, radian, radian) -> Mesh(a, Geom3!u);
+
+define rotate_mesh(mesh, x_angle, y_angle, z_angle) =
+    with_mesh_rotation(tuple(x_angle, y_angle, z_angle), mesh);
 
 # ------------------------------------------------------------------------------
 

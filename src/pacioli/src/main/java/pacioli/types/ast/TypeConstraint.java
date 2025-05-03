@@ -50,8 +50,12 @@ public class TypeConstraint implements Printable {
     }
 
     public TypeObject reduce(ParametricType type) throws PacioliException {
-        Pacioli.logIf(Pacioli.Options.showTypeReductions, "Reducing %s with %s and %s",
-                lhs.pretty(), rhs.pretty(), type.pretty());
+
+        if (Pacioli.Options.showTypeReductions) {
+            Pacioli.log("Reducing %s with %s and %s",
+                    lhs.pretty(), rhs.pretty(), type.pretty());
+        }
+
         if (lhs.arguments().size() != type.args().size()) {
             throw new PacioliException(type.location(), "Type function %s expects %s arguments but found %s",
                     type.name(),
@@ -106,10 +110,13 @@ public class TypeConstraint implements Printable {
                         "Type definitions's parameter should be a variable or a unitvec %s");
             }
         }
-        for (Entry<Var, Object> entry : map.entrySet()) {
-            Pacioli.logIf(Pacioli.Options.showTypeReductions, "  reduce: %s -> %s",
-                    entry.getKey().pretty(), entry.getValue());
+
+        if (Pacioli.Options.showTypeReductions) {
+            for (Entry<Var, Object> entry : map.entrySet()) {
+                Pacioli.log("  reduce: %s -> %s", entry.getKey().pretty(), entry.getValue());
+            }
         }
+
         return rhs.applySubstitution(new Substitution(map));
     }
 

@@ -108,11 +108,16 @@ public class ReduceTypes implements TypeVisitor {
             ParametricType opType = new ParametricType(type.location(), type.definition().orElse(null), type.op(),
                     items); // TODO: check orElse
             boolean reduce = type.definition().isPresent() && reduceCallback.apply(type.op().info().get());
+
             if (!reduce) {
                 returnTypeNode(opType);
             } else {
                 TypeObject reduced = type.definition().get().constaint().reduce(opType).reduce(reduceCallback);
-                Pacioli.logIf(Pacioli.Options.showTypeReductions, "Reduced %s to %s", type.pretty(), reduced.pretty());
+
+                if (Pacioli.Options.showTypeReductions) {
+                    Pacioli.log("Reduced %s to %s", type.pretty(), reduced.pretty());
+                }
+
                 returnTypeNode(type.definition().get().constaint().reduce(opType).reduce(reduceCallback));
             }
         } catch (PacioliException e) {
