@@ -141,7 +141,9 @@ import testing;
 declare statement_suites :: List(TestSuite);
 
 define statement_suites = [
-    statement_suite
+    statement_suite,
+    for_while_suite,
+    tuple_assignment_suite
 ];
 
 run_test_suites(statement_suites);
@@ -150,29 +152,71 @@ run_test_suites(statement_suites);
 # Tests
 # ------------------------------------------------------------------------------
 
+define for_while_suite = test_suite("While statement", [
+    
+    test("should sum some numbers with a while loop", () -> 
+        begin 
+            foo := 1;
+            n := 0;
+            while n != 10 do
+                foo := foo + n;
+                n := n + 1;
+            end
+            return foo;
+        end = 46),
+
+    test("should sum some numbers with a for loop", () -> 
+        begin 
+            foo := 1;
+            for n <- naturals(10) do
+                foo := foo + n;
+            end
+            return foo;
+        end = 46)
+
+    ]);
+
+define tuple_assignment_suite = test_suite("Tuple assignment", [
+    
+    # FIXME
+    # test("should work for empty tuple", () -> 
+    #     begin 
+    #         () := tuple();
+    #         return "foo";
+    #     end = "foo"),
+
+    test("should give correct values for a pair", () -> 
+        begin 
+            (foo, bar) := tuple(1*|metre|, 2*|second|);
+            return foo / bar;
+        end = 0.5*|metre/second|)
+
+    ]);
+
+
 define statement_suite = test_suite("Statement", [
 
-     test("should give the emtpy array for n = 0", () -> 
-       ( begin 
+     test("should yield correct value 1", () -> 
+        begin 
             foo := 1;
             return 1;
-        end = 1)),
+        end = 1),
 
-    test("should give the emtpy array for n = 0", () -> 
+    test("should yield correct value 2", () -> 
         begin 
             foo := 1;
             yo := begin foo := 12; end;
             return foo;
         end = 1),
 
-    test("should give the emtpy array for n = 0", () -> 
+    test("should yield correct value 3", () -> 
         begin
                 # foo2 := begin return 12; end; 
                 foo2 := begin bar := 2; foo3 := 12; return bar; end; 
                 return foo2;  
             end = 2),
  
-    test("should give the emtpy array for n = 0", () -> 
+    test("should yield correct value 4", () -> 
         let foo = 1 in
             begin
                 bar := foo;
@@ -181,7 +225,7 @@ define statement_suite = test_suite("Statement", [
             end
         end = 1),
 
-    test("should use before assignment error", () -> 
+    test("should yield correct value 5", () -> 
          let foo = 1 in
             begin
                 foo := 2;

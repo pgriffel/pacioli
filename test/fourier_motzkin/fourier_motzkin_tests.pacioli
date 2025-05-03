@@ -60,6 +60,37 @@ defmatrix test_matrix :: Place! per Transition! = {
     "place a", "Transition y" -> -1
 };
 
+define SIZE = 10;  # Increase for performance test
+
+defindex Left = [format("p%d", i) | i <- naturals(SIZE)];
+defindex Right = [format("t%d%s", i, d) | i <- naturals(SIZE), d <- ["_c", "_d", "_k"]];
+
+define foo =
+    make_matrix([tuple(nth(i, row_dom), nth(3*i+j, col_dom), v) | 
+                    row_dom := row_domain(|Left!|),
+                    col_dom := row_domain(|Right!|),
+                    i <- naturals(SIZE),
+                    j <- [0,1],
+                    v := if j = 0 then 1 else -1 end]);
+
+define circ_c = 
+    make_matrix([tuple(nth(i, row_dom), nth(3*i+j, col_dom), v) |
+                    row_dom := row_domain(|Left!|),
+                    col_dom := row_domain(|Right!|),
+                    i <- naturals(SIZE),
+                    j <- [2],
+                    v := -1]);
+
+define circ_d =
+    make_matrix([tuple(nth(mod(i+1, SIZE), row_dom), nth(3*i+j, col_dom), v) |
+                    row_dom := row_domain(|Left!|),
+                    col_dom := row_domain(|Right!|),
+                    i <- naturals(SIZE), 
+                    j <- [2],
+                    v := 1]);
+
+define mat = foo + circ_c + circ_d;
+
 # ------------------------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------------------------
@@ -79,5 +110,9 @@ define fourier_motzkin_suite = test_suite("Function fourier_motzkin", [
         fourier_motzkin(1) = [] and
         fourier_motzkin(9) = [] and
         fourier_motzkin(-9) = []
+    ),
+
+    test("should solve correctly for the foo matrix", () ->
+        list_size(fourier_motzkin(mat)) = SIZE^2 + 1
     )
 ]);
