@@ -46,6 +46,7 @@ import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
+import pacioli.ast.expression.ListLiteralNode;
 import pacioli.ast.sugar.LetFunctionBindingNode;
 import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.compiler.PacioliException;
@@ -111,6 +112,11 @@ public class TypeInference extends IdentityVisitor {
     private ParametricType newTupleType(List<TypeObject> args) {
         return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "Tuple"), findInfo("Tuple")),
                 args);
+    }
+
+    private ParametricType newListType(TypeObject arg) {
+        return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
+                List.of(arg));
     }
 
     public Typing typingAccept(Node node) {
@@ -825,5 +831,24 @@ public class TypeInference extends IdentityVisitor {
         } else {
             throw new PacioliException(node.location(), "No body in query");
         }
+    }
+
+    @Override
+    public void visit(ListLiteralNode node) {
+
+        TypeObject resultType = new TypeVar();
+
+        Typing typing = new Typing(newListType(resultType));
+
+        for (ExpressionNode element : node.elements) {
+            Typing elementTyping = typingAccept(element);
+            typing.addConstraint(
+                    resultType,
+                    elementTyping.type(), "All list elements must have the same type",
+                    node.location());
+            typing.addConstraintsAndAssumptions(elementTyping);
+        }
+
+        returnNode(typing);
     }
 }

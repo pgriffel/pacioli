@@ -34,6 +34,7 @@ import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.DataQueryNode;
+import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.ForNode;
 import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdentifierNode;
@@ -41,6 +42,7 @@ import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetNode;
+import pacioli.ast.expression.ListLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -706,6 +708,22 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     public void visit(DataQueryNode node) {
         if (true)
             throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+
+    }
+
+    @Override
+    public void visit(ListLiteralNode node) {
+        for (ExpressionNode element : node.elements) {
+            out.write("application(var(\"$base_system__add_mut\"), ");
+            out.newline();
+        }
+        out.write("application(var(\"$base_list_empty_list\"))");
+        for (ExpressionNode element : node.elements) {
+            out.write(", ");
+            out.newline();
+            element.accept(this);
+            out.write(")");
+        }
 
     }
 }

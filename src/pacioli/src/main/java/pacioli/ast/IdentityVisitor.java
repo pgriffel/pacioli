@@ -54,6 +54,7 @@ import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
+import pacioli.ast.expression.ListLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -553,6 +554,13 @@ public class IdentityVisitor implements Visitor {
             id.accept(this);
         }
         clause.value.accept(this);
+    }
+
+    @Override
+    public void visit(ListLiteralNode node) {
+        for (ExpressionNode element : node.elements) {
+            element.accept(this);
+        }
     }
 
 }

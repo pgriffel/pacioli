@@ -643,15 +643,7 @@ stm_if_tail ::=
 listlit ::= 
    LBRACK:l RBRACK:r                                {: pacioli.compiler.Location loc = makeLoc(lxleft, rxright);
                                                        RESULT = new ApplicationNode(new IdentifierNode("empty_list", loc), new ArrayList<ExpressionNode>(), loc); :}
- | LBRACK:l exprs:es RBRACK:r                       {: pacioli.compiler.Location loc = makeLoc(lxleft, rxright);
-                                                       ExpressionNode list = new ApplicationNode(new IdentifierNode("empty_list", loc.collapse()), new ArrayList<ExpressionNode>(), loc);
-                                                       for (ExpressionNode item : es) {
-                                                           List<ExpressionNode> tup = new ArrayList<ExpressionNode>();
-                                                           tup.add(list);
-                                                           tup.add(item);
-                                                           list = new ApplicationNode(new IdentifierNode("_add_mut", loc.collapse()), tup, item.location());
-                                                       }
-                                                       RESULT = list; :}
+ | LBRACK:l exprs:es RBRACK:r                       {: RESULT = new ListLiteralNode(makeLoc(lxleft, rxright), es); :}
  ;
 
 comprehension ::= 

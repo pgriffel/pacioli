@@ -64,6 +64,7 @@ import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
+import pacioli.ast.expression.ListLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
 import pacioli.ast.sugar.ComprehensionNode;
@@ -981,6 +982,13 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(TupleAssignmentClause tupleAssignmentClause) {
         write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(ListLiteralNode node) {
+        write("[");
+        writeCommaSeparated(node.elements);
+        write("]");
     }
 
 }
