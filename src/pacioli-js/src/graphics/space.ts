@@ -21,22 +21,22 @@
  */
 
 import { SIUnit, UOM } from "uom-ts";
-import { getNumber } from "./values/numbers";
+import { getNumber } from "../values/numbers";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { PacioliMatrix } from "./values/matrix";
-import { PacioliString } from "./values/string";
-import { conversionFactor, num, unit } from "./api";
-import { PacioliMaybe } from "./values/maybe";
-import { PacioliBoole } from "./values/boole";
-import { PacioliFunction } from "./values/function";
+import { PacioliMatrix } from "../values/matrix";
+import { PacioliString } from "../values/string";
+import { conversionFactor, num, unit } from "../api";
+import { PacioliMaybe } from "../values/maybe";
+import { PacioliBoole } from "../values/boole";
+import { PacioliFunction } from "../values/function";
 import {
   CSS2DObject,
   CSS2DRenderer,
 } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper.js";
-import { PacioliValue } from "./boxing";
-import { PacioliTuple } from "./values/tuple";
+import { PacioliValue } from "../boxing";
+import { PacioliTuple } from "../values/tuple";
 
 /**
  * Matches the Scene type from the graphics Pacioli library

@@ -27,7 +27,7 @@ import {
   Animation,
   StatefulAnimation,
   SpaceOptions,
-} from "../../space";
+} from "../../graphics/space";
 import { PacioliValue } from "../../boxing";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";

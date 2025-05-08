@@ -54,7 +54,7 @@ export {
 
 export { findNonZero } from "./values/numbers";
 
-export { Space } from "./space";
+export { Space } from "./graphics/space";
 
 export { PacioliContext } from "./context";
 
