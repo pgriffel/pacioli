@@ -22,106 +22,11 @@
 
 import { SIUnit, UOM } from "uom-ts";
 import { getNumber } from "../values/numbers";
-import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { PacioliMatrix } from "../values/matrix";
-import { PacioliString } from "../values/string";
-import { conversionFactor, num, unit } from "../api";
-import { PacioliMaybe } from "../values/maybe";
-import { PacioliBoole } from "../values/boole";
+import { num, unit } from "../api";
 import { PacioliFunction } from "../values/function";
-import {
-  CSS2DObject,
-  CSS2DRenderer,
-} from "three/examples/jsm/renderers/CSS2DRenderer";
-import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper.js";
 import { PacioliValue } from "../boxing";
-import { PacioliTuple } from "../values/tuple";
-
-/**
- * Matches the Scene type from the graphics Pacioli library
- */
-export type PacioliScene = [
-  PacioliString,
-  PacioliArrow[],
-  PacioliMesh[],
-  PacioliPath[],
-  PacioliSpotLight[],
-  AmbientLight,
-  PacioliLabel[]
-];
-
-/**
- * Matches the Animation type from the graphics Pacioli library
- */
-export type Animation = [PacioliFunction, PacioliScene];
-
-/**
- * Matches the StatefulAnimation type from the graphics Pacioli library
- */
-export type StatefulAnimation = [PacioliValue, PacioliFunction, PacioliScene];
-
-/**
- * Matches the Arrow type from the graphics Pacioli library
- */
-type PacioliArrow = [
-  PacioliMatrix, // from
-  PacioliMatrix, // to
-  PacioliString, // name
-  PacioliString, // label
-  PacioliString // color
-];
-
-/**
- * Matches the Mesh type from the graphics Pacioli library
- */
-type PacioliMesh = [
-  [PacioliMatrix, PacioliString][], // vertices
-  [PacioliMatrix, PacioliMatrix, PacioliMatrix][], // faces
-  PacioliMaybe, // position
-  PacioliTuple, // rotations
-  PacioliString, // name
-  PacioliBoole, // wireframe
-  PacioliString // material
-];
-
-/**
- * Matches the Path type from the graphics Pacioli library
- */
-type PacioliPath = [
-  PacioliMatrix[], // path points
-  PacioliString // color
-];
-
-/**
- * Matches the SpotLight type from the graphics Pacioli library
- */
-type PacioliSpotLight = [
-  PacioliMatrix, // position
-  PacioliMatrix, // target
-  PacioliString, // color
-  PacioliMatrix // intensity
-];
-
-/**
- * Matches the ambient light part of the Scene type from the
- * graphics Pacioli library.
- */
-type AmbientLight = [
-  PacioliString, // color
-  PacioliMatrix // intensity
-];
-
-/**
- * Matches the Label type from the graphics Pacioli library.
- */
-type PacioliLabel = [
-  PacioliString, // characters
-  PacioliMatrix, // position
-  PacioliMatrix, // direction
-  PacioliString, // color
-  PacioliString // font
-];
+import { PacioliScene, StatefulAnimation, Animation } from "./scene";
+import { EnvironmentOptions, ThreeJsEnvironment } from "./threejs-environment";
 
 /**
  * Configuration options for the Space class
@@ -211,20 +116,22 @@ export class Space {
   private readonly TIME_UNIT = unit("second");
 
   // Space configuration
-  private options: SpaceOptions;
+  public options: SpaceOptions;
+
+  private environment: ThreeJsEnvironment;
 
   // Three.js properties
-  private renderer: THREE.WebGLRenderer;
-  private labelRenderer: CSS2DRenderer;
-  private scene: THREE.Scene;
-  private camera: THREE.Camera;
-  private body: THREE.Object3D<THREE.Event>;
-  private controls: OrbitControls;
+  // private renderer: THREE.WebGLRenderer;
+  // private labelRenderer: CSS2DRenderer;
+  // private scene: THREE.Scene;
+  // private camera: THREE.Camera;
+  // private body: THREE.Object3D<THREE.Event>;
+  // private controls: OrbitControls;
 
-  private axis?: THREE.AxesHelper;
-  private axisLabels: CSS2DObject[] = [];
-  private grid?: THREE.GridHelper;
-  private ambientLight?: THREE.AmbientLight;
+  // private axis?: THREE.AxesHelper;
+  // private axisLabels: CSS2DObject[] = [];
+  // private grid?: THREE.GridHelper;
+  // private ambientLight?: THREE.AmbientLight;
 
   // Pacioli scene properties, set when a Pacioli scene or
   // animation is loaded
@@ -240,9 +147,17 @@ export class Space {
   private animationState?: PacioliValue;
   private animationScene?: PacioliScene;
 
-  renderersDiv: HTMLDivElement;
+  // renderersDiv: HTMLDivElement;
 
-  addedMeshes: THREE.Mesh<THREE.BufferGeometry, THREE.Material>[] = [];
+  // addedMeshes: THREE.Mesh<THREE.BufferGeometry, THREE.Material>[] = [];
+
+  public units(): {
+    x: SIUnit;
+    y: SIUnit;
+    z: SIUnit;
+  } {
+    return units(this.options);
+  }
 
   /**
    * Constructs a space element and adds it to the DOM.
@@ -256,10 +171,13 @@ export class Space {
   ) {
     this.options = { ...defaultOptions, ...options };
 
-    this.log("Constructing space");
+    this.environment = new ThreeJsEnvironment(
+      this.options as EnvironmentOptions
+    );
 
-    const width = this.options.width;
-    const height = this.options.height;
+    this.parent.appendChild(this.environment.getRoot());
+
+    this.log("Constructing space");
 
     // Make the parent node empty
     // while (this.parent.firstChild) {
@@ -267,51 +185,51 @@ export class Space {
     // }
 
     // Create a parent for the two renderers
-    const renderersDiv = document.createElement("div");
-    renderersDiv.style.position = "relative";
-    this.parent.appendChild(renderersDiv);
+    // const renderersDiv = document.createElement("div");
+    // renderersDiv.style.position = "relative";
+    // this.parent.appendChild(renderersDiv);
 
-    this.renderersDiv = renderersDiv;
+    // this.renderersDiv = renderersDiv;
 
-    // Create the 3D WebGL renderer and append it to the given parent
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      preserveDrawingBuffer: true, // Required for snaphshot images
-    });
-    this.renderer.setSize(width, height);
-    renderersDiv.appendChild(this.renderer.domElement);
+    // // Create the 3D WebGL renderer and append it to the given parent
+    // this.renderer = new THREE.WebGLRenderer({
+    //   antialias: true,
+    //   preserveDrawingBuffer: true, // Required for snaphshot images
+    // });
+    // this.renderer.setSize(width, height);
+    // renderersDiv.appendChild(this.renderer.domElement);
 
-    // Create the label renderer and append it to the given parent
-    // It is placed exactly on top of the WebGL renderer.
-    this.labelRenderer = new CSS2DRenderer();
-    this.labelRenderer.setSize(width, height);
-    this.labelRenderer.domElement.style.position = "absolute";
-    this.labelRenderer.domElement.style.top = "0px";
-    this.labelRenderer.domElement.style.zIndex = "99";
-    renderersDiv.appendChild(this.labelRenderer.domElement);
+    // // Create the label renderer and append it to the given parent
+    // // It is placed exactly on top of the WebGL renderer.
+    // this.labelRenderer = new CSS2DRenderer();
+    // this.labelRenderer.setSize(width, height);
+    // this.labelRenderer.domElement.style.position = "absolute";
+    // this.labelRenderer.domElement.style.top = "0px";
+    // this.labelRenderer.domElement.style.zIndex = "99";
+    // renderersDiv.appendChild(this.labelRenderer.domElement);
 
-    // Create the scene
-    this.scene = new THREE.Scene();
-    this.scene.background = new THREE.Color(this.options.background);
+    // // Create the scene
+    // this.scene = new THREE.Scene();
+    // this.scene.background = new THREE.Color(this.options.background);
 
-    // Create the camera and add it to the scene
-    const kind = this.options.orthographic ? "orthographic" : "perspective";
-    this.camera = createCamera(
-      kind,
-      width,
-      height,
-      this.options.perspectiveMax
-    );
-    this.scene.add(this.camera);
+    // // Create the camera and add it to the scene
+    // const kind = this.options.orthographic ? "orthographic" : "perspective";
+    // this.camera = createCamera(
+    //   kind,
+    //   width,
+    //   height,
+    //   this.options.perspectiveMax
+    // );
+    // this.scene.add(this.camera);
 
-    // Connect orbit controls to the renderer and to the draw method
-    this.controls = createOrbitControls(
-      this.camera,
-      this.renderersDiv,
-      this.options.zoomMin,
-      this.options.zoomMax
-    );
-    this.controls.addEventListener("change", this.onChangeOrbit.bind(this));
+    // // Connect orbit controls to the renderer and to the draw method
+    // this.controls = createOrbitControls(
+    //   this.camera,
+    //   this.renderersDiv,
+    //   this.options.zoomMin,
+    //   this.options.zoomMax
+    // );
+    // this.controls.addEventListener("change", this.onChangeOrbit.bind(this));
 
     // Add a grid if requested
     if (this.options.grid) {
@@ -324,17 +242,17 @@ export class Space {
     }
 
     // Create the body and add it to the scene
-    this.body = new THREE.Object3D();
-    this.scene.add(this.body);
+    // this.body = new THREE.Object3D();
+    // this.scene.add(this.body);
 
-    // Let the camera look at the body
-    this.camera.position.set(
-      this.options.cameraX,
-      this.options.cameraY,
-      this.options.cameraZ
-    );
-    this.camera.lookAt(this.body.position);
-    this.controls.update();
+    // // Let the camera look at the body
+    // this.camera.position.set(
+    //   this.options.cameraX,
+    //   this.options.cameraY,
+    //   this.options.cameraZ
+    // );
+    // this.camera.lookAt(this.body.position);
+    // this.controls.update();
 
     // Start auto rotation if the options is true. Requires this.controls to be set.
     if (this.options.autoRotation) {
@@ -398,31 +316,35 @@ export class Space {
   clear() {
     this.log("Clearing space");
 
-    this.addedMeshes.forEach((mesh) => {
-      mesh.material.dispose();
-      mesh.geometry.dispose();
-    });
+    this.environment.clear();
 
-    this.addedMeshes = [];
+    // this.addedMeshes.forEach((mesh) => {
+    //   mesh.material.dispose();
+    //   mesh.geometry.dispose();
+    // });
 
-    // Remove any element that has been added to the scene's body
-    while (0 < this.body.children.length) {
-      this.body.remove(this.body.children[0]);
-    }
+    // this.addedMeshes = [];
+
+    // // Remove any element that has been added to the scene's body
+    // while (0 < this.body.children.length) {
+    //   this.body.remove(this.body.children[0]);
+    // }
   }
 
   /**
    * Frees all resources.
    */
   dispose() {
-    this.clear();
+    this.environment.dispose();
 
-    // this.renderer.renderLists.dispose();
-    this.renderer.dispose();
-    this.controls.dispose();
-    this.axis?.dispose();
-    this.grid?.dispose();
-    this.ambientLight?.dispose();
+    // this.clear();
+
+    // // this.renderer.renderLists.dispose();
+    // this.renderer.dispose();
+    // this.controls.dispose();
+    // this.axis?.dispose();
+    // this.grid?.dispose();
+    // this.ambientLight?.dispose();
   }
 
   /**
@@ -477,25 +399,33 @@ export class Space {
     // Remember the scene for resetting
     this.initialScene = scene;
 
+    const environment = this.environment;
+
     // Remove previous scene elements
     this.clear();
 
     // Add all scene elements
-    const [name, vectors, meshes, paths, lights, ambientLight, labels] = scene;
+    const [name, arrows, meshes, paths, lights, ambientLight, labels] = scene;
+
     for (const mesh of meshes) {
-      this.addMesh(mesh);
+      environment.addMesh(mesh);
     }
-    for (const [origin, vector, name, label, color] of vectors) {
-      this.addVector(origin, vector, name, label, color);
+
+    for (const arrow of arrows) {
+      environment.addArrow(arrow);
     }
+
+    // for (const [origin, vector, name, label, color] of vectors) {
+    //   this.addVector(origin, vector, name, label, color);
+    // }
     for (const path of paths) {
-      this.addPath(path);
+      environment.addPath(path);
     }
     for (const [position, target, color, intensity] of lights) {
-      this.addSpotLight(position, target, color, intensity);
+      environment.addSpotLight(position, target, color, intensity);
     }
     for (const [characters, position, direction, color, font] of labels) {
-      this.addLabel(characters, position, direction, color, font);
+      environment.addLabel(characters, position, direction, color, font);
     }
 
     // Don't overrule light that is set via options. This allows
@@ -539,143 +469,63 @@ export class Space {
   }
 
   resize(width: number, height: number) {
-    // this.camera.aspect = width / height;
-    // this.camera.updateProjectionMatrix();
-    this.renderer.setSize(width, height);
-    this.labelRenderer.setSize(width, height);
+    this.environment.resize(width, height);
     this.draw();
   }
+
   hasLabels(): boolean {
-    // The label renderer is the second renderer. Is it present?
-    return this.renderersDiv.childElementCount === 2;
+    return this.environment.hasLabels();
   }
 
   showLabels() {
-    if (!this.hasLabels()) {
-      // The label renderer is the second renderer. Add it.
-      this.renderersDiv.appendChild(this.labelRenderer.domElement);
-
-      // Ensure the screen gets updated
-      this.draw();
-    }
+    this.environment.showLabels();
+    this.draw();
   }
 
   hideLabels() {
-    if (this.hasLabels()) {
-      // The label renderer is the second renderer. Remove it.
-      this.renderersDiv.removeChild(this.labelRenderer.domElement);
-
-      // Ensure the screen gets updated
-      this.draw();
-    }
+    this.environment.hideLabels();
+    this.draw();
   }
 
   hasGrid(): boolean {
-    return this.grid !== undefined;
+    return this.environment.hasGrid();
   }
 
   showGrid() {
-    if (this.grid === undefined) {
-      // Add the grid
-      this.grid = createGridHelper(
-        this.options.gridSizeX,
-        this.options.gridSizeY,
-        this.options.gridColor
-      );
-      this.scene.add(this.grid);
-
-      // Update the screen
-      this.draw();
-    }
+    this.environment.showGrid();
+    this.draw();
   }
 
   hideGrid() {
-    if (this.grid) {
-      // Remove the grid
-      this.scene.remove(this.grid);
-      this.grid.dispose();
-      this.grid = undefined;
-
-      // Update the screen
-      this.draw();
-    }
+    this.environment.hideGrid();
+    this.draw();
   }
 
   hasAxis(): boolean {
-    return this.axis !== undefined;
+    return this.environment.hasAxis();
   }
 
   showAxis() {
-    if (this.axis === undefined) {
-      // Add the axis
-      this.axis = createAxis(
-        this.options.axisSize,
-        this.options.axisColorsX,
-        this.options.axisColorsY,
-        this.options.axisColorsZ
-      );
-      this.scene.add(this.axis);
-
-      // Update the screen
-      this.draw();
-    }
-
-    // Create axis labels if requested
-    if (!this.options.hideLabels) {
-      this.showAxisLabels();
-    }
+    this.environment.showAxis();
+    this.draw();
   }
 
   hideAxis() {
-    // Remove any axis labels.
-    this.hideAxisLabels();
-
-    if (this.axis) {
-      // Remove the axis
-      this.scene.remove(this.axis);
-      this.axis.dispose();
-      this.axis = undefined;
-
-      // Update the screen
-      this.draw();
-    }
+    this.environment.hideAxis();
+    this.draw();
   }
 
   hasAxisLabels() {
-    this.axisLabels.length > 0;
+    return this.environment.hasAxisLabels();
   }
 
   showAxisLabels() {
-    if (this.axisLabels.length === 0) {
-      // Create axis labels
-      const unitx = this.options.unitX.toText();
-      const unity = this.options.unitY.toText();
-      const unitz = this.options.unitZ.toText();
-      const offset = this.options.axisSize * 1.05;
-      this.axisLabels.push(
-        makeLabelObject(`x[${unitx}]`, offset, 0, 0, this.options.labelColor)
-      );
-      this.axisLabels.push(
-        makeLabelObject(`z[${unitz}]`, 0, offset, 0, this.options.labelColor)
-      );
-      this.axisLabels.push(
-        makeLabelObject(`y[${unity}]`, 0, 0, offset, this.options.labelColor)
-      );
-
-      // Add the labels
-      this.axisLabels.forEach((label) => this.scene.add(label));
-
-      // Update the screen
-      this.draw();
-    }
+    this.environment.showAxisLabels();
+    this.draw();
   }
 
   hideAxisLabels() {
-    // Remove any axis labels.
-    this.axisLabels.forEach((label) => this.scene.remove(label));
-    this.axisLabels = [];
-
-    // Update the screen
+    this.environment.hideAxisLabels();
     this.draw();
   }
 
@@ -686,14 +536,7 @@ export class Space {
    * @param secondsPerRotation Rotation speed in seconds per rotation.
    */
   startAutoRotation(secondsPerRotation?: number) {
-    // Convert to THREE's unit of speed
-    this.controls.autoRotateSpeed =
-      60 / (secondsPerRotation ?? this.options.secondsPerRotation);
-
-    // Turn on THREE's built-in auto rotation
-    this.controls.autoRotate = true;
-
-    // Ensure the controls get updated
+    this.environment.startAutoRotation(secondsPerRotation);
     this.draw();
   }
 
@@ -701,21 +544,15 @@ export class Space {
    * Stops auto rotation
    */
   stopAutoRotation() {
-    // Turn off THREE's built-in auto rotation
-    this.controls.autoRotate = false;
+    this.environment.stopAutoRotation();
   }
 
   autoRotateSpeed(): number {
-    return this.controls.autoRotate ? 60 / this.controls.autoRotateSpeed : 0;
+    return this.environment.autoRotateSpeed();
   }
 
   setAmbientLight(color: string, intensity: number) {
-    if (this.ambientLight === undefined) {
-      this.ambientLight = new THREE.AmbientLight();
-      this.scene.add(this.ambientLight);
-    }
-    this.ambientLight.color = new THREE.Color(color);
-    this.ambientLight.intensity = intensity;
+    this.environment.setAmbientLight(color, intensity);
   }
 
   /**
@@ -760,7 +597,7 @@ export class Space {
   }
 
   private pauseAnimation() {
-    if (this.animationRequest && !this.controls.autoRotate) {
+    if (this.animationRequest && !this.environment.isAutoRotating()) {
       window.cancelAnimationFrame(this.animationRequest);
       this.animationRequest = undefined;
     }
@@ -774,14 +611,9 @@ export class Space {
       this.moveSceneForward();
     }
 
-    this.renderer.render(this.scene, this.camera);
-    this.labelRenderer.render(this.scene, this.camera);
+    this.environment.render();
 
-    if (this.controls.autoRotate) {
-      this.controls.update();
-    }
-
-    if (this.animating || this.controls.autoRotate) {
+    if (this.animating || this.environment.isAutoRotating()) {
       this.draw();
     }
   }
@@ -817,33 +649,12 @@ export class Space {
     const [, vectors, meshes] = this.animationScene;
     for (const [from, to, name, label, color] of vectors) {
       if (name.value) {
-        this.updateVector(name.value, from, to, label, color);
+        this.environment.updateArrow(name.value, from, to, label, color);
       }
     }
     for (const mesh of meshes) {
-      const [, , position, rotations, name] = mesh;
-      if (name.value !== "" && position.value) {
-        if (position.value.kind === "matrix") {
-          const [x, y, z] = rotations;
-          this.updateMesh(name.value, position.value);
-          this.rotateMesh(
-            name.value,
-            x as PacioliMatrix,
-            z as PacioliMatrix,
-            y as PacioliMatrix
-          );
-        } else {
-          throw Error("Mesh position must be a matrix");
-        }
-      }
+      this.environment.updateMesh(mesh);
     }
-  }
-
-  private onChangeOrbit() {
-    requestAnimationFrame(() => {
-      this.renderer.render(this.scene, this.camera);
-      this.labelRenderer.render(this.scene, this.camera);
-    });
   }
 
   private log(text: string) {
@@ -852,618 +663,186 @@ export class Space {
     }
   }
 
-  private addMesh(mesh: PacioliMesh) {
-    this.log(`Adding mesh ${mesh}`);
-
-    // Create a THREE mesh object from the Pacioli mesh and add it to the body
-    const meshObject = createTHREEMesh(mesh, units(this.options));
-    this.body.add(meshObject);
-
-    this.addedMeshes.push(meshObject);
-
-    if (false && meshObject.geometry.attributes.normal) {
-      const helper = new VertexNormalsHelper(meshObject, 1, 0xff0000);
-      this.body.add(helper);
-    }
-  }
-
-  private updateMesh(name: string, position: PacioliMatrix) {
-    const mesh = this.scene.getObjectByName(name);
-    if (mesh) {
-      const jsVector = vector2THREE(position, units(this.options));
-      mesh.position.set(jsVector.x, jsVector.y, jsVector.z);
-    }
-  }
-
-  private rotateMesh(
-    name: string,
-    x: PacioliMatrix,
-    y: PacioliMatrix,
-    z: PacioliMatrix
-  ) {
-    const mesh = this.scene.getObjectByName(name);
-    if (mesh) {
-      mesh.rotation.x = getNumber(x.numbers, 0, 0);
-      mesh.rotation.y = getNumber(y.numbers, 0, 0);
-      mesh.rotation.z = getNumber(z.numbers, 0, 0);
-    }
-  }
-
-  private addPath(path: PacioliPath) {
-    this.log(`Adding path ${path[0].map(vec2String)}`);
-
-    // Create a THREE line object from the Pacioli path and add it to the body
-    var lineObject = createTHREEPath(path, units(this.options));
-    this.body.add(lineObject);
-  }
-
-  private addSpotLight(
-    position: PacioliMatrix,
-    target: PacioliMatrix,
-    color: PacioliString,
-    intensity: PacioliMatrix
-  ) {
-    const positionVector = vector2THREE(position, units(this.options));
-    const targetVector = vector2THREE(target, units(this.options));
-
-    const light = new THREE.SpotLight(
-      new THREE.Color(color.value),
-      getNumber(intensity.numbers, 0, 0)
-    );
-
-    light.position.set(positionVector.x, positionVector.y, positionVector.z);
-    light.target.position.set(targetVector.x, targetVector.y, targetVector.z);
-
-    this.body.add(light);
-    this.body.add(light.target);
-  }
-
-  private addLabel(
-    characters: PacioliString,
-    position: PacioliMatrix,
-    direction: PacioliMatrix,
-    color: PacioliString,
-    font: PacioliString
-  ) {
-    console.log("Adding label", characters, position, direction, color, font);
-
-    const label = newLabel(characters.value, 0.5);
-
-    if (label) {
-      label.position.x = 0;
-      label.position.y = 5;
-      label.position.z = 0;
-
-      this.body.add(label);
-    } else {
-      console.log("no label to add");
-    }
-    // this.body.add(arrowLabel);
-
-    console.log("Added label", characters, position, direction, color, font);
-  }
-
-  // TODO: updatePath
-
-  private addVector(
-    origin: PacioliMatrix,
-    vector: PacioliMatrix,
-    name: PacioliString,
-    label: PacioliString,
-    color: PacioliString
-  ) {
-    const vectorColor = color.value === "" ? "blue" : color.value;
-
-    this.log(
-      `Adding vector from ${vec2String(origin)} to ${vec2String(
-        vector
-      )} with color '${vectorColor}', name '${name.value}' and label '${
-        label.value
-      }'`
-    );
-
-    // Add an ArrowHelper
-    const arrowHelper = createTHREEArrowHelper(
-      origin,
-      vector,
-      name,
-      color,
-      units(this.options)
-    );
-    this.body.add(arrowHelper);
-
-    // Add a label. Only skip if it is empty and will always stay empty (no name given for updates)
-    if (name.value !== "" || label.value !== "") {
-      const arrowLabel = createTHREELabel(
-        origin,
-        vector,
-        name,
-        label,
-        units(this.options),
-        this.options.labelColor
-      );
-      this.body.add(arrowLabel);
-    }
-  }
-
-  /**
-   * Called during animation.
-   *
-   * @param name
-   * @param from
-   * @param to
-   * @param label
-   * @param color
-   */
-  private updateVector(
-    name: string,
-    from: PacioliMatrix,
-    to: PacioliMatrix,
-    label: PacioliString,
-    color: PacioliString
-  ) {
-    // Update the ArrowHelper if needed
-    const arrow = this.scene.getObjectByName(name) as THREE.ArrowHelper;
-    if (arrow) {
-      const [dirVec, vectorLength] = arrowDirectionAndLength(
-        to,
-        units(this.options)
-      );
-      const vectorColor = color.value === "" ? "blue" : color.value;
-      const jsVector = vector2THREE(from, units(this.options));
-
-      arrow.position.set(jsVector.x, jsVector.y, jsVector.z);
-      arrow.setDirection(dirVec);
-      arrow.setLength(vectorLength);
-      arrow.setColor(vectorColor);
-    }
-
-    // Update the label if needed
-    const labelObj = this.scene.getObjectByName(name + "_label") as CSS2DObject;
-    if (labelObj) {
-      const vec = vector2THREE(to, units(this.options));
-      const labelPos = vector2THREE(from, units(this.options))
-        .multiplyScalar(1.1)
-        .add(vec);
-
-      labelObj.position.set(labelPos.x, labelPos.y, labelPos.z);
-      labelObj.element.innerHTML = label.value;
-    }
-  }
-}
-
-function createOrbitControls(
-  camera: THREE.Camera,
-  domElement: HTMLElement,
-  zoomMin: number,
-  zoomMax: number
-) {
-  const controls = new OrbitControls(camera, domElement);
-  controls.minDistance = zoomMin;
-  controls.maxDistance = zoomMax;
-  controls.maxPolarAngle = Math.PI / 1;
-  return controls;
-}
-
-function createCamera(
-  kind: "perspective" | "orthographic",
-  width: number,
-  height: number,
-  perspectiveMax: number
-) {
-  switch (kind) {
-    case "perspective": {
-      return new THREE.PerspectiveCamera(
-        50,
-        width / height,
-        0.1,
-        perspectiveMax
-      );
-    }
-    case "orthographic": {
-      // This fudge factor makes the zoom more compatible with the
-      // perspective camera. The orthographic works in 'pixel' units
-      // instead of 'world' units. Is this what causes the mismatch?
-      const fudge = 0.05;
-      return new THREE.OrthographicCamera(
-        (fudge * -width) / 2,
-        (fudge * width) / 2,
-        (fudge * height) / 2,
-        (fudge * -height) / 2,
-        -perspectiveMax,
-        perspectiveMax
-      );
-    }
-    default: {
-      throw Error(`Camera kind $kind unknown`);
-    }
-  }
-}
-
-function createAxis(
-  size: number,
-  colorX: string,
-  colorY: string,
-  colorZ: string
-): THREE.AxesHelper {
-  const axis = new THREE.AxesHelper(size);
-  axis.setColors(
-    new THREE.Color(colorX),
-    new THREE.Color(colorY),
-    new THREE.Color(colorZ)
-  );
-  return axis;
-}
-
-/**
- * Creates a three.js CSS2DObject for displaying a label with a CSS2DRenderer.
- *
- * @param text The label text
- * @param x The label x coordinate
- * @param y The label y coordinate
- * @param z The label z coordinate
- * @returns A new CSS2DObject object
- */
-function makeLabelObject(
-  text: string,
-  x: number,
-  y: number,
-  z: number,
-  color: string
-) {
-  const labelDiv = document.createElement("div");
-  labelDiv.className = "label";
-  //labelDiv.textContent = label.value;
-  labelDiv.innerHTML = text;
-  labelDiv.style.backgroundColor = "transparent";
-  labelDiv.style.color = color;
-
-  const labelObject = new CSS2DObject(labelDiv);
-  labelObject.position.set(x, y, z);
-  // label.center.set(0, 1);
-  // label.layers.set(0);
-  return labelObject;
-}
-
-function createGridHelper(gridX: number, gridY: number, color: string) {
-  const gridColor = new THREE.Color(color);
-  return new THREE.GridHelper(gridX, gridY, gridColor, gridColor);
-}
-
-function createTHREEMesh(
-  mesh: PacioliMesh,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
-): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
-  const [vs, fs, pos, rotations, name, hasWireframe, materialOption] = mesh;
-
-  var material = materialOption.value.toLowerCase();
-
-  var props = {
-    // overdraw: !(wireframe || transparent),
-    wireframe: hasWireframe.value,
-    side: THREE.DoubleSide,
-    transparent: false,
-    // opacity: (transparent) ? 0.5 : 1.0,
-    opacity: 1.0,
-    vertexColors: true,
-  };
-
-  let mat;
-  if (material === "normal") {
-    mat = new THREE.MeshNormalMaterial(props);
-  } else if (material === "lambert") {
-    mat = new THREE.MeshLambertMaterial(props);
-  } else if (material === "phong") {
-    mat = new THREE.MeshPhongMaterial(props);
-  } else {
-    mat = new THREE.MeshBasicMaterial(props);
-  }
-
-  // Create a mesh object with the material and add it to the body
-  var meshObject = mesh2THREE(
-    [vs, fs],
-    mat,
-    unit,
-    hasWireframe.value
-  ) as THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
-
-  if (name.value !== "") {
-    meshObject.name = name.value;
-  }
-
-  // Place the mesh at the origin. This is default.
-  meshObject.position.x = 0;
-  meshObject.position.y = 0;
-  meshObject.position.z = 0;
-
-  const [x, y, z] = rotations;
-  const xRot = x as PacioliMatrix;
-  const yRot = z as PacioliMatrix;
-  const zRot = y as PacioliMatrix;
-
-  meshObject.rotation.x = getNumber(xRot.numbers, 0, 0);
-  meshObject.rotation.y = getNumber(yRot.numbers, 0, 0);
-  meshObject.rotation.z = getNumber(zRot.numbers, 0, 0);
-
-  // Place the mesh at the proper position if it is given
-  if (pos.value) {
-    if (pos.value.kind === "matrix") {
-      const jsVector = vector2THREE(pos.value, unit);
-
-      meshObject.position.x = jsVector.x;
-      meshObject.position.y = jsVector.y;
-      meshObject.position.z = jsVector.z;
-    } else {
-      throw Error("Mesh position must be a matrix");
-    }
-  }
-
-  // Return the mesh object to the caller as reference
-  return meshObject;
-}
-
-function mesh2THREE(
-  mesh: [
-    [PacioliMatrix, PacioliString][],
-    [PacioliMatrix, PacioliMatrix, PacioliMatrix][]
-  ],
-  material: THREE.Material,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit },
-  wireframe: boolean
-) {
-  const [vertices, faces] = mesh;
-
-  var geometry = new THREE.BufferGeometry();
-
-  var indices = new Uint32Array(faces.length * 3); // indices for 4 faces
-  var positions = new Float32Array(vertices.length * 3); // buffer arrray, position of 4 vertices
-
-  // Compute our own normals instead of geometry.computeVertexNormals() below!?
-  // Not used at the moment.
-  var normals = [];
-
-  for (var i = 0; i < vertices.length; i++) {
-    const vec = vector2THREE(vertices[i][0], unit);
-    positions[i * 3 + 0] = vec.x;
-    positions[i * 3 + 1] = vec.y;
-    positions[i * 3 + 2] = vec.z;
-
-    normals.push(vec.x, vec.y, vec.z);
-  }
-
-  for (var i = 0; i < faces.length; i++) {
-    var face = faces[i];
-    indices[i * 3 + 0] = getNumber(face[0].numbers, 0, 0);
-    indices[i * 3 + 1] = getNumber(face[1].numbers, 0, 0);
-    indices[i * 3 + 2] = getNumber(face[2].numbers, 0, 0);
-    // indices[i * 6 + 3] = getNumber(face[0].numbers, 0, 0);
-    // indices[i * 6 + 4] = getNumber(face[2].numbers, 0, 0);
-    // indices[i * 6 + 5] = getNumber(face[3].numbers, 0, 0);
-  }
-
-  const colors = [];
-  const color = new THREE.Color();
-
-  for (let i = 0; i < vertices.length; i++) {
-    color.set(vertices[i][1].value);
-
-    // define the same color for each vertex of a triangle
-    colors.push(color.r, color.g, color.b);
-    colors.push(color.r, color.g, color.b);
-    colors.push(color.r, color.g, color.b);
-  }
-  // TODO: fix material. UPDATE: Fixed with computeVertexNormals call. See further comments.
-
-  // geometry.mergeVertices();
-  // geometry.computeFaceNormals();
-  // geometry.computeCentroids();
-  // geometry.computeVertexNormals();
-
-  // Not used. See comment above.
-  //geometry.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));
-
-  geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-
-  geometry = geometry.toNonIndexed();
-  geometry.computeVertexNormals();
-
-  if (wireframe) {
-    var geo = new THREE.EdgesGeometry(geometry); // or WireframeGeometry( geometry )
-
-    var mat = new THREE.LineBasicMaterial({ color: 0x222222, linewidth: 2 });
-
-    var wireframeSegment = new THREE.LineSegments(geo, mat);
-    return wireframeSegment;
-  } else {
-    return new THREE.Mesh(geometry, material);
-  }
-}
-
-function createTHREEPath(
-  path: PacioliPath,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
-) {
-  var geometry = new THREE.BufferGeometry();
-  var material = new THREE.LineBasicMaterial({
-    color: path[1].value === "" ? "#222222" : path[1].value,
-    transparent: true,
-    opacity: 1.0,
-  });
-
-  geometry.setFromPoints(
-    path[0].map((point: PacioliMatrix) => vector2THREE(point, unit))
-  );
-
-  var lineObject = new THREE.Line(geometry, material);
-
-  return lineObject;
-}
-
-function createTHREELabel(
-  origin: PacioliMatrix,
-  vector: PacioliMatrix,
-  name: PacioliString,
-  label: PacioliString,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit },
-  color: string
-) {
-  const vec = vector2THREE(vector, unit);
-  const labelPos = vector2THREE(origin, unit).multiplyScalar(1.1).add(vec);
-
-  // Add a label if required
-  const labelObject = makeLabelObject(
-    label.value,
-    labelPos.x,
-    labelPos.y,
-    labelPos.z,
-    color
-  );
-
-  // Add a name if given, so the label can be found during an update.
-  if (name.value !== "") {
-    labelObject.name = name.value + "_label";
-  }
-
-  return labelObject;
-}
-
-function createTHREEArrowHelper(
-  origin: PacioliMatrix,
-  vector: PacioliMatrix,
-  name: PacioliString,
-  color: PacioliString,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
-): THREE.ArrowHelper {
-  const vectorColor = color.value === "" ? "blue" : color.value;
-  const from = vector2THREE(origin, unit);
-  const [dirVec, vectorLength] = arrowDirectionAndLength(vector, unit);
-
-  // Use three.js's ArrowHelper to display the vector.
-  let arrow = new THREE.ArrowHelper(dirVec, from, vectorLength, vectorColor);
-
-  if (name.value !== "") {
-    arrow.name = name.value;
-  }
-
-  return arrow;
-}
-
-function arrowDirectionAndLength(
-  vector: PacioliMatrix,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
-): [THREE.Vector3, number] {
-  const threeVector = vector2THREE(vector, unit);
-
-  const vectorLength = Math.sqrt(
-    threeVector.x ** 2 + threeVector.y ** 2 + threeVector.z ** 2
-  );
-
-  threeVector.normalize();
-
-  return [threeVector, vectorLength];
-}
-
-/**
- * Assume the input numbers is a 3d vector and converts it to a THREE vector
- *
- * @param vector A matrix's numbers
- * @param factor A fudge factor
- * @returns A THREE vector
- */
-function vector2THREE(
-  vector: PacioliMatrix,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit },
-  scale?: number
-) {
-  const extraFactor = scale ?? 1;
-  const numbers = vector.numbers;
-
-  // Find the conversion factor between the vectors' units and the space's unit. Assume
-  // that the vector units are homogeneous (the same for x, y and z), and the unit is in
-  // the type's multiplier.
-  var factorx =
-    extraFactor *
-    conversionFactor(vector.shape.unitAt(0, 0), unit.x).toNumber();
-  var factory =
-    extraFactor *
-    conversionFactor(vector.shape.unitAt(1, 0), unit.y).toNumber();
-  var factorz =
-    extraFactor *
-    conversionFactor(vector.shape.unitAt(2, 0), unit.z).toNumber();
-
-  return new THREE.Vector3(
-    getNumber(numbers, 0, 0) * factorx,
-    getNumber(numbers, 2, 0) * factory,
-    getNumber(numbers, 1, 0) * factorz
-  );
-}
-
-/**
- * Assume the input numbers is a 3d vector and converts it to a string
- *
- * @param vector A matrix's numbers
- * @returns A string of the form (x, y, z)
- */
-function vec2String(vector: PacioliMatrix) {
-  return `(${getNumber(vector.numbers, 0, 0).toFixed(5)}, ${getNumber(
-    vector.numbers,
-    1,
-    0
-  ).toFixed(5)}, ${getNumber(vector.numbers, 2, 0).toFixed(5)})`;
-}
-
-function newLabel(
-  text: string,
-  size: number
-): THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> {
-  // Write the text on a new canvas.
-  var canvas = document.createElement("canvas");
-  var context = canvas.getContext("2d");
-  if (context) {
-    context.font = "256px sans-serif";
-
-    // measureText gives css pixels. 2.54cm = 96px
-    var width = context.measureText(text).width;
-    var height = 256;
-
-    console.log("width = ", width);
-
-    // Create a picture of the text. It must be square to maintain
-    // size ratios and large enough to hold the text. Assume the width
-    // is larger than the height.
-    canvas.width = width;
-    canvas.height = height;
-
-    context.font = "256px sans-serif";
-    context.textBaseline = "top";
-    context.fillText(text, 0, 0);
-
-    // Put the canvas in a texture and make a plane.
-    var texture = new THREE.CanvasTexture(canvas);
-
-    texture.minFilter = THREE.LinearFilter;
-    texture.wrapS = THREE.ClampToEdgeWrapping;
-    texture.wrapT = THREE.ClampToEdgeWrapping;
-
-    texture.needsUpdate = true;
-    var cover = new THREE.MeshBasicMaterial({
-      map: texture,
-      transparent: true,
-      side: THREE.DoubleSide,
-    });
-
-    var scale = size / 256;
-    // var shape = new THREE.PlaneGeometry(width, height);
-    var shape = new THREE.PlaneGeometry(width * scale, height * scale);
-
-    // Create the label
-    var label = new THREE.Mesh(shape, cover);
-    // label.needsUpdate = true;
-
-    return label;
-  } else {
-    throw new Error("no context for label");
-  }
+  // public addObject(object: THREE.Object3D<THREE.Event>) {
+  //   this.body.add(object);
+  // }
+
+  // private addMesh(mesh: PacioliMesh) {
+  //   this.log(`Adding mesh ${mesh}`);
+
+  //   // Create a THREE mesh object from the Pacioli mesh and add it to the body
+  //   const meshObject = createTHREEMesh(mesh, units(this.options));
+  //   this.body.add(meshObject);
+
+  //   this.addedMeshes.push(meshObject);
+
+  //   if (false && meshObject.geometry.attributes.normal) {
+  //     const helper = new VertexNormalsHelper(meshObject, 1, 0xff0000);
+  //     this.body.add(helper);
+  //   }
+  // }
+
+  // private updateMesh(name: string, position: PacioliMatrix) {
+  //   const mesh = this.scene.getObjectByName(name);
+  //   if (mesh) {
+  //     const jsVector = vector2THREE(position, units(this.options));
+  //     mesh.position.set(jsVector.x, jsVector.y, jsVector.z);
+  //   }
+  // }
+
+  // private rotateMesh(
+  //   name: string,
+  //   x: PacioliMatrix,
+  //   y: PacioliMatrix,
+  //   z: PacioliMatrix
+  // ) {
+  //   const mesh = this.scene.getObjectByName(name);
+  //   if (mesh) {
+  //     mesh.rotation.x = getNumber(x.numbers, 0, 0);
+  //     mesh.rotation.y = getNumber(y.numbers, 0, 0);
+  //     mesh.rotation.z = getNumber(z.numbers, 0, 0);
+  //   }
+  // }
+
+  // private addPath(path: PacioliPath) {
+  //   this.log(`Adding path ${path[0].map(vec2String)}`);
+
+  //   // Create a THREE line object from the Pacioli path and add it to the body
+  //   var lineObject = createTHREEPath(path, units(this.options));
+  //   this.body.add(lineObject);
+  // }
+
+  // private addSpotLight(
+  //   position: PacioliMatrix,
+  //   target: PacioliMatrix,
+  //   color: PacioliString,
+  //   intensity: PacioliMatrix
+  // ) {
+  //   const positionVector = vector2THREE(position, units(this.options));
+  //   const targetVector = vector2THREE(target, units(this.options));
+
+  //   const light = new THREE.SpotLight(
+  //     new THREE.Color(color.value),
+  //     getNumber(intensity.numbers, 0, 0)
+  //   );
+
+  //   light.position.set(positionVector.x, positionVector.y, positionVector.z);
+  //   light.target.position.set(targetVector.x, targetVector.y, targetVector.z);
+
+  //   this.body.add(light);
+  //   this.body.add(light.target);
+  // }
+
+  // private addLabel(
+  //   characters: PacioliString,
+  //   position: PacioliMatrix,
+  //   direction: PacioliMatrix,
+  //   color: PacioliString,
+  //   font: PacioliString
+  // ) {
+  //   console.log("Adding label", characters, position, direction, color, font);
+
+  //   const label = newLabel(characters.value, 0.5);
+
+  //   if (label) {
+  //     label.position.x = 0;
+  //     label.position.y = 5;
+  //     label.position.z = 0;
+
+  //     this.body.add(label);
+  //   } else {
+  //     console.log("no label to add");
+  //   }
+  //   // this.body.add(arrowLabel);
+
+  //   console.log("Added label", characters, position, direction, color, font);
+  // }
+
+  // // TODO: updatePath
+
+  // // private addVector(
+  // //   origin: PacioliMatrix,
+  // //   vector: PacioliMatrix,
+  // //   name: PacioliString,
+  // //   label: PacioliString,
+  // //   color: PacioliString
+  // // ) {
+  // //   const vectorColor = color.value === "" ? "blue" : color.value;
+
+  // //   this.log(
+  // //     `Adding vector from ${vec2String(origin)} to ${vec2String(
+  // //       vector
+  // //     )} with color '${vectorColor}', name '${name.value}' and label '${
+  // //       label.value
+  // //     }'`
+  // //   );
+
+  // //   // Add an ArrowHelper
+  // //   const arrowHelper = createTHREEArrowHelper(
+  // //     origin,
+  // //     vector,
+  // //     name,
+  // //     color,
+  // //     units(this.options)
+  // //   );
+  // //   this.body.add(arrowHelper);
+
+  // //   // Add a label. Only skip if it is empty and will always stay empty (no name given for updates)
+  // //   if (name.value !== "" || label.value !== "") {
+  // //     const arrowLabel = createTHREELabel(
+  // //       origin,
+  // //       vector,
+  // //       name,
+  // //       label,
+  // //       units(this.options),
+  // //       this.options.labelColor
+  // //     );
+  // //     this.body.add(arrowLabel);
+  // //   }
+  // // }
+
+  // /**
+  //  * Called during animation.
+  //  *
+  //  * @param name
+  //  * @param from
+  //  * @param to
+  //  * @param label
+  //  * @param color
+  //  */
+  // private updateVector(
+  //   name: string,
+  //   from: PacioliMatrix,
+  //   to: PacioliMatrix,
+  //   label: PacioliString,
+  //   color: PacioliString
+  // ) {
+  //   // Update the ArrowHelper if needed
+  //   const arrow = this.scene.getObjectByName(name) as THREE.ArrowHelper;
+  //   if (arrow) {
+  //     const [dirVec, vectorLength] = arrowDirectionAndLength(
+  //       to,
+  //       units(this.options)
+  //     );
+  //     const vectorColor = color.value === "" ? "blue" : color.value;
+  //     const jsVector = vector2THREE(from, units(this.options));
+
+  //     arrow.position.set(jsVector.x, jsVector.y, jsVector.z);
+  //     arrow.setDirection(dirVec);
+  //     arrow.setLength(vectorLength);
+  //     arrow.setColor(vectorColor);
+  //   }
+
+  //   // Update the label if needed
+  //   const labelObj = this.scene.getObjectByName(name + "_label") as CSS2DObject;
+  //   if (labelObj) {
+  //     const vec = vector2THREE(to, units(this.options));
+  //     const labelPos = vector2THREE(from, units(this.options))
+  //       .multiplyScalar(1.1)
+  //       .add(vec);
+
+  //     labelObj.position.set(labelPos.x, labelPos.y, labelPos.z);
+  //     labelObj.element.innerHTML = label.value;
+  //   }
+  // }
 }
