@@ -1,7 +1,7 @@
 import { SIUnit } from "uom-ts";
 import { PacioliMatrix } from "../values/matrix";
 import { PacioliString } from "../values/string";
-import { arrowDirectionAndLength, vector2THREE } from "./threejs";
+import { makeLabelObject, vector2THREE } from "./threejs";
 import * as THREE from "three";
 
 /**
@@ -34,4 +34,48 @@ export function createTHREEArrowHelper(
   }
 
   return arrow;
+}
+
+export function arrowDirectionAndLength(
+  vector: PacioliMatrix,
+  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
+): [THREE.Vector3, number] {
+  const threeVector = vector2THREE(vector, unit);
+
+  const vectorLength = Math.sqrt(
+    threeVector.x ** 2 + threeVector.y ** 2 + threeVector.z ** 2
+  );
+
+  threeVector.normalize();
+
+  return [threeVector, vectorLength];
+}
+
+// threeJsArrowLabel
+export function createTHREELabel(
+  origin: PacioliMatrix,
+  vector: PacioliMatrix,
+  name: PacioliString,
+  label: PacioliString,
+  unit: { x: SIUnit; y: SIUnit; z: SIUnit },
+  color: string
+) {
+  const vec = vector2THREE(vector, unit);
+  const labelPos = vector2THREE(origin, unit).multiplyScalar(1.1).add(vec);
+
+  // Add a label if required
+  const labelObject = makeLabelObject(
+    label.value,
+    labelPos.x,
+    labelPos.y,
+    labelPos.z,
+    color
+  );
+
+  // Add a name if given, so the label can be found during an update.
+  if (name.value !== "") {
+    labelObject.name = name.value + "_label";
+  }
+
+  return labelObject;
 }

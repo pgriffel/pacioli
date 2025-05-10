@@ -21,12 +21,11 @@
  */
 
 import { SIUnit, UOM } from "uom-ts";
-import { getNumber } from "../values/numbers";
 import { num, unit } from "../api";
 import { PacioliFunction } from "../values/function";
 import { PacioliValue } from "../boxing";
 import { PacioliScene, StatefulAnimation, Animation } from "./scene";
-import { EnvironmentOptions, ThreeJsEnvironment } from "./threejs-environment";
+import { ThreeJsEnvironment } from "./threejs-environment";
 
 /**
  * Configuration options for the Space class
@@ -98,40 +97,19 @@ const defaultOptions: SpaceOptions = {
   secondsPerRotation: 30,
 };
 
-function units(options: SpaceOptions): { x: SIUnit; y: SIUnit; z: SIUnit } {
-  return {
-    x: options.unitX,
-    y: options.unitY,
-    z: options.unitZ,
-  };
-}
-
 /**
  * A 3D environment for graphical display with Three.js.
  *
  * Renders 3D elements, and renders labels on top of the 3D scene.
  */
 export class Space {
-  // Constants
+  // Time unit for the animation
   private readonly TIME_UNIT = unit("second");
 
   // Space configuration
   public options: SpaceOptions;
 
   private environment: ThreeJsEnvironment;
-
-  // Three.js properties
-  // private renderer: THREE.WebGLRenderer;
-  // private labelRenderer: CSS2DRenderer;
-  // private scene: THREE.Scene;
-  // private camera: THREE.Camera;
-  // private body: THREE.Object3D<THREE.Event>;
-  // private controls: OrbitControls;
-
-  // private axis?: THREE.AxesHelper;
-  // private axisLabels: CSS2DObject[] = [];
-  // private grid?: THREE.GridHelper;
-  // private ambientLight?: THREE.AmbientLight;
 
   // Pacioli scene properties, set when a Pacioli scene or
   // animation is loaded
@@ -147,18 +125,6 @@ export class Space {
   private animationState?: PacioliValue;
   private animationScene?: PacioliScene;
 
-  // renderersDiv: HTMLDivElement;
-
-  // addedMeshes: THREE.Mesh<THREE.BufferGeometry, THREE.Material>[] = [];
-
-  public units(): {
-    x: SIUnit;
-    y: SIUnit;
-    z: SIUnit;
-  } {
-    return units(this.options);
-  }
-
   /**
    * Constructs a space element and adds it to the DOM.
    *
@@ -171,65 +137,9 @@ export class Space {
   ) {
     this.options = { ...defaultOptions, ...options };
 
-    this.environment = new ThreeJsEnvironment(
-      this.options as EnvironmentOptions
-    );
+    this.environment = new ThreeJsEnvironment(this.options);
 
     this.parent.appendChild(this.environment.getRoot());
-
-    this.log("Constructing space");
-
-    // Make the parent node empty
-    // while (this.parent.firstChild) {
-    //   this.parent.removeChild(this.parent.firstChild);
-    // }
-
-    // Create a parent for the two renderers
-    // const renderersDiv = document.createElement("div");
-    // renderersDiv.style.position = "relative";
-    // this.parent.appendChild(renderersDiv);
-
-    // this.renderersDiv = renderersDiv;
-
-    // // Create the 3D WebGL renderer and append it to the given parent
-    // this.renderer = new THREE.WebGLRenderer({
-    //   antialias: true,
-    //   preserveDrawingBuffer: true, // Required for snaphshot images
-    // });
-    // this.renderer.setSize(width, height);
-    // renderersDiv.appendChild(this.renderer.domElement);
-
-    // // Create the label renderer and append it to the given parent
-    // // It is placed exactly on top of the WebGL renderer.
-    // this.labelRenderer = new CSS2DRenderer();
-    // this.labelRenderer.setSize(width, height);
-    // this.labelRenderer.domElement.style.position = "absolute";
-    // this.labelRenderer.domElement.style.top = "0px";
-    // this.labelRenderer.domElement.style.zIndex = "99";
-    // renderersDiv.appendChild(this.labelRenderer.domElement);
-
-    // // Create the scene
-    // this.scene = new THREE.Scene();
-    // this.scene.background = new THREE.Color(this.options.background);
-
-    // // Create the camera and add it to the scene
-    // const kind = this.options.orthographic ? "orthographic" : "perspective";
-    // this.camera = createCamera(
-    //   kind,
-    //   width,
-    //   height,
-    //   this.options.perspectiveMax
-    // );
-    // this.scene.add(this.camera);
-
-    // // Connect orbit controls to the renderer and to the draw method
-    // this.controls = createOrbitControls(
-    //   this.camera,
-    //   this.renderersDiv,
-    //   this.options.zoomMin,
-    //   this.options.zoomMax
-    // );
-    // this.controls.addEventListener("change", this.onChangeOrbit.bind(this));
 
     // Add a grid if requested
     if (this.options.grid) {
@@ -240,19 +150,6 @@ export class Space {
     if (this.options.axis) {
       this.showAxis();
     }
-
-    // Create the body and add it to the scene
-    // this.body = new THREE.Object3D();
-    // this.scene.add(this.body);
-
-    // // Let the camera look at the body
-    // this.camera.position.set(
-    //   this.options.cameraX,
-    //   this.options.cameraY,
-    //   this.options.cameraZ
-    // );
-    // this.camera.lookAt(this.body.position);
-    // this.controls.update();
 
     // Start auto rotation if the options is true. Requires this.controls to be set.
     if (this.options.autoRotation) {
@@ -314,21 +211,7 @@ export class Space {
    * Removes any element that has been loaded previously.
    */
   clear() {
-    this.log("Clearing space");
-
     this.environment.clear();
-
-    // this.addedMeshes.forEach((mesh) => {
-    //   mesh.material.dispose();
-    //   mesh.geometry.dispose();
-    // });
-
-    // this.addedMeshes = [];
-
-    // // Remove any element that has been added to the scene's body
-    // while (0 < this.body.children.length) {
-    //   this.body.remove(this.body.children[0]);
-    // }
   }
 
   /**
@@ -336,15 +219,6 @@ export class Space {
    */
   dispose() {
     this.environment.dispose();
-
-    // this.clear();
-
-    // // this.renderer.renderLists.dispose();
-    // this.renderer.dispose();
-    // this.controls.dispose();
-    // this.axis?.dispose();
-    // this.grid?.dispose();
-    // this.ambientLight?.dispose();
   }
 
   /**
@@ -399,46 +273,13 @@ export class Space {
     // Remember the scene for resetting
     this.initialScene = scene;
 
-    const environment = this.environment;
-
     // Remove previous scene elements
     this.clear();
 
-    // Add all scene elements
-    const [name, arrows, meshes, paths, lights, ambientLight, labels] = scene;
-
-    for (const mesh of meshes) {
-      environment.addMesh(mesh);
-    }
-
-    for (const arrow of arrows) {
-      environment.addArrow(arrow);
-    }
-
-    // for (const [origin, vector, name, label, color] of vectors) {
-    //   this.addVector(origin, vector, name, label, color);
-    // }
-    for (const path of paths) {
-      environment.addPath(path);
-    }
-    for (const [position, target, color, intensity] of lights) {
-      environment.addSpotLight(position, target, color, intensity);
-    }
-    for (const [characters, position, direction, color, font] of labels) {
-      environment.addLabel(characters, position, direction, color, font);
-    }
-
-    // Don't overrule light that is set via options. This allows
-    // the web components to change the ambient light.
-    this.setAmbientLight(
-      this.options.ambientColor || ambientLight[0].value,
-      this.options.ambientIntensity || getNumber(ambientLight[1].numbers, 0, 0)
-    );
+    this.environment.loadScene(scene);
 
     // Initialize the animation
     this.resetAnimation();
-
-    this.log(`Loaded scene ${name} and initialized the animation`);
   }
 
   /**
@@ -451,7 +292,6 @@ export class Space {
     // Pause animating if animation stop is requested
     if (this.animating && !running) {
       this.pauseAnimation();
-      this.log("Paused animation");
     }
 
     // Check for callbacks if animation start is requested
@@ -459,12 +299,13 @@ export class Space {
       if (this.animationScene === undefined) {
         throw new Error("No scene elements to update");
       }
+
       if (!this.isAnimation()) {
         throw new Error("No callback available in UpdateSpace");
       }
+
       this.startAnimation();
       this.draw();
-      this.log("Started animation");
     }
   }
 
@@ -568,7 +409,7 @@ export class Space {
     if (this.statefulCallback && !this.initialState) {
       throw new Error("No initial value available in UpdateSpace");
     }
-    this.log(`Stepping animation`);
+
     this.moveSceneForward();
     this.draw();
   }
@@ -646,203 +487,14 @@ export class Space {
     }
 
     // Update the space
-    const [, vectors, meshes] = this.animationScene;
-    for (const [from, to, name, label, color] of vectors) {
-      if (name.value) {
-        this.environment.updateArrow(name.value, from, to, label, color);
-      }
+    const [, arrows, meshes] = this.animationScene;
+
+    for (const arrow of arrows) {
+      this.environment.updateArrow(arrow);
     }
+
     for (const mesh of meshes) {
       this.environment.updateMesh(mesh);
     }
   }
-
-  private log(text: string) {
-    if (this.options.verbose) {
-      console.log(text);
-    }
-  }
-
-  // public addObject(object: THREE.Object3D<THREE.Event>) {
-  //   this.body.add(object);
-  // }
-
-  // private addMesh(mesh: PacioliMesh) {
-  //   this.log(`Adding mesh ${mesh}`);
-
-  //   // Create a THREE mesh object from the Pacioli mesh and add it to the body
-  //   const meshObject = createTHREEMesh(mesh, units(this.options));
-  //   this.body.add(meshObject);
-
-  //   this.addedMeshes.push(meshObject);
-
-  //   if (false && meshObject.geometry.attributes.normal) {
-  //     const helper = new VertexNormalsHelper(meshObject, 1, 0xff0000);
-  //     this.body.add(helper);
-  //   }
-  // }
-
-  // private updateMesh(name: string, position: PacioliMatrix) {
-  //   const mesh = this.scene.getObjectByName(name);
-  //   if (mesh) {
-  //     const jsVector = vector2THREE(position, units(this.options));
-  //     mesh.position.set(jsVector.x, jsVector.y, jsVector.z);
-  //   }
-  // }
-
-  // private rotateMesh(
-  //   name: string,
-  //   x: PacioliMatrix,
-  //   y: PacioliMatrix,
-  //   z: PacioliMatrix
-  // ) {
-  //   const mesh = this.scene.getObjectByName(name);
-  //   if (mesh) {
-  //     mesh.rotation.x = getNumber(x.numbers, 0, 0);
-  //     mesh.rotation.y = getNumber(y.numbers, 0, 0);
-  //     mesh.rotation.z = getNumber(z.numbers, 0, 0);
-  //   }
-  // }
-
-  // private addPath(path: PacioliPath) {
-  //   this.log(`Adding path ${path[0].map(vec2String)}`);
-
-  //   // Create a THREE line object from the Pacioli path and add it to the body
-  //   var lineObject = createTHREEPath(path, units(this.options));
-  //   this.body.add(lineObject);
-  // }
-
-  // private addSpotLight(
-  //   position: PacioliMatrix,
-  //   target: PacioliMatrix,
-  //   color: PacioliString,
-  //   intensity: PacioliMatrix
-  // ) {
-  //   const positionVector = vector2THREE(position, units(this.options));
-  //   const targetVector = vector2THREE(target, units(this.options));
-
-  //   const light = new THREE.SpotLight(
-  //     new THREE.Color(color.value),
-  //     getNumber(intensity.numbers, 0, 0)
-  //   );
-
-  //   light.position.set(positionVector.x, positionVector.y, positionVector.z);
-  //   light.target.position.set(targetVector.x, targetVector.y, targetVector.z);
-
-  //   this.body.add(light);
-  //   this.body.add(light.target);
-  // }
-
-  // private addLabel(
-  //   characters: PacioliString,
-  //   position: PacioliMatrix,
-  //   direction: PacioliMatrix,
-  //   color: PacioliString,
-  //   font: PacioliString
-  // ) {
-  //   console.log("Adding label", characters, position, direction, color, font);
-
-  //   const label = newLabel(characters.value, 0.5);
-
-  //   if (label) {
-  //     label.position.x = 0;
-  //     label.position.y = 5;
-  //     label.position.z = 0;
-
-  //     this.body.add(label);
-  //   } else {
-  //     console.log("no label to add");
-  //   }
-  //   // this.body.add(arrowLabel);
-
-  //   console.log("Added label", characters, position, direction, color, font);
-  // }
-
-  // // TODO: updatePath
-
-  // // private addVector(
-  // //   origin: PacioliMatrix,
-  // //   vector: PacioliMatrix,
-  // //   name: PacioliString,
-  // //   label: PacioliString,
-  // //   color: PacioliString
-  // // ) {
-  // //   const vectorColor = color.value === "" ? "blue" : color.value;
-
-  // //   this.log(
-  // //     `Adding vector from ${vec2String(origin)} to ${vec2String(
-  // //       vector
-  // //     )} with color '${vectorColor}', name '${name.value}' and label '${
-  // //       label.value
-  // //     }'`
-  // //   );
-
-  // //   // Add an ArrowHelper
-  // //   const arrowHelper = createTHREEArrowHelper(
-  // //     origin,
-  // //     vector,
-  // //     name,
-  // //     color,
-  // //     units(this.options)
-  // //   );
-  // //   this.body.add(arrowHelper);
-
-  // //   // Add a label. Only skip if it is empty and will always stay empty (no name given for updates)
-  // //   if (name.value !== "" || label.value !== "") {
-  // //     const arrowLabel = createTHREELabel(
-  // //       origin,
-  // //       vector,
-  // //       name,
-  // //       label,
-  // //       units(this.options),
-  // //       this.options.labelColor
-  // //     );
-  // //     this.body.add(arrowLabel);
-  // //   }
-  // // }
-
-  // /**
-  //  * Called during animation.
-  //  *
-  //  * @param name
-  //  * @param from
-  //  * @param to
-  //  * @param label
-  //  * @param color
-  //  */
-  // private updateVector(
-  //   name: string,
-  //   from: PacioliMatrix,
-  //   to: PacioliMatrix,
-  //   label: PacioliString,
-  //   color: PacioliString
-  // ) {
-  //   // Update the ArrowHelper if needed
-  //   const arrow = this.scene.getObjectByName(name) as THREE.ArrowHelper;
-  //   if (arrow) {
-  //     const [dirVec, vectorLength] = arrowDirectionAndLength(
-  //       to,
-  //       units(this.options)
-  //     );
-  //     const vectorColor = color.value === "" ? "blue" : color.value;
-  //     const jsVector = vector2THREE(from, units(this.options));
-
-  //     arrow.position.set(jsVector.x, jsVector.y, jsVector.z);
-  //     arrow.setDirection(dirVec);
-  //     arrow.setLength(vectorLength);
-  //     arrow.setColor(vectorColor);
-  //   }
-
-  //   // Update the label if needed
-  //   const labelObj = this.scene.getObjectByName(name + "_label") as CSS2DObject;
-  //   if (labelObj) {
-  //     const vec = vector2THREE(to, units(this.options));
-  //     const labelPos = vector2THREE(from, units(this.options))
-  //       .multiplyScalar(1.1)
-  //       .add(vec);
-
-  //     labelObj.position.set(labelPos.x, labelPos.y, labelPos.z);
-  //     labelObj.element.innerHTML = label.value;
-  //   }
-  // }
 }

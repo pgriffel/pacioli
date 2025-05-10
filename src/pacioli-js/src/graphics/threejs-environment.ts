@@ -25,61 +25,26 @@ import { getNumber } from "../values/numbers";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { PacioliMatrix } from "../values/matrix";
-import { PacioliString } from "../values/string";
 import {
   CSS2DObject,
   CSS2DRenderer,
 } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper.js";
-import {
-  createGridHelper,
-  vector2THREE,
-  mesh2THREE,
-  arrowDirectionAndLength,
-  makeLabelObject,
-  createTHREELabel,
-} from "./threejs";
-import { PacioliMesh } from "./mesh";
+import { createGridHelper, vector2THREE, makeLabelObject } from "./threejs";
+import { createTHREEMesh, PacioliMesh } from "./mesh";
 import { PacioliPath } from "./path";
-import { createTHREEArrowHelper, PacioliArrow } from "./arrow";
+import {
+  arrowDirectionAndLength,
+  createTHREEArrowHelper,
+  createTHREELabel,
+  PacioliArrow,
+} from "./arrow";
+import { SpaceOptions } from "./space";
+import { PacioliScene } from "./scene";
+import { PacioliSpotLight } from "./lights";
+import { PacioliLabel } from "./text";
 
-/**
- * Configuration options for the Space class
- */
-export interface EnvironmentOptions {
-  orthographic: boolean;
-  axis: boolean;
-  axisSize: number;
-  axisColorsX: string;
-  axisColorsY: string;
-  axisColorsZ: string;
-  width: number;
-  height: number;
-  unitX: SIUnit;
-  unitY: SIUnit;
-  unitZ: SIUnit;
-  verbose: boolean; // undocumented feature
-  fps: number;
-  background: string;
-  grid: boolean;
-  gridSizeX: number;
-  gridSizeY: number;
-  gridColor: string;
-  zoomMin: number;
-  zoomMax: number;
-  perspectiveMax: number;
-  cameraX: number;
-  cameraY: number;
-  cameraZ: number;
-  hideLabels: boolean;
-  labelColor: string;
-  autoRotation: boolean;
-  secondsPerRotation: number;
-  ambientColor?: string;
-  ambientIntensity?: number;
-}
-
-function units(options: EnvironmentOptions): {
+function units(options: SpaceOptions): {
   x: SIUnit;
   y: SIUnit;
   z: SIUnit;
@@ -97,37 +62,25 @@ function units(options: EnvironmentOptions): {
  * Renders 3D elements, and renders labels on top of the 3D scene.
  */
 export class ThreeJsEnvironment {
-  getRoot(): HTMLElement {
-    return this.root;
-  }
-
   // Space configuration
-  public options: EnvironmentOptions;
+  public options: SpaceOptions;
+
+  private readonly root: HTMLDivElement; // root noemen
 
   // Three.js properties
-  private renderer: THREE.WebGLRenderer;
-  private labelRenderer: CSS2DRenderer;
-  private scene: THREE.Scene;
-  private camera: THREE.Camera;
-  private body: THREE.Object3D<THREE.Event>;
-  private controls: OrbitControls;
+  private readonly renderer: THREE.WebGLRenderer;
+  private readonly labelRenderer: CSS2DRenderer;
+  private readonly scene: THREE.Scene;
+  private readonly camera: THREE.Camera;
+  private readonly body: THREE.Object3D<THREE.Event>;
+  private readonly controls: OrbitControls;
 
   private axis?: THREE.AxesHelper;
   private axisLabels: CSS2DObject[] = [];
   private grid?: THREE.GridHelper;
   private ambientLight?: THREE.AmbientLight;
 
-  readonly root: HTMLDivElement; // root noemen
-
-  addedMeshes: THREE.Mesh<THREE.BufferGeometry, THREE.Material>[] = [];
-
-  // public units(): {
-  //   x: SIUnit;
-  //   y: SIUnit;
-  //   z: SIUnit;
-  // } {
-  //   return units(this.options);
-  // }
+  private addedMeshes: THREE.Mesh<THREE.BufferGeometry, THREE.Material>[] = [];
 
   /**
    * Constructs a space element and adds it to the DOM.
@@ -135,7 +88,7 @@ export class ThreeJsEnvironment {
    * @param parent DOM element to which the space is added
    * @param options Configuration of the space element
    */
-  constructor(options: EnvironmentOptions) {
+  constructor(options: SpaceOptions) {
     // Store the options
     this.options = options;
 
@@ -170,6 +123,15 @@ export class ThreeJsEnvironment {
     this.camera.position.set(options.cameraX, options.cameraY, options.cameraZ);
     this.camera.lookAt(this.body.position);
     this.controls.update();
+  }
+
+  /**
+   * Root HTML element for the Threejs scene. Add this to the DOM.
+   *
+   * @returns A HTML element
+   */
+  getRoot(): HTMLElement {
+    return this.root;
   }
 
   /**
@@ -382,13 +344,51 @@ export class ThreeJsEnvironment {
     }
   }
 
+  /**
+   * Loads all meshes, vectors and patsh from the given scene into this
+   * space. Clears any previous content first.
+   *
+   * See also loadAnimation and loadStatefulAnimation
+   *
+   * @param scene
+   */
+  loadScene(scene: PacioliScene) {
+    // Add all scene elements
+    const [_, arrows, meshes, paths, lights, ambientLight, labels] = scene;
+
+    for (const mesh of meshes) {
+      this.addMesh(mesh);
+    }
+
+    for (const arrow of arrows) {
+      this.addArrow(arrow);
+    }
+
+    for (const path of paths) {
+      this.addPath(path);
+    }
+
+    for (const light of lights) {
+      this.addSpotLight(light);
+    }
+
+    for (const label of labels) {
+      this.addLabel(label);
+    }
+
+    // Don't overrule light that is set via options. This allows
+    // the web components to change the ambient light.
+    this.setAmbientLight(
+      this.options.ambientColor || ambientLight[0].value,
+      this.options.ambientIntensity || getNumber(ambientLight[1].numbers, 0, 0)
+    );
+  }
+
   public addObject(object: THREE.Object3D<THREE.Event>) {
     this.body.add(object);
   }
 
   public addMesh(mesh: PacioliMesh) {
-    this.log(`Adding mesh ${mesh}`);
-
     // Create a THREE mesh object from the Pacioli mesh and add it to the body
     const meshObject = createTHREEMesh(mesh, units(this.options));
     this.body.add(meshObject);
@@ -404,15 +404,7 @@ export class ThreeJsEnvironment {
   public addArrow(arrow: PacioliArrow) {
     const [origin, vector, name, label, color] = arrow;
 
-    const vectorColor = color.value === "" ? "blue" : color.value;
-
-    this.log(
-      `Adding vector from ${vec2String(origin)} to ${vec2String(
-        vector
-      )} with color '${vectorColor}', name '${name.value}' and label '${
-        label.value
-      }'`
-    );
+    // const vectorColor = color.value === "" ? "blue" : color.value;
 
     // Add an ArrowHelper
     const arrowHelper = createTHREEArrowHelper(
@@ -486,12 +478,9 @@ export class ThreeJsEnvironment {
     this.body.add(lineObject);
   }
 
-  public addSpotLight(
-    position: PacioliMatrix,
-    target: PacioliMatrix,
-    color: PacioliString,
-    intensity: PacioliMatrix
-  ) {
+  public addSpotLight(spotlight: PacioliSpotLight) {
+    const [position, target, color, intensity] = spotlight;
+
     const positionVector = vector2THREE(position, units(this.options));
     const targetVector = vector2THREE(target, units(this.options));
 
@@ -507,14 +496,8 @@ export class ThreeJsEnvironment {
     this.body.add(light.target);
   }
 
-  public addLabel(
-    characters: PacioliString,
-    position: PacioliMatrix,
-    direction: PacioliMatrix,
-    color: PacioliString,
-    font: PacioliString
-  ) {
-    console.log("Adding label", characters, position, direction, color, font);
+  public addLabel(pacioliLabel: PacioliLabel) {
+    const [characters, position, direction, color, font] = pacioliLabel;
 
     const label = newLabel(characters.value, 0.5);
 
@@ -584,39 +567,40 @@ export class ThreeJsEnvironment {
    * @param label
    * @param color
    */
-  public updateArrow(
-    name: string,
-    from: PacioliMatrix,
-    to: PacioliMatrix,
-    label: PacioliString,
-    color: PacioliString
-  ) {
-    // Update the ArrowHelper if needed
-    const arrow = this.scene.getObjectByName(name) as THREE.ArrowHelper;
-    if (arrow) {
-      const [dirVec, vectorLength] = arrowDirectionAndLength(
-        to,
-        units(this.options)
-      );
-      const vectorColor = color.value === "" ? "blue" : color.value;
-      const jsVector = vector2THREE(from, units(this.options));
+  public updateArrow(pacioliArrow: PacioliArrow) {
+    const [from, to, name, label, color] = pacioliArrow;
 
-      arrow.position.set(jsVector.x, jsVector.y, jsVector.z);
-      arrow.setDirection(dirVec);
-      arrow.setLength(vectorLength);
-      arrow.setColor(vectorColor);
-    }
+    if (name.value !== "") {
+      // Update the ArrowHelper if needed
+      const arrow = this.scene.getObjectByName(name.value) as THREE.ArrowHelper;
 
-    // Update the label if needed
-    const labelObj = this.scene.getObjectByName(name + "_label") as CSS2DObject;
-    if (labelObj) {
-      const vec = vector2THREE(to, units(this.options));
-      const labelPos = vector2THREE(from, units(this.options))
-        .multiplyScalar(1.1)
-        .add(vec);
+      if (arrow) {
+        const [dirVec, vectorLength] = arrowDirectionAndLength(
+          to,
+          units(this.options)
+        );
+        const vectorColor = color.value === "" ? "blue" : color.value;
+        const jsVector = vector2THREE(from, units(this.options));
 
-      labelObj.position.set(labelPos.x, labelPos.y, labelPos.z);
-      labelObj.element.innerHTML = label.value;
+        arrow.position.set(jsVector.x, jsVector.y, jsVector.z);
+        arrow.setDirection(dirVec);
+        arrow.setLength(vectorLength);
+        arrow.setColor(vectorColor);
+      }
+
+      // Update the label if needed
+      const labelObj = this.scene.getObjectByName(
+        name + "_label"
+      ) as CSS2DObject;
+      if (labelObj) {
+        const vec = vector2THREE(to, units(this.options));
+        const labelPos = vector2THREE(from, units(this.options))
+          .multiplyScalar(1.1)
+          .add(vec);
+
+        labelObj.position.set(labelPos.x, labelPos.y, labelPos.z);
+        labelObj.element.innerHTML = label.value;
+      }
     }
   }
 }
@@ -747,78 +731,6 @@ function createTHREEPath(
   var lineObject = new THREE.Line(geometry, material);
 
   return lineObject;
-}
-
-function createTHREEMesh(
-  mesh: PacioliMesh,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
-): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
-  const [vs, fs, pos, rotations, name, hasWireframe, materialOption] = mesh;
-
-  var material = materialOption.value.toLowerCase();
-
-  var props = {
-    // overdraw: !(wireframe || transparent),
-    wireframe: hasWireframe.value,
-    side: THREE.DoubleSide,
-    transparent: false,
-    // opacity: (transparent) ? 0.5 : 1.0,
-    opacity: 1.0,
-    vertexColors: true,
-  };
-
-  let mat;
-  if (material === "normal") {
-    mat = new THREE.MeshNormalMaterial(props);
-  } else if (material === "lambert") {
-    mat = new THREE.MeshLambertMaterial(props);
-  } else if (material === "phong") {
-    mat = new THREE.MeshPhongMaterial(props);
-  } else {
-    mat = new THREE.MeshBasicMaterial(props);
-  }
-
-  // Create a mesh object with the material and add it to the body
-  var meshObject = mesh2THREE(
-    [vs, fs],
-    mat,
-    unit,
-    hasWireframe.value
-  ) as THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
-
-  if (name.value !== "") {
-    meshObject.name = name.value;
-  }
-
-  // Place the mesh at the origin. This is default.
-  meshObject.position.x = 0;
-  meshObject.position.y = 0;
-  meshObject.position.z = 0;
-
-  const [x, y, z] = rotations;
-  const xRot = x as PacioliMatrix;
-  const yRot = z as PacioliMatrix;
-  const zRot = y as PacioliMatrix;
-
-  meshObject.rotation.x = getNumber(xRot.numbers, 0, 0);
-  meshObject.rotation.y = getNumber(yRot.numbers, 0, 0);
-  meshObject.rotation.z = getNumber(zRot.numbers, 0, 0);
-
-  // Place the mesh at the proper position if it is given
-  if (pos.value) {
-    if (pos.value.kind === "matrix") {
-      const jsVector = vector2THREE(pos.value, unit);
-
-      meshObject.position.x = jsVector.x;
-      meshObject.position.y = jsVector.y;
-      meshObject.position.z = jsVector.z;
-    } else {
-      throw Error("Mesh position must be a matrix");
-    }
-  }
-
-  // Return the mesh object to the caller as reference
-  return meshObject;
 }
 
 /**
