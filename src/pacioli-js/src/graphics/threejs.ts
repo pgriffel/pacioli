@@ -4,10 +4,40 @@ import { PacioliMatrix } from "../values/matrix";
 import { getNumber } from "../values/numbers";
 import * as THREE from "three";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
+import { PacioliTuple } from "../values/tuple";
 
 export function createGridHelper(gridX: number, gridY: number, color: string) {
   const gridColor = new THREE.Color(color);
   return new THREE.GridHelper(gridX, gridY, gridColor, gridColor);
+}
+
+/**
+ * Moves a THREE.js Object3D to a new position specified by a PacioliMatrix.
+ *
+ * @param object - The THREE.Object3D instance to move.
+ * @param position - The target position as a PacioliMatrix.
+ * @param units - An object specifying the SI units for each axis (x, y, z).
+ */
+export function moveObject(
+  object: THREE.Object3D<THREE.Event>,
+  position: PacioliMatrix,
+  units: { x: SIUnit; y: SIUnit; z: SIUnit }
+) {
+  const jsVector = vector2THREE(position, units);
+  object.position.set(jsVector.x, jsVector.y, jsVector.z);
+}
+
+export function rotateObject(
+  object: THREE.Object3D<THREE.Event>,
+  rotations: PacioliTuple
+) {
+  const [x, y, z] = rotations;
+
+  if (object) {
+    object.rotation.x = getNumber((x as PacioliMatrix).numbers, 0, 0);
+    object.rotation.y = getNumber((y as PacioliMatrix).numbers, 0, 0);
+    object.rotation.z = getNumber((z as PacioliMatrix).numbers, 0, 0);
+  }
 }
 
 /**

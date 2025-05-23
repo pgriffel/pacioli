@@ -6,7 +6,8 @@ import { PacioliMaybe } from "../values/maybe";
 import { getNumber } from "../values/numbers";
 import { PacioliString } from "../values/string";
 import { PacioliTuple } from "../values/tuple";
-import { vector2THREE } from "./threejs";
+import { moveObject, rotateObject, vector2THREE } from "./threejs";
+import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
 
 /**
  * Matches the Mesh type from the graphics Pacioli library
@@ -21,7 +22,48 @@ export type PacioliMesh = [
   PacioliString // material
 ];
 
-export function createTHREEMesh(
+export function addMesh(
+  body: THREE.Object3D<THREE.Event>,
+  mesh: PacioliMesh,
+  units: { x: SIUnit; y: SIUnit; z: SIUnit }
+) {
+  // Create a THREE mesh object from the Pacioli mesh and add it to the body
+  const meshObject = createTHREEMesh(mesh, units);
+  body.add(meshObject);
+
+  if (false && meshObject.geometry.attributes.normal) {
+    const helper = new VertexNormalsHelper(meshObject, 1, 0xff0000);
+    body.add(helper);
+  }
+}
+
+export function updateMesh(
+  body: THREE.Object3D<THREE.Event>,
+  mesh: PacioliMesh,
+  units: { x: SIUnit; y: SIUnit; z: SIUnit }
+) {
+  const [, , position, rotations, name] = mesh;
+
+  if (name.value !== "" && position.value) {
+    const object = body.getObjectByName(name.value);
+
+    if (position.value.kind === "matrix") {
+      moveObject(object!, position.value, units);
+      rotateObject(object!, rotations);
+    } else {
+      throw Error("Mesh position must be a matrix");
+    }
+  }
+}
+
+export function disposeMesh(
+  mesh: THREE.Mesh<THREE.BufferGeometry, THREE.Material>
+) {
+  mesh.material.dispose();
+  mesh.geometry.dispose();
+}
+
+function createTHREEMesh(
   mesh: PacioliMesh,
   unit: { x: SIUnit; y: SIUnit; z: SIUnit }
 ): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
@@ -67,27 +109,16 @@ export function createTHREEMesh(
   meshObject.position.y = 0;
   meshObject.position.z = 0;
 
-  const [x, y, z] = rotations;
-  const xRot = x as PacioliMatrix;
-  const yRot = z as PacioliMatrix;
-  const zRot = y as PacioliMatrix;
-
-  meshObject.rotation.x = getNumber(xRot.numbers, 0, 0);
-  meshObject.rotation.y = getNumber(yRot.numbers, 0, 0);
-  meshObject.rotation.z = getNumber(zRot.numbers, 0, 0);
-
   // Place the mesh at the proper position if it is given
   if (pos.value) {
     if (pos.value.kind === "matrix") {
-      const jsVector = vector2THREE(pos.value, unit);
-
-      meshObject.position.x = jsVector.x;
-      meshObject.position.y = jsVector.y;
-      meshObject.position.z = jsVector.z;
+      moveObject(meshObject, pos.value, unit);
     } else {
       throw Error("Mesh position must be a matrix");
     }
   }
+
+  rotateObject(meshObject, rotations);
 
   // Return the mesh object to the caller as reference
   return meshObject;

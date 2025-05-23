@@ -486,15 +486,6 @@ export class Space {
       throw new Error("no callback to recalculate scene for animation");
     }
 
-    // Update the space
-    const [, arrows, meshes] = this.animationScene;
-
-    for (const arrow of arrows) {
-      this.environment.updateArrow(arrow);
-    }
-
-    for (const mesh of meshes) {
-      this.environment.updateMesh(mesh);
-    }
+    this.environment.updateScene(this.animationScene);
   }
 }
