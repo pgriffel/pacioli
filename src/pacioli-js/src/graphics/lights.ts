@@ -27,12 +27,12 @@ export type AmbientLight = [
 export function addSpotLight(
   body: THREE.Object3D<THREE.Event>,
   spotlight: PacioliSpotLight,
-  units: { x: SIUnit; y: SIUnit; z: SIUnit }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
   const [position, target, color, intensity] = spotlight;
 
-  const positionVector = vector2THREE(position, units);
-  const targetVector = vector2THREE(target, units);
+  const positionVector = vector2THREE(position, options);
+  const targetVector = vector2THREE(target, options);
 
   const light = new THREE.SpotLight(
     new THREE.Color(color.value),

@@ -46,21 +46,24 @@ export interface SpaceOptions {
   fps: number;
   background: string;
   grid: boolean;
-  gridSizeX: number;
-  gridSizeY: number;
+  gridSize: number;
+  gridDivisions: number;
   gridColor: string;
-  zoomMin: number;
-  zoomMax: number;
-  perspectiveMax: number;
+  cameraNear: number;
+  cameraFar: number;
   cameraX: number;
   cameraY: number;
   cameraZ: number;
   hideLabels: boolean;
   labelColor: string;
+  labelScale: number;
+  fontFamily: string;
+  fontSize: number;
   autoRotation: boolean;
   secondsPerRotation: number;
   ambientColor?: string;
   ambientIntensity?: number;
+  scale: number;
 }
 
 /**
@@ -82,25 +85,26 @@ const defaultOptions: SpaceOptions = {
   fps: 60,
   background: "#eeeeee",
   grid: false,
-  gridSizeX: 20,
-  gridSizeY: 20,
+  gridSize: 20,
+  gridDivisions: 20,
   gridColor: "#dddddd",
-  zoomMin: 1,
-  zoomMax: 500,
-  perspectiveMax: 5000,
+  cameraNear: 0.1, // three.js default is 0.1
+  cameraFar: 2000, // three.js default is 2000
   cameraX: 20,
   cameraY: 10,
   cameraZ: 20,
   hideLabels: false,
-  labelColor: "#333333",
+  labelColor: "#0A0A0A",
+  labelScale: 1, // scale the labels
+  fontFamily: "sans-serif",
+  fontSize: 100, // font size in pixels, changing this does not change the label size, just the bluriness
   autoRotation: false,
   secondsPerRotation: 30,
+  scale: 1, // scale the complete scene, except the labels
 };
 
 /**
  * A 3D environment for graphical display with Three.js.
- *
- * Renders 3D elements, and renders labels on top of the 3D scene.
  */
 export class Space {
   // Time unit for the animation

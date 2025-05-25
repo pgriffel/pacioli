@@ -1,7 +1,7 @@
 import { SIUnit } from "uom-ts";
 import { PacioliMatrix } from "../values/matrix";
 import { PacioliString } from "../values/string";
-import { makeLabelObject, vector2THREE } from "./threejs";
+import { makeCanvasLabelObject, vector2THREE } from "./threejs";
 import * as THREE from "three";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 
@@ -29,32 +29,45 @@ export function arrowName(arrow: PacioliArrow): string {
 export function addArrow(
   body: THREE.Object3D<THREE.Event>,
   arrow: PacioliArrow,
-  units: { x: SIUnit; y: SIUnit; z: SIUnit },
-  color: string
+  options: {
+    labelColor: string;
+    labelScale: number;
+    fontFamily: string;
+    fontSize: number;
+    unitX: SIUnit;
+    unitY: SIUnit;
+    unitZ: SIUnit;
+    scale: number;
+  }
 ) {
-  body.add(createTHREEArrowHelper(arrow, units));
+  body.add(createTHREEArrowHelper(arrow, options));
 
   // Add a label. Only skip if it is empty and will always stay empty (no name given for updates)
   if (arrowName(arrow) !== "" || arrowLabel(arrow) !== "") {
-    body.add(createTHREELabel(arrow, units, color));
+    body.add(createTHREELabel(arrow, options));
   }
 }
 
 export function updateArrow(
   body: THREE.Object3D<THREE.Event>,
   pacioliArrow: PacioliArrow,
-  units: { x: SIUnit; y: SIUnit; z: SIUnit }
+  options: {
+    unitX: SIUnit;
+    unitY: SIUnit;
+    unitZ: SIUnit;
+    scale: number;
+    labelScale: number;
+  }
 ) {
   const [from, to, name, label, color] = pacioliArrow;
 
   if (name.value !== "") {
-    // Update the ArrowHelper if needed
     const arrow = body.getObjectByName(name.value) as THREE.ArrowHelper;
 
     if (arrow) {
-      const [dirVec, vectorLength] = arrowDirectionAndLength(to, units);
+      const [dirVec, vectorLength] = arrowDirectionAndLength(to, options);
       const vectorColor = color.value === "" ? "blue" : color.value;
-      const jsVector = vector2THREE(from, units);
+      const jsVector = vector2THREE(from, options);
 
       arrow.position.set(jsVector.x, jsVector.y, jsVector.z);
       arrow.setDirection(dirVec);
@@ -65,24 +78,31 @@ export function updateArrow(
     // Update the label if needed
     const labelObj = body.getObjectByName(name + "_label") as CSS2DObject;
     if (labelObj) {
-      const vec = vector2THREE(to, units);
-      const labelPos = vector2THREE(from, units).multiplyScalar(1.1).add(vec);
+      const labelPos = vector2THREE(from, options).add(
+        vector2THREE(to, options)
+      );
 
-      labelObj.position.set(labelPos.x, labelPos.y, labelPos.z);
+      labelObj.position.set(
+        labelPos.x,
+        labelPos.y + 0.5 * options.labelScale,
+        labelPos.z
+      );
       labelObj.element.innerHTML = label.value;
+
+      labelObj.visible = false;
     }
   }
 }
 
 function createTHREEArrowHelper(
   arrow: PacioliArrow,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ): THREE.ArrowHelper {
   const [origin, vector, name, _, color] = arrow;
 
   const vectorColor = color.value === "" ? "blue" : color.value;
-  const from = vector2THREE(origin, unit);
-  const [dirVec, vectorLength] = arrowDirectionAndLength(vector, unit);
+  const from = vector2THREE(origin, options);
+  const [dirVec, vectorLength] = arrowDirectionAndLength(vector, options);
 
   // Use three.js's ArrowHelper to display the vector.
   let arr = new THREE.ArrowHelper(dirVec, from, vectorLength, vectorColor);
@@ -96,9 +116,9 @@ function createTHREEArrowHelper(
 
 function arrowDirectionAndLength(
   vector: PacioliMatrix,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ): [THREE.Vector3, number] {
-  const threeVector = vector2THREE(vector, unit);
+  const threeVector = vector2THREE(vector, options);
 
   const vectorLength = Math.sqrt(
     threeVector.x ** 2 + threeVector.y ** 2 + threeVector.z ** 2
@@ -111,21 +131,29 @@ function arrowDirectionAndLength(
 
 function createTHREELabel(
   arrow: PacioliArrow,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit },
-  color: string
+  options: {
+    labelColor: string;
+    labelScale: number;
+    fontFamily: string;
+    fontSize: number;
+    unitX: SIUnit;
+    unitY: SIUnit;
+    unitZ: SIUnit;
+    scale: number;
+  }
 ) {
   const [origin, vector, name, label, _] = arrow;
 
-  const vec = vector2THREE(vector, unit);
-  const labelPos = vector2THREE(origin, unit).multiplyScalar(1.1).add(vec);
+  const labelObject = makeCanvasLabelObject(label.value, 0.7, options);
 
-  // Add a label if required
-  const labelObject = makeLabelObject(
-    label.value,
+  const labelPos = vector2THREE(origin, options).add(
+    vector2THREE(vector, options)
+  );
+
+  labelObject.position.set(
     labelPos.x,
-    labelPos.y,
-    labelPos.z,
-    color
+    labelPos.y + 0.5 * options.labelScale,
+    labelPos.z
   );
 
   // Add a name if given, so the label can be found during an update.

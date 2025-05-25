@@ -5,10 +5,15 @@ import { getNumber } from "../values/numbers";
 import * as THREE from "three";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { PacioliTuple } from "../values/tuple";
+// import { PacioliLabel } from "./text";
 
-export function createGridHelper(gridX: number, gridY: number, color: string) {
+export function createGridHelper(
+  size: number,
+  divisions: number,
+  color: string
+) {
   const gridColor = new THREE.Color(color);
-  return new THREE.GridHelper(gridX, gridY, gridColor, gridColor);
+  return new THREE.GridHelper(size, divisions, gridColor, gridColor);
 }
 
 /**
@@ -21,7 +26,7 @@ export function createGridHelper(gridX: number, gridY: number, color: string) {
 export function moveObject(
   object: THREE.Object3D<THREE.Event>,
   position: PacioliMatrix,
-  units: { x: SIUnit; y: SIUnit; z: SIUnit }
+  units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
   const jsVector = vector2THREE(position, units);
   object.position.set(jsVector.x, jsVector.y, jsVector.z);
@@ -49,10 +54,9 @@ export function rotateObject(
  */
 export function vector2THREE(
   vector: PacioliMatrix,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit },
-  scale?: number
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
-  const extraFactor = scale ?? 1;
+  const extraFactor = options.scale ?? 1;
   const numbers = vector.numbers;
 
   // Find the conversion factor between the vectors' units and the space's unit. Assume
@@ -60,13 +64,13 @@ export function vector2THREE(
   // the type's multiplier.
   var factorx =
     extraFactor *
-    conversionFactor(vector.shape.unitAt(0, 0), unit.x).toNumber();
+    conversionFactor(vector.shape.unitAt(0, 0), options.unitX).toNumber();
   var factory =
     extraFactor *
-    conversionFactor(vector.shape.unitAt(1, 0), unit.y).toNumber();
+    conversionFactor(vector.shape.unitAt(1, 0), options.unitY).toNumber();
   var factorz =
     extraFactor *
-    conversionFactor(vector.shape.unitAt(2, 0), unit.z).toNumber();
+    conversionFactor(vector.shape.unitAt(2, 0), options.unitZ).toNumber();
 
   return new THREE.Vector3(
     getNumber(numbers, 0, 0) * factorx,
@@ -103,4 +107,65 @@ export function makeLabelObject(
   // label.center.set(0, 1);
   // label.layers.set(0);
   return labelObject;
+}
+
+export function makeCanvasLabelObject(
+  text: string,
+  scale: number,
+  options: {
+    fontFamily: string;
+    fontSize: number;
+    labelColor: string;
+    labelScale: number;
+  }
+): THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> {
+  // See https://threejs.org/manual/#en/canvas-textures
+
+  const completeFont = `${options.fontSize}px ${options.fontFamily}`;
+
+  // Write the text on a new canvas.
+  var canvas = document.createElement("canvas");
+  var context = canvas.getContext("2d");
+  if (context) {
+    context.font = completeFont;
+
+    // measureText gives css pixels. 2.54cm = 96px
+    var width = context.measureText(text).width;
+    var height = options.fontSize;
+
+    // Create a picture of the text.
+    canvas.width = width;
+    canvas.height = height;
+
+    context.font = completeFont;
+    context.fillStyle = options.labelColor;
+    context.textBaseline = "top";
+    context.fillText(text, 0, 0);
+
+    // Put the canvas in a texture and make a plane.
+    var texture = new THREE.CanvasTexture(canvas);
+
+    // texture.minFilter = THREE.LinearFilter;
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+
+    texture.needsUpdate = true;
+    var cover = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      side: THREE.DoubleSide,
+    });
+
+    var fudge = (options.labelScale * scale) / options.fontSize;
+    var shape = new THREE.PlaneGeometry(width * fudge, height * fudge);
+
+    // Create the label
+    var label = new THREE.Mesh(shape, cover);
+    // label.needsUpdate = true;
+
+    label.visible = true;
+    return label;
+  } else {
+    throw new Error("could not create context for label");
+  }
 }

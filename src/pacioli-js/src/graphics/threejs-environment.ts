@@ -24,11 +24,7 @@ import { SIUnit } from "uom-ts";
 import { getNumber } from "../values/numbers";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import {
-  CSS2DObject,
-  CSS2DRenderer,
-} from "three/examples/jsm/renderers/CSS2DRenderer";
-import { createGridHelper, makeLabelObject } from "./threejs";
+import { createGridHelper, makeCanvasLabelObject } from "./threejs";
 import { addMesh, disposeMesh, updateMesh } from "./mesh";
 import { addPath, disposePath } from "./path";
 import { addArrow, updateArrow } from "./arrow";
@@ -38,8 +34,7 @@ import { addSpotLight } from "./lights";
 import { addLabel } from "./text";
 
 /**
- * A facade for a threejs scene. Renders 3D elements, and renders
- * labels on top of the 3D scene.
+ * A facade for a threejs scene. Renders 3D elements.
  *
  * Use the root element to append it to the DOM.
  */
@@ -49,7 +44,7 @@ export class ThreeJsEnvironment {
 
   // Fixed Three.js elements
   private readonly renderer: THREE.WebGLRenderer;
-  private readonly labelRenderer: CSS2DRenderer;
+  // private readonly labelRenderer: CSS3DRenderer;
   private readonly scene: THREE.Scene;
   private readonly camera: THREE.Camera;
   private readonly body: THREE.Object3D<THREE.Event>;
@@ -57,12 +52,14 @@ export class ThreeJsEnvironment {
 
   // Dynamic Three.js elements
   private axis?: THREE.AxesHelper;
-  private axisLabels: CSS2DObject[] = [];
+  private axisLabels: THREE.Mesh<
+    THREE.PlaneGeometry,
+    THREE.MeshBasicMaterial
+  >[] = [];
   private grid?: THREE.GridHelper;
   private ambientLight?: THREE.AmbientLight;
 
-  // The space's units. Passed in from the options.
-  private units: { x: SIUnit; y: SIUnit; z: SIUnit };
+  private labelsVisible = true;
 
   /**
    * Constructs an empty scene, ready to be attached to the DOM.
@@ -70,23 +67,13 @@ export class ThreeJsEnvironment {
    * @param options Configuration options
    */
   constructor(public readonly options: SpaceOptions) {
-    // Store the space units from the options in a convenient form
-    this.units = {
-      x: options.unitX,
-      y: options.unitY,
-      z: options.unitZ,
-    };
-
     // Create a 3D WebGL renderer and a label renderer. The label renderer
     // is placed exactly on top of the WebGL renderer.
     this.renderer = createWebGLRenderer(options.width, options.height);
-    this.labelRenderer = createLabelRenderer(options.width, options.height);
+    // this.labelRenderer = createLabelRenderer(options.width, options.height);
 
     // Create the root element and attach the renderers
-    this.root = createRootElement(
-      this.renderer.domElement,
-      this.labelRenderer.domElement
-    );
+    this.root = createRootElement(this.renderer.domElement);
 
     // Create the remaining elements
     this.scene = new THREE.Scene();
@@ -102,8 +89,13 @@ export class ThreeJsEnvironment {
     this.scene.add(this.body);
 
     // Let the camera look at the body
-    this.camera.position.set(options.cameraX, options.cameraY, options.cameraZ);
+    this.camera.position.set(
+      options.cameraX * options.scale,
+      options.cameraY * options.scale,
+      options.cameraZ * options.scale
+    );
     this.camera.lookAt(this.body.position);
+    this.updateLabelOrientations();
     this.controls.update();
   }
 
@@ -126,24 +118,25 @@ export class ThreeJsEnvironment {
     const [_, arrows, meshes, paths, lights, ambientLight, labels] = scene;
 
     for (const mesh of meshes) {
-      addMesh(this.body, mesh, this.units);
+      addMesh(this.body, mesh, this.options);
     }
 
     for (const arrow of arrows) {
-      addArrow(this.body, arrow, this.units, this.options.labelColor);
+      addArrow(this.body, arrow, this.options);
     }
 
     for (const path of paths) {
-      addPath(this.body, path, this.units);
+      addPath(this.body, path, this.options);
     }
 
     for (const light of lights) {
-      addSpotLight(this.body, light, this.units);
+      addSpotLight(this.body, light, this.options);
     }
 
     for (const label of labels) {
-      addLabel(this.body, label, this.units);
+      addLabel(this.body, label, this.options);
     }
+    this.updateLabelOrientations();
 
     // Don't overrule light that is set via options. This allows
     // the web components to change the ambient light.
@@ -162,11 +155,11 @@ export class ThreeJsEnvironment {
     const [, arrows, meshes] = scene;
 
     for (const arrow of arrows) {
-      updateArrow(this.body, arrow, this.units);
+      updateArrow(this.body, arrow, this.options);
     }
 
     for (const mesh of meshes) {
-      updateMesh(this.body, mesh, this.units);
+      updateMesh(this.body, mesh, this.options);
     }
   }
 
@@ -176,11 +169,12 @@ export class ThreeJsEnvironment {
    */
   public render() {
     this.renderer.render(this.scene, this.camera);
-    this.labelRenderer.render(this.scene, this.camera);
 
     if (this.controls.autoRotate) {
       this.controls.update();
     }
+
+    this.updateLabelOrientations();
   }
 
   /**
@@ -227,25 +221,23 @@ export class ThreeJsEnvironment {
     // this.camera.aspect = width / height;
     // this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
-    this.labelRenderer.setSize(width, height);
   }
 
   hasLabels(): boolean {
-    // The label renderer is the second renderer. Is it present?
-    return this.root.childElementCount === 2;
+    return this.labelsVisible;
   }
 
   showLabels() {
     if (!this.hasLabels()) {
-      // The label renderer is the second renderer. Add it.
-      this.root.appendChild(this.labelRenderer.domElement);
+      this.labelsVisible = true;
+      this.updateLabelOrientations();
     }
   }
 
   hideLabels() {
     if (this.hasLabels()) {
-      // The label renderer is the second renderer. Remove it.
-      this.root.removeChild(this.labelRenderer.domElement);
+      this.labelsVisible = false;
+      this.updateLabelOrientations();
     }
   }
 
@@ -256,8 +248,8 @@ export class ThreeJsEnvironment {
   showGrid() {
     if (this.grid === undefined) {
       this.grid = createGridHelper(
-        this.options.gridSizeX,
-        this.options.gridSizeY,
+        this.options.gridSize * this.options.scale,
+        this.options.gridDivisions,
         this.options.gridColor
       );
       this.scene.add(this.grid);
@@ -279,7 +271,7 @@ export class ThreeJsEnvironment {
   showAxis() {
     if (this.axis === undefined) {
       this.axis = createAxis(
-        this.options.axisSize,
+        this.options.axisSize * this.options.scale,
         this.options.axisColorsX,
         this.options.axisColorsY,
         this.options.axisColorsZ
@@ -287,7 +279,6 @@ export class ThreeJsEnvironment {
       this.scene.add(this.axis);
     }
 
-    // Create axis labels if requested
     if (!this.options.hideLabels) {
       this.showAxisLabels();
     }
@@ -310,18 +301,53 @@ export class ThreeJsEnvironment {
   showAxisLabels() {
     if (this.axisLabels.length === 0) {
       this.axisLabels = createAxisLabels(
-        this.units,
-        this.options.axisSize,
-        this.options.labelColor
+        this.options.axisSize * this.options.scale,
+        0.5,
+        this.options
       );
 
       this.axisLabels.forEach((label) => this.scene.add(label));
+      this.updateLabelOrientations();
     }
   }
 
   hideAxisLabels() {
     this.axisLabels.forEach((label) => this.scene.remove(label));
     this.axisLabels = [];
+  }
+
+  /**
+   * Updates the orientation of axis labels so they always face the camera.
+   * This keeps text readable regardless of camera rotation.
+   */
+  private updateLabelOrientations(): void {
+    // Make each label face the camera
+    for (const child of this.body.children) {
+      if (
+        child.type === "Mesh" &&
+        (child as THREE.Mesh).geometry.type === "PlaneGeometry"
+      ) {
+        child.rotation.x = this.camera.rotation.x;
+        child.rotation.y = this.camera.rotation.y;
+        child.rotation.z = this.camera.rotation.z;
+
+        child.visible = this.hasLabels();
+      }
+    }
+
+    // Make the axis labels face the camera, they are not part of the body
+    for (const child of this.axisLabels) {
+      if (
+        child.type === "Mesh" &&
+        (child as THREE.Mesh).geometry.type === "PlaneGeometry"
+      ) {
+        child.rotation.x = this.camera.rotation.x;
+        child.rotation.y = this.camera.rotation.y;
+        child.rotation.z = this.camera.rotation.z;
+
+        child.visible = this.hasLabels();
+      }
+    }
   }
 
   /**
@@ -373,27 +399,19 @@ export class ThreeJsEnvironment {
   }
 
   private onChangeOrbit() {
+    this.updateLabelOrientations();
     requestAnimationFrame(() => {
       this.renderer.render(this.scene, this.camera);
-      this.labelRenderer.render(this.scene, this.camera);
     });
   }
 }
 
-function createRootElement(
-  webGLElement: HTMLElement,
-  labelElement: HTMLElement
-) {
+function createRootElement(webGLElement: HTMLElement) {
   const renderersDiv = document.createElement("div");
 
   renderersDiv.style.position = "relative";
 
-  // Create the 3D WebGL renderer and append it to the given parent
   renderersDiv.appendChild(webGLElement);
-
-  // Create the label renderer and append it to the given parent
-  // It is placed exactly on top of the WebGL renderer.
-  renderersDiv.appendChild(labelElement);
 
   return renderersDiv;
 }
@@ -412,29 +430,15 @@ function createWebGLRenderer(
   return renderer;
 }
 
-function createLabelRenderer(width: number, height: number): CSS2DRenderer {
-  const labelRenderer = new CSS2DRenderer();
-
-  labelRenderer.setSize(width, height);
-  labelRenderer.domElement.style.position = "absolute";
-  labelRenderer.domElement.style.top = "0px";
-  labelRenderer.domElement.style.zIndex = "99";
-
-  return labelRenderer;
-}
-
 function createOrbitControls(
   camera: THREE.Camera,
   domElement: HTMLElement,
-  options: {
-    zoomMin: number;
-    zoomMax: number;
-  }
+  _options: {}
 ) {
   const controls = new OrbitControls(camera, domElement);
 
-  controls.minDistance = options.zoomMin;
-  controls.maxDistance = options.zoomMax;
+  // controls.minDistance = options.zoomMin;
+  // controls.maxDistance = options.zoomMax;
   controls.maxPolarAngle = Math.PI / 1;
 
   return controls;
@@ -444,7 +448,9 @@ function createCamera(options: {
   orthographic: boolean;
   width: number;
   height: number;
-  perspectiveMax: number;
+  cameraNear: number;
+  cameraFar: number;
+  scale: number;
 }) {
   const kind = options.orthographic ? "orthographic" : "perspective";
 
@@ -453,8 +459,8 @@ function createCamera(options: {
       return new THREE.PerspectiveCamera(
         50,
         options.width / options.height,
-        0.1,
-        options.perspectiveMax
+        options.cameraNear * options.scale,
+        options.cameraFar * options.scale
       );
     }
     case "orthographic": {
@@ -467,8 +473,8 @@ function createCamera(options: {
         (fudge * options.width) / 2,
         (fudge * options.height) / 2,
         (fudge * -options.height) / 2,
-        -options.perspectiveMax,
-        options.perspectiveMax
+        options.cameraNear * options.scale, // is dit goed? of -options.cameraFar?
+        options.cameraFar * options.scale
       );
     }
     default: {
@@ -495,21 +501,38 @@ function createAxis(
 }
 
 function createAxisLabels(
-  units: { x: SIUnit; y: SIUnit; z: SIUnit },
   axisSize: number,
-  labelColor: string
+  scale: number,
+  options: {
+    fontFamily: string;
+    fontSize: number;
+    labelColor: string;
+    unitX: SIUnit;
+    unitY: SIUnit;
+    unitZ: SIUnit;
+    scale: number;
+    labelScale: number;
+  }
 ) {
   const axisLabels = [];
 
-  const unitx = units.x.toText();
-  const unity = units.y.toText();
-  const unitz = units.z.toText();
+  const unitx = options.unitX.toText();
+  const unity = options.unitY.toText();
+  const unitz = options.unitZ.toText();
 
   const offset = axisSize * 1.05;
 
-  axisLabels.push(makeLabelObject(`x[${unitx}]`, offset, 0, 0, labelColor));
-  axisLabels.push(makeLabelObject(`z[${unitz}]`, 0, offset, 0, labelColor));
-  axisLabels.push(makeLabelObject(`y[${unity}]`, 0, 0, offset, labelColor));
+  const labelX = makeCanvasLabelObject(`x[${unitx}]`, scale, options);
+  const labelY = makeCanvasLabelObject(`y[${unity}]`, scale, options);
+  const labelZ = makeCanvasLabelObject(`z[${unitz}]`, scale, options);
+
+  labelX.position.set(offset, 0, 0);
+  labelZ.position.set(0, offset, 0);
+  labelY.position.set(0, 0, offset);
+
+  axisLabels.push(labelX);
+  axisLabels.push(labelY);
+  axisLabels.push(labelZ);
 
   return axisLabels;
 }
