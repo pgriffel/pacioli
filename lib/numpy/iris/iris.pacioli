@@ -32,16 +32,16 @@ export
 #   sklearn.neighbors library.
 # ------------------------------------------------------------------------------
 
-declare numpy_iris_list :: List(Tuple(Feature!unit, Target));
-declare numpy_iris_array :: Tuple(Sample! % Feature!unit, Sample! % Target!);
+declare_primitive numpy_iris_list :: List(Tuple(Feature!unit, Target));
+declare_primitive numpy_iris_array :: Tuple(Sample! % Feature!unit, Sample! % Target!);
 
 declare iris_list :: List(Tuple(Feature!unit, Target));
 
 declare iris_data :: Sample! % Feature!unit;
 declare iris_target :: Sample! % Target!;
 
-declare knn_fit :: (Sample! % Feature!unit, Sample! % Target!) -> KNNClassifier;
-declare knn_predict :: (KNNClassifier, Feature!unit) -> Target!;
+declare_primitive knn_fit :: (Sample! % Feature!unit, Sample! % Target!) -> KNNClassifier;
+declare_primitive knn_predict :: (KNNClassifier, Feature!unit) -> Target!;
 
 # ------------------------------------------------------------------------------
 # Library sklearn

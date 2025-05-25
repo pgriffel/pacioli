@@ -4504,15 +4504,7 @@ class CUP$Parser$actions {
 		Location rxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location rxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		Object r = (Object)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
-		 pacioli.compiler.Location loc = makeLoc(lxleft, rxright);
-                                                       ExpressionNode list = new ApplicationNode(new IdentifierNode("empty_list", loc.collapse()), new ArrayList<ExpressionNode>(), loc);
-                                                       for (ExpressionNode item : es) {
-                                                           List<ExpressionNode> tup = new ArrayList<ExpressionNode>();
-                                                           tup.add(list);
-                                                           tup.add(item);
-                                                           list = new ApplicationNode(new IdentifierNode("_add_mut", loc.collapse()), tup, item.location());
-                                                       }
-                                                       RESULT = list; 
+		 RESULT = new ListLiteralNode(makeLoc(lxleft, rxright), es); 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("listlit",9, ((java_cup.runtime.Symbol)CUP$Parser$stack.elementAt(CUP$Parser$top-2)), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

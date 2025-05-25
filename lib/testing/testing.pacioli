@@ -183,6 +183,8 @@ define run_test_suites(suites) =
     begin
         print("\nRuning test suites\n");
 
+        start := now();
+
         # Determine which suites to run
         to_test :=
             let
@@ -233,10 +235,11 @@ define run_test_suites(suites) =
         total_nr_skipped := count[ true | s <- suites, t <- suite_tests(s)] - total_nr_tests;
 
         # Print the totals
-        printf("\nTotal tests -> %d/%d success%s",
+        printf("\nTotal tests -> %d/%d success%s (%s ms)",
             total_nr_successes,
             total_nr_tests,
-            skipped_message(total_nr_skipped));
+            skipped_message(total_nr_skipped),
+            now() - start);
     end;
 
 # ------------------------------------------------------------------------------

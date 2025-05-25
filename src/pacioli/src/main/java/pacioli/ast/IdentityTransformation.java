@@ -58,6 +58,7 @@ import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetNode.BindingNode;
+import pacioli.ast.expression.ListLiteralNode;
 import pacioli.ast.sugar.ComprehensionNode;
 import pacioli.ast.sugar.ComprehensionNode.GeneratorClause;
 import pacioli.ast.sugar.ExponentNode;
@@ -687,6 +688,19 @@ public class IdentityTransformation implements Visitor {
         ExpressionNode cl = expAccept(clause.value);
 
         returnNode(new ComprehensionNode.TupleAssignmentClause(transformed, cl, clause.location()));
+    }
+
+    @Override
+    public void visit(ListLiteralNode node) {
+
+        List<ExpressionNode> transformed = new ArrayList<>();
+        for (ExpressionNode element : node.elements) {
+            Node tr = nodeAccept(element);
+            assert (tr instanceof ExpressionNode);
+            transformed.add((ExpressionNode) tr);
+        }
+
+        returnNode(new ListLiteralNode(node.location(), transformed));
     }
 
 }

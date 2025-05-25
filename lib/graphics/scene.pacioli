@@ -25,6 +25,7 @@ include arrow;
 include mesh;
 include path;
 include light;
+include text;
 
 import geometry;
 
@@ -36,6 +37,7 @@ export
     add_meshes,
     add_paths,
     add_spotlights,
+    add_labels,
     scene_arrows,
     with_scene_arrows,
     scene_paths,
@@ -65,7 +67,8 @@ defrecord for_unit a, Geom3!u: Scene(a, Geom3!u) as scene where
     meshes: List(Mesh(a, Geom3!u)),
     paths: List(Path(a, Geom3!u)),
     lights:List(SpotLight(a, Geom3!u)),
-    ambient_light: Tuple(String, 1);
+    ambient_light: Tuple(String, 1),
+    labels: List(Label(a, Geom3!u));
 
 # ------------------------------------------------------------------------------
 
@@ -82,7 +85,7 @@ declare empty_scene ::
     for_unit a, Geom3!u: (String) -> Scene(a, Geom3!u);
 
 define empty_scene(description) =
-    tuple(description, [], [], [], [], tuple("white", 1));
+    tuple(description, [], [], [], [], tuple("white", 1), []);
 
 # ------------------------------------------------------------------------------
 
@@ -144,6 +147,18 @@ declare add_spotlights ::
 
 define add_spotlights(ls, scene) =
     with_scene_lights(append(ls, scene_lights(scene)), scene);
+
+# ------------------------------------------------------------------------------
+
+doc add_labels
+    "Adds labels to a scene";
+
+declare add_labels ::
+    for_unit a, Geom3!u:
+        (List(Label(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u);
+
+define add_labels(ls, scene) =
+    with_scene_labels(append(ls, scene_labels(scene)), scene);
 
 # ------------------------------------------------------------------------------
 # Animation

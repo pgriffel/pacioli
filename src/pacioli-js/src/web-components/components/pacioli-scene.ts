@@ -21,17 +21,16 @@
  */
 
 import { SIUnit } from "uom-ts";
-import {
-  PacioliScene,
-  Space,
-  Animation,
-  StatefulAnimation,
-  SpaceOptions,
-} from "../../space";
+import { Space, SpaceOptions } from "../../graphics/space";
 import { PacioliValue } from "../../boxing";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
 import { parseUnit } from "../../api";
+import {
+  PacioliScene,
+  StatefulAnimation,
+  Animation,
+} from "../../graphics/scene";
 
 /**
  * Attribues supported by the 3D scene component
@@ -53,11 +52,10 @@ const SUPPORTED_ATTRIBUTES = {
     "axisSize",
     "ambientIntensity",
     "fps",
-    "gridSizeX",
-    "gridSizeY",
-    "zoomMin",
-    "zoomMax",
-    "perspectiveMax",
+    "gridSize",
+    "gridDivisions",
+    "cameraNear",
+    "cameraFar",
     "cameraX",
     "cameraY",
     "cameraZ",
