@@ -148,11 +148,11 @@ define make_multivector(terms) = terms;
 
 # ------------------------------------------------------------------------------
 
-doc multivector_from_scalar
-    "Create a Multivector from a scalar";
+# doc multivector_from_scalar
+#     "Create a Multivector from a scalar";
     
-declare multivector_from_scalar ::
-    for_index I: for_unit a: (1) -> MultiVector(I!, a);
+# declare multivector_from_scalar ::
+#     for_index I: for_unit a: (1) -> MultiVector(I!, a);
 
 #define multivector_from_scalar(x) =
 #    [make_term(x, scalar_base_blade())];
