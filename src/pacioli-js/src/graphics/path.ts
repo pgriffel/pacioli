@@ -15,9 +15,9 @@ export type PacioliPath = [
 export function addPath(
   body: THREE.Object3D<THREE.Event>,
   path: PacioliPath,
-  units: { x: SIUnit; y: SIUnit; z: SIUnit }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
-  body.add(createTHREEPath(path, units));
+  body.add(createTHREEPath(path, options));
 }
 
 export function disposePath(line: THREE.Line) {
@@ -26,7 +26,7 @@ export function disposePath(line: THREE.Line) {
 
 function createTHREEPath(
   path: PacioliPath,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
   var geometry = new THREE.BufferGeometry();
   var material = new THREE.LineBasicMaterial({
@@ -36,7 +36,7 @@ function createTHREEPath(
   });
 
   geometry.setFromPoints(
-    path[0].map((point: PacioliMatrix) => vector2THREE(point, unit))
+    path[0].map((point: PacioliMatrix) => vector2THREE(point, options))
   );
 
   var lineObject = new THREE.Line(geometry, material);

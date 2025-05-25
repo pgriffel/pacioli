@@ -25,10 +25,10 @@ export type PacioliMesh = [
 export function addMesh(
   body: THREE.Object3D<THREE.Event>,
   mesh: PacioliMesh,
-  units: { x: SIUnit; y: SIUnit; z: SIUnit }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
   // Create a THREE mesh object from the Pacioli mesh and add it to the body
-  const meshObject = createTHREEMesh(mesh, units);
+  const meshObject = createTHREEMesh(mesh, options);
   body.add(meshObject);
 
   if (false && meshObject.geometry.attributes.normal) {
@@ -40,7 +40,7 @@ export function addMesh(
 export function updateMesh(
   body: THREE.Object3D<THREE.Event>,
   mesh: PacioliMesh,
-  units: { x: SIUnit; y: SIUnit; z: SIUnit }
+  units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
   const [, , position, rotations, name] = mesh;
 
@@ -65,7 +65,7 @@ export function disposeMesh(
 
 function createTHREEMesh(
   mesh: PacioliMesh,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
   const [vs, fs, pos, rotations, name, hasWireframe, materialOption] = mesh;
 
@@ -96,7 +96,7 @@ function createTHREEMesh(
   var meshObject = mesh2THREE(
     [vs, fs],
     mat,
-    unit,
+    options,
     hasWireframe.value
   ) as THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
 
@@ -112,7 +112,7 @@ function createTHREEMesh(
   // Place the mesh at the proper position if it is given
   if (pos.value) {
     if (pos.value.kind === "matrix") {
-      moveObject(meshObject, pos.value, unit);
+      moveObject(meshObject, pos.value, options);
     } else {
       throw Error("Mesh position must be a matrix");
     }
@@ -130,7 +130,7 @@ function mesh2THREE(
     [PacioliMatrix, PacioliMatrix, PacioliMatrix][]
   ],
   material: THREE.Material,
-  unit: { x: SIUnit; y: SIUnit; z: SIUnit },
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
   wireframe: boolean
 ) {
   const [vertices, faces] = mesh;
@@ -145,7 +145,7 @@ function mesh2THREE(
   var normals = [];
 
   for (var i = 0; i < vertices.length; i++) {
-    const vec = vector2THREE(vertices[i][0], unit);
+    const vec = vector2THREE(vertices[i][0], options);
     positions[i * 3 + 0] = vec.x;
     positions[i * 3 + 1] = vec.y;
     positions[i * 3 + 2] = vec.z;
