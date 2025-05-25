@@ -53,8 +53,8 @@ define scene_reflection(nx, ny, nz, ax, ay, az) =
         arrows = [
             mv_arrow("a", a_mv, "red"), 
             mv_arrow("n", n_mv, "green"),
-            mv_arrow("a<sub>&#x2225</sub>", a_mv_parallel, "red"),
-            mv_arrow("a<sub>&#x22A5</sub>", a_mv_perpendicular, "red"),
+            mv_arrow("a⟂", a_mv_parallel, "red"),
+            mv_arrow("a∥", a_mv_perpendicular, "red"),
             mv_arrow("a'", a_mv_reflected, "blue")
         ]
     in
@@ -81,8 +81,8 @@ define scene_rotation(ax, ay, az, bx, by, bz, xx, xy, xz) =
             mv_arrow("a", a, "blue"), 
             mv_arrow("b", b, "blue"),
             mv_arrow("x", x, "red"),
-            mv_arrow("axa<sup>-1</sup>", a_reflected, "red"),
-            mv_arrow("b(axa<sup>-1</sup>)b<sup>-1</sup>", b_reflected, "red")
+            mv_arrow("axa⁻¹", a_reflected, "red"),
+            mv_arrow("b(axa⁻¹)b⁻¹", b_reflected, "red")
         ]
     in
         add_arrows(arrows, scene)

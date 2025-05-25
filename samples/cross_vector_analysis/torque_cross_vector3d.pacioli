@@ -286,7 +286,7 @@ define scene_update_fn(mass, torque_factor, force_factor, momentum_factor, veloc
                 (_, position, velocity, angular_momentum, force, torque) = state,
 
                 position_label = "",  # format("r = %s", num2str(norm(position), |metre|)),
-                torque_label = if is_zero(torque) then "" else "<p>&#964</p>" end,
+                torque_label = if is_zero(torque) then "" else "torque" end,
                 force_label = if is_zero(force) then "" else "f" end,
                 momentum_label = format("p=%s", num2str(norm(angular_momentum), |gram * metre^2 / second|)),
                 velocity_label = format("v=%s", num2str(norm(velocity), |metre/second|))
