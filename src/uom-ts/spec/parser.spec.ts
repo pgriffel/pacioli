@@ -21,7 +21,8 @@
  */
 
 import { expect } from "chai";
-import { testContext } from "./base.spec";
+import { testContext } from "./arbitraries";
+import { describe, it } from "vitest";
 
 describe("parser", () => {
   describe("context.parseDimNum", () => {

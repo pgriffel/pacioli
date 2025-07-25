@@ -25,7 +25,9 @@ import * as fc from "fast-check";
 import { Context } from "../src/context";
 import { SIBase } from "../src/si-base";
 import BigNumber from "bignumber.js";
-import { arbitraryPrefix } from "./prefix.spec";
+import { Prefix } from "../src/prefix";
+import { si } from "../src/si";
+import { UOMTerm } from "../src/uom-term";
 
 export const testDefs = {
   prefixes: [],
@@ -61,5 +63,26 @@ export function arbitraryPrimitiveSIBase(): fc.Arbitrary<SIBase> {
 export function arbitrarySIBase(): fc.Arbitrary<SIBase> {
   return arbitraryPrimitiveSIBase().chain((base) =>
     arbitraryPrefix().map((prefix) => base.withPrefix(prefix))
+  );
+}
+
+/**
+ * A fast check Arbitrary for the {@link Line} class.
+ *
+ * @param place when provided the Line uses this place, otherwise an arbitary one
+ * @returns an arbitray Line instance
+ * @see arbitraryPlace
+ */
+export function arbitraryPrefix(): fc.Arbitrary<Prefix> {
+  return fc
+    .subarray(si.getPrefixes(), { minLength: 1, maxLength: 1 })
+    .map((x) => x[0]);
+}
+
+export function arbitrarySITerm(): fc.Arbitrary<UOMTerm<SIBase>> {
+  return arbitrarySIBase().chain((base) =>
+    fc
+      .integer({ min: -10, max: 10 })
+      .map((power) => UOMTerm.fromBase(base).withPower(power))
   );
 }
