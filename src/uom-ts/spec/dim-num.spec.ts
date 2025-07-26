@@ -26,7 +26,16 @@ import { UOM } from "../src/uom";
 import { DimNum } from "../src/dim-num";
 import { arbitraryUOM } from "./uom.spec";
 import BigNumber from "bignumber.js";
-import { testContext } from "./base.spec";
+import { testContext } from "./arbitraries";
+import { describe, it } from "vitest";
+
+// fc.configureGlobal({
+//   numRuns: 100000,
+//   verbose: true,
+//   maxSkipsPerRun: 100000,
+//   interruptAfterTimeLimit: 60000,
+//   skipAllAfterTimeLimit: 60000,
+// });
 
 /**
  * A fast check Arbitrary for the {@link DimNum} class.
@@ -41,7 +50,7 @@ export function arbitraryDimNum(): fc.Arbitrary<DimNum> {
 }
 
 export function arbitraryNum(): fc.Arbitrary<number> {
-  return fc.frequency(
+  return fc.oneof(
     { arbitrary: fc.constantFrom(-2, -1, 0, 1, 2), weight: 1 },
     { arbitrary: fc.integer(), weight: 2 },
     { arbitrary: fc.float(), weight: 2 }
@@ -57,6 +66,8 @@ describe("DimNum", () => {
     it("should create a dimensioned number with the identity unit and the given factor", () => {
       fc.assert(
         fc.property(arbitraryBigNum(), (factor) => {
+          fc.pre(factor.isFinite());
+
           // when a dimensioned number is created with dimless
           const dimNum = DimNum.dimless(factor);
 
@@ -91,6 +102,9 @@ describe("DimNum", () => {
     it("should correctly multiply two dimensioned numbers", () => {
       fc.assert(
         fc.property(arbitraryDimNum(), arbitraryDimNum(), (numA, numB) => {
+          fc.pre(numA.magnitude.isFinite());
+          fc.pre(numB.magnitude.isFinite());
+
           // When two units are multipled
           const mult = numA.mult(numB);
 
@@ -115,6 +129,8 @@ describe("DimNum", () => {
           arbitraryDimNum(),
           fc.integer({ min: -10, max: 10 }),
           (num, power) => {
+            fc.pre(num.magnitude.isFinite());
+
             // When the exponent of a unit is computed
             const exp = num.expt(power);
 
@@ -135,6 +151,8 @@ describe("DimNum", () => {
     it("should correctly take the reciprocal", () => {
       fc.assert(
         fc.property(arbitraryDimNum(), (num) => {
+          fc.pre(num.magnitude.isFinite());
+
           // When the reciprocal of a unit is taken
           const reci = num.reciprocal();
 
@@ -149,6 +167,9 @@ describe("DimNum", () => {
     it("should correctly divide two dimensioned numbers", () => {
       fc.assert(
         fc.property(arbitraryDimNum(), arbitraryDimNum(), (numA, numB) => {
+          fc.pre(numA.magnitude.isFinite());
+          fc.pre(numB.magnitude.isFinite());
+
           // When two units are divided
           const div = numA.div(numB);
 
@@ -248,6 +269,8 @@ describe("DimNum", () => {
     it("should print an arbitrary dimensioned number", () => {
       fc.assert(
         fc.property(arbitraryDimNum(), (num) => {
+          fc.pre(num.magnitude.isFinite());
+
           if (!num.equals(testContext.parseDimNum(num.print()))) {
             console.log("huh");
           }

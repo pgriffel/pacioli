@@ -42,6 +42,7 @@ export
     _list_gcd,
     _list_all,
     _list_some,
+    _is_js,
     maybe,
     is_something,
     or_else,
@@ -75,6 +76,14 @@ declare now :: () -> milli:second;
 
 define now() =
     _system_time() * |milli:second|;
+
+# ------------------------------------------------------------------------------
+# 
+# ------------------------------------------------------------------------------
+
+declare _is_js :: Boole;
+
+define _is_js = format("%d", |metre|) = "1";
 
 # ------------------------------------------------------------------------------
 # Percentages and Fractions

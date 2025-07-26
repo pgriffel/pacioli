@@ -3,7 +3,6 @@ import { conversionFactor } from "../api";
 import { PacioliMatrix } from "../values/matrix";
 import { getNumber } from "../values/numbers";
 import * as THREE from "three";
-import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { PacioliTuple } from "../values/tuple";
 // import { PacioliLabel } from "./text";
 
@@ -79,34 +78,112 @@ export function vector2THREE(
   );
 }
 
-/**
- * Creates a three.js CSS2DObject for displaying a label with a CSS2DRenderer.
- *
- * @param text The label text
- * @param x The label x coordinate
- * @param y The label y coordinate
- * @param z The label z coordinate
- * @returns A new CSS2DObject object
- */
-export function makeLabelObject(
+export function makeCanvasLabelObject(
   text: string,
-  x: number,
-  y: number,
-  z: number,
-  color: string
-) {
-  const labelDiv = document.createElement("div");
-  labelDiv.className = "label";
-  //labelDiv.textContent = label.value;
-  labelDiv.innerHTML = text;
-  labelDiv.style.backgroundColor = "transparent";
-  labelDiv.style.color = color;
+  scale: number,
+  options: {
+    fontFamily: string;
+    fontSize: number;
+    labelColor: string;
+    labelScale: number;
+  }
+): THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> {
+  // See https://threejs.org/manual/#en/canvas-textures
 
-  const labelObject = new CSS2DObject(labelDiv);
-  labelObject.position.set(x, y, z);
-  // label.center.set(0, 1);
-  // label.layers.set(0);
-  return labelObject;
+  const completeFont = `${options.fontSize}px ${options.fontFamily}`;
+
+  // Write the text on a new canvas.
+  var canvas = document.createElement("canvas");
+  var context = canvas.getContext("2d");
+  if (context) {
+    context.font = completeFont;
+
+    // measureText gives css pixels. 2.54cm = 96px. Add some slack. Does not matter since we align center.
+    var width = 1.1 * Math.ceil(context.measureText(text).width);
+    var height = options.fontSize;
+
+    // Create a picture of the text.
+    canvas.width = width;
+    canvas.height = height;
+
+    context.font = completeFont;
+    context.fillStyle = options.labelColor;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(text, width / 2, height / 2);
+
+    // Put the canvas in a texture and make a plane.
+    var texture = new THREE.CanvasTexture(canvas);
+
+    // texture.minFilter = THREE.LinearFilter;
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+
+    var cover = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      side: THREE.DoubleSide,
+    });
+
+    var fudge = (options.labelScale * scale) / options.fontSize;
+    var shape = new THREE.PlaneGeometry(width * fudge, height * fudge);
+
+    // Create the label
+    var label = new THREE.Mesh(shape, cover);
+
+    label.visible = true;
+    return label;
+  } else {
+    throw new Error("could not create context for label");
+  }
+}
+
+export function updateCanvasLabelObject(
+  labelObj: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>,
+  text: string
+) {
+  const texture = labelObj.material.map;
+
+  if (texture !== null) {
+    var canvas = texture.source.data as HTMLCanvasElement;
+
+    var context = canvas.getContext("2d");
+
+    if (context !== null) {
+      const width = 1.1 * Math.ceil(context.measureText(text).width);
+      const height = canvas.height;
+
+      // Check if the canvas is wide enough to hold the text. Resize if necessary.
+      if (width > canvas.width) {
+        const font = context.font;
+
+        canvas.width = width;
+
+        // Resizing the canvas invalidates the context. We need to get a new context.
+        const newContext = canvas.getContext("2d");
+
+        if (newContext !== null) {
+          newContext.textAlign = "center";
+          newContext.font = font;
+          newContext.textBaseline = "middle";
+
+          context = newContext;
+        } else {
+          console.log("no context");
+        }
+      } else {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      context.fillText(text, width / 2, height / 2);
+
+      texture.needsUpdate = true;
+    } else {
+      console.log("no context");
+    }
+  } else {
+    console.log("no texture");
+  }
 }
 
 export function makeCanvasLabelObject(

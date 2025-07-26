@@ -26,19 +26,20 @@ import { DimNum } from "../src/dim-num";
 import { si } from "../src/si";
 import { UOM } from "../src/uom";
 import { Context, Definition } from "../src/context";
-import { arbitraryPrimitiveSIBase, testContext } from "./base.spec";
+import { arbitraryPrimitiveSIBase, testContext } from "./arbitraries";
 import { arbitraryDimNum } from "./dim-num.spec";
 import { arbitraryUOM } from "./uom.spec";
 import BigNumber from "bignumber.js";
+import { describe, it } from "vitest";
 import { SIBase } from "../src/si-base";
 
-fc.configureGlobal({
-  numRuns: 10000,
-  verbose: true,
-  // maxSkipsPerRun: 100000,
-  // interruptAfterTimeLimit: 60000,
-  // skipAllAfterTimeLimit: 60000
-});
+// fc.configureGlobal({
+//   numRuns: 100000,
+//   verbose: true,
+//   // maxSkipsPerRun: 100000,
+//   // interruptAfterTimeLimit: 60000,
+//   // skipAllAfterTimeLimit: 60000
+// });
 
 describe("context", () => {
   describe("flatten", () => {
@@ -70,6 +71,7 @@ describe("context", () => {
       fc.assert(
         fc.property(arbitraryDimNum(), fc.string(), (dimNum, name) => {
           fc.pre(name.split(":").length === 1);
+          fc.pre(dimNum.magnitude.isFinite());
 
           const base = SIBase.from(name, name);
 

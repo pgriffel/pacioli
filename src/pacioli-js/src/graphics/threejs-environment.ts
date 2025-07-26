@@ -44,7 +44,6 @@ export class ThreeJsEnvironment {
 
   // Fixed Three.js elements
   private readonly renderer: THREE.WebGLRenderer;
-  // private readonly labelRenderer: CSS3DRenderer;
   private readonly scene: THREE.Scene;
   private readonly camera: THREE.Camera;
   private readonly body: THREE.Object3D<THREE.Event>;
@@ -67,12 +66,8 @@ export class ThreeJsEnvironment {
    * @param options Configuration options
    */
   constructor(public readonly options: SpaceOptions) {
-    // Create a 3D WebGL renderer and a label renderer. The label renderer
-    // is placed exactly on top of the WebGL renderer.
+    // Create the root element and attach a renderer
     this.renderer = createWebGLRenderer(options.width, options.height);
-    // this.labelRenderer = createLabelRenderer(options.width, options.height);
-
-    // Create the root element and attach the renderers
     this.root = createRootElement(this.renderer.domElement);
 
     // Create the remaining elements
@@ -95,6 +90,7 @@ export class ThreeJsEnvironment {
       options.cameraZ * options.scale
     );
     this.camera.lookAt(this.body.position);
+
     this.updateLabelOrientations();
     this.controls.update();
   }
@@ -437,8 +433,6 @@ function createOrbitControls(
 ) {
   const controls = new OrbitControls(camera, domElement);
 
-  // controls.minDistance = options.zoomMin;
-  // controls.maxDistance = options.zoomMax;
   controls.maxPolarAngle = Math.PI / 1;
 
   return controls;

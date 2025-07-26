@@ -1,9 +1,12 @@
 import { SIUnit } from "uom-ts";
 import { PacioliMatrix } from "../values/matrix";
 import { PacioliString } from "../values/string";
-import { makeCanvasLabelObject, vector2THREE } from "./threejs";
+import {
+  makeCanvasLabelObject,
+  updateCanvasLabelObject,
+  vector2THREE,
+} from "./threejs";
 import * as THREE from "three";
-import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 
 /**
  * Matches the Arrow type from the graphics Pacioli library
@@ -62,6 +65,7 @@ export function updateArrow(
   const [from, to, name, label, color] = pacioliArrow;
 
   if (name.value !== "") {
+    // Update the arrow helper
     const arrow = body.getObjectByName(name.value) as THREE.ArrowHelper;
 
     if (arrow) {
@@ -75,8 +79,12 @@ export function updateArrow(
       arrow.setColor(vectorColor);
     }
 
-    // Update the label if needed
-    const labelObj = body.getObjectByName(name + "_label") as CSS2DObject;
+    // Update the label
+    const labelObj = body.getObjectByName(name.value + "_label") as THREE.Mesh<
+      THREE.PlaneGeometry,
+      THREE.MeshBasicMaterial
+    >;
+
     if (labelObj) {
       const labelPos = vector2THREE(from, options).add(
         vector2THREE(to, options)
@@ -87,9 +95,8 @@ export function updateArrow(
         labelPos.y + 0.5 * options.labelScale,
         labelPos.z
       );
-      labelObj.element.innerHTML = label.value;
 
-      labelObj.visible = false;
+      updateCanvasLabelObject(labelObj, label.value);
     }
   }
 }
@@ -104,7 +111,6 @@ function createTHREEArrowHelper(
   const from = vector2THREE(origin, options);
   const [dirVec, vectorLength] = arrowDirectionAndLength(vector, options);
 
-  // Use three.js's ArrowHelper to display the vector.
   let arr = new THREE.ArrowHelper(dirVec, from, vectorLength, vectorColor);
 
   if (name.value !== "") {

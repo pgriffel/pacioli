@@ -20,27 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import {
-  acos,
-  asin,
-  atan,
-  atan2,
-  ccsadd,
-  ccsmul,
-  ccssub,
-  cos,
-  dot,
-  exp,
-  inv,
-  log,
-  LU,
-  max,
-  min,
-  pow,
-  sin,
-  svd,
-  tan,
-} from "numeric";
+import numeric from "numeric";
 import { UOM } from "uom-ts";
 import { initialNumbers, oneNumbers, printValue, zeroNumbers } from "./cache";
 import {
@@ -518,7 +498,7 @@ export function $base_matrix_mmult(x: RawMatrix, y: RawMatrix): RawMatrix {
   // Currently the only function that uses CCS. The others have been disabled with
   // the === 13 hack. See note in numbers.ts
   return tagNumbers(
-    dot(getFullNumbers(x), getFullNumbers(y)),
+    numeric.dot(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
     y.nrColumns,
     STORAGE_FULL
@@ -535,7 +515,7 @@ export function $base_matrix_multiply(x: RawMatrix, y: RawMatrix): RawMatrix {
   // TODO: 13????? See note in numbers.ts
   if ((x.storage as any) === 13) {
     return tagNumbers(
-      ccsmul(getCCSNumbers(x), getCCSNumbers(y)),
+      numeric.ccsmul(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
       y.nrColumns,
       STORAGE_CCS
@@ -600,7 +580,7 @@ export function $base_matrix_sum(x: RawMatrix, y: RawMatrix): RawMatrix {
   // TODO: 13????? See note in numbers.ts
   if ((x.storage as any) === 13) {
     return tagNumbers(
-      ccsadd(getCCSNumbers(x), getCCSNumbers(y)),
+      numeric.ccsadd(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
       y.nrColumns,
       STORAGE_CCS
@@ -617,7 +597,7 @@ export function $base_matrix_minus(x: RawMatrix, y: RawMatrix): RawMatrix {
   // TODO: 13????? See note in numbers.ts
   if ((x.storage as any) === 13) {
     return tagNumbers(
-      ccssub(getCCSNumbers(x), getCCSNumbers(y)),
+      numeric.ccssub(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
       y.nrColumns,
       STORAGE_CCS
@@ -699,7 +679,7 @@ export function $base_matrix_div(x: RawMatrix, y: RawMatrix): RawMatrix {
 
 export function $base_matrix_max(x: RawMatrix, y: RawMatrix): RawMatrix {
   return tagNumbers(
-    max(getFullNumbers(x), getFullNumbers(y)),
+    numeric.max(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
     x.nrColumns,
     STORAGE_FULL
@@ -708,7 +688,7 @@ export function $base_matrix_max(x: RawMatrix, y: RawMatrix): RawMatrix {
 
 export function $base_matrix_min(x: RawMatrix, y: RawMatrix): RawMatrix {
   return tagNumbers(
-    min(getFullNumbers(x), getFullNumbers(y)),
+    numeric.min(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
     x.nrColumns,
     STORAGE_FULL
@@ -717,7 +697,7 @@ export function $base_matrix_min(x: RawMatrix, y: RawMatrix): RawMatrix {
 
 export function $base_matrix_sin(x: RawMatrix): RawMatrix {
   return tagNumbers(
-    sin(getFullNumbers(x)),
+    numeric.sin(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
     STORAGE_FULL
@@ -726,7 +706,7 @@ export function $base_matrix_sin(x: RawMatrix): RawMatrix {
 
 export function $base_matrix_cos(x: RawMatrix): RawMatrix {
   return tagNumbers(
-    cos(getFullNumbers(x)),
+    numeric.cos(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
     STORAGE_FULL
@@ -735,7 +715,7 @@ export function $base_matrix_cos(x: RawMatrix): RawMatrix {
 
 export function $base_matrix_tan(x: RawMatrix): RawMatrix {
   return tagNumbers(
-    tan(getFullNumbers(x)),
+    numeric.tan(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
     STORAGE_FULL
@@ -744,7 +724,7 @@ export function $base_matrix_tan(x: RawMatrix): RawMatrix {
 
 export function $base_system__asin(x: RawMatrix): RawMatrix {
   return tagNumbers(
-    asin(getFullNumbers(x)),
+    numeric.asin(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
     STORAGE_FULL
@@ -753,7 +733,7 @@ export function $base_system__asin(x: RawMatrix): RawMatrix {
 
 export function $base_system__acos(x: RawMatrix): RawMatrix {
   return tagNumbers(
-    acos(getFullNumbers(x)),
+    numeric.acos(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
     STORAGE_FULL
@@ -762,7 +742,7 @@ export function $base_system__acos(x: RawMatrix): RawMatrix {
 
 export function $base_system__atan(x: RawMatrix): RawMatrix {
   return tagNumbers(
-    atan(getFullNumbers(x)),
+    numeric.atan(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
     STORAGE_FULL
@@ -771,7 +751,7 @@ export function $base_system__atan(x: RawMatrix): RawMatrix {
 
 export function $base_system__atan2(x: RawMatrix, y: RawMatrix): RawMatrix {
   return tagNumbers(
-    atan2(getFullNumbers(x), getFullNumbers(y)),
+    numeric.atan2(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
     x.nrColumns,
     STORAGE_FULL
@@ -816,7 +796,12 @@ export function $base_matrix_mexpt(x: RawMatrix, y: RawMatrix): RawMatrix {
     return x;
   } else if (n < 0) {
     return $base_matrix_mexpt(
-      tagNumbers(inv(getFullNumbers(x)), x.nrColumns, x.nrRows, STORAGE_FULL),
+      tagNumbers(
+        numeric.inv(getFullNumbers(x)),
+        x.nrColumns,
+        x.nrRows,
+        STORAGE_FULL
+      ),
       // $base_matrix_solve(x, $base_matrix_left_identity(x)),
       $base_matrix_negative(y)
     );
@@ -832,7 +817,7 @@ export function $base_matrix_mexpt(x: RawMatrix, y: RawMatrix): RawMatrix {
 export function $base_matrix_expt(x: RawMatrix, y: RawMatrix): RawMatrix {
   var n = getNumber(y, 0, 0);
   return tagNumbers(
-    pow(getFullNumbers(x), n),
+    numeric.pow(getFullNumbers(x), n),
     x.nrRows,
     x.nrColumns,
     STORAGE_FULL
@@ -840,17 +825,22 @@ export function $base_matrix_expt(x: RawMatrix, y: RawMatrix): RawMatrix {
 }
 
 export function $base_matrix_log(x: RawMatrix, y: RawMatrix): RawMatrix {
-  const yLogged = log(getFullNumbers(y));
+  const yLogged = numeric.log(getFullNumbers(y));
   const yLog = initialNumbers(1, 1, [[0, 0, yLogged[0][0]]]);
   return $base_matrix_scale_down(
-    tagNumbers(log(getFullNumbers(x)), x.nrRows, x.nrColumns, STORAGE_FULL),
+    tagNumbers(
+      numeric.log(getFullNumbers(x)),
+      x.nrRows,
+      x.nrColumns,
+      STORAGE_FULL
+    ),
     yLog
   );
 }
 
 export function $base_matrix_exp(x: RawMatrix): RawMatrix {
   return tagNumbers(
-    exp(getFullNumbers(x)),
+    numeric.exp(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
     STORAGE_FULL
@@ -859,7 +849,7 @@ export function $base_matrix_exp(x: RawMatrix): RawMatrix {
 
 export function $base_matrix_ln(x: RawMatrix): RawMatrix {
   return tagNumbers(
-    log(getFullNumbers(x)),
+    numeric.log(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
     STORAGE_FULL
@@ -931,7 +921,7 @@ export function $base_matrix_plu(x: RawMatrix): RawTuple {
 
   // Does numeric provide serparate L and U?
 
-  const decomposition = LU(getFullNumbers(x));
+  const decomposition = numeric.LU(getFullNumbers(x));
 
   const m = x.nrRows;
   const n = x.nrColumns;
@@ -1065,7 +1055,7 @@ export function $base_matrix_svd(x: RawMatrix): RawList {
   // const alt = SVD(full);
   // console.log("svd-js output", alt);
 
-  const trip = svd(full);
+  const trip = numeric.svd(full);
   const r = trip.S.length;
 
   let tuples = [];

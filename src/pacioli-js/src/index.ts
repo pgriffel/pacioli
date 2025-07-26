@@ -58,7 +58,7 @@ export { Space } from "./graphics/space";
 
 export { PacioliContext } from "./context";
 
-export { DOM } from "./dom";
+export { DOM, DOMTable } from "./dom";
 
 export { IndexSet } from "./values/index-set";
 
@@ -78,17 +78,21 @@ export { GenericType } from "./types/generic";
 
 export { matchTypes, subs } from "./type-solver";
 
-export { BarChart } from "./charts/d3-bar-chart";
+export { BarChart, BarChartOptions } from "./charts/d3-bar-chart";
 
-export { LineChart } from "./charts/d3-line-chart";
+export { LineChart, LineChartOptions } from "./charts/d3-line-chart";
 
-export { PieChart } from "./charts/d3-pie-chart";
+export { PieChart, PieChartOptions } from "./charts/d3-pie-chart";
 
-export { ScatterPlot } from "./charts/d3-scatter-plot";
+export { ScatterPlot, ScatterPlotOptions } from "./charts/d3-scatter-plot";
 
-export { Histogram } from "./charts/d3-histogram";
+export { Histogram, HistogramOptions } from "./charts/d3-histogram";
 
-export { WordCloud } from "./charts/d3-wordcloud";
+export { WordCloud, WordCloudOptions } from "./charts/d3-wordcloud";
+
+export { PacioliCoordinates } from "./values/coordinates";
+
+export { PacioliBase } from "./types/bases";
 
 export {
   $base_system__acos,

@@ -272,10 +272,14 @@ public class Project {
 
         List<String> modules = new ArrayList<String>();
 
+        // The base and standard libraries are always included
+        PacioliFile baseFile = PacioliFile.requireLibrary("base", libs);
+        PacioliFile standardFile = PacioliFile.requireLibrary("standard", libs);
+
         // Collect all libraries
         ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>();
-        allLibs.add(PacioliFile.requireLibrary("base", libs));
-        allLibs.add(PacioliFile.requireLibrary("standard", libs));
+        allLibs.add(baseFile);
+        allLibs.add(standardFile);
         for (PacioliFile pacioliFile : findImports(programNode, libs)) {
             allLibs.add(pacioliFile);
         }
@@ -286,6 +290,13 @@ public class Project {
             for (PacioliFile file : includeTree(lib)) {
                 modules.add(file.module());
             }
+        }
+
+        // For base libraries the modules will be empty. This would mean that the
+        // primitive types will not be available. Therefore we add the base module if
+        // no modules were found.
+        if (modules.isEmpty()) {
+            modules.add(baseFile.module());
         }
 
         return modules;

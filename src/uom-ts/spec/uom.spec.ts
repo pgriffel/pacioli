@@ -23,8 +23,9 @@
 import { expect } from "chai";
 import * as fc from "fast-check";
 import { UOM } from "../src/uom";
-import { arbitrarySIBase } from "./base.spec";
+import { arbitrarySIBase } from "./arbitraries";
 import { SIUnit } from "../src/context";
+import { describe, it } from "vitest";
 
 /**
  * A fast check Arbitrary for the {@link UOM} class.
