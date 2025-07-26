@@ -1,0 +1,270 @@
+import geometry;
+import testing;
+import metrics;
+import testdata;
+
+# ------------------------------------------------------------------------------
+# Isometry definition
+#
+# See https://en.wikipedia.org/wiki/Isometry
+#
+# ------------------------------------------------------------------------------
+
+# A map f: X -> Y is called an isometry or distance-preserving map if for any a,b in X
+# dx(a,b) = dy(f(a), f(b)) [wikipedia]
+#
+# The definition of isometry, and related types of isometries mentioned on the same wikipedia
+# page needs further investigation,
+# the is_isometry_predicate applied to the minkowski metric does not type check.
+
+declare is_isometry_predicate ::for_index B, C: for_unit a: 
+    ((a*B!) -> a*C!, B! per B!, C! per C!) -> (a*B!, a*B!) -> Boole;
+
+define is_isometry_predicate(f, metric_x, metric_y) = 
+    (a, b) -> metric_distance(metric_x)(a, b) = metric_distance(metric_y)(f(a), f(b));
+
+#is_isometry_predicate(fun, minkowski_metric, minkowski_metric)
+#   (nth(0, test_vecs), nth(1, test_vecs));
+
+define fun(x) = x;
+
+# ------------------------------------------------------------------------------
+#
+# Isometry definition as in Roman, Advanced Linear Algebra
+#
+# Isometry is defined through a normed linear space (p209);
+# - the norm(v) = length(v) = sqrt(inner(v, v))
+# - the distance between two vectors u and v given by d(u,v) = norm(u-v)
+# as in the functions metric_norm and metric_distance aboven.
+# We speak of "norm" only When the distance properties match that of a metric space;
+# e.g. d(u,v) = 0 <=> u=v.
+#
+# In this approach the Unitary (complex) and Orthogonal (real) operators represent
+# the isometries, following 10.12 on p240. The adoint equals the inverse T* = T^-1
+# These operators als form special types of normal operators - they commute with their
+# own adjoint TT* = T*T. 
+#
+# We work out the Orthogonal (real) case below.
+# 
+# ------------------------------------------------------------------------------
+
+# declare is_orthogonal :: for_index A, B: (A! per B!) -> Boole;
+
+define is_orthogonal(A) = 
+    A'^'-1 = A;
+
+# ------------------------------------------------------------------------------
+# Metric SVD
+# ------------------------------------------------------------------------------
+
+declare test_metric_svd :: 
+    for_index C, D, G, H: 
+    for_unit a, D!b, e, H!f: 
+        (a*C! per D!b, e*G! per H!f) -> (a/e*H!f per D!b) -> a/e*H!f per D!b;
+
+define test_metric_svd(Qx, Qy) =
+    (A) ->
+      let
+        Px = Qx^T '*' Qx,
+        Py = Qy^T '*' Qy,
+        A_prime  = Qy '*' A '*' Qx'^'-1 #Hart p128
+        # hence A = Qy^'-1' '*' A_prime '*' Qx
+        # also A_prime = (s '.*' v '*' w^T)
+      in     
+        sum[Qy'^'-1 '*' (s '.*' v '*' w^T) '*' Qx |(s,v,w) <- svd(A_prime)]
+      end;
+
+declare hart_svd ::
+    for_index C, D, G, H:
+    for_unit a, D!b, e, H!f: 
+        (a*C! per D!b, e*G! per H!f) -> (a/e*H!f per D!b) -> List(Tuple(1, 1/e*H!f, a/D!b));
+
+define hart_svd(Qx, Qy) =
+    (A) ->
+      let
+        # Px = Qx^T '*' Qx,
+        # Py = Qy^T '*' Qy,
+        A_prime  = Qy '*' A '*' Qx'^'-1 #Hart p128
+        # hence A = Qy^'-1' '*' A_prime '*' Qx
+        # also A_prime = (s '.*' v '*' w^T)
+      in     
+        #sum[Qy'^'-1 '*' (s '.*' v '*' w^T) '*' Qx |(s,v,w) <- svd(A_prime)]
+        #sum[s '.*' Qy'^'-1 '*' (v '*' w^T) '*' Qx |(s,v,w) <- svd(A_prime)]
+        #sum[s '.*' (Qy'^'-1 '*' v) '*' (w^T '*' Qx) | (s,v,w) <- svd(A_prime)]
+        #sum[s '.*' (Qy'^'-1 '*' v) '*' (Qx^T '*' w)^T | (s,v,w) <- svd(A_prime)] 
+        [tuple(s, Qy'^'-1 '*' v, Qx^T '*' w) | (s,v,w) <- svd(A_prime)]     
+      end;
+
+declare_primitive dimless_svd(A) ::
+  for_index P,Q: (P! per Q!) -> List(Tuple(1, P!, Q!));
+
+define dimless_svd(A) = svd(A);
+
+define test_hart(y, x) = 
+let 
+  M = left_identity(magnitude(P_hart(x))) * P_hart(x)
+in
+  metric_norm(M)(y)
+end;
+
+# Hart p123 - "makes the inner product dimensionless and the sum dimensionally homogeneous" 
+declare P_hart :: for_index C, D: for_unit a, C!b: (a*C!b per D!) -> 1/a^2/C!b per C!b;
+define P_hart(x) = x^D^T '*' x^D;
+
+
+
+# ------------------------------------------------------------------------------
+#
+# Isometry definition as in Roman, Advanced Linear Algebra
+#
+# Isometry is defined through a normed linear space (p209);
+# - the norm(v) = length(v) = sqrt(inner(v, v))
+# - the distance between two vectors u and v given by d(u,v) = norm(u-v)
+# as in the functions metric_norm and metric_distance aboven.
+# We speak of "norm" only When the distance properties match that of a metric space;
+# e.g. d(u,v) = 0 <=> u=v.
+#
+# In this approach the Unitary (complex) and Orthogonal (real) operators represent
+# the isometries, following 10.12 on p240. The adoint equals the inverse T* = T^-1
+# These operators als form special types of normal operators - they commute with their
+# own adjoint TT* = T*T. 
+#
+# We work out the Orthogonal (real) case below.
+# 
+# ------------------------------------------------------------------------------
+
+declare is_orthogonal2 :: for_index A, B: (A! per B!) -> Boole;
+
+define is_orthogonal2(A) = 
+    A^-1 = A;
+
+define houshold(x) =
+    x - 2 '.*' inner(x, unit(x)) '.*' unit(x) '/.' inner(unit(x), unit(x));
+
+define houshold_factor(x) =
+    inner(x, unit(x)) / inner(unit(x), unit(x));
+
+    
+
+# p74 Hart formulas
+declare f1 :: for_index D, E, H: for_unit a, D!b, E!c, f, H!g: (a*D!b per E!c, f/D!b per H!g) -> a*f/E!c per H!g;
+define f1(a, b) = a^T '*' b;
+declare f2 :: for_index D, E, H: for_unit a, D!b, E!c, f, H!g: (a*D!b per E!c, f*H!g per 1/E!c) -> a*f*D!b per 1/H!g;
+define f2(a, b) = a '*' b^T;
+
+declare f11 :: for_index C, D: for_unit a, D!b: (a*C! per D!b) -> a^2/D!b per D!b;
+declare f21 :: for_index C, D: for_unit a, C!b: (a*C!b per D!) -> a^2*C!b per 1/C!b;
+define f11(x) = x^T '*' x;
+define f21(x) = x '*' x^T;
+
+declare f3 :: for_index D, E, H: for_unit a, D!b, E!c, f, H!g: (a*D!b per E!c, f*D!b per H!g) -> f/a*E!c per H!g;
+define f3(x,y) = x^D '*' y;
+declare f4 :: for_index D, E, H: for_unit a, D!b, E!c, f, H!g: (a*D!b per E!c, f*H!g per E!c) -> a/f*D!b per H!g;
+define f4(x,y) = x '*' y^D;
+
+declare f31 :: for_index D, E: for_unit a, D!b, E!c: (a*D!b per E!c) -> E!c per E!c;
+define f31(x) = x^D '*' x;
+declare f41 :: for_index D, E: for_unit a, D!b, E!c: (a*D!b per E!c) -> D!b per D!b;
+define f41(x) = x '*' x^D;
+
+
+# Qx^D in A-prime 
+# declare metric_svd ::
+#   for_index D, E, G, H:
+#   for_unit a, b, E!c, H!f:
+#     (a*D! per E!c, b*G! per H!f) -> (a/b*H!f per E!c) -> List(Tuple(1, G!, D!));
+
+# Qx^T in A-prime
+# metric_svd ::
+#   for_index C, D, G, H:
+#   for_unit a, D!b, e, H!f:
+#     (a*C! per D!b, e*G! per H!f) -> (1/a/e*H!f per 1/D!b) -> List(Tuple(1, G!, C!));
+
+# declare metric_svd ::
+#   for_index C, D, G, H:
+#   for_unit a, D!b, e, H!f:
+#     (a*C! per D!b, e*G! per H!f) -> (a/e*H!f per D!b) -> List(Tuple(1, G!, C!));
+
+# declare metric_svd ::
+#   for_index C, D, G, H:
+#   for_unit a, D!b, e, H!f:
+#     (a*C! per D!b, e*G! per H!f) -> (a/e*H!f per D!b) -> List(Tuple(1, 1/e*H!f, 1/a*D!b));
+
+# declare metric_svd ::
+#   for_index B, C:
+#   for_unit a, d:
+#     (a*B! per C!, d*C! per B!) -> (a/d*B! per C!) -> List(Tuple(a*d, 1/d*B!, 1/a*C!));
+
+# define metric_svd(Qx, Qy) =
+#     (A) ->
+#       let
+#         Px = Qx^T '*' Qx,
+#         Py = Qy^T '*' Qy,
+#         A_prime  = Qy '*' A '*' Qx'^'-1
+#       in
+#         [tuple(s * metric_norm(Px)(v) * metric_norm(Py)(w), Qy'^'-1 '*' v, Qx'^'-1 '*' w) |(s,v,w) <- svd(A_prime)]
+#       end;
+
+# define test2_metric_svd(Qx, Qy) = 
+#     (A) ->
+#       sum[s '.*' v '*' w^T | (s,v,w) <- metric_svd(Qx, Qy)(A)];
+
+# # test2_metric_svd(action_metric, resource_metric)(consumption) - consumption;
+
+# declare test_metric_svd ::
+#   for_index B, E, F:
+#   for_unit a, c, F!d:
+#     (a*B!, c*E! per F!d) -> (a/c*F!d) -> 1/a/c*F!d;
+
+# declare test_metric_svd ::
+#   for_index C, D, G, H:
+#   for_unit a, D!b, e, H!f:
+#     (a*C! per D!b, e*G! per H!f) -> (a/e*H!f per D!b) -> 1/a/e*H!f per 1/D!b;
+
+
+
+# define foo(Qx, Qy) =
+#     (A) ->
+#       let
+#         Px = Qx^T '*' Qx,
+#         Py = Qy^T '*' Qy,
+#         A_prime  = Qy '*' A '*' Qx'^'-1
+#         # A = Qy^'-1' '*' A_prime '*' Qx
+#       in
+#         sum[v '*' (Qx '*' w)^T |(s,v,w) <- svd(A_prime)]
+#       end;
+
+
+
+define check_m(P, Q, row_unit, column_unit) =
+    P '*' Q = identity_metric(row_unit, column_unit);
+
+define inner_alt(v, w) = bilinear_form(identity_metric(row_unit(v), row_unit(w)))(v, w);
+
+defmatrix my_metric :: metre / Four! per Four! = {
+    one, one -> 1,
+    two, two -> 1,
+    one, two -> 1,
+    three, three -> 1,
+    four, four -> 1
+};
+
+"default";
+identity_metric(|Four!|, |Four!|);
+
+identity_metric(|metre * Four!unit|, |metre * Four!unit|);
+
+row_domain(|Four! per Four!|);
+
+define left_identity_metric(matrix) =
+    identity_metric(row_unit(matrix), row_unit(matrix));
+
+define right_identity_metric(matrix) =
+    let
+        c = scalar_unit(matrix),
+        v = column_unit(matrix)
+    in
+        c '.*' identity_metric(v, v)
+    end;
+
+svd(my_metric);
