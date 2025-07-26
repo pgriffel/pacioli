@@ -1,0 +1,168 @@
+import random;
+
+export 
+    random_1_by_1_matrix,
+    random_4_by_3_matrix,
+    random_4_by_4_matrix,
+    test_vec,
+    test_vec2,
+    Bar,
+    Q_33,
+    Q_44,
+    Three,
+    Four;
+
+declare random_1_by_1_matrix :: () -> 1;
+
+define random_1_by_1_matrix() =
+    random() * pick([-100, -3, 0, 3, 100]);
+
+# ------------------------------------------------------------------------------
+# Random test data
+# ------------------------------------------------------------------------------
+
+defindex Three = {one, two, three};
+
+defunit Three!unit = {
+    one: metre,
+    two: metre,
+    three: metre^2
+};
+
+define three_vector(one, two, three) =
+    make_matrix([
+        tuple(Three@one, _, one),
+        tuple(Three@two, _, two), 
+        tuple(Three@three, _, three)
+    ]);
+
+define random_three_vector() = 
+    let r() = random() * pick([-3,0,3]) in
+        three_vector(r(), r(), r())
+    end;
+
+define random_three_vectors =
+    [random_three_vector() | _ <- naturals(100)];
+
+define random_three_dim_vectors =
+    [random_three_vector() * |Three!unit| | _ <- naturals(100)];
+
+# ------------------------------------------------------------------------------
+
+defindex Four = {one, two, three, four};
+
+defunit Four!unit = {
+    one: metre,
+    two: metre,
+    four: metre^2
+};
+
+define four_vector(one, two, three, four) =
+    make_matrix([
+        tuple(Four@one, _, one),
+        tuple(Four@two, _, two), 
+        tuple(Four@three, _, three),
+        tuple(Four@four, _, four)
+    ]);
+
+declare random_four_vector :: () -> Four!;
+
+define random_four_vector() = 
+    let r() = random() * pick([-3,0,3]) in
+        four_vector(r(), r(), r(), r())
+    end;
+
+declare random_4_by_4_matrix :: () -> Four! per Four!;
+define random_4_by_4_matrix() =
+    sum[random_four_vector() '*' random_four_vector()^T | _ <- naturals(random_nat(10) + 1)];
+
+declare random_4_by_3_matrix :: () -> Four! per Three!;
+define random_4_by_3_matrix() =
+    sum[random_four_vector() '*' random_three_vector()^T | _ <- naturals(random_nat(10) + 1)];
+
+define make_4_by_3_matrix(v00, v01, v02, v10, v11, v12, v20, v21, v22, v30, v31, v32) =
+    make_matrix([
+        tuple(Four@one, Three@one, v00),
+        tuple(Four@one, Three@two, v01),
+        tuple(Four@one, Three@three, v02),
+        tuple(Four@two, Three@one, v10),
+        tuple(Four@two, Three@two, v11),
+        tuple(Four@two, Three@three, v12),
+        tuple(Four@three, Three@one, v20),
+        tuple(Four@three, Three@two, v21),
+        tuple(Four@three, Three@three, v22),
+        tuple(Four@four, Three@one, v30),
+        tuple(Four@four, Three@two, v31),
+        tuple(Four@four, Three@three, v32)
+    ]);
+
+# ------------------------------------------------------------------------------
+# Test vectors
+# ------------------------------------------------------------------------------
+
+defindex Bar = {v0, v1, v2, v3, v4, v5};
+
+defunit Bar!unit = {
+    v0: second,
+    v4: metre,
+    v5: gram/second^2
+};
+
+declare test_vec :: for_unit a: (a, a, a, a, a, a) -> a*Bar!;
+define test_vec(v0, v1, v2, v3, v4, v5) =
+    v0 '.*' delta(Bar@v0) +
+    v1 '.*' delta(Bar@v1) +
+    v2 '.*' delta(Bar@v2) +
+    v3 '.*' delta(Bar@v3) +
+    v4 '.*' delta(Bar@v4) +
+    v5 '.*' delta(Bar@v5);
+
+defindex Baz = {v0, v1};
+
+defunit Baz!unit = {
+    v0: second,
+    v1: metre
+};
+
+declare test_vec2 :: for_unit a: (a, a) -> a*Baz!;
+
+define test_vec2(v0, v1) =
+    v0 '.*' delta(Baz@v0) +
+    v1 '.*' delta(Baz@v1);
+
+
+########################################
+declare Q_44 :: Four! per Four!unit;
+defmatrix Q_44 :: 1/Four! per Four!unit = {
+  one, one -> 1,
+  one, two -> 0,
+  one, three -> 0,
+  one, four -> 0,
+  two, one -> 0,
+  two, two -> 1,
+  two, three -> 0,
+  two, four -> 0,
+  three, one -> 0,
+  three, two -> 0,
+  three, three -> 1,
+  three, four -> 0,
+  four, one -> 0,
+  four, two -> 0,
+  four, three -> 0,
+  four, four -> 1
+};
+
+# three-by-three matrix
+declare Q_33 :: Three! per Three!unit;
+defmatrix Q_33 :: 1/Three! per Three!unit = {
+  one, one -> 1000000,
+  one, two -> 0,
+  one, three -> 0,
+  two, one -> 0,
+  two, three -> 0,
+  two, two -> 1000000,
+  three, one -> 0,
+  three, two -> 0,
+  three, three -> 1000000
+};
+
