@@ -1,0 +1,143 @@
+# Copyright (c) 2023-2025 Paul Griffioen
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+# the Software, and to permit persons to whom the Software is furnished to do so,
+# subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+import geometry;
+import metrics;
+import testing;
+import testdata;
+
+declare metric_suites :: List(TestSuite);
+
+define metric_suites = [
+    bilinear_form_suite,
+    metric_norm_suite,
+    metric_svd_suite
+];
+
+run_test_suites(metric_suites);
+
+# ------------------------------------------------------------------------------
+# Function bilinear_form
+#
+# Let I be an identity matrix, then
+#
+#     inner = bilinear_form(I)
+# ------------------------------------------------------------------------------
+
+define bilinear_form_suite = test_suite("Function bilinear_form", 
+    let 
+        vecs2d = [vector2d(0,0), vector2d(1,1), vector2d(2,-3)],
+        vecs3d = [vector3d(0,0,0), vector3d(-1,2,-3)],
+        vecs3d_dim = [|centi:metre| '.*' v | v <- vecs3d]
+    in [
+        test("standard inner equals bilinear_form with identity matrix metric 2d", () ->
+            all[inner(v, w) = bilinear_form(left_identity(v))(v, w) | v <- vecs2d, w <- vecs2d]
+        ),
+
+        test("standard inner equals bilinear_form with identity matrix metric 3d", () ->
+            all[inner(v, w) = bilinear_form(left_identity(v))(v, w) | v <- vecs3d, w <- vecs3d]
+        )
+    ]
+    end);
+
+# ------------------------------------------------------------------------------
+# Function metric_norm
+#
+# Let I be an identity matrix, then
+#
+#     norm = metric_norm(I)
+# ------------------------------------------------------------------------------
+
+define metric_norm_suite = test_suite("Function metric_norm", 
+    let 
+        vecs2d = [vector2d(0,0), vector2d(1,1), vector2d(2,-3)],
+        vecs3d = [vector3d(0,0,0), vector3d(-1,2,-3)],
+        vecs3d_dim = [|centi:metre| '.*' v | v <- vecs3d]
+    in [
+        test("standard norm equals norm with identity matrix metric 2d", () ->
+            all[norm(v) = metric_norm(left_identity(v))(v) | v <- vecs2d]
+        ),
+
+        test("standard norm equals norm with identity matrix metric 3d", () ->
+            all[norm(v) = metric_norm(left_identity(v))(v) | v <- vecs3d]
+        ),
+
+        test("standard norm equals norm with identity matrix metric 3d", () ->
+            all[norm(v) = metric_norm(left_identity(v))(v) | v <- vecs3d_dim]
+        )
+    ]
+    end);
+
+# ------------------------------------------------------------------------------
+# Function metric_svd
+# ------------------------------------------------------------------------------
+
+define metric_svd_suite =
+    svd_suite_metric(
+        "metric svd for dimensionless matrix",
+        random_4_by_3_matrix,
+        10*|decimals|,
+        identity_metric(|Four!|, |Four!|),
+        identity_metric(|Three!|, |Three!|));
+
+define svd_suite_metric(description, matrix_generator, precision, M, N) = test_suite(description, [
+
+    random_test("should be a proper factorization the matrix", () ->
+        tmp_catch(()->
+            let
+                A = matrix_generator()
+            in
+                approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- svd(A)], precision)
+            end)),
+
+    random_test("should give non-negative singular values", () ->
+        tmp_catch(()-> all[magnitude(s) >= 0 | (s, _, _) <- svd(matrix_generator())])),
+
+    random_test("should be an orthogonal factorization", () ->
+        tmp_catch(()-> is_orthogonal_set(M)([v | (_, v, _) <- svd(matrix_generator())]))),
+                
+    random_test("should be an orthogonal factorization", () ->
+        tmp_catch(()-> is_orthogonal_set(N)([w | (_, _, w) <- svd(matrix_generator())])))
+]);
+
+define is_orthogonal_set(M) = 
+    (vs) ->
+        all[magnitude(f(v, w)) ~= if i = j then 1 else 0 end | 
+                f := bilinear_form(M),
+                n := list_size(vs),
+                i <- naturals(n),
+                j <- naturals(n),
+                v := nth(i, vs),
+                w := nth(j, vs)];
+
+# ------------------------------------------------------------------------------
+# 
+# ------------------------------------------------------------------------------
+
+# The js version produces NaN numbers for some test cases. For now this is checked
+# and an error is thrown. The Java version doesn't throw errors for these cases.
+# Therefore the js variant requires a catch_with_skip and the Java variant a
+# catch_with_fail. The tmp_catch function is a convenience function to make that
+# distinction, until this is addressed.
+
+declare tmp_catch :: (() -> Boole) -> Maybe(Boole);
+
+define tmp_catch(f) = 
+    if _is_js then catch_with_skip(f) else catch_with_fail(f) end;

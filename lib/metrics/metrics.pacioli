@@ -1,0 +1,144 @@
+import geometry;
+import testing;
+
+export
+    bilinear_form,
+    metric_norm,
+    metric_distance,
+    identity_metric;
+
+# ------------------------------------------------------------------------------
+# Matrix representation of bilinear forms
+#
+# Let u,v,w be vectors and let a and b be constants. A bilinear form f satisfies
+#
+# (1) f(av+bw,u) = af(v,u) + bf(w,u)
+# (2) f(u,av+bw) = af(u,v) + bf(u,w)
+#
+# A bilinear form can be represented by a matrix, say M: 
+#     f(v,w) = v^T '*' M '*' w.
+#
+# The derived type of bilinear_form(M) below is:
+#
+# for_index E, F, H, K: for_unit a, b, K!j, E!c, F!d, i, H!g:
+#     (a*E!c per F!d) -> (b*1/E!c per H!g, i*F!d per K!j) -> a*b*i*1/H!g per K!j
+#
+# Substitute H!g = 1 and K!j = 1 since v and w are vectors
+#
+# for_index E, F, H, K: for_unit a, b, E!c, F!d, i:
+#     (a*E!c per F!d) -> (b*1/E!c, i*F!d) -> a*b*i
+#
+# Finally some renaming gives the type below.
+#
+# The uniform metric is a special case:
+#
+# for_index I: for_unit a, b, c, I!u, I!v:
+#     (a * I! per I!) -> (b*I!, c*I!) -> a*b*c;
+# ------------------------------------------------------------------------------
+
+declare bilinear_form :: 
+    for_index I, J: for_unit a, b, c, I!u, J!v:
+        (a / I!u per J!v) -> (b*I!u, c*J!v) -> a*b*c;
+
+define bilinear_form(M) =
+    (v, w) -> v^T '*' M '*' w;
+
+# ------------------------------------------------------------------------------
+# Metric norm
+#
+# Given some bilinear form f, the norm of a vector v is sqrt(f(v,v))
+#
+# Special case for uniform vectors is:
+#   for_index I: for_unit a: (I! per I!, a*I!) -> a;
+# ------------------------------------------------------------------------------
+
+declare metric_norm ::
+    for_index I: for_unit a, b, I!u:
+        (a^2/I!u per I!u) -> (b*I!u) -> a*b;
+
+define metric_norm(metric) =
+    (v) -> sqrt(bilinear_form(metric)(v, v));
+
+# ------------------------------------------------------------------------------
+# Distance
+#
+# Uniform case is:
+#   for_index I: for_unit a: (I! per I!, a*I!, a*I!) -> a;
+# ------------------------------------------------------------------------------
+
+declare metric_distance ::
+    for_index I: for_unit a, I!u, b:
+        (a^2/I!u per I!u) -> (b*I!u, b*I!u) -> a*b;
+
+define metric_distance(metric) =
+    (x, y) -> metric_norm(metric)(x - y);
+
+# ------------------------------------------------------------------------------
+# Symmetric bilinear form
+#
+# A bilinear form f is symmetric when 
+#
+#     f(v,w) = f(w,v)
+# ------------------------------------------------------------------------------
+
+doc is_symmetric
+    "Is a matrix symmetric?
+
+    Satisfies:
+    <pre>
+        A^T = A
+    </pre>";
+
+declare is_symmetric ::
+    for_index I: for_unit a, I!u: (a/I!u per I!u) -> Boole;
+
+define is_symmetric(A) = 
+    A^T = A;
+
+# ------------------------------------------------------------------------------
+# Skew-symmetric bilinear form
+#
+# A bilinear form f is skew-symmetric when 
+# 
+#     f(v,w) = -f(w,v)
+# ------------------------------------------------------------------------------
+
+declare is_skew_symmetric ::
+    for_index I: for_unit a, I!u: (a/I!u per I!u) -> Boole;
+
+define is_skew_symmetric(A) = 
+    A^T = -A;
+
+# ------------------------------------------------------------------------------
+# Alternate bilinear form
+#
+# A bilinear form f is alternate when 
+#
+#     f(v,v) = 0
+# ------------------------------------------------------------------------------
+
+declare is_alternate ::
+    for_index I: for_unit a, I!u: (a/I!u per I!u) -> Boole;
+
+define is_alternate(A) = 
+    is_skew_symmetric(A) and has_zero_diagonal(A);
+
+# ------------------------------------------------------------------------------
+# Function has_zero_diagonal
+# ------------------------------------------------------------------------------
+
+doc has_zero_diagonal
+    "Are all diagonal elements of a matrix zero?";
+
+declare has_zero_diagonal :: 
+    for_index I: for_unit a, I!u, I!v: (a*I!u per I!v) -> Boole;
+
+define has_zero_diagonal(A) = 
+    all[is_zero(get_num(A, i, j)) | (i, j) <- zip(row_domain(A), column_domain(A))];
+
+
+declare identity_metric ::
+    for_index D, H: for_unit a, D!b, f, H!g: (a*D!b, f*H!g) -> 1/a/f/D!b per H!g;
+
+define identity_metric(row_unit, column_unit) =
+    make_matrix([tuple(r, c, 1) | (r, c) <- zip(row_domain(row_unit), row_domain(column_unit))]) * (row_unit^R per column_unit);
