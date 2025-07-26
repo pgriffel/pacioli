@@ -1,5 +1,7 @@
 **/*.mvm
-**/*.js
+lib/**/*.js
+samples/**/*.js
+test/**/*.js
 !/samples/shells/parameters.js
 !/samples/viz-standalone.js
 **/*.pacioli~

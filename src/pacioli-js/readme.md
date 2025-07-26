@@ -4,19 +4,14 @@ A runtime system for the Pacioli language.
 
 ## Summary
 
-- `npm run build` followed by `npm pack` to package the package
-- `npm run build:bundle` to bundle the package
-- `npm run test` to test the package
+- `npm run package` to package (= build and pack) the library
+- `npm run bundle` to bundle the library
+- `npm run test` to test the library
 
 ## Including uom-ts
 
-Library uom-ts is included via a link because it is still in development.
-
-Run the following to use the `uom-ts` library.
-
-```
-npm link uom-ts --save
-```
+Library uom-ts is included as a file. Build and package the uom-ts library and add the generated .tgz file in this
+library's directory.
 
 ## Testing the library
 
@@ -43,16 +38,10 @@ Adjust the configuration in the `fc.configureGlobal` call.
 On the command line run
 
 ```
-npm run build
+npm run package
 ```
 
-This should produce .js files in the dist directory. Next run
-
-```
-npm pack
-```
-
-This should produce a file pacioli-test-x.x.x.tgz.
+This build the library and packs it. It should produce a file pacioli-test-x.x.x.tgz.
 
 Update the version in `package.json` if necessary.
 
@@ -63,7 +52,7 @@ The library is written in TypeScript and ES6 but uses CommonJS to bundle the cod
 On the command line run
 
 ```
-npm run build:bundle
+npm run bundle
 ```
 
 This should produce a file pacioli-x.x.x.bundle.js in the dist directory.
