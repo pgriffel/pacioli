@@ -20,165 +20,119 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliMatrix } from "./values/matrix";
-import { getCOONumbers, getFullNumbers, getNumber } from "./values/numbers";
-import { PacioliCoordinates } from "./values/coordinates";
-import { SIUnit } from "uom-ts";
+import { PacioliMatrix } from "../values/matrix";
+import { getNumber, getFullNumbers } from "../values/numbers";
+import { firstDefined, locale, toFixed, unitToText } from "./utils";
 
-// TODO: remove any type
-// TODO: connect zeroRows
-export function DOM(
-  x: any,
-  options?: { decimals?: number; zero?: string; zeroRows?: boolean }
-) {
-  if (typeof x === "boolean" || typeof x === "string") {
-    return document.createTextNode(x.toString());
-  } else {
-    switch (x.kind) {
-      case "matrix":
-        if (x.shape) {
-          return DOMmatrixTable(x, options);
-        } else {
-          // hack to debug without shape info via print en printed
-          return document.createTextNode(getFullNumbers(x));
-        }
-      case "coordinates":
-        const coords = x as PacioliCoordinates;
-        return document.createTextNode(coords.shortText());
-      // case "ref":
-      //     return Pacioli.DOM(x.value[0])
-      case "list":
-        var list = document.createElement("ol");
-        var items = x; //.unlist()
-        for (var i = 0; i < items.length; i++) {
-          var item = document.createElement("li");
-          item.appendChild(DOM(items[i], options));
-          list.appendChild(item);
-        }
-        return list;
-      case "tuple":
-        var tup = document.createElement("ul");
-        var items = x; //.untuple()
-        for (var i = 0; i < items.length; i++) {
-          var item = document.createElement("li");
-          item.appendChild(DOM(items[i], options));
-          tup.appendChild(item);
-        }
-        return tup;
-      default:
-        return document.createTextNode(x.value);
+/**
+ * Collection of columns for use in a DOM Pacioli table. See api function DOMTable.
+ *
+ * TODO: check if it works for row vectors. The code handles columns order > 0, but
+ * do we want that? And does it work?
+ */
+export class DOMTableColumns {
+  constructor(
+    public readonly columns: {
+      title: string;
+      value: PacioliMatrix;
+      decimals: number;
+      zero?: string;
+    }[],
+    public readonly options?: {
+      decimals: number;
+      zero?: string;
+      zeroRows: boolean;
+      totalsRow?: boolean;
     }
-  }
-}
-
-// TODO Use tableRows from Matrix
-export function DOMmatrixTable(
-  matrix: PacioliMatrix,
-  options?: { decimals?: number; zero?: string; zeroRows?: boolean }
-) {
-  var shape = matrix.shape;
-  var numbers = matrix.numbers;
-
-  var rowOrder = shape.rowOrder();
-  var columnOrder = shape.columnOrder();
-
-  if (rowOrder === 0 && columnOrder === 0) {
-    var value = getNumber(matrix.numbers, 0, 0);
-    var unit = shape.unitAt(0, 0);
-
-    var fragment = document.createDocumentFragment();
-    fragment.appendChild(
-      document.createTextNode(
-        toFixed(value, firstDefined(options?.decimals, 2)!, options?.zero)
-      )
-    );
-    fragment.appendChild(
-      document.createTextNode(
-        unitToText(unit, value === 0 && typeof options?.zero === "string")
-      )
-    );
-    //fragment.normalize()
-    return fragment;
+  ) {
+    // TODO: check the columns! Is not type checked!!! All columns must have the same shape
+    this.columns = columns;
+    this.options = options;
   }
 
-  var table = document.createElement("table");
-  table.className = "pacioli-matrix";
-  //    table.style = "width: auto"
-
-  var thead = document.createElement("thead");
-  var tbody = document.createElement("tbody");
-
-  table.appendChild(thead);
-  table.appendChild(tbody);
-
-  var row = document.createElement("tr");
-
-  if (0 < rowOrder) {
-    var header = document.createElement("th");
-    header.className = "key";
-    header.innerHTML = shape.rowName();
-    row.appendChild(header);
-  }
-  if (0 < columnOrder) {
-    var header = document.createElement("th");
-    header.className = "key";
-    header.innerHTML = shape.columnName();
-    row.appendChild(header);
+  // TODO: reduce the result types to just one!?
+  toDOM(): HTMLElement | DocumentFragment | Text {
+    return createDOMTable(this.columns, this.options);
   }
 
-  var header = document.createElement("th");
-  header.className = "value";
-  header.colSpan = 2;
-  row.appendChild(header);
+  toClipboardText(): string {
+    const n = this.columns.length;
 
-  thead.appendChild(row);
-
-  var coo = getCOONumbers(numbers);
-  var rows = coo[0];
-  var columns = coo[1];
-  var values = coo[2];
-  if (rows.length === 0) {
-    return document.createTextNode("0");
-  } else {
-    for (var i = 0; i < rows.length; i++) {
-      var row = document.createElement("tr");
-      if (0 < rowOrder) {
-        var cell = document.createElement("td");
-        cell.className = "key";
-        cell.innerHTML = shape.rowCoordinates(rows[i]).names.toString();
-        row.appendChild(cell);
-      }
-      if (0 < columnOrder) {
-        var cell = document.createElement("td");
-        cell.className = "key";
-        cell.innerHTML = shape.columnCoordinates(columns[i]).names.toString();
-        row.appendChild(cell);
-      }
-
-      var cell = document.createElement("td");
-      cell.className = "value";
-      cell.innerHTML = toFixed(
-        values[i],
-        firstDefined(options?.decimals, 2)!,
-        options?.zero
-      );
-      row.appendChild(cell);
-
-      var cell = document.createElement("td");
-      cell.className = "unit";
-      var un = shape.unitAt(rows[i], columns[i]);
-
-      cell.appendChild(
-        document.createTextNode(
-          unitToText(un, values[i] === 0 && typeof options?.zero === "string")
-        )
-      );
-      row.appendChild(cell);
-
-      tbody.appendChild(row);
+    if (n === 0) {
+      return "";
     }
+
+    // Use the first column for the shape.
+    const matrix = this.columns[0].value;
+    const shape = matrix.shape;
+
+    const rowOrder = shape.rowOrder();
+    const columnOrder = shape.columnOrder();
+
+    // nonsense?
+    if (rowOrder === 0 && columnOrder === 0) {
+      return getNumber(matrix.numbers, 0, 0).toLocaleString(locale);
+    }
+
+    let text = "";
+
+    if (0 < rowOrder) {
+      text += shape.rowName();
+    }
+    if (0 < columnOrder) {
+      text += shape.columnName();
+    }
+
+    // Add a header for each column
+    for (let i = 0; i < n; i++) {
+      text += "\t" + this.columns[i].title;
+    }
+
+    // Note that the full number might explode on tensors with many dimensions. TODO:
+    // a more efficient alternative with COO numbers
+    const numbers = this.columns.map((record) =>
+      getFullNumbers(record.value.numbers)
+    );
+    // const shapes = this.columns.map((record) => record.value.shape);
+
+    // For COO numbers
+    // var rows = numbers.map(trip => trip[0])
+    // var columns = numbers.map(trip => trip[1])
+    // var values = numbers.map(trip => trip[2])
+
+    const nrRows = shape.nrRows();
+    const nrColumns = shape.nrColumns();
+
+    if (nrRows === 0 || nrColumns == 0) {
+      // Kan dit??? Copied from above
+      return "0";
+    } else {
+      // Add the data rows
+      for (let i = 0; i < nrRows; i++) {
+        text += "\n";
+
+        for (let j = 0; j < nrColumns; j++) {
+          // Add the index
+          if (0 < rowOrder) {
+            const idx = shape.rowCoordinates(i).names.toString();
+            text += idx;
+          }
+          if (0 < columnOrder) {
+            const idx = shape.columnCoordinates(j).names.toString();
+            text += idx;
+          }
+
+          // Add the value for each colulmn
+          for (let k = 0; k < n; k++) {
+            const num = numbers[k][i][j];
+            // text += "\t" + num.toLocaleString(locale);
+            text += "\t" + num.toString();
+          }
+        }
+      }
+    }
+    return text;
   }
-  return table;
 }
 
 /**
@@ -188,7 +142,7 @@ export function DOMmatrixTable(
  * @param columns A properties object for every column
  * @returns A 'table' HTML element
  */
-export function DOMTable(
+function createDOMTable(
   columns: {
     title: string;
     value: PacioliMatrix;
@@ -201,10 +155,15 @@ export function DOMTable(
     zeroRows: boolean;
     totalsRow?: boolean;
   }
-) {
+): HTMLElement | DocumentFragment | Text {
+  const n = columns.length;
+
+  if (n === 0) {
+    return document.createTextNode("-");
+  }
+
   // Use the first column for the shape. TODO: check the rest! Is not type checked!!!
   const matrix = columns[0].value;
-  const n = columns.length;
   const shape = matrix.shape;
 
   const rowOrder = shape.rowOrder();
@@ -403,29 +362,4 @@ export function DOMTable(
     }
   }
   return table;
-}
-
-const locale = "nl-NL";
-
-function toFixed(value: number, decimals: number, zero?: string): string {
-  return typeof zero === "string" && value === 0
-    ? zero
-    : // : value.toFixed(decimals);
-      value.toLocaleString(locale, {
-        maximumFractionDigits: decimals,
-        minimumFractionDigits: decimals,
-      });
-}
-
-function unitToText(unit: SIUnit, empty: boolean): string {
-  return empty || unit.isDimensionless() ? " " : unit.toText();
-}
-
-function firstDefined<T>(...args: T[]): T | undefined {
-  for (const arg of args) {
-    if (arg !== undefined && arg !== null) {
-      return arg;
-    }
-  }
-  return undefined;
 }

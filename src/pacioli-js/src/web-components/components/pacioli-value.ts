@@ -22,7 +22,7 @@
 
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
-import { DOM } from "../../dom";
+import { DOM } from "../../dom/dom";
 
 /**
  * Attribues supported by the Pacioli value component

@@ -22,7 +22,7 @@
 
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
-import { DOMTable } from "../../dom";
+import { DOMTable } from "../../dom/dom";
 
 /**
  * Attribues supported by the table component

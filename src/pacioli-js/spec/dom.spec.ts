@@ -20,9 +20,15 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { collectTypeEquations } from "../src/type-solver.js";
-import { TypeVar } from "../src/types/variables.js";
 import "jasmine";
+import { PacioliMatrix } from "../src/values/matrix.js";
+import { MatrixShape } from "../src/values/matrix-shape.js";
+import { testContext } from "./test-context.js";
+import { IndexSet } from "../src/values/index-set.js";
+import { MatrixDimension } from "../src/values/matrix-dimension.js";
+import { UOM } from "uom-ts";
+import { initialNumbers } from "../src/cache.js";
+import { DOMTableColumns } from "../src/dom/table.js";
 
 /**
  * A fast check Arbitrary for the {@link Shape} class.
@@ -33,15 +39,38 @@ import "jasmine";
 //   return arbitraryUOM().map((unit) => new Shape(unit));
 // }
 
-describe("Type", () => {
-  describe("Experiment", () => {
-    it("should ...", () => {
-      const x: TypeVar = new TypeVar("foo");
-      const y: TypeVar = new TypeVar("foo");
+describe("DOM", () => {
+  describe("Table", () => {
+    it("should give correct clipboard text", () => {
+      const personSet = testContext.findIndexSet("Person") as IndexSet;
 
-      const eqs = collectTypeEquations(x, y);
+      const shape = new MatrixShape(
+        UOM.ONE,
+        new MatrixDimension([personSet]),
+        UOM.ONE,
+        new MatrixDimension([]),
+        UOM.ONE
+      );
+      const numbers = initialNumbers(personSet.size(), 1, [
+        [0, 0, 1],
+        [1, 0, 1.234567890123456789],
+        [2, 0, 1234567890.123456789],
+      ]);
 
-      console.log("type", eqs);
+      const column0 = {
+        title: "Foo",
+        value: new PacioliMatrix(shape, numbers),
+        decimals: 2,
+      };
+
+      const domTable = new DOMTableColumns([column0]);
+
+      expect(domTable.toClipboardText()).toEqual(`Person\tFoo
+Jack\t1
+Jill\t1.2345678901234567
+Jane\t1234567890.1234567
+John\t0
+Jennifer\t0`);
     });
   });
 });
