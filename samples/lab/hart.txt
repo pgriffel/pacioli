@@ -1,0 +1,47 @@
+# Implementation of Hart's book
+# Set-up in the form of a table:
+# - Mathematical formula in Hart - for now in ASCII
+# - Pacioli equivalent
+# - Explanation in text
+
+# ∑∼∙∈≈𝟏
+
+# value expressions
+y = Ax  | let y = A '*' x | linear transformation A mapping x to y | p61
+y = Ax  | y = A '*' x     | boolean test | p61
+
+# type expressions
+1 | P! | dimensionless unit vector, index set left implicit | table 2.1 p64
+Given P vector 1: 1 | for_index P: P! | quantified dimensionless unit vector | table 2.1 p64
+11~ | P! per Q! | dimensionless unit matrix, index set left implicit  | see 2.1 p67
+Given P vector 1: 11~ | for_index P: P! per P! | quantified square dimensionless unit matrix | see 2.1 p67
+Given 1_P, 1_Q: 1_P1_Q~ | P! per Q! | quantified rectangular dimensionless unit matrix | see 2.1 p67
+
+a | P!a | unit a vector, index set left implicit | table 2.1 p64
+Given P vector a: a | for_index P: P!a | quantified unit a vector | table 2.1 p64
+ab~ | P!a per Q!b | unit a/b matrix, index set left implicit  | see 2.1 p67
+Given P vector a: aa~ | for_index P: P!a per P!a | quantified square unit matrix, dimensionless on the diagonal | see 2.1 p67, endomorphic matrix on p87
+Given P vectors a,b: ab~ | for_index P: P!a per P!b | quantified square unit matrix | see 2.1 p67
+Given P vector a, Q vector b: ab~ | for_index P,Q: P!a per Q!b | quantified rectangular unit matrix | see 2.1 p67
+Suppose A ~ ab~ and B ~ bc~ then AB ~ ac~ | for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (P!u per Q!v, Q!v per R!w) -> P!u per R!w; | simplified mmult, without dimensional parallellism
+Given P vector u and Q vector v and suppose a ~ 1 and B ~ uv~ then aB ~ uv~ | for_index P,Q: for_unit b,P!u,Q!v: (1, b*P!u per Q!v) -> b*P!u per Q!v; | endomorphic scaling, without dimensional parallellism, see p61
+Given P vector u and Q vector v and suppose a ~ c and B ~ uv~ then aB ~ cuv~ | for_index P,Q: for_unit b,P!u,Q!v: (c, b*P!u per Q!v) -> c*b*P!u per Q!v; | non-endomorphic / dimensional parallel scaling, see p61
+# @@@ Hart's  ~~ dimensional parallelism relation not literally expressed in pacioli
+# Pacioli's scaling rules not literally written in Hart's text.
+
+# Example on p8, om p67 repeated with resistance in ohm.
+Given voltage-current vector a = [volt ampere]^T | defunit P!a = {v: volt, c: ampere}; | voltage-current plane, p8
+
+V(x) | magnitude(x) | value function applied to x | see 1.2.1 p30
+T(x) | unit(x) | type function applied to x | see 1.2.1 p30
+
+wand | 
+
+dimensioned inner product <x,y>sub P = xsupT P y | x^T '*' P '*' y | bilinear form | 4.2 p122
+dimensioned norm |x| sub P | sqrt( x^T '*' P '*' x) | metric norm | 4.3 p122
+traditional norm properties in 4.1 p121 | | | (not needed for SVD see p123)
+
+norm for matrix | 
+quadratic norm
+spectral norm
+

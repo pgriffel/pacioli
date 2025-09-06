@@ -1,6 +1,6 @@
 import geometry;
 import graphics;
-include metrics;
+import metrics;
 
 define NORMAL_COLOR = make_color("green");
 define DELTA_COLOR = make_color("red");
@@ -48,17 +48,15 @@ define circle_value(v) =
         x2 = sin(v) * |metre|,
         x =  vector2d(x1, x2)
     in
-        make_zsquared(x1, x2, quadratic_form(A, x))
+        make_zsquared(x1, x2, quadratic_form(A)(x))
     end;
 
 test_quadratic_circle_values;
 
 
-declare quadratic_form :: for_index C: for_unit a, C!b, d: (a*C!b per 1/C!b, d*1/C!b) -> a*d^2;
-define quadratic_form(M, x) = bilinear_form(M, x, x);
-
-declare quadratic_form_D :: for_index C: for_unit a, C!b, d: (a*C!b per C!b, d*C!b) -> a;
-define quadratic_form_D(M, x) = bilinear_form_D(M, x, x);
+declare quadratic_form :: for_index C: for_unit a, C!b, d: (a*C!b per 1/C!b) -> (d*1/C!b) -> a*d^2;
+define quadratic_form(M) = 
+    (x) -> bilinear_form(M) (x, x);
 
 # "quadratic_form(left_identity(vector2d(1,0) '*.' |metre|), vector2d(2,3) '*.' |metre|)";
 # quadratic_form(left_identity(vector2d(1,0) '*.' |metre|), vector2d(2,3) '*.' |metre|);
@@ -99,7 +97,7 @@ define paraboloid_scene2(a, n, m, d, Axx, Axy, Ayx, Ayy, grid, surface, wirefram
                     tuple(Geom2@y, Geom2@x, Ayx),   
                     tuple(Geom2@y, Geom2@y, Ayy)])
         in
-            make_zsquared(x1, x2, quadratic_form(A, x))
+            make_zsquared(x1, x2, quadratic_form(A)(x))
         end,
             
             range = 
@@ -117,8 +115,6 @@ define paraboloid_scene2(a, n, m, d, Axx, Axy, Ayx, Ayy, grid, surface, wirefram
         build_example_scene(f, range, options)
     end;
     
-define yo(A, x, x1, x2) = make_zsquared(x1, x2, quadratic_form(A, x));
-
 # ------------------------------------------------------------------------------
 
 define paraboloid_scene(a, n, m, d, grid, surface, wireframe, parts, total, normals) =
