@@ -23,6 +23,7 @@
 import * as fc from "fast-check";
 import { arbitraryShape } from "./context.arbitraries";
 import { testContext } from "./test-context";
+import "jasmine";
 
 describe("Shape", () => {
   describe("rowOrder", () => {

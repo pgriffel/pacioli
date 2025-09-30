@@ -29,6 +29,7 @@ import { arrayEqual } from "./util";
 import { UOM } from "uom-ts";
 import { PacioliCoordinates } from "../src/values/coordinates.js";
 import { IndexSet } from "../src/values/index-set.js";
+import "jasmine";
 
 /**
  * A fast check Arbitrary for the {@link PacioliCoordinates} class.

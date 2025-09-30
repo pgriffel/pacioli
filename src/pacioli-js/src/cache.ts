@@ -22,7 +22,7 @@
 
 import { DimNum, SIBase, SIUnit } from "uom-ts";
 import { PacioliCoordinates } from "./values/coordinates";
-import { DOM } from "./dom";
+import { DOM } from "./dom/dom";
 import { IndexSet } from "./values/index-set";
 import { set, tagNumbers } from "./values/numbers";
 import { PacioliUnit } from "./type";

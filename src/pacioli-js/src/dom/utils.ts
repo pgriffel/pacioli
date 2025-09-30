@@ -1,6 +1,6 @@
 /* Runtime Support for the Pacioli language
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Copyright (c) 2023-2025 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -20,29 +20,33 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import * as fc from "fast-check";
-import { arbitraryIndexSet } from "./index-set.spec";
-import { MatrixDimension } from "../src/values/matrix-dimension";
-import "jasmine";
+import { SIUnit } from "uom-ts";
 
-/**
- * A fast check Arbitrary for the {@link MatrixDimension} class.
- *
- * @returns an arbitray MatrixDimension instance
- */
-export function arbitraryMatrixDimension(): fc.Arbitrary<MatrixDimension> {
-  return fc.array(arbitraryIndexSet()).map((sets) => new MatrixDimension(sets));
+export const locale = "nl-NL";
+
+export function toFixed(
+  value: number,
+  decimals: number,
+  zero?: string
+): string {
+  return typeof zero === "string" && value === 0
+    ? zero
+    : // : value.toFixed(decimals);
+      value.toLocaleString(locale, {
+        maximumFractionDigits: decimals,
+        minimumFractionDigits: decimals,
+      });
 }
 
-describe("MatrixDimension", () => {
-  describe("rowOrder", () => {
-    it("should create a MatrixDimension that is compatible with the coordinates", () => {
-      fc.assert(
-        fc.property(arbitraryMatrixDimension(), (dimension) => {
-          // console.log(dimension)
-          expect(dimension).toEqual(dimension);
-        })
-      );
-    });
-  });
-});
+export function unitToText(unit: SIUnit, empty: boolean): string {
+  return empty || unit.isDimensionless() ? " " : unit.toText();
+}
+
+export function firstDefined<T>(...args: T[]): T | undefined {
+  for (const arg of args) {
+    if (arg !== undefined && arg !== null) {
+      return arg;
+    }
+  }
+  return undefined;
+}

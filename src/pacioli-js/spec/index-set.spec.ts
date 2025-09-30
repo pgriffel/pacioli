@@ -22,6 +22,7 @@
 
 import * as fc from "fast-check";
 import { IndexSet } from "../src/values/index-set";
+import "jasmine";
 
 /**
  * A fast check Arbitrary for the {@link IndexSet} class.

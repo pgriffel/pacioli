@@ -361,6 +361,13 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("matrix_cholesky") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.cholesky();
+            }
+        });
+
         storePrimitive(store, new Primitive("matrix_scalar_unit") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix matrix = (Matrix) params.get(0);
