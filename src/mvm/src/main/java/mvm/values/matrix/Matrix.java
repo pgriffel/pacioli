@@ -36,13 +36,17 @@ import mvm.values.PacioliTuple;
 import mvm.values.PacioliValue;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.CholeskyDecomposition;
 import org.apache.commons.math3.linear.LUDecomposition;
+import org.apache.commons.math3.linear.NonPositiveDefiniteMatrixException;
+import org.apache.commons.math3.linear.NonSymmetricMatrixException;
 import org.apache.commons.math3.linear.QRDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 
 // import pacioli.Pacioli;
 import uom.DimensionedNumber;
+import uom.Fraction;
 import uom.Unit;
 import uom.UnitMap;
 
@@ -1244,6 +1248,31 @@ public class Matrix implements PacioliValue {
         items.add(matrixR);
 
         return new PacioliTuple(items);
+    }
+
+    public Matrix cholesky() throws MVMException {
+
+        Fraction half = new Fraction(1, 2);
+        MatrixShape resultShape = new MatrixShape(shape.factor().raise(half),
+                rowDimension(),
+                shape.rowUnit,
+                columnDimension(),
+                MatrixBase.ONE);
+        Matrix matrix = new Matrix(resultShape);
+
+        try {
+            CholeskyDecomposition decomposition = new CholeskyDecomposition(numbers);
+
+            matrix.numbers = decomposition.getL();
+
+            return matrix;
+
+        } catch (NonPositiveDefiniteMatrixException ex) {
+            throw new MVMException("matrix not positive definite in Cholesky decomposition");
+        } catch (NonSymmetricMatrixException ex) {
+            throw new MVMException("matrix not symmetric in Cholesky decomposition");
+        }
+
     }
 
     public void set(Integer i, Integer j, Double value) {

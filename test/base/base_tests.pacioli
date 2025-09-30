@@ -53,6 +53,7 @@ define base_suites = [
     uniform_svd_suite,
     dimensioned_svd_suite,
     qr_suite,
+    cholesky_suite,
     solve_suite,
     map_suite
     #mapnz_suite       does not exist in MVM yet
@@ -728,6 +729,28 @@ declare tmp_catch :: (() -> Boole) -> Maybe(Boole);
 
 define tmp_catch(f) = 
     if _is_js then catch_with_skip(f) else catch_with_fail(f) end;
+
+# ------------------------------------------------------------------------------
+# Function cholesky
+# ------------------------------------------------------------------------------
+
+defmatrix cholesky_input :: metre^2 * Four!unit per 1/Four!unit = {
+    one, one -> 4,
+    two, two -> 4,
+    one, two -> 3,
+    two, one -> 3,
+    three, three -> 4,
+    four, four -> 4
+};
+ 
+define cholesky_suite = test_suite("Cholesky decomposition tests", [
+
+    test("L '*' L^T should approximate A", () ->
+        let L = cholesky(cholesky_input) in
+            L '*' L^T ~= cholesky_input
+        end
+    )
+]);
 
 # ------------------------------------------------------------------------------
 # Function solve
