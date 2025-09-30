@@ -28,33 +28,11 @@ define is_isometry_predicate(f, metric_x, metric_y) =
 
 define fun(x) = x;
 
-# ------------------------------------------------------------------------------
-#
-# Isometry definition as in Roman, Advanced Linear Algebra
-#
-# Isometry is defined through a normed linear space (p209);
-# - the norm(v) = length(v) = sqrt(inner(v, v))
-# - the distance between two vectors u and v given by d(u,v) = norm(u-v)
-# as in the functions metric_norm and metric_distance aboven.
-# We speak of "norm" only When the distance properties match that of a metric space;
-# e.g. d(u,v) = 0 <=> u=v.
-#
-# In this approach the Unitary (complex) and Orthogonal (real) operators represent
-# the isometries, following 10.12 on p240. The adoint equals the inverse T* = T^-1
-# These operators als form special types of normal operators - they commute with their
-# own adjoint TT* = T*T. 
-#
-# We work out the Orthogonal (real) case below.
-# 
-# ------------------------------------------------------------------------------
-
-# declare is_orthogonal :: for_index A, B: (A! per B!) -> Boole;
-
-define is_orthogonal(A) = 
-    A'^'-1 = A;
 
 # ------------------------------------------------------------------------------
-# Metric SVD
+# Experiment:
+# correct implementation of Hart's SVD
+# @@@TODO find correct metric_svd function and produce tests.
 # ------------------------------------------------------------------------------
 
 declare test_metric_svd :: 
@@ -95,10 +73,9 @@ define hart_svd(Qx, Qy) =
         [tuple(s, Qy'^'-1 '*' v, Qx^T '*' w) | (s,v,w) <- svd(A_prime)]     
       end;
 
-declare_primitive dimless_svd(A) ::
-  for_index P,Q: (P! per Q!) -> List(Tuple(1, P!, Q!));
-
-define dimless_svd(A) = svd(A);
+#
+# @@@ Uitzoeken. Wat doet dit precies? Test of norm?
+#
 
 define test_hart(y, x) = 
 let 
@@ -112,141 +89,46 @@ declare P_hart :: for_index C, D: for_unit a, C!b: (a*C!b per D!) -> 1/a^2/C!b p
 define P_hart(x) = x^D^T '*' x^D;
 
 
-
-# ------------------------------------------------------------------------------
-#
-# Isometry definition as in Roman, Advanced Linear Algebra
-#
-# Isometry is defined through a normed linear space (p209);
-# - the norm(v) = length(v) = sqrt(inner(v, v))
-# - the distance between two vectors u and v given by d(u,v) = norm(u-v)
-# as in the functions metric_norm and metric_distance aboven.
-# We speak of "norm" only When the distance properties match that of a metric space;
-# e.g. d(u,v) = 0 <=> u=v.
-#
-# In this approach the Unitary (complex) and Orthogonal (real) operators represent
-# the isometries, following 10.12 on p240. The adoint equals the inverse T* = T^-1
-# These operators als form special types of normal operators - they commute with their
-# own adjoint TT* = T*T. 
-#
-# We work out the Orthogonal (real) case below.
 # 
-# ------------------------------------------------------------------------------
-
-declare is_orthogonal2 :: for_index A, B: (A! per B!) -> Boole;
-
-define is_orthogonal2(A) = 
-    A^-1 = A;
-
-define houshold(x) =
+# @@@ Literature + Uitzoeken of en waar dit nodig is
+#
+define householder(x) =
     x - 2 '.*' inner(x, unit(x)) '.*' unit(x) '/.' inner(unit(x), unit(x));
 
-define houshold_factor(x) =
+define householder_factor(x) =
     inner(x, unit(x)) / inner(unit(x), unit(x));
 
     
 
-# p74 Hart formulas
-declare f1 :: for_index D, E, H: for_unit a, D!b, E!c, f, H!g: (a*D!b per E!c, f/D!b per H!g) -> a*f/E!c per H!g;
-define f1(a, b) = a^T '*' b;
-declare f2 :: for_index D, E, H: for_unit a, D!b, E!c, f, H!g: (a*D!b per E!c, f*H!g per 1/E!c) -> a*f*D!b per 1/H!g;
-define f2(a, b) = a '*' b^T;
-
-declare f11 :: for_index C, D: for_unit a, D!b: (a*C! per D!b) -> a^2/D!b per D!b;
-declare f21 :: for_index C, D: for_unit a, C!b: (a*C!b per D!) -> a^2*C!b per 1/C!b;
-define f11(x) = x^T '*' x;
-define f21(x) = x '*' x^T;
-
-declare f3 :: for_index D, E, H: for_unit a, D!b, E!c, f, H!g: (a*D!b per E!c, f*D!b per H!g) -> f/a*E!c per H!g;
-define f3(x,y) = x^D '*' y;
-declare f4 :: for_index D, E, H: for_unit a, D!b, E!c, f, H!g: (a*D!b per E!c, f*H!g per E!c) -> a/f*D!b per H!g;
-define f4(x,y) = x '*' y^D;
-
-declare f31 :: for_index D, E: for_unit a, D!b, E!c: (a*D!b per E!c) -> E!c per E!c;
-define f31(x) = x^D '*' x;
-declare f41 :: for_index D, E: for_unit a, D!b, E!c: (a*D!b per E!c) -> D!b per D!b;
-define f41(x) = x '*' x^D;
-
-
-# Qx^D in A-prime 
-# declare metric_svd ::
-#   for_index D, E, G, H:
-#   for_unit a, b, E!c, H!f:
-#     (a*D! per E!c, b*G! per H!f) -> (a/b*H!f per E!c) -> List(Tuple(1, G!, D!));
-
-# Qx^T in A-prime
-# metric_svd ::
-#   for_index C, D, G, H:
-#   for_unit a, D!b, e, H!f:
-#     (a*C! per D!b, e*G! per H!f) -> (1/a/e*H!f per 1/D!b) -> List(Tuple(1, G!, C!));
-
-# declare metric_svd ::
-#   for_index C, D, G, H:
-#   for_unit a, D!b, e, H!f:
-#     (a*C! per D!b, e*G! per H!f) -> (a/e*H!f per D!b) -> List(Tuple(1, G!, C!));
-
-# declare metric_svd ::
-#   for_index C, D, G, H:
-#   for_unit a, D!b, e, H!f:
-#     (a*C! per D!b, e*G! per H!f) -> (a/e*H!f per D!b) -> List(Tuple(1, 1/e*H!f, 1/a*D!b));
-
-# declare metric_svd ::
-#   for_index B, C:
-#   for_unit a, d:
-#     (a*B! per C!, d*C! per B!) -> (a/d*B! per C!) -> List(Tuple(a*d, 1/d*B!, 1/a*C!));
-
-# define metric_svd(Qx, Qy) =
-#     (A) ->
-#       let
-#         Px = Qx^T '*' Qx,
-#         Py = Qy^T '*' Qy,
-#         A_prime  = Qy '*' A '*' Qx'^'-1
-#       in
-#         [tuple(s * metric_norm(Px)(v) * metric_norm(Py)(w), Qy'^'-1 '*' v, Qx'^'-1 '*' w) |(s,v,w) <- svd(A_prime)]
-#       end;
-
-# define test2_metric_svd(Qx, Qy) = 
-#     (A) ->
-#       sum[s '.*' v '*' w^T | (s,v,w) <- metric_svd(Qx, Qy)(A)];
-
-# # test2_metric_svd(action_metric, resource_metric)(consumption) - consumption;
-
-# declare test_metric_svd ::
-#   for_index B, E, F:
-#   for_unit a, c, F!d:
-#     (a*B!, c*E! per F!d) -> (a/c*F!d) -> 1/a/c*F!d;
-
-# declare test_metric_svd ::
-#   for_index C, D, G, H:
-#   for_unit a, D!b, e, H!f:
-#     (a*C! per D!b, e*G! per H!f) -> (a/e*H!f per D!b) -> 1/a/e*H!f per 1/D!b;
-
-
-
-# define foo(Qx, Qy) =
-#     (A) ->
-#       let
-#         Px = Qx^T '*' Qx,
-#         Py = Qy^T '*' Qy,
-#         A_prime  = Qy '*' A '*' Qx'^'-1
-#         # A = Qy^'-1' '*' A_prime '*' Qx
-#       in
-#         sum[v '*' (Qx '*' w)^T |(s,v,w) <- svd(A_prime)]
-#       end;
-
-
-
+# 
+# @@@ TODO match with Hart's theory
+#
 define check_m(P, Q, row_unit, column_unit) =
     P '*' Q = identity_metric(row_unit, column_unit);
 
+# 
+# @@@ TODO must we test if de inner_alt equals inner ? Not directly svd related.
+#
 define inner_alt(v, w) = bilinear_form(identity_metric(row_unit(v), row_unit(w)))(v, w);
 
-defmatrix my_metric :: metre / Four! per Four! = {
-    one, one -> 1,
-    two, two -> 1,
+
+#
+# Niet-diagonaal metric als test casus
+#
+defmatrix my_metric_left :: 1/Four! per Four! = {
+    one, one -> -1,
+    two, two -> -1,
+    # one, two -> 1,
+    three, three -> 2,
+    four, four -> 2
+};
+
+defmatrix my_metric_right :: 1/Four!unit per Four!unit = {
+    one, one -> -1,
+    two, two -> -1,
     one, two -> 1,
-    three, three -> 1,
-    four, four -> 1
+    three, three -> 2,
+    four, four -> 2
 };
 
 "default";
@@ -256,6 +138,9 @@ identity_metric(|metre * Four!unit|, |metre * Four!unit|);
 
 row_domain(|Four! per Four!|);
 
+#
+# Useful definitions - for testing Hart
+#
 define left_identity_metric(matrix) =
     identity_metric(row_unit(matrix), row_unit(matrix));
 
@@ -267,4 +152,58 @@ define right_identity_metric(matrix) =
         c '.*' identity_metric(v, v)
     end;
 
-svd(my_metric);
+
+#
+# SVD experiments met alleen diagonaal waarden in de metric
+# We testen de orthogonaliteit op basis van de inner_alt functie, waarin een andere
+# metric dan de default (op identity matrix gebaseerde) norm/metric wordt meegegeven.
+# Het resultaat van de gewone SVD functie moet falen op deze test.
+#
+
+define is_weak_orthogonal_set(vs, metric) =
+    all[if i = j then m = 1 else m = 0 end | 
+            nats := naturals(list_size(vs)),
+            i <- nats,
+            j <- nats,
+            m := bilinear_form(metric)(magnitude(nth(i, vs)), magnitude(nth(j, vs)))];
+
+declare weak_orthogonal_set :: for_index C: for_unit a, C!b, d:
+   (List(a*C!b), d/C!b per C!b) -> List(Tuple(a^2*d, 1, 1));
+
+define weak_orthogonal_set(vs, metric) =
+       [tuple(m, i, j) | 
+            nats := naturals(list_size(vs)),
+            i <- nats,
+            j <- nats,
+            m := bilinear_form(metric)(nth(i, vs), nth(j, vs))];
+
+"weak_orthogonal_set";
+define list_weak_set = [w^T | (_, _, w) <- svd(Q_44)];
+
+weak_orthogonal_set([w^R | (_, _, w) <- svd(Q_44)], my_metric_right);
+
+# "is_weak_orthogonal_set true";
+# is_weak_orthogonal_set([w | (_, _, w) <- svd(Q_44)], identity_metric(|Four!|, |Four!|));
+# "is_weak_orthogonal_set false";
+# is_weak_orthogonal_set([w | (_, _, w) <- svd(Q_44)], my_metric);
+
+[w^R | (_, _, w) <- svd(Q_44)];
+
+# declare test_svd :: for_index E, F: for_unit a, b, E!c, g, F!d:
+#   (a*E!c per F!d, g*E!c per E!c, b*E!c per F!d, a/b/g/F!d per 1/F!d) -> Boole;
+
+define test_svd(A, U, S, V) = 
+  (U '*' U^T = left_identity(A)) and
+  (U '*' U^-1 = left_identity(A)) and
+  (V '*' V^T = right_identity(A)) and
+  (V '*' V^-1 = right_identity(A)) and
+  (A = U '*' S '*' V^T);
+
+
+
+# 
+# SVD experiments met off diagonaal waarden in de metric
+#
+
+
+

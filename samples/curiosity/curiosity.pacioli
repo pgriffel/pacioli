@@ -1,5 +1,13 @@
 import metrics;
 
+#
+# Index and unit definitions
+#
+
+defindex Action = {picture, sample, travel, laser};
+
+defindex Resource = {power, communication, time};
+
 defunit sol "sol";
 defunit hour "hour" = 3600*second;
 defunit joule "J";
@@ -11,9 +19,6 @@ defunit image "img";
 defunit sample "smpl";
 defunit shot "shot";
 
-defindex Action = {picture, sample, travel, laser};
-
-defindex Resource = {power, communication, time};
 
 defunit Action!unit = {
     picture: image,
@@ -41,6 +46,13 @@ defunit Resource!operating_unit = {
   time: second
 };
 
+defunit euro "euro" = 1;
+defunit dollar "dollar" = 1;
+
+
+#
+# Base tables
+#
 defmatrix capacity :: Resource!plan_unit/sol = {
   power -> 250,
   communication -> 250,
@@ -66,30 +78,45 @@ defmatrix plan :: Action!cm_unit = {
    laser -> 10
 };
 
-define usage = consumption '*' conv_plan;
-
-defconv conva :: Action!unit per Action!cm_unit;
-define conv_plan = conva '*' plan;
-
-defconv conv :: Resource!plan_unit per Resource!operating_unit;
-
-define conv2 = conv '*' |Resource!operating_unit| / |Resource!operating_unit|;
-
-"conv2";
-1000 '.*' conv2;
-conv2^D;
-
-define conv_consumption = conv '*' consumption;
-
-define conv_usage = conv '*' usage;
-
-define remaining_capacity = capacity '*.' |sol| - conv_usage;
-
 defmatrix productivity :: Resource!operating_unit/workhour = {
   power -> 10000,
   communication -> 500000,
   time -> 1000
 };
+
+defmatrix resource_metric :: 1/Resource! per Resource!operating_unit = {
+  time, time -> 1000000,
+  communication, communication -> 1000000,
+  power, power -> 1000000
+};
+
+defmatrix action_metric :: 1/Action! per Action!unit = {
+  sample, sample -> 1,
+  laser, laser -> 1,
+  picture, picture -> 1,
+  travel, travel -> 1
+};
+
+#
+# Conversions
+#
+defconv conva :: Action!unit per Action!cm_unit;
+defconv conv :: Resource!plan_unit per Resource!operating_unit;
+
+#
+# Derived quantities
+#
+define usage = consumption '*' conv_plan;
+define conv_plan = conva '*' plan;
+
+define conv_consumption = conv '*' consumption;
+
+define conv_usage = conv '*' usage;
+
+
+
+define remaining_capacity = capacity '*.' |sol| - conv_usage;
+
 
 declare worktime:: workhour / Resource!operating_unit;
 define worktime = productivity^R;
@@ -123,6 +150,9 @@ printf("\nconv^R '*' worktime%5.5f", conv^R '*' worktime);
 print("\ninner(worktime, conv_capacity)");
 
 
+#
+# Derived quantities with base changes
+#
 define UW = inner(usage, worktime);
 define CW = inner(consumption '*' conv_plan, worktime);
 # @@@ UItwerkem / herschrijven van beide kanten, gericht op een lr_base_change met 2 verschillende
@@ -155,11 +185,6 @@ define conv_worktime = conv^R '*' worktime;
 (conv^R '*' worktime)^T '*' capacity;
 inner(conv^R '*' worktime, capacity);
 
-
-declare base_change_bilinear_form ::
-    for_index C, F: for_unit a, C!b, d, g, h, F!e: 
-    (a*C!b per 1/C!b, d/C!b per F!e) -> (g*F!e, h*F!e) -> a*d^2*g*h;
-define base_change_bilinear_form(M, A) = lr_base_change(M, A, A);
 
 declare lr_base_change ::
     for_index D, G, J: for_unit a, J!i, D!b, e, D!c, h, k, l, G!f:
@@ -195,74 +220,8 @@ set_nr_decimals(20 * |decimals|);
 
 
 
-defunit euro "euro" = 1;
-defunit dollar "dollar" = 1;
-
-# defmatrix resource_metric :: euro/Resource!operating_unit per Resource!operating_unit = {
-#   time, time -> 1,
-#   time, power -> 0,
-#   time, communication -> 0,
-#   communication, time -> 0,
-#   communication, power -> 0,
-#   communication, communication -> 1,
-#   power, time -> 0,
-#   power, communication -> 0,
-#   power, power -> 1
-# };
-
-defmatrix resource_metric :: 1/Resource! per Resource!operating_unit = {
-  time, time -> 1000000,
-  time, power -> 0,
-  time, communication -> 0,
-  communication, time -> 0,
-  communication, power -> 0,
-  communication, communication -> 1000000,
-  power, time -> 0,
-  power, communication -> 0,
-  power, power -> 1000000
-};
-
-# defmatrix action_metric :: dollar /Action!unit per Action!unit = {
-#   sample, sample -> 1,
-#   sample, laser -> 0,
-#   sample, picture -> 0,
-#   sample, travel -> 0,
-#   laser, sample -> 0,
-#   laser, laser -> 1,
-#   laser, picture -> 0,
-#   laser, travel -> 0,
-#   picture, sample -> 0,
-#   picture, laser -> 0,
-#   picture, picture -> 1,
-#   picture, travel -> 0,
-#   travel, sample -> 0,
-#   travel, laser -> 0,
-#   travel, picture -> 0,
-#   travel, travel -> 1
-# };
 
 
-defmatrix action_metric :: 1/Action! per Action!unit = {
-  sample, sample -> 1,
-  sample, laser -> 0,
-  sample, picture -> 0,
-  sample, travel -> 0,
-  laser, sample -> 0,
-  laser, laser -> 1,
-  laser, picture -> 0,
-  laser, travel -> 0,
-  picture, sample -> 0,
-  picture, laser -> 0,
-  picture, picture -> 1,
-  picture, travel -> 0,
-  travel, sample -> 0,
-  travel, laser -> 0,
-  travel, picture -> 0,
-  travel, travel -> 1
-};
-
-resource_metric;
-action_metric;
 # define foo(resource_metric, action_metric) = check_svd_3(consumption, resource_metric, action_metric);
 
 "\nfoo\n";

@@ -1,6 +1,7 @@
 
 
 import geometry;
+import metrics;
 
 
 # ------------------------------------------------------------------------------
@@ -398,22 +399,4 @@ printf("is velocity galilean invariant %s", is_velocity_galilean_invariant(syste
 # # define delta_velocity_imperial = delta_velocity(duration, si_to_imperial '*' acceleration_angular_si);
 # # define delta_velocity_imperial2 = si_to_imperial '*' delta_velocity(duration, acceleration_angular_si);
 
-#
-# Moved from metrics.pacioli 6 sept 2025
-# 
-declare base_change_bilinear_form :: for_index C, F: for_unit a, C!b, d, F!e:
-    (a*C!b per 1/C!b, d*1/C!b per F!e) -> a*d^2*1/F!e per F!e;
-define base_change_bilinear_form(M, A) = A^T '*' M '*' A;
-
-declare base_change :: for_index C, G: for_unit a, C!b, d, e, h, G!f:
-    (a*C!b per 1/C!b, d*1/C!b per G!f) -> (e*G!f, h*G!f) -> a*d^2*e*h;
-define base_change(M, A) = (v, w) -> bilinear_form(M) (A '*' v, A '*' w);
-
-declare base_change_bilinear_form_D :: for_index C, F: for_unit a, C!b, d, F!e:
-    (a*C!b per C!b, d*C!b per F!e) -> a*F!e per F!e;
-define base_change_bilinear_form_D(M, A) = A^D '*' M '*' A;
-
-declare base_change_D :: for_index C, F: for_unit a, C!b, d, g, h, F!e:
-    (a*C!b per C!b, d*C!b per F!e) -> (g*F!e, h*F!e) -> a*h/g;
-define base_change_D(M, A) = (v, w) -> bilinear_form_D(M, A '*' v, A '*' w);
 

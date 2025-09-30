@@ -45,3 +45,39 @@ norm for matrix |
 quadratic norm
 spectral norm
 
+
+# SVD aanpak - de SVD volgens Hart implementeren in Pacioli
+Het maken van een metric versie van de SVD library functie
+Er zit nu een SVD functie in de library, deze gaat uit van een standaard metric,
+je kunt geen metric als parameter meegeven.
+De huidige versie blijft bestaan, daarnaast komt de metric versie.
+Hoe moet deze metric versie eruit zien?
+Als onderdeel moeten we de relatie tussen base transforms en de SVD helder krijgen.
+Stap 1: een metric met alleen diagonaal waarden wijzigen
+Stap 2: waarom is er een inverse ipv een transpose nodig? Bewijs nalopen in Hart.
+Stap 3: hier mogelijk naar andere metrics, met off-diagonal waarden, gaan kijken.
+Stap 4: vergelijken met Hart's metrics, komen wij ook uit op de wortel die Hart heeft.
+
+
+# ------------------------------------------------------------------------------
+#
+# Isometry definition as in Roman, Advanced Linear Algebra
+#
+# Isometry is defined through a normed linear space (p209);
+# - the norm(v) = length(v) = sqrt(inner(v, v))
+# - the distance between two vectors u and v given by d(u,v) = norm(u-v)
+# as in the functions metric_norm and metric_distance aboven.
+# We speak of "norm" only When the distance properties match that of a metric space;
+# e.g. d(u,v) = 0 <=> u=v.
+#
+# In this approach the Unitary (complex) and Orthogonal (real) operators represent
+# the isometries, following 10.12 on p240. The adoint equals the inverse T* = T^-1
+# These operators als form special types of normal operators - they commute with their
+# own adjoint TT* = T*T. 
+#
+# We work out the Orthogonal (real) case below.
+# 
+# ------------------------------------------------------------------------------
+
+# declare is_orthogonal :: for_index A, B: (A! per B!) -> Boole;
+
