@@ -72,6 +72,16 @@ public class Machine {
         debugStack.pop();
     }
 
+    public int debugStackSize() {
+        return debugStack.size();
+    }
+
+    public void unwindStackTo(int targetSize) {
+        while (debugStack.size() > targetSize) {
+            debugStack.pop();
+        }
+    }
+
     public void storeCode(String name, Expression code) {
         store.putCode(name, code);
     }

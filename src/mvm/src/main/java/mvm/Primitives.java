@@ -273,10 +273,12 @@ public class Primitives {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Callable body = (Callable) params.get(0);
                 Reference place = (Reference) params.get(1);
+                var oldStackSize = store.machine().debugStackSize();
                 try {
                     body.apply(new ArrayList<PacioliValue>());
                     throw new MVMException("Statement ends without returning a value");
                 } catch (ControlTransfer ex) {
+                    store.machine().unwindStackTo(oldStackSize);
                     return place.value();
                 }
             }
@@ -294,10 +296,12 @@ public class Primitives {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Callable body = (Callable) params.get(0);
                 Reference place = (Reference) params.get(1);
+                var oldStackSize = store.machine().debugStackSize();
                 try {
                     body.apply(new ArrayList<PacioliValue>());
                     return VOID;
                 } catch (ControlTransfer ex) {
+                    store.machine().unwindStackTo(oldStackSize);
                     return place.value();
                 }
             }
@@ -306,9 +310,11 @@ public class Primitives {
         storePrimitive(store, new Primitive("base_catch") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Callable body = (Callable) params.get(0);
+                var oldStackSize = store.machine().debugStackSize();
                 try {
                     return body.apply(new ArrayList<PacioliValue>());
                 } catch (MVMException ex) {
+                    store.machine().unwindStackTo(oldStackSize);
                     return NOTHING;
                 }
             }
