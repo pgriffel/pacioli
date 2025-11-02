@@ -703,8 +703,10 @@ public class Pacioli {
             vm.run(file, System.out, libs);
         } catch (Exception ex) {
             if (Options.dumpOnMVMError) {
-                println("\nState when error occured:");
+                println("%nRuntime error: %s", ex.getMessage());
+                println("%nState when error occured:");
                 vm.dumpTypes();
+                println("");
                 vm.dumpState();
             }
             throw ex;
