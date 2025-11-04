@@ -1296,6 +1296,20 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("system__show_zeros") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return new Boole(Matrix.showZeros);
+            }
+        });
+
+        storePrimitive(store, new Primitive("system__set_show_zeros") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Boole show = (Boole) params.get(0);
+                Matrix.showZeros = show.positive();
+                return VOID;
+            }
+        });
+
         storePrimitive(store, new Primitive("string_split_string") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliString string = (PacioliString) params.get(0);
@@ -1368,6 +1382,11 @@ public class Primitives {
 
                                     // Very permissive
                                     builder.append(params.get(argumentIndex++).toText());
+                                    position += 2;
+
+                                } else if (secondChar == 'n') {
+
+                                    builder.append(System.lineSeparator());
                                     position += 2;
 
                                 } else {

@@ -30,7 +30,9 @@ export
     _set_precision,
     _nr_decimals,
     _set_nr_decimals,
-    _num2string;
+    _num2string,
+    _show_zeros,
+    _set_show_zeros;
 
 # ----------------------------------------------------------------------------
 # System functions
@@ -100,3 +102,13 @@ declare_primitive _nr_decimals() ::
 declare_primitive _num2string(A, decimals, U) ::
     for_index I, J: for_unit a, I!u, J!v:
         (a*I!u per J!v, 1, a*I!u per J!v) -> String;
+
+# ----------------------------------------------------------------------------
+
+declare_primitive _set_show_zeros(show) ::
+    (Boole) -> Void;
+
+# ----------------------------------------------------------------------------
+
+declare_primitive _show_zeros() ::
+    () -> Boole;

@@ -59,6 +59,8 @@ public class Matrix implements PacioliValue {
 
     static public int precision = 14;
 
+    static public boolean showZeros = false;
+
     ////////////////////////////////////////////////////////////////////////////
     // Constructors
     public Matrix(int num) {
@@ -89,88 +91,99 @@ public class Matrix implements PacioliValue {
     @Override
     public void printText(PrintWriter out) {
 
+        // Params
+        String valueLabel = "Value";
+
+        // The treshold below which numbers are not shown
+        double treshold = Math.pow(10, -Matrix.precision);
+
         DecimalFormat format = new DecimalFormat();
         format.setMinimumIntegerDigits(1);
         format.setMaximumFractionDigits(nrDecimals);
         format.setMinimumFractionDigits(nrDecimals);
         format.setGroupingUsed(false);
 
+        // If its a scalar just print the number and not a table
         if (rowDimension().width() == 0 && columnDimension().width() == 0) {
             String decString = format.format(numbers.getEntry(0, 0));
+
             if (unitAt(0, 0).equals(MatrixBase.ONE)) {
                 out.format("%s", decString);
-                return;
             } else {
-                out.format("%s%s", decString, unitAt(0, 0).pretty());
-                return;
+                out.format("%s %s", decString, unitAt(0, 0).pretty());
             }
+
+            return;
         }
 
+        // The header text for the index column
         String sep = rowDimension().width() == 0 || columnDimension().width() == 0 ? "" : ", ";
         String indexText = rowDimension().indexText() + sep + columnDimension().indexText();
-        int len = indexText.length();
 
+        // The strings per row
         List<String> idxList = new ArrayList<String>();
         List<String> numList = new ArrayList<String>();
         List<String> unitList = new ArrayList<String>();
 
-        int idxWidth = len + 2;
-        int numWidth = len + 2;
-        int unitWidth = 0;
-
-        double treshold = Math.pow(10, -Matrix.precision);
+        // The maximum string lengths over the rows. Start with the header widths
+        // to make sure the header texts fit.
+        int maxIdxWidth = indexText.length();
+        int maxNumWidth = valueLabel.length();
+        int maxUnitWidth = 0;
 
         for (int i = 0; i < rowDimension().size(); i++) {
             for (int j = 0; j < columnDimension().size(); j++) {
+
                 double num = numbers.getEntry(i, j);
-                if (Math.abs(num) >= treshold) {
 
-                    String numString = format.format(num);
-                    numList.add(numString);
-                    numWidth = Math.max(numWidth, numString.length());
+                if (showZeros || Math.abs(num) >= treshold) {
 
-                    String idxString = "";
-                    String seper = "";
-                    for (String idx : rowDimension().ElementAt(i)) {
-                        idxString += seper + idx;
-                        seper = ", ";
-                    }
-                    for (String idx : columnDimension().ElementAt(j)) {
-                        idxString += seper + idx;
-                        seper = ", ";
-                    }
-                    idxWidth = Math.max(idxWidth, idxString.length());
-                    idxList.add(idxString);
+                    // The index string
+                    List<String> items = new ArrayList<>();
+                    items.addAll(rowDimension().ElementAt(i));
+                    items.addAll(columnDimension().ElementAt(j));
+                    String idxString = String.join(", ", items);
 
+                    // The number string
+                    String numString = num == 0 ? "-" : format.format(num);
+
+                    // The unit string
                     Unit<MatrixBase> unit = unitAt(i, j);
                     String unitString = unit.equals(MatrixBase.ONE) ? "" : unit.pretty();
+
+                    // Add the string to the lists we are building
+                    idxList.add(idxString);
+                    numList.add(numString);
                     unitList.add(unitString);
-                    unitWidth = Math.max(unitWidth, unitString.length());
+
+                    // Update the maximum widths
+                    maxNumWidth = Math.max(maxNumWidth, numString.length());
+                    maxIdxWidth = Math.max(maxIdxWidth, idxString.length());
+                    maxUnitWidth = Math.max(maxUnitWidth, unitString.length());
                 }
             }
         }
 
-        out.print("\n");
-        out.print(indexText);
-        for (int i = 0; i < idxWidth - len + 1; i++) {
-            out.print(" ");
-        }
-        out.print(" ");
-        for (int i = 0; i < numWidth - 4; i++) {
-            out.print(" ");
-        }
-        out.print("Value");
-        out.print("\n");
-        for (int i = 0; i < idxWidth + 1; i++) {
-            out.print("-");
-        }
-        out.print("-");
-        for (int i = 0; i < numWidth + 1; i++) {
-            out.print("-");
-        }
+        // Formatter with five entries properly aligned
+        // 1. Index (left aligned, is the - in the format string)
+        // 2. Separator
+        // 3. Number (right aligned)
+        // 4. Seprator
+        // 5. Unit
+        String formatter = "%-" + maxIdxWidth + "s%s%" + maxNumWidth + "s%s%s";
+
+        // The header row
+        out.format(formatter, indexText, " | ", valueLabel, "", "");
+
+        out.println();
+
+        // The separator row
+        out.format(formatter, "-".repeat(maxIdxWidth), "-+-", "-".repeat(maxNumWidth), "-", "-".repeat(maxUnitWidth));
+
+        // The table body rows
         for (int i = 0; i < idxList.size(); i++) {
-            String formatter = "\n%-" + idxWidth + "s   %" + numWidth + "s %s";
-            out.format(formatter, idxList.get(i), numList.get(i), unitList.get(i));
+            out.println();
+            out.format(formatter, idxList.get(i), " | ", numList.get(i), " ", unitList.get(i));
         }
     }
 
