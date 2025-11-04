@@ -21,7 +21,9 @@ export
     set_nr_decimals,
     nr_decimals,
     writeln,
-    newline;
+    newline,
+    show_zeros,
+    set_show_zeros;
 
 # ----------------------------------------------------------------------------
 # Number of decimals
@@ -75,3 +77,30 @@ doc newline
 
 define newline(file) = 
     write_string(file, "\n");
+
+# ----------------------------------------------------------------------------
+# Show zeros
+# ----------------------------------------------------------------------------
+
+doc set_show_zeros
+    "Sets whether zero lines are shown or not when printing numbers.
+    
+    This is a global effect.";
+
+declare set_show_zeros ::
+    (Boole) -> Void;
+
+define set_show_zeros(show) =
+    _set_show_zeros(show);
+
+# ----------------------------------------------------------------------------
+
+doc show_zeros
+    "Are zero lines shown when printing numbers?
+    
+    See <code>set_show_zeros</code>";
+
+declare show_zeros :: () -> Boole;
+
+define show_zeros() =
+    _show_zeros();
