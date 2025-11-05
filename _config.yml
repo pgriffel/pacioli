@@ -51,3 +51,10 @@ theme: jekyll-theme-architect
 #   - vendor/cache/
 #   - vendor/gems/
 #   - vendor/ruby/
+
+# Added to above generated config so we don't have to specify layout: default in each page:
+defaults:
+  - scope:
+      path: "" # empty string for all files
+    values:
+      layout: "default"
