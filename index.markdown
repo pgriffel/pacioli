@@ -1,7 +1,5 @@
 ---
-# Feel free to add content and custom Front Matter to this file.
-# To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
-
+title: Start
 layout: default
 ---
 
@@ -17,15 +15,16 @@ make it viable for smaller projects, prototyping, education, etc.
 
 - It runs in the browser
 - It provides web components for easy publishing
-- It supports the Language Server Protocol (LSP) and provides a VS Code extension with autocomplete, syntax highlighting, error diagnostics, etc.
+- It supports the Language Server Protocol (LSP) and provides a VS Code extension with autocomplete,
+  syntax highlighting, error diagnostics, etc.
 - It has some basic 3D programming features via three.js
 
 ## Documentation
 
-- [Getting started](getting-started)
-- [Examples, tutorials and other material](examples)
-- [Pacioli manual](manual/contents)
-- [Pacioli reference guide](reference-guide)
+- [Getting Started](getting-started)
+- [Examples, Tutorials and Guides](examples-tutorials-guides)
+- [Pacioli Manual](manual/contents)
+- [Pacioli Libraries](doc/index)
 
 ## Download and Installation
 
