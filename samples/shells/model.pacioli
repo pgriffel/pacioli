@@ -1,0 +1,327 @@
+# ----------------------------------------------------------------------------
+# Shell Model
+#
+# Paul Griffioen 2012-2025
+# ----------------------------------------------------------------------------
+
+import geometry;
+import graphics;
+
+include curve;
+
+# ----------------------------------------------------------------------------
+# Types
+# ----------------------------------------------------------------------------
+
+doc Shell
+    "A shell is a triple (settings, body, meshes). The settings are derived
+    from the shell's parameters. The body and polygon meshes are computed
+    during growth.
+    
+    For performance reasones the area and volume info has been kept seperate 
+    from the shell model. Instead of computing the info during growth, it can 
+    be computed with functions empty_shell_info and extend_shell_info. This
+    keeps growth faster for cases where the info is not needed.";
+
+defrecord for_unit a: Shell(a) as shell where
+    settings: Settings(a),
+    body: List(Curve(a)),
+    meshes: List(Mesh(a, Geom3!));
+
+# ----------------------------------------------------------------------------
+
+doc Settings
+    "Settings for a Shell";
+
+defrecord for_unit a: Settings(a) as settings where
+    initial: Curve(a),
+    gvm: Curve(a),
+    factor: 1,
+    nr_ticks: 1,
+    landmarks: List(1);
+
+# ----------------------------------------------------------------------------
+# Observers
+# ----------------------------------------------------------------------------
+         
+declare shell_unit ::
+    for_unit a: (Shell(a)) -> a;
+              
+define shell_unit(shell) =
+  scalar_unit(curve_nth(0, settings_initial(shell_settings(shell))));
+
+# ----------------------------------------------------------------------------
+# Interface
+# ----------------------------------------------------------------------------
+
+doc create_shell
+    "Function create_shell is called from shells.html. Is is a wrapper around
+    initial_shell that handles the initial aperture.";
+
+declare create_shell :: 
+    for_unit a: (
+        List(Tuple(radian, a)),
+        a, a, a,
+        1, radian, 1,
+        radian, radian, radian,
+        1, a) -> Shell(a);
+
+define create_shell(
+    aperture,
+    offset, outward, upward,
+    growth_scale, growth_orientation, growth_constant,
+    rotation_x, rotation_y, rotation_z,
+    segments, unit) =
+
+    initial_shell(
+        absolute_aperture_coords(aperture, unit),
+        vector3d(offset, 0*unit, 0*unit),
+        vector3d(outward, 0*unit, upward),
+        growth_scale, growth_orientation, growth_constant,
+        rotation_x, rotation_y, rotation_z,
+        segments,
+        1);
+
+# ----------------------------------------------------------------------------
+
+declare shell_current_size ::
+    for_unit a: (Shell(a)) -> 1;
+
+define shell_current_size(shell) =
+  list_size(shell_body(shell));
+
+# ----------------------------------------------------------------------------
+
+declare shell_initial_curve ::
+    for_unit a: (Shell(a)) -> Path(a, Geom3!);
+
+define shell_initial_curve(shell) = 
+    curve_path(settings_initial(shell_settings(shell)));
+
+# ----------------------------------------------------------------------------
+
+declare shell_full_size ::
+    for_unit a: (Shell(a)) -> 1;
+
+define shell_full_size(shell) = 
+    settings_nr_ticks(shell_settings(shell));
+
+# ----------------------------------------------------------------------------
+
+declare growth_factors :: (1, 1) -> List(1);
+
+define growth_factors(growth_constant, n) =
+  [growth_factor(t, growth_constant, n) | t <- naturals(n)];
+
+# ----------------------------------------------------------------------------
+# Aperture coords
+# ----------------------------------------------------------------------------
+
+doc absolute_aperture_coords
+    "Creates absolute coordinates from a list of (angle, dinstance) pairs."; 
+
+declare absolute_aperture_coords ::
+  for_unit a: (List(Tuple(radian, a)), a) -> List(Tuple(a, a));
+
+define absolute_aperture_coords(path, unit) =
+  begin
+      direction := 0*|radian|;
+      x := 0*unit;
+      y := 0*unit;
+
+      coords := [tuple(x,y)];
+
+      while path != [] do
+          (angle, distance) := head(path);
+
+          direction := direction + angle;
+          x := x + distance * sin(direction);
+          y := y + distance * cos(direction);
+          
+          coords := cons(tuple(x, y), coords);
+          path := tail(path);
+      end
+
+      return coords;
+  end;
+
+# ----------------------------------------------------------------------------
+# Shell Construction - Ported from MATLAB
+# ----------------------------------------------------------------------------
+
+doc initial_shell
+    "Function initial_shell constructs an empty shell. The shell contains an
+    initial aperture and all other parameteres needed for growth.";
+
+declare initial_shell :: for_unit a:
+    (List(Tuple(a, a)), a*Geom3!, a*Geom3!, 1, radian, 1, radian, radian, radian, 1, 1) -> Shell(a);
+
+define initial_shell(coords, offset, displacement, roz, mu,
+                       growth_constant, theta_x, theta_y, theta_z, segments, fudge) =
+    let
+        curve = make_curve([vector3d(x, 0*x, z) | (x, z) <- coords]),
+        
+        landmarks = borders(coords),
+        
+        s = scale_curve(curve, roz),
+        t = translate_curve(s, offset),
+        u = transform_curve(t, euler_rotation(mu, 0*|radian|, 0*|radian|)),
+
+        r = euler_rotation(theta_x, theta_y, theta_z),
+
+        gvm = growth_vector_map(u, displacement, growth_constant, r, landmarks)
+    in
+        make_shell(make_settings(u, gvm, growth_constant, segments, landmarks), [], [])
+    end;
+
+# ----------------------------------------------------------------------------
+
+declare growth_vector_map ::
+    for_unit a: (Curve(a), a*Geom3!, 1, Geom3! per Geom3!, List(1)) -> Curve(a);
+
+define growth_vector_map(curve, translation, growth_constant, rotation, landmarks) =
+  let
+      inv_rot = inverse(curve_rotation(curve, landmarks)),
+
+      s = scale_curve(curve, growth_constant),
+      t = transform_curve(s, rotation),
+      u = translate_curve(t, translation),
+
+      diff = sum_curves(u, scale_curve(curve, -1))
+  in
+      transform_curve(diff, inv_rot)
+  end;
+
+# ----------------------------------------------------------------------------
+# Size factors
+# ----------------------------------------------------------------------------
+
+declare growth_factor :: (1, 1, 1) -> 1;
+
+define growth_factor(t, growth_constant, nr_ticks) =
+  let 
+      r = ln(growth_constant),
+      k = 2*exp(r*nr_ticks/2) 
+  in
+    if r = 0 then 
+        1
+    else
+        (logistic(r, t+1, k, 1) - logistic(r, t, k, 1)) /
+        (logistic(r, 1, k, 1) - logistic(r, 0, k, 1))
+    end
+  end;
+
+define logistic(r, t, k, y) =
+  k*y / ((k-y) * exp(-r*t) + y);
+
+# Some Alternatives:
+
+#define growth_factor(t, growth_constant, nr_ticks) = 1;
+#define growth_factor(t, growth_constant, nr_ticks) = expt(growth_constant, t);
+
+# ----------------------------------------------------------------------------
+# Shell Growth
+# ----------------------------------------------------------------------------
+
+doc grow
+    "Application grow(s, n) grows shell s by n segments.";
+
+declare grow ::
+    for_unit a: (Shell(a), 1) -> Shell(a);
+
+define grow(shell, n) =
+  let
+      body = shell_body(shell),
+      meshes = shell_meshes(shell),
+      settings = shell_settings(shell),
+
+      initial = settings_initial(settings),
+      gvm = settings_gvm(settings),
+      factor = settings_factor(settings),
+      nr_ticks = settings_nr_ticks(settings),
+      landmarks = settings_landmarks(settings),
+
+      m = list_size(body)
+  in
+      begin
+          b := [x | x <- body]; # copy for add_mut
+          me := [x | x <- meshes]; # copy for add_mut
+
+          s := if m = 0 then initial else last(body) end;
+          i := 0;
+          
+          while i != n do
+              t := step(s, gvm, growth_factor(m+i, factor, nr_ticks), landmarks);
+
+              me := _add_mut(me, segment_mesh(s, t));
+              b := _add_mut(b, t);
+
+              s := t;
+              i := i + 1;
+          end
+
+          return make_shell(settings, b, me);
+      end
+  end;
+
+# ----------------------------------------------------------------------------
+
+declare step ::
+    for_unit a: (Curve(a), Curve(a), 1, List(1)) -> Curve(a);
+
+define step(curve, gvm, growth_factor, landmarks) =
+  let
+      r = curve_rotation(curve, landmarks),
+      s = scale_curve(gvm, growth_factor)
+  in
+      sum_curves(curve, transform_curve(s, r))
+  end;
+
+# ----------------------------------------------------------------------------
+# Axis Point
+# ----------------------------------------------------------------------------
+
+doc axis_point
+    "A point that is approximately somewhere on an imaginary coiling axis.";
+
+declare axis_point ::
+    for_unit a: (Shell(a)) -> a*Geom3!;
+
+define axis_point(shell) =
+  let body = shell_body(shell) in
+      if body = [] then
+          0 * shell_unit(shell) '.*' |Geom3!|
+      else
+          sum[ curve_nth(0, x) | x <- body] '/.' list_size(body)
+      end
+  end;
+
+# ----------------------------------------------------------------------------
+# Aperture Borders
+# ----------------------------------------------------------------------------
+
+declare borders ::
+    for_unit a: (List(Tuple(a, a))) -> List(1);
+
+define borders(coords) =
+  let
+      indices = naturals(list_size(coords)),
+      
+      x_less(a, b) = let (ax, _) = a, (bx, _) = b in ax < bx end,
+      y_less(a, b) = let (_, ay) = a, (_, by) = b in ay < by end,
+
+      left = fold_list((i,j) -> if x_less(nth(i, coords), nth(j, coords)) then i else j end, indices),
+      top = fold_list((i,j) -> if y_less(nth(i, coords), nth(j, coords)) then i else j end, indices),
+      right = fold_list((i,j) -> if x_less(nth(i, coords), nth(j, coords)) then j else i end, indices),
+      bottom = fold_list((i,j) -> if y_less(nth(i, coords), nth(j, coords)) then j else i end, indices)
+  in
+    [left, top, right, bottom]
+  end;
+
+# ----------------------------------------------------------------------------
+# General Utilities
+# ----------------------------------------------------------------------------
+
+declare last :: for_type a: (List(a)) -> a;
+
+define last(x) = nth(list_size(x) - 1, x);
