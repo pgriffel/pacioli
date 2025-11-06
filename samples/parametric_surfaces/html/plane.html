@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Plane</title>
+
+    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="../surfaces.js"></script>
+
+</head>
+
+<body>
+    <div id="console"></div>
+
+    <h1>Plane</h1>
+    <p>
+        Parametrization of a plane.
+
+    <p>
+        <math>
+            <mi>f</mi>
+            (
+            <mi>u</mi>
+            <mo>,</mo>
+            <mi>v</mi>
+            )
+            <mo>=</mo>
+            <msup>
+                <mrow>
+                    (
+                    <mi>x</mi>
+                    <mo>,</mo>
+                    <mi>y</mi>
+                    <mo>,</mo>
+                    <mi>z</mi>
+                    )
+                </mrow>
+                <mi>T</mi>
+            </msup>
+        </math>
+        with
+    <ul>
+        <li>
+            <math>
+                <mi>x</mi>
+                <mo>=</mo>
+                <mi>u</mi>
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>y</mi>
+                <mo>=</mo>
+                <mi>v</mi>
+            </math>
+        </li>
+        <li>
+            <math>
+                <mi>z</mi>
+                <mo>=</mo>
+                <mi>a</mi>
+                <mo>+</mo>
+                <mi>b</mi>
+                <mi>x</mi>
+                <mo>+</mo>
+                <mi>c</mi>
+                <mi>y</mi>
+            </math>
+        </li>
+    </ul>
+    where
+    <math>
+        <mi>a</mi>
+    </math>
+    is an offset,
+    <math>
+        <mi>b</mi>
+    </math>
+    and
+    <math>
+        <mi>c</mi>
+    </math>
+    are scaling factors,
+    <math>
+        <mn>-8</mn>
+        <mo>&le;</mo>
+        <mi>u</mi>
+        <mo>&le;</mo>
+        <mn>8</mn>
+    </math>
+    , and
+    <math>
+        <mn>-8</mn>
+        <mo>&le;</mo>
+        <mi>v</mi>
+        <mo>&le;</mo>
+        <mn>8</mn>
+    </math>
+
+    <p>
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="plane_scene" script="surfaces" definition="plane_scene" kind="scene"
+            perspective axis>
+            <parameter label="a" unit="metre">1</parameter>
+            <parameter label="b" unit="1">-0.5</parameter>
+            <parameter label="c" unit="1">-0.2</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">50</parameter>
+            <parameter label="grid" type="boole">true</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
+            <parameter label="partial vecors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="plane_scene"></pacioli-inputs>
+        <pacioli-controls for="plane_scene"></pacioli-controls>
+    </div>
+
+</body>
+
+
+</html>

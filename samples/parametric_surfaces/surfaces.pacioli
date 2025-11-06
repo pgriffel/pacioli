@@ -1,0 +1,375 @@
+import geometry;
+import graphics;
+
+define NORMAL_COLOR = make_color("green");
+define DELTA_COLOR = make_color("red");
+define PATH_COLOR = make_color("red");
+define LINE_COLOR = make_color("steelblue");
+
+define MATERIAL = "Normal";
+
+# ------------------------------------------------------------------------------
+# The scenes
+# ------------------------------------------------------------------------------
+
+define plane_scene(a, b, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    let 
+        f(x, y) = 
+            vector3d(x, y, a + b*x + c*y),
+
+        range = 
+            make_range(
+                -8 * |metre|, 8 * |metre|,
+                -8 * |metre|, 8 * |metre|),
+
+        options =
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
+    in
+        build_example_scene(f, range, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
+define simple_wave_scene(a, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    let 
+        f(x, y) = 
+            let r = sqrt(x^2 + y^2) in
+                vector3d(x, y, a * cos(y * c))
+            end,
+
+        range = 
+            make_range(
+                -8 * |metre|, 8 * |metre|,
+                -8 * |metre|, 8 * |metre|),
+
+        options =
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
+    in
+        build_example_scene(f, range, options)
+    end;
+   
+# ------------------------------------------------------------------------------
+
+define circular_wave_scene(a, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    let 
+        f(x, y) = 
+            let r = sqrt(x^2 + y^2) in
+                vector3d(x, y, a * cos(r * c))
+            end,
+
+        range = 
+            make_range(
+                -8 * |metre|, 8 * |metre|,
+                -8 * |metre|, 8 * |metre|),
+
+        options =
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
+    in
+        build_example_scene(f, range, options)
+    end;
+    
+# ------------------------------------------------------------------------------
+
+define paraboloid_scene(a, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    let 
+        f(u, v) =
+            make_zsquared(u*cos(v), u*sin(v), a * u^2),
+            
+        range = 
+            make_range(
+                0*|metre|, 5*|metre|,
+                0*|radian|, 2*pi*|radian|),
+
+        options =
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
+    in
+        build_example_scene(f, range, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
+define saddle_scene(a, b, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    let 
+        f(u, v) =
+            make_zsquared(u, v, a*u^2 + b*v^2),
+
+        range = 
+            make_range(
+                -5 * |metre|, 5 * |metre|,
+                -5 * |metre|, 5 * |metre|),
+
+        options =
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
+    in
+        build_example_scene(f, range, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
+define ellipsoid_scene(a, b, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    let
+        fun(u, v) =
+            vector3d(
+                a * sin(u) * cos(v),
+                b * sin(u) * sin(v),
+                c * cos(u)),
+
+        range = 
+            make_range(
+                0*|radian|, pi*|radian|,
+                0*|radian|, 2*pi*|radian|),
+
+        options =
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
+    in
+        build_example_scene(fun, range, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
+define torus_scene(major, minor, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    let
+        fun(u,v) =
+            vector3d(
+                (major + minor * cos(u)) * sin(v),
+                (major + minor * cos(u)) * cos(v),
+                minor * sin(u)),
+
+        range = 
+            make_range(
+                0 * |radian|, 2 * pi * |radian|,
+                0 * |radian|, 2 * pi * |radian|),
+
+        options =
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
+    in
+        build_example_scene(fun, range, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
+define cone_scene(h, r, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    let 
+        f(u, v) =
+            vector3d(
+                r * (h - u)/h * cos(v),
+                r * (h - u)/h * sin(v),
+                u - h),
+
+        range = 
+            make_range(
+                0*h, 2*h,
+                0 * pi * |radian|, 2 * pi * |radian|),
+
+        options =
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
+    in
+        build_example_scene(f, range, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
+define moebius_scene(a, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    let 
+        f(u, v) =
+            vector3d(
+                a * cos(u) * (c + cos(u / 2) * v),
+                a * sin(u) * (c + cos(u / 2) * v),
+                a * sin(u / 2) * v),
+        range = 
+            make_range(
+                -pi * |radian|, pi * |radian|,
+                -0.5 * |metre|, 0.5 * |metre|),
+
+        options =
+            let arrows = surface or grid in
+                tuple(
+                    n, m, d,
+                    grid,
+                    surface,
+                    wireframe,
+                    arrows and parts, arrows and total, arrows and normals)
+            end,
+
+        u = range_ustart(range),
+        v = range_vstart(range),
+
+        du = range_width(range) / n,
+        dv = range_height(range) / n,
+
+        plot_path(u0, v0, du, dv, n, color, scene) = 
+            let
+                path_options = 
+                    make_parametric_plot_options(
+                        n, m, 0.01, d,
+                        parts, total, normals, wireframe, MATERIAL,
+                        make_color(color), DELTA_COLOR, NORMAL_COLOR) 
+            in
+                plot_parametric_path(f, u0, v0, du, dv, path_options, scene)
+            end
+    in
+        begin
+            scene := build_example_scene(f, range, options);
+            
+            scene := plot_path(u, v, du, 0*dv, 2 * n, "orange", scene);
+            scene := plot_path(u, v+n*dv, du, 0*dv, 2 * n, "orange", scene);
+            scene := plot_path(u, v, du, dv, n, "purple", scene);
+            scene := plot_path(u, v + n*dv, du, -dv, n, "blue", scene);
+
+            return scene;
+        end
+    end;
+
+# ------------------------------------------------------------------------------
+
+# From https://math.stackexchange.com/questions/1209858/what-equation-will-create-a-3d-rose-curve
+
+define flower_scene(a, b, c, k, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    let 
+        f(u, v) =
+            vector3d(
+                a * cos(b * v) * expt(cos(c * u), k) * cos(v) * cos(u), 
+                a * cos(b * v) * expt(cos(c * u), k) * sin(v) * cos(u), 
+                a * cos(b * v) * expt(cos(c * u), k) * sin(u)),
+
+        range = 
+            make_range(
+                0 * pi * |radian|, 2 * pi * |radian|,
+                0 * pi * |radian|, 2 * pi * |radian|),
+
+        options =
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
+    in
+        build_example_scene(f, range, options)
+    end;
+
+# ------------------------------------------------------------------------------
+
+# From https://math.stackexchange.com/questions/238520/parametric-equation-of-a-cone
+
+define alternative_sphere_scene(a, b, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    alternative_scene(cos, a, b, c, tuple(n, m, d, grid, surface, wireframe, parts, total, normals));
+
+define alternative_cone_scene(a, b, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
+    alternative_scene(sin, a, b, c, tuple(n, m, d, grid, surface, wireframe, parts, total, normals));
+
+define alternative_scene(fun, a, b, c, options) =
+    let 
+        f(u, v) =
+            vector3d(
+                a * sin(u * atan(v/u)) * sin(v * atan(v/u)),
+                b * sin(u * atan(v/u)) * cos(v * atan(v/u)),
+                c * fun(u * atan(v/u))
+            ),
+
+        range = 
+            make_range(
+                -5, 5,
+                -5, 5)
+    in
+        build_example_scene(f, range, options)
+    end;
+
+# ------------------------------------------------------------------------------
+# Computing the scene
+# ------------------------------------------------------------------------------
+
+define build_example_scene(fun, range, options) =
+    let
+        (n, m, d, grid, surface, wireframe, parts, total, normals) = options,
+
+        plot_options =
+            make_parametric_plot_options(
+                n, m, 0.01, d,
+                parts, total, normals, wireframe, MATERIAL,
+                LINE_COLOR, DELTA_COLOR, NORMAL_COLOR),
+
+        light_sources = [
+            vector3d(50, 50, 50),
+            vector3d(50, -50, 50),
+            vector3d(-50, 50, 50),
+            vector3d(-50, -50, 50)
+        ],
+
+        uom = unit(fun(range_ustart(range), range_vstart(range))),
+
+        lights = [make_center_spot_light(vec * uom, 1000*|candela|) | vec <- light_sources]
+    in
+        begin
+            scene := empty_scene("surface parametrization");
+
+            scene := with_ambient_light("white", 0.3, scene);
+            scene := add_spotlights(lights, scene);
+
+            if surface then
+                scene := plot_parametric_surface(fun, range, plot_options, scene);
+            end
+    
+            if grid then
+                scene := plot_parametric_surface_grid(fun, range, plot_options, scene);
+            end
+
+            if parts or total or normals then
+                scene := plot_parametric_surface_deltas(fun, range, plot_options, scene);
+            end
+
+            return scene;
+        end
+    end;
+
+declare make_center_spot_light :: 
+    for_unit a, Geom3!u: (a*Geom3!u, candela) -> SpotLight(a, Geom3!u);
+
+define make_center_spot_light(position, intensity) =
+    make_spotlight(position, 0 '.*' position, make_color("white"), intensity);
+
+# ------------------------------------------------------------------------------
+# Unit Geom3!zsquared
+# ------------------------------------------------------------------------------
+
+defunit Geom3!zsquared = {
+    x: metre,
+    y: metre,
+    z: metre^2
+};
+
+# Make special syntax to generate the following from above defunit?!
+
+declare make_zsquared ::
+    for_unit a, b, c: (metre, metre, metre^2) -> Geom3!zsquared;
+
+define make_zsquared(a, b, c) = 
+    vector3d(magnitude(a), magnitude(b), magnitude(c)) * |Geom3!zsquared|;
+
+# Limited use, what about Geom3!zsquared^2? You can de zsquared_z(sqrt(v))^2, but
+# what about higher powers? With cube_root you can also generate powers 3, 4 and 6,
+# and so on. All prime powers will leave gaps.
+
+# declare zsquared_x :: for_unit a: (a*Geom3!zsquared) -> a*metre;
+# declare zsquared_y :: for_unit a: (a*Geom3!zsquared) -> a*metre;
+# declare zsquared_z :: for_unit a: (a*Geom3!zsquared) -> a*metre^2;
+
+# define zsquared_x(v) = 
+#     get_num(v, Geom3@x, _) * scalar_unit(v) * |metre|;
+
+# define zsquared_y(v) = 
+#     get_num(v, Geom3@y, _) * scalar_unit(v) * |metre|;
+
+# define zsquared_z(v) = 
+#     get_num(v, Geom3@z, _) * scalar_unit(v) * |metre^2|;
+
+# # Not generated:
+
+# declare zsquared_z2 :: for_unit a: (a^2*Geom3!zsquared^2) -> a^2*metre^4;
+
+# define zsquared_z2(v) = 
+#     zsquared_z(sqrt(v))^2;
+
+# define zsquared_z3(v) = 
+#     zsquared_z(cbrt(v))^3;
+
+# define zsquared_z4(v) = 
+#     zsquared_z(sqrt(sqrt(v)))^4;
+
+# define zsquared_z6(v) = 
+#     zsquared_z(sqrt(cbrt(v)))^6;
