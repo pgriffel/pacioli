@@ -4,6 +4,7 @@ export
     random_1_by_1_matrix,
     random_4_by_3_matrix,
     random_4_by_4_matrix,
+    random_three_vector,
     test_vec,
     test_vec2,
     Bar,
@@ -35,6 +36,8 @@ define three_vector(one, two, three) =
         tuple(Three@two, _, two), 
         tuple(Three@three, _, three)
     ]);
+
+declare random_three_vector :: () -> Three!;
 
 define random_three_vector() = 
     let r() = random() * pick([-3,0,3]) in
@@ -165,4 +168,3 @@ defmatrix Q_33 :: 1/Three! per Three!unit = {
   three, two -> 0,
   three, three -> 1000000
 };
-

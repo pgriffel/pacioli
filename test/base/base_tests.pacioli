@@ -532,6 +532,10 @@ define format_suite = test_suite("Function format", [
     
     test("should format empty string", () ->
         format("") = ""),
+
+    test("should format %n as a newline", () ->
+        format("foo%nbar%n") = "foo\nbar\n" or
+        format("foo%nbar%n") = "foo\r\nbar\r\n"),
          
     test("should format %s with a string", () ->
         format("prefix%ssuffix", "foo") = "prefixfoosuffix"),
@@ -543,7 +547,7 @@ define format_suite = test_suite("Function format", [
         format("prefix%10dsuffix", 12) = "prefix        12suffix"),   
 
     test("should format %10d with a dimensioned number", () ->
-        format("prefix%10dsuffix", 12 * |metre|) = "prefix       12msuffix" or
+        format("prefix%10dsuffix", 12 * |metre|) = "prefix      12 msuffix" or
         (is_js and format("prefix%10dsuffix", 12 * |metre|) = "prefix        12suffix")),   
 
     test("should format %f with a dimensionless number", () ->
@@ -555,7 +559,7 @@ define format_suite = test_suite("Function format", [
         format("prefix%7.3fsuffix", 12) = "prefix 12.000suffix"),   
 
     test("should format %7.3f with a dimensioned number", () ->
-        format("prefix%17.3fsuffix", 12 * |metre/second^2|) = "prefix      12,000m/s^2suffix" or
+        format("prefix%17.3fsuffix", 12 * |metre/second^2|) = "prefix     12,000 m/s^2suffix" or
         (is_js and format("prefix%17.3fsuffix", 12 * |metre/second^2|) = "prefix           12.000suffix")),   
 
     test("should error on not number for %f", () ->
