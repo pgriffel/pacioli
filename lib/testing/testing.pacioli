@@ -138,7 +138,8 @@ define run_test(test) =
 # ------------------------------------------------------------------------------
 
 doc TestSuite
-    "A test suite is a collection of tests.";
+    "A test suite is a collection of tests. Use function <code>test_suite</code> 
+    to create a test suite.";
 
 defrecord TestSuite() as suite where
     description: String,
@@ -148,7 +149,25 @@ defrecord TestSuite() as suite where
 # ------------------------------------------------------------------------------
 
 doc test_suite
-    "Creates a test suite.";
+    "Creates a test suite.
+
+    The first argument is a description of the test suite. The second argument is
+    a list of tests to include in the suite.
+    
+    Example of a test suite for function <code>naturals</code>:
+    <pre>
+    define naturals_suite =
+        test_suite(\"Function 'naturals'\", [
+
+            test(\"should produce the empty list for 0\", () ->
+                naturals(0) = []
+            ),
+
+            test(\"should produce the first 5 naturals\", () ->
+                naturals(5) = [0, 1, 2, 3, 4]
+            )
+        ]);    
+    </pre>";
 
 define test_suite(description, tests) = 
     make_suite(description, tests, false);
