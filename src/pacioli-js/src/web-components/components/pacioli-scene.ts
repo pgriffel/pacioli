@@ -166,7 +166,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
     const kindAttribute = this.getAttribute("kind");
 
     if (kindAttribute === null) {
-      throw Error(`no 'kind' attribute on pacioli-scene. Please provide one.`);
+      return "scene";
     } else {
       if (
         kindAttribute === "scene" ||
