@@ -132,7 +132,6 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
 
     @Override
     public String asJS() {
-        // return "new Pacioli.PowerProduct('_" + this.pretty() + "_')";
         return "Pacioli.unitFromVarName('_" + this.pretty() + "_')";
     }
 
