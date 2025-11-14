@@ -1,11 +1,16 @@
 ---
 title: Matrix Type
-layout: default
 ---
 
 {% include mathjax.html %}
 
 # Pacioli's Matrix Type
+
+Any numerical value in Pacioli is a matrix. A scalar is a 1x1 matrix
+and a vector a nx1 or 1xn matrix. All these matrix values are typed by
+the matrix type.
+
+## Unit vectors
 
 Pacioli's matrix type is based on the [structure of units of measurement in matrices](uom-in-matrices).
 
@@ -52,8 +57,115 @@ We deliberately use long descriptive names. Convention is to uses single charact
 
 So instead of $\textbf{u}$ we write $\texttt{Foo!mass}$. This compound identifier combines the index set name $\texttt{Foo}$ with unit identifier $\texttt{mass}$. In this way we have the shape and unit information combined into one identifier.
 
-In this notation a general matrix $a\textbf{u}$ per $\textbf{v}$ is written as $\texttt{a*P!u per Q!v}$
+$\textbf{ms}\textbf{t}^{-2}$
 
-With the notation we can describe a variety of shapes:
+    Foo!mass * Foo!displacement * Foo!time^-2
 
-TABEL OPNEMEN
+## Uniform Vectors
+
+An important class is vectors with uniform units of measurement. Bla bla
+
+## Index and Unit Variables
+
+    for_index P: for_unit a, P!u:
+
+For example to define an inner product betweem uniform vectors
+
+    declare inner :: for_index P: for_unit a, b:
+        (a*P!, b*P!) -> a*b
+
+    define inner(v, w) = v '*' w^T;
+
+For example outer product
+
+    define outer(v, w) = v^T '*' w;
+
+This gives a matrix. Nice bridge to next section.
+
+## The Matrix Type
+
+Remember that a general matrix has units $a\textbf{u}$ per $\textbf{v}$ with
+
+$\displaystyle (a\textbf{u} \text{ per } \textbf{v})
+_{ij} =
+ a\cdot\frac{
+    {\textbf{u}}
+    _{i}
+}
+{
+    \textbf{v}
+    _{j}
+}$
+
+In Pacioli's notation a general matrix $a\textbf{u}$ per $\textbf{v}$ is written as `a*P!u per Q!v`.The combination of a
+scalar unit `a`, the row units `P!u`, and the column units `Q!v`
+matches any matrix type.
+
+The next table lists some common specific
+ones.
+
+<table>
+  <tr>
+    <th>Type</th>
+    <th>Shorthand</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>1 per 1</td>
+    <td>1</td>
+    <td>dimensionless scalar</td>
+  </tr>
+  <tr>
+    <td>a per 1</td>  
+    <td>a</td>
+    <td>dimensioned scalar</td>
+  </tr>
+  <tr>
+    <td>P! per 1</td>
+    <td>P!</td>
+    <td>dimensionless column vector</td>
+  </tr>
+  <tr>
+    <td>P!u per 1</td>  
+    <td>P!u</td>
+    <td>dimensioned column vector</td>
+  </tr>
+  <tr>
+    <td>a*P! per 1</td>
+    <td>a*P!</td>
+    <td>homogeneous dimensioned column vector</td>
+  </tr>
+  <tr>
+    <td>1 per Q!v</td>
+    <td></td>
+    <td>dimensioned row vector</td>
+  </tr>
+  <tr>
+    <td>P! per Q!</td>
+    <td></td>
+    <td>dimensionless rectangular matrix</td>
+  </tr>
+  <tr>
+    <td>P!u per P!v</td>
+    <td></td>
+    <td>square matrix</td>
+  </tr>
+  <tr>
+    <td>P!u per P!u</td>
+    <td></td>
+    <td>even more square matrix</td>
+  </tr>
+  <tr>
+    <td>...</td>
+    <td></td>
+    <td>...</td>
+  </tr>
+</table>
+
+Example
+
+    define mat_square(A) =
+        A '*' A^T;
+
+    for_index P, Q for_unit a, P!u:
+        (a/P!u per Q!) -> a^2/P!u per P!u

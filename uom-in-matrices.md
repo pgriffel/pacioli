@@ -1,6 +1,5 @@
 ---
 title: Units of Measurement in Matrices
-layout: default
 ---
 
 {% include mathjax.html %}

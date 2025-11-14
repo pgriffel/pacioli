@@ -1,6 +1,5 @@
 ---
 title: Start
-layout: default
 ---
 
 ## Introduction
@@ -51,4 +50,4 @@ Notable missing features that are on the roadmap are
 - Better support for writing libraries and integration with other environments
 - Support for other IDEs besides VS Code.
 
-2013-2025 Paul Griffioen (pgriffel@gmail)
+2013-2025 Paul Griffioen
