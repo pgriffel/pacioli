@@ -143,7 +143,7 @@ Equation (2) can be written with a rank-1 matrix. This gives us an index-free no
 
 A rank-1 matrix is an outer product $\textbf{vw}^T$ between two vectors. It satisfies
 
-$(3)\quad (\textbf{vw}^T)_{ij} = \textbf{v}_i \cdot \textbf{w}_j$
+$\quad (\textbf{vw}^T)_{ij} = \textbf{v}_i \cdot \textbf{w}_j$
 
 However, equation (2) tells us that we want a division instead of a product. To achieve that we multiply with the
 reciprocal.
@@ -154,7 +154,7 @@ In index free form we can now write $\textbf{A}$ has units $\textbf{u}{\textbf{v
 We introduce a notation for this 'outer division'. The 'per' operator combines
 the outer product with a reciprocal.
 
-$(5)\quad\displaystyle (\textbf{v} \text{ per } \textbf{w})
+$\quad\displaystyle (\textbf{v} \text{ per } \textbf{w})
 _{ij} =
  \frac{
     {\textbf{v}}
@@ -167,7 +167,7 @@ _{ij} =
 
 Now we can write (2) as
 
-$(6)\quad \text{If } \textbf{y} \text{ has units } \textbf{u} \text{, and }\textbf{x} \text{ has units  } \textbf{v} \text{ in (1) then }
+$(3)\quad \text{If } \textbf{y} \text{ has units } \textbf{u} \text{, and }\textbf{x} \text{ has units  } \textbf{v} \text{ in (1) then }
     \textbf{A} \text{ has units } \textbf{u}\ \text{per}\ \textbf{v}$
 
 The unit vector $\textbf{u}$ is the units in the row-dimension, and $\textbf{v}$ the units in the column dimension.
@@ -322,7 +322,7 @@ will also transform vectors with units $c\textbf{v}$ into vectors with units $c\
 The 'per' operator is bilinear, but we have to consider the co-variance in the column dimension. A scalar factor can be moved around freely, as long as a division is used in the column dimension. For
 any scalar unit $a$ and unit matrix $\textbf{u}$ per $\textbf{v}$
 
-$(7)\quad a(\textbf{u} \text{ per } \textbf{v}) 
+$(4)\quad a(\textbf{u} \text{ per } \textbf{v}) 
 = (a\textbf{u}) \text{ per } \textbf{v}
 = \textbf{u} \text{ per } (\textbf{v}/a)
 = (\textbf{u} \text{ per } \textbf{v})a$
@@ -331,7 +331,7 @@ As a convention we move scalar factors to the front and write $a\textbf{u} \text
 
 ### Exercise 11)
 
-Prove (7)
+Prove (4)
 
 ## Rules
 
