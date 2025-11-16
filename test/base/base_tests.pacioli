@@ -49,9 +49,10 @@ define base_suites = [
     index_element_suite,
     format_suite,
     plu_suite,
+    scalar_inverse_suite,
+    matrix_inverse_suite,
     scalar_svd_suite,
-    uniform_svd_suite,
-    dimensioned_svd_suite,
+    matrix_svd_suite,
     qr_suite,
     cholesky_suite,
     solve_suite,
@@ -673,17 +674,64 @@ define real_qr_suite = test_suite("Function qr", [
 ]);
 
 # ------------------------------------------------------------------------------
+# Function inverse
+# ------------------------------------------------------------------------------
+
+define scalar_inverse_suite =
+    inverse_suite("inverse for dimensionless scalars", random_1_by_1_matrix, 5*|decimals|);
+
+define matrix_inverse_suite =
+    inverse_suite("inverse for matrices", () -> random_4_by_4_matrix() * |metre * Four!unit per Four!unit|, 5*|decimals|);
+
+# ------------------------------------------------------------------------------
+
+define inverse_suite(description, matrix_generator, precision) = test_suite(description, [
+
+    random_test("should satisfy A = A '*' inverse(A) '*' A", () ->
+            let
+                A = matrix_generator(),
+                A_inv = inverse(A)
+            in
+                just(approximates(A, A '*' A_inv '*' A, precision))
+            end),
+    
+    random_test("should satisfy inverse(A) = inverse(A) '*' A '*' inverse(A)", () ->
+            let
+                A = matrix_generator(),
+                A_inv = inverse(A)
+            in
+                just(approximates(A_inv, A_inv '*' A '*' A_inv, precision))
+            end),
+    
+    random_test("should satisfy (inverse(A) '*' A)^T = inverse(A) '*' A", () ->
+            let
+                A = matrix_generator(),
+                A_inv = inverse(A)
+            in
+                just(is_symmetric(A_inv '*' A, precision))
+            end),
+    
+    random_test("should satisfy (A '*' inverse(A))^T = A '*' inverse(A)", () ->
+            let
+                A = matrix_generator(),
+                A_inv = inverse(A)
+            in
+                just(is_symmetric(A '*' A_inv, precision))
+            end)
+]);
+
+define is_symmetric(A, decimals) =
+    approximates(magnitude(A^T), magnitude(A), decimals);
+
+# ------------------------------------------------------------------------------
 # Function svd
 # ------------------------------------------------------------------------------
 
 define scalar_svd_suite =
     svd_suite("svd for dimensionless scalars", random_1_by_1_matrix, 10*|decimals|);
 
-define uniform_svd_suite =
-    svd_suite("svd for dimensionless matrices", random_4_by_3_matrix, 10*|decimals|);
-
-define dimensioned_svd_suite =
-    svd_suite("svd for dimensioned matrices", () -> random_4_by_3_matrix() * |Four!unit per Three!unit|, 10*|decimals|);
+define matrix_svd_suite =
+    svd_suite("svd for matrices", () -> random_4_by_3_matrix() * |Four!unit per Three!unit|, 10*|decimals|);
 
 # ------------------------------------------------------------------------------
 
@@ -701,25 +749,28 @@ define svd_suite(description, matrix_generator, precision) = test_suite(descript
         tmp_catch(()-> all[magnitude(s) >= 0 | (s, _, _) <- svd(matrix_generator())])),
 
     random_test("should give an orthogonal set for the row dimension", () ->
-        tmp_catch(()-> is_weak_orthogonal_set([v | (_, v, _) <- svd(matrix_generator())]))),
+        tmp_catch(()-> pairwise_orthogonal_magnitudes([v | (_, v, _) <- svd(matrix_generator())], precision))),
                 
     random_test("should give an orthogonal set for the column dimension", () ->
-        tmp_catch(()-> is_weak_orthogonal_set([w | (_, _, w) <- svd(matrix_generator())])))
+        tmp_catch(()-> pairwise_orthogonal_magnitudes([w | (_, _, w) <- svd(matrix_generator())], precision)))
 ]);
 
 # ------------------------------------------------------------------------------
 
-doc is_weak_orthogonal_set
+doc pairwise_orthogonal_magnitudes
     "Not a true orthogonal set, just orthogonality of the magnitudes.";
 
-declare is_weak_orthogonal_set ::
-    for_index B: for_unit a, B!u: (List(a*B!u)) -> Boole;
+declare pairwise_orthogonal_magnitudes ::
+    for_index B: for_unit a, B!u: (List(a*B!u), decimals) -> Boole;
 
-define is_weak_orthogonal_set(vs) =
-    all[inner(magnitude(nth(i, vs)), magnitude(nth(j, vs))) ~= if i = j then 1 else 0 end | 
-            nats := naturals(list_size(vs)),
-            i <- nats,
-            j <- nats];
+define pairwise_orthogonal_magnitudes(vs, precision) =
+    let 
+        indexed = zip(naturals(list_size(vs)), [magnitude(v) | v <- vs])
+    in
+        all[approximates(inner(v, w), if i = j then 1 else 0 end, precision) | 
+            (i, v) <- indexed,
+            (j, w) <- indexed]
+    end;
 
 # ------------------------------------------------------------------------------
 
