@@ -12,6 +12,7 @@ Manual for Pacioli 0.5.0
 
 - [Unit notation](unit-notation)
 - [Functions and Applications](functions)
+- [Operators](operators)
 - [Tuples](tuples)
 - [Lists and Comprehensions](lists-and-comprehensions)
 - [Conditional (if then else)](conditional)

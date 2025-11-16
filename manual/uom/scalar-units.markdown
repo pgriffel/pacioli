@@ -50,15 +50,3 @@ A conversion between units can be defined with keyword `defconv`. The following
 make `mile2foot` the conversion factor 5280.00ft/mi.
 
 More on conversions in the matrix type sections.
-
-## Unit alias
-
-A unit alias can be defined with keyword `defalias`
-
-    defalias name = unit_expression;
-
-Using an alias can make it easier to change the units later on. For example
-
-    defalias dist_unit = inch;
-
-allows one to change to e.g. metre easily. Beware that this makes literal numbers of that unit invalid!

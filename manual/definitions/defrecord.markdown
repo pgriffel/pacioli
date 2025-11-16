@@ -1,6 +1,5 @@
 ---
 title: Record Definition
-layout: default
 ---
 
 # Record Definition

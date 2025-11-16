@@ -1,9 +1,8 @@
 ---
-title: Declaration
-layout: default
+title: Type Declaration
 ---
 
-# Declaration
+# Type Declaration
 
 A definition can be accompanied by a type declaration. A declaration
 starts with keyword `declare` followed by a comma-separated list of

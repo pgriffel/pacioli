@@ -1,9 +1,8 @@
 ---
-title: Index Set Definitions
-layout: default
+title: Index Set Definition
 ---
 
-# Index Set Definitions
+# Index Set Definition
 
 An index set definition starts with keyword `defindex` followed by a
 name, the equal sign, and a set of names.

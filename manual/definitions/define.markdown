@@ -1,9 +1,8 @@
 ---
-title: Value of Function Definition
-layout: default
+title: Value or Function Definition
 ---
 
-# Value of Function Definition
+# Value or Function Definition
 
 A definition introduces a new value or function.
 

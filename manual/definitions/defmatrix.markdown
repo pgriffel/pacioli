@@ -1,9 +1,8 @@
 ---
-title: Matrix Definitions
-layout: default
+title: Matrix Definition
 ---
 
-# Matrix Definitions
+# Matrix Definition
 
 A matrix definition is syntactic sugar to define matrix literals at the
 top level.

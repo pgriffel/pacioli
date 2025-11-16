@@ -1,9 +1,8 @@
 ---
-title: Definitions
-layout: default
+title: Base Unit Definition
 ---
 
-# Unit Definitions.
+# Base Unit Definition
 
 A unit definition starts with keyword `defunit`. It can define a base
 unit, a derived unit, or a unit vector.

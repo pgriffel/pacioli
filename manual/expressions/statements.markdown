@@ -1,9 +1,8 @@
 ---
-title: Statements
-layout: default
+title: Imperative Blocks
 ---
 
-# Statements
+# Imperative Blocks
 
 The `begin` and `end` keywords introduce an imperative code block. The code block consists of
 a sequence of statements.

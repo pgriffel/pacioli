@@ -1,6 +1,5 @@
 ---
 title: Let Binding
-layout: default
 ---
 
 # Let Binding

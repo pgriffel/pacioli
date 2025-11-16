@@ -1,9 +1,8 @@
 ---
-title: Conversion Definitions
-layout: default
+title: Conversion Definition
 ---
 
-# Conversion Definitions
+# Conversion Definition
 
 A conversion definition defines a diagonal matrix with proper conversion factors
 to convert from one dimensioned vector space to another.

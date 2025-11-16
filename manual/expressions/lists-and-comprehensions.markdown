@@ -1,6 +1,5 @@
 ---
 title: Lists and Conmprehensions
-layout: default
 ---
 
 # Lists and Comprehensions
@@ -21,31 +20,18 @@ The type of a list is `List(`[type](types)`)`. The types of above examples are
     List(metre)
     List(List(1))
 
-### Comprehensions <a id="comprehensions"/></a>
+## Comprehensions
 
 A list comprehension is of the form
 
-<code>
-[ <a href="#expressions">expression</a> | clause, clause, ... ]
-</code>
- 
+    [ expression | clause, clause, ... ]
+
 where each clause is
 
-- a generator
-  <code>
-  var <- <a href="#expressions">expression</a>
-  </code>
-  or `(var, ..., var) <- `[expression](expression)
+- a generator `var <- expression or (var, ..., var) <- expression`
 
-- a filter
-  <code>
-  <a href="#expressions">expression</a>
-  </code>
+- a filter expression
 
-- or an assignment
-  <code>
-  var := <a href="#expressions">expression</a>
-  </code>
+- or an assignment `var := expression`
 
-Each var can also be a list of variables surrounded by parenthesis to
-destructure a tuple.
+Each var can also be a list of variables surrounded by parenthesis to destructure a tuple.

@@ -1,21 +1,19 @@
 ---
 title: Conditional
-layout: default
 ---
 
 # Conditional (if then else)
 
 A conditional expression is of the form
 
-<pre><code>if <a href="#expressions">expression</a> then
-  <a href="#expressions">expression</a>
-else if <a href="#expressions">expression</a> then
-  <a href="#expressions">expression</a>
-...
-else
-  <a href="#expressions">expression</a>
-end
-</code></pre>
+    if expression then
+        expression
+    else if expression then
+        expression
+    ...
+    else
+        expression
+    end
 
 An if then else expression returns the value from one of its branches depending on
 the test expression. For example

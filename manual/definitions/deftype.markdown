@@ -1,9 +1,8 @@
 ---
-title: Type Definitions
-layout: default
+title: Type Definition
 ---
 
-# Type Definitions
+# Type Definition
 
 A type definition defines a new generic type. The syntax is
 
