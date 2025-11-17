@@ -26,6 +26,8 @@ import { PacioliFunction } from "../values/function";
 import { PacioliValue } from "../boxing";
 import { PacioliScene, StatefulAnimation, Animation } from "./scene";
 import { ThreeJsEnvironment } from "./threejs-environment";
+import { PacioliPath } from "./path";
+import { PacioliMesh } from "./mesh";
 
 /**
  * Configuration options for the Space class
@@ -491,5 +493,51 @@ export class Space {
     }
 
     this.environment.updateScene(this.animationScene);
+  }
+
+  public addPath(
+    path: PacioliPath,
+    options?: Partial<{
+      unitX: SIUnit;
+      unitY: SIUnit;
+      unitZ: SIUnit;
+      scale: number;
+    }>
+  ) {
+    let defaultOptions = {
+      unitX: this.options.unitX,
+      unitY: this.options.unitX,
+      unitZ: this.options.unitX,
+      scale: 1,
+    };
+
+    if (options) {
+      defaultOptions = { ...defaultOptions, ...options };
+    }
+
+    this.environment.addPath(path, defaultOptions);
+  }
+
+  public addMesh(
+    mesh: PacioliMesh,
+    options?: Partial<{
+      unitX: SIUnit;
+      unitY: SIUnit;
+      unitZ: SIUnit;
+      scale: number;
+    }>
+  ) {
+    let defaultOptions = {
+      unitX: this.options.unitX,
+      unitY: this.options.unitX,
+      unitZ: this.options.unitX,
+      scale: 1,
+    };
+
+    if (options) {
+      defaultOptions = { ...defaultOptions, ...options };
+    }
+
+    this.environment.addMesh(mesh, defaultOptions);
   }
 }
