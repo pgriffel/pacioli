@@ -32,7 +32,7 @@ Various examples that demonstrate different use cases. See the samples directory
 - [Unit inference][inference] \
   A short introduction to units of measurements in Pacioli
 
-- [Creating matrices](/tutorials/matrix-basics) \
+- [Creating matrices](/tutorials/creating-matrices) \
   The basics of matrices in Pacioli.
 
 - [Working with matrices I - Kirchhof](/tutorials/kirchhof) \
@@ -47,6 +47,7 @@ Various examples that demonstrate different use cases. See the samples directory
 - [Working with 3D graphics](/tutorials/graphics)\
   Creating 3D scenes and animations with web components.
 
+<!--
 ## Guides
 
 - [Javascript API][pacioli-js]\
@@ -57,6 +58,7 @@ Various examples that demonstrate different use cases. See the samples directory
 
 - [Extending Pacioli][extending-pacioli]\
   Some hints and tips for adding custom primitives and new functionality.
+-->
 
 [home]: https://github.com/pgriffel/pacioli
 [uom-in-matrices]: /uom-in-matrices
