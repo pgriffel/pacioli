@@ -1,0 +1,34 @@
+defunit person "prsn";
+
+defindex Continent = {Asia, Africa, Americas, Europe, Oceania};
+
+# source: http://en.wikipedia.org/wiki/List_of_continents_by_population
+
+defmatrix population :: person*Continent! = {
+  Asia -> 4298723000,
+  Africa -> 1110635000,
+  Americas -> 972005000,
+  Europe -> 742452000,
+  Oceania -> 38304000
+};
+
+define example_wave =
+  let n = 1000 in
+      [sin(i/n*6*pi*|radian|) | i <- naturals(n)]
+  end;
+
+define random_numbers =
+    [expt(random(), 3) | x <- naturals(1000)];
+
+defunit sample "smpl";
+
+declare sine_wave :: for_unit a:
+    (a, radian/second, radian, 1/second, second) -> List(a);
+
+define sine_wave(amplitude, frequency, phase, sampling_rate, nr_seconds) =
+    let
+        nr_samples = nr_seconds * sampling_rate,
+        angle = frequency / sampling_rate
+    in
+        [amplitude * sin(i * angle + phase) | i <- naturals(nr_samples)]
+    end;

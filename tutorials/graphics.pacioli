@@ -1,0 +1,13 @@
+import graphics;
+import geometry;
+
+
+    define my_scene() =
+        let
+            arrow1 = origin_arrow(vector3d(5*|metre|, 5*|metre|, 0*|metre|)),
+            arrow2 = default_arrow(
+                vector3d(5*|metre|, 5*|metre|, 0*|metre|),
+                vector3d(5*|metre|, 5*|metre|, 5*|metre|))
+        in
+            add_arrows([arrow1, arrow2], empty_scene("My 3Dscene"))
+        end;
