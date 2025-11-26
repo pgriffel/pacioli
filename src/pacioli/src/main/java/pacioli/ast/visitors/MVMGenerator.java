@@ -319,14 +319,14 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnNode node) {
-        out.format("application(var(\"%s\"), var(\"result\"), ", ValueInfo.global("$base_base", "_throw_result"));
+        out.format("application(var(\"%s\"), var(\"$result\"), ", ValueInfo.global("$base_base", "_throw_result"));
         node.value.accept(this);
         out.print(")");
     }
 
     @Override
     public void visit(ReturnVoidNode node) {
-        out.format("application(var(\"%s\"), var(\"result\"), ", ValueInfo.global("$base_base", "_throw_void"));
+        out.format("application(var(\"%s\"), var(\"$result\"), ", ValueInfo.global("$base_base", "_throw_void"));
         // Quick fix for node.value.accept(this); above
         out.print("application(var(\"$base__void\"))");
         out.print(")");
@@ -378,7 +378,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.print("application(lambda (");
 
         // Write the result lambda param
-        out.print("\"result\"");
+        out.print("\"$result\"");
 
         // Write the other lambda params
         for (IdentifierNode id : ids) {
@@ -410,7 +410,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.newline();
 
         // Catch's second argument is the place name
-        out.print("var(\"result\")");
+        out.print("var(\"$result\")");
 
         // Close the catch application
         out.print("), ");
