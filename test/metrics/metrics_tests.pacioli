@@ -26,12 +26,8 @@ import random;
 
 declare metric_suites :: List(TestSuite);
 
-define metric_suites = [
-    bilinear_form_suite,
-    metric_norm_suite,
-    scalar_gsvd_suite,
-    matrix_gsvd_suite
-];
+define metric_suites = 
+    append([bilinear_form_suite, metric_norm_suite], gsvd_suites);
 
 run_test_suites(metric_suites);
 
@@ -91,6 +87,13 @@ define metric_norm_suite = test_suite("Function metric_norm",
 # Function metric_svd
 # ------------------------------------------------------------------------------
 
+define gsvd_suites = 
+    if _runtime_environment = "javascript" then
+        [test_suite("No gsvd for pacioli-js", [])]
+    else
+        [scalar_gsvd_suite, matrix_gsvd_suite]
+    end;
+
 define scalar_gsvd_suite =
     gsvd_suite(
         "Function gsvd for dimensionless scalars",
@@ -115,8 +118,10 @@ define gsvd_suite(
         right_metric_generator,
         matrix_generator,
         precision) =
-    test_suite_focus(
+    test_suite(
         description, 
+        if _is_js then [] else
+        
         let 
             # Do these two once per test run because they are slow
             left_metric = left_metric_generator(),
@@ -143,6 +148,7 @@ define gsvd_suite(
             random_test("should give an orthogonal set for the column dimension", () ->
                 just(are_orthogonal_right([w | (_, _, w) <- svd(matrix_generator())], precision)))
             ]
+        end
         end);
 
 # ------------------------------------------------------------------------------
@@ -182,7 +188,7 @@ doc is_positive_definite
     Cholesky decomposition.";
 
 define is_positive_definite(A) =
-    is_something(catch(() -> cholesky(A)));
+    not(is_error(catch(() -> cholesky(A))));
 
 # ------------------------------------------------------------------------------
 

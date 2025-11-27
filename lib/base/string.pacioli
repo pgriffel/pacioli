@@ -19,7 +19,9 @@
 
 export
     compare_string,
+    string_length,
     concatenate,
+    substring,
     split_string,
     trim,
     pad,
@@ -37,6 +39,13 @@ doc compare_string
 
 declare_primitive compare_string(string0, string1) ::
     (String, String) -> 1;
+# ----------------------------------------------------------------------------
+
+doc string_length
+    "The length of the given string.";
+
+declare_primitive string_length(string) ::
+    (String) -> 1;
 
 # ----------------------------------------------------------------------------
 
@@ -45,6 +54,14 @@ doc concatenate
 
 declare_primitive concatenate(string0, string1) ::
     (String, String) -> String;
+
+# ----------------------------------------------------------------------------
+
+doc substring
+    "A substring of the given string from start (inclusive) to end (exclusive).";
+
+declare_primitive substring(string, start_pos, end_pos) ::
+    (String, 1, 1) -> String;
 
 # ----------------------------------------------------------------------------
 

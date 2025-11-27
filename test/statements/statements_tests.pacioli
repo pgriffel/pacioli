@@ -235,11 +235,11 @@ define statement_suite = test_suite("Statement", [
         end = 2),
 
     test("Error when no value is returned", () ->
-        is_nothing(catch(() -> foo(0) + 12))),
+        is_error(catch(() -> foo(0) + 12))),
 
     test("Not error when a value is returned", () ->
-        or_else(false,
-            map_maybe((value) -> value = 22,
+        result_or_else(false,
+            map_result((value) -> value = 22,
                 catch(() -> foo(1) + 12))))
 ]); 
 

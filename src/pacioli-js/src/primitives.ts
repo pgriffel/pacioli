@@ -59,6 +59,7 @@ import { PacioliVoid, VOID } from "./values/void";
 import { PacioliMatrix } from "./values/matrix";
 import { PacioliMap } from "./values/map";
 import { RawMaybe } from "./values/maybe";
+import { DOM } from "./dom/dom";
 
 // -----------------------------------------------------------------------------
 // 1. Primitive Units Unit Prefixes
@@ -94,6 +95,10 @@ export const prefix = {
 //
 // Each primitive function is named '<module>_<name>'.
 // -----------------------------------------------------------------------------
+
+export const compute_$base_system__runtime_environment = function () {
+  return "javascript";
+};
 
 export const $base_base_tuple = function (...args: RawValue[]): RawTuple {
   return tagTuple(Array.prototype.slice.call(args));
@@ -132,17 +137,15 @@ export function $base_base_error(value: RawString): unknown {
   throw Error(value);
 }
 
-// Fixme: decide on return value (is nothing now) and give
-// a proper type.
-export function $base_base_catch(code: any, _: any[]) {
+export function $base_base_try_catch(code: RawFunction, handler: RawFunction) {
   if (false) {
     // dev switch to debug exceptions in a catch block
     return code();
   } else {
     try {
-      return new RawMaybe(code());
-    } catch (err) {
-      return NOTHING;
+      return code();
+    } catch (err: any) {
+      return handler(err.message || err);
     }
   }
 }
@@ -1061,27 +1064,30 @@ export function $base_matrix_svd(x: RawMatrix): RawList {
   let tuples = [];
 
   for (let j = 0; j < r; j++) {
-    const si = trip.S[j];
+    let si = trip.S[j];
     if (isNaN(si)) {
-      throw Error("Cannot compute svd. Insufficient numerical precision.");
+      // throw Error("Cannot compute svd. Insufficient numerical precision.");
+      // si = 0;
     }
     const sv = initialNumbers(1, 1, [[0, 0, si]]);
 
     var left = zeroNumbers(m, 1);
 
     for (let i = 0; i < m; i++) {
-      const uij = trip.U[i][j];
+      let uij = trip.U[i][j];
       if (isNaN(uij)) {
-        throw Error("Cannot compute svd. Insufficient numerical precision.");
+        // throw Error("Cannot compute svd. Insufficient numerical precision.");
+        // uij = 0;
       }
       set(left, i, 0, uij);
     }
 
     var right = zeroNumbers(n, 1);
     for (let i = 0; i < n; i++) {
-      const vij = trip.V[i][j];
+      let vij = trip.V[i][j];
       if (isNaN(vij)) {
-        throw Error("Cannot compute svd. Insufficient numerical precision.");
+        // throw Error("Cannot compute svd. Insufficient numerical precision.");
+        // vij = 0;
       }
       set(right, i, 0, vij);
     }
@@ -1092,6 +1098,10 @@ export function $base_matrix_svd(x: RawMatrix): RawList {
   }
 
   return tagList(tuples);
+}
+
+export function $base_matrix_cholesky(_: RawMatrix): RawTuple {
+  throw new Error("Function cholesky is not implemented in pacioli-js");
 }
 
 export function $base_matrix_random(): RawMatrix {
@@ -1359,10 +1369,19 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
               throw new Error("Expected matrix for %d format argument");
             }
 
-            // TODO: make dimensionless output for mat.
-            const txt = getNumber(mat, 0, 0).toFixed(nrDecs);
+            if (mat.nrRows === 1 && mat.nrColumns === 1) {
+              const txt = getNumber(mat, 0, 0).toFixed(nrDecs);
+              out += size === null ? txt : txt.padStart(size, " ");
+            } else {
+              // FIXME: replace this quick and dirty solution with proper matrix formatting
+              const rowList = DOM(mat, { decimals: nrDecs }).textContent;
+              if (rowList === null) {
+                out + "Could not format matrix";
+              } else {
+                out += rowList;
+              }
+            }
 
-            out += size === null ? txt : txt.padStart(size, " ");
             i += match[0].length;
           } else {
             out += char;

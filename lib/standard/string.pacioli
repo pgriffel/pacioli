@@ -23,7 +23,9 @@ export
     pad_left,
     pad_right,
     num2string,
-    num2str;
+    num2str,
+    string_starts_with,
+    string_ends_with;
 
 # ----------------------------------------------------------------------------
 # String
@@ -123,3 +125,25 @@ declare pad_right ::
 
 define pad_right(string, size, padding) =
     pad(string, "", size, padding);
+
+# ------------------------------------------------------------------------------
+
+doc string_starts_with
+    "Does the given string start with the given prefix?";
+
+declare string_starts_with :: (String, String) -> Boole;
+
+define string_starts_with(str, prefix) =
+    substring(str, 0, string_length(prefix)) = prefix;
+
+# ------------------------------------------------------------------------------
+
+doc string_ends_with
+    "Does the given string end with the given suffix?";
+
+declare string_ends_with :: (String, String) -> Boole;
+
+define string_ends_with(str, suffix) =
+    let n = string_length(str) in
+        substring(str, n - string_length(suffix), n) = suffix
+    end;

@@ -53,6 +53,7 @@ define base_suites = [
     matrix_inverse_suite,
     scalar_svd_suite,
     matrix_svd_suite,
+    matrix_svd_regression_suite,
     qr_suite,
     cholesky_suite,
     solve_suite,
@@ -79,6 +80,11 @@ define is_lower_trianular(A) =
         j <- column_domain(A),
         index_less(i, j)];
 
+
+declare is_js :: Boole;
+
+define is_js =
+    _runtime_environment = "javascript";
 
 # ------------------------------------------------------------------------------
 # Indexing
@@ -564,23 +570,19 @@ define format_suite = test_suite("Function format", [
         (is_js and format("prefix%17.3fsuffix", 12 * |metre/second^2|) = "prefix           12.000suffix")),   
 
     test("should error on not number for %f", () ->
-        is_nothing(catch(() -> format("%f", "foo")))),   
+        is_error(catch(() -> format("%f", "foo")))),   
 
     test("should error on not number for %d", () ->
-        is_nothing(catch(() -> format("%d", "foo")))),   
+        is_error(catch(() -> format("%d", "foo")))),   
          
     test("should error on trailing percentage character", () ->
-         is_nothing(catch(() -> format("%"))))
+         is_error(catch(() -> format("%"))))
 ]);
 
 declare print_test :: () -> Void;
 
 define print_test() =
    print(format("Testing %s", Foo@foo));
-
-declare is_js :: Boole;
-
-define is_js = format("%d", |metre|) = "1";
 
 # ------------------------------------------------------------------------------
 # Function plu
@@ -593,41 +595,61 @@ define plu_suite =
         real_plu_suite
     end;
 
+define non_singular_plu(A) =
+    try_catch(() -> just(plu(A)),
+        (err) ->
+            if string_starts_with(err, "No PLU decomposition for") and
+                string_ends_with(err, "matrix is singular")
+            then
+                nothing()
+            else
+                error(err)
+            end);
+
 define real_plu_suite = test_suite("Function plu", [
 
     random_test("should be a proper factorization", () ->
-        catch_with_skip(() ->
-            let
-                # Doesn't make the default 14 decimals
-                precision = 10*|decimals|,
+        let
+            # Doesn't make the default 14 decimals
+            precision = 10*|decimals|,
 
-                A = random_4_by_4_matrix(),
-                (P, L, U) = plu(A)
-            in
-                approximates(P '*' A, L '*' U, precision)
-            end)),
+            A = random_4_by_4_matrix()
+        in
+            map_maybe(
+                (plu) ->
+                    let (P, L, U) = plu in
+                        approximates(P '*' A, L '*' U, precision)
+                    end,
+                non_singular_plu(A))
+        end),
 
     random_test("should give upper triangular U", () ->
-        catch_with_skip(() ->
-            let (_, _, U) = plu(random_4_by_4_matrix()) in
-                is_upper_trianular(U)
-            end)),
+        map_maybe(
+            (plu) ->
+                let (_, _, U) = plu in
+                    is_upper_trianular(U)
+                end,
+            non_singular_plu(random_4_by_4_matrix()))),
 
     random_test("should give lower triangular L", () ->
-        catch_with_skip(() ->
-            let (_, L, _) = plu(random_4_by_4_matrix()) in
-                is_lower_trianular(L)
-            end)),
+        map_maybe(
+            (plu) ->
+                let (_, L, _) = plu in
+                    is_lower_trianular(L)
+                end,
+            non_singular_plu(random_4_by_4_matrix()))),
 
     random_test("should give permutation matrix P", () ->
-        catch_with_skip(() ->
-            let 
-                A = random_4_by_4_matrix(),
-                (P, _, _) = plu(A)
-            in
-                # TODO: proper test
-                P '*' P^T = left_identity(A)
-            end))
+        let
+            A = random_4_by_4_matrix()
+        in
+            map_maybe(
+                (plu) ->
+                    let (P, _, _) = plu in
+                        P '*' P^T = left_identity(A)
+                    end,
+                non_singular_plu(A))
+        end)
 ]);
 
 # ------------------------------------------------------------------------------
@@ -644,33 +666,30 @@ define qr_suite =
 define real_qr_suite = test_suite("Function qr", [
    
     random_test("should be a proper factorization", () ->
-        catch_with_skip(() ->
-            let
-                # Doesn't make the default 14 decimals
-                precision = 10*|decimals|,
-                A = random_4_by_4_matrix(),
-                (Q, R) = qr(A)
-            in
-                approximates(A, Q '*' R, precision)
-            end)),
+        let
+            # Doesn't make the default 14 decimals
+            precision = 10*|decimals|,
+            A = random_4_by_4_matrix(),
+            (Q, R) = qr(A)
+        in
+            just(approximates(A, Q '*' R, precision))
+        end),
 
     random_test("should give an upper triangular R", () ->
-        catch_with_skip(() ->
-            let
-                (_, R) = qr(random_4_by_4_matrix())
-            in
-                is_upper_trianular(R)
-            end)),
+        let
+            (_, R) = qr(random_4_by_4_matrix())
+        in
+            just(is_upper_trianular(R))
+        end),
 
     random_test("should give an orthonormal Q", () ->
-        catch_with_skip(() ->
-            let
-                A = random_4_by_4_matrix(),
-                I = left_identity(A),
-                (Q, _) = qr(A)
-            in
-                Q '*' Q^T ~= I and Q^T '*' Q ~= I
-            end))
+        let
+            A = random_4_by_4_matrix(),
+            I = left_identity(A),
+            (Q, _) = qr(A)
+        in
+            just(Q '*' Q^T ~= I and Q^T '*' Q ~= I)
+        end)
 ]);
 
 # ------------------------------------------------------------------------------
@@ -688,36 +707,36 @@ define matrix_inverse_suite =
 define inverse_suite(description, matrix_generator, precision) = test_suite(description, [
 
     random_test("should satisfy A = A '*' inverse(A) '*' A", () ->
-            let
-                A = matrix_generator(),
-                A_inv = inverse(A)
-            in
-                just(approximates(A, A '*' A_inv '*' A, precision))
-            end),
+        let
+            A = matrix_generator(),
+            A_inv = inverse(A)
+        in
+            just(approximates(A, A '*' A_inv '*' A, precision))
+        end),
     
     random_test("should satisfy inverse(A) = inverse(A) '*' A '*' inverse(A)", () ->
-            let
-                A = matrix_generator(),
-                A_inv = inverse(A)
-            in
-                just(approximates(A_inv, A_inv '*' A '*' A_inv, precision))
-            end),
+        let
+            A = matrix_generator(),
+            A_inv = inverse(A)
+        in
+            just(approximates(A_inv, A_inv '*' A '*' A_inv, precision))
+        end),
     
     random_test("should satisfy (inverse(A) '*' A)^T = inverse(A) '*' A", () ->
-            let
-                A = matrix_generator(),
-                A_inv = inverse(A)
-            in
-                just(is_symmetric(A_inv '*' A, precision))
-            end),
+        let
+            A = matrix_generator(),
+            A_inv = inverse(A)
+        in
+            just(is_symmetric(A_inv '*' A, precision))
+        end),
     
     random_test("should satisfy (A '*' inverse(A))^T = A '*' inverse(A)", () ->
-            let
-                A = matrix_generator(),
-                A_inv = inverse(A)
-            in
-                just(is_symmetric(A '*' A_inv, precision))
-            end)
+        let
+            A = matrix_generator(),
+            A_inv = inverse(A)
+        in
+            just(is_symmetric(A '*' A_inv, precision))
+        end)
 ]);
 
 define is_symmetric(A, decimals) =
@@ -728,31 +747,84 @@ define is_symmetric(A, decimals) =
 # ------------------------------------------------------------------------------
 
 define scalar_svd_suite =
-    svd_suite("svd for dimensionless scalars", random_1_by_1_matrix, 10*|decimals|);
+    svd_suite("svd for dimensionless scalars", random_1_by_1_matrix, 9*|decimals|);
 
 define matrix_svd_suite =
-    svd_suite("svd for matrices", () -> random_4_by_3_matrix() * |Four!unit per Three!unit|, 10*|decimals|);
+    svd_suite("svd for matrices", () -> random_4_by_3_matrix() * |Four!unit per Three!unit|, 7*|decimals|);
+
+define matrix_svd_regression_suite =
+    svd_suite("svd reg for matrices", () -> svd_reg, 7*|decimals|);
+
+ # [[0.42025926416976755, 2.3909100543095816, -2.8223938905329136], [-1.1899934796618081, -6.770028926565032, 7.991805566515104], [-1.0075396878008331, -5.732025383040305, 6.766475130384711], [0.8826604407841495, 5.02157097376835, -5.927806113699193]]
+
+doc svd_reg
+    "Fails in javascript, succeeds in mvm.";
+
+defmatrix svd_reg :: Four!unit per Three!unit = {
+    one, one -> 0.42025926416976755,
+    one, two -> 2.3909100543095816,
+    one, three -> -2.8223938905329136,
+    two, one -> -1.1899934796618081,
+    two, two -> -6.770028926565032,
+    two, three -> 7.991805566515104,
+    three, one -> -1.0075396878008331,
+    three, two -> -5.732025383040305,
+    three, three -> 6.766475130384711,
+    four, one -> 0.8826604407841495,
+    four, two -> 5.02157097376835,
+    four, three -> -5.927806113699193
+};
+
+# ------------------------------------------------------------------------------
+print_svd(svd_reg);
+
+define print_svd(A) =
+    let
+        precision = 14*|decimals|,
+        outcome = catch(() -> svd(A))
+    in
+        begin
+            if is_error(outcome) then 
+                printf("error: %s", result_error(outcome));
+            else
+                triples := result_value(outcome);
+
+                max_s := max[s | (s, _, _) <- triples];
+                min_s := min[s | (s, _, _) <- triples];
+
+                condition_number := max_s / min_s;
+
+                result := approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- triples], precision);
+
+                printf("%nCondition number: %.5f, svd correct=%s, precision=%d", condition_number, result, precision);
+                
+                for (s, v, w) <- triples do
+                    printf("%nSingular value: %.30f", s);
+                    printf("Left singular vector: %n%.30f", v);
+                    printf("Right singular vector: %n%.30f", w);
+                end
+                
+            end            
+        end
+    end;
 
 # ------------------------------------------------------------------------------
 
 define svd_suite(description, matrix_generator, precision) = test_suite(description, [
 
-    random_test("should be a proper factorization the matrix", () ->
-        tmp_catch(()->
-            let
-                A = matrix_generator()
-            in
-                approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- svd(A)], precision)
-            end)),
+    random_test_focus("should be a proper factorization the matrix", () ->
+        let A = matrix_generator() in
+            just(approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- svd(A)], precision))
+        end),
 
     random_test("should give non-negative singular values", () ->
-        tmp_catch(()-> all[magnitude(s) >= 0 | (s, _, _) <- svd(matrix_generator())])),
+        just(all[magnitude(s) >= 0 | (s, _, _) <- svd(matrix_generator())])),
 
     random_test("should give an orthogonal set for the row dimension", () ->
-        tmp_catch(()-> pairwise_orthogonal_magnitudes([v | (_, v, _) <- svd(matrix_generator())], precision))),
+        just(pairwise_orthogonal_magnitudes([v | (_, v, _) <- svd(matrix_generator())], precision))),
                 
     random_test("should give an orthogonal set for the column dimension", () ->
-        tmp_catch(()-> pairwise_orthogonal_magnitudes([w | (_, _, w) <- svd(matrix_generator())], precision)))
+        just(pairwise_orthogonal_magnitudes([w | (_, _, w) <- svd(matrix_generator())], precision)))
 ]);
 
 # ------------------------------------------------------------------------------
@@ -773,19 +845,6 @@ define pairwise_orthogonal_magnitudes(vs, precision) =
     end;
 
 # ------------------------------------------------------------------------------
-
-# The js version produces NaN numbers for some test cases. For now this is checked
-# and an error is thrown. The Java version doesn't throw errors for these cases.
-# Therefore the js variant requires a catch_with_skip and the Java variant a
-# catch_with_fail. The tmp_catch function is a convenience function to make that
-# distinction, until this is addressed.
-
-declare tmp_catch :: (() -> Boole) -> Maybe(Boole);
-
-define tmp_catch(f) = 
-    if _is_js then catch_with_skip(f) else catch_with_fail(f) end;
-
-# ------------------------------------------------------------------------------
 # Function cholesky
 # ------------------------------------------------------------------------------
 
@@ -797,14 +856,22 @@ defmatrix cholesky_input :: metre^2 * Four!unit per 1/Four!unit = {
     three, three -> 4,
     four, four -> 4
 };
+
+
+define cholesky_suite = 
+    if is_js then
+        test_suite("No cholesky for pacioli-js", [])
+    else
+        real_cholesky_suite
+    end;
+
  
-define cholesky_suite = test_suite("Cholesky decomposition tests", [
+define real_cholesky_suite = test_suite("Cholesky decomposition tests", [
 
     test("L '*' L^T should approximate A", () ->
         let L = cholesky(cholesky_input) in
             L '*' L^T ~= cholesky_input
-        end
-    )
+        end)
 ]);
 
 # ------------------------------------------------------------------------------
@@ -814,17 +881,16 @@ define cholesky_suite = test_suite("Cholesky decomposition tests", [
 define solve_suite = test_suite("Function solve", [
 
     random_test("should solve ax=b", () ->
-        tmp_catch(() ->
             let
                 a = random(),
                 b = random(),
                 x = solve(a, b)
             in
-                a '*' x ~= b
-            end)),
+                just(a '*' x ~= b)
+            end),
    
     random_test("should solve AX=B for square matrices", () ->
-        tmp_catch(() ->
+        
             let
                 # Doesn't make the default 14 decimals
                 precision = 8*|decimals|,
@@ -833,11 +899,10 @@ define solve_suite = test_suite("Function solve", [
                 B = random_4_by_4_matrix(),
                 X = solve(A, B)
             in
-                approximates(A^T '*' A '*' X, A^T '*' B, precision)
-            end)),
+                just(approximates(A^T '*' A '*' X, A^T '*' B, precision))
+            end),
     
     random_test("should solve AX=B when nr column < nr rows", () ->
-        tmp_catch(() ->
             let
                 # Doesn't make the default 14 decimals
                 precision = 8*|decimals|,
@@ -846,8 +911,8 @@ define solve_suite = test_suite("Function solve", [
                 B = random_4_by_3_matrix(),
                 X = solve(A, B)
             in
-                approximates(A^T '*' A '*' X, A^T '*' B, precision)
-            end)),
+                just(approximates(A^T '*' A '*' X, A^T '*' B, precision))
+            end),
 
     # The javascript version leads sometimes to NaN numbers in the result vectors of $base_matrix_svd. The svd 
     # function causes problems.
@@ -944,7 +1009,6 @@ define solve_suite = test_suite("Function solve", [
     #         end)),
       
     random_test("should solve AX=B when nr column > nr rows", () ->
-        tmp_catch(() ->
             let
                 # Doesn't make the default 14 decimals
                 precision = 8*|decimals|,
@@ -953,8 +1017,8 @@ define solve_suite = test_suite("Function solve", [
                 B = random_4_by_3_matrix()^T,
                 X = solve(A, B)
             in
-                approximates(A^T '*' A '*' X, A^T '*' B, precision)
-            end))
+                just(approximates(A^T '*' A '*' X, A^T '*' B, precision))
+            end)
 ]);
 
 

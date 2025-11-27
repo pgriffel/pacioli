@@ -105,7 +105,9 @@ define max_comprehension_suite = test_suite("Max Comprehension", [
     ),
 
     test("should fail for empty list", () ->
-        is_nothing(catch(() -> max[x | x <- []]))
+        let result = catch(() -> max[x | x <- []]) in
+            is_error(result) and result_error(result) = "Cannot fold an empty list"
+        end
     ),
 
     test("should do element-wise max for three matrices", () ->
