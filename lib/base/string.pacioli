@@ -21,7 +21,7 @@ export
     compare_string,
     string_length,
     concatenate,
-    substring,
+    char_at,
     split_string,
     trim,
     pad,
@@ -57,11 +57,14 @@ declare_primitive concatenate(string0, string1) ::
 
 # ----------------------------------------------------------------------------
 
-doc substring
-    "A substring of the given string from start (inclusive) to end (exclusive).";
+doc char_at
+    "The character at position pos mod n of the original string, where n is the
+    length of the original string.
+    
+    It is an error if the string is empty.";
 
-declare_primitive substring(string, start_pos, end_pos) ::
-    (String, 1, 1) -> String;
+declare_primitive char_at(string, position) ::
+    (String, 1) -> String;
 
 # ----------------------------------------------------------------------------
 

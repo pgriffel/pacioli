@@ -24,6 +24,7 @@ export
     pad_right,
     num2string,
     num2str,
+    substring,
     string_starts_with,
     string_ends_with;
 
@@ -146,4 +147,34 @@ declare string_ends_with :: (String, String) -> Boole;
 define string_ends_with(str, suffix) =
     let n = string_length(str) in
         substring(str, n - string_length(suffix), n) = suffix
+    end;
+
+# ------------------------------------------------------------------------------
+  
+doc substring
+    "A substring of the given string from start (inclusive) to end (exclusive).
+    
+    Returns a string of length end - start. The chartacter at the i-th position
+    is the character at position (start + i) mod n of the original string,
+    where n is the length of the original string.
+    
+    Returns the empty string if the original string is empty.";
+
+declare substring ::
+    (String, 1, 1) -> String;
+  
+define substring(str, startPos, endPos) =
+    if str = "" then
+        ""
+    else
+        let
+            n = string_length(str),
+            xs = [char_at(str, mod(startPos + i, n)) | i <- naturals(max(0, endPos - startPos))]
+        in
+            if xs = [] then
+                "" 
+            else
+                fold_list(concatenate, xs) 
+            end
+        end
     end;

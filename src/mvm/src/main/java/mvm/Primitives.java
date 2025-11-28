@@ -1205,16 +1205,23 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("string_substring") {
+        storePrimitive(store, new Primitive("string_char_at") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliString string = (PacioliString) params.get(0);
-                Matrix startMat = (Matrix) params.get(1);
-                Matrix endMat = (Matrix) params.get(2);
+                PacioliString stringParam = (PacioliString) params.get(0);
+                Matrix posParam = (Matrix) params.get(1);
 
-                int start = (int) startMat.SingletonNumber();
-                int end = (int) endMat.SingletonNumber();
+                String string = stringParam.toText();
+                int n = string.length();
 
-                return new PacioliString(string.toText().substring(start, end));
+                if (n == 0) {
+                    throw new MVMException("char_at called on empty string");
+                }
+
+                int pos = (int) posParam.SingletonNumber();
+
+                int s = pos % n;
+
+                return new PacioliString(Character.toString(string.charAt(s < 0 ? s + n : s)));
             }
         });
 

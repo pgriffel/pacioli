@@ -1022,9 +1022,7 @@ doc cholesky
   
     Decomposes a matrix into product L '*' L^T, with L a lower triangular matrix.
 
-    It is an error if the matrix is not symmetric or is not positive definite.
-    
-    Not implemented in pacioli-js.";
+    It is an error if the matrix is not symmetric or is not positive definite.";
 
 declare_primitive cholesky ::
   for_index P: for_unit a, P!u: (a^2/P!u per P!u) -> a/P!u per P!;

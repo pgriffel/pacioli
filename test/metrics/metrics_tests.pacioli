@@ -26,8 +26,12 @@ import random;
 
 declare metric_suites :: List(TestSuite);
 
-define metric_suites = 
-    append([bilinear_form_suite, metric_norm_suite], gsvd_suites);
+define metric_suites = [
+    bilinear_form_suite,
+    metric_norm_suite,
+    scalar_gsvd_suite, 
+    matrix_gsvd_suite
+];
 
 run_test_suites(metric_suites);
 
@@ -87,13 +91,6 @@ define metric_norm_suite = test_suite("Function metric_norm",
 # Function metric_svd
 # ------------------------------------------------------------------------------
 
-define gsvd_suites = 
-    if _runtime_environment = "javascript" then
-        [test_suite("No gsvd for pacioli-js", [])]
-    else
-        [scalar_gsvd_suite, matrix_gsvd_suite]
-    end;
-
 define scalar_gsvd_suite =
     gsvd_suite(
         "Function gsvd for dimensionless scalars",
@@ -120,8 +117,6 @@ define gsvd_suite(
         precision) =
     test_suite(
         description, 
-        if _is_js then [] else
-        
         let 
             # Do these two once per test run because they are slow
             left_metric = left_metric_generator(),
@@ -148,7 +143,6 @@ define gsvd_suite(
             random_test("should give an orthogonal set for the column dimension", () ->
                 just(are_orthogonal_right([w | (_, _, w) <- svd(matrix_generator())], precision)))
             ]
-        end
         end);
 
 # ------------------------------------------------------------------------------
@@ -200,9 +194,14 @@ doc generate_positive_definite
 define generate_positive_definite(generator) =
     begin
         A := generator();
+        i := 10000;
         while not(is_positive_definite(A)) do
             A := generator();
-        end
+            i := i - 1;
+            if i = 0 then
+                error("Could not generate a positive definite matrix.");
+            end
+        end 
         return A;
     end;
 

@@ -179,6 +179,8 @@ export {
   $base_system__set_precision,
   $base_list_nth,
   $base_system__num2string,
+  $base_string_char_at,
+  $base_string_string_length,
   $base_string_pad,
   $base_string_parse_num,
   $base_string_compare_string,
