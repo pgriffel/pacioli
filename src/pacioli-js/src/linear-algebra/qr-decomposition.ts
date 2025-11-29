@@ -20,6 +20,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { hypot } from "./util";
+
 /**
  * QR Decomposition, computed by Householder reflections.
  * Structure to access R and the Householder vectors and compute Q.
@@ -208,20 +210,6 @@ export class QRDecomposition {
   //       nx - 1
   //     );
   //   }
-}
-
-function hypot(a: number, b: number) {
-  var r;
-  if (Math.abs(a) > Math.abs(b)) {
-    r = b / a;
-    r = Math.abs(a) * Math.sqrt(1 + r * r);
-  } else if (b !== 0) {
-    r = a / b;
-    r = Math.abs(b) * Math.sqrt(1 + r * r);
-  } else {
-    r = 0.0;
-  }
-  return r;
 }
 
 // "use strict";

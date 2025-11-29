@@ -23,7 +23,7 @@
 /**
  * LU Decomposition
  *
- * P is a m x m permutation matrix
+ * P is a permutation vector of size m
  * L is a m x n lower triangular matrix with unit diagonal elements
  * U is a n x n upper triangular matrix
  *
