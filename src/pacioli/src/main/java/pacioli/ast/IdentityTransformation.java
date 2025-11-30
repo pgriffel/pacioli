@@ -416,7 +416,7 @@ public class IdentityTransformation implements Visitor {
     public void visit(ForNode node) {
         ForNode forNode = node.transform(node.var, expAccept(node.items), expAccept(node.body));
         forNode.table = node.table;
-        forNode.lambdaBody = node.lambdaBody;
+        forNode.lambdaBody = expAccept(node.lambdaBody);
         returnNode(forNode);
     }
 
@@ -424,7 +424,7 @@ public class IdentityTransformation implements Visitor {
     public void visit(ForTupleNode node) {
         ForTupleNode forNode = node.transform(node.vars, expAccept(node.items), expAccept(node.body));
         forNode.table = node.table;
-        forNode.lambdaBody = node.lambdaBody;
+        forNode.lambdaBody = expAccept(node.lambdaBody);
         returnNode(forNode);
     }
 
