@@ -5,7 +5,7 @@ module.exports = {
   mode: "development",
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'pacioli-0.5.0.bundle.js',
+    filename: 'pacioli-0.5.1.bundle.js',
     library: 'Pacioli'
   },
   resolve: {

@@ -25,8 +25,8 @@ import { getNumber } from "../values/numbers";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { createGridHelper, makeCanvasLabelObject } from "./threejs";
-import { addMesh, disposeMesh, updateMesh } from "./mesh";
-import { addPath, disposePath } from "./path";
+import { addMesh, disposeMesh, PacioliMesh, updateMesh } from "./mesh";
+import { addPath, disposePath, PacioliPath } from "./path";
 import { addArrow, updateArrow } from "./arrow";
 import { SpaceOptions } from "./space";
 import { PacioliScene } from "./scene";
@@ -399,6 +399,30 @@ export class ThreeJsEnvironment {
     requestAnimationFrame(() => {
       this.renderer.render(this.scene, this.camera);
     });
+  }
+
+  public addPath(
+    path: PacioliPath,
+    options: {
+      unitX: SIUnit;
+      unitY: SIUnit;
+      unitZ: SIUnit;
+      scale: number;
+    }
+  ) {
+    addPath(this.body, path, options);
+  }
+
+  public addMesh(
+    mesh: PacioliMesh,
+    options: {
+      unitX: SIUnit;
+      unitY: SIUnit;
+      unitZ: SIUnit;
+      scale: number;
+    }
+  ) {
+    addMesh(this.body, mesh, options);
   }
 }
 

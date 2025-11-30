@@ -41,11 +41,11 @@ export
     not_equal,
     not,
     error,
+    try_catch,
     just,
     nothing,
     is_nothing,
-    from_just,
-    catch;
+    from_just;
 
 defunit metre "m";
 defunit gram "g";
@@ -123,6 +123,17 @@ declare_primitive error(message) ::
     for_type t: (String) -> t;
 
 # ----------------------------------------------------------------------------
+
+doc try_catch
+    "Temporary stub for a proper error handling mechanism.
+    
+    Calls the function. If an error occurs, the handler function is called
+    with the error message as argument.";
+
+declare_primitive try_catch(fun, handler) ::
+    for_type t: (() -> t, (String) -> t) -> t;
+
+# ----------------------------------------------------------------------------
 # Maybe
 # ----------------------------------------------------------------------------
 
@@ -155,11 +166,3 @@ doc from_just
 
 declare_primitive from_just(maybe) ::
     for_type t: (Maybe(t)) -> t;
-
-# ----------------------------------------------------------------------------
-
-doc catch
-    "Temporary stub for a proper error handling mechanism. Turns an error into a Maybe.";
-
-declare_primitive catch(fun) ::
-    for_type t: (() -> t) -> Maybe(t);

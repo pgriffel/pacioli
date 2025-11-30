@@ -32,7 +32,8 @@ export
     _set_nr_decimals,
     _num2string,
     _show_zeros,
-    _set_show_zeros;
+    _set_show_zeros,
+    _runtime_environment;
 
 # ----------------------------------------------------------------------------
 # System functions
@@ -112,3 +113,11 @@ declare_primitive _set_show_zeros(show) ::
 
 declare_primitive _show_zeros() ::
     () -> Boole;
+
+# ----------------------------------------------------------------------------
+
+doc _runtime_environment
+    "The runtime environment the code is executing in, e.g., 'mvm' or
+     'javascript'.";
+
+declare_primitive _runtime_environment :: String;

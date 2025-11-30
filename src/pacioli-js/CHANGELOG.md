@@ -4,4 +4,5 @@
 
 ### Changed
 
-Switched to esbuild
+- Switched to esbuild
+- Implemented pacioli-js implementations of the linear algebra decompositions

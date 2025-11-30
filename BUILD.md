@@ -12,7 +12,7 @@ This requires Java version 17 or above. To build the .jar file do the following:
 
 1. Clone the sources
 
-2. cd src/pacioli
+2. cd src
 
 3. ./mvnw install
 

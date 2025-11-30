@@ -59,6 +59,12 @@ import { PacioliVoid, VOID } from "./values/void";
 import { PacioliMatrix } from "./values/matrix";
 import { PacioliMap } from "./values/map";
 import { RawMaybe } from "./values/maybe";
+import { DOM } from "./dom/dom";
+import { SingularValueDecomposition } from "./linear-algebra/singular-value-decomposition";
+import { CholeskyDecomposition } from "./linear-algebra/cholesky-decomposition";
+import { QRDecomposition } from "./linear-algebra/qr-decomposition";
+import { LUDecomposition } from "./linear-algebra/plu-decomposition";
+import { EigenvalueDecomposition } from "./linear-algebra/eigenvalue-decomposition";
 
 // -----------------------------------------------------------------------------
 // 1. Primitive Units Unit Prefixes
@@ -94,6 +100,10 @@ export const prefix = {
 //
 // Each primitive function is named '<module>_<name>'.
 // -----------------------------------------------------------------------------
+
+export const compute_$base_system__runtime_environment = function () {
+  return "javascript";
+};
 
 export const $base_base_tuple = function (...args: RawValue[]): RawTuple {
   return tagTuple(Array.prototype.slice.call(args));
@@ -132,17 +142,15 @@ export function $base_base_error(value: RawString): unknown {
   throw Error(value);
 }
 
-// Fixme: decide on return value (is nothing now) and give
-// a proper type.
-export function $base_base_catch(code: any, _: any[]) {
+export function $base_base_try_catch(code: RawFunction, handler: RawFunction) {
   if (false) {
     // dev switch to debug exceptions in a catch block
     return code();
   } else {
     try {
-      return new RawMaybe(code());
-    } catch (err) {
-      return NOTHING;
+      return code();
+    } catch (err: any) {
+      return handler(err.message || err);
     }
   }
 }
@@ -912,43 +920,133 @@ export function $base_matrix_cbrt(x: RawMatrix): RawMatrix {
   });
 }
 
-export function $base_matrix_qr(_: RawMatrix): RawTuple {
-  throw new Error("Function qr is not implemented in pacioli-js");
+export function $base_matrix_qr_decomposition(A: RawMatrix): RawTuple {
+  const QR = new QRDecomposition(getFullNumbers(A));
+  const Q = QR.getQ();
+  const R = QR.getR();
+
+  const m = A.nrRows;
+  const n = A.nrColumns;
+
+  var Qmat = zeroNumbers(m, n);
+  var Rmat = zeroNumbers(n, n);
+
+  for (let i = 0; i < m; i++) {
+    for (let j = 0; j < n; j++) {
+      set(Qmat, i, j, Q[i][j]);
+    }
+  }
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      set(Rmat, i, j, R[i][j]);
+    }
+  }
+
+  return tagTuple([Qmat, Rmat]);
 }
 
-export function $base_matrix_plu(x: RawMatrix): RawTuple {
-  throw new Error("Function plu is not implemented in pacioli-js");
+export function $base_matrix_plu_decomposition(x: RawMatrix): RawTuple {
+  const decomposition = new LUDecomposition(getFullNumbers(x));
 
-  // Does numeric provide serparate L and U?
-
-  const decomposition = numeric.LU(getFullNumbers(x));
+  const L: number[][] = decomposition.getL();
+  const U: number[][] = decomposition.getU();
+  const P: number[] = decomposition.getPivot();
 
   const m = x.nrRows;
   const n = x.nrColumns;
 
   var Pmat = zeroNumbers(m, m);
-  var LUmat = zeroNumbers(m, n);
+  var Lmat = zeroNumbers(m, n);
+  var Umat = zeroNumbers(n, n);
 
   for (let i = 0; i < m; i++) {
-    set(Pmat, i, i, 1);
-
     for (let j = 0; j < n; j++) {
-      set(LUmat, i, j, decomposition.LU[i][j]);
+      set(Lmat, i, j, L[i][j]);
+    }
+  }
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      set(Umat, i, j, U[i][j]);
     }
   }
 
   for (let i = 0; i < m; i++) {
-    const Pi = decomposition.P[i];
-    if (Pi !== i) {
-      for (let j = 0; j < n; j++) {
-        const tmp = Pmat[i][j];
-        set(Pmat, i, j, Pmat[Pi][j]);
-        set(Pmat, Pi, j, tmp);
-      }
+    for (let j = 0; j < m; j++) {
+      set(Pmat, i, P[i], 1);
     }
   }
 
-  return tagTuple([Pmat, LUmat]);
+  return tagTuple([Pmat, Lmat, Umat]);
+}
+
+/**
+ * The eigen value decomposition.
+ *
+ * A = V '*' D '*' V'^'-1
+ *
+ * All matrices are n x n
+ *
+ * @param A A symmetric non-singular matrix
+ * @returns A tuple (D, V)
+ */
+export function $base_matrix_eigenvalue_decomposition(A: RawMatrix): RawTuple {
+  const decomposition = new EigenvalueDecomposition(getFullNumbers(A));
+
+  const D: number[][] = decomposition.getD();
+  const V: number[][] = decomposition.getV();
+
+  const n = A.nrRows;
+
+  var Dmat = zeroNumbers(n, n);
+  var Vmat = zeroNumbers(n, n);
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      set(Dmat, i, j, D[i][j]);
+      set(Vmat, i, j, V[i][j]);
+    }
+  }
+
+  return tagTuple([Dmat, Vmat]);
+}
+
+/**
+ * The eigen value decomposition.
+ *
+ * A = V '*' D '*' V'^'-1
+ *
+ * All matrices are n x n
+ *
+ * @param A A symmetric non-singular matrix
+ * @returns A tuple (D, V)
+ */
+export function $base_matrix_eigenvalue_list(A: RawMatrix): RawList {
+  const decomposition = new EigenvalueDecomposition(getFullNumbers(A));
+
+  const d: number[] = decomposition.getRealEigenvalues();
+  const e: number[] = decomposition.getImagEigenvalues();
+  const V: number[][] = decomposition.getV();
+
+  const n = A.nrRows;
+
+  let tuples = [];
+
+  for (let j = 0; j < n; j++) {
+    const realEv = initialNumbers(1, 1, [[0, 0, d[j]]]);
+    const imagEv = initialNumbers(1, 1, [[0, 0, e[j]]]);
+
+    var vec = zeroNumbers(n, 1);
+
+    for (let i = 0; i < n; i++) {
+      set(vec, i, 0, V[i][j]);
+    }
+
+    tuples.push(tagTuple([realEv, imagEv, vec]));
+  }
+
+  return tagList(tuples);
 }
 
 export function $base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
@@ -960,138 +1058,153 @@ export function $base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
 
   const EPS = 1.0 * Math.pow(2, -52);
 
-  try {
-    const svd = $base_matrix_svd(x) as unknown as [
-      RawMatrix,
-      RawMatrix,
-      RawMatrix
-    ][];
+  const svd = $base_matrix_singular_value_list(x) as unknown as [
+    RawMatrix,
+    RawMatrix,
+    RawMatrix
+  ][];
 
-    // Copied from SingularValueDecomposition.cs
-    const treshold = Math.max(
-      EPS,
-      EPS * getNumber(svd[0][0], 0, 0) * Math.max(x.nrRows, x.nrColumns)
-    );
+  // Copied from SingularValueDecomposition.cs
+  const treshold = Math.max(
+    EPS,
+    EPS * getNumber(svd[0][0], 0, 0) * Math.max(x.nrRows, x.nrColumns)
+  );
 
-    var inv = zeroNumbers(x.nrColumns, x.nrRows);
-    for (let elt of svd) {
-      // This loop swaps storage 2 and 3
-      const tup = elt;
-      const [a, v, w] = tup as unknown as [RawMatrix, RawMatrix, RawMatrix];
-      if (Math.abs(getNumber(a, 0, 0)) > treshold) {
-        const m = $base_matrix_scale(
-          $base_matrix_reciprocal(a),
-          $base_matrix_mmult(w, $base_matrix_transpose(v))
-        );
+  var inv = zeroNumbers(x.nrColumns, x.nrRows);
+  for (let elt of svd) {
+    // This loop swaps storage 2 and 3
+    const tup = elt;
+    const [a, v, w] = tup as unknown as [RawMatrix, RawMatrix, RawMatrix];
+    const r = $base_matrix_reciprocal(a);
+    if (Math.abs(getNumber(a, 0, 0)) > treshold) {
+      // if (getNumber(r, 0, 0) > treshold) {
+      const m = $base_matrix_scale(
+        r,
+        $base_matrix_mmult(w, $base_matrix_transpose(v))
+      );
 
-        inv = $base_matrix_sum(inv, m);
+      inv = $base_matrix_sum(inv, m);
+    }
+  }
+
+  const res = $base_matrix_mmult(inv, y);
+
+  if (res.nrColumns !== y.nrColumns) {
+    throw new Error("Incorrect matrix shape issue in solve");
+  }
+
+  if (res.nrRows !== x.nrColumns) {
+    throw new Error("Incorrect matrix shape issue in solve");
+  }
+
+  return res;
+}
+
+/**
+ * The singular value decomposition of a matrix A based on the JAMA library
+ * implementation.
+ *
+ * Returns a list of tuples (s, u, v) where s is a 1x1 matrix with the singular
+ * value, u is the left singular vector and v the right singular vector. If
+ * matrix A is mxn then we should get vectors of size m and size n.
+ *
+ * @param A The input matrix
+ * @returns A list of tuples (s, u, v)
+ */
+export function $base_matrix_singular_value_list(A: RawMatrix): RawList {
+  const JAMA_SVD = true;
+
+  // numerics and the jama version require that the number of rows is at least
+  // as large as the number of columns. Transpose to fix this if needed.
+  const needsTranspose = A.nrRows < A.nrColumns;
+
+  const m = needsTranspose ? A.nrColumns : A.nrRows;
+  const n = needsTranspose ? A.nrRows : A.nrColumns;
+
+  const full = getFullNumbers(needsTranspose ? $base_matrix_transpose(A) : A);
+
+  if (JAMA_SVD) {
+    const decomposition = new SingularValueDecomposition(full);
+
+    const s: number[] = decomposition.getSingularValues();
+    const U: number[][] = decomposition.getU();
+    const V: number[][] = decomposition.getV();
+
+    const r = s.length;
+
+    let tuples = [];
+
+    for (let j = 0; j < r; j++) {
+      const sv = initialNumbers(1, 1, [[0, 0, s[j]]]);
+
+      var left = zeroNumbers(m, 1);
+
+      for (let i = 0; i < m; i++) {
+        set(left, i, 0, U[i][j]);
       }
+
+      var right = zeroNumbers(n, 1);
+
+      for (let i = 0; i < n; i++) {
+        set(right, i, 0, V[i][j]);
+      }
+
+      tuples.push(
+        tagTuple(needsTranspose ? [sv, right, left] : [sv, left, right])
+      );
     }
 
-    const res = $base_matrix_mmult(inv, y);
+    return tagList(tuples);
+  } else {
+    const trip = numeric.svd(full);
 
-    if (res.nrColumns !== y.nrColumns) {
-      throw new Error("Incorrect matrix shape issue in solve");
+    const r = trip.S.length;
+
+    let tuples = [];
+
+    for (let j = 0; j < r; j++) {
+      const sv = initialNumbers(1, 1, [[0, 0, trip.S[j]]]);
+
+      var left = zeroNumbers(m, 1);
+
+      for (let i = 0; i < m; i++) {
+        set(left, i, 0, trip.U[i][j]);
+      }
+
+      var right = zeroNumbers(n, 1);
+
+      for (let i = 0; i < n; i++) {
+        set(right, i, 0, trip.V[i][j]);
+      }
+
+      tuples.push(
+        tagTuple(needsTranspose ? [sv, right, left] : [sv, left, right])
+      );
     }
 
-    if (res.nrRows !== x.nrColumns) {
-      throw new Error("Incorrect matrix shape issue in solve");
-    }
-
-    return res;
-  } catch (ex: unknown) {
-    // Debugging svd issues. Uncomment the following and place a breakpoint:
-
-    // console.log("oeps", ex);
-
-    // const svd = $base_matrix_svd(x) as unknown as [
-    //   RawMatrix,
-    //   RawMatrix,
-    //   RawMatrix
-    // ][];
-
-    // // Copied from SingularValueDecomposition.cs
-    // const treshold = Math.max(
-    //   EPS,
-    //   EPS * getNumber(svd[0][0], 0, 0) * Math.max(x.nrRows, x.nrColumns)
-    // );
-
-    // var inv = zeroNumbers(x.nrColumns, x.nrRows);
-    // for (let elt of svd) {
-    //   // This loop swaps storage 2 and 3
-    //   const tup = elt;
-    //   const [a, v, w] = tup as unknown as [RawMatrix, RawMatrix, RawMatrix];
-    //   if (Math.abs(getNumber(a, 0, 0)) > treshold) {
-    //     const m = $base_matrix_scale(
-    //       $base_matrix_reciprocal(a),
-    //       $base_matrix_mmult(w, $base_matrix_transpose(v))
-    //     );
-
-    //     inv = $base_matrix_sum(inv, m);
-    //   }
-    // }
-
-    // const res = $base_matrix_mmult(inv, y);
-
-    // console.log(res);
-
-    throw ex;
+    return tagList(tuples);
   }
 }
 
-export function $base_matrix_svd(x: RawMatrix): RawList {
-  // If x is mxn then we should get vectors of size m and size n
+export function $base_matrix_cholesky_decomposition(A: RawMatrix): RawMatrix {
+  const m = A.nrRows;
+  const n = A.nrColumns;
 
-  // numerics requires that the number of rows is at least as large
-  // as the number of columns. Transpose to fix this if needed.
-  const needsTranspose = x.nrRows < x.nrColumns;
-
-  const m = needsTranspose ? x.nrColumns : x.nrRows;
-  const n = needsTranspose ? x.nrRows : x.nrColumns;
-
-  const full = getFullNumbers(needsTranspose ? $base_matrix_transpose(x) : x);
-
-  // Experiment with svd-js. Also gives NaN numbers.
-  // const alt = SVD(full);
-  // console.log("svd-js output", alt);
-
-  const trip = numeric.svd(full);
-  const r = trip.S.length;
-
-  let tuples = [];
-
-  for (let j = 0; j < r; j++) {
-    const si = trip.S[j];
-    if (isNaN(si)) {
-      throw Error("Cannot compute svd. Insufficient numerical precision.");
-    }
-    const sv = initialNumbers(1, 1, [[0, 0, si]]);
-
-    var left = zeroNumbers(m, 1);
-
-    for (let i = 0; i < m; i++) {
-      const uij = trip.U[i][j];
-      if (isNaN(uij)) {
-        throw Error("Cannot compute svd. Insufficient numerical precision.");
-      }
-      set(left, i, 0, uij);
-    }
-
-    var right = zeroNumbers(n, 1);
-    for (let i = 0; i < n; i++) {
-      const vij = trip.V[i][j];
-      if (isNaN(vij)) {
-        throw Error("Cannot compute svd. Insufficient numerical precision.");
-      }
-      set(right, i, 0, vij);
-    }
-
-    tuples.push(
-      tagTuple(needsTranspose ? [sv, right, left] : [sv, left, right])
-    );
+  if (m !== n) {
+    throw new Error("Matrix must be square for Cholesky decomposition");
   }
 
-  return tagList(tuples);
+  const full = getFullNumbers(A);
+
+  const decomposition = new CholeskyDecomposition(full);
+
+  if (!decomposition.isSPD()) {
+    throw new Error("matrix not positive definite in Cholesky decomposition");
+  }
+
+  const L: number[][] = decomposition.getL();
+
+  return tagNumbers(L, m, n, STORAGE_FULL) as RawMatrix;
 }
 
 export function $base_matrix_random(): RawMatrix {
@@ -1309,6 +1422,9 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
           out += arg;
         }
         i += 2;
+      } else if (secondChar === "n") {
+        out += "\n";
+        i += 2;
       } else {
         const regex = /^%([0-9]*)d/;
 
@@ -1359,10 +1475,19 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
               throw new Error("Expected matrix for %d format argument");
             }
 
-            // TODO: make dimensionless output for mat.
-            const txt = getNumber(mat, 0, 0).toFixed(nrDecs);
+            if (mat.nrRows === 1 && mat.nrColumns === 1) {
+              const txt = getNumber(mat, 0, 0).toFixed(nrDecs);
+              out += size === null ? txt : txt.padStart(size, " ");
+            } else {
+              // FIXME: replace this quick and dirty solution with proper matrix formatting
+              const rowList = DOM(mat, { decimals: nrDecs }).textContent;
+              if (rowList === null) {
+                out + "Could not format matrix";
+              } else {
+                out += rowList;
+              }
+            }
 
-            out += size === null ? txt : txt.padStart(size, " ");
             i += match[0].length;
           } else {
             out += char;
@@ -1453,6 +1578,25 @@ export function $base_string_concatenate(
 
 export function $base_string_split_string(x: RawString, y: RawString): RawList {
   return tagList(x.split(y) as unknown as RawValue[]);
+}
+
+export function $base_string_char_at(
+  str: RawString,
+  pos: RawMatrix
+): RawString {
+  const n = str.length;
+
+  if (n === 0) {
+    throw new Error("char_at called on empty string");
+  }
+
+  const s = getNumber(pos, 0, 0) % n;
+
+  return str.charAt(s < 0 ? s + n : s);
+}
+
+export function $base_string_string_length(x: RawString): RawMatrix {
+  return initialNumbers(1, 1, [[0, 0, x.length]]);
 }
 
 export function $base_string_pad(

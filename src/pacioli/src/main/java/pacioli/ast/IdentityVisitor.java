@@ -327,6 +327,7 @@ public class IdentityVisitor implements Visitor {
     public void visit(ForNode node) {
         node.items.accept(this);
         node.body.accept(this);
+        node.lambdaBody.accept(this);
     }
 
     @Override

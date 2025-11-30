@@ -31,8 +31,6 @@ export
     test_description,
     is_test_focused,
     run_test,
-    catch_with_fail, 
-    catch_with_skip,
     test_suite,
     test_suite_focus,
     suite_description,
@@ -300,15 +298,22 @@ define run_test_suite(suite) =
             nr_failures := 0;
 
             for test <- tests do
-                okay := run_test(test);
-                
-                if not(okay) then
-                    nr_failures := nr_failures + 1;
+                result := catch(() -> run_test(test));
+
+                if is_error(result) then
+                    printf("  %s -> An error occurred: %s", test_description(test), result_error(result));
+                else
+                    okay := result_value(result);
+
+                    if not(okay) then
+                        nr_failures := nr_failures + 1;
+                    end
+
+                    printf("  %s -> %s", 
+                        test_description(test),
+                        if okay then "ok" else "FAIL!" end);
                 end
 
-                printf("  %s -> %s", 
-                    test_description(test),
-                    if okay then "ok" else "FAIL!" end);
             end
 
             if nr_failures = 0 then
@@ -335,11 +340,22 @@ define run_random_test_body(description, body) =
         okay := true;
 
         while okay and successes != target and i < limit do
-            result := body();
-            if or_else(false, result) then
-                successes := successes + 1;
+            test_result := catch(body);
+
+            if is_error(test_result) then
+                printf("  error: '%s'", result_error(test_result));
+                okay := false;
+            else
+                result := result_value(test_result);
+
+                if or_else(false, result) then
+                    successes := successes + 1;
+                end
+
+                okay := or_else(true, result);
+                
             end
-            okay := or_else(true, result);
+
             i := i + 1;
         end
 
@@ -369,32 +385,3 @@ define skipped_message(nr_skipped) =
     else
         format(", %d skipped", nr_skipped)
     end;
-
-# ------------------------------------------------------------------------------
-# Catch wrappers
-# ------------------------------------------------------------------------------
-
-declare catch_with_fail, catch_with_skip ::
-    (() -> Boole) -> Maybe(Boole);
-
-doc catch_with_skip
-    "Alias for catch intended for use in random tests. If an error occurs the
-    test is skipped.
-
-    See also <code>catch_with_fail</code>.
-   
-    Temporary stub until better error handling is added.";
-
-define catch_with_skip(f) =
-    catch(f);
-
-doc catch_with_fail
-    "Wrapper around catch intended for use in random tests. If an error occurs the
-    test fails.
-   
-    See also <code>catch_with_skip</code>.
-
-    Temporary stub until better error handling is added.";
-
-define catch_with_fail(f) = 
-    just(or_else(false, catch(f)));

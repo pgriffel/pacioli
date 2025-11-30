@@ -43,6 +43,7 @@ import org.apache.commons.math3.linear.NonSymmetricMatrixException;
 import org.apache.commons.math3.linear.QRDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
+import org.apache.commons.math3.linear.EigenDecomposition;
 
 // import pacioli.Pacioli;
 import uom.DimensionedNumber;
@@ -59,7 +60,7 @@ public class Matrix implements PacioliValue {
 
     static public int precision = 14;
 
-    static public boolean showZeros = false;
+    static public boolean showZeros = true;
 
     ////////////////////////////////////////////////////////////////////////////
     // Constructors
@@ -115,6 +116,8 @@ public class Matrix implements PacioliValue {
 
             return;
         }
+
+        out.println();
 
         // The header text for the index column
         String sep = rowDimension().width() == 0 || columnDimension().width() == 0 ? "" : ", ";
@@ -1209,6 +1212,61 @@ public class Matrix implements PacioliValue {
         items.add(matrixU);
 
         return new PacioliTuple(items);
+    }
+
+    public PacioliTuple eigenvalueDecomposition() throws MVMException {
+
+        Matrix matrixD = new Matrix(shape);
+        Matrix matrixV = new Matrix(shape);
+
+        EigenDecomposition decomposition = new EigenDecomposition(numbers);
+
+        matrixD.numbers = decomposition.getD();
+        matrixV.numbers = decomposition.getV();
+
+        List<PacioliValue> items = new ArrayList<PacioliValue>();
+        items.add(matrixD);
+        items.add(matrixV);
+
+        return new PacioliTuple(items);
+    }
+
+    public PacioliList eigenvalueList() throws MVMException {
+
+        int m = shape.rowDimension().size();
+        int n = shape.columnDimension().size();
+
+        // m should equal n
+
+        EigenDecomposition decomposition = new EigenDecomposition(numbers);
+
+        RealMatrix matrixV = decomposition.getV();
+
+        List<PacioliValue> svs = new ArrayList<PacioliValue>();
+        for (int i = 0; i < n; i++) {
+
+            List<PacioliValue> items = new ArrayList<PacioliValue>();
+
+            Matrix readlEv = new Matrix(shape.factor());
+            Matrix imgEv = new Matrix(shape.factor());
+            Matrix vec = new Matrix(shape.rowUnits());
+
+            // ev.numbers.setEntry(0, 0, matrixD.getEntry(i, i));
+            readlEv.numbers.setEntry(0, 0, decomposition.getRealEigenvalue(i));
+            imgEv.numbers.setEntry(0, 0, decomposition.getImagEigenvalue(i));
+
+            for (int j = 0; j < n; j++) {
+                vec.numbers.setEntry(j, 0, matrixV.getEntry(j, i));
+            }
+
+            items.add(readlEv);
+            items.add(imgEv);
+            items.add(vec);
+
+            svs.add(new PacioliTuple(items));
+        }
+
+        return new PacioliList(svs);
     }
 
     public PacioliTuple qrZeroSub() throws MVMException {

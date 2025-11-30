@@ -21,8 +21,7 @@ import testing;
 import random;
 import si;
 import testdata;
-
-# include svd_tests;
+import geometry;
 
 declare base_suites :: List(TestSuite);
 
@@ -43,16 +42,21 @@ define base_suites = [
     mexpt_suite,
     random_suite,
     equal_suite,
+    string_length_suite,
+    substring_suite,
     pad_suite,
     pad_left_suite,
     pad_right_suite,
     index_element_suite,
     format_suite,
     plu_suite,
+    eigenvalue_decomposition_suite,
+    eigenvalue_list_suite,
     scalar_inverse_suite,
     matrix_inverse_suite,
     scalar_svd_suite,
     matrix_svd_suite,
+    matrix_svd_regression_suite,
     qr_suite,
     cholesky_suite,
     solve_suite,
@@ -79,6 +83,11 @@ define is_lower_trianular(A) =
         j <- column_domain(A),
         index_less(i, j)];
 
+
+declare is_js :: Boole;
+
+define is_js =
+    _runtime_environment = "javascript";
 
 # ------------------------------------------------------------------------------
 # Indexing
@@ -465,6 +474,139 @@ define pad_left_suite = test_suite("Function pad_left", [
 ]);
 
 # ------------------------------------------------------------------------------
+# string_length suite
+# ------------------------------------------------------------------------------
+
+define string_length_suite = test_suite("Function string_length", [
+    
+    test("should be zero for the empty string", () ->
+        string_length("") = 0),
+ 
+    test("should be three for the string 'foo'", () ->
+        string_length("foo") = 3)
+]);
+
+# ------------------------------------------------------------------------------
+# substring suite
+# ------------------------------------------------------------------------------
+
+
+define substring_suite = test_suite("Function substring", [
+
+    test("should give the empty string when called with indices zero and minus one", () ->
+        let str = "abc" in
+            substring(str, 0, -1) = ""
+        end),
+
+    test("should give the empty string when called with indices zero and zero", () ->
+        let str = "abc" in
+            substring(str, 0, 0) = ""
+        end),
+
+    test("should give the original string when called with zero and string_length", () ->
+        let str = "abc" in
+            substring(str, 0, string_length(str)) = str
+        end),
+
+    test("should give the empty string when called with string_length and string_length", () ->
+        let str = "abc" in
+            substring(str, string_length(str), string_length(str)) = ""
+        end),
+        
+    test("should give the first character of a string when called with zero and one", () ->
+        let
+            first_char = "a",
+            str = concatenate(first_char, "bc")
+        in
+            substring(str, 0, 1) = first_char
+        end),
+        
+    test("should give the first character of a string when called with string_length and string_length + 1", () ->
+        let
+            first_char = "a",
+            str = concatenate(first_char, "bc")
+        in
+            substring(str, string_length(str), string_length(str) + 1) = first_char
+        end),
+
+    test("should give the last character of a string when called with string_length - 1 and string_length", () ->
+        let
+            last_char = "c",
+            str = concatenate("ab", last_char)
+        in
+            substring(str, string_length(str) - 1, string_length(str)) = last_char
+        end),
+
+    test("should give the last character of a string when called with minus one and zero", () ->
+        let str = "abc" in
+            substring(str, -1, 0) = "c"
+        end),
+
+    test("should double the string when called with zero and double string_length", () ->
+        let str = "abc" in
+            substring(str, 0, 2 * string_length(str)) = concatenate(str, str)
+        end),
+
+    test("should permutate first char to end when called with 1 and string_length + 1", () ->
+        let 
+            char = "a",
+            rest = "bc",
+            str = concatenate(char, rest)
+        in
+            substring(str, 1, string_length(str) + 1) = concatenate(rest, char)
+        end),
+
+    test("should permutate last char to begin when called with -1 and string_length - 1", () ->
+        let 
+            char = "c",
+            rest = "ab",
+            str = concatenate(rest, char)
+        in
+            substring(str, -1, string_length(str) - 1) = concatenate(char, rest)
+        end),
+
+    random_test("should give a string of the right size", () ->
+        let
+            n = random_nat(10),
+            str = random_string(n),
+            startPos = random_nat(10) - 5,
+            endPos = random_nat(10) - 5,
+
+            substr = substring(str, startPos, endPos)
+        in
+            if n = 0 then
+                just(string_length(substr) = 0)
+            else
+                just(string_length(substr) = max(0, endPos - startPos))
+            end
+        end),
+        
+    random_test("should give a string with the right contents", () ->
+        let
+            n = random_nat(10),
+            str = random_string(n),
+            startPos = random_nat(10) - 5,
+            endPos = random_nat(10) - 5,
+
+            substr = substring(str, startPos, endPos)
+        in
+            if n = 0 then
+                just(substr = "")
+            else
+                just(all[char_at(substr, i) = char_at(str, mod(startPos + i, n)) | i <- naturals(string_length(substr))])
+            end
+        end)
+]);
+
+define random_string(n) =
+    concat[random_char() | _ <- naturals(n)];
+
+define random_char() =
+    let chars = ["a", "b", "c", "d", "e"] in
+        nth(random_nat(list_size(chars)), chars)
+    end;
+
+# ------------------------------------------------------------------------------
 # Pad right suite
 # ------------------------------------------------------------------------------
 
@@ -564,113 +706,178 @@ define format_suite = test_suite("Function format", [
         (is_js and format("prefix%17.3fsuffix", 12 * |metre/second^2|) = "prefix           12.000suffix")),   
 
     test("should error on not number for %f", () ->
-        is_nothing(catch(() -> format("%f", "foo")))),   
+        is_error(catch(() -> format("%f", "foo")))),   
 
     test("should error on not number for %d", () ->
-        is_nothing(catch(() -> format("%d", "foo")))),   
+        is_error(catch(() -> format("%d", "foo")))),   
          
     test("should error on trailing percentage character", () ->
-         is_nothing(catch(() -> format("%"))))
+         is_error(catch(() -> format("%"))))
 ]);
 
 declare print_test :: () -> Void;
 
 define print_test() =
-   print(format("Testing %s", Foo@foo));
-
-declare is_js :: Boole;
-
-define is_js = format("%d", |metre|) = "1";
+   print(format("Print test. This should show Foo@foo: '%s'", Foo@foo));
 
 # ------------------------------------------------------------------------------
 # Function plu
 # ------------------------------------------------------------------------------
 
-define plu_suite = 
-    if is_js then
-        test_suite("No plu for pacioli-js", [])
-    else
-        real_plu_suite
-    end;
-
-define real_plu_suite = test_suite("Function plu", [
+define plu_suite = test_suite("Function plu", [
 
     random_test("should be a proper factorization", () ->
-        catch_with_skip(() ->
-            let
-                # Doesn't make the default 14 decimals
-                precision = 10*|decimals|,
+        let
+            # Doesn't make the default 14 decimals
+            precision = 10*|decimals|,
 
-                A = random_4_by_4_matrix(),
-                (P, L, U) = plu(A)
-            in
-                approximates(P '*' A, L '*' U, precision)
-            end)),
+            A = random_4_by_4_matrix()
+        in
+            map_maybe(
+                (plu) ->
+                    let (P, L, U) = plu in
+                        approximates(P '*' A, L '*' U, precision)
+                    end,
+                non_singular_plu(A))
+        end),
 
     random_test("should give upper triangular U", () ->
-        catch_with_skip(() ->
-            let (_, _, U) = plu(random_4_by_4_matrix()) in
-                is_upper_trianular(U)
-            end)),
+        map_maybe(
+            (plu) ->
+                let (_, _, U) = plu in
+                    is_upper_trianular(U)
+                end,
+            non_singular_plu(random_4_by_4_matrix()))),
 
     random_test("should give lower triangular L", () ->
-        catch_with_skip(() ->
-            let (_, L, _) = plu(random_4_by_4_matrix()) in
-                is_lower_trianular(L)
-            end)),
+        map_maybe(
+            (plu) ->
+                let (_, L, _) = plu in
+                    is_lower_trianular(L)
+                end,
+            non_singular_plu(random_4_by_4_matrix()))),
 
     random_test("should give permutation matrix P", () ->
-        catch_with_skip(() ->
-            let 
-                A = random_4_by_4_matrix(),
-                (P, _, _) = plu(A)
-            in
-                # TODO: proper test
-                P '*' P^T = left_identity(A)
-            end))
+        let
+            A = random_4_by_4_matrix()
+        in
+            map_maybe(
+                (plu) ->
+                    let (P, _, _) = plu in
+                        P '*' P^T = left_identity(A)
+                    end,
+                non_singular_plu(A))
+        end)
 ]);
+
+define non_singular_plu(A) =
+    try_catch(() -> just(plu_decomposition(A)),
+        (err) ->
+            if string_starts_with(err, "No PLU decomposition for") and
+                string_ends_with(err, "matrix is singular")
+            then
+                nothing()
+            else
+                error(err)
+            end);
+
+# ------------------------------------------------------------------------------
+# Functions eigenvalue_decomposition and eigenvalue_list
+#
+# TODO: 
+# - check completeness/correct rank
+# - imaginary case
+# ------------------------------------------------------------------------------
+
+
+define eigenvalue_decomposition_suite = test_suite("Function eigenvalue_decomposition", [
+
+    random_test("should be a proper factorization", () ->
+        let
+            # Doesn't make the default 14 decimals
+            precision = 9*|decimals|,
+
+            A = random_4_by_4_matrix()
+        in
+            let (D, V) = eigenvalue_decomposition(A) in
+                just(approximates(A '*' V, V '*' D, precision))
+            end
+        end)
+]);
+
+define eigenvalue_list_suite = test_suite("Function eigenvalue_list", [
+
+    random_test("should give real eigenvalues and eigenvectors for symmetric matrices", () ->
+        let
+            # Doesn't make the default 14 decimals
+            precision = 10*|decimals|,
+
+            A = symmetric_matrix_generator(random_4_by_4_matrix)()
+        in
+            just(all[ i ~= 0 | (_, i, _) <- eigenvalue_list(A)])
+        end),
+         
+    random_test("should give correct real eigenvalues and eigenvectors for symmetric matrices", () ->
+        let
+            # Doesn't make the default 14 decimals
+            precision = 10*|decimals|,
+
+            A = symmetric_matrix_generator(random_4_by_4_matrix)()
+        in
+            let 
+                ts = eigenvalue_list(A)
+            in
+                just(all[ approximates(A '*' v, r '.*' v, precision) | (r, _, v) <- eigenvalue_list(A)])
+            end
+        end)
+]);
+
+# ------------------------------------------------------------------------------
+
+declare symmetric_matrix_generator :: for_index I: for_unit a, I!u:
+    (() -> a/I!u per I!u) -> () -> a/I!u per I!u;
+
+doc symmetric_matrix_generator
+    "Turns a function that generates matrices into a function that generates
+    symmetric matrices.";
+
+define symmetric_matrix_generator(matrix_generator) =
+    () ->
+        let r = matrix_generator() in
+            r^T + r 
+        end;
 
 # ------------------------------------------------------------------------------
 # Function qr
 # ------------------------------------------------------------------------------
 
-define qr_suite = 
-    if is_js then
-        test_suite("No qr for pacioli-js", [])
-    else
-        real_qr_suite
-    end;
-
-define real_qr_suite = test_suite("Function qr", [
+define qr_suite = test_suite("Function qr", [
    
     random_test("should be a proper factorization", () ->
-        catch_with_skip(() ->
-            let
-                # Doesn't make the default 14 decimals
-                precision = 10*|decimals|,
-                A = random_4_by_4_matrix(),
-                (Q, R) = qr(A)
-            in
-                approximates(A, Q '*' R, precision)
-            end)),
+        let
+            # Doesn't make the default 14 decimals
+            precision = 10*|decimals|,
+            A = random_4_by_4_matrix(),
+            (Q, R) = qr_decomposition(A)
+        in
+            just(approximates(A, Q '*' R, precision))
+        end),
 
     random_test("should give an upper triangular R", () ->
-        catch_with_skip(() ->
-            let
-                (_, R) = qr(random_4_by_4_matrix())
-            in
-                is_upper_trianular(R)
-            end)),
+        let
+            (_, R) = qr_decomposition(random_4_by_4_matrix())
+        in
+            just(is_upper_trianular(R))
+        end),
 
     random_test("should give an orthonormal Q", () ->
-        catch_with_skip(() ->
-            let
-                A = random_4_by_4_matrix(),
-                I = left_identity(A),
-                (Q, _) = qr(A)
-            in
-                Q '*' Q^T ~= I and Q^T '*' Q ~= I
-            end))
+        let
+            A = random_4_by_4_matrix(),
+            I = left_identity(A),
+            (Q, _) = qr_decomposition(A)
+        in
+            just(Q '*' Q^T ~= I and Q^T '*' Q ~= I)
+        end)
 ]);
 
 # ------------------------------------------------------------------------------
@@ -688,36 +895,36 @@ define matrix_inverse_suite =
 define inverse_suite(description, matrix_generator, precision) = test_suite(description, [
 
     random_test("should satisfy A = A '*' inverse(A) '*' A", () ->
-            let
-                A = matrix_generator(),
-                A_inv = inverse(A)
-            in
-                just(approximates(A, A '*' A_inv '*' A, precision))
-            end),
+        let
+            A = matrix_generator(),
+            A_inv = inverse(A)
+        in
+            just(approximates(A, A '*' A_inv '*' A, precision))
+        end),
     
     random_test("should satisfy inverse(A) = inverse(A) '*' A '*' inverse(A)", () ->
-            let
-                A = matrix_generator(),
-                A_inv = inverse(A)
-            in
-                just(approximates(A_inv, A_inv '*' A '*' A_inv, precision))
-            end),
+        let
+            A = matrix_generator(),
+            A_inv = inverse(A)
+        in
+            just(approximates(A_inv, A_inv '*' A '*' A_inv, precision))
+        end),
     
     random_test("should satisfy (inverse(A) '*' A)^T = inverse(A) '*' A", () ->
-            let
-                A = matrix_generator(),
-                A_inv = inverse(A)
-            in
-                just(is_symmetric(A_inv '*' A, precision))
-            end),
+        let
+            A = matrix_generator(),
+            A_inv = inverse(A)
+        in
+            just(is_symmetric(A_inv '*' A, precision))
+        end),
     
     random_test("should satisfy (A '*' inverse(A))^T = A '*' inverse(A)", () ->
-            let
-                A = matrix_generator(),
-                A_inv = inverse(A)
-            in
-                just(is_symmetric(A '*' A_inv, precision))
-            end)
+        let
+            A = matrix_generator(),
+            A_inv = inverse(A)
+        in
+            just(is_symmetric(A '*' A_inv, precision))
+        end)
 ]);
 
 define is_symmetric(A, decimals) =
@@ -733,26 +940,85 @@ define scalar_svd_suite =
 define matrix_svd_suite =
     svd_suite("svd for matrices", () -> random_4_by_3_matrix() * |Four!unit per Three!unit|, 10*|decimals|);
 
+define matrix_svd_regression_suite =
+    begin
+    # print_svd(svd_reg);
+    return svd_suite("svd reg for matrices", () -> svd_reg, 10*|decimals|);
+    end;
+
+ # [[0.42025926416976755, 2.3909100543095816, -2.8223938905329136], [-1.1899934796618081, -6.770028926565032, 7.991805566515104], [-1.0075396878008331, -5.732025383040305, 6.766475130384711], [0.8826604407841495, 5.02157097376835, -5.927806113699193]]
+
+doc svd_reg
+    "Fails in numeric javascript (JAMA version is okay), succeeds in mvm.";
+
+defmatrix svd_reg :: Four!unit per Three!unit = {
+    one, one -> 0.42025926416976755,
+    one, two -> 2.3909100543095816,
+    one, three -> -2.8223938905329136,
+    two, one -> -1.1899934796618081,
+    two, two -> -6.770028926565032,
+    two, three -> 7.991805566515104,
+    three, one -> -1.0075396878008331,
+    three, two -> -5.732025383040305,
+    three, three -> 6.766475130384711,
+    four, one -> 0.8826604407841495,
+    four, two -> 5.02157097376835,
+    four, three -> -5.927806113699193
+};
+
+# ------------------------------------------------------------------------------
+
+define print_svd(A) =
+    let
+        precision = 14*|decimals|,
+        outcome = catch(() -> singular_value_list(A))
+    in
+        begin
+            printf("A=%.30f", A);
+            if is_error(outcome) then 
+                printf("error: %s", result_error(outcome));
+            else
+                triples := result_value(outcome); 
+
+                max_s := max[s | (s, _, _) <- triples];
+                min_s := min[s | (s, _, _) <- triples];
+
+                condition_number := max_s / min_s;
+
+                result := approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- triples], precision);
+
+                printf("%nCondition number: %.5f, svd correct=%s, precision=%d", condition_number, result, precision);
+                
+                for (s, v, w) <- triples do
+                    printf("%nSingular value: %.30f", s);
+                    printf("Left singular vector: %n%.30f", v);
+                    printf("Right singular vector: %n%.30f", w);
+                    printf("Diff: %n%.30f", A - sum[a '.*' v '*' w^T | (a,v,w) <- triples]);
+                end
+                printf("Sum %n%.30f", sum[a '.*' v '*' w^T | (a,v,w) <- triples]);
+                printf("Diff: %n%.30f", A - sum[a '.*' v '*' w^T | (a,v,w) <- triples]);
+                
+            end            
+        end
+    end;
+
 # ------------------------------------------------------------------------------
 
 define svd_suite(description, matrix_generator, precision) = test_suite(description, [
 
     random_test("should be a proper factorization the matrix", () ->
-        tmp_catch(()->
-            let
-                A = matrix_generator()
-            in
-                approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- svd(A)], precision)
-            end)),
+        let A = matrix_generator() in
+            just(approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- singular_value_list(A)], precision))
+        end),
 
     random_test("should give non-negative singular values", () ->
-        tmp_catch(()-> all[magnitude(s) >= 0 | (s, _, _) <- svd(matrix_generator())])),
+        just(all[magnitude(s) >= 0 | (s, _, _) <- singular_value_list(matrix_generator())])),
 
     random_test("should give an orthogonal set for the row dimension", () ->
-        tmp_catch(()-> pairwise_orthogonal_magnitudes([v | (_, v, _) <- svd(matrix_generator())], precision))),
+        just(pairwise_orthogonal_magnitudes([v | (_, v, _) <- singular_value_list(matrix_generator())], precision))),
                 
     random_test("should give an orthogonal set for the column dimension", () ->
-        tmp_catch(()-> pairwise_orthogonal_magnitudes([w | (_, _, w) <- svd(matrix_generator())], precision)))
+        just(pairwise_orthogonal_magnitudes([w | (_, _, w) <- singular_value_list(matrix_generator())], precision)))
 ]);
 
 # ------------------------------------------------------------------------------
@@ -773,19 +1039,6 @@ define pairwise_orthogonal_magnitudes(vs, precision) =
     end;
 
 # ------------------------------------------------------------------------------
-
-# The js version produces NaN numbers for some test cases. For now this is checked
-# and an error is thrown. The Java version doesn't throw errors for these cases.
-# Therefore the js variant requires a catch_with_skip and the Java variant a
-# catch_with_fail. The tmp_catch function is a convenience function to make that
-# distinction, until this is addressed.
-
-declare tmp_catch :: (() -> Boole) -> Maybe(Boole);
-
-define tmp_catch(f) = 
-    if _is_js then catch_with_skip(f) else catch_with_fail(f) end;
-
-# ------------------------------------------------------------------------------
 # Function cholesky
 # ------------------------------------------------------------------------------
 
@@ -797,14 +1050,13 @@ defmatrix cholesky_input :: metre^2 * Four!unit per 1/Four!unit = {
     three, three -> 4,
     four, four -> 4
 };
- 
+
 define cholesky_suite = test_suite("Cholesky decomposition tests", [
 
     test("L '*' L^T should approximate A", () ->
-        let L = cholesky(cholesky_input) in
+        let L = cholesky_decomposition(cholesky_input) in
             L '*' L^T ~= cholesky_input
-        end
-    )
+        end)
 ]);
 
 # ------------------------------------------------------------------------------
@@ -814,147 +1066,60 @@ define cholesky_suite = test_suite("Cholesky decomposition tests", [
 define solve_suite = test_suite("Function solve", [
 
     random_test("should solve ax=b", () ->
-        tmp_catch(() ->
             let
+                # Doesn't make the default 14 decimals
+                precision = 9*|decimals|,
+
                 a = random(),
                 b = random(),
                 x = solve(a, b)
             in
-                a '*' x ~= b
-            end)),
+                just(approximates( a '*' x, b, precision))
+            end),
    
     random_test("should solve AX=B for square matrices", () ->
-        tmp_catch(() ->
+        
             let
                 # Doesn't make the default 14 decimals
-                precision = 8*|decimals|,
+                precision = 9*|decimals|,
 
                 A = random_4_by_4_matrix(),
                 B = random_4_by_4_matrix(),
                 X = solve(A, B)
             in
-                approximates(A^T '*' A '*' X, A^T '*' B, precision)
-            end)),
+                begin
+                    if not(approximates(A^T '*' A '*' X, A^T '*' B, precision)) then
+                        printf("A=%30.f", A);
+                        printf("svd=%s", singular_value_list(A));
+                        printf("diff=%30.f", A^T '*' A '*' X - A^T '*' B);
+                    end
+                    return just(approximates(A^T '*' A '*' X, A^T '*' B, precision));
+                end
+            end),
     
     random_test("should solve AX=B when nr column < nr rows", () ->
-        tmp_catch(() ->
             let
                 # Doesn't make the default 14 decimals
-                precision = 8*|decimals|,
+                precision = 9*|decimals|,
 
                 A = random_4_by_3_matrix(),
                 B = random_4_by_3_matrix(),
                 X = solve(A, B)
             in
-                approximates(A^T '*' A '*' X, A^T '*' B, precision)
-            end)),
-
-    # The javascript version leads sometimes to NaN numbers in the result vectors of $base_matrix_svd. The svd 
-    # function causes problems.
-    #
-    # In function svd(A) in numeric-1.2.6.js a division by zero happens in the // diagonalization of the bidiagonal form phase.
-    #
-    # The first two tests are specific case. Running them focused allows stepping through the numeric code with the debugger.
-    #
-    # The third test generates errors. Turn on debug output in $base_string_format to see the matrices.
-
-#     random_test_focus("should solve AX=B when nr column < nr rows", () ->
-#         catch_with_fail(() ->
-#             let
-#                 # Doesn't make the default 14 decimals
-#                 precision = 8*|decimals|,
-
-# # fout 1:
-# # A=mat(4, 3) 0,0,0,1,1,1,2,2,2,3,3,3 + 0,1,2,0,1,2,0,1,2,0,1,2 + -1.3801512207511335,3.854798594747591,5.228880257700857,-0.2774136266056003,0.7748235424674008,-2.1073891745891835,-0.07522790781831724,0.21011352160818092,3.0459432505756117,-2.6619527657054736,7.4349039628725,-2.552856508089762 2
-# # B=mat(4, 3) 0,1.6201195385143417,6.115157004798624 + 0,0,0 + 0,-0.887702513018538,-3.350641796247061 + 0,0,0 0
-# # X=mat(3, 3) 0,0,0 + 0,0,0 + 0,0,0 0
-# # diff=mat(3, 3) 0,0,1,1,2,2 + 1,2,1,2,1,2 + 2.1692299560238846,8.18777963307739,-6.058716219237443,-22.86868348130159,-5.7675195920052404,-21.769558970757352 2
-
-#                 A = make_4_by_3_matrix(
-#                     -1.3801512207511335,3.854798594747591,5.228880257700857,
-#                     -0.2774136266056003,0.7748235424674008,-2.1073891745891835,
-#                     -0.07522790781831724,0.21011352160818092,3.0459432505756117,
-#                     -2.6619527657054736,7.4349039628725,-2.552856508089762),
-#                 B = make_4_by_3_matrix(
-#                     0,1.6201195385143417,6.115157004798624,
-#                     0,0,0,
-#                     0,-0.887702513018538,-3.350641796247061,
-#                     0,0,0),
-
-# # fout 2: svds = Array(3) [ 0, 0, 0 ]
-# # A=mat(4, 3) 5.427343479153179,-7.516621590238387,4.147246163135614 + 0,0,0 + -0.5367388301682807,0.7433586421531747,-0.41014320589280606 + 2.787639629764243,-3.8607529277213577,2.130144849529294 0
-# # B=mat(4, 3) 0,0,0,1,1,1,2,2,2,3,3,3 + 0,1,2,0,1,2,0,1,2,0,1,2 + -0.3354338279030675,-6.622920007859369,-0.31015411090269845,10.27058592842264,7.404484683962591,0.6354005238800422,-3.277192267107403,-3.165339093124247,-4.030350027870198,1.6701090444804088,-12.76409714700363,1.544242538206563 2
-# # X=mat(3, 3) 0,0,0 + 0,0,0 + 0,0,0 0
-# # diff=mat(3, 3) 0,0,0,1,1,1,2,2,2 + 0,1,2,0,1,2,0,1,2 + -4.5941439035479394,69.82760436082727,-4.784724165259774,6.362678423930997,-96.7080267812924,6.626623338300034,-3.510565666253888,53.35801306453839,-3.6561955240636435 2
-
-
-
-#                 # A = make_4_by_3_matrix(
-#                 #     5.427343479153179,-7.516621590238387,4.147246163135614,
-#                 #     0,0,0,
-#                 #     -0.5367388301682807,0.7433586421531747,-0.41014320589280606,
-#                 #     2.787639629764243,-3.8607529277213577,2.130144849529294),
-#                 # B = make_4_by_3_matrix(
-#                 #     -0.3354338279030675,-6.622920007859369,-0.31015411090269845,
-#                 #     10.27058592842264,7.404484683962591,0.6354005238800422,
-#                 #     -3.277192267107403,-3.165339093124247,-4.030350027870198,
-#                 #     1.6701090444804088,-12.76409714700363,1.544242538206563),
-#                 X = solve(A, B)
-#             in
-#                 begin
-#                     printf("A=%s", A);
-#                     printf("B=%s", B);
-#                     printf("X=%s", X);
-#                     printf("A '*' X=%s", A '*' X);
-#                     printf("A^T '*' A=%s", A^T '*' A);
-#                     printf("A^T '*' A '*' X=%s", A^T '*' A '*' X);
-#                     if or_else(false, catch(() -> not(approximates(A^T '*' A '*' X, A^T '*' B, precision)))) then
-#                         printf("X=%s", X);
-#                         printf("A=%s\nB=%s\nX=%s\ndiff=%s", A, B, X, A^T '*' A '*' X - A^T '*' B);
-#                     end
-#                     printf("tested!");
-#                     return approximates(A^T '*' A '*' X, A^T '*' B, precision);
-#                 end
-#             end)),
-
-    # random_test_focus("should solve AX=B when nr column < nr rows", () ->
-    #     catch_with_fail(() ->
-    #         let
-    #             # Doesn't make the default 14 decimals
-    #             precision = 8*|decimals|,
-
-    #             A = random_4_by_3_matrix(),
-    #             B = random_4_by_3_matrix(),
-    #             X = solve(A, B)
-    #         in
-    #             begin
-    #                 printf("A=%s", A);
-    #                 printf("B=%s", B);
-    #                 printf("X=%s", X);
-    #                 printf("A '*' X=%s", A '*' X);
-    #                 printf("A^T '*' A=%s", A^T '*' A);
-    #                 printf("A^T '*' A '*' X=%s", A^T '*' A '*' X);
-    #                 if or_else(false, catch(() -> not(approximates(A^T '*' A '*' X, A^T '*' B, precision)))) then
-    #                     printf("X=%s", X);
-    #                     printf("A=%s\nB=%s\nX=%s\ndiff=%s", A, B, X, A^T '*' A '*' X - A^T '*' B);
-    #                 end
-    #                 printf("tested!");
-    #                 return approximates(A^T '*' A '*' X, A^T '*' B, precision);
-    #             end
-    #         end)),
+                just(approximates(A^T '*' A '*' X, A^T '*' B, precision))
+            end),
       
     random_test("should solve AX=B when nr column > nr rows", () ->
-        tmp_catch(() ->
             let
                 # Doesn't make the default 14 decimals
-                precision = 8*|decimals|,
+                precision = 9*|decimals|,
 
                 A = random_4_by_3_matrix()^T,
                 B = random_4_by_3_matrix()^T,
                 X = solve(A, B)
             in
-                approximates(A^T '*' A '*' X, A^T '*' B, precision)
-            end))
+                just(approximates(A^T '*' A '*' X, A^T '*' B, precision))
+            end)
 ]);
 
 

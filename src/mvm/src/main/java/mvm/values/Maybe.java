@@ -23,13 +23,36 @@ package mvm.values;
 
 import java.io.PrintWriter;
 
-public class TheVoid implements PacioliValue {
+public class Maybe implements PacioliValue {
 
-    public TheVoid() {
+    public final PacioliValue value;
+
+    public Maybe(PacioliValue value) {
+        this.value = value;
+    }
+
+    public Maybe() {
+        this.value = null;
     }
 
     @Override
     public void printText(PrintWriter out) {
+        out.print("nothing");
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (!(other instanceof Maybe)) {
+            return false;
+        }
+        Maybe otherMaybe = (Maybe) other;
+        if (this.value == null) {
+            return otherMaybe.value == null;
+        }
+        return this.value.equals(otherMaybe.value);
     }
 
 }

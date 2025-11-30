@@ -27,7 +27,6 @@
     "uom-ts": "file:uom-ts-0.0.2.tgz"
   },
   "devDependencies": {
-    "@types/bignumber.js": "^5.0.0",
     "@types/d3": "^7.1.0",
     "@types/d3-cloud": "^1.2.5",
     "@types/jasmine": "^4.3.1",

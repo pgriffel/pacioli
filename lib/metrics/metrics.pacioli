@@ -157,11 +157,11 @@ declare gsvd :: for_index P, Q: for_unit r, c, a, P!u, Q!v:
 define gsvd(row_metric, column_metric) =
     let
         # We need the dual of cholesky: R^T '*' R = row_metric and C^T '*' C = column_metric
-        R = cholesky(row_metric^T)^T,
-        C_tr = cholesky(column_metric^T),
+        R = cholesky_decomposition(row_metric^T)^T,
+        C_tr = cholesky_decomposition(column_metric^T),
         C = C_tr^T,
         R_inv = R'^'-1,
         C_inv = C'^'-1
     in
-        (A) -> [tuple(s, R_inv '*' v, C_tr '*' w) | (s, v, w) <- svd(R '*' A '*' C_inv)]
+        (A) -> [tuple(s, R_inv '*' v, C_tr '*' w) | (s, v, w) <- singular_value_list(R '*' A '*' C_inv)]
     end;

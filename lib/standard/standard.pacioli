@@ -47,7 +47,15 @@ export
     is_something,
     or_else,
     or_else_get,
-    map_maybe;
+    map_maybe,
+    Result,
+    catch,
+    is_error,
+    result_or_else,
+    result_or_else_get,
+    map_result,
+    result_value,
+    result_error;
 
 # ------------------------------------------------------------------------------
 # Constants
@@ -299,3 +307,121 @@ declare map_maybe ::
 
 define map_maybe(fun, value) =
     maybe(() -> nothing(), (x) -> just(fun(x)), value);
+
+# ------------------------------------------------------------------------------
+# Result and error handling
+# ------------------------------------------------------------------------------
+
+doc Result
+    "Represents the result of a computation that may fail.";
+
+deftype for_type t:
+    Result(t) = Tuple(Maybe(t), String);
+
+# ------------------------------------------------------------------------------
+
+doc result_or_else
+    "The first argument is a default value. If the Result contains no value
+    then this value is returned.
+    
+    If the Result has a value, then that value is returned.";
+
+declare result_or_else ::
+    for_type t: (t,  Result(t)) -> t;
+
+define result_or_else(alt, result) = 
+    let (value, _) = result in
+        or_else(alt, value)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc result_or_else_get
+    "Temporary stub for a proper Maybe type.
+    
+    The first argument is a function that provides a default value. If the Result
+    is an error then this function is called and the result is returned.
+
+    If the Result has a value, then that value is returned.";
+
+declare result_or_else_get ::
+    for_type t: (() -> t, Result(t)) -> t;
+
+define result_or_else_get(alt, result) = 
+    let (value, _) = result in
+        or_else_get(alt, value)
+    end;
+
+# ------------------------------------------------------------------------------    
+
+doc map_result
+    "Applies a function to a Result value.";
+
+declare map_result ::
+   for_type a, b: ((a) -> b, Result(a)) -> Result(b);
+
+define map_result(fun, value) =
+    let (val, msg) = value in
+        tuple(map_maybe(fun, val), msg)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc catch
+    "Catches errors from a function.
+    
+    Calls the function. If an error occurs, the error message is captured and
+    returned as part of the Result type.";
+
+declare catch ::
+    for_type t: (() -> t) -> Result(t);
+
+define catch(fun) =   
+    try_catch(() -> tuple(just(fun()), ""), (err) -> tuple(nothing(), err));
+
+# ------------------------------------------------------------------------------
+
+doc is_error
+    "Is the Result an error?";
+
+declare is_error ::
+    for_type t: (Result(t)) -> Boole;
+
+define is_error(result) =
+    let (value, _) = result in
+        is_nothing(value)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc result_value
+    "Get the value from a Result.
+    
+    If the Result is an error, an error is signaled.";
+
+declare result_value ::
+    for_type t: (Result(t)) -> t;
+
+define result_value(result) =
+    let (value, _) = result in
+        if is_nothing(value) then
+            error("No value present in result")
+        else
+            from_just(value)
+        end
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc result_error
+    "Get the error message from a Result.
+    
+    If the Result has a value, the empty string is returned.";
+
+declare result_error ::
+    for_type t: (Result(t)) -> String;
+
+define result_error(result) =
+    let (_, message) = result in
+        message
+    end;

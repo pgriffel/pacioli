@@ -29,7 +29,7 @@ declare metric_suites :: List(TestSuite);
 define metric_suites = [
     bilinear_form_suite,
     metric_norm_suite,
-    scalar_gsvd_suite,
+    scalar_gsvd_suite, 
     matrix_gsvd_suite
 ];
 
@@ -115,7 +115,7 @@ define gsvd_suite(
         right_metric_generator,
         matrix_generator,
         precision) =
-    test_suite_focus(
+    test_suite(
         description, 
         let 
             # Do these two once per test run because they are slow
@@ -182,7 +182,7 @@ doc is_positive_definite
     Cholesky decomposition.";
 
 define is_positive_definite(A) =
-    is_something(catch(() -> cholesky(A)));
+    not(is_error(catch(() -> cholesky_decomposition(A))));
 
 # ------------------------------------------------------------------------------
 
@@ -194,9 +194,14 @@ doc generate_positive_definite
 define generate_positive_definite(generator) =
     begin
         A := generator();
+        i := 10000;
         while not(is_positive_definite(A)) do
             A := generator();
-        end
+            i := i - 1;
+            if i = 0 then
+                error("Could not generate a positive definite matrix.");
+            end
+        end 
         return A;
     end;
 

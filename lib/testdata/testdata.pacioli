@@ -77,11 +77,23 @@ define random_four_vector() =
 
 declare random_4_by_4_matrix :: () -> Four! per Four!;
 define random_4_by_4_matrix() =
-    sum[random_four_vector() '*' random_four_vector()^T | _ <- naturals(random_nat(10) + 1)];
+    let n = random_nat(10) in
+        if n = 0 then
+            0 '.*' |Four! per Four!|
+        else
+            sum[random_four_vector() '*' random_four_vector()^T | _ <- naturals(n)]
+        end
+    end;
 
 declare random_4_by_3_matrix :: () -> Four! per Three!;
 define random_4_by_3_matrix() =
-    sum[random_four_vector() '*' random_three_vector()^T | _ <- naturals(random_nat(10) + 1)];
+    let n = random_nat(10) in
+        if n = 0 then
+            0 '.*' |Four! per Three!|
+        else
+            sum[random_four_vector() '*' random_three_vector()^T | _ <- naturals(n)]
+        end
+    end;
 
 define make_4_by_3_matrix(v00, v01, v02, v10, v11, v12, v20, v21, v22, v30, v31, v32) =
     make_matrix([

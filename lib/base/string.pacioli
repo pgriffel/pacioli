@@ -19,7 +19,9 @@
 
 export
     compare_string,
+    string_length,
     concatenate,
+    char_at,
     split_string,
     trim,
     pad,
@@ -37,6 +39,13 @@ doc compare_string
 
 declare_primitive compare_string(string0, string1) ::
     (String, String) -> 1;
+# ----------------------------------------------------------------------------
+
+doc string_length
+    "The length of the given string.";
+
+declare_primitive string_length(string) ::
+    (String) -> 1;
 
 # ----------------------------------------------------------------------------
 
@@ -45,6 +54,17 @@ doc concatenate
 
 declare_primitive concatenate(string0, string1) ::
     (String, String) -> String;
+
+# ----------------------------------------------------------------------------
+
+doc char_at
+    "The character at position pos mod n of the original string, where n is the
+    length of the original string.
+    
+    It is an error if the string is empty.";
+
+declare_primitive char_at(string, position) ::
+    (String, 1) -> String;
 
 # ----------------------------------------------------------------------------
 
