@@ -775,7 +775,7 @@ define plu_suite = test_suite("Function plu", [
 ]);
 
 define non_singular_plu(A) =
-    try_catch(() -> just(plu(A)),
+    try_catch(() -> just(plu_decomposition(A)),
         (err) ->
             if string_starts_with(err, "No PLU decomposition for") and
                 string_ends_with(err, "matrix is singular")
@@ -796,7 +796,7 @@ define eigenvalue_list_check(A, ts) =
     all[ A '*' v = c '.*' v | (c, v) <- ts];
 
 
-define eigenvalue_list_suite = test_suite_focus("Function eigenvalue_list", [
+define eigenvalue_list_suite = test_suite("Function eigenvalue_list", [
 
     random_test("should be a proper factorization", () ->
         let
@@ -816,7 +816,7 @@ define eigenvalue_list_suite = test_suite_focus("Function eigenvalue_list", [
 
 
 # TODO: check completeness/correct rank
-define eigenvalue_decomposition_suite = test_suite_focus("Function eigenvalue_decomposition", [
+define eigenvalue_decomposition_suite = test_suite("Function eigenvalue_decomposition", [
 
     random_test("should be a proper factorization", () ->
         let
@@ -876,14 +876,14 @@ define qr_suite = test_suite("Function qr", [
             # Doesn't make the default 14 decimals
             precision = 10*|decimals|,
             A = random_4_by_4_matrix(),
-            (Q, R) = qr(A)
+            (Q, R) = qr_decomposition(A)
         in
             just(approximates(A, Q '*' R, precision))
         end),
 
     random_test("should give an upper triangular R", () ->
         let
-            (_, R) = qr(random_4_by_4_matrix())
+            (_, R) = qr_decomposition(random_4_by_4_matrix())
         in
             just(is_upper_trianular(R))
         end),
@@ -892,7 +892,7 @@ define qr_suite = test_suite("Function qr", [
         let
             A = random_4_by_4_matrix(),
             I = left_identity(A),
-            (Q, _) = qr(A)
+            (Q, _) = qr_decomposition(A)
         in
             just(Q '*' Q^T ~= I and Q^T '*' Q ~= I)
         end)
@@ -989,7 +989,7 @@ defmatrix svd_reg :: Four!unit per Three!unit = {
 define print_svd(A) =
     let
         precision = 14*|decimals|,
-        outcome = catch(() -> svd(A))
+        outcome = catch(() -> singular_value_list(A))
     in
         begin
             printf("A=%.30f", A);
@@ -1027,17 +1027,17 @@ define svd_suite(description, matrix_generator, precision) = test_suite(descript
 
     random_test("should be a proper factorization the matrix", () ->
         let A = matrix_generator() in
-            just(approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- svd(A)], precision))
+            just(approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- singular_value_list(A)], precision))
         end),
 
     random_test("should give non-negative singular values", () ->
-        just(all[magnitude(s) >= 0 | (s, _, _) <- svd(matrix_generator())])),
+        just(all[magnitude(s) >= 0 | (s, _, _) <- singular_value_list(matrix_generator())])),
 
     random_test("should give an orthogonal set for the row dimension", () ->
-        just(pairwise_orthogonal_magnitudes([v | (_, v, _) <- svd(matrix_generator())], precision))),
+        just(pairwise_orthogonal_magnitudes([v | (_, v, _) <- singular_value_list(matrix_generator())], precision))),
                 
     random_test("should give an orthogonal set for the column dimension", () ->
-        just(pairwise_orthogonal_magnitudes([w | (_, _, w) <- svd(matrix_generator())], precision)))
+        just(pairwise_orthogonal_magnitudes([w | (_, _, w) <- singular_value_list(matrix_generator())], precision)))
 ]);
 
 # ------------------------------------------------------------------------------
@@ -1073,7 +1073,7 @@ defmatrix cholesky_input :: metre^2 * Four!unit per 1/Four!unit = {
 define cholesky_suite = test_suite("Cholesky decomposition tests", [
 
     test("L '*' L^T should approximate A", () ->
-        let L = cholesky(cholesky_input) in
+        let L = cholesky_decomposition(cholesky_input) in
             L '*' L^T ~= cholesky_input
         end)
 ]);

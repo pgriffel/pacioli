@@ -1239,7 +1239,6 @@ public class Matrix implements PacioliValue {
 
         int m = shape.rowDimension().size();
         int n = shape.columnDimension().size();
-        // int p = Math.min(m, n);
 
         // m should equal n
 
@@ -1247,13 +1246,6 @@ public class Matrix implements PacioliValue {
 
         RealMatrix matrixD = decomposition.getD();
         RealMatrix matrixV = decomposition.getV();
-
-        // SingularValueDecomposition decomposition = new
-        // SingularValueDecomposition(numbers);
-
-        // RealMatrix numbersU = decomposition.getU();
-        // RealMatrix numbersS = decomposition.getS();
-        // RealMatrix numbersV = decomposition.getV();
 
         List<PacioliValue> svs = new ArrayList<PacioliValue>();
         for (int i = 0; i < n; i++) {

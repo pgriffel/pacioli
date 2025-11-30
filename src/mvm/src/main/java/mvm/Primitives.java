@@ -348,7 +348,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("matrix_plu") {
+        storePrimitive(store, new Primitive("matrix_plu_decomposition") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 return x.plu();
@@ -369,7 +369,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("matrix_svd") {
+        storePrimitive(store, new Primitive("matrix_singular_value_list") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 return x.svd();
@@ -377,7 +377,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("matrix_qr") {
+        storePrimitive(store, new Primitive("matrix_qr_decomposition") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 // return x.qrZeroSub();
@@ -385,7 +385,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("matrix_cholesky") {
+        storePrimitive(store, new Primitive("matrix_cholesky_decomposition") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 return x.cholesky();

@@ -81,12 +81,12 @@ export
     bottom,
     random,
     ranking,
-    plu,
+    plu_decomposition,
     eigenvalue_decomposition,
     eigenvalue_list,
-    svd,
-    qr,
-    cholesky,
+    singular_value_list,
+    qr_decomposition,
+    cholesky_decomposition,
     solve,
     mapnz,
     floor,
@@ -970,21 +970,20 @@ declare_primitive round(A) ::
 # Factorizations
 # ----------------------------------------------------------------------------
 
-doc plu
-    "The PLU factorization of a matrix.
+doc plu_decomposition
+    "The PLU decomposition of a matrix.
     
     Decomposes the matrix in product A=PLU with P a permutation matrix,
-    L a lower triangular matrix, and U an upper triangular matrix.
+    L a lower triangular matrix, and U an upper triangular matrix.";
     
-    Not implemented in pacioli-js.";
-    
-declare_primitive plu(A) ::
-  for_index P: for_unit a,P!u: (a*P!u per P!u) -> Tuple(P!u per P!u, P!u per P!u, a*P!u per P!u);
+declare_primitive plu_decomposition(A) ::
+  for_index P: for_unit a,P!u:
+    (a*P!u per P!u) -> Tuple(P!u per P!u, P!u per P!u, a*P!u per P!u);
 
 # ----------------------------------------------------------------------------
 
-doc svd
-    "The singular value decomposition of a matrix.
+doc singular_value_list
+    "List form of the singular value decomposition of a matrix.
     
     List of tuples (s,v,w) such that
 
@@ -1000,39 +999,37 @@ doc svd
     function gsvd from the metrics library for a more general version that accepts
     other metrics.";
     
-declare_primitive svd(A) ::
+declare_primitive singular_value_list(A) ::
     for_index P, Q: for_unit a, P!u, Q!v:
         (a*P!u per Q!v) -> List(Tuple(a, P!u, Q!v^-1));
 
 # ----------------------------------------------------------------------------
 
-doc qr
-    "The QR factorization of a matrix.
+doc qr_decomposition
+    "The QR decomposition of a matrix.
     
     Decomposes the matrix in product A=QR with Q an orthonormal matrix and R an
-    upper triangular matrix.
-    
-    Not implemented in pacioli-js.";
+    upper triangular matrix.";
 
-declare_primitive qr(A) ::
+declare_primitive qr_decomposition(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Tuple(P!u per P!u, a*P!u per Q!v);
 
 # ----------------------------------------------------------------------------
 
-doc cholesky
-   "The Cholesky factorization of a matrix.
+doc cholesky_decomposition
+   "The Cholesky decomposition of a matrix.
   
     Decomposes a matrix into product L '*' L^T, with L a lower triangular matrix.
 
     It is an error if the matrix is not symmetric or is not positive definite.";
 
-declare_primitive cholesky ::
+declare_primitive cholesky_decomposition ::
   for_index P: for_unit a, P!u: (a^2/P!u per P!u) -> a/P!u per P!;
 
 # ----------------------------------------------------------------------------
 
 doc eigenvalue_decomposition
-   "The eigenvalue decomposition.
+   "The eigenvalue decomposition of a matrix.
    
    A pair of matrices (D, V) such that A = V '*' D '*' V'^'-1.
    
@@ -1048,7 +1045,7 @@ declare_primitive eigenvalue_decomposition(A) ::
 # ----------------------------------------------------------------------------
 
 doc eigenvalue_list
-   "List form of the eigenvalue decomposition.
+   "List form of the eigenvalue decomposition of a matrix.
 
    List of pairs (c, v) such that A '*' v = c '.*' v.
    

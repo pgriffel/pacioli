@@ -182,7 +182,7 @@ doc is_positive_definite
     Cholesky decomposition.";
 
 define is_positive_definite(A) =
-    not(is_error(catch(() -> cholesky(A))));
+    not(is_error(catch(() -> cholesky_decomposition(A))));
 
 # ------------------------------------------------------------------------------
 

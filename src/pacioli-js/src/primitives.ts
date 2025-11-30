@@ -920,7 +920,7 @@ export function $base_matrix_cbrt(x: RawMatrix): RawMatrix {
   });
 }
 
-export function $base_matrix_qr(A: RawMatrix): RawTuple {
+export function $base_matrix_qr_decomposition(A: RawMatrix): RawTuple {
   const QR = new QRDecomposition(getFullNumbers(A));
   const Q = QR.getQ();
   const R = QR.getR();
@@ -946,7 +946,7 @@ export function $base_matrix_qr(A: RawMatrix): RawTuple {
   return tagTuple([Qmat, Rmat]);
 }
 
-export function $base_matrix_plu(x: RawMatrix): RawTuple {
+export function $base_matrix_plu_decomposition(x: RawMatrix): RawTuple {
   const decomposition = new LUDecomposition(getFullNumbers(x));
 
   const L: number[][] = decomposition.getL();
@@ -1030,18 +1030,6 @@ export function $base_matrix_eigenvalue_list(A: RawMatrix): RawList {
 
   const n = A.nrRows;
 
-  var Dmat = zeroNumbers(n, n);
-  var Vmat = zeroNumbers(n, n);
-
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j < n; j++) {
-      set(Dmat, i, j, D[i][j]);
-      set(Vmat, i, j, V[i][j]);
-    }
-  }
-
-  // return tagTuple([Dmat, Vmat]);
-
   let tuples = [];
 
   for (let j = 0; j < n; j++) {
@@ -1068,7 +1056,7 @@ export function $base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
 
   const EPS = 1.0 * Math.pow(2, -52);
 
-  const svd = $base_matrix_svd(x) as unknown as [
+  const svd = $base_matrix_singular_value_list(x) as unknown as [
     RawMatrix,
     RawMatrix,
     RawMatrix
@@ -1121,7 +1109,7 @@ export function $base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
  * @param A The input matrix
  * @returns A list of tuples (s, u, v)
  */
-export function $base_matrix_svd(A: RawMatrix): RawList {
+export function $base_matrix_singular_value_list(A: RawMatrix): RawList {
   const JAMA_SVD = true;
 
   // numerics and the jama version require that the number of rows is at least
@@ -1196,7 +1184,7 @@ export function $base_matrix_svd(A: RawMatrix): RawList {
   }
 }
 
-export function $base_matrix_cholesky(A: RawMatrix): RawMatrix {
+export function $base_matrix_cholesky_decomposition(A: RawMatrix): RawMatrix {
   const m = A.nrRows;
   const n = A.nrColumns;
 
