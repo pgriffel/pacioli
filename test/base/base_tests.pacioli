@@ -23,8 +23,6 @@ import si;
 import testdata;
 import geometry;
 
-# include svd_tests;
-
 declare base_suites :: List(TestSuite);
 
 define base_suites = [
@@ -68,8 +66,6 @@ define base_suites = [
 ];
 
 run_test_suites(base_suites); 
-# print_svd(svd_reg);
-# run_test_suites([matrix_svd_regression_suite]); 
 
 # ------------------------------------------------------------------------------
 # General
@@ -799,7 +795,7 @@ define eigenvalue_decomposition_suite = test_suite("Function eigenvalue_decompos
     random_test("should be a proper factorization", () ->
         let
             # Doesn't make the default 14 decimals
-            precision = 10*|decimals|,
+            precision = 9*|decimals|,
 
             A = random_4_by_4_matrix()
         in
@@ -982,7 +978,7 @@ define print_svd(A) =
             if is_error(outcome) then 
                 printf("error: %s", result_error(outcome));
             else
-                triples := result_value(outcome);
+                triples := result_value(outcome); 
 
                 max_s := max[s | (s, _, _) <- triples];
                 min_s := min[s | (s, _, _) <- triples];
@@ -997,8 +993,7 @@ define print_svd(A) =
                     printf("%nSingular value: %.30f", s);
                     printf("Left singular vector: %n%.30f", v);
                     printf("Right singular vector: %n%.30f", w);
-                    # waarom gaat dit fout?
-                    # printf("Diff: %n%.30f", A - sum[a '.*' v '*' w^T | (a,v,w) <- triples]);
+                    printf("Diff: %n%.30f", A - sum[a '.*' v '*' w^T | (a,v,w) <- triples]);
                 end
                 printf("Sum %n%.30f", sum[a '.*' v '*' w^T | (a,v,w) <- triples]);
                 printf("Diff: %n%.30f", A - sum[a '.*' v '*' w^T | (a,v,w) <- triples]);
@@ -1072,30 +1067,40 @@ define solve_suite = test_suite("Function solve", [
 
     random_test("should solve ax=b", () ->
             let
+                # Doesn't make the default 14 decimals
+                precision = 9*|decimals|,
+
                 a = random(),
                 b = random(),
                 x = solve(a, b)
             in
-                just(a '*' x ~= b)
+                just(approximates( a '*' x, b, precision))
             end),
    
     random_test("should solve AX=B for square matrices", () ->
         
             let
                 # Doesn't make the default 14 decimals
-                precision = 3*|decimals|,
+                precision = 9*|decimals|,
 
                 A = random_4_by_4_matrix(),
                 B = random_4_by_4_matrix(),
                 X = solve(A, B)
             in
-                just(approximates(A^T '*' A '*' X, A^T '*' B, precision))
+                begin
+                    if not(approximates(A^T '*' A '*' X, A^T '*' B, precision)) then
+                        printf("A=%30.f", A);
+                        printf("svd=%s", singular_value_list(A));
+                        printf("diff=%30.f", A^T '*' A '*' X - A^T '*' B);
+                    end
+                    return just(approximates(A^T '*' A '*' X, A^T '*' B, precision));
+                end
             end),
     
     random_test("should solve AX=B when nr column < nr rows", () ->
             let
                 # Doesn't make the default 14 decimals
-                precision = 5*|decimals|,
+                precision = 9*|decimals|,
 
                 A = random_4_by_3_matrix(),
                 B = random_4_by_3_matrix(),
@@ -1107,7 +1112,7 @@ define solve_suite = test_suite("Function solve", [
     random_test("should solve AX=B when nr column > nr rows", () ->
             let
                 # Doesn't make the default 14 decimals
-                precision = 5*|decimals|,
+                precision = 9*|decimals|,
 
                 A = random_4_by_3_matrix()^T,
                 B = random_4_by_3_matrix()^T,

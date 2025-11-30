@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { hypot, zeroArray, zeroMatrix } from "./util";
+import { copyMatrix, hypot, zeroArray, zeroMatrix } from "./util";
 
 /**
  * Singular Value Decomposition (SVD) of a matrix.
@@ -36,10 +36,12 @@ export class SingularValueDecomposition {
   private V: number[][];
   private s: number[];
 
-  constructor(A: number[][]) {
-    if (A.length === 0) {
+  constructor(mat: number[][]) {
+    if (mat.length === 0) {
       throw new Error("Matrix cannot have empty rows.");
     }
+
+    var A = copyMatrix(mat);
 
     this.m = A.length;
     this.n = A[0].length;

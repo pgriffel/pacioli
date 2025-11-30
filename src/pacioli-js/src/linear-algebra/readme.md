@@ -11,7 +11,7 @@ The linear-algebra directory contains TypeScript implementations of the followin
 - Singular value decomposition
 - PLU decomposition
 - QR decomposition
-- Eigen value decomposition
+- Eigenvalue decomposition
 - Cholesky decomposition
 
 ## Origin
