@@ -224,6 +224,8 @@ export {
   $base_matrix_svd,
   $base_matrix_cholesky,
   $base_matrix_plu,
+  $base_matrix_eigenvalue_decomposition,
+  $base_matrix_eigenvalue_list,
   $base_matrix_qr,
   $base_map_empty_map,
   $base_map_keys,

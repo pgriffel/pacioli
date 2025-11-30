@@ -82,6 +82,8 @@ export
     random,
     ranking,
     plu,
+    eigenvalue_decomposition,
+    eigenvalue_list,
     svd,
     qr,
     cholesky,
@@ -1026,6 +1028,36 @@ doc cholesky
 
 declare_primitive cholesky ::
   for_index P: for_unit a, P!u: (a^2/P!u per P!u) -> a/P!u per P!;
+
+# ----------------------------------------------------------------------------
+
+doc eigenvalue_decomposition
+   "The eigenvalue decomposition.
+   
+   A pair of matrices (D, V) such that A = V '*' D '*' V'^'-1.
+   
+   The input matrix A, and the output matrices D and V are n x n matrices.
+   
+   Matrix D is a diagonal matrix. The diagonal elements are the eigenvalues.
+   The colunms of V are the corresponding eigenvectors.";
+
+declare_primitive eigenvalue_decomposition(A) ::
+  for_index P: for_unit a, P!u:
+    (a*P!u per P!u) -> Tuple(a*P!u per P!u, a*P!u per P!u);
+
+# ----------------------------------------------------------------------------
+
+doc eigenvalue_list
+   "List form of the eigenvalue decomposition.
+
+   List of pairs (c, v) such that A '*' v = c '.*' v.
+   
+   The scalars c are the eigenvalues. The vectors v are the corresponding 
+   eigenvectors.";
+
+declare_primitive eigenvalue_list(A) ::
+  for_index P: for_unit a, P!u:
+    (a*P!u per P!u) -> List(Tuple(a, P!u));
 
 # ----------------------------------------------------------------------------
 

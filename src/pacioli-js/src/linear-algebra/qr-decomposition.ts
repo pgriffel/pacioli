@@ -20,22 +20,19 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { hypot } from "./util";
+import { hypot, zeroMatrix } from "./util";
 
 /**
  * QR Decomposition, computed by Householder reflections.
  * Structure to access R and the Householder vectors and compute Q.
  *
  * Ported from the NIST JAMA library.
- *
- * @param {Matrix} A    Rectangular matrix
- * @class
  */
 export class QRDecomposition {
-  QR: number[][];
-  m: number;
-  n: number;
-  Rdiag: number[];
+  private QR: number[][];
+  private m: number;
+  private n: number;
+  private Rdiag: number[];
 
   constructor(A: number[][]) {
     if (A.length === 0) {
@@ -82,7 +79,8 @@ export class QRDecomposition {
 
   /**
    * Is the matrix full rank?
-   * @return     {boolean} true if R, and hence A, has full rank.
+   *
+   * @return true if R, and hence A, has full rank.
    */
   isFullRank(): boolean {
     for (var j = 0; j < this.n; j++) {
@@ -93,10 +91,11 @@ export class QRDecomposition {
 
   /**
    * Return the Householder vectors
-   * @return     {Matrix} Lower trapezoidal matrix whose columns define the reflections
+   *
+   * @return Lower trapezoidal matrix whose columns define the reflections
    */
   getH() {
-    const H = new Array(this.m).fill([]).map(() => new Array(this.n));
+    const H = zeroMatrix(this.m, this.n);
     for (var i = 0; i < this.m; i++) {
       for (var j = 0; j < this.n; j++) {
         if (i >= j) {
@@ -111,10 +110,11 @@ export class QRDecomposition {
 
   /**
    * Return the upper triangular factor
-   * @return     {Matrix} R
+   *
+   * @return R
    */
   getR() {
-    const R = new Array(this.n).fill([]).map(() => new Array(this.n));
+    const R = zeroMatrix(this.n, this.n);
     for (var i = 0; i < this.n; i++) {
       for (var j = 0; j < this.n; j++) {
         if (i < j) {
@@ -131,10 +131,11 @@ export class QRDecomposition {
 
   /**
    * Generate and return the (economy-sized) orthogonal factor
-   * @return     {Matrix} Q
+   *
+   * @return Q
    */
   getQ() {
-    const Q = new Array(this.m).fill([]).map(() => new Array(this.n).fill(0)); // is fill(0) needed?
+    const Q = zeroMatrix(this.m, this.n);
     for (var k = this.n - 1; k >= 0; k--) {
       for (var i = 0; i < this.m; i++) {
         Q[i][k] = 0.0;
@@ -155,6 +156,8 @@ export class QRDecomposition {
     }
     return Q;
   }
+
+  // TODO PORT:
 
   //   /**
   //    * Least squares solution of A*X = B

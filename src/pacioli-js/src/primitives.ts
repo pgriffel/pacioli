@@ -60,10 +60,11 @@ import { PacioliMatrix } from "./values/matrix";
 import { PacioliMap } from "./values/map";
 import { RawMaybe } from "./values/maybe";
 import { DOM } from "./dom/dom";
-import { singularValueDecomposition } from "./linear-algebra/svd";
-import { cholesky } from "./linear-algebra/cholesky";
-import { QRDecomposition } from "./linear-algebra/qr";
-import { LUDecomposition } from "./linear-algebra/plu";
+import { SingularValueDecomposition } from "./linear-algebra/singular-value-decomposition";
+import { CholeskyDecomposition } from "./linear-algebra/cholesky-decomposition";
+import { QRDecomposition } from "./linear-algebra/qr-decomposition";
+import { LUDecomposition } from "./linear-algebra/plu-decomposition";
+import { EigenvalueDecomposition } from "./linear-algebra/eigenvalue-decomposition";
 
 // -----------------------------------------------------------------------------
 // 1. Primitive Units Unit Prefixes
@@ -980,6 +981,84 @@ export function $base_matrix_plu(x: RawMatrix): RawTuple {
   return tagTuple([Pmat, Lmat, Umat]);
 }
 
+/**
+ * The eigen value decomposition.
+ *
+ * A = V '*' D '*' V'^'-1
+ *
+ * All matrices are n x n
+ *
+ * @param A A symmetric non-singular matrix
+ * @returns A tuple (D, V)
+ */
+export function $base_matrix_eigenvalue_decomposition(A: RawMatrix): RawTuple {
+  const decomposition = new EigenvalueDecomposition(getFullNumbers(A));
+
+  const D: number[][] = decomposition.getD();
+  const V: number[][] = decomposition.getV();
+
+  const n = A.nrRows;
+
+  var Dmat = zeroNumbers(n, n);
+  var Vmat = zeroNumbers(n, n);
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      set(Dmat, i, j, D[i][j]);
+      set(Vmat, i, j, V[i][j]);
+    }
+  }
+
+  return tagTuple([Dmat, Vmat]);
+}
+
+/**
+ * The eigen value decomposition.
+ *
+ * A = V '*' D '*' V'^'-1
+ *
+ * All matrices are n x n
+ *
+ * @param A A symmetric non-singular matrix
+ * @returns A tuple (D, V)
+ */
+export function $base_matrix_eigenvalue_list(A: RawMatrix): RawList {
+  const decomposition = new EigenvalueDecomposition(getFullNumbers(A));
+
+  const D: number[][] = decomposition.getD();
+  const V: number[][] = decomposition.getV();
+
+  const n = A.nrRows;
+
+  var Dmat = zeroNumbers(n, n);
+  var Vmat = zeroNumbers(n, n);
+
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      set(Dmat, i, j, D[i][j]);
+      set(Vmat, i, j, V[i][j]);
+    }
+  }
+
+  // return tagTuple([Dmat, Vmat]);
+
+  let tuples = [];
+
+  for (let j = 0; j < n; j++) {
+    const ev = initialNumbers(1, 1, [[0, 0, D[j][j]]]);
+
+    var vec = zeroNumbers(n, 1);
+
+    for (let i = 0; i < n; i++) {
+      set(vec, i, 0, V[i][j]);
+    }
+
+    tuples.push(tagTuple([ev, vec]));
+  }
+
+  return tagList(tuples);
+}
+
 export function $base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
   // https://en.wikipedia.org/wiki/Moore%E2%80%93Penrose_inverse
   // See https://github.com/Fylax/Apache-Commons-Math3-C-/blob/master/linear/SingularValueDecomposition.cs for the Java implementation
@@ -1006,9 +1085,11 @@ export function $base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
     // This loop swaps storage 2 and 3
     const tup = elt;
     const [a, v, w] = tup as unknown as [RawMatrix, RawMatrix, RawMatrix];
+    const r = $base_matrix_reciprocal(a);
     if (Math.abs(getNumber(a, 0, 0)) > treshold) {
+      // if (getNumber(r, 0, 0) > treshold) {
       const m = $base_matrix_scale(
-        $base_matrix_reciprocal(a),
+        r,
         $base_matrix_mmult(w, $base_matrix_transpose(v))
       );
 
@@ -1052,35 +1133,67 @@ export function $base_matrix_svd(A: RawMatrix): RawList {
 
   const full = getFullNumbers(needsTranspose ? $base_matrix_transpose(A) : A);
 
-  const trip = JAMA_SVD
-    ? singularValueDecomposition(full, m, n)
-    : numeric.svd(full);
+  if (JAMA_SVD) {
+    const decomposition = new SingularValueDecomposition(full);
 
-  const r = trip.S.length;
+    const s: number[] = decomposition.getSingularValues();
+    const U: number[][] = decomposition.getU();
+    const V: number[][] = decomposition.getV();
 
-  let tuples = [];
+    const r = s.length;
 
-  for (let j = 0; j < r; j++) {
-    const sv = initialNumbers(1, 1, [[0, 0, trip.S[j]]]);
+    let tuples = [];
 
-    var left = zeroNumbers(m, 1);
+    for (let j = 0; j < r; j++) {
+      const sv = initialNumbers(1, 1, [[0, 0, s[j]]]);
 
-    for (let i = 0; i < m; i++) {
-      set(left, i, 0, trip.U[i][j]);
+      var left = zeroNumbers(m, 1);
+
+      for (let i = 0; i < m; i++) {
+        set(left, i, 0, U[i][j]);
+      }
+
+      var right = zeroNumbers(n, 1);
+
+      for (let i = 0; i < n; i++) {
+        set(right, i, 0, V[i][j]);
+      }
+
+      tuples.push(
+        tagTuple(needsTranspose ? [sv, right, left] : [sv, left, right])
+      );
     }
 
-    var right = zeroNumbers(n, 1);
+    return tagList(tuples);
+  } else {
+    const trip = numeric.svd(full);
 
-    for (let i = 0; i < n; i++) {
-      set(right, i, 0, trip.V[i][j]);
+    const r = trip.S.length;
+
+    let tuples = [];
+
+    for (let j = 0; j < r; j++) {
+      const sv = initialNumbers(1, 1, [[0, 0, trip.S[j]]]);
+
+      var left = zeroNumbers(m, 1);
+
+      for (let i = 0; i < m; i++) {
+        set(left, i, 0, trip.U[i][j]);
+      }
+
+      var right = zeroNumbers(n, 1);
+
+      for (let i = 0; i < n; i++) {
+        set(right, i, 0, trip.V[i][j]);
+      }
+
+      tuples.push(
+        tagTuple(needsTranspose ? [sv, right, left] : [sv, left, right])
+      );
     }
 
-    tuples.push(
-      tagTuple(needsTranspose ? [sv, right, left] : [sv, left, right])
-    );
+    return tagList(tuples);
   }
-
-  return tagList(tuples);
 }
 
 export function $base_matrix_cholesky(A: RawMatrix): RawMatrix {
@@ -1093,7 +1206,13 @@ export function $base_matrix_cholesky(A: RawMatrix): RawMatrix {
 
   const full = getFullNumbers(A);
 
-  const L = cholesky(full);
+  const decomposition = new CholeskyDecomposition(full);
+
+  if (!decomposition.isSPD()) {
+    throw new Error("matrix not positive definite in Cholesky decomposition");
+  }
+
+  const L: number[][] = decomposition.getL();
 
   return tagNumbers(L, m, n, STORAGE_FULL) as RawMatrix;
 }

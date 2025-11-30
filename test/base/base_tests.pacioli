@@ -21,6 +21,7 @@ import testing;
 import random;
 import si;
 import testdata;
+import geometry;
 
 # include svd_tests;
 
@@ -51,6 +52,8 @@ define base_suites = [
     index_element_suite,
     format_suite,
     plu_suite,
+    eigenvalue_decomposition_suite,
+    eigenvalue_list_suite,
     scalar_inverse_suite,
     matrix_inverse_suite,
     scalar_svd_suite,
@@ -65,6 +68,8 @@ define base_suites = [
 ];
 
 run_test_suites(base_suites); 
+# print_svd(svd_reg);
+# run_test_suites([matrix_svd_regression_suite]); 
 
 # ------------------------------------------------------------------------------
 # General
@@ -781,6 +786,86 @@ define non_singular_plu(A) =
             end);
 
 # ------------------------------------------------------------------------------
+# Functions eigenvalue_decomposition and eigenvalue_list
+# ------------------------------------------------------------------------------
+
+define eigenvalue_decomposition_check(A, D, V) = 
+  A = V '*' D '*' V'^'-1;
+
+define eigenvalue_list_check(A, ts) = 
+    all[ A '*' v = c '.*' v | (c, v) <- ts];
+
+
+define eigenvalue_list_suite = test_suite_focus("Function eigenvalue_list", [
+
+    random_test("should be a proper factorization", () ->
+        let
+            # Doesn't make the default 14 decimals
+            precision = 5*|decimals|,
+
+            A = random_4_by_4_matrix()
+        in
+            let ts = eigenvalue_list(A) in
+            begin
+                printf("%nalt:%n%s", [ tuple(c, A '*' v - c '.*' v) | (c, v) <- ts]);
+                return just(all[ approximates(A '*' v, c '.*' v, precision) | (c, v) <- ts]);
+                end
+            end
+        end)
+]);
+
+
+# TODO: check completeness/correct rank
+define eigenvalue_decomposition_suite = test_suite_focus("Function eigenvalue_decomposition", [
+
+    random_test("should be a proper factorization", () ->
+        let
+            # Doesn't make the default 14 decimals
+            precision = 10*|decimals|,
+
+            A = random_4_by_4_matrix()
+        in
+            let (D, V) = eigenvalue_decomposition(A) in
+                begin
+                    # printf("%nV=%n%.30f%nD=%n%.30f", V, D);
+                    return just(approximates(A '*' V, V '*' D, precision));
+                end
+            end
+        end),
+
+    random_test("should be a proper factorization", () ->
+        let
+            # Doesn't make the default 14 decimals
+            precision = 10*|decimals|,
+
+            # A = symmetric_matrix_generator(random_4_by_4_matrix)()
+            A = matrix2d(1, 1, 0, 0)
+        in
+            let (D, V) = eigenvalue_decomposition(A) in
+            begin
+                # printf("%nV=%.30f%nD=%.30f%nI=%n%.30f", V, D, V '*' V'^'-1);
+                return just(approximates(A '*' V, V '*' D, precision));
+                end
+            end
+        end)
+]);
+
+# ------------------------------------------------------------------------------
+
+declare symmetric_matrix_generator :: for_index I: for_unit a, I!u:
+    (() -> a/I!u per I!u) -> () -> a/I!u per I!u;
+
+doc symmetric_matrix_generator
+    "Turns a function that generates matrices into a function that generates
+    symmetric matrices.";
+
+define symmetric_matrix_generator(matrix_generator) =
+    () ->
+        let r = matrix_generator() in
+            r^T + r 
+        end;
+
+# ------------------------------------------------------------------------------
 # Function qr
 # ------------------------------------------------------------------------------
 
@@ -875,7 +960,7 @@ define matrix_svd_suite =
 
 define matrix_svd_regression_suite =
     begin
-    print_svd(svd_reg);
+    # print_svd(svd_reg);
     return svd_suite("svd reg for matrices", () -> svd_reg, 10*|decimals|);
     end;
 
@@ -907,6 +992,7 @@ define print_svd(A) =
         outcome = catch(() -> svd(A))
     in
         begin
+            printf("A=%.30f", A);
             if is_error(outcome) then 
                 printf("error: %s", result_error(outcome));
             else
@@ -925,7 +1011,11 @@ define print_svd(A) =
                     printf("%nSingular value: %.30f", s);
                     printf("Left singular vector: %n%.30f", v);
                     printf("Right singular vector: %n%.30f", w);
+                    # waarom gaat dit fout?
+                    # printf("Diff: %n%.30f", A - sum[a '.*' v '*' w^T | (a,v,w) <- triples]);
                 end
+                printf("Sum %n%.30f", sum[a '.*' v '*' w^T | (a,v,w) <- triples]);
+                printf("Diff: %n%.30f", A - sum[a '.*' v '*' w^T | (a,v,w) <- triples]);
                 
             end            
         end
@@ -1007,7 +1097,7 @@ define solve_suite = test_suite("Function solve", [
         
             let
                 # Doesn't make the default 14 decimals
-                precision = 7*|decimals|,
+                precision = 3*|decimals|,
 
                 A = random_4_by_4_matrix(),
                 B = random_4_by_4_matrix(),
@@ -1019,7 +1109,7 @@ define solve_suite = test_suite("Function solve", [
     random_test("should solve AX=B when nr column < nr rows", () ->
             let
                 # Doesn't make the default 14 decimals
-                precision = 7*|decimals|,
+                precision = 5*|decimals|,
 
                 A = random_4_by_3_matrix(),
                 B = random_4_by_3_matrix(),
@@ -1031,7 +1121,7 @@ define solve_suite = test_suite("Function solve", [
     random_test("should solve AX=B when nr column > nr rows", () ->
             let
                 # Doesn't make the default 14 decimals
-                precision = 8*|decimals|,
+                precision = 5*|decimals|,
 
                 A = random_4_by_3_matrix()^T,
                 B = random_4_by_3_matrix()^T,

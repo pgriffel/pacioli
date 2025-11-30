@@ -20,6 +20,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { copyMatrix, zeroMatrix } from "./util";
+
 /**
  * LU Decomposition
  *
@@ -28,16 +30,13 @@
  * U is a n x n upper triangular matrix
  *
  * Ported from the NIST JAMA library.
- *
- * @param  {Matrix} A Rectangular matrix
- * @class
  */
 export class LUDecomposition {
-  LU: number[][];
-  m: number;
-  n: number;
-  pivsign: number;
-  piv: number[];
+  private LU: number[][];
+  private m: number;
+  private n: number;
+  private pivsign: number;
+  private piv: number[];
 
   constructor(A: number[][]) {
     if (A.length === 0) {
@@ -107,7 +106,8 @@ export class LUDecomposition {
 
   /**
    * Is the matrix nonsingular?
-   * @return     {boolean} true if U, and hence A, is nonsingular.
+   *
+   * @return true if U, and hence A, is nonsingular.
    */
   isNonsingular() {
     for (var j = 0; j < this.n; j++) {
@@ -118,10 +118,11 @@ export class LUDecomposition {
 
   /**
    * Return lower triangular factor
-   * @return     {Matrix} L
+   *
+   * @return L
    */
   getL() {
-    var L = this.LU.map((row) => Array.from(row)); // create a copy of LU
+    var L = copyMatrix(this.LU);
     for (var i = 0; i < this.m; i++) {
       for (var j = 0; j < this.n; j++) {
         if (i > j) {
@@ -138,18 +139,11 @@ export class LUDecomposition {
 
   /**
    * Return upper triangular factor
-   * @return     {Matrix} U
+   *
+   * @return U
    */
   getU() {
-    var U: number[][] = [];
-    for (var i = 0; i < this.n; i++) {
-      var array = [];
-      for (var j = 0; j < this.n; j++) {
-        array.push(0);
-      }
-      U.push(array);
-    }
-
+    var U = zeroMatrix(this.n, this.n);
     for (var i = 0; i < this.n; i++) {
       for (var j = 0; j < this.n; j++) {
         if (i <= j) {
@@ -164,57 +158,22 @@ export class LUDecomposition {
 
   /**
    * Return pivot permutation vector
-   * @return     {Array} piv
+   *
+   * @return piv
    */
   getPivot() {
-    var p = (function (s) {
-      var a = [];
-      while (s-- > 0) a.push(0);
-      return a;
-    })(this.m);
-    for (var i = 0; i < this.m; i++) {
-      p[i] = this.piv[i];
-    }
-    return p;
-  }
-
-  /**
-   * Return pivot permutation vector as a one-dimensional double array
-   * @return     {Array} (double) piv
-   */
-  getDoublePivot() {
-    var vals = (function (s) {
-      var a = [];
-      while (s-- > 0) a.push(0);
-      return a;
-    })(this.m);
-    for (var i = 0; i < this.m; i++) {
-      vals[i] = this.piv[i];
-    }
-    return vals;
+    return this.piv;
   }
 
   /**
    * Determinant
-   * @return     {number} det(A)
+   *
+   * @return det(A)
    * @exception  IllegalArgumentException  Matrix must be square
    */
   det() {
     if (this.m !== this.n) {
-      throw Object.defineProperty(
-        new Error("Matrix must be square."),
-        "__classes",
-        {
-          configurable: true,
-          value: [
-            "java.lang.Throwable",
-            "java.lang.Object",
-            "java.lang.RuntimeException",
-            "java.lang.IllegalArgumentException",
-            "java.lang.Exception",
-          ],
-        }
-      );
+      throw new Error("Matrix must be square.");
     }
     var d = this.pivsign;
     for (var j = 0; j < this.n; j++) {
@@ -223,48 +182,51 @@ export class LUDecomposition {
     return d;
   }
 
-  //   /**
-  //    * Solve A*X = B
-  //    * @param  {Matrix} B   A Matrix with as many rows as A and any number of columns.
-  //    * @return     {Matrix} X so that L*U*X = B(piv,:)
-  //    * @exception  IllegalArgumentException Matrix row dimensions must agree.
-  //    * @exception  RuntimeException  Matrix is singular.
-  //    */
-  //   solve(B: number[][]) {
-  //     if (B.length !== this.m) {
-  //       throw new Error("Matrix row dimensions must agree.");
-  //     }
-  //     if (!this.isNonsingular()) {
-  //       throw new Error("Matrix is singular.");
-  //     }
+  // TODO PORT:
 
-  //     var nx = B[0].length;
-  //       //   var Xmat = B.getMatrix$int_A$int$int(this.piv, 0, nx - 1);
-  //       var Xmat =[]
-  //       for (var i = 0; i < this.piv; i++) {
-  //           for (var i = k + 1; i < this.n; i++) { }
-  //       }
-
-  //     var X = Xmat.getArray();
-  //     for (var k = 0; k < this.n; k++) {
-  //       for (var i = k + 1; i < this.n; i++) {
-  //         for (var j = 0; j < nx; j++) {
-  //           X[i][j] -= X[k][j] * this.LU[i][k];
-  //         }
-  //       }
-  //     }
-  //     for (var k = this.n - 1; k >= 0; k--) {
-  //       for (var j = 0; j < nx; j++) {
-  //         X[k][j] /= this.LU[k][k];
-  //       }
-  //       for (var i = 0; i < k; i++) {
-  //         for (var j = 0; j < nx; j++) {
-  //           X[i][j] -= X[k][j] * this.LU[i][k];
-  //         }
-  //       }
-  //     }
-  //     return Xmat;
+  // /**
+  //  * Solve A*X = B
+  //  *
+  //  * @param B    A Matrix with as many rows as A and any number of columns.
+  //  * @return     X so that L*U*X = B(piv,:)
+  //  * @exception  IllegalArgumentException Matrix row dimensions must agree.
+  //  * @exception  RuntimeException  Matrix is singular.
+  //  */
+  // solve(B: number[][]) {
+  //   if (B.length !== this.m) {
+  //     throw new Error("Matrix row dimensions must agree.");
   //   }
+  //   if (!this.isNonsingular()) {
+  //     throw new Error("Matrix is singular.");
+  //   }
+
+  //   var nx = B[0].length;
+  //   //   var Xmat = B.getMatrix$int_A$int$int(this.piv, 0, nx - 1);
+  //   var Xmat = [];
+  //   for (var i = 0; i < this.piv; i++) {
+  //     for (var i = k + 1; i < this.n; i++) {}
+  //   }
+
+  //   var X = Xmat.getArray();
+  //   for (var k = 0; k < this.n; k++) {
+  //     for (var i = k + 1; i < this.n; i++) {
+  //       for (var j = 0; j < nx; j++) {
+  //         X[i][j] -= X[k][j] * this.LU[i][k];
+  //       }
+  //     }
+  //   }
+  //   for (var k = this.n - 1; k >= 0; k--) {
+  //     for (var j = 0; j < nx; j++) {
+  //       X[k][j] /= this.LU[k][k];
+  //     }
+  //     for (var i = 0; i < k; i++) {
+  //       for (var j = 0; j < nx; j++) {
+  //         X[i][j] -= X[k][j] * this.LU[i][k];
+  //       }
+  //     }
+  //   }
+  //   return Xmat;
+  // }
 }
 
 // "use strict";

@@ -20,6 +20,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { copyMatrix, zeroMatrix } from "./util";
+
 /**
  * Cholesky decomposition for a symmetric positive-definite matrix.
  *
@@ -28,53 +30,111 @@
  * Throws an error if the matrix is not symmetric positive-definite.
  *
  * Ported from the NIST JAMA library.
- *
- * @param A A square matrix
- * @returns The lower-triangular matrix L
  */
-export function cholesky(A: number[][]): number[][] {
-  const n = A.length;
+export class CholeskyDecomposition {
+  private n: number;
+  private L: number[][];
+  private isspd: boolean;
 
-  const L = [];
-  for (var i = 0; i < n; i++) {
-    var array = [];
-    for (var j = 0; j < n; j++) {
-      array.push(0);
+  constructor(A: number[][]) {
+    this.n = A.length;
+
+    if (A.length === 0) {
+      throw new Error("Matrix cannot have empty rows.");
     }
-    L.push(array);
+
+    this.L = zeroMatrix(this.n, this.n);
+
+    this.isspd = A[0].length === this.n;
+
+    for (var j = 0; j < this.n; j++) {
+      var Lrowj = this.L[j];
+      var d = 0.0;
+      for (var k = 0; k < j; k++) {
+        var Lrowk = this.L[k];
+        var s = 0.0;
+        for (var i = 0; i < k; i++) {
+          s += Lrowk[i] * Lrowj[i];
+        }
+        Lrowj[k] = s = (A[j][k] - s) / this.L[k][k];
+        d = d + s * s;
+        this.isspd = (function (lhs, rhs) {
+          return lhs && rhs;
+        })(this.isspd, A[k][j] === A[j][k]);
+      }
+      d = A[j][j] - d;
+      this.isspd = (function (lhs, rhs) {
+        return lhs && rhs;
+      })(this.isspd, d > 0.0);
+      this.L[j][j] = Math.sqrt(Math.max(d, 0.0));
+      for (var k = j + 1; k < this.n; k++) {
+        this.L[j][k] = 0.0;
+      }
+    }
   }
 
-  for (var j = 0; j < n; j++) {
-    var Lrowj = L[j];
-    var d = 0.0;
-    for (var k = 0; k < j; k++) {
-      if (A[k][j] !== A[j][k]) {
-        throw new Error("matrix not symmetric in Cholesky decomposition");
-      }
-
-      var Lrowk = L[k];
-      var s = 0.0;
-      for (var i = 0; i < k; i++) {
-        s += Lrowk[i] * Lrowj[i];
-      }
-      Lrowj[k] = s = (A[j][k] - s) / L[k][k];
-      d = d + s * s;
-    }
-
-    d = A[j][j] - d;
-
-    if (d <= 0.0) {
-      throw new Error("matrix not positive definite in Cholesky decomposition");
-    }
-
-    L[j][j] = Math.sqrt(Math.max(d, 0.0));
-
-    for (var k = j + 1; k < n; k++) {
-      L[j][k] = 0.0;
-    }
+  /**
+   * Is the matrix symmetric and positive definite?
+   *
+   * @return true if A is symmetric and positive definite.
+   */
+  isSPD(): boolean {
+    return this.isspd;
   }
 
-  return L;
+  /**
+   * Return triangular factor.
+   *
+   * @return L
+   */
+  getL(): number[][] {
+    return this.L;
+  }
+
+  /**
+   * Solve A*X = B
+   *
+   * @param B    A Matrix with as many rows as A and any number of columns.
+   * @return     X so that L*L'*X = B
+   * @exception  IllegalArgumentException  Matrix row dimensions must agree.
+   * @exception  RuntimeException  Matrix is not symmetric positive definite.
+   */
+  solve(B: number[][]): number[][] {
+    if (B.length === 0) {
+      throw new Error("Matrix cannot have empty rows.");
+    }
+
+    if (B[0].length !== this.n) {
+      throw new Error("Matrix row dimensions must agree.");
+    }
+
+    if (!this.isspd) {
+      throw new Error("Matrix is not symmetric positive definite.");
+    }
+
+    var X = copyMatrix(B);
+    var nx = B[0].length;
+
+    for (var k = 0; k < this.n; k++) {
+      for (var j = 0; j < nx; j++) {
+        for (var i = 0; i < k; i++) {
+          X[k][j] -= X[i][j] * this.L[k][i];
+        }
+        X[k][j] /= this.L[k][k];
+      }
+    }
+
+    for (var k = this.n - 1; k >= 0; k--) {
+      for (var j = 0; j < nx; j++) {
+        for (var i = k + 1; i < this.n; i++) {
+          X[k][j] -= X[i][j] * this.L[i][k];
+        }
+        X[k][j] /= this.L[k][k];
+      }
+    }
+
+    return X;
+  }
 }
 
 // "use strict";

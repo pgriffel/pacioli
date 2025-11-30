@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { hypot } from "./util";
+import { hypot, zeroArray, zeroMatrix } from "./util";
 
 /**
  * Singular Value Decomposition (SVD) of a matrix.
@@ -28,426 +28,482 @@ import { hypot } from "./util";
  * Requires that the number of rows is at least the number of columns (m >= n).
  *
  * Ported from the NIST JAMA library.
- *
- * @param A
- * @param m
- * @param n
- * @returns
  */
-export function singularValueDecomposition(
-  A: number[][],
-  m: number,
-  n: number
-): {
-  U: number[][];
-  S: number[];
-  V: number[][];
-} {
-  // The code below handles the m < n case, but it is not clear if that works. Better
-  // safe than sorry, so we throw an error for now.
-  if (m < n) {
-    throw new Error(
-      "SVD Error: number of rows must be at least number of columns (m >= n)"
-    );
-  }
+export class SingularValueDecomposition {
+  private m: number;
+  private n: number;
+  private U: number[][];
+  private V: number[][];
+  private s: number[];
 
-  const U: number[][] = [];
-  const V: number[][] = [];
-  const s: number[] = [];
-
-  var nu = Math.min(m, n);
-
-  for (var i = 0; i < Math.min(m + 1, n); i++) {
-    s.push(0);
-  }
-
-  for (var i = 0; i < m; i++) {
-    var array = [];
-    for (var j = 0; j < nu; j++) {
-      array.push(0);
+  constructor(A: number[][]) {
+    if (A.length === 0) {
+      throw new Error("Matrix cannot have empty rows.");
     }
-    U.push(array);
-  }
 
-  for (var i = 0; i < n; i++) {
-    var array = [];
-    for (var j = 0; j < n; j++) {
-      array.push(0);
+    this.m = A.length;
+    this.n = A[0].length;
+
+    // The code below handles the m < n case, but it is not clear if that works. Better
+    // safe than sorry, so we throw an error for now.
+    if (this.m < this.n) {
+      throw new Error(
+        "SVD Error: number of rows must be at least number of columns (m >= n)"
+      );
     }
-    V.push(array);
-  }
 
-  const e: number[] = [];
-  for (var i = 0; i < n; i++) {
-    e.push(0);
-  }
+    var nu = Math.min(this.m, this.n);
 
-  const work: number[] = [];
-  for (var i = 0; i < m; i++) {
-    work.push(0);
-  }
+    this.s = zeroArray(Math.min(this.m + 1, this.n));
 
-  const wantu = true;
-  const wantv = true;
+    this.U = zeroMatrix(this.m, nu);
 
-  const nct = Math.min(m - 1, n);
-  const nrt = Math.max(0, Math.min(n - 2, m));
+    this.V = zeroMatrix(this.n, this.n);
 
-  for (var k = 0; k < Math.max(nct, nrt); k++) {
-    if (k < nct) {
-      s[k] = 0;
-      for (var i = k; i < m; i++) {
-        s[k] = hypot(s[k], A[i][k]);
-      }
-      if (s[k] !== 0.0) {
-        if (A[k][k] < 0.0) {
-          s[k] = -s[k];
+    var e = (function (s) {
+      var a = [];
+      while (s-- > 0) a.push(0);
+      return a;
+    })(this.n);
+    var work = (function (s) {
+      var a = [];
+      while (s-- > 0) a.push(0);
+      return a;
+    })(this.m);
+    var wantu = true;
+    var wantv = true;
+    var nct = Math.min(this.m - 1, this.n);
+    var nrt = Math.max(0, Math.min(this.n - 2, this.m));
+    for (var k = 0; k < Math.max(nct, nrt); k++) {
+      if (k < nct) {
+        this.s[k] = 0;
+        for (var i = k; i < this.m; i++) {
+          this.s[k] = hypot(this.s[k], A[i][k]);
         }
-        for (var i = k; i < m; i++) {
-          A[i][k] /= s[k];
-        }
-        A[k][k] += 1.0;
-      }
-      s[k] = -s[k];
-    }
-    for (var j = k + 1; j < n; j++) {
-      if (k < nct && s[k] !== 0.0) {
-        var t = 0;
-        for (var i = k; i < m; i++) {
-          t += A[i][k] * A[i][j];
-        }
-        t = -t / A[k][k];
-        for (var i = k; i < m; i++) {
-          A[i][j] += t * A[i][k];
-        }
-      }
-      e[j] = A[k][j];
-    }
-    if (wantu && k < nct) {
-      for (var i = k; i < m; i++) {
-        U[i][k] = A[i][k];
-      }
-    }
-    if (k < nrt) {
-      e[k] = 0;
-      for (var i = k + 1; i < n; i++) {
-        e[k] = hypot(e[k], e[i]);
-      }
-      if (e[k] !== 0.0) {
-        if (e[k + 1] < 0.0) {
-          e[k] = -e[k];
-        }
-        for (var i = k + 1; i < n; i++) {
-          e[i] /= e[k];
-        }
-        e[k + 1] += 1.0;
-      }
-      e[k] = -e[k];
-      if (k + 1 < m && e[k] !== 0.0) {
-        for (var i = k + 1; i < m; i++) {
-          work[i] = 0.0;
-        }
-        for (var j = k + 1; j < n; j++) {
-          for (var i = k + 1; i < m; i++) {
-            work[i] += e[j] * A[i][j];
+        if (this.s[k] !== 0.0) {
+          if (A[k][k] < 0.0) {
+            this.s[k] = -this.s[k];
           }
-        }
-        for (var j = k + 1; j < n; j++) {
-          var t = -e[j] / e[k + 1];
-          for (var i = k + 1; i < m; i++) {
-            A[i][j] += t * work[i];
+          for (var i = k; i < this.m; i++) {
+            A[i][k] /= this.s[k];
           }
+          A[k][k] += 1.0;
         }
+        this.s[k] = -this.s[k];
       }
-      if (wantv) {
-        for (var i = k + 1; i < n; i++) {
-          V[i][k] = e[i];
-        }
-      }
-    }
-  }
-
-  var p = Math.min(n, m + 1);
-
-  if (nct < n) {
-    s[nct] = A[nct][nct];
-  }
-
-  if (m < p) {
-    s[p - 1] = 0.0;
-  }
-
-  if (nrt + 1 < p) {
-    e[nrt] = A[nrt][p - 1];
-  }
-
-  e[p - 1] = 0.0;
-
-  if (wantu) {
-    for (var j = nct; j < nu; j++) {
-      for (var i = 0; i < m; i++) {
-        U[i][j] = 0.0;
-      }
-      U[j][j] = 1.0;
-    }
-
-    for (var k = nct - 1; k >= 0; k--) {
-      if (s[k] !== 0.0) {
-        for (var j = k + 1; j < nu; j++) {
+      for (var j = k + 1; j < this.n; j++) {
+        if (
+          (function (lhs, rhs) {
+            return lhs && rhs;
+          })(k < nct, this.s[k] !== 0.0)
+        ) {
           var t = 0;
-          for (var i = k; i < m; i++) {
-            t += U[i][k] * U[i][j];
+          for (var i = k; i < this.m; i++) {
+            t += A[i][k] * A[i][j];
           }
-          t = -t / U[k][k];
-          for (var i = k; i < m; i++) {
-            U[i][j] += t * U[i][k];
-          }
-        }
-        for (var i = k; i < m; i++) {
-          U[i][k] = -U[i][k];
-        }
-        U[k][k] = 1.0 + U[k][k];
-        for (var i = 0; i < k - 1; i++) {
-          U[i][k] = 0.0;
-        }
-      } else {
-        for (var i = 0; i < m; i++) {
-          U[i][k] = 0.0;
-        }
-        U[k][k] = 1.0;
-      }
-    }
-  }
-  if (wantv) {
-    for (var k = n - 1; k >= 0; k--) {
-      if (k < nrt && e[k] !== 0.0) {
-        for (var j = k + 1; j < nu; j++) {
-          var t = 0;
-          for (var i = k + 1; i < n; i++) {
-            t += V[i][k] * V[i][j];
-          }
-          t = -t / V[k + 1][k];
-          for (var i = k + 1; i < n; i++) {
-            V[i][j] += t * V[i][k];
+          t = -t / A[k][k];
+          for (var i = k; i < this.m; i++) {
+            A[i][j] += t * A[i][k];
           }
         }
-      }
-      for (var i = 0; i < n; i++) {
-        V[i][k] = 0.0;
-      }
-      V[k][k] = 1.0;
-    }
-  }
-
-  var pp = p - 1;
-  var iter = 0;
-  var eps = Math.pow(2.0, -52.0);
-  var tiny = Math.pow(2.0, -966.0);
-
-  while (p > 0) {
-    var k = 0;
-    var kase = 0;
-
-    for (k = p - 2; k >= -1; k--) {
-      if (k === -1) {
-        break;
+        e[j] = A[k][j];
       }
       if (
-        Math.abs(e[k]) <=
-        tiny + eps * (Math.abs(s[k]) + Math.abs(s[k + 1]))
+        (function (lhs, rhs) {
+          return lhs && rhs;
+        })(wantu, k < nct)
       ) {
-        e[k] = 0.0;
-        break;
+        for (var i = k; i < this.m; i++) {
+          this.U[i][k] = A[i][k];
+        }
+      }
+      if (k < nrt) {
+        e[k] = 0;
+        for (var i = k + 1; i < this.n; i++) {
+          e[k] = hypot(e[k], e[i]);
+        }
+        if (e[k] !== 0.0) {
+          if (e[k + 1] < 0.0) {
+            e[k] = -e[k];
+          }
+          for (var i = k + 1; i < this.n; i++) {
+            e[i] /= e[k];
+          }
+          e[k + 1] += 1.0;
+        }
+        e[k] = -e[k];
+        if (
+          (function (lhs, rhs) {
+            return lhs && rhs;
+          })(k + 1 < this.m, e[k] !== 0.0)
+        ) {
+          for (var i = k + 1; i < this.m; i++) {
+            work[i] = 0.0;
+          }
+          for (var j = k + 1; j < this.n; j++) {
+            for (var i = k + 1; i < this.m; i++) {
+              work[i] += e[j] * A[i][j];
+            }
+          }
+          for (var j = k + 1; j < this.n; j++) {
+            var t = -e[j] / e[k + 1];
+            for (var i = k + 1; i < this.m; i++) {
+              A[i][j] += t * work[i];
+            }
+          }
+        }
+        if (wantv) {
+          for (var i = k + 1; i < this.n; i++) {
+            this.V[i][k] = e[i];
+          }
+        }
       }
     }
-
-    if (k === p - 2) {
-      kase = 4;
-    } else {
-      var ks = 0;
-
-      for (ks = p - 1; ks >= k; ks--) {
-        if (ks === k) {
+    var p = Math.min(this.n, this.m + 1);
+    if (nct < this.n) {
+      this.s[nct] = A[nct][nct];
+    }
+    if (this.m < p) {
+      this.s[p - 1] = 0.0;
+    }
+    if (nrt + 1 < p) {
+      e[nrt] = A[nrt][p - 1];
+    }
+    e[p - 1] = 0.0;
+    if (wantu) {
+      for (var j = nct; j < nu; j++) {
+        for (var i = 0; i < this.m; i++) {
+          this.U[i][j] = 0.0;
+        }
+        this.U[j][j] = 1.0;
+      }
+      for (var k = nct - 1; k >= 0; k--) {
+        if (this.s[k] !== 0.0) {
+          for (var j = k + 1; j < nu; j++) {
+            var t = 0;
+            for (var i = k; i < this.m; i++) {
+              t += this.U[i][k] * this.U[i][j];
+            }
+            t = -t / this.U[k][k];
+            for (var i = k; i < this.m; i++) {
+              this.U[i][j] += t * this.U[i][k];
+            }
+          }
+          for (var i = k; i < this.m; i++) {
+            this.U[i][k] = -this.U[i][k];
+          }
+          this.U[k][k] = 1.0 + this.U[k][k];
+          for (var i = 0; i < k - 1; i++) {
+            this.U[i][k] = 0.0;
+          }
+        } else {
+          for (var i = 0; i < this.m; i++) {
+            this.U[i][k] = 0.0;
+          }
+          this.U[k][k] = 1.0;
+        }
+      }
+    }
+    if (wantv) {
+      for (var k = this.n - 1; k >= 0; k--) {
+        if (
+          (function (lhs, rhs) {
+            return lhs && rhs;
+          })(k < nrt, e[k] !== 0.0)
+        ) {
+          for (var j = k + 1; j < nu; j++) {
+            var t = 0;
+            for (var i = k + 1; i < this.n; i++) {
+              t += this.V[i][k] * this.V[i][j];
+            }
+            t = -t / this.V[k + 1][k];
+            for (var i = k + 1; i < this.n; i++) {
+              this.V[i][j] += t * this.V[i][k];
+            }
+          }
+        }
+        for (var i = 0; i < this.n; i++) {
+          this.V[i][k] = 0.0;
+        }
+        this.V[k][k] = 1.0;
+      }
+    }
+    var pp = p - 1;
+    var iter = 0;
+    var eps = Math.pow(2.0, -52.0);
+    var tiny = Math.pow(2.0, -966.0);
+    while (p > 0) {
+      var k = 0;
+      var kase = 0;
+      for (k = p - 2; k >= -1; k--) {
+        if (k === -1) {
           break;
         }
-        var t =
-          (ks !== p ? Math.abs(e[ks]) : 0.0) +
-          (ks !== k + 1 ? Math.abs(e[ks - 1]) : 0.0);
-        if (Math.abs(s[ks]) <= tiny + eps * t) {
-          s[ks] = 0.0;
+        if (
+          Math.abs(e[k]) <=
+          tiny + eps * (Math.abs(this.s[k]) + Math.abs(this.s[k + 1]))
+        ) {
+          e[k] = 0.0;
           break;
         }
       }
-
-      if (ks === k) {
-        kase = 3;
-      } else if (ks === p - 1) {
-        kase = 1;
+      if (k === p - 2) {
+        kase = 4;
       } else {
-        kase = 2;
-        k = ks;
+        var ks = 0;
+        for (ks = p - 1; ks >= k; ks--) {
+          if (ks === k) {
+            break;
+          }
+          var t =
+            (ks !== p ? Math.abs(e[ks]) : 0.0) +
+            (ks !== k + 1 ? Math.abs(e[ks - 1]) : 0.0);
+          if (Math.abs(this.s[ks]) <= tiny + eps * t) {
+            this.s[ks] = 0.0;
+            break;
+          }
+        }
+        if (ks === k) {
+          kase = 3;
+        } else if (ks === p - 1) {
+          kase = 1;
+        } else {
+          kase = 2;
+          k = ks;
+        }
       }
-    }
-
-    k++;
-
-    switch (kase) {
-      case 1:
-        {
-          var f = e[p - 2];
-          e[p - 2] = 0.0;
-          for (var j = p - 2; j >= k; j--) {
-            var t = hypot(s[j], f);
-            var cs = s[j] / t;
-            var sn = f / t;
-            s[j] = t;
-            if (j !== k) {
-              f = -sn * e[j - 1];
-              e[j - 1] = cs * e[j - 1];
-            }
-            if (wantv) {
-              for (var i = 0; i < n; i++) {
-                t = cs * V[i][j] + sn * V[i][p - 1];
-                V[i][p - 1] = -sn * V[i][j] + cs * V[i][p - 1];
-                V[i][j] = t;
+      k++;
+      switch (kase) {
+        case 1:
+          {
+            var f = e[p - 2];
+            e[p - 2] = 0.0;
+            for (var j = p - 2; j >= k; j--) {
+              var t = hypot(this.s[j], f);
+              var cs = this.s[j] / t;
+              var sn = f / t;
+              this.s[j] = t;
+              if (j !== k) {
+                f = -sn * e[j - 1];
+                e[j - 1] = cs * e[j - 1];
+              }
+              if (wantv) {
+                for (var i = 0; i < this.n; i++) {
+                  t = cs * this.V[i][j] + sn * this.V[i][p - 1];
+                  this.V[i][p - 1] = -sn * this.V[i][j] + cs * this.V[i][p - 1];
+                  this.V[i][j] = t;
+                }
               }
             }
           }
-        }
-        break;
-      case 2:
-        {
-          var f = e[k - 1];
-          e[k - 1] = 0.0;
-          for (var j = k; j < p; j++) {
-            var t = hypot(s[j], f);
-            var cs = s[j] / t;
-            var sn = f / t;
-            s[j] = t;
-            f = -sn * e[j];
-            e[j] = cs * e[j];
-            if (wantu) {
-              for (var i = 0; i < m; i++) {
-                t = cs * U[i][j] + sn * U[i][k - 1];
-                U[i][k - 1] = -sn * U[i][j] + cs * U[i][k - 1];
-                U[i][j] = t;
+          break;
+        case 2:
+          {
+            var f = e[k - 1];
+            e[k - 1] = 0.0;
+            for (var j = k; j < p; j++) {
+              var t = hypot(this.s[j], f);
+              var cs = this.s[j] / t;
+              var sn = f / t;
+              this.s[j] = t;
+              f = -sn * e[j];
+              e[j] = cs * e[j];
+              if (wantu) {
+                for (var i = 0; i < this.m; i++) {
+                  t = cs * this.U[i][j] + sn * this.U[i][k - 1];
+                  this.U[i][k - 1] = -sn * this.U[i][j] + cs * this.U[i][k - 1];
+                  this.U[i][j] = t;
+                }
               }
             }
           }
-        }
-        break;
-      case 3:
-        {
-          var scale = Math.max(
-            Math.max(
+          break;
+        case 3:
+          {
+            var scale = Math.max(
               Math.max(
-                Math.max(Math.abs(s[p - 1]), Math.abs(s[p - 2])),
-                Math.abs(e[p - 2])
+                Math.max(
+                  Math.max(Math.abs(this.s[p - 1]), Math.abs(this.s[p - 2])),
+                  Math.abs(e[p - 2])
+                ),
+                Math.abs(this.s[k])
               ),
-              Math.abs(s[k])
-            ),
-            Math.abs(e[k])
-          );
-          var sp = s[p - 1] / scale;
-          var spm1 = s[p - 2] / scale;
-          var epm1 = e[p - 2] / scale;
-          var sk = s[k] / scale;
-          var ek = e[k] / scale;
-          var b = ((spm1 + sp) * (spm1 - sp) + epm1 * epm1) / 2.0;
-          var c = sp * epm1 * (sp * epm1);
-          var shift = 0.0;
-
-          if (b !== 0.0 || c !== 0.0) {
-            shift = Math.sqrt(b * b + c);
-            if (b < 0.0) {
-              shift = -shift;
+              Math.abs(e[k])
+            );
+            var sp = this.s[p - 1] / scale;
+            var spm1 = this.s[p - 2] / scale;
+            var epm1 = e[p - 2] / scale;
+            var sk = this.s[k] / scale;
+            var ek = e[k] / scale;
+            var b = ((spm1 + sp) * (spm1 - sp) + epm1 * epm1) / 2.0;
+            var c = sp * epm1 * (sp * epm1);
+            var shift = 0.0;
+            if (
+              (function (lhs, rhs) {
+                return lhs || rhs;
+              })(b !== 0.0, c !== 0.0)
+            ) {
+              shift = Math.sqrt(b * b + c);
+              if (b < 0.0) {
+                shift = -shift;
+              }
+              shift = c / (b + shift);
             }
-            shift = c / (b + shift);
+            var f = (sk + sp) * (sk - sp) + shift;
+            var g = sk * ek;
+            for (var j = k; j < p - 1; j++) {
+              var t = hypot(f, g);
+              var cs = f / t;
+              var sn = g / t;
+              if (j !== k) {
+                e[j - 1] = t;
+              }
+              f = cs * this.s[j] + sn * e[j];
+              e[j] = cs * e[j] - sn * this.s[j];
+              g = sn * this.s[j + 1];
+              this.s[j + 1] = cs * this.s[j + 1];
+              if (wantv) {
+                for (var i = 0; i < this.n; i++) {
+                  t = cs * this.V[i][j] + sn * this.V[i][j + 1];
+                  this.V[i][j + 1] = -sn * this.V[i][j] + cs * this.V[i][j + 1];
+                  this.V[i][j] = t;
+                }
+              }
+              t = hypot(f, g);
+              cs = f / t;
+              sn = g / t;
+              this.s[j] = t;
+              f = cs * e[j] + sn * this.s[j + 1];
+              this.s[j + 1] = -sn * e[j] + cs * this.s[j + 1];
+              g = sn * e[j + 1];
+              e[j + 1] = cs * e[j + 1];
+              if (wantu && j < this.m - 1) {
+                for (var i = 0; i < this.m; i++) {
+                  t = cs * this.U[i][j] + sn * this.U[i][j + 1];
+                  this.U[i][j + 1] = -sn * this.U[i][j] + cs * this.U[i][j + 1];
+                  this.U[i][j] = t;
+                }
+              }
+            }
+            e[p - 2] = f;
+            iter = iter + 1;
           }
-
-          var f = (sk + sp) * (sk - sp) + shift;
-          var g = sk * ek;
-
-          for (var j = k; j < p - 1; j++) {
-            var t = hypot(f, g);
-            var cs = f / t;
-            var sn = g / t;
-            if (j !== k) {
-              e[j - 1] = t;
-            }
-            f = cs * s[j] + sn * e[j];
-            e[j] = cs * e[j] - sn * s[j];
-            g = sn * s[j + 1];
-            s[j + 1] = cs * s[j + 1];
-            if (wantv) {
-              for (var i = 0; i < n; i++) {
-                t = cs * V[i][j] + sn * V[i][j + 1];
-                V[i][j + 1] = -sn * V[i][j] + cs * V[i][j + 1];
-                V[i][j] = t;
+          break;
+        case 4:
+          {
+            if (this.s[k] <= 0.0) {
+              this.s[k] = this.s[k] < 0.0 ? -this.s[k] : 0.0;
+              if (wantv) {
+                for (var i = 0; i <= pp; i++) {
+                  this.V[i][k] = -this.V[i][k];
+                }
               }
             }
-            t = hypot(f, g);
-            cs = f / t;
-            sn = g / t;
-            s[j] = t;
-            f = cs * e[j] + sn * s[j + 1];
-            s[j + 1] = -sn * e[j] + cs * s[j + 1];
-            g = sn * e[j + 1];
-            e[j + 1] = cs * e[j + 1];
-            if (wantu && j < m - 1) {
-              for (var i = 0; i < m; i++) {
-                t = cs * U[i][j] + sn * U[i][j + 1];
-                U[i][j + 1] = -sn * U[i][j] + cs * U[i][j + 1];
-                U[i][j] = t;
+            while (k < pp) {
+              if (this.s[k] >= this.s[k + 1]) {
+                break;
               }
+              var t = this.s[k];
+              this.s[k] = this.s[k + 1];
+              this.s[k + 1] = t;
+              if (wantv && k < this.n - 1) {
+                for (var i = 0; i < this.n; i++) {
+                  t = this.V[i][k + 1];
+                  this.V[i][k + 1] = this.V[i][k];
+                  this.V[i][k] = t;
+                }
+              }
+              if (wantu && k < this.m - 1) {
+                for (var i = 0; i < this.m; i++) {
+                  t = this.U[i][k + 1];
+                  this.U[i][k + 1] = this.U[i][k];
+                  this.U[i][k] = t;
+                }
+              }
+              k++;
             }
+            iter = 0;
+            p--;
           }
-
-          e[p - 2] = f;
-          iter = iter + 1;
-        }
-        break;
-      case 4:
-        {
-          if (s[k] <= 0.0) {
-            s[k] = s[k] < 0.0 ? -s[k] : 0.0;
-            if (wantv) {
-              for (var i = 0; i <= pp; i++) {
-                V[i][k] = -V[i][k];
-              }
-            }
-          }
-          while (k < pp) {
-            if (s[k] >= s[k + 1]) {
-              break;
-            }
-            var t = s[k];
-            s[k] = s[k + 1];
-            s[k + 1] = t;
-            if (wantv && k < n - 1) {
-              for (var i = 0; i < n; i++) {
-                t = V[i][k + 1];
-                V[i][k + 1] = V[i][k];
-                V[i][k] = t;
-              }
-            }
-            if (wantu && k < m - 1) {
-              for (var i = 0; i < m; i++) {
-                t = U[i][k + 1];
-                U[i][k + 1] = U[i][k];
-                U[i][k] = t;
-              }
-            }
-            k++;
-          }
-          iter = 0;
-          p--;
-        }
-        break;
+          break;
+      }
     }
   }
 
-  return { U: U, S: s, V: V };
+  /**
+   * Return the left singular vectors
+   *
+   * @return U
+   */
+  getU(): number[][] {
+    return this.U;
+  }
+
+  /**
+   * Return the right singular vectors
+   *
+   * @return V
+   */
+  getV(): number[][] {
+    return this.V;
+  }
+
+  /**
+   * Return the one-dimensional array of singular values
+   *
+   * @return diagonal of S.
+   */
+  getSingularValues(): number[] {
+    return this.s;
+  }
+
+  /**
+   * Return the diagonal matrix of singular values
+   *
+   * @return S
+   */
+  getS(): number[][] {
+    var S = zeroMatrix(this.n, this.n);
+    for (var i = 0; i < this.n; i++) {
+      S[i][i] = this.s[i];
+    }
+    return S;
+  }
+
+  /**
+   * Two norm
+   *
+   * @return max(S)
+   */
+  norm2(): number {
+    return this.s[0];
+  }
+
+  /**
+   * Two norm condition number
+   *
+   * @return max(S)/min(S)
+   */
+  cond(): number {
+    return this.s[0] / this.s[Math.min(this.m, this.n) - 1];
+  }
+
+  /**
+   * Effective numerical matrix rank
+   *
+   * @return Number of nonnegligible singular values.
+   */
+  rank(): number {
+    var eps = Math.pow(2.0, -52.0);
+    var tol = Math.max(this.m, this.n) * this.s[0] * eps;
+    var r = 0;
+    for (var i = 0; i < this.s.length; i++) {
+      if (this.s[i] > tol) {
+        r++;
+      }
+    }
+    return r;
+  }
 }
 
 // "use strict";

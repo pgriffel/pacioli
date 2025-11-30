@@ -43,6 +43,7 @@ import org.apache.commons.math3.linear.NonSymmetricMatrixException;
 import org.apache.commons.math3.linear.QRDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
+import org.apache.commons.math3.linear.EigenDecomposition;
 
 // import pacioli.Pacioli;
 import uom.DimensionedNumber;
@@ -59,7 +60,7 @@ public class Matrix implements PacioliValue {
 
     static public int precision = 14;
 
-    static public boolean showZeros = false;
+    static public boolean showZeros = true;
 
     ////////////////////////////////////////////////////////////////////////////
     // Constructors
@@ -1209,6 +1210,72 @@ public class Matrix implements PacioliValue {
         items.add(matrixU);
 
         return new PacioliTuple(items);
+    }
+
+    public PacioliTuple eigenvalueDecomposition() throws MVMException {
+
+        Matrix matrixD = new Matrix(shape);
+        Matrix matrixV = new Matrix(shape);
+
+        EigenDecomposition decomposition = new EigenDecomposition(numbers);
+
+        matrixD.numbers = decomposition.getD();
+        matrixV.numbers = decomposition.getV();
+
+        // if (matrixP.numbers == null || matrixL.numbers == null || matrixU.numbers ==
+        // null) {
+        // throw new MVMException("No PLU decomposition for \n\n%s\n\n %s", toText(),
+        // "the matrix is singular");
+        // }
+
+        List<PacioliValue> items = new ArrayList<PacioliValue>();
+        items.add(matrixD);
+        items.add(matrixV);
+
+        return new PacioliTuple(items);
+    }
+
+    public PacioliList eigenvalueList() throws MVMException {
+
+        int m = shape.rowDimension().size();
+        int n = shape.columnDimension().size();
+        // int p = Math.min(m, n);
+
+        // m should equal n
+
+        EigenDecomposition decomposition = new EigenDecomposition(numbers);
+
+        RealMatrix matrixD = decomposition.getD();
+        RealMatrix matrixV = decomposition.getV();
+
+        // SingularValueDecomposition decomposition = new
+        // SingularValueDecomposition(numbers);
+
+        // RealMatrix numbersU = decomposition.getU();
+        // RealMatrix numbersS = decomposition.getS();
+        // RealMatrix numbersV = decomposition.getV();
+
+        List<PacioliValue> svs = new ArrayList<PacioliValue>();
+        for (int i = 0; i < n; i++) {
+
+            List<PacioliValue> items = new ArrayList<PacioliValue>();
+
+            Matrix ev = new Matrix(shape.factor());
+            Matrix vec = new Matrix(shape.rowUnits());
+
+            ev.numbers.setEntry(0, 0, matrixD.getEntry(i, i));
+
+            for (int j = 0; j < n; j++) {
+                vec.numbers.setEntry(j, 0, matrixV.getEntry(j, i));
+            }
+
+            items.add(ev);
+            items.add(vec);
+
+            svs.add(new PacioliTuple(items));
+        }
+
+        return new PacioliList(svs);
     }
 
     public PacioliTuple qrZeroSub() throws MVMException {
