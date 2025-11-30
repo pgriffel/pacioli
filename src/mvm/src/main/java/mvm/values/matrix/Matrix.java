@@ -117,6 +117,8 @@ public class Matrix implements PacioliValue {
             return;
         }
 
+        out.println();
+
         // The header text for the index column
         String sep = rowDimension().width() == 0 || columnDimension().width() == 0 ? "" : ", ";
         String indexText = rowDimension().indexText() + sep + columnDimension().indexText();
@@ -1222,12 +1224,6 @@ public class Matrix implements PacioliValue {
         matrixD.numbers = decomposition.getD();
         matrixV.numbers = decomposition.getV();
 
-        // if (matrixP.numbers == null || matrixL.numbers == null || matrixU.numbers ==
-        // null) {
-        // throw new MVMException("No PLU decomposition for \n\n%s\n\n %s", toText(),
-        // "the matrix is singular");
-        // }
-
         List<PacioliValue> items = new ArrayList<PacioliValue>();
         items.add(matrixD);
         items.add(matrixV);
@@ -1244,7 +1240,6 @@ public class Matrix implements PacioliValue {
 
         EigenDecomposition decomposition = new EigenDecomposition(numbers);
 
-        RealMatrix matrixD = decomposition.getD();
         RealMatrix matrixV = decomposition.getV();
 
         List<PacioliValue> svs = new ArrayList<PacioliValue>();
@@ -1252,16 +1247,20 @@ public class Matrix implements PacioliValue {
 
             List<PacioliValue> items = new ArrayList<PacioliValue>();
 
-            Matrix ev = new Matrix(shape.factor());
+            Matrix readlEv = new Matrix(shape.factor());
+            Matrix imgEv = new Matrix(shape.factor());
             Matrix vec = new Matrix(shape.rowUnits());
 
-            ev.numbers.setEntry(0, 0, matrixD.getEntry(i, i));
+            // ev.numbers.setEntry(0, 0, matrixD.getEntry(i, i));
+            readlEv.numbers.setEntry(0, 0, decomposition.getRealEigenvalue(i));
+            imgEv.numbers.setEntry(0, 0, decomposition.getImagEigenvalue(i));
 
             for (int j = 0; j < n; j++) {
                 vec.numbers.setEntry(j, 0, matrixV.getEntry(j, i));
             }
 
-            items.add(ev);
+            items.add(readlEv);
+            items.add(imgEv);
             items.add(vec);
 
             svs.add(new PacioliTuple(items));

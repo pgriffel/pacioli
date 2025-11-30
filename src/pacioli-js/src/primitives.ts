@@ -1025,7 +1025,8 @@ export function $base_matrix_eigenvalue_decomposition(A: RawMatrix): RawTuple {
 export function $base_matrix_eigenvalue_list(A: RawMatrix): RawList {
   const decomposition = new EigenvalueDecomposition(getFullNumbers(A));
 
-  const D: number[][] = decomposition.getD();
+  const d: number[] = decomposition.getRealEigenvalues();
+  const e: number[] = decomposition.getImagEigenvalues();
   const V: number[][] = decomposition.getV();
 
   const n = A.nrRows;
@@ -1033,7 +1034,8 @@ export function $base_matrix_eigenvalue_list(A: RawMatrix): RawList {
   let tuples = [];
 
   for (let j = 0; j < n; j++) {
-    const ev = initialNumbers(1, 1, [[0, 0, D[j][j]]]);
+    const realEv = initialNumbers(1, 1, [[0, 0, d[j]]]);
+    const imagEv = initialNumbers(1, 1, [[0, 0, e[j]]]);
 
     var vec = zeroNumbers(n, 1);
 
@@ -1041,7 +1043,7 @@ export function $base_matrix_eigenvalue_list(A: RawMatrix): RawList {
       set(vec, i, 0, V[i][j]);
     }
 
-    tuples.push(tagTuple([ev, vec]));
+    tuples.push(tagTuple([realEv, imagEv, vec]));
   }
 
   return tagList(tuples);

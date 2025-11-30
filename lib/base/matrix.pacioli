@@ -1054,7 +1054,7 @@ doc eigenvalue_list
 
 declare_primitive eigenvalue_list(A) ::
   for_index P: for_unit a, P!u:
-    (a*P!u per P!u) -> List(Tuple(a, P!u));
+    (a*P!u per P!u) -> List(Tuple(a, a, P!u));
 
 # ----------------------------------------------------------------------------
 

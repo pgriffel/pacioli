@@ -787,35 +787,13 @@ define non_singular_plu(A) =
 
 # ------------------------------------------------------------------------------
 # Functions eigenvalue_decomposition and eigenvalue_list
+#
+# TODO: 
+# - check completeness/correct rank
+# - imaginary case
 # ------------------------------------------------------------------------------
 
-define eigenvalue_decomposition_check(A, D, V) = 
-  A = V '*' D '*' V'^'-1;
 
-define eigenvalue_list_check(A, ts) = 
-    all[ A '*' v = c '.*' v | (c, v) <- ts];
-
-
-define eigenvalue_list_suite = test_suite("Function eigenvalue_list", [
-
-    random_test("should be a proper factorization", () ->
-        let
-            # Doesn't make the default 14 decimals
-            precision = 5*|decimals|,
-
-            A = random_4_by_4_matrix()
-        in
-            let ts = eigenvalue_list(A) in
-            begin
-                printf("%nalt:%n%s", [ tuple(c, A '*' v - c '.*' v) | (c, v) <- ts]);
-                return just(all[ approximates(A '*' v, c '.*' v, precision) | (c, v) <- ts]);
-                end
-            end
-        end)
-]);
-
-
-# TODO: check completeness/correct rank
 define eigenvalue_decomposition_suite = test_suite("Function eigenvalue_decomposition", [
 
     random_test("should be a proper factorization", () ->
@@ -826,26 +804,34 @@ define eigenvalue_decomposition_suite = test_suite("Function eigenvalue_decompos
             A = random_4_by_4_matrix()
         in
             let (D, V) = eigenvalue_decomposition(A) in
-                begin
-                    # printf("%nV=%n%.30f%nD=%n%.30f", V, D);
-                    return just(approximates(A '*' V, V '*' D, precision));
-                end
+                just(approximates(A '*' V, V '*' D, precision))
             end
-        end),
+        end)
+]);
 
-    random_test("should be a proper factorization", () ->
+define eigenvalue_list_suite = test_suite("Function eigenvalue_list", [
+
+    random_test("should give real eigenvalues and eigenvectors for symmetric matrices", () ->
         let
             # Doesn't make the default 14 decimals
             precision = 10*|decimals|,
 
-            # A = symmetric_matrix_generator(random_4_by_4_matrix)()
-            A = matrix2d(1, 1, 0, 0)
+            A = symmetric_matrix_generator(random_4_by_4_matrix)()
         in
-            let (D, V) = eigenvalue_decomposition(A) in
-            begin
-                # printf("%nV=%.30f%nD=%.30f%nI=%n%.30f", V, D, V '*' V'^'-1);
-                return just(approximates(A '*' V, V '*' D, precision));
-                end
+            just(all[ i ~= 0 | (_, i, _) <- eigenvalue_list(A)])
+        end),
+         
+    random_test("should give correct real eigenvalues and eigenvectors for symmetric matrices", () ->
+        let
+            # Doesn't make the default 14 decimals
+            precision = 10*|decimals|,
+
+            A = symmetric_matrix_generator(random_4_by_4_matrix)()
+        in
+            let 
+                ts = eigenvalue_list(A)
+            in
+                just(all[ approximates(A '*' v, r '.*' v, precision) | (r, _, v) <- eigenvalue_list(A)])
             end
         end)
 ]);
