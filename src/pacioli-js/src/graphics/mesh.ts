@@ -45,7 +45,7 @@ export type PacioliMesh = [
 ];
 
 export function addMesh(
-  body: THREE.Object3D<THREE.Event>,
+  body: THREE.Object3D<THREE.Object3DEventMap>,
   mesh: PacioliMesh,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
@@ -60,7 +60,7 @@ export function addMesh(
 }
 
 export function updateMesh(
-  body: THREE.Object3D<THREE.Event>,
+  body: THREE.Object3D<THREE.Object3DEventMap>,
   mesh: PacioliMesh,
   units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {

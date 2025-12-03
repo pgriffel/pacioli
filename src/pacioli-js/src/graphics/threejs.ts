@@ -44,7 +44,7 @@ export function createGridHelper(
  * @param units - An object specifying the SI units for each axis (x, y, z).
  */
 export function moveObject(
-  object: THREE.Object3D<THREE.Event>,
+  object: THREE.Object3D<THREE.Object3DEventMap>,
   position: PacioliMatrix,
   units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
@@ -53,7 +53,7 @@ export function moveObject(
 }
 
 export function rotateObject(
-  object: THREE.Object3D<THREE.Event>,
+  object: THREE.Object3D<THREE.Object3DEventMap>,
   rotations: PacioliTuple
 ) {
   const [x, y, z] = rotations;

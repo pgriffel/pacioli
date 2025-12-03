@@ -35,7 +35,7 @@ export type PacioliPath = [
 ];
 
 export function addPath(
-  body: THREE.Object3D<THREE.Event>,
+  body: THREE.Object3D<THREE.Object3DEventMap>,
   path: PacioliPath,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {

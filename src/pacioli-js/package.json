@@ -23,7 +23,7 @@
     "d3": "^7.4.4",
     "d3-cloud": "^1.2.5",
     "numeric": "^1.2.6",
-    "three": "^0.171.0",
+    "three": "^0.181.0",
     "uom-ts": "file:uom-ts-0.0.2.tgz"
   },
   "devDependencies": {
@@ -32,7 +32,7 @@
     "@types/jasmine": "^4.3.1",
     "@types/node": "^18.15.10",
     "@types/numeric": "^1.2.2",
-    "@types/three": "^0.149.0",
+    "@types/three": "^0.181.0",
     "@types/webpack": "^5.28.0",
     "esbuild": "~0.25.8",
     "fast-check": "^2.20.0",
