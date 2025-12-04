@@ -1,0 +1,32 @@
+import geometry;
+import graphics;
+
+define labels_scene() =
+    let
+       color_wheel = ["Red", "Yellow", "Green", "Cyan", "Blue", "Purple"]
+    in
+        begin
+            scene := empty_scene("labels scene");
+
+            scene := add_labels([default_label("Default label", vector3d(5*|metre|, 5*|metre|, 0.5*|metre|))], scene);
+
+            scene := add_arrows([with_arrow_label("Arrow label", origin_arrow(vector3d(5*|metre|, 0*|metre|, 0*|metre|)))], scene);
+
+            scene := add_labels(colored_labels(color_wheel), scene);
+
+            return scene;
+        end
+    end;
+
+define colored_labels(colors) = 
+    let 
+        n = list_size(colors),
+        angle = 2 * pi * |radian| / n
+    in
+        [ make_label(
+            format("%s label", color),
+            vector3d(10 * cos(i*angle) * |metre|, 10 * sin(i*angle) * |metre|, |metre|),
+            make_color(color),
+            "Brush Script MT",
+            2) | i <- naturals(n), color := nth(mod(i, n), colors)]
+    end ;
