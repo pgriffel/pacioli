@@ -20,18 +20,7 @@ This produces the .jar file in the src/pacioli/target directory.
 
 ### Building the javascript runtime
 
-This requires nodejs version 18 or above.
-
-1. Clone the sources
-
-2. cd src/pacioli-js
-
-3. npm install
-
-4. npm run bundle
-
-This produces the bundle .js file in the src/pacioli-js/dist directory. Copy this file to the test
-and relevant samples directories to
+See the readme in the src/pacioli-js directory.
 
 ### Building the extension
 

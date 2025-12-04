@@ -23,12 +23,6 @@ To run the tests:
 npm run test
 ```
 
-or on Windows command:
-
-```
-for ($i=1; $i -le 10; $i++) {echo $i; npm run test}
-```
-
 This builds the code and runs the test. It should product a jasmine-spec-reporter report.
 
 Adjust the configuration in the `fc.configureGlobal` call.
