@@ -1,6 +1,5 @@
 ---
 title: Pacioli Manual
-layout: default
 ---
 
 # Pacioli Manual
@@ -32,11 +31,12 @@ Manual for Pacioli 0.5
   - [Predefined Units](uom/predefined-units)
 - [Types](types/contents)
   - [The Type System](types/type-system)
+  - [Type Variables](types/type-variables)
   - [Matrix Type](types/matrix-type)
   - [Index Type](types/index-type)
   - [Tuple Type](types/tuple-type)
   - [Function Type](types/function-type)
-  - [Generics](types/generics)
+  - [User Defined Types](types/generics)
   - [Predefined Types](types/predefined-types)
 - [Expressions](expressions/contents)
   - [Unit notation](expressions/unit-notation)

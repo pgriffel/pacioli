@@ -1,5 +1,5 @@
 ---
-layout: default
+title: Web Components
 ---
 
 # Web Components

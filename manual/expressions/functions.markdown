@@ -1,21 +1,19 @@
 ---
-title: Functions
+title: Functions and Applications
 ---
 
 # Functions and Applications
 
-### Function Application <a id="functionapplication"/></a>
+## Function Application
 
 A function application is of the form
 
-<code>
-foo(<a href="#expressions">expression</a>, <a href="#expressions">expression</a>, ... )
-</code>
+    fun(expression, expression, ...)
 
-### Lambda <a id="lambdas"/></a>
+## Anonymous Functions
 
 An anonymous function is of the form
 
-<code>
-lambda (x, y, ... ) <a href="#expressions">expression</a> end
-</code>
+    (x, y, ... ) -> expression
+
+It introduces variables `x`, `y`, ... that get bound in a function application.

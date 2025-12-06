@@ -1,5 +1,5 @@
 ---
-title: Generics
+title: User Defined Types
 ---
 
-# Generics
+# User Defined Types

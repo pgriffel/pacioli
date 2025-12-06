@@ -4,6 +4,14 @@ title: Matrix Type
 
 # Matrix Type
 
+Pacioli's type system's design is driven by the goal of incorporating dimensioned vector spaces into
+a polymorphic type system.
+
+Pacioli's matrix type enables type inference of linear algebra expressions.
+It is able to infer dimensioned vector spaces. But this requires an extension of the type inference
+engine. Polymorphic type systems cannot handle dimensioned vector spaces. It can only handle
+uniform vectors and matrices. Vectors and matrices can however have non-uniform units of measyrement.
+
 Any numerical value is a matrix. A scalar is a 1x1 matrix. A vector
 is a 1xN or a Nx1 matrix.
 
@@ -34,9 +42,7 @@ The matrix type is interpreted at runtime as a unit matrix. For each
 dimensioned vector space the representative unit vector is assumed to
 be available. Each entry in a matrix type is then given by
 
-<code>
-(x per y)[i,j] = x[i] / y[j]
-</code>
+      (x per y)[i,j] = x[i] / y[j]
 
 The runtime contents of non-terminals is defined inductively, starting
 from the contents of the unit vector terminals. Let `v` and `w` be
@@ -54,3 +60,30 @@ matricized with the Kronecker product. This makes multi-dimensional
 data transparent for matrices and addresses the issue in the
 indices. Multi-dimensional data is indexed with compound indices
 instead of multiple row or column indices. See [Indices](index-type).
+
+## Some Principles and Properties
+
+### A matrix is a linear transformation
+
+Pacioli uses matrices strictly as linerr transformations. The term matrix is used differently
+in different contexts. A more strict definition restricts matrices to linear transformation. But
+a matrix can also be viewed as just a 2-dimensional array of numbers. Pacioli uses the first strict
+definition. In Pacioli a matrix denotes a linear transformation.
+
+### No assumptions about individual units at compile time
+
+The type is valid for any content of the unit vectors.
+
+### Dimensioned Operations are Index-free
+
+Operations like `get` only work on matrices with uniform units of measurement.
+
+### Units at Runtime are Optional
+
+Different levels of runtime support for units of measurement are possible.
+
+### Functions `magnitude` and `unit` give an Escape Hatch
+
+Escape always possible by splitting a dimensioned matrix into a dimensionless magnitude matrix and a unit matrix.
+
+      A = magnitude(A) * unit(A)
