@@ -62,6 +62,21 @@ export class PacioliMatrix {
     return this;
   }
 
+  getDimNum(row: number, column: number) {
+    return DimNum.fromNumber(
+      this.getNum(row, column),
+      this.getUnit(row, column)
+    );
+  }
+
+  getNum(row: number, column: number) {
+    return getNumber(this.numbers, row, column);
+  }
+
+  getUnit(row: number, column: number) {
+    return this.shape.unitAt(row, column);
+  }
+
   public convertUnit(unit: SIUnit, context: Context) {
     const unitShape = MatrixShape.scalar(unit);
     return new PacioliMatrix(

@@ -23,9 +23,7 @@
 import { SIUnit, UOM } from "uom-ts";
 import { ScatterPlot, ScatterPlotOptions } from "../../charts/d3-scatter-plot";
 import { PacioliContext } from "../../context";
-import { PacioliValue } from "../../boxing";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { dataUnit } from "../../charts/chart-utils";
 import { optionsFromAttributes } from "../utils";
 import { parseUnit } from "../../api";
 
@@ -122,28 +120,29 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
       // Compute the data using the new parameter values
       const data = this.fetchData();
 
-      // Extract the x and y values
-      if (data.kind !== "tuple") {
-        throw Error("data must be a pair");
-      }
-      const tuple = data as unknown as PacioliValue[];
-      const xdata = tuple[0];
-      const ydata = tuple[1];
+      // // Extract the x and y values
+      // if (data.kind !== "tuple") {
+      //   throw Error("data must be a pair");
+      // }
+      // const tuple = data as unknown as PacioliValue[];
+      // const xdata = tuple[0];
+      // const ydata = tuple[1];
 
-      // Derive unknown units from the data. Set them before they
-      // are used in the chartOptions call below.
-      if (this.xunit === undefined) {
-        this.xunit = dataUnit(xdata);
-      }
-      if (this.yunit === undefined) {
-        this.yunit = dataUnit(ydata);
-      }
+      // // Derive unknown units from the data. Set them before they
+      // // are used in the chartOptions call below.
+      // if (this.xunit === undefined) {
+      //   this.xunit = dataUnit(xdata);
+      // }
+      // if (this.yunit === undefined) {
+      //   this.yunit = dataUnit(ydata);
+      // }
 
       // Refresh the chart
       this.clearContent();
       this.chart = new ScatterPlot(
-        xdata,
-        ydata,
+        // xdata,
+        // ydata,
+        data,
         PacioliContext.si(),
         this.chartOptions()
       );

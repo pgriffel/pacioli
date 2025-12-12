@@ -92,6 +92,18 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
   unit?: SIUnit;
 
   /**
+   * The unit of measurement in the x direction. Is derived from the data if no
+   * unit attribute is given.
+   */
+  xunit?: SIUnit;
+
+  /**
+   * The unit of measurement in the y direction. Is derived from the data if no
+   * unit attribute is given.
+   */
+  yunit?: SIUnit;
+
+  /**
    * The line chart
    */
   chart?: LineChart;
@@ -99,7 +111,7 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = ["unit"];
+  static observedAttributes = ["unit", "xunit", "yunit"];
 
   constructor() {
     super();
@@ -114,6 +126,14 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
       switch (name) {
         case "unit": {
           this.unit = parseUnit(newValue);
+          break;
+        }
+        case "xunit": {
+          this.xunit = parseUnit(newValue);
+          break;
+        }
+        case "yunit": {
+          this.yunit = parseUnit(newValue);
           break;
         }
       }
@@ -156,7 +176,7 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    */
   chartOptions(): Partial<LineChartOptions> {
     return {
-      unit: this.unit || UOM.ONE,
+      yunit: this.unit || UOM.ONE,
       ...optionsFromAttributes<LineChartOptions>(this, SUPPORTED_ATTRIBUTES),
     };
   }
