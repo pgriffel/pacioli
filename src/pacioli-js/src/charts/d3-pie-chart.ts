@@ -67,12 +67,12 @@ const DEFAULT_PIE_CHART_OPTIONS = {
   width: 640,
   height: 360,
   margin: {
-    left: 10,
-    top: 10,
-    right: 10,
-    bottom: 10,
+    left: 8,
+    top: 8,
+    right: 8,
+    bottom: 8,
   },
-  radius: 100,
+  radius: 128,
   label: "",
   labelOffset: 0.5,
   decimals: 2,
@@ -80,7 +80,7 @@ const DEFAULT_PIE_CHART_OPTIONS = {
   convert: true,
   onclick: pieChartClickHandler,
   tooltip: pieChartTooltip,
-  tooltipOffset: { dx: 0, dy: -50 },
+  tooltipOffset: { dx: 16, dy: -64 },
 };
 
 function pieChartClickHandler(

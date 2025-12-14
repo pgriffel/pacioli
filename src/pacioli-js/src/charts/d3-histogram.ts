@@ -63,7 +63,7 @@ export interface HistogramOptions extends DefaultChartOptions {
 const DEFAULT_HISTOGRAM_OPTIONS: HistogramOptions = {
   width: 640,
   height: 360,
-  margin: { left: 40, top: 20, right: 20, bottom: 50 },
+  margin: { left: 48, top: 32, right: 16, bottom: 64 },
   label: "",
   zeros: false,
   convert: true,
@@ -72,7 +72,7 @@ const DEFAULT_HISTOGRAM_OPTIONS: HistogramOptions = {
   heuristic: "d3",
   onclick: histogramClickHanler,
   tooltip: histogramTooltip,
-  tooltipOffset: { dx: 0, dy: -50 },
+  tooltipOffset: { dx: 16, dy: -64 },
 };
 
 /**
@@ -294,8 +294,8 @@ function appendHistogram(
   xAxisElt
     .append("text")
     .attr("x", width)
-    .attr("y", 26)
-    .attr("dy", ".71em")
+    .attr("y", 24)
+    // .attr("dy", ".71em")
     .style("text-anchor", "end")
     .text(label + " [" + unit.toText() + "]");
 
@@ -321,8 +321,9 @@ function appendHistogram(
 
   yAxisElt
     .append("text")
-    .attr("x", -25)
-    .attr("dy", "-.71em")
+    .attr("x", -16)
+    .attr("y", -16)
+    // .attr("dy", "-.71em")
     .style("text-anchor", "left")
     .text("Frequency");
 

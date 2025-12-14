@@ -270,8 +270,8 @@ function appendLineChart(
 
   yAxisElt
     .append("text")
-    .attr("x", 8)
-    .attr("y", -8)
+    .attr("x", -16)
+    .attr("y", -16)
     .style("text-anchor", "begin")
     .text((_) => options.ylabel + " [" + data.xUnit.toText() + "]");
 

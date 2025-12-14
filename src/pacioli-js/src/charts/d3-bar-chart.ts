@@ -107,7 +107,7 @@ export interface BarChartOptions extends DefaultChartOptions {
 const DEFAULT_BAR_CHART_OPTIONS = {
   width: 640,
   height: 360,
-  margin: { left: 10, top: 10, right: 10, bottom: 10 },
+  margin: { left: 48, top: 32, right: 16, bottom: 64 },
   label: "",
   zeros: true,
   convert: true,
@@ -115,7 +115,7 @@ const DEFAULT_BAR_CHART_OPTIONS = {
   padding: 0.05,
   onclick: barChartClickHandler,
   tooltip: barChartTooltip,
-  tooltipOffset: { dx: 0, dy: -50 },
+  tooltipOffset: { dx: 16, dy: -64 },
 };
 
 function barChartClickHandler(
@@ -199,10 +199,10 @@ export class BarChart {
       if (input !== null) {
         // Create a margin object following the D3 convention
         var margin = {
-          left: 40 + this.options.margin.left,
-          top: 20 + this.options.margin.top,
-          right: 10 + this.options.margin.right,
-          bottom: 50 + this.options.margin.bottom,
+          left: 0 * 40 + this.options.margin.left,
+          top: 0 * 20 + this.options.margin.top,
+          right: 0 * 10 + this.options.margin.right,
+          bottom: 0 * 50 + this.options.margin.bottom,
         };
 
         var width = this.options.width - margin.left - margin.right;
@@ -356,7 +356,9 @@ function appendBarChart(
   const yUnitText = data.unit.toText();
   yAxisElt
     .append("text")
-    .attr("dx", "0.5em")
+    .attr("x", -16)
+    .attr("y", -16)
+    // .attr("dx", "0.5em")
     .style("text-anchor", "start")
     .text(options.label + (yUnitText === "1" ? "" : " [" + yUnitText + "]"));
 }

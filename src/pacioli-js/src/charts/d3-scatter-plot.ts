@@ -73,7 +73,7 @@ export interface ScatterPlotOptions extends DefaultChartOptions {
 const DEFAULT_SCATTER_PLOT_OPTIONS = {
   width: 640,
   height: 360,
-  margin: { left: 40, top: 32, right: 24, bottom: 48 },
+  margin: { left: 48, top: 32, right: 24, bottom: 48 },
   xlabel: "x",
   ylabel: "y",
   radius: 5,
@@ -254,8 +254,8 @@ function appendScatterPlot(
   xAxisElt
     .append("text")
     .attr("x", width)
-    .attr("y", 26)
-    .attr("dy", ".71em")
+    .attr("y", 32)
+    // .attr("dy", ".71em")
     .style("text-anchor", "end")
     .text(labelX + " [" + unitX.toText() + "] (n=" + values.length + ")");
 
@@ -270,9 +270,9 @@ function appendScatterPlot(
 
   yAxisGroup
     .append("text")
-    .attr("x", 8)
-    .attr("y", -8)
-    .attr("dy", "-.71em")
+    .attr("x", -16)
+    .attr("y", -16)
+    // .attr("dy", "-.71em")
     //.style("text-anchor", "centers")
     .text(labelY + " [" + unitY.toText() + "]");
 
