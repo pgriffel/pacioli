@@ -20,11 +20,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOM } from "uom-ts";
+import { SIUnit } from "uom-ts";
 import { LineChart, LineChartOptions } from "../../charts/d3-line-chart";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { dataUnit } from "../../charts/chart-utils";
 import { optionsFromAttributes } from "../utils";
 import { parseUnit } from "../../api";
 
@@ -150,12 +149,6 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
       // Compute the data using the new parameter values
       const data = this.fetchData();
 
-      // If no unit is known, then derive it from the data. Set it before it
-      // is used in the chartOptions call below.
-      if (this.unit === undefined) {
-        this.unit = dataUnit(data);
-      }
-
       // Refresh the chart
       this.clearContent();
       this.chart = new LineChart(
@@ -176,7 +169,7 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    */
   chartOptions(): Partial<LineChartOptions> {
     return {
-      yunit: this.unit || UOM.ONE,
+      yunit: this.unit, // TODO
       ...optionsFromAttributes<LineChartOptions>(this, SUPPORTED_ATTRIBUTES),
     };
   }

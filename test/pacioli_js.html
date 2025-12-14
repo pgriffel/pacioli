@@ -59,11 +59,20 @@
 
 
     <h2>Pie Chart</h2>
+
+    <p>
+        Test of the pacioli-pie-chart web component with (label, number) tuples
+    <p>
+        <pacioli-pie-chart script="web_components" definition="get_population_with_labels" unit="giga:people"
+            labelOffset="500">
+        </pacioli-pie-chart>
+
     <p>
         Test of the pacioli-pie-chart web component
     <p>
         <pacioli-pie-chart script="web_components" definition="get_population" unit="giga:people" labelOffset="500">
         </pacioli-pie-chart>
+
 
 
 
@@ -76,6 +85,10 @@
     <p>
         <pacioli-bar-chart script="web_components" definition="land_area" label="Bart chart test" unit="mega:metre^2"
             Aymin="-100000" , Aymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
+
+    <p> with tuples
+        <pacioli-bar-chart script="web_components" definition="get_population_with_labels" label="Bart chart test"
+            unit="mega:people" Aymin="-100000" , Aymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
 
 
     <p>
@@ -255,6 +268,17 @@
     </div>
 
 
+    <h2>Labels</h2>
+    <p>
+        Test of labels
+    <p>
+
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="labels_scene" script="web_components" definition="labels_scene"
+            perspective grid axis unit="metre">
+        </pacioli-scene>
+        <pacioli-controls for="labels_scene"></pacioli-controls>
+    </div>
 
     <h2>Todo</h2>
     <ul>

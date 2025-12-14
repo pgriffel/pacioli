@@ -45,7 +45,10 @@ export class WordCloud {
     },
   };
 
-  constructor(public data: [string, number][], options: WordCloudOptions) {
+  constructor(
+    public data: [string, number][],
+    options: Partial<WordCloudOptions>
+  ) {
     this.options = { ...this.defaultOptions, ...options };
   }
 

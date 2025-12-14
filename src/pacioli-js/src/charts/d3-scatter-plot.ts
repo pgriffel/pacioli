@@ -23,7 +23,8 @@
 import * as d3 from "d3";
 import { DimNum } from "uom-ts";
 import { PacioliValue } from "../boxing";
-import { displayChartError, PairList, pairListToJs } from "./chart-utils";
+import { displayChartError } from "./chart-utils";
+import { LinearChartData, linearChartData } from "./chart-data";
 import { PacioliContext } from "./../context";
 import { PacioliCoordinates } from "../values/coordinates";
 import { SIUnit } from "uom-ts";
@@ -33,9 +34,6 @@ import { DefaultChartOptions, ToolTip } from "./chart-utils";
  * Options for Pacioli's ScatterPlot.
  */
 export interface ScatterPlotOptions extends DefaultChartOptions {
-  width: number;
-  height: number;
-  margin: { left: number; top: number; right: number; bottom: number };
   xunit?: SIUnit;
   yunit?: SIUnit;
   convert?: boolean;
@@ -112,7 +110,7 @@ export class ScatterPlot {
   public draw(parent: HTMLElement) {
     try {
       // Determine the data
-      var data = pairListToJs(
+      var data = linearChartData(
         this.context,
         this.data,
         this.options.convert ? this.options.xunit : undefined,
@@ -206,7 +204,7 @@ function scatterPlotClickHandler(input: {
  */
 function appendScatterPlot(
   group: d3.Selection<SVGGElement, unknown, null, undefined>,
-  data: PairList,
+  data: LinearChartData,
   width: number,
   height: number,
   options: ScatterPlotOptions

@@ -24,12 +24,8 @@ import * as d3 from "d3";
 import { DimNum, SIUnit } from "uom-ts";
 import { PacioliValue } from "../boxing";
 import { PacioliContext } from "../context";
-import {
-  dataUnit,
-  DefaultChartOptions,
-  displayChartError,
-  transformData,
-} from "./chart-utils";
+import { DefaultChartOptions, displayChartError } from "./chart-utils";
+import { BandChartData, bandChartData } from "./chart-data";
 import { ToolTip } from "./chart-utils";
 
 /**
@@ -71,13 +67,13 @@ export interface BarChartOptions extends DefaultChartOptions {
   /**
    * Distance between the bars. See d3 band.
    */
-  padding?: number;
+  padding: number;
 
   /**
    * Callback for mouse clicks. Parameter number is the value of the clicked
    * bar and label is the name of the index set element of the clicked bar.
    */
-  onclick?: (number: DimNum, label: string) => void;
+  onclick?: (number: DimNum, label: string, options: BarChartOptions) => void;
 
   /**
    * Callback for tooltips. Parameter number is the value of the clicked bar and
@@ -90,17 +86,51 @@ export interface BarChartOptions extends DefaultChartOptions {
    *
    * Set the tooltip option to undefined to disable the default tooltip.
    */
-  tooltip?: (number: DimNum, label: string) => string;
+  tooltip?: (number: DimNum, label: string, options: BarChartOptions) => string;
 
   /**
    * Offset of the tooltip from the mouse position
    */
-  tooltipOffset?: { dx: number; dy: number };
+  tooltipOffset: { dx: number; dy: number };
 
   /**
    * Are zero entries shown? Default is true.
    */
-  zeros?: boolean;
+  zeros: boolean;
+}
+
+const DEFAULT_BAR_CHART_OPTIONS = {
+  width: 640,
+  height: 360,
+  margin: { left: 10, top: 10, right: 10, bottom: 10 },
+  label: "",
+  zeros: true,
+  convert: true,
+  decimals: 2,
+  padding: 0.05,
+  onclick: barChartClickHandler,
+  tooltip: barChartTooltip,
+  tooltipOffset: { dx: 0, dy: -50 },
+};
+
+function barChartClickHandler(
+  number: DimNum,
+  label: string,
+  options: BarChartOptions
+) {
+  alert(
+    `${options.label}: value for ${label} is ${number.toFixed(
+      options.decimals
+    )}`
+  );
+}
+
+function barChartTooltip(
+  number: DimNum,
+  label: string,
+  options: BarChartOptions
+) {
+  return `${label}: ${number.toFixed(options.decimals)}`;
 }
 
 /**
@@ -118,58 +148,14 @@ export class BarChart {
   /**
    * Declaration of all BarChart options. They are set in the constructor.
    */
-  options: {
-    width: number;
-    height: number;
-    margin: { left: number; top: number; right: number; bottom: number };
-    unit?: SIUnit;
-    convert: boolean;
-    ymin?: number;
-    ymax?: number;
-    label: string;
-    zeros: boolean;
-    decimals: number;
-    padding: number;
-    onclick?: (number: DimNum, label: string) => void;
-    tooltip?: (number: DimNum, label: string) => string;
-    tooltipOffset: { dx: number; dy: number };
-  };
-
-  /**
-   * Default options for the BarChart
-   */
-  readonly defaultOptions = {
-    width: 640,
-    height: 360,
-    margin: { left: 10, top: 10, right: 10, bottom: 10 },
-    label: "",
-    zeros: true,
-    convert: true,
-    decimals: 2,
-    padding: 0.05,
-    onclick: this.defaultClickHandler.bind(this),
-    tooltip: this.defaultTooltip.bind(this),
-    tooltipOffset: { dx: 0, dy: -50 },
-  };
-
-  defaultClickHandler(number: DimNum, label: string) {
-    alert(
-      `${this.options.label}: value for ${label} is ${number.toFixed(
-        this.options.decimals
-      )}`
-    );
-  }
-
-  defaultTooltip(number: DimNum, label: string) {
-    return `${label}: ${number.toFixed(this.options.decimals)}`;
-  }
+  options: BarChartOptions;
 
   constructor(
     public data: PacioliValue,
     private context: PacioliContext,
-    options: BarChartOptions
+    options: Partial<BarChartOptions>
   ) {
-    this.options = { ...this.defaultOptions, ...options };
+    this.options = { ...DEFAULT_BAR_CHART_OPTIONS, ...options };
   }
 
   /**
@@ -185,43 +171,12 @@ export class BarChart {
   public draw(parent: HTMLElement): void {
     try {
       // Transform the data to a usable format
-      var unit = this.options.unit || dataUnit(this.data);
-      var input = transformData(
+      var input = bandChartData(
         this.context,
         this.data,
-        unit,
         this.options.zeros,
-        this.options.convert
+        this.options.unit
       );
-
-      // Convert the Pacioli vector to an array with labels (x
-      // dimension) and numbers (y dimension)
-      var data: { number: number; label: string }[] = [];
-      for (var i = 0; i < input.values.length; i++) {
-        data.push({
-          number: input.values[i],
-          label: input.labels[i],
-        });
-      }
-
-      // Determine the min and max data values. Cannot be undefined because data is not empty.
-      var yMin = Math.min(
-        0,
-        this.options.ymin ||
-          (d3.min(data, function (d) {
-            return d.number;
-          }) as number)
-      );
-      var yMax = Math.max(
-        0,
-        this.options.ymax ||
-          (d3.max(data, function (d) {
-            return d.number;
-          }) as number)
-      );
-
-      // todo: show this text on x axis
-      // var xSet = input.label // "shape.rowName()" //vector.shape.rowSets.map(function (x) {return x.name})
 
       // Make the parent node empty
       while (parent.firstChild) {
@@ -243,21 +198,9 @@ export class BarChart {
         right: 10 + this.options.margin.right,
         bottom: 50 + this.options.margin.bottom,
       };
+
       var width = this.options.width - margin.left - margin.right;
       var height = this.options.height - margin.top - margin.bottom;
-
-      // Create the x and y scales
-      var x = d3.scaleBand();
-      x.rangeRound([0, width])
-        .padding(this.options.padding)
-        .domain(
-          data.map(function (d) {
-            return d.label;
-          })
-        );
-
-      var y = d3.scaleLinear();
-      y.range([height, 0]).domain([yMin, yMax]);
 
       // Add an inner group according to the margins
       var inner = svg.append("g");
@@ -266,80 +209,7 @@ export class BarChart {
         "translate(" + margin.left + "," + margin.top + ")"
       );
 
-      // Create an x and y axis for the inner group
-      var xAxis = d3.axisBottom(x);
-
-      var yAxis = d3.axisLeft(y);
-      yAxis.ticks(5);
-
-      // Add the x axis to the inner group
-      inner
-        .append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + height + ")")
-        .call(xAxis)
-        .selectAll("text")
-        .style("text-anchor", "end")
-        .attr("dx", "-.8em")
-        .attr("dy", ".15em")
-        .attr("transform", function (_) {
-          return "rotate(-65)";
-        });
-
-      // Add the y axis to the inner group
-      const yAxisElt = inner.append("g").attr("class", "y axis");
-
-      yAxisElt.append("g").call(yAxis);
-
-      // Create a tooltip with a unqiue css class name for bar charts
-      const tooltip = new ToolTip("pacioli tooltip bar-chart");
-
-      // Add the bars to the inner group
-      inner
-        .selectAll(".bar")
-        .data(data)
-        .enter()
-        .append("rect")
-        .attr("class", "bar")
-        .attr("x", (d) => {
-          return x(d.label)!;
-        })
-        .attr("width", x.bandwidth)
-        .attr("y", (d) => {
-          return Math.min(y(0), y(d.number));
-        })
-        .attr("height", (d) => {
-          return Math.abs(y(0) - y(d.number));
-        })
-        .on("click", (_, d) => {
-          if (this.options.onclick) {
-            tooltip.hide();
-            // Without the timeout the display: none does not have an effect
-            setTimeout(() => {
-              this.options.onclick!(DimNum.fromNumber(d.number, unit), d.label);
-            }, 0);
-          }
-        })
-        .on("mouseover", (event, d) => {
-          if (this.options.tooltip) {
-            tooltip.show(
-              this.options.tooltip(DimNum.fromNumber(d.number, unit), d.label),
-              event.pageX + this.options.tooltipOffset.dx,
-              event.pageY + this.options.tooltipOffset.dy
-            );
-          }
-        })
-        .on("mouseout", () => tooltip.hide());
-
-      // Add the y axis label to the inner group
-      const yUnitText = unit.toText();
-      yAxisElt
-        .append("text")
-        .attr("dx", "0.5em")
-        .style("text-anchor", "start")
-        .text(
-          this.options.label + (yUnitText === "1" ? "" : " [" + yUnitText + "]")
-        );
+      appendBarChart(inner, input, width, height, this.options);
     } catch (err) {
       displayChartError(
         parent,
@@ -348,4 +218,133 @@ export class BarChart {
       );
     }
   }
+}
+
+/**
+ * Appends the chart to the parent element.
+ *
+ * Removes any other children of parent. There is no harm calling
+ * it multiple times.
+ *
+ * Catches any errors and displays them.
+ *
+ * @param parent The element to which the chart is appended
+ */
+function appendBarChart(
+  inner: d3.Selection<SVGGElement, unknown, null, undefined>,
+  data: BandChartData,
+  width: number,
+  height: number,
+  options: BarChartOptions
+): void {
+  // Determine the min and max data values. Cannot be undefined because data is not empty.
+  // TODO: why do data.min and data.max not work? Bars get shifted.
+  var yMin = Math.min(
+    0,
+    options.ymin ||
+      (d3.min(data.entries, function (d) {
+        return d.value;
+      }) as number)
+  );
+  var yMax = Math.max(
+    0,
+    options.ymax ||
+      (d3.max(data.entries, function (d) {
+        return d.value;
+      }) as number)
+  );
+
+  // Create the x and y scales
+  var x = d3.scaleBand();
+  x.rangeRound([0, width])
+    .padding(options.padding)
+    .domain(
+      data.entries.map(function (d) {
+        return d.label;
+      })
+    );
+
+  var y = d3.scaleLinear();
+  y.range([height, 0]).domain([yMin, yMax]); // related to above todo: why end at 0?
+
+  // Create an x and y axis for the inner group
+  var xAxis = d3.axisBottom(x);
+
+  var yAxis = d3.axisLeft(y);
+  yAxis.ticks(5);
+
+  // Add the x axis to the inner group
+  inner
+    .append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis)
+    .selectAll("text")
+    .style("text-anchor", "end")
+    .attr("dx", "-.8em")
+    .attr("dy", ".15em")
+    .attr("transform", function (_) {
+      return "rotate(-65)";
+    });
+
+  // Add the y axis to the inner group
+  const yAxisElt = inner.append("g").attr("class", "y axis");
+
+  yAxisElt.append("g").call(yAxis);
+
+  // Create a tooltip with a unqiue css class name for bar charts
+  const tooltip = new ToolTip("pacioli tooltip bar-chart");
+
+  // Add the bars to the inner group
+  inner
+    .selectAll(".bar")
+    .data(data.entries)
+    .enter()
+    .append("rect")
+    .attr("class", "bar")
+    .attr("x", (d) => {
+      return x(d.label)!;
+    })
+    .attr("width", x.bandwidth)
+    .attr("y", (d) => {
+      return Math.min(y(0), y(d.value)); // related to above todo: why min with 0?
+    })
+    .attr("height", (d) => {
+      return Math.abs(y(0) - y(d.value)); // idem
+    })
+    .on("click", (_, d) => {
+      if (options.onclick) {
+        tooltip.hide();
+        // Without the timeout the display: none does not have an effect
+        setTimeout(() => {
+          options.onclick!(
+            DimNum.fromNumber(d.value, data.unit),
+            d.label,
+            options
+          );
+        }, 0);
+      }
+    })
+    .on("mouseover", (event, d) => {
+      if (options.tooltip) {
+        tooltip.show(
+          options.tooltip(
+            DimNum.fromNumber(d.value, data.unit),
+            d.label,
+            options
+          ),
+          event.pageX + options.tooltipOffset.dx,
+          event.pageY + options.tooltipOffset.dy
+        );
+      }
+    })
+    .on("mouseout", () => tooltip.hide());
+
+  // Add the y axis label to the inner group
+  const yUnitText = data.unit.toText();
+  yAxisElt
+    .append("text")
+    .attr("dx", "0.5em")
+    .style("text-anchor", "start")
+    .text(options.label + (yUnitText === "1" ? "" : " [" + yUnitText + "]"));
 }

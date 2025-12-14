@@ -20,12 +20,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOM } from "uom-ts";
+import { SIUnit } from "uom-ts";
 import { PacioliContext } from "../../context";
 import { Histogram, HistogramOptions } from "../../charts/d3-histogram";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
-import { dataUnit } from "../../charts/chart-utils";
 import { PacioliValue } from "../../boxing";
 import { parseUnit } from "../../api";
 
@@ -125,12 +124,6 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
       // Compute the data using the new parameter values
       this.data = this.fetchData();
 
-      // If no unit is known, then derive it from the data. Set it before it
-      // is used in the updateChart call below.
-      if (this.unit === undefined) {
-        this.unit = dataUnit(this.data);
-      }
-
       // Refresh the chart
       this.updateChart(this.data);
     } catch (err: any) {
@@ -145,7 +138,7 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
    */
   chartOptions(): Partial<HistogramOptions> {
     return {
-      unit: this.unit || UOM.ONE,
+      unit: this.unit,
       ...optionsFromScript<HistogramOptions>(this, SUPPORTED_ATTRIBUTES),
       ...optionsFromAttributes<HistogramOptions>(this, SUPPORTED_ATTRIBUTES),
     };

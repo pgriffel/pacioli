@@ -20,11 +20,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOM } from "uom-ts";
+import { SIUnit } from "uom-ts";
 import { PieChart, PieChartOptions } from "../../charts/d3-pie-chart";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { dataUnit } from "../../charts/chart-utils";
 import { optionsFromAttributes } from "../utils";
 import { parseUnit } from "../../api";
 
@@ -93,12 +92,6 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
       // Compute the data using the new parameter values
       const data = this.fetchData();
 
-      // If no unit is known, then derive it from the data. Set it before it
-      // is used in the chartOptions call below.
-      if (this.unit === undefined) {
-        this.unit = dataUnit(data);
-      }
-
       // Refresh the chart
       this.clearContent();
       this.chart = new PieChart(data, PacioliContext.si(), this.chartOptions());
@@ -115,7 +108,7 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
    */
   chartOptions(): Partial<PieChartOptions> {
     return {
-      unit: this.unit || UOM.ONE,
+      unit: this.unit,
       ...optionsFromAttributes<PieChartOptions>(this, SUPPORTED_ATTRIBUTES),
     };
   }

@@ -22,13 +22,8 @@
 
 import * as d3 from "d3";
 import { PacioliValue } from "../boxing";
-import {
-  DefaultChartOptions,
-  displayChartError,
-  PairList,
-  pairListToJs,
-  ToolTip,
-} from "./chart-utils";
+import { DefaultChartOptions, displayChartError, ToolTip } from "./chart-utils";
+import { LinearChartData, linearChartData } from "./chart-data";
 import { PacioliContext } from "./../context";
 import { DimNum, SIUnit } from "uom-ts";
 
@@ -36,9 +31,6 @@ import { DimNum, SIUnit } from "uom-ts";
  * Options for the Pacioli line chart
  */
 export interface LineChartOptions extends DefaultChartOptions {
-  width: number;
-  height: number;
-  margin: { left: number; top: number; right: number; bottom: number };
   decimals?: number;
   xunit?: SIUnit;
   yunit?: SIUnit;
@@ -68,8 +60,8 @@ const DEFAULT_LINE_CHART_OPTIONS = {
   margin: { left: 64, top: 32, right: 16, bottom: 40 },
   xlabel: "x",
   ylabel: "y",
-  xticks: 5,
-  yticks: 5,
+  // xticks: 5,
+  // yticks: 5,
   rotate: false,
   smooth: false,
   zeros: true,
@@ -104,7 +96,7 @@ export class LineChart {
   public draw(parent: HTMLElement) {
     try {
       // Transform the data to a usable format
-      var data = pairListToJs(
+      var data = linearChartData(
         this.context,
         this.data,
         this.options.convert ? this.options.xunit : undefined,
@@ -201,7 +193,7 @@ function lineChartTooltip(
  */
 function appendLineChart(
   group: d3.Selection<d3.BaseType, unknown, null, undefined>,
-  data: PairList,
+  data: LinearChartData,
   w: number,
   h: number,
   options: LineChartOptions

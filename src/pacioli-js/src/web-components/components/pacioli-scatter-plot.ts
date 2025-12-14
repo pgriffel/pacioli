@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOM } from "uom-ts";
+import { SIUnit } from "uom-ts";
 import { ScatterPlot, ScatterPlotOptions } from "../../charts/d3-scatter-plot";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
@@ -120,28 +120,9 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
       // Compute the data using the new parameter values
       const data = this.fetchData();
 
-      // // Extract the x and y values
-      // if (data.kind !== "tuple") {
-      //   throw Error("data must be a pair");
-      // }
-      // const tuple = data as unknown as PacioliValue[];
-      // const xdata = tuple[0];
-      // const ydata = tuple[1];
-
-      // // Derive unknown units from the data. Set them before they
-      // // are used in the chartOptions call below.
-      // if (this.xunit === undefined) {
-      //   this.xunit = dataUnit(xdata);
-      // }
-      // if (this.yunit === undefined) {
-      //   this.yunit = dataUnit(ydata);
-      // }
-
       // Refresh the chart
       this.clearContent();
       this.chart = new ScatterPlot(
-        // xdata,
-        // ydata,
         data,
         PacioliContext.si(),
         this.chartOptions()
@@ -159,8 +140,8 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
    */
   chartOptions(): Partial<ScatterPlotOptions> {
     return {
-      xunit: this.xunit || UOM.ONE,
-      yunit: this.yunit || UOM.ONE,
+      xunit: this.xunit,
+      yunit: this.yunit,
       ...optionsFromAttributes<ScatterPlotOptions>(this, SUPPORTED_ATTRIBUTES),
     };
   }
