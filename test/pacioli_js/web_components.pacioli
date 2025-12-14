@@ -170,8 +170,18 @@ define test_columns() =
 defconv c1 :: mega:metre/kilo:metre;
 defconv c2 :: mega:people/people;
 
-define get_population_with_labels() = 
+define get_population_with_coords() = 
     [ tuple(r, get(population, r, _)) | r <- row_domain(population)];
+
+define population_pairs = [
+    tuple("Asia", 4694576167 * |people|),
+    tuple("Africa" , 1393676444 * |people|),
+    tuple("North America" , 595783465 * |people|),
+    tuple("South America" , 434254119 * |people|),
+    tuple("Antarctica" , 0 * |people|),
+    tuple("Europe" , 745173774 * |people|),
+    tuple("Oceania" , 44491724 * |people|)
+];
 
 # ------------------------------------------------------------------------------
 # Cubes I - My nice scene!

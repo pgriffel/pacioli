@@ -61,10 +61,16 @@
     <h2>Pie Chart</h2>
 
     <p>
+        Test of the pacioli-pie-chart web component with (coord, number) tuples
+    <p>
+        <pacioli-pie-chart script="web_components" definition="get_population_with_coords" unit="giga:people"
+            labelOffset="500">
+        </pacioli-pie-chart>
+
+    <p>
         Test of the pacioli-pie-chart web component with (label, number) tuples
     <p>
-        <pacioli-pie-chart script="web_components" definition="get_population_with_labels" unit="giga:people"
-            labelOffset="500">
+        <pacioli-pie-chart script="web_components" definition="population_pairs" unit="giga:people" labelOffset="500">
         </pacioli-pie-chart>
 
     <p>
@@ -87,7 +93,7 @@
             Aymin="-100000" , Aymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
 
     <p> with tuples
-        <pacioli-bar-chart script="web_components" definition="get_population_with_labels" label="Bart chart test"
+        <pacioli-bar-chart script="web_components" definition="get_population_with_coords" label="Bart chart test"
             unit="mega:people" Aymin="-100000" , Aymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
 
 
