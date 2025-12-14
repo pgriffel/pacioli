@@ -23,7 +23,11 @@
 import * as d3 from "d3";
 import { DimNum } from "uom-ts";
 import { PacioliValue } from "../boxing";
-import { displayChartError } from "./chart-utils";
+import {
+  appendChartCaption,
+  appendEmptyChartMessage,
+  displayChartError,
+} from "./chart-utils";
 import { LinearChartData, linearChartData } from "./chart-data";
 import { PacioliContext } from "./../context";
 import { PacioliCoordinates } from "../values/coordinates";
@@ -135,16 +139,22 @@ export class ScatterPlot {
         .attr("height", height + margin.top + margin.bottom)
         .attr("class", "pacioli chart scatter-plot");
 
-      const group = svg
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
       // Append the scatterplot
       if (data !== null) {
+        const group = svg
+          .append("g")
+          .attr(
+            "transform",
+            "translate(" + margin.left + "," + margin.top + ")"
+          );
+
         appendScatterPlot(group, data, width, height, this.options);
       } else {
-        // TODO: display empty chart
+        appendEmptyChartMessage(svg, "No data", this.options);
       }
+
+      // Add the caption above all other elements
+      appendChartCaption(svg, this.options);
     } catch (err) {
       displayChartError(
         parent,

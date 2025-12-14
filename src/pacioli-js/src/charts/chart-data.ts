@@ -184,7 +184,7 @@ export function bandChartData(
   data: PacioliValue,
   includeZeros: boolean,
   unit?: SIUnit
-): BandChartData {
+): BandChartData | null {
   const convert = unit
     ? (x: PacioliMatrix) => x.convertUnit(unit, context.unitContext)
     : (x: PacioliMatrix) => x;
@@ -355,10 +355,14 @@ export function bandChartDataFromList(
   items: PacioliValue[],
   includeZeros: boolean,
   conv: (x: PacioliMatrix) => PacioliMatrix
-): BandChartData {
+): BandChartData | null {
   let values: BandChartEntry[] = [];
   let min;
   let max;
+
+  if (items.length === 0) {
+    return null;
+  }
 
   const content = items[0];
 
@@ -419,7 +423,7 @@ export function bandChartDataFromList(
 export function bandChartDataFromVector(
   data: PacioliMatrix,
   includeZeros: boolean
-): BandChartData {
+): BandChartData | null {
   const numbers = data.numbers;
   const shape = data.shape;
   const n = data.shape.nrRows();

@@ -24,7 +24,12 @@ import * as d3 from "d3";
 import { DimNum, SIUnit } from "uom-ts";
 import { PacioliValue } from "../boxing";
 import { PacioliContext } from "../context";
-import { DefaultChartOptions, displayChartError } from "./chart-utils";
+import {
+  appendChartCaption,
+  appendEmptyChartMessage,
+  DefaultChartOptions,
+  displayChartError,
+} from "./chart-utils";
 import { BandChartData, bandChartData } from "./chart-data";
 import { ToolTip } from "./chart-utils";
 
@@ -191,25 +196,32 @@ export class BarChart {
         .attr("height", this.options.height)
         .attr("class", "pacioli chart bar-chart");
 
-      // Create a margin object following the D3 convention
-      var margin = {
-        left: 40 + this.options.margin.left,
-        top: 20 + this.options.margin.top,
-        right: 10 + this.options.margin.right,
-        bottom: 50 + this.options.margin.bottom,
-      };
+      if (input !== null) {
+        // Create a margin object following the D3 convention
+        var margin = {
+          left: 40 + this.options.margin.left,
+          top: 20 + this.options.margin.top,
+          right: 10 + this.options.margin.right,
+          bottom: 50 + this.options.margin.bottom,
+        };
 
-      var width = this.options.width - margin.left - margin.right;
-      var height = this.options.height - margin.top - margin.bottom;
+        var width = this.options.width - margin.left - margin.right;
+        var height = this.options.height - margin.top - margin.bottom;
 
-      // Add an inner group according to the margins
-      var inner = svg.append("g");
-      inner.attr(
-        "transform",
-        "translate(" + margin.left + "," + margin.top + ")"
-      );
+        // Add an inner group according to the margins
+        var inner = svg.append("g");
+        inner.attr(
+          "transform",
+          "translate(" + margin.left + "," + margin.top + ")"
+        );
 
-      appendBarChart(inner, input, width, height, this.options);
+        appendBarChart(inner, input, width, height, this.options);
+      } else {
+        appendEmptyChartMessage(svg, "No data", this.options);
+      }
+
+      // Add the caption above all other elements
+      appendChartCaption(svg, this.options);
     } catch (err) {
       displayChartError(
         parent,

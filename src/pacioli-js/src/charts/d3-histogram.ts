@@ -20,7 +20,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { DefaultChartOptions, ToolTip } from "./chart-utils";
+import {
+  appendChartCaption,
+  appendEmptyChartMessage,
+  DefaultChartOptions,
+  ToolTip,
+} from "./chart-utils";
 import { DimNum, SIUnit } from "uom-ts";
 import { PacioliValue } from "../boxing";
 import { PacioliContext } from "../context";
@@ -115,42 +120,6 @@ export class Histogram {
       var width = this.options.width - margin.left - margin.right;
       var height = this.options.height - margin.top - margin.bottom;
 
-      // Check the existence of options for the bin calculation.
-      const hasLower = typeof this.options.lower === "number";
-      const hasUpper = typeof this.options.upper === "number";
-      const hasBins = typeof this.options.bins === "number";
-
-      // Determine the value bounds. The effective bounds are not necessarily
-      // the data bounds. If no bounds are given then the data bounds are rounded
-      // to give nicer bins.
-      const lower = hasLower
-        ? (this.options.lower as number)
-        : Math.floor(data.min);
-      const upper = hasUpper
-        ? (this.options.upper as number)
-        : Math.floor(data.max) + 1;
-
-      let nrBins = hasBins
-        ? (this.options.bins as number)
-        : binSize(data.entries, lower, upper, this.options.heuristic);
-
-      if (nrBins <= 0) {
-        throw Error(`number of bins ${nrBins} must be a positive number`);
-      }
-
-      if (upper < lower) {
-        throw Error(
-          `upper limit ${upper} must at least as large as the lower limit ${upper}`
-        );
-      }
-
-      // Store the params for the methods below
-      this.params = {
-        lower,
-        upper,
-        nrBins,
-      };
-
       // Make the parent node empty
       while (parent.firstChild) {
         parent.removeChild(parent.firstChild);
@@ -164,19 +133,65 @@ export class Histogram {
         .attr("height", height + margin.top + margin.bottom)
         .attr("class", "pacioli chart histogram");
 
-      const group = svg
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      if (data !== null) {
+        const group = svg
+          .append("g")
+          .attr(
+            "transform",
+            "translate(" + margin.left + "," + margin.top + ")"
+          );
 
-      appendHistogram(
-        group,
-        data,
-        lower,
-        upper,
-        nrBins,
-        data.unit,
-        this.options
-      );
+        // Check the existence of options for the bin calculation.
+        const hasLower = typeof this.options.lower === "number";
+        const hasUpper = typeof this.options.upper === "number";
+        const hasBins = typeof this.options.bins === "number";
+
+        // Determine the value bounds. The effective bounds are not necessarily
+        // the data bounds. If no bounds are given then the data bounds are rounded
+        // to give nicer bins.
+        const lower = hasLower
+          ? (this.options.lower as number)
+          : Math.floor(data.min);
+        const upper = hasUpper
+          ? (this.options.upper as number)
+          : Math.floor(data.max) + 1;
+
+        let nrBins = hasBins
+          ? (this.options.bins as number)
+          : binSize(data.entries, lower, upper, this.options.heuristic);
+
+        if (nrBins <= 0) {
+          throw Error(`number of bins ${nrBins} must be a positive number`);
+        }
+
+        if (upper < lower) {
+          throw Error(
+            `upper limit ${upper} must at least as large as the lower limit ${upper}`
+          );
+        }
+
+        // Store the params for the methods below
+        this.params = {
+          lower,
+          upper,
+          nrBins,
+        };
+
+        appendHistogram(
+          group,
+          data,
+          lower,
+          upper,
+          nrBins,
+          data.unit,
+          this.options
+        );
+      } else {
+        appendEmptyChartMessage(svg, "No data", this.options);
+      }
+
+      // Add the caption above all other elements
+      appendChartCaption(svg, this.options);
     } catch (err) {
       displayChartError(
         parent,

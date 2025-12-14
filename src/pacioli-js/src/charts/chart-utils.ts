@@ -112,3 +112,75 @@ export class ToolTip {
     tt.style("display", "none");
   }
 }
+
+/**
+ * Appends the message as text in the middle of the chart.
+ *
+ * @param svg The parent to attach the text to
+ * @param message The message text
+ * @param options The chart options
+ */
+export function appendEmptyChartMessage(
+  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+  message: string,
+  options: DefaultChartOptions
+) {
+  var m = options.margin;
+  var w = options.width - m.left - m.right;
+  var h = options.height - m.top - m.bottom;
+
+  // // Add an outline. Double the stroke width because halve
+  // // of it is clipped.
+  // svg
+  //   .append("rect")
+  //   .attr("x", 0)
+  //   .attr("y", 0)
+  //   .attr("width", options.width)
+  //   .attr("height", options.height)
+  //   .attr("fill", "none")
+  //   .attr("stroke", "#f0f0f0")
+  //   .attr("stroke-width", "2px");
+
+  // Add a rectangle where the chart would go
+  svg
+    .append("rect")
+    .attr("x", options.margin.left)
+    .attr("y", options.margin.top)
+    .attr("width", w)
+    .attr("height", h)
+    .attr("fill", "#fafafa");
+
+  // Add the message in the middle of the rectangle
+  svg
+    .append("text")
+    .attr("x", options.width / 2)
+    .attr("y", options.height / 2)
+    .style("text-anchor", "middle")
+    .text(message);
+}
+
+/**
+ * Appends the caption as text in the top middle of the chart.
+ *
+ * If no caption is provided the caption from the options is used.
+ *
+ * @param svg
+ * @param options
+ * @param caption
+ */
+export function appendChartCaption(
+  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+  options: DefaultChartOptions,
+  caption?: string
+) {
+  const text = caption || options.caption;
+
+  if (text) {
+    svg
+      .append("text")
+      .attr("x", options.width / 2)
+      .attr("y", 16)
+      .style("text-anchor", "middle")
+      .text(text);
+  }
+}

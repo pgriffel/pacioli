@@ -31,7 +31,7 @@ import { parseUnit } from "../../api";
  * Attribues supported by the bar chart component
  */
 const SUPPORTED_ATTRIBUTES = {
-  strings: ["label"],
+  strings: ["caption", "label"],
   booleans: [],
   numbers: ["width", "height", "ymin", "ymax", "decimals", "padding"],
 };

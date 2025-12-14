@@ -22,7 +22,13 @@
 
 import * as d3 from "d3";
 import { PacioliValue } from "../boxing";
-import { DefaultChartOptions, displayChartError, ToolTip } from "./chart-utils";
+import {
+  appendChartCaption,
+  appendEmptyChartMessage,
+  DefaultChartOptions,
+  displayChartError,
+  ToolTip,
+} from "./chart-utils";
 import { LinearChartData, linearChartData } from "./chart-data";
 import { PacioliContext } from "./../context";
 import { DimNum, SIUnit } from "uom-ts";
@@ -116,24 +122,26 @@ export class LineChart {
       // Add an SVG element with the desired dimensions and margin.
       const svg = d3
         .select(parent)
-        .append("svg:svg")
+        .append("svg")
         .attr("width", w + m.left + m.right)
         .attr("height", h + m.top + m.bottom)
         .attr("class", "pacioli chart line-chart");
 
-      // Add a group to allow attr's to apply to everything in the group
-      const group = svg
-        .append("svg:g")
-        .attr("width", w)
-        .attr("height", h)
-        .attr("transform", "translate(" + m.left + "," + m.top + ")");
-
       if (data !== null) {
-        // this.appendLineChart(group, data, w, h);
+        // Add a group to allow attr's to apply to everything in the group
+        const group = svg
+          .append("g")
+          .attr("width", w)
+          .attr("height", h)
+          .attr("transform", "translate(" + m.left + "," + m.top + ")");
+
         appendLineChart(group, data, w, h, this.options);
       } else {
-        // TODO: display empty chart (message)
+        appendEmptyChartMessage(svg, "No data", this.options);
       }
+
+      // Add the caption above all other elements
+      appendChartCaption(svg, this.options);
     } catch (err) {
       console.log(err);
       displayChartError(
@@ -192,7 +200,7 @@ function lineChartTooltip(
  * @param options
  */
 function appendLineChart(
-  group: d3.Selection<d3.BaseType, unknown, null, undefined>,
+  group: d3.Selection<SVGGElement, unknown, null, undefined>,
   data: LinearChartData,
   w: number,
   h: number,
@@ -280,7 +288,7 @@ function appendLineChart(
         return yScale(norm);
       });
     group
-      .append("svg:path")
+      .append("path")
       .attr("d", normline(data.values.map((entry, i) => [i, entry.y]))) // TODO: check this
       .attr("class", "")
       .attr("stroke", "green");

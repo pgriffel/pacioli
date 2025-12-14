@@ -24,7 +24,13 @@ import * as d3 from "d3";
 import { PieArcDatum } from "d3";
 import { PacioliValue } from "../boxing";
 import { PacioliContext } from "../context";
-import { DefaultChartOptions, displayChartError, ToolTip } from "./chart-utils";
+import {
+  appendChartCaption,
+  appendEmptyChartMessage,
+  DefaultChartOptions,
+  displayChartError,
+  ToolTip,
+} from "./chart-utils";
 import { BandChartData, bandChartData } from "./chart-data";
 import { DimNum, SIUnit } from "uom-ts";
 
@@ -141,9 +147,16 @@ export class PieChart {
         .attr("width", width)
         .attr("height", height);
 
-      const group = svg.append("g");
+      if (input !== null) {
+        const group = svg.append("g");
 
-      appendPieChart(group, input, this.options);
+        appendPieChart(group, input, this.options);
+      } else {
+        appendEmptyChartMessage(svg, "No data", this.options);
+      }
+
+      // Add the caption above all other elements
+      appendChartCaption(svg, this.options);
     } catch (err) {
       displayChartError(
         parent,

@@ -31,7 +31,7 @@ import { parseUnit } from "../../api";
  * Attribues supported by the histogram component
  */
 const SUPPORTED_ATTRIBUTES = {
-  strings: ["label", "xlabel"],
+  strings: ["caption", "label", "xlabel"],
   booleans: ["smooth", "rotate"],
   numbers: [
     "width",

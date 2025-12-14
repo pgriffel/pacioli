@@ -31,7 +31,7 @@ import { parseUnit } from "../../api";
  * Attribues supported by the scatter plot component
  */
 const SUPPORTED_ATTRIBUTES = {
-  strings: ["label"],
+  strings: ["label", "caption"],
   booleans: ["trendline"],
   numbers: ["width", "height", "xlower", "ylower", "radius", "decimals"],
 };
